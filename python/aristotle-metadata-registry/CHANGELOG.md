@@ -1,6 +1,10 @@
 Changelog
 
 - 2.0.x
+    - Major changes:
+      - Added Steward Organisations to Aristotle
+      - Workgroups, Registration Authorities and Organisations (now Organisation Records)
+        all exist within Submitting Organisations
     - Changed how root URL `aristotle.example.com/` resolves: for anonymous users it redirects to `aristotle.example.com/home`, for logged in users it redirects to `aristotle.example.com/account/home/`
     - Removed official support for Windows & MSSQL
     - Minor design of Metadata InfoBox when showing last updating user
