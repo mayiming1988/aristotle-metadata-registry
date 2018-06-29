@@ -4,6 +4,12 @@ Base settings necessary for running an Aristotle Instance in "the cloud (tm)"
 
 from aristotle_mdr.required_settings import *
 
+INSTALLED_APPS = [
+    "aristotle_dse",
+    "comet",
+    "mallard_qr",
+] + list(INSTALLED_APPS)
+
 ALLOWED_HOSTS = ["*"]
 DEBUG = False
 ARISTOTLE_SETTINGS['SITE_NAME'] = 'Aristotle Development Server'

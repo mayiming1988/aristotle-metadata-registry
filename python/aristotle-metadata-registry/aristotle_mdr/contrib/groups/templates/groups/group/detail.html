@@ -1,0 +1,34 @@
+{% extends "groups/base.html" %}
+{% load group_tags %}
+
+{% block content %}
+<h1>
+    {{object.name}}
+</h1>
+[ <a href="{%url view.manager.namespace|add:":update" object.slug %}">Edit</a> ]
+
+<div>
+    {{object.description}}
+</div>
+
+<h2>Members</h2>
+[ <a href="{%url view.manager.namespace|add:":member_list" object.slug %}">Edit</a> ]
+
+<ul>
+    {% for member in object.member_list.all %}
+    {% with member_user=member.user %}
+    <li>
+        <a href="./{{group.slug}}">{{ member_user.display_name }}</a>
+        <small>{{ member_user.censored_email }}</small>
+
+        {% user_has_role group=group user=user role="owner" as is_owner %}
+        
+        {% if is_owner %}
+        <small>Owner</small>
+        {% endif %}
+        
+    </li>
+    {% endwith %}
+    {% endfor %}
+</ul>
+{% endblock %}

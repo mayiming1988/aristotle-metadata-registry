@@ -71,6 +71,32 @@ VERY_RECENTLY_SECONDS = 15
 concept_visibility_updated = Signal(providing_args=["concept"])
 
 
+from aristotle_mdr.contrib.groups.base import (
+    AbstractGroup,
+    AbstractMembership,
+)
+
+
+class StewardOrganisation(AbstractGroup):
+    uuid = models.UUIDField(
+        unique=True, default=uuid.uuid1, editable=False, null=False
+    )
+    description = RichTextField(
+        _('definition'),
+        help_text=_("Representation of a concept by a descriptive statement "
+                    "which serves to differentiate it from related concepts. (3.2.39)")
+    )
+
+
+class StewardMembership(AbstractMembership):
+    roles = Choices(
+        ('owner', _('Owner')),
+        ('member', _('Member')),
+    )
+    group_class = StewardOrganisation
+    group_kwargs = {"to_field":"uuid"}
+
+
 class baseAristotleObject(TimeStampedModel):
     uuid = models.UUIDField(
         help_text=_("Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries"),
@@ -84,6 +110,7 @@ class baseAristotleObject(TimeStampedModel):
         help_text=_("Representation of a concept by a descriptive statement "
                     "which serves to differentiate it from related concepts. (3.2.39)")
     )
+    # steward_organisation = models.ForeignKey(StewardOrganisation, to_field="uuid")
     objects = MetadataItemManager()
 
     class Meta:

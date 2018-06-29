@@ -66,6 +66,51 @@ def move_slot_to_field(apps, schema_editor, field_name, maxlen=200):
         print('Reverse data migration could not be completed')
 
 
+class StewardMigration(migrations.Migration):
+    so_uuid = None
+    steward_pattern = "Default Steward for {name}"
+
+    @classmethod
+    def add_stewardship_org(cls, apps, schema_editor):
+        StewardOrganisation = apps.get_model('aristotle_mdr', 'StewardOrganisation')
+        StewardMembership = apps.get_model('aristotle_mdr', 'StewardMembership')
+        from django.conf import settings
+        name = cls.steward_pattern.format(name=settings.ARISTOTLE_SETTINGS['SITE_NAME'])
+        so, _ = StewardOrganisation.objects.get_or_create(name=name)
+        from django.contrib.auth import get_user_model
+        User = apps.get_model('aristotle_mdr_user_management', 'User')
+
+        print("\n=================")
+        print("Autocreating default Stewardship Organization .... \"%s\""%(so.name,))
+        print("All metadata will automatically be assigned to this Organization")
+        print("Update this name once all migrations are complete.")
+        print("-----------------")
+        for u in User.objects.all().order_by("-is_superuser"):
+            # We can't access methods during migrations so we manually create memberships
+            # Also migrations don't work well with the proxy "AUTH_USER", so we just add in the primary key
+            if u.is_superuser:
+                role = "owner"
+            else:
+                role = "member"
+            print("Granting [{user}] the role [{role}]".format(user=u.email, role=role))
+            StewardMembership.objects.get_or_create(group=so, user=u, role=role)
+        
+        print("=================")
+        return so.uuid
+
+    @classmethod
+    def get_uuid(cls):
+        return cls.so_uuid
+
+    @classmethod
+    def fetch_stewardship_org_uuid(cls, apps, schema_editor):
+        StewardOrganisation = apps.get_model('aristotle_mdr', 'StewardOrganisation')
+        from django.conf import settings
+        name = cls.steward_pattern.format(name=settings.ARISTOTLE_SETTINGS['SITE_NAME'])
+        so = StewardOrganisation.objects.get(name=name)
+        cls.so_uuid = so.uuid
+
+
 def create_uuid_objects(app_label, model_name, migrate_self=True):
     def inner(apps, schema_editor):
         from aristotle_mdr.models import UUID, baseAristotleObject

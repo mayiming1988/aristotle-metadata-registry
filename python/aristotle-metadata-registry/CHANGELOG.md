@@ -2,7 +2,8 @@ Changelog
 
 - 2.0.x
     - Major changes:
-      - Added Steward Organisations to Aristotle
+      - Added Steward Organisations to Aristotle - on migration a default organisation will be created.
+        All apps should be migrated across
       - Workgroups, Registration Authorities and Organisations (now Organisation Records)
         all exist within Submitting Organisations
     - Changed how root URL `aristotle.example.com/` resolves: for anonymous users it redirects to `aristotle.example.com/home`, for logged in users it redirects to `aristotle.example.com/account/home/`

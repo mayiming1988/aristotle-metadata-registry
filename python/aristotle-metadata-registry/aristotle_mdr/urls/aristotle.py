@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.conf.urls import url, include
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
 from django.urls import reverse_lazy
@@ -28,6 +28,8 @@ urlpatterns=[
     url(r'^robots.txt$', TemplateView.as_view(template_name='meta/robots.txt', content_type='text/plain')),
     url(r'^sitemap.xml$', views.sitemaps.main, name='sitemap_xml'),
     url(r'^sitemaps/sitemap_(?P<page>[0-9]+).xml$', views.sitemaps.page_range, name='sitemap_range_xml'),
+
+    url(r'^', include('aristotle_mdr.contrib.stewards.urls', namespace="stewards")),
 
     # all the below take on the same form:
     # url(r'^itemType/(?P<iid>\d+)?/?

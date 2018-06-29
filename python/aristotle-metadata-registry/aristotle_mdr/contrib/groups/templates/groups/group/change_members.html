@@ -1,0 +1,43 @@
+{% extends "groups/base.html" %}
+{% load group_tags %}
+
+{% block content %}
+<h1>
+    Editing members {{object.name}}
+</h1>
+
+        {{ object}}
+
+<table>
+    <thead>
+        <tr>
+            <th>Member</th>
+            <th>Roles</th>
+            <th>Remove</th>
+        </tr>
+    </thead>
+    <tbody>
+
+    
+
+    {% regroup object_list.all by user as member_list %}
+    {% for member in member_list %}
+    {% with member_user=member.user %}
+        <tr>
+            <td>
+                {{ member.grouper.display_name }}
+            </td>
+            <td>
+                <ul>
+                {% for membership in member.list %}
+                    <li>{{membership.role}}</li>
+                {% endfor %}
+                </ul>
+            </td>
+            
+        </tr>
+    {% endwith %}
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
