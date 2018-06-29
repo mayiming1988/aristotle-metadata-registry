@@ -149,9 +149,9 @@
                     <span class="no-notify" title="{% trans 'No unread notifications' %}"></span>
                     <span class="visible-xs-inline">{% trans 'No unread notifications' %}</span>
                     {% endif %}
-                    {% live_notify_badge badge_class="badge" %}
+                    {% live_notify_badge badge_class="badge notify-badge" %}
                 </a>
-                {% live_notify_list list_class="dropdown-menu" %}
+                {% live_notify_list list_class="dropdown-menu notify-menu" %}
             </li>
             <li>
                 <a id="header_menu_button_logout" href="{% url 'logout' %}?next={{request.path}}" title="{% trans 'Log out'%}">
@@ -165,6 +165,13 @@
                 <i class="fa fa-sign-in fa-lg"></i>  {% trans 'Log in'%}
             </a>
             </li>
+            {% if config.SELF_SIGNUP.enabled %}
+            <li>
+            <a id="header_menu_button_login" href="{% url 'aristotle-user:signup_register' %}">
+                <i class="fa fa-user-plus"></i>  {% trans 'Sign Up' %}
+            </a>
+            </li>
+            {% endif %}
         {% endif %}
         </ul>
     </div>
