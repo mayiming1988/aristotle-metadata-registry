@@ -1,0 +1,65 @@
+{% extends "groups/base.html" %}
+{% load group_tags i18n %}
+
+{% block content %}
+<h1>
+    Editing members {{object.name}}
+</h1>
+
+<div>
+{% if object.allows_multiple_roles %}
+    {% trans "This group allows members to have multiple roles" %}
+{% else %}
+    {% trans "This group allows members to a single roles" %}
+{% endif %}
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Member</th>
+            <th>
+                {% if object.allows_multiple_roles %}
+                    {% trans "Current Roles" %}
+                {% else %}
+                    {% trans "Current Role" %}
+                {% endif %}
+            </th>
+            <th>Change</th>
+        </tr>
+    </thead>
+    <tbody>
+
+    
+        {% regroup object_list.all by user as member_list %}
+        {% for member in member_list %}
+        {% with member_user=member.grouper %}
+        <tr>
+            <td>
+                {{ member.grouper.display_name }}
+                {% if member.grouper == request.user %}
+                    ({% trans "You" %})
+                {% endif %}
+            </td>
+            <td>
+                {% if object.allows_multiple_roles %}
+                    <ul>
+                    {% for membership in member.list %}
+                        <li>{{membership.role}}</li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    {% for membership in member.list %}
+                        {{membership.role}}
+                    {% endfor %}
+                {% endif %}
+            </td>
+            <td>
+                <a href="{%url view.manager.namespace|add:":membership_update" object.slug member.grouper.pk %}">Change role</a>
+            </td>
+        </tr>
+        {% endwith %}
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
