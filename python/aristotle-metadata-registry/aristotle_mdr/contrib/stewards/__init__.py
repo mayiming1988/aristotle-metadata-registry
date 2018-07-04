@@ -1,1 +1,1 @@
-default_app_config = 'aristotle_mdr.contrib.user_management.apps.Config'
+# default_app_config = 'aristotle_mdr.contrib.stewards.apps.Config'

@@ -3,7 +3,7 @@
 
 {% block content %}
 <h1>
-    Edit {{object.name}}
+    Create {{view.manager.group_meta.verbose_name.title}}
 </h1>
 
 <form action="{%url view.manager.namespace|add:":update" object.slug %}" method="POST">

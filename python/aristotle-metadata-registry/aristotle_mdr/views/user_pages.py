@@ -8,7 +8,8 @@ from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 from django.db.models import Q
 from django.http import HttpResponseRedirect
-from django.shortcuts import render, redirect
+from django.http.response import HttpResponse
+from django.shortcuts import get_object_or_404, render, redirect
 from django.utils.decorators import method_decorator
 from django.views.generic import (DetailView,
                                   ListView,
@@ -454,6 +455,10 @@ def workgroup_archives(request):
 
 
 def profile_picture(request, uid):
+    from django.contrib.auth import get_user_model
+    user = get_object_or_404(get_user_model(), pk=uid)
+    if user.profile.profilePicture:
+        return HttpResponse(user.profile.profilePicture.read(), content_type="image/png")
 
     template_name = 'aristotle_mdr/user/user-head.svg'
 

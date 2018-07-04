@@ -12,16 +12,17 @@
 </div>
 
 <h2>Members</h2>
-[ <a href="{%url view.manager.namespace|add:":member_list" object.slug %}">Edit</a> ]
+<a href="{%url view.manager.namespace|add:":member_list" object.slug %}">Edit roles</a>
 
 <ul>
-    {% for member in object.member_list.all %}
-    {% with member_user=member.user %}
+    {% regroup object.members.all by user as member_list %}
+    {% for member in member_list %}
+    {% with member_user=member.grouper %}
     <li>
-        <a href="./{{group.slug}}">{{ member_user.display_name }}</a>
+        <a href="">{{ member_user.display_name }}</a>
         <small>{{ member_user.censored_email }}</small>
 
-        {% user_has_role group=group user=user role="owner" as is_owner %}
+        {% user_has_role group=object user=member_user role="owner" as is_owner %}
         
         {% if is_owner %}
         <small>Owner</small>

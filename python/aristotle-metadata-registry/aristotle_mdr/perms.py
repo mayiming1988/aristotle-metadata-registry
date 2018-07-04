@@ -244,3 +244,15 @@ def user_can_query_user_list(user):
         ('workgroup_manager' in user_visbility and user.profile.is_workgroup_manager()) or
         ('registation_authority_manager' in user_visbility and user.profile.is_registrar)
     )
+
+
+def user_can_create_workgroup(user):
+    from aristotle_mdr.models import OrganisationAccountMembership
+    if user.is_superuser:
+        return True
+    allowed_roles = [
+        OrganisationAccountMembership.roles.admin,
+    ]
+    if OrganisationAccountMembership.filter(user=user, role__in=allowed_roles).exists():
+        return True
+    return False

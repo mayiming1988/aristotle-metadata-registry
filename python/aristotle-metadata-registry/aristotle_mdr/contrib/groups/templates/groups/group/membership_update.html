@@ -8,9 +8,8 @@
 
 {% if request.user == member %}
     <strong>Be careful this is <em>you</em>!</strong>
+    If you change your role, you may not be able to change it back.
 {% endif %}
-
-{{current_roles}}
 
 <form action="{%url view.manager.namespace|add:":membership_update" object.slug member.pk %}" method="POST">
     {% csrf_token %}

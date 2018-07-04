@@ -1,14 +1,18 @@
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 
+from django import forms
 from django.conf.urls import url
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.http import HttpResponseRedirect
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import (
-    FormView, ListView,
+    FormView,
+    ListView,
     DetailView,
     UpdateView,
+    CreateView,
+    RedirectView,
 )
 from django.template import loader
 
@@ -29,20 +33,38 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
+
 class ListForObjectMixin(DetailView):
     related_class = None
     def get_object(self):
         self.object = DetailView.get_object(self, queryset=self.related_class.objects.all())
         return self.object
 
-class GroupMixin(object):
+
+class GroupTemplateMixin(object):
+    fallback_template_name = None
+
+    def get_template_names(self):
+        templates = super().get_template_names()
+        if self.fallback_template_name:
+            templates += [self.fallback_template_name]
+        print(templates)
+        return templates
+
+
+class GroupMixin(GroupTemplateMixin):
+    slug_url_kwarg = "group_slug"
     manager = None
     def get_queryset(self):
         qs = super().get_queryset()
         return qs.group_list_for_user(self.request.user).prefetch_related('members')
 
+    def get_group(self):
+        return self.get_object()
 
-class GroupMemberMixin(object):
+
+class GroupMemberMixin(GroupTemplateMixin):
+    slug_url_kwarg = "group_slug"
     manager = None
     def get_queryset(self):
         qs = super().get_queryset()
@@ -51,43 +73,107 @@ class GroupMemberMixin(object):
 
 class HasRoleMixin(PermissionRequiredMixin):
     role = None
-    # def has_role:
-        
     def check_permissions(self, request):
         assert self.role != None
         self.object = self.get_object()
         return self.object.has_role(request.user, self.role)
 
+
 class HasRolePermissionMixin(PermissionRequiredMixin):
     role_permission = None
-    # def has_role:
-        
+    raise_exception = True
+    redirect_unauthenticated_users = True
+
     def check_permissions(self, request):
         assert self.role_permission != None
         self.object = self.get_object()
-        roles = self.object.role_permissions[self.role_permission]
-        return self.object.has_role(roles, request.user)
+        return self.object.user_has_permission(user=request.user, permission=self.role_permission)
 
 
 class GroupListView(LoginRequiredMixin, GroupMixin, ListView):
-    template_name = "groups/group/list.html"
+    fallback_template_name = "groups/group/list.html"
 
 
 class GroupMemberListView(LoginRequiredMixin, HasRolePermissionMixin, GroupMemberMixin, ListView, ListForObjectMixin):
-    template_name = "groups/group/change_members.html"
+    fallback_template_name = "groups/group/membership_list.html"
     role_permission = "edit_members"
 
 
 class GroupDetailView(LoginRequiredMixin, GroupMixin, DetailView):
-    template_name = "groups/group/detail.html"
+    fallback_template_name = "groups/group/detail.html"
 
 
-class GroupUpdateView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin, UpdateView):
-    template_name = "groups/group/update.html"
-    role_permission = "edit_group"
+class GroupCreateView(LoginRequiredMixin, HasRolePermissionMixin, CreateView):
+    fallback_template_name = "groups/group/update.html"
+    role_permission = "edit_group_details"
+    manager = None
+
+    def get_object(self):
+        return self.manager.group_class
 
     def get_success_url(self):
         return reverse("%s:%s"%(self.manager.namespace,"detail"), args=[self.object.slug])
+
+
+class GroupUpdateView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin, UpdateView):
+    fallback_template_name = "groups/group/update.html"
+    role_permission = "edit_group_details"
+
+    def get_success_url(self):
+        return reverse("%s:%s"%(self.manager.namespace,"detail"), args=[self.object.slug])
+
+
+class MembershipUpdateForm(forms.Form):
+    def __init__(self, manager, group, member, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.manager = manager
+        self.group = group
+        self.member = member
+        if self.manager.group_class.allows_multiple_roles:
+            self.fields['role'] = forms.MultipleChoiceField(
+                choices=self.group.roles,
+                widget=forms.CheckboxSelectMultiple,
+                label=_("Roles"),
+                required=False,
+                initial=self.group.roles_for_user(member),
+            )
+        else:
+            self.fields['role'] = forms.ChoiceField(
+                choices=self.group.roles,
+                label=_("Role"),
+                required=True,
+                initial=self.group.roles_for_user(member),
+            )
+
+
+class GroupMembershipFormView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin, DetailView, FormView):
+    template_name = "groups/group/membership_update.html"
+    role_permission = "edit_members"
+    membership_class = None
+    form_class = MembershipUpdateForm
+
+    def get_member(self):
+        return get_object_or_404(get_user_model(), pk=self.kwargs['member_pk'])
+        
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['group'] = self.get_group()
+        kwargs['manager'] = self.manager
+        kwargs['member'] = self.get_member()
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['member'] = self.get_member()
+        context['current_roles'] = self.get_group().roles_for_user(self.get_member())
+        return context
+
+    def get_success_url(self):
+        return reverse("%s:%s"%(self.manager.namespace,"member_list"), args=[self.object.slug])
+
+    def form_valid(self, form):
+        self.get_group().grant_role(form.cleaned_data['role'], user=self.get_member())
+        return super().form_valid(form)
 
 
 @attr.s
@@ -98,7 +184,7 @@ class GroupURLManager(object):
     """
     group_class = attr.ib()
     membership_class = attr.ib()
-    url_path = attr.ib()
+    url_path = "" #attr.ib(default="")
     namespace = attr.ib()
     update_fields = attr.ib(default=['slug', 'name'])
 
@@ -111,20 +197,28 @@ class GroupURLManager(object):
         return reverse('friendly_login') + '?welcome=true'
 
     def get_urls(self):
-        item_path = r'^/(?P<slug>[-\w]+)/$'.format(url_path=self.url_path)
-        item_update_path = r'^/(?P<slug>[-\w]+)/edit/$'.format(url_path=self.url_path)
-        member_details_path = r'^/(?P<slug>[-\w]+)/members/$'.format(url_path=self.url_path)
+        item_path = r'^/(?P<group_slug>[-\w]+)/$'.format(url_path=self.url_path)
+        item_update_path = r'^/(?P<group_slug>[-\w]+)/edit/$'.format(url_path=self.url_path)
+        member_details_path = r'^/(?P<group_slug>[-\w]+)/members/$'.format(url_path=self.url_path)
+        membership_update_path = r'^/(?P<group_slug>[-\w]+)/members/(?P<member_pk>[\d]+)$'.format(url_path=self.url_path)
         
         return [
-            url(r'^/?$', view=self.list_view(), name="list"),
+            url(r'^s/?$', view=self.list_view(), name="list"),
+            url(r'^/?$', view=RedirectView.as_view(pattern_name=self.namespace+":list")),
+            url(r'^s/create/$', view=self.create_view(), name="create"),
+
             url(item_path, view=self.detail_view(), name="detail"),
             url(item_update_path, view=self.update_view(), name="update"),
             url(member_details_path, view=self.member_list_view(), name="member_list"),
+            url(membership_update_path, view=self.membership_update_view(), name="membership_update"),
             #     view=self.activate_view, name="list"),
             # url(r'^accept/(?P<user_id>[\d]+)-(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
             #     view=self.activate_view, name="list"),
             # url(r'^$', view=self.invite_view(), name="registry_invitations_create"),
         ]
+
+    def create_view(self, *args, **kwargs):
+        return GroupCreateView.as_view(manager=self, model=self.group_class, *args, **kwargs)
 
     def list_view(self, *args, **kwargs):
         return GroupListView.as_view(manager=self, model=self.group_class, *args, **kwargs)
@@ -147,6 +241,15 @@ class GroupURLManager(object):
             fields=self.update_fields,
             *args, **kwargs
         )
+
+    def membership_update_view(self, *args, **kwargs):
+        return GroupMembershipFormView.as_view(
+            manager=self,
+            model=self.group_class,
+            membership_class=self.membership_class,
+            *args, **kwargs
+        )
+
 
         # class kls(GroupListView):
             

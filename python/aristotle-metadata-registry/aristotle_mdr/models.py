@@ -83,7 +83,22 @@ from aristotle_mdr.contrib.groups.base import (
 )
 
 
-class StewardOrganisation(AbstractGroup):
+class OrganisationAccount(AbstractGroup):
+    class Meta:
+        verbose_name = "Organisation"
+
+    roles = Choices(
+        ('admin', _('Admin')),
+        ('steward', _('Steward')),
+        ('member', _('Member')),
+    )
+
+    role_permissions = {
+        "edit_group_details": [roles.admin, AbstractGroup.Permissions.is_superuser],
+        "edit_members": [roles.admin, AbstractGroup.Permissions.is_superuser],
+        "invite_member": [roles.admin, AbstractGroup.Permissions.is_superuser],
+    }
+
     uuid = models.UUIDField(
         unique=True, default=uuid.uuid1, editable=False, null=False
     )
@@ -94,13 +109,9 @@ class StewardOrganisation(AbstractGroup):
     )
 
 
-class StewardMembership(AbstractMembership):
-    roles = Choices(
-        ('owner', _('Owner')),
-        ('member', _('Member')),
-    )
-    group_class = StewardOrganisation
-    group_kwargs = {"to_field":"uuid"}
+class OrganisationAccountMembership(AbstractMembership):
+    group_class = OrganisationAccount
+    group_kwargs = {"to_field": "uuid"}
 
 
 class baseAristotleObject(TimeStampedModel):
@@ -482,6 +493,12 @@ class Workgroup(registryGroup):
                     "discussions created within them."),
         verbose_name=_('Archived'),
     )
+
+    # organisation_account = models.ForeignKey(
+    #     OrganisationAccount,
+    #     null=True,
+    #     related_name="workgroups"
+    # )
 
     viewers = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
@@ -1391,6 +1408,13 @@ class PossumProfile(models.Model):
         content_types=['image/jpg', 'image/png', 'image/bmp', 'image/jpeg'],
         js_checker=True
     )
+
+    def get_profile_picture_url(self):
+        return reverse(
+            "aristotle:profile_picture",
+            args=[self.user.pk]
+        )
+
 
     # Override save for inline creation of objects.
     # http://stackoverflow.com/questions/2813189/django-userprofile-with-unique-foreign-key-in-django-admin

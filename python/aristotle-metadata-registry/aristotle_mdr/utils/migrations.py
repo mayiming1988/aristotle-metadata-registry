@@ -9,14 +9,7 @@ from django.db.migrations.operations.base import Operation
 
 import ckeditor_uploader.fields
 
-
-class classproperty(object):
-
-    def __init__(self, fget):
-        self.fget = fget
-
-    def __get__(self, owner_self, owner_cls):
-        return self.fget(owner_cls)
+from .utils import classproperty
 
 
 def move_field_to_slot(apps, schema_editor, field_name):
@@ -72,8 +65,8 @@ class StewardMigration(migrations.Migration):
 
     @classmethod
     def add_stewardship_org(cls, apps, schema_editor):
-        StewardOrganisation = apps.get_model('aristotle_mdr', 'StewardOrganisation')
-        StewardMembership = apps.get_model('aristotle_mdr', 'StewardMembership')
+        StewardOrganisation = apps.get_model('aristotle_mdr', 'OrganisationAccount')
+        StewardMembership = apps.get_model('aristotle_mdr', 'OrganisationAccountMembership')
         from django.conf import settings
         name = cls.steward_pattern.format(name=settings.ARISTOTLE_SETTINGS['SITE_NAME'])
         so, _ = StewardOrganisation.objects.get_or_create(name=name)
@@ -89,7 +82,7 @@ class StewardMigration(migrations.Migration):
             # We can't access methods during migrations so we manually create memberships
             # Also migrations don't work well with the proxy "AUTH_USER", so we just add in the primary key
             if u.is_superuser:
-                role = "owner"
+                role = "admin"
             else:
                 role = "member"
             print("Granting [{user}] the role [{role}]".format(user=u.email, role=role))

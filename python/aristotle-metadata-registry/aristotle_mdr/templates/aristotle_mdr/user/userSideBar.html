@@ -49,6 +49,10 @@
         </ul>
         {% endif %}
     </li>
+    <li class="{% ifequal activeTab "steward_orgs" %}active{% endifequal %}">
+        <a href="{% url 'aristotle_mdr:stewards:group:list' %}">
+        <i class="fa fa-sitemap fa-fw"></i> {% trans 'Organisations'%}
+    </a></li>
     <li {% ifequal activeTab "workgroups" %}class="active"{% endifequal %}>
         <a href="{% url 'aristotle:userWorkgroups' %}">
         <i class="fa fa-users fa-fw"></i> {% trans "Workgroups" %}

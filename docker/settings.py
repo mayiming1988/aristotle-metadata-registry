@@ -11,7 +11,7 @@ INSTALLED_APPS = [
 ] + list(INSTALLED_APPS)
 
 ALLOWED_HOSTS = ["*"]
-DEBUG = False
+DEBUG = True
 ARISTOTLE_SETTINGS['SITE_NAME'] = 'Aristotle Development Server'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_DIR = os.path.join(BASE_DIR, 'static')

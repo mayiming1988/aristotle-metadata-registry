@@ -18,6 +18,15 @@ logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
 
+class classproperty(object):
+
+    def __init__(self, fget):
+        self.fget = fget
+
+    def __get__(self, owner_self, owner_cls):
+        return self.fget(owner_cls)
+
+
 def concept_to_dict(obj):
     """
     A replacement for the ```django.form.model_to_dict`` that includes additional
