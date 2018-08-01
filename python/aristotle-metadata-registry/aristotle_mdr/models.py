@@ -433,6 +433,12 @@ class RegistrationAuthority(Organization):
     def members(self):
         return (self.managers.all() | self.registrars.all()).distinct()
 
+    def is_active(self):
+        return self.active == RA_ACTIVE_CHOICES.active
+
+    def is_visible(self):
+        return not self.active == RA_ACTIVE_CHOICES.hidden
+
 
 @receiver(post_save, sender=RegistrationAuthority)
 def update_registration_authority_states(sender, instance, created, **kwargs):
