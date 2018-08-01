@@ -688,19 +688,18 @@ class GeneralTestUtils:
         else:
             return reverse(url_name)
 
-    def reverse_get(self, url_name, *args, **kwargs):
-
+    def _reverse_request(self, function, url_name, *args, **kwargs):
         url = self._get_url(url_name, kwargs)
-        response = self.client.get(url, *args, **kwargs)
+        request_function = getattr(self.client, function)
+        response = request_function(url, *args, **kwargs)
         self._status_check(response, kwargs)
         return response
+
+    def reverse_get(self, *args, **kwargs):
+        return self._reverse_request('get', *args, **kwargs)
 
     def reverse_post(self, url_name, *args, **kwargs):
-
-        url = self._get_url(url_name, kwargs)
-        response = self.client.post(url, *args, **kwargs)
-        self._status_check(response, kwargs)
-        return response
+        return self._reverse_request('post', *args, **kwargs)
 
     def assertContext(self, response, key, value):
 
