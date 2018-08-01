@@ -213,6 +213,11 @@ class Organization(registryGroup):
     def get_absolute_url(self):
         return url_slugify_organization(self)
 
+RA_ACTIVE_CHOICES = Choices(
+    (0, 'active',  'Active & Visible'),
+    (1, 'inactive', 'Inactive & Visible'),
+    (2, 'hidden', 'Inactive & Hidden')
+)
 
 class RegistrationAuthority(Organization):
     """
@@ -225,13 +230,10 @@ class RegistrationAuthority(Organization):
     (8.1.5.1) association class.
     """
     template = "aristotle_mdr/organization/registrationAuthority.html"
-    active = models.BooleanField(
-        default=True,
-        choices=(
-            (True, 'True'),
-            (False, 'False')
-        ),
-        help_text='<div id="active-alert" class="alert alert-warning" role="alert">Setting this to False will disable all further registration actions</div>'
+    active = models.IntegerField(
+        choices=RA_ACTIVE_CHOICES,
+        default=RA_ACTIVE_CHOICES.active,
+        help_text='<div id="active-alert" class="alert alert-warning" role="alert">Setting this to Inactive will disable all further registration actions</div>'
     )
     locked_state = models.IntegerField(
         choices=STATES,
