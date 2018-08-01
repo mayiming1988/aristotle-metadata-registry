@@ -362,7 +362,7 @@ class PermissionSearchForm(TokenSearchForm):
             raise ImproperlyConfigured("Aristotle Search Queryset connection must be a subclass of PermissionSearchQuerySet")
         super().__init__(*args, **kwargs)
 
-        self.fields['ra'].choices = [(ra.id, ra.name) for ra in MDR.RegistrationAuthority.objects.all()]
+        self.fields['ra'].choices = [(ra.id, ra.name) for ra in MDR.RegistrationAuthority.objects.all().order_by('-active', 'name')]
 
         self.fields['models'].choices = [
             m for m in model_choices()
