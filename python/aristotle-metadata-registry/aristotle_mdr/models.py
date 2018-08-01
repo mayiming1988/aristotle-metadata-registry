@@ -214,9 +214,9 @@ class Organization(registryGroup):
         return url_slugify_organization(self)
 
 RA_ACTIVE_CHOICES = Choices(
-    (0, 'active',  'Active & Visible'),
-    (1, 'inactive', 'Inactive & Visible'),
-    (2, 'hidden', 'Inactive & Hidden')
+    (0, 'active',  _('Active & Visible')),
+    (1, 'inactive', _('Inactive & Visible')),
+    (2, 'hidden', _('Inactive & Hidden'))
 )
 
 class RegistrationAuthority(Organization):
