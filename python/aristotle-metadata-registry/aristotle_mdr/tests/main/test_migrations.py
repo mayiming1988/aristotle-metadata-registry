@@ -182,8 +182,8 @@ class TestDedMigration(MigrationsTestCase, TestCase):
 
 class TestRaActiveMigration(MigrationsTestCase, TestCase):
 
-    migrate_from = '0031_auto_20180629_0143'
-    migrate_to = '0032_ra_levels'
+    migrate_from = '0032_add_new_active'
+    migrate_to = '0033_ra_levels'
 
     def setUpBeforeMigration(self, apps):
 
@@ -200,7 +200,6 @@ class TestRaActiveMigration(MigrationsTestCase, TestCase):
             active=False
         )
 
-    @tag('active')
     def test_migration(self):
 
         ra = self.apps.get_model('aristotle_mdr', 'RegistrationAuthority')
