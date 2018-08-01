@@ -957,7 +957,7 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages, utils.FormsetTestUtils):
         self.make_review_request(self.item1, self.registrar)
 
         # Deactivate RA
-        self.ra.active = False
+        self.ra.active = 1
         self.ra.save()
 
         response = self.client.get(reverse('aristotle:changeStatus',args=[self.item1.id]))

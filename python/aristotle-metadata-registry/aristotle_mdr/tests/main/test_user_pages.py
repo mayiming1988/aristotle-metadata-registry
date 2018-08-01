@@ -503,7 +503,7 @@ class RegistrationAuthorityPages(utils.LoggedInViewPages, TestCase):
         self.assertNotContains(response, '(inactive)')
 
         # Deactivate ra
-        self.ra.active = False
+        self.ra.active = 1
         self.ra.save()
 
         # Check that removed from list
@@ -517,7 +517,7 @@ class RegistrationAuthorityPages(utils.LoggedInViewPages, TestCase):
         self.login_ramanager()
 
         # Deactivate ra
-        self.ra.active = False
+        self.ra.active = 1
         self.ra.save()
 
         response = self.client.get(reverse('aristotle_mdr:userRegistrarTools'))
