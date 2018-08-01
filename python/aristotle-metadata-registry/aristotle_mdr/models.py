@@ -392,7 +392,7 @@ class RegistrationAuthority(Organization):
         return {'success': [item], 'failed': []}
 
     def _register(self, item, state, user, *args, **kwargs):
-        if self.active:
+        if self.active == 0:
             changeDetails = kwargs.get('changeDetails', "")
             # If registrationDate is None (like from a form), override it with
             # todays date.
@@ -433,9 +433,11 @@ class RegistrationAuthority(Organization):
     def members(self):
         return (self.managers.all() | self.registrars.all()).distinct()
 
+    @property
     def is_active(self):
         return self.active == RA_ACTIVE_CHOICES.active
 
+    @property
     def is_visible(self):
         return not self.active == RA_ACTIVE_CHOICES.hidden
 

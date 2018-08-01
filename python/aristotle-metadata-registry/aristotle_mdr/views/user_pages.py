@@ -382,7 +382,7 @@ class RegistrarTools(LoginRequiredMixin, View):
 def review_list(request):
     if not request.user.profile.is_registrar:
         raise PermissionDenied
-    authorities = [i[0] for i in request.user.profile.registrarAuthorities.filter(active=True).values_list('id')]
+    authorities = [i[0] for i in request.user.profile.registrarAuthorities.filter(active=0).values_list('id')]
 
     # Registars can see items they have been asked to review
     q = Q(Q(registration_authority__id__in=authorities) & ~Q(status=MDR.REVIEW_STATES.cancelled))
@@ -395,7 +395,7 @@ def review_list(request):
 def my_review_list(request):
     # Users can see any items they have been asked to review
     q = Q(requester=request.user)
-    reviews = MDR.ReviewRequest.objects.visible(request.user).filter(q).filter(registration_authority__active=True)
+    reviews = MDR.ReviewRequest.objects.visible(request.user).filter(q).filter(registration_authority__active=0)
     return paginated_list(request, reviews, "aristotle_mdr/user/my_review_list.html", {'reviews': reviews})
 
 
