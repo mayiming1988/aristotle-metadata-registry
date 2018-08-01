@@ -4,6 +4,27 @@ from __future__ import unicode_literals
 
 from django.db import migrations, models
 
+def move_to_new(apps, schema_migration):
+    ra = apps.get_model('aristotle_mdr', 'RegistrationAuthority')
+
+    for obj in ra.objects.all():
+        if obj.active:
+            obj.new_active = 0
+        else:
+            obj.new_active = 1
+
+        obj.save()
+
+def move_to_old(apps, schema_migration):
+    ra = apps.get_model('aristotle_mdr', 'RegistrationAuthority')
+
+    for obj in ra.objects.all():
+        if obj.new_active == 0:
+            obj.active = True
+        else:
+            obj.active = False
+
+        obj.save()
 
 class Migration(migrations.Migration):
 
@@ -12,9 +33,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
+        migrations.AddField(
             model_name='registrationauthority',
-            name='active',
+            name='new_active',
             field=models.IntegerField(choices=[(0, 'Active & Visible'), (1, 'Inactive & Visible'), (2, 'Inactive & Hidden')], default=0, help_text='<div id="active-alert" class="alert alert-warning" role="alert">Setting this to Inactive will disable all further registration actions</div>'),
         ),
+        migrations.RunPython(move_to_new, move_to_old),
     ]
