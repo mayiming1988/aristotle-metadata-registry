@@ -39,7 +39,7 @@ def organization(request, iid, *args, **kwargs):
 
 def all_registration_authorities(request):
     # All visible ras
-    ras = MDR.RegistrationAuthority.objects.filter(active__in=[0,1]).order_by('name')
+    ras = MDR.RegistrationAuthority.objects.filter(active__in=[0, 1]).order_by('name')
     return render(request, "aristotle_mdr/organization/all_registration_authorities.html", {'registrationAuthorities': ras})
 
 
@@ -112,7 +112,7 @@ class ListRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, Lis
     def dispatch(self, request, *args, **kwargs):
         super().dispatch(request, *args, **kwargs)
         # All visible ras
-        ras = MDR.RegistrationAuthority.objects.filter(active__in=[0,1])
+        ras = MDR.RegistrationAuthority.objects.filter(active__in=[0, 1])
 
         text_filter = request.GET.get('filter', "")
         if text_filter:

@@ -364,7 +364,7 @@ class PermissionSearchForm(TokenSearchForm):
 
         # Show visible workgroups ordered by active state and name
         # Inactive last
-        self.fields['ra'].choices = [(ra.id, ra.name) for ra in MDR.RegistrationAuthority.objects.filter(active__in=[0,1]).order_by('active', 'name')]
+        self.fields['ra'].choices = [(ra.id, ra.name) for ra in MDR.RegistrationAuthority.objects.filter(active__in=[0, 1]).order_by('active', 'name')]
 
         self.fields['models'].choices = [
             m for m in model_choices()

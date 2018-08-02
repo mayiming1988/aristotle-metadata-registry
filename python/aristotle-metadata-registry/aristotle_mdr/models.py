@@ -213,11 +213,13 @@ class Organization(registryGroup):
     def get_absolute_url(self):
         return url_slugify_organization(self)
 
+
 RA_ACTIVE_CHOICES = Choices(
-    (0, 'active',  _('Active & Visible')),
+    (0, 'active', _('Active & Visible')),
     (1, 'inactive', _('Inactive & Visible')),
     (2, 'hidden', _('Inactive & Hidden'))
 )
+
 
 class RegistrationAuthority(Organization):
     """

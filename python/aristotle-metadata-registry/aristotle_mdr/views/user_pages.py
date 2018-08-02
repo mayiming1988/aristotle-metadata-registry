@@ -362,7 +362,7 @@ class RegistrarTools(LoginRequiredMixin, View):
         # Return all the ra's a user is a manager of
         manager = Q(managers__pk=self.request.user.pk)
         registrar = Q(registrars__pk=self.request.user.pk)
-        visible = Q(active__in=[0,1])
+        visible = Q(active__in=[0, 1])
         return MDR.RegistrationAuthority.objects.filter(visible, manager | registrar)
 
     def get(self, request, *args, **kwargs):
