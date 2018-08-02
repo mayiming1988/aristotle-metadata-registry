@@ -78,7 +78,6 @@ class TestSynonymMigration(MigrationsTestCase, TestCase):
             name='Test Blank OC',
             definition='Test Definition'
         )
-        import pdb; pdb.set_trace()
 
     def test_migration(self):
 
