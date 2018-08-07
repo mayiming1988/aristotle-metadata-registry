@@ -2,7 +2,7 @@ from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 # from django.contrib.auth import get_user_model
 from collections import defaultdict
 from django.urls import reverse
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
 from django.template.defaultfilters import slugify
@@ -220,7 +220,8 @@ class ListWorkgroup(LoginRequiredMixin, PermissionRequiredMixin, ListView):
 
     def dispatch(self, request, *args, **kwargs):
         super().dispatch(request, *args, **kwargs)
-        workgroups = MDR.Workgroup.objects.all()
+        workgroups = MDR.Workgroup.objects.all().annotate(Count('items'))
+        workgroups = workgroups.prefetch_related('viewers', 'managers', 'submitters', 'stewards')
 
         text_filter = request.GET.get('filter', "")
         if text_filter:

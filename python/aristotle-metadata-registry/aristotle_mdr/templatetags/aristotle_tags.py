@@ -417,3 +417,14 @@ def distinct_workgroups_count(user):
             wgs.add(wg.id)
 
     return len(wgs)
+
+@register.filter
+def distinct_members_count(workgroup):
+    users = set()
+    roles = ['submitters', 'viewers', 'stewards', 'managers']
+    for role in roles:
+        manager = getattr(workgroup, role)
+        for user in manager.all():
+            users.add(user.id)
+
+    return len(users)

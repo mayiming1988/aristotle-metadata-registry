@@ -6,7 +6,7 @@ from django.contrib.auth.views import LoginView
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
@@ -456,7 +456,8 @@ class CreatedItemsListView(ListView):
 @login_required
 def workgroups(request):
     text_filter = request.GET.get('filter', "")
-    workgroups = request.user.profile.myWorkgroups
+    workgroups = request.user.profile.myWorkgroups.annotate(Count('items'))
+    workgroups = workgroups.prefetch_related('viewers', 'managers', 'submitters', 'stewards')
     if text_filter:
         workgroups = workgroups.filter(Q(name__icontains=text_filter) | Q(definition__icontains=text_filter))
     context = {'filter': text_filter}
