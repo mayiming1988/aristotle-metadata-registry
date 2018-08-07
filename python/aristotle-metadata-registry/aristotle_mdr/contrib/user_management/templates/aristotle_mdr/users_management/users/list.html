@@ -1,4 +1,5 @@
 {% extends "aristotle_mdr/user/userHome.html" %}
+{% load aristotle_tags %}
 
 {% block title %}Current members{% endblock %}
 {% block collapse-link%}<i class="fa fa-user fa-fw"></i> Current members</a>{% endblock %}
@@ -48,7 +49,7 @@
           {% include "aristotle_mdr/users_management/helper/user_table_display.html" with user=user %}
         </td>
         <td>{{user.is_active}}</td>
-        {% with count=user.viewer_in.count|add:user.submitter_in.count|add:user.steward_in.count|add:user.workgroup_manager_in.count %}
+        {% with count=user|distinct_workgroups_count %}
         <td><small>{{count}} team{{ count|pluralize }}</small></td>
         {% endwith %}
         <td>
