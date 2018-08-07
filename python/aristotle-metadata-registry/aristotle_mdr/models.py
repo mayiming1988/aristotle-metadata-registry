@@ -1403,7 +1403,12 @@ class PossumProfile(models.Model):
 
     @property
     def myWorkgroups(self):
-        return self.workgroups.filter(archived=False)
+        return (
+            self.user.viewer_in.all() |
+            self.user.submitter_in.all() |
+            self.user.steward_in.all() |
+            self.user.workgroup_manager_in.all()
+        ).filter(archived=False).distinct()
 
     @property
     def editable_workgroups(self):
