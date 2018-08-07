@@ -48,7 +48,7 @@
           {% include "aristotle_mdr/users_management/helper/user_table_display.html" with user=user %}
         </td>
         <td>{{user.is_active}}</td>
-        {% with count=user.profile.workgroups.count %}
+        {% with count=user.viewer_in.count|add:user.submitter_in.count|add:user.steward_in.count|add:user.workgroup_manager_in.count %}
         <td><small>{{count}} team{{ count|pluralize }}</small></td>
         {% endwith %}
         <td>
