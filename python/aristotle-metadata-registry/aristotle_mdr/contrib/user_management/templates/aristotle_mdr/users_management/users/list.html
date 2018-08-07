@@ -42,7 +42,7 @@
     </tr>
   </thead>
   <tbody>
-{% for user in object_list %}
+{% for user in page_obj.object_list %}
     <tr>
         <td>
           {% include "aristotle_mdr/users_management/helper/user_table_display.html" with user=user %}
@@ -80,6 +80,7 @@
 </table>
 </div>
 
+{% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
 
 <header>About active and inactive users</header>
 <p>

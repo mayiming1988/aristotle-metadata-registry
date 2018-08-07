@@ -23,6 +23,7 @@ class RegistryOwnerUserList(LoginRequiredMixin, PermissionRequiredMixin, ListVie
     permission_required = "aristotle_mdr.list_registry_users"
     raise_exception = True
     redirect_unauthenticated_users = True
+    paginate_by = 50
 
     def get_queryset(self):
         q = self.request.GET.get('q', None)
