@@ -406,6 +406,7 @@ def get_dataelements_from_m2m(ded, field_name):
 
     return de_list
 
+
 @register.filter
 def distinct_workgroups_count(user):
 
@@ -417,6 +418,7 @@ def distinct_workgroups_count(user):
             wgs.add(wg.id)
 
     return len(wgs)
+
 
 @register.filter
 def distinct_members_count(workgroup):

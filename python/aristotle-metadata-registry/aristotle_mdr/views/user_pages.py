@@ -473,6 +473,7 @@ class WorkgroupArchiveList(GenericListWorkgroup):
             user.workgroup_manager_in.all()
         ).filter(archived=True).distinct()
 
+
 def profile_picture(request, uid):
 
     template_name = 'aristotle_mdr/user/user-head.svg'
