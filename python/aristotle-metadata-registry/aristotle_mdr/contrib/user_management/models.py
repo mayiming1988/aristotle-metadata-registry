@@ -1,4 +1,4 @@
-from improved_user.mixins import AbstractUser
+from improved_user.model_mixins import AbstractUser
 from django.db import models
 
 
