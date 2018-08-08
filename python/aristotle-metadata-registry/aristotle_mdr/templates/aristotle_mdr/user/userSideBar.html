@@ -56,8 +56,10 @@
         {% ifequal activeTab "workgroupArchives" %}
         <ul class="nav nav-pills nav-stacked nav-collapse dashSubMenu">
             <li class="active">
-                <i class="fa fa-archive"></i>
-                <a href="{% url 'aristotle:user_workgroups_archives' %}">{% trans "Archived Workgroups" %}</a>
+                <a href="{% url 'aristotle:user_workgroups_archives' %}">
+                  <i class="fa fa-archive fa-fw"></i>
+                  {% trans "Archived Workgroups" %}
+                </a>
             </li>
         </ul>
         {% endifequal %}
