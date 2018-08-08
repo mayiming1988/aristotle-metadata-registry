@@ -19,7 +19,8 @@ from aristotle_mdr.views.utils import (
     workgroup_item_statuses,
     ObjectLevelPermissionRequiredMixin,
     RoleChangeView,
-    MemberRemoveFromGroupView
+    MemberRemoveFromGroupView,
+    GenericListWorkgroup
 )
 
 import logging
@@ -211,23 +212,13 @@ class CreateWorkgroup(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     redirect_unauthenticated_users = True
 
 
-class ListWorkgroup(LoginRequiredMixin, PermissionRequiredMixin, ListView):
-    model = MDR.Workgroup
+class ListWorkgroup(PermissionRequiredMixin, GenericListWorkgroup):
     template_name = "aristotle_mdr/user/workgroups/list_all.html"
     permission_required = "aristotle_mdr.is_registry_administrator"
     raise_exception = True
-    redirect_unauthenticated_users = True
 
-    def dispatch(self, request, *args, **kwargs):
-        super().dispatch(request, *args, **kwargs)
-        workgroups = MDR.Workgroup.objects.all().annotate(Count('items'))
-        workgroups = workgroups.prefetch_related('viewers', 'managers', 'submitters', 'stewards')
-
-        text_filter = request.GET.get('filter', "")
-        if text_filter:
-            workgroups = workgroups.filter(Q(name__icontains=text_filter) | Q(definition__icontains=text_filter))
-        context = {'filter': text_filter}
-        return paginated_workgroup_list(request, workgroups, self.template_name, context)
+    def get_initial_queryset(self):
+        return MDR.Workgroup.objects.all()
 
 
 class EditWorkgroup(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermissionRequiredMixin, UpdateView):

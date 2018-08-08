@@ -23,7 +23,8 @@ from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
 from aristotle_mdr.views.utils import (paginated_list,
                                        paginated_workgroup_list,
-                                       paginated_registration_authority_list)
+                                       paginated_registration_authority_list,
+                                       GenericListWorkgroup)
 from aristotle_mdr.utils import fetch_metadata_apps
 from aristotle_mdr.utils import get_aristotle_url
 
@@ -453,26 +454,24 @@ class CreatedItemsListView(ListView):
         return paginate_sort_opts.get(self.order)
 
 
-@login_required
-def workgroups(request):
-    text_filter = request.GET.get('filter', "")
-    workgroups = request.user.profile.myWorkgroups.annotate(Count('items'))
-    workgroups = workgroups.prefetch_related('viewers', 'managers', 'submitters', 'stewards')
-    if text_filter:
-        workgroups = workgroups.filter(Q(name__icontains=text_filter) | Q(definition__icontains=text_filter))
-    context = {'filter': text_filter}
-    return paginated_workgroup_list(request, workgroups, "aristotle_mdr/user/userWorkgroups.html", context)
+class MyWorkgroupList(GenericListWorkgroup):
+    template_name = "aristotle_mdr/user/userWorkgroups.html"
+
+    def get_initial_queryset(self):
+        return self.request.user.profile.myWorkgroups
 
 
-@login_required
-def workgroup_archives(request):
-    text_filter = request.GET.get('filter', None)
-    workgroups = request.user.profile.workgroups.filter(archived=True)
-    if text_filter:
-        workgroups = workgroups.filter(Q(name__icontains=text_filter) | Q(definition__icontains=text_filter))
-    context = {'filter': text_filter}
-    return paginated_workgroup_list(request, workgroups, "aristotle_mdr/user/userWorkgroupArchives.html", context)
+class WorkgroupArchiveList(GenericListWorkgroup):
+    template_name = "aristotle_mdr/user/userWorkgroupArchives.html"
 
+    def get_initial_queryset(self):
+        user = self.request.user
+        return (
+            user.viewer_in.all() |
+            user.submitter_in.all() |
+            user.steward_in.all() |
+            user.workgroup_manager_in.all()
+        ).filter(archived=True).distinct()
 
 def profile_picture(request, uid):
 
