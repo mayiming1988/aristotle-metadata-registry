@@ -270,7 +270,8 @@ class SortedListView(ListView):
         context = super().get_context_data()
         context.update({
             'filter': self.text_filter,
-            'page': context['page_obj']
+            'page': context['page_obj'],
+            'sort': self.sort
         })
         return context
 
@@ -282,12 +283,12 @@ class GenericListWorkgroup(LoginRequiredMixin, SortedListView):
     paginate_by = 20
 
     allowed_sorts = {
-        'items': 'items',
+        'items': 'items__count',
         'name': 'name',
         'users': 'viewers__count'
     }
 
-    deafult_sort = 'name'
+    default_sort = 'name'
 
     def get_initial_queryset(self):
         raise NotImplemented
