@@ -85,7 +85,7 @@ setup(
         'django-organizations',
 
         # Improved User Model
-        'django-improved-user==1.0.0',
+        'django-improved-user>=1.0.0',
 
         # File upload
         'django-constrainedfilefield[filetype]',
