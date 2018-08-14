@@ -32,6 +32,13 @@ class CeleryPDFDownloader(PDFDownloader):
             for obj_type, qs in item.get_download_items()
         ]
 
-        cache.set(iid, {'some_key': 'some value'})
+        cache.set(iid, render_to_pdf(template, {
+            'title': "PDF Download for {obj.name}".format(obj=item),
+            'item': item,
+            'subitems': sub_items,
+            'tableOfContents': len(sub_items) > 0,
+            'view': properties['view'].lower(),
+            'pagesize': properties['page_size'],
+        }))
 
         return iid

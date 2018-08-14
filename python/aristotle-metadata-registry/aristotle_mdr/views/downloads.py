@@ -166,5 +166,5 @@ def get_async_download(request, id):
           res_id, exc, job.traceback))
         return HttpResponseBadRequest()
     res = job.get()
-    return HttpResponse(cache.get(id))  #, content_type='application/pdf')
+    return HttpResponse(cache.get(id), content_type='application/pdf')
 

@@ -4,9 +4,13 @@ Base settings necessary for running an Aristotle Instance in "the cloud (tm)"
 
 from aristotle_mdr.required_settings import *
 
+INSTALLED_APPS = INSTALLED_APPS + ("aristotle_pdf",)
+
 ALLOWED_HOSTS = ["*"]
 DEBUG = True
 ARISTOTLE_SETTINGS['SITE_NAME'] = 'Aristotle Development Server'
+ARISTOTLE_SETTINGS['DOWNLOADERS'] = ['aristotle_mdr.downloader.CSVDownloader', 'aristotle_mdr.tasks.CeleryPDFDownloader']
+
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
