@@ -127,6 +127,14 @@ urlpatterns=[
 
     url(r'^download/bulk/(?P<download_type>[a-zA-Z0-9\-\.]+)/?$', views.downloads.bulk_download, name='bulk_download'),
     url(r'^download/(?P<download_type>[a-zA-Z0-9\-\.]+)/(?P<iid>\d+)/?$', views.downloads.download, name='download'),
+    url(r'^perparing-download/(?P<id>[a-zA-Z0-9\-\.]+)/?$',
+        views.downloads.prepare_async_download,
+        name='preparing_download',
+        ),
+    url(r'^downloading/(?P<id>[a-zA-Z0-9\-\.]+)/?$',
+        views.downloads.get_async_download,
+        name='start_download',
+        ),
 
     url(r'^action/supersede/(?P<iid>\d+)$', views.supersede, name='supersede'),
     url(r'^action/deprecate/(?P<iid>\d+)$', views.deprecate, name='deprecate'),

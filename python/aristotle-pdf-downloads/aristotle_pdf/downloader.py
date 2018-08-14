@@ -137,7 +137,8 @@ def render_to_pdf(template_src, context_dict, preamble_template='aristotle_mdr/d
     ).render()
 
     if not context_dict.get('tableOfContents', False):
-        return HttpResponse(document.write_pdf(), content_type='application/pdf')
+        return HttpResponse(document.write_pdf(), content_type='application/pdf') \
+            if 'request' in context_dict else document
 
     table_of_contents_string = generate_outline_str(document.make_bookmark_tree())
     toc = get_template('aristotle_mdr/downloads/pdf/toc.html').render(
@@ -163,7 +164,8 @@ def render_to_pdf(template_src, context_dict, preamble_template='aristotle_mdr/d
     for i, table_of_contents_page in enumerate(table_of_contents_document.pages):
         document.pages.insert(i + 1, table_of_contents_page)
 
-    return HttpResponse(document.write_pdf(), content_type='application/pdf')
+    return HttpResponse(document.write_pdf(), content_type='application/pdf') \
+        if 'request' in context_dict else document
 
 
 def items_for_bulk_download(items, request):

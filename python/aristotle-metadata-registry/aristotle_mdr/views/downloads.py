@@ -1,13 +1,15 @@
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
-from django.http import Http404
-from django.shortcuts import redirect
+from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseServerError
+from django.shortcuts import render, redirect
 from django.template import TemplateDoesNotExist
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.views import get_if_user_can_view
 from aristotle_mdr.utils import fetch_aristotle_downloaders
+from celery.result import AsyncResult as async_result
+from django.core.cache import cache
 
 import logging
 
@@ -68,7 +70,18 @@ def download(request, download_type, iid=None):
     for kls in downloadOpts:
         if download_type == kls.download_type:
             try:
-                return kls.download(request, item)
+                page_size = getattr(settings, 'PDF_PAGE_SIZE', "A4")
+                user = getattr(request, 'user', None)
+                # properties requested for the file requested
+                item_props = {
+                    'user': None if not user.is_authenticated else user.email,
+                    'view': request.GET.get('view', '').lower(),
+                    'page_size': request.GET.get('pagesize', page_size)
+                }
+                res = kls.async_download.delay(item_props, iid)
+                response = redirect(reverse('aristotle:preparing_download', args=[iid]))
+                response.set_cookie('download_res_key', res.id)
+                return response
             except TemplateDoesNotExist:
                 debug = getattr(settings, 'DEBUG')
                 if debug:
@@ -117,3 +130,41 @@ def bulk_download(request, download_type, items=None):
                 continue
 
     raise Http404
+
+
+# Thanks to stackoverflow answer: https://stackoverflow.com/a/23177986
+def prepare_async_download(request, id):
+    res_id = request.COOKIES.get('download_res_key')
+    job = async_result(res_id)
+    template = 'aristotle_mdr/downloads/creating_download.html'
+    context = {}
+    logger.info(job.ready())
+    if job.ready():
+        try:
+            return redirect(reverse('aristotle:start_download', args=[id]))
+        except Exception as exception:
+            if getattr(settings, 'DEBUG'):
+                logger.error('could not get the '.format(exception))
+                raise
+            pass
+    else:
+        return render(
+            request,
+            template,
+            context=context
+        )
+
+    return HttpResponseBadRequest()
+
+def get_async_download(request, id):
+    res_id = request.COOKIES.get('download_res_key')
+    job = async_result(res_id)
+    logger.info(job.successful())
+    if not job.successful():
+        exc = job.get(propagate=False)
+        logger.exception('Task {0} raised exception: {1!r}\n{2!r}'.format(
+          res_id, exc, job.traceback))
+        return HttpResponseBadRequest()
+    res = job.get()
+    return HttpResponse(cache.get(id))  #, content_type='application/pdf')
+

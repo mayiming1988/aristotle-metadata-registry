@@ -1,0 +1,20 @@
+{% extends 'aristotle_mdr/base.html' %}
+
+<!--Adding meta to refresh every 10 seconds-->
+{% block extra_head_scripts %}
+    {% if not download_url %}<meta http-equiv="refresh" content="60"> {% endif %}
+{% endblock %}
+
+{% block title %} Preparing download{% endblock %}
+    Please wait and watch
+
+
+<div style="height: 400px;">
+{% block content %}
+    {% if download_url %}
+        <div><a href="{{download_url}}">Start download</a></div>
+    {% else %}
+        <div>Please wait while we are preparing your download</div>
+    {% endif %}
+{% endblock %}
+</div>
