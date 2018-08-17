@@ -1033,9 +1033,9 @@ class ConceptualDomain(concept):
     description = models.TextField(
         _('description'),
         blank=True,
-        help_text=_('Description or specification of a rule, reference, or '
+        help_text=_(('Description or specification of a rule, reference, or '
                    'range for a set of all value meanings for a Conceptual '
-                   'Domain')
+                   'Domain'))
     )
     serialize_weak_entities = [
         ('value_meaning', 'valuemeaning_set'),
@@ -1187,7 +1187,7 @@ class AbstractValue(aristotleComponent):
     end_date = models.DateField(
         blank=True,
         null=True,
-        help_text=('Date at which the value ceased to be valid')
+        help_text=_('Date at which the value ceased to be valid')
     )
 
     def __str__(self):
