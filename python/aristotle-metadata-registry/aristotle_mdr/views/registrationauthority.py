@@ -11,7 +11,8 @@ from aristotle_mdr.views.utils import (
     paginated_registration_authority_list,
     ObjectLevelPermissionRequiredMixin,
     RoleChangeView,
-    MemberRemoveFromGroupView
+    MemberRemoveFromGroupView,
+    AlertFieldsMixin
 )
 from aristotle_mdr import perms
 
@@ -151,7 +152,7 @@ class MembersRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, 
     context_object_name = "item"
 
 
-class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, UpdateView):
+class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, AlertFieldsMixin, UpdateView):
     model = MDR.RegistrationAuthority
     template_name = "aristotle_mdr/user/registration_authority/edit.html"
     permission_required = "aristotle_mdr.change_registrationauthority"
@@ -174,6 +175,10 @@ class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequire
         'preferred',
         'superseded',
         'retired',
+    ]
+
+    alert_fields = [
+        'active'
     ]
 
     pk_url_kwarg = 'iid'

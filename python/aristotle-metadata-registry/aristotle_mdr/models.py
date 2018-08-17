@@ -235,7 +235,7 @@ class RegistrationAuthority(Organization):
     active = models.IntegerField(
         choices=RA_ACTIVE_CHOICES,
         default=RA_ACTIVE_CHOICES.active,
-        help_text='<div id="active-alert" class="alert alert-warning" role="alert">Setting this to Inactive will disable all further registration actions</div>'
+        help_text=_('Setting this to Inactive will disable all further registration actions')
     )
     locked_state = models.IntegerField(
         choices=STATES,
@@ -640,7 +640,7 @@ class _concept(baseAristotleObject):
     references = RichTextField(blank=True)
     origin_URI = models.URLField(
         blank=True,
-        help_text="If imported, the original location of the item"
+        help_text=_("If imported, the original location of the item")
     )
     comments = RichTextField(
         help_text=_("Descriptive comments about the metadata item (8.1.2.2.3.4)"),
@@ -1033,7 +1033,7 @@ class ConceptualDomain(concept):
     description = models.TextField(
         _('description'),
         blank=True,
-        help_text=('Description or specification of a rule, reference, or '
+        help_text=_('Description or specification of a rule, reference, or '
                    'range for a set of all value meanings for a Conceptual '
                    'Domain')
     )
@@ -1063,12 +1063,12 @@ class ValueMeaning(aristotleComponent):
     start_date = models.DateField(
         blank=True,
         null=True,
-        help_text='Date at which the value meaning became valid'
+        help_text=_('Date at which the value meaning became valid')
     )
     end_date = models.DateField(
         blank=True,
         null=True,
-        help_text='Date at which the value meaning ceased to be valid'
+        help_text=_('Date at which the value meaning ceased to be valid')
     )
 
     def __str__(self):
@@ -1182,12 +1182,12 @@ class AbstractValue(aristotleComponent):
     start_date = models.DateField(
         blank=True,
         null=True,
-        help_text='Date at which the value became valid'
+        help_text=_('Date at which the value became valid')
     )
     end_date = models.DateField(
         blank=True,
         null=True,
-        help_text='Date at which the value ceased to be valid'
+        help_text=('Date at which the value ceased to be valid')
     )
 
     def __str__(self):
