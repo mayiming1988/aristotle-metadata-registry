@@ -1033,9 +1033,10 @@ class ConceptualDomain(concept):
     description = models.TextField(
         _('description'),
         blank=True,
-        help_text=_(('Description or specification of a rule, reference, or '
-                   'range for a set of all value meanings for a Conceptual '
-                   'Domain'))
+        help_text=_(
+            ('Description or specification of a rule, reference, or '
+             'range for a set of all value meanings for a Conceptual Domain')
+        )
     )
     serialize_weak_entities = [
         ('value_meaning', 'valuemeaning_set'),
