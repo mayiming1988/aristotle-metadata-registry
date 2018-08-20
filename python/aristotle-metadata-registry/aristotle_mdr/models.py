@@ -630,6 +630,10 @@ class _concept(baseAristotleObject):
         blank=True,
         help_text="If imported, the original location of the item"
     )
+    origin = RichTextField(
+        help_text=_("The source (e.g. document, project, discipline or model) for the item (8.1.2.2.3.5)"),
+        blank=True
+    )
     comments = RichTextField(
         help_text=_("Descriptive comments about the metadata item (8.1.2.2.3.4)"),
         blank=True
