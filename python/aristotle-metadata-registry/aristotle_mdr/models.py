@@ -1407,7 +1407,21 @@ class PossumProfile(models.Model):
 
     @property
     def myWorkgroups(self):
-        return self.workgroups.filter(archived=False)
+        return (
+            self.user.viewer_in.all() |
+            self.user.submitter_in.all() |
+            self.user.steward_in.all() |
+            self.user.workgroup_manager_in.all()
+        ).filter(archived=False).distinct()
+
+    @property
+    def myWorkgroupCount(self):
+        # When only a count is required, querying with union is much faster
+        vi = self.user.viewer_in.filter(archived=False)
+        si = self.user.submitter_in.filter(archived=False)
+        sti = self.user.steward_in.filter(archived=False)
+        mi = self.user.workgroup_manager_in.filter(archived=False)
+        return vi.union(si).union(sti).union(mi).count()
 
     @property
     def editable_workgroups(self):
