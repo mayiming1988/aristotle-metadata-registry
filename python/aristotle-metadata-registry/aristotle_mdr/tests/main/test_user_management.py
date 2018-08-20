@@ -276,7 +276,6 @@ class UserManagementPages(utils.LoggedInViewPages, TestCase):
             self.assertEqual(len(mail.outbox), 1)
             self.assertTrue(mail.outbox[0].subject.startswith('Password reset'))
 
-
     def test_self_registration_page_existing_inactive_user(self):
         existing_data = self.signup_data.copy()
 
@@ -506,3 +505,30 @@ class UserManagementPages(utils.LoggedInViewPages, TestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].to[0], 'newguy@example.com')
         self.assertTrue(mail.outbox[0].subject.startswith('You\'ve been invited'))
+
+    @tag('emailcase')
+    def test_password_reset_new_case(self):
+        self.assertEqual(len(mail.outbox), 0)
+        existing_user = self.user_model.objects.create_user(
+            'myemail@example.com',
+            'verysecure'
+        )
+
+        response = self.client.post(
+            reverse('password_reset'),
+            {'email': 'MYEmail@example.com'}
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertTrue(mail.outbox[0].subject.startswith('Password reset'))
+
+    @tag('emailcase')
+    def test_resend_activation_new_case(self):
+        response = self.client.post(
+            reverse('aristotle-user:signup_resend'),
+            {'email': 'InacTivE@example.com'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('activation link has been sent' in response.context['message'])
+
+        self.assertEqual(len(mail.outbox), 1)
