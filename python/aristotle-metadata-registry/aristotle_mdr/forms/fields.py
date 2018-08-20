@@ -81,4 +81,3 @@ class ReviewChangesChoiceField(ModelMultipleChoiceField):
             extra_info.update({concept.id: innerdict})
 
         return extra_info
-
