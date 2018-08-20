@@ -467,10 +467,42 @@ class UserManagementPages(utils.LoggedInViewPages, TestCase):
             self.assertEqual(len(mail.outbox), 1)
 
     @tag('emailcase')
-    def test_bulk_signup_with_new_case(self):
-        pass
+    def test_login_either_case(self):
+        existing_user = self.user_model.objects.create_user(
+            'myEmAil@example.com',
+            'verysecure'
+        )
+        login_url = reverse('friendly_login')
+
+        response = self.client.post(
+            login_url,
+            {'username': 'myemail@example.com', 'password': 'verysecure'}
+        )
+        self.assertEqual(response.status_code, 302)
+
+        self.client.logout()
+        response = self.client.post(
+            login_url,
+            {'username': 'MYEMAIL@example.com', 'password': 'verysecure'}
+        )
+        self.assertEqual(response.status_code, 302)
 
     @tag('emailcase')
-    def test_signup_with_new_case(self):
-        pass
+    def test_bulk_signup_with_new_case(self):
+        self.login_superuser()
+        existing_user = self.user_model.objects.create_user(
+            'myemail@example.com',
+            'verysecure'
+        )
 
+        data = {
+            'email_list': 'myemail@example.com\nnewguy@example.com'
+        }
+
+        post_response = self.client.post(reverse('aristotle-user:registry_invitations_create'), data)
+        self.assertEqual(post_response.status_code, 302)
+
+        # Test that invitations were sent
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to[0], 'newguy@example.com')
+        self.assertTrue(mail.outbox[0].subject.startswith('You\'ve been invited'))
