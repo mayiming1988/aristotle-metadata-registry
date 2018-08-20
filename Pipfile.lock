@@ -295,10 +295,10 @@
         },
         "django-improved-user": {
             "hashes": [
-                "sha256:3ba5af0e36b1e447613117bd8989c899a7e76b077e8b82bce885d23d71244e71",
-                "sha256:ddc53ed3dc8b0bd1667c19480620740dcf368a5db99ede87cee182d6e8230369"
+                "sha256:23ec44f40262ad5418e131526111cfce2c640a7ea814d0bec62a6846204a4c74",
+                "sha256:b3980cc424b21c450a0eba93b9878c39d96e5f7a73d42ff83d599754adf2fea3"
             ],
-            "version": "==1.0a2"
+            "version": "==1.0.0"
         },
         "django-js-asset": {
             "hashes": [

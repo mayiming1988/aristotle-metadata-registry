@@ -1,5 +1,13 @@
 Changelog
 
+- 2.1.4
+    - Efficiency impovements on list pages
+    - Dependancy updates
+
+- 2.1.3
+    - Identifier and Namespace searching
+    - Fix for api list bug
+
 - 2.1.2
     - Fixed editor UI Bug
     - Improved logging of config errors
