@@ -1,4 +1,5 @@
 from django.forms.models import ModelMultipleChoiceField
+from django.forms import EmailField
 import aristotle_mdr.models as MDR
 from aristotle_mdr.utils import status_filter
 from aristotle_mdr.widgets.widgets import TableCheckboxSelect
@@ -81,3 +82,10 @@ class ReviewChangesChoiceField(ModelMultipleChoiceField):
             extra_info.update({concept.id: innerdict})
 
         return extra_info
+
+
+class LowerEmailFormField(EmailField):
+
+    def clean(self, value):
+        value = value.lower()
+        return super.clean(value)

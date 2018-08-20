@@ -23,9 +23,10 @@ from django.db.models import (
     OneToOneField, OneToOneRel
 )
 from django.db.models.fields import (
-    TextField
+    TextField, EmailField
 )
 
+from aristotle_mdr.forms import fields as form_fields
 from constrainedfilefield.fields import ConstrainedImageField
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from PIL import Image
@@ -114,3 +115,20 @@ class ConvertedConstrainedImageField(ConstrainedImageField):
         )
 
         return imagefile
+
+
+class LowerEmailField(EmailField):
+    """
+    Reimplementation of email field, where email is always stored lowercase
+    """
+
+    def get_db_prep_value(self, value, connection, prepared=False):
+        value = super().get_db_prep_value(value, connection, prepared)
+        return value.lower()
+
+    def formfield(self, *args, **kwargs):
+        default = {
+            'form_class': form_fields.LowerEmailFormField
+        }
+        defaults.update(kwargs)
+        return super().formfield(*args, **kwargs)
