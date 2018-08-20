@@ -178,3 +178,27 @@ class TestDedMigration(MigrationsTestCase, TestCase):
         orig_de_pks = [self.de1.pk, self.de2.pk]
 
         self.assertEqual(set(de_pks), set(orig_de_pks))
+
+class TestLowercaseEmailMigration(MigrationsTestCase, TestCase):
+
+    migrate_from = '0031_auto_20180629_0143'
+    migrate_to = '0032_lowercase_emails'
+
+    def setUpBeforeMigration(self, apps):
+        user = apps.get_model('aristotle_mdr_user_management', 'User')
+
+        user.objects.create(
+            email='FIRST@example.com',
+        )
+        user.objects.create(
+            email='Second@example.com',
+        )
+
+    def test_migration(self):
+
+        user = self.apps.get_model('aristotle_mdr_user_management', 'User')
+        self.assertEqual(user.objects.count(), 2)
+        self.assertTrue(user.objects.filter(email='first@example.com').exists())
+        self.assertTrue(user.objects.filter(email='second@example.com').exists())
+        self.assertFalse(user.objects.filter(email='FIRST@example.com').exists())
+        self.assertFalse(user.objects.filter(email='Second@example.com').exists())
