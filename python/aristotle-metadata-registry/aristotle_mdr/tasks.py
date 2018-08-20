@@ -32,6 +32,7 @@ class CeleryPDFDownloader(PDFDownloader):
             for obj_type, qs in item.get_download_items()
         ]
 
+        # TODO: Use user in the cache key for cache to be user specific (and probably namespace the cache with an alias
         cache.set(iid, render_to_pdf(template, {
             'title': "PDF Download for {obj.name}".format(obj=item),
             'item': item,

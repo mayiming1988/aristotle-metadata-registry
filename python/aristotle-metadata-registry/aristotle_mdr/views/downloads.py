@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
+from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseServerError
 from django.shortcuts import render, redirect
@@ -70,18 +71,25 @@ def download(request, download_type, iid=None):
     for kls in downloadOpts:
         if download_type == kls.download_type:
             try:
+                # page size for the pdf
                 page_size = getattr(settings, 'PDF_PAGE_SIZE', "A4")
                 user = getattr(request, 'user', None)
                 # properties requested for the file requested
+                # TODO: Consider using a dict to explain a user like user: {email: email@id.com}
                 item_props = {
                     'user': None if not user.is_authenticated else user.email,
                     'view': request.GET.get('view', '').lower(),
                     'page_size': request.GET.get('pagesize', page_size)
                 }
-                res = kls.async_download.delay(item_props, iid)
-                response = redirect(reverse('aristotle:preparing_download', args=[iid]))
-                response.set_cookie('download_res_key', res.id)
-                return response
+
+                # Calling async if present else fallback on sync method
+                if 'async_download' in dir(kls):
+                    res = kls.async_download.delay(item_props, iid)
+                    response = redirect(reverse('aristotle:preparing_download', args=[iid]))
+                    response.set_cookie('download_res_key', res.id)
+                    return response
+                else:
+                    return kls.download(request, iid)
             except TemplateDoesNotExist:
                 debug = getattr(settings, 'DEBUG')
                 if debug:
@@ -132,8 +140,28 @@ def bulk_download(request, download_type, items=None):
     raise Http404
 
 
+def get_download_cache_key(identifier, user_pk=None, request=None):
+    """
+    Returns a unique to cache key using a specified key(user_pk) or from a request.
+    Can send user's unique key, a request or id
+    The preference is given in order `id:user_pk` | `id:request.user.email` | `id`
+    :param identifier: identifier for the job
+    :param user_pk: user's unique id such as email or database id
+    :param request: session request
+    :return: string with a unique id
+    """
+    if user_pk:
+        return '{}:{}'.format(identifier, user_pk)
+    elif request:
+        user = request.user
+        unique_key = str(user)
+        return '{}:{}'.format(identifier, unique_key)
+    else:
+        return '{}'.format(identifier)
+
+
 # Thanks to stackoverflow answer: https://stackoverflow.com/a/23177986
-def prepare_async_download(request, id):
+def prepare_async_download(request, identifier):
     res_id = request.COOKIES.get('download_res_key')
     job = async_result(res_id)
     template = 'aristotle_mdr/downloads/creating_download.html'
@@ -141,7 +169,7 @@ def prepare_async_download(request, id):
     logger.info(job.ready())
     if job.ready():
         try:
-            return redirect(reverse('aristotle:start_download', args=[id]))
+            return redirect(reverse('aristotle:start_download', args=[identifier]))
         except Exception as exception:
             if getattr(settings, 'DEBUG'):
                 logger.error('could not get the '.format(exception))
@@ -156,7 +184,7 @@ def prepare_async_download(request, id):
 
     return HttpResponseBadRequest()
 
-def get_async_download(request, id):
+def get_async_download(request, identifier):
     res_id = request.COOKIES.get('download_res_key')
     job = async_result(res_id)
     logger.info(job.successful())
@@ -166,5 +194,5 @@ def get_async_download(request, id):
           res_id, exc, job.traceback))
         return HttpResponseBadRequest()
     res = job.get()
-    return HttpResponse(cache.get(id), content_type='application/pdf')
+    return HttpResponse(cache.get(identifier), content_type='application/pdf')
 
