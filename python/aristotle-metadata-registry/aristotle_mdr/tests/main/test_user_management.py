@@ -2,6 +2,7 @@ from django.test import TestCase, tag, override_settings, modify_settings
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.core import mail
+from django.db.utils import IntegrityError
 from unittest.mock import patch, MagicMock
 
 import aristotle_mdr.tests.utils as utils
@@ -52,7 +53,6 @@ class UserManagementPages(utils.LoggedInViewPages, TestCase):
         self.login_superuser()
         response = self.client.get(reverse('aristotle-user:registry_user_list',))
         self.assertEqual(response.status_code, 200)
-
 
     def test_user_cannot_deactivate_user(self):
         self.login_viewer()
@@ -431,4 +431,46 @@ class UserManagementPages(utils.LoggedInViewPages, TestCase):
         self.assertTrue('activation link has been sent' in response.context['message'])
 
         self.assertEqual(len(mail.outbox), 1)
+
+
+    @tag('emailcase')
+    def test_creating_user_model_case(self):
+        existing_user = self.user_model.objects.create(
+            email='myemail@example.com',
+            full_name='Email',
+            short_name='Email'
+        )
+
+        with self.assertRaises(IntegrityError):
+            new_usr = self.user_model.objects.create(
+                email='MyEmail@example.com',
+                full_name='Email2',
+                short_name='Email2'
+            )
+
+    @tag('emailcase')
+    def test_self_signup_with_new_case(self):
+        existing_data = self.signup_data.copy()
+        existing_user = self.user_model.objects.create_user(
+            'myemail@example.com',
+            'verysecure'
+        )
+
+        # With signup enabled
+        mock_settings = MagicMock(return_value={'SELF_SIGNUP': {'enabled': True}})
+        with patch('aristotle_mdr.contrib.user_management.views.fetch_aristotle_settings', mock_settings):
+            existing_data.update({'email': 'MyEmail@example.com'})
+            post_response = self.client.post(reverse('aristotle-user:signup_register'), existing_data)
+            self.assertEqual(post_response.status_code, 200)
+            #import pdb; pdb.set_trace()
+            self.assertTrue('message' in post_response.context.keys())
+            self.assertEqual(len(mail.outbox), 1)
+
+    @tag('emailcase')
+    def test_bulk_signup_with_new_case(self):
+        pass
+
+    @tag('emailcase')
+    def test_signup_with_new_case(self):
+        pass
 

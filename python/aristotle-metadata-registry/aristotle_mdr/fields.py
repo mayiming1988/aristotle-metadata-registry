@@ -123,7 +123,7 @@ class LowerEmailFormField(EmailFormField):
     def clean(self, value):
         if value is not None:
             value = value.lower()
-        return super.clean(value)
+        return super().clean(value)
 
 
 class LowerEmailField(EmailField):
