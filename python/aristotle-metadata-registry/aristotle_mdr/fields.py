@@ -121,7 +121,8 @@ class ConvertedConstrainedImageField(ConstrainedImageField):
 class LowerEmailFormField(EmailFormField):
 
     def clean(self, value):
-        value = value.lower()
+        if value is not None:
+            value = value.lower()
         return super.clean(value)
 
 
@@ -132,7 +133,10 @@ class LowerEmailField(EmailField):
 
     def get_db_prep_value(self, value, connection, prepared=False):
         value = super().get_db_prep_value(value, connection, prepared)
-        return value.lower()
+        if value is not None:
+            return value.lower()
+        else:
+            return value
 
     def formfield(self, *args, **kwargs):
         defaults = {
