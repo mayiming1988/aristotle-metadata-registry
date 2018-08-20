@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 
 from aristotle_mdr.forms.utils import FormRequestMixin
 from aristotle_mdr.utils import fetch_aristotle_settings
-from aristotle_mdr.forms.fields import LowerEmailFormField
+from aristotle_mdr.fields import LowerEmailFormField
 
 from organizations.backends.forms import UserRegistrationForm
 
@@ -45,7 +45,7 @@ class UserInvitationForm(FormRequestMixin, forms.Form):
 
 class ResendActivationForm(forms.Form):
 
-    email = forms.LowerEmailFormField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
+    email = LowerEmailFormField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
 
 
 class UserRegistrationForm(forms.ModelForm):
@@ -58,7 +58,7 @@ class UserRegistrationForm(forms.ModelForm):
         max_length=128,
         widget=forms.PasswordInput
     )
-    email = forms.LowerEmailFormField(
+    email = LowerEmailFormField(
         max_length=254
     )
 
