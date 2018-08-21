@@ -13,31 +13,33 @@ $(document).ready(function() {
     var element_name = button.closest('tr').find('.itemLink').text();
     submit_url = delete_submit_url; //submit_button.attr('submit-url');
 
-    bootbox.alert({ 
-      size: "small",
+    bootbox.confirm({ 
       title: "Delete",
-      message: "Are you sure you want to delete <span id=\"element-name\">"+element_name+"</span>", 
-      callback: function() {
-        var modal=$(this);
-        var message_p = $(this).find('#modal-message');
-        $.ajax({
-          method: "POST",
-          url: submit_url,
-          data: {item: item_id, csrfmiddlewaretoken: csrftoken},
-          datatype: "json",
-          success: function(data) {
-              if (data.completed) {
-                // Remove item's row
-                button.closest('tr').remove();
-                modal.modal('hide');
-              } else if (data.message) {
-                message_p.html(data.message);
-              }
-          },
-          error: function() {
-              message_p.html("The item could not be deleted");
-          }
-        })
+      size: "small",
+      message: "Are you sure you want to delete "+element_name+"?", 
+      callback: function(result) {
+        if (result==true) {
+          var modal=$(this);
+          var message_p = $(this).find('#modal-message');
+          $.ajax({
+            method: "POST",
+            url: submit_url,
+            data: {item: item_id, csrfmiddlewaretoken: csrftoken},
+            datatype: "json",
+            success: function(data) {
+                if (data.completed) {
+                  // Remove item's row
+                  button.closest('tr').remove();
+                  modal.modal('hide');
+                } else if (data.message) {
+                  message_p.html(data.message);
+                }
+            },
+            error: function() {
+                message_p.html("The item could not be deleted");
+            }
+          })
+        }
       }
     })
 
