@@ -1,7 +1,7 @@
 import datetime
 from django.apps import apps
 from django.contrib.auth.decorators import login_required
-from braces.views import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
@@ -21,6 +21,7 @@ from django.core.exceptions import ValidationError
 
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
+from aristotle_mdr.contrib.generic.views import ShareLinkMixin
 from aristotle_mdr.views.utils import (paginated_list,
                                        paginated_workgroup_list,
                                        paginated_registration_authority_list,
@@ -424,13 +425,11 @@ class ReviewDetailsView(DetailView):
         return MDR.ReviewRequest.objects.visible(self.request.user)
 
 
-class CreatedItemsListView(ListView):
+class CreatedItemsListView(LoginRequiredMixin, ListView):
+    """Display Users sandbox items"""
+
     paginate_by = 25
     template_name = "aristotle_mdr/user/sandbox.html"
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
 
     def get_queryset(self, *args, **kwargs):
         return MDR._concept.objects.filter(
@@ -446,6 +445,9 @@ class CreatedItemsListView(ListView):
         # Call the base implementation first to get a context
         context = super().get_context_data(*args, **kwargs)
         context['sort'] = self.request.GET.get('sort', 'name_asc')
+
+        share = getattr(self.request.user.profile, 'share', None)
+        context['share'] = share
         return context
 
     def get_ordering(self):
