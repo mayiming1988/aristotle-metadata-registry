@@ -42,4 +42,17 @@ $(document).ready(function() {
     })
   })
 
+  $('#add-email').click(function() {
+    var clone = $('.email-group').first().clone()
+    clone.find('.remove-email').click(function() {
+      $(this).closest('.email-group').remove()
+    })
+    clone.find('input').val('')
+    clone.appendTo('#email-fields')
+  })
+
+  $('.remove-email').click(function() {
+    $(this).closest('.email-group').remove()
+  })
+
 })
