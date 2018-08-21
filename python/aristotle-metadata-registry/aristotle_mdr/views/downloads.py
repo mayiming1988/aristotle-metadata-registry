@@ -8,7 +8,7 @@ from django.template import TemplateDoesNotExist
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.views import get_if_user_can_view
-from aristotle_mdr.utils import fetch_aristotle_downloaders, downloads
+from aristotle_mdr.utils import fetch_aristotle_downloaders, downloads as download_utils
 from celery.result import AsyncResult as async_result
 from django.core.cache import cache
 
@@ -157,6 +157,7 @@ def prepare_async_download(request, identifier):
 
     return HttpResponseBadRequest()
 
+
 # TODO: need a better redirect architecture, needs refactor.
 def get_async_download(request, identifier):
     """
@@ -174,7 +175,7 @@ def get_async_download(request, identifier):
         return HttpResponseBadRequest()
     job.forget()
     # TODO: Consider moving constant strings in a config or settings file
-    doc = cache.get(downloads.get_download_cache_key(identifier, request=request), 'not_cached')
+    doc = cache.get(download_utils.get_download_cache_key(identifier, request=request), 'not_cached')
     if doc == 'not_cached':
         # TODO: Need a design to avoid loop and refactor this to redirect to preparing-download
         raise Http404

@@ -1,14 +1,13 @@
-from aristotle_mdr.utils import get_download_template_path_for_item
-from django.contrib.auth.models import User, AnonymousUser
+from aristotle_mdr.utils import get_download_template_path_for_item, downloads as download_utils
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth import get_user_model
 from aristotle_mdr.views import get_if_user_can_view
 from aristotle_mdr import models as MDR
 
-import cgi
 import os
 
 
 from django.http import HttpResponse, Http404
-# from django.shortcuts import render
 from django.template.loader import select_template, get_template
 from django.template import Context
 from django.utils.safestring import mark_safe
@@ -18,7 +17,6 @@ from celery import shared_task
 from aristotle_mdr.contrib.help.models import ConceptHelp
 
 from aristotle_mdr.downloader import DownloaderBase
-from aristotle_mdr.utils import downloads
 
 import logging
 import weasyprint
@@ -31,6 +29,8 @@ PDF_STATIC_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'pdf
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
+
+User = get_user_model()
 
 
 class PDFDownloader(DownloaderBase):
@@ -61,8 +61,7 @@ class PDFDownloader(DownloaderBase):
         ]
 
         # TODO: Use user in the cache key for cache to be user specific (and probably namespace the cache with an alias
-        print('get_download_cache_key(iid, user): {}'.format(downloads.get_download_cache_key(iid, user)))
-        cache.set(downloads.get_download_cache_key(iid, user), render_to_pdf(template, {
+        cache.set(download_utils.get_download_cache_key(iid, user), render_to_pdf(template, {
             'title': "PDF Download for {obj.name}".format(obj=item),
             'item': item,
             'subitems': sub_items,
@@ -133,7 +132,9 @@ def generate_outline_tree(bookmarks, depth=1):
     ]
 
 
-def render_to_pdf(template_src, context_dict, preamble_template='aristotle_mdr/downloads/pdf/title.html', debug_as_html=False):
+def render_to_pdf(template_src, context_dict,
+                  preamble_template='aristotle_mdr/downloads/pdf/title.html',
+                  debug_as_html=False):
     # If the request template doesnt exist, we will give a default one.
     template = select_template([
         template_src,
@@ -152,8 +153,7 @@ def render_to_pdf(template_src, context_dict, preamble_template='aristotle_mdr/d
     ).render()
 
     if not context_dict.get('tableOfContents', False):
-        return HttpResponse(document.write_pdf(), content_type='application/pdf') \
-            if 'request' in context_dict else document.write_pdf()
+        return document.write_pdf()
 
     table_of_contents_string = generate_outline_str(document.make_bookmark_tree())
     toc = get_template('aristotle_mdr/downloads/pdf/toc.html').render(
@@ -179,8 +179,7 @@ def render_to_pdf(template_src, context_dict, preamble_template='aristotle_mdr/d
     for i, table_of_contents_page in enumerate(table_of_contents_document.pages):
         document.pages.insert(i + 1, table_of_contents_page)
 
-    return HttpResponse(document.write_pdf(), content_type='application/pdf') \
-        if 'request' in context_dict else document.write_pdf()
+    return document.write_pdf()
 
 
 def items_for_bulk_download(items, request):
