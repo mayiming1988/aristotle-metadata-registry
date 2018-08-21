@@ -9,7 +9,7 @@ INSTALLED_APPS = INSTALLED_APPS + ("aristotle_pdf",)
 ALLOWED_HOSTS = ["*"]
 DEBUG = True
 ARISTOTLE_SETTINGS['SITE_NAME'] = 'Aristotle Development Server'
-ARISTOTLE_SETTINGS['DOWNLOADERS'] = ['aristotle_mdr.downloader.CSVDownloader', 'aristotle_mdr.tasks.CeleryPDFDownloader']
+ARISTOTLE_SETTINGS['DOWNLOADERS'] = ['aristotle_mdr.downloader.CSVDownloader', 'aristotle_pdf.downloader.PDFDownloader']
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_DIR = os.path.join(BASE_DIR, 'static')

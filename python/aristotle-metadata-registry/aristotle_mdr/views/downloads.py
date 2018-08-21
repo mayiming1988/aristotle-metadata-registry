@@ -8,7 +8,7 @@ from django.template import TemplateDoesNotExist
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.views import get_if_user_can_view
-from aristotle_mdr.utils import fetch_aristotle_downloaders
+from aristotle_mdr.utils import fetch_aristotle_downloaders, downloads
 from celery.result import AsyncResult as async_result
 from django.core.cache import cache
 
@@ -20,7 +20,7 @@ logger.debug("Logging started for " + __name__)
 PAGES_PER_RELATED_ITEM = 15
 
 
-def download(request, download_type, iid=None):
+def download(request, download_type, iid):
     """
     By default, ``aristotle_mdr.views.download`` is called whenever a URL matches
     the pattern defined in ``aristotle_mdr.urls_aristotle``::
@@ -67,29 +67,23 @@ def download(request, download_type, iid=None):
         else:
             raise PermissionDenied
 
-    downloadOpts = fetch_aristotle_downloaders()
-    for kls in downloadOpts:
+    download_opts = fetch_aristotle_downloaders()
+    for kls in download_opts:
         if download_type == kls.download_type:
             try:
                 # page size for the pdf
                 page_size = getattr(settings, 'PDF_PAGE_SIZE', "A4")
                 user = getattr(request, 'user', None)
                 # properties requested for the file requested
-                # TODO: Consider using a dict to explain a user like user: {email: email@id.com}
                 item_props = {
-                    'user': None if not user.is_authenticated else user.email,
+                    'user': str(user),
                     'view': request.GET.get('view', '').lower(),
                     'page_size': request.GET.get('pagesize', page_size)
                 }
-
-                # Calling async if present else fallback on sync method
-                if 'async_download' in dir(kls):
-                    res = kls.async_download.delay(item_props, iid)
-                    response = redirect(reverse('aristotle:preparing_download', args=[iid]))
-                    response.set_cookie('download_res_key', res.id)
-                    return response
-                else:
-                    return kls.download(request, iid)
+                res = kls.download.delay(item_props, iid)
+                response = redirect(reverse('aristotle:preparing_download', args=[iid]))
+                response.set_cookie('download_res_key', res.id)
+                return response
             except TemplateDoesNotExist:
                 debug = getattr(settings, 'DEBUG')
                 if debug:
@@ -140,33 +134,12 @@ def bulk_download(request, download_type, items=None):
     raise Http404
 
 
-def get_download_cache_key(identifier, user_pk=None, request=None):
-    """
-    Returns a unique to cache key using a specified key(user_pk) or from a request.
-    Can send user's unique key, a request or id
-    The preference is given in order `id:user_pk` | `id:request.user.email` | `id`
-    :param identifier: identifier for the job
-    :param user_pk: user's unique id such as email or database id
-    :param request: session request
-    :return: string with a unique id
-    """
-    if user_pk:
-        return '{}:{}'.format(identifier, user_pk)
-    elif request:
-        user = request.user
-        unique_key = str(user)
-        return '{}:{}'.format(identifier, unique_key)
-    else:
-        return '{}'.format(identifier)
-
-
 # Thanks to stackoverflow answer: https://stackoverflow.com/a/23177986
 def prepare_async_download(request, identifier):
     res_id = request.COOKIES.get('download_res_key')
     job = async_result(res_id)
     template = 'aristotle_mdr/downloads/creating_download.html'
     context = {}
-    logger.info(job.ready())
     if job.ready():
         try:
             return redirect(reverse('aristotle:start_download', args=[identifier]))
@@ -184,15 +157,26 @@ def prepare_async_download(request, identifier):
 
     return HttpResponseBadRequest()
 
+# TODO: need a better redirect architecture, needs refactor.
 def get_async_download(request, identifier):
+    """
+    
+    :param request:
+    :param identifier:
+    :return:
+    """
     res_id = request.COOKIES.get('download_res_key')
     job = async_result(res_id)
-    logger.info(job.successful())
     if not job.successful():
         exc = job.get(propagate=False)
         logger.exception('Task {0} raised exception: {1!r}\n{2!r}'.format(
           res_id, exc, job.traceback))
         return HttpResponseBadRequest()
-    res = job.get()
-    return HttpResponse(cache.get(identifier), content_type='application/pdf')
+    job.forget()
+    # TODO: Consider moving constant strings in a config or settings file
+    doc = cache.get(downloads.get_download_cache_key(identifier, request=request), 'not_cached')
+    if doc == 'not_cached':
+        # TODO: Need a design to avoid loop and refactor this to redirect to preparing-download
+        raise Http404
+    return HttpResponse(doc, content_type='application/pdf')
 

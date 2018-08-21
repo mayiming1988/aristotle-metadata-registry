@@ -1,4 +1,8 @@
 from aristotle_mdr.utils import get_download_template_path_for_item
+from django.contrib.auth.models import User, AnonymousUser
+from aristotle_mdr.views import get_if_user_can_view
+from aristotle_mdr import models as MDR
+
 import cgi
 import os
 
@@ -8,10 +12,13 @@ from django.http import HttpResponse, Http404
 from django.template.loader import select_template, get_template
 from django.template import Context
 from django.utils.safestring import mark_safe
+from django.core.cache import cache
+from celery import shared_task
 
 from aristotle_mdr.contrib.help.models import ConceptHelp
 
 from aristotle_mdr.downloader import DownloaderBase
+from aristotle_mdr.utils import downloads
 
 import logging
 import weasyprint
@@ -33,30 +40,38 @@ class PDFDownloader(DownloaderBase):
     icon_class = "fa-file-pdf-o"
     description = "Downloads for various content types in the PDF format"
 
-    @classmethod
-    def download(cls, request, item):
-        """Built in download method"""
-        template = get_download_template_path_for_item(item, cls.download_type)
-        from django.conf import settings
-        page_size = getattr(settings, 'PDF_PAGE_SIZE', "A4")
+    @staticmethod
+    @shared_task(name='aristotle_pdf_downloads.downloader.download')
+    def download(properties, iid):
+        """Built in download method
+        create pdf_context and return the results to celery backend.
+        :param properties: properties of the pdf template to be generated
+        :param iid: id of the item
+        :return:
+        """
+        user = properties['user']
+        user = User.objects.get(email=user) if user != str(AnonymousUser()) else AnonymousUser()
+        item = MDR._concept.objects.get_subclass(pk=iid)
+        item = get_if_user_can_view(item.__class__, user, iid)
+        template = get_download_template_path_for_item(item, PDFDownloader.download_type)
 
-        subItems = [
-            (obj_type, qs.visible(request.user).order_by('name').distinct())
+        sub_items = [
+            (obj_type, qs.visible(user).order_by('name').distinct())
             for obj_type, qs in item.get_download_items()
         ]
 
-        return render_to_pdf(
-            template,
-            {
-                'title': "PDF Download for {obj.name}".format(obj=item),
-                'item': item,
-                'subitems': subItems,
-                'tableOfContents': len(subItems) > 0,
-                'view': request.GET.get('view', '').lower(),
-                'pagesize': request.GET.get('pagesize', page_size),
-                'request': request,
-            },
-        )
+        # TODO: Use user in the cache key for cache to be user specific (and probably namespace the cache with an alias
+        print('get_download_cache_key(iid, user): {}'.format(downloads.get_download_cache_key(iid, user)))
+        cache.set(downloads.get_download_cache_key(iid, user), render_to_pdf(template, {
+            'title': "PDF Download for {obj.name}".format(obj=item),
+            'item': item,
+            'subitems': sub_items,
+            'tableOfContents': len(sub_items) > 0,
+            'view': properties['view'].lower(),
+            'pagesize': properties['page_size'],
+        }))
+
+        return iid
 
     @classmethod
     def bulk_download(cls, request, items, title=None, subtitle=None):
