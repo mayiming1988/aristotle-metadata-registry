@@ -61,14 +61,14 @@ class PDFDownloader(DownloaderBase):
         ]
 
         # TODO: Use user in the cache key for cache to be user specific (and probably namespace the cache with an alias
-        cache.set(download_utils.get_download_cache_key(iid, user), render_to_pdf(template, {
+        cache.set(download_utils.get_download_cache_key(iid, user), (render_to_pdf(template, {
             'title': "PDF Download for {obj.name}".format(obj=item),
             'item': item,
             'subitems': sub_items,
             'tableOfContents': len(sub_items) > 0,
             'view': properties['view'].lower(),
             'pagesize': properties['page_size'],
-        }))
+        }), 'application/pdf'))
 
         return iid
 

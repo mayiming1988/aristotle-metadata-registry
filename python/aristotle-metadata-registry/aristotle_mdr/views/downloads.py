@@ -175,9 +175,9 @@ def get_async_download(request, identifier):
         return HttpResponseBadRequest()
     job.forget()
     # TODO: Consider moving constant strings in a config or settings file
-    doc = cache.get(download_utils.get_download_cache_key(identifier, request=request), 'not_cached')
+    doc, mime_type = cache.get(download_utils.get_download_cache_key(identifier, request=request), 'not_cached')
     if doc == 'not_cached':
         # TODO: Need a design to avoid loop and refactor this to redirect to preparing-download
         raise Http404
-    return HttpResponse(doc, content_type='application/pdf')
+    return HttpResponse(doc, content_type=mime_type)
 
