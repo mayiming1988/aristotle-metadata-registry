@@ -30,6 +30,7 @@ from aristotle_mdr.utils import (
 )
 from aristotle_mdr import comparators
 
+from jsonfield import JSONField
 from .fields import (
     ConceptForeignKey,
     ConceptManyToManyField,
@@ -1471,6 +1472,24 @@ class PossumProfile(models.Model):
             self.favourites.remove(item)
         else:
             self.favourites.add(item)
+
+
+class SandboxShare(models.Model):
+    uuid = models.UUIDField(
+        help_text=_("Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries"),
+        unique=True, default=uuid.uuid1, editable=False, null=False
+    )
+    profile = models.OneToOneField(
+        PossumProfile,
+        related_name='share'
+    )
+    created = models.DateTimeField(
+        auto_now=True
+    )
+    enabled = models.BooleanField(
+        default=True
+    )
+    emails = JSONField()
 
 
 def create_user_profile(sender, instance, created, **kwargs):
