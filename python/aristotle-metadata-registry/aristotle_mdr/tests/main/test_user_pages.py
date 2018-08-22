@@ -167,6 +167,15 @@ class UserHomePages(utils.LoggedInViewPages, TestCase):
         self.assertEqual(response_dict['completed'], False)
         self.assertTrue('message' in response_dict.keys())
 
+    @tag('share_link')
+    def test_create_share_link(self):
+        self.login_viewer()
+
+        data = {
+            'emails-0': 'firstone@exmaple.com'
+            'emails-1': 'nextone@example.com'
+        }
+
     def test_user_can_edit_own_details(self):
         self.login_viewer()
         new_email = 'my_new@email.com'
