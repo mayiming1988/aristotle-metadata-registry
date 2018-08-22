@@ -7,7 +7,7 @@ from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 from django.db.models import Q, Count
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.views.generic.edit import FormMixin
@@ -27,6 +27,7 @@ from aristotle_mdr.views.utils import (paginated_list,
                                        paginated_workgroup_list,
                                        paginated_registration_authority_list,
                                        GenericListWorkgroup)
+from aristotle_mdr.views.views import render_if_condition_met
 from aristotle_mdr.utils import fetch_metadata_apps
 from aristotle_mdr.utils import get_aristotle_url
 
@@ -508,9 +509,12 @@ class SharedSandboxView(LoginRequiredMixin, ListView):
     paginate_by = 25
     template_name = 'aristotle_mdr/user/shared_sandbox.html'
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         self.share = self.get_share()
-        return super().dispatch(*args, **kwargs)
+        emails = json.loads(self.share.emails)
+        if request.user.email not in emails:
+            return HttpResponseNotFound()
+        return super().dispatch(request, *args, **kwargs)
 
     def get_share(self):
         uuid = self.kwargs['share']
@@ -528,6 +532,15 @@ class SharedSandboxView(LoginRequiredMixin, ListView):
 
     def get_queryset(self, *args, **kwargs):
         return self.share.profile.mySandboxContent
+
+
+class SharedItemView(LoginRequiredMixin, View):
+
+    def get(request, *args, **kwargs):
+        return render_if_condition_met(
+            request
+        )
+
 
 
 class MyWorkgroupList(GenericListWorkgroup):

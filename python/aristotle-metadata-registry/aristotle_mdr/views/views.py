@@ -194,6 +194,11 @@ def unauthorised(request, path=''):
         return render(request, "403.html", {"path": path, "anon": True, }, status=403)
 
 
+def not_found(request, path):
+    context = {'anon': request.user.is_anonymous(), 'path': path}
+    return render(request, "404.html", context)
+
+
 def create_list(request):
     if request.user.is_anonymous():
         return redirect(reverse('friendly_login') + '?next=%s' % request.path)
