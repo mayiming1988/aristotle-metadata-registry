@@ -394,7 +394,7 @@ class RegistrationAuthority(Organization):
         return {'success': [item], 'failed': []}
 
     def _register(self, item, state, user, *args, **kwargs):
-        if self.active == 0:
+        if self.active is RA_ACTIVE_CHOICES.active:
             changeDetails = kwargs.get('changeDetails', "")
             # If registrationDate is None (like from a form), override it with
             # todays date.
