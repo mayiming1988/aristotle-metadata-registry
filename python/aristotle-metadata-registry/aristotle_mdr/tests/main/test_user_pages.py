@@ -176,14 +176,34 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
             'emails-1': 'nextone@example.com'
         }
 
-        response = self.reverse_post('aristotle_mdr:userSandbox', data, status_code=302)
+        response = self.reverse_post('aristotle_mdr:userSandbox', data, status_code=200, follow=True)
 
         self.assertTrue(hasattr(self.viewer.profile, 'share'))
         share = self.viewer.profile.share
         emails = json.loads(share.emails)
 
         self.assertEqual(emails, ['firstone@example.com', 'nextone@example.com'])
+
         self.assertContext(response, 'display_share', True)
+        self.assertContains(response, share.uuid)
+
+    @tag('share_link')
+    def test_form_initial(self):
+        self.login_viewer()
+        emails = ['firstone@example.com', 'nextone@example.com']
+
+        models.SandboxShare.objects.create(
+            profile=self.viewer.profile,
+            emails=json.dumps(emails)
+        )
+
+        response = self.reverse_get('aristotle_mdr:userSandbox')
+        form = response.context['form']
+        self.assertEqual(form.initial['emails'], emails)
+
+    @tag('share_link')
+    def test_view_sandbox(self):
+        pass
 
     def test_user_can_edit_own_details(self):
         self.login_viewer()

@@ -675,6 +675,7 @@ class FormsetTestUtils:
         response = self.client.post(url, postdata)
         return response
 
+
 class GeneralTestUtils:
 
     def _status_check(self, response, kwargs):
@@ -711,6 +712,7 @@ class GeneralTestUtils:
 
         context = response.context
         self.assertEqual(key in context)
+
 
 class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils, FormsetTestUtils):
     pass
