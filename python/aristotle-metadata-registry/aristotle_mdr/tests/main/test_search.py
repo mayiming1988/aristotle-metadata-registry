@@ -772,7 +772,7 @@ class TestTokenSearch(TestCase):
         # Tests that if only an identifier is used, all namespaces are returned
         self.add_identifiers()
         self.add_new_identifier(self.item_xmen[0], 'ice')
-        objs = self.query_search('id:*/ice')
+        objs = self.query_search('id:ice')
         self.assertEqual(len(objs),2)
 
     @tag('id_search')
@@ -791,6 +791,27 @@ class TestTokenSearch(TestCase):
         objs = self.query_search('id:ctm/test/1')
         self.assertEqual(len(objs),1)
         self.assertEqual(objs[0].object.name,"wolverine")
+
+    @tag('token_search')
+    def test_token_statuses_search(self):
+        # Tests that only the identifier with the correct
+        # namespace is returned when one is specified
+        objs = self.query_search('wolverine hs:standard')
+        self.assertEqual(len(objs),1)
+        self.assertEqual(objs[0].object.name,"wolverine")
+
+        objs = self.query_search('wolverine statuses:standard')
+        self.assertEqual(len(objs),1)
+        self.assertEqual(objs[0].object.name,"wolverine")
+
+        animal = models.ObjectClass.objects.create(name="Wolverine",version="0.0.1",definition="An regular animal found on earth.")
+        self.ra.register(animal,models.STATES.recorded,self.su)
+
+        objs = self.query_search('statuses:standard,recorded')
+        self.assertEqual(len(objs),2)
+        self.assertEqual(objs[0].object.name.lower(),"wolverine")
+        self.assertEqual(objs[1].object.name.lower(),"wolverine")
+
 
 class TestSearchDescriptions(TestCase):
     """
