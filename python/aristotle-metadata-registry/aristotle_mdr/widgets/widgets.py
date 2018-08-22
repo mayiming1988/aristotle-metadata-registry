@@ -130,3 +130,12 @@ class MultiTextWidget(TextInput):
         else:
             return value
 
+    def value_from_datadict(self, data, files, name):
+
+        prefix = name + '-'
+        values = []
+        for key in data.keys():
+            if key.startswith(prefix):
+                values.append(data[key])
+
+        return values

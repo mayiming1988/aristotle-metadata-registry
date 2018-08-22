@@ -43,10 +43,8 @@ $(document).ready(function() {
   })
 
   function disable_check(widget) {
-    console.log(widget)
     var count = widget.find('.form-group').length
     var button = widget.find('.remove-field').first()
-    console.log(count)
     if (count == 1) {
       button.prop('disabled', true)
     } else if (count > 1) {

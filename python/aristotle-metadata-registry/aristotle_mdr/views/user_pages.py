@@ -33,6 +33,9 @@ from aristotle_mdr.utils import get_aristotle_url
 import json
 import random
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class FriendlyLoginView(LoginView):
 
@@ -453,12 +456,30 @@ class CreatedItemsListView(LoginRequiredMixin, FormMixin, ListView):
 
         form = self.get_form()
         context['form'] = form
+
+        if 'display_share' in self.request.GET:
+            context['display_share'] = True
+        else:
+            context['display_share'] = False
         return context
+
+    def post(self, *args, **kwargs):
+        form = self.get_form()
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def form_valid(self, form):
+        return super().form_valid(form)
 
     def get_ordering(self):
         from aristotle_mdr.views.utils import paginate_sort_opts
         self.order = self.request.GET.get('sort', 'name_asc')
         return paginate_sort_opts.get(self.order)
+
+    def get_success_url(self):
+        return reverse('aristotle_mdr:userSandbox') + '?display_share=1'
 
 
 class MyWorkgroupList(GenericListWorkgroup):
