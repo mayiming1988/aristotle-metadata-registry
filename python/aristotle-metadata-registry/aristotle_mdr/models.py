@@ -1438,6 +1438,17 @@ class PossumProfile(models.Model):
         return vi.union(si).union(sti).union(mi).count()
 
     @property
+    def mySandboxContent(self):
+        return _concept.objects.filter(
+            Q(
+                submitter=self.user,
+                statuses__isnull=True
+            ) & Q(
+                Q(review_requests__isnull=True) | Q(review_requests__status=REVIEW_STATES.cancelled)
+            )
+        )
+
+    @property
     def editable_workgroups(self):
         if self.user.is_superuser:
             return Workgroup.objects.all()

@@ -437,15 +437,12 @@ class CreatedItemsListView(LoginRequiredMixin, FormMixin, ListView):
     template_name = "aristotle_mdr/user/sandbox.html"
     form_class = MDRForms.ShareLinkForm
 
+    def dispatch(self, *args, **kwargs):
+        self.share = self.get_share()
+        return super().dispatch(*args, **kwargs)
+
     def get_queryset(self, *args, **kwargs):
-        return MDR._concept.objects.filter(
-            Q(
-                submitter=self.request.user,
-                statuses__isnull=True
-            ) & Q(
-                Q(review_requests__isnull=True) | Q(review_requests__status=MDR.REVIEW_STATES.cancelled)
-            )
-        )
+        return self.request.user.profile.mySandboxContent
 
     def get_share(self):
         return getattr(self.request.user.profile, 'share', None)
@@ -463,9 +460,7 @@ class CreatedItemsListView(LoginRequiredMixin, FormMixin, ListView):
         # Call the base implementation first to get a context
         context = super().get_context_data(*args, **kwargs)
         context['sort'] = self.request.GET.get('sort', 'name_asc')
-
-        share = self.get_share()
-        context['share'] = share
+        context['share'] = self.share
 
         form = self.get_form()
         context['form'] = form
@@ -488,15 +483,14 @@ class CreatedItemsListView(LoginRequiredMixin, FormMixin, ListView):
         emails = form.cleaned_data['emails']
         emails_json = json.dumps(emails)
 
-        share = self.get_share()
-        if not share:
+        if not self.share:
             MDR.SandboxShare.objects.create(
                 profile=self.request.user.profile,
                 emails=emails_json
             )
         else:
-            share.emails = emails_json
-            share.save()
+            self.share.emails = emails_json
+            self.share.save()
 
         return super().form_valid(form)
 
@@ -507,6 +501,22 @@ class CreatedItemsListView(LoginRequiredMixin, FormMixin, ListView):
 
     def get_success_url(self):
         return reverse('aristotle_mdr:userSandbox') + '?display_share=1'
+
+
+class SharedSandboxView(LoginRequiredMixin, ListView):
+
+    def get_share(self):
+        uuid = self.kwargs['share']
+        try:
+            share = MDR.SandboxShare.objects.get(uuid=uuid)
+        except MDR.SandboxShare.DoesNotExist:
+            share = None
+
+        return share
+
+    def get_queryset(self, *args, **kwargs):
+        share = self.get_share()
+        return share.profile.mySandboxContent
 
 
 class MyWorkgroupList(GenericListWorkgroup):
