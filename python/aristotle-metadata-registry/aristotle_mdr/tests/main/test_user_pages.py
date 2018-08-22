@@ -16,7 +16,7 @@ from aristotle_mdr.utils import setup_aristotle_test_environment
 setup_aristotle_test_environment()
 
 
-class UserHomePages(utils.LoggedInViewPages, TestCase):
+class UserHomePages(utils.AristotleTestUtils, TestCase):
     def setUp(self):
         super().setUp()
 
@@ -172,9 +172,17 @@ class UserHomePages(utils.LoggedInViewPages, TestCase):
         self.login_viewer()
 
         data = {
-            'emails-0': 'firstone@exmaple.com'
+            'emails-0': 'firstone@example.com',
             'emails-1': 'nextone@example.com'
         }
+
+        response = self.reverse_post('aristotle_mdr:userSandbox', data, status_code=302)
+
+        self.assertTrue(hasattr(self.viewer.profile, 'share'))
+        share = self.viewer.profile.share
+        emails = json.loads(share.emails)
+
+        self.assertEqual(emails, ['firstone@example.com', 'nextone@example.com'])
 
     def test_user_can_edit_own_details(self):
         self.login_viewer()

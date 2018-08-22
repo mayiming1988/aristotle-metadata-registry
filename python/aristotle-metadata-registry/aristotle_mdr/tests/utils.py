@@ -698,7 +698,7 @@ class GeneralTestUtils:
     def reverse_get(self, *args, **kwargs):
         return self._reverse_request('get', *args, **kwargs)
 
-    def reverse_post(self, url_name, *args, **kwargs):
+    def reverse_post(self, *args, **kwargs):
         return self._reverse_request('post', *args, **kwargs)
 
     def assertContext(self, response, key, value):

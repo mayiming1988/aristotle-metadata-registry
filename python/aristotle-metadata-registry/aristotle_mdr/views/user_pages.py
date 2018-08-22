@@ -447,12 +447,15 @@ class CreatedItemsListView(LoginRequiredMixin, FormMixin, ListView):
             )
         )
 
+    def get_share(self):
+        return getattr(self.request.user.profile, 'share', None)
+
     def get_context_data(self, *args, **kwargs):
         # Call the base implementation first to get a context
         context = super().get_context_data(*args, **kwargs)
         context['sort'] = self.request.GET.get('sort', 'name_asc')
 
-        share = getattr(self.request.user.profile, 'share', None)
+        share = self.get_share()
         context['share'] = share
 
         form = self.get_form()
@@ -472,6 +475,20 @@ class CreatedItemsListView(LoginRequiredMixin, FormMixin, ListView):
             return self.form_invalid(form)
 
     def form_valid(self, form):
+
+        emails = form.cleaned_data['emails']
+        emails_json = json.dumps(emails)
+
+        share = self.get_share()
+        if not share:
+            MDR.SandboxShare.objects.create(
+                profile=self.request.user.profile,
+                emails=emails_json
+            )
+        else:
+            share.emails = emails_json
+            share.save()
+
         return super().form_valid(form)
 
     def get_ordering(self):
