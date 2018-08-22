@@ -27,6 +27,7 @@
         {% if share %}
           <p>Share: {{ share }}</p>
         {% endif %}
+        {% comment %}
         <label>Emails</label>
         <div id="email-fields">
           <div class="form-group email-group">
@@ -35,6 +36,8 @@
           </div>
         </div>
         <button id="add-email" class="btn btn-primary">Add</button>
+        {% endcomment %}
+        {{ form.as_table }}
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>

@@ -42,17 +42,51 @@ $(document).ready(function() {
     })
   })
 
-  $('#add-email').click(function() {
-    var clone = $('.email-group').first().clone()
-    clone.find('.remove-email').click(function() {
-      $(this).closest('.email-group').remove()
+  function disable_check(widget) {
+    console.log(widget)
+    var count = widget.find('.form-group').length
+    var button = widget.find('.remove-field').first()
+    console.log(count)
+    if (count == 1) {
+      button.prop('disabled', true)
+    } else if (count > 1) {
+      button.prop('disabled', false)
+    }
+  }
+
+  function remove_field(button) {
+    var widget = $(button).closest('.multi-widget')
+    $(button).closest('.form-group').remove()
+    disable_check(widget)
+  }
+
+  function add_field(button) {
+    var widget = $(button).closest('.multi-widget')
+    var fields = widget.find('.multi-fields').first()
+    var clone = fields.find('.form-group').first().clone()
+    var button = clone.find('.remove-field').first()
+    
+    button.prop('disabled', false)
+    button.click(function() {
+      remove_field(this)
     })
+
     clone.find('input').val('')
-    clone.appendTo('#email-fields')
+    clone.appendTo(fields)
+    disable_check(widget)
+  }
+
+  $('.add-field').click(function() {
+    add_field(this);
   })
 
-  $('.remove-email').click(function() {
-    $(this).closest('.email-group').remove()
+  $('.remove-field').click(function() {
+    remove_field(this);
+  })
+
+  $('.multi-widget').each(function() {
+    var widget = $(this)
+    disable_check(widget)
   })
 
 })

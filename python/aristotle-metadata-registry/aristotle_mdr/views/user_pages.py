@@ -10,6 +10,7 @@ from django.db.models import Q, Count
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
+from django.views.generic.edit import FormMixin
 from django.views.generic import (DetailView,
                                   ListView,
                                   UpdateView,
@@ -425,11 +426,12 @@ class ReviewDetailsView(DetailView):
         return MDR.ReviewRequest.objects.visible(self.request.user)
 
 
-class CreatedItemsListView(LoginRequiredMixin, ListView):
+class CreatedItemsListView(LoginRequiredMixin, FormMixin, ListView):
     """Display Users sandbox items"""
 
     paginate_by = 25
     template_name = "aristotle_mdr/user/sandbox.html"
+    form_class = MDRForms.ShareLinkForm
 
     def get_queryset(self, *args, **kwargs):
         return MDR._concept.objects.filter(
@@ -448,6 +450,9 @@ class CreatedItemsListView(LoginRequiredMixin, ListView):
 
         share = getattr(self.request.user.profile, 'share', None)
         context['share'] = share
+
+        form = self.get_form()
+        context['form'] = form
         return context
 
     def get_ordering(self):

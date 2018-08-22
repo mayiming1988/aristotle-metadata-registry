@@ -98,3 +98,35 @@ class TableCheckboxSelect(CheckboxSelectMultiple):
         })
 
         return context
+
+
+class MultiTextWidget(TextInput):
+    template_name = 'aristotle_mdr/widgets/multi_input.html'
+
+    def get_context(self, name, value, attrs):
+        # Modified from MultiHiddenWidget
+        context = super().get_context(name, value, attrs)
+        final_attrs = context['widget']['attrs']
+        id_ = context['widget']['attrs'].get('id')
+
+        subwidgets = []
+        for index, value_ in enumerate(context['widget']['value']):
+            widget_attrs = final_attrs.copy()
+            name_ = '{}-{}'.format(name, index)
+            if id_:
+                # An ID attribute was given. Add a numeric index as a suffix
+                # so that the inputs don't all have the same ID attribute.
+                widget_attrs['id'] = '%s-%s' % (id_, index)
+            widget = TextInput()
+            widget.is_required = self.is_required
+            subwidgets.append(widget.get_context(name_, value_, widget_attrs)['widget'])
+
+        context['widget']['subwidgets'] = subwidgets
+        return context
+
+    def format_value(self, value):
+        if value is None:
+            return ['']
+        else:
+            return value
+

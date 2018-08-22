@@ -1,7 +1,8 @@
+from django.forms import Field
 from django.forms.models import ModelMultipleChoiceField
 import aristotle_mdr.models as MDR
 from aristotle_mdr.utils import status_filter
-from aristotle_mdr.widgets.widgets import TableCheckboxSelect
+from aristotle_mdr.widgets.widgets import TableCheckboxSelect, MultiTextWidget
 from django.urls import reverse
 from aristotle_mdr import perms
 
@@ -81,3 +82,6 @@ class ReviewChangesChoiceField(ModelMultipleChoiceField):
             extra_info.update({concept.id: innerdict})
 
         return extra_info
+
+class MultipleEmailField(Field):
+    widget = MultiTextWidget
