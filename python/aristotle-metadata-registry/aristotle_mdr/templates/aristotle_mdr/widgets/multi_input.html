@@ -4,10 +4,10 @@
     {% for subwidget in widget.subwidgets %}
     <div class='form-group'>
       {% include subwidget.template_name with widget=subwidget %}
-      <button class="btn btn-danger remove-field"><i class="fa fa-times fa-fw"></i></button>
+      <button class="btn btn-danger btn-xs remove-field"><i class="fa fa-times fa-fw"></i></button>
     </div>
     {% endfor %}
   </div>
-  <button type="button" class="add-field" class="btn btn-primary">Add</button>
+  <button type="button" class="btn btn-primary add-field">Add</button>
 </div>
 {% endspaceless %}
