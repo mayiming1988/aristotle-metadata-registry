@@ -183,6 +183,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         emails = json.loads(share.emails)
 
         self.assertEqual(emails, ['firstone@example.com', 'nextone@example.com'])
+        self.assertContext(response, 'display_share', True)
 
     def test_user_can_edit_own_details(self):
         self.login_viewer()

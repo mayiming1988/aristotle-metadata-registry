@@ -450,6 +450,15 @@ class CreatedItemsListView(LoginRequiredMixin, FormMixin, ListView):
     def get_share(self):
         return getattr(self.request.user.profile, 'share', None)
 
+    def get_initial(self):
+        initial = super().get_initial()
+        share = self.get_share()
+        if share is not None:
+            emails = json.loads(share.emails)
+            initial['emails'] = emails
+
+        return initial
+
     def get_context_data(self, *args, **kwargs):
         # Call the base implementation first to get a context
         context = super().get_context_data(*args, **kwargs)
