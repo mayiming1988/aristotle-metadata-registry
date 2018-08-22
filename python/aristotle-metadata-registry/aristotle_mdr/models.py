@@ -214,6 +214,13 @@ class Organization(registryGroup):
         return url_slugify_organization(self)
 
 
+RA_ACTIVE_CHOICES = Choices(
+    (0, 'active', _('Active & Visible')),
+    (1, 'inactive', _('Inactive & Visible')),
+    (2, 'hidden', _('Inactive & Hidden'))
+)
+
+
 class RegistrationAuthority(Organization):
     """
     8.1.2.5 - Registration_Authority class
@@ -225,13 +232,10 @@ class RegistrationAuthority(Organization):
     (8.1.5.1) association class.
     """
     template = "aristotle_mdr/organization/registrationAuthority.html"
-    active = models.BooleanField(
-        default=True,
-        choices=(
-            (True, 'True'),
-            (False, 'False')
-        ),
-        help_text='<div id="active-alert" class="alert alert-warning" role="alert">Setting this to False will disable all further registration actions</div>'
+    active = models.IntegerField(
+        choices=RA_ACTIVE_CHOICES,
+        default=RA_ACTIVE_CHOICES.active,
+        help_text=_('Setting this to Inactive will disable all further registration actions')
     )
     locked_state = models.IntegerField(
         choices=STATES,
@@ -390,7 +394,7 @@ class RegistrationAuthority(Organization):
         return {'success': [item], 'failed': []}
 
     def _register(self, item, state, user, *args, **kwargs):
-        if self.active:
+        if self.active == 0:
             changeDetails = kwargs.get('changeDetails', "")
             # If registrationDate is None (like from a form), override it with
             # todays date.
@@ -430,6 +434,14 @@ class RegistrationAuthority(Organization):
     @property
     def members(self):
         return (self.managers.all() | self.registrars.all()).distinct()
+
+    @property
+    def is_active(self):
+        return self.active == RA_ACTIVE_CHOICES.active
+
+    @property
+    def is_visible(self):
+        return not self.active == RA_ACTIVE_CHOICES.hidden
 
 
 @receiver(post_save, sender=RegistrationAuthority)
@@ -628,7 +640,7 @@ class _concept(baseAristotleObject):
     references = RichTextField(blank=True)
     origin_URI = models.URLField(
         blank=True,
-        help_text="If imported, the original location of the item"
+        help_text=_("If imported, the original location of the item")
     )
     origin = RichTextField(
         help_text=_("The source (e.g. document, project, discipline or model) for the item (8.1.2.2.3.5)"),
@@ -1025,9 +1037,10 @@ class ConceptualDomain(concept):
     description = models.TextField(
         _('description'),
         blank=True,
-        help_text=('Description or specification of a rule, reference, or '
-                   'range for a set of all value meanings for a Conceptual '
-                   'Domain')
+        help_text=_(
+            ('Description or specification of a rule, reference, or '
+             'range for a set of all value meanings for a Conceptual Domain')
+        )
     )
     serialize_weak_entities = [
         ('value_meaning', 'valuemeaning_set'),
@@ -1055,12 +1068,12 @@ class ValueMeaning(aristotleComponent):
     start_date = models.DateField(
         blank=True,
         null=True,
-        help_text='Date at which the value meaning became valid'
+        help_text=_('Date at which the value meaning became valid')
     )
     end_date = models.DateField(
         blank=True,
         null=True,
-        help_text='Date at which the value meaning ceased to be valid'
+        help_text=_('Date at which the value meaning ceased to be valid')
     )
 
     def __str__(self):
@@ -1174,12 +1187,12 @@ class AbstractValue(aristotleComponent):
     start_date = models.DateField(
         blank=True,
         null=True,
-        help_text='Date at which the value became valid'
+        help_text=_('Date at which the value became valid')
     )
     end_date = models.DateField(
         blank=True,
         null=True,
-        help_text='Date at which the value ceased to be valid'
+        help_text=_('Date at which the value ceased to be valid')
     )
 
     def __str__(self):
