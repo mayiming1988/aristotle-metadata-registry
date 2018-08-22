@@ -67,6 +67,9 @@ https://raw.githubusercontent.com/yourlabs/django-autocomplete-light/3.2.10/src/
 
         // Templating helper
         function template(item) {
+            if (!item.body) {
+                return item.text;
+            }
             if (element.attr('data-html') !== undefined) {
                 var $result = $('<span>');
                 $result.html(item.body);
@@ -84,6 +87,9 @@ https://raw.githubusercontent.com/yourlabs/django-autocomplete-light/3.2.10/src/
 
         // Templating helper for selected item
         function template_selection(item) {
+            if (!item.body) {
+                return item.text;
+            }
             if (element.attr('data-html') !== undefined) {
                 var $result = $('<span>');
                 $result.html(item.body);
@@ -193,12 +199,10 @@ https://raw.githubusercontent.com/yourlabs/django-autocomplete-light/3.2.10/src/
     // It already was!!! Just comment it out until DAL is fixed.
     // Remove this block when this is merged upstream:
     // https://github.com/select2/select2/pull/4249
-    $(document).on('DOMSubtreeModified', '[data-autocomplete-light-function=select2] option', function() {
-        $(this).parents('select').next().find(
-            '.select2-selection--single .select2-selection__rendered'
-        ).text($(this).text());
-        console.log($(this).text());
-        console.log('sdfsdfsdfsdf');
-    });
+    // $(document).on('DOMSubtreeModified', '[data-autocomplete-light-function=select2] option', function() {
+    //     $(this).parents('select').next().find(
+    //         '.select2-selection--single .select2-selection__rendered'
+    //     ).text($(this).text());
+    // });
 })(yl.jQuery);
 
