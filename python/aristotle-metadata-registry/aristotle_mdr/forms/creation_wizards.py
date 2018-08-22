@@ -114,12 +114,10 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
 
         for f in self.fields:
             if f == "workgroup":
-                pass
-                # self.fields[f].widget = widgets.WorkgroupAutocompleteSelect()
-                # self.fields[f].queryset = self.user.profile.editable_workgroups
-                # # self.fields[f].choices = self.user.profile.editable_workgroups
-                # # self.fields[f].choices = self.user.profile.editable_workgroups.filter(pk=self.fields[f].initial)
-                # self.fields[f].choices = self.fields[f].choices.queryset.filter(pk=self.fields[f].initial)
+                self.fields[f].widget = widgets.WorkgroupAutocompleteSelect()
+                self.fields[f].widget.choices = self.fields[f].choices
+                if not self.user.is_superuser:
+                    self.fields['workgroup'].queryset = self.user.profile.editable_workgroups
             elif hasattr(self.fields[f], 'queryset') and type(self.fields[f].queryset) == ConceptQuerySet:
                 if hasattr(self.fields[f].queryset, 'visible'):
                     if f in [m2m.name for m2m in self._meta.model._meta.many_to_many]:
@@ -134,9 +132,6 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
             elif type(self.fields[f]) == forms.fields.DateTimeField:
                 self.fields[f].widget = BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"})
 
-        # if not self.user.is_superuser:
-        #     self.fields['workgroup'].queryset = self.user.profile.editable_workgroups
-        self.fields['name'].widget = forms.widgets.TextInput()
         self.show_slots_tab = True
 
     def concept_fields(self):
@@ -240,8 +235,6 @@ class Concept_2_Results(ConceptForm):
         super().__init__(*args, **kwargs)
         self.fields['workgroup'].queryset = self.user.profile.editable_workgroups
         self.fields['workgroup'].initial = self.user.profile.activeWorkgroup
-        self.fields['name'].widget = forms.widgets.TextInput()
-        # self.fields['definition'].widget = forms.widgets.TextInput()
         if not self.check_similar:
             self.fields.pop('make_new_item')
 
