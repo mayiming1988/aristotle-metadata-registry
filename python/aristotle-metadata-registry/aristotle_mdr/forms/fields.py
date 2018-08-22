@@ -83,5 +83,6 @@ class ReviewChangesChoiceField(ModelMultipleChoiceField):
 
         return extra_info
 
+
 class MultipleEmailField(Field):
     widget = MultiTextWidget

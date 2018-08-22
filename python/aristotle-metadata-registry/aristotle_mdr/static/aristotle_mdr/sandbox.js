@@ -42,6 +42,17 @@ $(document).ready(function() {
     })
   })
 
+  function reorder(widget) {
+    var count = 0;
+    widget.find('input').each(function() {
+      var split_name = $(this).attr('name').split('-')
+      var split_id = $(this).attr('id').split('-')
+      $(this).attr('name', split_name[0] + '-' + count.toString())
+      $(this).attr('id', split_id[0] + '-' + count.toString())
+      count += 1
+    })
+  }
+
   function disable_check(widget) {
     var count = widget.find('.form-group').length
     var button = widget.find('.remove-field').first()
@@ -56,6 +67,7 @@ $(document).ready(function() {
     var widget = $(button).closest('.multi-widget')
     $(button).closest('.form-group').remove()
     disable_check(widget)
+    reorder(widget)
   }
 
   function add_field(button) {
@@ -72,6 +84,7 @@ $(document).ready(function() {
     clone.find('input').val('')
     clone.appendTo(fields)
     disable_check(widget)
+    reorder(widget)
   }
 
   $('.add-field').click(function() {
