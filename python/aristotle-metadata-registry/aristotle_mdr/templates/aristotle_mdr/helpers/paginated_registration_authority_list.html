@@ -44,14 +44,14 @@ Showing {{ page.paginator.count }} results.
     <tr>
         <td>
             <a 
-              {% if not item.active %}class="text-muted"{% endif %} 
+              {% if not item.is_active %}class="text-muted"{% endif %} 
               {% if manage %}
                 href="{% url 'aristotle:registrationauthority_details' item.id %}"
               {% else %}
                 href="{{ item.get_absolute_url }}"
               {% endif %}>
                 {{ item.name }}
-                {% if not item.active %}
+                {% if not item.is_active %}
                   (inactive)
                 {% endif %}
             </a>

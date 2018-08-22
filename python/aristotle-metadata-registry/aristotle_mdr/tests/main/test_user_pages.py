@@ -493,38 +493,69 @@ class UserProfileTests(TestCase):
 
 
 @tag('inactive_ra', 'newtest')
-class RegistrationAuthorityPages(utils.LoggedInViewPages, TestCase):
+class RegistrationAuthorityPages(utils.AristotleTestUtils, TestCase):
 
     def test_inactive_ra_inactive_in_all_ra_list(self):
 
-        response = self.client.get(reverse('aristotle_mdr:all_registration_authorities'))
-        self.assertEqual(response.status_code, 200)
+        response = self.reverse_get(
+            'aristotle_mdr:all_registration_authorities',
+            status_code=200
+        )
         self.assertEqual(len(response.context['registrationAuthorities']), 1)
         self.assertNotContains(response, '(inactive)')
 
         # Deactivate ra
-        self.ra.active = False
+        self.ra.active = 1
         self.ra.save()
 
         # Check that removed from list
-        response = self.client.get(reverse('aristotle_mdr:all_registration_authorities'))
-        self.assertEqual(response.status_code, 200)
+        response = self.reverse_get(
+            'aristotle_mdr:all_registration_authorities',
+            status_code=200
+        )
         self.assertEqual(len(response.context['registrationAuthorities']), 1)
         self.assertContains(response, '(inactive)')
+
+    def test_hidden_ra_not_in_all_ra_list(self):
+
+        # Set ra to hidden
+        self.ra.active = 2
+        self.ra.save()
+
+        response = self.reverse_get(
+            'aristotle_mdr:all_registration_authorities',
+            status_code=200
+        )
+        self.assertEqual(len(response.context['registrationAuthorities']), 0)
 
     def test_ra_shows_as_inactive_in_registrartools(self):
 
         self.login_ramanager()
 
         # Deactivate ra
-        self.ra.active = False
+        self.ra.active = 1
         self.ra.save()
 
-        response = self.client.get(reverse('aristotle_mdr:userRegistrarTools'))
-        self.assertEqual(response.status_code, 200)
+        response = self.reverse_get(
+            'aristotle_mdr:userRegistrarTools',
+            status_code=200
+        )
         self.assertContains(response, 'Test RA')
         self.assertContains(response, '(inactive)')
 
+    def test_hidden_ra_not_in_registrar_tools(self):
+
+        self.login_ramanager()
+
+        # Set ra to hidden
+        self.ra.active = 2
+        self.ra.save()
+
+        response = self.reverse_get(
+            'aristotle_mdr:userRegistrarTools',
+            status_code=200
+        )
+        self.assertNotContains(response, 'Test RA')
 
     def test_active_in_ra_edit_form(self):
 
