@@ -82,7 +82,7 @@ class baseAristotleObject(TimeStampedModel):
         help_text=_("Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries"),
         unique=True, default=uuid.uuid1, editable=False, null=False
     )
-    name = models.TextField(
+    name = ShortTextField(
         help_text=_("The primary name used for human identification purposes.")
     )
     definition = RichTextField(
