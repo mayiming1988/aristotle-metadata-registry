@@ -2,6 +2,7 @@ from django.forms import Field
 from django.forms.models import ModelMultipleChoiceField
 import aristotle_mdr.models as MDR
 from aristotle_mdr.utils import status_filter
+from django.forms.widgets import EmailInput
 from aristotle_mdr.widgets.widgets import TableCheckboxSelect, MultiTextWidget
 from django.urls import reverse
 from aristotle_mdr import perms
@@ -85,4 +86,7 @@ class ReviewChangesChoiceField(ModelMultipleChoiceField):
 
 
 class MultipleEmailField(Field):
-    widget = MultiTextWidget
+
+    def __init__(self, *args, **kwargs):
+        self.widget = MultiTextWidget(subwidget=EmailInput)
+        super().__init__(*args, **kwargs)
