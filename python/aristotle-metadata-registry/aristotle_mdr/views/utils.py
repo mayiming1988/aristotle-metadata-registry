@@ -374,3 +374,14 @@ class MemberRemoveFromGroupView(GroupMemberMixin, LoginRequiredMixin, ObjectLeve
         for role in self.get_object().list_roles_for_user(self.user_to_change):
             self.get_object().removeRoleFromUser(role, self.user_to_change)
         return self.get_success_url()
+
+
+class AlertFieldsMixin:
+    """Provide a list of fields where help text should be rendered as an alert"""
+
+    alert_fields = []
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({'alert_fields': self.alert_fields})
+        return context

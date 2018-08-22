@@ -117,7 +117,7 @@ class ChangeStatusGenericForm(RegistrationAuthorityMixin, UserAwareForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.set_registration_authority_field(
-            field_name="registrationAuthorities", qs=self.user.profile.registrarAuthorities.filter(active=True)
+            field_name="registrationAuthorities", qs=self.user.profile.registrarAuthorities.filter(active=0)
         )
 
 
