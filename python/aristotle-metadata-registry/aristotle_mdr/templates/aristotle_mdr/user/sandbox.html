@@ -14,7 +14,7 @@
 
 {% if display_share and share %}
 <div class="alert alert-info" role="alert">
-  Your share link is {{ share.uuid }}
+  Your share link is {% url 'aristotle_mdr:sharedSandbox' share.uuid %}
 </div>
 {% endif %}
 
@@ -33,7 +33,7 @@
       <form method="POST">
         <div class="modal-body">
           {% if share %}
-            <p>Share: {{ share.uuid }}</p>
+            <p>Share: {% url 'aristotle_mdr:sharedSandbox' share.uuid %}</p>
           {% endif %}
           {% csrf_token %}
           {{ form.as_table }}

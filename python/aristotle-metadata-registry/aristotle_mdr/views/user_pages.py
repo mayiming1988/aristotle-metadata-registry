@@ -505,6 +505,13 @@ class CreatedItemsListView(LoginRequiredMixin, FormMixin, ListView):
 
 class SharedSandboxView(LoginRequiredMixin, ListView):
 
+    paginate_by = 25
+    template_name = 'aristotle_mdr/user/shared_sandbox.html'
+
+    def dispatch(self, *args, **kwargs):
+        self.share = self.get_share()
+        return super().dispatch(*args, **kwargs)
+
     def get_share(self):
         uuid = self.kwargs['share']
         try:
@@ -514,9 +521,13 @@ class SharedSandboxView(LoginRequiredMixin, ListView):
 
         return share
 
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['user'] = self.share.profile.user
+        return context
+
     def get_queryset(self, *args, **kwargs):
-        share = self.get_share()
-        return share.profile.mySandboxContent
+        return self.share.profile.mySandboxContent
 
 
 class MyWorkgroupList(GenericListWorkgroup):

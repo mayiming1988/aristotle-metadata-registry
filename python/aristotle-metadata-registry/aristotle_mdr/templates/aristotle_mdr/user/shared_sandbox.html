@@ -1,0 +1,8 @@
+{% extends "aristotle_mdr/user/userHome.html" %}
+{% load i18n static %}
+
+{% block page %}
+<h1><i class="fa fa-pencil-square-o fa-fw"></i>{% block title %}{{ user.full_name }}'s Sandbox"{% endblock %}</h1>
+
+{% include "aristotle_mdr/helpers/bulk_action_paginated_list.html" with allow_select_all=True page=page_obj %}
+{% endblock %}

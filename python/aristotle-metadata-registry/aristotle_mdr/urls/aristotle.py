@@ -194,6 +194,8 @@ urlpatterns=[
 
     url(r'user/(?P<uid>\d+)/profilePicture.svg', views.user_pages.profile_picture, name="dynamic_profile_picture"),
 
+    url(r'share/(?P<share>[\w-]+)', views.user_pages.SharedSandboxView.as_view(), name='sharedSandbox'),
+
     url(
         r'^search/?$',
         search_view_factory(
