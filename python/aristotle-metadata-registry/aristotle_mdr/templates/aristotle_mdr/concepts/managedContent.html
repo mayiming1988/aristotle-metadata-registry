@@ -23,7 +23,9 @@
     {% block concept_title %}
     {% include "aristotle_mdr/concepts/titles/display_title.html" %}
     {% endblock %}
-    {% include "aristotle_mdr/concepts/actionbar.html" %}
+    {% if not hide_item_actions %}
+      {% include "aristotle_mdr/concepts/actionbar.html" %}
+    {% endif %}
 </header>
 <section class="managed row">
     {% include "aristotle_mdr/concepts/infobox.html" %}

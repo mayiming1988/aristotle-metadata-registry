@@ -548,6 +548,11 @@ class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderView):
         else:
             return False
 
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['hide_item_actions'] = True
+        return context
+
     def get_user(self):
         return self.share.profile.user
 
