@@ -19,7 +19,7 @@ def lowercase_reverse(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_mdr', '0031_auto_20180629_0143'),
+        ('aristotle_mdr', '0037_make_name_shorttext'),
         ('aristotle_mdr_user_management', '0001_initial'),
     ]
 
