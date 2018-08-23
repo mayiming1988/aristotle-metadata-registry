@@ -89,7 +89,12 @@ class ReviewChangesChoiceField(ModelMultipleChoiceField):
 class MultipleEmailField(Field):
 
     def __init__(self, *args, **kwargs):
-        self.widget = MultiTextWidget(subwidget=EmailInput)
+        self.widget = MultiTextWidget(
+            subwidget=EmailInput,
+            attrs={
+                'class': 'form-control'
+            }
+        )
         super().__init__(*args, **kwargs)
 
     def clean(self, value):

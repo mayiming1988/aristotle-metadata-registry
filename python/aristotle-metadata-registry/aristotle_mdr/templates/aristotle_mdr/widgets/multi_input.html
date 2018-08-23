@@ -3,8 +3,14 @@
   <div class='multi-fields'>
     {% for subwidget in widget.subwidgets %}
     <div class='form-group'>
-      {% include subwidget.template_name with widget=subwidget %}
-      <button class="btn btn-danger btn-xs remove-field"><i class="fa fa-times fa-fw"></i></button>
+      <div class="row">
+        <div class="col-md-10">
+          {% include subwidget.template_name with widget=subwidget %}
+        </div>
+        <div class="col-md-1">
+          <button class="btn btn-danger remove-field"><i class="fa fa-times fa-fw"></i></button>
+        </div>
+      </div>
     </div>
     {% endfor %}
   </div>

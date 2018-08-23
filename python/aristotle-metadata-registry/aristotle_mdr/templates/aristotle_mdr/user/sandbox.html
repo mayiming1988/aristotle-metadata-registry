@@ -36,7 +36,7 @@
             <p>Share: {% url 'aristotle_mdr:sharedSandbox' share.uuid %}</p>
           {% endif %}
           {% csrf_token %}
-          {{ form.as_table }}
+          {% include 'aristotle_mdr/helpers/fancy_form.html' with form=form %}
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
