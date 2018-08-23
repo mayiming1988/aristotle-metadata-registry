@@ -804,13 +804,17 @@ class TestTokenSearch(TestCase):
         self.assertEqual(len(objs),1)
         self.assertEqual(objs[0].object.name,"wolverine")
 
-        animal = models.ObjectClass.objects.create(name="Wolverine",version="0.0.1",definition="An regular animal found on earth.")
+        animal = models.ObjectClass.objects.create(
+            name="Wolverine (animal)",version="0.0.1",
+            definition="An regular animal found on Earth-1218 - not a mutant from a comic book."
+        )
         self.ra.register(animal,models.STATES.recorded,self.su)
 
-        objs = self.query_search('statuses:standard,recorded')
+        objs = self.query_search('wolverine statuses:standard,recorded')
         self.assertEqual(len(objs),2)
-        self.assertEqual(objs[0].object.name.lower(),"wolverine")
-        self.assertEqual(objs[1].object.name.lower(),"wolverine")
+        objs = sorted(objs, key=len(obj.name)
+        self.assertEqual(objs[0].object.name,"wolverine")
+        self.assertEqual(objs[1].object.name,"Wolverine (animal)")
 
 
 class TestSearchDescriptions(TestCase):
