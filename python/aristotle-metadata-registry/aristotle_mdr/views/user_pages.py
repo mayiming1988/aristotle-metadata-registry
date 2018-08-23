@@ -463,7 +463,11 @@ class CreatedItemsListView(LoginRequiredMixin, FormMixin, ListView):
         context['sort'] = self.request.GET.get('sort', 'name_asc')
         context['share'] = self.share
 
-        form = self.get_form()
+        if 'form' in kwargs:
+            form = kwargs['form']
+        else:
+            form = self.get_form()
+
         context['form'] = form
 
         if 'display_share' in self.request.GET:
@@ -477,6 +481,7 @@ class CreatedItemsListView(LoginRequiredMixin, FormMixin, ListView):
         if form.is_valid():
             return self.form_valid(form)
         else:
+            self.object_list = self.get_queryset()
             return self.form_invalid(form)
 
     def form_valid(self, form):
