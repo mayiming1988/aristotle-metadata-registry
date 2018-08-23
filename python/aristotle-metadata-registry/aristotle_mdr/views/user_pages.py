@@ -531,7 +531,7 @@ class SharedSandboxView(LoginRequiredMixin, GetShareMixin, ListView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context['user'] = self.share.profile.user
+        context['share_user'] = self.share.profile.user
         context['share_uuid'] = self.share.uuid
         return context
 
@@ -542,7 +542,6 @@ class SharedSandboxView(LoginRequiredMixin, GetShareMixin, ListView):
 class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderView):
 
     def check_item(self):
-        self.user = self.get_user()
         if self.item in self.user.profile.mySandboxContent:
             return True
         else:

@@ -23,7 +23,7 @@
     Only you can see these items.
 </p>
 
-<div id="share-link-modal" class="modal fade exclude-scrap" tabindex="-1" role="dialog">
+<div id="share-link-modal" class="modal fade exclude-scrap" tabindex="-1" role="dialog" {% if form.errors %}data-show="true"{% endif %}>
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
