@@ -1,5 +1,6 @@
-from improved_user.mixins import AbstractUser
 from aristotle_mdr.fields import LowerEmailField
+from improved_user.model_mixins import AbstractUser
+
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
