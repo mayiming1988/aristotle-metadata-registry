@@ -217,7 +217,7 @@ class TokenSearchForm(FacetedSearchForm):
         'hs': 'highest_state',
     }
 
-    def _clean_state(self,value):
+    def _clean_state(self, value):
         value = value.lower().strip(" ")
         if value in SHORT_STATE_MAP.keys():
             value = SHORT_STATE_MAP[value]
@@ -244,10 +244,10 @@ class TokenSearchForm(FacetedSearchForm):
         boost_ups = []
         for word in query.split(" "):
             if word.startswith("+"):
-                boost_strength = min(4, len(word)-len(word.lstrip('+')))
-                boost_val = round(0.1+1.1**(boost_strength**1.35),3)
+                boost_strength = min(4, len(word) - len(word.lstrip('+')))
+                boost_val = round(0.1 + 1.1 ** (boost_strength ** 1.35), 3)
                 query_text.append(word)
-                boost_ups.append((word.lstrip("+"),boost_val))
+                boost_ups.append((word.lstrip("+"), boost_val))
                 continue
 
             word = word.replace("+", " ")
@@ -258,14 +258,14 @@ class TokenSearchForm(FacetedSearchForm):
                     opt = self.token_shortnames[opt]
 
                 if opt in opts and opt in self.allowed_tokens:
-                    clean_arguments_func = getattr(self, "process_%s"%opt, None)
+                    clean_arguments_func = getattr(self, "process_%s" % opt, None)
                     if not clean_arguments_func:
                         kwargs[str(opt)]=arg
                     else:
                         # if we have a processor, run that.
                         clean_value = clean_arguments_func(arg)
                         if type(clean_value) is list:
-                            kwargs["%s__in"%str(opt)] = clean_value
+                            kwargs["%s__in" % str(opt)] = clean_value
                         elif clean_value is not None:
                             kwargs[str(opt)] = clean_value
                 elif opt == "type":
