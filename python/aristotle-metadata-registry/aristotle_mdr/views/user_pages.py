@@ -27,7 +27,7 @@ from aristotle_mdr.views.utils import (paginated_list,
                                        paginated_workgroup_list,
                                        paginated_registration_authority_list,
                                        GenericListWorkgroup)
-from aristotle_mdr.views.views import render_if_condition_met
+from aristotle_mdr.views.views import ConceptRenderView
 from aristotle_mdr.utils import fetch_metadata_apps
 from aristotle_mdr.utils import get_aristotle_url
 
@@ -504,10 +504,8 @@ class CreatedItemsListView(LoginRequiredMixin, FormMixin, ListView):
         return reverse('aristotle_mdr:userSandbox') + '?display_share=1'
 
 
-class SharedSandboxView(LoginRequiredMixin, ListView):
-
-    paginate_by = 25
-    template_name = 'aristotle_mdr/user/shared_sandbox.html'
+class GetShareMixin:
+    """Code shared by all share link views"""
 
     def dispatch(self, request, *args, **kwargs):
         self.share = self.get_share()
@@ -525,6 +523,12 @@ class SharedSandboxView(LoginRequiredMixin, ListView):
 
         return share
 
+class SharedSandboxView(LoginRequiredMixin, GetShareMixin, ListView):
+    """View displayed when a user visits a share link"""
+
+    paginate_by = 25
+    template_name = 'aristotle_mdr/user/shared_sandbox.html'
+
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['user'] = self.share.profile.user
@@ -534,14 +538,17 @@ class SharedSandboxView(LoginRequiredMixin, ListView):
         return self.share.profile.mySandboxContent
 
 
-class SharedItemView(LoginRequiredMixin, View):
+class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderView):
 
-    def get(request, *args, **kwargs):
-        return render_if_condition_met(
-            request
-        )
+    def check_item(self):
+        self.user = self.get_user()
+        if self.item in self.user.profile.mySandboxContent:
+            return True
+        else:
+            return False
 
-
+    def get_user(self):
+        return self.share.profile.user
 
 class MyWorkgroupList(GenericListWorkgroup):
     template_name = "aristotle_mdr/user/userWorkgroups.html"
