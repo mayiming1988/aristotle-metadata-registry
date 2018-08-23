@@ -11,7 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from model_utils.models import TimeStampedModel
 from model_utils import Choices, FieldTracker
-from aristotle_mdr.contrib.channels.utils import fire
+from aristotle_mdr.contrib.async_signals.utils import fire
 import uuid
 
 import reversion  # import revisions

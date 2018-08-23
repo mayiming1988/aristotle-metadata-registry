@@ -92,9 +92,6 @@ INSTALLED_APPS = (
     'aristotle_mdr.contrib.autocomplete',
     'aristotle_mdr.contrib.user_management',
 
-    'channels',
-    'haystack_channels',
-
     'dal',
     'dal_select2',
 

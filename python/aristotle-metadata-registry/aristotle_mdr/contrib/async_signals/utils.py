@@ -1,22 +1,22 @@
-from channels import Channel
 from django.conf import settings
 
 
-def fire(channel, obj=None, **kwargs):
+def fire(signal, obj=None, **kwargs):
     from django.utils.module_loading import import_string
     message = kwargs
-    if hasattr(settings, 'CHANNEL_LAYERS'):
+    if getattr(settings, 'ARISTOTLE_ASYNC_SIGNALS', False):
+        # pragma: no cover -- We've dropped channels, and are awaiting (pun) on celery stuff
         message.update({
             '__object___': {
-                'pk': instance.pk,
-                'app_label': instance._meta.app_label,
-                'model_name': instance._meta.model_name,
+                'pk': obj.pk,
+                'app_label': obj._meta.app_label,
+                'model_name': obj._meta.model_name,
             }
         })
-        Channel("aristotle_mdr.contrib.channels.%s" % channel).send(message)
+        # Channel("aristotle_mdr.contrib.channels.%s" % signal).send(message)
     else:
         message.update({'__object__': {'object': obj}})
-        import_string("aristotle_mdr.contrib.channels.%s" % channel)(message)
+        import_string("aristotle_mdr.contrib.async_signals.%s" % signal)(message)
 
 
 def safe_object(message):
