@@ -1,4 +1,5 @@
 {% extends "aristotle_mdr/user/userHome.html" %}
+{% load aristotle_tags %}
 
 {% block title %}Current members{% endblock %}
 {% block collapse-link%}<i class="fa fa-user fa-fw"></i> Current members</a>{% endblock %}
@@ -7,7 +8,15 @@
 {% endblock %}
 
 {% block page %}
-    <h1>Current members of this Registry</h1>
+<h1>Current members of this Registry</h1>
+
+<div>
+{% if page_obj.has_other_pages %}
+Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ paginator.count }} results.
+{% else %}
+Showing {{ paginator.count }} results.
+{% endif %}
+</div>
 
 <div class="panel panel-default">
   <div class="panel-heading">
@@ -32,6 +41,7 @@
   </div>
 </div>
 
+
 <table class="table">
   <thead>
     <tr>
@@ -42,13 +52,13 @@
     </tr>
   </thead>
   <tbody>
-{% for user in object_list %}
+{% for user in page_obj.object_list %}
     <tr>
         <td>
           {% include "aristotle_mdr/users_management/helper/user_table_display.html" with user=user %}
         </td>
         <td>{{user.is_active}}</td>
-        {% with count=user.profile.workgroups.count %}
+        {% with count=user|distinct_workgroups_count %}
         <td><small>{{count}} team{{ count|pluralize }}</small></td>
         {% endwith %}
         <td>
@@ -80,6 +90,7 @@
 </table>
 </div>
 
+{% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
 
 <header>About active and inactive users</header>
 <p>

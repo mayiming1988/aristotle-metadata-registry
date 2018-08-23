@@ -1,5 +1,20 @@
 Changelog
 
+- 2.1.x
+  - Aristotle MDR core
+    - Fixed bug where Workgroups showed incorrectly in dropdowns #901
+    - Fixed bug where users of IE and Edge couldn't properly use select2 dropdowns #894
+    - Removed all Channels code, fixes #885. We have no reports of this in use and will replace with Celery later.
+    - Added help for new search tokens #887 that covers status and identifier search
+
+- 2.1.4
+    - Efficiency impovements on list pages
+    - Dependancy updates
+
+- 2.1.3
+    - Identifier and Namespace searching
+    - Fix for api list bug
+
 - 2.1.2
     - Fixed editor UI Bug
     - Improved logging of config errors

@@ -63,7 +63,7 @@ setup(
 
         # Fancy UI stuff
         'django-static-precompiler',
-        'django-autocomplete-light>=3.0.0',
+        'django-autocomplete-light>=3.0.0,<3.3.0',
         'django-bootstrap3>8.0,<9.0',
         'django-bootstrap3-datetimepicker-2>=2.5.0',
 
@@ -85,7 +85,7 @@ setup(
         'django-organizations',
 
         # Improved User Model
-        'django-improved-user==1.0a2',
+        'django-improved-user>=1.0.0',
 
         # File upload
         'django-constrainedfilefield[filetype]',

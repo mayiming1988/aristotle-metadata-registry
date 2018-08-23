@@ -201,7 +201,7 @@ class ReviewAcceptView(ReviewChangesView):
         return super().dispatch(request, *args, **kwargs)
 
     def ra_active_check(self, review):
-        return review.registration_authority.active
+        return review.registration_authority.is_active
 
     def get_review(self):
         self.review = get_object_or_404(MDR.ReviewRequest, pk=self.kwargs['review_id'])

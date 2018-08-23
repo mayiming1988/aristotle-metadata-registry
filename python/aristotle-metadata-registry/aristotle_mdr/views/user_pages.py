@@ -6,7 +6,7 @@ from django.contrib.auth.views import LoginView
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
@@ -23,7 +23,8 @@ from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
 from aristotle_mdr.views.utils import (paginated_list,
                                        paginated_workgroup_list,
-                                       paginated_registration_authority_list)
+                                       paginated_registration_authority_list,
+                                       GenericListWorkgroup)
 from aristotle_mdr.utils import fetch_metadata_apps
 from aristotle_mdr.utils import get_aristotle_url
 
@@ -362,7 +363,8 @@ class RegistrarTools(LoginRequiredMixin, View):
         # Return all the ra's a user is a manager of
         manager = Q(managers__pk=self.request.user.pk)
         registrar = Q(registrars__pk=self.request.user.pk)
-        return MDR.RegistrationAuthority.objects.filter(manager | registrar)
+        visible = Q(active__in=[0, 1])
+        return MDR.RegistrationAuthority.objects.filter(visible, manager | registrar)
 
     def get(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -382,7 +384,7 @@ class RegistrarTools(LoginRequiredMixin, View):
 def review_list(request):
     if not request.user.profile.is_registrar:
         raise PermissionDenied
-    authorities = [i[0] for i in request.user.profile.registrarAuthorities.filter(active=True).values_list('id')]
+    authorities = [i[0] for i in request.user.profile.registrarAuthorities.filter(active=0).values_list('id')]
 
     # Registars can see items they have been asked to review
     q = Q(Q(registration_authority__id__in=authorities) & ~Q(status=MDR.REVIEW_STATES.cancelled))
@@ -395,7 +397,7 @@ def review_list(request):
 def my_review_list(request):
     # Users can see any items they have been asked to review
     q = Q(requester=request.user)
-    reviews = MDR.ReviewRequest.objects.visible(request.user).filter(q).filter(registration_authority__active=True)
+    reviews = MDR.ReviewRequest.objects.visible(request.user).filter(q).filter(registration_authority__active=0)
     return paginated_list(request, reviews, "aristotle_mdr/user/my_review_list.html", {'reviews': reviews})
 
 
@@ -453,24 +455,24 @@ class CreatedItemsListView(ListView):
         return paginate_sort_opts.get(self.order)
 
 
-@login_required
-def workgroups(request):
-    text_filter = request.GET.get('filter', "")
-    workgroups = request.user.profile.myWorkgroups
-    if text_filter:
-        workgroups = workgroups.filter(Q(name__icontains=text_filter) | Q(definition__icontains=text_filter))
-    context = {'filter': text_filter}
-    return paginated_workgroup_list(request, workgroups, "aristotle_mdr/user/userWorkgroups.html", context)
+class MyWorkgroupList(GenericListWorkgroup):
+    template_name = "aristotle_mdr/user/userWorkgroups.html"
+
+    def get_initial_queryset(self):
+        return self.request.user.profile.myWorkgroups
 
 
-@login_required
-def workgroup_archives(request):
-    text_filter = request.GET.get('filter', None)
-    workgroups = request.user.profile.workgroups.filter(archived=True)
-    if text_filter:
-        workgroups = workgroups.filter(Q(name__icontains=text_filter) | Q(definition__icontains=text_filter))
-    context = {'filter': text_filter}
-    return paginated_workgroup_list(request, workgroups, "aristotle_mdr/user/userWorkgroupArchives.html", context)
+class WorkgroupArchiveList(GenericListWorkgroup):
+    template_name = "aristotle_mdr/user/userWorkgroupArchives.html"
+
+    def get_initial_queryset(self):
+        user = self.request.user
+        return (
+            user.viewer_in.all() |
+            user.submitter_in.all() |
+            user.steward_in.all() |
+            user.workgroup_manager_in.all()
+        ).filter(archived=True).distinct()
 
 
 def profile_picture(request, uid):

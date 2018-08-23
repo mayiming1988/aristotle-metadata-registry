@@ -70,12 +70,12 @@
                     </a></li>
                     <li><a href="{% url 'aristotle:userFavourites' %}">
                         <i class="fa fa-bookmark fa-fw"></i> {% trans 'My Favourites'%}
-                        <span class="badge pull-right">{{ user.profile.favourites.count }}</span>
+                        <span class="badge">{{ user.profile.favourites.count }}</span>
                     </a></li>
                     <li><a href="{% url 'aristotle:userInbox' %}">
                         <i class="fa fa-envelope fa-fw"></i> {% trans 'Notifications'%}
                         {% with notecount=user.notifications.unread.count %}
-                        <span class="badge pull-right" title="{{ notecount }} unread notifications">{{ notecount }}</span>
+                        <span class="badge" title="{{ notecount }} unread notifications">{{ notecount }}</span>
                         {% endwith %}
                     </a></li>
                     <li><a href="{% url 'aristotle:discussions' %}">
