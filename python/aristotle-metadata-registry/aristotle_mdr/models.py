@@ -82,7 +82,7 @@ class baseAristotleObject(TimeStampedModel):
         help_text=_("Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries"),
         unique=True, default=uuid.uuid1, editable=False, null=False
     )
-    name = models.TextField(
+    name = ShortTextField(
         help_text=_("The primary name used for human identification purposes.")
     )
     definition = RichTextField(
@@ -394,7 +394,7 @@ class RegistrationAuthority(Organization):
         return {'success': [item], 'failed': []}
 
     def _register(self, item, state, user, *args, **kwargs):
-        if self.active == 0:
+        if self.active is RA_ACTIVE_CHOICES.active:
             changeDetails = kwargs.get('changeDetails', "")
             # If registrationDate is None (like from a form), override it with
             # todays date.
