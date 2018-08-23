@@ -1,5 +1,12 @@
 Changelog
 
+- 2.1.x
+  - Aristotle MDR core
+    - Fixed bug where Workgroups showed incorrectly in dropdowns #901
+    - Fixed bug where users of IE and Edge couldn't properly use select2 dropdowns #894
+    - Removed all Channels code. We have no reports of this in use and will replace with Celery later.
+    - 
+
 - 2.1.4
     - Efficiency impovements on list pages
     - Dependancy updates
