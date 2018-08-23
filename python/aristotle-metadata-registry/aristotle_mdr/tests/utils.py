@@ -633,7 +633,7 @@ class LoggedInViewPages(object):
                 raise
 
     def assertDelayedEqual(self, *args):
-        # This is useful when testing channels.
+        # This is useful when testing async code.
         # If updates aren't done in 1+2+3+4= 10seconds, then there is a problem.
         self.assertEqual(*args)
         return
