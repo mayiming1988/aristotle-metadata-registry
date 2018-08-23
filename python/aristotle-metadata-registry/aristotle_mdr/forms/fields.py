@@ -1,6 +1,7 @@
 from django.forms import Field
 from django.forms.models import ModelMultipleChoiceField
 from django.core.validators import EmailValidator
+from django.core.exceptions import ValidationError
 import aristotle_mdr.models as MDR
 from aristotle_mdr.utils import status_filter
 from django.forms.widgets import EmailInput
@@ -98,9 +99,28 @@ class MultipleEmailField(Field):
         super().__init__(*args, **kwargs)
 
     def clean(self, value):
-
+        value = super().clean(value)
+        cleaned_values = []
         validator = EmailValidator()
+
+        valid = True
+        errors = []
+
         for email in value:
-            validator.message = '{} is not a valid email address'.format(email)
-            validator(email)
+            if email is not '':
+                validator.message = '{} is not a valid email address'.format(email)
+                try:
+                    validator(email)
+                except ValidationError as e:
+                    valid = False
+                    errors.extend(e.error_list)
+
+                cleaned_values.append(email)
+
+        if valid:
+            return cleaned_values
+        else:
+            raise ValidationError(errors)
+
+
 
