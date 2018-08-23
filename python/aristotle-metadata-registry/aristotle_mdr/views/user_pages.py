@@ -532,6 +532,7 @@ class SharedSandboxView(LoginRequiredMixin, GetShareMixin, ListView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['user'] = self.share.profile.user
+        context['share_uuid'] = self.share.uuid
         return context
 
     def get_queryset(self, *args, **kwargs):

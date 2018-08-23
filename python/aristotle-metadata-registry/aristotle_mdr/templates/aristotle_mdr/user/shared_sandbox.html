@@ -4,5 +4,5 @@
 {% block page %}
 <h1><i class="fa fa-pencil-square-o fa-fw"></i>{% block title %}{{ user.full_name }}'s Sandbox"{% endblock %}</h1>
 
-{% include "aristotle_mdr/helpers/bulk_action_paginated_list.html" with allow_select_all=True page=page_obj %}
+{% include "aristotle_mdr/helpers/paginated_list.html" with page=page_obj allow_select_all=False hide_checkbox=True hide_favourites=True shared_items=True %}
 {% endblock %}

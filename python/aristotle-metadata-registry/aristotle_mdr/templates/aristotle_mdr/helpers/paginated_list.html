@@ -48,7 +48,11 @@ Showing {{ page.paginator.count }} results.
 {% with favourites=request.user.profile.favourites.select_subclasses %}
     {% for item in page %}
     <tr>
-        <td><input type="checkbox" id="id_items_{{item.id}}" name="items" value="{{item.id}}"></td>
+        <td>
+          {% if not hide_checkbox %}
+            <input type="checkbox" id="id_items_{{item.id}}" name="items" value="{{item.id}}">
+          {% endif %}
+        </td>
         <td>
             {% if item.is_registered %}
                 <i class="fa fa-university fa-fw" title="Registered"></i>
@@ -56,22 +60,24 @@ Showing {{ page.paginator.count }} results.
                 <i class="fa fa-flag-o fa-fw" title="In progress"></i>
             {% endif %}
 
-            {% if request.user.is_active %}
-            {% with is_favourite=item|is_in:favourites %}
-                <a href="{% url 'aristotle:toggleFavourite' item.id %}?next={{ request.path }}"
-                    title="{% ternary is_favourite 'Remove from my favourite items' 'Add to my favourite items' %}"
-                    >
-                    {% if item in favourites %}
-                        <i class="fa fa-bookmark fa-fw"></i>
-                    {% else %}
-                        <i class="fa fa-bookmark-o fa-fw"></i>
-                    {% endif %}
-                </a>
-            {% endwith %}
+            {% if not hide_favourites %}
+              {% if request.user.is_active %}
+              {% with is_favourite=item|is_in:favourites %}
+                  <a href="{% url 'aristotle:toggleFavourite' item.id %}?next={{ request.path }}"
+                      title="{% ternary is_favourite 'Remove from my favourite items' 'Add to my favourite items' %}"
+                      >
+                      {% if item in favourites %}
+                          <i class="fa fa-bookmark fa-fw"></i>
+                      {% else %}
+                          <i class="fa fa-bookmark-o fa-fw"></i>
+                      {% endif %}
+                  </a>
+              {% endwith %}
+              {% endif %}
             {% endif %}
         </td>
         <td>
-        {% include "aristotle_mdr/helpers/itemLink.html" with item=item %}
+        {% include "aristotle_mdr/helpers/itemLink.html" with item=item shared_items=shared_items %}
         <div class="small" style="white-space: nowrap;">
         {{ item.item.get_verbose_name }}
         </div>
