@@ -3,18 +3,25 @@
 
 {% block individual_scripts %}
 <script src="{% static 'aristotle_mdr/sandbox.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.0/dist/clipboard.min.js"></script>
 <script>
     delete_submit_url="{% url 'aristotle_mdr:sandbox_delete' %}";
 </script>
 {% endblock %}
 
 {% block page %}
-<h1><i class="fa fa-pencil-square-o fa-fw"></i> {% block title %}{% trans "My Sandbox" %}{% endblock %}</h1>
-<button class="btn btn-primary pull-right" data-toggle="modal" data-target="#share-link-modal"><i class="fa fa-share-square-o fa-fw"></i>{% if not share %}Create {% endif %}Share Link</button>
+<h1>
+  <i class="fa fa-pencil-square-o fa-fw"></i> {% block title %}{% trans "My Sandbox" %}{% endblock %}
+  <button class="btn btn-primary pull-right" data-toggle="modal" data-target="#share-link-modal">
+    <i class="fa fa-share-square-o fa-fw"></i>{% if not share %}Create {% endif %}Share Link
+  </button>
+</h1>
 
 {% if display_share and share %}
 <div class="alert alert-info" role="alert">
-  Your share link is {% url 'aristotle_mdr:sharedSandbox' share.uuid %}
+  Your share link is:
+  <span id="share_link">{% url 'aristotle_mdr:sharedSandbox' share.uuid %}</span> 
+  <button type="button" class="btn btn-default btn-sm copybutton" data-clipboard-target="#share_link">Copy</button>
 </div>
 {% endif %}
 
@@ -33,7 +40,11 @@
       <form method="POST">
         <div class="modal-body">
           {% if share %}
-            <p>Share: {% url 'aristotle_mdr:sharedSandbox' share.uuid %}</p>
+            <p>
+              Your share link is:
+              <span id="share_link">{% url 'aristotle_mdr:sharedSandbox' share.uuid %}</span> 
+              <button type="button" class="btn btn-default btn-sm copybutton" data-clipboard-target="#share_link">Copy</button>
+            </p>
           {% endif %}
           {% csrf_token %}
           {% include 'aristotle_mdr/helpers/fancy_form.html' with form=form %}
@@ -52,6 +63,14 @@
   $('#share-link-modal').modal('show')
 </script>
 {% endif %}
+
+<script>
+  if (ClipboardJS.isSupported()) {
+    new ClipboardJS('.copybutton');
+  } else {
+    $('.copybutton').remove()
+  }
+</script>
 
 <div id="delete-modal" class="modal fade exclude-scrap" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
