@@ -551,10 +551,15 @@ class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['hide_item_actions'] = True
+        context['custom_visibility_message'] = {
+            'alert_level': 'warning',
+            'message': 'You are viewing a shared item in read only mode'
+        }
         return context
 
     def get_user(self):
         return self.share.profile.user
+
 
 class MyWorkgroupList(GenericListWorkgroup):
     template_name = "aristotle_mdr/user/userWorkgroups.html"
