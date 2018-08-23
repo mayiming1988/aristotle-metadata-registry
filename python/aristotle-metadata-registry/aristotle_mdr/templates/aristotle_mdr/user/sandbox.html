@@ -20,8 +20,8 @@
 {% if display_share and share %}
 <div class="alert alert-info" role="alert">
   Your share link is:
-  <span id="share_link">{% url 'aristotle_mdr:sharedSandbox' share.uuid %}</span> 
-  <button type="button" class="btn btn-default btn-sm copybutton" data-clipboard-target="#share_link">Copy</button>
+  <span id="share_link_1">{% url 'aristotle_mdr:sharedSandbox' share.uuid %}</span> 
+  <button type="button" class="btn btn-default btn-sm copybutton" data-clipboard-target="#share_link_1">Copy</button>
 </div>
 {% endif %}
 
@@ -42,8 +42,8 @@
           {% if share %}
             <p>
               Your share link is:
-              <span id="share_link">{% url 'aristotle_mdr:sharedSandbox' share.uuid %}</span> 
-              <button type="button" class="btn btn-default btn-sm copybutton" data-clipboard-target="#share_link">Copy</button>
+              <span id="share_link_2">{% url 'aristotle_mdr:sharedSandbox' share.uuid %}</span> 
+              <button type="button" class="btn btn-default btn-sm copybutton" data-clipboard-target="#share_link_2">Copy</button>
             </p>
           {% endif %}
           {% csrf_token %}
