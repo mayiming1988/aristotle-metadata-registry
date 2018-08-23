@@ -90,6 +90,9 @@ setup(
         # File upload
         'django-constrainedfilefield[filetype]',
 
+        # Generic json field
+        'jsonfield',
+
         # User sessions
         'django-user-sessions',
         'geoip2',
