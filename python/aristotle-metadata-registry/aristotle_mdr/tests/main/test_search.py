@@ -812,7 +812,7 @@ class TestTokenSearch(TestCase):
 
         objs = self.query_search('wolverine statuses:standard,recorded')
         self.assertEqual(len(objs),2)
-        objs = sorted(objs, key=len(obj.name)
+        objs = sorted(objs, key=lambda obj: len(obj.name))
         self.assertEqual(objs[0].object.name,"wolverine")
         self.assertEqual(objs[1].object.name,"Wolverine (animal)")
 
