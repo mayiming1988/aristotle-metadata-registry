@@ -1,4 +1,4 @@
-if git diff --name-only $TRAVIS_BRANCH...HEAD|grep ^$1 &>/dev/null; then
+if git diff --name-only $TRAVIS_BRANCH $TRAVIS_COMMIT|grep ^$1 &>/dev/null; then
     # Folder is in latest check in
     exit 0
 else
