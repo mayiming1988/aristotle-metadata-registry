@@ -1,5 +1,5 @@
 from aristotle_mdr import messages
-from aristotle_mdr.contrib.channels.utils import safe_object
+from aristotle_mdr.contrib.async_signals.utils import safe_object
 
 
 def review_request_created(message, **kwargs):
