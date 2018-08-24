@@ -8,11 +8,12 @@ from unittest.mock import patch
 from django_celery_results.models import TaskResult
 from aristotle_bg_workers.models import ExtraTaskInfo
 
+from aristotle_mdr.tests.utils import LoggedInViewPages
 from aristotle_bg_workers.helpers import store_task
 import json
 
-@override_settings(SECURE_SSL_REDIRECT=False)
-class BackgroundTaskTestCase(TestCase):
+
+class BackgroundTaskTestCase(LoggedInViewPages, TestCase):
 
     # These unit tests do not require a worker or broker to be running
     # As such this doesnt test celery integration
