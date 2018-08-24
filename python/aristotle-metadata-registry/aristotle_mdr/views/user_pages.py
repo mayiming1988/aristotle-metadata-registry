@@ -545,6 +545,7 @@ class SharedSandboxView(LoginRequiredMixin, GetShareMixin, ListView):
 
 
 class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderView):
+    """View to display an item in a shared sandbox"""
 
     def check_item(self):
         if self.item in self.user.profile.mySandboxContent:
@@ -559,6 +560,19 @@ class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderView):
             'alert_level': 'warning',
             'message': 'You are viewing a shared item in read only mode'
         }
+
+        share_user = self.share.profile.user
+        user_display_name = share_user.full_name or share_user.short_name or share_user.email
+        context['breadcrumbs'] = [
+            {
+                'name': '{}\'s Sandbox'.format(user_display_name),
+                'url': reverse('aristotle:sharedSandbox', args=[self.share.uuid])
+            },
+            {
+                'name': self.item.name,
+                'active': True
+            }
+        ]
         return context
 
     def get_user(self):
