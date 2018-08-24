@@ -161,7 +161,6 @@ def prepare_async_download(request, identifier):
 # TODO: need a better redirect architecture, needs refactor.
 def get_async_download(request, identifier):
     """
-    
     :param request:
     :param identifier:
     :return:
@@ -184,4 +183,3 @@ def get_async_download(request, identifier):
         # TODO: Need a design to avoid loop and refactor this to redirect to preparing-download
         raise Http404
     return HttpResponse(doc, content_type=mime_type)
-
