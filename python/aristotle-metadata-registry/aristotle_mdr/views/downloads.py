@@ -169,10 +169,14 @@ def get_async_download(request, identifier):
     res_id = request.COOKIES.get('download_res_key')
     job = async_result(res_id)
     if not job.successful():
-        exc = job.get(propagate=False)
-        logger.exception('Task {0} raised exception: {1!r}\n{2!r}'.format(
-          res_id, exc, job.traceback))
-        return HttpResponseBadRequest()
+        if job.status == 'PENDING':
+            logger.exception('There is no task or you shouldn\'t be on this page yet')
+            raise Http404
+        else:
+            exc = job.get(propagate=False)
+            logger.exception('Task {0} raised exception: {1!r}\n{2!r}'.format(
+                res_id, exc, job.traceback))
+            raise Http404
     job.forget()
     # TODO: Consider moving constant strings in a config or settings file
     doc, mime_type = cache.get(download_utils.get_download_cache_key(identifier, request=request), 'not_cached')
