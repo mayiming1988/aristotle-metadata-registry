@@ -135,7 +135,7 @@ class MultiTextWidget(TextInput):
         return context
 
     def format_value(self, value):
-        if value is None:
+        if not value:
             return ['']
         else:
             return value

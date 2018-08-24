@@ -487,7 +487,7 @@ class CreatedItemsListView(LoginRequiredMixin, FormMixin, ListView):
 
     def form_valid(self, form):
 
-        emails = form.cleaned_data['emails']
+        emails = form.cleaned_data.get('emails', [])
         emails_json = json.dumps(emails)
 
         if not self.share:
