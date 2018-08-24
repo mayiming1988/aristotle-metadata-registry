@@ -209,7 +209,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         self.assertContains(response, share.uuid)
 
     @tag('share_link')
-    def test_form_initial(self):
+    def test_create_share_link_form_initial(self):
         self.login_viewer()
         emails = ['firstone@example.com', 'nextone@example.com']
 
@@ -221,6 +221,31 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         response = self.reverse_get('aristotle_mdr:userSandbox')
         form = response.context['form']
         self.assertEqual(form.initial['emails'], emails)
+
+    @tag('share_link')
+    def test_create_share_link_error_display(self):
+        self.login_viewer()
+
+        data = {
+            'emails-0': 'avalidemail@example.com',
+            'emails-1': 'anin,validemail@example.com',
+            'emails-2': 'anotherbademail@example'
+        }
+        response = self.reverse_post(
+            'aristotle_mdr:userSandbox',
+            data,
+            status_code=200,
+        )
+
+        self.assertTrue('form' in response.context)
+        form = response.context['form']
+
+        self.assertTrue('emails' in form.errors)
+        email_errors = form.errors['emails']
+
+        self.assertTrue(len(email_errors), 2)
+        self.assertTrue('anin,validemail@example.com is not a valid email address')
+        self.assertTrue('anotherbademail@example is not a valid email address')
 
     @tag('share_link')
     def test_view_sandbox_correct_email(self):
