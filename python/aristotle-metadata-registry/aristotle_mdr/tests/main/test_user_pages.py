@@ -260,6 +260,26 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         )
 
     @tag('share_link')
+    def test_submit_no_emails(self):
+        self.login_viewer()
+        data = {}
+
+        response = self.reverse_post(
+            'aristotle_mdr:userSandbox',
+            data,
+            status_code=200,
+            follow=True
+        )
+
+        form = response.context['form']
+        self.assertEqual(len(form.errors), 0)
+
+        self.assertTrue(hasattr(self.viewer.profile, 'share'))
+        share = self.viewer.profile.share
+        emails = json.loads(share.emails)
+        self.assertEqual(emails, [])
+
+    @tag('share_link')
     def test_view_sandbox_incorrect_email(self):
         share = self.create_content_and_share(
             self.editor,
@@ -273,7 +293,6 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
             reverse_args=[share.uuid],
             status_code=404
         )
-
 
     def test_user_can_edit_own_details(self):
         self.login_viewer()
