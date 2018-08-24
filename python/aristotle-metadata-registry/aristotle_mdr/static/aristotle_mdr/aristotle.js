@@ -21,6 +21,21 @@ $(document).ready(function() {
     // Initialize popovers
     $('.aristotle-popover').popover()
 
+    //Initialise delete checkboxes
+    $('.delete-disable').click(function() {
+      var deletebox = $(this)
+      var checked = deletebox.prop('checked')
+      var form = deletebox.closest('form')
+      form.find('input').each(function() {
+        if ($(this).attr('id') != deletebox.attr('id')) {
+          $(this).prop('disabled', checked)
+        }
+      })
+      form.find('.widget-button').each(function() {
+        $(this).prop('disabled', checked)
+      })
+    })
+
 });
 
 // getCookie function taken from django docs

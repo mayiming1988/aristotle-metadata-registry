@@ -20,7 +20,7 @@
 {% if display_share and share %}
 <div class="alert alert-info" role="alert">
   Your share link is:
-  <span id="share_link_1">{% url 'aristotle_mdr:sharedSandbox' share.uuid %}</span> 
+  <span id="share_link_1">{{ host }}{% url 'aristotle_mdr:sharedSandbox' share.uuid %}</span> 
   <button type="button" class="btn btn-default btn-sm copybutton" data-clipboard-target="#share_link_1">Copy</button>
 </div>
 {% endif %}
@@ -42,10 +42,13 @@
           {% if share %}
             <p>
               Your share link is:
-              <span id="share_link_2">{% url 'aristotle_mdr:sharedSandbox' share.uuid %}</span> 
+              <span id="share_link_2">{{ host }}{% url 'aristotle_mdr:sharedSandbox' share.uuid %}</span> 
               <button type="button" class="btn btn-default btn-sm copybutton" data-clipboard-target="#share_link_2">Copy</button>
             </p>
           {% endif %}
+          <div class="alert alert-info" role="alert">
+            Create a link to share your sandbox, only accounts with emails entered below will be able to use the link
+          </div>
           {% csrf_token %}
           {% include 'aristotle_mdr/helpers/fancy_form.html' with form=form %}
         </div>

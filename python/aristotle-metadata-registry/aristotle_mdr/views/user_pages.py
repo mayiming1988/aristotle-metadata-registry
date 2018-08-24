@@ -469,6 +469,7 @@ class CreatedItemsListView(LoginRequiredMixin, FormMixin, ListView):
             form = self.get_form()
 
         context['form'] = form
+        context['host'] = self.request.get_host()
 
         if 'display_share' in self.request.GET:
             context['display_share'] = True
