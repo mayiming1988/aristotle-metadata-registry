@@ -703,15 +703,14 @@ class GeneralTestUtils:
         return self._reverse_request('post', *args, **kwargs)
 
     def assertContext(self, response, key, value):
-
         context = response.context
-        self.assertEqual(key in context)
+        self.assertTrue(key in context)
         self.assertEqual(context[key], value)
 
     def assertInContext(response, key):
 
         context = response.context
-        self.assertEqual(key in context)
+        self.assertTrue(key in context)
 
 
 class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils, FormsetTestUtils):

@@ -44,6 +44,27 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         response = self.client.get(reverse('aristotle:userMyReviewRequests',))
         self.assertEqual(response.status_code, 200)
 
+    def create_content_and_share(self, user, emails):
+        # Create sandbox content with editor
+        models.ObjectClass.objects.create(
+            name='Sandpit',
+            definition='A pit containing on or more grains of sand',
+            submitter=user
+        )
+        models.ObjectClass.objects.create(
+            name='Sandbox',
+            definition='A box or box like object containing an amount of sandlike substances',
+            submitter=user
+        )
+
+        # Create share link with editor
+        share = models.SandboxShare.objects.create(
+            profile=user.profile,
+            emails=json.dumps(emails)
+        )
+
+        return share
+
     @tag('sandbox')
     def test_user_can_view_sandbox(self):
         self.login_viewer()
@@ -202,8 +223,32 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         self.assertEqual(form.initial['emails'], emails)
 
     @tag('share_link')
-    def test_view_sandbox(self):
-        pass
+    def test_view_sandbox_correct_email(self):
+        share = self.create_content_and_share(self.editor, ['vicky@example.com'])
+
+        # View share link as viewer
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle_mdr:sharedSandbox',
+            reverse_args=[share.uuid],
+            status_code=200
+        )
+
+    @tag('share_link')
+    def test_view_sandbox_incorrect_email(self):
+        share = self.create_content_and_share(
+            self.editor,
+            ['steve@example.com', 'bob@example.com']
+        )
+
+        # Attempt to view share link as viewer
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle_mdr:sharedSandbox',
+            reverse_args=[share.uuid],
+            status_code=404
+        )
+
 
     def test_user_can_edit_own_details(self):
         self.login_viewer()
