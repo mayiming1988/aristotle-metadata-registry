@@ -679,7 +679,6 @@ class FormsetTestUtils:
 class GeneralTestUtils:
 
     def _status_check(self, response, kwargs):
-
         if 'status_code' in kwargs:
             self.assertEqual(response.status_code, kwargs['status_code'])
 
@@ -708,7 +707,6 @@ class GeneralTestUtils:
         self.assertEqual(context[key], value)
 
     def assertInContext(response, key):
-
         context = response.context
         self.assertTrue(key in context)
 

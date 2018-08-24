@@ -47,7 +47,7 @@
             </p>
           {% endif %}
           <div class="alert alert-info" role="alert">
-            Create a link to share your sandbox, only accounts with emails entered below will be able to use the link
+            Create a link to share your sandbox. Only accounts with emails entered below will be able to use the link
           </div>
           {% csrf_token %}
           {% include 'aristotle_mdr/helpers/fancy_form.html' with form=form %}

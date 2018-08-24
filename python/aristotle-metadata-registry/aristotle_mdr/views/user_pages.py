@@ -488,12 +488,7 @@ class CreatedItemsListView(LoginRequiredMixin, FormMixin, ListView):
     def form_valid(self, form):
 
         emails = form.cleaned_data['emails']
-        delete = form.cleaned_data['delete']
         emails_json = json.dumps(emails)
-
-        if delete and self.share:
-            self.share.delete()
-            return super().form_valid(form)
 
         if not self.share:
             MDR.SandboxShare.objects.create(

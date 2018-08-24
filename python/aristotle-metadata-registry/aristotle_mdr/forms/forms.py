@@ -215,8 +215,3 @@ class EditUserForm(ModelForm):
 class ShareLinkForm(forms.Form):
 
     emails = MultipleEmailField(required=False)
-    delete = forms.BooleanField(
-        required=False,
-        help_text='Removes the current share link'
-    )
-    delete.widget.attrs.update({'class': 'delete-disable'})
