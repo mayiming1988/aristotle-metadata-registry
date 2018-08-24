@@ -10,7 +10,6 @@ $(document).ready(function() {
     })
   }
 
-
   function disable_check(widget) {
     var count = widget.find('.form-group').length
     var button = widget.find('.remove-field').first()
@@ -28,7 +27,7 @@ $(document).ready(function() {
     reorder(widget)
   }
 
-  function emailPaste(e) {
+  function paste_handler(e) {
     // Prevent the default pasting event and stop bubbling
     e.preventDefault();
     e.stopPropagation();
@@ -64,7 +63,7 @@ $(document).ready(function() {
 
     var inputbox = clone.find('input')
     inputbox.val(added_value)
-    inputbox.on('paste', emailPaste)
+    inputbox.on('paste', paste_handler)
 
     clone.appendTo(fields)
     disable_check(widget)

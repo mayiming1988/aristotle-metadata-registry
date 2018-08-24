@@ -27,7 +27,7 @@ $(document).ready(function() {
       var checked = deletebox.prop('checked')
       var form = deletebox.closest('form')
       form.find('input').each(function() {
-        if ($(this).attr('id') != deletebox.attr('id')) {
+        if ($(this).attr('id') != deletebox.attr('id') && $(this).attr('name') != 'csrfmiddlewaretoken') {
           $(this).prop('disabled', checked)
         }
       })
