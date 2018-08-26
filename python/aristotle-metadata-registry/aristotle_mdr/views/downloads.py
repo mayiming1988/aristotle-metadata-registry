@@ -82,7 +82,7 @@ def download(request, download_type, iid):
                 }
                 res = kls.download.delay(item_props, iid)
                 response = redirect(reverse('aristotle:preparing_download', args=[iid]))
-                response.set_cookie('download_res_key', res.id)
+                request.session['download_res_key'] = res.id
                 return response
             except TemplateDoesNotExist:
                 debug = getattr(settings, 'DEBUG')
@@ -136,18 +136,14 @@ def bulk_download(request, download_type, items=None):
 
 # Thanks to stackoverflow answer: https://stackoverflow.com/a/23177986
 def prepare_async_download(request, identifier):
-    res_id = request.COOKIES.get('download_res_key')
+    res_id = request.session.get('download_res_key', 'no_key')
+    if res_id == 'no_key':
+        raise Http404
     job = async_result(res_id)
     template = 'aristotle_mdr/downloads/creating_download.html'
     context = {}
     if job.ready():
-        try:
-            return redirect(reverse('aristotle:start_download', args=[identifier]))
-        except Exception as exception:
-            if getattr(settings, 'DEBUG'):
-                logger.error('could not get the '.format(exception))
-                raise
-            pass
+        return redirect(reverse('aristotle:start_download', args=[identifier]))
     else:
         return render(
             request,
@@ -165,7 +161,9 @@ def get_async_download(request, identifier):
     :param identifier:
     :return:
     """
-    res_id = request.COOKIES.get('download_res_key')
+    res_id = request.session.get('download_res_key', 'no_key')
+    if res_id == 'no_key':
+        raise Http404
     job = async_result(res_id)
     if not job.successful():
         if job.status == 'PENDING':
