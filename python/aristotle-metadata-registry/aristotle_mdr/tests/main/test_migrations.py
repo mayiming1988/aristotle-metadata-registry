@@ -182,8 +182,9 @@ class TestDedMigration(MigrationsTestCase, TestCase):
 
 class TestLowercaseEmailMigration(MigrationsTestCase, TestCase):
 
-    migrate_from = '0037_make_name_shorttext'
-    migrate_to = '0038_lowercase_emails'
+    app = 'aristotle_mdr_user_management'
+    migrate_from = '0001_initial'
+    migrate_to = '0002_lowercase_emails'
 
     def setUpBeforeMigration(self, apps):
         user = apps.get_model('aristotle_mdr_user_management', 'User')

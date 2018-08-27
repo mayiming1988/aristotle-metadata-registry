@@ -9,7 +9,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_mdr_user_management', '0001_initial'),
+        ('aristotle_mdr_user_management', '0002_lowercase_emails'),
     ]
 
     operations = [
