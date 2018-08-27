@@ -16,9 +16,7 @@
 
 <form action="" method="POST">
 {% csrf_token %}
-<table class="table">
-  {{ form.as_table }}
-</table>
+{% include 'aristotle_mdr/helpers/fancy_table_form.html' with form=form alert_fields=alert_fields %}
 <a class="btn btn-danger" href="{% url 'aristotle:registrationauthority_details' item.id %}">Cancel</a>
 <button class="btn btn-primary" type="submit">Save changes</button>
 </form>

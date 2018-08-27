@@ -1,7 +1,7 @@
 {% load i18n l10n %}
 {% load static %}
 
-<span class="autocomplete-item block" data-value="{{ choice.pk|unlocalize }}">
+<span class="autocomplete-item block" data-html="true" data-value="{{ choice.pk|unlocalize }}">
     <strong class="title" data-name="{{ choice.name }}" >
     {{ choice }} <small>(id: {{ choice.id }}) </small>
     {% with choice.get_absolute_url as url %}

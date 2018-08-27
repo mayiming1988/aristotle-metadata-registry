@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-# from aristotle_mdr.contrib.channels.settings import CHANNEL_LAYERS, HAYSTACK_SIGNAL_PROCESSOR
 
 BASE_DIR = os.getenv('aristotlemdr__BASE_DIR', os.path.dirname(os.path.dirname(__file__)))
 SECRET_KEY = os.getenv('aristotlemdr__SECRET_KEY', "OVERRIDE_THIS_IN_PRODUCTION")
@@ -89,10 +88,8 @@ INSTALLED_APPS = (
     'aristotle_mdr.contrib.slots',
     'aristotle_mdr.contrib.identifiers',
     'aristotle_mdr.contrib.browse',
+    'aristotle_mdr.contrib.autocomplete',
     'aristotle_mdr.contrib.user_management',
-
-    'channels',
-    'haystack_channels',
 
     'dal',
     'dal_select2',
