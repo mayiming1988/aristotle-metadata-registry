@@ -499,6 +499,7 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
         else:
             self.share.emails = emails_json
             self.share.save()
+            self.ajax_success_message = 'Share permissions updated'
 
         return super().form_valid(form)
 

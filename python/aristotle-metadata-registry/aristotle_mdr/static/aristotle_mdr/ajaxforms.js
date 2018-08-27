@@ -26,7 +26,7 @@ $(document).ready(function() {
               window.location.assign(data.redirect)
             } else {
               var alert = $('<div>', {class: 'alert alert-success ajax-success', role: 'alert', text: data.message})
-              currentform.append(alert)
+              currentform.prepend(alert)
             }
           } else {
             // Go through error keys

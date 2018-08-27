@@ -389,8 +389,12 @@ class AlertFieldsMixin:
 
 class AjaxFormMixin:
     """
-    Mixin to be used with form view for ajax functionality
-    ajaxforms.js should be included on the page
+    Mixin to be used with form view for ajax functionality,
+    falls back to normal functionality when recieving a non ajax request
+
+    Requirements:
+    - ajaxforms.js must be included on the page
+    - divs containing form fields must have the class field-container
     """
 
     ajax_success_message = None
@@ -398,6 +402,7 @@ class AjaxFormMixin:
     def form_invalid(self, form):
 
         if self.request.is_ajax():
+            # Return errors as json
             data = {
                 'success': False,
                 'errors': form.errors
@@ -410,10 +415,12 @@ class AjaxFormMixin:
 
         if self.request.is_ajax():
             data = {'success': True}
+            # If success message set
             if self.ajax_success_message is not None:
                 data['message'] = self.ajax_success_message
                 return JsonResponse(data)
             else:
+                # Return success url
                 data['redirect'] = self.get_success_url()
                 return JsonResponse(data)
         else:
