@@ -364,6 +364,47 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
             status_code=403
         )
 
+    @tag('share_link', 'share_debug')
+    def test_link_display_on_shared_item_page(self):
+        share = self.create_content_and_share(
+            self.editor,
+            ['vicky@example.com', 'alice@example.com']
+        )
+
+        sandbox = models.ObjectClass.objects.get(name='Sandbox', submitter=self.editor)
+
+        # Create a property that isn't in editors sandbox
+        prop = models.Property.objects.create(
+            name='Sandiness',
+            definition='Sandiness',
+            submitter=self.su
+        )
+
+        # Create a dec in the sandbox linking to another item in sanbox and an
+        # external item
+        dec = models.DataElementConcept.objects.create(
+            name='Sandbox-Sandiness',
+            definition='Sandbox Sandiness',
+            submitter=self.editor,
+            objectClass=sandbox,
+            property=prop
+        )
+
+        # View shared dec item
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle_mdr:sharedSandboxItem',
+            reverse_args=[share.uuid, dec.id],
+            status_code=200
+        )
+
+        # Check that correct links are displayed
+        self.assertContains(response, reverse('aristotle_mdr:sharedSandboxItem', args=[share.uuid, sandbox.id]))
+        self.assertNotContains(response, reverse('aristotle_mdr:item', args=[sandbox.id]))
+
+        self.assertContains(response, reverse('aristotle_mdr:item', args=[prop.id]))
+        self.assertNotContains(response, reverse('aristotle_mdr:sharedSandboxItem', args=[share.uuid, prop.id]))
+
     def test_user_can_edit_own_details(self):
         self.login_viewer()
         new_email = 'my_new@email.com'
