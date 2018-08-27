@@ -483,7 +483,11 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
         if form.is_valid():
             return self.form_valid(form)
         else:
-            self.object_list = self.get_queryset()
+            if not request.is_ajax():
+                # If request is not ajax and there is an invlaid form we need
+                # to load the listview content (usually done in get())
+                # This should only run if a user has disabled js
+                self.object_list = self.get_queryset()
             return self.form_invalid(form)
 
     def form_valid(self, form):
