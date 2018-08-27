@@ -398,13 +398,24 @@ class AjaxFormMixin:
     def form_invalid(self, form):
 
         if self.request.is_ajax():
-            return JsonResponse(form.errors)
+            data = {
+                'success': False,
+                'errors': form.errors
+            }
+            return JsonResponse(data)
         else:
             return super().form_invalid(form)
 
     def form_valid(self, form):
 
-        if self.request.is_ajax() and self.ajax_success_message is not None:
-            return JsonResponse({'message': self.ajax_success_message})
+        if self.request.is_ajax():
+            data = {'success': True}
+            if self.ajax_success_message is not None:
+                data['message'] = self.ajax_success_message
+                return JsonResponse(data)
+            else:
+                data['redirect'] = self.get_success_url()
+                return JsonResponse(data)
         else:
             return super().form_valid(form)
+
