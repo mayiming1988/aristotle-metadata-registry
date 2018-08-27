@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
-from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseServerError
 from django.shortcuts import render, redirect
@@ -124,14 +123,15 @@ def bulk_download(request, download_type, items=None):
                 properties = {
                     'user': str(user),
                     'item_list': item_list,
-                    'title': request.GET.get('title', None),
+                    'title': request.GET.get('title', '').strip(),
                     'subtitle': request.GET.get('subtitle', None),
                     'debug_as_html': request.GET.get('html', ''),
                     'page_size': request.GET.get('pagesize', None),
-                    'cache_key': ''.join(map(str, item_list))
                 }
+                if not properties.get('title', ''):
+                    properties['title'] = 'Auto-generated document'
                 res = kls.bulk_download.delay(properties)
-                response = redirect(reverse('aristotle:preparing_download', args=[properties['cache_key']]))
+                response = redirect(reverse('aristotle:preparing_download', args=[properties['title']]))
                 request.session['download_res_key'] = res.id
                 return response
             except TemplateDoesNotExist:
@@ -186,7 +186,7 @@ def get_async_download(request, identifier):
             raise Http404
     job.forget()
     # TODO: Consider moving constant strings in a config or settings file
-    doc, mime_type = cache.get(download_utils.get_download_cache_key(identifier, request=request), 'not_cached')
+    doc, mime_type = cache.get(download_utils.get_download_cache_key(identifier, request=request), ('not_cached', ''))
     if doc == 'not_cached':
         # TODO: Need a design to avoid loop and refactor this to redirect to preparing-download
         raise Http404

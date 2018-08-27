@@ -105,21 +105,22 @@ class PDFDownloader(DownloaderBase):
         subItems = []
 
         debug_as_html = bool(properties.get('html', ''))
-        cache.set(download_utils.get_download_cache_key(properties.get('cache_key'), user), (render_to_pdf(
-            template,
-            {
-                'title': title,
-                'subtitle': subtitle,
-                'items': items,
-                'included_items': sorted(
-                    [(k, v) for k, v in item_querysets.items()],
-                    key=lambda k_v: k_v[0]._meta.model_name
-                ),
-                'pagesize': properties.get('pagesize', page_size),
-            },
-            preamble_template='aristotle_mdr/downloads/pdf/bulk_download_title.html',
-            debug_as_html=debug_as_html
-        ), 'application/pdf'))
+        cache.set(download_utils.get_download_cache_key(properties.get('title'), user), (render_to_pdf(
+                    template,
+                    {
+                        'title': title,
+                        'subtitle': subtitle,
+                        'items': items,
+                        'included_items': sorted(
+                            [(k, v) for k, v in item_querysets.items()],
+                            key=lambda k_v: k_v[0]._meta.model_name
+                        ),
+                        'pagesize': properties.get('pagesize', page_size),
+                    },
+                    preamble_template='aristotle_mdr/downloads/pdf/bulk_download_title.html',
+                    debug_as_html=debug_as_html
+                    ), 'application/pdf')
+                  )
         return title
 
 
