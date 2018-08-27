@@ -6,7 +6,7 @@ from aristotle_mdr import models as MDR
 
 import os
 
-
+from django.conf import settings
 from django.http import HttpResponse, Http404
 from django.template.loader import select_template, get_template
 from django.template import Context
@@ -60,7 +60,6 @@ class PDFDownloader(DownloaderBase):
             for obj_type, qs in item.get_download_items()
         ]
 
-        # TODO: Use user in the cache key for cache to be user specific (and probably namespace the cache with an alias
         cache.set(download_utils.get_download_cache_key(iid, user), (render_to_pdf(template, {
             'title': "PDF Download for {obj.name}".format(obj=item),
             'item': item,
@@ -72,33 +71,41 @@ class PDFDownloader(DownloaderBase):
 
         return iid
 
-    @classmethod
-    def bulk_download(cls, request, items, title=None, subtitle=None):
+    @staticmethod
+    @shared_task(name='aristotle_pdf_downloads.downloader.bulk_download')
+    def bulk_download(properties, title=None, subtitle=None):
         """Built in download method"""
-        template = 'aristotle_mdr/downloads/pdf/bulk_download.html'  # %(download_type)
-        from django.conf import settings
+        template = 'aristotle_mdr/downloads/pdf/bulk_download.html'
         page_size = getattr(settings, 'PDF_PAGE_SIZE', "A4")
-
-        item_querysets = items_for_bulk_download(items, request)
+        user = properties.get('user')
+        if user != str(AnonymousUser()):
+            user = User.objects.get(email=user)
+        else:
+            user = AnonymousUser()
+        items = []
+        for iid in properties.get('items', []):
+            item = MDR._concept.objects.get_subclass(pk=iid)
+            if item.can_view(user):
+                items.append(item)
+        item_querysets = items_for_bulk_download(items, user)
 
         if title is None:
-            if request.GET.get('title', None):
-                title = request.GET.get('title')
+            if properties.get('title', None):
+                title = properties.get('title')
             else:
                 title = "Auto-generated document"
 
         if subtitle is None:
-            if request.GET.get('subtitle', None):
-                subtitle = request.GET.get('subtitle')
+            if properties.get('subtitle', None):
+                subtitle = properties.get('subtitle')
             else:
                 _list = "<li>" + "</li><li>".join([item.name for item in items if item]) + "</li>"
                 subtitle = mark_safe("Generated from the following metadata items:<ul>%s<ul>" % _list)
 
         subItems = []
 
-        debug_as_html = bool(request.GET.get('html', ''))
-
-        return render_to_pdf(
+        debug_as_html = bool(properties.get('html', ''))
+        cache.set(download_utils.get_download_cache_key(properties.get('cache_key'), user), (render_to_pdf(
             template,
             {
                 'title': title,
@@ -108,11 +115,12 @@ class PDFDownloader(DownloaderBase):
                     [(k, v) for k, v in item_querysets.items()],
                     key=lambda k_v: k_v[0]._meta.model_name
                 ),
-                'pagesize': request.GET.get('pagesize', page_size),
+                'pagesize': properties.get('pagesize', page_size),
             },
             preamble_template='aristotle_mdr/downloads/pdf/bulk_download_title.html',
             debug_as_html=debug_as_html
-        )
+        ), 'application/pdf'))
+        return title
 
 
 def generate_outline_str(bookmarks, indent=0):
@@ -182,11 +190,11 @@ def render_to_pdf(template_src, context_dict,
     return document.write_pdf()
 
 
-def items_for_bulk_download(items, request):
+def items_for_bulk_download(items, user):
     iids = {}
     item_querysets = {}  # {PythonClass:{help:ConceptHelp,qs:Queryset}}
     for item in items:
-        if item and item.can_view(request.user):
+        if item and item.can_view(user):
             if item.__class__ not in iids.keys():
                 iids[item.__class__] = []
             iids[item.__class__].append(item.pk)
@@ -205,7 +213,7 @@ def items_for_bulk_download(items, request):
             item_querysets[metadata_type]['qs'] |= query
 
     for metadata_type in item_querysets.keys():
-        item_querysets[metadata_type]['qs'] = item_querysets[metadata_type]['qs'].distinct().visible(request.user)
+        item_querysets[metadata_type]['qs'] = item_querysets[metadata_type]['qs'].distinct().visible(user)
         item_querysets[metadata_type]['help'] = ConceptHelp.objects.filter(
             app_label=metadata_type._meta.app_label,
             concept_type=metadata_type._meta.model_name

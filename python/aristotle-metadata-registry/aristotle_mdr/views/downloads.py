@@ -110,20 +110,30 @@ def bulk_download(request, download_type, items=None):
     is imported, this file **MUST** have a ``bulk_download`` function defined which returns
     a Django ``HttpResponse`` object of some form.
     """
-    items=[]
-
-    for iid in request.GET.getlist('items'):
-        item = MDR._concept.objects.get_subclass(pk=iid)
-        if item.can_view(request.user):
-            items.append(item)
+    item_list = request.GET.getlist('items')
+    user = getattr(request, 'user', None)
 
     # downloadOpts = fetch_aristotle_settings().get('DOWNLOADERS', [])
-
-    downloadOpts = fetch_aristotle_downloaders()
-    for kls in downloadOpts:
+    download_opts = fetch_aristotle_downloaders()
+    for kls in download_opts:
         if download_type == kls.download_type:
             try:
-                return kls.bulk_download(request, items)
+                # properties for download template
+                # TODO: Need a standard way of defining properties Or better,
+                # TODO: create a function under kls to get the config required.
+                properties = {
+                    'user': str(user),
+                    'item_list': item_list,
+                    'title': request.GET.get('title', None),
+                    'subtitle': request.GET.get('subtitle', None),
+                    'debug_as_html': request.GET.get('html', ''),
+                    'page_size': request.GET.get('pagesize', None),
+                    'cache_key': ''.join(map(str, item_list))
+                }
+                res = kls.bulk_download.delay(properties)
+                response = redirect(reverse('aristotle:preparing_download', args=[properties['cache_key']]))
+                request.session['download_res_key'] = res.id
+                return response
             except TemplateDoesNotExist:
                 debug = getattr(settings, 'DEBUG')
                 if debug:
