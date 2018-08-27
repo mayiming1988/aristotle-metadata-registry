@@ -259,8 +259,12 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
             status_code=200
         )
 
+        self.assertContext(response, 'share_user', self.editor)
+        self.assertContext(response, 'share_uuid', share.uuid)
+        self.assertContext(response, 'user', self.viewer)
+
     @tag('share_link')
-    def test_submit_no_emails(self):
+    def test_create_link_no_emails(self):
         self.login_viewer()
         data = {}
 
@@ -292,6 +296,72 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
             'aristotle_mdr:sharedSandbox',
             reverse_args=[share.uuid],
             status_code=404
+        )
+
+    @tag('share_link')
+    def test_view_sandbox_item_correct_email(self):
+        share = self.create_content_and_share(
+            self.editor,
+            ['vicky@example.com', 'alice@example.com']
+        )
+
+        # Get sandbox item
+        item = models.ObjectClass.objects.get(name='Sandpit', submitter=self.editor)
+
+        # Attempt to view shared item
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle_mdr:sharedSandboxItem',
+            reverse_args=[share.uuid, item.id],
+            status_code=200
+        )
+
+        # Check for message
+        self.assertContains(response, 'You are viewing a shared item')
+
+        # Check action bar was not rendered
+        self.assertTemplateNotUsed('aristotle_mdr/concepts/actionbar.html')
+
+        self.assertInContext(response, 'breadcrumbs')
+
+    @tag('share_link')
+    def test_view_sanbox_item_incorrect_email(self):
+        share = self.create_content_and_share(
+            self.editor,
+            ['tester@example.com', 'alice@example.com']
+        )
+
+        # Get sandbox item
+        item = models.ObjectClass.objects.get(name='Sandpit', submitter=self.editor)
+
+        # Attempt to view shared item
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle_mdr:sharedSandboxItem',
+            reverse_args=[share.uuid, item.id],
+            status_code=404
+        )
+
+    @tag('share_link')
+    def test_view_incorrect_sandbox_item(self):
+        share = self.create_content_and_share(
+            self.editor,
+            ['vicky@example.com', 'alice@example.com']
+        )
+
+        # Create item as viewer
+        item = models.ObjectClass.objects.create(
+            name='Bad object',
+            definition='Bad',
+            submitter=self.su
+        )
+
+        # Attempt to view shared item
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle_mdr:sharedSandboxItem',
+            reverse_args=[share.uuid, item.id],
+            status_code=403
         )
 
     def test_user_can_edit_own_details(self):

@@ -712,11 +712,12 @@ class GeneralTestUtils:
         Get by reverse url
 
         Arguments:
-            url_name: named url to reverse
+        url_name -- named url to reverse
+        Standard client.get args
 
-        Keyword Arguments:
-            reverse_args: args to use during reverse
-            status_code: expected status code of response
+        Extra Keyword Arguments:
+        reverse_args -- args list to use during reverse
+        status_code -- expected status code of response
         """
         return self._reverse_request('get', *args, **kwargs)
 
@@ -725,11 +726,12 @@ class GeneralTestUtils:
         Post by reverse url
 
         Arguments:
-            url_name: named url to reverse
+        url_name -- named url to reverse
+        Standard client.post args
 
-        Keyword Arguments:
-            reverse_args: args to use during reverse
-            status_code: expected status code of response
+        Extra Keyword Arguments:
+        reverse_args -- args list to use during reverse
+        status_code -- expected status code of response
         """
         return self._reverse_request('post', *args, **kwargs)
 
