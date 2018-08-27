@@ -48,4 +48,10 @@ $(document).ready(function() {
     $('.copybutton').remove()
   }
 
+  $('.modal').on('hidden.bs.modal', function(e) {
+    // On modal close remove ajax messages
+    $('.ajax-error').remove()
+    $('.ajax-success').remove()
+  })
+
 })
