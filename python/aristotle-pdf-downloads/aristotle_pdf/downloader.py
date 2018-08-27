@@ -83,7 +83,7 @@ class PDFDownloader(DownloaderBase):
         else:
             user = AnonymousUser()
         items = []
-        for iid in properties.get('items', []):
+        for iid in properties.get('item_list', []):
             item = MDR._concept.objects.get_subclass(pk=iid)
             if item.can_view(user):
                 items.append(item)
