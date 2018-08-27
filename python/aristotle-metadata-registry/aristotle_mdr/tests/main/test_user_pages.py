@@ -364,7 +364,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
             status_code=403
         )
 
-    @tag('share_link', 'share_debug')
+    @tag('share_link')
     def test_link_display_on_shared_item_page(self):
         share = self.create_content_and_share(
             self.editor,

@@ -70,7 +70,7 @@ class TestWebPageAccessibilityBase(utils.LoggedInViewPages):
             for media in media_types:
                 results = parade.Parade(
                     level='AA', staticpath=settings.BASE_STATICPATH,
-                    skip_these_classes=['sr-only'],
+                    skip_these_classes=['sr-only', 'aristotle-skip-wcag'],
                     ignore_hidden = True,
                     media_types = media
                 ).validate_document(html)

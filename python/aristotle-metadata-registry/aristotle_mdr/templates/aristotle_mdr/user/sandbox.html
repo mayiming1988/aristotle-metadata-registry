@@ -31,7 +31,8 @@
     Only you can see these items.
 </p>
 
-<div id="share-link-modal" class="modal fade exclude-scrap" tabindex="-1" role="dialog">
+{# Skipping wcag on these modals due to how headers are rendered in modals #}
+<div id="share-link-modal" class="modal fade exclude-scrap aristotle-skip-wcag" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -69,15 +70,7 @@
 </script>
 {% endif %}
 
-<script>
-  if (ClipboardJS.isSupported()) {
-    new ClipboardJS('.copybutton');
-  } else {
-    $('.copybutton').remove()
-  }
-</script>
-
-<div id="delete-modal" class="modal fade exclude-scrap" tabindex="-1" role="dialog">
+<div id="delete-modal" class="modal fade exclude-scrap aristotle-skip-wcag" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">

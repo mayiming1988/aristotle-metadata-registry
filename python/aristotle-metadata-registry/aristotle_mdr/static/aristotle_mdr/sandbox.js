@@ -42,4 +42,10 @@ $(document).ready(function() {
     })
   })
 
+  if (ClipboardJS.isSupported()) {
+    new ClipboardJS('.copybutton');
+  } else {
+    $('.copybutton').remove()
+  }
+
 })
