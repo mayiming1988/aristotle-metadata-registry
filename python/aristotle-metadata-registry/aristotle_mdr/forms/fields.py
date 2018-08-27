@@ -121,6 +121,3 @@ class MultipleEmailField(Field):
             return cleaned_values
         else:
             raise ValidationError(errors)
-
-
-

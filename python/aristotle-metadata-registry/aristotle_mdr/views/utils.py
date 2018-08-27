@@ -425,4 +425,3 @@ class AjaxFormMixin:
                 return JsonResponse(data)
         else:
             return super().form_valid(form)
-
