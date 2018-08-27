@@ -50,6 +50,7 @@
           <div class="alert alert-info" role="alert">
             Create a link to share your sandbox. Only accounts with emails entered below will be able to use the link
           </div>
+          <div class="ajax-success-container"></div>
           {% csrf_token %}
           {% include 'aristotle_mdr/helpers/fancy_form.html' with form=form %}
         </div>

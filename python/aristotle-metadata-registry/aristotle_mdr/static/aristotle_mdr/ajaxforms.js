@@ -28,7 +28,12 @@ $(document).ready(function() {
             window.location.assign(data.redirect)
           } else {
             var alert = $('<div>', {class: 'alert alert-success ajax-success', role: 'alert', text: data.message})
-            form.prepend(alert)
+            var container = $('.ajax-success-container').first()
+            if (container != undefined) {
+              container.append(alert)
+            } else {
+              form.prepend(alert)
+            }
           }
         } else {
           // Go through error keys
