@@ -3,6 +3,8 @@
 {% if item %}
     {% if shared_items and share_uuid %}
       <a class="itemLink" href="{% url 'aristotle_mdr:sharedSandboxItem' share_uuid item.id %}">
+    {% elif item.id in shared_ids and share_uuid %}
+      <a class="itemLink" href="{% url 'aristotle_mdr:sharedSandboxItem' share_uuid item.id %}">
     {% else %}
       <a class="itemLink" href="{{ item.get_absolute_url }}">
     {% endif %}

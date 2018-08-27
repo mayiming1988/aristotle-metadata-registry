@@ -395,6 +395,10 @@ class AjaxFormMixin:
     Requirements:
     - ajaxforms.js must be included on the page
     - divs containing form fields must have the class field-container
+
+    Optional:
+    - div with class ajax-success-container to control where success message
+    appears
     """
 
     ajax_success_message = None

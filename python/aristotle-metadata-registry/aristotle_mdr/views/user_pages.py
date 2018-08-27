@@ -542,6 +542,9 @@ class SharedSandboxView(LoginRequiredMixin, GetShareMixin, ListView):
         context = super().get_context_data(*args, **kwargs)
         context['share_user'] = self.share.profile.user
         context['share_uuid'] = self.share.uuid
+
+        # Display all metadata links though share
+        context['shared_items'] = True
         return context
 
     def get_queryset(self, *args, **kwargs):
@@ -552,7 +555,8 @@ class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderView):
     """View to display an item in a shared sandbox"""
 
     def check_item(self):
-        if self.item in self.user.profile.mySandboxContent:
+        self.sandbox_ids = list(self.user.profile.mySandboxContent.values_list('id', flat=True))
+        if self.item.id in self.sandbox_ids:
             return True
         else:
             return False
@@ -577,6 +581,11 @@ class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderView):
                 'active': True
             }
         ]
+
+        # Set these in order to display links to other sandbox content
+        # correctly
+        context['shared_ids'] = self.sandbox_ids
+        context['share_uuid'] = self.share.uuid
         return context
 
     def get_user(self):

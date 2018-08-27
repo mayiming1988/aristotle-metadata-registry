@@ -186,7 +186,7 @@ class ConceptRenderView(TemplateView):
         return True
 
     def get_user(self):
-        return self.request.suer
+        return self.request.user
 
     def dispatch(self, request, *args, **kwargs):
         self.item = self.get_item()
