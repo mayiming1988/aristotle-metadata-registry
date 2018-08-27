@@ -26,7 +26,8 @@ from aristotle_mdr.contrib.generic.views import ShareLinkMixin
 from aristotle_mdr.views.utils import (paginated_list,
                                        paginated_workgroup_list,
                                        paginated_registration_authority_list,
-                                       GenericListWorkgroup)
+                                       GenericListWorkgroup,
+                                       AjaxFormMixin)
 from aristotle_mdr.views.views import ConceptRenderView
 from aristotle_mdr.utils import fetch_metadata_apps
 from aristotle_mdr.utils import get_aristotle_url
@@ -431,7 +432,7 @@ class ReviewDetailsView(DetailView):
         return MDR.ReviewRequest.objects.visible(self.request.user)
 
 
-class CreatedItemsListView(LoginRequiredMixin, FormMixin, ListView):
+class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListView):
     """Display Users sandbox items"""
 
     paginate_by = 25

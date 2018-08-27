@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Count, Q
 from django.db.models.functions import Lower
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -385,3 +385,26 @@ class AlertFieldsMixin:
         context = super().get_context_data(*args, **kwargs)
         context.update({'alert_fields': self.alert_fields})
         return context
+
+
+class AjaxFormMixin:
+    """
+    Mixin to be used with form view for ajax functionality
+    ajaxforms.js should be included on the page
+    """
+
+    ajax_success_message = None
+
+    def form_invalid(self, form):
+
+        if self.request.is_ajax():
+            return JsonResponse(form.errors)
+        else:
+            return super().form_invalid(form)
+
+    def form_valid(self, form):
+
+        if self.request.is_ajax() and self.ajax_success_message is not None:
+            return JsonResponse({'message': self.ajax_success_message})
+        else:
+            return super().form_valid(form)
