@@ -442,6 +442,9 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
         return self.request.user.profile.mySandboxContent
 
     def get_share(self):
+        if not hasattr(self.request.user, 'profile'):
+            return None
+
         return getattr(self.request.user.profile, 'share', None)
 
     def get_initial(self):
