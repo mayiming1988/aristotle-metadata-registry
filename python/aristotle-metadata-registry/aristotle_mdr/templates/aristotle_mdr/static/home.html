@@ -12,9 +12,6 @@
 
 {% block content %}
 
-{% if request.GET.logout %}
-<div class="alert alert-success">You have been logged out</div>
-{% endif %}
 <div class="jumbotron">
 <h1>{{ config.SITE_INTRO }}</h1>
 <form id="homeSearch" action="{% url 'aristotle:search' %}" method="get" >

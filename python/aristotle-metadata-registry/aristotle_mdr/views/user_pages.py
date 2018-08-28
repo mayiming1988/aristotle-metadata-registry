@@ -10,6 +10,7 @@ from django.db.models import Q, Count
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 from django.views.generic import (DetailView,
                                   ListView,
                                   UpdateView,
@@ -18,6 +19,7 @@ from django.views.generic import (DetailView,
                                   View)
 
 from django.core.exceptions import ValidationError
+from django.contrib import messages
 
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
@@ -49,7 +51,11 @@ class FriendlyLoginView(LoginView):
 
 
 class FriendlyLogoutView(LogoutView):
-    pass
+
+    @method_decorator(never_cache)
+    def dispatch(self, request, *args, **kwargs):
+        messages.info(request, 'You have been logged out')
+        return super().dispatch(request, *args, **kwargs)
 
 
 class ProfileView(LoginRequiredMixin, TemplateView):
