@@ -34,6 +34,7 @@ from aristotle_mdr.utils import get_aristotle_url
 import json
 import random
 
+
 class FriendlyLoginView(LoginView):
 
     template_name='aristotle_mdr/friendly_login.html'
