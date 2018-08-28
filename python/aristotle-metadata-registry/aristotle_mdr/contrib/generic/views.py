@@ -687,18 +687,3 @@ class ConfirmDeleteView(GenericWithItemURLView, TemplateView):
     def post(self, *args, **kwargs):
         self.perform_deletion()
         return HttpResponseRedirect(self.get_success_url())
-
-
-class ShareLinkMixin:
-
-    def set_signer(self, salt):
-        self.signer = TimestampSigner(salt=salt)
-
-    def has_share(self, user):
-        return hasattr(user.profile, 'share')
-
-    def get_token(self, share):
-        return self.signer.sign(share.uuid)
-
-    def validate_token(self, token, share):
-        return self.signer.unsign(token)
