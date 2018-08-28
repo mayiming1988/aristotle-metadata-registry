@@ -20,6 +20,7 @@ from django.views.generic import (DetailView,
 
 from django.core.exceptions import ValidationError
 from django.contrib import messages
+from django.utils.translation import ugettext_lazy as _
 
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
@@ -54,7 +55,7 @@ class FriendlyLogoutView(LogoutView):
 
     @method_decorator(never_cache)
     def dispatch(self, request, *args, **kwargs):
-        messages.info(request, 'You have been logged out')
+        messages.info(request, _('You have been logged out'))
         return super().dispatch(request, *args, **kwargs)
 
 
