@@ -483,7 +483,7 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
         if form.is_valid():
             return self.form_valid(form)
         else:
-            if not request.is_ajax():
+            if not self.request.is_ajax():
                 # If request is not ajax and there is an invlaid form we need
                 # to load the listview content (usually done in get())
                 # This should only run if a user has disabled js
