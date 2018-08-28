@@ -22,7 +22,6 @@ from django.core.exceptions import ValidationError
 
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
-from aristotle_mdr.contrib.generic.views import ShareLinkMixin
 from aristotle_mdr.views.utils import (paginated_list,
                                        paginated_workgroup_list,
                                        paginated_registration_authority_list,
@@ -34,10 +33,6 @@ from aristotle_mdr.utils import get_aristotle_url
 
 import json
 import random
-
-import logging
-logger = logging.getLogger(__name__)
-
 
 class FriendlyLoginView(LoginView):
 

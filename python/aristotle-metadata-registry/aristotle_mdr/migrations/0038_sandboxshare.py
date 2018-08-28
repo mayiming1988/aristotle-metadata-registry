@@ -21,7 +21,6 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('uuid', models.UUIDField(default=uuid.uuid1, editable=False, help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries', unique=True)),
                 ('created', models.DateTimeField(auto_now=True)),
-                ('enabled', models.BooleanField(default=True)),
                 ('emails', jsonfield.fields.JSONField()),
                 ('profile', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='share', to='aristotle_mdr.PossumProfile')),
             ],

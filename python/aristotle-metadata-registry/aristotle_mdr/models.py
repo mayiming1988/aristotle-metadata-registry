@@ -1510,9 +1510,6 @@ class SandboxShare(models.Model):
     created = models.DateTimeField(
         auto_now=True
     )
-    enabled = models.BooleanField(
-        default=True
-    )
     emails = JSONField()
 
 
