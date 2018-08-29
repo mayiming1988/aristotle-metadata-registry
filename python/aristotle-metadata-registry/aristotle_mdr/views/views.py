@@ -102,6 +102,7 @@ def render_if_user_can_view(item_type, request, *args, **kwargs):
     )
 
 
+# This view is not currently being used
 @login_required
 def render_if_user_can_edit(item_type, request, *args, **kwargs):
     request = kwargs.pop('request')
@@ -115,6 +116,7 @@ def concept_by_uuid(request, uuid):
     return redirect(url_slugify_concept(item))
 
 
+# This view is not currently being used
 def concept(*args, **kwargs):
     return render_if_user_can_view(MDR._concept, *args, **kwargs)
 
@@ -172,26 +174,49 @@ class ConceptRenderView(TemplateView):
     """
     Class based view for rendering a concept, replaces render_if_condition_met
     **This should be used with a permission mixin or check_item override**
+
+    slug_redirect determines wether /item/id redirects to /item/id/model_slug/name_slug
     """
 
     objtype = MDR._concept
     itemid_arg = 'iid'
+    modelslug_arg = 'model_slug'
+    nameslug_arg = 'name_slug'
+    slug_redirect = False
 
     def get_item(self):
         itemid = self.kwargs[self.itemid_arg]
         return get_object_or_404(self.objtype, pk=itemid).item
 
-    def check_item(self):
+    def check_item(self, item):
         # To be overwritten
         return True
 
     def get_user(self):
         return self.request.user
 
+    def get_redirect(self):
+        model_slug = self.kwargs.get(self.modelslug_arg, '')
+        name_slug = self.kwargs.get(self.nameslug_arg, '')
+
+        model_correct = (self.item._meta.model_name == model_slug)
+        name_correct = (slugify(self.item.name) == name_slug)
+
+        if not model_correct or not name_correct:
+            return True, url_slugify_concept(self.item)
+        else:
+            return False, ''
+
     def dispatch(self, request, *args, **kwargs):
         self.item = self.get_item()
+
+        if self.slug_redirect:
+            redirect, url = self.get_redirect()
+            if redirect:
+                return HttpResponseRedirect(url)
+
         self.user = self.get_user()
-        result = self.check_item()
+        result = self.check_item(self.item)
         if not result:
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
@@ -214,6 +239,14 @@ class ConceptRenderView(TemplateView):
         )
 
         return [default_template, self.item.template]
+
+
+class Concept(ConceptRenderView):
+
+    slug_redirect = True
+
+    def check_item(self, item):
+        return user_can_view(self.request.user, item)
 
 
 def registrationHistory(request, iid):

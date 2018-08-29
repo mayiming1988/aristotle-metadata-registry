@@ -568,9 +568,9 @@ class SharedSandboxView(LoginRequiredMixin, GetShareMixin, ListView):
 class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderView):
     """View to display an item in a shared sandbox"""
 
-    def check_item(self):
+    def check_item(self, item):
         self.sandbox_ids = list(self.user.profile.mySandboxContent.values_list('id', flat=True))
-        if self.item.id in self.sandbox_ids:
+        if item.id in self.sandbox_ids:
             return True
         else:
             return False
