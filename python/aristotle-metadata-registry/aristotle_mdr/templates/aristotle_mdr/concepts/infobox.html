@@ -125,9 +125,9 @@
             <dt>{% trans 'History' %}</dt>
             <dd><a href="{% url 'aristotle:item_history' iid=item.id %}">{% trans "View history" %}</a></dd>
             <dt>{% trans 'Discussions' %}</dt>
-            <dd>{% if item.relatedDiscussions.exists %}
+            <dd>{% if discussions %}
                 <ul>
-                    {% for discussion in item.relatedDiscussions.all %}
+                    {% for discussion in discussions %}
                     <li>
                         <a href="{% url 'aristotle:discussionsPost' pid=discussion.id %}">{{ discussion.title }}</a>
                     </li>

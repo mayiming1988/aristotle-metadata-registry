@@ -2,6 +2,7 @@
 from django import VERSION as django_version
 from django.apps import apps
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist
@@ -250,6 +251,9 @@ class ConceptRenderView(TemplateView):
         context['slots'] = get_allowed_slots(self.item, self.user)
         context['item'] = self.item
         context['statuses'] = self.item.current_statuses
+        context['discussions'] = self.item.relatedDiscussions.all()
+        #if self.request.user.is_authenticated():
+        #    context['user'] = get_user_model().objects.select_related('profile').get(id=self.request.user.id)
         return context
 
     def get_template_names(self):
