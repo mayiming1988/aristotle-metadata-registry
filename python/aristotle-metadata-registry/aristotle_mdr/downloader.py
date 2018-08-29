@@ -2,8 +2,16 @@ from aristotle_mdr.utils import get_download_template_path_for_item
 
 from django.http import HttpResponse
 
+import io
 import csv
 from aristotle_mdr.contrib.help.models import ConceptHelp
+from aristotle_mdr import models as MDR
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
+from aristotle_mdr.views import get_if_user_can_view
+from aristotle_mdr.utils import downloads as download_utils
+from celery import shared_task
+from django.core.cache import cache
 
 
 class DownloaderBase(object):
@@ -24,7 +32,7 @@ class DownloaderBase(object):
     description = ""
 
     @classmethod
-    def get_download_config(cls, request, item):
+    def get_download_config(cls, request, iid):
         """
         This method must be overriden. This method takes in a request object and item and
         creates a download config for the download method.
@@ -40,11 +48,20 @@ class DownloaderBase(object):
         raise NotImplementedError
 
     @staticmethod
-    def download(properties, item):
+    def download(properties, iid):
         """
         This method must be overriden and return the downloadable object of appropriate type
         and mime type for the object
         This is a static method because it is a celery task
+        This method should return 2 objects and an optional third
+        first object is item
+        second item is the mime type
+        third object a list of tuple(key, value) which specifies the response object properties
+        Example implementation is in CSVDownloader.download method
+
+        User this in a celery task to get the item from iid
+        item = MDR._concept.objects.get_subclass(pk=iid)
+        item = get_if_user_can_view(item.__class__, user, iid)
         """
         raise NotImplementedError
 
@@ -67,19 +84,33 @@ class CSVDownloader(DownloaderBase):
     description = "CSV downloads for value domain codelists"
 
     @classmethod
+    def get_download_config(cls, request, iid):
+        user = getattr(request, 'user', None)
+        properties = {
+            'user': str(user),
+        }
+        return properties, iid
+
+    @classmethod
     def bulk_download(cls, request, item):
         raise NotImplementedError
 
-    @classmethod
-    def download(cls, request, item):
+    @staticmethod
+    @shared_task(name='aristotle_mdr.downloader.CSVDownloader.download')
+    def download(properties, iid):
         """Built in download method"""
+        User = get_user_model()
+        user = properties.get('user')
+        if user != str(AnonymousUser()):
+            user = User.objects.get(email=user)
+        else:
+            user = AnonymousUser()
 
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="%s.csv"' % (
-            item.name
-        )
+        item = MDR._concept.objects.get_subclass(pk=iid)
+        item = get_if_user_can_view(item.__class__, user, iid)
 
-        writer = csv.writer(response)
+        mem_file = io.StringIO()
+        writer = csv.writer(mem_file)
         writer.writerow(['value', 'meaning', 'start date', 'end date', 'role'])
         for v in item.permissibleValues.all():
             writer.writerow(
@@ -89,8 +120,11 @@ class CSVDownloader(DownloaderBase):
             writer.writerow(
                 [v.value, v.meaning, v.start_date, v.end_date, "supplementary"]
             )
-
-        return response
+        cache.set(download_utils.get_download_cache_key(iid, user),
+                  (mem_file,
+                   'txt/csv',
+                  [('Content-Disposition', 'attachment; filename="{}.csv"'.format(item.name))]))
+        return iid
 
 
 def items_for_bulk_download(items, request):

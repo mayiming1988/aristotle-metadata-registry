@@ -174,7 +174,9 @@ def get_async_download(request, identifier):
     # TODO: purge this method in favor of supporting the files to
     res_id = request.session.get('download_res_key', 'no_key')
     if res_id == 'no_key':
+        logger.exception('There is no key for request')
         raise Http404
+    del request.session['download_res_key']
     job = async_result(res_id)
     if not job.successful():
         if job.status == 'PENDING':
@@ -185,11 +187,16 @@ def get_async_download(request, identifier):
             logger.exception('Task {0} raised exception: {1!r}\n{2!r}'.format(
                 res_id, exc, job.traceback))
             raise Http404
-    del request.session['download_res_key']
     job.forget()
     # TODO: Consider moving constant strings in a config or settings file
-    doc, mime_type = cache.get(download_utils.get_download_cache_key(identifier, request=request), ('not_cached', ''))
+    response_properties = cache.get(download_utils.get_download_cache_key(identifier, request=request), ('not_cached', ''))
+    doc = response_properties[0]
+    mime_type = response_properties[1]
     if doc == 'not_cached':
         # TODO: Need a design to avoid loop and refactor this to redirect to preparing-download
         raise Http404
-    return HttpResponse(doc, content_type=mime_type)
+    response = HttpResponse(doc, content_type=mime_type)
+    if len(response_properties) > 2:
+        for key, value in response_properties[2]:
+            response[key] = value
+    return response

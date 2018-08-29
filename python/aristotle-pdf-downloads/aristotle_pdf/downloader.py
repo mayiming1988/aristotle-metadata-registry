@@ -30,8 +30,6 @@ PDF_STATIC_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'pdf
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
-User = get_user_model()
-
 
 class PDFDownloader(DownloaderBase):
     download_type = "pdf"
@@ -69,8 +67,12 @@ class PDFDownloader(DownloaderBase):
         :param iid: id of the item
         :return: return the iid of the task
         """
+        User = get_user_model()
         user = properties['user']
-        user = User.objects.get(email=user) if user != str(AnonymousUser()) else AnonymousUser()
+        if user != str(AnonymousUser()):
+            user = User.objects.get(email=user)
+        else:
+            user = AnonymousUser()
         item = MDR._concept.objects.get_subclass(pk=iid)
         item = get_if_user_can_view(item.__class__, user, iid)
         template = get_download_template_path_for_item(item, PDFDownloader.download_type)
@@ -118,6 +120,7 @@ class PDFDownloader(DownloaderBase):
     @shared_task(name='aristotle_pdf_downloads.downloader.bulk_download')
     def bulk_download(properties, items, title=None, subtitle=None):
         """Built in download method"""
+        User = get_user_model()
         template = 'aristotle_mdr/downloads/pdf/bulk_download.html'
         page_size = getattr(settings, 'PDF_PAGE_SIZE', "A4")
         user = properties.get('user')
