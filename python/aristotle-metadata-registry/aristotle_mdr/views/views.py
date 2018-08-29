@@ -4,7 +4,7 @@ from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, FieldDoesNotExist
 from django.urls import reverse
 from django.db import transaction
 from django.http import HttpResponseRedirect
@@ -186,7 +186,26 @@ class ConceptRenderView(TemplateView):
 
     def get_item(self):
         itemid = self.kwargs[self.itemid_arg]
-        return get_object_or_404(self.objtype, pk=itemid).item
+
+        try:
+            concept = MDR._concept.objects.get(pk=itemid)
+        except MDR._concept.DoesNotExist:
+            raise PermissionDenied
+
+        model = MDR._concept
+        # If we have a model_slug try using that
+        model_slug = self.kwargs.get(self.modelslug_arg, '')
+        if model_slug:
+            try:
+                rel = MDR._concept._meta.get_field(model_slug)
+            except FieldDoesNotExist:
+                rel = None
+
+            # Check if it is an auto created one to one field
+            if rel and rel.one_to_one and rel.auto_created:
+                model = rel.related_model
+
+        return model.objects.prefetch_related('statuses').get(pk=itemid)
 
     def check_item(self, item):
         # To be overwritten
@@ -230,6 +249,7 @@ class ConceptRenderView(TemplateView):
         # Only display viewable slots
         context['slots'] = get_allowed_slots(self.item, self.user)
         context['item'] = self.item
+        context['statuses'] = self.item.current_statuses
         return context
 
     def get_template_names(self):

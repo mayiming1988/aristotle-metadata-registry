@@ -821,7 +821,7 @@ class _concept(baseAristotleObject):
             # We hit again so we can return this as a queryset
             states = states.filter(pk__in=current_ids)
 
-        return states
+        return states.select_related('registrationAuthority')
 
     def get_download_items(self):
         """
