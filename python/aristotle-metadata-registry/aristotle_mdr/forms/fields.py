@@ -1,7 +1,11 @@
+from django.forms import Field
 from django.forms.models import ModelMultipleChoiceField
+from django.core.validators import EmailValidator
+from django.core.exceptions import ValidationError
 import aristotle_mdr.models as MDR
 from aristotle_mdr.utils import status_filter
-from aristotle_mdr.widgets.widgets import TableCheckboxSelect
+from django.forms.widgets import EmailInput
+from aristotle_mdr.widgets.widgets import TableCheckboxSelect, MultiTextWidget
 from django.urls import reverse
 from aristotle_mdr import perms
 
@@ -81,3 +85,39 @@ class ReviewChangesChoiceField(ModelMultipleChoiceField):
             extra_info.update({concept.id: innerdict})
 
         return extra_info
+
+
+class MultipleEmailField(Field):
+
+    def __init__(self, *args, **kwargs):
+        self.widget = MultiTextWidget(
+            subwidget=EmailInput,
+            attrs={
+                'class': 'form-control'
+            }
+        )
+        super().__init__(*args, **kwargs)
+
+    def clean(self, value):
+        value = super().clean(value)
+        cleaned_values = []
+        validator = EmailValidator()
+
+        valid = True
+        errors = []
+
+        for email in value:
+            if email is not '':
+                validator.message = '{} is not a valid email address'.format(email)
+                try:
+                    validator(email)
+                except ValidationError as e:
+                    valid = False
+                    errors.extend(e.error_list)
+
+                cleaned_values.append(email)
+
+        if valid:
+            return cleaned_values
+        else:
+            raise ValidationError(errors)
