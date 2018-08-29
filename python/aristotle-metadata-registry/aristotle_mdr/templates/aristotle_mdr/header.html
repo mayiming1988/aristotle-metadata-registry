@@ -55,121 +55,121 @@
                 <a accesskey="h" href="{% url 'aristotle_help:help_base' %}">{% trans 'Help'%}</a>
             </li>
         {% if user.is_active %}
-            <li class="dropdown">
-                <a id="header_menu_button_user" href="{% url 'aristotle:userHome' %}" accesskey="u" class="dropdown-toggle" role="menu" data-toggle="dropdown" title="{% trans 'Open user menu' %}">
-                    {% if user.is_superuser %}
-                        <i class="fa fa-user-md fa-lg"></i>
-                    {% else %}
-                        <i class="fa fa-user fa-lg"></i>
-                    {% endif %}
-                    {% firstof user.get_short_name user.email %}
-                </a>
-                <ul class="dropdown-menu" role="menu">
-                    <li><a href="{% url 'aristotle:userHome' %}">
-                        <i class="fa fa-home fa-fw"></i> {% trans 'My Dashboard'%}
-                    </a></li>
-                    <li><a href="{% url 'aristotle:userFavourites' %}">
-                        <i class="fa fa-bookmark fa-fw"></i> {% trans 'My Favourites'%}
-                        <span class="badge">{{ user.profile.favourites.count }}</span>
-                    </a></li>
-                    <li><a href="{% url 'aristotle:userInbox' %}">
-                        <i class="fa fa-envelope fa-fw"></i> {% trans 'Notifications'%}
-                        {% with notecount=user.notifications.unread.count %}
-                        <span class="badge" title="{{ notecount }} unread notifications">{{ notecount }}</span>
-                        {% endwith %}
-                    </a></li>
-                    <li><a href="{% url 'aristotle:discussions' %}">
-                        <i class="fa fa-comments fa-fw"></i> {% trans 'Discussions'%}
-                    </a></li>
-                    <li><a href="{% url 'aristotle:userWorkgroups' %}">
-                        <i class="fa fa-users fa-fw"></i> {% trans 'Workgroups'%}
-                    </a></li>
-                    <li><a href="{% url 'aristotle:userRecentItems' %}">
-                        <i class="fa fa-history fa-fw"></i> {% trans 'Recent actions'%}
-                    </a></li>
-                    {% if user.has_usable_password %}
-                        <li><a href="{% url 'password_change' %}">
-                        <i class="fa fa-cog fa-fw"></i> {% trans 'Change password' %}
-                        </a></li>
-                    {% endif %}
-                    {% if user.profile.is_registrar %}
-                        <li role="presentation" class="divider"></li>
-                        <li><a href="{% url 'aristotle:userRegistrarTools' %}">
-                        <i class="fa fa-university fa-fw"></i> {% trans 'Registrar tools' %}
-                        </a></li>
-                    {% endif %}
-                    {% if user.is_staff %}
-                        <li role="presentation" class="divider"></li>
-                        <li><a class="staff_action" href="{% url 'admin:index' %}">
-                        <i class="fa fa-sliders fa-fw"></i> {% trans 'Management interface' %}
-                        </a></li>
-                    {% endif %}
-                    {% if request.user.is_superuser %}
-                        <li><a class="su_action" href="{% url 'aristotle:userAdminTools' %}">
-                        <i class="fa fa-user-md fa-fw"></i> {% trans 'Admin tools' %}
-                        </a></li>
-                    {% endif %}
-                </ul>
-            </li>
-            <li class="dropdown">
-                <a id="header_menu_button_create" href="{% url 'aristotle:create_list' %}"
-                    accesskey="o" class="dropdown-toggle" data-toggle="dropdown" title="{% trans 'Create new' %}...">
-                    <i class="fa fa-plus"></i>
-                    <span class="visible-xs-inline">{% trans 'Create new' %} ... </span>
-                    <i class="fa fa-caret-down"></i>
-                </a>
-                <ul class="dropdown-menu" role="menu" >
-                    <li><a href="{% url 'aristotle:createItem' 'aristotle_mdr' 'objectclass'%}">Object Class</a></li>
-                    <li><a href="{% url 'aristotle:createItem' 'aristotle_mdr' 'property'%}">Property</a></li>
-                    <li><a href="{% url 'aristotle:createItem' 'aristotle_mdr' 'valuedomain'%}">Value Domain</a></li>
-                    <li><a href="{% url 'aristotle:createItem' 'aristotle_mdr' 'dataelementconcept'%}">Data Element Concept</a></li>
-                    <li><a href="{% url 'aristotle:createItem' 'aristotle_mdr' 'dataelement'%}">Data Element</a></li>
-                    {# <li><a href="{% url 'aristotle:createDataElement'%}"></a></li> #}
+            {% with notecount=user.notifications.count %}
+              <li class="dropdown">
+                  <a id="header_menu_button_user" href="{% url 'aristotle:userHome' %}" accesskey="u" class="dropdown-toggle" role="menu" data-toggle="dropdown" title="{% trans 'Open user menu' %}">
+                      {% if user.is_superuser %}
+                          <i class="fa fa-user-md fa-lg"></i>
+                      {% else %}
+                          <i class="fa fa-user fa-lg"></i>
+                      {% endif %}
+                      {% firstof user.get_short_name user.email %}
+                  </a>
+                  <ul class="dropdown-menu" role="menu">
+                      <li><a href="{% url 'aristotle:userHome' %}">
+                          <i class="fa fa-home fa-fw"></i> {% trans 'My Dashboard'%}
+                      </a></li>
+                      <li><a href="{% url 'aristotle:userFavourites' %}">
+                          <i class="fa fa-bookmark fa-fw"></i> {% trans 'My Favourites'%}
+                          <span class="badge">{{ user.profile.favourites.count }}</span>
+                      </a></li>
+                      <li><a href="{% url 'aristotle:userInbox' %}">
+                          <i class="fa fa-envelope fa-fw"></i> {% trans 'Notifications'%}
+                          <span class="badge" title="{{ notecount }} unread notifications">{{ notecount }}</span>
+                      </a></li>
+                      <li><a href="{% url 'aristotle:discussions' %}">
+                          <i class="fa fa-comments fa-fw"></i> {% trans 'Discussions'%}
+                      </a></li>
+                      <li><a href="{% url 'aristotle:userWorkgroups' %}">
+                          <i class="fa fa-users fa-fw"></i> {% trans 'Workgroups'%}
+                      </a></li>
+                      <li><a href="{% url 'aristotle:userRecentItems' %}">
+                          <i class="fa fa-history fa-fw"></i> {% trans 'Recent actions'%}
+                      </a></li>
+                      {% if user.has_usable_password %}
+                          <li><a href="{% url 'password_change' %}">
+                          <i class="fa fa-cog fa-fw"></i> {% trans 'Change password' %}
+                          </a></li>
+                      {% endif %}
+                      {% if user.profile.is_registrar %}
+                          <li role="presentation" class="divider"></li>
+                          <li><a href="{% url 'aristotle:userRegistrarTools' %}">
+                          <i class="fa fa-university fa-fw"></i> {% trans 'Registrar tools' %}
+                          </a></li>
+                      {% endif %}
+                      {% if user.is_staff %}
+                          <li role="presentation" class="divider"></li>
+                          <li><a class="staff_action" href="{% url 'admin:index' %}">
+                          <i class="fa fa-sliders fa-fw"></i> {% trans 'Management interface' %}
+                          </a></li>
+                      {% endif %}
+                      {% if request.user.is_superuser %}
+                          <li><a class="su_action" href="{% url 'aristotle:userAdminTools' %}">
+                          <i class="fa fa-user-md fa-fw"></i> {% trans 'Admin tools' %}
+                          </a></li>
+                      {% endif %}
+                  </ul>
+              </li>
+              <li class="dropdown">
+                  <a id="header_menu_button_create" href="{% url 'aristotle:create_list' %}"
+                      accesskey="o" class="dropdown-toggle" data-toggle="dropdown" title="{% trans 'Create new' %}...">
+                      <i class="fa fa-plus"></i>
+                      <span class="visible-xs-inline">{% trans 'Create new' %} ... </span>
+                      <i class="fa fa-caret-down"></i>
+                  </a>
+                  <ul class="dropdown-menu" role="menu" >
+                      <li><a href="{% url 'aristotle:createItem' 'aristotle_mdr' 'objectclass'%}">Object Class</a></li>
+                      <li><a href="{% url 'aristotle:createItem' 'aristotle_mdr' 'property'%}">Property</a></li>
+                      <li><a href="{% url 'aristotle:createItem' 'aristotle_mdr' 'valuedomain'%}">Value Domain</a></li>
+                      <li><a href="{% url 'aristotle:createItem' 'aristotle_mdr' 'dataelementconcept'%}">Data Element Concept</a></li>
+                      <li><a href="{% url 'aristotle:createItem' 'aristotle_mdr' 'dataelement'%}">Data Element</a></li>
+                      {# <li><a href="{% url 'aristotle:createDataElement'%}"></a></li> #}
 
-                    {% if request.user.is_superuser %}
-                        <li role="presentation" class="divider"></li>
-                        <li role="presentation" class="dropdown-header">
-                            <i class="fa fa-user-md fa-2x"></i> {% trans 'Admin only' %}
-                        </li>
-                        <li>
-                            <a class="su_action" href="{% url 'aristotle:workgroup_create' %}">
-                                <i class="fa fa-users fa-fw"></i> {% trans 'Workgroup' %}</a>
-                        </li>
-                        <li>
-                            <a class="su_action" href="{% url 'aristotle-user:registry_invitations_create' %}">
-                                <i class="fa fa-user-plus fa-fw"></i> {% trans 'User' %}
-                            </a>
-                        </li>
-                    {% endif %}
-                    <li role="presentation" class="divider"></li>
-                    <li>
-                        <a href="{% url 'aristotle:create_list' %}">{% trans 'See all'%}...</a>
-                    </li>
-                </ul>
-            </li>
-            <li class="dropdown">
-                <a id="header_menu_button_notifications" href="{% url 'notifications:all' %}"
-                    class="dropdown-toggle" data-toggle="dropdown" title="{% trans 'Show recent notifications' %}">
-                    {% if user.notifications.unread %}
-                    <span class="notify" title="{% trans 'New notifications' %}"></span>
-                    <span class="visible-xs-inline">{% trans 'New notifications' %}</span>
-                    {% else %}
-                    <span class="no-notify" title="{% trans 'No unread notifications' %}"></span>
-                    <span class="visible-xs-inline">{% trans 'No unread notifications' %}</span>
-                    {% endif %}
-                    {% live_notify_badge badge_class="badge notify-badge" %}
-                </a>
-                {% live_notify_list list_class="dropdown-menu notify-menu" %}
-            </li>
-            <li>
-                {% url 'aristotle_mdr:home' as home_url %}
-                {% url 'aristotle_mdr:userHome' as user_home_url %}
-                {% ifeq request.path user_home_url val=home_url default=request.path as redirect_url %}
-                <a id="header_menu_button_logout" href="{% url 'logout' %}" title="{% trans 'Log out'%}">
-                    <i class="fa fa-sign-out fa-fw"></i>
-                    <span class="visible-xs-inline">{% trans 'Log out' %}</span>
-                </a>
-            </li>
+                      {% if request.user.is_superuser %}
+                          <li role="presentation" class="divider"></li>
+                          <li role="presentation" class="dropdown-header">
+                              <i class="fa fa-user-md fa-2x"></i> {% trans 'Admin only' %}
+                          </li>
+                          <li>
+                              <a class="su_action" href="{% url 'aristotle:workgroup_create' %}">
+                                  <i class="fa fa-users fa-fw"></i> {% trans 'Workgroup' %}</a>
+                          </li>
+                          <li>
+                              <a class="su_action" href="{% url 'aristotle-user:registry_invitations_create' %}">
+                                  <i class="fa fa-user-plus fa-fw"></i> {% trans 'User' %}
+                              </a>
+                          </li>
+                      {% endif %}
+                      <li role="presentation" class="divider"></li>
+                      <li>
+                          <a href="{% url 'aristotle:create_list' %}">{% trans 'See all'%}...</a>
+                      </li>
+                  </ul>
+              </li>
+              <li class="dropdown">
+                  <a id="header_menu_button_notifications" href="{% url 'notifications:all' %}"
+                      class="dropdown-toggle" data-toggle="dropdown" title="{% trans 'Show recent notifications' %}">
+                      {% if notecount < 0 %}
+                      <span class="notify" title="{% trans 'New notifications' %}"></span>
+                      <span class="visible-xs-inline">{% trans 'New notifications' %}</span>
+                      {% else %}
+                      <span class="no-notify" title="{% trans 'No unread notifications' %}"></span>
+                      <span class="visible-xs-inline">{% trans 'No unread notifications' %}</span>
+                      {% endif %}
+                      {% live_notify_badge badge_class="badge notify-badge" %}
+                  </a>
+                  {% live_notify_list list_class="dropdown-menu notify-menu" %}
+              </li>
+              <li>
+                  {% url 'aristotle_mdr:home' as home_url %}
+                  {% url 'aristotle_mdr:userHome' as user_home_url %}
+                  {% ifeq request.path user_home_url val=home_url default=request.path as redirect_url %}
+                  <a id="header_menu_button_logout" href="{% url 'logout' %}" title="{% trans 'Log out'%}">
+                      <i class="fa fa-sign-out fa-fw"></i>
+                      <span class="visible-xs-inline">{% trans 'Log out' %}</span>
+                  </a>
+              </li>
+          {% endwith %}
         {% else %}
             <li>
                 {% url 'aristotle_mdr:home' as home_url %}
