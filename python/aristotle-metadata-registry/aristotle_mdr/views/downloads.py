@@ -133,6 +133,16 @@ def bulk_download(request, download_type, items=None):
 
 # Thanks to stackoverflow answer: https://stackoverflow.com/a/23177986
 def prepare_async_download(request, identifier):
+    """
+    This view lets user know that the download is being prepared.
+    Checks:
+    1. check if there is a celery task id present in the session.
+    2. check if the celery task id expired/already downloaded.
+    3. check if the job is ready.
+    :param request: request object from the API call.
+    :param identifier: id being used to resolve the download
+    :return: appropriate HTTP response object
+    """
     res_id = request.session.get('download_res_key', 'no_key')
     if res_id == 'no_key':
         raise Http404
@@ -153,10 +163,15 @@ def prepare_async_download(request, identifier):
 # TODO: need a better redirect architecture, needs refactor.
 def get_async_download(request, identifier):
     """
+    This will return the download if the download is cached in redis.
+    Checks:
+    1. check if the download has expired
+    2. check if there is no key to download. If there is not
     :param request:
     :param identifier:
     :return:
     """
+    # TODO: purge this method in favor of supporting the files to
     res_id = request.session.get('download_res_key', 'no_key')
     if res_id == 'no_key':
         raise Http404
@@ -170,6 +185,7 @@ def get_async_download(request, identifier):
             logger.exception('Task {0} raised exception: {1!r}\n{2!r}'.format(
                 res_id, exc, job.traceback))
             raise Http404
+    del request.session['download_res_key']
     job.forget()
     # TODO: Consider moving constant strings in a config or settings file
     doc, mime_type = cache.get(download_utils.get_download_cache_key(identifier, request=request), ('not_cached', ''))
