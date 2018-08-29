@@ -651,7 +651,7 @@ class _concept(baseAristotleObject):
         blank=True
     )
     submitting_organisation = ShortTextField(blank=True)
-    responsible_organisation = models.CharField(max_length=256, blank=True)
+    responsible_organisation = ShortTextField(blank=True)
 
     superseded_by = ConceptForeignKey(
         'self',
