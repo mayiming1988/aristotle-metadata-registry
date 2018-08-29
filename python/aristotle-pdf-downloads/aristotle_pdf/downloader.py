@@ -40,6 +40,26 @@ class PDFDownloader(DownloaderBase):
     icon_class = "fa-file-pdf-o"
     description = "Downloads for various content types in the PDF format"
 
+    @classmethod
+    def get_download_config(cls, request, iid):
+        """
+        Create configuration for pdf download method
+        :param request: request object
+        :param iid: id of the item requested
+        :return: properties for item, id of the item
+        """
+        # page size for the pdf
+        page_size = getattr(settings, 'PDF_PAGE_SIZE', "A4")
+        user = getattr(request, 'user', None)
+
+        item_props = {
+            'user': str(user),
+            'view': request.GET.get('view', '').lower(),
+            'page_size': request.GET.get('pagesize', page_size)
+        }
+
+        return item_props, iid
+
     @staticmethod
     @shared_task(name='aristotle_pdf_downloads.downloader.download')
     def download(properties, iid):
@@ -47,7 +67,7 @@ class PDFDownloader(DownloaderBase):
         create pdf_context and return the results to celery backend.
         :param properties: properties of the pdf template to be generated
         :param iid: id of the item
-        :return:
+        :return: return the iid of the task
         """
         user = properties['user']
         user = User.objects.get(email=user) if user != str(AnonymousUser()) else AnonymousUser()
@@ -71,9 +91,32 @@ class PDFDownloader(DownloaderBase):
 
         return iid
 
+    @classmethod
+    def get_bulk_download_config(cls, request, items):
+        """
+        generate properties for pdf document
+        :param request: API request object
+        :param items: items to download
+        :return: properties computed, items
+        """
+        item_list = request.GET.getlist('items')
+        user = getattr(request, 'user', None)
+
+        properties = {
+            'user': str(user),
+            'item_list': item_list,
+            'title': request.GET.get('title', '').strip(),
+            'subtitle': request.GET.get('subtitle', None),
+            'debug_as_html': request.GET.get('html', ''),
+            'page_size': request.GET.get('pagesize', None),
+        }
+        if not properties.get('title', ''):
+            properties['title'] = 'Auto-generated document'
+        return properties, items
+
     @staticmethod
     @shared_task(name='aristotle_pdf_downloads.downloader.bulk_download')
-    def bulk_download(properties, title=None, subtitle=None):
+    def bulk_download(properties, items, title=None, subtitle=None):
         """Built in download method"""
         template = 'aristotle_mdr/downloads/pdf/bulk_download.html'
         page_size = getattr(settings, 'PDF_PAGE_SIZE', "A4")

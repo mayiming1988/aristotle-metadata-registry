@@ -24,16 +24,37 @@ class DownloaderBase(object):
     description = ""
 
     @classmethod
-    def download(cls, request, item):
+    def get_download_config(cls, request, item):
         """
-        This method must be overriden and return the downloadable object as an appropriate django response
+        This method must be overriden. This method takes in a request object and item and
+        creates a download config for the download method.
+        This returns config created and item/iid
         """
         raise NotImplementedError
 
     @classmethod
-    def bulk_download(cls, request, item):
+    def get_bulk_download_config(cls, request):
         """
-        This method must be overriden and return a bulk downloaded set of items as an appropriate django response
+        This method must be overriden. This takes request object and returns a computed set of download config
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def download(properties, item):
+        """
+        This method must be overriden and return the downloadable object of appropriate type
+        and mime type for the object
+        This is a static method because it is a celery task
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def bulk_download(properties, item):
+        """
+        This method must be overriden and
+        return a bulk downloaded set of items in an appropriate file format and
+        mime type for the object
+        This is a static method because it is a celery task
         """
         raise NotImplementedError
 

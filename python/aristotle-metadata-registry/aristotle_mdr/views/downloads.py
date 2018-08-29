@@ -70,16 +70,8 @@ def download(request, download_type, iid):
     for kls in download_opts:
         if download_type == kls.download_type:
             try:
-                # page size for the pdf
-                page_size = getattr(settings, 'PDF_PAGE_SIZE', "A4")
-                user = getattr(request, 'user', None)
                 # properties requested for the file requested
-                item_props = {
-                    'user': str(user),
-                    'view': request.GET.get('view', '').lower(),
-                    'page_size': request.GET.get('pagesize', page_size)
-                }
-                res = kls.download.delay(item_props, iid)
+                res = kls.download.delay(*kls.get_download_config(request, iid))
                 response = redirect(reverse('aristotle:preparing_download', args=[iid]))
                 request.session['download_res_key'] = res.id
                 return response
@@ -109,8 +101,12 @@ def bulk_download(request, download_type, items=None):
     is imported, this file **MUST** have a ``bulk_download`` function defined which returns
     a Django ``HttpResponse`` object of some form.
     """
-    item_list = request.GET.getlist('items')
-    user = getattr(request, 'user', None)
+    items = []
+
+    for iid in request.GET.getlist('items'):
+        item = MDR._concept.objects.get_subclass(pk=iid)
+        if item.can_view(request.user):
+            items.append(item)
 
     # downloadOpts = fetch_aristotle_settings().get('DOWNLOADERS', [])
     download_opts = fetch_aristotle_downloaders()
@@ -118,20 +114,11 @@ def bulk_download(request, download_type, items=None):
         if download_type == kls.download_type:
             try:
                 # properties for download template
-                # TODO: Need a standard way of defining properties Or better,
-                # TODO: create a function under kls to get the config required.
-                properties = {
-                    'user': str(user),
-                    'item_list': item_list,
-                    'title': request.GET.get('title', '').strip(),
-                    'subtitle': request.GET.get('subtitle', None),
-                    'debug_as_html': request.GET.get('html', ''),
-                    'page_size': request.GET.get('pagesize', None),
-                }
+                properties, iid = kls.get_bulk_download_config(request, items)
+                res = kls.bulk_download.delay(properties, iid)
                 if not properties.get('title', ''):
                     properties['title'] = 'Auto-generated document'
-                res = kls.bulk_download.delay(properties)
-                response = redirect(reverse('aristotle:preparing_download', args=[properties['title']]))
+                response = redirect(reverse('aristotle:preparing_download', args=[properties.get('title')]))
                 request.session['download_res_key'] = res.id
                 return response
             except TemplateDoesNotExist:
@@ -152,6 +139,7 @@ def prepare_async_download(request, identifier):
     job = async_result(res_id)
     template = 'aristotle_mdr/downloads/creating_download.html'
     context = {}
+    # TODO: check if the job is terminated(PENDING) state.
     if job.ready():
         return redirect(reverse('aristotle:start_download', args=[identifier]))
     else:
@@ -160,8 +148,6 @@ def prepare_async_download(request, identifier):
             template,
             context=context
         )
-
-    return HttpResponseBadRequest()
 
 
 # TODO: need a better redirect architecture, needs refactor.
