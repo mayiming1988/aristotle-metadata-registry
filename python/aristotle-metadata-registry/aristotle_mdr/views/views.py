@@ -8,7 +8,7 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist
 from django.urls import reverse
 from django.db import transaction
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.defaultfilters import slugify
 from django.utils.translation import ugettext_lazy as _
@@ -188,11 +188,6 @@ class ConceptRenderMixin:
     def get_item(self):
         itemid = self.kwargs[self.itemid_arg]
 
-        try:
-            concept = MDR._concept.objects.get(pk=itemid)
-        except MDR._concept.DoesNotExist:
-            raise PermissionDenied
-
         if self.objtype:
             model = self.objtype
         else:
@@ -210,7 +205,7 @@ class ConceptRenderMixin:
                     model = rel.related_model
 
         if model is None:
-            return concept.item
+            return MDR._concept.objects.get(pk=itemid).item
 
         return self.get_related(model).get(pk=itemid)
 

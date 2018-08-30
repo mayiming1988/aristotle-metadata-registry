@@ -19,6 +19,7 @@ from aristotle_mdr.perms import (
     user_is_workgroup_manager, user_can_change_status
 )
 from aristotle_mdr.utils import construct_change_message
+from aristotle_mdr.views.views import ConceptRenderMixin
 
 import aristotle_dse
 from aristotle_dse import forms
@@ -301,3 +302,22 @@ def editInclusionOrder(request, dss_id, inc_type):
 class DynamicTemplateView(TemplateView):
     def get_template_names(self):
         return ['aristotle_dse/static/%s.html' % self.kwargs['template']]
+
+
+class DatasetSpecificationView(ConceptRenderMixin, TemplateView):
+
+    objtype = aristotle_dse.models.DataSetSpecification
+
+    def check_item(self, item):
+        return user_can_view(self.request.user, item)
+
+    def get_related(self, model):
+        related_objects = [
+            'statistical_unit',
+        ]
+        prefetch_objects = [
+            'statuses',
+            'dssclusterinclusion_set',
+            'dssdeinclusion_set'
+        ]
+        return model.objects.select_related(*related_objects).prefetch_related(*prefetch_objects)
