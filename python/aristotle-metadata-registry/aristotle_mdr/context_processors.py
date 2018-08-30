@@ -9,8 +9,8 @@ from django.utils.functional import SimpleLazyObject
 # This allows us to pass the Aristotle settings through to the final rendered page
 def settings(request):
     return {
-        "config": fetch_aristotle_settings(),
-        'bulk_actions': get_bulk_actions(),
+        "config": SimpleLazyObject(fetch_aristotle_settings),
+        'bulk_actions': SimpleLazyObject(get_bulk_actions),
     }
 
 def get_profile(request):
