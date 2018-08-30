@@ -3,8 +3,10 @@ from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Model
 from django.db.models.functions import Lower
+from django.db.models.query import QuerySet
+from django.forms.models import model_to_dict
 from django.http import Http404, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
@@ -220,6 +222,25 @@ def generate_visibility_matrix(user):
                 ra_matrix['states'][s] = "hidden"
         matrix[ra.id] = ra_matrix
     return matrix
+
+
+def get_query_safe_context(context):
+    """
+    Returns context as static data forcing no further queries to be executed
+    Note this will evaluate all querysets in the context
+    """
+
+    update = {}
+    for key, value in context.items():
+
+        if isinstance(value, Model):
+            update[key] = model_to_dict(value)
+
+        if isinstance(value, QuerySet):
+            update[key] = value.values()
+
+    context.update(update)
+    return context
 
 
 class SortedListView(ListView):
