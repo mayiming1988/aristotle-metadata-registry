@@ -112,8 +112,9 @@ urlpatterns=[
     url(r'^item/(?P<iid>\d+)/registrationHistory/?$', views.registrationHistory, name='registrationHistory'),
     url(r'^item/(?P<iid>\d+)/child_states/?$', views.actions.CheckCascadedStates.as_view(), name='check_cascaded_states'),
 
-    url(r'^item/(?P<iid>\d+)(?:\/(?P<model_slug>\w+)\/(?P<name_slug>.+))?/?$', views.Concept.as_view(), name='item'),
-    url(r'^item/(?P<iid>\d+)(?:\/.*)?$', views.Concept.as_view(), name='item'),  # Catch every other 'item' URL and throw it for a redirect
+    url(r'^item/(?P<iid>\d+)(?:\/dataelement\/(?P<name_slug>.+))?/?$', views.DataElementView.as_view(), name='dataelement'),
+    url(r'^item/(?P<iid>\d+)(?:\/(?P<model_slug>\w+)\/(?P<name_slug>.+))?/?$', views.ConceptView.as_view(), name='item'),
+    url(r'^item/(?P<iid>\d+)(?:\/.*)?$', views.ConceptView.as_view(), name='item'),  # Catch every other 'item' URL and throw it for a redirect
     url(r'^item/(?P<uuid>[\w-]+)/?(.*)?$', views.concept_by_uuid, name='item_uuid'),
 
     url(r'^unmanaged/measure/(?P<iid>\d+)(?:\/(?P<model_slug>\w+)\/(?P<name_slug>.+))?/?$', views.measure, name='measure'),

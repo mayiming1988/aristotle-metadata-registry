@@ -171,7 +171,7 @@ def render_if_condition_met(request, condition, objtype, iid, model_slug=None, n
     )
 
 
-class ConceptRenderView(TemplateView):
+class ConceptRenderMixin:
     """
     Class based view for rendering a concept, replaces render_if_condition_met
     **This should be used with a permission mixin or check_item override**
@@ -179,7 +179,7 @@ class ConceptRenderView(TemplateView):
     slug_redirect determines wether /item/id redirects to /item/id/model_slug/name_slug
     """
 
-    objtype = MDR._concept
+    objtype = None
     itemid_arg = 'iid'
     modelslug_arg = 'model_slug'
     nameslug_arg = 'name_slug'
@@ -193,44 +193,42 @@ class ConceptRenderView(TemplateView):
         except MDR._concept.DoesNotExist:
             raise PermissionDenied
 
-        model = MDR._concept
-        # If we have a model_slug try using that
-        model_slug = self.kwargs.get(self.modelslug_arg, '')
-        if model_slug:
-            try:
-                rel = MDR._concept._meta.get_field(model_slug)
-            except FieldDoesNotExist:
-                rel = None
+        if self.objtype:
+            model = self.objtype
+        else:
+            model = None
+            # If we have a model_slug try using that
+            model_slug = self.kwargs.get(self.modelslug_arg, '')
+            if model_slug:
+                try:
+                    rel = MDR._concept._meta.get_field(model_slug)
+                except FieldDoesNotExist:
+                    rel = None
 
-            # Check if it is an auto created one to one field
-            if rel and rel.one_to_one and rel.auto_created:
-                model = rel.related_model
+                # Check if it is an auto created one to one field
+                if rel and rel.one_to_one and rel.auto_created and issubclass(rel.related_model, MDR._concept):
+                    model = rel.related_model
+
+        if model is None:
+            return concept.item
 
         return self.get_related(model).get(pk=itemid)
 
     def get_related(self, model):
         """Return a queryset fetching related concepts"""
 
-        logger.debug('Getting related')
         related_fields = []
         prefetch_fields = ['statuses']
         for field in model._meta.get_fields():
             if field.is_relation and field.many_to_one and issubclass(field.related_model, MDR._concept):
                 # If a field is a foreign key that links to a concept
                 related_fields.append(field.name)
-                # If getting a value domain prefetch the values aswell
-                if issubclass(field.related_model, MDR.ValueDomain):
-                    prefetch_fields.append(field.name + '__permissiblevalue_set')
-                    prefetch_fields.append(field.name + '__supplementaryvalue_set')
             elif field.is_relation and field.one_to_many and issubclass(field.related_model, MDR.AbstractValue):
                 # If field is a reverse foreign key that links to an
                 # abstract value
                 prefetch_fields.append(field.name)
 
-        logger.debug('We found related {}'.format(related_fields))
-        logger.debug('We found related {}'.format(prefetch_fields))
         return model.objects.select_related(*related_fields).prefetch_related(*prefetch_fields)
-
 
     def check_item(self, item):
         # To be overwritten
@@ -289,12 +287,35 @@ class ConceptRenderView(TemplateView):
         return [default_template, self.item.template]
 
 
-class Concept(ConceptRenderView):
+# General concept view
+class ConceptView(ConceptRenderMixin, TemplateView):
 
     slug_redirect = True
 
     def check_item(self, item):
         return user_can_view(self.request.user, item)
+
+
+class DataElementView(ConceptRenderMixin, TemplateView):
+
+    objtype = MDR.DataElement
+
+    def check_item(self, item):
+        return user_can_view(self.request.user, item)
+
+    def get_related(self, model):
+        related_objects = [
+            'dataElementConcept',
+            'valueDomain',
+            'dataElementConcept__objectClass',
+            'dataElementConcept__property'
+        ]
+        prefetch_objects = [
+            'valueDomain__permissiblevalue_set',
+            'valueDomain__supplementaryvalue_set',
+            'statuses'
+        ]
+        return model.objects.select_related(*related_objects).prefetch_related(*prefetch_objects)
 
 
 def registrationHistory(request, iid):
