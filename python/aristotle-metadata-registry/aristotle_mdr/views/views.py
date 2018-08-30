@@ -206,7 +206,21 @@ class ConceptRenderView(TemplateView):
             if rel and rel.one_to_one and rel.auto_created:
                 model = rel.related_model
 
-        return model.objects.prefetch_related('statuses').get(pk=itemid)
+        return self.get_related(model).get(pk=itemid)
+
+    def get_related(self, model):
+        """Return a queryset fetching related concepts"""
+
+        logger.debug('Getting related')
+        related_concept_fields = []
+        for field in model._meta.get_fields():
+            # If a field on the model links to a concept
+            if field.is_relation and field.many_to_one and issubclass(field.related_model, MDR._concept):
+                related_concept_fields.append(field.name)
+
+        logger.debug('We found {}'.format(related_concept_fields))
+        return model.objects.select_related(*related_concept_fields).prefetch_related('statuses')
+
 
     def check_item(self, item):
         # To be overwritten
