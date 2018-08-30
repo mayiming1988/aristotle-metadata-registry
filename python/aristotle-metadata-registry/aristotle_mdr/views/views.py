@@ -212,14 +212,24 @@ class ConceptRenderView(TemplateView):
         """Return a queryset fetching related concepts"""
 
         logger.debug('Getting related')
-        related_concept_fields = []
+        related_fields = []
+        prefetch_fields = ['statuses']
         for field in model._meta.get_fields():
-            # If a field on the model links to a concept
             if field.is_relation and field.many_to_one and issubclass(field.related_model, MDR._concept):
-                related_concept_fields.append(field.name)
+                # If a field is a foreign key that links to a concept
+                related_fields.append(field.name)
+                # If getting a value domain prefetch the values aswell
+                if issubclass(field.related_model, MDR.ValueDomain):
+                    prefetch_fields.append(field.name + '__permissiblevalue_set')
+                    prefetch_fields.append(field.name + '__supplementaryvalue_set')
+            elif field.is_relation and field.one_to_many and issubclass(field.related_model, MDR.AbstractValue):
+                # If field is a reverse foreign key that links to an
+                # abstract value
+                prefetch_fields.append(field.name)
 
-        logger.debug('We found {}'.format(related_concept_fields))
-        return model.objects.select_related(*related_concept_fields).prefetch_related('statuses')
+        logger.debug('We found related {}'.format(related_fields))
+        logger.debug('We found related {}'.format(prefetch_fields))
+        return model.objects.select_related(*related_fields).prefetch_related(*prefetch_fields)
 
 
     def check_item(self, item):
