@@ -54,4 +54,6 @@ urlpatterns = [
             form_title=_('Change Distributions')
         ), name='add_distribution_to_dataset'),
 
+    url(r'^item/(?P<iid>\d+)/datasetspecification/(?P<name_slug>.+)/?$', views.DatasetSpecificationView.as_view(), name='datasetspecification'),
+
 ]
