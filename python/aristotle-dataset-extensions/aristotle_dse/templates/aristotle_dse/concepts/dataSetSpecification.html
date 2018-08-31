@@ -84,7 +84,7 @@
                         {% endif %}
                     </td>
                     <td><ul>
-                        {% for s in item.current_statuses %}
+                        {% for s in deinc.child.current_stats %}
                             <li>[{{ s.registrationAuthority }}: {{ s.state_name }}]</li>
                         {% empty %}
                         <li><em>Unregistered</em></li>

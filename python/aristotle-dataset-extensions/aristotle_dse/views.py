@@ -334,7 +334,11 @@ class DatasetSpecificationView(ConceptRenderMixin, TemplateView):
             .prefetch_related(Prefetch('data_element__statuses', current_statuses, 'current_stats'))
         )
 
-        dssclusterinclusions = models.DSSClusterInclusion.objects.select_related('child')
+        dssclusterinclusions = (
+            models.DSSClusterInclusion.objects
+            .select_related('child')
+            .prefetch_related(Prefetch('child__statuses', current_statuses, 'current_stats'))
+        )
 
         qs = qs.prefetch_related(Prefetch('dssdeinclusion_set', dssdeinclusions))
         qs = qs.prefetch_related(Prefetch('dssclusterinclusion_set', dssclusterinclusions))
