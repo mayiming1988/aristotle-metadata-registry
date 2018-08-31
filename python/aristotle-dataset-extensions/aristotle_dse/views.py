@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
 from django.db import transaction
+from django.db.models.query import Prefetch
 from django.forms.models import modelformset_factory
 from django.forms.widgets import HiddenInput
 from django.http import HttpResponseRedirect, Http404
@@ -317,7 +318,11 @@ class DatasetSpecificationView(ConceptRenderMixin, TemplateView):
         ]
         prefetch_objects = [
             'statuses',
-            'dssclusterinclusion_set',
-            'dssdeinclusion_set'
         ]
-        return model.objects.select_related(*related_objects).prefetch_related(*prefetch_objects)
+        qs = model.objects.select_related(*related_objects).prefetch_related(*prefetch_objects)
+
+        dssdeinclusions = aristotle_dse.models.DSSDEInclusion.objects.select_related('data_element').prefetch_related('data_element__statuses')
+        dssclusterinclusions = aristotle_dse.models.DSSClusterInclusion.objects.select_related('child')
+        qs = qs.prefetch_related(Prefetch('dssdeinclusion_set', dssdeinclusions))
+        qs = qs.prefetch_related(Prefetch('dssclusterinclusion_set', dssclusterinclusions))
+        return qs

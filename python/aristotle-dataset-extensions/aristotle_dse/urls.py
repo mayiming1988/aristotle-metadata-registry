@@ -10,6 +10,10 @@ from aristotle_mdr.contrib.generic.views import (
     GenericAlterManyToManyView,
 )
 
+concept_urlpatterns = [
+    url(r'^item/(?P<iid>\d+)/datasetspecification/(?P<name_slug>.+)/?$', views.DatasetSpecificationView.as_view(), name='datasetspecification'),
+]
+
 urlpatterns = [
 
     url(r'^remove/deFromDss/(?P<de_id>\d+)/(?P<dss_id>\d+)', views.RemoveDEFromDSS.as_view(), name='removeDataElementFromDSS'),
@@ -53,7 +57,4 @@ urlpatterns = [
             model_base_field='distribution_set',
             form_title=_('Change Distributions')
         ), name='add_distribution_to_dataset'),
-
-    url(r'^item/(?P<iid>\d+)/datasetspecification/(?P<name_slug>.+)/?$', views.DatasetSpecificationView.as_view(), name='datasetspecification'),
-
 ]

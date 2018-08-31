@@ -300,7 +300,6 @@ class DataElementView(ConceptRenderMixin, TemplateView):
 
     def get_related(self, model):
         related_objects = [
-            'dataElementConcept',
             'valueDomain',
             'dataElementConcept__objectClass',
             'dataElementConcept__property'
