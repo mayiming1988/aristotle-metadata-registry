@@ -653,12 +653,12 @@ class _concept(baseAristotleObject):
     submitting_organisation = models.CharField(max_length=256, blank=True)
     responsible_organisation = models.CharField(max_length=256, blank=True)
 
-    superseded_by = ConceptForeignKey(
-        'self',
-        related_name='supersedes',
-        blank=True,
-        null=True
-    )
+    # superseded_by = ConceptForeignKey(
+    #     'self',
+    #     related_name='supersedes',
+    #     blank=True,
+    #     null=True
+    # )
 
     tracker = FieldTracker()
 
@@ -741,7 +741,7 @@ class _concept(baseAristotleObject):
     def is_superseded(self):
         return all(
             STATES.superseded == status.state for status in self.statuses.all()
-        ) and self.superseded_by
+        ) and self.superseded_by_items_relation_set.count() > 0
 
     @property
     def is_retired(self):
@@ -859,6 +859,18 @@ class concept(_concept):
         Return self, because we already have the correct item.
         """
         return self
+
+
+class SupersedeRelationship(TimeStampedModel):
+    older_item = ConceptForeignKey(_concept,
+        related_name='superseded_by_items_relation_set',
+    )
+    newer_item = ConceptForeignKey(_concept,
+        related_name='superseded_items_relation_set',
+    )
+    registration_authority = models.ForeignKey(RegistrationAuthority)
+    message = models.TextField(blank=True, null=True)
+
 
 
 REVIEW_STATES = Choices(

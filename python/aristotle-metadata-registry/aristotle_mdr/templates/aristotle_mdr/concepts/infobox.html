@@ -84,7 +84,6 @@
 
         {% block asideContent %}{% endblock %}
 
-        {% with total=item.supersedes.count %}
             <dt class="large">{% trans 'Supersedes'%}
             {% if item|can_edit:request.user %}
                 <a class="inline_action" href="{% url 'aristotle:deprecate' iid=item.id %}"
@@ -92,31 +91,42 @@
             {% endif %}</dt>
             <dd class="large">
             <ul>
-                {% for sup in item.supersedes.all|can_view_iter:user %}
+                {% for suprel in item.superseded_items_relation_set.all %}
                     <li>
-                      <a href="{% url 'aristotle:item' iid=sup.id %}/">
-                        {{ sup }}
+                      <a href="{% url 'aristotle:item' iid=suprel.older_item_id %}/">
+                        {{ suprel.older_item.name }}
                       </a>
+                      (
+                      {{ suprel.registration_authority.name }}
+                      )
                     </li>
                 {% empty %}
                     <li><em>{% trans 'None' context 'No older objects' %}</em></li>
                 {% endfor %}
             </ul>
             </dd>
-        {% endwith %}
+
             <dt class="large">{% trans 'Superseded by'%}
                 {% if item|can_edit:request.user %}
                     <a class="inline_action" href="{% url 'aristotle:supersede' iid=item.id %}"
                        data-toggle="modal" data-target="#infobox_modal">{% ternary item.superseded_by 'Change' 'Add'%}</a>
-                {% endif %}</dt>
-            <dd class="large">
-            <ul><li>
-                {% if item.superseded_by %}
-                    <a href="{% url 'aristotle:item' iid=item.superseded_by.id %}">{{ item.superseded_by }}</a>
-                {% else %}
-                    <em>{% trans 'None' context 'No newer objects'%}</em>
                 {% endif %}
-            </li></ul>
+            </dt>
+            <dd class="large">
+            <ul>
+                {% for suprel in item.superseded_by_items_relation_set.all %}
+                    <li>
+                      <a href="{% url 'aristotle:item' iid=suprel.newer_item_id %}/">
+                        {{ suprel.newer_item.name }}
+                      </a>
+                      (
+                      {{ suprel.registration_authority.name }}
+                      )
+                    </li>
+                {% empty %}
+                    <li><em>{% trans 'None' context 'No older objects' %}</em></li>
+                {% endfor %}
+            </ul>
             </dd>
         {% if item.workgroup and request.user|in_workgroup:item.workgroup %}
             <hr>
