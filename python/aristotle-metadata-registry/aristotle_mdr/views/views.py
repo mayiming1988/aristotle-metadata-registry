@@ -205,7 +205,7 @@ class ConceptRenderMixin:
                     model = rel.related_model
 
         if model is None:
-            return MDR._concept.objects.get(pk=itemid).item
+            return None
 
         return self.get_related(model).get(pk=itemid)
 
@@ -233,11 +233,20 @@ class ConceptRenderMixin:
         return self.request.user
 
     def get_redirect(self):
-        model_slug = self.kwargs.get(self.modelslug_arg, '')
-        name_slug = self.kwargs.get(self.nameslug_arg, '')
+        if self.item is None:
+            itemid = self.kwargs[self.itemid_arg]
+            item = MDR._concept.objects.get_subclass(id=itemid)
+        else:
+            item = self.item
 
-        model_correct = (self.item._meta.model_name == model_slug)
-        name_correct = (slugify(self.item.name) == name_slug)
+        if not self.modelslug_arg:
+            model_correct = True
+        else:
+            model_slug = self.kwargs.get(self.modelslug_arg, '')
+            model_correct = (item._meta.model_name == model_slug)
+
+        name_slug = self.kwargs.get(self.nameslug_arg, '')
+        name_correct = (slugify(item.name) == name_slug)
 
         if not model_correct or not name_correct:
             return True, url_slugify_concept(self.item)
@@ -251,6 +260,10 @@ class ConceptRenderMixin:
             redirect, url = self.get_redirect()
             if redirect:
                 return HttpResponseRedirect(url)
+
+        if self.item is None:
+            # If item was not found and no redirect was needed
+            return HttpResponseNotFound()
 
         self.user = self.get_user()
         result = self.check_item(self.item)

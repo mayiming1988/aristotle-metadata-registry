@@ -308,6 +308,8 @@ class DynamicTemplateView(TemplateView):
 class DatasetSpecificationView(ConceptRenderMixin, TemplateView):
 
     objtype = models.DataSetSpecification
+    modelslug_arg = None
+    slug_redirect = True
 
     def check_item(self, item):
         return user_can_view(self.request.user, item)
