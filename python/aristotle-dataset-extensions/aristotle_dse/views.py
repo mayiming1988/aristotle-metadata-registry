@@ -12,7 +12,7 @@ from django.utils.translation import ugettext as _
 
 from reversion import revisions as reversion
 
-import aristotle_mdr as aristotle
+import aristotle_mdr import models as aristotle_models
 from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
 from aristotle_mdr.contrib.generic.forms import HiddenOrderModelFormSet
 from aristotle_mdr.perms import (
@@ -22,16 +22,15 @@ from aristotle_mdr.perms import (
 from aristotle_mdr.utils import construct_change_message
 from aristotle_mdr.views.views import ConceptRenderMixin
 
-import aristotle_dse
-from aristotle_dse import forms
+from aristotle_dse import forms, models
 
 
 @reversion.create_revision()
 def addDataElementsToDSS(request, dss_id):
-    dss = get_object_or_404(aristotle_dse.models.DataSetSpecification, id=dss_id)
+    dss = get_object_or_404(models.DataSetSpecification, id=dss_id)
     if not user_can_edit(request.user, dss):
         raise PermissionDenied
-    qs = aristotle.models.DataElement.objects.filter().visible(request.user)
+    qs = aristotle_models.DataElement.objects.filter().visible(request.user)
     if request.method == 'POST':
         form = forms.AddDataElementsToDSSForm(request.POST, user=request.user, qs=qs, dss=dss)
         if form.is_valid():
@@ -59,10 +58,10 @@ def addDataElementsToDSS(request, dss_id):
 
 @reversion.create_revision()
 def addClustersToDSS(request, dss_id):
-    dss = get_object_or_404(aristotle_dse.models.DataSetSpecification, id=dss_id)
+    dss = get_object_or_404(models.DataSetSpecification, id=dss_id)
     if not user_can_edit(request.user, dss):
         raise PermissionDenied
-    qs = aristotle_dse.models.DataSetSpecification.objects.filter().visible(request.user)
+    qs = models.DataSetSpecification.objects.filter().visible(request.user)
     if request.method == 'POST':
         form = forms.AddClustersToDSSForm(request.POST, user=request.user, qs=qs, dss=dss)
         if form.is_valid():
@@ -97,8 +96,8 @@ class RemoveDEFromDSS(ConfirmDeleteView):
     def perform_deletion(self):
         de_id = self.kwargs['de_id']
         dss_id = self.kwargs['dss_id']
-        de = get_object_or_404(aristotle.models.DataElement, id=de_id)
-        dss = get_object_or_404(aristotle_dse.models.DataSetSpecification, id=dss_id)
+        de = get_object_or_404(aristotle_models.DataElement, id=de_id)
+        dss = get_object_or_404(models.DataSetSpecification, id=dss_id)
         if user_can_view(self.request.user, de) and user_can_edit(self.request.user, dss):
             dss.dssdeinclusion_set.filter(data_element=de).delete()
             messages.success(
@@ -111,8 +110,8 @@ class RemoveDEFromDSS(ConfirmDeleteView):
             raise PermissionDenied
 
     def warning_text(self):
-        de = get_object_or_404(aristotle.models.DataElement, id=self.kwargs['de_id'])
-        dss = get_object_or_404(aristotle_dse.models.DataSetSpecification, id=self.kwargs['dss_id'])
+        de = get_object_or_404(aristotle_models.DataElement, id=self.kwargs['de_id'])
+        dss = get_object_or_404(models.DataSetSpecification, id=self.kwargs['dss_id'])
         return _(
             'You are about to detatch the data element "%(de_name)s" from the dataset "%(dss_name)s". \n'
             'This data element will still exist in the registry, but will no longer be linked to this Data Set Specification. \n\n'
@@ -130,8 +129,8 @@ class RemoveClusterFromDSS(ConfirmDeleteView):
     def perform_deletion(self):
         cluster_id = self.kwargs['cluster_id']
         dss_id = self.kwargs['dss_id']
-        cluster = get_object_or_404(aristotle_dse.models.DataSetSpecification, id=cluster_id)
-        dss = get_object_or_404(aristotle_dse.models.DataSetSpecification, id=dss_id)
+        cluster = get_object_or_404(models.DataSetSpecification, id=cluster_id)
+        dss = get_object_or_404(models.DataSetSpecification, id=dss_id)
         if user_can_view(self.request.user, cluster) and user_can_edit(self.request.user, dss):
             dss.dssclusterinclusion_set.filter(child=cluster).delete()
             messages.success(
@@ -146,11 +145,11 @@ class RemoveClusterFromDSS(ConfirmDeleteView):
 
 @reversion.create_revision()
 def editDataElementInclusion(request, dss_id, de_id):
-    dss = get_object_or_404(aristotle_dse.models.DataSetSpecification, id=dss_id)
-    de = get_object_or_404(aristotle.models.DataElement, id=de_id)
+    dss = get_object_or_404(models.DataSetSpecification, id=dss_id)
+    de = get_object_or_404(aristotle_models.DataElement, id=de_id)
     if not (user_can_edit(request.user, dss) and user_can_view(request.user, de)):
         raise PermissionDenied
-    inclusion = get_object_or_404(aristotle_dse.models.DSSDEInclusion, data_element=de, dss=dss)
+    inclusion = get_object_or_404(models.DSSDEInclusion, data_element=de, dss=dss)
 
     if request.method == 'POST':
         form = forms.EditDataElementInclusionForm(request.POST, instance=inclusion)  # , user=request.user)
@@ -172,11 +171,11 @@ def editDataElementInclusion(request, dss_id, de_id):
 
 @reversion.create_revision()
 def editClusterInclusion(request, dss_id, cluster_id):
-    dss = get_object_or_404(aristotle_dse.models.DataSetSpecification, id=dss_id)
-    cluster = get_object_or_404(aristotle_dse.models.DataSetSpecification, id=cluster_id)
+    dss = get_object_or_404(models.DataSetSpecification, id=dss_id)
+    cluster = get_object_or_404(models.DataSetSpecification, id=cluster_id)
     if not (user_can_edit(request.user, dss) and user_can_view(request.user, cluster_id)):
         raise PermissionDenied
-    inclusion = get_object_or_404(aristotle_dse.models.DSSClusterInclusion, child=cluster, dss=dss)
+    inclusion = get_object_or_404(models.DSSClusterInclusion, child=cluster, dss=dss)
 
     if request.method == 'POST':
         form = forms.EditClusterInclusionForm(request.POST, instance=inclusion)  # , user=request.user)
@@ -198,11 +197,11 @@ def editClusterInclusion(request, dss_id, cluster_id):
 
 @reversion.create_revision()
 def editInclusionDetails(request, dss_id, inc_type, cluster_id):
-    dss = get_object_or_404(aristotle_dse.models.DataSetSpecification, id=dss_id)
+    dss = get_object_or_404(models.DataSetSpecification, id=dss_id)
 
     if inc_type not in ['cluster', 'data_element']:
         raise Http404
-    item = get_object_or_404(aristotle_dse.models.DataSetSpecification, pk=dss_id)
+    item = get_object_or_404(models.DataSetSpecification, pk=dss_id)
     if not user_can_edit(request.user, item):
         if request.user.is_anonymous():
             return redirect(reverse('friendly_login') + '?next=%s' % request.path)
@@ -210,14 +209,14 @@ def editInclusionDetails(request, dss_id, inc_type, cluster_id):
             raise PermissionDenied
 
     item_type, field_name = {
-        'cluster': (aristotle_dse.models.DataSetSpecification, 'child'),
-        'data_element': (aristotle.models.DataElement, 'data_element'),
+        'cluster': (models.DataSetSpecification, 'child'),
+        'data_element': (aristotle_models.DataElement, 'data_element'),
         }.get(inc_type)
 
     cluster=get_object_or_404(item_type, id=cluster_id)
     if not (user_can_edit(request.user, dss) and user_can_view(request.user, cluster_id)):
         raise PermissionDenied
-    inclusion = get_object_or_404(aristotle_dse.models.DSSClusterInclusion, child=cluster, dss=dss)
+    inclusion = get_object_or_404(models.DSSClusterInclusion, child=cluster, dss=dss)
 
     if request.method == 'POST':
         form = forms.EditClusterInclusionForm(request.POST, instance=inclusion)  # , user=request.user)
@@ -241,7 +240,7 @@ def editInclusionDetails(request, dss_id, inc_type, cluster_id):
 def editInclusionOrder(request, dss_id, inc_type):
     if inc_type not in ['cluster', 'data_element']:
         raise Http404
-    item = get_object_or_404(aristotle_dse.models.DataSetSpecification, pk=dss_id)
+    item = get_object_or_404(models.DataSetSpecification, pk=dss_id)
     if not user_can_edit(request.user, item):
         if request.user.is_anonymous():
             return redirect(reverse('friendly_login') + '?next=%s' % request.path)
@@ -249,8 +248,8 @@ def editInclusionOrder(request, dss_id, inc_type):
             raise PermissionDenied
 
     item_type, field_name = {
-        'cluster': (aristotle_dse.models.DSSClusterInclusion, 'child'),
-        'data_element': (aristotle_dse.models.DSSDEInclusion, 'data_element'),
+        'cluster': (models.DSSClusterInclusion, 'child'),
+        'data_element': (models.DSSDEInclusion, 'data_element'),
         }.get(inc_type)
 
     num_values = item_type.objects.filter(dss=item.id).count()
@@ -307,7 +306,7 @@ class DynamicTemplateView(TemplateView):
 
 class DatasetSpecificationView(ConceptRenderMixin, TemplateView):
 
-    objtype = aristotle_dse.models.DataSetSpecification
+    objtype = models.DataSetSpecification
 
     def check_item(self, item):
         return user_can_view(self.request.user, item)
@@ -321,8 +320,8 @@ class DatasetSpecificationView(ConceptRenderMixin, TemplateView):
         ]
         qs = model.objects.select_related(*related_objects).prefetch_related(*prefetch_objects)
 
-        dssdeinclusions = aristotle_dse.models.DSSDEInclusion.objects.select_related('data_element').prefetch_related('data_element__statuses')
-        dssclusterinclusions = aristotle_dse.models.DSSClusterInclusion.objects.select_related('child')
+        dssdeinclusions = models.DSSDEInclusion.objects.select_related('data_element').prefetch_related('data_element__statuses')
+        dssclusterinclusions = models.DSSClusterInclusion.objects.select_related('child')
         qs = qs.prefetch_related(Prefetch('dssdeinclusion_set', dssdeinclusions))
         qs = qs.prefetch_related(Prefetch('dssclusterinclusion_set', dssclusterinclusions))
         return qs
