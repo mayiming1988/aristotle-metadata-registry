@@ -10,10 +10,6 @@ from aristotle_mdr.contrib.generic.views import (
     GenericAlterManyToManyView,
 )
 
-concept_urlpatterns = [
-    url(r'^item/(?P<iid>\d+)/datasetspecification/(?P<name_slug>.+)/?$', views.DatasetSpecificationView.as_view(), name='datasetspecification'),
-]
-
 urlpatterns = [
 
     url(r'^remove/deFromDss/(?P<de_id>\d+)/(?P<dss_id>\d+)', views.RemoveDEFromDSS.as_view(), name='removeDataElementFromDSS'),

@@ -12,7 +12,7 @@ from django.utils.translation import ugettext as _
 
 from reversion import revisions as reversion
 
-import aristotle_mdr import models as aristotle_models
+from aristotle_mdr import models as aristotle_models
 from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
 from aristotle_mdr.contrib.generic.forms import HiddenOrderModelFormSet
 from aristotle_mdr.perms import (
