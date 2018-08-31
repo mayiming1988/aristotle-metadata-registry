@@ -9,6 +9,7 @@ from django.http import HttpResponseRedirect, Http404
 from django.views.generic import TemplateView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.translation import ugettext as _
+from django.utils import timezone
 
 from reversion import revisions as reversion
 
@@ -19,7 +20,7 @@ from aristotle_mdr.perms import (
     user_can_view, user_can_edit, user_in_workgroup,
     user_is_workgroup_manager, user_can_change_status
 )
-from aristotle_mdr.utils import construct_change_message
+from aristotle_mdr.utils import construct_change_message, status_filter
 from aristotle_mdr.views.views import ConceptRenderMixin
 
 from aristotle_dse import forms, models
@@ -320,8 +321,21 @@ class DatasetSpecificationView(ConceptRenderMixin, TemplateView):
         ]
         qs = model.objects.select_related(*related_objects).prefetch_related(*prefetch_objects)
 
-        dssdeinclusions = models.DSSDEInclusion.objects.select_related('data_element').prefetch_related('data_element__statuses')
+        current_statuses = (
+            status_filter(aristotle_models.Status.objects.all(), timezone.now())
+            .order_by("registrationAuthority", "-registrationDate", "-created")
+            .distinct("registrationAuthority")
+            .select_related('registrationAuthority')
+        )
+
+        dssdeinclusions = (
+            models.DSSDEInclusion.objects
+            .select_related('data_element')
+            .prefetch_related(Prefetch('data_element__statuses', current_statuses, 'current_stats'))
+        )
+
         dssclusterinclusions = models.DSSClusterInclusion.objects.select_related('child')
+
         qs = qs.prefetch_related(Prefetch('dssdeinclusion_set', dssdeinclusions))
         qs = qs.prefetch_related(Prefetch('dssclusterinclusion_set', dssclusterinclusions))
         return qs
