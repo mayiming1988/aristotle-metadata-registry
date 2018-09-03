@@ -318,9 +318,9 @@ class GenericListWorkgroup(LoginRequiredMixin, SortedListView):
     paginate_by = 20
 
     allowed_sorts = {
-        'items': 'items__count',
+        'items': 'num_items',
         'name': 'name',
-        'users': 'viewers__count'
+        'users': 'num_viewers'
     }
 
     default_sort = 'name'
@@ -329,7 +329,7 @@ class GenericListWorkgroup(LoginRequiredMixin, SortedListView):
         raise NotImplementedError
 
     def get_queryset(self):
-        workgroups = self.get_initial_queryset().annotate(Count('items')).annotate(Count('viewers'))
+        workgroups = self.get_initial_queryset().annotate(num_items=Count('items', distinct=True), num_viewers=Count('viewers', distinct=True))
         workgroups = workgroups.prefetch_related('viewers', 'managers', 'submitters', 'stewards')
 
         if self.text_filter:
