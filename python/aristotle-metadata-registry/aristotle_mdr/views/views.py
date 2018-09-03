@@ -185,7 +185,7 @@ class ConceptRenderMixin:
     nameslug_arg = 'name_slug'
     slug_redirect = False
 
-    def get_item(self):
+    def get_queryset(self):
         itemid = self.kwargs[self.itemid_arg]
 
         if self.objtype:
@@ -207,7 +207,12 @@ class ConceptRenderMixin:
         if model is None:
             return None
 
-        return self.get_related(model).get(pk=itemid)
+        return self.get_related(model)
+
+    def get_item(self):
+        itemid = self.kwargs[self.itemid_arg]
+        queryset = self.get_queryset()
+        return queryset.get(pk=itemid)
 
     def get_related(self, model):
         """Return a queryset fetching related concepts"""

@@ -245,20 +245,16 @@ def get_query_safe_context(context):
     return context
 
 
-def get_current_statuses_queryset():
+def get_status_queryset():
     """
-    Get a queryset for all current statuses if using postgres
+    Get a queryset for all valid statuses and their ra's
     """
 
-    if connection.vendor == 'postgresql':
-        return (
-            status_filter(MDR.Status.objects.all(), timezone.now())
-            .order_by("registrationAuthority", "-registrationDate", "-created")
-            .distinct("registrationAuthority")
-            .select_related('registrationAuthority')
-        )
-    else:
-        return None
+    return (
+        status_filter(MDR.Status.objects)
+        .order_by("registrationAuthority", "-registrationDate", "-created")
+        .select_related('registrationAuthority')
+    )
 
 
 class SortedListView(ListView):

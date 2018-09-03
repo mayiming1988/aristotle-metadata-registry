@@ -24,7 +24,7 @@ from aristotle_mdr.utils import (
     construct_change_message,
     status_filter,
 )
-from aristotle_mdr.views.utils import get_current_statuses_queryset
+from aristotle_mdr.views.utils import get_status_queryset
 from aristotle_mdr.views.views import ConceptRenderMixin
 
 from aristotle_dse import forms, models
@@ -327,23 +327,24 @@ class DatasetSpecificationView(ConceptRenderMixin, TemplateView):
         ]
         qs = model.objects.select_related(*related_objects).prefetch_related(*prefetch_objects)
 
-        current_statuses = get_current_statuses_queryset()
+        current_statuses = get_status_queryset()
 
         dssdeinclusions = (
             models.DSSDEInclusion.objects
             .select_related('data_element')
-        )
-
-        # Can only be done on postgres
-        if current_statuses is not None:
-            dssdeinclusions = dssdeinclusions.prefetch_related(
+            .prefetch_related(
                 Prefetch('data_element__statuses', current_statuses, 'current_stats')
             )
+
+        )
 
         dssclusterinclusions = (
             models.DSSClusterInclusion.objects
             .select_related('child')
-            .prefetch_related(Prefetch('child__statuses', current_statuses, 'current_stats'))
+            .prefetch_related(
+                Prefetch('child__statuses', current_statuses, 'current_stats')
+            )
+
         )
 
         qs = qs.prefetch_related(Prefetch('dssdeinclusion_set', dssdeinclusions))
