@@ -327,13 +327,13 @@ class DatasetSpecificationView(ConceptRenderMixin, TemplateView):
         ]
         qs = model.objects.select_related(*related_objects).prefetch_related(*prefetch_objects)
 
-        current_statuses = get_status_queryset()
+        valid_statuses = get_status_queryset()
 
         dssdeinclusions = (
             models.DSSDEInclusion.objects
             .select_related('data_element')
             .prefetch_related(
-                Prefetch('data_element__statuses', current_statuses, 'current_stats')
+                Prefetch('data_element__statuses', valid_statuses, 'valid_statuses')
             )
 
         )
@@ -342,7 +342,7 @@ class DatasetSpecificationView(ConceptRenderMixin, TemplateView):
             models.DSSClusterInclusion.objects
             .select_related('child')
             .prefetch_related(
-                Prefetch('child__statuses', current_statuses, 'current_stats')
+                Prefetch('child__statuses', valid_statuses, 'valid_statuses')
             )
 
         )

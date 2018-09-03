@@ -27,3 +27,17 @@ def izip(a, b):
 def register_queryset(qs):
     from aristotle_mdr.utils.cached_querysets import register_queryset
     return register_queryset(qs)
+
+
+@register.filter
+def distinct(iterable, attr_name):
+
+    seen = []
+    filtered = []
+    for item in iterable:
+        attr = getattr(item, attr_name)
+        if attr not in seen:
+            filtered.append(item)
+            seen.append(attr)
+
+    return filtered

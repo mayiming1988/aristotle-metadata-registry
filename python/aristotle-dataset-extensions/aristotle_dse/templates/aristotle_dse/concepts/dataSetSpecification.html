@@ -1,6 +1,6 @@
 {% extends "aristotle_mdr/concepts/managedContent.html" %}
 
-{% load aristotle_tags i18n %}
+{% load aristotle_tags i18n util_tags %}
 
 {% block extra_head_scripts %}
 <link rel="stylesheet" href="{{ STATIC_URL }}/aristotle_dse/aristotle_dse.css" />
@@ -84,7 +84,7 @@
                         {% endif %}
                     </td>
                     <td><ul>
-                        {% for s in deinc.child.current_stats %}
+                        {% for s in deinc.child.valid_statuses|distinct:"registrationAuthority_id" %}
                             <li>[{{ s.registrationAuthority }}: {{ s.state_name }}]</li>
                         {% empty %}
                         <li><em>Unregistered</em></li>
@@ -149,7 +149,7 @@
                         {% endif %}
                     </td>
                     <td><ul>
-                        {% for s in deinc.data_element.current_stats %}
+                        {% for s in deinc.data_element.valid_statuses|distinct:"registrationAuthority_id" %}
                             <li>[{{ s.registrationAuthority }}: {{ s.state_name }}]</li>
                         {% empty %}
                         <li><em>Unregistered</em></li>
