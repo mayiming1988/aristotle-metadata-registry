@@ -3,6 +3,7 @@ from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db import connection
 from django.db.models import Count, Q, Model
 from django.db.models.functions import Lower
 from django.db.models.query import QuerySet
@@ -19,6 +20,7 @@ from django.views.generic import (
 )
 
 from aristotle_mdr import models as MDR
+from aristotle_mdr.utils import status_filter
 
 paginate_sort_opts = {
     "mod_asc": ["modified"],
@@ -241,6 +243,22 @@ def get_query_safe_context(context):
 
     context.update(update)
     return context
+
+
+def get_current_statuses_queryset():
+    """
+    Get a queryset for all current statuses if using postgres
+    """
+
+    if connection.vendor == 'postgresql':
+        return (
+            status_filter(MDR.Status.objects.all(), timezone.now())
+            .order_by("registrationAuthority", "-registrationDate", "-created")
+            .distinct("registrationAuthority")
+            .select_related('registrationAuthority')
+        )
+    else:
+        return None
 
 
 class SortedListView(ListView):

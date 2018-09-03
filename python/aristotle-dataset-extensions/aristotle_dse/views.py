@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
-from django.db import transaction
+from django.db import transaction, connections
 from django.db.models.query import Prefetch
 from django.forms.models import modelformset_factory
 from django.forms.widgets import HiddenInput
@@ -20,7 +20,11 @@ from aristotle_mdr.perms import (
     user_can_view, user_can_edit, user_in_workgroup,
     user_is_workgroup_manager, user_can_change_status
 )
-from aristotle_mdr.utils import construct_change_message, status_filter
+from aristotle_mdr.utils import (
+    construct_change_message,
+    status_filter,
+)
+from aristotle_mdr.views.utils import get_current_statuses_queryset
 from aristotle_mdr.views.views import ConceptRenderMixin
 
 from aristotle_dse import forms, models
@@ -323,18 +327,18 @@ class DatasetSpecificationView(ConceptRenderMixin, TemplateView):
         ]
         qs = model.objects.select_related(*related_objects).prefetch_related(*prefetch_objects)
 
-        current_statuses = (
-            status_filter(aristotle_models.Status.objects.all(), timezone.now())
-            .order_by("registrationAuthority", "-registrationDate", "-created")
-            .distinct("registrationAuthority")
-            .select_related('registrationAuthority')
-        )
+        current_statuses = get_current_statuses_queryset()
 
         dssdeinclusions = (
             models.DSSDEInclusion.objects
             .select_related('data_element')
-            .prefetch_related(Prefetch('data_element__statuses', current_statuses, 'current_stats'))
         )
+
+        # Can only be done on postgres
+        if current_statuses is not None:
+            dssdeinclusions = dssdeinclusions.prefetch_related(
+                Prefetch('data_element__statuses', current_statuses, 'current_stats')
+            )
 
         dssclusterinclusions = (
             models.DSSClusterInclusion.objects
