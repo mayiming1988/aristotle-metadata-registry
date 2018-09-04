@@ -1368,11 +1368,6 @@ class PossumProfile(models.Model):
         blank=True,
         null=True
     )
-    favourites = models.ManyToManyField(
-        _concept,
-        related_name='favourited_by',
-        blank=True
-    )
     profilePictureWidth = models.IntegerField(
         blank=True,
         null=True
@@ -1476,9 +1471,11 @@ class PossumProfile(models.Model):
     def is_workgroup_manager(self, wg=None):
         return perms.user_is_workgroup_manager(self.user, wg)
 
+    # To be updated
     def is_favourite(self, item):
         return self.favourites.filter(pk=item.pk).exists()
 
+    # To be updated
     def toggleFavourite(self, item):
         if self.is_favourite(item):
             self.favourites.remove(item)
