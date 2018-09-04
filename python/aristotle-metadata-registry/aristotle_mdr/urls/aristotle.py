@@ -181,8 +181,6 @@ urlpatterns=[
     url(r'^organizations/?$', views.registrationauthority.all_organizations, name='all_organizations'),
     url(r'^registrationauthorities/?$', views.registrationauthority.all_registration_authorities, name='all_registration_authorities'),
 
-    url(r'^account/toggleFavourite/(?P<iid>\d+)/?$', views.toggleFavourite, name='toggleFavourite'),
-
     url(r'^extensions/?$', views.extensions, name='extensions'),
 
     url(r'^notifyredirect/(?P<content_type>\d+)/(?P<object_id>\d+)/', views.notification_redirect, name="notify_redirect"),

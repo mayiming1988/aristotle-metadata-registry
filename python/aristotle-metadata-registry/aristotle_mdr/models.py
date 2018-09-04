@@ -1471,16 +1471,34 @@ class PossumProfile(models.Model):
     def is_workgroup_manager(self, wg=None):
         return perms.user_is_workgroup_manager(self.user, wg)
 
-    # To be updated
     def is_favourite(self, item):
-        return self.favourites.filter(pk=item.pk).exists()
+        from aristotle_mdr.contrib.favourites.models import Favourite
+        fav = Favourite.objects.filter(
+            tag__primary=True,
+            tag__profile=self,
+            item=item
+        )
+        return fav.exists()
 
-    # To be updated
     def toggleFavourite(self, item):
+        from aristotle_mdr.contrib.favourites.models import Favourite, Tag
+
         if self.is_favourite(item):
-            self.favourites.remove(item)
+            fav = Favourite.objects.filter(
+                tag__primary=True,
+                tag__profile=self,
+                item=item
+            )
+            fav.delete()
         else:
-            self.favourites.add(item)
+            fav_tag, created = Tag.objects.get_or_create(
+                profile=self,
+                primary=True,
+            )
+            Favourite.objects.create(
+                tag=fav_tag,
+                item=item
+            )
 
 
 def create_user_profile(sender, instance, created, **kwargs):

@@ -6,7 +6,7 @@ class Tag(models.Model):
 
     profile = models.ForeignKey(
         mdr_models.PossumProfile,
-        related_name='favourites'
+        related_name='tags'
     )
     name = models.CharField(
         max_length=200,
@@ -16,6 +16,15 @@ class Tag(models.Model):
     created = models.DateTimeField(
         auto_now_add=True
     )
+    primary = models.BooleanField(
+        default=False
+    )
+
+    def __str__(self):
+        if self.primary:
+            return ' - '.join([self.profile.user.email, 'Primary'])
+        else:
+            return ' - '.join([self.profile.user.email, self.name])
 
 
 class Favourite(models.Model):
@@ -31,3 +40,6 @@ class Favourite(models.Model):
     created = models.DateTimeField(
         auto_now_add=True
     )
+
+    def __str__(self):
+        return ' - '.join([self.tag.name, self.item.name])
