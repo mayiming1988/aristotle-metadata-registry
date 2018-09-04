@@ -6,11 +6,4 @@
     {% else %}
         <i class="fa fa-bookmark-o "></i>
     {% endif %}
-    {% if request.user.is_superuser %}
-      {% with count=item.favourited_by.count %}
-      <span class='badge' title='{% blocktrans %}Favourited by {{count}} users {% endblocktrans %}'>
-          {{count}}
-      </span>
-      {% endwith %}
-    {% endif %}
 </a>

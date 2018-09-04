@@ -1,4 +1,3 @@
-
 from django import VERSION as django_version
 from django.apps import apps
 from django.contrib import messages
