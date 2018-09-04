@@ -1490,6 +1490,7 @@ class PossumProfile(models.Model):
                 item=item
             )
             fav.delete()
+            return False
         else:
             fav_tag, created = Tag.objects.get_or_create(
                 profile=self,
@@ -1499,6 +1500,7 @@ class PossumProfile(models.Model):
                 tag=fav_tag,
                 item=item
             )
+            return True
 
 
 def create_user_profile(sender, instance, created, **kwargs):

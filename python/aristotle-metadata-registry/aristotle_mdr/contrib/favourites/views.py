@@ -4,23 +4,42 @@ from django.contrib.auth.decorators import login_required
 from aristotle_mdr.models import _concept
 from aristotle_mdr.perms import user_can_view
 from django.utils.translation import ugettext_lazy as _
+from django.views.generic import View
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
 
-@login_required
-def toggleFavourite(request, iid):
-    item = get_object_or_404(_concept, pk=iid).item
-    if not user_can_view(request.user, item):
-        raise PermissionDenied
 
-    request.user.profile.toggleFavourite(item)
+class toggleFavourite(LoginRequiredMixin, View):
 
-    if request.GET.get('next', None):
-        return redirect(request.GET.get('next'))
+    def get(self, request, *args, **kwargs):
+        itemid = self.kwargs['iid']
+        item = get_object_or_404(_concept, pk=itemid).item
 
-    #if item.concept in request.user.profile.favourites.all():
-    #    message = _("%s added to favourites.") % (item.name)
-    #else:
-    #    message = _("%s removed from favourites.") % (item.name)
+        if not user_can_view(request.user, item):
+            raise PermissionDenied
 
-    #message = _(message + " Review your favourites from the user menu.")
-    #messages.add_message(request, messages.SUCCESS, message)
-    return redirect(url_slugify_concept(item))
+        favourited = request.user.profile.toggleFavourite(item)
+
+        if request.is_ajax():
+            return self.get_json_response(favourited)
+        else:
+            return redirect_with_message(item, favourited)
+
+    def get_message(self, item):
+        return ''
+
+    def redirect_with_message(self, item, favourited):
+        if request.GET.get('next', None):
+            return redirect(request.GET.get('next'))
+
+        if favourited:
+            message = _("%s added to favourites.") % (item.name)
+        else:
+            message = _("%s removed from favourites.") % (item.name)
+
+        message = _(message + " Review your favourites from the user menu.")
+        messages.add_message(self.request, messages.SUCCESS, message)
+        return redirect(url_slugify_concept(item))
+
+    def get_json_response(self, favourited):
+        pass
