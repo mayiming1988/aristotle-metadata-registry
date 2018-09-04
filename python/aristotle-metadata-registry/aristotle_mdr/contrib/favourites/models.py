@@ -1,11 +1,11 @@
 from django.db import models
-from aristotle_mdr import models as mdr_models
+from aristotle_mdr.models import _concept, PossumProfile
 
 
 class Tag(models.Model):
 
     profile = models.ForeignKey(
-        mdr_models.PossumProfile,
+        PossumProfile,
         related_name='tags'
     )
     name = models.CharField(
@@ -34,7 +34,7 @@ class Favourite(models.Model):
         related_name='favourites'
     )
     item = models.ForeignKey(
-        mdr_models._concept,
+        _concept,
         related_name='favourites'
     )
     created = models.DateTimeField(
