@@ -9,6 +9,9 @@
         <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/aristotle.autocomplete.css' %}" />
     {% endif %}
     <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/aristotle.visuals.less'|compile %}" />
+    <script src="https://cdn.jsdelivr.net/npm/taggle@1.14.0/src/taggle.min.js"></script>
+    <script src="{% static 'aristotle_mdr/itemPage.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/taggle.css' %}" />
 {% endblock %}
 
 {% block title %}
@@ -68,15 +71,16 @@
         {% endfor %}
     </div>
 
-  <div class="modal fade exclude-scrap" id="TagEditorModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal fade exclude-scrap" id="TagEditorModal" tabindex="-1" role="dialog" aria-labelledby="TagEditor">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <h4 class="modal-title" id="myModalLabel">Tag Editor</h4>
+          <div class="modal-title h4" id="TagEditor">Tag Editor</div>
         </div>
-        <div class="modal-body">
-          <p>Edit ya damn tags</p>
+        <div class="modal-body" style="overflow:auto">
+          <p>Step right up, all your tag needs here</p>
+          <div id="taggle-editor" class="input taggle_textarea"></div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
