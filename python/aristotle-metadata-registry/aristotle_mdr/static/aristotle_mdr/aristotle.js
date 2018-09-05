@@ -1,15 +1,6 @@
 // Set (then unset) this to supress the ajax loading animation
 var suppressLoadingBlock = false;
 
-function addHeaderMessage(message) {
-  var row = $('#messages-row')
-  row.removeAttr('hidden')
-  var message_list = row.find('ul')
-  var element = $('<li>', {text: message})
-  message_list.append(element)
-  $('#messages-row').find('.close').click(clearAndHideMessages)
-}
-
 function clearMessages() {
   var message_list = $('#messages-row').find('ul').html('')
 }
@@ -17,6 +8,15 @@ function clearMessages() {
 function clearAndHideMessages() {
   clearMessages()
   var row = $('#messages-row').attr('hidden', '')
+}
+
+function addHeaderMessage(message) {
+  clearMessages()
+  var row = $('#messages-row')
+  row.removeAttr('hidden')
+  var message_list = row.find('ul')
+  var element = $('<li>', {text: message})
+  message_list.append(element)
 }
 
 // getCookie function taken from django docs
