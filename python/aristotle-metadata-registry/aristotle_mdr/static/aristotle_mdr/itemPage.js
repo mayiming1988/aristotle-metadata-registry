@@ -23,22 +23,33 @@ $(document).ready(function() {
 
 })
 
-var tagComponent = Vue.component('taggle-tags', {
+Vue.component('taggle-tags', {
   template: '<div id="taggle-editor" class="input taggle_textarea"></div>',
-  props: ['value'],
+  props: ['initial'],
   mounted: function() {
-    this.tag_modal = $('#TagEditorModal')
     this.tag_editor = new Taggle('taggle-editor', {
       preserveCase: true,
-      tags: this.value,
-      onTagAdd: this.tagChange,
-      onTagRemove: this.tagChange
+      tags: this.initial,
     })
-    $('#tag-editor-submit').click(this.submit)
+
+    var component = this;
+    $('#tag-editor-submit').click(function() {
+      var tags = component.tag_editor.getTags().values
+      component.$emit('submit', tags)
+    })
+  }
+})
+
+var vm = new Vue({
+  el: '#vue-managed-content',
+  data: {
+    saved_tags: []
+  },
+  created: function() {
+    this.saved_tags = JSON.parse($('#tags-json').text())
   },
   methods: {
-    submit: function() {
-      var tags = this.tag_editor.getTags().values
+    submit_tags: function(tags) {
       var csrf_token = getCookie('csrftoken')
       var url = edit_tag_url
       var data = {
@@ -55,22 +66,8 @@ var tagComponent = Vue.component('taggle-tags', {
         }
       )
 
-      this.tag_modal.modal('hide')
-    },
-    tagChange: function(event, tag) {
-      this.tags = this.tag_editor.getTags().values
-      console.log(this.tags)
-      this.$emit('input', this.tags)
+      this.saved_tags = tags
+      $('#TagEditorModal').modal('hide')
     }
-  }
-})
-
-var vm = new Vue({
-  el: '#vue-managed-content',
-  data: {
-    tags: []
-  },
-  created: function() {
-    this.tags = JSON.parse($('#tags-json').text())
   }
 })
