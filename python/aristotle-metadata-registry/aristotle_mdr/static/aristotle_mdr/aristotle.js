@@ -50,4 +50,3 @@ $(document).ajaxSend(function(event, request, settings) {
 $(document).ajaxComplete(function(event, request, settings) {
     $('#loading_indicator').hide().removeClass('loading');
 });
-

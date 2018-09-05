@@ -10,6 +10,9 @@
     {% endif %}
     <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/aristotle.visuals.less'|compile %}" />
     <script src="https://cdn.jsdelivr.net/npm/taggle@1.14.0/src/taggle.min.js"></script>
+    <script>
+      var edit_tag_url="{% url 'aristotle_favourites:edit_tags' item.id %}"
+    </script>
     <script src="{% static 'aristotle_mdr/itemPage.js' %}"></script>
     <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/taggle.css' %}" />
 {% endblock %}

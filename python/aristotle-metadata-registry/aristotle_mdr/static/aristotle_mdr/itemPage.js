@@ -1,9 +1,29 @@
 $(document).ready(function() {
 
   var tag_editor = new Taggle('taggle-editor');
+  var tag_modal = $('#TagEditorModal')
 
   $('#tag-editor-submit').click(function() {
-    console.log(tag_editor.getTags().values)
+    var tags = tag_editor.getTags().values
+    var csrf_token = getCookie('csrftoken')
+    console.log(csrf_token)
+    var url = edit_tag_url
+    console.log(url)
+    var data = {
+      tags: JSON.stringify(tags),
+      csrfmiddlewaretoken: csrf_token
+    }
+
+    $.post(
+      url,
+      data,
+      function(data) {
+        console.log(data)
+      }
+    )
+
+    tag_modal.modal('hide')
+
   })
 
   // Async favouriting
