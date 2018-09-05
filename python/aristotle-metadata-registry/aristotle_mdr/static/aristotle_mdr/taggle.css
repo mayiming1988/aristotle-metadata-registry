@@ -1,3 +1,7 @@
+.modal-body {
+  overflow: auto
+}
+
 .taggle_textarea {
   width: 100%;
   /* border: 1px solid black; */
@@ -9,6 +13,7 @@
   margin: 0;
   width: 100%;
   border: 1px solid black;
+  box-sizing: content-box;
 }
 
 .taggle_input {
