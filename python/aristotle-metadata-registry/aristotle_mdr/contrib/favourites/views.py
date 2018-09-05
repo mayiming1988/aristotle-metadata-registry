@@ -7,9 +7,10 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
+from django.http.response import JsonResponse
 
 
-class toggleFavourite(LoginRequiredMixin, View):
+class ToggleFavourite(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         itemid = self.kwargs['iid']
@@ -23,13 +24,10 @@ class toggleFavourite(LoginRequiredMixin, View):
         if request.is_ajax():
             return self.get_json_response(favourited)
         else:
-            return redirect_with_message(item, favourited)
+            return self.redirect_with_message(item, favourited)
 
-    def get_message(self, item):
-        return ''
-
-    def redirect_with_message(self, item, favourited):
-        if request.GET.get('next', None):
+    def get_message(self, item, favourited):
+        if self.request.GET.get('next', None):
             return redirect(request.GET.get('next'))
 
         if favourited:
@@ -38,8 +36,18 @@ class toggleFavourite(LoginRequiredMixin, View):
             message = _("%s removed from favourites.") % (item.name)
 
         message = _(message + " Review your favourites from the user menu.")
+        return message
+
+    def redirect_with_message(self, item, favourited):
+        message = self.get_message(item, favourited)
         messages.add_message(self.request, messages.SUCCESS, message)
         return redirect(url_slugify_concept(item))
 
-    def get_json_response(self, favourited):
-        pass
+    def get_json_response(self, item, favourited):
+        message = self.get_message(item, favourited)
+        response_dict = {
+            'success': True,
+            'message': message,
+            'favourited': favourited
+        }
+        return JsonResponse(response_dict)
