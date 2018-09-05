@@ -35,10 +35,9 @@
    {% block header %}
     {% include 'aristotle_mdr/header.html' %}
    {% endblock %}
-        {% if messages %}
-        <div class="row">
+   <div id="messages-row" class="row" {% if not messages %}hidden{% endif %}>
         <div class="alert alert-info" role="alert">
-        <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <button type="button" class="close"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
             <ul class="messages text-center">
                 {% for message in messages %}
                 <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
@@ -46,7 +45,6 @@
             </ul>
         </div>
         </div>
-        {% endif %}
    <div id='content' class="container">
         {% block content %}
         {% endblock %}
