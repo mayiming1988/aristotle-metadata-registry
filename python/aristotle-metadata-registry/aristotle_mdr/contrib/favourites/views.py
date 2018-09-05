@@ -74,18 +74,33 @@ class EditTags(LoginRequiredMixin, View):
         tags_json = post_data.get('tags', '')
 
         if tags_json:
-            tags = json.loads(tags_json)
-            for tag in tags:
-                if tag not in current_tags:
-                    tag_obj, created = Tag.objects.get_or_create(
-                        profile=user.profile,
-                        name=tag,
-                        primary=False
-                    )
-                    Favourite.objects.create(
-                        tag=tag_obj,
-                        item=item
-                    )
+            tags = set(json.loads(tags_json))
+            current_set = set(current_tags)
+
+            new = tags - current_set
+            deleted = current_set - tags
+
+            for tag in new:
+                tag_obj, created = Tag.objects.get_or_create(
+                    profile=user.profile,
+                    name=tag,
+                    primary=False
+                )
+                Favourite.objects.create(
+                    tag=tag_obj,
+                    item=item
+                )
+
+            for tag in deleted:
+                tag_obj, created = Tag.objects.get_or_create(
+                    profile=user.profile,
+                    name=tag,
+                    primary=False
+                )
+                Favourite.objects.filter(
+                    tag=tag_obj,
+                    item=item
+                ).delete()
 
         return self.get_json_response()
 
