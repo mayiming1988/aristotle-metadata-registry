@@ -1,14 +1,16 @@
 $(document).ready(function() {
 
-  var tag_editor = new Taggle('taggle-editor');
   var tag_modal = $('#TagEditorModal')
+  var current_tags = JSON.parse($('#tags-json').text())
+  var tag_editor = new Taggle('taggle-editor', {
+    preserveCase: true,
+    tags: current_tags
+  });
 
   $('#tag-editor-submit').click(function() {
     var tags = tag_editor.getTags().values
     var csrf_token = getCookie('csrftoken')
-    console.log(csrf_token)
     var url = edit_tag_url
-    console.log(url)
     var data = {
       tags: JSON.stringify(tags),
       csrfmiddlewaretoken: csrf_token

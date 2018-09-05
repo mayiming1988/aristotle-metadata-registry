@@ -2,7 +2,7 @@
 {% load humanize i18n %}
 {% load compile_static %}
 {% load static from staticfiles %}
-{% load aristotle_tags %}
+{% load aristotle_tags util_tags %}
 
 {% block extra_head_scripts %}
     {% if item|can_edit:request.user %}
@@ -13,6 +13,7 @@
     <script>
       var edit_tag_url="{% url 'aristotle_favourites:edit_tags' item.id %}"
     </script>
+    {{ tags|json_script:"tags-json" }}
     <script src="{% static 'aristotle_mdr/itemPage.js' %}"></script>
     <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/taggle.css' %}" />
 {% endblock %}
