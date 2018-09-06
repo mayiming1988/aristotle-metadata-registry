@@ -13,6 +13,8 @@
     <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.min.js"></script>
     <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
     <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.11.4/themes/ui-lightness/jquery-ui.css" />
+    <script src="https://cdn.jsdelivr.net/npm/vue-simple-suggest@1.8.2/dist/iife.js"></script>
+    <link rel="stylesheet" href="{% static 'aristotle_mdr/suggest.css' %}">
     <script>
       var edit_tag_url="{% url 'aristotle_favourites:edit_tags' item.id %}"
     </script>
@@ -87,7 +89,10 @@
             </div>
             <div class="modal-body">
               <p>Step right up, all your tag needs here</p>
-              <taggle-tags :initial="saved_tags" :complete="user_tags" @submit="submit_tags"></taggle-tags>
+
+              <vue-simple-suggest :list="getSuggestions" :filter-by-query="true" @select="makeSuggestion">
+                <taggle-tags :value="selected" :initial="saved_tags" @submit="submit_tags"></taggle-tags>
+              </vue-simple-suggest>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
