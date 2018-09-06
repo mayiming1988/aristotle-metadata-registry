@@ -1,9 +1,9 @@
 .vue-simple-suggest.designed .suggestions {
-  position: absolute;
+  /* position: absolute;
   left: 0;
   right: 0;
   top: 100%;
-  top: calc(100% + 5px);
+  top: calc(100% + 5px); */
   border-radius: 3px;
   border: 1px solid #aaa;
   background-color: #fff;
@@ -28,4 +28,5 @@
 
 .vue-simple-suggest.designed .suggestions .suggest-item.selected {
   background-color: #2832D5;
-color: #fff;
+  color: #fff;
+}
