@@ -143,10 +143,11 @@
         {% endif %}
           {% verbatim %}
           <div class="vue-tags" v-cloak>
+            <hr>
             <dt>Tags</dt>
             <dd>
-              <ul>
-                <li v-for="tag in saved_tags">{{ tag }}</li>
+              <ul class="taggle_list">
+                <li class="taggle" v-for="tag in saved_tags">{{ tag }}</li>
               </ul>
             </dd>
           </div>

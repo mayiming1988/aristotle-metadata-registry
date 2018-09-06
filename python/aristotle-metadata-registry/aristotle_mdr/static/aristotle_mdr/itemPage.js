@@ -23,9 +23,9 @@ $(document).ready(function() {
 
 })
 
-Vue.component('taggle-tags', {
-  template: '<div id="taggle-editor" class="input taggle_textarea"></div>',
-  props: ['initial'],
+tagComponent = {
+  template: '<div><div id="taggle-editor" class="input taggle_textarea"></div><div id="autocomplete"></div></div>',
+  props: ['initial', 'complete'],
   mounted: function() {
     this.tag_editor = new Taggle('taggle-editor', {
       preserveCase: true,
@@ -37,16 +37,38 @@ Vue.component('taggle-tags', {
       var tags = component.tag_editor.getTags().values
       component.$emit('submit', tags)
     })
+
+    // Add autocomplete
+    var container = $('#autocomplete')
+    console.log(container)
+    var input = this.tag_editor.getInput()
+
+    var editor = this.tag_editor
+    var autocomplete_tags = this.complete
+    $(input).autocomplete({
+      source: autocomplete_tags,
+      appendTo: container,
+      position: {at: 'left bottom', of: container},
+      select: function(event, data) {
+        event.preventDefault()
+        editor.add(data.item.value)
+      }
+    })
   }
-})
+}
 
 var vm = new Vue({
   el: '#vue-managed-content',
+  components: {
+    'taggle-tags': tagComponent
+  },
   data: {
     saved_tags: []
   },
   created: function() {
-    this.saved_tags = JSON.parse($('#tags-json').text())
+    var tags = JSON.parse($('#tags-json').text())
+    this.saved_tags = tags.item
+    this.user_tags = tags.user
   },
   methods: {
     submit_tags: function(tags) {

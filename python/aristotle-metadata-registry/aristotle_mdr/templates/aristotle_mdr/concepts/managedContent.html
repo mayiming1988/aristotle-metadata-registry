@@ -11,6 +11,8 @@
     <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/aristotle.visuals.less'|compile %}" />
     <script src="https://cdn.jsdelivr.net/npm/taggle@1.14.0/src/taggle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.11.4/themes/ui-lightness/jquery-ui.css" />
     <script>
       var edit_tag_url="{% url 'aristotle_favourites:edit_tags' item.id %}"
     </script>
@@ -85,7 +87,7 @@
             </div>
             <div class="modal-body">
               <p>Step right up, all your tag needs here</p>
-              <taggle-tags :initial="saved_tags" @submit="submit_tags"></taggle-tags>
+              <taggle-tags :initial="saved_tags" :complete="user_tags" @submit="submit_tags"></taggle-tags>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
