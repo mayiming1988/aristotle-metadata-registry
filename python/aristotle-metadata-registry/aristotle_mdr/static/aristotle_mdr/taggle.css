@@ -48,6 +48,11 @@
           animation-fill-mode: both;
 }
 
+.taggle_list .taggle_newtag {
+  background-color: #3a6482 !important;
+  color: white !important;
+}
+
 .taggle_list .taggle_hot {
   background: #BDD0DD;
 }
