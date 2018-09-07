@@ -4,6 +4,9 @@ from aristotle_mdr.models import _concept, PossumProfile
 
 class Tag(models.Model):
 
+    class Meta:
+        unique_together = ('profile', 'name')
+
     profile = models.ForeignKey(
         PossumProfile,
         related_name='tags'
@@ -28,6 +31,9 @@ class Tag(models.Model):
 
 
 class Favourite(models.Model):
+
+    class Meta:
+        unique_together = ('tag', 'item')
 
     tag = models.ForeignKey(
         Tag,
