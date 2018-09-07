@@ -24,16 +24,19 @@ $(document).ready(function() {
 })
 
 tagComponent = {
-  template: '<div><div id="taggle-editor" class="input taggle_textarea"></div><div id="autocomplete"></div></div>',
+  template: '<div><div id="taggle-editor" class="input taggle_textarea"></div>',
   props: ['initial', 'value'],
   mounted: function() {
     var component = this;
 
     this.tag_editor = new Taggle('taggle-editor', {
       preserveCase: true,
-      tags: this.initial,
-      onTagAdd: function() {
-        component.$emit('input', '')
+      tags: component.initial,
+      onTagAdd: function(e, tag) {
+        component.updateTags()
+      },
+      onTagRemove: function(e, tag) {
+        component.updateTags()
       }
     })
 
@@ -50,12 +53,17 @@ tagComponent = {
 
     $(input).on('focus', function(e) {
       component.$emit('focus')
+      component.$emit('input', $(this).val())
     })
 
     $(input).on('blur', function(e) {
-      component.$emit('input', '')
-      component.$emit('blur')
+      component.$emit('blur', e)
     })
+  },
+  methods: {
+    updateTags: function() {
+      this.$emit('tag-update', this.tag_editor.getTags().values)
+    }
   },
   watch: {
     value: function() {
@@ -71,11 +79,17 @@ var vm = new Vue({
   },
   data: {
     saved_tags: [],
+    current_tags: [],
     selected: '',
   },
   created: function() {
     var tags = JSON.parse($('#tags-json').text())
+    // Tags that have been submitted
     this.saved_tags = tags.item
+    // Tags currently in editor
+    this.current_tags = tags.item
+
+    // All a users tags
     this.user_tags = tags.user
   },
   methods: {
@@ -91,7 +105,6 @@ var vm = new Vue({
         url,
         data,
         function(data) {
-          console.log(data)
           addHeaderMessage(data.message)
         }
       )
@@ -99,8 +112,19 @@ var vm = new Vue({
       this.saved_tags = tags
       $('#TagEditorModal').modal('hide')
     },
+    update_tags: function(tags) {
+      this.current_tags = tags
+    },
     getSuggestions: function() {
-      return this.user_tags
+      suggestions = []
+      for (var i=0; i < this.user_tags.length; i++) {
+        var element = this.user_tags[i]
+        // Add to suggestions if not in current tags
+        if (this.current_tags.indexOf(element) == -1) {
+          suggestions.push(element)
+        }
+      }
+      return suggestions
     },
     makeSuggestion: function(suggestion) {
       this.selected = suggestion
