@@ -1,10 +1,15 @@
 {% extends "aristotle_mdr/user/userHome.html" %}
-{% load aristotle_tags i18n %}
+{% load aristotle_tags i18n static %}
 
 {% block title %}My Favourites{% endblock %}
 {% block collapse-link%}<i class="fa fa-bookmark fa-fw"></i> My Favourites</a>{% endblock %}
 {% block sidebar %}
     {% include "aristotle_mdr/user/userSideBar.html" with activeTab='favourites' %}
+{% endblock %}
+
+{% block extra_head_scripts %}
+  {{ block.super }}
+  <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/taggle.css' %}" />
 {% endblock %}
 
 {% block page %}
@@ -40,9 +45,9 @@
                         <td><i class="fa fa-bookmark{% if not item.primary %}-o{% endif %}"></i></td>
                         <td><a href="{% url 'aristotle_mdr:item' item.id %}">{{ item.name }}</a></td>
                         <td>
-                          <ul>
+                          <ul class="taggle_list">
                             {% for tag in item.tags %}
-                              <li>{{ tag }}</li>  
+                              <li class="taggle">{{ tag }}</li>  
                             {% endfor %}
                           </ul>
                         </td>

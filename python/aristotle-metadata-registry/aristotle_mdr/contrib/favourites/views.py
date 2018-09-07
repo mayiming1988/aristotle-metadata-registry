@@ -138,9 +138,10 @@ class FavouritesAndTags(ListView):
                     'primary': False
                 }
 
-            items[fav.item_id]['tags'].append(fav.tag.name)
             if fav.tag.primary:
                 items[fav.item_id]['primary'] = True
+            else:
+                items[fav.item_id]['tags'].append(fav.tag.name)
 
         return list(items.values())
 
