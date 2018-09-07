@@ -11,7 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from model_utils.models import TimeStampedModel
 from model_utils import Choices, FieldTracker
-from aristotle_mdr.contrib.channels.utils import fire
+from aristotle_mdr.contrib.async_signals.utils import fire
 import uuid
 
 import reversion  # import revisions
@@ -651,8 +651,8 @@ class _concept(baseAristotleObject):
         help_text=_("Descriptive comments about the metadata item (8.1.2.2.3.4)"),
         blank=True
     )
-    submitting_organisation = models.CharField(max_length=256, blank=True)
-    responsible_organisation = models.CharField(max_length=256, blank=True)
+    submitting_organisation = ShortTextField(blank=True)
+    responsible_organisation = ShortTextField(blank=True)
 
     superseded_by = ConceptForeignKey(
         'self',

@@ -1,6 +1,14 @@
 Changelog
 
-- 2.1.4
+- 2.1.x
+  - Aristotle MDR core
+    - Fixed bug where Workgroups showed incorrectly in dropdowns #901
+    - Fixed bug where users of IE and Edge couldn't properly use select2 dropdowns #894
+    - Removed all Channels code, fixes #885. We have no reports of this in use and will replace with Celery later.
+    - Added help for new search tokens #887 that covers status and identifier search
+    - Fix for dataset order display and reordering
+    - Update logout redirect to home with a message
+    - Increase text lenght for submitting organisation and responsible organisation fields
     - Efficiency impovements on list pages
     - Dependancy updates
 
