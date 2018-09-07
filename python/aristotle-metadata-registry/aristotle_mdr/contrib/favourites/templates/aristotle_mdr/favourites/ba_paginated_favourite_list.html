@@ -15,16 +15,18 @@
       </tr>
     </thead>
     <tbody>
-      {% for item in page_obj %}
+      {% for fav in page_obj %}
       <tr>
-        <td><input type="checkbox" id="id_items_{{item.id}}" name="items" value="{{item.id}}"></td>
-        <td><i class="fa fa-bookmark{% if not item.primary %}-o{% endif %}"></i></td>
-        <td><a href="{% url 'aristotle_mdr:item' item.id %}">{{ item.name }}</a></td>
+        <td><input type="checkbox" id="id_items_{{fav.item.id}}" name="items" value="{{fav.item.id}}"></td>
+        <td><i class="fa fa-bookmark{% if not fav.primary %}-o{% endif %}"></i></td>
+        <td><a href="{% url 'aristotle_mdr:item' fav.item.id %}">{{ fav.item.name }}</a></td>
         {% if tags_list %}
           <td>
             <ul class="taggle_list">
-              {% for tag in item.tags %}
-                <li class="taggle">{{ tag.name }}</li>  
+              {% for tag in fav.tags %}
+                <li class="taggle">
+                  <a href="{% url 'aristotle_favourites:tag' tag.id %}">{{ tag.name }}</a>
+                </li>  
               {% endfor %}
             </ul>
           </td>

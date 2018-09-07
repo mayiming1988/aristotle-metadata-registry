@@ -1,0 +1,20 @@
+{% extends "aristotle_mdr/user/userHome.html" %}
+{% load aristotle_tags i18n static %}
+
+{% block title %}My Favourites{% endblock %}
+{% block collapse-link%}<i class="fa fa-bookmark fa-fw"></i> My Favourites</a>{% endblock %}
+{% block sidebar %}
+    {% include "aristotle_mdr/user/userSideBar.html" with activeTab='favourites' %}
+{% endblock %}
+
+{% block extra_head_scripts %}
+  {{ block.super }}
+  <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/taggle.css' %}" />
+{% endblock %}
+
+{% block page %}
+  <h1><a href="#"><i class="fa fa-bookmark fa-fw"></i> My Tag</a></h1>
+  {% if page_obj %}
+    {% include 'aristotle_mdr/favourites/ba_paginated_favourite_list.html' with page_obj=page_obj tags_list=False %}
+  {% endif %}
+{% endblock %}
