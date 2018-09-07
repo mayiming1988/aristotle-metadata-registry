@@ -132,3 +132,40 @@ def ordered_formset_save(formset, item, model_to_add_field, ordering_field):
 
     # Save any m2m relations on the ojects (not actually needed yet)
     formset.save_m2m()
+
+
+def unordered_formset_factory(model, excludes=[], **kwargs):
+    # Formset factory for a hidden order model formset with aristotle widgets
+    _widgets = get_aristotle_widgets(model)
+
+    return modelformset_factory(
+        model,
+        # formset=BaseModelFormSet,
+        can_order=False,  # we assign this back to the ordering field
+        can_delete=True,
+        exclude=excludes,
+        extra=0,
+        widgets=_widgets,
+        **kwargs
+    )
+
+
+def unordered_formset_save(formset, item, model_to_add_field):
+    # Save a formset created with the above factory
+
+    item.save()  # do this to ensure we are saving reversion records for the item, not just the values
+    formset.save(commit=False)  # Save formset so we have access to deleted_objects and save_m2m
+
+    for form in formset.forms:
+        # Loop through the forms so we can add the order value to the ordering field
+        # ordered_forms does not contain forms marked for deletion
+        obj = form.save(commit=False)
+        setattr(obj, model_to_add_field, item)
+        obj.save()
+
+    for obj in formset.deleted_objects:
+        # Delete objects marked for deletion
+        obj.delete()
+
+    # Save any m2m relations on the ojects (not actually needed yet)
+    formset.save_m2m()

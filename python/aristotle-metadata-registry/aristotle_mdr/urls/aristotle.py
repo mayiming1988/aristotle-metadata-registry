@@ -128,8 +128,8 @@ urlpatterns=[
     url(r'^download/bulk/(?P<download_type>[a-zA-Z0-9\-\.]+)/?$', views.downloads.bulk_download, name='bulk_download'),
     url(r'^download/(?P<download_type>[a-zA-Z0-9\-\.]+)/(?P<iid>\d+)/?$', views.downloads.download, name='download'),
 
-    url(r'^action/supersede/(?P<iid>\d+)$', views.supersede, name='supersede'),
-    url(r'^action/deprecate/(?P<iid>\d+)$', views.deprecate, name='deprecate'),
+    url(r'^action/supersede/(?P<iid>\d+)$', views.actions.SupersedeItemView.as_view(), name='supersede'),
+    # url(r'^action/deprecate/(?P<iid>\d+)$', views.actions.deprecate, name='deprecate'),
     url(r'^action/bulkaction/?$', views.bulk_actions.BulkAction.as_view(), name='bulk_action'),
     url(r'^action/bulkaction/state/?$', views.bulk_actions.ChangeStatusBulkActionView.as_view(), name='change_state_bulk_action'),
     url(r'^action/compare/?$', views.comparator.compare_concepts, name='compare_concepts'),

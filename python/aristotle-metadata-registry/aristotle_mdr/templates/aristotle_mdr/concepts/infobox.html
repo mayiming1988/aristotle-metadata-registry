@@ -85,13 +85,10 @@
         {% block asideContent %}{% endblock %}
 
             <dt class="large">{% trans 'Supersedes'%}
-            {% if item|can_edit:request.user %}
-                <a class="inline_action" href="{% url 'aristotle:deprecate' iid=item.id %}"
-                    data-toggle="modal" data-target="#infobox_modal">{% ternary total 'Change' 'Add'%}</a>
-            {% endif %}</dt>
+            </dt>
             <dd class="large">
             <ul>
-                {% for suprel in item.superseded_items_relation_set.all %}
+                {% for suprel in item.superseded_items_relation_set.all|can_view_iter:request.user %}
                     <li>
                       <a href="{% url 'aristotle:item' iid=suprel.older_item_id %}/">
                         {{ suprel.older_item.name }}
@@ -107,14 +104,10 @@
             </dd>
 
             <dt class="large">{% trans 'Superseded by'%}
-                {% if item|can_edit:request.user %}
-                    <a class="inline_action" href="{% url 'aristotle:supersede' iid=item.id %}"
-                       data-toggle="modal" data-target="#infobox_modal">{% ternary item.superseded_by 'Change' 'Add'%}</a>
-                {% endif %}
             </dt>
             <dd class="large">
             <ul>
-                {% for suprel in item.superseded_by_items_relation_set.all %}
+                {% for suprel in item.superseded_by_items_relation_set.all|can_view_iter:request.user %}
                     <li>
                       <a href="{% url 'aristotle:item' iid=suprel.newer_item_id %}/">
                         {{ suprel.newer_item.name }}
@@ -124,7 +117,7 @@
                       )
                     </li>
                 {% empty %}
-                    <li><em>{% trans 'None' context 'No older objects' %}</em></li>
+                    <li><em>{% trans 'None' context 'No newer objects' %}</em></li>
                 {% endfor %}
             </ul>
             </dd>

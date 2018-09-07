@@ -12,8 +12,16 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-MIDDLEWARE = ['whitenoise.middleware.WhiteNoiseMiddleware'] + MIDDLEWARE
+MIDDLEWARE = [
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+] + MIDDLEWARE + [
+    'impersonate.middleware.ImpersonateMiddleware'
+]
 DATABASES = {'default': dj_database_url.config()}
+
+INSTALLED_APPS = ['impersonate']+list(INSTALLED_APPS)
+ROOT_URLCONF = 'urls'
+
 
 LOGGING = {
     'version': 1,

@@ -15,6 +15,7 @@ from aristotle_mdr.perms import user_can_edit, user_can_view
 from aristotle_mdr.utils import construct_change_message
 from aristotle_mdr.contrib.generic.forms import (
     ordered_formset_factory, ordered_formset_save,
+    unordered_formset_factory, unordered_formset_save,
     one_to_many_formset_excludes, one_to_many_formset_filters,
     HiddenOrderFormset, HiddenOrderModelFormSet
 )
@@ -423,6 +424,102 @@ class GenericAlterOneToManyView(GenericAlterManyToSomethingFormView):
         if formset.is_valid():
             with transaction.atomic(), reversion.revisions.create_revision():
                 ordered_formset_save(formset, self.item, self.model_to_add_field, self.ordering_field)
+
+                # formset.save(commit=True)
+                reversion.revisions.set_user(request.user)
+                reversion.revisions.set_comment(construct_change_message(request, None, [formset]))
+
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            return self.form_invalid(form)
+
+
+
+class UnorderedGenericAlterOneToManyView(GenericAlterManyToSomethingFormView):
+    """
+    A view that provides a framework for altering ManyToOne relationships
+    (Include through models from ManyToMany relationships)
+    from one 'base' object to many others.
+
+    The URL pattern must pass a kwarg with the name `iid` that is the object from the
+    `model_base` to use as the main link for the many to many relation.
+
+    * `model_base` - mandatory - The model with the instance to be altered
+    * `model_to_add` - mandatory - The model that has instances we will link to the base.
+    * `template_name`
+        - optional - The template used to display the form.
+        - default - "aristotle_mdr/generic/actions/alter_many_to_many.html"
+    * `model_base_field` - mandatory - the name of the field that goes from the `model_base` to the `model_to_add`.
+    * `model_to_add_field` - mandatory - the name of the field on the `model_to_add` model that links to the `model_base` model.
+    * `ordering_field` - optional - name of the ordering field, if entered this field is hidden and updated using a drag-and-drop library
+    * `form_add_another_text` - optional - string used for the button to add a new row to the form - defaults to "Add another"
+    * `form_title` - Title for the form
+
+    For example: If we have a many to many relationship from `DataElement`s to
+    `Dataset`s, to alter the `DataElement`s attached to a `Dataset`, `Dataset` is the
+    `base_model` and `model_to_add` is `DataElement`.
+    """
+
+    template_name = "aristotle_mdr/generic/actions/alter_one_to_many_unordered.html"
+    model_to_add_field = None
+    form_add_another_text = None
+
+    formset = None
+
+    def get_editable_queryset(self):
+        return getattr(self.item, self.model_base_field).all()
+
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['form_add_another_text'] = self.form_add_another_text or _('Add another')
+        num_items = getattr(self.item, self.model_base_field).count()
+        formset = self.get_formset(
+            queryset=self.get_editable_queryset(),
+            form_kwargs=self.get_form_kwargs()
+        )
+        context['formset'] = one_to_many_formset_filters(formset, self.item)
+        context['form'] = None
+        return context
+
+    def get_form(self, form_class=None):
+        return None
+
+    def get_form_kwargs(self):
+        return {}
+
+    def get_formset_class(self):
+
+        extra_excludes = one_to_many_formset_excludes(self.item, self.model_to_add)
+        all_excludes = [self.model_to_add_field,] + extra_excludes
+        form = self.get_form()
+        kawrgs = {}
+        formset = unordered_formset_factory(
+            self.model_to_add, all_excludes,
+            form = self.get_form()
+        )
+
+        return formset
+
+    def get_formset(self, *args, **kwargs):
+        return self.get_formset_class()(*args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        """
+        Handles POST requests, instantiating a form instance with the passed
+        POST variables and then checked for validity.
+        """
+        form = self.get_form()
+        # GenericFormSet = self.get_formset()
+        self.formset = self.get_formset(
+            self.request.POST, self.request.FILES,
+            queryset=self.get_editable_queryset(),
+            form_kwargs=self.get_form_kwargs()
+        )
+        formset = self.formset
+        if formset.is_valid():
+            with transaction.atomic(), reversion.revisions.create_revision():
+                unordered_formset_save(formset, self.item, self.model_to_add_field)
 
                 # formset.save(commit=True)
                 reversion.revisions.set_user(request.user)
