@@ -25,38 +25,7 @@
         {% if not help %}
             {% if page_obj %}
                 <strong><a href="?help=help">Get help on using your favourites list</a></strong>
-                <form action="{% url 'aristotle:bulk_action' %}?next={{ request.path }}" method="POST">
-                  {% csrf_token %}
-                  <table class="table">
-                    <thead>
-                      <tr>
-                        <th>
-                          <input title='{% trans "Select all" %}' type="checkbox" id="all_in_queryset" name="all_in_queryset">
-                        </th>
-                        <th></th>
-                        <th>Item</th>
-                        <th>Tags</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {% for item in page_obj %}
-                      <tr>
-                        <td><input type="checkbox" id="id_items_{{item.id}}" name="items" value="{{item.id}}"></td>
-                        <td><i class="fa fa-bookmark{% if not item.primary %}-o{% endif %}"></i></td>
-                        <td><a href="{% url 'aristotle_mdr:item' item.id %}">{{ item.name }}</a></td>
-                        <td>
-                          <ul class="taggle_list">
-                            {% for tag in item.tags %}
-                              <li class="taggle">{{ tag }}</li>  
-                            {% endfor %}
-                          </ul>
-                        </td>
-                      </tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                {% include "aristotle_mdr/helpers/list_action_bar.html" with wrap=True %}
-                </form>
+                {% include 'aristotle_mdr/favourites/ba_paginated_favourite_list.html' with page_obj=page_obj tags_list=True %}
             {% else %}
                 <strong>You currently have no favourited items.</strong>
             {% endif %}

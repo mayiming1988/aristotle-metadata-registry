@@ -1,0 +1,37 @@
+{% load i18n %}
+<form action="{% url 'aristotle:bulk_action' %}?next={{ request.path }}" method="POST">
+  {% csrf_token %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th>
+          <input title='{% trans "Select all" %}' type="checkbox" id="all_in_queryset" name="all_in_queryset">
+        </th>
+        <th></th>
+        <th>Item</th>
+        {% if tags_list %}
+          <th>Tags</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in page_obj %}
+      <tr>
+        <td><input type="checkbox" id="id_items_{{item.id}}" name="items" value="{{item.id}}"></td>
+        <td><i class="fa fa-bookmark{% if not item.primary %}-o{% endif %}"></i></td>
+        <td><a href="{% url 'aristotle_mdr:item' item.id %}">{{ item.name }}</a></td>
+        {% if tags_list %}
+          <td>
+            <ul class="taggle_list">
+              {% for tag in item.tags %}
+                <li class="taggle">{{ tag }}</li>  
+              {% endfor %}
+            </ul>
+          </td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% include "aristotle_mdr/helpers/list_action_bar.html" with wrap=True %}
+</form>

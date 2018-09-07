@@ -150,3 +150,13 @@ class FavouritesAndTags(ListView):
         context['help'] = self.request.GET.get('help', False)
         context['favourite'] = self.request.GET.get('favourite', False)
         return context
+
+
+class TagView(ListView):
+
+    paginate_by = 20
+    template_name = "aristotle_mdr/favourites/tags.html"
+
+    def get_queryset(self):
+
+        return Favourite.objects
