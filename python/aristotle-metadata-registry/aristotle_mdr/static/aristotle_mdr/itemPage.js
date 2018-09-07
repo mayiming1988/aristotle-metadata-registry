@@ -25,7 +25,7 @@ $(document).ready(function() {
 
 tagComponent = {
   template: '<div><div id="taggle-editor" class="input taggle_textarea"></div>',
-  props: ['initial', 'value'],
+  props: ['initial', 'value', 'newtags'],
   mounted: function() {
     var component = this;
 
@@ -68,6 +68,19 @@ tagComponent = {
   watch: {
     value: function() {
       this.tag_editor.add(this.value)
+    },
+    newtags: function() {
+      console.log(this.newtags)
+      var elements = this.tag_editor.getTagElements()
+      for (var i=0; i < elements.length; i++) {
+        var element = $(elements[i])
+        var text = element.find('.taggle_text').text()
+        if (this.newtags.indexOf(text) != -1) {
+          element.addClass('taggle_newtag')
+        } else {
+          element.removeClass('taggle_newtag')
+        }
+      }
     }
   }
 }
@@ -91,6 +104,18 @@ var vm = new Vue({
 
     // All a users tags
     this.user_tags = tags.user
+  },
+  computed: {
+    newTags: function() {
+      newTags = []
+      for (var i=0; i < this.current_tags.length; i++) {
+        var element = this.current_tags[i]
+        if (this.user_tags.indexOf(element) == -1) {
+          newTags.push(element)
+        }
+      }
+      return newTags
+    }
   },
   methods: {
     submit_tags: function(tags) {

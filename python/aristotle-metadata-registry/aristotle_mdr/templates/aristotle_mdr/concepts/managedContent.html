@@ -89,7 +89,7 @@
               <p>Step right up, all your tag needs here</p>
 
               <vue-simple-suggest :list="getSuggestions" :filter-by-query="true" @select="makeSuggestion">
-                <taggle-tags :value="selected" :initial="saved_tags" @submit="submit_tags" @tag-update="update_tags"></taggle-tags>
+                <taggle-tags :value="selected" :initial="saved_tags" :newtags="newTags" @submit="submit_tags" @tag-update="update_tags"></taggle-tags>
               </vue-simple-suggest>
             </div>
             <div class="modal-footer">
