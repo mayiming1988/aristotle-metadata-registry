@@ -116,7 +116,7 @@ class EditTags(LoginRequiredMixin, View):
         return JsonResponse(response_dict)
 
 
-class FavouritesAndTags(ListView):
+class FavouritesAndTags(LoginRequiredMixin, ListView):
 
     paginate_by = 20
     template_name = "aristotle_mdr/user/userFavourites.html"
@@ -141,7 +141,10 @@ class FavouritesAndTags(ListView):
             if fav.tag.primary:
                 items[fav.item_id]['primary'] = True
             else:
-                items[fav.item_id]['tags'].append(fav.tag.name)
+                items[fav.item_id]['tags'].append({
+                    'id': fav.tag.id,
+                    'name': fav.tag.name
+                })
 
         return list(items.values())
 
@@ -152,11 +155,12 @@ class FavouritesAndTags(ListView):
         return context
 
 
-class TagView(ListView):
+class TagView(LoginRequiredMixin, ListView):
 
     paginate_by = 20
     template_name = "aristotle_mdr/favourites/tags.html"
 
     def get_queryset(self):
 
-        return Favourite.objects
+        tagid = self.kwargs['tagid']
+        return Favourite.objects.filter(tag_id=tagid)
