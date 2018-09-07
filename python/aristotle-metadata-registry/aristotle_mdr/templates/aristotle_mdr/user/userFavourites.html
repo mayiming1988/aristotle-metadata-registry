@@ -18,14 +18,37 @@
         Use your favourites list to keep track of important items to know when they change.
     </p>
         {% if not help %}
-            {% if page %}
+            {% if page_obj %}
                 <strong><a href="?help=help">Get help on using your favourites list</a></strong>
-                {% include "aristotle_mdr/helpers/bulk_action_paginated_list.html" with page=page allow_select_all=True %}
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th>Favourite</th>
+                      <th>Tags</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for item in page_obj %}
+                    <tr>
+                      <td>{{ item.name }}</td>
+                      <td>{{ item.primary|yesno }}</td>
+                      <td>
+                        <ul>
+                          {% for tag in item.tags %}
+                            <li>{{ tag }}</li>  
+                          {% endfor %}
+                        </ul>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
             {% else %}
                 <strong>You currently have no favourited items.</strong>
             {% endif %}
         {% endif %}
-        {% if user.profile.favourites.count == 0 or help %}
+        {% if not object_list or help %}
             <hr>
              <h2 id="using">Using your favourites list.</h2>
             <p>

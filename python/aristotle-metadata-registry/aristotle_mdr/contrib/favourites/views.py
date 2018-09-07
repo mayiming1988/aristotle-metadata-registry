@@ -4,13 +4,14 @@ from django.contrib.auth.decorators import login_required
 from aristotle_mdr.models import _concept
 from aristotle_mdr.perms import user_can_view
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import View
+from django.views.generic import View, ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.http.response import JsonResponse, HttpResponseRedirect
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
 
 import json
+from collections import defaultdict
 
 class ToggleFavourite(LoginRequiredMixin, View):
 
@@ -113,3 +114,37 @@ class EditTags(LoginRequiredMixin, View):
             response_dict['message'] = 'Tags Updated'
 
         return JsonResponse(response_dict)
+
+
+class FavouritesAndTags(ListView):
+
+    paginate_by = 20
+    template_name = "aristotle_mdr/user/userFavourites.html"
+
+    def get_queryset(self):
+
+        favs = Favourite.objects.filter(
+            tag__profile=self.request.user.profile
+        ).select_related('tag', 'item')
+
+        items = {}
+
+        for fav in favs:
+            if fav.item_id not in items:
+                items[fav.item_id] = {
+                    'name': fav.item.name,
+                    'tags': [],
+                    'primary': False
+                }
+
+            items[fav.item_id]['tags'].append(fav.tag.name)
+            if fav.tag.primary:
+                items[fav.item_id]['primary'] = True
+
+        return list(items.values())
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['help'] = self.request.GET.get('help', False)
+        context['favourite'] = self.request.GET.get('favourite', False)
+        return context

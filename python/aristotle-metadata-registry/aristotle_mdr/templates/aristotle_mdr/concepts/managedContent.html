@@ -86,7 +86,7 @@
               <div class="modal-title h4" id="TagEditor">Tag Editor</div>
             </div>
             <div class="modal-body">
-              <p>Step right up, all your tag needs here</p>
+              <p>Update your tags for this item, new tags (shown darker) will be created for you</p>
 
               <vue-simple-suggest :list="getSuggestions" :filter-by-query="true" @select="makeSuggestion">
                 <taggle-tags :value="selected" :initial="saved_tags" :newtags="newTags" @submit="submit_tags" @tag-update="update_tags"></taggle-tags>
