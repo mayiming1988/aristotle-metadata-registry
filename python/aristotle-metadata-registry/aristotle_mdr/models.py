@@ -739,7 +739,7 @@ class _concept(baseAristotleObject):
 
     @property
     def is_superseded(self):
-        return all(
+        return self.statuses.filter(state=STATES.superseded).count() > 0 and all(
             STATES.superseded == status.state for status in self.statuses.all()
         ) and self.superseded_by_items_relation_set.count() > 0
 
