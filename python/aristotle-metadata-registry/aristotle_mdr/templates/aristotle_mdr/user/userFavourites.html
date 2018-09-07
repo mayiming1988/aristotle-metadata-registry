@@ -1,5 +1,5 @@
 {% extends "aristotle_mdr/user/userHome.html" %}
-{% load aristotle_tags %}
+{% load aristotle_tags i18n %}
 
 {% block title %}My Favourites{% endblock %}
 {% block collapse-link%}<i class="fa fa-bookmark fa-fw"></i> My Favourites</a>{% endblock %}
@@ -20,30 +20,38 @@
         {% if not help %}
             {% if page_obj %}
                 <strong><a href="?help=help">Get help on using your favourites list</a></strong>
-                <table class="table">
-                  <thead>
-                    <tr>
-                      <th>Item</th>
-                      <th>Favourite</th>
-                      <th>Tags</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for item in page_obj %}
-                    <tr>
-                      <td>{{ item.name }}</td>
-                      <td>{{ item.primary|yesno }}</td>
-                      <td>
-                        <ul>
-                          {% for tag in item.tags %}
-                            <li>{{ tag }}</li>  
-                          {% endfor %}
-                        </ul>
-                      </td>
-                    </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
+                <form action="{% url 'aristotle:bulk_action' %}?next={{ request.path }}" method="POST">
+                  {% csrf_token %}
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>
+                          <input title='{% trans "Select all" %}' type="checkbox" id="all_in_queryset" name="all_in_queryset">
+                        </th>
+                        <th></th>
+                        <th>Item</th>
+                        <th>Tags</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for item in page_obj %}
+                      <tr>
+                        <td><input type="checkbox" id="id_items_{{item.id}}" name="items" value="{{item.id}}"></td>
+                        <td><i class="fa fa-bookmark{% if not item.primary %}-o{% endif %}"></i></td>
+                        <td><a href="{% url 'aristotle_mdr:item' item.id %}">{{ item.name }}</a></td>
+                        <td>
+                          <ul>
+                            {% for tag in item.tags %}
+                              <li>{{ tag }}</li>  
+                            {% endfor %}
+                          </ul>
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                {% include "aristotle_mdr/helpers/list_action_bar.html" with wrap=True %}
+                </form>
             {% else %}
                 <strong>You currently have no favourited items.</strong>
             {% endif %}

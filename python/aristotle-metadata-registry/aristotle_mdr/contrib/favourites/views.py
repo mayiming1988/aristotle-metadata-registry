@@ -132,6 +132,7 @@ class FavouritesAndTags(ListView):
         for fav in favs:
             if fav.item_id not in items:
                 items[fav.item_id] = {
+                    'id': fav.item.id,
                     'name': fav.item.name,
                     'tags': [],
                     'primary': False
