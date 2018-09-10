@@ -617,7 +617,9 @@ class PermissionSearchView(FacetedSearchView):
     def extra_context(self):
         # needed to compare to indexed primary key value
         if not self.request.user.is_anonymous():
-            favourites_pks = self.request.user.profile.favourites.all().values_list('id', flat=True)
+            favourites_pks = MDR._concept.objects.filter(
+                favourites__tag__profile=self.request.user.profile
+            ).values_list('id', flat=True)
             favourites_list = list(favourites_pks)
         else:
             favourites_list = []
