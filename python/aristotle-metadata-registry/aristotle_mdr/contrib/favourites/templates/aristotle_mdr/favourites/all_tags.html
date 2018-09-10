@@ -7,12 +7,17 @@
 {% endblock %}
 
 {% block page %}
+  <h1>All Tags</h1>
 
-{% if page_obj %}
-  <ul>
+  {% if page_obj %}
     {% for item in page_obj %}
-      <li>{{ item.name }}
+      {% if forloop.first or forloop.counter|divisibleby:"5" %}
+        <div class="row">
+      {% endif %}
+      <div class="col-md-3">{{ item.name }}</div>
+      {% if forloop.last or forloop.counter|divisibleby:"4" %}
+        </div>
+      {% endif %}
     {% endfor %}
-  </ul>
-{% endif %}
+  {% endif %}
 {% endblock %}
