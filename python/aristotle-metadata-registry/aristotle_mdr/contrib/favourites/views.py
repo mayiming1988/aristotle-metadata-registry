@@ -14,6 +14,7 @@ from django.db.models import Sum, Case, When, Count, Max, Min, F
 import json
 from collections import defaultdict
 
+
 class ToggleFavourite(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
@@ -28,11 +29,12 @@ class ToggleFavourite(LoginRequiredMixin, View):
         if request.is_ajax():
             return self.get_json_response(item, favourited)
         else:
-            return self.redirect_with_message(item, favourited)
+            if self.request.GET.get('next', None):
+                return HttpResponseRedirect(self.request.GET.get('next'))
+            else:
+                return self.redirect_with_message(item, favourited)
 
     def get_message(self, item, favourited):
-        if self.request.GET.get('next', None):
-            return redirect(request.GET.get('next'))
 
         if favourited:
             message = _("%s added to favourites.") % (item.name)
