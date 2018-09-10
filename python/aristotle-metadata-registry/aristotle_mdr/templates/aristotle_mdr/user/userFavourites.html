@@ -1,8 +1,8 @@
 {% extends "aristotle_mdr/user/userHome.html" %}
 {% load aristotle_tags i18n static %}
 
-{% block title %}My Favourites{% endblock %}
-{% block collapse-link%}<i class="fa fa-bookmark fa-fw"></i> My Favourites</a>{% endblock %}
+{% block title %}Favourites and Tags{% endblock %}
+{% block collapse-link%}<i class="fa fa-bookmark fa-fw"></i> Favourites and Tags</a>{% endblock %}
 {% block sidebar %}
     {% include "aristotle_mdr/user/userSideBar.html" with activeTab='favourites' %}
 {% endblock %}
@@ -13,22 +13,36 @@
 {% endblock %}
 
 {% block page %}
-    <h1><a href="#"><i class="fa fa-bookmark fa-fw"></i> My Favourites</a></h1>
+    <h1><a href="#"><i class="fa fa-bookmark fa-fw"></i> Favourites and Tags</a></h1>
     <div>
+    <ul class="taggle_list">
+      <li class="taggle taggle_postit">
+        <a href="{% url 'aristotle_favourites:favs' %}">
+          <i class="fa fa-bookmark fa-fw"></i>
+          Untagged Favourites
+        </a>
+      </li>
+      {% for tag in tags %}
+        <li class="taggle">
+          <a href="{% url 'aristotle_favourites:tag' tag.id %}">{{ tag.name }}</a>
+        </li>
+      {% endfor %}
+    </ul>
     <p>
         Below is a list of all your favourited items, you will recieve notifications
         when any of these items are edit, if their registration status changes or if they are made public.
     </p>
     <p>
         Use your favourites list to keep track of important items to know when they change.
+        <strong><a href="?help=help">Get help on using your favourites list</a></strong>
     </p>
         {% if not help %}
             {% if page_obj %}
-                <strong><a href="?help=help">Get help on using your favourites list</a></strong>
                 {% include 'aristotle_mdr/favourites/ba_paginated_favourite_list.html' with page_obj=page_obj tags_list=True %}
             {% else %}
                 <strong>You currently have no favourited items.</strong>
             {% endif %}
+
         {% endif %}
         {% if not object_list or help %}
             <hr>

@@ -53,6 +53,10 @@
   color: white !important;
 }
 
+.taggle_list .taggle_postit {
+  background-color: gold !important;
+}
+
 .taggle_list .taggle_hot {
   background: #BDD0DD;
 }

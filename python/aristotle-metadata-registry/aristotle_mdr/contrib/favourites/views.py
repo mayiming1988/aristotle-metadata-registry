@@ -150,10 +150,18 @@ class FavouritesAndTags(LoginRequiredMixin, ListView):
 
         return list(items.values())
 
+    def get_tags(self):
+
+        return Tag.objects.filter(
+            profile=self.request.user.profile,
+            primary=False
+        )
+
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['help'] = self.request.GET.get('help', False)
         context['favourite'] = self.request.GET.get('favourite', False)
+        context['tags'] = self.get_tags()
         return context
 
 
@@ -166,3 +174,37 @@ class TagView(LoginRequiredMixin, ListView):
 
         tagid = self.kwargs['tagid']
         return Favourite.objects.filter(tag_id=tagid)
+
+    def get_tag(self):
+
+        tagid = self.kwargs['tagid']
+        return Tag.objects.get(id=tagid)
+
+    def get_context_data(self):
+
+        context = super().get_context_data()
+        tag = self.get_tag()
+        context['tag'] = tag
+        context['title'] = tag.name
+        return context
+
+
+class FavouriteView(LoginRequiredMixin, ListView):
+
+    paginate_by = 20
+    template_name = "aristotle_mdr/favourites/tags.html"
+
+    def get_queryset(self):
+
+        try:
+            tag = Tag.objects.get(profile=self.request.user.profile, primary=True)
+        except Tag.DoesNotExist:
+            return Favourite.objects.none()
+
+        return Favourite.objects.filter(tag=tag)
+
+    def get_context_data(self):
+
+        context = super().get_context_data()
+        context['title'] = 'My Favourites'
+        return context
