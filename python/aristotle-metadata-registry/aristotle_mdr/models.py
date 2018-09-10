@@ -749,6 +749,14 @@ class _concept(baseAristotleObject):
             STATES.retired == status.state for status in self.statuses.all()
         ) and self.statuses.count() > 0
 
+    @property
+    def favourited_by(self):
+        from django.contrib.auth import get_user_model
+        user_model = get_user_model()
+        return user_model.objects.filter(
+            profile__tags__favourites__item=self
+        ).distinct()
+
     def check_is_public(self, when=timezone.now()):
         """
             A concept is public if any registration authority
