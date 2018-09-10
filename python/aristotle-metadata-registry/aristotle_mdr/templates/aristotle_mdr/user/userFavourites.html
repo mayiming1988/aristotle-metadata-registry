@@ -27,6 +27,7 @@
           <a href="{% url 'aristotle_favourites:tag' tag.id %}">{{ tag.name }}</a>
         </li>
       {% endfor %}
+      <li><a href="{% url 'aristotle_favourites:all_tags' %}">View all tags</a></li>
     </ul>
     <p>
         Below is a list of all your favourited items, you will recieve notifications

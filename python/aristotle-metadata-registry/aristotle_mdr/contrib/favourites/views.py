@@ -9,8 +9,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.http.response import JsonResponse, HttpResponseRedirect
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
-from django.db.models import Sum, Case, When, Count
-from django.db.models.functions import Cast
+from django.db.models import Sum, Case, When, Count, Max, Min
 
 import json
 from collections import defaultdict
@@ -157,7 +156,9 @@ class FavouritesAndTags(LoginRequiredMixin, ListView):
         return Tag.objects.filter(
             profile=self.request.user.profile,
             primary=False
-        )
+        ).annotate(
+            used=Max('favourites__created')
+        ).order_by('used')[:5]
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -218,3 +219,15 @@ class FavouriteView(LoginRequiredMixin, ListView):
         context = super().get_context_data()
         context['title'] = 'My Favourites'
         return context
+
+
+class AllTagView(LoginRequiredMixin, ListView):
+
+    paginate_by = 20
+    template_name = "aristotle_mdr/favourites/all_tags.html"
+
+    def get_queryset(self):
+        return Tag.objects.filter(
+            profile=self.request.user.profile,
+            primary=False
+        )

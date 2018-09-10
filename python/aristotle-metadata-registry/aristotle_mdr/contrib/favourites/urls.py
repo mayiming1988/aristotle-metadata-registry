@@ -7,4 +7,5 @@ urlpatterns = [
     url(r'^favsandtags/?$', views.FavouritesAndTags.as_view(), name='favs_and_tags'),
     url(r'^favourites/?$', views.FavouriteView.as_view(), name='favs'),
     url(r'^tag/(?P<tagid>\d+)/?$', views.TagView.as_view(), name='tag'),
+    url(r'^alltags?$', views.AllTagView.as_view(), name='all_tags'),
 ]
