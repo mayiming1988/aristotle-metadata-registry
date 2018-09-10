@@ -202,6 +202,7 @@ class TagView(LoginRequiredMixin, ListView):
         tag = self.get_tag()
         context['tag'] = tag
         context['title'] = tag.name
+        context['vue'] = True
         return context
 
 

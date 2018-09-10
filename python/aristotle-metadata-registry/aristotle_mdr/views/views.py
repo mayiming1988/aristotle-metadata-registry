@@ -182,7 +182,8 @@ def render_if_condition_met(request, condition, objtype, iid, model_slug=None, n
             # 'view': request.GET.get('view', '').lower(),
             'isFavourite': isFavourite,
             'tags': tags,
-            'last_edit': last_edit
+            'last_edit': last_edit,
+            'vue': True
         }
     )
 
