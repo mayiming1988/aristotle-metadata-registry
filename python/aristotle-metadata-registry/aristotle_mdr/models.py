@@ -870,7 +870,11 @@ class SupersedeRelationship(TimeStampedModel):
     )
     registration_authority = models.ForeignKey(RegistrationAuthority)
     message = models.TextField(blank=True, null=True)
-
+    date_effective = models.DateField(
+        _('Date effective'),
+        help_text=_("The date the superseding relationship became effective."),
+        blank=True, null=True
+    )
 
 
 REVIEW_STATES = Choices(

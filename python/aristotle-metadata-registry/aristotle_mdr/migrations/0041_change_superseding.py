@@ -33,7 +33,7 @@ def move_to_old(apps, schema_migration):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_mdr', '0037_make_name_shorttext'),
+        ('aristotle_mdr', '0039_auto_20180828_1926'),
     ]
 
     operations = [
@@ -44,6 +44,7 @@ class Migration(migrations.Migration):
                 ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
                 ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
                 ('message', models.TextField(blank=True, null=True)),
+                ('date_effective', models.DateField(blank=True, help_text='The date the superseding relationship became effective.', null=True, verbose_name='Date effective')),
             ],
             options={
                 'abstract': False,
