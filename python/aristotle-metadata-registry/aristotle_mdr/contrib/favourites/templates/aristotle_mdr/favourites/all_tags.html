@@ -10,14 +10,26 @@
   <h1>All Tags</h1>
 
   {% if page_obj %}
-    {% for item in page_obj %}
-      {% if forloop.first or forloop.counter|divisibleby:"5" %}
-        <div class="row">
-      {% endif %}
-      <div class="col-md-3">{{ item.name }}</div>
-      {% if forloop.last or forloop.counter|divisibleby:"4" %}
-        </div>
-      {% endif %}
-    {% endfor %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Tag</th>
+          <th>Description</th>
+          <th>Items</th>
+        </tr>
+      </thead> 
+      <tbody>
+      {% for item in page_obj %}
+        <tr>
+          <td>
+            <a href="{% url 'aristotle_favourites:tag' item.id %}">{{ item.name }}</a>
+          </td>
+          <td>{{ item.description }}</td>
+          <td>{{ item.num_items }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
   {% endif %}
+  {% include "aristotle_mdr/helpers/paginator.html" with page=page %}
 {% endblock %}

@@ -233,4 +233,4 @@ class AllTagView(LoginRequiredMixin, ListView):
         return Tag.objects.filter(
             profile=self.request.user.profile,
             primary=False
-        )
+        ).annotate(num_items=Count('favourites'))
