@@ -9,7 +9,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.http.response import JsonResponse, HttpResponseRedirect
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
-from django.db.models import Sum, Case, When, Count, Max, Min
+from django.db.models import Sum, Case, When, Count, Max, Min, F
 
 import json
 from collections import defaultdict
@@ -153,12 +153,15 @@ class FavouritesAndTags(LoginRequiredMixin, ListView):
 
     def get_tags(self):
 
+        # Get a users tags ordered by last usage, limited to 5
         return Tag.objects.filter(
             profile=self.request.user.profile,
             primary=False
         ).annotate(
             used=Max('favourites__created')
-        ).order_by('used')[:5]
+        ).order_by(
+            F('used').desc(nulls_last=True)
+        )[:5]
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
