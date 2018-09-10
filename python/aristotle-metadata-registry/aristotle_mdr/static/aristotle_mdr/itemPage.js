@@ -25,13 +25,13 @@ $(document).ready(function() {
 
 tagComponent = {
   template: '<div><div id="taggle-editor" class="input taggle_textarea"></div>',
-  props: ['initial', 'value', 'newtags'],
+  props: ['tags', 'newtags'],
   mounted: function() {
     var component = this;
 
     this.tag_editor = new Taggle('taggle-editor', {
       preserveCase: true,
-      tags: component.initial,
+      tags: component.tags,
       onTagAdd: function(e, tag) {
         component.updateTags()
       },
@@ -62,15 +62,21 @@ tagComponent = {
   },
   methods: {
     updateTags: function() {
-      this.$emit('tag-update', this.tag_editor.getTags().values)
+      this.$emit('tag-update', this.tag_editor.getTagValues())
     }
   },
   watch: {
-    value: function() {
-      this.tag_editor.add(this.value)
+    tags: function() {
+      current_tags = this.tag_editor.getTagValues()
+      for (var i=0; i < this.tags.length; i++) {
+        var tag = this.tags[i]
+        // Add tag if not already present
+        if (current_tags.indexOf(tag == -1)) {
+          this.tag_editor.add(tag)
+        }
+      }
     },
     newtags: function() {
-      console.log(this.newtags)
       var elements = this.tag_editor.getTagElements()
       for (var i=0; i < elements.length; i++) {
         var element = $(elements[i])
@@ -97,8 +103,8 @@ var vm = new Vue({
   },
   created: function() {
     var tags = JSON.parse($('#tags-json').text())
-    // Tags that have been submitted
-    this.saved_tags = tags.item
+    // Tags that have been submitted (deepcopy)
+    this.saved_tags = tags.item.slice()
     // Tags currently in editor
     this.current_tags = tags.item
 
@@ -152,7 +158,9 @@ var vm = new Vue({
       return suggestions
     },
     makeSuggestion: function(suggestion) {
-      this.selected = suggestion
+      if (suggestion != null) {
+        this.current_tags.push(suggestion)
+      }
     }
   }
 })
