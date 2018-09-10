@@ -37,45 +37,48 @@
 <section class="managed row">
     <div id="vue-managed-content">
       {% include "aristotle_mdr/concepts/infobox.html" %}
-      {% include "aristotle_mdr/concepts/visibilityInfoBar.html" %}
+      <div v-pre>
+        {# Pre rendered content #}
+        {% include "aristotle_mdr/concepts/visibilityInfoBar.html" %}
 
-      <h2 title="{% doc item 'definition' %}">{% trans 'Definition'%}</h2>
-      <div id="definition" class="definition">
-          {{ item.definition | safe}}
+        <h2 title="{% doc item 'definition' %}">{% trans 'Definition'%}</h2>
+        <div id="definition" class="definition">
+            {{ item.definition | safe}}
+        </div>
+
+        {% block objSpecific %}{% endblock %}
+
+        {% if item.comments %}
+            <h2>Comments</h2>
+            {{ item.comments | safe }}
+        {% endif %}
+
+        {% if item.references %}
+        <div>
+        <h2>References</h2>
+            <p>{{ item.references | safe }}</p>
+            {% if item.submitting_organisation %}
+            <h3>Submitting Organisation</h3>
+                <p>{{ item.submitting_organisation }}</p>
+            {% endif %}
+            {% if item.responsible_organisation %}
+            <h3>Responsible Organisation</h3>
+                <p>{{ item.responsible_organisation }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% if 'aristotle_mdr.contrib.slots'|is_active_module %}
+            {% include "aristotle_mdr/slots/slots_display.html" %}
+        {% endif %}
+        {% if 'aristotle_mdr.contrib.links'|is_active_module %}
+            {% include "aristotle_mdr/links/links_display.html" %}
+        {% endif %}
+        <h2>Related content</h2>
+            {% block relationships %}{% endblock %}
+            {% for extension in config.CONTENT_EXTENSIONS %}
+                {% extra_content extension item request.user %}
+            {% endfor %}
       </div>
-
-      {% block objSpecific %}{% endblock %}
-
-      {% if item.comments %}
-          <h2>Comments</h2>
-          {{ item.comments | safe }}
-      {% endif %}
-
-      {% if item.references %}
-      <div>
-      <h2>References</h2>
-          <p>{{ item.references | safe }}</p>
-          {% if item.submitting_organisation %}
-          <h3>Submitting Organisation</h3>
-              <p>{{ item.submitting_organisation }}</p>
-          {% endif %}
-          {% if item.responsible_organisation %}
-          <h3>Responsible Organisation</h3>
-              <p>{{ item.responsible_organisation }}</p>
-          {% endif %}
-      </div>
-      {% endif %}
-      {% if 'aristotle_mdr.contrib.slots'|is_active_module %}
-          {% include "aristotle_mdr/slots/slots_display.html" %}
-      {% endif %}
-      {% if 'aristotle_mdr.contrib.links'|is_active_module %}
-          {% include "aristotle_mdr/links/links_display.html" %}
-      {% endif %}
-      <h2>Related content</h2>
-          {% block relationships %}{% endblock %}
-          {% for extension in config.CONTENT_EXTENSIONS %}
-              {% extra_content extension item request.user %}
-          {% endfor %}
 
       <div class="modal fade exclude-scrap" id="TagEditorModal" tabindex="-1" role="dialog" aria-labelledby="TagEditor">
         <div class="modal-dialog" role="document">
