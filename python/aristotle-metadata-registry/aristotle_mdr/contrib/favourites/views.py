@@ -9,6 +9,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.http.response import JsonResponse, HttpResponseRedirect
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
+from django.db.models import Sum, Case, When, Count
+from django.db.models.functions import Cast
 
 import json
 from collections import defaultdict
@@ -134,14 +136,14 @@ class FavouritesAndTags(LoginRequiredMixin, ListView):
                 items[fav.item_id] = {
                     'item': {
                         'id': fav.item.id,
-                        'name': fav.item.name
+                        'name': fav.item.name,
                     },
                     'tags': [],
-                    'primary': False
+                    'item_favourite': 0
                 }
 
             if fav.tag.primary:
-                items[fav.item_id]['primary'] = True
+                items[fav.item_id]['item_favourite'] = 1
             else:
                 items[fav.item_id]['tags'].append({
                     'id': fav.tag.id,
@@ -173,7 +175,15 @@ class TagView(LoginRequiredMixin, ListView):
     def get_queryset(self):
 
         tagid = self.kwargs['tagid']
-        return Favourite.objects.filter(tag_id=tagid)
+        return Favourite.objects.filter(
+            tag_id=tagid
+        ).annotate(
+            item_favourite=Count(
+                Case(
+                    When(item__favourites__tag__primary=True, then=1)
+                )
+            )
+        )
 
     def get_tag(self):
 

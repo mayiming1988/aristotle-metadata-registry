@@ -18,7 +18,7 @@
       {% for fav in page_obj %}
       <tr>
         <td><input type="checkbox" id="id_items_{{fav.item.id}}" name="items" value="{{fav.item.id}}"></td>
-        <td><i class="fa fa-bookmark{% if not fav.primary %}-o{% endif %}"></i></td>
+        <td><i class="fa fa-bookmark{% if fav.item_favourite < 1 %}-o{% endif %}"></i>{{ fav.is_favourite }}</td>
         <td><a href="{% url 'aristotle_mdr:item' fav.item.id %}">{{ fav.item.name }}</a></td>
         {% if tags_list %}
           <td>
