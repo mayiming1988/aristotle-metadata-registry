@@ -10,6 +10,7 @@
 {% block extra_head_scripts %}
   {{ block.super }}
   <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/taggle.css' %}" />
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.min.js"></script>
 {% endblock %}
 
 {% block page %}
@@ -19,10 +20,25 @@
       {{ title }}
     </a>
   </h1>
+  {% if tag %}
+  <noscript>
+    <form>
+      <label for="description">Description</label>
+      <textarea name="description">
+        {{ tag.description }}
+      </textarea>
+    </form>
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </noscript>
+  <div id="vue-managed-content">
+    <switch-edit name="description" initial="{{ tag.description }}" v-model="description"></switch-edit>
+  </div>
+  {% endif %}
   {% if page_obj %}
     {% include 'aristotle_mdr/favourites/ba_paginated_favourite_list.html' with page_obj=page_obj tags_list=False %}
   {% endif %}
   <a class="btn btn-default margin-above" href="{% url 'aristotle_favourites:favs_and_tags' %}">
     Back
   </a>
+  <script src="{% static 'aristotle_mdr/vue/tagPage.js' %}"></script>
 {% endblock %}
