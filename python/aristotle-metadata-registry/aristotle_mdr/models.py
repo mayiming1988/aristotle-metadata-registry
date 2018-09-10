@@ -1510,6 +1510,12 @@ class PossumProfile(models.Model):
             )
             return True
 
+    @property
+    def favourite_item_pks(self):
+        qs = _concept.objects.filter(
+            favourites__tag__profile=self
+        ).distinct().values_list('id', flat=True)
+        return list(qs)
 
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
