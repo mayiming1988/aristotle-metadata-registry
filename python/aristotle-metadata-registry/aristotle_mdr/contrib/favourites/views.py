@@ -120,7 +120,7 @@ class EditTags(LoginRequiredMixin, View):
 class FavouritesAndTags(LoginRequiredMixin, ListView):
 
     paginate_by = 20
-    template_name = "aristotle_mdr/user/userFavourites.html"
+    template_name = "aristotle_mdr/favourites/userFavourites.html"
 
     def get_queryset(self):
 
