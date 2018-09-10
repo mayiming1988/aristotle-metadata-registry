@@ -393,5 +393,4 @@ class SupersedeItemView(UnorderedGenericAlterOneToManyView, ItemSubpageView, Per
         return {
             "item": self.item.item,
             "user": self.request.user,
-            "qs": self.item.item._meta.model.objects.visible(self.request.user)
         }

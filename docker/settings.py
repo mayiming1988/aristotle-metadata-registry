@@ -6,7 +6,7 @@ import dj_database_url
 from aristotle_mdr.required_settings import *
 
 ALLOWED_HOSTS = ["*"]
-DEBUG = True
+DEBUG = os.environ.get('DEBUG_TOOLBAR', False)
 ARISTOTLE_SETTINGS['SITE_NAME'] = 'Aristotle Development Server'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
@@ -45,3 +45,12 @@ LOGGING = {
         },
     }
 }
+
+# Debug toolbar
+import socket
+DEBUG_TOOLBAR = os.environ.get('DEBUG_TOOLBAR', False)
+if DEBUG and DEBUG_TOOLBAR:
+    MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+    INSTALLED_APPS += ('debug_toolbar',)
+    ip = socket.gethostbyname(socket.gethostname())
+    INTERNAL_IPS = [ip[:-1] + '1']

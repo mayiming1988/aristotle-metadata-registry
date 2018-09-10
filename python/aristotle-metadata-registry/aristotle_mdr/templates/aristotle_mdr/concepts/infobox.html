@@ -88,33 +88,49 @@
             </dt>
             <dd class="large">
             <ul>
-                {% for suprel in item.superseded_items_relation_set.all|can_view_iter:request.user %}
+                {# This is inefficient - % for suprel in item.superseded_items_relation_set.all %#}
+                {% for suprel in item|visible_supersedes_items:request.user %}
                     <li>
-                      <a href="{% url 'aristotle:item' iid=suprel.older_item_id %}/">
+                      <a href="{% url 'aristotle:item' iid=suprel.older_item.id %}">
                         {{ suprel.older_item.name }}
                       </a>
-                      (
-                      {{ suprel.registration_authority.name }}
-                      )
-                    </li>
+                      <ul>
+                        {% for rel in suprel.rels %}
+                          <li>
+                            <span title="{% trans 'The registration authority that applied this relationship' %}">
+                              {{ rel.registration_authority.name }}
+                            </span>,
+                          {{ rel.date_effective }} -
+                          {{ rel.message }}
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    </small></li>
                 {% empty %}
                     <li><em>{% trans 'None' context 'No older objects' %}</em></li>
                 {% endfor %}
-            </ul>
+                </ul>
             </dd>
-
             <dt class="large">{% trans 'Superseded by'%}
             </dt>
             <dd class="large">
             <ul>
-                {% for suprel in item.superseded_by_items_relation_set.all|can_view_iter:request.user %}
+                {% for suprel in item|visible_superseded_by_items:request.user %}
                     <li>
-                      <a href="{% url 'aristotle:item' iid=suprel.newer_item_id %}/">
+                      <a href="{% url 'aristotle:item' iid=suprel.newer_item.id %}">
                         {{ suprel.newer_item.name }}
                       </a>
-                      (
-                      {{ suprel.registration_authority.name }}
-                      )
+                      <ul>
+                        {% for rel in suprel.rels %}
+                          <li>
+                            <span title="{% trans 'The registration authority that applied this relationship' %}">
+                              {{ rel.registration_authority.name }}
+                            </span>,
+                          {{ rel.date_effective }} -
+                          {{ rel.message }}
+                          </li>
+                        {% endfor %}
+                      </ul>
                     </li>
                 {% empty %}
                     <li><em>{% trans 'None' context 'No newer objects' %}</em></li>

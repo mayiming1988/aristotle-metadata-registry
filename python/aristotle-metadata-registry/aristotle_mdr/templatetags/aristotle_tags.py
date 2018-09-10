@@ -155,10 +155,87 @@ def can_view_iter(qs, user):
           {{ item }}
         {% endfor %}
     """
-    try:
-        return qs.visible(user)
-    except:  # pragma: no cover -- passing a bad queryset is the template authors fault
-        return []
+    return qs.visible(user)
+
+
+@register.filter
+def visible_supersedes_items(item, user):
+    """
+    Fetch older items for a newer item
+    """
+    # TODO: Add to view
+    objects = item.__class__.objects.prefetch_related(
+        'superseded_by_items_relation_set__older_item',
+        # 'superseded_by_items_relation_set__newer_item',
+        'superseded_by_items_relation_set__registration_authority',
+    ).visible(user).filter(
+        superseded_by_items_relation_set__newer_item_id=item.pk
+    ).distinct()
+    sup_rels = [
+        {
+            "pk": obj.pk,
+            "older_item": obj,
+            "rels": [{
+                    # "newer_item": sup.newer_item,
+                    "message": sup.message,
+                    "date_effective": sup.date_effective,
+                    "registration_authority": sup.registration_authority,
+                }
+                for sup in obj.superseded_by_items_relation_set.all()
+                if sup.newer_item_id == item.pk
+            ]
+        }
+        for obj in objects
+    ]
+    sup_rels.sort(key=lambda x: x['pk'])
+    return sup_rels
+
+
+@register.filter
+def visible_superseded_by_items(item, user):
+    """
+    Fetch newer items for an older item
+    """
+    # TODO: Add to view
+    objects = item.__class__.objects.prefetch_related(
+        # 'superseded_items_relation_set__older_item',
+        'superseded_items_relation_set__newer_item',
+        'superseded_items_relation_set__registration_authority',
+    ).visible(user).filter(
+        superseded_items_relation_set__older_item_id=item.pk
+    ).distinct()
+    # sup_rels = [
+    #     {
+    #         "pk": sup.pk,
+    #         # "older_item": sup.older_item,
+    #         "newer_item": sup.newer_item,
+    #         "message": sup.message,
+    #         "registration_authority": sup.registration_authority,
+    #     }
+    #     for obj in objects
+    #     for sup in obj.superseded_items_relation_set.all()
+    #     if sup.older_item_id == item.pk
+    # ]
+    # sup_rels.sort(key=lambda x: x['pk'])
+    # return sup_rels
+    sup_rels = [
+        {
+            "pk": obj.pk,
+            "newer_item": obj,
+            "rels": [{
+                    # "newer_item": sup.newer_item,
+                    "message": sup.message,
+                    "date_effective": sup.date_effective,
+                    "registration_authority": sup.registration_authority,
+                }
+                for sup in obj.superseded_items_relation_set.all()
+                if sup.older_item_id == item.pk
+            ]
+        }
+        for obj in objects
+    ]
+    sup_rels.sort(key=lambda x: x['pk'])
+    return sup_rels
 
 
 @register.filter
