@@ -33,7 +33,7 @@ from aristotle_mdr import models as MDR
 from aristotle_mdr.utils import get_concepts_for_apps, fetch_aristotle_settings, fetch_aristotle_downloaders
 from aristotle_mdr.views.utils import generate_visibility_matrix
 from aristotle_mdr.contrib.slots.utils import get_allowed_slots
-from aristotle_mdr.contrib.favourites.models import Favourite
+from aristotle_mdr.contrib.favourites.models import Favourite, Tag
 
 from haystack.views import FacetedSearchView
 
@@ -157,16 +157,22 @@ def render_if_condition_met(request, condition, objtype, iid, model_slug=None, n
 
     default_template = "%s/concepts/%s.html" % (item.__class__._meta.app_label, item.__class__._meta.model_name)
 
-    # Get all the tags on this item by this user
+    # Get all the tags on this item by this user, and all this users tags
+    tags = {}
     if request.user.is_authenticated():
-        current_tags = Favourite.objects.filter(
+        item_tags = Favourite.objects.filter(
             tag__profile=request.user.profile,
             tag__primary=False,
             item=item
         ).order_by('created').values_list('tag__name', flat=True)
-        current_tags = list(current_tags)
-    else:
-        current_tags = []
+
+        user_tags = Tag.objects.filter(
+            profile=request.user.profile
+        ).values_list('name', flat=True)
+
+        tags['item'] = list(item_tags)
+        tags['user'] = list(user_tags)
+
 
     return render(
         request, [default_template, item.template],
@@ -175,7 +181,7 @@ def render_if_condition_met(request, condition, objtype, iid, model_slug=None, n
             'slots': slots,
             # 'view': request.GET.get('view', '').lower(),
             'isFavourite': isFavourite,
-            'tags': current_tags,
+            'tags': tags,
             'last_edit': last_edit
         }
     )
