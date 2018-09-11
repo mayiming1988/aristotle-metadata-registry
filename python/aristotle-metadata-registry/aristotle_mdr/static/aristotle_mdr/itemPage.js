@@ -40,11 +40,6 @@ tagComponent = {
       }
     })
 
-    $('#tag-editor-submit').click(function() {
-      var tags = component.tag_editor.getTags().values
-      component.$emit('submit', tags)
-    })
-
     // Attach events, used by autocomplete
     var input = this.tag_editor.getInput()
     $(input).on('input', function(e) {
@@ -99,7 +94,7 @@ var simpleList = {
 }
 
 var vm = new Vue({
-  el: '#vue-managed-content',
+  el: '#vue-container',
   components: {
     'taggle-tags': tagComponent,
     'simple-list': simpleList
@@ -132,9 +127,10 @@ var vm = new Vue({
     }
   },
   methods: {
-    submit_tags: function(tags) {
+    submit_tags: function() {
       var csrf_token = getCookie('csrftoken')
       var url = edit_tag_url
+      var tags = this.current_tags
       var data = {
         tags: JSON.stringify(tags),
         csrfmiddlewaretoken: csrf_token

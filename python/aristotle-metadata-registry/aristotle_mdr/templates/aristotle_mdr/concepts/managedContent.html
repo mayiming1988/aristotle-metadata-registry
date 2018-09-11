@@ -34,7 +34,7 @@
     {% include "aristotle_mdr/concepts/actionbar.html" %}
 </header>
 <section class="managed row">
-    <div id="vue-managed-content">
+    <div id="vue-container">
       {% include "aristotle_mdr/concepts/infobox.html" %}
       <div v-pre>
         {# Pre rendered content #}
@@ -91,12 +91,12 @@
               <p>Update your tags for this item, new tags (shown darker) will be created for you</p>
 
               <vue-simple-suggest :list="getSuggestions" :filter-by-query="true" @select="makeSuggestion">
-                <taggle-tags :tags="current_tags" :newtags="newTags" @submit="submit_tags" @tag-update="update_tags"></taggle-tags>
+                <taggle-tags :tags="current_tags" :newtags="newTags" @tag-update="update_tags"></taggle-tags>
               </vue-simple-suggest>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-              <button id="tag-editor-submit" type="button" class="btn btn-primary">Save changes</button>
+              <button id="tag-editor-submit" type="button" class="btn btn-primary" @click="submit_tags">Save changes</button>
             </div>
 
           </div>
