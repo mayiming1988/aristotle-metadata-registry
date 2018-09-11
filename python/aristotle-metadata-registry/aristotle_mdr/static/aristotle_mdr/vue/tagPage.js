@@ -4,7 +4,7 @@ var switchEditComponent = {
     <label :for="name">{{ capitalName }}:</label>\
       <template v-if="!editing">\
         {{ value }}\
-        <a class="inline-action" @click="toggleEdit">[Edit]</a>\
+        <a class="inline-action" href="#" @click="toggleEdit">[Edit]</a>\
       </template>\
       <template v-else>\
         <div v-if="error" class="alert alert-danger" role="alert">{{ error }}</div>\

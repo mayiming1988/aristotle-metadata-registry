@@ -7,6 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import View, ListView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
+from django.urls import reverse
 from django.http.response import JsonResponse, HttpResponseRedirect
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
 from django.db.models import Sum, Case, When, Count, Max, Min, F
@@ -245,3 +246,17 @@ class EditTagView(AjaxFormMixin, UpdateView):
     fields = ['description']
     pk_url_kwarg = 'tagid'
     ajax_success_message = 'Tag description updated'
+
+    def get_success_url(self):
+        return reverse('aristotle_favourites:tag', args=[self.kwargs['tagid']])
+
+    def form_invalid(self, form):
+        if not self.request.is_ajax():
+            messages.add_message(self.request, messages.SUCCESS, 'Description could not be updated')
+        return super().form_invalid(form)
+
+    def form_valid(self, form):
+        if not self.request.is_ajax():
+            messages.add_message(self.request, messages.SUCCESS, 'Description updated')
+        return super().form_valid(form)
+

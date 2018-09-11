@@ -399,6 +399,7 @@ class AjaxFormMixin:
     appears
     """
     ajax_success_message = None
+
     def form_invalid(self, form):
         if self.request.is_ajax():
             # Return errors as json
@@ -409,7 +410,10 @@ class AjaxFormMixin:
             return JsonResponse(data)
         else:
             return super().form_invalid(form)
+
     def form_valid(self, form):
+        # Need to call super here for modelFormMixin compatibility
+        response = super().form_valid(form)
         if self.request.is_ajax():
             data = {'success': True}
             # If success message set
@@ -421,4 +425,4 @@ class AjaxFormMixin:
                 data['redirect'] = self.get_success_url()
                 return JsonResponse(data)
         else:
-            return super().form_valid(form)
+            return response

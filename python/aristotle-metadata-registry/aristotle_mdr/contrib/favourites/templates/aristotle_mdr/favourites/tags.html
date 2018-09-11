@@ -21,13 +21,14 @@
   </h1>
   {% if tag %}
   <noscript>
-    <form>
-      <label for="description">Description</label>
-      <textarea name="description">
-        {{ tag.description }}
-      </textarea>
+    <form method="POST" action="{% url 'aristotle_favourites:tag_edit' tag.id %}">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea name="description" class="form-control">{{ tag.description }}</textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
     </form>
-    <button type="submit" class="btn btn-primary">Submit</button>
   </noscript>
   <div id="vue-managed-content">
     <switch-edit 
