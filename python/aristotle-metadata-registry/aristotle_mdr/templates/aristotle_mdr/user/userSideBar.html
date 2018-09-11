@@ -30,7 +30,7 @@
     <li {% ifequal activeTab "favourites" %}class="active"{% endifequal %}>
         <a href="{% url 'aristotle_favourites:favs_and_tags' %}">
         <i class="fa fa-bookmark fa-fw"></i> Favourites and Tags
-        <span class="badge pull-right">{{ user.profile.favourites.count }}</span></a>
+        <span class="badge pull-right">{{ user.profile.tags.count }}</span></a>
     </li>
     <li {% ifequal inboxFolder "unread" %}class="active"{% endifequal %}>
         <a href="{% url 'aristotle:userInbox' %}">

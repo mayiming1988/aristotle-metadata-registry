@@ -45,7 +45,6 @@ var switchEditComponent = {
       this.editing = !this.editing
     },
     submitInput: function(e) {
-      console.log(this.submitUrl)
       var component = this
       var data = {
         csrfmiddlewaretoken: getCookie('csrftoken')
