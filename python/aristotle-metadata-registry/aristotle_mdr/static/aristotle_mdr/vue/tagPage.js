@@ -7,19 +7,22 @@ var switchEditComponent = {
         <a class="inline-action" @click="toggleEdit">[Edit]</a>\
       </template>\
       <template v-else>\
-        <textarea class="form-control" :name="name" @input="textInput">{{ value }}</textarea>\
+        <div v-if="error" class="alert alert-danger" role="alert">{{ error }}</div>\
+        <textarea class="form-control" :name="name" v-model="value"></textarea>\
       </template>\
     </div>\
     <button v-if="editing" class="btn btn-primary" type="submit" @click="submitInput">Submit</button>\
   </div>',
-  props: ['name', 'value', 'initial'], 
+  props: ['name', 'initial', 'submitUrl'], 
   created: function() {
     this.value = this.initial
     this.$emit('input', this.value)
   },
   data: function() {
     return {
-      editing: false
+      editing: false,
+      value: '',
+      error: ''
     }
   },
   computed: {
@@ -34,12 +37,28 @@ var switchEditComponent = {
     toggleEdit: function() {
       this.editing = true
     },
-    textInput: function(e) {
-      this.$emit('input', e.target.value)
-    },
     submitInput: function(e) {
-      this.$emit('submit', e)
-      this.editing = false
+      console.log(this.submitUrl)
+      var component = this
+      var data = {
+        csrfmiddlewaretoken: getCookie('csrftoken')
+      }
+      data[this.name] = this.value
+      $.post(
+        this.submitUrl,
+        data,
+        function(data) {
+          if (data.success) {
+            component.editing = false
+          } else {
+            if (data.errors[component.name] != undefined) {
+              component.error = data.errors[component.name]
+            } else {
+              component.error = 'Field could not be updated'
+            }
+          }
+        }
+      )
     }
   }
 }
@@ -48,8 +67,5 @@ var vm = new Vue({
   el: '#vue-managed-content',
   components: {
     'switch-edit': switchEditComponent
-  },
-  data: {
-    description: ''
-  },
+  }
 })

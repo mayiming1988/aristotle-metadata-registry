@@ -30,7 +30,11 @@
     <button type="submit" class="btn btn-primary">Submit</button>
   </noscript>
   <div id="vue-managed-content">
-    <switch-edit name="description" initial="{{ tag.description }}" v-model="description"></switch-edit>
+    <switch-edit 
+      name="description" 
+      initial="{{ tag.description }}" 
+      submit-url="{% url 'aristotle_favourites:tag_edit' tag.id %}" 
+    ></switch-edit>
   </div>
   {% endif %}
   {% if page_obj %}
