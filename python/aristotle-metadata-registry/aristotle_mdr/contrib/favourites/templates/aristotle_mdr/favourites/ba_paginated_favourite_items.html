@@ -9,6 +9,7 @@
         </th>
         <th></th>
         <th>Item</th>
+        <th>Description</th>
         <th>Tags</th>
       </tr>
     </thead>
@@ -16,8 +17,9 @@
       {% for item in page_obj %}
       <tr>
         <td><input type="checkbox" id="id_items_{{ item.id }}" name="items" value="{{ item.id }}"></td>
-        <td><i class="fa fa-bookmark{% if item.item_favourite < 1 %}-o{% endif %}"></i>{{ item.is_favourite }}</td>
+        <td><i class="fa fa-bookmark{% if item.item_favourite < 1 %}-o{% endif %}"></i></td>
         <td><a href="{% url 'aristotle_mdr:item' item.id %}">{{ item.name }}</a></td>
+        <td>{{ item.description }}</td>
         <td>
           <ul class="taggle_list">
             {% for fav in item.user_favourites %}

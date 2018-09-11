@@ -180,7 +180,7 @@ class TagView(LoginRequiredMixin, ListView):
                     When(item__favourites__tag__primary=True, then=1)
                 )
             )
-        )
+        ).select_related('item')
 
     def get_tag(self):
 
