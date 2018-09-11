@@ -70,7 +70,7 @@ var switchEditComponent = {
 }
 
 var vm = new Vue({
-  el: '#vue-managed-content',
+  el: '#vue-container',
   components: {
     'switch-edit': switchEditComponent
   }
