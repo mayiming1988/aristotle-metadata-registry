@@ -385,3 +385,40 @@ class AlertFieldsMixin:
         context = super().get_context_data(*args, **kwargs)
         context.update({'alert_fields': self.alert_fields})
         return context
+
+
+class AjaxFormMixin:
+    """
+    Mixin to be used with form view for ajax functionality,
+    falls back to normal functionality when recieving a non ajax request
+    Requirements:
+    - ajaxforms.js must be included on the page
+    - divs containing form fields must have the class field-container
+    Optional:
+    - div with class ajax-success-container to control where success message
+    appears
+    """
+    ajax_success_message = None
+    def form_invalid(self, form):
+        if self.request.is_ajax():
+            # Return errors as json
+            data = {
+                'success': False,
+                'errors': form.errors
+            }
+            return JsonResponse(data)
+        else:
+            return super().form_invalid(form)
+    def form_valid(self, form):
+        if self.request.is_ajax():
+            data = {'success': True}
+            # If success message set
+            if self.ajax_success_message is not None:
+                data['message'] = self.ajax_success_message
+                return JsonResponse(data)
+            else:
+                # Return success url
+                data['redirect'] = self.get_success_url()
+                return JsonResponse(data)
+        else:
+            return super().form_valid(form)
