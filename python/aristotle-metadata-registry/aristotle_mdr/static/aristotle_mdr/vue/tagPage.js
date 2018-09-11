@@ -1,17 +1,25 @@
 var switchEditComponent = {
   template: '<div :id="divId">\
-    <div class="form-group">\
-    <label :for="name">{{ capitalName }}:</label>\
-      <template v-if="!editing">\
-        {{ value }}\
-        <a class="inline-action" href="#" @click="toggleEdit">[Edit]</a>\
-      </template>\
-      <template v-else>\
+    <div class="panel panel-default">\
+    <div class="panel-heading">\
+      {{ capitalName }}\
+      <a v-if="!editing" class="inline-action pull-right" href="#" @click="toggleEdit">\
+        Edit\
+        <i class="fa fa-pencil" aria-hidden="true"></i>\
+      </a>\
+    </div>\
+    <div v-if="!editing" class="panel-body">\
+      {{ value }}\
+    </div>\
+    <div v-else class="panel-body">\
+      <div class="form-group">\
         <div v-if="error" class="alert alert-danger" role="alert">{{ error }}</div>\
         <textarea class="form-control" :name="name" v-model="value"></textarea>\
-      </template>\
+      </div>\
+      <button class="btn btn-primary" type="submit" @click="submitInput">Save Changes</button>\
+      <button class="btn btn-default" type="submit" @click="toggleEdit">Cancel</button>\
     </div>\
-    <button v-if="editing" class="btn btn-primary" type="submit" @click="submitInput">Submit</button>\
+    </div>\
   </div>',
   props: ['name', 'initial', 'submitUrl'], 
   created: function() {
@@ -34,7 +42,7 @@ var switchEditComponent = {
   },
   methods: {
     toggleEdit: function() {
-      this.editing = true
+      this.editing = !this.editing
     },
     submitInput: function(e) {
       console.log(this.submitUrl)
