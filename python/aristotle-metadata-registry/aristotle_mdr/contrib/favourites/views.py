@@ -4,12 +4,13 @@ from django.contrib.auth.decorators import login_required
 from aristotle_mdr.models import _concept
 from aristotle_mdr.perms import user_can_view
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import View, ListView
+from django.views.generic import View, ListView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.http.response import JsonResponse, HttpResponseRedirect
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
 from django.db.models import Sum, Case, When, Count, Max, Min, F
+from aristotle_mdr.views.utils import AjaxFormMixin
 
 import json
 from collections import defaultdict
@@ -237,3 +238,10 @@ class AllTagView(LoginRequiredMixin, ListView):
             profile=self.request.user.profile,
             primary=False
         ).annotate(num_items=Count('favourites'))
+
+
+class EditTagView(AjaxFormMixin, UpdateView):
+    model = Tag
+    fields = ['description']
+    pk_url_kwarg = 'tagid'
+    ajax_success_message = 'Tag description updated'

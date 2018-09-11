@@ -16,7 +16,6 @@ var switchEditComponent = {
   props: ['name', 'initial', 'submitUrl'], 
   created: function() {
     this.value = this.initial
-    this.$emit('input', this.value)
   },
   data: function() {
     return {
