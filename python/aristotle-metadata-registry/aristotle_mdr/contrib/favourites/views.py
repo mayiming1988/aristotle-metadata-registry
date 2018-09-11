@@ -253,6 +253,7 @@ class EditTagView(AjaxFormMixin, UpdateView):
     def form_invalid(self, form):
         if not self.request.is_ajax():
             messages.add_message(self.request, messages.SUCCESS, 'Description could not be updated')
+            return HttpResponseRedirect(self.get_success_url())
         return super().form_invalid(form)
 
     def form_valid(self, form):
