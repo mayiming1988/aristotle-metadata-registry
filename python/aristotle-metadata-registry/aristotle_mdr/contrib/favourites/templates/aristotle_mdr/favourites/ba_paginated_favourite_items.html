@@ -9,8 +9,10 @@
         </th>
         <th></th>
         <th>Item</th>
-        <th>Description</th>
-        <th>Tags</th>
+        <th>Definition</th>
+        {% if tags_list %}
+          <th>Tags</th>
+        {% endif %}
       </tr>
     </thead>
     <tbody>
@@ -19,16 +21,18 @@
         <td><input type="checkbox" id="id_items_{{ item.id }}" name="items" value="{{ item.id }}"></td>
         <td><i class="fa fa-bookmark{% if item.item_favourite < 1 %}-o{% endif %}"></i></td>
         <td><a href="{% url 'aristotle_mdr:item' item.id %}">{{ item.name }}</a></td>
-        <td>{{ item.description }}</td>
-        <td>
-          <ul class="taggle_list">
-            {% for fav in item.user_favourites %}
-              <li class="taggle">
-                <a href="{% url 'aristotle_favourites:tag' fav.tag.id %}">{{ fav.tag.name }}</a>
-              </li>
-            {% endfor %}
-          </ul>
-        </td>
+        <td>{{ item.definition }}</td>
+        {% if tags_list %}
+          <td>
+            <ul class="taggle_list">
+              {% for fav in item.user_favourites %}
+                <li class="taggle">
+                  <a href="{% url 'aristotle_favourites:tag' fav.tag.id %}">{{ fav.tag.name }}</a>
+                </li>
+              {% endfor %}
+            </ul>
+          </td>
+        {% endif %}
       </tr>
       {% endfor %}
     </tbody>

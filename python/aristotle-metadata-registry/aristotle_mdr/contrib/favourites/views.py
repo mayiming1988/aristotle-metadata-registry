@@ -172,15 +172,13 @@ class TagView(LoginRequiredMixin, ListView):
     def get_queryset(self):
 
         tagid = self.kwargs['tagid']
-        return Favourite.objects.filter(
-            tag_id=tagid
-        ).annotate(
+        return _concept.objects.annotate(
             item_favourite=Count(
-                Case(
-                    When(item__favourites__tag__primary=True, then=1)
-                )
+                Case(When(favourites__tag__primary=True, then=1))
             )
-        ).select_related('item')
+        ).filter(
+            favourites__tag_id=tagid
+        )
 
     def get_tag(self):
 

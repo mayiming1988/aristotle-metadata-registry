@@ -39,7 +39,7 @@
   </div>
   {% endif %}
   {% if page_obj %}
-    {% include 'aristotle_mdr/favourites/ba_paginated_favourite_list.html' with page_obj=page_obj tags_list=False %}
+    {% include 'aristotle_mdr/favourites/ba_paginated_favourite_items.html' with page_obj=page_obj tags_list=False %}
   {% endif %}
   <a class="btn btn-default margin-above" href="{% url 'aristotle_favourites:favs_and_tags' %}">
     Back
