@@ -24,7 +24,7 @@ $(document).ready(function() {
 })
 
 tagComponent = {
-  template: '<div><div id="taggle-editor" class="input taggle_textarea"></div>',
+  template: '<div id="taggle-editor" class="input taggle_textarea"></div>',
   props: ['tags', 'newtags'],
   mounted: function() {
     var component = this;
@@ -91,10 +91,18 @@ tagComponent = {
   }
 }
 
+var simpleList = {
+  template: '<ul :class="ulClass">\
+    <li v-for="item in data" :class="liClass">{{ item }}</li>\
+  </ul>',
+  props: ['ulClass', 'liClass', 'data'],
+}
+
 var vm = new Vue({
   el: '#vue-managed-content',
   components: {
-    'taggle-tags': tagComponent
+    'taggle-tags': tagComponent,
+    'simple-list': simpleList
   },
   data: {
     saved_tags: [],

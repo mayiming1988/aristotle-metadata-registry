@@ -141,17 +141,13 @@
             <dt>{% trans 'Workgroup' %} </dt>
             <dd><a href="{% url 'aristotle:userSandbox' %}">{% trans "Sandboxed Item" %}</a></dd>
         {% endif %}
-          {% verbatim %}
           <div class="vue-tags" v-cloak>
             <hr>
             <dt>Your Tags</dt>
             <dd>
-              <ul class="taggle_list">
-                <li class="taggle" v-for="tag in saved_tags">{{ tag }}</li>
-              </ul>
+              <simple-list ul-class="taggle_list" li-class="taggle" :data="saved_tags"></simple-list>
             </dd>
           </div>
-          {% endverbatim %}
         </dl>
         {% bootstrap_modal "infobox_modal" size='lg' %}
     </div>
