@@ -8,7 +8,8 @@ from django.views.generic import View, ListView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.urls import reverse
-from django.http.response import JsonResponse, HttpResponseRedirect
+from django.http.response import JsonResponse, HttpResponseRedirect, HttpResponseForbidden
+from django.shortcuts import get_object_or_404
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
 from django.db.models import Sum, Case, When, Count, Max, Min, F, Prefetch
 from aristotle_mdr.views.utils import AjaxFormMixin
@@ -169,28 +170,30 @@ class TagView(LoginRequiredMixin, ListView):
     paginate_by = 20
     template_name = "aristotle_mdr/favourites/tags.html"
 
+    def dispatch(self, request, *args, **kwargs):
+        self.tagid = self.kwargs['tagid']
+        self.tag = get_object_or_404(Tag, pk=self.tagid)
+
+        if self.tag.profile != request.user.profile:
+            return HttpResponseForbidden()
+
+        return super().dispatch(request, *args, **kwargs)
+
     def get_queryset(self):
 
-        tagid = self.kwargs['tagid']
         return _concept.objects.annotate(
             item_favourite=Count(
                 Case(When(favourites__tag__primary=True, then=1))
             )
         ).filter(
-            favourites__tag_id=tagid
+            favourites__tag_id=self.tagid
         )
-
-    def get_tag(self):
-
-        tagid = self.kwargs['tagid']
-        return Tag.objects.get(id=tagid)
 
     def get_context_data(self):
 
         context = super().get_context_data()
-        tag = self.get_tag()
-        context['tag'] = tag
-        context['title'] = tag.name
+        context['tag'] = self.tag
+        context['title'] = self.tag.name
         context['vue'] = True
         return context
 
