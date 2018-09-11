@@ -166,24 +166,24 @@ class AddFavouriteForm(LoggedInBulkActionForm):
 
     def make_changes(self):
         items = self.items_to_change
-        bad_items = [str(i.id) for i in items if not user_can_view(self.user, i)]
         items = items.visible(self.user)
 
         fav_tag, created = fav_models.Tag.objects.get_or_create(
             profile=self.user.profile,
             primary=True,
         )
+
+        num_items = 0
         for item in items:
             favourite, created = fav_models.Favourite.objects.get_or_create(
                 tag=fav_tag,
                 item=item
             )
+            if created:
+                num_items += 1
 
-        message_text = "{0} items favourited.".format(len(items))
-        if bad_items:
-            return _("{0} Some items failed, they had the id's: {1}".format(message_text, ",".join(bad_items)))
-        else:
-            return _(message_text)
+        message_text = "{0} items favourited.".format(num_items)
+        return _(message_text)
 
 
 class RemoveFavouriteForm(LoggedInBulkActionForm):
@@ -193,12 +193,14 @@ class RemoveFavouriteForm(LoggedInBulkActionForm):
 
     def make_changes(self):
         items = self.items_to_change
-        fav_models.Favourite.objects.filter(
+        favourites = fav_models.Favourite.objects.filter(
             tag__primary=True,
             tag__profile=self.user.profile,
             item__in=list(items)
-        ).delete()
-        return _('%(num_items)s items removed from favourites') % {'num_items': len(items)}
+        )
+        num_favourites = favourites.count()
+        favourites.delete()
+        return _('%(num_items)s items removed from favourites') % {'num_items': num_favourites}
 
 
 class ChangeStateForm(ChangeStatusForm, BulkActionForm):
