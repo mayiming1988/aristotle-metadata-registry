@@ -1517,6 +1517,13 @@ class PossumProfile(models.Model):
         ).distinct().values_list('id', flat=True)
         return list(qs)
 
+    @property
+    def favs_and_tags_count(self):
+        count = _concept.objects.filter(
+            favourites__tag__profile=self
+        ).distinct().count()
+        return count
+
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         profile, created = PossumProfile.objects.get_or_create(user=instance)
