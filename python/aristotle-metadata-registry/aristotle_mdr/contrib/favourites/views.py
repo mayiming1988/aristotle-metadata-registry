@@ -10,8 +10,9 @@ from django.contrib import messages
 from django.urls import reverse
 from django.http.response import JsonResponse, HttpResponseRedirect
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
-from django.db.models import Sum, Case, When, Count, Max, Min, F
+from django.db.models import Sum, Case, When, Count, Max, Min, F, Prefetch
 from aristotle_mdr.views.utils import AjaxFormMixin
+from aristotle_mdr.models import _concept
 
 import json
 from collections import defaultdict
@@ -128,32 +129,20 @@ class FavouritesAndTags(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
 
-        favs = Favourite.objects.filter(
-            tag__profile=self.request.user.profile
-        ).select_related('tag', 'item')
+        favourite_queryset = Favourite.objects.filter(
+            tag__profile=self.request.user.profile,
+            tag__primary=False
+        ).select_related('tag')
 
-        items = {}
-
-        for fav in favs:
-            if fav.item_id not in items:
-                items[fav.item_id] = {
-                    'item': {
-                        'id': fav.item.id,
-                        'name': fav.item.name,
-                    },
-                    'tags': [],
-                    'item_favourite': 0
-                }
-
-            if fav.tag.primary:
-                items[fav.item_id]['item_favourite'] = 1
-            else:
-                items[fav.item_id]['tags'].append({
-                    'id': fav.tag.id,
-                    'name': fav.tag.name
-                })
-
-        return list(items.values())
+        return _concept.objects.filter(
+            favourites__tag__profile=self.request.user.profile
+        ).distinct().prefetch_related(
+            Prefetch('favourites', queryset=favourite_queryset, to_attr='user_favourites')
+        ).annotate(
+            item_favourite=Count(
+                Case(When(favourites__tag__primary=True, then=1))
+            )
+        )
 
     def get_tags(self):
 

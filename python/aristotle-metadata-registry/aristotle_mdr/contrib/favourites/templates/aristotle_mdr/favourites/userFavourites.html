@@ -39,7 +39,7 @@
     </p>
         {% if not help %}
             {% if page_obj %}
-                {% include 'aristotle_mdr/favourites/ba_paginated_favourite_list.html' with page_obj=page_obj tags_list=True %}
+            {% include 'aristotle_mdr/favourites/ba_paginated_favourite_items.html' with page_obj=page_obj %}
             {% else %}
                 <strong>You currently have no favourited items.</strong>
             {% endif %}

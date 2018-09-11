@@ -20,17 +20,6 @@
         <td><input type="checkbox" id="id_items_{{fav.item.id}}" name="items" value="{{fav.item.id}}"></td>
         <td><i class="fa fa-bookmark{% if fav.item_favourite < 1 %}-o{% endif %}"></i>{{ fav.is_favourite }}</td>
         <td><a href="{% url 'aristotle_mdr:item' fav.item.id %}">{{ fav.item.name }}</a></td>
-        {% if tags_list %}
-          <td>
-            <ul class="taggle_list">
-              {% for tag in fav.tags %}
-                <li class="taggle">
-                  <a href="{% url 'aristotle_favourites:tag' tag.id %}">{{ tag.name }}</a>
-                </li>  
-              {% endfor %}
-            </ul>
-          </td>
-        {% endif %}
       </tr>
       {% endfor %}
     </tbody>
