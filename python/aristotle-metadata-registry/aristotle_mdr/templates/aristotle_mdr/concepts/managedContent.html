@@ -12,9 +12,6 @@
     <script src="https://cdn.jsdelivr.net/npm/taggle@1.14.0/src/taggle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue-simple-suggest@1.8.2/dist/iife.js"></script>
     <link rel="stylesheet" href="{% static 'aristotle_mdr/suggest.css' %}">
-    <script>
-      var edit_tag_url="{% url 'aristotle_favourites:edit_tags' item.id %}"
-    </script>
     {{ tags|json_script:"tags-json" }}
     <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/taggle.css' %}" />
 {% endblock %}
@@ -96,7 +93,13 @@
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-              <button id="tag-editor-submit" type="button" class="btn btn-primary" @click="submit_tags">Save changes</button>
+              <submit-tags 
+                submit-url="{% url 'aristotle_favourites:edit_tags' item.id %}"
+                :tags="current_tags"
+                modal="#TagEditorModal"
+                @tags-saved="update_saved_tags"
+                >
+              </submit-tags>
             </div>
 
           </div>

@@ -93,11 +93,39 @@ var simpleList = {
   props: ['ulClass', 'liClass', 'data'],
 }
 
+var submitTags = {
+  template: '<button id="tag-editor-submit" type="button" class="btn btn-primary" @click="submit_tags">Save changes</button>',
+  props: ['submitUrl', 'tags', 'modal'],
+  methods: {
+    submit_tags: function() {
+      var csrf_token = getCookie('csrftoken')
+      var url = this.submitUrl
+      var tags = this.tags
+      var data = {
+        tags: JSON.stringify(tags),
+        csrfmiddlewaretoken: csrf_token
+      }
+
+      $.post(
+        url,
+        data,
+        function(data) {
+          addHeaderMessage(data.message)
+        }
+      )
+
+      this.$emit('tags-saved', tags)
+      $(this.modal).modal('hide')
+    },
+  }
+}
+
 var vm = new Vue({
   el: '#vue-container',
   components: {
     'taggle-tags': tagComponent,
-    'simple-list': simpleList
+    'simple-list': simpleList,
+    'submit-tags': submitTags
   },
   data: {
     saved_tags: [],
@@ -127,28 +155,11 @@ var vm = new Vue({
     }
   },
   methods: {
-    submit_tags: function() {
-      var csrf_token = getCookie('csrftoken')
-      var url = edit_tag_url
-      var tags = this.current_tags
-      var data = {
-        tags: JSON.stringify(tags),
-        csrfmiddlewaretoken: csrf_token
-      }
-
-      $.post(
-        url,
-        data,
-        function(data) {
-          addHeaderMessage(data.message)
-        }
-      )
-
-      this.saved_tags = tags
-      $('#TagEditorModal').modal('hide')
-    },
     update_tags: function(tags) {
       this.current_tags = tags
+    },
+    update_saved_tags: function(tags) {
+      this.saved_tags = tags
     },
     getSuggestions: function() {
       suggestions = []
