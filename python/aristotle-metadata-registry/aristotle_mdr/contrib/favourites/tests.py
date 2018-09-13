@@ -50,6 +50,18 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
         ).exists()
         self.assertEqual(tagged, status)
 
+    def check_tag_count(self, user, count):
+        user_tags = models.Tag.objects.filter(
+            profile=user.profile
+        ).count()
+        self.assertEqual(user_tags, count)
+
+    def check_favourite_count(self, user, count):
+        user_favourites = models.Favourite.objects.filter(
+            tag__profile=user.profile
+        ).count()
+        self.assertEqual(user_favourites, count)
+
     # --- Tests ---
 
     def test_toggle_favourite_function_on(self):
@@ -147,6 +159,9 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
 
         self.check_tag(self.editor, self.timtam, 'very good', True)
         self.check_tag(self.editor, self.timtam, 'amazing', True)
+
+        self.check_tag_count(self.editor, 2)
+        self.check_favourite_count(self.editor, 2)
 
     def test_tag_edit_remove_tags(self):
 
