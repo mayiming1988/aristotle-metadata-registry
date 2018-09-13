@@ -250,4 +250,3 @@ class EditTagView(AjaxFormMixin, UpdateView):
         if not self.request.is_ajax():
             messages.add_message(self.request, messages.SUCCESS, 'Description updated')
         return super().form_valid(form)
-

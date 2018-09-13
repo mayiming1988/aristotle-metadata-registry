@@ -128,6 +128,25 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
 
         self.check_favourite(self.editor, self.timtam, False)
 
+    def test_toggle_favourite_view_json(self):
+
+        self.login_editor()
+        self.check_favourite(self.editor, self.tastiness, False)
+
+        response = self.reverse_get(
+            'aristotle_favourites:toggleFavourite',
+            reverse_args=[self.tastiness.id],
+            status_code=200,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+        )
+        response_obj = json.loads(response.content)
+
+        self.check_favourite(self.editor, self.tastiness, True)
+
+        self.assertTrue(response_obj['success'])
+        self.assertTrue(response_obj['favourited'])
+        self.assertTrue(response_obj['message'].startswith('Tastiness added to favourites'))
+
     def test_toggle_non_viewable(self):
 
         self.login_viewer()
