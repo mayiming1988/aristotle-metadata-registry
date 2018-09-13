@@ -26,7 +26,7 @@ class ToggleFavourite(LoginRequiredMixin, View):
         item = get_object_or_404(_concept, pk=itemid).item
 
         if not user_can_view(request.user, item):
-            raise PermissionDenied
+            return HttpResponseForbidden()
 
         favourited = request.user.profile.toggleFavourite(item)
 
