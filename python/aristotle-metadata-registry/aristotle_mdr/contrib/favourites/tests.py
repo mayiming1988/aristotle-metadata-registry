@@ -163,6 +163,36 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
         self.check_tag_count(self.editor, 2)
         self.check_favourite_count(self.editor, 2)
 
-    def test_tag_edit_remove_tags(self):
+    def test_tag_edit_add_and_remove_tags(self):
 
         self.login_editor()
+
+        tag = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='very good',
+            primary=False
+        )
+        models.Favourite.objects.create(
+            tag=tag,
+            item=self.timtam,
+        )
+
+        post_data = {
+            'tags': json.dumps(['10/10'])
+        }
+
+        response = self.reverse_post(
+            'aristotle_favourites:edit_tags',
+            post_data,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+            reverse_args=[self.timtam.id]
+        )
+
+        response_obj = json.loads(response.content)
+        self.assertTrue(response_obj['success'])
+
+        self.check_tag(self.editor, self.timtam, 'very good', False)
+        self.check_tag(self.editor, self.timtam, '10/10', True)
+
+        self.check_tag_count(self.editor, 2)
+        self.check_favourite_count(self.editor, 1)
