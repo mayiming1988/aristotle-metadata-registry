@@ -3,6 +3,7 @@ from aristotle_mdr.tests.utils import AristotleTestUtils
 from aristotle_mdr import models as mdr_models
 from aristotle_mdr.contrib.favourites import models
 from aristotle_mdr.utils import url_slugify_concept
+from django.contrib.messages import get_messages
 
 @tag('favourites')
 class FavouritesTestCase(AristotleTestUtils, TestCase):
@@ -35,7 +36,29 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
         ).exists()
         return (favourited == status)
 
-    def test_toggle_favourite_on(self):
+    def test_toggle_favourite_function_on(self):
+
+        self.login_editor()
+        self.check_favourite(self.editor, self.timtam, False)
+
+        self.editor.profile.toggleFavourite(self.timtam)
+
+        self.check_favourite(self.editor, self.timtam, True)
+
+    def test_toggle_favourite_function_off(self):
+
+        self.login_editor()
+        self.check_favourite(self.editor, self.timtam, False)
+
+        self.editor.profile.toggleFavourite(self.timtam)
+
+        self.check_favourite(self.editor, self.timtam, True)
+
+        self.editor.profile.toggleFavourite(self.timtam)
+
+        self.check_favourite(self.editor, self.timtam, False)
+
+    def test_toggle_favourite_on_view(self):
 
         self.login_editor()
         self.check_favourite(self.editor, self.timtam, False)
@@ -46,10 +69,12 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
             status_code=302
         )
         self.assertEqual(response.url, url_slugify_concept(self.timtam))
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(messages[1].message.startswith('Tim Tam added to favourites'))
 
         self.check_favourite(self.editor, self.timtam, True)
 
-    def test_toggle_favourite_off(self):
+    def test_toggle_favourite_off_view(self):
 
         primtag = models.Tag.objects.create(
             profile=self.editor.profile,
@@ -70,5 +95,7 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
             status_code=302
         )
         self.assertEqual(response.url, url_slugify_concept(self.timtam))
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(messages[1].message.startswith('Tim Tam removed from favourites'))
 
         self.check_favourite(self.editor, self.timtam, False)
