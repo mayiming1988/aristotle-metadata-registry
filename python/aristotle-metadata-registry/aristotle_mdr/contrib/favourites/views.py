@@ -114,7 +114,7 @@ class EditTags(LoginRequiredMixin, View):
 
     def get_json_response(self, success=True):
         response_dict = {
-            success: success,
+            'success': success,
         }
 
         if success:

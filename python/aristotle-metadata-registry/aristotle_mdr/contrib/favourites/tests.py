@@ -5,6 +5,8 @@ from aristotle_mdr.contrib.favourites import models
 from aristotle_mdr.utils import url_slugify_concept
 from django.contrib.messages import get_messages
 
+import json
+
 @tag('favourites')
 class FavouritesTestCase(AristotleTestUtils, TestCase):
 
@@ -28,13 +30,27 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
             submitter=self.editor
         )
 
+    # --- Utils ---
+
     def check_favourite(self, user, item, status):
         favourited = models.Favourite.objects.filter(
             item_id=item.id,
             tag__primary=True,
             tag__profile=user.profile
         ).exists()
-        return (favourited == status)
+        self.assertEqual(favourited, status)
+
+    def check_tag(self, user, item, tag, status):
+
+        tagged = models.Favourite.objects.filter(
+            item_id=item.id,
+            tag__primary=False,
+            tag__profile=user.profile,
+            tag__name=tag
+        ).exists()
+        self.assertEqual(tagged, status)
+
+    # --- Tests ---
 
     def test_toggle_favourite_function_on(self):
 
@@ -109,3 +125,29 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
             reverse_args=[self.timtam.id],
             status_code=403
         )
+
+    def test_tag_edit_add_tags(self):
+
+        self.login_editor()
+
+        tags = ['very good', 'amazing']
+        post_data = {
+            'tags': json.dumps(tags)
+        }
+
+        response = self.reverse_post(
+            'aristotle_favourites:edit_tags',
+            post_data,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+            reverse_args=[self.timtam.id]
+        )
+
+        response_obj = json.loads(response.content)
+        self.assertTrue(response_obj['success'])
+
+        self.check_tag(self.editor, self.timtam, 'very good', True)
+        self.check_tag(self.editor, self.timtam, 'amazing', True)
+
+    def test_tag_edit_remove_tags(self):
+
+        self.login_editor()
