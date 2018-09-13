@@ -167,7 +167,8 @@ def render_if_condition_met(request, condition, objtype, iid, model_slug=None, n
         ).order_by('created').values_list('tag__name', flat=True)
 
         user_tags = Tag.objects.filter(
-            profile=request.user.profile
+            profile=request.user.profile,
+            primary=False
         ).values_list('name', flat=True)
 
         tags['item'] = list(item_tags)

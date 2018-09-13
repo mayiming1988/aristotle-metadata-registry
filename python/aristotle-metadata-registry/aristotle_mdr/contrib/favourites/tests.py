@@ -215,3 +215,49 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
 
         self.check_tag_count(self.editor, 2)
         self.check_favourite_count(self.editor, 1)
+
+    @tag('new')
+    def test_tags_json_on_item_page(self):
+        tag1 = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='very good',
+            primary=False
+        )
+        tag2 = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='awesome',
+            primary=False
+        )
+        tag3 = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='amazing',
+            primary=False
+        )
+        primtag = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='',
+            primary=True
+        )
+        models.Favourite.objects.create(
+            tag=tag1,
+            item=self.timtam,
+        )
+        models.Favourite.objects.create(
+            tag=tag2,
+            item=self.timtam,
+        )
+
+        tags = {
+            'item': ['very good', 'awesome'],
+            'user': ['very good', 'awesome', 'amazing']
+        }
+
+        script = '<script id="tags-json" type="application/json">' + json.dumps(tags) + '</script>'
+
+        self.login_editor()
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.timtam.id, 'objectclass', 'tim-tam']
+        )
+
+        self.assertContains(response, script, html=True)
