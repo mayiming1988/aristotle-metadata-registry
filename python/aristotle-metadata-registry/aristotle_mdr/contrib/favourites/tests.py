@@ -4,6 +4,7 @@ from aristotle_mdr import models as mdr_models
 from aristotle_mdr.contrib.favourites import models
 from aristotle_mdr.utils import url_slugify_concept
 from django.contrib.messages import get_messages
+from django.urls import reverse
 
 import json
 
@@ -216,7 +217,6 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
         self.check_tag_count(self.editor, 2)
         self.check_favourite_count(self.editor, 1)
 
-    @tag('new')
     def test_tags_json_on_item_page(self):
         tag1 = models.Tag.objects.create(
             profile=self.editor.profile,
@@ -261,3 +261,61 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
         )
 
         self.assertContains(response, script, html=True)
+
+    def test_edit_tag_description(self):
+
+        tag = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='very good'
+        )
+        post_data = {
+            'description': 'Metadata that is very good'
+        }
+
+        self.login_editor()
+        response = self.reverse_post(
+            'aristotle_favourites:tag_edit',
+            post_data,
+            reverse_args=[tag.id],
+            status_code=302
+        )
+        self.assertEqual(response.url, reverse('aristotle_favourites:tag', args=[tag.id]))
+
+        tag = models.Tag.objects.get(id=tag.id)
+        self.assertEqual(tag.description, 'Metadata that is very good')
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(messages[1].message.startswith('Description updated'))
+
+    @tag('new')
+    def test_edit_tag_description_json(self):
+        tag = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='very good'
+        )
+        post_data = {
+            'description': 'Metadata that is very good'
+        }
+
+        self.login_editor()
+        response = self.reverse_post(
+            'aristotle_favourites:tag_edit',
+            post_data,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+            reverse_args=[tag.id],
+            status_code=200
+        )
+        response_obj = json.loads(response.content)
+
+        tag = models.Tag.objects.get(id=tag.id)
+        self.assertEqual(tag.description, 'Metadata that is very good')
+        self.assertEqual(response_obj['success'], True)
+        self.assertEqual(response_obj['message'], 'Tag description updated')
+
+    def test_edit_tag_description_invalid(self):
+        tag = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='very good'
+        )
+        post_data = {
+            'description': 'good'*100
+        }
