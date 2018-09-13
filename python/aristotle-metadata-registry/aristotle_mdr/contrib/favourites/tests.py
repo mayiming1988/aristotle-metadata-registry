@@ -99,3 +99,13 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
         self.assertTrue(messages[1].message.startswith('Tim Tam removed from favourites'))
 
         self.check_favourite(self.editor, self.timtam, False)
+
+    def test_toggle_non_viewable(self):
+
+        self.login_viewer()
+
+        response = self.reverse_get(
+            'aristotle_favourites:toggleFavourite',
+            reverse_args=[self.timtam.id],
+            status_code=403
+        )
