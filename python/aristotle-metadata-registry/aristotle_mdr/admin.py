@@ -16,8 +16,6 @@ from reversion_compare.admin import CompareVersionAdmin
 from aristotle_mdr.search_indexes import conceptIndex
 from haystack import indexes
 
-from aristotle_mdr.contrib.favourites.models import Tag, Favourite
-
 import reversion
 from improved_user.forms import UserChangeForm, UserCreationForm
 
@@ -27,9 +25,6 @@ from aristotle_mdr.utils import fetch_aristotle_settings
 reversion.revisions.register(MDR.Status)
 reversion.revisions.register(MDR._concept, follow=['statuses', 'workgroup', 'slots'])
 reversion.revisions.register(MDR.Workgroup)
-
-admin.site.register(Tag)
-admin.site.register(Favourite)
 
 User = get_user_model()
 

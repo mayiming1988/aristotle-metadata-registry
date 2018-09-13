@@ -24,10 +24,7 @@ class Tag(models.Model):
     )
 
     def __str__(self):
-        if self.primary:
-            return ' - '.join([self.profile.user.email, 'Primary'])
-        else:
-            return ' - '.join([self.profile.user.email, self.name])
+        return self.name
 
 
 class Favourite(models.Model):
@@ -46,6 +43,3 @@ class Favourite(models.Model):
     created = models.DateTimeField(
         auto_now_add=True
     )
-
-    def __str__(self):
-        return ' - '.join([self.tag.name, self.item.name])
