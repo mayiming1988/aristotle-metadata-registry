@@ -1,4 +1,5 @@
 {% extends "aristotle_mdr/user/userHome.html" %}
+{% load static %}
 
 {% block title %}All Tags{% endblock %}
 {% block collapse-link%}<i class="fa fa-bookmark fa-fw"></i> All Tags</a>{% endblock %}
@@ -7,29 +8,38 @@
 {% endblock %}
 
 {% block page %}
-  <h1>All Tags</h1>
+  <div id="vue-container">
+    <h1>All Tags</h1>
 
-  {% if page_obj %}
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Tag</th>
-          <th>Description</th>
-          <th>Items</th>
-        </tr>
-      </thead> 
-      <tbody>
-      {% for item in page_obj %}
-        <tr>
-          <td>
-            <a href="{% url 'aristotle_favourites:tag' item.id %}">{{ item.name }}</a>
-          </td>
-          <td>{{ item.description }}</td>
-          <td>{{ item.num_items }}</td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-  {% endif %}
-  {% include "aristotle_mdr/helpers/paginator.html" with page=page %}
+    {% if page_obj %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Tag</th>
+            <th>Description</th>
+            <th>Items</th>
+            <th>Delete</th>
+          </tr>
+        </thead> 
+        <tbody>
+        {% for item in page_obj %}
+          <tr>
+            <td>
+              <a href="{% url 'aristotle_favourites:tag' item.id %}">{{ item.name }}</a>
+            </td>
+            <td>{{ item.description }}</td>
+            <td>{{ item.num_items }}</td>
+            <td>
+              <delete-button item-id="{{ item.id }}" item-name="{{ item.name }}" @click="deleteClicked">
+              </delete-button>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+    {% include "aristotle_mdr/helpers/paginator.html" with page=page %}
+    <yesno-modal id="deleteTagModal" title="Delete Tag" :text="modal_text" @yes="deleteConfirmed"></yesno-modal>
+  </div>
+  <script src="{% static 'aristotle_mdr/vue/allTags.js' %}"></script>
 {% endblock %}
