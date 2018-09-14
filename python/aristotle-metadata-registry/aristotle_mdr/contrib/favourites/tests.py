@@ -33,6 +33,43 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
 
     # --- Utils ---
 
+    def create_some_favs_and_tags(self):
+        # Create tags
+        tag1 = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='very good'
+        )
+        tag2 = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='awesome'
+        )
+        favtag = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='',
+            primary=True
+        )
+
+
+        # Add favourites
+        models.Favourite.objects.create(
+            tag=favtag,
+            item=self.timtam
+        )
+        models.Favourite.objects.create(
+            tag=favtag,
+            item=self.ttt
+        )
+
+        # Add Tags
+        models.Favourite.objects.create(
+            tag=tag1,
+            item=self.ttt
+        )
+        models.Favourite.objects.create(
+            tag=tag2,
+            item=self.tastiness
+        )
+
     def check_favourite(self, user, item, status):
         favourited = models.Favourite.objects.filter(
             item_id=item.id,
@@ -335,44 +372,9 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
         self.assertEqual(response_obj['success'], True)
         self.assertEqual(response_obj['message'], 'Tag description updated')
 
-    @tag('new')
     def test_favs_and_tags_display(self):
 
-        # Create tags
-        tag1 = models.Tag.objects.create(
-            profile=self.editor.profile,
-            name='very good'
-        )
-        tag2 = models.Tag.objects.create(
-            profile=self.editor.profile,
-            name='awesome'
-        )
-        favtag = models.Tag.objects.create(
-            profile=self.editor.profile,
-            name='',
-            primary=True
-        )
-
-
-        # Add favourites
-        models.Favourite.objects.create(
-            tag=favtag,
-            item=self.timtam
-        )
-        models.Favourite.objects.create(
-            tag=favtag,
-            item=self.ttt
-        )
-
-        # Add Tags
-        models.Favourite.objects.create(
-            tag=tag1,
-            item=self.ttt
-        )
-        models.Favourite.objects.create(
-            tag=tag2,
-            item=self.tastiness
-        )
+        self.create_some_favs_and_tags()
 
         # Check favs and tags page
         self.login_editor()
@@ -383,6 +385,7 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
         obj_list = response.context['object_list']
         self.assertEqual(len(obj_list), 3)
 
+        # Check favs and tags list
         self.assertEqual(obj_list[0].id, self.tastiness.id)
         self.assertEqual(obj_list[0].item_favourite, 0)
         self.assertEqual(len(obj_list[0].user_favourites), 1)
@@ -394,3 +397,19 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
         self.assertEqual(obj_list[2].id, self.timtam.id)
         self.assertEqual(obj_list[2].item_favourite, 1)
         self.assertEqual(len(obj_list[2].user_favourites), 0)
+
+    def test_favs_and_tags_tag_list(self):
+
+        self.create_some_favs_and_tags()
+
+        # Check favs and tags page
+        self.login_editor()
+        response = self.reverse_get(
+            'aristotle_favourites:favs_and_tags',
+            status_code=200
+        )
+
+        tags = response.context['tags']
+
+        self.assertEqual(tags[0].name, 'awesome')
+        self.assertEqual(tags[1].name, 'very good')
