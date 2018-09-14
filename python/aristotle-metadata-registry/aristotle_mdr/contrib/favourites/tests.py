@@ -286,7 +286,6 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
         messages = list(get_messages(response.wsgi_request))
         self.assertTrue(messages[1].message.startswith('Description updated'))
 
-    @tag('new')
     def test_edit_tag_description_json(self):
         tag = models.Tag.objects.create(
             profile=self.editor.profile,
@@ -311,11 +310,27 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
         self.assertEqual(response_obj['success'], True)
         self.assertEqual(response_obj['message'], 'Tag description updated')
 
-    def test_edit_tag_description_invalid(self):
+    def test_edit_tag_description_empty(self):
         tag = models.Tag.objects.create(
             profile=self.editor.profile,
-            name='very good'
+            name='very good',
+            description='only the best of the best'
         )
         post_data = {
-            'description': 'good'*100
+            'description': ''
         }
+
+        self.login_editor()
+        response = self.reverse_post(
+            'aristotle_favourites:tag_edit',
+            post_data,
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+            reverse_args=[tag.id],
+            status_code=200
+        )
+        response_obj = json.loads(response.content)
+
+        tag = models.Tag.objects.get(id=tag.id)
+        self.assertEqual(tag.description, '')
+        self.assertEqual(response_obj['success'], True)
+        self.assertEqual(response_obj['message'], 'Tag description updated')

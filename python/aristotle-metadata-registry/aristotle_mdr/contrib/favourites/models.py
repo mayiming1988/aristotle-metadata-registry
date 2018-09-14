@@ -15,7 +15,9 @@ class Tag(models.Model):
         max_length=200,
         blank=True
     )
-    description = models.TextField()
+    description = models.TextField(
+        blank=True
+    )
     created = models.DateTimeField(
         auto_now_add=True
     )
