@@ -413,3 +413,124 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
 
         self.assertEqual(tags[0].name, 'awesome')
         self.assertEqual(tags[1].name, 'very good')
+
+    def test_tag_view(self):
+
+        tag = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='mytag'
+        )
+        favtag = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='',
+            primary=True
+        )
+
+        models.Favourite.objects.create(
+            tag=tag,
+            item=self.timtam
+        )
+        models.Favourite.objects.create(
+            tag=tag,
+            item=self.ttt
+        )
+        models.Favourite.objects.create(
+            tag=favtag,
+            item=self.timtam
+        )
+
+        self.login_editor()
+        response = self.reverse_get(
+            'aristotle_favourites:tag',
+            reverse_args=[tag.id],
+            status_code=200
+        )
+
+        obj_list = response.context['object_list']
+        self.assertEqual(len(obj_list), 2)
+
+        self.assertEqual(obj_list[0].id, self.timtam.id)
+        self.assertEqual(obj_list[0].item_favourite, 1)
+
+        self.assertEqual(obj_list[1].id, self.ttt.id)
+        self.assertEqual(obj_list[1].item_favourite, 0)
+
+    def test_favourite_view(self):
+
+        tag = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='mytag'
+        )
+        favtag = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='',
+            primary=True
+        )
+
+        models.Favourite.objects.create(
+            tag=tag,
+            item=self.timtam
+        )
+        models.Favourite.objects.create(
+            tag=favtag,
+            item=self.timtam
+        )
+        models.Favourite.objects.create(
+            tag=favtag,
+            item=self.tastiness
+        )
+
+        self.login_editor()
+        response = self.reverse_get(
+            'aristotle_favourites:favs',
+            status_code=200
+        )
+
+        self.assertNotContains(response, 'fa-bookmark-o')
+        obj_list = response.context['object_list']
+        self.assertEqual(len(obj_list), 2)
+
+        self.assertEqual(obj_list[0].id, self.tastiness.id)
+        self.assertEqual(obj_list[1].id, self.timtam.id)
+
+    def test_all_tag_view(self):
+
+        tag1 = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='my tag'
+        )
+        tag2 = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='my other tag'
+        )
+        favtag = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='',
+            primary=True
+        )
+
+        models.Favourite.objects.create(
+            tag=tag1,
+            item=self.timtam
+        )
+        models.Favourite.objects.create(
+            tag=tag2,
+            item=self.timtam
+        )
+        models.Favourite.objects.create(
+            tag=tag2,
+            item=self.ttt
+        )
+
+        self.login_editor()
+        response = self.reverse_get(
+            'aristotle_favourites:all_tags',
+            status_code=200
+        )
+        obj_list = response.context['object_list']
+
+        self.assertEqual(len(obj_list), 2)
+        self.assertEqual(obj_list[0].id, tag1.id)
+        self.assertEqual(obj_list[0].num_items, 1)
+        self.assertEqual(obj_list[1].id, tag2.id)
+        self.assertEqual(obj_list[1].num_items, 2)

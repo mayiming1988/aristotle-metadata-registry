@@ -185,10 +185,11 @@ class TagView(LoginRequiredMixin, ListView):
         return _concept.objects.annotate(
             item_favourite=Count(
                 Case(When(favourites__tag__primary=True, then=1))
-            )
+            ),
+            used=Max('favourites__created')
         ).filter(
             favourites__tag_id=self.tagid
-        )
+        ).order_by('-used')
 
     def get_context_data(self):
 
@@ -209,14 +210,19 @@ class FavouriteView(LoginRequiredMixin, ListView):
         try:
             tag = Tag.objects.get(profile=self.request.user.profile, primary=True)
         except Tag.DoesNotExist:
-            return Favourite.objects.none()
+            return _concept.objects.none()
 
-        return Favourite.objects.filter(tag=tag)
+        return _concept.objects.annotate(
+            used=Max('favourites__created')
+        ).filter(
+            favourites__tag=tag
+        ).order_by('-used')
 
     def get_context_data(self):
 
         context = super().get_context_data()
         context['title'] = 'My Favourites'
+        context['all_favourite'] = True
         return context
 
 
@@ -229,7 +235,9 @@ class AllTagView(LoginRequiredMixin, ListView):
         return Tag.objects.filter(
             profile=self.request.user.profile,
             primary=False
-        ).annotate(num_items=Count('favourites'))
+        ).annotate(
+            num_items=Count('favourites')
+        ).order_by('created')
 
 
 class EditTagView(AjaxFormMixin, UpdateView):
