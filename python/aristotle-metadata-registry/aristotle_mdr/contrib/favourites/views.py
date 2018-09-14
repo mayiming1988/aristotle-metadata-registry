@@ -239,6 +239,11 @@ class AllTagView(LoginRequiredMixin, ListView):
             num_items=Count('favourites')
         ).order_by('-created')
 
+    def get_context_data(self):
+        context = super().get_context_data()
+        context['vue'] = True
+        return context
+
 
 class DeleteTagView(LoginRequiredMixin, View):
     pk_url_kwarg = 'tagid'
