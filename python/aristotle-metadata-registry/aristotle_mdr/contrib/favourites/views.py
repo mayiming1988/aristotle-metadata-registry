@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from aristotle_mdr.models import _concept
 from aristotle_mdr.perms import user_can_view
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import View, ListView, UpdateView
+from django.views.generic import View, ListView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.urls import reverse
@@ -237,7 +237,30 @@ class AllTagView(LoginRequiredMixin, ListView):
             primary=False
         ).annotate(
             num_items=Count('favourites')
-        ).order_by('created')
+        ).order_by('-created')
+
+
+class DeleteTagView(LoginRequiredMixin, View):
+    pk_url_kwarg = 'tagid'
+
+    def post(self, request, *args, **kwargs):
+        pk = self.kwargs[self.pk_url_kwarg]
+        error_message = ''
+
+        try:
+            tag = Tag.objects.get(pk=pk)
+        except:
+            error_message = 'Tag not found'
+
+        if tag.profile.id == self.request.user.profile.id:
+            tag.delete()
+        else:
+            error_message = 'Tag could not be deleted'
+
+        return JsonResponse({
+            'success': True,
+            'message': error_message
+        })
 
 
 class EditTagView(AjaxFormMixin, UpdateView):
