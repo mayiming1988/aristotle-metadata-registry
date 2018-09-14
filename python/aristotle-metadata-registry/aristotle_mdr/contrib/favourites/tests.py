@@ -23,7 +23,7 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
             definition='How good an item tastes',
             submitter=self.editor
         )
-        self.ttt = mdr_models.DataElementConcept(
+        self.ttt = mdr_models.DataElementConcept.objects.create(
             name='Tim Tam - Tastiness',
             definition='Tim Tam - Tastiness',
             objectClass=self.timtam,
@@ -334,3 +334,63 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
         self.assertEqual(tag.description, '')
         self.assertEqual(response_obj['success'], True)
         self.assertEqual(response_obj['message'], 'Tag description updated')
+
+    @tag('new')
+    def test_favs_and_tags_display(self):
+
+        # Create tags
+        tag1 = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='very good'
+        )
+        tag2 = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='awesome'
+        )
+        favtag = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='',
+            primary=True
+        )
+
+
+        # Add favourites
+        models.Favourite.objects.create(
+            tag=favtag,
+            item=self.timtam
+        )
+        models.Favourite.objects.create(
+            tag=favtag,
+            item=self.ttt
+        )
+
+        # Add Tags
+        models.Favourite.objects.create(
+            tag=tag1,
+            item=self.ttt
+        )
+        models.Favourite.objects.create(
+            tag=tag2,
+            item=self.tastiness
+        )
+
+        # Check favs and tags page
+        self.login_editor()
+        response = self.reverse_get(
+            'aristotle_favourites:favs_and_tags',
+            status_code=200
+        )
+        obj_list = response.context['object_list']
+        self.assertEqual(len(obj_list), 3)
+
+        self.assertEqual(obj_list[0].id, self.tastiness.id)
+        self.assertEqual(obj_list[0].item_favourite, 0)
+        self.assertEqual(len(obj_list[0].user_favourites), 1)
+
+        self.assertEqual(obj_list[1].id, self.ttt.id)
+        self.assertEqual(obj_list[1].item_favourite, 1)
+        self.assertEqual(len(obj_list[1].user_favourites), 1)
+
+        self.assertEqual(obj_list[2].id, self.timtam.id)
+        self.assertEqual(obj_list[2].item_favourite, 1)
+        self.assertEqual(len(obj_list[2].user_favourites), 0)

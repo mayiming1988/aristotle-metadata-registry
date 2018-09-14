@@ -142,8 +142,9 @@ class FavouritesAndTags(LoginRequiredMixin, ListView):
         ).annotate(
             item_favourite=Count(
                 Case(When(favourites__tag__primary=True, then=1))
-            )
-        )
+            ),
+            used=Max('favourites__created')
+        ).order_by('-used')
 
     def get_tags(self):
 
