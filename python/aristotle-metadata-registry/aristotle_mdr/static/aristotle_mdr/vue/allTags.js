@@ -3,23 +3,35 @@ var yesNoModalComponent = {
     <div class="modal-dialog" role="document">\
       <div class="modal-content">\
         <div class="modal-header">\
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>\
+          <button type="button" class="close" @click="noAction" aria-label="Close"><span aria-hidden="true">&times;</span></button>\
           <h4 class="modal-title">{{ title }}</h4>\
         </div>\
         <div class="modal-body">\
           <p>{{ text }}</p>\
         </div>\
         <div class="modal-footer">\
-          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>\
+          <button type="button" class="btn btn-default" @click="noAction">Cancel</button>\
           <button type="button" class="btn btn-primary" @click="yesAction">Confirm</button>\
         </div>\
       </div>\
     </div>\
   </div>',
-  props: ['id', 'title', 'text'],
+  props: ['id', 'title', 'text', 'visible'],
   methods: {
     yesAction: function() {
       this.$emit('yes')
+    },
+    noAction: function() {
+      this.$emit('no')
+    }
+  },
+  watch: {
+    visible: function(value) {
+      if (value == true) {
+        $('#' + this.id).modal('show')
+      } else {
+        $('#' + this.id).modal('hide')
+      }
     }
   }
 }
@@ -47,18 +59,21 @@ var vm = new Vue({
   },
   data: {
     modal_text: 'Are you sure',
+    modal_visible: false,
     tag_item: null
   },
   methods: {
     deleteClicked: function(item) {
-      console.log(item)
-      this.tag_item = item.id
+      this.tag_item = item
       this.modal_text = 'Are you sure you want to delete ' + item.name
-      $('#deleteTagModal').modal('show')
+      this.modal_visible = true
     },
     deleteConfirmed: function() {
-      console.log('deleting')
-      console.log(this.tag_item)
+      $(this.tag_item.target).closest('tr').remove()
+      this.modal_visible = false
+    },
+    deleteCancelled: function() {
+      this.modal_visible = false
     }
   }
 })

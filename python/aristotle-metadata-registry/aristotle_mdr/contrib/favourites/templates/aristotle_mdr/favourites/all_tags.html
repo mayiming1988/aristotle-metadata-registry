@@ -39,7 +39,14 @@
       </table>
     {% endif %}
     {% include "aristotle_mdr/helpers/paginator.html" with page=page %}
-    <yesno-modal id="deleteTagModal" title="Delete Tag" :text="modal_text" @yes="deleteConfirmed"></yesno-modal>
+    <yesno-modal 
+      id="deleteTagModal" 
+      title="Delete Tag" 
+      :text="modal_text" 
+      @yes="deleteConfirmed" 
+      :visible="modal_visible"
+      @no="deleteCancelled">
+    </yesno-modal>
   </div>
   <script src="{% static 'aristotle_mdr/vue/allTags.js' %}"></script>
 {% endblock %}
