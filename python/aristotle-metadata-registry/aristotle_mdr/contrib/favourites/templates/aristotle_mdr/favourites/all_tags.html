@@ -10,7 +10,7 @@
 {% block page %}
   <div id="vue-container">
     <h1>All Tags</h1>
-
+    <error-alert :error="error_msg"></error-alert>
     {% if page_obj %}
       <table class="table">
         <thead>

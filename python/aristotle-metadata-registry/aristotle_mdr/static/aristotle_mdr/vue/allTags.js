@@ -51,16 +51,23 @@ var deleteButtonComponent = {
   }
 }
 
+var errorAlertComponent = {
+  template: '<div v-if="error.length > 0" class="alert alert-danger">{{ error }}</div>',
+  props: ['error']
+}
+
 var vm = new Vue({
   el: '#vue-container',
   components: {
     'yesno-modal': yesNoModalComponent,
-    'delete-button': deleteButtonComponent
+    'delete-button': deleteButtonComponent,
+    'error-alert': errorAlertComponent
   },
   data: {
     modal_text: 'Are you sure',
     modal_visible: false,
-    tag_item: null
+    tag_item: null,
+    error_msg: ''
   },
   methods: {
     deleteClicked: function(item) {
@@ -69,8 +76,24 @@ var vm = new Vue({
       this.modal_visible = true
     },
     deleteConfirmed: function() {
-      $(this.tag_item.target).closest('tr').remove()
-      this.modal_visible = false
+      var data = {
+        tagid: this.tag_item.id,
+        csrfmiddlewaretoken: getCookie('csrftoken')
+      }
+      var component = this;
+      
+      $.post(
+        '/favourites/tagDelete',
+        data,
+        function(data) {
+          if (data.success) {
+            $(component.tag_item.target).closest('tr').remove()
+          } else {
+            component.error_msg = data.message
+          }
+          component.modal_visible = false
+        }
+      )
     },
     deleteCancelled: function() {
       this.modal_visible = false

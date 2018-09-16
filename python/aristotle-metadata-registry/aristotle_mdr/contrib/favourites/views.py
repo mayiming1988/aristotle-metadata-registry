@@ -246,10 +246,9 @@ class AllTagView(LoginRequiredMixin, ListView):
 
 
 class DeleteTagView(LoginRequiredMixin, View):
-    pk_url_kwarg = 'tagid'
 
     def post(self, request, *args, **kwargs):
-        pk = self.kwargs[self.pk_url_kwarg]
+        pk = self.request.POST['tagid']
         error_message = ''
 
         try:
