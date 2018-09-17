@@ -19,7 +19,7 @@ describe('favouriteComponent', function() {
   })
 
   it('sets title correctly', function() {
-    var wrapper = mount(favouriteComponent)
+    const wrapper = mount(favouriteComponent)
     wrapper.setData({favourited: true})
     assert.equal(wrapper.vm.linkTitle, 'Add to my favourites')
     wrapper.setData({favourited: false})
@@ -27,10 +27,56 @@ describe('favouriteComponent', function() {
   })
 
   it('sets icon class correctly', function() {
-    var wrapper = mount(favouriteComponent)
+    const wrapper = mount(favouriteComponent)
     wrapper.setData({favourited: true})
     assert.equal(wrapper.vm.iconClass, 'fa fa-bookmark')
     wrapper.setData({favourited: false})
     assert.equal(wrapper.vm.iconClass, 'fa fa-bookmark-o')
+  })
+})
+
+describe('tagComponent', function() {
+  it('displays tags', function() {
+    const wrapper = mount(tagComponent, {
+      attachToDocument: true,
+      propsData: {tags: ['tag1', 'tag2']}
+    })
+    assert.deepEqual(wrapper.vm.tag_editor.getTagValues(), ['tag1', 'tag2'])
+  })
+
+  it('updates tags from prop', function() {
+    const wrapper = mount(tagComponent, {
+      attachToDocument: true,
+      propsData: {tags: ['tag1', 'tag2']}
+    })
+    wrapper.setProps({tags: ['tag1', 'tag2', 'tag3']})
+    assert.deepEqual(wrapper.vm.tag_editor.getTagValues(), ['tag1', 'tag2', 'tag3'])
+  })
+
+  it('updates class with newtags', function() {
+    const wrapper = mount(tagComponent, {
+      attachToDocument: true,
+      propsData: {tags: ['tag1', 'tag2']}
+    })
+    wrapper.setProps({tags: ['tag1', 'tag2', 'tag3'], newtags: ['tag3']})
+    var elements = wrapper.vm.tag_editor.getTagElements()
+    assert.equal(elements[2].className, 'taggle  taggle_newtag')
+    assert.equal(elements[1].className, 'taggle')
+    assert.equal(elements[0].className, 'taggle')
+  })
+
+  it('emits tag updates', function() {
+    const wrapper = mount(tagComponent, {
+      attachToDocument: true,
+      propsData: {tags: ['tag1', 'tag2']}
+    })
+
+    wrapper.vm.tag_editor.add('wow')
+    assert.exists(wrapper.emitted('tag-update'))
+    assert.deepEqual(wrapper.emitted('tag-update')[0][0], ['tag1', 'tag2', 'wow'])
+
+    wrapper.vm.tag_editor.remove('wow')
+    console.log(wrapper.emitted('tag-update'))
+    assert.deepEqual(wrapper.emitted('tag-update')[1][0], ['tag1', 'tag2'])
   })
 })

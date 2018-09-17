@@ -85,7 +85,7 @@ tagComponent = {
   },
   watch: {
     tags: function() {
-      current_tags = this.tag_editor.getTagValues()
+      var current_tags = this.tag_editor.getTagValues()
       for (var i=0; i < this.tags.length; i++) {
         var tag = this.tags[i]
         // Add tag if not already present
@@ -157,7 +157,15 @@ var vm = new Vue({
     selected: '',
   },
   created: function() {
-    var tags = JSON.parse($('#tags-json').text())
+    var json = $('#tags-json').text()
+    if (json != "") {
+      var tags = JSON.parse(json)
+    } else {
+      var tags = {
+        item: [],
+        user: []
+      }
+    }
     // Tags that have been submitted (deepcopy)
     this.saved_tags = tags.item.slice()
     // Tags currently in editor
