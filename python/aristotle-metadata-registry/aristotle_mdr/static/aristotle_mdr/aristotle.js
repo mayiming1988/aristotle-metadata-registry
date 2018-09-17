@@ -13,7 +13,7 @@ function clearAndHideMessages() {
 function addHeaderMessage(message) {
   clearMessages()
   var row = $('#messages-row')
-  row.removeAttr('hidden')
+  row.find('.alert').removeAttr('hidden')
   var message_list = row.find('ul')
   var element = $('<li>', {text: message})
   message_list.append(element)
