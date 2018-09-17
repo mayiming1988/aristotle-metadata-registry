@@ -530,7 +530,67 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
         obj_list = response.context['object_list']
 
         self.assertEqual(len(obj_list), 2)
-        self.assertEqual(obj_list[0].id, tag1.id)
-        self.assertEqual(obj_list[0].num_items, 1)
-        self.assertEqual(obj_list[1].id, tag2.id)
-        self.assertEqual(obj_list[1].num_items, 2)
+        self.assertEqual(obj_list[0].id, tag2.id)
+        self.assertEqual(obj_list[0].num_items, 2)
+        self.assertEqual(obj_list[1].id, tag1.id)
+        self.assertEqual(obj_list[1].num_items, 1)
+
+    def test_delete_valid_tag(self):
+
+        tag1 = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='my tag'
+        )
+        tag2 = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='my other tag'
+        )
+
+        self.login_editor()
+        postdata = {
+            'tagid': tag1.id
+        }
+        response = self.reverse_post(
+            'aristotle_favourites:tag_delete',
+            postdata,
+            status_code=200
+        )
+
+        self.assertFalse(models.Tag.objects.filter(id=postdata['tagid']).exists())
+
+    def test_delete_invalid_tag(self):
+
+        self.login_editor()
+        postdata = {
+            'tagid': 777
+        }
+        response = self.reverse_post(
+            'aristotle_favourites:tag_delete',
+            postdata,
+            status_code=200
+        )
+        response_obj = json.loads(response.content)
+
+        self.assertFalse(response_obj['success'])
+        self.assertEqual(response_obj['message'], 'Tag not found')
+
+    def test_delete_tag_witout_permission(self):
+
+        tag1 = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='my tag'
+        )
+
+        self.login_viewer()
+        postdata = {
+            'tagid': tag1.id
+        }
+        response = self.reverse_post(
+            'aristotle_favourites:tag_delete',
+            postdata,
+            status_code=200
+        )
+        response_obj = json.loads(response.content)
+
+        self.assertFalse(response_obj['success'])
+        self.assertEqual(response_obj['message'], 'Tag could not be deleted')

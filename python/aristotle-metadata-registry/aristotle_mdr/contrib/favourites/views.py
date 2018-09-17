@@ -249,21 +249,25 @@ class DeleteTagView(LoginRequiredMixin, View):
 
     def post(self, request, *args, **kwargs):
         pk = self.request.POST['tagid']
-        error_message = ''
+        message = ''
+        success = False
 
         try:
             tag = Tag.objects.get(pk=pk)
         except:
-            error_message = 'Tag not found'
+            message = 'Tag not found'
+            tag = None
 
-        if tag.profile.id == self.request.user.profile.id:
-            tag.delete()
-        else:
-            error_message = 'Tag could not be deleted'
+        if tag is not None:
+            if tag.profile.id == self.request.user.profile.id:
+                tag.delete()
+                success = True
+            else:
+                message = 'Tag could not be deleted'
 
         return JsonResponse({
-            'success': True,
-            'message': error_message
+            'success': success,
+            'message': message
         })
 
 
