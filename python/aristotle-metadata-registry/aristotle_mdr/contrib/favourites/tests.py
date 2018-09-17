@@ -195,6 +195,16 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
             status_code=403
         )
 
+    def test_toggle_next_redirect(self):
+
+        self.login_editor()
+
+        toggle_url = reverse('aristotle_favourites:toggleFavourite', args=[self.timtam.id]) + '?next=/about'
+        response = self.client.get(toggle_url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/about')
+
     def test_tag_edit_add_tags(self):
 
         self.login_editor()
@@ -454,6 +464,15 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
 
         self.assertEqual(obj_list[1].id, self.ttt.id)
         self.assertEqual(obj_list[1].item_favourite, 0)
+
+    def test_tag_view_invalid_tag(self):
+
+        self.login_editor()
+        response = self.reverse_get(
+            'aristotle_favourites:tag',
+            reverse_args=[777],
+            status_code=404
+        )
 
     def test_favourite_view(self):
 
