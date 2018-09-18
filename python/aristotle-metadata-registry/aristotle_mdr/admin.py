@@ -22,14 +22,10 @@ from improved_user.forms import UserChangeForm, UserCreationForm
 from aristotle_mdr.register import register_concept
 from aristotle_mdr.utils import fetch_aristotle_settings
 
-from aristotle_mdr.contrib.favourites.models import Favourite
-reversion.revisions.register(Favourite)
-
 reversion.revisions.register(MDR.Status)
 reversion.revisions.register(
     MDR._concept,
     follow=['statuses', 'workgroup', 'slots'],
-    exclude=['favourites', 'favourited_by']
 )
 reversion.revisions.register(MDR.Workgroup)
 
