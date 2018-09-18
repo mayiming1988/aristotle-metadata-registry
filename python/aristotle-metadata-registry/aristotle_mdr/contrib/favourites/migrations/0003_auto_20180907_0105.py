@@ -8,7 +8,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_mdr', '0038_remove_possumprofile_favourites'),
+        ('aristotle_mdr', '0040_remove_possumprofile_favourites'),
         ('aristotle_mdr_favourites', '0002_auto_20180904_0422'),
     ]
 
