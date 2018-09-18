@@ -74,7 +74,6 @@ describe('tagComponent', function() {
     assert.deepEqual(wrapper.emitted('tag-update')[0][0], ['tag1', 'tag2', 'wow'])
 
     wrapper.vm.tag_editor.remove('wow')
-    console.log(wrapper.emitted('tag-update'))
     assert.deepEqual(wrapper.emitted('tag-update')[1][0], ['tag1', 'tag2'])
   })
 })
