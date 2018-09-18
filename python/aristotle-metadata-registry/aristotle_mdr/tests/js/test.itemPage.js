@@ -1,5 +1,6 @@
 var assert = chai.assert
 var mount = VueTestUtils.mount
+var shallowMount = VueTestUtils.shallowMount
 
 describe('favouriteComponent', function() {
   it('has a created hook', function() {
@@ -36,28 +37,30 @@ describe('favouriteComponent', function() {
 })
 
 describe('tagComponent', function() {
-  it('displays tags', function() {
-    const wrapper = mount(tagComponent, {
+
+  var wrapper
+
+  beforeEach(function() {
+    wrapper = mount(tagComponent, {
       attachToDocument: true,
       propsData: {tags: ['tag1', 'tag2']}
     })
+  })
+  
+  afterEach(function() {
+    $('#taggle-editor').remove()
+  })
+
+  it('displays tags', function() {
     assert.deepEqual(wrapper.vm.tag_editor.getTagValues(), ['tag1', 'tag2'])
   })
 
   it('updates tags from prop', function() {
-    const wrapper = mount(tagComponent, {
-      attachToDocument: true,
-      propsData: {tags: ['tag1', 'tag2']}
-    })
     wrapper.setProps({tags: ['tag1', 'tag2', 'tag3']})
     assert.deepEqual(wrapper.vm.tag_editor.getTagValues(), ['tag1', 'tag2', 'tag3'])
   })
 
   it('updates class with newtags', function() {
-    const wrapper = mount(tagComponent, {
-      attachToDocument: true,
-      propsData: {tags: ['tag1', 'tag2']}
-    })
     wrapper.setProps({tags: ['tag1', 'tag2', 'tag3'], newtags: ['tag3']})
     var elements = wrapper.vm.tag_editor.getTagElements()
     assert.equal(elements[2].className, 'taggle  taggle_newtag')
@@ -66,11 +69,6 @@ describe('tagComponent', function() {
   })
 
   it('emits tag updates', function() {
-    const wrapper = mount(tagComponent, {
-      attachToDocument: true,
-      propsData: {tags: ['tag1', 'tag2']}
-    })
-
     wrapper.vm.tag_editor.add('wow')
     assert.exists(wrapper.emitted('tag-update'))
     assert.deepEqual(wrapper.emitted('tag-update')[0][0], ['tag1', 'tag2', 'wow'])
@@ -79,4 +77,12 @@ describe('tagComponent', function() {
     console.log(wrapper.emitted('tag-update'))
     assert.deepEqual(wrapper.emitted('tag-update')[1][0], ['tag1', 'tag2'])
   })
+})
+
+describe('autoCompleteTagComponent', function() {
+
+  it('computes new tags', function() {
+
+  })
+
 })
