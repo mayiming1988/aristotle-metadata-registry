@@ -116,11 +116,11 @@ var autoCompleteTagComponent = {
   components: {
     'taggle-tags': tagComponent,
   },
-  props: ['value', 'user_tags'],
+  props: ['current_tags', 'user_tags'],
   computed: {
     newTags: function() {
       newTags = []
-      for (var i=0; i < this.value.length; i++) {
+      for (var i=0; i < this.current_tags.length; i++) {
         var element = this.current_tags[i]
         if (this.user_tags.indexOf(element) == -1) {
           newTags.push(element)
@@ -147,7 +147,7 @@ var autoCompleteTagComponent = {
       }
     },
     update_tags: function(tags) {
-      this.current_tags = tags
+      this.$emit('tag-update', tags)
     },
   }
 }
@@ -189,7 +189,7 @@ var submitTags = {
 var vm = new Vue({
   el: '#vue-container',
   components: {
-    'taggle-tags': tagComponent,
+    'autocomplete-tags': autoCompleteTagComponent,
     'simple-list': simpleList,
     'submit-tags': submitTags,
     'favourite': favouriteComponent
@@ -217,18 +217,6 @@ var vm = new Vue({
     // All a users tags
     this.user_tags = tags.user
   },
-  computed: {
-    newTags: function() {
-      newTags = []
-      for (var i=0; i < this.current_tags.length; i++) {
-        var element = this.current_tags[i]
-        if (this.user_tags.indexOf(element) == -1) {
-          newTags.push(element)
-        }
-      }
-      return newTags
-    }
-  },
   methods: {
     update_tags: function(tags) {
       this.current_tags = tags
@@ -236,21 +224,5 @@ var vm = new Vue({
     update_saved_tags: function(tags) {
       this.saved_tags = tags
     },
-    getSuggestions: function() {
-      suggestions = []
-      for (var i=0; i < this.user_tags.length; i++) {
-        var element = this.user_tags[i]
-        // Add to suggestions if not in current tags
-        if (this.current_tags.indexOf(element) == -1) {
-          suggestions.push(element)
-        }
-      }
-      return suggestions
-    },
-    makeSuggestion: function(suggestion) {
-      if (suggestion != null) {
-        this.current_tags.push(suggestion)
-      }
-    }
   }
 })
