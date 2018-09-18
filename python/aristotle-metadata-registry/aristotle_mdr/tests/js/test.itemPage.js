@@ -80,9 +80,29 @@ describe('tagComponent', function() {
 })
 
 describe('autoCompleteTagComponent', function() {
+  
+  var wrapper
+
+  beforeEach(function() {
+    wrapper = shallowMount(autoCompleteTagComponent, {
+      propsData: {
+        current_tags: ['tag1', 'tag2'],
+        user_tags: ['tag1', 'someothertag', 'morenewtags']
+      }
+    })
+  })
 
   it('computes new tags', function() {
+    assert.deepEqual(wrapper.vm.newTags, ['tag2'])
+  })
 
+  it('computes suggestions', function() {
+    assert.deepEqual(wrapper.vm.getSuggestions(), ['someothertag', 'morenewtags'])
+  })
+
+  it('adds suggetsions', function() {
+    wrapper.vm.makeSuggestion('someothertag')
+    assert.deepEqual(wrapper.vm.current_tags, ['tag1', 'tag2', 'someothertag'])
   })
 
 })

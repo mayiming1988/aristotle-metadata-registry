@@ -119,7 +119,7 @@ var autoCompleteTagComponent = {
   props: ['current_tags', 'user_tags'],
   computed: {
     newTags: function() {
-      newTags = []
+      var newTags = []
       for (var i=0; i < this.current_tags.length; i++) {
         var element = this.current_tags[i]
         if (this.user_tags.indexOf(element) == -1) {
@@ -131,7 +131,7 @@ var autoCompleteTagComponent = {
   },
   methods: {
     getSuggestions: function() {
-      suggestions = []
+      var suggestions = []
       for (var i=0; i < this.user_tags.length; i++) {
         var element = this.user_tags[i]
         // Add to suggestions if not in current tags
