@@ -1,0 +1,20 @@
+{% spaceless %}
+<div class='multi-widget'>
+  <div class='multi-fields'>
+    {% for subwidget in widget.subwidgets %}
+    <div class='form-group'>
+      <div class="row">
+        <div class="col-md-10">
+          {% include subwidget.template_name with widget=subwidget %}
+        </div>
+        <div class="col-md-1">
+          <button type="button" class="btn btn-danger remove-field widget-button"><i class="fa fa-times fa-fw"></i></button>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <button type="button" class="btn btn-primary add-field widget-button">Add</button>
+  <button type="button" class="btn btn-danger remove-all widget-button margin-left">Remove All</button>
+</div>
+{% endspaceless %}

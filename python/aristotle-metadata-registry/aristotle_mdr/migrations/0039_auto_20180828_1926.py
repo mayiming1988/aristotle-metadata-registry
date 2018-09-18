@@ -9,7 +9,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_mdr', '0038_remove_possumprofile_favourites'),
+        ('aristotle_mdr', '0038_sandboxshare'),
     ]
 
     operations = [

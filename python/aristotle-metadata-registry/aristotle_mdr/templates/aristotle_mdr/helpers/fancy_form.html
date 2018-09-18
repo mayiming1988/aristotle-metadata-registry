@@ -1,5 +1,5 @@
 {% for field in form %}
-<div>
+<div class="field-container">
     {{ field.label_tag }} {{field.help_text}}
     {% if field.errors %}
         <ul class="alert alert-danger">

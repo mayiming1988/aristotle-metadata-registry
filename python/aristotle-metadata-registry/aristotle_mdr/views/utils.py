@@ -391,16 +391,20 @@ class AjaxFormMixin:
     """
     Mixin to be used with form view for ajax functionality,
     falls back to normal functionality when recieving a non ajax request
+
     Requirements:
     - ajaxforms.js must be included on the page
     - divs containing form fields must have the class field-container
+
     Optional:
     - div with class ajax-success-container to control where success message
     appears
     """
+
     ajax_success_message = None
 
     def form_invalid(self, form):
+
         if self.request.is_ajax():
             # Return errors as json
             data = {
@@ -414,6 +418,7 @@ class AjaxFormMixin:
     def form_valid(self, form):
         # Need to call super here for modelFormMixin compatibility
         response = super().form_valid(form)
+
         if self.request.is_ajax():
             data = {'success': True}
             # If success message set

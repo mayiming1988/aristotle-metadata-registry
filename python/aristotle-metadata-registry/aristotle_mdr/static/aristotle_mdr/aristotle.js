@@ -58,6 +58,22 @@ $(document).ready(function() {
     $('.aristotle-popover').popover()
 
     $('#messages-row').find('.close').click(clearAndHideMessages)
+
+    //Initialise delete checkboxes
+    $('.delete-disable').click(function() {
+      var deletebox = $(this)
+      var checked = deletebox.prop('checked')
+      var form = deletebox.closest('form')
+      form.find('input').each(function() {
+        if ($(this).attr('id') != deletebox.attr('id') && $(this).attr('name') != 'csrfmiddlewaretoken') {
+          $(this).prop('disabled', checked)
+        }
+      })
+      form.find('.widget-button').each(function() {
+        $(this).prop('disabled', checked)
+      })
+    })
+
 });
 
 $(document).ajaxSend(function(event, request, settings) {

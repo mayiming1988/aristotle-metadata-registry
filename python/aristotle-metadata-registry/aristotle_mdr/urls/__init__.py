@@ -29,3 +29,4 @@ if settings.DEBUG:  # pragma: no cover
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 handler403 = 'aristotle_mdr.views.unauthorised'
+handler404 = 'aristotle_mdr.views.not_found'
