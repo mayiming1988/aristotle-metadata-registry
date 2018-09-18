@@ -3,12 +3,12 @@
 
 {% block content %}
     {% block extra_head_scripts %}
-        <script src="{% static 'aristotle_mdr/jqueryui/jquery-ui.min.js' %}"></script>
+        <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
     {% endblock %}
 
 
 
-<a class="sr-only" onclick="addSlot()" href="?extra=1" accesskey='r'>Add a slot (adding a slot does not save changes)</a>
+<a class="sr-only" onclick="addSlot()" href="?extra=1" accesskey='r'></a>
     {% with formset=slots_FormSet %}
 
     {{ formset.management_form }}
