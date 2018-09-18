@@ -174,7 +174,6 @@ def render_if_condition_met(request, condition, objtype, iid, model_slug=None, n
         tags['item'] = list(item_tags)
         tags['user'] = list(user_tags)
 
-
     return render(
         request, [default_template, item.template],
         {
@@ -254,7 +253,6 @@ def create_list(request):
         }
     )
 
-# Actions
 
 def display_review(wizard):
     if wizard.display_review is not None:

@@ -8,6 +8,7 @@ from django.urls import reverse
 
 import json
 
+
 @tag('favourites')
 class FavouritesTestCase(AristotleTestUtils, TestCase):
 
@@ -48,7 +49,6 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
             name='',
             primary=True
         )
-
 
         # Add favourites
         models.Favourite.objects.create(

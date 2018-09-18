@@ -1524,6 +1524,7 @@ class PossumProfile(models.Model):
         ).distinct().count()
         return count
 
+
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         profile, created = PossumProfile.objects.get_or_create(user=instance)
