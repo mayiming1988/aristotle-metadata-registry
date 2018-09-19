@@ -16,7 +16,7 @@ from aristotle_mdr.utils import setup_aristotle_test_environment
 setup_aristotle_test_environment()
 
 
-class TestNotifications(utils.LoggedInViewPages, TestCase):
+class TestNotifications(utils.AristotleTestUtils, TestCase):
     defaults = {}
     def setUp(self):
         super().setUp()
