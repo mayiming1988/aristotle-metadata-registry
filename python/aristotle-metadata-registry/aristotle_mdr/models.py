@@ -866,10 +866,12 @@ class concept(_concept):
 
 
 class SupersedeRelationship(TimeStampedModel):
-    older_item = ConceptForeignKey(_concept,
+    older_item = ConceptForeignKey(
+        _concept,
         related_name='superseded_by_items_relation_set',
     )
-    newer_item = ConceptForeignKey(_concept,
+    newer_item = ConceptForeignKey(
+        _concept,
         related_name='superseded_items_relation_set',
     )
     registration_authority = models.ForeignKey(RegistrationAuthority)

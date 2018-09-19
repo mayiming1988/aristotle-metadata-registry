@@ -175,7 +175,8 @@ def visible_supersedes_items(item, user):
         {
             "pk": obj.pk,
             "older_item": obj,
-            "rels": [{
+            "rels": [
+                {
                     # "newer_item": sup.newer_item,
                     "message": sup.message,
                     "date_effective": sup.date_effective,
@@ -204,25 +205,12 @@ def visible_superseded_by_items(item, user):
     ).visible(user).filter(
         superseded_items_relation_set__older_item_id=item.pk
     ).distinct()
-    # sup_rels = [
-    #     {
-    #         "pk": sup.pk,
-    #         # "older_item": sup.older_item,
-    #         "newer_item": sup.newer_item,
-    #         "message": sup.message,
-    #         "registration_authority": sup.registration_authority,
-    #     }
-    #     for obj in objects
-    #     for sup in obj.superseded_items_relation_set.all()
-    #     if sup.older_item_id == item.pk
-    # ]
-    # sup_rels.sort(key=lambda x: x['pk'])
-    # return sup_rels
     sup_rels = [
         {
             "pk": obj.pk,
             "newer_item": obj,
-            "rels": [{
+            "rels": [
+                {
                     # "newer_item": sup.newer_item,
                     "message": sup.message,
                     "date_effective": sup.date_effective,

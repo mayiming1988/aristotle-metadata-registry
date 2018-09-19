@@ -18,17 +18,15 @@ from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 
 from aristotle_mdr import perms
 from aristotle_mdr import models as MDR
+from aristotle_mdr.contrib.generic.views import UnorderedGenericAlterOneToManyView
 from aristotle_mdr.forms import actions
-from aristotle_mdr.forms.forms import ChangeStatusGenericForm
-from aristotle_mdr.views.utils import generate_visibility_matrix
+from aristotle_mdr.forms.forms import ChangeStatusGenericForm, ReviewChangesForm
 from aristotle_mdr.views import ReviewChangesView, display_review
-from aristotle_mdr.forms.forms import ReviewChangesForm
-from aristotle_mdr.perms import can_delete_metadata
-from aristotle_mdr.utils import url_slugify_concept
-
 from aristotle_mdr.views.utils import (
+    generate_visibility_matrix,
     ObjectLevelPermissionRequiredMixin,
 )
+from aristotle_mdr.utils import url_slugify_concept
 
 import logging
 logger = logging.getLogger(__name__)
@@ -350,26 +348,13 @@ class DeleteSandboxView(FormView):
 
         return super().form_valid(form)
 
-from aristotle_mdr.contrib.generic.views import (
-    GenericAlterOneToManyView,
-)
-# from aristotle_mdr.contrib.generic.forms import WeakEntityFormset
 
-
-from aristotle_mdr.contrib.generic.views import UnorderedGenericAlterOneToManyView
-from aristotle_mdr import perms
 class SupersedeItemView(UnorderedGenericAlterOneToManyView, ItemSubpageView, PermissionRequiredMixin):
-
-    # form_class = actions.SupersedeForm
-    # template_name = "aristotle_mdr/actions/supersede_item.html"
-    # formset_class = WeakEntityFormset
-    # permission_required = "aristotle_mdr.user_is_registrar"
     permission_checks = [perms.user_can_supersede]
     model_base = MDR._concept
     model_to_add = MDR.SupersedeRelationship
     model_base_field = 'superseded_by_items_relation_set'
     model_to_add_field = 'older_item'
-    # ordering_field='order'
     form_add_another_text = _('Add a relationship')
     form_title = _('Change Superseding')
 

@@ -400,8 +400,8 @@ class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
         return self.__class__.formset_factory
 
     def get_formset_class(self):
-        extra_excludes = one_to_many_formset_excludes(self.item,  self.model_to_add)
-        all_excludes = [self.model_to_add_field,] + extra_excludes
+        extra_excludes = one_to_many_formset_excludes(self.item, self.model_to_add)
+        all_excludes = [self.model_to_add_field, ] + extra_excludes
         if self.ordering_field:
             all_excludes.append(self.ordering_field)
         kwargs = {}

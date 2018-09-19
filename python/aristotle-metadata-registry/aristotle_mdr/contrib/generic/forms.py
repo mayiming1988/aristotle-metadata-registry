@@ -25,6 +25,7 @@ datePickerOptions = {
 
 class HiddenOrderMixin(object):
     is_ordered = True
+
     def add_fields(self, form, index):
         super().add_fields(form, index)
         form.fields["ORDER"].widget = forms.HiddenInput()
@@ -32,7 +33,7 @@ class HiddenOrderMixin(object):
     def save(self, commit=True):
         super().save(commit=False)
         # Save formset so we have access to deleted_objects and save_m2m
-    
+
         for form in self.ordered_forms:
             # Loop through the forms so we can add the order value to the ordering field
             # ordered_forms does not contain forms marked for deletion
@@ -44,21 +45,25 @@ class HiddenOrderMixin(object):
         for obj in self.deleted_objects:
             # Delete objects marked for deletion
             obj.delete()
-    
+
         # Save any m2m relations on the ojects (not actually needed yet)
         self.save_m2m()
+
 
 class HiddenOrderFormset(HiddenOrderMixin, BaseFormSet):
     pass
 
+
 class HiddenOrderModelFormSet(HiddenOrderMixin, BaseModelFormSet):
     pass
+
 
 class HiddenOrderInlineFormset(HiddenOrderMixin, BaseInlineFormSet):
     pass
 
 # Below are some util functions for creating o2m and m2m querysets
 # They are used in the generic alter views and the ExtraFormsetMixin
+
 
 def one_to_many_formset_excludes(item, model_to_add):
     # creates a list of extra fields to be excluded based on the item related to the weak entity
@@ -110,7 +115,6 @@ def get_aristotle_widgets(model, ordering_field=None):
                 ordering_field: forms.HiddenInput()
             })
 
-
     for f in model._meta.many_to_many:
         foreign_model = model._meta.get_field(f.name).related_model
         if foreign_model and issubclass(foreign_model, _concept):
@@ -137,7 +141,6 @@ def ordered_formset_factory(model, ordering_field, exclude=[]):
         widgets=_widgets
     )
     formset.ordering_field = ordering_field
-    
     return formset
 
 
