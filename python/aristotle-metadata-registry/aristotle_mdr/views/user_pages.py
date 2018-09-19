@@ -1,8 +1,8 @@
 import datetime
 from django.apps import apps
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import LoginView, LogoutView
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
