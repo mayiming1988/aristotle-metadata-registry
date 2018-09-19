@@ -654,12 +654,15 @@ class _concept(baseAristotleObject):
     submitting_organisation = ShortTextField(blank=True)
     responsible_organisation = ShortTextField(blank=True)
 
-    # superseded_by = ConceptForeignKey(
-    #     'self',
-    #     related_name='supersedes',
-    #     blank=True,
-    #     null=True
-    # )
+    superseded_by_items = ConceptManyToManyField(  # 11.5.3.4
+        'self',
+        through='SupersedeRelationship',
+        related_name="superseded_items",
+        # blank=True,
+        through_fields=('older_item', 'newer_item'),
+        symmetrical=False,
+        # help_text=_("")
+    )
 
     tracker = FieldTracker()
 

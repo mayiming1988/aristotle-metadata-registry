@@ -123,27 +123,6 @@ def get_aristotle_widgets(model, ordering_field=None):
     return _widgets
 
 
-def ordered_inline_formset_factory(ordering_field, **kwargs):
-    # Formset factory for a hidden order model formset with aristotle widgets
-    _widgets = get_aristotle_widgets(kwargs['model'])
-    ordering_field = kwargs.pop('ordering_field', None)
-
-    defaults = dict(
-        formset=HiddenOrderInlineFormset,
-        can_order=True,  # we assign this back to the ordering field
-        can_delete=True,
-        extra=0,
-        widgets=_widgets
-    )
-    defaults.update(**kwargs)
-    logger.critical(kwargs)
-
-    formset = inlineformset_factory(**defaults)
-    formset.is_ordered = True
-    formset.ordering_field = ordering_field
-    return formset
-
-
 def ordered_formset_factory(model, ordering_field, exclude=[]):
     # Formset factory for a hidden order model formset with aristotle widgets
     _widgets = get_aristotle_widgets(model)

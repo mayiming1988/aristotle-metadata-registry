@@ -123,7 +123,7 @@ class ConceptAdmin(CompareVersionAdmin, admin.ModelAdmin):
         # ('Registry', {'fields': ['workgroup']}),
         ('Relationships', {
             'classes': ('grp-collapse grp-closed',),
-            'fields': ['origin_URI', 'superseded_by', 'deprecated'],
+            'fields': ['origin_URI'],
         }),
     ]
     name_suggest_fields = []

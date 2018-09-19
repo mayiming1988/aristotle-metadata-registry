@@ -97,7 +97,7 @@ class DeleteSandboxForm(UserAwareForm):
 class SupersedeForm(forms.ModelForm):
     class Meta:
         model = MDR.SupersedeRelationship
-        fields = ['newer_item', 'registration_authority', 'message', "date_effective"]
+        fields = ['newer_item', 'registration_authority', 'message', 'date_effective']
     
     def __init__(self, *args, **kwargs):
         self.item = kwargs.pop('item')
