@@ -40,7 +40,7 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
     def test_subscriber_is_notified_of_supersede(self):
         user1 = get_user_model().objects.create_user('subscriber@example.com','subscriber')
         self.favourite_item(user1, self.item1)
-        self.assertTrue(user1.profile in self.item1.favourited_by.all())
+        self.assertTrue(user1 in self.item1.favourited_by.all())
 
         self.assertEqual(user1.notifications.all().count(), 0)
         kwargs = {}
@@ -57,7 +57,7 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
     def test_subscriber_is_notified_of_supersede_via_deprecate_page(self):
         user1 = get_user_model().objects.create_user('subscriber@example.com','subscriber')
         self.favourite_item(user1, self.item1)
-        self.assertTrue(user1.profile in self.item1.favourited_by.all())
+        self.assertTrue(user1 in self.item1.favourited_by.all())
 
         self.assertEqual(user1.notifications.all().count(), 0)
 
