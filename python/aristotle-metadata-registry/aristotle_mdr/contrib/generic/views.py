@@ -15,7 +15,6 @@ from aristotle_mdr.perms import user_can_edit, user_can_view
 from aristotle_mdr.utils import construct_change_message
 from aristotle_mdr.contrib.generic.forms import (
     ordered_formset_factory, ordered_formset_save,
-    ordered_inline_formset_factory,
     one_to_many_formset_excludes, one_to_many_formset_filters,
     HiddenOrderFormset, HiddenOrderInlineFormset,
     get_aristotle_widgets
@@ -366,12 +365,14 @@ class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
     formset_class = None
     template_name = "aristotle_mdr/generic/actions/alter_one_to_many.html"
     formset_factory = inlineformset_factory
+    formset = None
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['form_add_another_text'] = self.form_add_another_text or _('Add another')
         num_items = getattr(self.item, self.model_base_field).count()
-        formset = self.get_formset()
+
+        formset = self.formset or self.get_formset()
 
         context['formset'] = one_to_many_formset_filters(formset, self.item)
         context['form'] = None
@@ -394,10 +395,14 @@ class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
             *args, **kwargs
         )
 
+    def get_formset_factory(self):
+        return self.__class__.formset_factory
+
     def get_formset_class(self):
         extra_excludes = one_to_many_formset_excludes(self.item,  self.model_to_add)
         all_excludes = [self.model_to_add_field,] + extra_excludes
-
+        if self.ordering_field:
+            all_excludes.append(self.ordering_field)
         kwargs = {}
         form = self.get_form()
 
@@ -406,7 +411,7 @@ class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
         if self.formset_class:
             kwargs.update(formset=self.formset_class)
 
-        formset = self.formset_factory(
+        formset = self.get_formset_factory()(
             model=self.model_to_add,
             parent_model=self.model_base,
             fk_name=self.model_to_add_field,
@@ -428,15 +433,15 @@ class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
         POST variables and then checked for validity.
         """
         form = self.get_form()
-        formset = self.get_formset(
+        self.formset = self.get_formset(
             self.request.POST, self.request.FILES,
         )
-        if formset.is_valid():
+        if self.formset.is_valid():
             with transaction.atomic(), reversion.revisions.create_revision():
                 self.item.save()
-                formset.save()
+                self.formset.save()
                 reversion.revisions.set_user(request.user)
-                reversion.revisions.set_comment(construct_change_message(request, None, [formset]))
+                reversion.revisions.set_comment(construct_change_message(request, None, [self.formset]))
 
             return HttpResponseRedirect(self.get_success_url())
         else:
@@ -472,7 +477,6 @@ class GenericAlterOneToManyView(GenericAlterOneToManyViewBase):
     form_add_another_text = None
     is_ordered = True
     formset_class = HiddenOrderInlineFormset
-    formset_factory = ordered_inline_formset_factory
 
 
 class UnorderedGenericAlterOneToManyView(GenericAlterOneToManyViewBase):
