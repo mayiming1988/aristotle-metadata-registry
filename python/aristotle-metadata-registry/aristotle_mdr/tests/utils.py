@@ -752,12 +752,12 @@ class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils, FormsetTestUtils):
 
     def favourite_item(self, user, item):
         from aristotle_mdr.contrib.favourites.models import Favourite, Tag
-        favtag, created = Tag.objects.create(
+        favtag, created = Tag.objects.get_or_create(
             profile=user.profile,
             name='',
             primary=True
         )
-        Favourite.objects.create(
+        Favourite.objects.get_or_create(
             tag=favtag,
             item=item
         )
