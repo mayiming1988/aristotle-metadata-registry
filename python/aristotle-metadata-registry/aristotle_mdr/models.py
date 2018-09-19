@@ -30,6 +30,7 @@ from aristotle_mdr.utils import (
 )
 from aristotle_mdr import comparators
 
+from jsonfield import JSONField
 from .fields import (
     ConceptForeignKey,
     ConceptManyToManyField,
@@ -1453,6 +1454,17 @@ class PossumProfile(models.Model):
         return vi.union(si).union(sti).union(mi).count()
 
     @property
+    def mySandboxContent(self):
+        return _concept.objects.filter(
+            Q(
+                submitter=self.user,
+                statuses__isnull=True
+            ) & Q(
+                Q(review_requests__isnull=True) | Q(review_requests__status=REVIEW_STATES.cancelled)
+            )
+        )
+
+    @property
     def editable_workgroups(self):
         if self.user.is_superuser:
             return Workgroup.objects.all()
@@ -1500,6 +1512,21 @@ class PossumProfile(models.Model):
             self.favourites.remove(item)
         else:
             self.favourites.add(item)
+
+
+class SandboxShare(models.Model):
+    uuid = models.UUIDField(
+        help_text=_("Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries"),
+        unique=True, default=uuid.uuid1, editable=False, null=False
+    )
+    profile = models.OneToOneField(
+        PossumProfile,
+        related_name='share'
+    )
+    created = models.DateTimeField(
+        auto_now=True
+    )
+    emails = JSONField()
 
 
 def create_user_profile(sender, instance, created, **kwargs):

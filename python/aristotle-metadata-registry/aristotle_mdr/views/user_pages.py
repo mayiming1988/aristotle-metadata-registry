@@ -1,16 +1,17 @@
 import datetime
 from django.apps import apps
 from django.contrib.auth.decorators import login_required
-from braces.views import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 from django.db.models import Q, Count
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
+from django.views.generic.edit import FormMixin
 from django.views.generic import (DetailView,
                                   ListView,
                                   UpdateView,
@@ -27,7 +28,9 @@ from aristotle_mdr import models as MDR
 from aristotle_mdr.views.utils import (paginated_list,
                                        paginated_workgroup_list,
                                        paginated_registration_authority_list,
-                                       GenericListWorkgroup)
+                                       GenericListWorkgroup,
+                                       AjaxFormMixin)
+from aristotle_mdr.views.views import ConceptRenderView
 from aristotle_mdr.utils import fetch_metadata_apps
 from aristotle_mdr.utils import get_aristotle_url
 
@@ -436,34 +439,171 @@ class ReviewDetailsView(DetailView):
         return MDR.ReviewRequest.objects.visible(self.request.user)
 
 
-class CreatedItemsListView(ListView):
+class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListView):
+    """Display Users sandbox items"""
+
     paginate_by = 25
     template_name = "aristotle_mdr/user/sandbox.html"
+    form_class = MDRForms.ShareLinkForm
 
-    @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
+        self.share = self.get_share()
         return super().dispatch(*args, **kwargs)
 
     def get_queryset(self, *args, **kwargs):
-        return MDR._concept.objects.filter(
-            Q(
-                submitter=self.request.user,
-                statuses__isnull=True
-            ) & Q(
-                Q(review_requests__isnull=True) | Q(review_requests__status=MDR.REVIEW_STATES.cancelled)
-            )
-        )
+        return self.request.user.profile.mySandboxContent
+
+    def get_share(self):
+        if not hasattr(self.request.user, 'profile'):
+            return None
+
+        return getattr(self.request.user.profile, 'share', None)
+
+    def get_initial(self):
+        initial = super().get_initial()
+        share = self.get_share()
+        if share is not None:
+            emails = json.loads(share.emails)
+            initial['emails'] = emails
+
+        return initial
 
     def get_context_data(self, *args, **kwargs):
         # Call the base implementation first to get a context
         context = super().get_context_data(*args, **kwargs)
         context['sort'] = self.request.GET.get('sort', 'name_asc')
+        context['share'] = self.share
+
+        if 'form' in kwargs:
+            form = kwargs['form']
+        else:
+            form = self.get_form()
+
+        context['form'] = form
+        context['host'] = self.request.get_host()
+
+        if 'display_share' in self.request.GET:
+            context['display_share'] = True
+        else:
+            context['display_share'] = False
         return context
+
+    def post(self, *args, **kwargs):
+        form = self.get_form()
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            if not self.request.is_ajax():
+                # If request is not ajax and there is an invlaid form we need
+                # to load the listview content (usually done in get())
+                # This should only run if a user has disabled js
+                self.object_list = self.get_queryset()
+            return self.form_invalid(form)
+
+    def form_valid(self, form):
+
+        emails = form.cleaned_data.get('emails', [])
+        emails_json = json.dumps(emails)
+
+        if not self.share:
+            MDR.SandboxShare.objects.create(
+                profile=self.request.user.profile,
+                emails=emails_json
+            )
+        else:
+            self.share.emails = emails_json
+            self.share.save()
+            self.ajax_success_message = 'Share permissions updated'
+
+        return super().form_valid(form)
 
     def get_ordering(self):
         from aristotle_mdr.views.utils import paginate_sort_opts
         self.order = self.request.GET.get('sort', 'name_asc')
         return paginate_sort_opts.get(self.order)
+
+    def get_success_url(self):
+        return reverse('aristotle_mdr:userSandbox') + '?display_share=1'
+
+
+class GetShareMixin:
+    """Code shared by all share link views"""
+
+    def dispatch(self, request, *args, **kwargs):
+        self.share = self.get_share()
+        emails = json.loads(self.share.emails)
+        if request.user.email not in emails:
+            return HttpResponseNotFound()
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_share(self):
+        uuid = self.kwargs['share']
+        try:
+            share = MDR.SandboxShare.objects.get(uuid=uuid)
+        except MDR.SandboxShare.DoesNotExist:
+            share = None
+
+        return share
+
+
+class SharedSandboxView(LoginRequiredMixin, GetShareMixin, ListView):
+    """View displayed when a user visits a share link"""
+
+    paginate_by = 25
+    template_name = 'aristotle_mdr/user/shared_sandbox.html'
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['share_user'] = self.share.profile.user
+        context['share_uuid'] = self.share.uuid
+
+        # Display all metadata links though share
+        context['shared_items'] = True
+        return context
+
+    def get_queryset(self, *args, **kwargs):
+        return self.share.profile.mySandboxContent
+
+
+class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderView):
+    """View to display an item in a shared sandbox"""
+
+    def check_item(self):
+        self.sandbox_ids = list(self.user.profile.mySandboxContent.values_list('id', flat=True))
+        if self.item.id in self.sandbox_ids:
+            return True
+        else:
+            return False
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['hide_item_actions'] = True
+        context['custom_visibility_message'] = {
+            'alert_level': 'warning',
+            'message': 'You are viewing a shared item in read only mode'
+        }
+
+        share_user = self.share.profile.user
+        user_display_name = share_user.full_name or share_user.short_name or share_user.email
+        context['breadcrumbs'] = [
+            {
+                'name': '{}\'s Sandbox'.format(user_display_name),
+                'url': reverse('aristotle:sharedSandbox', args=[self.share.uuid])
+            },
+            {
+                'name': self.item.name,
+                'active': True
+            }
+        ]
+
+        # Set these in order to display links to other sandbox content
+        # correctly
+        context['shared_ids'] = self.sandbox_ids
+        context['share_uuid'] = self.share.uuid
+        return context
+
+    def get_user(self):
+        return self.share.profile.user
 
 
 class MyWorkgroupList(GenericListWorkgroup):
