@@ -748,5 +748,16 @@ class GeneralTestUtils:
 
 
 class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils, FormsetTestUtils):
-    """Combination of the above 3 utils for easy usage"""
-    pass
+    """Combination of the above 3 utils plus some aristotle specific utils"""
+
+    def favourite_item(self, user, item):
+        from aristotle_mdr.contrib.favourites.models import Favourite, Tag
+        favtag, created = Tag.objects.create(
+            profile=user.profile,
+            name='',
+            primary=True
+        )
+        Favourite.objects.create(
+            tag=favtag,
+            item=item
+        )
