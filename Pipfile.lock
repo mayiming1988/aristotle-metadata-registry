@@ -361,11 +361,9 @@
         },
         "django-notifications-hq": {
             "hashes": [
-                "sha256:0332f10d10135301587b2bec9b69984c5484354b1365728939c1f2d8b33a9b16",
-                "sha256:8ed19d2172876d8821e3e3ecf842323bfa09c5a6f9312995bfc9d01708b926e3"
+                "sha256:bbf1fbc7c7accfe79c1cf2da5fde96cd3e27e22d27108e6f368a91b26ef75450"
             ],
             "version": "==1.4"
-            "version": "==1.5.0"
         },
         "django-organizations": {
             "hashes": [
