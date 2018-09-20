@@ -105,13 +105,15 @@ class PDFDownloader(DownloaderBase):
         user = getattr(request, 'user', None)
 
         properties = {
-            'user': str(user),
+            'user': None,
             'item_list': item_list,
             'title': request.GET.get('title', '').strip(),
             'subtitle': request.GET.get('subtitle', None),
             'debug_as_html': request.GET.get('html', ''),
             'page_size': request.GET.get('pagesize', None),
         }
+        if user:
+            properties['user'] = str(user)
         if not properties.get('title', ''):
             properties['title'] = 'Auto-generated document'
         return properties, items
@@ -124,7 +126,7 @@ class PDFDownloader(DownloaderBase):
         template = 'aristotle_mdr/downloads/pdf/bulk_download.html'
         page_size = getattr(settings, 'PDF_PAGE_SIZE', "A4")
         user = properties.get('user')
-        if user != str(AnonymousUser()):
+        if user and user != str(AnonymousUser()):
             user = User.objects.get(email=user)
         else:
             user = AnonymousUser()

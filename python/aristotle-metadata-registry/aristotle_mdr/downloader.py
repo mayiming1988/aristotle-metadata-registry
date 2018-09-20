@@ -41,7 +41,7 @@ class DownloaderBase(object):
         raise NotImplementedError
 
     @classmethod
-    def get_bulk_download_config(cls, request):
+    def get_bulk_download_config(cls, request, items):
         """
         This method must be overriden. This takes request object and returns a computed set of download config
         """
@@ -87,8 +87,10 @@ class CSVDownloader(DownloaderBase):
     def get_download_config(cls, request, iid):
         user = getattr(request, 'user', None)
         properties = {
-            'user': str(user),
+            'user': None,
         }
+        if user:
+            properties['user'] = user
         return properties, iid
 
     @classmethod
@@ -101,7 +103,7 @@ class CSVDownloader(DownloaderBase):
         """Built in download method"""
         User = get_user_model()
         user = properties.get('user')
-        if user != str(AnonymousUser()):
+        if user and user != str(AnonymousUser()):
             user = User.objects.get(email=user)
         else:
             user = AnonymousUser()
@@ -127,11 +129,12 @@ class CSVDownloader(DownloaderBase):
         return iid
 
 
-def items_for_bulk_download(items, request):
+def items_for_bulk_download(items, user):
     iids = {}
     item_querysets = {}  # {PythonClass:{help:ConceptHelp,qs:Queryset}}
+
     for item in items:
-        if item and item.can_view(request.user):
+        if item and item.can_view(user):
             if item.__class__ not in iids.keys():
                 iids[item.__class__] = []
             iids[item.__class__].append(item.pk)
@@ -150,7 +153,7 @@ def items_for_bulk_download(items, request):
             item_querysets[metadata_type]['qs'] |= query
 
     for metadata_type in item_querysets.keys():
-        item_querysets[metadata_type]['qs'] = item_querysets[metadata_type]['qs'].distinct().visible(request.user)
+        item_querysets[metadata_type]['qs'] = item_querysets[metadata_type]['qs'].distinct().visible(user)
         item_querysets[metadata_type]['help'] = ConceptHelp.objects.filter(
             app_label=metadata_type._meta.app_label,
             concept_type=metadata_type._meta.model_name
