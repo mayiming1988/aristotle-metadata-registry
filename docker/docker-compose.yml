@@ -8,6 +8,8 @@ services:
 
   db:
     image: postgres
+    volumes:
+      - ./data/db/:/var/lib/postgresql/data
 
   elasticsearch:
     # If elasticsearch won't boot, you need to run `sudo sysctl -w vm.max_map_count=262144`
@@ -43,6 +45,7 @@ services:
     image: aristotle_metadata_registry:dev
     command: sh ./sh/entrypoint/web.sh
     environment:
+      - DATABASE_URL=postgresql://postgres:@db:5432/postgres
       - DJANGO_SETTINGS_MODULE=settings
       - PYTHONPATH=.
     ports:

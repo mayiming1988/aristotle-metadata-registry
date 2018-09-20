@@ -8,7 +8,7 @@ from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 import aristotle_mdr.models as MDR
 from aristotle_mdr.perms import user_can_edit
 from aristotle_mdr.forms.creation_wizards import UserAwareForm
-from aristotle_mdr.forms.fields import ReviewChangesChoiceField
+from aristotle_mdr.forms.fields import ReviewChangesChoiceField, MultipleEmailField
 from aristotle_mdr.contrib.autocomplete import widgets
 
 from django.forms.models import modelformset_factory
@@ -117,7 +117,7 @@ class ChangeStatusGenericForm(RegistrationAuthorityMixin, UserAwareForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.set_registration_authority_field(
-            field_name="registrationAuthorities", qs=self.user.profile.registrarAuthorities.filter(active=True)
+            field_name="registrationAuthorities", qs=self.user.profile.registrarAuthorities.filter(active=0)
         )
 
 
@@ -210,3 +210,8 @@ class EditUserForm(ModelForm):
         labels = {
             'short_name': 'Display Name'
         }
+
+
+class ShareLinkForm(forms.Form):
+
+    emails = MultipleEmailField(required=False)

@@ -333,10 +333,10 @@
         },
         "django-improved-user": {
             "hashes": [
-                "sha256:3ba5af0e36b1e447613117bd8989c899a7e76b077e8b82bce885d23d71244e71",
-                "sha256:ddc53ed3dc8b0bd1667c19480620740dcf368a5db99ede87cee182d6e8230369"
+                "sha256:23ec44f40262ad5418e131526111cfce2c640a7ea814d0bec62a6846204a4c74",
+                "sha256:b3980cc424b21c450a0eba93b9878c39d96e5f7a73d42ff83d599754adf2fea3"
             ],
-            "version": "==1.0a2"
+            "version": "==1.0.0"
         },
         "django-js-asset": {
             "hashes": [
@@ -364,7 +364,7 @@
                 "sha256:0332f10d10135301587b2bec9b69984c5484354b1365728939c1f2d8b33a9b16",
                 "sha256:8ed19d2172876d8821e3e3ecf842323bfa09c5a6f9312995bfc9d01708b926e3"
             ],
-            "markers": "python_version >= '3.4'",
+            "version": "==1.4"
             "version": "==1.5.0"
         },
         "django-organizations": {
@@ -418,10 +418,10 @@
         },
         "djangorestframework": {
             "hashes": [
-                "sha256:b6714c3e4b0f8d524f193c91ecf5f5450092c2145439ac2769711f7eba89a9d9",
-                "sha256:c375e4f95a3a64fccac412e36fb42ba36881e52313ec021ef410b40f67cddca4"
+                "sha256:1f6baf40ed456ed2af6bd1a4ff8bbc3503cebea16509993aea2b7085bc097766",
+                "sha256:9f9e94e8d22b100ed3a43cee8c47a7ff7b185e778a1f2da9ec5c73fc4e081b87"
             ],
-            "version": "==3.8.2"
+            "version": "==3.7.7"
         },
         "djangorestframework-composed-permissions": {
             "hashes": [

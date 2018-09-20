@@ -23,12 +23,13 @@ class RegistryOwnerUserList(LoginRequiredMixin, PermissionRequiredMixin, ListVie
     permission_required = "aristotle_mdr.list_registry_users"
     raise_exception = True
     redirect_unauthenticated_users = True
+    paginate_by = 50
 
     def get_queryset(self):
         q = self.request.GET.get('q', None)
         queryset = get_user_model().objects.all().order_by(
             '-is_active', 'full_name', 'short_name', 'email'
-        )
+        ).prefetch_related('viewer_in', 'submitter_in', 'steward_in', 'workgroup_manager_in')
         if q:
             queryset = queryset.filter(
                 Q(short_name__icontains=q) |
@@ -138,7 +139,6 @@ class SignupMixin:
     def send_password_reset(self, user_email, request):
 
         form = PasswordResetForm({'email': user_email})
-
         if form.is_valid():
             form.save(
                 request=request,

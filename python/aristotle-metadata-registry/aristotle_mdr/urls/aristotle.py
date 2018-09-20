@@ -158,8 +158,8 @@ urlpatterns=[
     url(r'^account/favourites/?$', views.user_pages.favourites, name='userFavourites'),
     url(r'^account/reviews/?$', views.user_pages.my_review_list, name='userMyReviewRequests'),
     url(r'^account/reviews/cancel/(?P<review_id>\d+)/?$', views.actions.ReviewCancelView.as_view(), name='userReviewCancel'),
-    url(r'^account/workgroups/?$', views.user_pages.workgroups, name='userWorkgroups'),
-    url(r'^account/workgroups/archives/?$', views.user_pages.workgroup_archives, name='user_workgroups_archives'),
+    url(r'^account/workgroups/?$', views.user_pages.MyWorkgroupList.as_view(), name='userWorkgroups'),
+    url(r'^account/workgroups/archives/?$', views.user_pages.WorkgroupArchiveList.as_view(), name='user_workgroups_archives'),
     url(r'^account/notifications(?:/folder/(?P<folder>all))?/?$', views.user_pages.inbox, name='userInbox'),
     url(r'^account/notifications/api/mark-all-as-read/', views.notify.MarkAllReadApiView.as_view(), name='api_mark_all_read'),
 
@@ -201,6 +201,9 @@ urlpatterns=[
     url(r'^accessibility/?$', TemplateView.as_view(template_name='aristotle_mdr/static/accessibility.html'), name="accessibility"),
 
     url(r'user/(?P<uid>\d+)/profilePicture.svg', views.user_pages.profile_picture, name="dynamic_profile_picture"),
+
+    url(r'share/(?P<share>[\w-]+)$', views.user_pages.SharedSandboxView.as_view(), name='sharedSandbox'),
+    url(r'share/(?P<share>[\w-]+)/(?P<iid>\d+)', views.user_pages.SharedItemView.as_view(), name='sharedSandboxItem'),
 
     url(
         r'^search/?$',

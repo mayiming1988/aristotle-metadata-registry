@@ -70,12 +70,12 @@
                     </a></li>
                     <li><a href="{% url 'aristotle:userFavourites' %}">
                         <i class="fa fa-bookmark fa-fw"></i> {% trans 'My Favourites'%}
-                        <span class="badge pull-right">{{ user.profile.favourites.count }}</span>
+                        <span class="badge">{{ user.profile.favourites.count }}</span>
                     </a></li>
                     <li><a href="{% url 'aristotle:userInbox' %}">
                         <i class="fa fa-envelope fa-fw"></i> {% trans 'Notifications'%}
                         {% with notecount=user.notifications.unread.count %}
-                        <span class="badge pull-right" title="{{ notecount }} unread notifications">{{ notecount }}</span>
+                        <span class="badge" title="{{ notecount }} unread notifications">{{ notecount }}</span>
                         {% endwith %}
                     </a></li>
                     <li><a href="{% url 'aristotle:discussions' %}">
@@ -165,7 +165,7 @@
                 {% url 'aristotle_mdr:home' as home_url %}
                 {% url 'aristotle_mdr:userHome' as user_home_url %}
                 {% ifeq request.path user_home_url val=home_url default=request.path as redirect_url %}
-                <a id="header_menu_button_logout" href="{% url 'logout' %}?next={{redirect_url}}" title="{% trans 'Log out'%}">
+                <a id="header_menu_button_logout" href="{% url 'logout' %}" title="{% trans 'Log out'%}">
                     <i class="fa fa-sign-out fa-fw"></i>
                     <span class="visible-xs-inline">{% trans 'Log out' %}</span>
                 </a>
