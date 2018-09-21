@@ -1,9 +1,10 @@
-const path = require('path');
-var webpack = require('webpack')
+const path = require('path')
+const webpack = require('webpack')
+const glob = require('glob')
 
 module.exports = {
   entry: {
-    base: './src/pages/base.js'
+    base: glob.sync('./src/pages/*.js')
   },
   output: {
     filename: '[name].js',
@@ -11,9 +12,10 @@ module.exports = {
   },
   module: {
     rules: [{
+      // Expose jquery outside bundle
+      // Wont need this when using only bundle code
       test: require.resolve('jquery'),
       use: [{
-        // Expose jquery outside bundle
         loader: 'expose-loader',
         options: '$'
       },{
