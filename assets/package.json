@@ -2,7 +2,7 @@
   "name": "aristotle",
   "version": "1.0.0",
   "description": "Aristotle Frontend",
-  "main": "index.js",
+  "private": true,
   "dependencies": {
     "jquery": "1.12.3"
   },
