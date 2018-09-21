@@ -63,5 +63,5 @@ docker/data
 # Virtualenv
 .venv
 
-#vim
-.vim-django
+# node_modules
+assets/node_modules/*
