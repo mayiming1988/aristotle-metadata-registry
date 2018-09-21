@@ -7,6 +7,7 @@ from django.contrib.messages import get_messages
 from django.urls import reverse
 
 import json
+import re
 
 
 @tag('favourites')
@@ -299,15 +300,16 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
             'user': ['very good', 'awesome', 'amazing']
         }
 
-        script = '<script id="tags-json" type="application/json">' + json.dumps(tags) + '</script>'
-
         self.login_editor()
         response = self.reverse_get(
             'aristotle:item',
             reverse_args=[self.timtam.id, 'objectclass', 'tim-tam']
         )
+        result = re.search('<script id="tags-json".*?>(.*?)</script>', str(response.content))
+        rendered = json.loads(result.group(1))
 
-        self.assertContains(response, script, html=True)
+        self.assertCountEqual(rendered['item'], tags['item'])
+        self.assertCountEqual(rendered['user'], tags['user'])
 
     def test_edit_tag_description(self):
 
