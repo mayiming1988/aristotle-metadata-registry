@@ -3,7 +3,7 @@ var webpack = require('webpack')
 
 module.exports = {
   entry: {
-    base: './src/base.js'
+    base: './src/pages/base.js'
   },
   output: {
     filename: '[name].js',

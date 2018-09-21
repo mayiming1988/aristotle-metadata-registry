@@ -1,3 +1,6 @@
+import 'bootstrap'
+import { reload_notifications } from '../lib/notify.js'
+
 // Set (then unset) this to supress the ajax loading animation
 var suppressLoadingBlock = false;
 
@@ -14,8 +17,8 @@ $(document).ready(function() {
     });
 
     $('.modal').on('loaded.bs.modal', function() {
-        // Need to do this on modal show for newly added popovers
         $('.aristotle-popover').popover()
+        // Need to do this on modal show for newly added popovers
     });
 
     // Initialize popovers
@@ -36,6 +39,7 @@ $(document).ready(function() {
       })
     })
 
+    $('#header_menu_button_notifications').click(reload_notifications)
 });
 
 // getCookie function taken from django docs
@@ -65,4 +69,3 @@ $(document).ajaxSend(function(event, request, settings) {
 $(document).ajaxComplete(function(event, request, settings) {
     $('#loading_indicator').hide().removeClass('loading');
 });
-

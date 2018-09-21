@@ -53,6 +53,10 @@
     </div>
     {% include 'aristotle_mdr/footer.html' %}
     <div class="well hidden" id="loading_indicator"><i class="fa fa-spinner fa-spin"></i> {% trans 'Loading' %}</div>
+
+    {% block webpack_bundle %}
+      <script src="{% static 'bundles/base.js' %}"></script>
+    {% endblock %}
    </body>
 </html>
 
