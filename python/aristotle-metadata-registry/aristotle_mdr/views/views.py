@@ -287,8 +287,6 @@ class ConceptRenderMixin:
         context['item'] = self.item
         context['statuses'] = self.item.current_statuses
         context['discussions'] = self.item.relatedDiscussions.all()
-        #if self.request.user.is_authenticated():
-        #    context['user'] = get_user_model().objects.select_related('profile').get(id=self.request.user.id)
         return context
 
     def get_template_names(self):

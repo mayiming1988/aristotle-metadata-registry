@@ -13,8 +13,10 @@ def settings(request):
         'bulk_actions': SimpleLazyObject(get_bulk_actions),
     }
 
+
 def get_profile(request):
     return PossumProfile.objects.get(user=request.user)
+
 
 def profile(request):
     """
