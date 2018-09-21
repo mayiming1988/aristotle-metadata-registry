@@ -2,6 +2,7 @@
 import os
 
 BASE_DIR = os.getenv('aristotlemdr__BASE_DIR', os.path.dirname(os.path.dirname(__file__)))
+REPO_BASE_DIR = os.path.dirname(os.path.dirname(BASE_DIR))
 SECRET_KEY = os.getenv('aristotlemdr__SECRET_KEY', "OVERRIDE_THIS_IN_PRODUCTION")
 STATIC_ROOT = os.getenv('aristotlemdr__STATIC_ROOT', os.path.join(BASE_DIR, "static"))
 MEDIA_ROOT = os.getenv('aristotlemdr__MEDIA_ROOT', os.path.join(BASE_DIR, "media"))
@@ -152,6 +153,10 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     'static_precompiler.finders.StaticPrecompilerFinder',
 )
+STATICFILES_DIRS = [
+    os.path.join(REPO_BASE_DIR, 'assets/dist')
+]
+
 ADMIN_MEDIA_PREFIX = '/static/admin/'
 
 if DEBUG:  # pragma: no cover

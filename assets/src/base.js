@@ -1,4 +1,4 @@
-import $ from 'jquery'
+import 'bootstrap'
 
 // Set (then unset) this to supress the ajax loading animation
 var suppressLoadingBlock = false;
@@ -16,8 +16,8 @@ $(document).ready(function() {
     });
 
     $('.modal').on('loaded.bs.modal', function() {
-        // Need to do this on modal show for newly added popovers
         $('.aristotle-popover').popover()
+        // Need to do this on modal show for newly added popovers
     });
 
     // Initialize popovers
