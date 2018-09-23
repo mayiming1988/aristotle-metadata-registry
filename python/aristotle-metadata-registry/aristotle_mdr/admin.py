@@ -23,7 +23,10 @@ from aristotle_mdr.register import register_concept
 from aristotle_mdr.utils import fetch_aristotle_settings
 
 reversion.revisions.register(MDR.Status)
-reversion.revisions.register(MDR._concept, follow=['statuses', 'workgroup', 'slots'])
+reversion.revisions.register(
+    MDR._concept,
+    follow=['statuses', 'workgroup', 'slots']
+)
 reversion.revisions.register(MDR.Workgroup)
 
 User = get_user_model()
@@ -129,6 +132,8 @@ class ConceptAdmin(CompareVersionAdmin, admin.ModelAdmin):
     name_suggest_fields = []
     actions_on_top = True
     actions_on_bottom = False
+
+    compare_exclude = ['favourites']
 
     def get_form(self, request, obj=None, **kwargs):
         # Thanks: http://stackoverflow.com/questions/6321916

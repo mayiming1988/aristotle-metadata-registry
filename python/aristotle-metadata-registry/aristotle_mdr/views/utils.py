@@ -416,6 +416,8 @@ class AjaxFormMixin:
             return super().form_invalid(form)
 
     def form_valid(self, form):
+        # Need to call super here for modelFormMixin compatibility
+        response = super().form_valid(form)
 
         if self.request.is_ajax():
             data = {'success': True}
@@ -428,4 +430,4 @@ class AjaxFormMixin:
                 data['redirect'] = self.get_success_url()
                 return JsonResponse(data)
         else:
-            return super().form_valid(form)
+            return response

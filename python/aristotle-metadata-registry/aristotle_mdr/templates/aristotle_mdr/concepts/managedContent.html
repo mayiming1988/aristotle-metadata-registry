@@ -2,13 +2,18 @@
 {% load humanize i18n %}
 {% load compile_static %}
 {% load static from staticfiles %}
-{% load aristotle_tags %}
+{% load aristotle_tags util_tags %}
 
 {% block extra_head_scripts %}
     {% if item|can_edit:request.user %}
         <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/aristotle.autocomplete.css' %}" />
     {% endif %}
     <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/aristotle.visuals.less'|compile %}" />
+    <script src="https://cdn.jsdelivr.net/npm/taggle@1.14.0/src/taggle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-simple-suggest@1.8.2/dist/iife.js"></script>
+    <link rel="stylesheet" href="{% static 'aristotle_mdr/suggest.css' %}">
+    {{ tags|json_script:"tags-json" }}
+    <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/taggle.css' %}" />
 {% endblock %}
 
 {% block title %}
@@ -19,6 +24,7 @@
     ({{ item.get_verbose_name }})
 {% endblock %}
 {% block content %}
+<div id="vue-container">
 <header class="row">
     {% if breadcrumbs %}
       <ol class="breadcrumb">
@@ -41,48 +47,80 @@
     {% endif %}
 </header>
 <section class="managed row">
-    {% include "aristotle_mdr/concepts/infobox.html" %}
-    {% include "aristotle_mdr/concepts/visibilityInfoBar.html" %}
+      {% include "aristotle_mdr/concepts/infobox.html" %}
+      <div v-pre>
+        {# Pre rendered content #}
+        {% include "aristotle_mdr/concepts/visibilityInfoBar.html" %}
 
-    <h2 title="{% doc item 'definition' %}">{% trans 'Definition'%}</h2>
-    <div id="definition" class="definition">
-        {{ item.definition | safe}}
-    </div>
+        <h2 title="{% doc item 'definition' %}">{% trans 'Definition'%}</h2>
+        <div id="definition" class="definition">
+            {{ item.definition | safe}}
+        </div>
 
-    {% block objSpecific %}{% endblock %}
+        {% block objSpecific %}{% endblock %}
 
-    {% if item.comments %}
-        <h2>Comments</h2>
-        {{ item.comments | safe }}
-    {% endif %}
-
-    {% if item.references %}
-    <div>
-    <h2>References</h2>
-        <p>{{ item.references | safe }}</p>
-        {% if item.submitting_organisation %}
-        <h3>Submitting Organisation</h3>
-            <p>{{ item.submitting_organisation }}</p>
+        {% if item.comments %}
+            <h2>Comments</h2>
+            {{ item.comments | safe }}
         {% endif %}
-        {% if item.responsible_organisation %}
-        <h3>Responsible Organisation</h3>
-            <p>{{ item.responsible_organisation }}</p>
+
+        {% if item.references %}
+        <div>
+        <h2>References</h2>
+            <p>{{ item.references | safe }}</p>
+            {% if item.submitting_organisation %}
+            <h3>Submitting Organisation</h3>
+                <p>{{ item.submitting_organisation }}</p>
+            {% endif %}
+            {% if item.responsible_organisation %}
+            <h3>Responsible Organisation</h3>
+                <p>{{ item.responsible_organisation }}</p>
+            {% endif %}
+        </div>
         {% endif %}
-    </div>
-    {% endif %}
-    {% if 'aristotle_mdr.contrib.slots'|is_active_module %}
-        {% include "aristotle_mdr/slots/slots_display.html" %}
-    {% endif %}
-    {% if 'aristotle_mdr.contrib.links'|is_active_module %}
-        {% include "aristotle_mdr/links/links_display.html" %}
-    {% endif %}
-    <h2>Related content</h2>
-        {% block relationships %}{% endblock %}
-        {% for extension in config.CONTENT_EXTENSIONS %}
-            {% extra_content extension item request.user %}
-        {% endfor %}
-    </div>
-</div>
+        {% if 'aristotle_mdr.contrib.slots'|is_active_module %}
+            {% include "aristotle_mdr/slots/slots_display.html" %}
+        {% endif %}
+        {% if 'aristotle_mdr.contrib.links'|is_active_module %}
+            {% include "aristotle_mdr/links/links_display.html" %}
+        {% endif %}
+        <h2>Related content</h2>
+            {% block relationships %}{% endblock %}
+            {% for extension in config.CONTENT_EXTENSIONS %}
+                {% extra_content extension item request.user %}
+            {% endfor %}
+      </div>
+
+      <div class="modal fade exclude-scrap" id="TagEditorModal" tabindex="-1" role="dialog" aria-labelledby="TagEditor">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              <div class="modal-title h4" id="TagEditor">Tag Editor</div>
+            </div>
+            <div class="modal-body">
+              <p>Update your tags for this item, new tags (shown darker) will be created for you</p>
+
+              <autocomplete-tags :current_tags="current_tags" :user_tags="user_tags" @tag-update="update_tags"></autocomplete-tags>
+
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <submit-tags 
+                submit-url="{% url 'aristotle_favourites:edit_tags' item.id %}"
+                :tags="current_tags"
+                modal="#TagEditorModal"
+                @tags-saved="update_saved_tags"
+                >
+              </submit-tags>
+            </div>
+
+          </div>
+        </div>
+      </div>
 
 </section>
+</div>
+<script src="{% static 'aristotle_mdr/itemPage.js' %}"></script>
 {% endblock %}
