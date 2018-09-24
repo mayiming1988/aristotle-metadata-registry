@@ -4,19 +4,22 @@ import { initMessages } from '../lib/messages.js'
 
 export default function init(spinners = true) {
   // Scrap modals if they lose focus so they can be loaded with new content
-  $('.modal').on('hidden.bs.modal', function(e)
-  {
-      if (!$(this).hasClass('exclude-scrap')) {
-        $(this).removeData();
-        x = $(this).find('.modal-content > *');
-        x.remove()
-      }
-  });
+  $(document).ready(function() {
+    $('.modal').on('hidden.bs.modal', function(e)
+    {
+        if (!$(this).hasClass('exclude-scrap')) {
+          $(this).removeData();
+          var x = $(this).find('.modal-content > *');
+          x.remove()
+        }
+    });
 
-  $('.modal').on('loaded.bs.modal', function() {
-      // Need to do this on modal show for newly added popovers
-      $('.aristotle-popover').popover()
-  });
+    $('.modal').on('loaded.bs.modal', function() {
+        // Need to do this on modal show for newly added popovers
+        console.log('loaded')
+        $('.aristotle-popover').popover()
+    });
+  })
 
   // Initialize popovers
   $('.aristotle-popover').popover()
