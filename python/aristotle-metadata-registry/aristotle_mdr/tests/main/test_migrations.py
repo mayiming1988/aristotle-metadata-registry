@@ -242,8 +242,8 @@ class TestRaActiveMigration(MigrationsTestCase, TestCase):
 
 class TestSupersedingMigration(MigrationsTestCase, TestCase):
 
-    migrate_from = '0037_make_name_shorttext'
-    migrate_to = '0038_change_superseding'
+    migrate_from = '0039_auto_20180828_1926'
+    migrate_to = '0041_change_superseding'
 
     def setUpBeforeMigration(self, apps):
         objectclass = apps.get_model('aristotle_mdr', 'ObjectClass')

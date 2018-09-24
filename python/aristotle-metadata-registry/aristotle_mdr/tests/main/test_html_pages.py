@@ -1307,24 +1307,42 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         num_vals = getattr(self.item1,value_type+"Values").count()
         i=0
         for i,v in enumerate(getattr(self.item1,value_type+"Values").all()):
-            data.update({"form-%d-id"%i: v.pk, "form-%d-ORDER"%i : v.order, "form-%d-value"%i : v.value, "form-%d-meaning"%i : v.meaning+" -updated"})
-        data.update({"form-%d-DELETE"%i: 'checked', "form-%d-meaning"%i : v.meaning+" - deleted"}) # delete the last one.
+            data.update({
+                "%svalue_set-%d-valueDomain"%(value_type, i): self.item1.pk,
+                "%svalue_set-%d-id"%(value_type,i): v.pk,
+                "%svalue_set-%d-ORDER"%(value_type,i) : v.order,
+                "%svalue_set-%d-value"%(value_type,i) : v.value,
+                "%svalue_set-%d-meaning"%(value_type,i) : v.meaning+" -updated"
+            })
+        data.update({
+            "%svalue_set-%d-DELETE"%(value_type,i): 'checked',
+            "%svalue_set-%d-meaning"%(value_type,i) : v.meaning+" - deleted",
+            "%svalue_set-%d-valueDomain"%(value_type, i): self.item1.pk,
+        }) # delete the last one.
         # now add a new one
         i=i+1
-        data.update({"form-%d-ORDER"%i : i, "form-%d-value"%i : 100, "form-%d-meaning"%i : "new value -updated"})
+        data.update({
+            "%svalue_set-%d-ORDER"%(value_type,i) : i,
+            "%svalue_set-%d-value"%(value_type,i) : 100,
+            "%svalue_set-%d-meaning"%(value_type,i) : "new value (also an updated value)",
+            "%svalue_set-%d-valueDomain"%(value_type, i): self.item1.pk,
+        })
 
         data.update({
-            "form-TOTAL_FORMS":num_vals+1, "form-INITIAL_FORMS": num_vals, "form-MAX_NUM_FORMS":1000,
+            "%svalue_set-TOTAL_FORMS"%(value_type): i+1,
+            "%svalue_set-INITIAL_FORMS"%(value_type): num_vals,
+            "%svalue_set-MAX_NUM_FORMS"%(value_type):1000,
+        })
 
-            })
-        self.client.post(reverse(value_url,args=[self.item1.id]),data)
+        response = self.client.post(reverse(value_url,args=[self.item1.id]),data)
+        self.assertEqual(response.status_code, 302)
         self.item1 = models.ValueDomain.objects.get(pk=self.item1.pk)
 
-        self.assertTrue(num_vals == getattr(self.item1,value_type+"Values").count())
+        self.assertEqual(num_vals, getattr(self.item1,value_type+"Values").count())
         new_value_seen = False
         for v in getattr(self.item1,value_type+"Values").all():
             self.assertTrue('updated' in v.meaning) # This will fail if the deleted item isn't deleted
-            if v.value == '100':
+            if v.value == '100' and "new value" in v.meaning:
                 new_value_seen = True
         self.assertTrue(new_value_seen)
 
@@ -1368,18 +1386,25 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
 
         i=0
         for i,v in enumerate(getattr(self.item1,value_type+"Values").all()):
-            data.update({"form-%d-id"%i: v.pk, "form-%d-ORDER"%i : v.order, "form-%d-value"%i : v.value, "form-%d-meaning"%i : v.meaning+" -updated"})
+            data.update({
+                "%svalue_set-%d-valueDomain"%(value_type, i): self.item1.pk,
+                "%svalue_set-%d-id"%(value_type, i): v.pk,
+                "%svalue_set-%d-ORDER"%(value_type, i) : v.order,
+                "%svalue_set-%d-value"%(value_type, i) : v.value,
+                "%svalue_set-%d-meaning"%(value_type, i) : v.meaning+" -updated"
+            })
 
         # now add two new values that are all blank
         i=i+1
-        data.update({"form-%d-ORDER"%i : i, "form-%d-value"%i : '', "form-%d-meaning"%i : ""})
+        data.update({"%svalue_set-%d-ORDER"%(value_type, i) : i, "%svalue_set-%d-value"%(value_type, i) : '', "%svalue_set-%d-meaning"%(value_type, i) : ""})
         i=i+1
-        data.update({"form-%d-ORDER"%i : i, "form-%d-value"%i : '', "form-%d-meaning"%i : ""})
+        data.update({"%svalue_set-%d-ORDER"%(value_type, i) : i, "%svalue_set-%d-value"%(value_type, i) : '', "%svalue_set-%d-meaning"%(value_type, i) : ""})
 
         data.update({
-            "form-TOTAL_FORMS":num_vals+1, "form-INITIAL_FORMS": num_vals, "form-MAX_NUM_FORMS":1000,
-
-            })
+            "%svalue_set-TOTAL_FORMS"%(value_type): i+1,
+            "%svalue_set-INITIAL_FORMS"%(value_type): num_vals,
+            "%svalue_set-MAX_NUM_FORMS"%(value_type):1000,
+        })
         self.client.post(reverse(value_url,args=[self.item1.id]),data)
         self.item1 = models.ValueDomain.objects.get(pk=self.item1.pk)
 

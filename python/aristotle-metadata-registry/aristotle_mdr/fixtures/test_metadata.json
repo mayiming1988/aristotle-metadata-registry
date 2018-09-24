@@ -712,13 +712,13 @@
     },
     "model": "aristotle_mdr.dataelement",
     "pk": 31
-  }
+  },
   {
     "fields": {
       "older_item": 18
       "newer_item": 19,
       "registration_authority": 2,
     },
-    "model": "aristotle_mdr.supersederelationship",
+    "model": "aristotle_mdr.supersederelationship"
   }
 ]

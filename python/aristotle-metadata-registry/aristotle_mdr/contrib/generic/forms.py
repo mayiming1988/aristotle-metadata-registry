@@ -50,14 +50,14 @@ class HiddenOrderInlineFormset(HiddenOrderMixin, BaseInlineFormSet):
             obj = form.save(commit=False)
             # setattr(obj, model_to_add_field, item)
             setattr(obj, self.ordering_field, form.cleaned_data['ORDER'])
-            obj.save(commit=commit)
+            obj.save()
 
         for obj in self.deleted_objects:
             # Delete objects marked for deletion
             obj.delete()
 
         # Save any m2m relations on the ojects (not actually needed yet)
-        self.save_m2m(commit=commit)
+        self.save_m2m()
 
 
 # Below are some util functions for creating o2m and m2m querysets
