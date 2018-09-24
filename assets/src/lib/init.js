@@ -17,7 +17,7 @@ export default function init(spinners = true) {
 
     $('.modal').on('loaded.bs.modal', function() {
         // Need to do this on modal show for newly added popovers
-        console.log('loaded')
+        $('.dj-datepicker').datetimepicker({format: 'YYYY-MM-DD'})
         $('.aristotle-popover').popover()
     });
   })
