@@ -1,11 +1,10 @@
 const path = require('path')
 const webpack = require('webpack')
 const glob = require('glob')
+const entry = require('webpack-glob-entry')
 
 module.exports = {
-  entry: {
-    base: glob.sync('./src/pages/*.js')
-  },
+  entry: entry('./src/pages/*.js'),
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, 'dist/bundles'),
