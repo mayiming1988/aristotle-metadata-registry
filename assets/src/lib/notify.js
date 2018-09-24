@@ -94,7 +94,6 @@ function mark_all_unread() {
 export function reload_notifications() {
   if (!loading_notifications) {
     var menu = $('.notify-menu')[0]
-    console.log(menu)
 
     menu.innerHTML = ""
 
