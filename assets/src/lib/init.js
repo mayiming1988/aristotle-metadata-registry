@@ -2,7 +2,7 @@ import 'bootstrap'
 import { initNotifications } from '../lib/notify.js'
 import { initMessages } from '../lib/messages.js'
 
-export function init(spinners = true) {
+export default function init(spinners = true) {
   // Scrap modals if they lose focus so they can be loaded with new content
   $('.modal').on('hidden.bs.modal', function(e)
   {
