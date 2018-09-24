@@ -172,7 +172,7 @@ class AddFavouriteForm(LoggedInBulkActionForm):
             if user_can_view(self.user, item):
                 self.user.profile.favourites.add(item)
             else:
-                bad_items.append(str(i.id))
+                bad_items.append(str(item.id))
 
         message_text = "{0} items favourited.".format(len(items))
         if bad_items:
