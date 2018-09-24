@@ -70,10 +70,10 @@
         },
         "autobahn": {
             "hashes": [
-                "sha256:162229a824e26a1c6e76387106d4bd1355849713b38741dab65e279a439b8fce",
-                "sha256:163dd329c2a29f4ef82f7fe85a6f6e654a2aa6837bd83834cf537e4efa9204be"
+                "sha256:4debaa226ee8a9880e0a534049a6eb2b4e94694342c68a771d3ee06be99dde6a",
+                "sha256:b69858e0be4bff8437b0bd82a0db1cbef7405e16bd9354ba587c043d6d5e1ad9"
             ],
-            "version": "==18.7.1"
+            "version": "==18.8.1"
         },
         "automat": {
             "hashes": [
@@ -370,10 +370,10 @@
         },
         "djangorestframework": {
             "hashes": [
-                "sha256:b6714c3e4b0f8d524f193c91ecf5f5450092c2145439ac2769711f7eba89a9d9",
-                "sha256:c375e4f95a3a64fccac412e36fb42ba36881e52313ec021ef410b40f67cddca4"
+                "sha256:1f6baf40ed456ed2af6bd1a4ff8bbc3503cebea16509993aea2b7085bc097766",
+                "sha256:9f9e94e8d22b100ed3a43cee8c47a7ff7b185e778a1f2da9ec5c73fc4e081b87"
             ],
-            "version": "==3.8.2"
+            "version": "==3.7.7"
         },
         "djangorestframework-composed-permissions": {
             "hashes": [
@@ -865,11 +865,11 @@
         },
         "django-tools": {
             "hashes": [
-                "sha256:225059a4e0be8e905c6db7712a43c349c0d4183ffb55f0ce2bc1ce0d09545b51",
-                "sha256:642bf4387d85fc4fdb825adcf461ba34aaf55c9bfe752b6d8acf4d00382b9e11"
+                "sha256:7b7bac5df1165a6e21858518a8fdc2b14ef4e082c3e1acb179228291565392c8",
+                "sha256:c18372a38b9bfd0058472de637e0af7474469d7e6a3ebd3bf8d1d00b7603d70f"
             ],
             "index": "pypi",
-            "version": "==0.40.3"
+            "version": "==0.40.4"
         },
         "flake8": {
             "hashes": [
