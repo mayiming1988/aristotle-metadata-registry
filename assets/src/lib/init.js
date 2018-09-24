@@ -1,4 +1,5 @@
 import 'bootstrap'
+import 'eonasdan-bootstrap-datetimepicker'
 import { initNotifications } from '../lib/notify.js'
 import { initMessages } from '../lib/messages.js'
 
@@ -23,6 +24,9 @@ export default function init(spinners = true) {
 
   // Initialize popovers
   $('.aristotle-popover').popover()
+
+  // Initialize datepickers
+  $('.dj-datepicker').datetimepicker({format: 'YYYY-MM-DD'})
 
   //Initialise delete checkboxes
   $('.delete-disable').click(function() {

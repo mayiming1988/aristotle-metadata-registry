@@ -37,10 +37,6 @@ class BootstrapDateTimePicker(DateTimeInput):
         css = {
             'all': ('bootstrap3_datetime/bootstrap-datetimepicker.min.css',)
         }
-        js = (
-            'bootstrap3_datetime/moment.min.js',
-            'bootstrap3_datetime/bootstrap-datetimepicker.min.js'
-        )
 
     # http://momentjs.com/docs/#/parsing/string-format/
     # http://docs.python.org/2/library/datetime.html#strftime-strptime-behavior
@@ -70,6 +66,8 @@ class BootstrapDateTimePicker(DateTimeInput):
         super().__init__(attrs, format)
         if 'class' not in self.attrs:
             self.attrs['class'] = 'form-control'
+
+        div_attrs['class'] += ' dj-datepicker'
         self.div_attrs = div_attrs and div_attrs.copy() or {}
         self.icon_attrs = icon_attrs and icon_attrs.copy() or {}
         self.picker_id = self.div_attrs.get('id') or None
