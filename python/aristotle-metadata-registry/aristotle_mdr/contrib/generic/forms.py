@@ -30,25 +30,6 @@ class HiddenOrderMixin(object):
         super().add_fields(form, index)
         form.fields["ORDER"].widget = forms.HiddenInput()
 
-    def save(self, commit=True):
-        super().save(commit=False)
-        # Save formset so we have access to deleted_objects and save_m2m
-
-        for form in self.ordered_forms:
-            # Loop through the forms so we can add the order value to the ordering field
-            # ordered_forms does not contain forms marked for deletion
-            obj = form.save(commit=False)
-            # setattr(obj, model_to_add_field, item)
-            setattr(obj, self.ordering_field, form.cleaned_data['ORDER'])
-            obj.save()
-
-        for obj in self.deleted_objects:
-            # Delete objects marked for deletion
-            obj.delete()
-
-        # Save any m2m relations on the ojects (not actually needed yet)
-        self.save_m2m()
-
 
 class HiddenOrderFormset(HiddenOrderMixin, BaseFormSet):
     pass
@@ -59,7 +40,25 @@ class HiddenOrderModelFormSet(HiddenOrderMixin, BaseModelFormSet):
 
 
 class HiddenOrderInlineFormset(HiddenOrderMixin, BaseInlineFormSet):
-    pass
+    def save(self, commit=True):
+        super().save(commit=False)
+        # Save formset so we have access to deleted_objects and save_m2m
+
+        for form in self.ordered_forms:
+            # Loop through the forms so we can add the order value to the ordering field
+            # ordered_forms does not contain forms marked for deletion
+            obj = form.save(commit=False)
+            # setattr(obj, model_to_add_field, item)
+            setattr(obj, self.ordering_field, form.cleaned_data['ORDER'])
+            obj.save(commit=commit)
+
+        for obj in self.deleted_objects:
+            # Delete objects marked for deletion
+            obj.delete()
+
+        # Save any m2m relations on the ojects (not actually needed yet)
+        self.save_m2m(commit=commit)
+
 
 # Below are some util functions for creating o2m and m2m querysets
 # They are used in the generic alter views and the ExtraFormsetMixin
@@ -158,9 +157,9 @@ def ordered_formset_save(formset, item, model_to_add_field, ordering_field):
         setattr(obj, ordering_field, form.cleaned_data['ORDER'])
         obj.save()
 
-    # for obj in formset.deleted_objects:
-    #     # Delete objects marked for deletion
-    #     obj.delete()
+    for obj in formset.deleted_objects:
+        # Delete objects marked for deletion
+        obj.delete()
 
     # Save any m2m relations on the ojects (not actually needed yet)
     formset.save_m2m()
