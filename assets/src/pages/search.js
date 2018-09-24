@@ -1,4 +1,4 @@
-import '../lib/init.js'
+import init from '../lib/init.js'
 
 init(true)
 
@@ -24,17 +24,15 @@ function clearFilters() {
 
 function checkFilters() {
     // Disgregard "any time" filters.
-    x = $(".searchAdvanced input:checked[value != 'a']").length;
-    y = 0
+    var x = $(".searchAdvanced input:checked[value != 'a']").length;
+    var y = 0
     if (x==0) {
         y = $(".searchAdvanced .date input[type='text']").each( function() {
             if (this.value) {
                 y++;
-                //console.log(this);
             }
         });
     }
-    //console.log(x,y);
     if ( (x+y) > 0) {
         showClearFilters();
     } else {
@@ -43,7 +41,7 @@ function checkFilters() {
 }
 
 function updateCheckboxBadge(menu) {
-    x = $(menu).find("input:checked").length;
+    var x = $(menu).find("input:checked").length;
     if (x > 0) {
         $(menu).parent().find(".badge").text(x);
     } else {
@@ -59,7 +57,7 @@ function clearCustomDates(menu) {
 }
 
 function updateDateRadioDetails(menu) {
-    x = $(menu).find("input:checked");
+    var x = $(menu).find("input:checked");
     if (x.length > 0 && x[0].value != 'a') {
         x=x[0];
         $(menu).parent().find(".details").text($("label[for='"+x.id+"']").text());
@@ -70,7 +68,7 @@ function updateDateRadioDetails(menu) {
 }
 
 function updateSortRadioDetails(menu) {
-    x = $(menu).find("input:checked");
+    var x = $(menu).find("input:checked");
     if (x.length == 0 ) {
         x = $(menu).find("input[value='n']");
         x.prop("checked", true);

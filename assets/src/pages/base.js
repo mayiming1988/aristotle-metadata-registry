@@ -1,3 +1,3 @@
-import '../lib/init.js'
+import init from '../lib/init.js'
 
 init(true)
