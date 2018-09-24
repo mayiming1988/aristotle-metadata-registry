@@ -15,6 +15,43 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MIDDLEWARE = ['whitenoise.middleware.WhiteNoiseMiddleware'] + MIDDLEWARE
 DATABASES = {'default': dj_database_url.config()}
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'HOST': 'db',
+        'PORT': '5432',
+    }
+}
+
+CACHES= {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://redis/0',
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack_elasticsearch.elasticsearch5.Elasticsearch5SearchEngine',
+        'URL': 'http://elasticsearch:9200',
+        'INDEX_NAME': 'documents',
+        'INCLUDE_SPELLING': True,
+        'KWARGS': {
+            'http_auth': 'elastic:changeme'
+        }
+    }
+}
+
+CELERY_BROKER_URL = 'redis://redis/1'
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_TASK_TRACK_STARTED = True
+
 LOGGING = {
     'version': 1,
     'formatters': {
