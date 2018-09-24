@@ -1,9 +1,10 @@
+from django.contrib.auth import get_user_model
 from django.test import TestCase, tag
-from django.utils import timezone
 from django.urls import reverse
+from django.utils import timezone
+
 import aristotle_mdr.models as models
 import aristotle_mdr.tests.utils as utils
-
 from aristotle_mdr.utils import setup_aristotle_test_environment
 
 
@@ -94,7 +95,6 @@ class SupersedePage(utils.LoggedInViewPages, TestCase):
         form = SupersedeForm(data=form_data, item=self.item1, user=self.editor)
         self.assertFalse(form.is_valid())
 
-        from django.contrib.auth import get_user_model
         ra2 = models.RegistrationAuthority.objects.create(name="Test RA", definition="My WG")
         new_registrar = get_user_model().objects.create_user('newbie@example.com', 'new registrar')
         ra2.registrars.add(self.registrar)
@@ -243,80 +243,3 @@ class SupersedePage(utils.LoggedInViewPages, TestCase):
             ).superseded_by_items.all()
         )
 
-
-# class DeprecatePage(utils.LoggedInViewPages, TestCase):
-#     def setUp(self):
-#         super().setUp()
-
-#         # There would be too many tests to test every item type against every other
-#         # But they all have identical logic, so one test should suffice
-#         self.item1 = models.ObjectClass.objects.create(name="OC1", workgroup=self.wg1)
-#         self.item2 = models.ObjectClass.objects.create(name="OC2", workgroup=self.wg1)
-#         self.item3 = models.ObjectClass.objects.create(name="OC3", workgroup=self.wg1)
-#         self.item4 = models.Property.objects.create(name="VD3", workgroup=self.wg1)
-
-#         # There would be too many tests to test every item type against every other
-#         # But they all have identical logic, so one test should suffice
-#         self.item1 = models.ObjectClass.objects.create(name="OC1", workgroup=self.wg1)
-#         self.item2 = models.ObjectClass.objects.create(name="OC2", workgroup=self.wg1)
-#         self.item3 = models.ObjectClass.objects.create(name="OC3", workgroup=self.wg2)
-#         self.item4 = models.Property.objects.create(name="Prop4", workgroup=self.wg1)
-
-#     def test_deprecate(self):
-#         self.logout()
-#         response = self.client.get(reverse('aristotle:deprecate', args=[self.item1.id]))
-#         self.assertRedirects(
-#             response,
-#             reverse("friendly_login") + "?next=" +
-#             reverse('aristotle:deprecate', args=[self.item1.id])
-#         )
-
-#         self.login_editor()
-#         response = self.client.get(
-#             reverse('aristotle:deprecate', args=[self.item1.id])
-#         )
-#         self.assertEqual(response.status_code, 200)
-#         self.assertListEqual(list(self.item1.supersedes.all().select_subclasses()), [])
-
-#         # An item cannot deprecate itself, so it did not save and was served the form again.
-#         response = self.client.post(
-#             reverse('aristotle:deprecate', args=[self.item1.id]),
-#             {'olderItems': [self.item1.id]}
-#         )
-#         self.assertEqual(response.status_code, 200)
-#         self.assertListEqual(list(self.item1.supersedes.all().select_subclasses()), [])
-
-#         #  Item 3 is a different workgroup, and the editor cannot see it , so
-#         # cannot deprecate, so it did not save and was served the form again.
-#         response = self.client.post(
-#             reverse('aristotle:deprecate', args=[self.item1.id]),
-#             {'olderItems': [self.item2.id, self.item3.id]}
-#         )
-#         self.assertEqual(response.status_code, 200)
-#         self.assertListEqual(list(self.item1.supersedes.all().select_subclasses()), [])
-
-#         # Item 2 can deprecate item 1, so this saved and redirected properly.
-#         response = self.client.post(
-#             reverse('aristotle:deprecate', args=[self.item1.id]),
-#             {'olderItems': [self.item2.id]}
-#         )
-#         self.assertEqual(response.status_code, 302)
-#         self.assertListEqual(list(self.item1.supersedes.all().select_subclasses()), [self.item2])
-
-#         # Item 3 is a different workgroup, and the editor cannot see it , so
-#         # cannot deprecate, so it did not save and was served the form again.
-#         response = self.client.post(
-#             reverse('aristotle:deprecate', args=[self.item1.id]),
-#             {'olderItems': [self.item3.id]}
-#         )
-#         self.assertEqual(response.status_code, 200)
-#         self.assertListEqual(list(self.item1.supersedes.all().select_subclasses()), [self.item2])
-
-#         # Item 4 is a different type, so cannot deprecate, so it did not save
-#         # and was served the form again.
-#         response = self.client.post(
-#             reverse('aristotle:deprecate', args=[self.item1.id]),
-#             {'olderItems': [self.item4.id]}
-#         )
-#         self.assertEqual(response.status_code, 200)
-#         self.assertListEqual(list(self.item1.supersedes.all().select_subclasses()), [self.item2])

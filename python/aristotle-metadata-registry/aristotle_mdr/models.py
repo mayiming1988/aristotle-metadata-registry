@@ -1607,3 +1607,9 @@ def review_request_changed(sender, instance, *args, **kwargs):
         fire("action_signals.review_request_created", obj=instance, **kwargs)
     else:
         fire("action_signals.review_request_updated", obj=instance, **kwargs)
+
+
+@receiver(post_save, sender=SupersedeRelationship)
+def new_superseded_relation(sender, instance, *args, **kwargs):
+    if kwargs.get('created'):
+        fire("concept_changes.item_superseded", obj=instance, **kwargs)

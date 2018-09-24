@@ -138,7 +138,7 @@ class TestMetadataActionPageAccessibility(TestWebPageAccessibilityBase, TestCase
             for item in items
             for url in [
                 reverse("aristotle:supersede", args=[item.id]),
-                reverse("aristotle:deprecate", args=[item.id]),
+#                reverse("aristotle:d--eprecate", args=[item.id]),
                 reverse("aristotle:edit_item", args=[item.id]),
                 reverse("aristotle:clone_item", args=[item.id]),
                 reverse("aristotle:item_history", args=[item.id]),
