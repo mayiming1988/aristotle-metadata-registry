@@ -2,6 +2,7 @@ const path = require('path')
 const webpack = require('webpack')
 const glob = require('glob')
 const entry = require('webpack-glob-entry')
+const CleanWebpackPlugin = require('clean-webpack-plugin');
 
 module.exports = {
   entry: entry('./src/pages/*.js'),
@@ -24,6 +25,8 @@ module.exports = {
     }]
   },
   plugins: [
+    // Clean dist folder before builds
+    new CleanWebpackPlugin(['dist']),
     new webpack.ProvidePlugin({
       // Provide $ and jQuery to scripts, no need to import
       $: "jquery",
