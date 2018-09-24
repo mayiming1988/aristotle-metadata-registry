@@ -32,5 +32,13 @@ module.exports = {
       $: "jquery",
       jQuery: "jquery"
     })
-  ]
+  ],
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+      name (module) {
+        return 'vendors'
+      }
+    }
+  }
 };
