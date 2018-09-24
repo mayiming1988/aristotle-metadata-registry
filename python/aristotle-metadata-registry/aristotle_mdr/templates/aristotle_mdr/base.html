@@ -20,6 +20,9 @@
       <link rel="icon" type="image/png" href="{% static 'aristotle_mdr/images/favicon.png' %}"/>
       <title>{% block title %}{% endblock %} - {{ config.SITE_NAME }}</title>
 
+    {# Webpack split chunk #}
+    <script src="{% static 'bundles/vendor.js' %}"></script>
+
     {% include 'aristotle_mdr/scripts.html' %}
 
     {% block extra_head_scripts %}
@@ -28,6 +31,7 @@
             For example: look ups in supersedes, login, search, etc...
         {% endcomment %}
     {% endblock %}
+
    </head>
 
    <body>
@@ -57,8 +61,6 @@
     {% include 'aristotle_mdr/footer.html' %}
     <div class="well hidden" id="loading_indicator"><i class="fa fa-spinner fa-spin"></i> {% trans 'Loading' %}</div>
     
-    {# Webpack split chunk #}
-    <script src="{% static 'bundles/vendors.js' %}"></script>
 
     {# Webpack bundle #}
     {% block webpack_bundle %}

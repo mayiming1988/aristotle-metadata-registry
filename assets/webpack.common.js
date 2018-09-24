@@ -44,9 +44,12 @@ module.exports = {
   ],
   optimization: {
     splitChunks: {
-      chunks: 'all',
-      name (module) {
-        return 'vendors'
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/](jquery|bootstrap)[\\/]/,
+          name: 'vendor',
+          chunks: 'all',
+        }
       }
     }
   },

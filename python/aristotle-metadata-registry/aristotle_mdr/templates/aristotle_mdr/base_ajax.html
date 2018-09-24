@@ -28,6 +28,7 @@
 {% endblock %}
 
 {# Fixes to load and init scripts dynamically on bootstrap modals #}
+{% comment %}
 <script type="text/javascript">
 $(function() {
     // Load autocomplete script with jquery for compatibility
@@ -41,3 +42,4 @@ $(function() {
     window.document.dispatchEvent(DOMContentLoaded_event);
 });
 </script>
+{% endcomment %}
