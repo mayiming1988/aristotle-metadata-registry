@@ -118,3 +118,7 @@ export function reload_notifications() {
   }
 
 }
+
+export function initNotifications() {
+  $('#header_menu_button_notifications').click(reload_notifications)
+}
