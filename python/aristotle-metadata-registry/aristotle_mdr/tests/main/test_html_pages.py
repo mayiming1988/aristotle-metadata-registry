@@ -612,36 +612,6 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages, utils.FormsetTestUtils):
         self.item1 = self.itemType.objects.get(id=self.item1.id) # Stupid cache
         self.assertTrue('cloned with no WG' not in self.item1.name)
 
-    def test_viewer_cannot_view_supersede_page(self):
-        self.login_viewer()
-        response = self.client.get(reverse('aristotle:supersede',args=[self.item1.id]))
-        self.assertEqual(response.status_code,403)
-        response = self.client.get(reverse('aristotle:supersede',args=[self.item2.id]))
-        self.assertEqual(response.status_code,403)
-
-    def test_editor_can_view_supersede_page(self):
-        self.login_editor()
-        response = self.client.get(reverse('aristotle:supersede',args=[self.item1.id]))
-        self.assertEqual(response.status_code,200)
-        response = self.client.get(reverse('aristotle:supersede',args=[self.item2.id]))
-        self.assertEqual(response.status_code,403)
-        response = self.client.get(reverse('aristotle:supersede',args=[self.item3.id]))
-        self.assertEqual(response.status_code,200)
-
-    def test_editor_can_remove_supersede_relation(self):
-        self.login_editor()
-        self.item2 = self.itemType.objects.create(name="supersede this",workgroup=self.wg1, **self.defaults)
-        self.item1.superseded_by = self.item2
-        self.item1.save()
-
-        self.assertTrue(self.item1 in self.item2.supersedes.all().select_subclasses())
-        response = self.client.post(
-            reverse('aristotle:supersede',args=[self.item1.id]),{'newerItem':""})
-        self.assertEqual(response.status_code,302)
-        self.item1 = self.itemType.objects.get(id=self.item1.id) # Stupid cache
-        self.assertTrue(self.item1.superseded_by == None)
-        self.assertTrue(self.item2.supersedes.count() == 0)
-
     def test_help_page_exists(self):
         self.logout()
         response = self.client.get(

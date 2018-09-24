@@ -243,3 +243,41 @@ class SupersedePage(utils.LoggedInViewPages, TestCase):
             ).superseded_by_items.all()
         )
 
+
+    @tag('integration_test', 'supersede')
+    def test_viewer_cannot_view_supersede_page(self):
+        self.login_viewer()
+        response = self.client.get(reverse('aristotle:supersede',args=[self.item1.id]))
+        self.assertEqual(response.status_code,403)
+        response = self.client.get(reverse('aristotle:supersede',args=[self.item2.id]))
+        self.assertEqual(response.status_code,403)
+
+    @tag('integration_test', 'supersede')
+    def test_editor_cannot_view_supersede_page(self):
+        self.login_editor()
+        response = self.client.get(reverse('aristotle:supersede',args=[self.item1.id]))
+        self.assertEqual(response.status_code,403)
+        response = self.client.get(reverse('aristotle:supersede',args=[self.item2.id]))
+        self.assertEqual(response.status_code,403)
+        response = self.client.get(reverse('aristotle:supersede',args=[self.item3.id]))
+        self.assertEqual(response.status_code,403)
+
+    @tag('integration_test', 'supersede')
+    def test_registrar_can_view_supersede_page(self):
+        self.ra.register(
+            self.item1,
+            models.STATES.standard,
+            self.su
+        )
+        self.ra.register(
+            self.item3,
+            models.STATES.standard,
+            self.su
+        )
+        self.login_registrar()
+        response = self.client.get(reverse('aristotle:supersede',args=[self.item1.id]))
+        self.assertEqual(response.status_code,200)
+        response = self.client.get(reverse('aristotle:supersede',args=[self.item2.id]))
+        self.assertEqual(response.status_code,403)
+        response = self.client.get(reverse('aristotle:supersede',args=[self.item3.id]))
+        self.assertEqual(response.status_code,200)
