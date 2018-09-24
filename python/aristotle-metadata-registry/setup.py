@@ -93,7 +93,7 @@ setup(
         'django-user-sessions',
         'geoip2',
         
-        'attr',
+        'attrs',
 
     ],
 
