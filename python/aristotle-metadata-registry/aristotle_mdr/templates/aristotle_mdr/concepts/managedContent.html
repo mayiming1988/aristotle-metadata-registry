@@ -5,10 +5,6 @@
 {% load aristotle_tags util_tags %}
 
 {% block extra_head_scripts %}
-    {% if item|can_edit:request.user %}
-        <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/aristotle.autocomplete.css' %}" />
-    {% endif %}
-    <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/aristotle.visuals.less'|compile %}" />
     {{ tags|json_script:"tags-json" }}
 {% endblock %}
 

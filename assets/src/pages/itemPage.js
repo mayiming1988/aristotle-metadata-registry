@@ -6,6 +6,8 @@ import favouriteComponent from '../components/favourite.vue'
 import simpleList from '../components/simpleList.vue'
 import submitTags from '../components/submitTags.vue'
 
+import '../css/aristotle.autocomplete.css'
+
 init(true)
 
 $(document).ready(function() {
