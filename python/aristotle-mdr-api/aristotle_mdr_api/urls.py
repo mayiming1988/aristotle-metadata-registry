@@ -37,6 +37,5 @@ urlpatterns = [
     url(r'^schemas/', get_swagger_view(title='Aristotle API')),
     url(r'^$', APIRootView.as_view(), name="aristotle_api_root"),
 
-    url(r'^v2/', include('aristotle_mdr_api.v2.urls', namespace='aristotle_mdr_api.v2')),
     url(r'^v3/', include('aristotle_mdr_api.v3.urls', namespace='aristotle_mdr_api.v3')),
 ]
