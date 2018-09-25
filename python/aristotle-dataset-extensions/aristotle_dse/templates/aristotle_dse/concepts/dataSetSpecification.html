@@ -1,9 +1,13 @@
 {% extends "aristotle_mdr/concepts/managedContent.html" %}
 
-{% load aristotle_tags i18n %}
+{% load aristotle_tags i18n static %}
 
-{% block extra_head_scripts %}
-<link rel="stylesheet" href="{{ STATIC_URL }}/aristotle_dse/aristotle_dse.css" />
+{% block webpack_css_bundle %}
+  <link rel="stylesheet" type="text/css" href="{% static 'bundles/datasetSpecification.css' %}" />
+{% endblock %}
+
+{% block webpack_bundle %}
+  <script src="{% static 'bundles/datasetSpecification.js' %}"></script>
 {% endblock %}
 
 {% block objSpecific %}
@@ -13,11 +17,6 @@
         <br> Each entry includes the item name, whether the item is <em>optional, mandatory or conditional</em> and the maximum times the item can occur in a dataset.
         <br> If the items must occur in a particular order in the dataset, the sequence number is included before the item name.
     </p>
-    <script>
-        $(function () {
-          $('[data-toggle="popover"]').popover()
-        })
-    </script>
 
         <table class="dssInclusions table table-striped table-condensed">
             <thead>
