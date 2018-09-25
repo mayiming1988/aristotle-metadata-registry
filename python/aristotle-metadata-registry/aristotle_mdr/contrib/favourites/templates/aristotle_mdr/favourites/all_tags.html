@@ -48,5 +48,8 @@
       @no="deleteCancelled">
     </yesno-modal>
   </div>
-  <script src="{% static 'aristotle_favourites/vue/allTags.js' %}"></script>
+{% endblock %}
+
+{% block webpack_bundle %}
+  <script src="{% static 'bundles/allTags.js' %}"></script>
 {% endblock %}
