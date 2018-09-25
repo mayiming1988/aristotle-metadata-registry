@@ -1,9 +1,13 @@
 import init from '../lib/init.js'
+import { ajaxForm } from '../lib/ajaxforms.js'
 import ClipboardJS from 'clipboard'
 
 init(false)
 
 $(document).ready(function() {
+
+  ajaxForm()
+
   var item_id;
   var button;
   var message_p = $('#modal-message')
