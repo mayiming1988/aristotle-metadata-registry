@@ -1,24 +1,20 @@
 from dal.autocomplete import ModelSelect2Multiple, ModelSelect2
 from django.urls import reverse_lazy
+from django import forms
 
 
 class ConceptAutocompleteBase(object):
 
-    class Media:
-        """Automatically include static files for the admin."""
-
-        css = {
-            'all': (
-                'autocomplete_light/vendor/select2/dist/css/select2.css',
-                'autocomplete_light/select2.css',
-                'aristotle_mdr/aristotle.autocomplete.css',
-            )
-        }
-        js = (
-            'autocomplete_light/jquery.init.js',
-            'autocomplete_light/autocomplete.init.js',
-            'autocomplete_light/vendor/select2/dist/js/select2.full.js',
-            'autocomplete_light/select2.js',
+    @property
+    def cssmedia(self):
+        return forms.Media(
+            css = {
+                'all': (
+                    'autocomplete_light/vendor/select2/dist/css/select2.css',
+                    'autocomplete_light/select2.css',
+                    'aristotle_mdr/aristotle.autocomplete.css',
+                )
+            }
         )
 
     def __init__(self, *args, **kwargs):
@@ -57,6 +53,18 @@ class UserAutocompleteMixin(object):
         """This prevents users from showing in a static HTML list"""
         return ""
 
+    @property
+    def cssmedia(self):
+        return forms.Media(
+            css = {
+                'all': (
+                    'autocomplete_light/vendor/select2/dist/css/select2.css',
+                    'autocomplete_light/select2.css',
+                    'aristotle_mdr/aristotle.autocomplete.css',
+                )
+            }
+        )
+
 
 class UserAutocompleteSelect(UserAutocompleteMixin, ModelSelect2):
     url = 'aristotle-autocomplete:user'
@@ -74,6 +82,22 @@ class WorkgroupAutocompleteMixin(object):
         )
         super().__init__(*args, **kwargs)
 
+    @property
+    def cssmedia(self):
+        return forms.Media(
+            css = {
+                'all': (
+                    'autocomplete_light/vendor/select2/dist/css/select2.css',
+                    'autocomplete_light/select2.css',
+                    'aristotle_mdr/aristotle.autocomplete.css',
+                )
+            }
+        )
+
 
 class WorkgroupAutocompleteSelect(WorkgroupAutocompleteMixin, ModelSelect2):
     url = 'aristotle-autocomplete:workgroup'
+
+    @property
+    def media(self):
+        return self.cssmedia
