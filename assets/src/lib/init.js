@@ -1,26 +1,10 @@
 import 'bootstrap'
 import 'eonasdan-bootstrap-datetimepicker'
-import { initNotifications } from '../lib/notify.js'
-import { initMessages } from '../lib/messages.js'
+import { initNotifications } from './notify.js'
+import { initMessages } from './messages.js'
+import { initDAL } from './dal_simple_init.js'
 
 export default function init(spinners = true) {
-  // Scrap modals if they lose focus so they can be loaded with new content
-  $(document).ready(function() {
-    $('.modal').on('hidden.bs.modal', function(e)
-    {
-        if (!$(this).hasClass('exclude-scrap')) {
-          $(this).removeData();
-          var x = $(this).find('.modal-content > *');
-          x.remove()
-        }
-    });
-
-    $('.modal').on('loaded.bs.modal', function() {
-        // Need to do this on modal show for newly added popovers
-        $('.dj-datepicker').datetimepicker({format: 'YYYY-MM-DD'})
-        $('.aristotle-popover').popover()
-    });
-  })
 
   // Initialize popovers
   $('.aristotle-popover').popover()
@@ -45,6 +29,7 @@ export default function init(spinners = true) {
 
   initNotifications()
   initMessages()
+  initDAL()
 
   if (spinners) {
     $(document).ajaxSend(function(event, request, settings) {
@@ -55,4 +40,24 @@ export default function init(spinners = true) {
         $('#loading_indicator').hide().removeClass('loading');
     });
   }
+
+  // Needs to be run on document ready
+  $(document).ready(function() {
+    // Scrap modals if they lose focus so they can be loaded with new content
+    $('.modal').on('hidden.bs.modal', function(e)
+    {
+        if (!$(this).hasClass('exclude-scrap')) {
+          $(this).removeData();
+          var x = $(this).find('.modal-content > *');
+          x.remove()
+        }
+    });
+
+    $('.modal').on('loaded.bs.modal', function() {
+        // Need to do this on modal show for newly added popovers
+        $('.dj-datepicker').datetimepicker({format: 'YYYY-MM-DD'})
+        $('.aristotle-popover').popover()
+    });
+
+  })
 }
