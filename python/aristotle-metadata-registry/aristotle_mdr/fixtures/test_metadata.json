@@ -715,9 +715,9 @@
   },
   {
     "fields": {
-      "older_item": 18
+      "older_item": 18,
       "newer_item": 19,
-      "registration_authority": 2,
+      "registration_authority": 2
     },
     "model": "aristotle_mdr.supersederelationship"
   }
