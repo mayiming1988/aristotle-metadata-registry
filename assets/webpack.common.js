@@ -74,9 +74,10 @@ module.exports = {
     splitChunks: {
       cacheGroups: {
         vendor: {
-          test: /[\\/]node_modules[\\/](jquery|bootstrap)[\\/]/,
+          // test: /[\\/]node_modules[\\/](jquery|bootstrap)[\\/]/,
           name: 'vendor',
           chunks: 'all',
+          minChunks: 5
         }
       }
     }

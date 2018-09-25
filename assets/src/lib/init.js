@@ -4,8 +4,13 @@ import { initNotifications } from './notify.js'
 import { initMessages } from './messages.js'
 import { initDAL } from './dal_simple_init.js'
 
+// Always on styles
 import 'bootstrap/dist/css/bootstrap.css'
+import 'font-awesome/css/font-awesome.css'
 import '../less/aristotle.less'
+import '../less/aristotle.visuals.less'
+import '../css/bootstrap.wcag.css'
+import '../css/pink.wcag.css'
 
 export default function init(spinners = true) {
 
