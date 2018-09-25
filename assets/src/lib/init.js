@@ -5,6 +5,7 @@ import { initMessages } from './messages.js'
 import { initDAL } from './dal_simple_init.js'
 
 import 'bootstrap/dist/css/bootstrap.css'
+import '../less/aristotle.less'
 
 export default function init(spinners = true) {
 

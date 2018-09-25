@@ -20,6 +20,8 @@
     "css-loader": "^1.0.0",
     "expose-loader": "^0.7.5",
     "file-loader": "^2.0.0",
+    "less": "^3.8.1",
+    "less-loader": "^4.1.0",
     "mini-css-extract-plugin": "^0.4.3",
     "vue-loader": "^15.4.2",
     "vue-template-compiler": "^2.5.17",
