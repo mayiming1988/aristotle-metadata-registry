@@ -1,4 +1,4 @@
-export default function() {
+export function initChangeStatus() {
   $("#changeStatus input").change(function() {
       var state = $('#changeStatus input[name$=state]:checked').val();
       console.log(state);

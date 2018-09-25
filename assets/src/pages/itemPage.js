@@ -1,5 +1,5 @@
 import init from '../lib/init.js'
-import initCS from '../lib/changeStatus.js'
+import { initChangeStatus } from '../lib/changeStatus.js'
 import Vue from 'vue'
 import autocompleteTag from '../components/autocompleteTag.vue'
 import favouriteComponent from '../components/favourite.vue'
@@ -10,7 +10,7 @@ init(true)
 
 $(document).ready(function() {
   $('#infobox_adv_edit').on('loaded.bs.modal', function() {
-    initCS() 
+    initChangeStatus()
   })
 })
 
