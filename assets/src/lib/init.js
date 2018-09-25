@@ -7,10 +7,10 @@ import { initDAL } from './dal_simple_init.js'
 // Always on styles
 import 'bootstrap/dist/css/bootstrap.css'
 import 'font-awesome/css/font-awesome.css'
-import '../less/aristotle.less'
-import '../less/aristotle.visuals.less'
-import '../css/bootstrap.wcag.css'
-import '../css/pink.wcag.css'
+import '../styles/aristotle.less'
+import '../styles/aristotle.visuals.less'
+import '../styles/bootstrap.wcag.css'
+import '../styles/pink.wcag.css'
 
 export default function init(spinners = true) {
 
