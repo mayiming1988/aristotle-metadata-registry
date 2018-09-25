@@ -3,6 +3,8 @@ import switchEditComponent from '../components/switchEdit.vue'
 
 import Vue from 'vue'
 
+import '../styles/taggle.css'
+
 init(false)
 
 var vm = new Vue({

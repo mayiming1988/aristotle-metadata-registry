@@ -7,9 +7,12 @@
     {% include "aristotle_mdr/user/userSideBar.html" with activeTab='favourites' %}
 {% endblock %}
 
-{% block extra_head_scripts %}
-  {{ block.super }}
-  <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/taggle.css' %}" />
+{% block webpack_css_bundle %}
+  <link rel="stylesheet" type="text/css" href="{% static 'bundles/tagPage.css' %}" />
+{% endblock %}
+
+{% block webpack_bundle %}
+  <script src="{% static 'bundles/tagPage.js' %}"></script>
 {% endblock %}
 
 {% block page %}
@@ -44,8 +47,4 @@
   <a class="btn btn-default margin-above" href="{% url 'aristotle_favourites:favs_and_tags' %}">
     Back
   </a>
-{% endblock %}
-
-{% block webpack_bundle %}
-  <script src="{% static 'bundles/tagPage.js' %}"></script>
 {% endblock %}
