@@ -49,3 +49,38 @@ export default {
   }
 }
 </script>
+
+<style>
+.vue-simple-suggest.designed .suggestions {
+  /* position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  top: calc(100% + 5px); */
+  border-radius: 3px;
+  border: 1px solid #aaa;
+  background-color: #fff;
+  opacity: 1;
+  /* z-index: 1000; */
+}
+
+.vue-simple-suggest.designed .suggestions .suggest-item {
+  cursor: pointer;
+  user-select: none;
+}
+
+.vue-simple-suggest.designed .suggestions .suggest-item,
+.vue-simple-suggest.designed .suggestions .misc-item {
+  padding: 5px 10px;
+}
+
+.vue-simple-suggest.designed .suggestions .suggest-item.hover {
+  background-color: #2874D5 !important;
+  color: #fff !important;
+}
+
+.vue-simple-suggest.designed .suggestions .suggest-item.selected {
+  background-color: #2832D5;
+  color: #fff;
+}
+</style>

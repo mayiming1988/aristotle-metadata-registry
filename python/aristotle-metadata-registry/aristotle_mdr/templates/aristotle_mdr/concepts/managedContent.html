@@ -9,9 +9,11 @@
         <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/aristotle.autocomplete.css' %}" />
     {% endif %}
     <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/aristotle.visuals.less'|compile %}" />
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/suggest.css' %}">
     {{ tags|json_script:"tags-json" }}
-    <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/taggle.css' %}" />
+{% endblock %}
+
+{% block webpack_css_bundle %}
+    <link rel="stylesheet" type="text/css" href="{% static 'bundles/itemPage.css' %}" />
 {% endblock %}
 
 {% block webpack_bundle %}

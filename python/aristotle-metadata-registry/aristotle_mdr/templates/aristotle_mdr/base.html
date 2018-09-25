@@ -22,6 +22,12 @@
 
     {% include 'aristotle_mdr/scripts.html' %}
 
+    {# Webpack split chunk #}
+    <link rel="stylesheet" type="text/css" href="{% static 'bundles/vendor.css' %}" />
+
+    {% block webpack_css_bundle %}
+    {% endblock %}
+
     {% block extra_head_scripts %}
         {% comment %}
             Only for scripts that need to be inserted for other special templates
