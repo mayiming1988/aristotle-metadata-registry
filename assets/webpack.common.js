@@ -2,8 +2,9 @@ const path = require('path')
 const webpack = require('webpack')
 const glob = require('glob')
 const entry = require('webpack-glob-entry')
-const CleanWebpackPlugin = require('clean-webpack-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
+const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 
 module.exports = {
   entry: entry('./src/pages/*.js'),
@@ -29,6 +30,22 @@ module.exports = {
         // Load .vue files with vue-loader
         test: /\.vue$/,
         use: 'vue-loader'
+      },
+      {
+        test: /\.woff2?$|\.ttf$|\.eot$|\.svg$/,
+        use: [{
+          loader: 'file-loader',
+          options: {
+            name: '[name].[ext]'
+          }
+        }]
+      },
+      {
+        test: /\.css$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          "css-loader"
+        ]
       }
     ]
   },
@@ -40,6 +57,9 @@ module.exports = {
       // Provide $ and jQuery to scripts, no need to import
       $: "jquery",
       jQuery: "jquery"
+    }),
+    new MiniCssExtractPlugin({
+      filename: '[name].css'
     })
   ],
   optimization: {

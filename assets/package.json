@@ -17,7 +17,10 @@
   },
   "devDependencies": {
     "clean-webpack-plugin": "^0.1.19",
+    "css-loader": "^1.0.0",
     "expose-loader": "^0.7.5",
+    "file-loader": "^2.0.0",
+    "mini-css-extract-plugin": "^0.4.3",
     "vue-loader": "^15.4.2",
     "vue-template-compiler": "^2.5.17",
     "webpack": "^4.19.1",

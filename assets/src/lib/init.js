@@ -4,6 +4,8 @@ import { initNotifications } from './notify.js'
 import { initMessages } from './messages.js'
 import { initDAL } from './dal_simple_init.js'
 
+import 'bootstrap/dist/css/bootstrap.css'
+
 export default function init(spinners = true) {
 
   // Initialize popovers
