@@ -53,5 +53,4 @@ urlpatterns = [
             model_base_field='distribution_set',
             form_title=_('Change Distributions')
         ), name='add_distribution_to_dataset'),
-
 ]

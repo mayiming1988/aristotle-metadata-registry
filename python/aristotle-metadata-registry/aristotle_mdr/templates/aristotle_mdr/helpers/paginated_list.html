@@ -66,7 +66,7 @@ Showing {{ page.paginator.count }} results.
                   <a href="{% url 'aristotle:toggleFavourite' item.id %}?next={{ request.path }}"
                       title="{% ternary is_favourite 'Remove from my favourite items' 'Add to my favourite items' %}"
                       >
-                      {% if item in favourites %}
+                      {% if is_favourite %}
                           <i class="fa fa-bookmark fa-fw"></i>
                       {% else %}
                           <i class="fa fa-bookmark-o fa-fw"></i>

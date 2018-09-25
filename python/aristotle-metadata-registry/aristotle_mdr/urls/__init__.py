@@ -5,6 +5,7 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = [
+    url(r'^', include('aristotle_dse.concept_urls')),
     url(r'^', include('aristotle_mdr.urls.base')),
     url(r'^browse/', include('aristotle_mdr.contrib.browse.urls')),
     url(r'^help/', include('aristotle_mdr.contrib.help.urls', app_name="aristotle_help", namespace="aristotle_help")),
@@ -13,7 +14,6 @@ urlpatterns = [
     url(r'^ac/', include('aristotle_mdr.contrib.autocomplete.urls', namespace="aristotle-autocomplete")),
     url(r'^', include('aristotle_mdr.contrib.healthcheck.urls', app_name="aristotle_mdr_hb", namespace="aristotle_hb")),
 ]
-
 
 # This is only for dev work, so we can skip it.
 if settings.DEBUG:  # pragma: no cover

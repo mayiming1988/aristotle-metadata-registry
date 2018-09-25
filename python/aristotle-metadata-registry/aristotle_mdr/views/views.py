@@ -2,12 +2,13 @@
 from django import VERSION as django_version
 from django.apps import apps
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, FieldDoesNotExist
 from django.urls import reverse
 from django.db import transaction
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.defaultfilters import slugify
 from django.utils.translation import ugettext_lazy as _
@@ -102,6 +103,7 @@ def render_if_user_can_view(item_type, request, *args, **kwargs):
     )
 
 
+# This view is not currently being used
 @login_required
 def render_if_user_can_edit(item_type, request, *args, **kwargs):
     request = kwargs.pop('request')
@@ -115,6 +117,7 @@ def concept_by_uuid(request, uuid):
     return redirect(url_slugify_concept(item))
 
 
+# This view is not currently being used
 def concept(*args, **kwargs):
     return render_if_user_can_view(MDR._concept, *args, **kwargs)
 
@@ -168,30 +171,107 @@ def render_if_condition_met(request, condition, objtype, iid, model_slug=None, n
     )
 
 
-class ConceptRenderView(TemplateView):
+class ConceptRenderMixin:
     """
     Class based view for rendering a concept, replaces render_if_condition_met
     **This should be used with a permission mixin or check_item override**
+
+    slug_redirect determines wether /item/id redirects to /item/id/model_slug/name_slug
     """
 
-    objtype = MDR._concept
+    objtype = None
     itemid_arg = 'iid'
+    modelslug_arg = 'model_slug'
+    nameslug_arg = 'name_slug'
+    slug_redirect = False
+
+    def get_queryset(self):
+        itemid = self.kwargs[self.itemid_arg]
+
+        if self.objtype:
+            model = self.objtype
+        else:
+            model = None
+            # If we have a model_slug try using that
+            model_slug = self.kwargs.get(self.modelslug_arg, '')
+            if model_slug:
+                try:
+                    rel = MDR._concept._meta.get_field(model_slug)
+                except FieldDoesNotExist:
+                    rel = None
+
+                # Check if it is an auto created one to one field
+                if rel and rel.one_to_one and rel.auto_created and issubclass(rel.related_model, MDR._concept):
+                    model = rel.related_model
+
+        if model is None:
+            return None
+
+        return self.get_related(model)
 
     def get_item(self):
         itemid = self.kwargs[self.itemid_arg]
-        return get_object_or_404(self.objtype, pk=itemid).item
+        queryset = self.get_queryset()
+        return queryset.get(pk=itemid)
 
-    def check_item(self):
+    def get_related(self, model):
+        """Return a queryset fetching related concepts"""
+
+        related_fields = []
+        prefetch_fields = ['statuses']
+        for field in model._meta.get_fields():
+            if field.is_relation and field.many_to_one and issubclass(field.related_model, MDR._concept):
+                # If a field is a foreign key that links to a concept
+                related_fields.append(field.name)
+            elif field.is_relation and field.one_to_many and issubclass(field.related_model, MDR.AbstractValue):
+                # If field is a reverse foreign key that links to an
+                # abstract value
+                prefetch_fields.append(field.name)
+
+        return model.objects.select_related(*related_fields).prefetch_related(*prefetch_fields)
+
+    def check_item(self, item):
         # To be overwritten
         return True
 
     def get_user(self):
         return self.request.user
 
+    def get_redirect(self):
+        if self.item is None:
+            itemid = self.kwargs[self.itemid_arg]
+            item = MDR._concept.objects.get_subclass(id=itemid)
+        else:
+            item = self.item
+
+        if not self.modelslug_arg:
+            model_correct = True
+        else:
+            model_slug = self.kwargs.get(self.modelslug_arg, '')
+            model_correct = (item._meta.model_name == model_slug)
+
+        name_slug = self.kwargs.get(self.nameslug_arg, '')
+        name_correct = (slugify(item.name) == name_slug)
+
+        if not model_correct or not name_correct:
+            return True, url_slugify_concept(self.item)
+        else:
+            return False, ''
+
     def dispatch(self, request, *args, **kwargs):
         self.item = self.get_item()
+
+        if self.slug_redirect:
+            redirect, url = self.get_redirect()
+            if redirect:
+                return HttpResponseRedirect(url)
+
+        if self.item is None:
+            # If item was not found and no redirect was needed
+            return HttpResponseNotFound()
+
         self.user = self.get_user()
-        result = self.check_item()
+        result = self.check_item(self.item)
         if not result:
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
@@ -205,6 +285,8 @@ class ConceptRenderView(TemplateView):
         # Only display viewable slots
         context['slots'] = get_allowed_slots(self.item, self.user)
         context['item'] = self.item
+        context['statuses'] = self.item.current_statuses
+        context['discussions'] = self.item.relatedDiscussions.all()
         return context
 
     def get_template_names(self):
@@ -214,6 +296,36 @@ class ConceptRenderView(TemplateView):
         )
 
         return [default_template, self.item.template]
+
+
+# General concept view
+class ConceptView(ConceptRenderMixin, TemplateView):
+
+    slug_redirect = True
+
+    def check_item(self, item):
+        return user_can_view(self.request.user, item)
+
+
+class DataElementView(ConceptRenderMixin, TemplateView):
+
+    objtype = MDR.DataElement
+
+    def check_item(self, item):
+        return user_can_view(self.request.user, item)
+
+    def get_related(self, model):
+        related_objects = [
+            'valueDomain',
+            'dataElementConcept__objectClass',
+            'dataElementConcept__property'
+        ]
+        prefetch_objects = [
+            'valueDomain__permissiblevalue_set',
+            'valueDomain__supplementaryvalue_set',
+            'statuses'
+        ]
+        return model.objects.select_related(*related_objects).prefetch_related(*prefetch_objects)
 
 
 def registrationHistory(request, iid):
