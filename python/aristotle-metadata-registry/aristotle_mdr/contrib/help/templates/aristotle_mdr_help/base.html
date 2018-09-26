@@ -2,8 +2,12 @@
 {% load i18n static compile_static %}
 {% load static from staticfiles %}
 
-{% block extra_head_scripts %}
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.help.less'|compile %}" />
+{% block webpack_css_bundle %}
+  <link rel="stylesheet" type="text/css" href="{% static 'bundles/help.css' %}" />
+{% endblock %}
+
+{% block webpack_bundle %}
+  <script src="{% static 'bundles/help.js' %}"></script>
 {% endblock %}
 
 {% block content %}
