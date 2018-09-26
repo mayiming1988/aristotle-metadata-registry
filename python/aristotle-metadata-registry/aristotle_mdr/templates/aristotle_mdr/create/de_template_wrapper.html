@@ -6,9 +6,12 @@
 Create Data Element - Step {{ wizard.steps.step1 }}: {{step_title}}
 {% endblock %}
 
-{% block extra_head_scripts %}
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.wizard.less'|compile %}" />
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle_search.less'|compile %}" />
+{% block webpack_css_bundle %}
+  <link rel="stylesheet" type="text/css" href="{% static 'bundles/wizard.css' %}" />
+{% endblock %}
+
+{% block webpack_bundle %}
+  <script src="{% static 'bundles/wizard.js' %}"></script>
 {% endblock %}
 
 {% block head %}

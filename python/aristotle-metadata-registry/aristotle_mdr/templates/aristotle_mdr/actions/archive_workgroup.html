@@ -4,10 +4,6 @@
 
 {% block title %}Editing {{ item.name }}{% endblock %}
 {% block content %}
-{% block extra_head_scripts %}
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.wizard.less'|compile %}" />
-    {{ form.media }}
-{% endblock %}
 
 <form method="post" action="{% url 'aristotle:archive_workgroup' item.id %}">{% csrf_token %}
     <div class="modal-body">

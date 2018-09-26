@@ -4,8 +4,12 @@
 
 {% block title %}New Item{% endblock %}
 
-{% block extra_head_scripts %}
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.wizard.less'|compile %}" />
+{% block webpack_css_bundle %}
+  <link rel="stylesheet" type="text/css" href="{% static 'bundles/wizard.css' %}" />
+{% endblock %}
+
+{% block webpack_bundle %}
+  <script src="{% static 'bundles/wizard.js' %}"></script>
 {% endblock %}
 
 {% block content %}
