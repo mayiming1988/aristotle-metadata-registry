@@ -20,7 +20,7 @@
       <link rel="icon" type="image/png" href="{% static 'aristotle_mdr/images/favicon.png' %}"/>
       <title>{% block title %}{% endblock %} - {{ config.SITE_NAME }}</title>
 
-    {# {% include 'aristotle_mdr/scripts.html' %} #}
+    {% include 'aristotle_mdr/scripts.html' %}
 
     {# Webpack split chunk #}
     <link rel="stylesheet" type="text/css" href="{% static 'bundles/vendor.css' %}" />

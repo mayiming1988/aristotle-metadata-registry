@@ -4,10 +4,17 @@
 {% load compile_static %}
 
 {% block title %}Login{% endblock %}
-{% block extra_head_scripts %}
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/login.less'|compile %}" />
+
+{% block webpack_css_bundle %}
+  <link rel="stylesheet" type="text/css" href="{% static 'bundles/login.css' %}" />
 {% endblock %}
+
+{% block webpack_bundle %}
+  <script src="{% static 'bundles/login.js' %}"></script>
+{% endblock %}
+
 {% block content %}
+
 
 <div class="container">
     <div class="row">
