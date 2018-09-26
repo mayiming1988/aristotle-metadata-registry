@@ -5,8 +5,12 @@
 
 {% block title %}Version history of {{ object.item.name }}{% endblock %}
 
-{% block extra_head_scripts %}
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.compare.less'|compile %}" />
+{% block webpack_css_bundle %}
+  <link rel="stylesheet" type="text/css" href="{% static 'bundles/compare.css' %}" />
+{% endblock %}
+
+{% block webpack_bundle %}
+  <script src="{% static 'bundles/compare.js' %}"></script>
 {% endblock %}
 
 {% block content %}{% with item=object.item %}
