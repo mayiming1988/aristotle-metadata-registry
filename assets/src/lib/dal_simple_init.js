@@ -6,7 +6,6 @@ import 'select2/dist/css/select2.css'
 export function initDAL() {
   $('[data-autocomplete-light-function=select2]').each(function() {
       var element = $(this);
-      console.log(element)
 
       // Templating helper
       function template(text, is_html) {
