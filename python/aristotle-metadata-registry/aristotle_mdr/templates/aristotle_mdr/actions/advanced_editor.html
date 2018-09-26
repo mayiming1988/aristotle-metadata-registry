@@ -4,8 +4,6 @@
 
 {% block title %}Editing {{ item.name }}{% endblock %}
 {% block extra_head_scripts %}
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.wizard.less'|compile %}" />
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle_search.less'|compile %}" />
     <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.moveable.less'|compile %}" />
     {% if request.is_ajax %}
@@ -17,6 +15,16 @@
     {% endif %}
 
 {% endblock %}
+
+{% if not request.is_ajax %}
+  {% block webpack_css_bundle %}
+    <link rel="stylesheet" type="text/css" href="{% static 'bundles/advancedEditor.css' %}" />
+  {% endblock %}
+
+  {% block webpack_bundle %}
+    <script src="{% static 'bundles/advancedEditor.js' %}"></script>
+  {% endblock %}
+{% endif %}
 
 {% block content %}
 
