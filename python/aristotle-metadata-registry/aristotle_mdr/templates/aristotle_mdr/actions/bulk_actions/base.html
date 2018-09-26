@@ -2,7 +2,10 @@
 {% load compile_static %}
 {% load static from staticfiles %}
 
-{% block extra_head_scripts %}
-{{ form.media }}
-<link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.bulk_action.less'|compile %}" />
+{% block webpack_css_bundle %}
+  <link rel="stylesheet" type="text/css" href="{% static 'bundles/bulk_action.css' %}" />
+{% endblock %}
+
+{% block webpack_bundle %}
+  <script src="{% static 'bundles/bulk_action.js' %}"></script>
 {% endblock %}
