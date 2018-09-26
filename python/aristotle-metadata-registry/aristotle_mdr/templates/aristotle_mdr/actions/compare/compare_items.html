@@ -2,9 +2,12 @@
 {% load i18n compile_static %}
 {% load static from staticfiles %}
 
-{% block extra_head_scripts %}
-    {{ form.media }}
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.compare.less'|compile %}" />
+{% block webpack_css_bundle %}
+  <link rel="stylesheet" type="text/css" href="{% static 'bundles/compare.css' %}" />
+{% endblock %}
+
+{% block webpack_bundle %}
+  <script src="{% static 'bundles/compare.js' %}"></script>
 {% endblock %}
 
 {% block title %}Concept comparator {{ item.name }}{% endblock %}
