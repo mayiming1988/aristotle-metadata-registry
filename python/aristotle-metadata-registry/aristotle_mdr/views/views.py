@@ -4,6 +4,7 @@ from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist
 from django.urls import reverse
@@ -15,7 +16,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView, RedirectView
 from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_string
-from django.contrib.contenttypes.models import ContentType
 from formtools.wizard.views import SessionWizardView
 
 import json
@@ -274,6 +274,10 @@ class ConceptRenderMixin:
         result = self.check_item(self.item)
         if not result:
             raise PermissionDenied
+
+        from aristotle_mdr.contrib.view_history.signals import metadata_item_viewed
+        metadata_item_viewed.send(sender=self.item, user=self.user.pk)
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
@@ -783,10 +787,30 @@ class PermissionSearchView(FacetedSearchView):
 
     def extra_context(self):
         # needed to compare to indexed primary key value
+        recently_viewed = {}
+        favourites_list = []
         if not self.request.user.is_anonymous():
+            from django.db.models import Count, Max
             favourites_pks = self.request.user.profile.favourites.all().values_list('id', flat=True)
             favourites_list = list(favourites_pks)
-        else:
-            favourites_list = []
+            recent_viewed = dict(
+                (
+                    row["concept"],
+                    {
+                        "count": row["count_viewed"],
+                        "last_viewed": row["last_viewed"]
+                    }    
+                )
+                for row in self.request.user.recently_viewed_metadata.all().values(
+                    "concept"
+                ).annotate(
+                    count_viewed=Count('concept'),
+                    last_viewed=Max("view_date")
+                )
+            )
 
-        return {'rpp_values': self.results_per_page_values, 'favourites': favourites_list}
+        return {
+            'rpp_values': self.results_per_page_values,
+            'favourites': favourites_list,
+            'recent_viewed': recent_viewed,
+        }

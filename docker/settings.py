@@ -11,6 +11,7 @@ ARISTOTLE_SETTINGS['SITE_NAME'] = 'Aristotle Development Server'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+ARISTOTLE_ASYNC_SIGNALS = False
 
 MIDDLEWARE = ['whitenoise.middleware.WhiteNoiseMiddleware'] + MIDDLEWARE
 DATABASES = {'default': dj_database_url.config()}

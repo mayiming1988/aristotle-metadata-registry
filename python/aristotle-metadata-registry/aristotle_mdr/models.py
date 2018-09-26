@@ -1497,6 +1497,12 @@ class PossumProfile(models.Model):
         else:
             self.favourites.add(item)
 
+    def profile_picture_url(self):
+        if self.profilePicture:
+            return self.profilePicture.url
+        else:
+            return reverse("aristotle_mdr:dynamic_profile_picture", args=[self.user.id])
+
 
 class SandboxShare(models.Model):
     uuid = models.UUIDField(
