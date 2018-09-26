@@ -1,5 +1,7 @@
 import init from '../lib/init.js'
 
+import '../styles/aristotle_search.less'
+
 init(true)
 
 function showClearFilters() {

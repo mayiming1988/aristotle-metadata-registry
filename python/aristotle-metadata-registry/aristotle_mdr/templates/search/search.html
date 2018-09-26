@@ -6,12 +6,8 @@
 {% load aristotle_tags aristotle_search_tags %}
 {% load compile_static %}
 
-{% block extra_head_scripts %}
-    <!--[if !IE]> -->
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle_search.less'|compile %}" />
-    <![endif]-->
-    <!--[if lt IE 9]>
-    <![endif]-->
+{% block webpack_css_bundle %}
+  <link rel="stylesheet" type="text/css" href="{% static 'bundles/search.css' %}" />
 {% endblock %}
 
 {% block webpack_bundle %}
