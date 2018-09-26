@@ -3,8 +3,13 @@
 {% load static from staticfiles %}
 
 {% block title %}My Dashboard{% endblock %}
-{% block extra_head_scripts %}
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.dashboard.less'|compile %}" />
+
+{% block webpack_css_bundle %}
+  <link rel="stylesheet" type="text/css" href="{% static 'bundles/dashboard.css' %}" />
+{% endblock %}
+
+{% block webpack_bundle %}
+  <script src="{% static 'bundles/dashboard.js' %}"></script>
 {% endblock %}
 
 {% block content %}

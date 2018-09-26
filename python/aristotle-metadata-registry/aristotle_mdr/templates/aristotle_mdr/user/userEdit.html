@@ -7,8 +7,7 @@
     {% include "aristotle_mdr/user/userSideBar.html" with activeTab='edit' %}
 {% endblock %}
 
-{% block extra_head_scripts %}
-{{ block.super }}
+{% block individual_scripts %}
 <script src="{% static 'constrainedfilefield/js/file_checker.js' %}"></script>
 {% endblock %}
 
