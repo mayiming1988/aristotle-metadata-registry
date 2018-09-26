@@ -23,7 +23,7 @@
     {% include 'aristotle_mdr/scripts.html' %}
 
     {# Webpack split chunk #}
-    <link rel="stylesheet" type="text/css" href="{% static 'bundles/vendor.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'bundles/common.css' %}" />
 
     {% block webpack_css_bundle %}
     {% endblock %}
@@ -66,7 +66,7 @@
     
 
     {# Webpack split chunk #}
-    <script src="{% static 'bundles/vendor.js' %}"></script>
+    <script src="{% static 'bundles/common.js' %}"></script>
 
     {# Webpack bundle #}
     {% block webpack_bundle %}

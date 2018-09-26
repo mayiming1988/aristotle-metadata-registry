@@ -6,8 +6,10 @@ const CleanWebpackPlugin = require('clean-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 
+const entries = entry('./src/pages/*.js')
+
 module.exports = {
-  entry: entry('./src/pages/*.js'),
+  entry: entries,
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, 'dist/bundles'),
@@ -74,10 +76,9 @@ module.exports = {
     splitChunks: {
       cacheGroups: {
         vendor: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendor',
+          name: 'common',
           chunks: 'all',
-          minChunks: 5
+          minChunks: Object.keys(entries).length
         }
       }
     }
