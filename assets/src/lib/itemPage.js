@@ -1,5 +1,6 @@
 import init from '../lib/init.js'
 import { initChangeStatus } from '../lib/changeStatus.js'
+import { initDAL } from '../lib/dal_simple_init.js'
 import Vue from 'vue'
 import autocompleteTag from '../components/autocompleteTag.vue'
 import favouriteComponent from '../components/favourite.vue'
@@ -7,7 +8,8 @@ import simpleList from '../components/simpleList.vue'
 import submitTags from '../components/submitTags.vue'
 
 import '../styles/aristotle.autocomplete.css'
-
+import '../styles/aristotle.wizard.less'
+import '../styles/aristotle_search.less'
 
 export function initItemPage() {
   init(true)
@@ -15,6 +17,7 @@ export function initItemPage() {
   $(document).ready(function() {
     $('#infobox_adv_edit').on('loaded.bs.modal', function() {
       initChangeStatus()
+      initDAL()
     })
   })
 
