@@ -71,10 +71,6 @@
         <i class="fa fa-flag-o fa-fw"></i> {% trans "My Review Requests" %}</a>
     </li>
     <li role="presentation" class="nav-divider"></li>
-    <li {% ifequal activeTab "role" %}class="active"{% endifequal %}>
-        <a href="{% url 'aristotle:userRoles' %}">
-        <i class="fa fa-industry fa-fw"></i> My roles</a>
-    </li>
     {% if request.user.profile.is_registrar or request.user.profile.is_ra_manager %}
     <li {% ifequal activeTab "registrarTools" %}class="active"{% endifequal %}>
         <a href="{% url 'aristotle:userRegistrarTools' %}">

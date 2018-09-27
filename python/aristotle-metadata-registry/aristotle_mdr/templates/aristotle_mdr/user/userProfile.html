@@ -17,7 +17,7 @@
       </div>
     </div>
 
-    <div class="panel panel-default hidden-xl hidden-lg">
+    <div class="panel panel-default hidden-xl hidden-lg hidden-md">
       <div class="panel-body">
         <img class="img-responsive" style="margin:auto;max-width:100px;" src="{{ request.user.profile.profile_picture_url }}" alt="Profile Picture"></img>
       </div>
@@ -32,6 +32,7 @@
         <a class="list-group-item" href="{% url 'password_change' %}">Change Password</a>
         <a class="list-group-item" href="{% url 'recently_viewed_metadata' %}">View History</a>
         <a class="list-group-item" href="{% url 'aristotle:userRecentItems' %}">View Recent Actions</a>
+        <a class="list-group-item" href="{% url 'aristotle:userRoles' %}">View My Roles</a>
         <!-- a class="list-group-item" href="{% url 'recently_viewed_metadata' %}">View search history</a -->
       </div>
     </div>
