@@ -36,12 +36,14 @@ module.exports = {
       {
         test: /\.m?js$/,
         exclude: /node_modules/,
-        use: {
+        use: [{
           loader: 'babel-loader',
           options: {
             presets: ['@babel/preset-env']
           }
-        }
+        },{
+          loader: 'eslint-loader'
+        }]
       },
       {
         test: /\.woff2?$|\.ttf$|\.eot$|\.svg$/,

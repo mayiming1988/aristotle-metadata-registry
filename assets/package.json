@@ -24,6 +24,8 @@
     "babel-loader": "^8.0.2",
     "clean-webpack-plugin": "^0.1.19",
     "css-loader": "^1.0.0",
+    "eslint": "^5.6.0",
+    "eslint-loader": "^2.1.1",
     "expose-loader": "^0.7.5",
     "file-loader": "^2.0.0",
     "less": "^3.8.1",
@@ -41,7 +43,8 @@
   "scripts": {
     "build": "webpack --config webpack.prod.js",
     "watch": "webpack --watch --config webpack.dev.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "installandwatch": "npm install && webpack --watch --config webpack.dev.js"
   },
   "browserslist": [
     "last 2 versions",
@@ -49,6 +52,14 @@
     "Firefox ESR",
     "IE 10"
   ],
+  "eslintConfig": {
+    "env": {
+      "es6": true
+    },
+    "parserOptions": {
+      "sourceType": "module"
+    }
+  },
   "author": "",
   "license": "SEE LICENSE IN /LICENSE"
 }
