@@ -38,8 +38,6 @@ module.exports = (config) => {
               options: {
                 presets: ['@babel/preset-env']
               }
-            },{
-              loader: 'eslint-loader'
             }]
           }
         ]
