@@ -59,6 +59,9 @@
     },
     "parserOptions": {
       "sourceType": "module"
+    },
+    "globals": {
+      "$": true
     }
   },
   "author": "",
