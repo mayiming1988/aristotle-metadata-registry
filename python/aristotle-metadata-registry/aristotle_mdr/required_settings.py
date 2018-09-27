@@ -280,7 +280,7 @@ GEOIP_PATH = os.path.join(BASE_DIR, 'aristotle_mdr/vendor/geoip')
 WEBPACK_LOADER = {
     'DEFAULT': {
         'CACHE': not DEBUG,
-        'BUNDLE_DIR_NAME': 'bundles/', # must end with slash
+        'BUNDLE_DIR_NAME': 'bundles/',
         'STATS_FILE': os.path.join(REPO_BASE_DIR, 'assets/dist/webpack-stats.json'),
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,

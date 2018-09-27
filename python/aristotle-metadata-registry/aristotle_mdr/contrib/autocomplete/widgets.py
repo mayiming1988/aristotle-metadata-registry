@@ -5,18 +5,6 @@ from django import forms
 
 class ConceptAutocompleteBase(object):
 
-    @property
-    def cssmedia(self):
-        return forms.Media(
-            css = {
-                'all': (
-                    'autocomplete_light/vendor/select2/dist/css/select2.css',
-                    'autocomplete_light/select2.css',
-                    'aristotle_mdr/aristotle.autocomplete.css',
-                )
-            }
-        )
-
     def __init__(self, *args, **kwargs):
         self.model = kwargs.pop('model', None)
         if self.model:
@@ -53,18 +41,6 @@ class UserAutocompleteMixin(object):
         """This prevents users from showing in a static HTML list"""
         return ""
 
-    @property
-    def cssmedia(self):
-        return forms.Media(
-            css = {
-                'all': (
-                    'autocomplete_light/vendor/select2/dist/css/select2.css',
-                    'autocomplete_light/select2.css',
-                    'aristotle_mdr/aristotle.autocomplete.css',
-                )
-            }
-        )
-
 
 class UserAutocompleteSelect(UserAutocompleteMixin, ModelSelect2):
     url = 'aristotle-autocomplete:user'
@@ -82,22 +58,6 @@ class WorkgroupAutocompleteMixin(object):
         )
         super().__init__(*args, **kwargs)
 
-    @property
-    def cssmedia(self):
-        return forms.Media(
-            css = {
-                'all': (
-                    'autocomplete_light/vendor/select2/dist/css/select2.css',
-                    'autocomplete_light/select2.css',
-                    'aristotle_mdr/aristotle.autocomplete.css',
-                )
-            }
-        )
-
 
 class WorkgroupAutocompleteSelect(WorkgroupAutocompleteMixin, ModelSelect2):
     url = 'aristotle-autocomplete:workgroup'
-
-    @property
-    def media(self):
-        return self.cssmedia
