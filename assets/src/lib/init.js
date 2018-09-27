@@ -1,5 +1,6 @@
 import 'bootstrap'
 import 'eonasdan-bootstrap-datetimepicker'
+//import '@babel/polyfill'
 import { initNotifications } from './notify.js'
 import { initMessages } from './messages.js'
 import { initDAL } from './dal_simple_init.js'
@@ -30,6 +31,10 @@ export function initWidgets() {
 
 export default function init(spinners = true) {
 
+  var map = new Map()
+  map.set('hello', 21)
+  console.log(map)
+
   // Initialize popovers
   $('.aristotle-popover').popover()
 
@@ -56,11 +61,11 @@ export default function init(spinners = true) {
   initWidgets()
 
   if (spinners) {
-    $(document).ajaxSend(function(event, request, settings) {
+    $(document).ajaxSend((event, request, settings) => {
         $('#loading_indicator').show().addClass('loading').removeClass('hidden');
     });
 
-    $(document).ajaxComplete(function(event, request, settings) {
+    $(document).ajaxComplete((event, request, settings) => {
         $('#loading_indicator').hide().removeClass('loading');
     });
   }

@@ -4,6 +4,7 @@
   "description": "Aristotle Frontend",
   "private": true,
   "dependencies": {
+    "@babel/polyfill": "^7.0.0",
     "bootstrap": "^3.3.7",
     "ckeditor": "^4.10.1",
     "clipboard": "^2.0.1",
@@ -18,6 +19,9 @@
     "vue-simple-suggest": "^1.8.2"
   },
   "devDependencies": {
+    "@babel/core": "^7.1.0",
+    "@babel/preset-env": "^7.1.0",
+    "babel-loader": "^8.0.2",
     "clean-webpack-plugin": "^0.1.19",
     "css-loader": "^1.0.0",
     "expose-loader": "^0.7.5",
@@ -39,12 +43,12 @@
     "watch": "webpack --watch --config webpack.dev.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "browserlist" : [
+  "browserslist": [
     "last 2 versions",
     "not dead",
     "Firefox ESR",
     "IE 10"
-  ]
+  ],
   "author": "",
   "license": "SEE LICENSE IN /LICENSE"
 }
