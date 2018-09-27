@@ -20,7 +20,16 @@ export function initWidgets() {
   $('.aristotle-popover').popover()
 
   // Initialize datepickers
-  $('.dj-datepicker').datetimepicker({format: 'YYYY-MM-DD'})
+  $('.dj-datepicker').each((index, obj) => {
+    obj = $(obj)
+    var options = obj.attr('options')
+    if (options == undefined) {
+      options = {format: 'YYYY-MM-DD'}
+    } else {
+      options = JSON.parse(options)
+    }
+    obj.datetimepicker(options)
+  })
 
   // Initialize django-autocomplete-light
   initDAL()

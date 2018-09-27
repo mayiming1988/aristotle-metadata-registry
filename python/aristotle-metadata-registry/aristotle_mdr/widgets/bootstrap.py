@@ -33,11 +33,6 @@ class BootstrapDropdownSelectMultiple(CheckboxSelectMultiple):
 class BootstrapDateTimePicker(DateTimeInput):
     template_name = "search/forms/widgets/datetime.html"
 
-    class Media:
-        css = {
-            'all': ('bootstrap3_datetime/bootstrap-datetimepicker.min.css',)
-        }
-
     # http://momentjs.com/docs/#/parsing/string-format/
     # http://docs.python.org/2/library/datetime.html#strftime-strptime-behavior
     format_map = (
@@ -77,6 +72,9 @@ class BootstrapDateTimePicker(DateTimeInput):
             self.options = options and options.copy() or {}
             if format and not self.options.get('format') and not self.attrs.get('date-format'):
                 self.options['format'] = self.conv_datetime_format_py2js(format)
+
+        if self.options:
+            self.div_attrs['options'] = json.dumps(self.options)
 
     @classmethod
     def conv_datetime_format_py2js(cls, format):
