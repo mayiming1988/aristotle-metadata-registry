@@ -93,6 +93,9 @@ setup(
         'django-user-sessions',
         'geoip2',
 
+        # Webpack loading
+        'django-webpack-loader'
+
     ],
 
 )

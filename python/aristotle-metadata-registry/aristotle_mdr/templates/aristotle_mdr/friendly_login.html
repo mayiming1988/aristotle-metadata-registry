@@ -2,15 +2,16 @@
 {% load static from staticfiles %}
 {% load aristotle_tags %}
 {% load compile_static %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}Login{% endblock %}
 
 {% block webpack_css_bundle %}
-  <link rel="stylesheet" type="text/css" href="{% static 'bundles/login.css' %}" />
+  {% render_bundle 'login' 'css' %}
 {% endblock %}
 
 {% block webpack_bundle %}
-  <script src="{% static 'bundles/login.js' %}"></script>
+  {% render_bundle 'login' 'js' %}
 {% endblock %}
 
 {% block content %}

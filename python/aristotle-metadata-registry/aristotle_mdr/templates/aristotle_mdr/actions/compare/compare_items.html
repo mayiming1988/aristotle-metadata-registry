@@ -1,13 +1,14 @@
 {% extends "aristotle_mdr/base.html" %} {# no ajax for this one #}
 {% load i18n compile_static %}
 {% load static from staticfiles %}
+{% load render_bundle from webpack_loader %}
 
 {% block webpack_css_bundle %}
-  <link rel="stylesheet" type="text/css" href="{% static 'bundles/compare.css' %}" />
+  {% render_bundle 'compare' 'css' %}
 {% endblock %}
 
 {% block webpack_bundle %}
-  <script src="{% static 'bundles/compare.js' %}"></script>
+  {% render_bundle 'compare' 'js' %}
 {% endblock %}
 
 {% block title %}Concept comparator {{ item.name }}{% endblock %}

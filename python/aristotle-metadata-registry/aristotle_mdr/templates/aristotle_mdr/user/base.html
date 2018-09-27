@@ -1,15 +1,16 @@
 {% extends "aristotle_mdr/base.html" %}
 {% load aristotle_tags compile_static %}
 {% load static from staticfiles %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}My Dashboard{% endblock %}
 
 {% block webpack_css_bundle %}
-  <link rel="stylesheet" type="text/css" href="{% static 'bundles/dashboard.css' %}" />
+  {% render_bundle 'dashboard' 'css' %}
 {% endblock %}
 
 {% block webpack_bundle %}
-  <script src="{% static 'bundles/dashboard.js' %}"></script>
+  {% render_bundle 'dashboard' 'js' %}
 {% endblock %}
 
 {% block content %}

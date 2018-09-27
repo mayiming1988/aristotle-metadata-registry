@@ -5,13 +5,14 @@
 {% load static from staticfiles %}
 {% load aristotle_tags aristotle_search_tags %}
 {% load compile_static %}
+{% load render_bundle from webpack_loader %}
 
 {% block webpack_css_bundle %}
-  <link rel="stylesheet" type="text/css" href="{% static 'bundles/search.css' %}" />
+  {% render_bundle 'search' 'css' %}
 {% endblock %}
 
 {% block webpack_bundle %}
-  <script src="{% static 'bundles/search.js' %}"></script>
+  {% render_bundle 'search' 'js' %}
 {% endblock %}
 
 {% block header %}

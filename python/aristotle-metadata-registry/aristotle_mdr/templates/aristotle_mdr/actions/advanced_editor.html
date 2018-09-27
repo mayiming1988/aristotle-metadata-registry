@@ -1,6 +1,7 @@
 {% extends request.is_ajax|yesno:"aristotle_mdr/base_ajax.html,aristotle_mdr/base.html" %}
 {% load compile_static i18n %}
 {% load static from staticfiles %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}Editing {{ item.name }}{% endblock %}
 {% block extra_head_scripts %}
@@ -21,11 +22,11 @@
 
 {% if not request.is_ajax %}
   {% block webpack_css_bundle %}
-    <link rel="stylesheet" type="text/css" href="{% static 'bundles/advancedEditor.css' %}" />
+    {% render_bundle 'advancedEditor' 'css' %}
   {% endblock %}
 
   {% block webpack_bundle %}
-    <script src="{% static 'bundles/advancedEditor.js' %}"></script>
+    {% render_bundle 'advancedEditor' 'js' %}
   {% endblock %}
 {% endif %}
 

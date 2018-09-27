@@ -3,6 +3,7 @@
 {% load aristotle_tags %}
 {% load compile_static i18n %}
 {% load static %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}Change Status{% endblock %}
 
@@ -25,7 +26,7 @@
 {% endblock %}
 
 {% block webpack_bundle %}
-  <script src="{% static 'bundles/changeStatus.js' %}"></script>
+  {% render_bundle 'changeStatus' 'js' %}
 {% endblock %}
 
 {% block form_tag %}

@@ -1,15 +1,16 @@
 {% extends 'aristotle_mdr/base.html' %}
 {% load compile_static i18n %}
 {% load static from staticfiles %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}Cloning {{ item.name }}{% endblock %}
 
 {% block webpack_css_bundle %}
-  <link rel="stylesheet" type="text/css" href="{% static 'bundles/wizard.css' %}" />
+  {% render_bundle 'wizard' 'css' %}
 {% endblock %}
 
 {% block webpack_bundle %}
-  <script src="{% static 'bundles/wizard.js' %}"></script>
+  {% render_bundle 'wizard' 'js' %}
 {% endblock %}
 
 {% block content %}

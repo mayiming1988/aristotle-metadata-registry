@@ -1,13 +1,14 @@
 {% extends "aristotle_mdr/concepts/managedContent.html" %}
 
 {% load aristotle_tags i18n static %}
+{% load render_bundle from webpack_loader %}
 
 {% block webpack_css_bundle %}
-  <link rel="stylesheet" type="text/css" href="{% static 'bundles/datasetSpecification.css' %}" />
+  {% render_bundle 'datasetSpecification' 'js' %}
 {% endblock %}
 
 {% block webpack_bundle %}
-  <script src="{% static 'bundles/datasetSpecification.js' %}"></script>
+  {% render_bundle 'datasetSpecification' 'css' %}
 {% endblock %}
 
 {% block objSpecific %}

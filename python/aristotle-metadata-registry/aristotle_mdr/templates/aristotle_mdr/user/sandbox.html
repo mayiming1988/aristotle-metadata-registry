@@ -1,5 +1,6 @@
 {% extends "aristotle_mdr/user/userHome.html" %}
 {% load i18n static %}
+{% load render_bundle from webpack_loader %}
 
 {% block individual_scripts %}
 <script>
@@ -8,7 +9,7 @@
 {% endblock %}
 
 {% block webpack_bundle %}
-  <script src="{% static 'bundles/sandbox.js' %}"></script>
+  {% render_bundle 'sandbox' 'js' %}
 {% endblock %}
 
 {% block page %}

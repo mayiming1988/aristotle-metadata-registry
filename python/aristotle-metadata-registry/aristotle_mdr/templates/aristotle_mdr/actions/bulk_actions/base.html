@@ -1,11 +1,12 @@
 {% extends "aristotle_mdr/base.html" %}
 {% load compile_static %}
 {% load static from staticfiles %}
+{% load render_bundle from webpack_loader %}
 
 {% block webpack_css_bundle %}
-  <link rel="stylesheet" type="text/css" href="{% static 'bundles/bulk_action.css' %}" />
+  {% render_bundle 'bulk_action' 'css' %}
 {% endblock %}
 
 {% block webpack_bundle %}
-  <script src="{% static 'bundles/bulk_action.js' %}"></script>
+  {% render_bundle 'bulk_action' 'js' %}
 {% endblock %}

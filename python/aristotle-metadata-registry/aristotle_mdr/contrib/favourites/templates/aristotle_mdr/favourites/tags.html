@@ -1,5 +1,6 @@
 {% extends "aristotle_mdr/user/userHome.html" %}
 {% load aristotle_tags i18n static %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}{{ title }}{% endblock %}
 {% block collapse-link%}<i class="fa fa-bookmark fa-fw"></i> {{ title }}</a>{% endblock %}
@@ -8,11 +9,11 @@
 {% endblock %}
 
 {% block webpack_css_bundle %}
-  <link rel="stylesheet" type="text/css" href="{% static 'bundles/tagPage.css' %}" />
+  {% render_bundle 'tagPage' 'css' %}
 {% endblock %}
 
 {% block webpack_bundle %}
-  <script src="{% static 'bundles/tagPage.js' %}"></script>
+  {% render_bundle 'tagPage' 'js' %}
 {% endblock %}
 
 {% block page %}

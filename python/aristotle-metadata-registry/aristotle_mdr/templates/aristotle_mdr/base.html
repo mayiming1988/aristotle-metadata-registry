@@ -1,5 +1,6 @@
 {% load i18n bootstrap3 compile_static aristotle_tags %}
 {% load static from staticfiles %}
+{% load render_bundle from webpack_loader %}
 
 <!doctype html>
 <html lang="en" style="height: 100%;">
@@ -70,7 +71,7 @@
 
     {# Webpack bundle #}
     {% block webpack_bundle %}
-      <script src="{% static 'bundles/base.js' %}"></script>
+      {% render_bundle 'base' 'js' %}
     {% endblock %}
    </body>
 </html>

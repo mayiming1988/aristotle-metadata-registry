@@ -3,17 +3,18 @@
 {% load compile_static %}
 {% load static from staticfiles %}
 {% load aristotle_tags util_tags %}
+{% load render_bundle from webpack_loader %}
 
 {% block extra_head_scripts %}
     {{ tags|json_script:"tags-json" }}
 {% endblock %}
 
 {% block webpack_css_bundle %}
-    <link rel="stylesheet" type="text/css" href="{% static 'bundles/itemPage.css' %}" />
+  {% render_bundle 'itemPage' 'css' %}
 {% endblock %}
 
 {% block webpack_bundle %}
-  <script src="{% static 'bundles/itemPage.js' %}"></script>
+  {% render_bundle 'itemPage' 'js' %}
 {% endblock %}
 
 {% block title %}

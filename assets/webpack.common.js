@@ -5,13 +5,14 @@ const entry = require('webpack-glob-entry')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
+var BundleTracker  = require('webpack-bundle-tracker')
 
 const entries = entry('./src/pages/*.js')
 
 module.exports = {
   entry: entries,
   output: {
-    filename: '[name].js',
+    filename: '[name]-[Contenthash].js',
     path: path.resolve(__dirname, 'dist/bundles'),
   },
   module: {
@@ -41,9 +42,12 @@ module.exports = {
           options: {
             presets: ['@babel/preset-env']
           }
-        },{
-          loader: 'eslint-loader'
         }]
+          //loader: 'eslint-loader',
+          //options: {
+          //  failOnError: false,
+          //  failOnWarning: false
+          //}
       },
       {
         test: /\.woff2?$|\.ttf$|\.eot$|\.svg$/,
@@ -81,7 +85,11 @@ module.exports = {
       jQuery: "jquery"
     }),
     new MiniCssExtractPlugin({
-      filename: '[name].css'
+      filename: '[name]-[contenthash].css'
+    }),
+    new BundleTracker({
+      path: __dirname, 
+      filename: './dist/webpack-stats.json'
     })
   ],
   optimization: {

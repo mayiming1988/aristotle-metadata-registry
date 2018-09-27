@@ -1,5 +1,6 @@
 {% extends "aristotle_mdr/user/userHome.html" %}
 {% load aristotle_tags i18n static %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}Favourites and Tags{% endblock %}
 {% block collapse-link%}<i class="fa fa-bookmark fa-fw"></i> Favourites and Tags</a>{% endblock %}
@@ -8,11 +9,11 @@
 {% endblock %}
 
 {% block webpack_css_bundle %}
-  <link rel="stylesheet" type="text/css" href="{% static 'bundles/favourites.css' %}" />
+  {% render_bundle 'favourites' 'css' %}
 {% endblock %}
 
 {% block webpack_bundle %}
-  <script src="{% static 'bundles/favourites.js' %}"></script>
+  {% render_bundle 'favourites' 'js' %}
 {% endblock %}
 
 {% block page %}

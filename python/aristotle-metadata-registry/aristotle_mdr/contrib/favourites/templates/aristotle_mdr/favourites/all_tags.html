@@ -1,5 +1,6 @@
 {% extends "aristotle_mdr/user/userHome.html" %}
 {% load static %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}All Tags{% endblock %}
 {% block collapse-link%}<i class="fa fa-bookmark fa-fw"></i> All Tags</a>{% endblock %}
@@ -51,5 +52,5 @@
 {% endblock %}
 
 {% block webpack_bundle %}
-  <script src="{% static 'bundles/allTags.js' %}"></script>
+  {% render_bundle 'allTags' 'js' %}
 {% endblock %}

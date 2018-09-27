@@ -2,15 +2,16 @@
 
 {% load static from staticfiles %}
 {% load compile_static %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}All Discussions{% endblock %}
 
 {% block webpack_css_bundle %}
-  <link rel="stylesheet" type="text/css" href="{% static 'bundles/discussions.css' %}" />
+  {% render_bundle 'discussions' 'css' %}
 {% endblock %}
 
 {% block webpack_bundle %}
-  <script src="{% static 'bundles/discussions.js' %}"></script>
+  {% render_bundle 'discussions' 'js' %}
 {% endblock %}
 
 {% block sidebar %}

@@ -2,15 +2,16 @@
 {% load aristotle_tags i18n %}
 {% load compile_static %}
 {% load static from staticfiles %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}Version history of {{ object.item.name }}{% endblock %}
 
 {% block webpack_css_bundle %}
-  <link rel="stylesheet" type="text/css" href="{% static 'bundles/compare.css' %}" />
+  {% render_bundle 'compare' 'css' %}
 {% endblock %}
 
 {% block webpack_bundle %}
-  <script src="{% static 'bundles/compare.js' %}"></script>
+  {% render_bundle 'compare' 'js' %}
 {% endblock %}
 
 {% block content %}{% with item=object.item %}

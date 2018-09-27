@@ -2,11 +2,12 @@
 {% load compile_static i18n humanize %}
 {% load aristotle_tags %}
 {% load static from staticfiles %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}Request review for {{ item.name }}{% endblock %}
 
 {% block webpack_bundle %}
-  <script src="{% static 'bundles/changeStatus.js' %}"></script>
+  {% render_bundle 'changeStatus' 'js' %}
 {% endblock %}
 
 {% block content %}
