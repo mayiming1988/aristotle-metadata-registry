@@ -53,6 +53,7 @@
     "IE 10"
   ],
   "eslintConfig": {
+    "extends": "eslint:recommended",
     "env": {
       "es6": true
     },
