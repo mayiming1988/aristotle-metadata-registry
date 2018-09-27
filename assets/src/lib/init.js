@@ -3,6 +3,7 @@ import 'eonasdan-bootstrap-datetimepicker'
 import { initNotifications } from './notify.js'
 import { initMessages } from './messages.js'
 import { initDAL } from './dal_simple_init.js'
+import { initCKEditor } from './ckeditor_simple_init.js'
 
 // Always on styles
 import 'bootstrap/dist/css/bootstrap.css'
@@ -39,6 +40,10 @@ export default function init(spinners = true) {
   initNotifications()
   initMessages()
   initDAL()
+
+  $(document).ready(function() {
+    initCKEditor()
+  })
 
   if (spinners) {
     $(document).ajaxSend(function(event, request, settings) {

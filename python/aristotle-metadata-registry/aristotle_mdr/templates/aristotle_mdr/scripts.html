@@ -9,6 +9,11 @@
 {{ form.media }}
 {{ formset.media }}
 {% endcomment %}
+<script>
+  // This needs to be set globally for ckeditor to work :(
+  var CKEDITOR_BASEPATH="/static/ckeditor/ckeditor/"
+</script>
+
 
 {% block extra_alwayson_scripts %}
 {% endblock %}
