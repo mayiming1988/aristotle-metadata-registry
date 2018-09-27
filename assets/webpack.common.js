@@ -35,7 +35,7 @@ module.exports = {
       },
       {
         test: /\.m?js$/,
-        exclude: /node_modules/,
+        exclude: /node_modules\/(?!vue-simple-suggest)/,
         use: [{
           loader: 'babel-loader',
           options: {

@@ -39,6 +39,7 @@
     "mini-css-extract-plugin": "^0.4.3",
     "mocha": "^5.2.0",
     "optimize-css-assets-webpack-plugin": "^5.0.1",
+    "style-loader": "^0.23.0",
     "vue-loader": "^15.4.2",
     "vue-template-compiler": "^2.5.17",
     "webpack": "^4.19.1",
@@ -50,7 +51,7 @@
   "scripts": {
     "build": "webpack --config webpack.prod.js",
     "watch": "webpack --watch --config webpack.dev.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "karma start karma.conf.js --single-run",
     "lint": "eslint ./src",
     "installandwatch": "npm install && npm run watch"
   },

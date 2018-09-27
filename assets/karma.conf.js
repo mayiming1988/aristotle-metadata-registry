@@ -1,9 +1,11 @@
 const webpack = require('webpack')
+const path = require('path')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 
 module.exports = (config) => {
   config.set({
-    // ... normal karma configuration
+    frameworks: ['mocha'],
+    browsers: ['PhantomJS'],
     files: [
       // all files ending in "_test"
       { pattern: 'test/*_test.js', watched: false },
@@ -15,8 +17,6 @@ module.exports = (config) => {
       'test/*_test.js': [ 'webpack' ],
       'test/**/*_test.js': [ 'webpack' ]
     },
-    frameworks: ['mocha'],
-    browsers: ['PhantomJS'],
     webpack: {
       // karma watches the test entry points
       // (you don't need to specify the entry option)
@@ -32,13 +32,20 @@ module.exports = (config) => {
           },
           {
             test: /\.m?js$/,
-            exclude: /node_modules/,
+            exclude: /node_modules\/(?!vue-simple-suggest)/,
             use: [{
               loader: 'babel-loader',
               options: {
                 presets: ['@babel/preset-env']
               }
             }]
+          },
+          {
+            test: /\.css$/,
+            use: [
+              'style-loader',
+              'css-loader'
+            ]
           }
         ]
       },
