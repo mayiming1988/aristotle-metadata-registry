@@ -39,6 +39,12 @@
     "watch": "webpack --watch --config webpack.dev.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "browserlist" : [
+    "last 2 versions",
+    "not dead",
+    "Firefox ESR",
+    "IE 10"
+  ]
   "author": "",
   "license": "SEE LICENSE IN /LICENSE"
 }
