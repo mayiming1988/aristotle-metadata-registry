@@ -1,4 +1,4 @@
-
+from datetime import timedelta
 from django import VERSION as django_version
 from django.apps import apps
 from django.contrib import messages
@@ -7,15 +7,17 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist
-from django.urls import reverse
 from django.db import transaction
 from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.defaultfilters import slugify
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import TemplateView, RedirectView
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_string
+from django.utils.timezone import now
+from django.views.generic import TemplateView, RedirectView
+
 from formtools.wizard.views import SessionWizardView
 
 import json
@@ -789,6 +791,7 @@ class PermissionSearchView(FacetedSearchView):
         # needed to compare to indexed primary key value
         recently_viewed = {}
         favourites_list = []
+        last_month = now() - timedelta(days=31)
         if not self.request.user.is_anonymous():
             from django.db.models import Count, Max
             favourites_pks = self.request.user.profile.favourites.all().values_list('id', flat=True)
@@ -799,9 +802,11 @@ class PermissionSearchView(FacetedSearchView):
                     {
                         "count": row["count_viewed"],
                         "last_viewed": row["last_viewed"]
-                    }    
+                    }
                 )
-                for row in self.request.user.recently_viewed_metadata.all().values(
+                for row in self.request.user.recently_viewed_metadata.all().filter(
+                    view_date__gt=last_month
+                ).values(
                     "concept"
                 ).annotate(
                     count_viewed=Count('concept'),

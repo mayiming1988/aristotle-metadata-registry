@@ -2,15 +2,13 @@ from django.conf import settings
 from django.core.management import call_command
 from django.urls import reverse
 from django.test import TestCase, override_settings
-from django.contrib.auth import get_user_model
 
 from django.utils.timezone import now
 import datetime
 
 from reversion import revisions as reversion
 
-from aristotle_mdr.contrib.self_publish import models as pub
-from aristotle_mdr.forms.search import get_permission_sqs
+from aristotle_mdr.contrib.view_history.models import UserViewHistory
 from aristotle_mdr.models import ObjectClass
 from aristotle_mdr.tests import utils
 from aristotle_mdr.utils import setup_aristotle_test_environment
@@ -18,143 +16,129 @@ from aristotle_mdr.utils import setup_aristotle_test_environment
 setup_aristotle_test_environment()
 
 
-@override_settings(
-    ARISTOTLE_SETTINGS=dict(
-        settings.ARISTOTLE_SETTINGS,
-        EXTRA_CONCEPT_QUERYSETS={
-            'visible': ['aristotle_mdr.contrib.self_publish.models.concept_visibility_query'],
-            'public': ['aristotle_mdr.contrib.self_publish.models.concept_public_query']
-        }
-    )
-)
-class TestSelfPublishing(utils.LoggedInViewPages, TestCase):
+class TestViewHistory(utils.LoggedInViewPages, TestCase):
+    itemType = ObjectClass
+
     def setUp(self):
         super().setUp()
-        self.submitting_user = get_user_model().objects.create_user(
-            email="self@publisher.net",
-            password="self-publisher")
-        with reversion.create_revision():
-            self.item = ObjectClass.objects.create(
-                name="A self-published item",
-                definition="test",
-                submitter=self.submitting_user
-            )
+
+        self.item1 = self.itemType.objects.create(
+            name="Test Item 1 (visible to tested viewers)",
+            definition="my definition",
+            workgroup=self.wg1,
+        )
+        self.item2 = self.itemType.objects.create(
+            name="Test Item 2 (NOT visible to tested viewers)",
+            definition="my definition",
+            workgroup=self.wg2,
+        )
+        self.item3 = self.itemType.objects.create(
+            name="Test Item 3 (visible to tested viewers)",
+            definition="my definition",
+            workgroup=self.wg1,
+        )
 
     def tearDown(self):
         call_command('clear_index', interactive=False, verbosity=0)
 
-    def test_self_publish_queryset_anon(self):
+    def test_counts_increment(self):
         self.logout()
-        response = self.client.get(self.item.get_absolute_url())
-        self.assertTrue(response.status_code == 302)
 
-        self.item = ObjectClass.objects.get(pk=self.item.pk)
-        self.assertFalse(self.item._is_public)
+        self.assertEqual(self.item1.user_view_history.all().count(), 0)
+        response = self.client.get(self.item1.get_absolute_url())
+        self.assertEqual(self.item1.user_view_history.all().count(), 0)
 
-        psqs = get_permission_sqs()
-        psqs = psqs.auto_query('published').apply_permission_checks()
+        self.login_editor()
+        response = self.client.get(self.item1.get_absolute_url())
+        self.assertEqual(self.item1.user_view_history.all().count(), 1)
+        self.assertEqual(self.editor.recently_viewed_metadata.all().count(), 1)
 
-        self.assertEqual(len(psqs), 0)
+        self.assertEqual(self.item2.user_view_history.all().count(), 0)
+        response = self.client.get(self.item2.get_absolute_url())
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.item2.user_view_history.all().count(), 0)
+        self.assertEqual(self.editor.recently_viewed_metadata.all().count(), 1)
 
-        pub.PublicationRecord.objects.create(
-            user=self.submitting_user,
-            concept=self.item,
-            visibility=pub.PublicationRecord.VISIBILITY.public
-        )
+    def test_history_page_works(self):
+        self.login_editor()
+        response = self.client.get(self.item1.get_absolute_url())
+        self.assertEqual(self.item1.user_view_history.all().count(), 1)
+        self.assertEqual(self.editor.recently_viewed_metadata.all().count(), 1)
+        response = self.client.get(self.item1.get_absolute_url())
+        self.assertEqual(self.item1.user_view_history.filter(user=self.editor).all().count(), 2)
 
-        response = self.client.get(self.item.get_absolute_url())
-        self.assertTrue(response.status_code == 200)
+        # Try and view item2, but cant so count doesn't change
+        response = self.client.get(self.item2.get_absolute_url())
+        self.assertEqual(self.item2.user_view_history.all().count(), 0)
+        self.assertEqual(self.editor.recently_viewed_metadata.all().count(), 2)
 
-        self.item = ObjectClass.objects.get(pk=self.item.pk)
-        self.assertTrue(self.item._is_public)
+        response = self.client.get(self.item3.get_absolute_url())
+        self.assertEqual(self.item3.user_view_history.all().count(), 1)
+        self.assertEqual(self.editor.recently_viewed_metadata.all().count(), 3)
 
-        psqs = get_permission_sqs()
-        psqs = psqs.auto_query('published').apply_permission_checks()
-        self.assertEqual(len(psqs), 1)
+        response = self.client.get(reverse("recently_viewed_metadata"))
+        self.assertEqual(len(response.context['page']), 3)
 
-    def test_anon_cannot_view_self_publish(self):
+        # Item 3 was seen most recently and shows up first
+        self.assertEqual(response.context['page'][0].concept.pk, self.item3.pk)
+        self.assertEqual(response.context['page'][1].concept.pk, self.item1.pk)
+        self.assertEqual(response.context['page'][2].concept.pk, self.item1.pk)
+
+    def test_counts_show_in_search(self):
         self.logout()
-        response = self.client.get(
-            reverse('aristotle_self_publish:publish_metadata', args=[self.item.pk])
-        )
-        self.assertTrue(response.status_code == 302)
 
-    def login_publisher(self):
-        self.logout()
-        response = self.client.post(reverse('friendly_login'), {'username': 'self@publisher.net', 'password': 'self-publisher'})
-        self.assertEqual(response.status_code, 302)
-        return response
+        # Setup
+        self.login_editor()
+        response = self.client.get(self.item1.get_absolute_url())
+        self.assertEqual(self.item1.user_view_history.all().count(), 1)
+        self.assertEqual(self.editor.recently_viewed_metadata.all().count(), 1)
 
-    def test_submitter_can_self_publish(self):
-        self.login_publisher()
-        response = self.client.get(
-            reverse('aristotle_self_publish:publish_metadata', args=[self.item.pk])
+        # Fake a really old one
+        UserViewHistory.objects.create(
+            user=self.editor,
+            concept=self.item1,
+            view_date="1986-04-28"
         )
+        self.assertEqual(self.item1.user_view_history.filter(user=self.editor).all().count(), 2)
+
+        response = self.client.get(reverse('aristotle:search') + "?q=visible")
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['page'].object_list), 2)
+        self.assertContains(response, "You've viewed this item")
+        self.assertContains(response, "1 time")
+        self.assertContains(response, "in the last month.")
 
-        self.item = ObjectClass.objects.get(pk=self.item.pk)
-        self.assertFalse(self.item._is_public)
+        response = self.client.get(self.item1.get_absolute_url())
+        self.assertEqual(self.item1.user_view_history.filter(user=self.editor).all().count(), 3)
 
-        response = self.client.post(
-            reverse('aristotle_self_publish:publish_metadata', args=[self.item.pk]),
-            {
-                "note": "Published",
-                "publication_date": (now() - datetime.timedelta(days=1)).date().isoformat(),
-                "visibility": pub.PublicationRecord.VISIBILITY.public
-            }
-        )
-        self.assertTrue(response.status_code == 302)
+        response = self.client.get(reverse('aristotle:search') + "?q=visible")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['page'].object_list), 2)
+        self.assertContains(response, "You've viewed this item")
+        self.assertContains(response, "2 times")
+        self.assertContains(response, "in the last month.")
 
-        self.item = ObjectClass.objects.get(pk=self.item.pk)
-        self.assertTrue(self.item._is_public)
+        response = self.client.get(self.item1.get_absolute_url())
+        response = self.client.get(self.item1.get_absolute_url())
+        # 5
+        response = self.client.get(self.item1.get_absolute_url())
+        response = self.client.get(self.item1.get_absolute_url())
+        response = self.client.get(self.item1.get_absolute_url())
+        response = self.client.get(self.item1.get_absolute_url())
+        response = self.client.get(self.item1.get_absolute_url())
+        # 10
+        response = self.client.get(self.item1.get_absolute_url())
+        response = self.client.get(self.item1.get_absolute_url())
+        response = self.client.get(self.item1.get_absolute_url())
+        response = self.client.get(self.item1.get_absolute_url())
+        response = self.client.get(self.item1.get_absolute_url())
+        # 15
 
-        self.logout()
-        response = self.client.get(self.item.get_absolute_url())
-        self.assertTrue(response.status_code == 200)
+        self.assertEqual(self.item1.user_view_history.filter(user=self.editor).all().count(), 15)
 
-        self.login_publisher()
-        the_future = (now() + datetime.timedelta(days=100)).date().isoformat()
-        response = self.client.post(
-            reverse('aristotle_self_publish:publish_metadata', args=[self.item.pk]),
-            {
-                "note": "Published",
-                "publication_date": the_future,
-                "visibility": pub.PublicationRecord.VISIBILITY.public
-            }
-        )
-        self.assertTrue(response.status_code == 302)
-
-        self.item = ObjectClass.objects.get(pk=self.item.pk)
-        self.assertFalse(self.item._is_public)
-
-        self.logout()
-        response = self.client.get(self.item.get_absolute_url())
-        self.assertTrue(response.status_code == 302)
-
-        response = self.client.post(
-            reverse('aristotle_self_publish:publish_metadata', args=[self.item.pk]),
-            {
-                "note": "Published",
-                "publication_date": now().date().isoformat(),
-                "visibility": pub.PublicationRecord.VISIBILITY.hidden
-            }
-        )
-        self.assertTrue(response.status_code == 302)
-
-        self.item = ObjectClass.objects.get(pk=self.item.pk)
-        self.assertFalse(self.item._is_public)
-
-        self.logout()
-        response = self.client.get(self.item.get_absolute_url())
-        self.assertTrue(response.status_code == 302)
-
-    def test_submitter_can_see_hidden_self_publish(self):
-        pub.PublicationRecord.objects.create(
-            user=self.submitting_user,
-            concept=self.item,
-            visibility=pub.PublicationRecord.VISIBILITY.active
-        )
-
-        self.assertTrue(
-            self.item.__class__.objects.all().visible(self.registrar).filter(pk=self.item.pk).exists()
-        )
+        response = self.client.get(reverse('aristotle:search') + "?q=visible")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['page'].object_list), 2)
+        self.assertContains(response, "You've viewed this item")
+        self.assertContains(response, "many times")
+        self.assertContains(response, "in the last month.")

@@ -391,8 +391,7 @@
                                 {% if stats.count > 9 %}
                                     many times
                                 {% else %}
-                                    {{stats.count}}
-                                    time{{stats.count|pluralize}}
+                                    {{stats.count}} time{{stats.count|pluralize}}
                                 {% endif %}
                                 in the last month.
 
