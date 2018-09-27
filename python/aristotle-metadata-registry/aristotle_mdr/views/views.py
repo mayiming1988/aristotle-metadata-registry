@@ -214,6 +214,8 @@ class ConceptRenderMixin:
     def get_item(self):
         itemid = self.kwargs[self.itemid_arg]
         queryset = self.get_queryset()
+        if queryset is None:
+            return None
         return queryset.get(pk=itemid)
 
     def get_related(self, model):
@@ -242,9 +244,8 @@ class ConceptRenderMixin:
     def get_redirect(self):
         if self.item is None:
             itemid = self.kwargs[self.itemid_arg]
-            item = MDR._concept.objects.get_subclass(id=itemid)
-        else:
-            item = self.item
+            self.item = MDR._concept.objects.get_subclass(id=itemid)
+        item = self.item
 
         if not self.modelslug_arg:
             model_correct = True
