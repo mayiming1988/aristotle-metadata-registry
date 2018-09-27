@@ -14,6 +14,20 @@ import '../styles/bootstrap.wcag.css'
 import '../styles/pink.wcag.css'
 import 'eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css'
 
+export function initWidgets() {
+  // Initialize popovers
+  $('.aristotle-popover').popover()
+
+  // Initialize datepickers
+  $('.dj-datepicker').datetimepicker({format: 'YYYY-MM-DD'})
+
+  // Initialize django-autocomplete-light
+  initDAL()
+
+  // Initialize ckeditor
+  initCKEditor()
+}
+
 export default function init(spinners = true) {
 
   // Initialize popovers
@@ -39,11 +53,7 @@ export default function init(spinners = true) {
 
   initNotifications()
   initMessages()
-  initDAL()
-
-  $(document).ready(function() {
-    initCKEditor()
-  })
+  initWidgets()
 
   if (spinners) {
     $(document).ajaxSend(function(event, request, settings) {

@@ -1,4 +1,4 @@
-import init from '../lib/init.js'
+import init, { initWidgets } from '../lib/init.js'
 import { initChangeStatus } from '../lib/changeStatus.js'
 import { initDAL } from '../lib/dal_simple_init.js'
 import Vue from 'vue'
@@ -17,7 +17,7 @@ export function initItemPage() {
   $(document).ready(function() {
     $('#infobox_adv_edit').on('loaded.bs.modal', function() {
       initChangeStatus()
-      initDAL()
+      initWidgets()
     })
   })
 
