@@ -1,15 +1,5 @@
-# Lets run on the new infrastructure
 sudo: false
-
-# We're having issues on the default Trusty setup, lets wait for now
 dist: trusty
-
-language: python
-python: 3.6
-
-install:
-  - pip install codecov coveralls
-  - pip install 'tox>=3.0'
 
 defaults:
   - &main_test_script
@@ -49,16 +39,28 @@ defaults:
       mariadb: '10.1'
 
   - &main_test_script_py36
-      python: 3.6
-      <<: *main_test_script
+    language: python
+    python: 3.6
+    install:
+      - pip install codecov coveralls
+      - pip install 'tox>=3.0'
+    <<: *main_test_script
 
   - &test_accessibility_py36
     stage: accessibility
+    language: python
+    install:
+      - pip install codecov coveralls
+      - pip install 'tox>=3.0'
     python: 3.6
     script: ./scripts/tox_if.sh dj1.11-linux-ally-$ALLY-module_amr
 
   - &deploy_stage
     stage: deploy-it
+    language: python
+    install:
+      - pip install codecov coveralls
+      - pip install 'tox>=3.0'
     script: true
     install: skip
     after_success: true
@@ -73,16 +75,34 @@ defaults:
       distributions: sdist bdist_wheel
       repo: aristotle-mdr/aristotle-metadata-registry
 
-jobs:
+matrix:
 
   include:
     - stage: stylecheck
+      language: python
+      install:
+        - pip install codecov coveralls
+        - pip install 'tox>=3.0'
       python: 3.6
       script: tox -e flake8
 
     - stage: documentation
+      language: python
+      install:
+        - pip install codecov coveralls
+        - pip install 'tox>=3.0'
       python: 3.6
       script: ./scripts/tox_if.sh docs
+
+    - stage: frontend
+      language: node_js
+      node_js: 8
+      before_install:
+        - cd assets
+      install:
+        - npm install
+      script:
+        - npm run test
 
     - stage: testing-aristotle-mdr
       env: DJANGO_VERSION='1.11'  DB=sqlite  SEARCH=elastic MODULE=amr
@@ -131,7 +151,7 @@ jobs:
       env: DJANGO_VERSION='1.11'  DB=postgres   SEARCH=elastic MODULE=api
       <<: *main_test_script_py36
 
-  # Test Accessibility
+    # Test Accessibility
     - <<: *test_accessibility_py36
       env: ALLY=metadata_item MODULE=aristotle-metadata-registry
     - <<: *test_accessibility_py36
