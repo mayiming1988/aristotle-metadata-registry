@@ -31,10 +31,6 @@ export function initWidgets() {
 
 export default function init(spinners = true) {
 
-  var map = new Map()
-  map.set('hello', 21)
-  console.log(map)
-
   // Initialize popovers
   $('.aristotle-popover').popover()
 
