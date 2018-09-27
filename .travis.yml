@@ -10,7 +10,6 @@ defaults:
       - if [[ $SEARCH == elastic ]]; then sudo service elasticsearch start && sleep 10; fi
     # Make a posgres database
       - if [[ $DB == postgres* ]]; then ./scripts/prep_psql.sh; fi
-
     script:
       - |
         case "$DB" in
@@ -31,9 +30,11 @@ defaults:
       apt:
         sources:
           - elasticsearch-5.x
+          - debian-sid
         packages:
           - elasticsearch
           - libmariadbclient-dev
+          - nodejs
       code_climate:
         repo_token: ac63d774ebdd641ef502acf1588b36248726a28a50e4e1f4ba4295a157477f54
       mariadb: '10.1'
@@ -42,6 +43,12 @@ defaults:
     language: python
     python: 3.6
     install:
+      - node -v
+        npm -v
+        cd assets
+        npm install
+        npm build
+        cd ..
       - pip install codecov coveralls
       - pip install 'tox>=3.0'
     <<: *main_test_script
