@@ -15,7 +15,7 @@ export function initItemPage() {
   init(true)
 
   $(document).ready(function() {
-    $('#infobox_adv_edit').on('loaded.bs.modal', function() {
+    $('.modal').on('loaded.bs.modal', function() {
       initChangeStatus()
       initWidgets()
     })
