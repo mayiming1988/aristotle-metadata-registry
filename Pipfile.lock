@@ -56,11 +56,11 @@
         },
         "cairosvg": {
             "hashes": [
-                "sha256:6ac281e80501ee1171bb0885c962bdf5128e1014b038580db01b6b40ea8adc94",
-                "sha256:ac43b3ac89ff02799661e1476924f9e9ce36c770ac1ef0cce05a58f97c3b48cc"
+                "sha256:93c5b3204478c4e20c4baeb33807db5311b4420c21db2f21034a6deda998cb14",
+                "sha256:f331e6024ee4c7f3eca3b0caa909dd893fa4d7414f50a6b206acbe2df20d95a9"
             ],
-            "markers": "python_version != '3.2.*' and python_version >= '2.7' and python_version != '3.0.*' and python_version != '3.3.*' and python_version != '3.1.*'",
-            "version": "==2.2.0"
+            "markers": "python_version >= '3.0'",
+            "version": "==2.2.1"
         },
         "certifi": {
             "hashes": [
@@ -293,12 +293,6 @@
                 "sha256:be8dc4764c0e2be6d0d12364442750a8ee1f69b38cb10ed69f95d868ec0babbf"
             ],
             "version": "==0.8.5"
-        },
-        "django-static-precompiler": {
-            "hashes": [
-                "sha256:e4880e9bec5e64ea17f68f0787dc636e7c33a9dd68f497c5dd3733ca3e390bb2"
-            ],
-            "version": "==1.8.2"
         },
         "django-user-sessions": {
             "hashes": [

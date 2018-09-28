@@ -1,4 +1,4 @@
-{% load compile_static i18n %}
+{% load i18n %}
 {% load static from staticfiles %}
 
 {% block content %}
@@ -66,6 +66,4 @@
             {% endfor %}
         </tbody>
     </table>
-
-        <script src="{% static 'aristotle_mdr/aristotle.moveable.js' %}"></script>
 {% endblock %}
