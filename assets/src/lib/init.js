@@ -5,6 +5,7 @@ import { initNotifications } from './notify.js'
 import { initMessages } from './messages.js'
 import { initDAL } from './dal_simple_init.js'
 import { initCKEditor } from './ckeditor_simple_init.js'
+import { initMoveable } from './moveable.js'
 
 // Always on styles
 import 'bootstrap/dist/css/bootstrap.css'
@@ -36,6 +37,9 @@ export function initWidgets() {
 
   // Initialize ckeditor
   initCKEditor()
+
+  // Initialize moveable
+  initMoveable()
 }
 
 export default function init(spinners = true) {

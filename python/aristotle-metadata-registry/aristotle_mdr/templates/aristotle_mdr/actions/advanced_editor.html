@@ -5,8 +5,10 @@
 
 {% block title %}Editing {{ item.name }}{% endblock %}
 {% block extra_head_scripts %}
+    {% comment %}
     <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.moveable.less'|compile %}" />
+    {% endcomment %}
     {% if request.is_ajax %}
         {% comment %}
         <script type="text/javascript">
