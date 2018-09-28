@@ -108,11 +108,20 @@ def bulk_download(request, download_type, items=None):
         if download_type == kls.download_type:
             try:
                 # properties for download template
-                properties, iid, *args = kls.get_bulk_download_config(request)
+                properties, iid, *args = kls.get_bulk_download_config(request, [])
                 res = kls.bulk_download.delay(properties, iid, *args)
                 if not properties.get('title', ''):
                     properties['title'] = 'Auto-generated document'
-                response = redirect(reverse('aristotle:preparing_download', args=[properties.get('title')]))
+                try:
+                    identifier = properties['url_id']
+                except KeyError:
+                    debug = getattr(settings, 'DEBUG')
+                    if debug:
+                        raise
+                    else:
+                        # This should be handled in the get_bulk_download_config resulted in throwing internal server error
+                        return HttpResponseServerError
+                response = redirect(reverse('aristotle:preparing_download', args=[identifier]))
                 request.session['download_res_key'] = res.id
                 return response
             except TemplateDoesNotExist:

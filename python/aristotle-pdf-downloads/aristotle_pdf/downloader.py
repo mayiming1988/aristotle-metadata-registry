@@ -94,33 +94,35 @@ class PDFDownloader(DownloaderBase):
         return iid
 
     @classmethod
-    def get_bulk_download_config(cls, request, items=[]):
+    def get_bulk_download_config(cls, request, items):
         """
         generate properties for pdf document
         :param request: API request object
         :param items: items to download
         :return: properties computed, items
         """
-        item_list = request.GET.getlist('items')
         user = getattr(request, 'user', None)
 
         properties = {
             'user': None,
-            'item_list': item_list,
-            'title': request.GET.get('title', '').strip(),
+            'title': request.GET.get('title', 'Auto-generated document').strip(),
             'subtitle': request.GET.get('subtitle', None),
             'debug_as_html': request.GET.get('html', ''),
             'page_size': request.GET.get('pagesize', None),
+            # TODO: will fail for parallel download for a single user
+            # if this document is title is not specified for more than one documents. Use items instead
+            'url_id': request.GET.get('title', 'Auto-generated document')
         }
         if user:
             properties['user'] = str(user)
         if not properties.get('title', ''):
             properties['title'] = 'Auto-generated document'
-        return properties, item_list
+            properties['url_id'] = 'Auto-generated document'
+        return properties, items
 
     @staticmethod
     @shared_task(name='aristotle_pdf_downloads.downloader.bulk_download')
-    def bulk_download(properties, items, title=None, subtitle=None):
+    def bulk_download(properties, items=[], title=None, subtitle=None):
         """Built in download method"""
         User = get_user_model()
         template = 'aristotle_mdr/downloads/pdf/bulk_download.html'
@@ -130,8 +132,8 @@ class PDFDownloader(DownloaderBase):
             user = User.objects.get(email=user)
         else:
             user = AnonymousUser()
-        items = []
-        for iid in properties.get('item_list', []):
+
+        for iid in items:
             item = MDR._concept.objects.get_subclass(pk=iid)
             if item.can_view(user):
                 items.append(item)

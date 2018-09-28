@@ -44,6 +44,11 @@ class DownloaderBase(object):
     def get_bulk_download_config(cls, request, items):
         """
         This method must be overriden. This takes request object and returns a computed set of download config
+        creates a dict of properties required to generate bulk_downloads
+        -> properties must contain url_id to identify an unique download url of the format ([\w\-\. ]+)/?$
+        :param request: request object from the client
+        :param items: items to download
+        :return: The set of properties required by bulk_download method
         """
         raise NotImplementedError
 
