@@ -189,7 +189,5 @@ notifications:
 
 env:
   global:
-  - secure: "tVD6KqvF5IUOrQZwM6DYaYDbOjEj7wPcElvQjkPtXzHTZ8Y9cFCnyvEoXUEjiP8QQztOq+Mm95+oVFt24Oks84W1js/3PWs/Wl46Zg2k2y2Z8hjvhNmP8lYvXpnjnteUwJbx4XDJ4C1QxheXmfE14NILrb1KyqUqowI9XUKKKXE="
-  - secure: "j2CTX8kNYtqo99dugPizGbq2fAxM8Q3+dyp7hfYuDIkDQqGnRG0IBv5O3iwE0JJNAjiuxdck7lDSuMvcKImB3WDZLtMEoPe8c5kFNJlEPYELDD2tRy52FW2DxdTDvxc7irydpYOvkaB/K/JMY685QUeG2FMFPpK6MXFaSVQ7nv4="
   - AWS_DEFAULT_REGION=ap-southeast-2
   - PATH=$HOME/.local/bin:$PATH
