@@ -73,5 +73,9 @@
     {% block webpack_bundle %}
       {% render_bundle 'base' 'js' %}
     {% endblock %}
+
+    {# After bundle should be used sparingly #}
+    {% block after_bundle %}
+    {% endblock %}
    </body>
 </html>
