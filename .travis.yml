@@ -42,6 +42,9 @@ defaults:
   - &main_test_script_py36
     language: python
     python: 3.6
+    before_install:
+      - ls
+      - aws s3 sync s3://aristotle-travis-frontend-builds/$TRAVIS_BUILD_NUMBER $TRAVIS_BUILD_DIR/assets/dist
     install:
       - node -v
         npm -v
@@ -112,7 +115,8 @@ matrix:
       script:
         - npm run test
       after_success:
-        - aws s3 sync ./dist s3://aristotle-travis-frontend-builds/$TRAVIS_BUILD_NUMBER
+        - ls
+        - aws s3 sync $TRAVIS_BUILD_DIR/assets/dist s3://aristotle-travis-frontend-builds/$TRAVIS_BUILD_NUMBER
 
     - stage: testing-aristotle-mdr
       env: DJANGO_VERSION='1.11'  DB=sqlite  SEARCH=elastic MODULE=amr
