@@ -5,6 +5,7 @@
   "private": true,
   "dependencies": {
     "@babel/polyfill": "^7.0.0",
+    "@json-editor/json-editor": "^1.1.0-beta.4",
     "bootstrap": "^3.3.7",
     "ckeditor": "^4.10.1",
     "clipboard": "^2.0.1",
