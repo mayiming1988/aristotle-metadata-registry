@@ -101,12 +101,6 @@ def bulk_download(request, download_type, items=None):
     is imported, this file **MUST** have a ``bulk_download`` function defined which returns
     a Django ``HttpResponse`` object of some form.
     """
-    items = []
-
-    for iid in request.GET.getlist('items'):
-        item = MDR._concept.objects.get_subclass(pk=iid)
-        if item.can_view(request.user):
-            items.append(item)
 
     # downloadOpts = fetch_aristotle_settings().get('DOWNLOADERS', [])
     download_opts = fetch_aristotle_downloaders()
@@ -114,8 +108,8 @@ def bulk_download(request, download_type, items=None):
         if download_type == kls.download_type:
             try:
                 # properties for download template
-                properties, iid = kls.get_bulk_download_config(request, items)
-                res = kls.bulk_download.delay(properties, iid)
+                properties, iid, *args = kls.get_bulk_download_config(request)
+                res = kls.bulk_download.delay(properties, iid, *args)
                 if not properties.get('title', ''):
                     properties['title'] = 'Auto-generated document'
                 response = redirect(reverse('aristotle:preparing_download', args=[properties.get('title')]))

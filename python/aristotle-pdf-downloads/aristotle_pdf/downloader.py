@@ -94,7 +94,7 @@ class PDFDownloader(DownloaderBase):
         return iid
 
     @classmethod
-    def get_bulk_download_config(cls, request, items):
+    def get_bulk_download_config(cls, request, items=[]):
         """
         generate properties for pdf document
         :param request: API request object
@@ -116,7 +116,7 @@ class PDFDownloader(DownloaderBase):
             properties['user'] = str(user)
         if not properties.get('title', ''):
             properties['title'] = 'Auto-generated document'
-        return properties, items
+        return properties, item_list
 
     @staticmethod
     @shared_task(name='aristotle_pdf_downloads.downloader.bulk_download')
