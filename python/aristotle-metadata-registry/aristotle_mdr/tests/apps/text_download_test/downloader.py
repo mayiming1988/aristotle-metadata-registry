@@ -32,7 +32,7 @@ class TestTextDownloader(DownloaderBase):
         return properties, item
 
     @staticmethod
-    @shared_task
+    @shared_task(name='aristotle_mdr.tests.apps.text_download_test.downloader.download')
     def download(properties, iid):
         User = get_user_model()
         user = properties['user']
@@ -54,8 +54,13 @@ class TestTextDownloader(DownloaderBase):
 
     @classmethod
     def get_bulk_download_config(cls, request, items):
+        """
+        creates a dict of properties required to generate bulk_downloads
+        :param request: request object from the client
+        :param items: items to download
+        :return: The set of properties required by bulk_download method
+        """
         out = []
-        item_list = request.GET.getlist('items')
         user = getattr(request, 'user', None)
         if request.GET.get('title', None):
             out.append(request.GET.get('title'))
@@ -64,14 +69,15 @@ class TestTextDownloader(DownloaderBase):
 
         properties = {
             'out': out,
-            'user': None
+            'user': None,
+            'url_id': out[0] or 'Auto-generated document'
         }
         if user:
             properties['user'] = str(user)
         return properties, items
 
     @staticmethod
-    @shared_task
+    @shared_task(name='aristotle_mdr.tests.apps.text_download_test.downloader.bulk_download')
     def bulk_download(properties, items):
         out = properties.get('out', [])
         # Getting user from the available email data
@@ -95,6 +101,6 @@ class TestTextDownloader(DownloaderBase):
                 }
                 out.append(template.render(context))
 
-        cache.set(download_utils.get_download_cache_key(item, user), ("\n\n".join(out), 'text/plain'))
+        cache.set(download_utils.get_download_cache_key(properties['url_id'], user), ("\n\n".join(out), 'text/plain'))
 
         return True

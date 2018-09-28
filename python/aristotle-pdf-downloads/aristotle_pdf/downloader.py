@@ -152,7 +152,7 @@ class PDFDownloader(DownloaderBase):
         subItems = []
 
         debug_as_html = bool(properties.get('html', ''))
-        cache.set(download_utils.get_download_cache_key(properties.get('title'), user), (render_to_pdf(
+        cache.set(download_utils.get_download_cache_key(properties['url_id'], user), (render_to_pdf(
                     template,
                     {
                         'title': title,
