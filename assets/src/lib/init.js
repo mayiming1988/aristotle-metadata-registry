@@ -31,25 +31,7 @@ export function initWidgets() {
     }
     obj.datetimepicker(options)
   })
-
-  // Initialize django-autocomplete-light
-  initDAL()
-
-  // Initialize ckeditor
-  initCKEditor()
-
-  // Initialize moveable
-  initMoveable()
-}
-
-export default function init(spinners = true) {
-
-  // Initialize popovers
-  $('.aristotle-popover').popover()
-
-  // Initialize datepickers
-  $('.dj-datepicker').datetimepicker({format: 'YYYY-MM-DD'})
-
+  
   //Initialise delete checkboxes
   $('.delete-disable').click(function() {
     var deletebox = $(this)
@@ -65,20 +47,27 @@ export default function init(spinners = true) {
     })
   })
 
-  initNotifications()
-  initMessages()
-  initWidgets()
+  // Initialize django-autocomplete-light
+  initDAL()
 
-  if (spinners) {
-    $(document).ajaxSend((event, request, settings) => {
-        $('#loading_indicator').show().addClass('loading').removeClass('hidden');
-    });
+  // Initialize ckeditor
+  initCKEditor()
 
-    $(document).ajaxComplete((event, request, settings) => {
-        $('#loading_indicator').hide().removeClass('loading');
-    });
-  }
+  // Initialize moveable
+  initMoveable()
+}
 
+export function initSpinners() {
+  $(document).ajaxSend((event, request, settings) => {
+      $('#loading_indicator').show().addClass('loading').removeClass('hidden');
+  });
+
+  $(document).ajaxComplete((event, request, settings) => {
+      $('#loading_indicator').hide().removeClass('loading');
+  });
+}
+
+export function initModalScrap() {
   // Needs to be run on document ready
   $(document).ready(function() {
     // Scrap modals if they lose focus so they can be loaded with new content
@@ -98,4 +87,19 @@ export default function init(spinners = true) {
     });
 
   })
+}
+
+// Init all function
+export default function init(spinners = true) {
+
+  initNotifications()
+  initMessages()
+  initWidgets()
+
+  if (spinners) {
+    initSpinners()
+  }
+
+  initModalScrap()
+
 }
