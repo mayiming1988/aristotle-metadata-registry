@@ -44,13 +44,13 @@ print("Running test-suite with connection string %s" % os.environ.get('DATABASE_
 if skip_migrations:  # pragma: no cover
     print("Skipping migrations")
     class DisableMigrations(object):
-    
+
         def __contains__(self, item):
             return True
-    
+
         def __getitem__(self, item):
             return None
-    
+
     MIGRATION_MODULES = DisableMigrations()
 
 db_from_env = dj_database_url.config(conn_max_age=500, default='sqlite:////tmp/db.db')
@@ -118,6 +118,9 @@ CACHES = {
         'LOCATION': 'unique-snowflake',
     }
 }
+
+# Use prod webpack setting
+WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = os.path.join(BASE_DIR, 'assets/dist/webpack-stats-prod.json')
 
 # disable
 LOGGING = {
