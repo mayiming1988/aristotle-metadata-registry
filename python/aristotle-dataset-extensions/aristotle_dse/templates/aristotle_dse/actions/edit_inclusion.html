@@ -9,9 +9,6 @@
           width:100%;
         }
         </style>
-        {% if request.is_ajax %}
-            {{ form.media }}
-        {% endif %}
     {% endblock %}
 
 <form method="post" action="{{request.get_full_path}}" >

@@ -2,11 +2,6 @@
 {% load static from staticfiles %}
 
 {% block content %}
-    {% block extra_head_scripts %}
-        <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
-    {% endblock %}
-
-
 
 <a class="sr-only" onclick="addSlot()" href="?extra=1" accesskey='r'></a>
     {% with formset=slots_FormSet %}

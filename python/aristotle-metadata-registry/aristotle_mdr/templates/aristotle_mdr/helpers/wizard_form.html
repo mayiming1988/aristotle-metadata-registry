@@ -3,10 +3,6 @@
 
 {% block title %}Review Changes{% endblock %}
 
-{% block extra_head_scripts %}
-{{ wizard.form.media }}
-{% endblock %}
-
 {% block content %}
 {% block form_tag %}
 <form {% if formurl %}action="{{ formurl }}"{% else %}action=""{% endif %} method="post">
