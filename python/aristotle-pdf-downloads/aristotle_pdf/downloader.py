@@ -105,19 +105,16 @@ class PDFDownloader(DownloaderBase):
 
         properties = {
             'user': None,
-            'title': request.GET.get('title', 'Auto-generated document').strip(),
+            'title': request.GET.get('title', None).strip() or 'Auto-generated document',
             'subtitle': request.GET.get('subtitle', None),
             'debug_as_html': request.GET.get('html', ''),
             'page_size': request.GET.get('pagesize', None),
             # TODO: will fail for parallel download for a single user
             # if this document is title is not specified for more than one documents. Use items instead
-            'url_id': request.GET.get('title', 'Auto-generated document')
+            'url_id': request.GET.get('title', None) or 'Auto-generated document'
         }
         if user:
             properties['user'] = str(user)
-        if not properties.get('title', ''):
-            properties['title'] = 'Auto-generated document'
-            properties['url_id'] = 'Auto-generated document'
         return properties, items
 
     @staticmethod
