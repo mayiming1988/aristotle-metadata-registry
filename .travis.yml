@@ -107,9 +107,12 @@ matrix:
       before_install:
         - cd assets
       install:
+        - pip install --user awscli
         - npm install
       script:
         - npm run test
+      after_success:
+        - aws s3 sync ./dist s3://aristotle-travis-frontend-builds/$TRAVIS_BUILD_NUMBER
 
     - stage: testing-aristotle-mdr
       env: DJANGO_VERSION='1.11'  DB=sqlite  SEARCH=elastic MODULE=amr
@@ -178,3 +181,9 @@ after_success:
 
 notifications:
   webhooks: https://outlook.office.com/webhook/4fa8f482-f261-4599-b76a-ba888c6820aa@1f298417-594f-4f6d-9bdb-8de767590d70/TravisCI/f4b13393a46b434288af9a0b1b2d4db1/1dbc8307-f5fb-45a9-b87f-4e128b5d9895
+
+env:
+  global:
+  - secure: DM82Fnke2OM+YeNPLjZyHttjCjslJ/lyiwkF9YA4t+o4a2IOQvj4tNgTXJ9Cxw7CZLwMFSezlO1v/wSDgKafN8CuMvvR4lpWyraDObdra4Y/zCKAYsIDQX9DdjtgchOFkbe0r+MWTPgRjohPH7bSxXZ64B2YpS5Vfz0xp35T6N8=
+  - secure: QVVs3anlQwgPuQ8jsEd4OdWEvuNuD4zwm1TXTheyIJMOy0B94H2o+V/arS3P1OSXL0MdL9k/FSVLV8nU9aCXGZKm3Ee69gVUsijb5wZPUVmrxRDYmPRV9FCSneyW3aCHkSIwvlyKXubzlaC9LgVVev23jFSTigmWCrZyC/bAn3E=
+  - AWS_DEFAULT_REGION=ap-southeast-2
