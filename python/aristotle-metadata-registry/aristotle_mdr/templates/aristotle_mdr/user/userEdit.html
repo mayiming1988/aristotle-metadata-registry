@@ -7,10 +7,6 @@
     {% include "aristotle_mdr/user/userSideBar.html" with activeTab='edit' %}
 {% endblock %}
 
-{% block individual_scripts %}
-<script src="{% static 'constrainedfilefield/js/file_checker.js' %}"></script>
-{% endblock %}
-
 {% block outerpage %}
     <div class="col-md-6">
       <h1>Edit my account details</h1>
@@ -29,4 +25,8 @@
 
     </form>
 
+{% endblock %}
+
+{% block after_bundle %}
+  <script src="{% static 'constrainedfilefield/js/file_checker.js' %}"></script>
 {% endblock %}
