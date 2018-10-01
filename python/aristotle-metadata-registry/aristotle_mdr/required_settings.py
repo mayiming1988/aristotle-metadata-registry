@@ -289,4 +289,4 @@ WEBPACK_LOADER = {
 if DEBUG:
     WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = os.path.join(REPO_BASE_DIR, 'assets/dist/webpack-stats.json')
 else:
-    WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = os.path.join(BASE_DIR, 'aristotle_mdr', 'webpack-stats-prod.json')
+    WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = os.path.join(BASE_DIR, 'webpack-stats-prod.json')
