@@ -7,7 +7,14 @@ process.env.CHROME_BIN = require('puppeteer').executablePath()
 module.exports = (config) => {
   config.set({
     frameworks: ['mocha'],
-    browsers: ['ChromeHeadless'],
+    browsers: ['ChromeHeadlessNoSandbox'],
+    customLaunchers: {
+      // Need this for travis container environment
+      ChromeHeadlessNoSandbox: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox']
+      }
+    },
     files: [
       // all files ending in "_test"
       { pattern: 'test/*_test.js', watched: false },
