@@ -1,10 +1,10 @@
 function clearMessages() {
-  var message_list = $('#messages-row').find('ul').html('')
+  $('#messages-row').find('ul').html('')
 }
 
 function clearAndHideMessages() {
   clearMessages()
-  var row = $('#messages-row').attr('hidden', '')
+  $('#messages-row').attr('hidden', '')
 }
 
 export function addHeaderMessage(message) {
