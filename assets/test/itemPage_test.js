@@ -1,11 +1,14 @@
 import chai from 'chai'
 import VueTestUtils from '@vue/test-utils'
 import '@babel/polyfill'
+import sinon from 'sinon'
 
 import favouriteComponent from '../src/components/favourite.vue'
 import tagComponent from '../src/components/tag.vue'
 import autoCompleteTagComponent from '../src/components/autocompleteTag.vue'
 import tagsModal from '../src/components/tagsModal.vue'
+import submitTags from '../src/components/submitTags.vue'
+import * as Messages from '../src/lib/messages.js'
 
 var assert = chai.assert
 var mount = VueTestUtils.mount
@@ -158,5 +161,35 @@ describe('tagsModal', function() {
     let emitted = wrapper.emitted()
     assert.equal(emitted['saved-tags'].length, 2)
     assert.equal(emitted['saved-tags'][1][0], tags)
+  })
+})
+
+describe('submitTags', function() {
+
+  var wrapper
+
+  beforeEach(function() {
+    wrapper = shallowMount(submitTags, {
+      propsData: {
+        submitUrl: '/submittags',
+        tags: ['wow', 'amazing', 'good']
+      }
+    })
+
+    this.server = sinon.createFakeServer()
+  })
+
+  afterEach(function() {
+    this.server.restore()
+  })
+
+  it('submits tags', function() {
+    let response = {'success': true, 'message': 'Tags updated'}
+    this.server.respondWith(JSON.stringify(response))
+
+    wrapper.vm.submit_tags()
+    this.server.respond()
+
+    assert.equal(this.server.requests.length, 1)
   })
 })

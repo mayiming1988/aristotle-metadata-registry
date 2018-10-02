@@ -33,7 +33,7 @@ module.exports = (config) => {
           },
           {
             test: /\.m?js$/,
-            exclude: /node_modules\/(?!vue-simple-suggest)/,
+            exclude: /node_modules\/(?!(vue-simple-suggest|sinon))/,
             use: [{
               loader: 'babel-loader',
               options: {
