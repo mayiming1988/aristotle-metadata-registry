@@ -5,6 +5,7 @@ import '@babel/polyfill'
 import favouriteComponent from '../src/components/favourite.vue'
 import tagComponent from '../src/components/tag.vue'
 import autoCompleteTagComponent from '../src/components/autocompleteTag.vue'
+import tagsModal from '../src/components/tagsModal.vue'
 
 var assert = chai.assert
 var mount = VueTestUtils.mount
@@ -112,4 +113,50 @@ describe('autoCompleteTagComponent', function() {
     assert.deepEqual(wrapper.vm.current_tags, ['tag1', 'tag2', 'someothertag'])
   })
 
+})
+
+describe('tagsModal', function() {
+
+  var wrapper
+
+  beforeEach(() => {
+    let user_tags = ['amazing', 'very good', 'sweet']
+    let item_tags = ['ok', 'not so good']
+
+    wrapper = shallowMount(tagsModal, {
+      propsData: {
+        itemTags: JSON.stringify(item_tags),
+        userTags: JSON.stringify(user_tags)
+      }
+    })
+  })
+
+  it('sets initial tags from json', () => {
+    assert.deepEqual(wrapper.vm.user_tags, ['amazing', 'very good', 'sweet'])
+    assert.deepEqual(wrapper.vm.current_tags, ['ok', 'not so good'])
+    assert.deepEqual(wrapper.vm.saved_tags, ['ok', 'not so good'])
+  })
+
+  it('emits initial saved tags', () => {
+    let emitted = wrapper.emitted()
+
+    assert.equal(emitted['saved-tags'].length, 1)
+    assert.deepEqual(emitted['saved-tags'][0][0], ['ok', 'not so good'])
+  })
+
+  it('updates current tags', () => {
+    let tags = ['wow', 'brilliant']
+    wrapper.vm.update_tags(tags)
+    assert.deepEqual(wrapper.vm.current_tags, tags)
+  })
+
+  it('updates saved tags', () => {
+    let tags = ['wow', 'great']
+    wrapper.vm.update_saved_tags(tags)
+    assert.deepEqual(wrapper.vm.saved_tags, tags)
+
+    let emitted = wrapper.emitted()
+    assert.equal(emitted['saved-tags'].length, 2)
+    assert.equal(emitted['saved-tags'][1][0], tags)
+  })
 })
