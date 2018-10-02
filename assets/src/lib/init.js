@@ -1,6 +1,7 @@
 import 'bootstrap'
 import 'eonasdan-bootstrap-datetimepicker'
 import '@babel/polyfill'
+import 'jquery-migrate/dist/jquery-migrate.js'  // For 1.x specific code
 import { initNotifications } from './notify.js'
 import { initMessages } from './messages.js'
 import { initDAL } from './dal_simple_init.js'
@@ -89,11 +90,16 @@ export function initModalScrap() {
   })
 }
 
+// This should be run on most pages
+export function initCore() {
+  initNotifications()
+  initMessages()
+}
+
 // Init all function
 export default function init(spinners = true) {
 
-  initNotifications()
-  initMessages()
+  initCore()
   initWidgets()
 
   if (spinners) {
