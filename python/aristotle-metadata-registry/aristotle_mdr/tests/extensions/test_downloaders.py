@@ -130,8 +130,6 @@ class TextDownloader(utils.LoggedInViewPages, TestCase):
         return TextDownloader.result
 
     @skip('Deprecated Test case')
-    @patch('text_download_test.downloader.TestTextDownloader.download.delay', txt_download_cache)
-    @patch('aristotle_mdr.views.downloads.async_result', txt_download_task_retrieve)
     def test_logged_in_user_text_downloads(self):
         self.login_editor()
         oc = models.ObjectClass.objects.create(name="OC1", workgroup=self.wg1)
@@ -188,10 +186,7 @@ class TextDownloader(utils.LoggedInViewPages, TestCase):
         # TODO: Test if the functions are called.
         self.assertRedirects(response, reverse('aristotle:start_download', args=[self.de.id]), fetch_redirect_response=False)
         response = self.client.get(response.url)
-        import pdb
-        pdb.set_trace()
         self.assertEqual(response.status_code, 200)
-
         self.assertContains(response, self.de.definition)
 
         response = self.client.get(reverse('aristotle:download', args=['txt', self.de2.id]), follow=True)
