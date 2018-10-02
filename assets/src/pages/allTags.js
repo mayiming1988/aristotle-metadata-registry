@@ -1,4 +1,4 @@
-import init from '../lib/init.js'
+import { initCore } from '../lib/init.js'
 import yesNoModal from '../components/yesNoModal.vue'
 import deleteButton from '../components/deleteButton.vue'
 import errorAlert from '../components/errorAlert.vue'
@@ -6,7 +6,9 @@ import { getCSRF } from '../lib/cookie.js'
 
 import Vue from 'vue'
 
-init(false)
+import '../styles/aristotle.dashboard.less'
+
+initCore()
 
 var vm = new Vue({
   el: '#vue-container',

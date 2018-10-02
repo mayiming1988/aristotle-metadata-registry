@@ -1,11 +1,12 @@
-import init from '../lib/init.js'
+import { initCore } from '../lib/init.js'
 import switchEditComponent from '../components/switchEdit.vue'
 
 import Vue from 'vue'
 
 import '../styles/taggle.css'
+import '../styles/aristotle.dashboard.less'
 
-init(false)
+initCore()
 
 var vm = new Vue({
   el: '#vue-container',

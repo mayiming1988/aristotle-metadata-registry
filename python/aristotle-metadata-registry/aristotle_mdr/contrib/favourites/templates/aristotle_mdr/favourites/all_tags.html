@@ -8,6 +8,14 @@
     {% include "aristotle_mdr/user/userSideBar.html" with activeTab='favourites' %}
 {% endblock %}
 
+{% block webpack_css_bundle %}
+  {% render_bundle 'allTags' 'css' %}
+{% endblock %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'allTags' 'js' %}
+{% endblock %}
+
 {% block page %}
   <div id="vue-container">
     <h1>All Tags</h1>
@@ -49,8 +57,4 @@
       @no="deleteCancelled">
     </yesno-modal>
   </div>
-{% endblock %}
-
-{% block webpack_bundle %}
-  {% render_bundle 'allTags' 'js' %}
 {% endblock %}

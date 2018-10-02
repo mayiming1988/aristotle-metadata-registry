@@ -1,9 +1,9 @@
-import init from '../lib/init.js'
+import { initCore } from '../lib/init.js'
 import { ajaxForm } from '../lib/ajaxforms.js'
 import { initMultifield } from '../lib/multifield.js'
 import ClipboardJS from 'clipboard'
 
-init(false)
+initCore()
 initMultifield()
 
 $(document).ready(function() {

@@ -11,7 +11,7 @@ import '../styles/aristotle.wizard.less'
 import '../styles/aristotle_search.less'
 
 export function initItemPage() {
-  init(true)
+  init()
 
   $(document).ready(function() {
     $('.modal').on('loaded.bs.modal', function() {

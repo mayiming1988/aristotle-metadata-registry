@@ -95,10 +95,10 @@ module.exports = {
   optimization: {
     splitChunks: {
       cacheGroups: {
-        vendor: {
+        common: {
           name: 'common',
-          chunks: 'all',
-          minChunks: Object.keys(entries).length
+          chunks: 'all'
+          minChunks: Object.keys(entries).length - 1
         }
       }
     }

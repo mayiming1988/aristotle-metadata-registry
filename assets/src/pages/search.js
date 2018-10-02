@@ -1,8 +1,9 @@
-import init from '../lib/init.js'
+import { initCore, initWidgets } from '../lib/init.js'
 
 import '../styles/aristotle_search.less'
 
-init(true)
+initCore()
+initWidgets()
 
 function showClearFilters() {
     $("#advanced_nav_link").addClass("clearFilters")

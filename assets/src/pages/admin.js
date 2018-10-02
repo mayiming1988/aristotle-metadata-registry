@@ -1,7 +1,3 @@
-import init from '../lib/init.js'
-
-init(true)
-
 $( document ).ready( function() {
   $('div.suggest_name_wrapper button').click(function(e) {
       var fields = $(this).data('suggestFields').split(',');
