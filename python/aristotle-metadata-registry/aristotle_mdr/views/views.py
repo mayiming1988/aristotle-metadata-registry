@@ -160,7 +160,8 @@ def render_if_condition_met(request, condition, objtype, iid, model_slug=None, n
     default_template = "%s/concepts/%s.html" % (item.__class__._meta.app_label, item.__class__._meta.model_name)
 
     # Get all the tags on this item by this user, and all this users tags
-    tags = {}
+    item_tags = []
+    user_tags = []
     if request.user.is_authenticated():
         item_tags = Favourite.objects.filter(
             tag__profile=request.user.profile,
@@ -173,8 +174,8 @@ def render_if_condition_met(request, condition, objtype, iid, model_slug=None, n
             primary=False
         ).values_list('name', flat=True)
 
-        tags['item'] = list(item_tags)
-        tags['user'] = list(user_tags)
+        item_tags = list(item_tags)
+        user_tags = list(user_tags)
 
     return render(
         request, [default_template, item.template],
@@ -183,7 +184,8 @@ def render_if_condition_met(request, condition, objtype, iid, model_slug=None, n
             'slots': slots,
             # 'view': request.GET.get('view', '').lower(),
             'isFavourite': isFavourite,
-            'tags': tags,
+            'item_tags': json.dumps(item_tags),
+            'user_tags': json.dumps(user_tags),
             'last_edit': last_edit,
             'vue': True
         }

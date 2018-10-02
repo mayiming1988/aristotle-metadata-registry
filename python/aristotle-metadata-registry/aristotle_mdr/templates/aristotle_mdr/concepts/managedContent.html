@@ -4,10 +4,6 @@
 {% load aristotle_tags util_tags %}
 {% load render_bundle from webpack_loader %}
 
-{% block extra_head_scripts %}
-    {{ tags|json_script:"tags-json" }}
-{% endblock %}
-
 {% block webpack_css_bundle %}
   {% render_bundle 'itemPage' 'css' %}
 {% endblock %}
@@ -91,35 +87,14 @@
             {% endfor %}
       </div>
 
-      <div class="modal fade exclude-scrap" id="TagEditorModal" tabindex="-1" role="dialog" aria-labelledby="TagEditor">
-        <div class="modal-dialog" role="document">
-          <div class="modal-content">
-
-            <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-              <div class="modal-title h4" id="TagEditor">Tag Editor</div>
-            </div>
-            <div class="modal-body">
-              <p>Update your tags for this item, new tags (shown darker) will be created for you</p>
-
-              <autocomplete-tags :current_tags="current_tags" :user_tags="user_tags" @tag-update="update_tags"></autocomplete-tags>
-
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-              <submit-tags 
-                submit-url="{% url 'aristotle_favourites:edit_tags' item.id %}"
-                :tags="current_tags"
-                modal="#TagEditorModal"
-                @tags-saved="update_saved_tags"
-                >
-              </submit-tags>
-            </div>
-
-          </div>
-        </div>
-      </div>
-
+      <tags-modal 
+        :open="modalOpen" 
+        item-tags="{{ item_tags }}" 
+        user-tags="{{ user_tags }}" 
+        submit-url="{% url 'aristotle_favourites:edit_tags' item.id %}"
+        @saved-tags="updateTags"
+        @hide="closeModal">
+      </tags-modal>
 </section>
 </div>
 {% endblock %}

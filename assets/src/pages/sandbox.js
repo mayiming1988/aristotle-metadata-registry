@@ -23,11 +23,9 @@ $(document).ready(function() {
 
   $('#delete-modal').on('show.bs.modal', function(event) {
     button = $(event.relatedTarget);
-    var modal=$(this);
     // Extract info from data-* attributes
     item_id = button.data('item-id') 
     var item_name = button.data('item-name') 
-    console.log(item_id)
     message_p.html('Are you sure you want to delete ' + item_name + '?')
   })
 
@@ -58,7 +56,7 @@ $(document).ready(function() {
     $('.copybutton').remove()
   }
 
-  $('.modal').on('hidden.bs.modal', function(e) {
+  $('.modal').on('hidden.bs.modal', function() {
     // On modal close remove ajax messages
     $('.ajax-error').remove()
     $('.ajax-success').remove()

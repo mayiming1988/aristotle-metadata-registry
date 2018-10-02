@@ -7,7 +7,7 @@ import { getCSRF } from '../lib/cookie.js'
 import { addHeaderMessage } from '../lib/messages.js'
 
 export default {
-  props: ['submitUrl', 'tags', 'modal'],
+  props: ['submitUrl', 'tags'],
   methods: {
     submit_tags: function() {
       var csrf_token = getCSRF()
@@ -27,7 +27,6 @@ export default {
       )
 
       this.$emit('tags-saved', tags)
-      $(this.modal).modal('hide')
     },
   }
 }
