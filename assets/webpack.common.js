@@ -97,7 +97,7 @@ module.exports = {
       cacheGroups: {
         common: {
           name: 'common',
-          chunks: 'all'
+          chunks: 'all',
           minChunks: Object.keys(entries).length - 1
         }
       }

@@ -2,10 +2,12 @@ const webpack = require('webpack')
 const path = require('path')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 
+process.env.CHROME_BIN = require('puppeteer').executablePath()
+
 module.exports = (config) => {
   config.set({
     frameworks: ['mocha'],
-    browsers: ['PhantomJS'],
+    browsers: ['ChromeHeadless'],
     files: [
       // all files ending in "_test"
       { pattern: 'test/*_test.js', watched: false },
@@ -24,6 +26,9 @@ module.exports = (config) => {
 
       // webpack configuration
       devtool: 'inline-source-map',
+      optimization: {
+        minimize: false
+      },
       module: {
         rules: [
           {
@@ -33,7 +38,7 @@ module.exports = (config) => {
           },
           {
             test: /\.m?js$/,
-            exclude: /node_modules\/(?!(vue-simple-suggest|sinon))/,
+            exclude: /node_modules/,
             use: [{
               loader: 'babel-loader',
               options: {
