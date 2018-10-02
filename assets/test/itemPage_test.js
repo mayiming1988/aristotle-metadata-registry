@@ -1,14 +1,13 @@
 import chai from 'chai'
 import VueTestUtils from '@vue/test-utils'
-import '@babel/polyfill'
 import sinon from 'sinon'
 
+import { addMessageRow, assertSingleMessage } from './utils.js'
 import favouriteComponent from '../src/components/favourite.vue'
 import tagComponent from '../src/components/tag.vue'
 import autoCompleteTagComponent from '../src/components/autocompleteTag.vue'
 import tagsModal from '../src/components/tagsModal.vue'
 import submitTags from '../src/components/submitTags.vue'
-import * as Messages from '../src/lib/messages.js'
 
 var assert = chai.assert
 var mount = VueTestUtils.mount
@@ -183,13 +182,25 @@ describe('submitTags', function() {
     this.server.restore()
   })
 
-  it('submits tags', function() {
+  it('submits tags and displays message', function() {
+    addMessageRow(document.body)
+
     let response = {'success': true, 'message': 'Tags updated'}
-    this.server.respondWith(JSON.stringify(response))
+    this.server.respondWith([
+      200,
+      {'Content-Type': 'application/json'},
+      JSON.stringify(response)
+    ])
 
     wrapper.vm.submit_tags()
     this.server.respond()
 
     assert.equal(this.server.requests.length, 1)
+    assert.equal(this.server.requests[0].url, '/submittags')
+
+    assertSingleMessage('Tags updated')
+
+    // Cleanup dom
+    document.getElementById('messages-row').remove()
   })
 })
