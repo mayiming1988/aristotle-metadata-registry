@@ -14,8 +14,8 @@ module.exports = (config) => {
     ],
     preprocessors: {
       // add webpack as preprocessor
-      'test/*_test.js': [ 'webpack' ],
-      'test/**/*_test.js': [ 'webpack' ]
+      'test/*_test.js': [ 'webpack', 'sourcemap' ],
+      'test/**/*_test.js': [ 'webpack', 'sourcemap' ]
     },
     webpack: {
       // karma watches the test entry points
@@ -23,6 +23,7 @@ module.exports = (config) => {
       // webpack watches dependencies
 
       // webpack configuration
+      devtool: 'inline-source-map',
       module: {
         rules: [
           {
