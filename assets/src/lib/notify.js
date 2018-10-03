@@ -36,17 +36,31 @@ function fill_aristotle_notification_menu(data) {
         if (data.unread_list.length > 0) {
             for (var i=0; i < data.unread_list.length; i++) {
                 var item = data.unread_list[i];
+
+                let text = item.verb+" - "+item.actor
+                let element
                 if (item.target_object_id) {
-                    menu.innerHTML = menu.innerHTML + "<li><a href='/notifyredirect/"+ item.target_content_type+ "/" + item.target_object_id + "'>"+item.verb+" - "+item.actor+"</a></li>";
+                    let target = '/notifyredirect/' + item.target_content_type + '/'
+                    element = make_dropdown_item(text, target)
                 } else {
-                    menu.innerHTML = menu.innerHTML + "<li><a>" + item.verb + " - " + item.actor+"</a></li>";
+                    element = make_dropdown_item(text)
                 }
+                menu.append(element)
             }
-            menu.innerHTML = menu.innerHTML + '<li role="presentation" class="divider"></li>';
-            menu.innerHTML = menu.innerHTML + "<li><a href='#' onclick='mark_all_unread();return false'><i class='fa fa-envelope-o fa-fw'></i> Mark all as read</a></li>";
-            menu.innerHTML = menu.innerHTML + "<li><a href='"+notify_unread_url+"'><i class='fa fa-inbox fa-fw'></i> View all unread notifications...</a></li>";
+            
+            let divider = document.createElement('li')
+            divider.role = 'presentation'
+            divider.className = 'divider'
+            menu.append(divider)
+
+            var all_read_item = make_dropdown_item('Mark all as read', '#', 'fa fa-envelope fa-fw')
+            all_read_item.id = 'notify_all_read'
+            menu.append(all_read_item)
+            $('#notify_all_read a').click(mark_all_unread)
+
+            menu.append(make_dropdown_item('View all unread notifications', notify_unread_url, 'fa fa-inbox fa-fw'))
         } else {
-            menu.innerHTML = "<li><a href='"+notify_unread_url+"'><i class='fa fa-inbox fa-fw'></i> No unread notifications...</a></li>";
+            menu.append(make_dropdown_item('No unread notifications', notify_unread_url, 'fa fa-inbox fa-fw'))
         }
     }
 }
@@ -58,11 +72,18 @@ function update_notification_badge(data) {
   })
 }
 
-function make_dropdown_item(text) {
+function make_dropdown_item(text, href='#', icon=null) {
     var textelement = document.createElement('li')
     var linkelement = document.createElement('a')
     var text = document.createTextNode(text)
-    linkelement.href = "#"
+    linkelement.href = href
+
+    if (icon != null) {
+      let iconelement = document.createElement('i')
+      iconelement.className = icon
+      linkelement.appendChild(iconelement)
+    }
+
     linkelement.appendChild(text)
     textelement.appendChild(linkelement)
 
