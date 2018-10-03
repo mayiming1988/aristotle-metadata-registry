@@ -79,36 +79,5 @@ export function initDAL() {
           tags: Boolean(element.attr('data-tags')),
       });
 
-      $(this).on('select2:selecting', function (e) {
-          var data = e.params.args.data;
-
-          if (data.create_id !== true)
-              return;
-
-          e.preventDefault();
-
-          var select = $(this);
-          var csrf_token = getCSRF();
-
-          $.ajax({
-              url: $(this).attr('data-autocomplete-light-url'),
-              type: 'POST',
-              dataType: 'json',
-              data: {
-                  text: data.id,
-                  // forward: null
-              },
-              beforeSend: function(xhr, settings) {
-                  xhr.setRequestHeader("X-CSRFToken", csrf_token);
-              },
-              success: function(data, textStatus, jqXHR ) {
-                  select.append(
-                      $('<option>', {value: data.id, text: data.text, selected: true})
-                  );
-                  select.trigger('change');
-                  select.select2('close');
-              }
-          });
-      });
   })
 }
