@@ -802,7 +802,6 @@ class AsyncResultMock:
 
 
 def store_taskresult(id, name, user, status='SUCCESS'):
-    store_task(id, name, user)
 
     tr = TaskResult.objects.create(
         task_id=id,

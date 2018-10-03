@@ -103,13 +103,14 @@ def bulk_download(request, download_type, items=None):
     """
 
     # downloadOpts = fetch_aristotle_settings().get('DOWNLOADERS', [])
+    items = request.GET.getlist('items')
     download_opts = fetch_aristotle_downloaders()
     for kls in download_opts:
         if download_type == kls.download_type:
             try:
                 # properties for download template
-                properties, iid, *args = kls.get_bulk_download_config(request, [])
-                res = kls.bulk_download.delay(properties, iid, *args)
+                properties, items, *args = kls.get_bulk_download_config(request, items)
+                res = kls.bulk_download.delay(properties, items, *args)
                 if not properties.get('title', ''):
                     properties['title'] = 'Auto-generated document'
                 try:

@@ -2,10 +2,16 @@ from django.test import TestCase
 
 from aristotle_mdr.models import ObjectClass
 from django.urls import reverse
+from django.contrib.auth.models import AnonymousUser
 
 from aristotle_mdr.tests.main.test_bulk_actions import BulkActionsTest
 from aristotle_mdr import models
 from aristotle_mdr.utils import setup_aristotle_test_environment
+from aristotle_mdr.tests.apps.text_download_test.downloader import TestTextDownloader
+from aristotle_mdr.tests.utils import store_taskresult, get_download_result
+from django.contrib.auth import get_user_model
+
+from mock import patch
 
 setup_aristotle_test_environment()
 
@@ -92,6 +98,48 @@ class TestDeleteBulkAction(BulkActionsTest, TestCase):
 class BulkDownloadTests(BulkActionsTest, TestCase):
     download_type="txt"
 
+    def setUp(self):
+        super().setUp()
+        BulkDownloadTests.result = None
+        self.patcher1 = patch('text_download_test.downloader.TestTextDownloader.bulk_download')
+        self.patcher2 = patch('aristotle_mdr.views.downloads.async_result')
+        self.downloader_download = self.patcher1.start()
+        self.async_result = self.patcher2.start()
+        self.downloader_download.delay.side_effect = self.txt_bulk_download_cache
+        self.async_result.side_effect = self.txt_download_task_retrieve
+
+    def tearDown(self):
+        self.patcher1.stop()
+        self.patcher2.stop()
+
+
+    def txt_bulk_download_cache(self, properties, iids):
+        TestTextDownloader.bulk_download(properties, iids)
+
+        User = get_user_model()
+        user = properties.get('user', None)
+        if user and user != str(AnonymousUser()):
+            user = User.objects.get(email=user)
+        else:
+            user = AnonymousUser()
+
+
+        tr = store_taskresult('321-456-789-{}'.format(properties['url_id']), 'Test Task {}'.format(properties['url_id']), user)
+        tr.save()
+
+        return tr
+
+
+    def txt_download_task_retrieve(self, iid):
+        """
+        Using taskResult to manage the celery tasks
+        :return:
+        """
+        if not BulkDownloadTests.result:
+            # Creating an instance of fake Celery `AsyncResult` object
+            BulkDownloadTests.result = get_download_result(iid)
+        return BulkDownloadTests.result
+
     def test_bulk_txt_download_on_permitted_items(self):
         self.login_editor()
 
@@ -122,7 +170,7 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
             },
             follow=True
         )
-        self.assertEqual(len(response.redirect_chain), 1)
+        self.assertEqual(len(response.redirect_chain), 2)
         self.assertEqual(response.redirect_chain[0][1], 302)
 
 
@@ -140,7 +188,7 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
             },
             follow=True
         )
-        self.assertEqual(len(response.redirect_chain), 1)
+        self.assertEqual(len(response.redirect_chain), 2)
         self.assertEqual(response.redirect_chain[0][1], 302)
 
         response = self.client.post(
@@ -179,9 +227,24 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
                 "items": [self.item1.id, self.item5.id],
                 "title": "The title",
             }
-        )
+        , follow=True)
 
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.redirect_chain), 1)
+        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=["The title"]))
+        self.assertTrue(self.async_result.called)
+        self.assertTrue(self.downloader_download.delay.called)
+        self.assertEqual(len(self.downloader_download.delay.mock_calls), 1)
+        self.assertEqual(len(self.async_result.mock_calls), 1)
+
+        response = self.client.get(reverse('aristotle:preparing_download', args=["The title"]), follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.redirect_chain), 1)
+        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:start_download', args=["The title"]))
+        self.assertTrue(self.downloader_download.delay.called)
+        self.assertEqual(len(self.downloader_download.delay.mock_calls), 1)
+        self.assertEqual(len(self.async_result.mock_calls), 3)
+
         self.assertContains(response, self.item1.name)
         self.assertContains(response, self.item2.name)  # Will be in as its a component of DEC5
         self.assertContains(response, self.item5.name)

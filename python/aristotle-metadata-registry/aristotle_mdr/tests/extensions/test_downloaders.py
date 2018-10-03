@@ -29,10 +29,12 @@ class TextDownloader(utils.LoggedInViewPages, TestCase):
         super(TextDownloader, self).setUp()
         TextDownloader.txt_download_type = "txt"
         TextDownloader.result = None
-        self.patcher1 = patch('text_download_test.downloader.TestTextDownloader.download.delay', self.txt_download_cache)
-        self.patcher2 = patch('aristotle_mdr.views.downloads.async_result', self.txt_download_task_retrieve)
-        self.patcher1.start()
-        self.patcher2.start()
+        self.patcher1 = patch('text_download_test.downloader.TestTextDownloader.download')
+        self.patcher2 = patch('aristotle_mdr.views.downloads.async_result')
+        self.downloader_download = self.patcher1.start()
+        self.async_result = self.patcher2.start()
+        self.downloader_download.delay.side_effect = self.txt_download_cache
+        self.async_result.side_effect = self.txt_download_task_retrieve
 
     def tearDown(self):
         self.patcher1.stop()
@@ -120,9 +122,9 @@ class TextDownloader(utils.LoggedInViewPages, TestCase):
         # Initiating 2nd download
         TextDownloader.result = None
         response = self.client.get(reverse('aristotle:download', args=['txt', self.de.id]))
-        self.assertTrue(self.patcher1.called)
+        self.assertTrue(self.downloader_download.delay.called)
         self.assertRedirects(response, reverse('aristotle:preparing_download', args=[self.de.id]))
-        self.assertTrue(self.patcher2.called)
+        self.assertTrue(self.async_result.called)
         self.assertEqual(response.status_code, 302)
 
 
