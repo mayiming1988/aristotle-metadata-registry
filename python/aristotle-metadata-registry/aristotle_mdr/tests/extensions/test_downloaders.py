@@ -11,7 +11,7 @@ from aristotle_mdr.utils import setup_aristotle_test_environment, downloads as d
 from aristotle_mdr.views import get_if_user_can_view
 from aristotle_mdr import models as MDR
 from django.contrib.auth import get_user_model
-from aristotle_mdr.tests.utils import AsyncResultMock, store_taskresult, get_download_result
+from aristotle_mdr.tests.utils import store_taskresult, get_download_result
 
 from unittest import skip
 
@@ -33,7 +33,7 @@ class TextDownloader(utils.LoggedInViewPages, TestCase):
 
     def txt_download_cache(props, iid):
         """
-        Similar to the get_download_config method.
+        Similar to the Text download method.
         :param iid:
         :return:
         """
