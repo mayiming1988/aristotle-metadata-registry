@@ -78,7 +78,9 @@ class TestTextDownloader(DownloaderBase):
 
     @staticmethod
     @shared_task(name='aristotle_mdr.tests.apps.text_download_test.downloader.bulk_download')
-    def bulk_download(properties, items):
+    def bulk_download(properties, iids):
+        items = []
+
         out = properties.get('out', [])
         # Getting user from the available email data
         User = get_user_model()
@@ -87,7 +89,10 @@ class TestTextDownloader(DownloaderBase):
             user = User.objects.get(email=user)
         else:
             user = AnonymousUser()
-
+        for iid in iids:
+            item = MDR._concept.objects.get_subclass(pk=iid)
+            if item.can_view(user):
+                items.append(item)
         item_querysets = items_for_bulk_download(items, user)
 
         for model, details in item_querysets.items():

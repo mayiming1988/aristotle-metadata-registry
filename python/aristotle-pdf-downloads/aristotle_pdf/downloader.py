@@ -119,8 +119,9 @@ class PDFDownloader(DownloaderBase):
 
     @staticmethod
     @shared_task(name='aristotle_pdf_downloads.downloader.bulk_download')
-    def bulk_download(properties, items=[], title=None, subtitle=None):
+    def bulk_download(properties, iids=[], title=None, subtitle=None):
         """Built in download method"""
+        items = []
         User = get_user_model()
         template = 'aristotle_mdr/downloads/pdf/bulk_download.html'
         page_size = getattr(settings, 'PDF_PAGE_SIZE', "A4")
@@ -130,7 +131,7 @@ class PDFDownloader(DownloaderBase):
         else:
             user = AnonymousUser()
 
-        for iid in items:
+        for iid in iids:
             item = MDR._concept.objects.get_subclass(pk=iid)
             if item.can_view(user):
                 items.append(item)
