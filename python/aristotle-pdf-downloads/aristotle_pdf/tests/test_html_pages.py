@@ -25,7 +25,7 @@ from django.core.cache import cache
 from aristotle_pdf.downloader import PDFDownloader
 import datetime
 
-from mock import patch
+from mock import patch, MagicMock
 
 
 def setUpModule():
@@ -58,8 +58,12 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         )
 
         # Setting up patches
-        self.patcher1 = patch('aristotle_pdf.downloader.PDFDownloader.download.delay', self.pdf_download_cache)
-        self.patcher2 = patch('aristotle_mdr.views.downloads.async_result', self.pdf_download_task_retrieve)
+        download_mock = MagicMock(name='downloader')
+        download_mock.delay.side_effect=self.pdf_download_cache
+        celery_result = MagicMock(name='async_result')
+        celery_result.side_effect = self.pdf_download_task_retrieve
+        self.patcher1 = patch('aristotle_pdf.downloader.PDFDownloader.download', new=download_mock)
+        self.patcher2 = patch('aristotle_mdr.views.downloads.async_result', new=celery_result)
         self.MockClass1 = self.patcher1.start()
         self.MockClass2 = self.patcher2.start()
 
@@ -108,19 +112,25 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         response = self.client.get(reverse('aristotle:download',args=['pdf',self.item1.id]), follow=True)
         self.assertEqual(response.status_code,200)
         self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=[self.item1.id]))
+        self.assertTrue(self.MockClass1.delay.called)
+        self.assertTrue(self.MockClass2.called)
 
         response = self.client.get(reverse('aristotle:preparing_download', args=[self.item1.id]), follow=True)
         self.assertEqual(response.status_code,200)
         self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:start_download', args=[self.item1.id]))
+        self.assertTrue(self.MockClass2.called)
 
         LoggedInViewConceptPages.result = None
         response = self.client.get(reverse('aristotle:download',args=['pdf',self.item2.id]), follow=True)
         self.assertEqual(response.status_code,200)
         self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=[self.item2.id]))
+        self.assertTrue(self.MockClass1.delay.called)
+        self.assertTrue(self.MockClass2.called)
 
         response = self.client.get(reverse('aristotle:preparing_download', args=[self.item2.id]), follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:start_download', args=[self.item2.id]))
+        self.assertTrue(self.MockClass2.called)
 
     def test_editor_can_download_pdf(self):
         self.login_editor()
@@ -128,10 +138,13 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         response = self.client.get(reverse('aristotle:download',args=['pdf',self.item1.id]), follow=True)
         self.assertEqual(response.status_code,200)
         self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=[self.item1.id]))
+        self.assertTrue(self.MockClass1.delay.called)
+        self.assertTrue(self.MockClass2.called)
 
         response = self.client.get(reverse('aristotle:preparing_download', args=[self.item1.id]), follow=True)
         self.assertEqual(response.status_code,200)
         self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:start_download', args=[self.item1.id]))
+        self.assertTrue(self.MockClass2.called)
 
         LoggedInViewConceptPages.result = None
         response = self.client.get(reverse('aristotle:download',args=['pdf',self.item2.id]))
@@ -142,10 +155,13 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         response = self.client.get(reverse('aristotle:download',args=['pdf',self.item1.id]), follow=True)
         self.assertEqual(response.status_code,200)
         self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=[self.item1.id]))
+        self.assertTrue(self.MockClass1.delay.called)
+        self.assertTrue(self.MockClass2.called)
 
         response = self.client.get(reverse('aristotle:preparing_download',args=[self.item1.id]), follow=True)
         self.assertEqual(response.status_code,200)
         self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:start_download', args=[self.item1.id]))
+        self.assertTrue(self.MockClass2.called)
 
         response = self.client.get(reverse('aristotle:download',args=['pdf',self.item2.id]))
         self.assertEqual(response.status_code,403)
