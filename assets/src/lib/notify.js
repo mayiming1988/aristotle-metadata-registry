@@ -74,7 +74,7 @@ function update_notification_badge(data) {
 function make_dropdown_item(text, href='#', icon=null) {
     var textelement = document.createElement('li')
     var linkelement = document.createElement('a')
-    var text = document.createTextNode(text)
+    var textnode = document.createTextNode(text)
     linkelement.href = href
 
     if (icon != null) {
@@ -83,7 +83,7 @@ function make_dropdown_item(text, href='#', icon=null) {
       linkelement.appendChild(iconelement)
     }
 
-    linkelement.appendChild(text)
+    linkelement.appendChild(textnode)
     textelement.appendChild(linkelement)
 
     return textelement
@@ -95,7 +95,7 @@ function display_notify_error() {
     menu.innerHTML = ""
 
     // Add text
-    list_element = make_dropdown_item('Notifications could not be retrieved')
+    let list_element = make_dropdown_item('Notifications could not be retrieved')
 
     menu.append(list_element)
 }
