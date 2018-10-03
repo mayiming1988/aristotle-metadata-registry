@@ -8,65 +8,16 @@ from django.template import TemplateSyntaxError, Context
 from django.core.cache import cache
 
 from aristotle_mdr.utils import setup_aristotle_test_environment, downloads as download_utils, get_download_template_path_for_item
-from aristotle_bg_workers.helpers import store_task
 from aristotle_mdr.views import get_if_user_can_view
 from aristotle_mdr import models as MDR
-from django_celery_results.models import TaskResult
 from django.contrib.auth import get_user_model
+from aristotle_mdr.tests.utils import AsyncResultMock, store_taskresult, get_download_result
 
 from unittest import skip
 
-from celery import current_app, states
-
-from mock import patch, MagicMock
+from mock import patch
 
 setup_aristotle_test_environment()
-
-
-class AsyncResultMock:
-    """
-    This mock AsyncResult class will replace celery's AsyncResult class to facilitate ready and status features
-    First attempt to ready() will send a Pending state and the second attempt will make sure it is a success
-    """
-
-    def __init__(self, task_id):
-        """
-        initialize the mock async result
-        :param task_id: task_id for mock task
-        """
-        self.status = states.PENDING
-        self.id = task_id
-        self.result = ''
-
-    def ready(self):
-        """
-        not ready in the first try and ready in the next
-        returns true once the worker finishes it's task
-        :return: bool
-        """
-        is_ready = self.status == states.SUCCESS
-
-        self.status = states.SUCCESS
-        return is_ready
-
-    def successful(self):
-        """
-        Returns true once the worker finishes it's task successfully
-        :return: bool
-        """
-        return self.status == states.SUCCESS
-
-    def forget(self):
-        """
-        deletes itself
-        :return:
-        """
-        del self
-
-    def get(self):
-        result = self.result
-        self.forget()
-        return result
 
 
 class TextDownloader(utils.LoggedInViewPages, TestCase):
@@ -79,17 +30,6 @@ class TextDownloader(utils.LoggedInViewPages, TestCase):
         TextDownloader.txt_download_type = "txt"
         TextDownloader.result = None
 
-
-    @staticmethod
-    def store_taskresult(id, name, user, status='SUCCESS'):
-        store_task(id, name, user)
-
-        tr = TaskResult.objects.create(
-            task_id=id,
-            status=status
-        )
-
-        return tr
 
     def txt_download_cache(props, iid):
         """
@@ -108,26 +48,23 @@ class TextDownloader(utils.LoggedInViewPages, TestCase):
         template = select_template([template])
         context = {'item': item}
         txt = template.render(context)
-        # Setting the user text
-        print('-------------text------------')
-        print(txt)
 
         cache.set(download_utils.get_download_cache_key(iid, user), (txt, 'text/plain'))
-        tr = TextDownloader.store_taskresult('123-456-789-{}'.format(iid), 'Test Task {}'.format(iid), user)
+        tr = store_taskresult('123-456-789-{}'.format(iid), 'Test Task {}'.format(iid), user)
         tr.save()
 
         return tr
-
 
     def txt_download_task_retrieve(iid):
         """
         Using taskResult to manage the celery tasks
         :return:
         """
-        tr = TaskResult.objects.get(id=iid)
         if not TextDownloader.result:
-            TextDownloader.result = AsyncResultMock(tr.task_id)
+            # Creating an instance of fake Celery `AsyncResult` object
+            TextDownloader.result = get_download_result(iid)
         return TextDownloader.result
+
 
     @skip('Deprecated Test case')
     def test_logged_in_user_text_downloads(self):
@@ -154,6 +91,7 @@ class TextDownloader(utils.LoggedInViewPages, TestCase):
             # This template is broken on purpose and will throw an error
             response = self.client.get(reverse('aristotle:download', args=['txt', dec.id]))
 
+
     @patch('text_download_test.downloader.TestTextDownloader.download.delay', txt_download_cache)
     @patch('aristotle_mdr.views.downloads.async_result', txt_download_task_retrieve)
     def test_logged_in_user_text_download_initiates(self):
@@ -168,17 +106,20 @@ class TextDownloader(utils.LoggedInViewPages, TestCase):
         self.de = models.DataElement.objects.create(name="DE1", definition="A test data element", workgroup=self.wg1)
         self.dec = models.DataElementConcept.objects.create(name="DEC", workgroup=self.wg1)
         self.de2 = models.DataElement.objects.create(name="DE2", workgroup=self.wg2)
-        # downloader.return_value = MagicMock()
+
+        TextDownloader.result = None
         response = self.client.get(reverse('aristotle:download', args=['txt', self.oc.id]))
 
         # This template does not exist on purpose and will throw an error
         self.assertEqual(response.status_code, 404)
 
-        # calling downloading page
+        # Initiating 2nd download
+        TextDownloader.result = None
         response = self.client.get(reverse('aristotle:download', args=['txt', self.de.id]))
         self.assertRedirects(response, reverse('aristotle:preparing_download', args=[self.de.id]))
 
         self.assertEqual(response.status_code, 302)
+
 
         # calling the preparing download page to see if the download is available complete
         response = self.client.get(reverse('aristotle:preparing_download', args=[self.de.id]))
@@ -189,6 +130,8 @@ class TextDownloader(utils.LoggedInViewPages, TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.de.definition)
 
+        # Initiating 3rd download
+        TextDownloader.result = None
         response = self.client.get(reverse('aristotle:download', args=['txt', self.de2.id]), follow=True)
         self.assertEqual(response.status_code, 403)
 

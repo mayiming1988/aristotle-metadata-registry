@@ -10,6 +10,9 @@ from django.utils import timezone
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
 from aristotle_mdr.utils import url_slugify_concept
+from celery import states
+from django_celery_results.models import TaskResult
+from aristotle_bg_workers.helpers import store_task
 
 from django_tools.unittest_utils.BrowserDebug import debug_response
 
@@ -750,3 +753,68 @@ class GeneralTestUtils:
 class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils, FormsetTestUtils):
     """Combination of the above 3 utils for easy usage"""
     pass
+
+
+class AsyncResultMock:
+    """
+    This mock AsyncResult class will replace celery's AsyncResult class to facilitate ready and status features
+    First attempt to ready() will send a Pending state and the second attempt will make sure it is a success
+    """
+
+    def __init__(self, task_id):
+        """
+        initialize the mock async result
+        :param task_id: task_id for mock task
+        """
+        self.status = states.PENDING
+        self.id = task_id
+        self.result = ''
+
+    def ready(self):
+        """
+        not ready in the first try and ready in the next
+        returns true once the worker finishes it's task
+        :return: bool
+        """
+        is_ready = self.status == states.SUCCESS
+
+        self.status = states.SUCCESS
+        return is_ready
+
+    def successful(self):
+        """
+        Returns true once the worker finishes it's task successfully
+        :return: bool
+        """
+        return self.status == states.SUCCESS
+
+    def forget(self):
+        """
+        deletes itself
+        :return:
+        """
+        del self
+
+    def get(self):
+        result = self.result
+        self.forget()
+        return result
+
+
+def store_taskresult(id, name, user, status='SUCCESS'):
+    store_task(id, name, user)
+
+    tr = TaskResult.objects.create(
+        task_id=id,
+        status=status
+    )
+
+    return tr
+
+def get_download_result(iid):
+    """
+    Using taskResult to manage the celery tasks
+    :return:
+    """
+    tr = TaskResult.objects.get(id=iid)
+    return AsyncResultMock(tr.task_id)
