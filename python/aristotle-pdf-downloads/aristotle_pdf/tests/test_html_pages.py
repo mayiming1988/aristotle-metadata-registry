@@ -57,7 +57,19 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
             **self.defaults
         )
 
-    def pdf_download_cache(properties, iid):
+        # Setting up patches
+        self.patcher1 = patch('aristotle_pdf.downloader.PDFDownloader.download.delay', self.pdf_download_cache)
+        self.patcher2 = patch('aristotle_mdr.views.downloads.async_result', self.pdf_download_task_retrieve)
+        self.MockClass1 = self.patcher1.start()
+        self.MockClass2 = self.patcher2.start()
+
+    def tearDown(self):
+        # Tearing down patches
+        self.patcher1.stop()
+        self.patcher2.stop()
+
+
+    def pdf_download_cache(self, properties, iid):
         User = get_user_model()
         user = properties['user']
         user = User.objects.get(email=user)
@@ -84,14 +96,12 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
 
         return tr
 
-    def pdf_download_task_retrieve(iid):
+    def pdf_download_task_retrieve(self, iid):
         if not LoggedInViewConceptPages.result:
             # Creating an instance of fake Celery `AsyncResult` object
             LoggedInViewConceptPages.result = get_download_result(iid)
         return LoggedInViewConceptPages.result
 
-    @patch('aristotle_pdf.downloader.PDFDownloader.download.delay', pdf_download_cache)
-    @patch('aristotle_mdr.views.downloads.async_result', pdf_download_task_retrieve)
     def test_su_can_download_pdf(self):
         self.login_superuser()
         LoggedInViewConceptPages.result = None
@@ -112,8 +122,6 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:start_download', args=[self.item2.id]))
 
-    @patch('aristotle_pdf.downloader.PDFDownloader.download.delay', pdf_download_cache)
-    @patch('aristotle_mdr.views.downloads.async_result', pdf_download_task_retrieve)
     def test_editor_can_download_pdf(self):
         self.login_editor()
         LoggedInViewConceptPages.result = None
@@ -129,8 +137,6 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         response = self.client.get(reverse('aristotle:download',args=['pdf',self.item2.id]))
         self.assertEqual(response.status_code,403)
 
-    @patch('aristotle_pdf.downloader.PDFDownloader.download.delay', pdf_download_cache)
-    @patch('aristotle_mdr.views.downloads.async_result', pdf_download_task_retrieve)
     def test_viewer_can_download_pdf(self):
         self.login_viewer()
         response = self.client.get(reverse('aristotle:download',args=['pdf',self.item1.id]), follow=True)
