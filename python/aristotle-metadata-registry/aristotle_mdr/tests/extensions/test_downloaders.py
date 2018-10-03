@@ -29,9 +29,16 @@ class TextDownloader(utils.LoggedInViewPages, TestCase):
         super(TextDownloader, self).setUp()
         TextDownloader.txt_download_type = "txt"
         TextDownloader.result = None
+        self.patcher1 = patch('text_download_test.downloader.TestTextDownloader.download.delay', self.txt_download_cache)
+        self.patcher2 = patch('aristotle_mdr.views.downloads.async_result', self.txt_download_task_retrieve)
+        self.patcher1.start()
+        self.patcher2.start()
 
+    def tearDown(self):
+        self.patcher1.stop()
+        self.patcher2.stop()
 
-    def txt_download_cache(props, iid):
+    def txt_download_cache(self, props, iid):
         """
         Similar to the Text download method.
         :param iid:
@@ -55,7 +62,7 @@ class TextDownloader(utils.LoggedInViewPages, TestCase):
 
         return tr
 
-    def txt_download_task_retrieve(iid):
+    def txt_download_task_retrieve(self, iid):
         """
         Using taskResult to manage the celery tasks
         :return:
@@ -91,9 +98,6 @@ class TextDownloader(utils.LoggedInViewPages, TestCase):
             # This template is broken on purpose and will throw an error
             response = self.client.get(reverse('aristotle:download', args=['txt', dec.id]))
 
-
-    @patch('text_download_test.downloader.TestTextDownloader.download.delay', txt_download_cache)
-    @patch('aristotle_mdr.views.downloads.async_result', txt_download_task_retrieve)
     def test_logged_in_user_text_download_initiates(self):
         """
         Tests the failing txt download
@@ -116,8 +120,9 @@ class TextDownloader(utils.LoggedInViewPages, TestCase):
         # Initiating 2nd download
         TextDownloader.result = None
         response = self.client.get(reverse('aristotle:download', args=['txt', self.de.id]))
+        self.assertTrue(self.patcher1.called)
         self.assertRedirects(response, reverse('aristotle:preparing_download', args=[self.de.id]))
-
+        self.assertTrue(self.patcher2.called)
         self.assertEqual(response.status_code, 302)
 
 
