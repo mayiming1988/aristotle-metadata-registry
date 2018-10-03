@@ -49,7 +49,6 @@ function fill_aristotle_notification_menu(data) {
             }
             
             let divider = document.createElement('li')
-            divider.role = 'presentation'
             divider.className = 'divider'
             menu.append(divider)
 
