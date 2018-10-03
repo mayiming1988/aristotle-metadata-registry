@@ -161,6 +161,14 @@ describe('tagsModal', function() {
     assert.equal(emitted['saved-tags'].length, 2)
     assert.equal(emitted['saved-tags'][1][0], tags)
   })
+
+  it('updates user tags when tags saved', () => {
+    let tags = ['ok', 'not so good', 'amazing', 'sweet']
+    let newusertags = ['amazing', 'very good', 'sweet', 'ok', 'not so good']
+    wrapper.vm.update_saved_tags(tags)
+    assert.deepEqual(wrapper.vm.saved_tags, tags)
+    assert.deepEqual(wrapper.vm.user_tags, newusertags)
+  })
 })
 
 describe('submitTags', function() {
@@ -205,7 +213,11 @@ describe('submitTags', function() {
     let tags = JSON.parse(params.get('tags'))
     assert.deepEqual(tags, ['wow', 'amazing', 'good'])
 
+    // Check message and emit
     assertSingleMessage('Tags updated')
+    let emitted = wrapper.emitted()
+    assert.equal(emitted['tags-saved'].length, 1)
+    assert.deepEqual(emitted['tags-saved'][0][0], ['wow', 'amazing', 'good'])
 
     // Cleanup dom
     document.getElementById('messages-row').remove()

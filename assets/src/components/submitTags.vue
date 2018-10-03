@@ -21,12 +21,12 @@ export default {
       $.post(
         url,
         data,
-        function(data) {
+        (data) => {
           addHeaderMessage(data.message)
+          this.$emit('tags-saved', tags)
         }
       )
 
-      this.$emit('tags-saved', tags)
     },
   }
 }

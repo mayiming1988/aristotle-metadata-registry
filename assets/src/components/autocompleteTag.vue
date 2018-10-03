@@ -18,7 +18,7 @@ export default {
     newTags: function() {
       var newTags = []
       for (var element of this.current_tags) {
-        if (this.user_tags.indexOf(element) == -1) {
+        if (!this.user_tags.includes(element)) {
           newTags.push(element)
         }
       }
@@ -30,7 +30,7 @@ export default {
       var suggestions = []
       for (var element of this.user_tags) {
         // Add to suggestions if not in current tags
-        if (this.current_tags.indexOf(element) == -1) {
+        if (!this.current_tags.includes(element)) {
           suggestions.push(element)
         }
       }

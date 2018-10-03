@@ -44,6 +44,13 @@ export default {
     },
     update_saved_tags: function(tags) {
       this.saved_tags = tags
+
+      for (let tag of tags) {
+        if (!this.user_tags.includes(tag)) {
+          this.user_tags.push(tag)
+        }
+      }
+
       this.$emit('saved-tags', this.saved_tags)
     },
     emitClose: function() {
