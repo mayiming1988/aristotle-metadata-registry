@@ -13,6 +13,7 @@ module.exports = {
   entry: entries,
   output: {
     filename: '[name]-[Contenthash].js',
+    chunkFilename: '[name]-[Contenthash].js',
     path: path.resolve(__dirname, 'dist/bundles'),
   },
   module: {
@@ -35,6 +36,7 @@ module.exports = {
         use: 'vue-loader'
       },
       {
+        // Load .js files with babel
         test: /\.m?js$/,
         exclude: /node_modules\/(?!vue-simple-suggest)/,
         use: [{
@@ -47,7 +49,8 @@ module.exports = {
                   useBuiltIns: 'entry'
                 }
               ]
-            ]
+            ],
+            plugins: ["@babel/plugin-syntax-dynamic-import"]
           }
         }]
           //loader: 'eslint-loader',
@@ -57,7 +60,7 @@ module.exports = {
           //}
       },
       {
-        test: /\.woff2?$|\.ttf$|\.eot$|\.svg$/,
+        test: /\.woff2?$|\.ttf$|\.eot$|\.svg$|\.png$/,
         use: [{
           loader: 'file-loader',
           options: {
@@ -66,6 +69,7 @@ module.exports = {
         }]
       },
       {
+        // Compile less and process css
         test: /\.less$/,
         use: [
           MiniCssExtractPlugin.loader,
@@ -74,6 +78,7 @@ module.exports = {
         ]
       },
       {
+        // Process and extract
         test: /\.css$/,
         use: [
           MiniCssExtractPlugin.loader,
@@ -85,15 +90,20 @@ module.exports = {
   plugins: [
     // Clean dist folder before builds
     new CleanWebpackPlugin(['dist']),
+    // Load .vue files
     new VueLoaderPlugin(),
     new webpack.ProvidePlugin({
       // Provide $ and jQuery to scripts, no need to import
       $: "jquery",
       jQuery: "jquery"
     }),
+    // Ignore all locale files of moment.js
+    new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+    // Extract css to .css files
     new MiniCssExtractPlugin({
       filename: '[name]-[contenthash].css'
     }),
+    // Required for django-webpack-loader
     new BundleTracker({
       path: __dirname, 
       filename: './dist/webpack-stats.json'
@@ -102,11 +112,15 @@ module.exports = {
   optimization: {
     splitChunks: {
       cacheGroups: {
+        vendors: {
+          chunks: 'async',
+          test: /[\\/]node_modules[\\/]/,
+        },
         common: {
           name: 'common',
           chunks: 'all',
           minChunks: Object.keys(entries).length - 1
-        }
+        },
       }
     }
   },

@@ -3,6 +3,7 @@ import { initChangeStatus } from '../lib/changeStatus.js'
 import favouriteComponent from '../components/favourite.vue'
 import simpleList from '../components/simpleList.vue'
 import tagsModal from '../components/tagsModal.vue'
+import linksDisplay from '../components/linksDisplay.vue'
 
 import Vue from 'vue'
 
@@ -25,7 +26,8 @@ export function initItemPage() {
     components: {
       'simple-list': simpleList,
       'favourite': favouriteComponent,
-      'tags-modal': tagsModal
+      'tags-modal': tagsModal,
+      'links-display': linksDisplay
     },
     data: {
       saved_tags: [],
