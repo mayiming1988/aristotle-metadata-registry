@@ -42,7 +42,7 @@
             <i class="fa fa-fw fa-sitemap"></i> {% trans 'Check component states'%}
         </a></li>
         {% endif %}
-        {% if 'aristotle_mdr.contrib.links'|is_active_module %}
+        {% if 'aristotle_mdr.contrib.links'|is_active_extension %}
             {% include "aristotle_mdr_links/actions/add_link_action.html" %}
         {% endif %}
       </ul>
