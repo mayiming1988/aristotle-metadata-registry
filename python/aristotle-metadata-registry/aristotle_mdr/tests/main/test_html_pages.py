@@ -1479,10 +1479,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
                    'txt/csv',
                    [('Content-Disposition', 'attachment; filename="{}.csv"'.format(item.name))]))
 
-        tr = store_taskresult('456-789-123-{}'.format(iid), 'Test Task {}'.format(iid), user)
-        tr.save()
-
-        return tr
+        return store_taskresult()
 
     def csv_download_task_retrieve(self, iid):
         if not ValueDomainViewPage.result:

@@ -17,7 +17,7 @@ from aristotle_bg_workers.helpers import store_task
 from django_tools.unittest_utils.BrowserDebug import debug_response
 
 from time import sleep
-
+import random
 
 def wait_for_signal_to_fire(seconds=1):
     sleep(seconds)
@@ -801,13 +801,13 @@ class AsyncResultMock:
         return result
 
 
-def store_taskresult(id, name, user, status='SUCCESS'):
-
+def store_taskresult(status='SUCCESS'):
+    iid = ''.join(random.SystemRandom().choice('abcdefghijklmnopqrstuvwxyz0123456789-') for i in range(10))
     tr = TaskResult.objects.create(
-        task_id=id,
+        task_id=iid,
         status=status
     )
-
+    tr.save()
     return tr
 
 def get_download_result(iid):

@@ -92,10 +92,7 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
             'view': properties['view'].lower(),
             'pagesize': properties['page_size'],
         }), 'application/pdf'))
-        tr = store_taskresult('789-123-456-{}'.format(iid), 'Test Task {}'.format(iid), user)
-        tr.save()
-
-        return tr
+        return store_taskresult()
 
     def pdf_download_task_retrieve(self, iid):
         if not LoggedInViewConceptPages.result:

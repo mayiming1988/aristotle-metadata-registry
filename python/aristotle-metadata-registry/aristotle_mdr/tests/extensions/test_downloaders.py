@@ -59,10 +59,7 @@ class TextDownloader(utils.LoggedInViewPages, TestCase):
         txt = template.render(context)
 
         cache.set(download_utils.get_download_cache_key(iid, user), (txt, 'text/plain'))
-        tr = store_taskresult('123-456-789-{}'.format(iid), 'Test Task {}'.format(iid), user)
-        tr.save()
-
-        return tr
+        return store_taskresult()
 
     def txt_download_task_retrieve(self, iid):
         """

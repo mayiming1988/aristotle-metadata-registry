@@ -116,18 +116,7 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
     def txt_bulk_download_cache(self, properties, iids):
         TestTextDownloader.bulk_download(properties, iids)
 
-        User = get_user_model()
-        user = properties.get('user', None)
-        if user and user != str(AnonymousUser()):
-            user = User.objects.get(email=user)
-        else:
-            user = AnonymousUser()
-
-
-        tr = store_taskresult('321-456-789-{}'.format(properties['url_id']), 'Test Task {}'.format(properties['url_id']), user)
-        tr.save()
-
-        return tr
+        return store_taskresult()
 
 
     def txt_download_task_retrieve(self, iid):
@@ -209,7 +198,9 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
                     "download_type": self.download_type,
                 }
             )+"?title=The%20title"+"&items=%s&items=%s"%(self.item1.id, self.item4.id)
-        )
+        , fetch_redirect_response=False)
+
+
 
     def test_content_exists_in_bulk_txt_download_on_permitted_items(self):
         self.login_editor()
