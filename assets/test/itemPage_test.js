@@ -196,7 +196,14 @@ describe('submitTags', function() {
     this.server.respond()
 
     assert.equal(this.server.requests.length, 1)
-    assert.equal(this.server.requests[0].url, '/submittags')
+    let request = this.server.requests[0]
+    assert.equal(request.url, '/submittags')
+    assert.equal(request.method, 'POST')
+
+    // Check submitted tags
+    let params = new URLSearchParams(request.requestBody)
+    let tags = JSON.parse(params.get('tags'))
+    assert.deepEqual(tags, ['wow', 'amazing', 'good'])
 
     assertSingleMessage('Tags updated')
 
