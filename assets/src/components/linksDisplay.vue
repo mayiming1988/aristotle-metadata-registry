@@ -1,5 +1,5 @@
 <template>
-  <div class="panel panel-default" style="margin:0 10%;">
+  <div :hidden="!show" class="panel panel-default" style="margin:0 10%;">
       <div class="panel-heading">
           <h3 class="panel-title">Graphical representation</h3>
       </div>
@@ -18,21 +18,24 @@
 <script>
 export default {
   props: ['url'],
-  created: function() {
-    $.getJSON(this.url, function( data ) {
-
+  data: () => ({
+    show: false
+  }),
+  mounted: function() {
+    $.getJSON(this.url, (data) => {
+        let linkdata = data
         // Import vis async just before we need it. It's a big library
-        import('vis').then(vis => {
-          var nodes = new vis.DataSet(data['nodes']);
-          var edges = new vis.DataSet(data['edges']);
+        import('vis').then((vis) => {
+          let nodes = new vis.DataSet(data['nodes']);
+          let edges = new vis.DataSet(data['edges']);
         
           // create a network
-          var container = document.getElementById('network');
-          var data = {
+          let container = document.getElementById('network');
+          let final_data = {
             nodes: nodes,
             edges: edges
           };
-          var options = {
+          let options = {
               "clickToUse": true,
               "nodes": {
                 "shape": 'box'
@@ -63,7 +66,12 @@ export default {
                   }
               }
           };
-          var network = new vis.Network(container, data, options);
+          var network = new vis.Network(container, final_data, options);
+
+          // Now show the component
+          if (!this.show) {
+            this.show = true
+          }
         })
     })
   }

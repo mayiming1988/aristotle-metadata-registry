@@ -15,6 +15,8 @@ module.exports = {
     filename: '[name]-[Contenthash].js',
     chunkFilename: '[name]-[Contenthash].js',
     path: path.resolve(__dirname, 'dist/bundles'),
+    // Required so webpack knows where to async load chucks from
+    publicPath: '/static/bundles/'
   },
   module: {
     rules: [

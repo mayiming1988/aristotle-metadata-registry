@@ -67,6 +67,6 @@
 {% endif %}
 
 {% if item|get_links %}
-<links-display v-cloak url="{% url 'aristotle_mdr_links:link_json_for_item' iid=item.id %}">
+<links-display url="{% url 'aristotle_mdr_links:link_json_for_item' iid=item.id %}">
 </links-display>
 {% endif %}
