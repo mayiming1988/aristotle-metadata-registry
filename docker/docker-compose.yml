@@ -62,7 +62,7 @@ services:
 
   worker:
     <<: *django
-    command: tail -f /dev/null  #&& sh ./docker/sh/entrypoint/worker.sh
+    command: sh ./docker/sh/entrypoint/worker.sh
     links:
       - redis
     volumes:

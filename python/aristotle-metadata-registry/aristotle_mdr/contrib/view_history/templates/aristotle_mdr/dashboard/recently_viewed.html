@@ -13,7 +13,8 @@ This page shows a history of all metadata you have viewed, you can clear your
 history by clicking the "Clear history" button below.
 </div>
 
-<a href="" class="btn btn-primary">Clear History</a>
+<a href="{% url 'clear_all_recently_viewed_metadata' %}" class="btn btn-primary"
+    data-toggle="modal" data-target="#clear_history">Clear History</a>
 
 
 <table class="table">
@@ -110,5 +111,7 @@ history by clicking the "Clear history" button below.
 </tbody>
 </table>
 {% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
+
+{% bootstrap_modal "clear_history" size='md' %}
 
 {% endblock %}

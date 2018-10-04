@@ -69,6 +69,26 @@ def in_workgroup(user, workgroup):
 
 
 @register.filter
+def can_change_status(item, user):
+    """
+    A filter that acts as a wrapper around ``aristotle_mdr.perms.can_change_status``.
+    Returns true if the user has permission to change status the item, otherwise it returns False.
+    If calling ``user_can_change_status`` throws an exception it safely returns False.
+
+    For example::
+
+      {% if myItem|can_change_status:request.user %}
+        {{ item }}
+      {% endif %}
+    """
+    # return perms.can_change_status(user, item)
+    try:
+        return perms.user_can_change_status(user, item)
+    except:  # pragma: no cover -- passing a bad item or user is the template authors fault
+        return None
+
+
+@register.filter
 def can_edit(item, user):
     """
     A filter that acts as a wrapper around ``aristotle_mdr.perms.user_can_edit``.

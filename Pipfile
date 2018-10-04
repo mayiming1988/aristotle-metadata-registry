@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = "==1.11.12"
+django = "==1.11.16"
 django-haystack = "==2.7.0"
 aristotle-metadata-registry = {path = "./python/aristotle-metadata-registry", editable = true}
 aristotle-dataset-extensions = {path = "./python/aristotle-dataset-extensions", editable = true}
