@@ -12,7 +12,7 @@ from aristotle_mdr.views import get_if_user_can_view
 from aristotle_mdr import models as MDR
 from django.contrib.auth import get_user_model
 from aristotle_mdr.tests.utils import store_taskresult, get_download_result
-
+from aristotle_mdr.tests.apps.text_download_test.downloader import TestTextDownloader
 from unittest import skip
 
 from mock import patch
@@ -29,11 +29,11 @@ class TextDownloader(utils.LoggedInViewPages, TestCase):
         super(TextDownloader, self).setUp()
         TextDownloader.txt_download_type = "txt"
         TextDownloader.result = None
-        self.patcher1 = patch('text_download_test.downloader.TestTextDownloader.download')
+        self.patcher1 = patch('text_download_test.downloader.TestTextDownloader.download.delay')
         self.patcher2 = patch('aristotle_mdr.views.downloads.async_result')
         self.downloader_download = self.patcher1.start()
         self.async_result = self.patcher2.start()
-        self.downloader_download.delay.side_effect = self.txt_download_cache
+        self.downloader_download.side_effect = self.txt_download_cache
         self.async_result.side_effect = self.txt_download_task_retrieve
 
     def tearDown(self):
@@ -46,19 +46,7 @@ class TextDownloader(utils.LoggedInViewPages, TestCase):
         :param iid:
         :return:
         """
-        # retrieving a viewer user
-        User = get_user_model()
-        user = User.objects.get(email=props['user'])
-
-        item = MDR._concept.objects.get_subclass(pk=iid)
-        item = get_if_user_can_view(item.__class__, user, iid)
-
-        template = get_download_template_path_for_item(item, TextDownloader.txt_download_type)
-        template = select_template([template])
-        context = {'item': item}
-        txt = template.render(context)
-
-        cache.set(download_utils.get_download_cache_key(iid, user), (txt, 'text/plain'))
+        TestTextDownloader.download(props, iid)
         return store_taskresult()
 
     def txt_download_task_retrieve(self, iid):
@@ -112,6 +100,8 @@ class TextDownloader(utils.LoggedInViewPages, TestCase):
 
         TextDownloader.result = None
         response = self.client.get(reverse('aristotle:download', args=['txt', self.oc.id]))
+        self.assertEqual(len(self.downloader_download.mock_calls), 1)
+        self.assertTrue(self.downloader_download.called)
 
         # This template does not exist on purpose and will throw an error
         self.assertEqual(response.status_code, 404)
@@ -119,20 +109,25 @@ class TextDownloader(utils.LoggedInViewPages, TestCase):
         # Initiating 2nd download
         TextDownloader.result = None
         response = self.client.get(reverse('aristotle:download', args=['txt', self.de.id]))
-        self.assertTrue(self.downloader_download.delay.called)
+        self.assertEqual(len(self.downloader_download.mock_calls), 2)
         self.assertRedirects(response, reverse('aristotle:preparing_download', args=[self.de.id]))
         self.assertTrue(self.async_result.called)
+        self.assertEqual(len(self.downloader_download.mock_calls), 2)
+        self.assertEqual(len(self.async_result.mock_calls), 1)
         self.assertEqual(response.status_code, 302)
-
 
         # calling the preparing download page to see if the download is available complete
         response = self.client.get(reverse('aristotle:preparing_download', args=[self.de.id]))
+        self.assertTrue(self.async_result.called)
+        self.assertEqual(len(self.async_result.mock_calls), 2)
 
         # TODO: Test if the functions are called.
         self.assertRedirects(response, reverse('aristotle:start_download', args=[self.de.id]), fetch_redirect_response=False)
         response = self.client.get(response.url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.de.definition)
+        self.assertTrue(self.async_result.called)
+        self.assertEqual(len(self.async_result.mock_calls), 3)
 
         # Initiating 3rd download
         TextDownloader.result = None
