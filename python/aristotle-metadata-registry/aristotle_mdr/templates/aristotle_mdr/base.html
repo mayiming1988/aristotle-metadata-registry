@@ -21,13 +21,13 @@
       <link rel="icon" type="image/png" href="{% static 'aristotle_mdr/images/favicon.png' %}"/>
       <title>{% block title %}{% endblock %} - {{ config.SITE_NAME }}</title>
 
-    {% include 'aristotle_mdr/scripts.html' %}
-
     {# Webpack split chunk #}
     {% render_bundle 'common' 'css' %}
 
     {% block webpack_css_bundle %}
     {% endblock %}
+
+    {% include 'aristotle_mdr/scripts.html' %}
 
     {% block extra_head_scripts %}
         {% comment %}
