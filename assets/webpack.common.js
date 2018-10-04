@@ -6,6 +6,7 @@ const CleanWebpackPlugin = require('clean-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 var BundleTracker  = require('webpack-bundle-tracker')
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 
 const entries = entry('./src/pages/*.js')
 
@@ -109,6 +110,10 @@ module.exports = {
     new BundleTracker({
       path: __dirname, 
       filename: './dist/webpack-stats.json'
+    }),
+    // Create report.html
+    new BundleAnalyzerPlugin({
+      analyzerMode: 'static'
     })
   ],
   optimization: {
