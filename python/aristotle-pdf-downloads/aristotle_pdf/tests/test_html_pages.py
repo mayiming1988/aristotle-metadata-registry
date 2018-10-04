@@ -15,15 +15,10 @@ from aristotle_mdr.utils import setup_aristotle_test_environment
 setup_aristotle_test_environment()
 
 from aristotle_mdr.tests import utils
-from django.contrib.auth import get_user_model
-from aristotle_mdr import models as MDR
-from aristotle_mdr.views import get_if_user_can_view
-from aristotle_pdf.downloader import get_download_template_path_for_item, PDFDownloader, render_to_pdf
-from aristotle_mdr.utils import downloads as download_utils
+from aristotle_pdf.downloader import  PDFDownloader
 from aristotle_mdr.tests.utils import store_taskresult, get_download_result
-from django.core.cache import cache
 
-from mock import patch, MagicMock
+from mock import patch
 
 
 def setUpModule():
@@ -56,14 +51,12 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         )
 
         # Setting up patches
-        download_mock = MagicMock(name='downloader')
-        download_mock.delay.side_effect=self.pdf_download_cache
-        celery_result = MagicMock(name='async_result')
-        celery_result.side_effect = self.pdf_download_task_retrieve
-        self.patcher1 = patch('aristotle_pdf.downloader.PDFDownloader.download', new=download_mock)
-        self.patcher2 = patch('aristotle_mdr.views.downloads.async_result', new=celery_result)
+        self.patcher1 = patch('aristotle_pdf.downloader.PDFDownloader.download.delay')
+        self.patcher2 = patch('aristotle_mdr.views.downloads.async_result')
         self.downloader_download = self.patcher1.start()
         self.async_result = self.patcher2.start()
+        self.downloader_download.side_effect = self.pdf_download_cache
+        self.async_result.side_effect = self.pdf_download_task_retrieve
 
     def tearDown(self):
         # Tearing down patches
@@ -71,27 +64,7 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         self.patcher2.stop()
 
     def pdf_download_cache(self, properties, iid):
-        User = get_user_model()
-        user = properties['user']
-        user = User.objects.get(email=user)
-
-        item = MDR._concept.objects.get_subclass(pk=iid)
-        item = get_if_user_can_view(item.__class__, user, iid)
-        template = get_download_template_path_for_item(item, PDFDownloader.download_type)
-
-        sub_items = [
-            (obj_type, qs.visible(user).order_by('name').distinct())
-            for obj_type, qs in item.get_download_items()
-        ]
-
-        cache.set(download_utils.get_download_cache_key(iid, user), (render_to_pdf(template, {
-            'title': "PDF Download for {obj.name}".format(obj=item),
-            'item': item,
-            'subitems': sub_items,
-            'tableOfContents': len(sub_items) > 0,
-            'view': properties['view'].lower(),
-            'pagesize': properties['page_size'],
-        }), 'application/pdf'))
+        PDFDownloader.download(properties, iid)
         return store_taskresult()
 
     def pdf_download_task_retrieve(self, iid):
@@ -107,7 +80,7 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         self.assertEqual(response.status_code,200)
         self.assertEqual(len(response.redirect_chain), 1)
         self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=[self.item1.id]))
-        self.assertTrue(self.downloader_download.delay.called)
+        self.assertTrue(self.downloader_download.called)
         self.assertTrue(self.async_result.called)
 
         response = self.client.get(reverse('aristotle:preparing_download', args=[self.item1.id]), follow=True)
@@ -121,7 +94,7 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         self.assertEqual(response.status_code,200)
         self.assertEqual(len(response.redirect_chain), 1)
         self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=[self.item2.id]))
-        self.assertTrue(self.downloader_download.delay.called)
+        self.assertTrue(self.downloader_download.called)
         self.assertTrue(self.async_result.called)
 
         response = self.client.get(reverse('aristotle:preparing_download', args=[self.item2.id]), follow=True)
@@ -137,7 +110,7 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         self.assertEqual(response.status_code,200)
         self.assertEqual(len(response.redirect_chain), 1)
         self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=[self.item1.id]))
-        self.assertTrue(self.downloader_download.delay.called)
+        self.assertTrue(self.downloader_download.called)
         self.assertTrue(self.async_result.called)
 
         response = self.client.get(reverse('aristotle:preparing_download', args=[self.item1.id]), follow=True)
@@ -157,14 +130,17 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         self.assertEqual(response.status_code,200)
         self.assertEqual(len(response.redirect_chain), 1)
         self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=[self.item1.id]))
-        self.assertTrue(self.downloader_download.delay.called)
+        self.assertTrue(self.downloader_download.called)
         self.assertTrue(self.async_result.called)
+        self.assertEqual(len(self.downloader_download.mock_calls), 1)
+        self.assertEqual(len(self.async_result.mock_calls), 1)
 
         response = self.client.get(reverse('aristotle:preparing_download',args=[self.item1.id]), follow=True)
         self.assertEqual(response.status_code,200)
         self.assertEqual(len(response.redirect_chain), 1)
         self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:start_download', args=[self.item1.id]))
         self.assertTrue(self.async_result.called)
+        self.assertEqual(len(self.async_result.mock_calls), 3)
 
         LoggedInViewConceptPages.result = None
         response = self.client.get(reverse('aristotle:download',args=['pdf',self.item2.id]))

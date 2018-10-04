@@ -6,6 +6,7 @@ from django.db.models.fields import CharField, TextField
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
+from aristotle_mdr.downloader import CSVDownloader
 import aristotle_mdr.contrib.identifiers.models as ident_models
 from aristotle_mdr.utils import url_slugify_concept
 from aristotle_mdr.forms.creation_wizards import (
@@ -15,15 +16,10 @@ from aristotle_mdr.forms.creation_wizards import (
 from aristotle_mdr.tests import utils
 import datetime
 
-from aristotle_mdr.utils import setup_aristotle_test_environment, downloads as download_utils
+from aristotle_mdr.utils import setup_aristotle_test_environment
 from aristotle_mdr.tests.utils import store_taskresult, get_download_result
-from django.contrib.auth import get_user_model
-from aristotle_mdr import models as MDR
-from aristotle_mdr.views import get_if_user_can_view
-from django.core.cache import cache
+
 from mock import patch
-import io
-import csv
 
 from aristotle_mdr.templatetags.aristotle_tags import get_dataelements_from_m2m
 
@@ -1456,29 +1452,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         self.assertTrue(num_vals == getattr(self.item1,value_type+"Values").count())
 
     def csv_download_cache(self, properties, iid):
-        User = get_user_model()
-        user = properties.get('user')
-        user = User.objects.get(email=user)
-
-        item = MDR._concept.objects.get_subclass(pk=iid)
-        item = get_if_user_can_view(item.__class__, user, iid)
-
-        mem_file = io.StringIO()
-        writer = csv.writer(mem_file)
-        writer.writerow(['value', 'meaning', 'start date', 'end date', 'role'])
-        for v in item.permissibleValues.all():
-            writer.writerow(
-                [v.value, v.meaning, v.start_date, v.end_date, "permissible"]
-            )
-        for v in item.supplementaryValues.all():
-            writer.writerow(
-                [v.value, v.meaning, v.start_date, v.end_date, "supplementary"]
-            )
-        cache.set(download_utils.get_download_cache_key(iid, user),
-                  (mem_file,
-                   'txt/csv',
-                   [('Content-Disposition', 'attachment; filename="{}.csv"'.format(item.name))]))
-
+        CSVDownloader.download(properties, iid)
         return store_taskresult()
 
     def csv_download_task_retrieve(self, iid):
@@ -1487,10 +1461,10 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
             ValueDomainViewPage.result = get_download_result(iid)
         return ValueDomainViewPage.result
 
-    @patch('aristotle_mdr.downloader.CSVDownloader.download')
+    @patch('aristotle_mdr.downloader.CSVDownloader.download.delay')
     @patch('aristotle_mdr.views.downloads.async_result')
     def test_su_can_download_csv(self, async_result, downloader_download):
-        downloader_download.delay.side_effect = self.csv_download_cache
+        downloader_download.side_effect = self.csv_download_cache
         async_result.side_effect = self.csv_download_task_retrieve
 
         self.login_superuser()
@@ -1498,7 +1472,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         response = self.client.get(reverse('aristotle:download',args=['csv-vd',self.item1.id]), follow=True)
         self.assertEqual(response.status_code,200)
         self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=[self.item1.id]))
-        self.assertTrue(downloader_download.delay.called)
+        self.assertTrue(downloader_download.called)
         self.assertTrue(async_result.called)
 
         response = self.client.get(reverse('aristotle:preparing_download', args=[self.item1.id]), follow=True)
@@ -1510,7 +1484,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         response = self.client.get(reverse('aristotle:download',args=['csv-vd',self.item2.id]), follow=True)
         self.assertEqual(response.status_code,200)
         self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=[self.item2.id]))
-        self.assertTrue(downloader_download.delay.called)
+        self.assertTrue(downloader_download.called)
         self.assertTrue(async_result.called)
 
         response = self.client.get(reverse('aristotle:preparing_download', args=[self.item2.id]), follow=True)
@@ -1518,10 +1492,10 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:start_download', args=[self.item2.id]))
         self.assertTrue(async_result.called)
 
-    @patch('aristotle_mdr.downloader.CSVDownloader.download')
+    @patch('aristotle_mdr.downloader.CSVDownloader.download.delay')
     @patch('aristotle_mdr.views.downloads.async_result')
     def test_editor_can_download_csv(self, async_result, downloader_download):
-        downloader_download.delay.side_effect = self.csv_download_cache
+        downloader_download.side_effect = self.csv_download_cache
         async_result.side_effect = self.csv_download_task_retrieve
 
         self.login_editor()
@@ -1529,7 +1503,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item1.id]), follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=[self.item1.id]))
-        self.assertTrue(downloader_download.delay.called)
+        self.assertTrue(downloader_download.called)
         self.assertTrue(async_result.called)
 
         response = self.client.get(reverse('aristotle:preparing_download', args=[self.item1.id]), follow=True)
@@ -1541,10 +1515,10 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item2.id]))
         self.assertEqual(response.status_code, 403)
 
-    @patch('aristotle_mdr.downloader.CSVDownloader.download')
+    @patch('aristotle_mdr.downloader.CSVDownloader.download.delay')
     @patch('aristotle_mdr.views.downloads.async_result')
     def test_viewer_can_download_csv(self, async_result, downloader_download):
-        downloader_download.delay.side_effect = self.csv_download_cache
+        downloader_download.side_effect = self.csv_download_cache
         async_result.side_effect = self.csv_download_task_retrieve
 
         self.login_viewer()
@@ -1552,7 +1526,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item1.id]), follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=[self.item1.id]))
-        self.assertTrue(downloader_download.delay.called)
+        self.assertTrue(downloader_download.called)
         self.assertTrue(async_result.called)
 
         response = self.client.get(reverse('aristotle:preparing_download', args=[self.item1.id]), follow=True)
