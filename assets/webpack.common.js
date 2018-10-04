@@ -13,11 +13,14 @@ const entries = entry('./src/pages/*.js')
 module.exports = {
   entry: entries,
   output: {
-    filename: '[name]-[Contenthash].js',
-    chunkFilename: '[name]-[Contenthash].js',
+    filename: '[name]-[chunkhash].js',
+    chunkFilename: '[name]-[chunkhash].js',
     path: path.resolve(__dirname, 'dist/bundles'),
     // Required so webpack knows where to async load chucks from
-    publicPath: '/static/bundles/'
+    publicPath: '/static/bundles/',
+    hashDigest: 'hex',
+    hashDigestLength: 16,
+    hashFunction: 'sha256'
   },
   module: {
     rules: [
@@ -63,11 +66,11 @@ module.exports = {
           //}
       },
       {
-        test: /\.woff2?$|\.ttf$|\.eot$|\.svg$|\.png$/,
+        test: /\.woff2?$|\.ttf$|\.eot$|\.svg$|\.png$|\.jpg$/,
         use: [{
           loader: 'file-loader',
           options: {
-            name: '[name].[ext]'
+            name: '[name]-[sha256:hash:hex:16].[ext]'
           }
         }]
       },
