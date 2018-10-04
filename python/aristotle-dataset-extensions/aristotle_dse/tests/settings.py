@@ -5,6 +5,7 @@ from aristotle_mdr.required_settings import INSTALLED_APPS
 INSTALLED_APPS = (
     # The good stuff
     'aristotle_dse',
+    'aristotle_mdr.contrib.links',
 ) + INSTALLED_APPS
 
 ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] = ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] +['aristotle_dse']
