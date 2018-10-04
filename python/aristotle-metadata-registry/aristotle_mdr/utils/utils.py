@@ -303,7 +303,7 @@ def is_active_extension(extension_name):
     active = False
 
     if 'CONTENT_EXTENSIONS' in aristotle_settings:
-        active = extension_name in aristotle_settings
+        active = extension_name in aristotle_settings['CONTENT_EXTENSIONS']
 
     return active
 
