@@ -120,7 +120,7 @@ INSTALLED_APPS = (
 
     'constrainedfilefield',
 
-    'webpack_loader'
+    'webpack_loader',
     'aristotle_bg_workers',
     'django_celery_results',
 )
