@@ -49,10 +49,15 @@ defaults:
     stage: accessibility
     language: python
     install:
-      - nvm install 8.12.0
       - pip install codecov coveralls
       - pip install 'tox>=3.0'
+      - nvm install 8.12.0
     python: 3.6
+    before_script:
+      - cd assets
+      - npm install
+      - npm build
+      - cd .. 
     script: ./scripts/tox_if.sh dj1.11-linux-ally-$ALLY-module_amr
 
   - &deploy_stage
@@ -100,7 +105,6 @@ matrix:
       before_install:
         - cd assets
       install:
-        - pip install --user awscli
         - npm install
       script:
         - npm run test
