@@ -288,26 +288,24 @@ def fetch_metadata_apps():
     return aristotle_apps
 
 
-def is_active(item, group, check_apps):
-    aristotle_settings = fetch_aristotle_settings()
-
-    active = False
-    if group in aristotle_settings:
-        active = item in aristotle_settings[group]
-
-    if check_apps:
-        in_apps = item in settings.INSTALLED_APPS
-        return active and in_apps
-    else:
-        return active
-
-
 def is_active_module(module_name):
-    return is_active(module_name, 'MODULES', True)
+    aristotle_settings = fetch_aristotle_settings()
+    in_apps = module_name in settings.INSTALLED_APPS
+
+    if 'MODULES' in aristotle_settings:
+        return in_apps and module_name in aristotle_settings['MODULES']
+    else:
+        return in_apps
 
 
 def is_active_extension(extension_name):
-    return is_active(extension_name, 'CONTENT_EXTENSIONS', False)
+    aristotle_settings = fetch_aristotle_settings()
+    active = False
+
+    if 'CONTENT_EXTENSIONS' in aristotle_settings:
+        active = extension_name in aristotle_settings
+
+    return active
 
 
 def fetch_aristotle_downloaders():
