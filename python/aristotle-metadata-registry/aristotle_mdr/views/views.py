@@ -249,7 +249,7 @@ def not_found(request, path):
 
 def handler500(request, *args, **argv):
     return render(request, '500.html')
-    
+
 
 def create_list(request):
     if request.user.is_anonymous():
