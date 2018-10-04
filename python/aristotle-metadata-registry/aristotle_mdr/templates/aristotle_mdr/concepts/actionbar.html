@@ -28,9 +28,11 @@
         <li><a class="" href="{% url 'aristotle:request_review' item.id %}" data-toggle="modal" data-target="#infobox_adv_edit">
             <i class="fa fa-fw fa-flag"></i> {% trans 'Submit for review'%}
         </a></li>
+        {% if item|can_change_status:request.user %}
         <li><a class="" href="{% url 'aristotle:changeStatus' item.id %}" data-toggle="modal" data-target="#infobox_adv_edit">
             <i class="fa fa-fw fa-university"></i> {% trans 'Change registration status'%}
         </a></li>
+        {% endif %}
         {% comment %}
         <li><a class="" href="{% url 'aristotle:clone_item' item.id %}">
             <i class="fa fa-fw fa-flag-checkered"></i> {% trans 'View review history'%}

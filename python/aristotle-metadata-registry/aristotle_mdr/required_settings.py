@@ -121,6 +121,8 @@ INSTALLED_APPS = (
     'constrainedfilefield',
 
     'webpack_loader'
+    'aristotle_bg_workers',
+    'django_celery_results',
 )
 
 USE_L10N = True
