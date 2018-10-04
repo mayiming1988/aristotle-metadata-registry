@@ -16,7 +16,10 @@ class ConceptAutocompleteBase(object):
             url = 'aristotle-autocomplete:concept'
         kwargs.update(
             url=url,
-            attrs={'data-html': 'true'}
+            attrs={
+                'class': 'aristotle-select2',
+                'data-html': 'true'
+            }
         )
         super().__init__(*args, **kwargs)
 
