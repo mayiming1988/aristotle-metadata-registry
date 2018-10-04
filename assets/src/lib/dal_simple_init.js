@@ -3,36 +3,56 @@ import { getCSRF } from './cookie.js'
 import 'select2/dist/js/select2.full.js'
 import 'select2/dist/css/select2.css'
 
+
 export function initDAL() {
   $('[data-autocomplete-light-function=select2]').each(function() {
       var element = $(this);
 
-      // Templating helper
-      function template(text, is_html) {
-          if (is_html) {
+      // Templating result
+      function template_result(item) {
+          if (!item.body) {
+              return item.text;
+          }
+          if (element.attr('data-html') !== undefined) {
               var $result = $('<span>');
-              $result.html(text);
+              $result.html(item.body);
+              /* inserted for Aristotle */
+              $result.on('mouseup', '.ac_preview_link', function(e) {
+                  e.stopPropagation();
+                  //return false;
+              });
+              /* end insert */
               return $result;
           } else {
-              return text;
+              return item.body;
           }
       }
 
-      function result_template(item) {
-          return template(item.text,
-              element.attr('data-html') !== undefined || element.attr('data-result-html') !== undefined
-          );
-      }
+      // Templating selected item
+      function template_selection(item) {
+          if (!item.body) {
+              return item.text;
+          }
+          if (element.attr('data-html') !== undefined) {
+              var $result = $('<span>');
+              $result.html(item.body);
+              /* inserted for Aristotle */
+              /* end insert */
+              var title = $result.find(".title")
+              if (title.length > 0) {
+                  var $title = $(title[0]);
+                  $title.on('mouseup', '.ac_preview_link', function(e) {
+                      e.stopPropagation();
+                      //return false;
+                  });
 
-      function selected_template(item) {
-          if (item.selected_text !== undefined) {
-              return template(item.selected_text,
-                  element.attr('data-html') !== undefined || element.attr('data-selected-html') !== undefined
-              );
+                  return $title
+              } else {
+                  return item.title;
+              }
           } else {
-              return result_template(item);
+              return item.title;
           }
-          return
       }
 
       var ajax = null;
@@ -73,8 +93,8 @@ export function initDAL() {
           language: element.attr('data-autocomplete-light-language'),
           minimumInputLength: element.attr('data-minimum-input-length') || 0,
           allowClear: ! $(this).is('[required]'),
-          templateResult: result_template,
-          templateSelection: selected_template,
+          templateResult: template_result,
+          templateSelection: template_selection,
           ajax: ajax,
           tags: Boolean(element.attr('data-tags')),
       });
