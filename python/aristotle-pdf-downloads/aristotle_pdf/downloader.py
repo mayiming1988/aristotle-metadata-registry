@@ -107,11 +107,11 @@ class PDFDownloader(DownloaderBase):
             'user': None,
             'title': request.GET.get('title', None).strip() or 'Auto-generated document',
             'subtitle': request.GET.get('subtitle', None),
-            'debug_as_html': request.GET.get('html', ''),
+            'debug_as_html': request.GET.get('html', False),
             'page_size': request.GET.get('pagesize', None),
             # TODO: will fail for parallel download for a single user
             # if this document is title is not specified for more than one documents. Use items instead
-            'url_id': request.GET.get('title', None) or 'Auto-generated document'
+            'url_id': request.GET.get('title', None) or 'Auto-generated document',
         }
         if user:
             properties['user'] = str(user)
@@ -152,7 +152,10 @@ class PDFDownloader(DownloaderBase):
 
         subItems = []
 
-        debug_as_html = bool(properties.get('html', ''))
+        debug_as_html = bool(properties.get('debug_as_html'))
+        mime_type = 'application/pdf'
+        if debug_as_html:
+            mime_type = 'text/html'
         cache.set(download_utils.get_download_cache_key(properties['url_id'], user), (render_to_pdf(
                     template,
                     {
@@ -167,7 +170,7 @@ class PDFDownloader(DownloaderBase):
                     },
                     preamble_template='aristotle_mdr/downloads/pdf/bulk_download_title.html',
                     debug_as_html=debug_as_html
-                    ), 'application/pdf')
+                    ), mime_type)
                   )
         return title
 
@@ -202,7 +205,7 @@ def render_to_pdf(template_src, context_dict,
     html = template.render(context_dict)
 
     if debug_as_html:
-        return HttpResponse(html)
+        return html
 
     document = weasyprint.HTML(
         string=template.render(context_dict),
