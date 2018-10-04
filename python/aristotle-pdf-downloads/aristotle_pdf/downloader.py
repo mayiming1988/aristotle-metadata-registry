@@ -89,7 +89,7 @@ class PDFDownloader(DownloaderBase):
             'tableOfContents': len(sub_items) > 0,
             'view': properties['view'].lower(),
             'pagesize': properties['page_size'],
-        }), 'application/pdf'))
+        }), 'application/pdf', {}))
 
         return iid
 
@@ -170,7 +170,7 @@ class PDFDownloader(DownloaderBase):
                     },
                     preamble_template='aristotle_mdr/downloads/pdf/bulk_download_title.html',
                     debug_as_html=debug_as_html
-                    ), mime_type)
+                    ), mime_type, {})
                   )
         return title
 

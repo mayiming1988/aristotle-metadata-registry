@@ -175,9 +175,12 @@ def get_async_download(request, identifier):
     :param identifier:
     :return:
     """
-    # TODO: purge this method in favor of supporting the files to
-    res_id = request.session.get('download_res_key', 'no_key')
-    if res_id == 'no_key':
+    debug = getattr(settings, 'DEBUG')
+    try:
+        res_id = request.session['download_res_key']
+    except KeyError:
+        if debug:
+            raise
         logger.exception('There is no key for request')
         raise Http404
     del request.session['download_res_key']
@@ -190,17 +193,21 @@ def get_async_download(request, identifier):
             exc = job.get(propagate=False)
             logger.exception('Task {0} raised exception: {1!r}\n{2!r}'.format(
                 res_id, exc, job.traceback))
-            raise Http404
+            return HttpResponseServerError
+
     job.forget()
     # TODO: Consider moving constant strings in a config or settings file
-    response_properties = cache.get(download_utils.get_download_cache_key(identifier, request=request), ('not_cached', ''))
-    doc = response_properties[0]
-    mime_type = response_properties[1]
-    if doc == 'not_cached':
+    try:
+        doc, mime_type, properties = cache.get(download_utils.get_download_cache_key(identifier, request=request), (None, '', ''))
+    except ValueError:
+        if debug:
+            raise
+        logger.exception('Should unpack 3 values from the cache', ValueError)
+        return HttpResponseServerError
+    if not doc:
         # TODO: Need a design to avoid loop and refactor this to redirect to preparing-download
-        raise Http404
+        return HttpResponseServerError
     response = HttpResponse(doc, content_type=mime_type)
-    if len(response_properties) > 2:
-        for key, value in response_properties[2]:
-            response[key] = value
+    for key, value in properties:
+        response[key] = value
     return response

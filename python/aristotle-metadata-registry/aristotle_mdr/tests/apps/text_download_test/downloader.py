@@ -49,7 +49,7 @@ class TestTextDownloader(DownloaderBase):
         template = select_template([template])
         context = {'item': item}
         txt = template.render(context)
-        cache.set(download_utils.get_download_cache_key(iid, user), (txt, 'text/plain'))
+        cache.set(download_utils.get_download_cache_key(iid, user), (txt, 'text/plain', {}))
         return item
 
     @classmethod
@@ -106,6 +106,6 @@ class TestTextDownloader(DownloaderBase):
                 }
                 out.append(template.render(context))
 
-        cache.set(download_utils.get_download_cache_key(properties['url_id'], user), ("\n\n".join(out), 'text/plain'))
+        cache.set(download_utils.get_download_cache_key(properties['url_id'], user), ("\n\n".join(out), 'text/plain', {}))
 
         return True
