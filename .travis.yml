@@ -56,7 +56,7 @@ defaults:
     before_script:
       - cd assets
       - npm install
-      - npm build
+      - npm run build
       - cd .. 
     script: ./scripts/tox_if.sh dj1.11-linux-ally-$ALLY-module_amr
 
