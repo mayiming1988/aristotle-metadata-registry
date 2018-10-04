@@ -50,7 +50,6 @@ class TestWebPageAccessibilityBase(utils.LoggedInViewPages):
         # Verify the static files are in the right place.
         assert('admin' in dir_listing)
         assert('aristotle_mdr' in dir_listing)
-        assert('COMPILED' in dir_listing)
         print("All setup")
 
     def pages_tester(self, pages, media_types=MEDIA_TYPES):
