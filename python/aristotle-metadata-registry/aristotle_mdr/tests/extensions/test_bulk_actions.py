@@ -101,11 +101,11 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
     def setUp(self):
         super().setUp()
         BulkDownloadTests.result = None
-        self.patcher1 = patch('text_download_test.downloader.TestTextDownloader.bulk_download')
+        self.patcher1 = patch('text_download_test.downloader.TestTextDownloader.bulk_download.delay')
         self.patcher2 = patch('aristotle_mdr.views.downloads.async_result')
         self.downloader_download = self.patcher1.start()
         self.async_result = self.patcher2.start()
-        self.downloader_download.delay.side_effect = self.txt_bulk_download_cache
+        self.downloader_download.side_effect = self.txt_bulk_download_cache
         self.async_result.side_effect = self.txt_download_task_retrieve
 
     def tearDown(self):
@@ -224,16 +224,16 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
         self.assertEqual(len(response.redirect_chain), 1)
         self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=["The title"]))
         self.assertTrue(self.async_result.called)
-        self.assertTrue(self.downloader_download.delay.called)
-        self.assertEqual(len(self.downloader_download.delay.mock_calls), 1)
+        self.assertTrue(self.downloader_download.called)
+        self.assertEqual(len(self.downloader_download.mock_calls), 1)
         self.assertEqual(len(self.async_result.mock_calls), 1)
 
         response = self.client.get(reverse('aristotle:preparing_download', args=["The title"]), follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.redirect_chain), 1)
         self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:start_download', args=["The title"]))
-        self.assertTrue(self.downloader_download.delay.called)
-        self.assertEqual(len(self.downloader_download.delay.mock_calls), 1)
+        self.assertTrue(self.downloader_download.called)
+        self.assertEqual(len(self.downloader_download.mock_calls), 1)
         self.assertEqual(len(self.async_result.mock_calls), 3)
 
         self.assertContains(response, self.item1.name)

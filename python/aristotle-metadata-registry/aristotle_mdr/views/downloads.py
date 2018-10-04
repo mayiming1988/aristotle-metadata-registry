@@ -147,8 +147,8 @@ def prepare_async_download(request, identifier):
     :param identifier: id being used to resolve the download
     :return: appropriate HTTP response object
     """
-    res_id = request.session.get('download_res_key', 'no_key')
-    if res_id == 'no_key':
+    res_id = request.session.get('download_res_key', None)
+    if not res_id:
         raise Http404
     job = async_result(res_id)
     template = 'aristotle_mdr/downloads/creating_download.html'

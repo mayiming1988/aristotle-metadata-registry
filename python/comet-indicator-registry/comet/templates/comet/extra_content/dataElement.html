@@ -1,7 +1,7 @@
 {% load aristotle_tags %}
 
 <h3>Use in indicators</h3>
-{% if item.as_numerator.exists or item.as_denominator.exists or item.as_disaggregator.exists %}
+{% if item.as_numerator.exists  or item.denominators.exists or item.disaggregators.exists %}
     This data element is included in the following Indicators, some indicators may be hidden based on your current permissions.
     {% if item.as_numerator.exists %}
     <h4>As a numerator</h4>

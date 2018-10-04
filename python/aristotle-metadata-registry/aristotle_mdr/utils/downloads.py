@@ -30,11 +30,14 @@ def get_download_cache_key(identifier, user_pk=None, request=None):
     :param request: session request
     :return: string with a unique id
     """
+    key = ''
     if user_pk:
-        return '{}:{}'.format(identifier, user_pk)
+        key= '{}:{}'.format(identifier, user_pk)
     elif request:
         user = getattr(request, 'user', None)
         unique_key = str(user)
-        return '{}:{}'.format(identifier, unique_key)
+        key= '{}:{}'.format(identifier, unique_key)
     else:
-        return '{}'.format(identifier)
+        key = '{}'.format(identifier)
+
+    return key
