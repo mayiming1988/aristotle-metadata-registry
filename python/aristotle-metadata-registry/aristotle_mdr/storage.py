@@ -1,8 +1,11 @@
 from django.contrib.staticfiles.storage import ManifestStaticFilesStorage
+from django.conf import settings
 from urllib.parse import unquote, urldefrag, urlsplit, urlunsplit
 
 import hashlib
 import re
+import os
+import json
 
 
 class CustomManifestStaticFilesStorage(ManifestStaticFilesStorage):
@@ -38,3 +41,28 @@ class CustomManifestStaticFilesStorage(ManifestStaticFilesStorage):
                 return name
 
         return super().hashed_name(name, content, filename)
+
+    # Locally stored manifest
+    def read_manifest(self):
+        manifest_location = os.path.abspath(os.path.join(settings.BASE_DIR, self.manifest_name))
+        try:
+            with open(manifest_location) as manifest:
+                return manifest.read()
+        except IOError:
+            return None
+
+    def save_manifest(self):
+        manifest_location = os.path.abspath(os.path.join(settings.BASE_DIR, self.manifest_name))
+        print('Saving to {}'.format(manifest_location))
+        payload = {'paths': self.hashed_files, 'version': self.manifest_version}
+
+        if os.path.isfile(manifest_location):
+            os.remove(manifest_location)
+
+        contents = json.dumps(payload)
+
+        try:
+            with open(manifest_location, 'w') as manifest:
+                manifest.write(contents)
+        except IOError:
+            print('Error writing manifest file')
