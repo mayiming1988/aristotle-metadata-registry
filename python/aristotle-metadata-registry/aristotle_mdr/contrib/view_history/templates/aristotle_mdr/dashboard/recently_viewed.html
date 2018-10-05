@@ -32,10 +32,7 @@ history by clicking the "Clear history" button below.
         </th>
         <th>{% trans 'Details' %}</th>
         <th>{% trans 'Statuses' %}</th>
-        {% if delete %}
-          <th>{% trans 'Delete' %}</th>
-        {% endif %}
-
+        <th title="{% trans 'Remove' %}"></th>
     </tr>
 </thead>
 <tbody>
@@ -96,14 +93,15 @@ history by clicking the "Clear history" button below.
             {% endfor %}</small>
             </ul>
         </td>
-        {% if delete %}
-          <td>
-            <a class="btn btn-default delete-button" href="{% url 'aristotle:sandbox_delete' %}?item={{ item.id }}" data-toggle='modal' data-target='#delete-modal' data-item-id="{{ item.id }}" data-item-name="{{ item.name }}">
-              Delete
-              <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-            </a>
-          </td>
-        {% endif %}
+        <td>
+            <form method="POST" action="{% url 'delete_recently_viewed_metadata_item' pk=recent.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-default">
+                  <i class="fa fa-times" aria-hidden="true" title="Remove item from history"></i>
+                  <span class="sr-only">Remove item from history</span>
+                </a>
+            </form>
+        </td>
     </tr>
     {% endwith %}
     {% endfor %}
