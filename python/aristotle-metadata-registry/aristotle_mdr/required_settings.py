@@ -162,11 +162,6 @@ STATICFILES_DIRS = [
 
 ADMIN_MEDIA_PREFIX = '/static/admin/'
 
-if DEBUG:  # pragma: no cover
-    # Testing forces DEBUG=False, so this will never get tested
-    STATIC_PRECOMPILER_CACHE_TIMEOUT = 1
-    STATIC_PRECOMPILER_DISABLE_AUTO_COMPILE = False
-
 BOOTSTRAP3 = {
     # The Bootstrap base URL
     'base_url': '/static/aristotle_mdr/bootstrap/',
@@ -253,10 +248,6 @@ HAYSTACK_CONNECTIONS = {
     },
 }
 
-STATIC_PRECOMPILER_COMPILERS = (
-    ('static_precompiler.compilers.LESS', {"executable": "lesscpy"}),
-)
-
 ORGS_SLUGFIELD = 'autoslug.fields.AutoSlugField'
 
 # User Model
@@ -291,3 +282,5 @@ if DEBUG:
     WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = os.path.join(REPO_BASE_DIR, 'assets/dist/webpack-stats.json')
 else:
     WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = os.path.join(BASE_DIR, 'webpack-stats-prod.json')
+
+MANIFEST_DIR = BASE_DIR

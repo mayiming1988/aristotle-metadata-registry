@@ -11,7 +11,7 @@ import json
 class LocalManifestMixin:
 
     def __init__(self, *args, **kwargs):
-        self.manifest_location = os.path.abspath(os.path.join(settings.BASE_DIR, self.manifest_name))
+        self.manifest_location = os.path.join(settings.MANIFEST_DIR, self.manifest_name)
         super().__init__(*args, **kwargs)
 
     # Locally stored manifest
