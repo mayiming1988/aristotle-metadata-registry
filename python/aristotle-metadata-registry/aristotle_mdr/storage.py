@@ -1,4 +1,4 @@
-from django.contrib.staticfiles.storage import ManifestStaticFilesStorage
+from django.contrib.staticfiles.storage import ManifestFilesMixin, StaticFilesStorage
 from django.conf import settings
 from urllib.parse import unquote, urldefrag, urlsplit, urlunsplit
 
@@ -8,8 +8,37 @@ import os
 import json
 
 
-class CustomManifestStaticFilesStorage(ManifestStaticFilesStorage):
+class LocalManifestMixin:
 
+    def __init__(self, *args, **kwargs):
+        self.manifest_location = os.path.abspath(os.path.join(settings.BASE_DIR, self.manifest_name))
+        super().__init__(*args, **kwargs)
+
+    # Locally stored manifest
+    def read_manifest(self):
+        try:
+            with open(self.manifest_location) as manifest:
+                return manifest.read()
+        except IOError:
+            return None
+
+    def save_manifest(self):
+        print('Saving to {}'.format(self.manifest_location))
+        payload = {'paths': self.hashed_files, 'version': self.manifest_version}
+
+        if os.path.isfile(self.manifest_location):
+            os.remove(self.manifest_location)
+
+        contents = json.dumps(payload)
+
+        try:
+            with open(self.manifest_location, 'w') as manifest:
+                manifest.write(contents)
+        except IOError:
+            print('Error writing manifest file')
+
+
+class SelectiveHashingMixin:
     # Use a 16 length sha256 hash
     def file_hash(self, name, content=None):
         """
@@ -42,27 +71,9 @@ class CustomManifestStaticFilesStorage(ManifestStaticFilesStorage):
 
         return super().hashed_name(name, content, filename)
 
-    # Locally stored manifest
-    def read_manifest(self):
-        manifest_location = os.path.abspath(os.path.join(settings.BASE_DIR, self.manifest_name))
-        try:
-            with open(manifest_location) as manifest:
-                return manifest.read()
-        except IOError:
-            return None
 
-    def save_manifest(self):
-        manifest_location = os.path.abspath(os.path.join(settings.BASE_DIR, self.manifest_name))
-        print('Saving to {}'.format(manifest_location))
-        payload = {'paths': self.hashed_files, 'version': self.manifest_version}
-
-        if os.path.isfile(manifest_location):
-            os.remove(manifest_location)
-
-        contents = json.dumps(payload)
-
-        try:
-            with open(manifest_location, 'w') as manifest:
-                manifest.write(contents)
-        except IOError:
-            print('Error writing manifest file')
+class CustomManifestStaticFilesStorage(LocalManifestMixin,
+                                       SelectiveHashingMixin,
+                                       ManifestFilesMixin,
+                                       StaticFilesStorage):
+    pass
