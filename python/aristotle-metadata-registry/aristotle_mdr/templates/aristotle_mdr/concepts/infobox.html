@@ -126,8 +126,8 @@
                             <span title="{% trans 'The registration authority that applied this relationship' %}">
                               {{ rel.registration_authority.name }}
                             </span>,
-                          {{ rel.date_effective }} -
-                          {{ rel.message }}
+                          {{ rel.date_effective }}
+                          {% if rel.message %} - {{ rel.message }} {% endif %}
                           </li>
                         {% endfor %}
                       </ul>
