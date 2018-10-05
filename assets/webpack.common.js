@@ -13,8 +13,8 @@ const entries = entry('./src/pages/*.js')
 module.exports = {
   entry: entries,
   output: {
-    filename: '[name]-[chunkhash].js',
-    chunkFilename: '[name]-[chunkhash].js',
+    filename: '[name]-[contenthash].bundle.js',
+    chunkFilename: '[name]-[contenthash].bundle.js',
     path: path.resolve(__dirname, 'dist/bundles'),
     // Required so webpack knows where to async load chucks from
     publicPath: '/static/bundles/',
@@ -107,7 +107,7 @@ module.exports = {
     new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
     // Extract css to .css files
     new MiniCssExtractPlugin({
-      filename: '[name]-[contenthash].css'
+      filename: '[name]-[contenthash].bundle.css'
     }),
     // Required for django-webpack-loader
     new BundleTracker({
