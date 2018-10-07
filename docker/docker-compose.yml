@@ -57,6 +57,14 @@ services:
       - db
       - redis
 
+  webpack:
+    tty: false
+    working_dir: /usr/src/app/aristotle-metadata-registry/assets
+    image: node:8.12
+    command: npm run installandwatch
+    volumes:
+        - ../../:/usr/src/app
+
   worker:
     image: aristotle_metadata_registry:dev
     command: celery worker --app=aristotle_bg_workers --without-heartbeat
