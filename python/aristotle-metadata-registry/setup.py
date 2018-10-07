@@ -93,7 +93,10 @@ setup(
         'geoip2',
 
         # Webpack loading
-        'django-webpack-loader'
+        'django-webpack-loader',
+
+        # Storages
+        'django-storages'
 
     ],
 
