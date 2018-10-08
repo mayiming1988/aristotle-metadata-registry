@@ -15,7 +15,7 @@ from aristotle_mdr.contrib.generic.views import (
 urlpatterns = [
     url(r'^item/(?P<iid>\d+)/datasetspecification/(?P<name_slug>.+)/?$', DatasetSpecificationView.as_view(), name='datasetspecification'),
 
-    url(r'^dse/',  include([
+    url(r'^dse/', include([
         
         url(r'^remove/deFromDss/(?P<de_id>\d+)/(?P<dss_id>\d+)', views.RemoveDEFromDSS.as_view(), name='removeDataElementFromDSS'),
         url(r'^remove/clusterFromDss/(?P<cluster_id>\d+)/(?P<dss_id>\d+)', views.RemoveClusterFromDSS.as_view(), name='removeClusterFromDSS'),
