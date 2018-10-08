@@ -1,6 +1,6 @@
 Changelog
 
-- 2.1.x
+- 2.2
   - Aristotle MDR core
     - Fixed bug where Workgroups showed incorrectly in dropdowns #901
     - Fixed bug where users of IE and Edge couldn't properly use select2 dropdowns #894
@@ -8,9 +8,13 @@ Changelog
     - Added help for new search tokens #887 that covers status and identifier search
     - Fix for dataset order display and reordering
     - Update logout redirect to home with a message
-    - Increase text lenght for submitting organisation and responsible organisation fields
+    - Increase text length for submitting organisation and responsible organisation fields
     - Efficiency impovements on list pages
     - Dependancy updates
+    - Manage and bundle static files with webpack
+    - Use django-webpack-loader to load .css and .js bundles
+    - Addition of background workers packages
+    - Updated docker-compose file
 
 - 2.1.3
     - Identifier and Namespace searching
