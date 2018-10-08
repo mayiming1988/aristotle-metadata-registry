@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "1085fa2ed891e45a11096ff91d9abbfe1210c8baa4327d136038db28a8e32857"
+            "sha256": "d584708dfd683a08687372e34fdb2e81f0f8b0766f419964cd1c95453fe862bc"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,34 +16,7 @@
         ]
     },
     "default": {
-        "0d47240": {
-            "editable": true,
-            "path": "./python/aristotle-bg-workers"
-        },
-        "437c906": {
-            "editable": true,
-            "path": "./python/aristotle-glossary"
-        },
-        "5352e90": {
-            "editable": true,
-            "path": "./python/comet-indicator-registry"
-        },
-        "56c015b": {
-            "editable": true,
-            "path": "./python/aristotle-metadata-registry"
-        },
-        "5799a6d": {
-            "editable": true,
-            "path": "./python/aristotle-mdr-graphql"
-        },
-        "5bb15f9": {
-            "editable": true,
-            "path": "./python/aristotle-pdf-downloads"
-        },
-        "a4c1046": {
-            "editable": true,
-            "path": "./python/mallard-questionnaire-registry"
-        },
+
         "amqp": {
             "hashes": [
                 "sha256:073dd02fdd73041bffc913b767866015147b61f2a9bc104daef172fc1a0066eb",
@@ -92,10 +65,7 @@
             ],
             "version": "==3.5.0.4"
         },
-        "ca8a1ed": {
-            "editable": true,
-            "path": "./python/aristotle-mdr-api"
-        },
+
         "cairocffi": {
             "hashes": [
                 "sha256:15386c3a9e08823d6826c4491eaccc7b7254b1dc587a3b9ce60c350c3f990337"
@@ -414,10 +384,7 @@
             "index": "pypi",
             "version": "==5.5.3"
         },
-        "fc411cc": {
-            "editable": true,
-            "path": "./python/aristotle-dataset-extensions"
-        },
+
         "geoip2": {
             "hashes": [
                 "sha256:a37ddac2d200ffb97c736da8b8ba9d5d8dc47da6ec0f162a461b681ecac53a14",
