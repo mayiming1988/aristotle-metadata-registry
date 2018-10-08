@@ -7,6 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from .models import UserViewHistory
 
+
 class RecentlyViewedView(LoginRequiredMixin, ListView):
     template_name = "aristotle_mdr/dashboard/recently_viewed.html"
     context_object_name = "page"
@@ -40,4 +41,3 @@ class RemoveRecentlyViewedView(LoginRequiredMixin, DeleteView):
         out = super().delete(request, *args, **kwargs)
         messages.add_message(request, messages.SUCCESS, _("Item removed from view history."))
         return out
-
