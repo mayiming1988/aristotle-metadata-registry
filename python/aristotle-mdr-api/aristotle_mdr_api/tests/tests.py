@@ -11,6 +11,7 @@ from rest_framework.test import APIClient
 import json
 
 
+@override_settings(JSONFORMS_SCHEMA_VALIDATE=False)
 class TokenTestCase(utils.LoggedInViewPages, TestCase):
 
     def setUp(self):
