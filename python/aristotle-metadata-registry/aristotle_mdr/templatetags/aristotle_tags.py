@@ -69,6 +69,26 @@ def in_workgroup(user, workgroup):
 
 
 @register.filter
+def can_change_status(item, user):
+    """
+    A filter that acts as a wrapper around ``aristotle_mdr.perms.can_change_status``.
+    Returns true if the user has permission to change status the item, otherwise it returns False.
+    If calling ``user_can_change_status`` throws an exception it safely returns False.
+
+    For example::
+
+      {% if myItem|can_change_status:request.user %}
+        {{ item }}
+      {% endif %}
+    """
+    # return perms.can_change_status(user, item)
+    try:
+        return perms.user_can_change_status(user, item)
+    except:  # pragma: no cover -- passing a bad item or user is the template authors fault
+        return None
+
+
+@register.filter
 def can_edit(item, user):
     """
     A filter that acts as a wrapper around ``aristotle_mdr.perms.user_can_edit``.
@@ -405,3 +425,28 @@ def get_dataelements_from_m2m(ded, field_name):
         de_list.append(through_item.data_element)
 
     return de_list
+
+
+@register.filter
+def distinct_workgroups_count(user):
+
+    wgs = set()
+    roles = ['submitter_in', 'viewer_in', 'steward_in', 'workgroup_manager_in']
+    for role in roles:
+        manager = getattr(user, role)
+        for wg in manager.all():
+            wgs.add(wg.id)
+
+    return len(wgs)
+
+
+@register.filter
+def distinct_members_count(workgroup):
+    users = set()
+    roles = ['submitters', 'viewers', 'stewards', 'managers']
+    for role in roles:
+        manager = getattr(workgroup, role)
+        for user in manager.all():
+            users.add(user.id)
+
+    return len(users)

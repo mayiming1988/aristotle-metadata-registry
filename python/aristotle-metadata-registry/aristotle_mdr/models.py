@@ -11,7 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from model_utils.models import TimeStampedModel
 from model_utils import Choices, FieldTracker
-from aristotle_mdr.contrib.channels.utils import fire
+from aristotle_mdr.contrib.async_signals.utils import fire
 import uuid
 
 import reversion  # import revisions
@@ -30,6 +30,7 @@ from aristotle_mdr.utils import (
 )
 from aristotle_mdr import comparators
 
+from jsonfield import JSONField
 from .fields import (
     ConceptForeignKey,
     ConceptManyToManyField,
@@ -82,7 +83,7 @@ class baseAristotleObject(TimeStampedModel):
         help_text=_("Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries"),
         unique=True, default=uuid.uuid1, editable=False, null=False
     )
-    name = models.TextField(
+    name = ShortTextField(
         help_text=_("The primary name used for human identification purposes.")
     )
     definition = RichTextField(
@@ -214,6 +215,13 @@ class Organization(registryGroup):
         return url_slugify_organization(self)
 
 
+RA_ACTIVE_CHOICES = Choices(
+    (0, 'active', _('Active & Visible')),
+    (1, 'inactive', _('Inactive & Visible')),
+    (2, 'hidden', _('Inactive & Hidden'))
+)
+
+
 class RegistrationAuthority(Organization):
     """
     8.1.2.5 - Registration_Authority class
@@ -225,13 +233,10 @@ class RegistrationAuthority(Organization):
     (8.1.5.1) association class.
     """
     template = "aristotle_mdr/organization/registrationAuthority.html"
-    active = models.BooleanField(
-        default=True,
-        choices=(
-            (True, 'True'),
-            (False, 'False')
-        ),
-        help_text='<div id="active-alert" class="alert alert-warning" role="alert">Setting this to False will disable all further registration actions</div>'
+    active = models.IntegerField(
+        choices=RA_ACTIVE_CHOICES,
+        default=RA_ACTIVE_CHOICES.active,
+        help_text=_('Setting this to Inactive will disable all further registration actions')
     )
     locked_state = models.IntegerField(
         choices=STATES,
@@ -390,7 +395,7 @@ class RegistrationAuthority(Organization):
         return {'success': [item], 'failed': []}
 
     def _register(self, item, state, user, *args, **kwargs):
-        if self.active:
+        if self.active is RA_ACTIVE_CHOICES.active:
             changeDetails = kwargs.get('changeDetails', "")
             # If registrationDate is None (like from a form), override it with
             # todays date.
@@ -430,6 +435,14 @@ class RegistrationAuthority(Organization):
     @property
     def members(self):
         return (self.managers.all() | self.registrars.all()).distinct()
+
+    @property
+    def is_active(self):
+        return self.active == RA_ACTIVE_CHOICES.active
+
+    @property
+    def is_visible(self):
+        return not self.active == RA_ACTIVE_CHOICES.hidden
 
 
 @receiver(post_save, sender=RegistrationAuthority)
@@ -628,14 +641,18 @@ class _concept(baseAristotleObject):
     references = RichTextField(blank=True)
     origin_URI = models.URLField(
         blank=True,
-        help_text="If imported, the original location of the item"
+        help_text=_("If imported, the original location of the item")
+    )
+    origin = RichTextField(
+        help_text=_("The source (e.g. document, project, discipline or model) for the item (8.1.2.2.3.5)"),
+        blank=True
     )
     comments = RichTextField(
         help_text=_("Descriptive comments about the metadata item (8.1.2.2.3.4)"),
         blank=True
     )
-    submitting_organisation = models.CharField(max_length=256, blank=True)
-    responsible_organisation = models.CharField(max_length=256, blank=True)
+    submitting_organisation = ShortTextField(blank=True)
+    responsible_organisation = ShortTextField(blank=True)
 
     superseded_by = ConceptForeignKey(
         'self',
@@ -1021,9 +1038,10 @@ class ConceptualDomain(concept):
     description = models.TextField(
         _('description'),
         blank=True,
-        help_text=('Description or specification of a rule, reference, or '
-                   'range for a set of all value meanings for a Conceptual '
-                   'Domain')
+        help_text=_(
+            ('Description or specification of a rule, reference, or '
+             'range for a set of all value meanings for a Conceptual Domain')
+        )
     )
     serialize_weak_entities = [
         ('value_meaning', 'valuemeaning_set'),
@@ -1051,12 +1069,12 @@ class ValueMeaning(aristotleComponent):
     start_date = models.DateField(
         blank=True,
         null=True,
-        help_text='Date at which the value meaning became valid'
+        help_text=_('Date at which the value meaning became valid')
     )
     end_date = models.DateField(
         blank=True,
         null=True,
-        help_text='Date at which the value meaning ceased to be valid'
+        help_text=_('Date at which the value meaning ceased to be valid')
     )
 
     def __str__(self):
@@ -1170,12 +1188,12 @@ class AbstractValue(aristotleComponent):
     start_date = models.DateField(
         blank=True,
         null=True,
-        help_text='Date at which the value became valid'
+        help_text=_('Date at which the value became valid')
     )
     end_date = models.DateField(
         blank=True,
         null=True,
-        help_text='Date at which the value ceased to be valid'
+        help_text=_('Date at which the value ceased to be valid')
     )
 
     def __str__(self):
@@ -1403,7 +1421,32 @@ class PossumProfile(models.Model):
 
     @property
     def myWorkgroups(self):
-        return self.workgroups.filter(archived=False)
+        return (
+            self.user.viewer_in.all() |
+            self.user.submitter_in.all() |
+            self.user.steward_in.all() |
+            self.user.workgroup_manager_in.all()
+        ).filter(archived=False).distinct()
+
+    @property
+    def myWorkgroupCount(self):
+        # When only a count is required, querying with union is much faster
+        vi = self.user.viewer_in.filter(archived=False)
+        si = self.user.submitter_in.filter(archived=False)
+        sti = self.user.steward_in.filter(archived=False)
+        mi = self.user.workgroup_manager_in.filter(archived=False)
+        return vi.union(si).union(sti).union(mi).count()
+
+    @property
+    def mySandboxContent(self):
+        return _concept.objects.filter(
+            Q(
+                submitter=self.user,
+                statuses__isnull=True
+            ) & Q(
+                Q(review_requests__isnull=True) | Q(review_requests__status=REVIEW_STATES.cancelled)
+            )
+        )
 
     @property
     def editable_workgroups(self):
@@ -1453,6 +1496,21 @@ class PossumProfile(models.Model):
             self.favourites.remove(item)
         else:
             self.favourites.add(item)
+
+
+class SandboxShare(models.Model):
+    uuid = models.UUIDField(
+        help_text=_("Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries"),
+        unique=True, default=uuid.uuid1, editable=False, null=False
+    )
+    profile = models.OneToOneField(
+        PossumProfile,
+        related_name='share'
+    )
+    created = models.DateTimeField(
+        auto_now=True
+    )
+    emails = JSONField()
 
 
 def create_user_profile(sender, instance, created, **kwargs):

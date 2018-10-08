@@ -19,10 +19,10 @@
         {% for ra in registrationAuthorities %}
         <li>
         <a 
-          {% if not ra.active %}class="text-muted"{% endif %} 
+          {% if not ra.is_active %}class="text-muted"{% endif %} 
           href="{% url 'aristotle:registrationAuthority' ra.id '' %}">
               {{ ra.name }}
-              {% if not ra.active %}
+              {% if not ra.is_active %}
                 (inactive)
               {% endif %}
         </a>

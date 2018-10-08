@@ -633,7 +633,7 @@ class LoggedInViewPages(object):
                 raise
 
     def assertDelayedEqual(self, *args):
-        # This is useful when testing channels.
+        # This is useful when testing async code.
         # If updates aren't done in 1+2+3+4= 10seconds, then there is a problem.
         self.assertEqual(*args)
         return
@@ -648,8 +648,19 @@ class LoggedInViewPages(object):
 
 
 class FormsetTestUtils:
+    """Utilities to help create formset post data"""
 
     def get_formset_postdata(self, datalist, prefix='form', initialforms=0):
+        """
+        Get postdata for a formset
+
+        Arguments:
+            datalist: List of form dictionaries to be posted
+
+        Keyword Arguments:
+            prefix: Formsets prefix
+            initialforms: number of forms initialy rendered
+        """
 
         postdata = {}
         # Add data
@@ -674,3 +685,68 @@ class FormsetTestUtils:
         postdata.update(extra_postdata)
         response = self.client.post(url, postdata)
         return response
+
+
+class GeneralTestUtils:
+    """General test utilities to assist with common unit test functionality"""
+
+    def _status_check(self, response, kwargs):
+        if 'status_code' in kwargs:
+            self.assertEqual(response.status_code, kwargs['status_code'])
+
+    def _get_url(self, url_name, kwargs):
+        if 'reverse_args' in kwargs:
+            return reverse(url_name, args=kwargs['reverse_args'])
+        else:
+            return reverse(url_name)
+
+    def _reverse_request(self, function, url_name, *args, **kwargs):
+        url = self._get_url(url_name, kwargs)
+        request_function = getattr(self.client, function)
+        response = request_function(url, *args, **kwargs)
+        self._status_check(response, kwargs)
+        return response
+
+    def reverse_get(self, *args, **kwargs):
+        """
+        Get by reverse url
+
+        Arguments:
+        url_name -- named url to reverse
+        Standard client.get args
+
+        Extra Keyword Arguments:
+        reverse_args -- args list to use during reverse
+        status_code -- expected status code of response
+        """
+        return self._reverse_request('get', *args, **kwargs)
+
+    def reverse_post(self, *args, **kwargs):
+        """
+        Post by reverse url
+
+        Arguments:
+        url_name -- named url to reverse
+        Standard client.post args
+
+        Extra Keyword Arguments:
+        reverse_args -- args list to use during reverse
+        status_code -- expected status code of response
+        """
+        return self._reverse_request('post', *args, **kwargs)
+
+    def assertContext(self, response, key, value):
+        """Check that a key and value are in context"""
+        context = response.context
+        self.assertTrue(key in context)
+        self.assertEqual(context[key], value)
+
+    def assertInContext(self, response, key):
+        """Check that a key is in context"""
+        context = response.context
+        self.assertTrue(key in context)
+
+
+class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils, FormsetTestUtils):
+    """Combination of the above 3 utils for easy usage"""
+    pass

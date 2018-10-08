@@ -1,7 +1,15 @@
 {% load aristotle_tags %}
 
 {% if item %}
-    <a class="itemLink" href="{{ item.get_absolute_url }}">
+    {% if share_uuid %}
+      {% if shared_items or item.id in shared_ids %}
+        <a class="itemLink" href="{% url 'aristotle_mdr:sharedSandboxItem' share_uuid item.id %}">
+      {% else %}
+        <a class="itemLink" href="{{ item.get_absolute_url }}">
+      {% endif %}
+    {% else %}
+      <a class="itemLink" href="{{ item.get_absolute_url }}">
+    {% endif %}
     {% if space %}
         {% zws item.name %}
     {% else %}
