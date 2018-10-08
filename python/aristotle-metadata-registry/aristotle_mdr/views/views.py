@@ -212,7 +212,10 @@ class ConceptRenderMixin:
     def get_item(self):
         itemid = self.kwargs[self.itemid_arg]
         queryset = self.get_queryset()
-        return queryset.get(pk=itemid)
+        if queryset is not None:
+            return queryset.get(pk=itemid)
+        else:
+            return None
 
     def get_related(self, model):
         """Return a queryset fetching related concepts"""
@@ -254,7 +257,7 @@ class ConceptRenderMixin:
         name_correct = (slugify(item.name) == name_slug)
 
         if not model_correct or not name_correct:
-            return True, url_slugify_concept(self.item)
+            return True, url_slugify_concept(item)
         else:
             return False, ''
 
