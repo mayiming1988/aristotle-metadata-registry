@@ -215,7 +215,7 @@ class ConceptRenderMixin:
         if queryset is not None:
             return queryset.get(pk=itemid)
         else:
-            return None
+            return MDR._concept.objects.get_subclass(id=itemid)
 
     def get_related(self, model):
         """Return a queryset fetching related concepts"""
@@ -241,23 +241,18 @@ class ConceptRenderMixin:
         return self.request.user
 
     def get_redirect(self):
-        if self.item is None:
-            itemid = self.kwargs[self.itemid_arg]
-            item = MDR._concept.objects.get_subclass(id=itemid)
-        else:
-            item = self.item
 
         if not self.modelslug_arg:
             model_correct = True
         else:
             model_slug = self.kwargs.get(self.modelslug_arg, '')
-            model_correct = (item._meta.model_name == model_slug)
+            model_correct = (self.item._meta.model_name == model_slug)
 
         name_slug = self.kwargs.get(self.nameslug_arg, '')
-        name_correct = (slugify(item.name) == name_slug)
+        name_correct = (slugify(self.item.name) == name_slug)
 
         if not model_correct or not name_correct:
-            return True, url_slugify_concept(item)
+            return True, url_slugify_concept(self.item)
         else:
             return False, ''
 
