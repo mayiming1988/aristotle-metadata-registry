@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 django = "==1.11.16"
-django-haystack = "==2.7.0"
+django-haystack = ">=2.7.dev1,<2.8.0"
 aristotle-metadata-registry = {path = "./python/aristotle-metadata-registry", editable = true}
 aristotle-dataset-extensions = {path = "./python/aristotle-dataset-extensions", editable = true}
 aristotle-glossary = {path = "./python/aristotle-glossary/", editable = true}
