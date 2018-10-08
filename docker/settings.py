@@ -22,6 +22,32 @@ DATABASES = {'default': dj_database_url.config()}
 INSTALLED_APPS = ['impersonate']+list(INSTALLED_APPS)
 ROOT_URLCONF = 'urls'
 
+CACHES= {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://redis/0',
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack_elasticsearch.elasticsearch5.Elasticsearch5SearchEngine',
+        'URL': 'http://elasticsearch:9200',
+        'INDEX_NAME': 'documents',
+        'INCLUDE_SPELLING': True,
+        'KWARGS': {
+            'http_auth': 'elastic:changeme'
+        }
+    }
+}
+
+CELERY_BROKER_URL = 'redis://redis/1'
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_TASK_TRACK_STARTED = True
 
 LOGGING = {
     'version': 1,
