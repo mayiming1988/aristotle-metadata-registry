@@ -19,7 +19,15 @@ def item_viewed_action(message):
     instance = safe_object(message)
     if not instance:
         return
-    user = User.objects.get(pk=message['user'])
+    if message['user'] is None:
+        # Don't accept anonymous users.
+        return
+    try:
+        user = User.objects.get(pk=message['user'])
+    except:
+        # TODO: Maybe log this
+        # If we don't get a valid user, then don't try and assign to them.
+        return
     recently = now() - timedelta(minutes=30)
     if user.recently_viewed_metadata.filter(view_date__gt=recently, concept=instance).exists():
         return

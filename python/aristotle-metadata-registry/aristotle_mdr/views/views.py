@@ -286,7 +286,7 @@ class ConceptRenderMixin:
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
 
-        context['isFavourite'] = self.request.user.profile.is_favourite(self.item)
+        context['isFavourite'] = self.concept_is_favourite()
         from reversion.models import Version
         context['last_edit'] = Version.objects.get_for_object(self.item).first()
         # Only display viewable slots
@@ -303,6 +303,9 @@ class ConceptRenderMixin:
         )
 
         return [default_template, self.item.template]
+
+    def concept_is_favourite(self):
+        return self.request.user.is_authenticated() and self.request.user.profile.is_favourite(self.item)
 
 
 # General concept view

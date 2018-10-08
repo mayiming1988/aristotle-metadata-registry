@@ -23,7 +23,11 @@ from aristotle_mdr.register import register_concept
 from aristotle_mdr.utils import fetch_aristotle_settings
 
 reversion.revisions.register(MDR.Status)
-reversion.revisions.register(MDR._concept, follow=['statuses', 'workgroup', 'slots'])
+reversion.revisions.register(
+    MDR._concept,
+    follow=['statuses', 'workgroup', 'slots'],
+    exclude=['user_view_history'],
+)
 reversion.revisions.register(MDR.Workgroup)
 
 User = get_user_model()
