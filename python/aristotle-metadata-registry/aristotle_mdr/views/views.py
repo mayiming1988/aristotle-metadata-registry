@@ -797,7 +797,7 @@ class PermissionSearchView(FacetedSearchView):
             from django.db.models import Count, Max
             favourites_pks = self.request.user.profile.favourites.all().values_list('id', flat=True)
             favourites_list = list(favourites_pks)
-            recent_viewed = dict(
+            recently_viewed = dict(
                 (
                     row["concept"],
                     {
@@ -818,5 +818,5 @@ class PermissionSearchView(FacetedSearchView):
         return {
             'rpp_values': self.results_per_page_values,
             'favourites': favourites_list,
-            'recent_viewed': recent_viewed,
+            'recently_viewed': recently_viewed,
         }

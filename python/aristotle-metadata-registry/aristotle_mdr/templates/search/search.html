@@ -384,8 +384,8 @@
                     <div>
                     {{ result.rendered_search_result|safe }}
                     {% if result|is_concept %}
-                        {% if result.pk in recent_viewed.keys %}
-                            {% with stats=recent_viewed|get_item:result.pk %}
+                        {% if result.pk in recently_viewed.keys %}
+                            {% with stats=recently_viewed|get_item:result.pk %}
                             <small>
                                 You've viewed this item 
                                 {% if stats.count > 9 %}
