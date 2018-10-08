@@ -208,6 +208,6 @@ def get_async_download(request, identifier):
         # TODO: Need a design to avoid loop and refactor this to redirect to preparing-download
         return HttpResponseServerError
     response = HttpResponse(doc, content_type=mime_type)
-    for key, value in properties:
-        response[key] = value
+    for key, val in properties.items():
+            response[key] = val
     return response

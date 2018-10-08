@@ -95,7 +95,7 @@ class CSVDownloader(DownloaderBase):
             'user': None,
         }
         if user:
-            properties['user'] = user
+            properties['user'] = str(user)
         return properties, iid
 
     @classmethod
@@ -130,7 +130,9 @@ class CSVDownloader(DownloaderBase):
         cache.set(download_utils.get_download_cache_key(iid, user),
                   (mem_file,
                    'txt/csv',
-                  [('Content-Disposition', 'attachment; filename="{}.csv"'.format(item.name))]))
+                   {'Content-Disposition': 'attachment; filename="{}.csv"'.format(item.name)}
+                   )
+                  )
         return iid
 
 
