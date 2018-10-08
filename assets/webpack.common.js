@@ -16,8 +16,6 @@ module.exports = {
     filename: '[name]-[contenthash].bundle.js',
     chunkFilename: '[name]-[contenthash].bundle.js',
     path: path.resolve(__dirname, 'dist/bundles'),
-    // Required so webpack knows where to async load chucks from
-    publicPath: '/static/bundles/',
     hashDigest: 'hex',
     hashDigestLength: 16,
     hashFunction: 'sha256'
