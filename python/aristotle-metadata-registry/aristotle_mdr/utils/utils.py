@@ -67,7 +67,7 @@ def get_download_template_path_for_item(item, download_type, subpath=''):
 
 def url_slugify_concept(item):
     item = item.item
-    slug = slugify(item.name)
+    slug = slugify(item.name)[:50]
     if not slug:
         slug = "--"
     return reverse(
@@ -173,7 +173,6 @@ def get_concepts_for_apps(app_labels):
     return concepts
 
 
-# For use with class based views with some modification from above decorator
 class CachePerItemUserMixin:
 
     cache_item_kwarg = 'iid'

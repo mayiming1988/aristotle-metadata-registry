@@ -192,9 +192,10 @@ class ConceptRenderMixin:
             model_correct = (self.item._meta.model_name == model_slug)
 
         name_slug = self.kwargs.get(self.nameslug_arg, '')
-        name_correct = (slugify(self.item.name) == name_slug)
+        # name_correct = (slugify(self.item.name) == name_slug)
+        name_present = (len(name_slug) > 0)
 
-        if not model_correct or not name_correct:
+        if not model_correct or not name_present:
             return True, url_slugify_concept(self.item)
         else:
             return False, ''
