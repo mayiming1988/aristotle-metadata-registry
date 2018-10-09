@@ -12,6 +12,7 @@ from celery.result import AsyncResult as async_result
 from django.core.cache import cache
 
 import logging
+from django.http import JsonResponse
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
@@ -153,15 +154,17 @@ def prepare_async_download(request, identifier):
     job = async_result(res_id)
     template = 'aristotle_mdr/downloads/creating_download.html'
     context = {}
-    # TODO: check if the job is terminated(PENDING) state.
+
+    if request.content_type == 'application/json':
+        if job.ready():
+            return JsonResponse({
+                'isReady': True,
+                'download_url': reverse('aristotle:start_download', args=[identifier])
+            })
+
     if job.ready():
-        return redirect(reverse('aristotle:start_download', args=[identifier]))
-    else:
-        return render(
-            request,
-            template,
-            context=context
-        )
+        context['download_url'] = reverse('aristotle:start_download', args=[identifier])
+    return render(request, template, context=context)
 
 
 # TODO: need a better redirect architecture, needs refactor.
@@ -179,24 +182,24 @@ def get_async_download(request, identifier):
     try:
         res_id = request.session['download_res_key']
     except KeyError:
+        logger.exception('There is no key for request')
         if debug:
             raise
-        logger.exception('There is no key for request')
         raise Http404
+
     del request.session['download_res_key']
     job = async_result(res_id)
+
     if not job.successful():
         if job.status == 'PENDING':
             logger.exception('There is no task or you shouldn\'t be on this page yet')
             raise Http404
         else:
             exc = job.get(propagate=False)
-            logger.exception('Task {0} raised exception: {1!r}\n{2!r}'.format(
-                res_id, exc, job.traceback))
+            logger.exception('Task {0} raised exception: {1!r}\n{2!r}'.format(res_id, exc, job.traceback))
             return HttpResponseServerError
 
     job.forget()
-    # TODO: Consider moving constant strings in a config or settings file
     try:
         doc, mime_type, properties = cache.get(download_utils.get_download_cache_key(identifier, request=request), (None, '', ''))
     except ValueError:
@@ -208,6 +211,7 @@ def get_async_download(request, identifier):
         # TODO: Need a design to avoid loop and refactor this to redirect to preparing-download
         return HttpResponseServerError
     response = HttpResponse(doc, content_type=mime_type)
+    response['Content-Disposition'] =  'attachment'
     for key, val in properties.items():
             response[key] = val
     return response

@@ -2,7 +2,55 @@
 
 <!--Adding meta to refresh every 10 seconds-->
 {% block extra_head_scripts %}
-    {% if not download_url %}<meta http-equiv="refresh" content="10"> {% endif %}
+    <script type="text/javascript">
+        let interval = setInterval(getDownloadStatus, 1000);
+
+        function success(data) {
+            let downloadLink = $('<a></a>').text('Click to download your document');
+            downloadLink.attr('id', 'document-link')
+            let downloadText = $('<div></div>').text('Your document is ready to download');
+            downloadLink.attr({
+                'download': '',
+                'href': data.download_url,
+                'target': '_blank'
+            });
+            $('#download-wrapper').html(downloadText);
+            $('#download-wrapper').append(downloadLink);
+            init();
+        }
+        function getDownloadStatus () {
+            $.ajax({
+              dataType: 'json',
+              url: window.location,
+              contentType: 'application/json',
+              success: success
+            }).fail(function (error){
+                console.log("failure", error);
+            });
+        }
+
+        function getDownload() {
+            $('a#document-link').click(function (event) {
+                let thankyouDownload = $('<div></div>').text('Thank you for downloading the document');
+                let goBackButton = $('<button></button>').text('Go Back');
+                goBackButton.attr({
+                    onclick: 'history.go(-1)',
+                    class: 'btn btn-primary'
+                });
+                $('#download-wrapper').html(thankyouDownload);
+                $('#download-wrapper').append(goBackButton);
+            })
+        }
+
+        {% if download_url %}
+        init();
+        {% endif %}
+
+        function init() {
+            clearInterval(interval);
+            getDownload()
+        }
+    </script>
 {% endblock %}
 
 {% block title %} Preparing download{% endblock %}
@@ -11,10 +59,13 @@
 
 <div style="height: 400px;">
 {% block content %}
+    <div id="download-wrapper">
     {% if download_url %}
-        <div><a href="{{download_url}}">Start download</a></div>
+        <div>Your document is ready to download</div>
+        <a download="" id="document-link" target="_blank" href="{{download_url}}">Click to download your document</a>
     {% else %}
-        <div>Please wait while we are preparing your download</div>
+        <i class="fa fa-spinner spinning"></i> Please wait while we are preparing your download
     {% endif %}
+    </div>
 {% endblock %}
 </div>
