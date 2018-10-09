@@ -1,4 +1,3 @@
-
 from django import VERSION as django_version
 from django.apps import apps
 from django.contrib import messages
@@ -29,7 +28,7 @@ from aristotle_mdr.perms import (
     user_can_change_status
 )
 from aristotle_mdr import perms
-from aristotle_mdr.utils import cache_per_item_user, url_slugify_concept
+from aristotle_mdr.utils import url_slugify_concept, CachePerItemUserMixin
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils import get_concepts_for_apps, fetch_aristotle_settings, fetch_aristotle_downloaders
@@ -96,30 +95,9 @@ def get_if_user_can_view(objtype, user, iid):
         return False
 
 
-def render_if_user_can_view(item_type, request, *args, **kwargs):
-    # request = kwargs.pop('request')
-    return render_if_condition_met(
-        request, user_can_view, item_type, *args, **kwargs
-    )
-
-
-# This view is not currently being used
-@login_required
-def render_if_user_can_edit(item_type, request, *args, **kwargs):
-    request = kwargs.pop('request')
-    return render_if_condition_met(
-        request, user_can_edit, item_type, *args, **kwargs
-    )
-
-
 def concept_by_uuid(request, uuid):
     item = get_object_or_404(MDR._concept, uuid=uuid)
     return redirect(url_slugify_concept(item))
-
-
-# This view is not currently being used
-def concept(*args, **kwargs):
-    return render_if_user_can_view(MDR._concept, *args, **kwargs)
 
 
 def measure(request, iid, model_slug, name_slug):
@@ -134,41 +112,6 @@ def measure(request, iid, model_slug, name_slug):
     )
 
     # return render_if_user_can_view(MDR.Measure, *args, **kwargs)
-
-
-@cache_per_item_user(ttl=300, cache_post=False)
-def render_if_condition_met(request, condition, objtype, iid, model_slug=None, name_slug=None, subpage=None):
-    item = get_object_or_404(objtype, pk=iid).item
-    if item._meta.model_name != model_slug or not slugify(item.name).startswith(str(name_slug)):
-        return redirect(url_slugify_concept(item))
-    if not condition(request.user, item):
-        if request.user.is_anonymous():
-            return redirect(
-                reverse('friendly_login') + '?next=%s' % request.path
-            )
-        else:
-            raise PermissionDenied
-
-    # We add a user_can_edit flag in addition
-    # to others as we have odd rules around who can edit objects.
-    isFavourite = request.user.is_authenticated() and request.user.profile.is_favourite(item)
-    from reversion.models import Version
-    last_edit = Version.objects.get_for_object(item).first()
-
-    # Only display viewable slots
-    slots = get_allowed_slots(item, request.user)
-
-    default_template = "%s/concepts/%s.html" % (item.__class__._meta.app_label, item.__class__._meta.model_name)
-    return render(
-        request, [default_template, item.template],
-        {
-            'item': item,
-            'slots': slots,
-            # 'view': request.GET.get('view', '').lower(),
-            'isFavourite': isFavourite,
-            'last_edit': last_edit
-        }
-    )
 
 
 class ConceptRenderMixin:
@@ -308,9 +251,11 @@ class ConceptRenderMixin:
 
 
 # General concept view
-class ConceptView(ConceptRenderMixin, TemplateView):
+class ConceptView(CachePerItemUserMixin, ConceptRenderMixin, TemplateView):
 
     slug_redirect = True
+    cache_item_kwarg = 'iid'
+    cache_view_name = 'ConceptView'
 
     def check_item(self, item):
         return user_can_view(self.request.user, item)
