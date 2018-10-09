@@ -155,7 +155,7 @@ def prepare_async_download(request, identifier):
     template = 'aristotle_mdr/downloads/creating_download.html'
     context = {}
 
-    if request.content_type == 'application/json':
+    if request.GET.get('format') == 'json':
         if job.ready():
             return JsonResponse({
                 'isReady': True,

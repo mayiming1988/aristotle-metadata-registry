@@ -2,8 +2,25 @@
 
 <!--Adding meta to refresh every 10 seconds-->
 {% block extra_head_scripts %}
-    <script type="text/javascript">
-        let interval = setInterval(getDownloadStatus, 1000);
+
+{% endblock %}
+
+{% block title %} Preparing download{% endblock %}
+
+
+{% block content %}
+<div style="height: 400px;">
+    <div id="download-wrapper" class="text-center">
+    {% if download_url %}
+        <div>Your document is ready to download</div>
+        <a download="" id="document-link" target="_blank" href="{{download_url}}">Click to download your document</a>
+    {% else %}
+        <i class="fa fa-spinner spinning"></i> Please wait while we are preparing your download
+    {% endif %}
+    </div>
+</div>
+<script>
+    let interval = setInterval(getDownloadStatus, 1000);
 
         function success(data) {
             let downloadLink = $('<a></a>').text('Click to download your document');
@@ -22,6 +39,7 @@
             $.ajax({
               dataType: 'json',
               url: window.location,
+              data: {format: 'json'},
               contentType: 'application/json',
               success: success
             }).fail(function (error){
@@ -31,14 +49,16 @@
 
         function getDownload() {
             $('a#document-link').click(function (event) {
-                let thankyouDownload = $('<div></div>').text('Thank you for downloading the document');
-                let goBackButton = $('<button></button>').text('Go Back');
+                let thankYouDownload = $('<div></div>').text('Thank you for downloading the document');
+                let goBackButton = $('<button></button>');
+                goBackButton.append($('<i></i>').attr("class", "fa fa-arrow-left"));
+                goBackButton.append($('<span></span>').text(" Go Back"));
                 goBackButton.attr({
                     onclick: 'history.go(-1)',
-                    class: 'btn btn-primary'
+                    class: 'btn btn-primary pull-left'
                 });
-                $('#download-wrapper').html(thankyouDownload);
-                $('#download-wrapper').append(goBackButton);
+                thankYouDownload.append(goBackButton);
+                $('#download-wrapper').html(thankYouDownload);
             })
         }
 
@@ -50,22 +70,5 @@
             clearInterval(interval);
             getDownload()
         }
-    </script>
+</script>
 {% endblock %}
-
-{% block title %} Preparing download{% endblock %}
-    Please wait and watch
-
-
-<div style="height: 400px;">
-{% block content %}
-    <div id="download-wrapper">
-    {% if download_url %}
-        <div>Your document is ready to download</div>
-        <a download="" id="document-link" target="_blank" href="{{download_url}}">Click to download your document</a>
-    {% else %}
-        <i class="fa fa-spinner spinning"></i> Please wait while we are preparing your download
-    {% endif %}
-    </div>
-{% endblock %}
-</div>
