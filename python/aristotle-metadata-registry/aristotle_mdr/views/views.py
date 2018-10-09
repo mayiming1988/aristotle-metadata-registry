@@ -8,7 +8,7 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist
 from django.urls import reverse
 from django.db import transaction
-from django.http import HttpResponseRedirect, HttpResponseNotFound
+from django.http import HttpResponseRedirect, HttpResponseNotFound, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.defaultfilters import slugify
 from django.utils.translation import ugettext_lazy as _
@@ -271,7 +271,14 @@ class ConceptRenderMixin:
         self.user = self.get_user()
         result = self.check_item(self.item)
         if not result:
-            raise PermissionDenied
+            if self.request.user.is_anonymous():
+                redirect_url = '{}?next={}'.format(
+                    reverse('friendly_login'),
+                    self.request.path
+                )
+                return HttpResponseRedirect(redirect_url)
+            else:
+                return HttpResponseForbidden()
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
