@@ -429,6 +429,7 @@ class WorkgroupMembersCanMakePostsAndComments(utils.LoggedInViewPages,TestCase):
         self.assertEqual(len(_messages),1)
         self.assertEqual( "This post is closed. Your comment was not added." , _messages[0].message)
 
+    @tag('notify_comment')
     def test_user_is_notified_of_comment_and_is_linked_to_post(self):
 
         # Create post as editor
@@ -452,7 +453,7 @@ class WorkgroupMembersCanMakePostsAndComments(utils.LoggedInViewPages,TestCase):
         noti = notifications[0]
 
         # Check that notification redirects to post page
-        discussion_page_url = reverse(
+        post_page_url = reverse(
             'aristotle:discussionsPost',
             args=[post.id]
         )
@@ -463,7 +464,7 @@ class WorkgroupMembersCanMakePostsAndComments(utils.LoggedInViewPages,TestCase):
 
         response = self.client.get(notify_redirect_url)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, discussions_page_url)
+        self.assertEqual(response.url, post_page_url)
 
 
 class ViewDiscussionPostPage(utils.LoggedInViewPages,TestCase):
