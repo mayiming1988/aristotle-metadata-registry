@@ -11,6 +11,8 @@ Changelog
     - Increase text lenght for submitting organisation and responsible organisation fields
     - Efficiency impovements on list pages
     - Dependancy updates
+  - UI improvements
+    - Clicking the name of the latest comment in a discussion, jumps a user to that comment.
 
 - 2.1.3
     - Identifier and Namespace searching
