@@ -12,6 +12,9 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 ARISTOTLE_ASYNC_SIGNALS = False
+INSTALLED_APPS = list(INSTALLED_APPS)+['aristotle_mdr.contrib.links','aristotle_dse','aristotle_glossary']
+ROOT_URLCONF = 'urls'
+ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] = ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS']+['aristotle_mdr_links','aristotle_dse','aristotle_glossary']
 
 MIDDLEWARE = ['whitenoise.middleware.WhiteNoiseMiddleware'] + MIDDLEWARE
 DATABASES = {'default': dj_database_url.config()}
@@ -74,4 +77,20 @@ LOGGING = {
             'propagate': True,
         },
     }
+}
+
+CKEDITOR_CONFIGS = {
+    'default': {
+        #'toolbar': 'full',
+        'toolbar' : [
+            { 'name': 'clipboard', 'items': [ 'Cut', 'Copy', 'Paste', 'PasteText', '-', 'Undo', 'Redo' ] },
+            { 'name': 'basicstyles', 'items' : [ 'Bold','Italic','Subscript','Superscript','-','RemoveFormat' ] },
+            { 'name': 'links', 'items' : [ 'Link','Unlink' ] },
+	        { 'name': 'paragraph', 'items' : [ 'NumberedList','BulletedList','-','Blockquote' ] },
+    	    { 'name': 'insert', 'items' : [ 'Image','Table','HorizontalRule','SpecialChar'] },
+            { 'name': 'aristotletoolbar', 'items': [ 'Glossary' ] },
+            { 'name': 'document', 'items': [ 'Maximize','Source' ] },
+        ],
+        'extraPlugins' : 'aristotle_glossary',
+    },
 }

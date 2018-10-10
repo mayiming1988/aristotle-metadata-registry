@@ -6,6 +6,7 @@ from django.urls import reverse_lazy
 from haystack.views import search_view_factory
 
 import aristotle_mdr.views as views
+from aristotle_mdr.views.search import PermissionSearchView
 import aristotle_mdr.forms as forms
 import aristotle_mdr.models as models
 from aristotle_mdr.contrib.generic.views import (
@@ -201,7 +202,7 @@ urlpatterns=[
     url(
         r'^search/?$',
         search_view_factory(
-            view_class=views.PermissionSearchView,
+            view_class=PermissionSearchView,
             template='search/search.html',
             searchqueryset=None,
             form_class=forms.search.PermissionSearchForm
