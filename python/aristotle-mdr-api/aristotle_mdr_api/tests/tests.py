@@ -9,9 +9,9 @@ from aristotle_mdr.contrib.slots.tests import BaseSlotsTestCase
 from rest_framework.test import APIClient
 
 import json
+from unittest.mock import patch
 
 
-@override_settings(JSONFORMS_SCHEMA_VALIDATE=False)
 class TokenTestCase(utils.LoggedInViewPages, TestCase):
 
     def setUp(self):
@@ -81,6 +81,7 @@ class TokenTestCase(utils.LoggedInViewPages, TestCase):
 
     # ------ Tests ------
 
+    @tag('create_token')
     def test_create_token(self):
 
         response = self.client.get(reverse('token_auth:token_create'))
