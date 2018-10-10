@@ -137,10 +137,10 @@ def home(request):
         recentdata.append(revdata)
 
     recently_viewed = []
-    for viewed in (request.user
-                .recently_viewed_metadata.all()
-                .order_by("-view_date")
-                .prefetch_related('concept')[:5]
+    for viewed in (
+        request.user.recently_viewed_metadata.all()
+        .order_by("-view_date")
+        .prefetch_related('concept')[:5]
     ):
         recently_viewed.append(viewed)
     
