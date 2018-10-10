@@ -25,18 +25,17 @@
     <p>
       About Version 3:
       <ul>
+      <li>
+        To maintain compatibility, metadata item <code>superseded_by</code> attribute returns the UUID of only the first superseding metadata item.
+        To fetch all superseded_by relationships for an item use the <code>superseded_by</code> endpoint.
+      </li>
       <li>replaced database identifiers with UUIDs as the primary method for
-        identifiying metadata.</li>
+        identifiying metadata.
+      </li>
       <li>Added the <code>/about/</code> route to give basic public details about the registry</li>
       </ul>
     </p>
     <a href='{% url "aristotle_api_root" %}v3/schemas'>View the schema for the v3 endpoint</a>
-  </li>
-  <li class="list-group-item">
-    <strong><a href='{% url "aristotle_api_root" %}v2'>API v2</a></strong>
-    <p>
-    </p>
-    <a href='{% url "aristotle_api_root" %}v2/schemas'>View the schema for the v2 endpoint</a>
   </li>
 </ul>
 
