@@ -58,6 +58,7 @@
   },
   "scripts": {
     "build": "webpack --config webpack.prod.js",
+    "devbuild": "webpack --config webpack.dev.js",
     "watch": "webpack --watch --config webpack.dev.js",
     "test": "karma start karma.conf.js --single-run",
     "watchtest": "karma start karma.conf.js",

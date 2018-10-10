@@ -7,7 +7,7 @@ const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 module.exports = merge(common, {
   mode: 'production',
   output: {
-    publicPath: 'd235kua1rgqx2l.cloudfront.net',
+    publicPath: 'd235kua1rgqx2l.cloudfront.net/',
   },
   optimization: {
     minimizer: [
