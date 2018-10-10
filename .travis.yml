@@ -56,7 +56,7 @@ defaults:
     before_script:
       - cd assets
       - npm install
-      - npm run build
+      - npm run devbuild
       - cd .. 
       - rm ./python/aristotle-metadata-registry/webpack-stats-prod.json
       - cp ./assets/dist/webpack-stats.json ./python/aristotle-metadata-registry/webpack-stats-prod.json
