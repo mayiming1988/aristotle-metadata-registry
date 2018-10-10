@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase, tag
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
@@ -428,6 +428,43 @@ class WorkgroupMembersCanMakePostsAndComments(utils.LoggedInViewPages,TestCase):
         _messages = list(response.context['messages'])
         self.assertEqual(len(_messages),1)
         self.assertEqual( "This post is closed. Your comment was not added." , _messages[0].message)
+
+    def test_user_is_notified_of_comment_and_is_linked_to_post(self):
+
+        # Create post as editor
+        post = models.DiscussionPost.objects.create(
+            workgroup=self.wg1,
+            title='This item is very good',
+            body='Very good',
+            author=self.editor
+        )
+
+        # Create comment as viewer
+        comment = models.DiscussionComment.objects.create(
+            body='No it is not good',
+            post=post,
+            author=self.viewer
+        )
+
+        # Get editors notifications
+        notifications = self.editor.notifications.unread()
+        self.assertEqual(len(notifications), 1)
+        noti = notifications[0]
+
+        # Check that notification redirects to post page
+        discussion_page_url = reverse(
+            'aristotle:discussionsPost',
+            args=[post.id]
+        )
+        notify_redirect_url = reverse(
+            'aristotle:notify_redirect',
+            args=[noti.target_content_type.id, noti.target_object_id]
+        )
+
+        response = self.client.get(notify_redirect_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, discussions_page_url)
+
 
 class ViewDiscussionPostPage(utils.LoggedInViewPages,TestCase):
     def setUp(self):
