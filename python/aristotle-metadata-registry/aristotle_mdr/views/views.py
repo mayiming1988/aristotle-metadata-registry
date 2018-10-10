@@ -623,60 +623,6 @@ class ChangeStatusView(ReviewChangesView):
         return HttpResponseRedirect(url_slugify_concept(self.item))
 
 
-def supersede(request, iid):
-    item = get_object_or_404(MDR._concept, pk=iid).item
-    if not (item and user_can_edit(request.user, item)):
-        if request.user.is_anonymous():
-            return redirect(reverse('friendly_login') + '?next=%s' % request.path)
-        else:
-            raise PermissionDenied
-    qs=item.__class__.objects.all()
-    if request.method == 'POST':  # If the form has been submitted...
-        form = MDRForms.SupersedeForm(request.POST, user=request.user, item=item, qs=qs)  # A form bound to the POST data
-        if form.is_valid():
-            with transaction.atomic(), reversion.revisions.create_revision():
-                reversion.revisions.set_user(request.user)
-                item.superseded_by = form.cleaned_data['newerItem']
-                item.save()
-            return HttpResponseRedirect(url_slugify_concept(item))
-    else:
-        form = MDRForms.SupersedeForm(item=item, user=request.user, qs=qs)
-    return render(request, "aristotle_mdr/actions/supersedeItem.html", {"item": item, "form": form})
-
-
-def deprecate(request, iid):
-    item = get_object_or_404(MDR._concept, pk=iid).item
-    if not (item and user_can_edit(request.user, item)):
-        if request.user.is_anonymous():
-            return redirect(reverse('friendly_login') + '?next=%s' % request.path)
-        else:
-            raise PermissionDenied
-    qs=item.__class__.objects.filter().editable(request.user)
-    if request.method == 'POST':  # If the form has been submitted...
-        form = MDRForms.DeprecateForm(request.POST, user=request.user, item=item, qs=qs)  # A form bound to the POST data
-        if form.is_valid():
-            # Check use the itemset as there are permissions issues and we want to remove some:
-            #  Everything that was superseded, but isn't in the returned set
-            #  Everything that was in the returned set, but isn't already superseded
-            #  Everything left over can stay the same, as its already superseded
-            #    or wasn't superseded and is staying that way.
-            with transaction.atomic(), reversion.revisions.create_revision():
-                reversion.revisions.set_user(request.user)
-                for i in item.supersedes.all():
-                    if i not in form.cleaned_data['olderItems'] and user_can_edit(request.user, i):
-                        item.supersedes.remove(i)
-                for i in form.cleaned_data['olderItems']:
-                    if user_can_edit(request.user, i):  # Would check item.supersedes but its a set
-                        kwargs = {}
-                        if django_version > (1, 9):
-                            kwargs = {'bulk': False}
-                        item.supersedes.add(i, **kwargs)
-            return HttpResponseRedirect(url_slugify_concept(item))
-    else:
-        form = MDRForms.DeprecateForm(user=request.user, item=item, qs=qs)
-    return render(request, "aristotle_mdr/actions/deprecateItems.html", {"item": item, "form": form})
-
-
 def extensions(request):
     content=[]
     aristotle_apps = fetch_aristotle_settings().get('CONTENT_EXTENSIONS', [])

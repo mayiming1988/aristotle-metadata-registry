@@ -6,7 +6,7 @@ import dj_database_url
 from aristotle_mdr.required_settings import *
 
 ALLOWED_HOSTS = ["*"]
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', False) == "True"
 ARISTOTLE_SETTINGS['SITE_NAME'] = 'Aristotle Development Server'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
@@ -16,18 +16,15 @@ INSTALLED_APPS = list(INSTALLED_APPS)+['aristotle_mdr.contrib.links','aristotle_
 ROOT_URLCONF = 'urls'
 ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] = ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS']+['aristotle_mdr_links','aristotle_dse','aristotle_glossary']
 
-MIDDLEWARE = ['whitenoise.middleware.WhiteNoiseMiddleware'] + MIDDLEWARE
+MIDDLEWARE = [
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+] + MIDDLEWARE + [
+    'impersonate.middleware.ImpersonateMiddleware'
+]
 DATABASES = {'default': dj_database_url.config()}
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'HOST': 'db',
-        'PORT': '5432',
-    }
-}
+INSTALLED_APPS = ['impersonate']+list(INSTALLED_APPS)
+ROOT_URLCONF = 'urls'
 
 CACHES= {
     'default': {
@@ -79,18 +76,11 @@ LOGGING = {
     }
 }
 
-CKEDITOR_CONFIGS = {
-    'default': {
-        #'toolbar': 'full',
-        'toolbar' : [
-            { 'name': 'clipboard', 'items': [ 'Cut', 'Copy', 'Paste', 'PasteText', '-', 'Undo', 'Redo' ] },
-            { 'name': 'basicstyles', 'items' : [ 'Bold','Italic','Subscript','Superscript','-','RemoveFormat' ] },
-            { 'name': 'links', 'items' : [ 'Link','Unlink' ] },
-	        { 'name': 'paragraph', 'items' : [ 'NumberedList','BulletedList','-','Blockquote' ] },
-    	    { 'name': 'insert', 'items' : [ 'Image','Table','HorizontalRule','SpecialChar'] },
-            { 'name': 'aristotletoolbar', 'items': [ 'Glossary' ] },
-            { 'name': 'document', 'items': [ 'Maximize','Source' ] },
-        ],
-        'extraPlugins' : 'aristotle_glossary',
-    },
-}
+# Debug toolbar
+import socket
+DEBUG_TOOLBAR = os.environ.get('DJANGO_DEBUG_TOOLBAR', False) == "True"
+if DEBUG and DEBUG_TOOLBAR:
+    MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+    INSTALLED_APPS += ('debug_toolbar',)
+    ip = socket.gethostbyname(socket.gethostname())
+    INTERNAL_IPS = [ip[:-1] + '1']

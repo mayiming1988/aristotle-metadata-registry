@@ -654,11 +654,14 @@ class _concept(baseAristotleObject):
     submitting_organisation = ShortTextField(blank=True)
     responsible_organisation = ShortTextField(blank=True)
 
-    superseded_by = ConceptForeignKey(
+    superseded_by_items = ConceptManyToManyField(  # 11.5.3.4
         'self',
-        related_name='supersedes',
-        blank=True,
-        null=True
+        through='SupersedeRelationship',
+        related_name="superseded_items",
+        # blank=True,
+        through_fields=('older_item', 'newer_item'),
+        symmetrical=False,
+        # help_text=_("")
     )
 
     tracker = FieldTracker()
@@ -740,9 +743,9 @@ class _concept(baseAristotleObject):
 
     @property
     def is_superseded(self):
-        return all(
+        return self.statuses.filter(state=STATES.superseded).count() > 0 and all(
             STATES.superseded == status.state for status in self.statuses.all()
-        ) and self.superseded_by
+        ) and self.superseded_by_items_relation_set.count() > 0
 
     @property
     def is_retired(self):
@@ -860,6 +863,24 @@ class concept(_concept):
         Return self, because we already have the correct item.
         """
         return self
+
+
+class SupersedeRelationship(TimeStampedModel):
+    older_item = ConceptForeignKey(
+        _concept,
+        related_name='superseded_by_items_relation_set',
+    )
+    newer_item = ConceptForeignKey(
+        _concept,
+        related_name='superseded_items_relation_set',
+    )
+    registration_authority = models.ForeignKey(RegistrationAuthority)
+    message = models.TextField(blank=True, null=True)
+    date_effective = models.DateField(
+        _('Date effective'),
+        help_text=_("The date the superseding relationship became effective."),
+        blank=True, null=True
+    )
 
 
 REVIEW_STATES = Choices(
@@ -1592,3 +1613,9 @@ def review_request_changed(sender, instance, *args, **kwargs):
         fire("action_signals.review_request_created", obj=instance, **kwargs)
     else:
         fire("action_signals.review_request_updated", obj=instance, **kwargs)
+
+
+@receiver(post_save, sender=SupersedeRelationship)
+def new_superseded_relation(sender, instance, *args, **kwargs):
+    if kwargs.get('created'):
+        fire("concept_changes.item_superseded", obj=instance, **kwargs)

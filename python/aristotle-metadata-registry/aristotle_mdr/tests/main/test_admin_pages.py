@@ -348,64 +348,6 @@ class AdminPageForConcept(utils.LoggedInViewPages):
         self.item1 = self.itemType.objects.get(pk=self.item1.pk)
         self.assertEqual(self.item1.name,updated_name)
 
-# deprecated
-    def test_supersedes_saves(self):
-        self.item2 = self.itemType.objects.create(name="admin_page_test_oc_2",definition="my definition",workgroup=self.wg1,**self.create_defaults)
-        self.item3 = self.itemType.objects.create(name="admin_page_test_oc_2",definition="my definition",workgroup=self.wg1,**self.create_defaults)
-
-        self.login_editor()
-        response = self.client.get(reverse("admin:%s_%s_change"%(self.itemType._meta.app_label,self.itemType._meta.model_name),args=[self.item1.pk]))
-        self.assertResponseStatusCodeEqual(response,200)
-
-        updated_item = dict((k,v) for (k,v) in model_to_dict(self.item1).items() if v is not None)
-        updated_name = updated_item['name'] + " updated!"
-        updated_item['name'] = updated_name
-
-        updated_item.update({
-            'statuses-TOTAL_FORMS': 0, 'statuses-INITIAL_FORMS': 0, # no statuses
-            'deprecated':[self.item2.id,self.item3.id]
-        })
-        updated_item.update(self.form_defaults)
-
-        response = self.client.post(
-                reverse("admin:%s_%s_change"%(self.itemType._meta.app_label,self.itemType._meta.model_name),args=[self.item1.pk]),
-                updated_item
-                )
-        # Make sure it saves
-        self.assertRedirects(response,reverse("admin:%s_%s_changelist"%(self.itemType._meta.app_label,self.itemType._meta.model_name)))
-
-        self.item1 = self.itemType.objects.get(pk=self.item1.pk)
-        self.assertTrue(self.item2 in self.item1.supersedes.all().select_subclasses())
-        self.assertTrue(self.item3 in self.item1.supersedes.all().select_subclasses())
-
-    def test_superseded_by_saves(self):
-        self.item2 = self.itemType.objects.create(name="admin_page_test_oc_2",definition="my definition",workgroup=self.wg1,**self.create_defaults)
-
-        self.login_editor()
-        response = self.client.get(reverse("admin:%s_%s_change"%(self.itemType._meta.app_label,self.itemType._meta.model_name),args=[self.item1.pk]))
-        self.assertResponseStatusCodeEqual(response,200)
-
-        updated_item = dict((k,v) for (k,v) in model_to_dict(self.item1).items() if v is not None)
-        updated_name = updated_item['name'] + " updated!"
-        updated_item['name'] = updated_name
-
-        updated_item.update({
-            'statuses-TOTAL_FORMS': 0, 'statuses-INITIAL_FORMS': 0, # no statuses
-            'superseded_by':self.item2.id
-        })
-        updated_item.update(self.form_defaults)
-
-        response = self.client.post(
-                reverse("admin:%s_%s_change"%(self.itemType._meta.app_label,self.itemType._meta.model_name),args=[self.item1.pk]),
-                updated_item
-                )
-
-        # Make sure it saves
-        self.assertRedirects(response,reverse("admin:%s_%s_changelist"%(self.itemType._meta.app_label,self.itemType._meta.model_name)))
-
-        self.item1 = self.itemType.objects.get(pk=self.item1.pk)
-        self.assertTrue(self.item2 == self.item1.superseded_by.item)
-
     def test_history_page_loads(self):
         self.login_editor()
         response = self.client.get(

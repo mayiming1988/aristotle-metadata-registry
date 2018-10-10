@@ -50,7 +50,7 @@ class TokenTestCase(utils.LoggedInViewPages, TestCase):
             }
         }
 
-        self.versions = ['v2', 'v3']
+        self.versions = ['v3']
 
     # ------ Util Functions ------
 
@@ -264,9 +264,7 @@ class TokenTestCase(utils.LoggedInViewPages, TestCase):
             self.assertEqual(response.status_code, 200)
 
             response = self.client.post('/api/' + version + '/metadata/', {}, HTTP_AUTHORIZATION=auth)
-            if version == 'v2':
-                self.assertEqual(response.status_code, 405) # Write not allowed on v2
-            else:
+            if version == 'v3':
                 self.assertEqual(response.status_code, 200)
 
             response = self.client.get('/api/' + version + '/search/', HTTP_AUTHORIZATION=auth)
@@ -388,7 +386,7 @@ class SlotTestCase(BaseSlotsTestCase, TestCase):
 
         self.make_newoc_public()
 
-        for version in ['v2', 'v3']:
+        for version in ['v3']:
             self.client.logout()
             url = '/api/' + version + '/metadata/' + str(self.newoc.uuid) + '/?format=json'
             response = self.client.get(url)
