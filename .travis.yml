@@ -58,6 +58,8 @@ defaults:
       - npm install
       - npm run build
       - cd .. 
+      - rm ./python/aristotle-metadata-registry/webpack-stats-prod.json
+      - cp ./assets/dist/webpack-stats.json ./python/aristotle-metadata-registry/webpack-stats-prod.json
     script: ./scripts/tox_if.sh dj1.11-linux-ally-$ALLY-module_amr
 
   - &deploy_stage
