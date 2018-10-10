@@ -224,6 +224,10 @@ class ConceptRenderMixin:
                 return HttpResponseRedirect(redirect_url)
             else:
                 return HttpResponseForbidden()
+
+        from aristotle_mdr.contrib.view_history.signals import metadata_item_viewed
+        metadata_item_viewed.send(sender=self.item, user=self.user.pk)
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):

@@ -136,7 +136,22 @@ def home(request):
 
         recentdata.append(revdata)
 
-    page = render(request, "aristotle_mdr/user/userHome.html", {"item": request.user, 'recentdata': recentdata})
+    recently_viewed = []
+    for viewed in (request.user
+                .recently_viewed_metadata.all()
+                .order_by("-view_date")
+                .prefetch_related('concept')[:5]
+    ):
+        recently_viewed.append(viewed)
+    
+
+    page = render(request, "aristotle_mdr/user/userHome.html",
+        {
+            "item": request.user,
+            'recentdata': recentdata,
+            "recently_viewed": recently_viewed,
+        }
+    )
     return page
 
 
