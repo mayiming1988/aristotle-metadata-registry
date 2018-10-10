@@ -67,8 +67,7 @@ class AdminConceptForm(ConceptForm, WorkgroupVerificationMixin):
     class Meta:
         model = MDR._concept
         fields = "__all__"
-
-    deprecated = forms.ModelMultipleChoiceField(queryset=MDR._concept.objects.all())
+        exclude = ["superseded_by_items", "superseded_items"]
 
     def __init__(self, *args, **kwargs):
 
@@ -83,32 +82,11 @@ class AdminConceptForm(ConceptForm, WorkgroupVerificationMixin):
         super().__init__(*args, **kwargs)
         if self.instance and not clone:
             self.itemtype = self.instance.__class__
-            self.fields['deprecated'] = forms.ModelMultipleChoiceField(
-                required=False,
-                label="Supersedes",
-                queryset=self.itemtype.objects.all(),
-                widget=ConceptAutocompleteSelectMultiple(model=self._meta.model)
-            )
-            self.fields['deprecated'].initial = self.instance.supersedes.all()
 
         if name_suggest_fields:
             self.fields['name'].widget = widgets.NameSuggestInput(name_suggest_fields=name_suggest_fields, separator=separator)
         self.fields['workgroup'].queryset = self.request.user.profile.editable_workgroups.all()
         # self.fields['workgroup'].initial = self.request.user.profile.activeWorkgroup
-
-    def save(self, *args, **kwargs):
-        instance = super().save(*args, **kwargs)
-        for i in instance.supersedes.all():
-            if user_can_edit(self.request.user, i) and i not in self.cleaned_data['deprecated']:
-                instance.supersedes.remove(i)
-        for i in self.cleaned_data['deprecated']:
-            if user_can_edit(self.request.user, i):  # Would check item.supersedes but its a set
-                kwargs = {}
-                if django_version > (1, 9):
-                    kwargs = {'bulk': False}
-                instance.supersedes.add(i, **kwargs)
-
-        return instance
 
 
 class StatusInlineForm(forms.ModelForm):

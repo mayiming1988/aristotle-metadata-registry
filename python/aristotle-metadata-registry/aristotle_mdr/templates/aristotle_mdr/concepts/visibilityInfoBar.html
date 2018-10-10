@@ -8,8 +8,12 @@
 {% else %}
   {% if item.is_superseded  %}
       <div id="progress" class=" alert alert-info">
-          {% trans 'This item has been superseded by the newer version'%} - 
+          {% blocktrans %}
+            This item has been superseded by a newer version by one or more Registration Authorities.
+          {% endblocktrans %}
+          {% comment %}
           <em>{% include "aristotle_mdr/helpers/itemLink.html" with item=item.superseded_by %}</em>.
+          {% endcomment %}
       </div>
   {% elif item.is_retired %}
       <div id="progress" class=" alert alert-warning">

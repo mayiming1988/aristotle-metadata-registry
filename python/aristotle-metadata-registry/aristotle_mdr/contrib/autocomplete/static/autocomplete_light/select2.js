@@ -184,10 +184,6 @@ https://raw.githubusercontent.com/yourlabs/django-autocomplete-light/3.2.10/src/
                 }
             });
         });
-        $(this).find(
-            '.select2-selection__rendered'
-        ).text($(this).text()+"oijihoho");
-
     });
     window.__dal__initListenerIsSet = true;
     $('[data-autocomplete-light-function]:not([id*="__prefix__"])').each(function() {

@@ -37,7 +37,6 @@ def can_delete_metadata(user, item):
     if item.submitter == user and item.workgroup is None:
         if not item.statuses.exists():
             return True
-
     return False
 
 
@@ -153,7 +152,6 @@ def user_is_workgroup_manager(user, workgroup=None):
 def user_can_change_status(user, item):
     """Can the user change the status of the item?"""
 
-    # Cache if the user can view as we use it a few times.
     can_view = user_can_view(user, item)
     if not can_view:
         return False
@@ -164,6 +162,17 @@ def user_can_change_status(user, item):
     if item.review_requests.visible(user):
         return True
     if user.profile.is_registrar and item.is_public():
+        return True
+    return False
+
+
+def user_can_supersede(user, item):
+    if user.is_superuser:
+        return True
+    if not user_can_view(user, item):
+        return False
+
+    if user.profile.is_registrar:
         return True
     return False
 

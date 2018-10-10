@@ -14,15 +14,19 @@ from django.utils.safestring import mark_safe
 import json
 
 import reversion
+from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 
 from aristotle_mdr import perms
 from aristotle_mdr import models as MDR
+from aristotle_mdr.contrib.generic.views import UnorderedGenericAlterOneToManyView
 from aristotle_mdr.forms import actions
-from aristotle_mdr.forms.forms import ChangeStatusGenericForm
-from aristotle_mdr.views.utils import generate_visibility_matrix
+from aristotle_mdr.forms.forms import ChangeStatusGenericForm, ReviewChangesForm
 from aristotle_mdr.views import ReviewChangesView, display_review
-from aristotle_mdr.forms.forms import ReviewChangesForm
-from aristotle_mdr.perms import can_delete_metadata
+from aristotle_mdr.views.utils import (
+    generate_visibility_matrix,
+    ObjectLevelPermissionRequiredMixin,
+)
+from aristotle_mdr.utils import url_slugify_concept
 
 import logging
 logger = logging.getLogger(__name__)
@@ -343,3 +347,35 @@ class DeleteSandboxView(FormView):
             return JsonResponse({'completed': True})
 
         return super().form_valid(form)
+
+
+class SupersedeItemView(UnorderedGenericAlterOneToManyView, ItemSubpageView, PermissionRequiredMixin):
+    permission_checks = [perms.user_can_supersede]
+    model_base = MDR._concept
+    model_to_add = MDR.SupersedeRelationship
+    model_base_field = 'superseded_by_items_relation_set'
+    model_to_add_field = 'older_item'
+    form_add_another_text = _('Add a relationship')
+    form_title = _('Change Superseding')
+
+    def has_permission(self):
+        return perms.user_can_supersede(self.request.user, self.item)
+
+    def get_success_url(self):
+        return url_slugify_concept(self.item)
+
+    def get_editable_queryset(self):
+        if self.request.user.is_superuser:
+            return super().get_editable_queryset()
+        return super().get_editable_queryset().filter(
+            registration_authority__registrars__profile__user=self.request.user
+        )
+
+    def get_form(self):
+        return actions.SupersedeForm
+
+    def get_form_kwargs(self):
+        return {
+            "item": self.item.item,
+            "user": self.request.user,
+        }

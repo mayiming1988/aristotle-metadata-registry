@@ -100,6 +100,8 @@ class BulkActionForm(UserAwareForm):
 
     def __init__(self, form, *args, **kwargs):
         initial_items = kwargs.pop('items', [])
+        all_in_queryset = kwargs.pop('all_in_queryset', [])
+
         self.request = kwargs.pop('request')
         if 'user' in kwargs.keys():
             self.user = kwargs.get('user', None)
@@ -165,9 +167,12 @@ class AddFavouriteForm(LoggedInBulkActionForm):
 
     def make_changes(self):
         items = self.items_to_change
-        bad_items = [str(i.id) for i in items if not user_can_view(self.user, i)]
-        items = items.visible(self.user)
-        self.user.profile.favourites.add(*items)
+        bad_items = []
+        for item in items:
+            if user_can_view(self.user, item):
+                self.user.profile.favourites.add(item)
+            else:
+                bad_items.append(str(item.id))
 
         message_text = "{0} items favourited.".format(len(items))
         if bad_items:
