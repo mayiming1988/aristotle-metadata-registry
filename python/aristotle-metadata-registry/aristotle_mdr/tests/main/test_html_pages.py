@@ -72,8 +72,70 @@ class LoggedInViewHTMLPages(utils.LoggedInViewPages, TestCase):
         self.assertRedirects(response, reverse('aristotle:userHome'))
 
 
+# Tests that dont require running on all item types
+@tag('itempage_general')
+class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
+
+    def setUp(self):
+        super().setUp()
+
+        self.item = models.ObjectClass.objects.create(
+            name='Test Item',
+            definition='Test Item Description',
+            submitter=self.editor
+        )
+        self.itemid = self.item.id
+
+    def test_itempage_full_url(self):
+        self.login_editor()
+        full_url = url_slugify_concept(self.item)
+        response = self.client.get(full_url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_itempage_redirect_id_only(self):
+        self.login_editor()
+
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.itemid],
+            status_code=302
+        )
+
+        self.assertEqual(response.url, url_slugify_concept(self.item))
+
+    def test_itempage_redirect_wrong_modelslug(self):
+        self.login_editor()
+
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.itemid, 'definition', 'wow'],
+            status_code=302
+        )
+
+        self.assertEqual(response.url, url_slugify_concept(self.item))
+
+    def test_itempage_wrong_model_modelslug(self):
+        self.login_editor()
+
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.itemid, 'property', 'wow'],
+            status_code=404
+        )
+
+    def test_itempage_wrong_name(self):
+        self.login_editor()
+
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.itemid, 'objectclass', 'wow'],
+            status_code=200
+        )
+
+
 class LoggedInViewConceptPages(utils.LoggedInViewPages, utils.FormsetTestUtils):
     defaults = {}
+
     def setUp(self):
         super().setUp()
 

@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
-from django.core.exceptions import PermissionDenied, FieldDoesNotExist
+from django.core.exceptions import PermissionDenied, FieldDoesNotExist, ObjectDoesNotExist
 from django.urls import reverse
 from django.db import transaction
 from django.http import HttpResponseRedirect, HttpResponseNotFound, HttpResponseForbidden
@@ -148,17 +148,18 @@ class ConceptRenderMixin:
                     model = rel.related_model
 
         if model is None:
-            return None
+            model = type(MDR._concept.objects.get_subclass(id=itemid))
 
         return self.get_related(model)
 
     def get_item(self):
         itemid = self.kwargs[self.itemid_arg]
         queryset = self.get_queryset()
-        if queryset is not None:
-            return queryset.get(pk=itemid)
-        else:
-            return MDR._concept.objects.get_subclass(id=itemid)
+        try:
+            item = queryset.get(pk=itemid)
+        except ObjectDoesNotExist:
+            item = None
+        return item
 
     def get_related(self, model):
         """Return a queryset fetching related concepts"""
@@ -193,7 +194,7 @@ class ConceptRenderMixin:
 
         name_slug = self.kwargs.get(self.nameslug_arg, '')
         # name_correct = (slugify(self.item.name) == name_slug)
-        name_present = (len(name_slug) > 0)
+        name_present = (name_slug is not None)
 
         if not model_correct or not name_present:
             return True, url_slugify_concept(self.item)
@@ -203,14 +204,14 @@ class ConceptRenderMixin:
     def dispatch(self, request, *args, **kwargs):
         self.item = self.get_item()
 
+        if self.item is None:
+            # If item was not found and no redirect was needed
+            return HttpResponseNotFound()
+
         if self.slug_redirect:
             redirect, url = self.get_redirect()
             if redirect:
                 return HttpResponseRedirect(url)
-
-        if self.item is None:
-            # If item was not found and no redirect was needed
-            return HttpResponseNotFound()
 
         self.user = self.get_user()
         result = self.check_item(self.item)
