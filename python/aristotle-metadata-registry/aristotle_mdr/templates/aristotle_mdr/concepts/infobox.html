@@ -84,39 +84,58 @@
 
         {% block asideContent %}{% endblock %}
 
-        {% with total=item.supersedes.count %}
             <dt class="large">{% trans 'Supersedes'%}
-            {% if item|can_edit:request.user %}
-                <a class="inline_action" href="{% url 'aristotle:deprecate' iid=item.id %}"
-                    data-toggle="modal" data-target="#infobox_modal">{% ternary total 'Change' 'Add'%}</a>
-            {% endif %}</dt>
+            </dt>
             <dd class="large">
             <ul>
-                {% for sup in item.supersedes.all|can_view_iter:user %}
+                {# This is inefficient - % for suprel in item.superseded_items_relation_set.all %#}
+                {% for suprel in item|visible_supersedes_items:request.user %}
                     <li>
-                      <a href="{% url 'aristotle:item' iid=sup.id %}/">
-                        {{ sup }}
+                      <a href="{% url 'aristotle:item' iid=suprel.older_item.id %}">
+                        {{ suprel.older_item.name }}
                       </a>
-                    </li>
+                      <ul>
+                        {% for rel in suprel.rels %}
+                          <li>
+                            <span title="{% trans 'The registration authority that applied this relationship' %}">
+                              {{ rel.registration_authority.name }}
+                            </span>,
+                          {{ rel.date_effective }} -
+                          {{ rel.message }}
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    </small></li>
                 {% empty %}
                     <li><em>{% trans 'None' context 'No older objects' %}</em></li>
                 {% endfor %}
-            </ul>
+                </ul>
             </dd>
-        {% endwith %}
             <dt class="large">{% trans 'Superseded by'%}
-                {% if item|can_edit:request.user %}
-                    <a class="inline_action" href="{% url 'aristotle:supersede' iid=item.id %}"
-                       data-toggle="modal" data-target="#infobox_modal">{% ternary item.superseded_by 'Change' 'Add'%}</a>
-                {% endif %}</dt>
+            </dt>
             <dd class="large">
-            <ul><li>
-                {% if item.superseded_by %}
-                    <a href="{% url 'aristotle:item' iid=item.superseded_by.id %}">{{ item.superseded_by }}</a>
-                {% else %}
-                    <em>{% trans 'None' context 'No newer objects'%}</em>
-                {% endif %}
-            </li></ul>
+            <ul>
+                {% for suprel in item|visible_superseded_by_items:request.user %}
+                    <li>
+                      <a href="{% url 'aristotle:item' iid=suprel.newer_item.id %}">
+                        {{ suprel.newer_item.name }}
+                      </a>
+                      <ul>
+                        {% for rel in suprel.rels %}
+                          <li>
+                            <span title="{% trans 'The registration authority that applied this relationship' %}">
+                              {{ rel.registration_authority.name }}
+                            </span>,
+                          {{ rel.date_effective }}
+                          {% if rel.message %} - {{ rel.message }} {% endif %}
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    </li>
+                {% empty %}
+                    <li><em>{% trans 'None' context 'No newer objects' %}</em></li>
+                {% endfor %}
+            </ul>
             </dd>
         {% if item.workgroup and request.user|in_workgroup:item.workgroup %}
             <hr>
