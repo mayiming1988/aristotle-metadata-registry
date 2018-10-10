@@ -1,23 +1,20 @@
-from datetime import timedelta
 from django import VERSION as django_version
 from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
-from django.core.exceptions import PermissionDenied, FieldDoesNotExist
+from django.core.exceptions import PermissionDenied, FieldDoesNotExist, ObjectDoesNotExist
+from django.urls import reverse
 from django.db import transaction
-from django.http import HttpResponseRedirect, HttpResponseNotFound
+from django.http import HttpResponseRedirect, HttpResponseNotFound, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.defaultfilters import slugify
 from django.utils.translation import ugettext_lazy as _
-from django.urls import reverse
+from django.views.generic import TemplateView, RedirectView
 from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_string
-from django.utils.timezone import now
-from django.views.generic import TemplateView, RedirectView
-
+from django.contrib.contenttypes.models import ContentType
 from formtools.wizard.views import SessionWizardView
 
 import json
@@ -31,7 +28,7 @@ from aristotle_mdr.perms import (
     user_can_change_status
 )
 from aristotle_mdr import perms
-from aristotle_mdr.utils import cache_per_item_user, url_slugify_concept
+from aristotle_mdr.utils import url_slugify_concept, CachePerItemUserMixin
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils import get_concepts_for_apps, fetch_aristotle_settings, fetch_aristotle_downloaders
@@ -98,30 +95,9 @@ def get_if_user_can_view(objtype, user, iid):
         return False
 
 
-def render_if_user_can_view(item_type, request, *args, **kwargs):
-    # request = kwargs.pop('request')
-    return render_if_condition_met(
-        request, user_can_view, item_type, *args, **kwargs
-    )
-
-
-# This view is not currently being used
-@login_required
-def render_if_user_can_edit(item_type, request, *args, **kwargs):
-    request = kwargs.pop('request')
-    return render_if_condition_met(
-        request, user_can_edit, item_type, *args, **kwargs
-    )
-
-
 def concept_by_uuid(request, uuid):
     item = get_object_or_404(MDR._concept, uuid=uuid)
     return redirect(url_slugify_concept(item))
-
-
-# This view is not currently being used
-def concept(*args, **kwargs):
-    return render_if_user_can_view(MDR._concept, *args, **kwargs)
 
 
 def measure(request, iid, model_slug, name_slug):
@@ -136,41 +112,6 @@ def measure(request, iid, model_slug, name_slug):
     )
 
     # return render_if_user_can_view(MDR.Measure, *args, **kwargs)
-
-
-@cache_per_item_user(ttl=300, cache_post=False)
-def render_if_condition_met(request, condition, objtype, iid, model_slug=None, name_slug=None, subpage=None):
-    item = get_object_or_404(objtype, pk=iid).item
-    if item._meta.model_name != model_slug or not slugify(item.name).startswith(str(name_slug)):
-        return redirect(url_slugify_concept(item))
-    if not condition(request.user, item):
-        if request.user.is_anonymous():
-            return redirect(
-                reverse('friendly_login') + '?next=%s' % request.path
-            )
-        else:
-            raise PermissionDenied
-
-    # We add a user_can_edit flag in addition
-    # to others as we have odd rules around who can edit objects.
-    isFavourite = request.user.is_authenticated() and request.user.profile.is_favourite(item)
-    from reversion.models import Version
-    last_edit = Version.objects.get_for_object(item).first()
-
-    # Only display viewable slots
-    slots = get_allowed_slots(item, request.user)
-
-    default_template = "%s/concepts/%s.html" % (item.__class__._meta.app_label, item.__class__._meta.model_name)
-    return render(
-        request, [default_template, item.template],
-        {
-            'item': item,
-            'slots': slots,
-            # 'view': request.GET.get('view', '').lower(),
-            'isFavourite': isFavourite,
-            'last_edit': last_edit
-        }
-    )
 
 
 class ConceptRenderMixin:
@@ -207,23 +148,18 @@ class ConceptRenderMixin:
                     model = rel.related_model
 
         if model is None:
-            return None
+            model = type(MDR._concept.objects.get_subclass(id=itemid))
 
         return self.get_related(model)
 
     def get_item(self):
         itemid = self.kwargs[self.itemid_arg]
         queryset = self.get_queryset()
-<<<<<<< HEAD
-        if queryset is None:
-            return None
-        return queryset.get(pk=itemid)
-=======
-        if queryset is not None:
-            return queryset.get(pk=itemid)
-        else:
-            return MDR._concept.objects.get_subclass(id=itemid)
->>>>>>> 28b27c2dcc03a80cc73c17402da492ef31b0e0da
+        try:
+            item = queryset.get(pk=itemid)
+        except ObjectDoesNotExist:
+            item = None
+        return item
 
     def get_related(self, model):
         """Return a queryset fetching related concepts"""
@@ -249,13 +185,6 @@ class ConceptRenderMixin:
         return self.request.user
 
     def get_redirect(self):
-<<<<<<< HEAD
-        if self.item is None:
-            itemid = self.kwargs[self.itemid_arg]
-            self.item = MDR._concept.objects.get_subclass(id=itemid)
-        item = self.item
-=======
->>>>>>> 28b27c2dcc03a80cc73c17402da492ef31b0e0da
 
         if not self.modelslug_arg:
             model_correct = True
@@ -264,9 +193,10 @@ class ConceptRenderMixin:
             model_correct = (self.item._meta.model_name == model_slug)
 
         name_slug = self.kwargs.get(self.nameslug_arg, '')
-        name_correct = (slugify(self.item.name) == name_slug)
+        # name_correct = (slugify(self.item.name) == name_slug)
+        name_present = (name_slug is not None)
 
-        if not model_correct or not name_correct:
+        if not model_correct or not name_present:
             return True, url_slugify_concept(self.item)
         else:
             return False, ''
@@ -274,29 +204,36 @@ class ConceptRenderMixin:
     def dispatch(self, request, *args, **kwargs):
         self.item = self.get_item()
 
+        if self.item is None:
+            # If item was not found and no redirect was needed
+            return HttpResponseNotFound()
+
         if self.slug_redirect:
             redirect, url = self.get_redirect()
             if redirect:
                 return HttpResponseRedirect(url)
 
-        if self.item is None:
-            # If item was not found and no redirect was needed
-            return HttpResponseNotFound()
-
         self.user = self.get_user()
         result = self.check_item(self.item)
         if not result:
-            raise PermissionDenied
-
-        from aristotle_mdr.contrib.view_history.signals import metadata_item_viewed
-        metadata_item_viewed.send(sender=self.item, user=self.user.pk)
-
+            if self.request.user.is_anonymous():
+                redirect_url = '{}?next={}'.format(
+                    reverse('friendly_login'),
+                    self.request.path
+                )
+                return HttpResponseRedirect(redirect_url)
+            else:
+                return HttpResponseForbidden()
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
 
-        context['isFavourite'] = self.concept_is_favourite()
+        if self.request.user.is_anonymous():
+            context['isFavourite'] = False
+        else:
+            context['isFavourite'] = self.request.user.profile.is_favourite(self.item)
+
         from reversion.models import Version
         context['last_edit'] = Version.objects.get_for_object(self.item).first()
         # Only display viewable slots
@@ -314,14 +251,13 @@ class ConceptRenderMixin:
 
         return [default_template, self.item.template]
 
-    def concept_is_favourite(self):
-        return self.request.user.is_authenticated() and self.request.user.profile.is_favourite(self.item)
-
 
 # General concept view
-class ConceptView(ConceptRenderMixin, TemplateView):
+class ConceptView(CachePerItemUserMixin, ConceptRenderMixin, TemplateView):
 
     slug_redirect = True
+    cache_item_kwarg = 'iid'
+    cache_view_name = 'ConceptView'
 
     def check_item(self, item):
         return user_can_view(self.request.user, item)
@@ -803,33 +739,10 @@ class PermissionSearchView(FacetedSearchView):
 
     def extra_context(self):
         # needed to compare to indexed primary key value
-        recently_viewed = {}
-        favourites_list = []
-        last_month = now() - timedelta(days=31)
         if not self.request.user.is_anonymous():
-            from django.db.models import Count, Max
             favourites_pks = self.request.user.profile.favourites.all().values_list('id', flat=True)
             favourites_list = list(favourites_pks)
-            recently_viewed = dict(
-                (
-                    row["concept"],
-                    {
-                        "count": row["count_viewed"],
-                        "last_viewed": row["last_viewed"]
-                    }
-                )
-                for row in self.request.user.recently_viewed_metadata.all().filter(
-                    view_date__gt=last_month
-                ).values(
-                    "concept"
-                ).annotate(
-                    count_viewed=Count('concept'),
-                    last_viewed=Max("view_date")
-                )
-            )
+        else:
+            favourites_list = []
 
-        return {
-            'rpp_values': self.results_per_page_values,
-            'favourites': favourites_list,
-            'recently_viewed': recently_viewed,
-        }
+        return {'rpp_values': self.results_per_page_values, 'favourites': favourites_list}
