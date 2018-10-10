@@ -13,6 +13,7 @@ from django.db.models import Q
 
 import logging
 import inspect
+import datetime
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
@@ -195,8 +196,6 @@ class CachePerItemUserMixin:
             can_use_cache = False
 
         from aristotle_mdr.models import _concept
-        import datetime
-        from django.utils import timezone
 
         # If the item was modified within ttl, don't use cache
         recently = timezone.now() - datetime.timedelta(seconds=self.cache_ttl)
