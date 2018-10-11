@@ -104,5 +104,5 @@ class CustomManifestStaticFilesStorage(LocalManifestMixin,
                                        ManifestFilesMixin,
                                        CustomS3Boto3Storage):
 
-    max_post_process_passes = 0
+    max_post_process_passes = 1
     patterns = ()
