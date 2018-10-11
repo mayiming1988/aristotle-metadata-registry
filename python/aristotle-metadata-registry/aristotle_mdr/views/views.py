@@ -315,6 +315,10 @@ def not_found(request, path):
     return render(request, "404.html", context)
 
 
+def handler500(request, *args, **argv):
+    return render(request, '500.html')
+
+
 def create_list(request):
     if request.user.is_anonymous():
         return redirect(reverse('friendly_login') + '?next=%s' % request.path)
