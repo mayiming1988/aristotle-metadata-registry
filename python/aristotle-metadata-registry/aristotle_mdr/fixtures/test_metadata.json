@@ -439,7 +439,6 @@
   {
     "fields": {
       "submitting_organisation": "",
-      "superseded_by": 19,
       "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
@@ -452,7 +451,6 @@
   {
     "fields": {
       "submitting_organisation": "",
-      "superseded_by": null,
       "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
@@ -465,7 +463,6 @@
   {
     "fields": {
       "submitting_organisation": "",
-      "superseded_by": null,
       "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
@@ -478,7 +475,6 @@
   {
     "fields": {
       "submitting_organisation": "",
-      "superseded_by": null,
       "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
@@ -491,7 +487,6 @@
   {
     "fields": {
       "submitting_organisation": "",
-      "superseded_by": null,
       "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
@@ -504,7 +499,6 @@
   {
     "fields": {
       "submitting_organisation": "",
-      "superseded_by": null,
       "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
@@ -517,7 +511,6 @@
   {
     "fields": {
       "submitting_organisation": "",
-      "superseded_by": null,
       "symbol": "",
       "responsible_organisation": "",
       "comments": "",
@@ -532,7 +525,6 @@
   {
     "fields": {
       "submitting_organisation": "",
-      "superseded_by": null,
       "symbol": "",
       "responsible_organisation": "",
       "comments": "",
@@ -549,7 +541,6 @@
       "unit_of_measure": 17,
       "submitting_organisation": "",
       "format": "X[XX]",
-      "superseded_by": null,
       "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
@@ -568,7 +559,6 @@
       "unit_of_measure": 17,
       "submitting_organisation": "",
       "format": "X",
-      "superseded_by": null,
       "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
@@ -638,7 +628,6 @@
     "fields": {
       "submitting_organisation": "",
       "objectClass": 19,
-      "superseded_by": null,
       "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
@@ -654,7 +643,6 @@
     "fields": {
       "submitting_organisation": "",
       "objectClass": 19,
-      "superseded_by": null,
       "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
@@ -670,7 +658,6 @@
     "fields": {
       "submitting_organisation": "",
       "objectClass": 19,
-      "superseded_by": null,
       "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
@@ -686,7 +673,6 @@
     "fields": {
       "submitting_organisation": "",
       "objectClass": 19,
-      "superseded_by": null,
       "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
@@ -701,7 +687,6 @@
   {
     "fields": {
       "submitting_organisation": "",
-      "superseded_by": null,
       "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
@@ -716,7 +701,6 @@
   {
     "fields": {
       "submitting_organisation": "",
-      "superseded_by": null,
       "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
@@ -727,5 +711,13 @@
     },
     "model": "aristotle_mdr.dataelement",
     "pk": 31
+  },
+  {
+    "fields": {
+      "older_item": 18,
+      "newer_item": 19,
+      "registration_authority": 2
+    },
+    "model": "aristotle_mdr.supersederelationship"
   }
 ]

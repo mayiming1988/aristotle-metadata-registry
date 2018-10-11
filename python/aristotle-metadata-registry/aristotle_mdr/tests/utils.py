@@ -1,4 +1,5 @@
 from django import VERSION as django_version
+import attr
 import datetime
 import random
 import string
@@ -747,6 +748,7 @@ class GeneralTestUtils:
         self.assertTrue(key in context)
 
 
+
 class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils, FormsetTestUtils):
     """Combination of the above 3 utils plus some aristotle specific utils"""
 
@@ -761,3 +763,45 @@ class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils, FormsetTestUtils):
             tag=favtag,
             item=item
         )
+
+
+@attr.s
+class MockManagementForm(object):
+    prefix = attr.ib(default=0)
+    max_forms = attr.ib(default=1000)
+    min_forms = attr.ib(default=0)
+    mock_form = attr.ib(default=None)
+    is_ordered = attr.ib(default=False)
+    initial_forms = attr.ib(init=False)
+    forms = []
+
+    def __attrs_post_init__(self):
+        self.forms = []
+        self.initial_forms_count = len(self.forms)
+
+    def add_forms(self, forms=[]):
+        assert type(forms) is list
+        for form in forms:
+            self.add_form(form)
+
+    def add_form(self, form={}):
+        assert type(form) is dict
+        if self.is_ordered:
+            form['ORDER'] = form.get('ORDER', len(self.forms))
+        if form:
+            self.forms.append(form)
+
+    def as_dict(self):
+        base = {
+            '{}-INITIAL_FORMS'.format(self.prefix): self.initial_forms_count,
+            '{}-TOTAL_FORMS'.format(self.prefix): len(self.forms),
+            '{}-MIN_NUM_FORMS'.format(self.prefix): self.min_forms,
+            '{}-MAX_NUM_FORMS'.format(self.prefix): self.max_forms
+        }
+
+        for i, form in enumerate(self.forms):
+            for field, value in form.items():
+                base['{}-{}-{}'.format(self.prefix, i, field)] = value
+
+        return base
+>>>>>>> 1faec1dbd68e57add50c6fb2ebcecc097079304d

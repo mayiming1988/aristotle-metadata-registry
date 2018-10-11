@@ -101,6 +101,8 @@ class BulkActionForm(UserAwareForm):
 
     def __init__(self, form, *args, **kwargs):
         initial_items = kwargs.pop('items', [])
+        all_in_queryset = kwargs.pop('all_in_queryset', [])
+
         self.request = kwargs.pop('request')
         if 'user' in kwargs.keys():
             self.user = kwargs.get('user', None)

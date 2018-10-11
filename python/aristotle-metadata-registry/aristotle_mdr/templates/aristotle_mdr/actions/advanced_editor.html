@@ -42,8 +42,29 @@
         </ol>
         {% if item.is_superseded  %}
             <div class=" alert alert-info">
-                {% trans 'This item has been superseded by the newer version,'%}
-                <em>{% include "aristotle_mdr/helpers/itemLink.html" with item=item.superseded_by %}</em>.
+                {% trans 'This item has been superseded by one or more newer versions' %}
+                <ul>
+                    {% for suprel in item|visible_superseded_by_items:request.user %}
+                        <li>
+                          <a href="{% url 'aristotle:item' iid=suprel.newer_item.id %}">
+                            {{ suprel.newer_item.name }}
+                          </a>
+                          <ul>
+                            {% for rel in suprel.rels %}
+                              <li>
+                                <span title="{% trans 'The registration authority that applied this relationship' %}">
+                                  {{ rel.registration_authority.name }}
+                                </span>,
+                              {{ rel.date_effective }} -
+                              {{ rel.message }}
+                              </li>
+                            {% endfor %}
+                          </ul>
+                        </li>
+                    {% empty %}
+                        <li><em>{% trans 'None' context 'No newer objects' %}</em></li>
+                    {% endfor %}
+                </ul>
             </div>
         {% endif %}
         {% if item.is_retired %}

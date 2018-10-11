@@ -27,7 +27,7 @@ class UserAwareForm(forms.Form):
 class UserAwareModelForm(UserAwareForm, forms.ModelForm):  # , autocomplete_light.ModelForm):
     class Meta:
         model = MDR._concept
-        exclude = ['superseded_by', '_is_public', '_is_locked', 'originURI', 'submitter']
+        exclude = ['superseded_by_items', '_is_public', '_is_locked', 'originURI', 'submitter']
 
     def _media(self):
         js = ('aristotle_mdr/aristotle.wizard.js', )  # , '/static/tiny_mce/tiny_mce.js', '/static/aristotle_mdr/aristotle.tinymce.js')
