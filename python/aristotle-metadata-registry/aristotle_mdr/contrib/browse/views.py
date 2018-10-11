@@ -8,6 +8,7 @@ from aristotle_mdr.utils import get_concepts_for_apps, fetch_metadata_apps
 from collections import OrderedDict
 from aristotle_mdr.models import _concept
 
+
 class BrowseApps(TemplateView):
     template_name = "aristotle_mdr_browse/apps_list.html"
     ordering = 'app_label'
