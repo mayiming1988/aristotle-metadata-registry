@@ -99,7 +99,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         )
         self.assertEqual(self.editor.profile.favourites.count(), 1)
         self.assertFalse(self.item4 in self.editor.profile.favourites.all())
-        self.assertContains(response, "Some items failed, they had the id&#39;s: %s" % self.item4.id)
+        self.assertContains(response, "1 items favourited")
         self.assertEqual(len(response.redirect_chain), 1)
         self.assertEqual(response.redirect_chain[0][1], 302)
 

@@ -753,6 +753,14 @@ class _concept(baseAristotleObject):
             STATES.retired == status.state for status in self.statuses.all()
         ) and self.statuses.count() > 0
 
+    @property
+    def favourited_by(self):
+        from django.contrib.auth import get_user_model
+        user_model = get_user_model()
+        return user_model.objects.filter(
+            profile__tags__favourites__item=self
+        ).distinct()
+
     def check_is_public(self, when=timezone.now()):
         """
             A concept is public if any registration authority
@@ -1390,11 +1398,6 @@ class PossumProfile(models.Model):
         blank=True,
         null=True
     )
-    favourites = models.ManyToManyField(
-        _concept,
-        related_name='favourited_by',
-        blank=True
-    )
     profilePictureWidth = models.IntegerField(
         blank=True,
         null=True
@@ -1510,13 +1513,55 @@ class PossumProfile(models.Model):
         return perms.user_is_workgroup_manager(self.user, wg)
 
     def is_favourite(self, item):
-        return self.favourites.filter(pk=item.pk).exists()
+        from aristotle_mdr.contrib.favourites.models import Favourite
+        fav = Favourite.objects.filter(
+            tag__primary=True,
+            tag__profile=self,
+            item=item
+        )
+        return fav.exists()
 
     def toggleFavourite(self, item):
+        from aristotle_mdr.contrib.favourites.models import Favourite, Tag
+
         if self.is_favourite(item):
-            self.favourites.remove(item)
+            fav = Favourite.objects.filter(
+                tag__primary=True,
+                tag__profile=self,
+                item=item
+            )
+            fav.delete()
+            return False
         else:
-            self.favourites.add(item)
+            fav_tag, created = Tag.objects.get_or_create(
+                profile=self,
+                primary=True,
+            )
+            Favourite.objects.create(
+                tag=fav_tag,
+                item=item
+            )
+            return True
+
+    @property
+    def favourites(self):
+        return _concept.objects.filter(
+            favourites__tag__profile=self
+        ).distinct()
+
+    @property
+    def favourite_item_pks(self):
+        qs = _concept.objects.filter(
+            favourites__tag__profile=self
+        ).distinct().values_list('id', flat=True)
+        return list(qs)
+
+    @property
+    def favs_and_tags_count(self):
+        count = _concept.objects.filter(
+            favourites__tag__profile=self
+        ).distinct().count()
+        return count
 
 
 class SandboxShare(models.Model):
