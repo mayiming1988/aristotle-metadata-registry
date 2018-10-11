@@ -3,8 +3,11 @@ from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Count, Q
+from django.db import connection
+from django.db.models import Count, Q, Model
 from django.db.models.functions import Lower
+from django.db.models.query import QuerySet
+from django.forms.models import model_to_dict
 from django.http import Http404, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
@@ -17,6 +20,7 @@ from django.views.generic import (
 )
 
 from aristotle_mdr import models as MDR
+from aristotle_mdr.utils import status_filter
 
 paginate_sort_opts = {
     "mod_asc": ["modified"],
@@ -222,6 +226,37 @@ def generate_visibility_matrix(user):
     return matrix
 
 
+def get_query_safe_context(context):
+    """
+    Returns context as static data forcing no further queries to be executed
+    Note this will evaluate all querysets in the context
+    """
+
+    update = {}
+    for key, value in context.items():
+
+        if isinstance(value, Model):
+            update[key] = model_to_dict(value)
+
+        if isinstance(value, QuerySet):
+            update[key] = value.values()
+
+    context.update(update)
+    return context
+
+
+def get_status_queryset():
+    """
+    Get a queryset for all valid statuses and their ra's
+    """
+
+    return (
+        status_filter(MDR.Status.objects)
+        .order_by("registrationAuthority", "-registrationDate", "-created")
+        .select_related('registrationAuthority')
+    )
+
+
 class SortedListView(ListView):
     """
     Can be used to replace current paginated fucntion views,
@@ -283,9 +318,9 @@ class GenericListWorkgroup(LoginRequiredMixin, SortedListView):
     paginate_by = 20
 
     allowed_sorts = {
-        'items': 'items__count',
+        'items': 'num_items',
         'name': 'name',
-        'users': 'viewers__count'
+        'users': 'num_viewers'
     }
 
     default_sort = 'name'
@@ -294,7 +329,7 @@ class GenericListWorkgroup(LoginRequiredMixin, SortedListView):
         raise NotImplementedError
 
     def get_queryset(self):
-        workgroups = self.get_initial_queryset().annotate(Count('items')).annotate(Count('viewers'))
+        workgroups = self.get_initial_queryset().annotate(num_items=Count('items', distinct=True), num_viewers=Count('viewers', distinct=True))
         workgroups = workgroups.prefetch_related('viewers', 'managers', 'submitters', 'stewards')
 
         if self.text_filter:

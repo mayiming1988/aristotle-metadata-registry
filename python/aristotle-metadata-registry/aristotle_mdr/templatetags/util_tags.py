@@ -54,3 +54,16 @@ def json_script(value, element_id):
         '<script id="{}" type="application/json">{}</script>',
         element_id, mark_safe(json_str)
     )
+
+
+def distinct(iterable, attr_name):
+
+    seen = []
+    filtered = []
+    for item in iterable:
+        attr = getattr(item, attr_name)
+        if attr not in seen:
+            filtered.append(item)
+            seen.append(attr)
+
+    return filtered

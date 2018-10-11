@@ -13,6 +13,7 @@ from django.db.models import Q
 
 import logging
 import inspect
+import datetime
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
@@ -173,56 +174,46 @@ def get_concepts_for_apps(app_labels):
     return concepts
 
 
-# "There are only two hard problems in Computer Science: cache invalidation, naming things and off-by-one errors"
-def cache_per_item_user(ttl=None, prefix=None, cache_post=False):
-    '''
-    Modified from: https://djangosnippets.org/snippets/2524/
-    '''
+class CachePerItemUserMixin:
 
-    def decorator(function):
-        def apply_cache(request, *args, **kwargs):
-            # Gera a parte do usuario que ficara na chave do cache
-            if request.user.is_anonymous():
-                user = 'anonymous'
-            else:
-                user = request.user.id
+    cache_item_kwarg = 'iid'
+    cache_view_name = ''
+    cache_ttl = 300
 
-            iid = kwargs['iid']
+    def get(self, request, *args, **kwargs):
+        if request.user.is_anonymous():
+            user = 'anonymous'
+        else:
+            user = request.user.id
 
-            if prefix:  # pragma no cover - we don't use this
-                CACHE_KEY = '%s_%s_%s' % (prefix, user, iid)
-            else:
-                CACHE_KEY = 'view_cache_%s_%s_%s' % (function.__name__, user, iid)
+        iid = kwargs[self.cache_item_kwarg]
 
-            if not cache_post and request.method == 'POST':
-                can_cache = False
-            else:
-                can_cache = True
+        CACHE_KEY = 'view_cache_%s_%s_%s' % (self.cache_view_name, user, iid)
 
-            from aristotle_mdr.models import _concept
-            import datetime
-            from django.utils import timezone
+        can_use_cache = True
 
-            if 'nocache' not in request.GET.keys():
-                can_cache = False
+        if 'nocache' in request.GET.keys():
+            can_use_cache = False
 
-            # If the item was modified in the last 15 seconds, don't use cache
-            recently = timezone.now() - datetime.timedelta(seconds=15)
-            if _concept.objects.filter(id=iid, modified__gte=recently).exists():
-                can_cache = False
+        from aristotle_mdr.models import _concept
 
-            if can_cache:
-                response = cache.get(CACHE_KEY, None)
-            else:
-                response = None
+        # If the item was modified within ttl, don't use cache
+        recently = timezone.now() - datetime.timedelta(seconds=self.cache_ttl)
+        if _concept.objects.filter(id=iid, modified__gte=recently).exists():
+            can_use_cache = False
 
-            if not response:
-                response = function(request, *args, **kwargs)
-                if can_cache:
-                    cache.set(CACHE_KEY, response, ttl)
-            return response
-        return apply_cache
-    return decorator
+        if can_use_cache:
+            response = cache.get(CACHE_KEY, None)
+            if response is not None:
+                return response
+
+        response = super().get(request, *args, **kwargs)
+        response.render()
+
+        if can_use_cache:
+            cache.set(CACHE_KEY, response, self.cache_ttl)
+
+        return response
 
 
 error_messages = {
