@@ -15,6 +15,8 @@ Changelog
     - Use django-webpack-loader to load .css and .js bundles
     - Addition of background workers packages
     - Updated docker-compose file
+    - Fixed a 500 error when attempting to browse to invalid content types, fixes #900
+    - Improved field access to AristotleComponents when using the GraphQL API
 
 - 2.1.3
     - Identifier and Namespace searching
