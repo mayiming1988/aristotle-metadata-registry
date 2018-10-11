@@ -8,7 +8,7 @@ import { initCKEditor } from './ckeditor_simple_init.js'
 import { initMoveable } from './moveable.js'
 
 // Always on styles
-import 'bootstrap/dist/css/bootstrap.css'
+import '../styles/bootstrap.less'
 import 'font-awesome/css/font-awesome.css'
 import '../styles/aristotle.less'
 import '../styles/aristotle.visuals.less'
