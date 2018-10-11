@@ -9,6 +9,22 @@ from aristotle_mdr.tests import utils
 setup_aristotle_test_environment()
 
 
+class TestBrowsePages(TestCase):
+    def test_browse_pages_load(self):
+        response = self.client.get(reverse('browse_apps'))
+        self.assertEqual(response.status_code, 200)
+        response = self.client.get(reverse('browse_models', args=['aristotle_mdr']))
+        self.assertEqual(response.status_code, 200)
+
+    def test_invalid_browse_pages_do_not_load(self):
+        response = self.client.get(reverse('browse_apps'))
+        self.assertEqual(response.status_code, 200)
+        response = self.client.get(reverse('browse_concepts', args=['aristotle_mdr', 'workgroup']))
+        self.assertEqual(response.status_code, 404)
+        response = self.client.get(reverse('browse_concepts', args=['aristotle_mdr', 'registrationauthority']))
+        self.assertEqual(response.status_code, 404)
+
+
 class LoggedInViewConceptBrowsePages(utils.LoggedInViewPages):
     defaults = {}
 
@@ -24,12 +40,6 @@ class LoggedInViewConceptBrowsePages(utils.LoggedInViewPages):
         self.item4 = self.itemType.objects.create(name="Test Item 4 also like item 3 (visible to tested viewers)",definition="my definition",workgroup=self.wg1,**self.defaults)
 
         self.ra.register(self.item4,self.ra.public_state,self.su)
-
-    def test_browse_pages_load(self):
-        response = self.client.get(reverse('browse_apps'))
-        self.assertEqual(response.status_code, 200)
-        response = self.client.get(reverse('browse_models', args=['aristotle_mdr']))
-        self.assertEqual(response.status_code, 200)
 
     def test_anon_can_view_browse(self):
         self.logout()
