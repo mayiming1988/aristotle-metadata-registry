@@ -8,11 +8,15 @@ Changelog
     - Added help for new search tokens #887 that covers status and identifier search
     - Fix for dataset order display and reordering
     - Update logout redirect to home with a message
-    - Increase text lenght for submitting organisation and responsible organisation fields
+    - Increase text length for submitting organisation and responsible organisation fields
     - Efficiency impovements on list pages
     - Dependancy updates
+    - Fixed a 500 error when attempting to browse to invalid content types, fixes #900
+    - Improved field access to AristotleComponents when using the GraphQL API
   - UI improvements
     - Clicking the name of the latest comment in a discussion, jumps a user to that comment.
+  - New features
+    - Users can now view and clear lists metadata they have seen previously.
 
 - 2.1.3
     - Identifier and Namespace searching

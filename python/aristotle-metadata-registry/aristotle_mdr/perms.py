@@ -195,6 +195,8 @@ def user_can_view_review(user, review):
 
 
 def user_in_workgroup(user, wg):
+    if user.is_anonymous:
+        return False
     if user.is_superuser:
         return True
     return user in wg.members
@@ -221,6 +223,9 @@ def user_can_move_any_workgroup(user):
 
 def user_can_add_or_remove_workgroup(user, workgroup):
     workgroup_change_access = fetch_aristotle_settings().get('WORKGROUP_CHANGES', [])
+
+    if user.is_anonymous:
+        return False
 
     if user.is_superuser:
         return True
