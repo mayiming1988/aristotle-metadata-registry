@@ -74,7 +74,7 @@ class BrowseConcepts(AppBrowser):
                 raise Http404
             else:
                 self._model = ct.first().model_class()
-        if not issubclass(_concept, self._model):
+        if not issubclass(self._model, _concept):
             raise Http404
         return self._model
 
