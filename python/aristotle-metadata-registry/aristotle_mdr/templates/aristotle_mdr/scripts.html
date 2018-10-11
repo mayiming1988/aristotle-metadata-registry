@@ -1,5 +1,5 @@
 {% load bootstrap3 %}
-{% load static from staticfiles %}
+{% load static %}
 {% load notifications_tags %}
 <!--[if lt IE 9]>
   <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.2/html5shiv.min.js"></script>
@@ -10,8 +10,8 @@
 {{ formset.media }}
 {% endcomment %}
 <script>
-  // This needs to be set globally for ckeditor to work :(
-  var CKEDITOR_BASEPATH="/static/ckeditor/ckeditor/"
+  {# This needs to be set for ckeditor4 to work #}
+  var CKEDITOR_BASEPATH="{% get_static_prefix %}ckeditor/ckeditor/"
 </script>
 
 
