@@ -34,6 +34,19 @@ def register_queryset(qs):
 
 
 @register.filter
+def distinct(iterable, attr_name):
+
+    seen = []
+    filtered = []
+    for item in iterable:
+        attr = getattr(item, attr_name)
+        if attr not in seen:
+            filtered.append(item)
+            seen.append(attr)
+
+    return filtered
+
+
 def json_script(value, element_id):
     """
     Taken from Django 2.1

@@ -30,7 +30,7 @@ from aristotle_mdr.views.utils import (paginated_list,
                                        paginated_registration_authority_list,
                                        GenericListWorkgroup,
                                        AjaxFormMixin)
-from aristotle_mdr.views.views import ConceptRenderView
+from aristotle_mdr.views.views import ConceptRenderMixin
 from aristotle_mdr.utils import fetch_metadata_apps
 from aristotle_mdr.utils import get_aristotle_url
 
@@ -554,12 +554,14 @@ class SharedSandboxView(LoginRequiredMixin, GetShareMixin, ListView):
         return self.share.profile.mySandboxContent
 
 
-class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderView):
+class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderMixin, TemplateView):
     """View to display an item in a shared sandbox"""
 
-    def check_item(self):
+    slug_redirect = False
+
+    def check_item(self, item):
         self.sandbox_ids = list(self.user.profile.mySandboxContent.values_list('id', flat=True))
-        if self.item.id in self.sandbox_ids:
+        if item.id in self.sandbox_ids:
             return True
         else:
             return False
