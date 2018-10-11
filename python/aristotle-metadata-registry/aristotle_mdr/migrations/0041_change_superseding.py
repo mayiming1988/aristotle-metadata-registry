@@ -29,11 +29,11 @@ def move_to_new(apps, schema_migration):
 def move_to_old(apps, schema_migration):
     pass
 
-    
+
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_mdr', '0039_auto_20180828_1926'),
+        ('aristotle_mdr', '0040_remove_possumprofile_favourites'),
     ]
 
     operations = [
