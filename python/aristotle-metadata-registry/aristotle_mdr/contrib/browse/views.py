@@ -6,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, TemplateView
 from aristotle_mdr.utils import get_concepts_for_apps, fetch_metadata_apps
 from collections import OrderedDict
-
+from aristotle_mdr.models import _concept
 
 class BrowseApps(TemplateView):
     template_name = "aristotle_mdr_browse/apps_list.html"
@@ -74,6 +74,8 @@ class BrowseConcepts(AppBrowser):
                 raise Http404
             else:
                 self._model = ct.first().model_class()
+        if not issubclass(_concept, self._model):
+            raise Http404
         return self._model
 
     def get_queryset(self, *args, **kwargs):
