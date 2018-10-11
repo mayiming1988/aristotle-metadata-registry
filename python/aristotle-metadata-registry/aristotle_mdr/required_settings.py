@@ -2,6 +2,7 @@
 import os
 
 BASE_DIR = os.getenv('aristotlemdr__BASE_DIR', os.path.dirname(os.path.dirname(__file__)))
+MDR_BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 REPO_BASE_DIR = os.path.dirname(os.path.dirname(BASE_DIR))
 SECRET_KEY = os.getenv('aristotlemdr__SECRET_KEY', "OVERRIDE_THIS_IN_PRODUCTION")
 STATIC_ROOT = os.getenv('aristotlemdr__STATIC_ROOT', os.path.join(BASE_DIR, "static"))
@@ -273,14 +274,10 @@ WEBPACK_LOADER = {
         'CACHE': not DEBUG,
         'BUNDLE_DIR_NAME': 'bundles/',
         'POLL_INTERVAL': 0.1,
+        'STATS_FILE': os.path.join(REPO_BASE_DIR, 'assets/dist/webpack-stats.json'),
         'TIMEOUT': None,
         'IGNORE': ['.+\.hot-update.js', '.+\.map']
     }
 }
-
-if DEBUG:
-    WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = os.path.join(REPO_BASE_DIR, 'assets/dist/webpack-stats.json')
-else:
-    WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = os.path.join(BASE_DIR, 'webpack-stats-prod.json')
 
 MANIFEST_DIR = BASE_DIR
