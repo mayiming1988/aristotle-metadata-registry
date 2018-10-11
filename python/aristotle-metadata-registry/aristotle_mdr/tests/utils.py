@@ -804,4 +804,3 @@ class MockManagementForm(object):
                 base['{}-{}-{}'.format(self.prefix, i, field)] = value
 
         return base
->>>>>>> 1faec1dbd68e57add50c6fb2ebcecc097079304d
