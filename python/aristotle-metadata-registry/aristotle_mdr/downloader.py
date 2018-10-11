@@ -128,7 +128,7 @@ class CSVDownloader(DownloaderBase):
                 [v.value, v.meaning, v.start_date, v.end_date, "supplementary"]
             )
         cache.set(download_utils.get_download_cache_key(iid, user),
-                  (mem_file,
+                  (mem_file.getvalue(),
                    'txt/csv',
                    {'Content-Disposition': 'attachment; filename="{}.csv"'.format(item.name)}
                    )
