@@ -244,15 +244,15 @@ class ConceptRenderMixin:
         context['discussions'] = self.item.relatedDiscussions.all()
 
         # Tags
-        if request.user.is_authenticated():
+        if self.request.user.is_authenticated():
             item_tags = Favourite.objects.filter(
-                tag__profile=request.user.profile,
+                tag__profile=self.request.user.profile,
                 tag__primary=False,
-                item=item
+                item=self.item
             ).order_by('created').values_list('tag__name', flat=True)
 
             user_tags = Tag.objects.filter(
-                profile=request.user.profile,
+                profile=self.request.user.profile,
                 primary=False
             ).values_list('name', flat=True)
 
