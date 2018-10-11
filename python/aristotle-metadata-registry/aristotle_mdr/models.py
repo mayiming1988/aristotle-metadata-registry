@@ -597,6 +597,12 @@ class DiscussionPost(discussionAbstract):
     def active(self):
         return not self.closed
 
+    def get_absolute_url(self):
+        return reverse(
+            "aristotle:discussionsPost",
+            args=[self.pk]
+        )
+
 
 class DiscussionComment(discussionAbstract):
     post = models.ForeignKey(DiscussionPost, related_name='comments')
