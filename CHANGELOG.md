@@ -11,6 +11,8 @@ Changelog
     - Increase text lenght for submitting organisation and responsible organisation fields
     - Efficiency impovements on list pages
     - Dependancy updates
+    - Fixed a 500 error when attempting to browse to invalid content types, fixes #900
+    - Improved field access to AristotleComponents when using the GraphQL API
 
 - 2.1.3
     - Identifier and Namespace searching
