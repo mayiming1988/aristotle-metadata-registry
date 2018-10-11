@@ -143,9 +143,9 @@ def home(request):
         .prefetch_related('concept')[:5]
     ):
         recently_viewed.append(viewed)
-    
 
-    page = render(request, "aristotle_mdr/user/userHome.html",
+    page = render(
+        request, "aristotle_mdr/user/userHome.html",
         {
             "item": request.user,
             'recentdata': recentdata,
