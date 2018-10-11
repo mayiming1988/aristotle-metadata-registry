@@ -61,7 +61,7 @@ Showing {{ page.paginator.count }} results.
         </td>
         <td>{{ item.definition|striptags|safe|truncatewords:50 }}</td>
         <td>{{ item|distinct_members_count }}</td>
-        <td>{{ item.items__count }}</td>
+        <td>{{ item.num_items }}</td>
         {% if show_all %}
         <td>
             {% if item.archived %}

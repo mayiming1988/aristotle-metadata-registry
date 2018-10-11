@@ -14,7 +14,6 @@ urlpatterns = [
     url(r'^', include('aristotle_mdr.contrib.healthcheck.urls', app_name="aristotle_mdr_hb", namespace="aristotle_hb")),
 ]
 
-
 # This is only for dev work, so we can skip it.
 if settings.DEBUG:  # pragma: no cover
     from django.contrib.staticfiles import views

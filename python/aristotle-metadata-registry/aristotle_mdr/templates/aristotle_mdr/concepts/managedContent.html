@@ -8,7 +8,9 @@
     {% if item|can_edit:request.user %}
         <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/aristotle.autocomplete.css' %}" />
     {% endif %}
-    <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/aristotle.visuals.less'|compile %}" />
+    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'autocomplete_light/select2.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'autocomplete_light/vendor/select2/dist/css/select2.css' %}" />
 {% endblock %}
 
 {% block title %}
