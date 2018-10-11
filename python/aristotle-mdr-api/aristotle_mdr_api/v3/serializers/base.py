@@ -241,6 +241,12 @@ class Serializer(PySerializer):
                                     ser[subfield.name] = getattr(related,subfield.name)
                         weak_serial.append(ser)
                     self._current[f] = weak_serial
+            superseded_by = obj.superseded_by_items.first()
+            if superseded_by:
+                superseded_by = superseded_by.uuid
+            else:
+                superseded_by = None
+            self._current["superseded_by"] = superseded_by
 
             self.end_object(obj)
             if self.first:

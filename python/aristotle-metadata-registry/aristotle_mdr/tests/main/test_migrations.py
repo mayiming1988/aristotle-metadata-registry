@@ -1,12 +1,15 @@
-from aristotle_mdr.tests.migrations import MigrationsTestCase
-from aristotle_mdr.utils import migrations as migration_utils
 from aristotle_mdr import models
 from aristotle_mdr.contrib.slots import models as slots_models
+from aristotle_mdr.models import STATES
+from aristotle_mdr.tests.migrations import MigrationsTestCase
+from aristotle_mdr.utils import migrations as migration_utils
 
 from django.core.exceptions import FieldDoesNotExist
 from django.conf import settings
 from django.test import TestCase, tag
 from django.apps import apps as current_apps
+from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 
 class TestUtils(TestCase):
@@ -235,3 +238,69 @@ class TestRaActiveMigration(MigrationsTestCase, TestCase):
 
         inactivera = ra.objects.get(name='InactiveRA')
         self.assertEqual(inactivera.new_active, RA_ACTIVE_CHOICES.inactive)
+
+
+class TestSupersedingMigration(MigrationsTestCase, TestCase):
+
+    migrate_from = '0039_auto_20180828_1926'
+    migrate_to = '0041_change_superseding'
+
+    def setUpBeforeMigration(self, apps):
+        objectclass = apps.get_model('aristotle_mdr', 'ObjectClass')
+        registrationauthority = apps.get_model('aristotle_mdr', 'RegistrationAuthority')
+        Status = apps.get_model('aristotle_mdr', 'Status')
+
+        self.su = get_user_model().objects.create_superuser('super@example.com', 'user')
+
+        self.oc_new = objectclass.objects.create(
+            name='A newer OC',
+            definition='Test Definition',
+        )
+
+        # This highlights how backwards we got it.
+        # The old one has to be made *first*
+        self.oc_old_1 = objectclass.objects.create(
+            name='An older OC',
+            definition='Test Definition. Superseded.',
+            superseded_by=self.oc_new
+        )    
+
+        self.oc_old_2 = objectclass.objects.create(
+            name='An different older OC',
+            definition='Test Definition. Not superseded',
+            superseded_by=self.oc_new
+        )
+
+        self.ra = registrationauthority.objects.create(
+            name='The RA',
+            definition='Test Definition',
+        )
+
+        Status.objects.create(
+            concept=self.oc_old_1,
+            registrationAuthority=self.ra,
+            registrationDate=timezone.now().date(),
+            state=STATES.superseded,
+        )
+
+        Status.objects.create(
+            concept=self.oc_new,
+            registrationAuthority=self.ra,
+            registrationDate=timezone.now().date(),
+            state=STATES.standard,
+        )
+    def test_migration(self):
+        objectclass = self.apps.get_model('aristotle_mdr', 'ObjectClass')
+        self.oc_new = objectclass.objects.get(name='A newer OC')
+        self.oc_old_1 = objectclass.objects.get(name='An older OC')
+        self.oc_old_2 = objectclass.objects.get(name='An different older OC')
+
+        self.assertEqual(
+            self.oc_old_1.superseded_by_items_relation_set.all().first().newer_item.pk,
+            self.oc_new.pk,
+        )
+
+        self.assertEqual(
+            self.oc_old_2.superseded_by_items_relation_set.all().count(),
+            0
+        )
