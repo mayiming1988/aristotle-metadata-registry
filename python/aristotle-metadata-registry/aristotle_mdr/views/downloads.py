@@ -10,6 +10,8 @@ from aristotle_mdr.views import get_if_user_can_view
 from aristotle_mdr.utils import fetch_aristotle_downloaders, downloads as download_utils
 from celery.result import AsyncResult as async_result
 from django.core.cache import cache
+from django.utils.http import urlencode
+from aristotle_mdr import constants as CONSTANTS
 
 import logging
 from django.http import JsonResponse
@@ -72,9 +74,15 @@ def download(request, download_type, iid):
         if download_type == kls.download_type:
             try:
                 # properties requested for the file requested
-                res = kls.download.delay(*kls.get_download_config(request, iid))
-                response = redirect(reverse('aristotle:preparing_download', args=[iid]))
-                request.session['download_res_key'] = res.id
+                kls.item = item
+                properties, iid, *args = kls.get_download_config(request, iid)
+                res = kls.download.delay(properties, iid, *args)
+                response = redirect('{}?{}'.format(
+                    reverse('aristotle:preparing_download', args=[download_type]),
+                    urlencode({'items': iid, 'title': properties.get('title', 'Auto-Generated Document')}, True)
+                ))
+                request.session[CONSTANTS.DOWNLOAD_KEY_PREFIX +
+                                download_utils.get_download_cache_key(iid, download_type=download_type, delimiter='-')] = res.id
                 return response
             except TemplateDoesNotExist:
                 debug = getattr(settings, 'DEBUG')
@@ -123,8 +131,12 @@ def bulk_download(request, download_type, items=None):
                     else:
                         # This should be handled in the get_bulk_download_config resulted in throwing internal server error
                         return HttpResponseServerError
-                response = redirect(reverse('aristotle:preparing_download', args=[identifier]))
-                request.session['download_res_key'] = res.id
+                response = redirect('{}?{}'.format(
+                    reverse('aristotle:preparing_download', args=[download_type]),
+                    urlencode({'items': items, 'bulk': True, 'title': properties['title']}, True)
+                ))
+                request.session[CONSTANTS.DOWNLOAD_KEY_PREFIX +
+                                download_utils.get_download_cache_key(items, download_type=download_type, delimiter='-')] = res.id
                 return response
             except TemplateDoesNotExist:
                 debug = getattr(settings, 'DEBUG')
@@ -137,7 +149,7 @@ def bulk_download(request, download_type, items=None):
 
 
 # Thanks to stackoverflow answer: https://stackoverflow.com/a/23177986
-def prepare_async_download(request, identifier):
+def prepare_async_download(request, download_type):
     """
     This view lets user know that the download is being prepared.
     Checks:
@@ -145,49 +157,62 @@ def prepare_async_download(request, identifier):
     2. check if the celery task id expired/already downloaded.
     3. check if the job is ready.
     :param request: request object from the API call.
-    :param identifier: id being used to resolve the download
+    :param download_type: type of download
     :return: appropriate HTTP response object
     """
-    res_id = request.session.get('download_res_key', None)
+    items = request.GET.getlist('items', None)
+    res_id = request.session.get(CONSTANTS.DOWNLOAD_KEY_PREFIX +
+                                 download_utils.get_download_cache_key(items, download_type=download_type, delimiter='-'), None)
     if not res_id:
         raise Http404
     job = async_result(res_id)
     template = 'aristotle_mdr/downloads/creating_download.html'
     context = {}
 
+    download_url = '{}?{}'.format(
+        reverse('aristotle:start_download', args=[download_type]),
+        urlencode(request.GET, True)
+    )
+
     if request.GET.get('format') == 'json':
         if job.ready():
             return JsonResponse({
                 'isReady': True,
-                'download_url': reverse('aristotle:start_download', args=[identifier])
+                'download_url': download_url
+            })
+        else:
+            return JsonResponse({
+                'isReady': False
             })
 
     if job.ready():
-        context['download_url'] = reverse('aristotle:start_download', args=[identifier])
+        context['download_url'] = download_url
     return render(request, template, context=context)
 
 
 # TODO: need a better redirect architecture, needs refactor.
-def get_async_download(request, identifier):
+def get_async_download(request, download_type):
     """
     This will return the download if the download is cached in redis.
     Checks:
     1. check if the download has expired
     2. check if there is no key to download. If there is not
     :param request:
-    :param identifier:
+    :param download_type: type of download
     :return:
     """
+    items = request.GET.getlist('items', None)
     debug = getattr(settings, 'DEBUG')
+    download_key = CONSTANTS.DOWNLOAD_KEY_PREFIX + \
+                   download_utils.get_download_cache_key(items, download_type=download_type, delimiter='-')
     try:
-        res_id = request.session['download_res_key']
+        res_id = request.session[download_key]
     except KeyError:
         logger.exception('There is no key for request')
         if debug:
             raise
         raise Http404
 
-    del request.session['download_res_key']
     job = async_result(res_id)
 
     if not job.successful():
@@ -201,17 +226,23 @@ def get_async_download(request, identifier):
 
     job.forget()
     try:
-        doc, mime_type, properties = cache.get(download_utils.get_download_cache_key(identifier, request=request), (None, '', ''))
+        doc, mime_type, properties = cache.get(
+            download_utils.get_download_cache_key(items, request=request, download_type=download_type),
+            (None, '', '')
+        )
     except ValueError:
         if debug:
             raise
         logger.exception('Should unpack 3 values from the cache', ValueError)
         return HttpResponseServerError
     if not doc:
+        if debug:
+            raise ValueError('No document in the cache')
         # TODO: Need a design to avoid loop and refactor this to redirect to preparing-download
         return HttpResponseServerError
     response = HttpResponse(doc, content_type=mime_type)
-    response['Content-Disposition'] =  'attachment'
+    response['Content-Disposition'] =  'attachment; filename="{}.{}"'.format(request.GET.get('title'), download_type)
     for key, val in properties.items():
             response[key] = val
+    del request.session[download_key]
     return response

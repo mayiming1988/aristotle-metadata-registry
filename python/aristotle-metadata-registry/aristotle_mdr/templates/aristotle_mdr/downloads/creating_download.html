@@ -23,17 +23,19 @@
     let interval = setInterval(getDownloadStatus, 1000);
 
         function success(data) {
-            let downloadLink = $('<a></a>').text('Click to download your document');
-            downloadLink.attr('id', 'document-link')
-            let downloadText = $('<div></div>').text('Your document is ready to download');
-            downloadLink.attr({
-                'download': '',
-                'href': data.download_url,
-                'target': '_blank'
-            });
-            $('#download-wrapper').html(downloadText);
-            $('#download-wrapper').append(downloadLink);
-            init();
+            if (data.isReady){
+                let downloadLink = $('<a></a>').text('Click to download your document');
+                downloadLink.attr('id', 'document-link')
+                let downloadText = $('<div></div>').text('Your document is ready to download');
+                downloadLink.attr({
+                    'download': '',
+                    'href': data.download_url,
+                    'target': '_blank'
+                });
+                $('#download-wrapper').html(downloadText);
+                $('#download-wrapper').append(downloadLink);
+                init();
+            }
         }
         function getDownloadStatus () {
             $.ajax({

@@ -53,7 +53,8 @@ class PDFDownloader(DownloaderBase):
         item_props = {
             'user': str(user),
             'view': request.GET.get('view', '').lower(),
-            'page_size': request.GET.get('pagesize', page_size)
+            'page_size': request.GET.get('pagesize', page_size),
+            'title': "PDF Download for {obj.name}".format(obj=cls.item)
         }
 
         return item_props, iid
@@ -82,8 +83,8 @@ class PDFDownloader(DownloaderBase):
             for obj_type, qs in item.get_download_items()
         ]
 
-        cache.set(download_utils.get_download_cache_key(iid, user), (render_to_pdf(template, {
-            'title': "PDF Download for {obj.name}".format(obj=item),
+        cache.set(download_utils.get_download_cache_key(iid, user, download_type=PDFDownloader.download_type), (render_to_pdf(template, {
+            'title': properties['title'],
             'item': item,
             'subitems': sub_items,
             'tableOfContents': len(sub_items) > 0,
@@ -156,7 +157,7 @@ class PDFDownloader(DownloaderBase):
         mime_type = 'application/pdf'
         if debug_as_html:
             mime_type = 'text/html'
-        cache.set(download_utils.get_download_cache_key(properties['url_id'], user), (render_to_pdf(
+        cache.set(download_utils.get_download_cache_key(iids, user, download_type=PDFDownloader.download_type), (render_to_pdf(
                     template,
                     {
                         'title': title,
