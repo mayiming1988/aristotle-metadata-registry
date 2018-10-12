@@ -2,6 +2,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.test import TestCase, tag
 from django.test.utils import override_settings
+from django.utils import timezone
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
@@ -10,12 +11,13 @@ import aristotle_mdr.tests.utils as utils
 import datetime
 
 from aristotle_mdr.utils import setup_aristotle_test_environment
+from aristotle_mdr.models import STATES
 
 
 setup_aristotle_test_environment()
 
 
-class BulkActionsTest(utils.LoggedInViewPages):
+class BulkActionsTest(utils.AristotleTestUtils):
     def setUp(self):
         super().setUp()
 
@@ -322,7 +324,60 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
     def test_bulk_status_change_on_permitted_items_with_review(self):
         self.bulk_status_change_on_permitted_items(review_changes=True)
 
-    @tag('changestatus')
+    @tag('changestatus', 'newtest')
+    def test_default_deselections_on_change_status(self):
+        self.login_registrar()
+        # Make a RR so the registrar can change status
+        review = models.ReviewRequest.objects.create(
+            requester=self.su,
+            registration_authority=self.ra,
+            state=self.ra.locked_state,
+            registration_date=datetime.date(2013,4,2)
+        )
+        review.concepts.add(self.item1)
+        review.concepts.add(self.item2)
+
+        # Register item1 as candidate
+        models.Status.objects.create(
+            concept=self.item1,
+            registrationAuthority=self.ra,
+            registrationDate=timezone.now(),
+            state=STATES.candidate
+        )
+
+        # Register item2 as standard
+        models.Status.objects.create(
+            concept=self.item2,
+            registrationAuthority=self.ra,
+            registrationDate=timezone.now(),
+            state=STATES.standard
+        )
+
+        self.assertTrue(perms.user_can_change_status(self.registrar, self.item1))
+        self.assertTrue(perms.user_can_change_status(self.registrar, self.item2))
+
+        reg_date = datetime.date(2014, 10, 27)
+        items = [self.item1.id, self.item2.id]
+        postdata = {
+            'change_state-state': STATES.standard,
+            'change_state-items': [str(a) for a in items],
+            'change_state-registrationDate': reg_date,
+            'change_state-cascadeRegistration': 0,
+            'change_state-registrationAuthorities': [self.ra.id],
+            'submit_next': 'value',  # Go to review changes page
+            'change_status_bulk_action_view-current_step': 'change_state',
+        }
+
+        response = self.reverse_post(
+            'aristotle:change_state_bulk_action',
+            postdata,
+            status_code=200
+        )
+
+        form = response.context['form']
+        import pdb; pdb.set_trace()
+
+    @tag('changestatus', 'newtest')
     def test_bulk_status_change_cascade_common_child(self):
         # Test for changestatus with cascade  on 2 items with a common child
         self.login_superuser()
