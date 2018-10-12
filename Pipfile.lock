@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "b63b1f61546c9fc4664b1614c2becf7af5ec94d5a263926aafa8573e0e7bd885"
+            "sha256": "0322d82ebd2ba94b94f4505574f033c883d1166488e7fd9a312bbb8ab466ac64"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,23 +16,12 @@
         ]
     },
     "default": {
-        "amqp": {
-            "hashes": [
-                "sha256:073dd02fdd73041bffc913b767866015147b61f2a9bc104daef172fc1a0066eb",
-                "sha256:eed41946890cd43e8dee44a316b85cf6fee5a1a34bb4a562b660a358eb529e1b"
-            ],
-            "version": "==2.3.2"
-        },
         "aniso8601": {
             "hashes": [
                 "sha256:7849749cf00ae0680ad2bdfe4419c7a662bef19c03691a19e008c8b9a5267802",
                 "sha256:94f90871fcd314a458a3d4eca1c84448efbd200e86f55fe4c733c7a40149ef50"
             ],
             "version": "==3.0.2"
-        },
-        "aristotle-bg-workers": {
-            "editable": true,
-            "path": "./python/aristotle-bg-workers"
         },
         "aristotle-dataset-extensions": {
             "editable": true,
@@ -65,12 +54,6 @@
             ],
             "version": "==18.2.0"
         },
-        "billiard": {
-            "hashes": [
-                "sha256:ed65448da5877b5558f19d2f7f11f8355ea76b3e63e1c0a6059f47cfae5f1c84"
-            ],
-            "version": "==3.5.0.4"
-        },
         "cairocffi": {
             "hashes": [
                 "sha256:15386c3a9e08823d6826c4491eaccc7b7254b1dc587a3b9ce60c350c3f990337"
@@ -84,13 +67,6 @@
             ],
             "markers": "python_version >= '3.0'",
             "version": "==2.2.1"
-        },
-        "celery": {
-            "hashes": [
-                "sha256:77dab4677e24dc654d42dfbdfed65fa760455b6bb563a0877ecc35f4cfcfc678",
-                "sha256:ad7a7411772b80a4d6c64f2f7f723200e39fb66cf614a7fdfab76d345acc7b13"
-            ],
-            "version": "==4.2.1"
         },
         "certifi": {
             "hashes": [
@@ -226,13 +202,6 @@
                 "sha256:ba68e98b817c6f01d71d10849f359979617b3fe4cefb7f289adefddced092ddc"
             ],
             "version": "==1.13.0"
-        },
-        "django-celery-results": {
-            "hashes": [
-                "sha256:8bca2605eeff4418be7ce428a6958d64bee0f5bdf1f8e563fbc09a9e2f3d990f",
-                "sha256:dfa240fb535a1a2d01c9e605ad71629909318eae6b893c5009eafd7265fde10b"
-            ],
-            "version": "==1.0.1"
         },
         "django-ckeditor": {
             "hashes": [
@@ -470,13 +439,6 @@
                 "sha256:6ff5f3180870836cae40f06fa10419f557208175f13ad7bc26caa77beb1f6e02"
             ],
             "version": "==2.6.0"
-        },
-        "kombu": {
-            "hashes": [
-                "sha256:86adec6c60f63124e2082ea8481bbe4ebe04fde8ebed32c177c7f0cd2c1c9082",
-                "sha256:b274db3a4eacc4789aeb24e1de3e460586db7c4fc8610f7adcc7a3a1709a60af"
-            ],
-            "version": "==4.2.1"
         },
         "lesscpy": {
             "hashes": [
@@ -723,13 +685,6 @@
             ],
             "version": "==1.23"
         },
-        "vine": {
-            "hashes": [
-                "sha256:52116d59bc45392af9fdd3b75ed98ae48a93e822cee21e5fda249105c59a7a72",
-                "sha256:6849544be74ec3638e84d90bc1cf2e1e9224cc10d96cd4383ec3f69e9bce077b"
-            ],
-            "version": "==1.1.4"
-        },
         "weasyprint": {
             "hashes": [
                 "sha256:4d35e37cf9d2cea199ddfe4b038c80024619e8a05a2f2eb99b80a2bfb6063eb7",
@@ -857,11 +812,11 @@
         },
         "django-tools": {
             "hashes": [
-                "sha256:5572d2ee0f3baa2ba5c9d12758e8fd8d98d11383af211c03ce0d618f49b7194d",
-                "sha256:d2949fbb24ecd195e5ee69c9df3922b9216059bc938894d2267907c9acb0afc7"
+                "sha256:5192d19440e76d4d66396dede81e13ac029c5899dc2d3e87157e76d312087a2b",
+                "sha256:f912ee6f81db43b53e110aa38bc4547a75ea5e33c1f2805052431d417203cbf6"
             ],
             "index": "pypi",
-            "version": "==0.42.2"
+            "version": "==0.42.3"
         },
         "flake8": {
             "hashes": [

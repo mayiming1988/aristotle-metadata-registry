@@ -1,0 +1,29 @@
+{% extends "aristotle_mdr/base.html" %}
+
+{% block content %}
+<h2>
+    <strong>
+    {% block title %} Internal Server Error {% endblock %}
+    </strong>
+</h2>
+
+{% block page_error %}
+
+{% load staticfiles %}
+
+<div class="col-md-6 text-center">
+    <h1 class="text-center" style="font-size:100px"> 500 </h1>
+    <p>
+        An internal server error occurred.
+    </p>
+    <p>
+        Try refresh this page or fell free to contact us if the problem persists.
+    </p>
+</div>
+
+<div class="pull-right">
+    <img src="{% static 'aristotle_mdr/images/aristotle_large_square.png' %}" class="img-responsive pull-left ">
+</div>
+
+{% endblock %}
+{% endblock %}
