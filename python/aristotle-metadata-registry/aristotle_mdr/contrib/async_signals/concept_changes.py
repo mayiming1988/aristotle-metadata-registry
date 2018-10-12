@@ -70,9 +70,9 @@ def item_superseded(message, **kwargs):
     new_super_rel = safe_object(message)
     concept = new_super_rel.older_item
 
-    for p in concept.favourited_by.all():
-        if concept.can_view(p.user) and new_super_rel.newer_item.can_view(p.user):
-            messages.favourite_superseded(recipient=p.user, obj=concept)
+    for user in concept.favourited_by.all():
+        if concept.can_view(user) and new_super_rel.newer_item.can_view(user):
+            messages.favourite_superseded(recipient=user, obj=concept)
 
     for status in concept.current_statuses().all():
         for registrar in status.registrationAuthority.registrars.all():
