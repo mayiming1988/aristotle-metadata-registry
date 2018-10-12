@@ -29,3 +29,4 @@ if settings.DEBUG:  # pragma: no cover
 
 handler403 = 'aristotle_mdr.views.unauthorised'
 handler404 = 'aristotle_mdr.views.not_found'
+handler500 = 'aristotle_mdr.views.handler500'

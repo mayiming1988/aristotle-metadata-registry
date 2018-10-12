@@ -212,6 +212,66 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             self.assertEqual(response.status_code, 200)
             self.assertNotEqual(response.content, b'wow')
 
+    @tag('extrav')
+    def test_no_extra_versions_created_adv_editor(self):
+
+        oc = models.ObjectClass.objects.create(
+            name='Test OC',
+            definition='Just a test',
+            submitter=self.editor
+        )
+
+        prop = models.Property.objects.create(
+            name='Test Prop',
+            definition='Just a test',
+            submitter=self.editor
+        )
+
+        dec = models.DataElementConcept.objects.create(
+            name='Test DEC',
+            definition='Just a test',
+            objectClass=oc,
+            property=prop,
+            submitter=self.editor
+        )
+
+        data = utils.model_to_dict_with_change_time(dec)
+        data.update({
+            'definition': 'More than a test',
+            'change_comments': 'A change was made'
+        })
+
+        from reversion import models as revmodels
+        self.assertEqual(revmodels.Version.objects.count(), 0)
+
+        self.login_editor()
+        response = self.reverse_post(
+            'aristotle:edit_item',
+            data=data,
+            status_code=302,
+            reverse_args=[dec.id]
+        )
+
+        dec = models.DataElementConcept.objects.get(pk=dec.pk)
+        self.assertEqual(dec.definition, 'More than a test')
+
+        # Should be 2 version, one for the _concept,
+        # one for the data element concept
+        self.assertEqual(revmodels.Version.objects.count(), 2)
+
+        from django.contrib.contenttypes.models import ContentType
+        concept_ct = ContentType.objects.get_for_model(models._concept)
+        dec_ct = ContentType.objects.get_for_model(models.DataElementConcept)
+
+        concept_version = revmodels.Version.objects.get(content_type=concept_ct)
+        dec_version = revmodels.Version.objects.get(content_type=dec_ct)
+
+        # check concept version
+        self.assertEqual(int(concept_version.object_id), dec._concept_ptr.id)
+
+        # check dec version
+        self.assertEqual(int(dec_version.object_id), dec.id)
+
 
 class LoggedInViewConceptPages(utils.LoggedInViewPages, utils.FormsetTestUtils):
     defaults = {}
