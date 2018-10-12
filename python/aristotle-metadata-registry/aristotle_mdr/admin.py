@@ -376,9 +376,6 @@ register_concept(
     MDR.DataElementConcept,
     name_suggest_fields=['objectClass', 'property'],
     extra_fieldsets=[('Components', {'fields': ['objectClass', 'property']})],
-    reversion={
-        'follow': ['objectClass', 'property'],
-    },
     custom_search_index=aristotle_mdr_DataElementConceptSearchIndex
 )
 
@@ -397,9 +394,6 @@ register_concept(
     MDR.DataElement,
     name_suggest_fields=['dataElementConcept', 'valueDomain'],
     extra_fieldsets=[('Components', {'fields': ['dataElementConcept', 'valueDomain']})],
-    reversion={
-        'follow': ['dataElementConcept', 'valueDomain'],
-    },
     custom_search_index=aristotle_mdr_DataElementSearchIndex
 )
 
