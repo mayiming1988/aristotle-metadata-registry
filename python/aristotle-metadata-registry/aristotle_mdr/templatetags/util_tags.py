@@ -47,6 +47,7 @@ def distinct(iterable, attr_name):
     return filtered
 
 
+@register.filter
 def json_script(value, element_id):
     """
     Taken from Django 2.1
