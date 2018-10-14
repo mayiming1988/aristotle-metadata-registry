@@ -34,6 +34,7 @@ from aristotle_mdr import models as MDR
 from aristotle_mdr.utils import get_concepts_for_apps, fetch_aristotle_settings, fetch_aristotle_downloaders
 from aristotle_mdr.views.utils import generate_visibility_matrix
 from aristotle_mdr.contrib.slots.utils import get_allowed_slots
+from aristotle_mdr.contrib.favourites.models import Favourite, Tag
 
 from haystack.views import FacetedSearchView
 
@@ -66,6 +67,8 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
     model = MDR._concept
     pk_url_kwarg = 'iid'
     template_name = "aristotle_mdr/actions/concept_history_compare.html"
+
+    compare_exclude = 'favourites'
 
     def get_object(self, queryset=None):
         item = super().get_object(queryset)
@@ -241,6 +244,26 @@ class ConceptRenderMixin:
         context['item'] = self.item
         context['statuses'] = self.item.current_statuses
         context['discussions'] = self.item.relatedDiscussions.all()
+
+        # Tags
+        if self.request.user.is_authenticated():
+            item_tags = Favourite.objects.filter(
+                tag__profile=self.request.user.profile,
+                tag__primary=False,
+                item=self.item
+            ).order_by('created').values_list('tag__name', flat=True)
+
+            user_tags = Tag.objects.filter(
+                profile=self.request.user.profile,
+                primary=False
+            ).values_list('name', flat=True)
+
+            item_tags = list(item_tags)
+            user_tags = list(user_tags)
+
+            context['item_tags'] = json.dumps(item_tags)
+            context['user_tags'] = json.dumps(user_tags)
+
         return context
 
     def get_template_names(self):
@@ -358,28 +381,6 @@ def create_list(request):
         }
     )
 
-
-@login_required
-def toggleFavourite(request, iid):
-    item = get_object_or_404(MDR._concept, pk=iid).item
-    if not user_can_view(request.user, item):
-        if request.user.is_anonymous():
-            return redirect(reverse('friendly_login') + '?next=%s' % request.path)
-        else:
-            raise PermissionDenied
-    request.user.profile.toggleFavourite(item)
-    if request.GET.get('next', None):
-        return redirect(request.GET.get('next'))
-    if item.concept in request.user.profile.favourites.all():
-        message = _("%s added to favourites.") % (item.name)
-    else:
-        message = _("%s removed from favourites.") % (item.name)
-    message = _(message + " Review your favourites from the user menu.")
-    messages.add_message(request, messages.SUCCESS, message)
-    return redirect(url_slugify_concept(item))
-
-
-# Actions
 
 def display_review(wizard):
     if wizard.display_review is not None:
@@ -690,8 +691,7 @@ class PermissionSearchView(FacetedSearchView):
     def extra_context(self):
         # needed to compare to indexed primary key value
         if not self.request.user.is_anonymous():
-            favourites_pks = self.request.user.profile.favourites.all().values_list('id', flat=True)
-            favourites_list = list(favourites_pks)
+            favourites_list = self.request.user.profile.favourite_item_pks
         else:
             favourites_list = []
 

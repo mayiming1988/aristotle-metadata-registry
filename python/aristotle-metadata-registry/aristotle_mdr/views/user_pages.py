@@ -357,17 +357,6 @@ class EditView(LoginRequiredMixin, UpdateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-@login_required
-def favourites(request):
-    items = request.user.profile.favourites.select_subclasses()
-    context = {
-        'help': request.GET.get("help", False),
-        'favourite': request.GET.get("favourite", False),
-        # "select_all_list_queryset_filter": 'favourited_by__user=user'  # no information leakage here.
-    }
-    return paginated_list(request, items, "aristotle_mdr/user/userFavourites.html", context)
-
-
 class RegistrarTools(LoginRequiredMixin, View):
 
     template_name = "aristotle_mdr/user/registration_authority/list_all.html"
