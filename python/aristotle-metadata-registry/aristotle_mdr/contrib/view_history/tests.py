@@ -126,7 +126,7 @@ class TestViewHistory(utils.LoggedInViewPages, TestCase):
         self.assertContains(response, "2 times")
         self.assertContains(response, "in the last month.")
 
-        for i in range(4,16):
+        for i in range(4, 16):
             UserViewHistory.objects.create(
                 user=self.editor,
                 concept=self.item1,
