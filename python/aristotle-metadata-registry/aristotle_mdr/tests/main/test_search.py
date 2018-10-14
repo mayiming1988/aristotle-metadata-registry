@@ -23,7 +23,7 @@ import unittest
 setup_aristotle_test_environment()
 
 
-class TestSearch(utils.LoggedInViewPages,TestCase):
+class TestSearch(utils.AristotleTestUtils, TestCase):
     def tearDown(self):
         call_command('clear_index', interactive=False, verbosity=0)
 
@@ -156,7 +156,7 @@ class TestSearch(utils.LoggedInViewPages,TestCase):
 
         i = self.xmen_wg.items.first()
 
-        self.registrar.profile.favourites.add(i)
+        self.favourite_item(self.registrar, i)
         self.assertTrue(i in self.registrar.profile.favourites.all())
 
         response = self.client.get(reverse('aristotle:search')+"?q=xman")
