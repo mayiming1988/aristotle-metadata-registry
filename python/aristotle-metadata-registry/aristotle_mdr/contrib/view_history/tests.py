@@ -64,7 +64,11 @@ class TestViewHistory(utils.LoggedInViewPages, TestCase):
         response = self.client.get(self.item1.get_absolute_url())
         self.assertEqual(self.item1.user_view_history.all().count(), 1)
         self.assertEqual(self.editor.recently_viewed_metadata.all().count(), 1)
-        response = self.client.get(self.item1.get_absolute_url())
+        UserViewHistory.objects.create(
+            user=self.editor,
+            concept=self.item1,
+            # view_date=(now() - datetime.timedelta(days=1))
+        )
         self.assertEqual(self.item1.user_view_history.filter(user=self.editor).all().count(), 2)
 
         # Try and view item2, but cant so count doesn't change
@@ -108,7 +112,11 @@ class TestViewHistory(utils.LoggedInViewPages, TestCase):
         self.assertContains(response, "1 time")
         self.assertContains(response, "in the last month.")
 
-        response = self.client.get(self.item1.get_absolute_url())
+        UserViewHistory.objects.create(
+            user=self.editor,
+            concept=self.item1,
+            view_date=(now() - datetime.timedelta(days=1))
+        )
         self.assertEqual(self.item1.user_view_history.filter(user=self.editor).all().count(), 3)
 
         response = self.client.get(reverse('aristotle:search') + "?q=visible")
@@ -118,21 +126,12 @@ class TestViewHistory(utils.LoggedInViewPages, TestCase):
         self.assertContains(response, "2 times")
         self.assertContains(response, "in the last month.")
 
-        response = self.client.get(self.item1.get_absolute_url())
-        response = self.client.get(self.item1.get_absolute_url())
-        # 5
-        response = self.client.get(self.item1.get_absolute_url())
-        response = self.client.get(self.item1.get_absolute_url())
-        response = self.client.get(self.item1.get_absolute_url())
-        response = self.client.get(self.item1.get_absolute_url())
-        response = self.client.get(self.item1.get_absolute_url())
-        # 10
-        response = self.client.get(self.item1.get_absolute_url())
-        response = self.client.get(self.item1.get_absolute_url())
-        response = self.client.get(self.item1.get_absolute_url())
-        response = self.client.get(self.item1.get_absolute_url())
-        response = self.client.get(self.item1.get_absolute_url())
-        # 15
+        for i in range(4,16):
+            UserViewHistory.objects.create(
+                user=self.editor,
+                concept=self.item1,
+                view_date=(now() - datetime.timedelta(days=i))
+            )
 
         self.assertEqual(self.item1.user_view_history.filter(user=self.editor).all().count(), 15)
 
