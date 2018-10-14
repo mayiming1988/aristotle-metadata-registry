@@ -56,6 +56,7 @@ def json_script(value, element_id):
     )
 
 
+@register.filter
 def distinct(iterable, attr_name):
 
     seen = []
