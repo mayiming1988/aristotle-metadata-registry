@@ -198,6 +198,8 @@ urlpatterns=[
     url(r'share/(?P<share>[\w-]+)$', views.user_pages.SharedSandboxView.as_view(), name='sharedSandbox'),
     url(r'share/(?P<share>[\w-]+)/(?P<iid>\d+)', views.user_pages.SharedItemView.as_view(), name='sharedSandboxItem'),
 
+    url(r'version/(?P<verid>\d+)', views.ConceptVersionView.as_view(), name='item_version'),
+
     url(
         r'^search/?$',
         search_view_factory(

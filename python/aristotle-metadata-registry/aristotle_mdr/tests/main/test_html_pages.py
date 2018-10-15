@@ -17,6 +17,7 @@ from aristotle_mdr.forms.creation_wizards import (
 from aristotle_mdr.tests import utils
 import datetime
 from unittest import mock
+import reversion
 
 from aristotle_mdr.utils import setup_aristotle_test_environment
 
@@ -273,7 +274,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(int(dec_version.object_id), dec.id)
 
 
-class LoggedInViewConceptPages(utils.LoggedInViewPages, utils.FormsetTestUtils):
+class LoggedInViewConceptPages(utils.AristotleTestUtils):
     defaults = {}
 
     def setUp(self):
@@ -1426,6 +1427,24 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages, utils.FormsetTestUtils):
                     if value == 'new value -updated':
                         new_value_seen = True
                 self.assertTrue(new_value_seen)
+
+    def test_view_previous_version(self):
+        import pdb; pdb.set_trace()
+        with reversion.create_revision():
+            self.item1.description = self.item1.description + ' update'
+            self.item1.save()
+
+        item1_concept = self.item1._concept_ptr
+
+        versions = reversion.models.Version.objects.get_for_object(item1_concept)
+        latest_version = versions.first()
+
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle:item_version',
+            reverse_args=[latest_version.id],
+            status_code=200
+        )
 
 
 class ObjectClassViewPage(LoggedInViewConceptPages, TestCase):

@@ -3,10 +3,12 @@ from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist, ObjectDoesNotExist
 from django.urls import reverse
 from django.db import transaction
+from django.db.models import Q
 from django.http import HttpResponseRedirect, HttpResponseNotFound, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.defaultfilters import slugify
@@ -282,6 +284,73 @@ class DataElementView(ConceptRenderMixin, TemplateView):
             'statuses'
         ]
         return model.objects.select_related(*related_objects).prefetch_related(*prefetch_objects)
+
+
+class ConceptVersionView(ConceptRenderMixin, TemplateView):
+
+    slug_redirect = False
+    version_arg = 'verid'
+
+    def check_item(self, item):
+        return user_can_view(self.request.user, item)
+
+    def get_item(self):
+        return self.item_version.object
+
+    def get_version(self):
+        try:
+            version = reversion.models.Version.objects.get(id=self.kwargs[self.version_arg])
+        except reversion.models.Version.DoesNotExist:
+            return False
+
+        self.revision = version.revision
+        concept_ct = ContentType.objects.get_for_model(MDR._concept)
+
+        # import pdb; pdb.set_trace()
+        if version.content_type == concept_ct:
+            self.concept_version = version
+            version_filter = Q(revision=self.revision) &\
+                Q(object_id=version.object_id) &\
+                ~Q(content_type_id=concept_ct.id)
+
+            # Other non concept versions in the revision could have the same id
+            non_concept_versions = reversion.models.Version.objects.filter(
+                version_filter
+            )
+
+            self.item_version = None
+            for sub_version in non_concept_versions:
+                ct = sub_version.content_type
+                # Find version that is a _concept subclass
+                if issubclass(ct.model_class(), MDR._concept):
+                    self.item_version = sub_version
+                    break
+
+            if self.item_version is None:
+                return False
+        else:
+            return False
+
+        self.version_dict = json.loads(self.concept_version.serialized_data)[0]['fields']
+        self.version_dict.update(json.loads(self.item_version.serialized_data)[0]['fields'])
+        self.get_weak_versions()
+        return True
+
+    def get_weak_versions(self):
+        model = self.item_version.content_type.model_class()
+        weak_models = []
+        if model.serialize_weak_entities:
+            reverse_keys = [weak[1] for weak in model.serialize_weak_entities]
+            for key in reverse_keys:
+                field = model._meta.get_field(key)
+                weak_models.append(field.related_model)
+
+    def dispatch(self, request, *args, **kwargs):
+        exists = self.get_version()
+        if not exists:
+            return HttpResponseNotFound()
+
+        return super().dispatch(request, *args, **kwargs)
 
 
 def registrationHistory(request, iid):
