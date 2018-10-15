@@ -68,7 +68,11 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
     pk_url_kwarg = 'iid'
     template_name = "aristotle_mdr/actions/concept_history_compare.html"
 
-    compare_exclude = 'favourites'
+    compare_exclude = [
+        'favourites',
+        'user_view_history',
+        'submitter',
+    ]
 
     def get_object(self, queryset=None):
         item = super().get_object(queryset)
