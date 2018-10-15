@@ -98,7 +98,7 @@ class ReviewChangesChoiceField(ModelMultipleChoiceField):
                     deselections = True
 
             innerdict['perm'] = perms.user_can_change_status(user, concept)
-            innerdict['new_state'] =  {'url': url, 'text': new_state}
+            innerdict['new_state'] = {'url': url, 'text': new_state}
 
             extra_info[concept.id] = innerdict
 
