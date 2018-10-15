@@ -16,7 +16,7 @@ from aristotle_mdr.utils import setup_aristotle_test_environment
 setup_aristotle_test_environment()
 
 
-class TestNotifications(utils.LoggedInViewPages, TestCase):
+class TestNotifications(utils.AristotleTestUtils, TestCase):
     defaults = {}
     def setUp(self):
         super().setUp()
@@ -39,9 +39,9 @@ class TestNotifications(utils.LoggedInViewPages, TestCase):
 
     def test_subscriber_is_notified_of_supersede(self):
         user1 = get_user_model().objects.create_user('subscriber@example.com','subscriber')
-        user1.profile.favourites.add(self.item1)
+        self.favourite_item(user1, self.item1)
         self.wg1.viewers.add(user1)
-        self.assertTrue(user1.profile in self.item1.favourited_by.all())
+        self.assertTrue(user1 in self.item1.favourited_by.all())
 
         self.assertEqual(user1.notifications.all().count(), 0)
         self.assertTrue(self.item1.can_view(user1))
@@ -60,9 +60,9 @@ class TestNotifications(utils.LoggedInViewPages, TestCase):
 
     def test_subscriber_is_not_notified_of_supersedes_on_invisible_items(self):
         user1 = get_user_model().objects.create_user('subscriber@example.com','subscriber')
-        user1.profile.favourites.add(self.item1)
+        self.favourite_item(user1, self.item1)
         self.wg1.viewers.add(user1)
-        self.assertTrue(user1.profile in self.item1.favourited_by.all())
+        self.assertTrue(user1 in self.item1.favourited_by.all())
 
         self.assertEqual(user1.notifications.all().count(), 0)
         self.assertTrue(self.item1.can_view(user1))

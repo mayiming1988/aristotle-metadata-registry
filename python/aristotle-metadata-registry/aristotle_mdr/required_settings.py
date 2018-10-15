@@ -90,6 +90,7 @@ INSTALLED_APPS = (
     'aristotle_mdr.contrib.browse',
     'aristotle_mdr.contrib.autocomplete',
     'aristotle_mdr.contrib.user_management',
+    'aristotle_mdr.contrib.favourites',
 
     'dal',
     'dal_select2',
