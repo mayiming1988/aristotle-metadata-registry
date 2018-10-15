@@ -81,6 +81,7 @@ class TableCheckboxSelect(CheckboxSelectMultiple):
 
         option['extra'] = option_extra_list
         option['permission'] = option_extra['perm']
+        option['checked'] = option_extra['checked']
 
         if not option['permission']:
             self.badperms = True
