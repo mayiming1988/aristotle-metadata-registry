@@ -1429,7 +1429,6 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
                 self.assertTrue(new_value_seen)
 
     def test_view_previous_version(self):
-        import pdb; pdb.set_trace()
         with reversion.create_revision():
             self.item1.description = self.item1.description + ' update'
             self.item1.save()

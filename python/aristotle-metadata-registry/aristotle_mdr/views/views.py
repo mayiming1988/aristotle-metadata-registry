@@ -21,6 +21,7 @@ from formtools.wizard.views import SessionWizardView
 
 import json
 import copy
+from collections import defaultdict
 
 import reversion
 from reversion_compare.views import HistoryCompareDetailView
@@ -306,7 +307,6 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         self.revision = version.revision
         concept_ct = ContentType.objects.get_for_model(MDR._concept)
 
-        # import pdb; pdb.set_trace()
         if version.content_type == concept_ct:
             self.concept_version = version
             version_filter = Q(revision=self.revision) &\
@@ -322,6 +322,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
             for sub_version in non_concept_versions:
                 ct = sub_version.content_type
                 # Find version that is a _concept subclass
+                # Since the pk is the _concept_ptr this is fine
                 if issubclass(ct.model_class(), MDR._concept):
                     self.item_version = sub_version
                     break
@@ -331,19 +332,42 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         else:
             return False
 
-        self.version_dict = json.loads(self.concept_version.serialized_data)[0]['fields']
-        self.version_dict.update(json.loads(self.item_version.serialized_data)[0]['fields'])
-        self.get_weak_versions()
+        concept_version_data = json.loads(self.concept_version.serialized_data)[0]
+        item_version_data = json.loads(self.item_version.serialized_data)[0]
+        self.version_dict = concept_version_data['fields']
+        self.version_dict.update(item_version_data['fields'])
+        updates = self.get_weak_versions()
+        self.version_dict.update(updates)
+        self.version_dict['meta'] = {
+            'app_label': self.item_version.content_type.app_label,
+            'model_name': self.item_version.content_type.model
+        }
+        self.version_dict['id'] = item_version_data['pk']
+        self.version_dict['pk'] = item_version_data['pk']
         return True
 
     def get_weak_versions(self):
         model = self.item_version.content_type.model_class()
-        weak_models = []
+
+        # Build a mapping of model labels to field name on base model
+        weak_models = {}
         if model.serialize_weak_entities:
             reverse_keys = [weak[1] for weak in model.serialize_weak_entities]
             for key in reverse_keys:
                 field = model._meta.get_field(key)
-                weak_models.append(field.related_model)
+                field_model = field.related_model()
+                weak_models[field_model._meta.label_lower] = field.name
+
+        # Build mapping of model attributes to list of weak models in
+        # the same revision
+        model_updates = defaultdict(list)
+        for version in self.revision.version_set.all():
+            data = json.loads(version.serialized_data)
+            if data[0]['model'] in weak_models:
+                model_attr = weak_models[data[0]['model']]
+                model_updates[model_attr].append(data[0]['fields'])
+
+        return model_updates
 
     def dispatch(self, request, *args, **kwargs):
         exists = self.get_version()
@@ -351,6 +375,12 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
             return HttpResponseNotFound()
 
         return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(ConceptRenderMixin, self).get_context_data(*args, **kwargs)
+        context['hide_item_actions'] = True
+        context['item'] = self.version_dict
+        return context
 
 
 def registrationHistory(request, iid):
