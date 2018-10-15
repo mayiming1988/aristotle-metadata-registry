@@ -326,9 +326,9 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages, utils.FormsetTestUtils):
         response = self.client.get(self.get_page(self.item2))
         self.assertEqual(response.status_code,200)
 
-        # Ensure short urls rediect properly
+        # Ensure short urls redirect properly
         response = self.client.get(reverse("aristotle:item_short", args=[self.item1.pk]))
-        self.assertEqual(response.status_code,200)
+        self.assertEqual(response.status_code,302)
 
     def test_editor_can_view(self):
         self.login_editor()
