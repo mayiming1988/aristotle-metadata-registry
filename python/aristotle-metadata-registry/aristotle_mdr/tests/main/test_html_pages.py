@@ -85,7 +85,8 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.item = models.ObjectClass.objects.create(
             name='Test Item',
             definition='Test Item Description',
-            submitter=self.editor
+            submitter=self.editor,
+            workgroup=self.wg1
         )
         self.itemid = self.item.id
 
@@ -210,6 +211,25 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
             response = self.client.get(url)
             self.assertEqual(response.status_code, 200)
+            self.assertNotEqual(response.content, b'wow')
+
+    @tag('cache')
+    def test_itempage_cached_per_user(self):
+        # Load response into cache
+        cache.set(self.cache_key, HttpResponse('wow'))
+
+        # View item page in future
+        with mock.patch('aristotle_mdr.utils.utils.timezone.now') as mock_now:
+            mock_now.return_value = self.future_time
+
+            # Login as different user
+            self.login_viewer()
+            response = self.reverse_get(
+                'aristotle:item',
+                reverse_args=[self.itemid, 'objectclass', 'test-item'],
+                status_code=200
+            )
+
             self.assertNotEqual(response.content, b'wow')
 
     @tag('extrav')
