@@ -261,8 +261,10 @@ class ConceptRenderMixin:
             item_tags = list(item_tags)
             user_tags = list(user_tags)
 
-            context['item_tags'] = json.dumps(item_tags)
-            context['user_tags'] = json.dumps(user_tags)
+            context['tags'] = {
+                'item': item_tags,
+                'user': user_tags
+            }
 
         return context
 
