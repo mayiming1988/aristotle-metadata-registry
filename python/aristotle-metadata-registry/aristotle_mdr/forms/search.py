@@ -672,8 +672,6 @@ class PermissionSearchForm(TokenSearchForm):
 
     def apply_sorting(self, sqs):  # pragma: no cover, no security issues, standard Haystack methods, so already tested.
         sort_order = self.cleaned_data['sort']
-        logger.critical("=============================================")
-        logger.critical(sqs)
         if sort_order == SORT_OPTIONS.modified_ascending:
             sqs = sqs.order_by('-modified', 'name_sortable')
         elif sort_order == SORT_OPTIONS.modified_descending:
@@ -686,7 +684,5 @@ class PermissionSearchForm(TokenSearchForm):
             sqs = sqs.order_by('name_sortable')
         elif sort_order == SORT_OPTIONS.state:
             sqs = sqs.order_by('-highest_state', 'name_sortable')
-        logger.critical(sqs)
-        logger.critical("=============================================")
 
         return sqs
