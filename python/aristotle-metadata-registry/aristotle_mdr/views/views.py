@@ -265,8 +265,10 @@ class ConceptRenderMixin:
             item_tags = list(item_tags)
             user_tags = list(user_tags)
 
-            context['item_tags'] = json.dumps(item_tags)
-            context['user_tags'] = json.dumps(user_tags)
+            context['tags'] = {
+                'item': item_tags,
+                'user': user_tags
+            }
 
         return context
 
@@ -411,7 +413,7 @@ class ReviewChangesView(SessionWizardView):
             state = cleaned_data['state']
             ra = cleaned_data['registrationAuthorities']
 
-            static_content = {'new_state': str(MDR.STATES[state]), 'new_reg_date': cleaned_data['registrationDate']}
+            static_content = {'new_state': state, 'new_reg_date': cleaned_data['registrationDate']}
             # Need to check wether cascaded was true here
 
             if cascade == 1:
