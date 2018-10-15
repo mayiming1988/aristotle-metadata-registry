@@ -15,7 +15,7 @@ class ReviewChangesChoiceField(ModelMultipleChoiceField):
 
     def __init__(self, queryset, static_content, ra, user, **kwargs):
 
-        extra_info = self.build_extra_info(queryset, ra, user, static_content)
+        extra_info, deselections = self.build_extra_info(queryset, ra, user, static_content)
         static_content.pop('new_state')  # Added this to extra with a dynamic url attached
 
         headers = {
@@ -44,7 +44,8 @@ class ReviewChangesChoiceField(ModelMultipleChoiceField):
             attrs={'tableclass': 'table'},
             headers=headers,
             top_header=top_header,
-            order=order
+            order=order,
+            deselections=deselections
         )
 
         super().__init__(queryset, **kwargs)
@@ -72,6 +73,7 @@ class ReviewChangesChoiceField(ModelMultipleChoiceField):
                     'state': status.state
                 }
 
+        deselections = False
         for concept in subclassed_queryset:
             url = reverse('aristotle:registrationHistory', kwargs={'iid': concept.id})
 
@@ -93,13 +95,14 @@ class ReviewChangesChoiceField(ModelMultipleChoiceField):
                 }
                 if state_info['state'] >= new_state_num:
                     innerdict['checked'] = False
+                    deselections = True
 
             innerdict['perm'] = perms.user_can_change_status(user, concept)
             innerdict['new_state'] =  {'url': url, 'text': new_state}
 
             extra_info[concept.id] = innerdict
 
-        return extra_info
+        return (extra_info, deselections)
 
 
 class MultipleEmailField(Field):

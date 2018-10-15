@@ -45,6 +45,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
             reverse('aristotle:change_state_bulk_action'),
             postdata
         )
+        self.assertFalse(change_state_response.context['deselections'])
 
         self.assertEqual(change_state_response.status_code, 200)
         self.assertEqual(change_state_response.context['wizard']['steps'].step1, 2) # check we are now on second step
@@ -184,8 +185,8 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         self.assertTrue(self.item1.concept not in self.new_workgroup.items.all())
         self.assertTrue(self.item2.concept not in self.new_workgroup.items.all())
         self.assertTrue(self.item4.concept not in self.new_workgroup.items.all())
-
         response = self.client.post(
+
             reverse('aristotle:bulk_action'),
             {
                 'bulkaction': 'aristotle_mdr.forms.bulk_actions.ChangeWorkgroupForm',
@@ -384,6 +385,8 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         self.assertTrue(perms.user_can_change_status(self.registrar, self.item2))
 
         response = self.review_changes(items, STATES.standard)
+        self.assertTrue(response.context['deselections'])
+
         form = response.context['form']
         extra_info = form.fields['selected_list'].widget.extra_info
         self.assertTrue(extra_info[self.item1.id]['perm'])
@@ -418,6 +421,8 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         self.assertTrue(perms.user_can_change_status(self.registrar, self.item2))
 
         response = self.review_changes(items, STATES.standard)
+        self.assertTrue(response.context['deselections'])
+
         form = response.context['form']
         extra_info = form.fields['selected_list'].widget.extra_info
         self.assertTrue(extra_info[self.item1.id]['perm'])
@@ -435,6 +440,8 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         self.assertTrue(perms.user_can_change_status(self.registrar, self.item1))
 
         response = self.review_changes(items, STATES.standard)
+        self.assertFalse(response.context['deselections'])
+
         form = response.context['form']
         extra_info = form.fields['selected_list'].widget.extra_info
         self.assertTrue(extra_info[self.item1.id]['perm'])
