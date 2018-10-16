@@ -1,7 +1,7 @@
 from django.conf import settings
 
 
-def fire(signal_name, obj=None, **kwargs):
+def fire(signal_name, obj=None, namespace="aristotle_mdr.contrib.async_signals", **kwargs):
     from django.utils.module_loading import import_string
     message = kwargs
     if getattr(settings, 'ARISTOTLE_ASYNC_SIGNALS', False):
@@ -16,7 +16,7 @@ def fire(signal_name, obj=None, **kwargs):
         # Channel("aristotle_mdr.contrib.channels.%s" % signal_name).send(message)
     else:
         message.update({'__object__': {'object': obj}})
-        import_string("aristotle_mdr.contrib.async_signals.%s" % signal_name)(message)
+        import_string("%s.%s" % (namespace, signal_name))(message)
 
 
 def safe_object(message):

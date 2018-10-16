@@ -29,8 +29,6 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse('aristotle:userInbox', args=['all']))
         self.assertEqual(response.status_code, 200)
-        response = self.client.get(reverse('aristotle:userFavourites',))
-        self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse('aristotle:userWorkgroups',))
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse('aristotle:user_workgroups_archives',))
@@ -535,9 +533,6 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         self.login_superuser()
         response = self.client.get("/login")
         self.assertRedirects(response, reverse('aristotle:userHome'))
-
-        response = self.client.get("/login?next=" + reverse('aristotle:userFavourites'))
-        self.assertRedirects(response, reverse('aristotle:userFavourites'))
 
 
 class UserDashRecentItems(utils.LoggedInViewPages, TestCase):

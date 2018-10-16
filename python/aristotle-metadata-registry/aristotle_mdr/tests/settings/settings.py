@@ -38,6 +38,7 @@ skip_migrations = (
     # os.environ.get('DATABASE_URL', "").startswith('mssql')
 )
 
+ARISTOTLE_ASYNC_SIGNALS = False
 
 print("Running test-suite with connection string %s" % os.environ.get('DATABASE_URL'))
 

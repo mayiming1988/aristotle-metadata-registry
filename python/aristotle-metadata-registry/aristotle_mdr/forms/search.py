@@ -22,6 +22,10 @@ from aristotle_mdr.widgets.bootstrap import (
 
 from aristotle_mdr.utils import fetch_metadata_apps
 
+import logging
+logger = logging.getLogger(__name__)
+logger.debug("Logging started for " + __name__)
+
 
 QUICK_DATES = Choices(
     ('', 'anytime', _('Any time')),
@@ -669,16 +673,16 @@ class PermissionSearchForm(TokenSearchForm):
     def apply_sorting(self, sqs):  # pragma: no cover, no security issues, standard Haystack methods, so already tested.
         sort_order = self.cleaned_data['sort']
         if sort_order == SORT_OPTIONS.modified_ascending:
-            sqs = sqs.order_by('-modified')
+            sqs = sqs.order_by('-modified', 'name_sortable')
         elif sort_order == SORT_OPTIONS.modified_descending:
-            sqs = sqs.order_by('modified')
+            sqs = sqs.order_by('modified', '-name_sortable')
         elif sort_order == SORT_OPTIONS.created_ascending:
-            sqs = sqs.order_by('-created')
+            sqs = sqs.order_by('-created', 'name_sortable')
         elif sort_order == SORT_OPTIONS.created_descending:
-            sqs = sqs.order_by('created')
+            sqs = sqs.order_by('created', '-name_sortable')
         elif sort_order == SORT_OPTIONS.alphabetical:
-            sqs = sqs.order_by('name')
+            sqs = sqs.order_by('name_sortable')
         elif sort_order == SORT_OPTIONS.state:
-            sqs = sqs.order_by('-highest_state')
+            sqs = sqs.order_by('-highest_state', 'name_sortable')
 
         return sqs

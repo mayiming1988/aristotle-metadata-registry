@@ -6,6 +6,7 @@ from django.urls import reverse_lazy
 from haystack.views import search_view_factory
 
 import aristotle_mdr.views as views
+from aristotle_mdr.views.search import PermissionSearchView
 import aristotle_mdr.forms as forms
 import aristotle_mdr.models as models
 from aristotle_mdr.contrib.generic.views import (
@@ -114,7 +115,7 @@ urlpatterns=[
     # Concept page overrides
     url(r'^item/(?P<iid>\d+)/dataelement/(?P<name_slug>.+)/?$', views.DataElementView.as_view(), name='dataelement'),
     url(r'^item/(?P<iid>\d+)(?:\/(?P<model_slug>\w+)\/(?P<name_slug>.+))?/?$', views.ConceptView.as_view(), name='item'),
-    url(r'^item/(?P<iid>\d+)(?:\/.*)?$', views.ConceptView.as_view(), name='item'),  # Catch every other 'item' URL and throw it for a redirect
+    url(r'^item/(?P<iid>\d+)(?:\/.*)?$', views.ConceptView.as_view(), name='item_short'),  # Catch every other 'item' URL and throw it for a redirect
     url(r'^item/(?P<uuid>[\w-]+)/?(.*)?$', views.concept_by_uuid, name='item_uuid'),
 
     url(r'^unmanaged/measure/(?P<iid>\d+)(?:\/(?P<model_slug>\w+)\/(?P<name_slug>.+))?/?$', views.measure, name='measure'),
@@ -148,7 +149,6 @@ urlpatterns=[
     url(r'^account/edit/?$', views.user_pages.EditView.as_view(), name='userEdit'),
     url(r'^account/profile/?$', views.user_pages.ProfileView.as_view(), name='userProfile'),
     url(r'^account/recent/?$', views.user_pages.recent, name='userRecentItems'),
-    url(r'^account/favourites/?$', views.user_pages.favourites, name='userFavourites'),
     url(r'^account/reviews/?$', views.user_pages.my_review_list, name='userMyReviewRequests'),
     url(r'^account/reviews/cancel/(?P<review_id>\d+)/?$', views.actions.ReviewCancelView.as_view(), name='userReviewCancel'),
     url(r'^account/workgroups/?$', views.user_pages.MyWorkgroupList.as_view(), name='userWorkgroups'),
@@ -182,8 +182,6 @@ urlpatterns=[
     url(r'^organizations/?$', views.registrationauthority.all_organizations, name='all_organizations'),
     url(r'^registrationauthorities/?$', views.registrationauthority.all_registration_authorities, name='all_registration_authorities'),
 
-    url(r'^account/toggleFavourite/(?P<iid>\d+)/?$', views.toggleFavourite, name='toggleFavourite'),
-
     url(r'^extensions/?$', views.extensions, name='extensions'),
 
     url(r'^notifyredirect/(?P<content_type>\d+)/(?P<object_id>\d+)/', views.notification_redirect, name="notify_redirect"),
@@ -201,7 +199,7 @@ urlpatterns=[
     url(
         r'^search/?$',
         search_view_factory(
-            view_class=views.PermissionSearchView,
+            view_class=PermissionSearchView,
             template='search/search.html',
             searchqueryset=None,
             form_class=forms.search.PermissionSearchForm

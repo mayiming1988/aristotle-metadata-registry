@@ -3,7 +3,12 @@ from django.template.loader import render_to_string
 
 
 class Comparator(CompareMixin, CompareMethodsMixin):
-    pass
+
+    compare_exclude = [
+        'favourites',
+        'user_view_history',
+        'submitter',
+    ]
 
 
 class ValueDomainComparator(Comparator):

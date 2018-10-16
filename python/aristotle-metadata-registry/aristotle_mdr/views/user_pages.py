@@ -127,15 +127,31 @@ def home(request):
                     revdata['versions'].append({'id': ver.object_id, 'text': str(ver), 'url': url})
                 else:
                     # Fallback, results in db query
-                    obj = ver.object
-                    if hasattr(obj, 'get_absolute_url'):
-                        revdata['versions'].append({'id': ver.object_id, 'text': str(ver), 'url': obj.get_absolute_url})
+                    print(ver)
+                    # obj = ver.object
+                    # if hasattr(obj, 'get_absolute_url'):
+                    #     revdata['versions'].append({'id': ver.object_id, 'text': str(ver), 'url': obj.get_absolute_url})
 
             seen_ver_ids.append(ver.object_id)
 
         recentdata.append(revdata)
 
-    page = render(request, "aristotle_mdr/user/userHome.html", {"item": request.user, 'recentdata': recentdata})
+    recently_viewed = []
+    for viewed in (
+        request.user.recently_viewed_metadata.all()
+        .order_by("-view_date")
+        .prefetch_related('concept')[:5]
+    ):
+        recently_viewed.append(viewed)
+
+    page = render(
+        request, "aristotle_mdr/user/userHome.html",
+        {
+            "item": request.user,
+            'recentdata': recentdata,
+            "recently_viewed": recently_viewed,
+        }
+    )
     return page
 
 
@@ -355,17 +371,6 @@ class EditView(LoginRequiredMixin, UpdateView):
                 return self.form_invalid(form)
 
         return HttpResponseRedirect(self.get_success_url())
-
-
-@login_required
-def favourites(request):
-    items = request.user.profile.favourites.select_subclasses()
-    context = {
-        'help': request.GET.get("help", False),
-        'favourite': request.GET.get("favourite", False),
-        # "select_all_list_queryset_filter": 'favourited_by__user=user'  # no information leakage here.
-    }
-    return paginated_list(request, items, "aristotle_mdr/user/userFavourites.html", context)
 
 
 class RegistrarTools(LoginRequiredMixin, View):
