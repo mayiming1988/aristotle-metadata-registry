@@ -109,14 +109,16 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         response = self.client.get(reverse('aristotle:download',args=['pdf',self.item1.id]), follow=True)
         self.assertEqual(response.status_code,200)
         self.assertEqual(len(response.redirect_chain), 1)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=[self.item1.id]))
+        self.assertTrue(reverse('aristotle:preparing_download', args=['pdf']) in response.redirect_chain[0][0])
         self.assertTrue(self.downloader_download.called)
         self.assertTrue(self.async_result.called)
 
-        response = self.client.get(reverse('aristotle:preparing_download', args=[self.item1.id]), follow=True)
+        response = self.client.get('{}?{}'.format(
+            reverse('aristotle:start_download', args=['pdf']),
+            response.request['QUERY_STRING']),
+            follow=True
+        )
         self.assertEqual(response.status_code,200)
-        self.assertEqual(len(response.redirect_chain), 1)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:start_download', args=[self.item1.id]))
         self.assertTrue(self.async_result.called)
 
         LoggedInViewConceptPages.result = None

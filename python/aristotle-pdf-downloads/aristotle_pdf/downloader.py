@@ -108,7 +108,7 @@ class PDFDownloader(DownloaderBase):
 
         properties = {
             'user': None,
-            'title': request.GET.get('title', None).strip() or 'Auto-generated document',
+            'title': request.GET.get('title', '').strip() or 'Auto-generated document',
             'subtitle': request.GET.get('subtitle', None),
             'debug_as_html': request.GET.get('html', False),
             'page_size': request.GET.get('pagesize', None),

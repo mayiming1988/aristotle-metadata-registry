@@ -766,7 +766,8 @@ class AsyncResultMock:
         initialize the mock async result
         :param task_id: task_id for mock task
         """
-        self.status = states.PENDING
+        self.status = states.RECEIVED
+        self.state = states.RECEIVED
         self.id = task_id
         self.result = ''
 
@@ -779,6 +780,7 @@ class AsyncResultMock:
         is_ready = self.status == states.SUCCESS
 
         self.status = states.SUCCESS
+        self.state = states.SUCCESS
         return is_ready
 
     def successful(self):

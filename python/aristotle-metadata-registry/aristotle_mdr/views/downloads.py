@@ -86,7 +86,7 @@ def download(request, download_type, iid):
                     reverse('aristotle:preparing_download', args=[download_type]),
                     urlencode(get_params, True)
                 ))
-                request.session[download_utils.get_download_session_key(request, download_type)] = res.id
+                request.session[download_utils.get_download_session_key(get_params, download_type)] = res.id
                 return response
             except TemplateDoesNotExist:
                 debug = getattr(settings, 'DEBUG')
@@ -130,12 +130,13 @@ def bulk_download(request, download_type, items=None):
                 res = kls.bulk_download.delay(properties, items, *args)
                 if not properties.get('title', ''):
                     properties['title'] = 'Auto-generated document'
+                get_params.pop('title')
                 get_params.setdefault('title', properties['title'])
                 response = redirect('{}?{}'.format(
                     reverse('aristotle:preparing_download', args=[download_type]),
                     urlencode(get_params, True)
                 ))
-                request.session[download_utils.get_download_session_key(request, download_type)] = res.id
+                request.session[download_utils.get_download_session_key(get_params, download_type)] = res.id
                 return response
             except TemplateDoesNotExist:
                 debug = getattr(settings, 'DEBUG')
@@ -160,16 +161,17 @@ def prepare_async_download(request, download_type):
     :return: appropriate HTTP response object
     """
     get_params = request.GET.copy()
+    if get_params.get('format', False):
+        get_params.pop('format')
     start_new_download = False
     try:
-        res_id = request.session[download_utils.get_download_session_key(request, download_type)]
+        res_id = request.session[download_utils.get_download_session_key(get_params, download_type)]
         job = async_result(res_id)
-        if job.state == states.PENDING:
+        if job.status == states.PENDING:
             # Raising key error because key is invalid
             raise KeyError
     except KeyError:
         start_new_download = True
-
     if start_new_download:
         if get_params.get('bulk'):
             redirect_url = reverse('aristotle:bulk_download', args=[download_type])
@@ -188,7 +190,7 @@ def prepare_async_download(request, download_type):
         urlencode(get_params, True)
     )
 
-    if get_params.get('format') == 'json':
+    if request.GET.get('format') == 'json':
         if job.ready():
             return JsonResponse({
                 'isReady': True,
@@ -217,7 +219,7 @@ def get_async_download(request, download_type):
     """
     items = request.GET.getlist('items', None)
     debug = getattr(settings, 'DEBUG')
-    download_key = download_utils.get_download_session_key(request, download_type)
+    download_key = download_utils.get_download_session_key(request.GET, download_type)
     try:
         res_id = request.session[download_key]
     except KeyError:

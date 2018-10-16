@@ -47,9 +47,9 @@ def get_download_cache_key(identifier=[], user_pk=None, request=None, download_t
 
     return key
 
-def get_download_session_key(request, download_type, delimiter='-'):
+def get_download_session_key(request, download_type, delimiter='_'):
     prefix = CONSTANTS.DOWNLOAD_KEY_PREFIX
-    is_public = request.GET.get('public', '')
-    items = request.GET.getlist('items', None)
+    is_public = request.get('public', '')
+    items = request.getlist('items', None)
 
     return prefix + get_download_cache_key(items, download_type=download_type, delimiter=delimiter) + is_public
