@@ -84,24 +84,26 @@ class TextDownloader(utils.LoggedInViewPages, TestCase):
         TextDownloader.result = None
         response = self.client.get(reverse('aristotle:download', args=['txt', self.de.id]))
         self.assertEqual(len(self.downloader_download.mock_calls), 2)
-        self.assertRedirects(response, reverse('aristotle:preparing_download', args=[self.de.id]))
+        self.assertRedirects(response, reverse('aristotle:preparing_download', args=['txt']) +
+                             '?items={}&title=Auto-Generated+Document'.format(self.de.id))
         self.assertTrue(self.async_result.called)
         self.assertEqual(len(self.downloader_download.mock_calls), 2)
         self.assertEqual(len(self.async_result.mock_calls), 1)
         self.assertEqual(response.status_code, 302)
 
         # calling the preparing download page to see if the download is available complete
-        response = self.client.get(reverse('aristotle:preparing_download', args=[self.de.id]))
+        response = self.client.get(response.url)
+        self.assertEqual(response.status_code, 200)
         self.assertTrue(self.async_result.called)
         self.assertEqual(len(self.async_result.mock_calls), 2)
 
-        # TODO: Test if the functions are called.
-        self.assertRedirects(response, reverse('aristotle:start_download', args=[self.de.id]), fetch_redirect_response=False)
-        response = self.client.get(response.url)
+
+        response = self.client.get(reverse('aristotle:start_download', args=['txt']) + '?items={}&title=Auto-Generated+Document'.format(self.de.id))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, self.de.definition)
         self.assertTrue(self.async_result.called)
         self.assertEqual(len(self.async_result.mock_calls), 3)
+
+        self.assertContains(response, self.de.definition)
 
         # Initiating 3rd download
         TextDownloader.result = None
