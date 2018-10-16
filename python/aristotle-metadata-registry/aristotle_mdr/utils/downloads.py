@@ -3,7 +3,7 @@ from importlib import import_module
 from django.conf import settings
 
 from aristotle_mdr import exceptions as registry_exceptions
-
+from aristotle_mdr import constants as CONSTANTS
 
 def get_download_module(module_name):
 
@@ -20,7 +20,7 @@ def get_download_module(module_name):
         return None
 
 
-def get_download_cache_key(identifier = [], user_pk=None, request=None, download_type='txt', delimiter=':'):
+def get_download_cache_key(identifier=[], user_pk=None, request=None, download_type='txt', delimiter=':'):
     """
     Returns a unique to cache key using a specified key(user_pk) or from a request.
     Can send user's unique key, a request or id
@@ -46,3 +46,10 @@ def get_download_cache_key(identifier = [], user_pk=None, request=None, download
         key = '{}{}{}'.format(download_type, d, identifier)
 
     return key
+
+def get_download_session_key(request, download_type, delimiter='-'):
+    prefix = CONSTANTS.DOWNLOAD_KEY_PREFIX
+    is_public = request.GET.get('public', '')
+    items = request.GET.getlist('items', None)
+
+    return prefix + get_download_cache_key(items, download_type=download_type, delimiter=delimiter) + is_public

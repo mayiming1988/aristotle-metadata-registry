@@ -51,12 +51,14 @@ class PDFDownloader(DownloaderBase):
         user = getattr(request, 'user', None)
 
         item_props = {
-            'user': str(user),
+            'user': None,
             'view': request.GET.get('view', '').lower(),
             'page_size': request.GET.get('pagesize', page_size),
             'title': "PDF Download for {obj.name}".format(obj=cls.item)
         }
 
+        if user:
+            item_props['user'] = str(user)
         return item_props, iid
 
     @staticmethod
@@ -70,7 +72,7 @@ class PDFDownloader(DownloaderBase):
         """
         User = get_user_model()
         user = properties['user']
-        if user != str(AnonymousUser()):
+        if user and user != str(AnonymousUser()):
             user = User.objects.get(email=user)
         else:
             user = AnonymousUser()

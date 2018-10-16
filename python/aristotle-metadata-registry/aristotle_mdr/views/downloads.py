@@ -9,6 +9,7 @@ from aristotle_mdr import models as MDR
 from aristotle_mdr.views import get_if_user_can_view
 from aristotle_mdr.utils import fetch_aristotle_downloaders, downloads as download_utils
 from celery.result import AsyncResult as async_result
+from celery import states
 from django.core.cache import cache
 from django.utils.http import urlencode
 from aristotle_mdr import constants as CONSTANTS
@@ -68,7 +69,8 @@ def download(request, download_type, iid):
             return redirect(reverse('friendly_login') + '?next=%s' % request.path)
         else:
             raise PermissionDenied
-
+    get_params = request.GET.copy()
+    get_params.setdefault('items', iid)
     download_opts = fetch_aristotle_downloaders()
     for kls in download_opts:
         if download_type == kls.download_type:
@@ -76,13 +78,15 @@ def download(request, download_type, iid):
                 # properties requested for the file requested
                 kls.item = item
                 properties, iid, *args = kls.get_download_config(request, iid)
+                if get_params.get('public', False):
+                    properties['user'] = False
                 res = kls.download.delay(properties, iid, *args)
+                get_params.setdefault('title', properties.get('title', 'Auto-Generated Document'))
                 response = redirect('{}?{}'.format(
                     reverse('aristotle:preparing_download', args=[download_type]),
-                    urlencode({'items': iid, 'title': properties.get('title', 'Auto-Generated Document')}, True)
+                    urlencode(get_params, True)
                 ))
-                request.session[CONSTANTS.DOWNLOAD_KEY_PREFIX +
-                                download_utils.get_download_cache_key(iid, download_type=download_type, delimiter='-')] = res.id
+                request.session[download_utils.get_download_session_key(request, download_type)] = res.id
                 return response
             except TemplateDoesNotExist:
                 debug = getattr(settings, 'DEBUG')
@@ -114,29 +118,24 @@ def bulk_download(request, download_type, items=None):
     # downloadOpts = fetch_aristotle_settings().get('DOWNLOADERS', [])
     items = request.GET.getlist('items')
     download_opts = fetch_aristotle_downloaders()
+    get_params = request.GET.copy()
+    get_params.setdefault('bulk', True)
     for kls in download_opts:
         if download_type == kls.download_type:
             try:
                 # properties for download template
                 properties, items, *args = kls.get_bulk_download_config(request, items)
+                if get_params.get('public', False):
+                    properties['user'] = False
                 res = kls.bulk_download.delay(properties, items, *args)
                 if not properties.get('title', ''):
                     properties['title'] = 'Auto-generated document'
-                try:
-                    identifier = properties['url_id']
-                except KeyError:
-                    debug = getattr(settings, 'DEBUG')
-                    if debug:
-                        raise
-                    else:
-                        # This should be handled in the get_bulk_download_config resulted in throwing internal server error
-                        return HttpResponseServerError
+                get_params.setdefault('title', properties['title'])
                 response = redirect('{}?{}'.format(
                     reverse('aristotle:preparing_download', args=[download_type]),
-                    urlencode({'items': items, 'bulk': True, 'title': properties['title']}, True)
+                    urlencode(get_params, True)
                 ))
-                request.session[CONSTANTS.DOWNLOAD_KEY_PREFIX +
-                                download_utils.get_download_cache_key(items, download_type=download_type, delimiter='-')] = res.id
+                request.session[download_utils.get_download_session_key(request, download_type)] = res.id
                 return response
             except TemplateDoesNotExist:
                 debug = getattr(settings, 'DEBUG')
@@ -160,21 +159,36 @@ def prepare_async_download(request, download_type):
     :param download_type: type of download
     :return: appropriate HTTP response object
     """
-    items = request.GET.getlist('items', None)
-    res_id = request.session.get(CONSTANTS.DOWNLOAD_KEY_PREFIX +
-                                 download_utils.get_download_cache_key(items, download_type=download_type, delimiter='-'), None)
-    if not res_id:
-        raise Http404
-    job = async_result(res_id)
+    get_params = request.GET.copy()
+    start_new_download = False
+    try:
+        res_id = request.session[download_utils.get_download_session_key(request, download_type)]
+        job = async_result(res_id)
+        if job.state == states.PENDING:
+            # Raising key error because key is invalid
+            raise KeyError
+    except KeyError:
+        start_new_download = True
+
+    if start_new_download:
+        if get_params.get('bulk'):
+            redirect_url = reverse('aristotle:bulk_download', args=[download_type])
+        else:
+            redirect_url = reverse('aristotle:download', args=[download_type, get_params.get('items')])
+
+        return redirect('{}?{}'.format(
+            redirect_url,
+            urlencode(get_params, True)
+        ))
+
     template = 'aristotle_mdr/downloads/creating_download.html'
     context = {}
-
     download_url = '{}?{}'.format(
         reverse('aristotle:start_download', args=[download_type]),
-        urlencode(request.GET, True)
+        urlencode(get_params, True)
     )
 
-    if request.GET.get('format') == 'json':
+    if get_params.get('format') == 'json':
         if job.ready():
             return JsonResponse({
                 'isReady': True,
@@ -203,8 +217,7 @@ def get_async_download(request, download_type):
     """
     items = request.GET.getlist('items', None)
     debug = getattr(settings, 'DEBUG')
-    download_key = CONSTANTS.DOWNLOAD_KEY_PREFIX + \
-                   download_utils.get_download_cache_key(items, download_type=download_type, delimiter='-')
+    download_key = download_utils.get_download_session_key(request, download_type)
     try:
         res_id = request.session[download_key]
     except KeyError:
@@ -241,7 +254,7 @@ def get_async_download(request, download_type):
         # TODO: Need a design to avoid loop and refactor this to redirect to preparing-download
         return HttpResponseServerError
     response = HttpResponse(doc, content_type=mime_type)
-    response['Content-Disposition'] =  'attachment; filename="{}.{}"'.format(request.GET.get('title'), download_type)
+    response['Content-Disposition'] = 'attachment; filename="{}.{}"'.format(request.GET.get('title'), download_type)
     for key, val in properties.items():
             response[key] = val
     del request.session[download_key]
