@@ -76,37 +76,7 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
     def test_su_can_download_pdf(self):
         self.login_superuser()
         LoggedInViewConceptPages.result = None
-        response = self.client.get(reverse('aristotle:download',args=['pdf',self.item1.id]), follow=True)
-        self.assertEqual(response.status_code,200)
-        self.assertEqual(len(response.redirect_chain), 1)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=[self.item1.id]))
-        self.assertTrue(self.downloader_download.called)
-        self.assertTrue(self.async_result.called)
-
-        response = self.client.get(reverse('aristotle:preparing_download', args=[self.item1.id]), follow=True)
-        self.assertEqual(response.status_code,200)
-        self.assertEqual(len(response.redirect_chain), 1)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:start_download', args=[self.item1.id]))
-        self.assertTrue(self.async_result.called)
-
-        LoggedInViewConceptPages.result = None
-        response = self.client.get(reverse('aristotle:download',args=['pdf',self.item2.id]), follow=True)
-        self.assertEqual(response.status_code,200)
-        self.assertEqual(len(response.redirect_chain), 1)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=[self.item2.id]))
-        self.assertTrue(self.downloader_download.called)
-        self.assertTrue(self.async_result.called)
-
-        response = self.client.get(reverse('aristotle:preparing_download', args=[self.item2.id]), follow=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.redirect_chain), 1)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:start_download', args=[self.item2.id]))
-        self.assertTrue(self.async_result.called)
-
-    def test_editor_can_download_pdf(self):
-        self.login_editor()
-        LoggedInViewConceptPages.result = None
-        response = self.client.get(reverse('aristotle:download',args=['pdf',self.item1.id]), follow=True)
+        response = self.client.get(reverse('aristotle:download',args=['pdf', self.item1.id]), follow=True)
         self.assertEqual(response.status_code,200)
         self.assertEqual(len(response.redirect_chain), 1)
         self.assertTrue(reverse('aristotle:preparing_download', args=['pdf']) in response.redirect_chain[0][0])
@@ -116,33 +86,66 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         response = self.client.get('{}?{}'.format(
             reverse('aristotle:start_download', args=['pdf']),
             response.request['QUERY_STRING']),
-            follow=True
         )
         self.assertEqual(response.status_code,200)
         self.assertTrue(self.async_result.called)
 
         LoggedInViewConceptPages.result = None
-        response = self.client.get(reverse('aristotle:download',args=['pdf',self.item2.id]))
+        response = self.client.get(reverse('aristotle:download',args=['pdf', self.item2.id]), follow=True)
+        self.assertEqual(response.status_code,200)
+        self.assertEqual(len(response.redirect_chain), 1)
+        self.assertTrue(reverse('aristotle:preparing_download', args=['pdf']) in response.redirect_chain[0][0])
+        self.assertTrue(self.downloader_download.called)
+        self.assertTrue(self.async_result.called)
+
+        response = self.client.get('{}?{}'.format(
+            reverse('aristotle:start_download', args=['pdf']),
+            response.request['QUERY_STRING']),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(self.async_result.called)
+
+    def test_editor_can_download_pdf(self):
+        self.login_editor()
+        LoggedInViewConceptPages.result = None
+        response = self.client.get(reverse('aristotle:download',args=['pdf', self.item1.id]), follow=True)
+        self.assertEqual(response.status_code,200)
+        self.assertEqual(len(response.redirect_chain), 1)
+        self.assertTrue(reverse('aristotle:preparing_download', args=['pdf']) in response.redirect_chain[0][0])
+        self.assertTrue(self.downloader_download.called)
+        self.assertTrue(self.async_result.called)
+
+        response = self.client.get('{}?{}'.format(
+            reverse('aristotle:start_download', args=['pdf']),
+            response.request['QUERY_STRING']),
+        )
+        self.assertEqual(response.status_code,200)
+        self.assertTrue(self.async_result.called)
+
+        LoggedInViewConceptPages.result = None
+        response = self.client.get(reverse('aristotle:download',args=['pdf', self.item2.id]))
         self.assertEqual(response.status_code,403)
 
     def test_viewer_can_download_pdf(self):
         self.login_viewer()
         LoggedInViewConceptPages.result = None
-        response = self.client.get(reverse('aristotle:download',args=['pdf',self.item1.id]), follow=True)
+        response = self.client.get(reverse('aristotle:download',args=['pdf', self.item1.id]), follow=True)
         self.assertEqual(response.status_code,200)
         self.assertEqual(len(response.redirect_chain), 1)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=[self.item1.id]))
+        self.assertTrue(reverse('aristotle:preparing_download', args=['pdf']) in response.redirect_chain[0][0])
         self.assertTrue(self.downloader_download.called)
         self.assertTrue(self.async_result.called)
         self.assertEqual(len(self.downloader_download.mock_calls), 1)
         self.assertEqual(len(self.async_result.mock_calls), 1)
 
-        response = self.client.get(reverse('aristotle:preparing_download',args=[self.item1.id]), follow=True)
+        response = self.client.get('{}?{}'.format(
+            reverse('aristotle:start_download', args=['pdf']),
+            response.request['QUERY_STRING']),
+        )
+
         self.assertEqual(response.status_code,200)
-        self.assertEqual(len(response.redirect_chain), 1)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:start_download', args=[self.item1.id]))
         self.assertTrue(self.async_result.called)
-        self.assertEqual(len(self.async_result.mock_calls), 3)
+        self.assertEqual(len(self.async_result.mock_calls), 2)
 
         LoggedInViewConceptPages.result = None
         response = self.client.get(reverse('aristotle:download',args=['pdf',self.item2.id]))
