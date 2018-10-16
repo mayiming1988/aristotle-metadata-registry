@@ -2,7 +2,7 @@
 
 <div class="col-sm-8 col-xs-12">
 {% if item_is_version %}
-<div id="progress" class="alert alert-warning">You are viewing a previous version of this item.</div>
+<div id="progress" class="alert alert-warning">You are viewing a previous version of this item from {{ revision.date_created|date:'Y-m-d' }}</div>
 {% else %}
   {% if custom_visibility_message %}
     <div id="progress" class=" alert alert-{{ custom_visibility_message.alert_level }}">

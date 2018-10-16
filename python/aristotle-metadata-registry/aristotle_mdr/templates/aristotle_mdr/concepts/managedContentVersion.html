@@ -4,3 +4,40 @@
 {{ block.super }}
 ( Previous Version )
 {% endblock %}
+
+{% block extra_content %}
+<h2>Representation</h2>
+{% for weak in item.weak %}
+<h3>{{ weak.model }}</h3>
+<table class="table">
+  <thead>
+    <tr>
+      {% for key in weak.items.0.keys %}
+      <th>{{ key }}</th>
+      {% endfor %}
+    <tr>
+  </thead>
+  <tbody>
+    {% for item in weak.items %}
+      <tr>
+      {% for value in item.values %}
+        <td>{{ value }}</td> 
+      {% endfor %}
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endfor %}
+
+<h2>Links</h2>
+<table class="table">
+  <tbody>
+    {% for link in item.strong %}
+      <tr>
+        <th>{{ link.model }}</th>
+        <td><a href="{% url 'aristotle:item' link.item.id %}">{{ link.item.name }}</a></td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
