@@ -28,11 +28,12 @@ from aristotle_mdr.perms import (
     user_can_change_status
 )
 from aristotle_mdr import perms
-from aristotle_mdr.utils import url_slugify_concept, CachePerItemUserMixin
+from aristotle_mdr.utils import url_slugify_concept
+
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils import get_concepts_for_apps, fetch_aristotle_settings, fetch_aristotle_downloaders
-from aristotle_mdr.views.utils import generate_visibility_matrix
+from aristotle_mdr.views.utils import generate_visibility_matrix, CachePerItemUserMixin
 from aristotle_mdr.contrib.slots.utils import get_allowed_slots
 
 from haystack.views import FacetedSearchView

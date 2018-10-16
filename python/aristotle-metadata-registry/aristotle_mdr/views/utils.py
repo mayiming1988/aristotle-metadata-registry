@@ -1,5 +1,6 @@
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -13,6 +14,7 @@ from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
+from django.core.cache import cache
 
 from django.views.generic.detail import BaseDetailView
 from django.views.generic import (
@@ -21,6 +23,8 @@ from django.views.generic import (
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils import status_filter
+
+import datetime
 
 paginate_sort_opts = {
     "mod_asc": ["modified"],
@@ -464,3 +468,48 @@ class AjaxFormMixin:
                 return JsonResponse(data)
         else:
             return super().form_valid(form)
+
+
+class CachePerItemUserMixin:
+
+    cache_item_kwarg = 'iid'
+    cache_view_name = ''
+    cache_ttl = 300
+
+    def get(self, request, *args, **kwargs):
+        if not settings.CACHE_ITEM_PAGE:
+            return super().get(request, *args, **kwargs)
+
+        if request.user.is_anonymous():
+            user = 'anonymous'
+        else:
+            user = request.user.id
+
+        iid = kwargs[self.cache_item_kwarg]
+
+        CACHE_KEY = 'view_cache_%s_%s_%s' % (self.cache_view_name, user, iid)
+
+        can_use_cache = True
+
+        if 'nocache' in request.GET.keys():
+            can_use_cache = False
+
+        from aristotle_mdr.models import _concept
+
+        # If the item was modified within ttl, don't use cache
+        recently = timezone.now() - datetime.timedelta(seconds=self.cache_ttl)
+        if _concept.objects.filter(id=iid, modified__gte=recently).exists():
+            can_use_cache = False
+
+        if can_use_cache:
+            response = cache.get(CACHE_KEY, None)
+            if response is not None:
+                return response
+
+        response = super().get(request, *args, **kwargs)
+        response.render()
+
+        if can_use_cache:
+            cache.set(CACHE_KEY, response, self.cache_ttl)
+
+        return response
