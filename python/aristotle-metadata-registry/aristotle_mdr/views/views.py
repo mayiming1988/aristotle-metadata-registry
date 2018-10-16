@@ -292,6 +292,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
 
     slug_redirect = False
     version_arg = 'verid'
+    template_name = 'aristotle_mdr/concepts/managedContentVersion.html'
 
     def check_item(self, item):
         return user_can_view(self.request.user, item)
@@ -340,6 +341,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         updates = self.get_weak_versions()
 
         for attr, item_list in updates.items():
+            # Add fake queryset attributes
             self.version_dict[attr] = {
                 'all': item_list,
                 'count': len(item_list)
@@ -356,6 +358,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         logger.debug(self.version_dict)
         return True
 
+    # Fetch links from serialize weak entities
     def get_weak_versions(self):
         model = self.item_version.content_type.model_class()
 
@@ -379,6 +382,10 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
 
         return model_updates
 
+    # Fetch links to other concepts
+    def get_strong_versions(self):
+        pass
+
     def dispatch(self, request, *args, **kwargs):
         exists = self.get_version()
         if not exists:
@@ -396,6 +403,9 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         context['revision'] = self.revision
         context['item_is_version'] = True
         return context
+
+    def get_template_names(self):
+        return [self.template_name]
 
 
 def registrationHistory(request, iid):
