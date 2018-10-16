@@ -334,57 +334,93 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         else:
             return False
 
-        concept_version_data = json.loads(self.concept_version.serialized_data)[0]
-        item_version_data = json.loads(self.item_version.serialized_data)[0]
-        self.version_dict = concept_version_data['fields']
-        self.version_dict.update(item_version_data['fields'])
-        updates = self.get_weak_versions()
+        self.concept_version_data = json.loads(self.concept_version.serialized_data)[0]
+        self.item_version_data = json.loads(self.item_version.serialized_data)[0]
+        item_model = self.item_version.content_type.model_class()
 
-        for attr, item_list in updates.items():
-            # Add fake queryset attributes
-            self.version_dict[attr] = {
-                'all': item_list,
-                'count': len(item_list)
-            }
+        self.version_dict = self.concept_version_data['fields']
+        self.version_dict.update(self.item_version_data['fields'])
 
         self.version_dict['meta'] = {
             'app_label': self.item_version.content_type.app_label,
             'model_name': self.item_version.content_type.model
         }
-        self.version_dict['id'] = item_version_data['pk']
-        self.version_dict['pk'] = item_version_data['pk']
+        self.version_dict['id'] = self.item_version_data['pk']
+        self.version_dict['pk'] = self.item_version_data['pk']
         self.version_dict['get_verbose_name'] = self.item_version.content_type.name.title()
         self.version_dict['created'] = parse_datetime(self.version_dict['created'])
-        logger.debug(self.version_dict)
+
+        self.version_dict['weak'] = self.get_weak_versions(item_model)
+        self.version_dict['strong'] = self.get_strong_versions(item_model)
+        # logger.debug(self.version_dict)
         return True
 
     # Fetch links from serialize weak entities
-    def get_weak_versions(self):
-        model = self.item_version.content_type.model_class()
+    def get_weak_versions(self, model):
+        pk = self.item_version_data['pk']
 
-        # Build a mapping of model labels to field name on base model
+        if not hasattr(model, 'serialize_weak_entities'):
+            return {}
+
+        # Find weak models add their app labels to dict
         weak_models = {}
         if model.serialize_weak_entities:
             reverse_keys = [weak[1] for weak in model.serialize_weak_entities]
             for key in reverse_keys:
                 field = model._meta.get_field(key)
                 field_model = field.related_model()
-                weak_models[field_model._meta.label_lower] = field.name
+                weak_models[field_model._meta.label_lower] = []
 
-        # Build mapping of model attributes to list of weak models in
-        # the same revision
-        model_updates = defaultdict(list)
+        # Add any models found before in the same revision to dict
         for version in self.revision.version_set.all():
-            data = json.loads(version.serialized_data)
-            if data[0]['model'] in weak_models:
-                model_attr = weak_models[data[0]['model']]
-                model_updates[model_attr].append(data[0]['fields'])
+            data = json.loads(version.serialized_data)[0]
+            if data['model'] in weak_models:
+                # There is a version in the revision that is of the correct
+                # type. Need to check wether it links to the correct item
+                weak_model = apps.get_model(data['model'])
 
-        return model_updates
+                # Find the field that links the weak model back to our model
+                link_field = None
+                for field in weak_model._meta.get_fields():
+                    if field.is_relation and field.related_model == model:
+                        link_field = field.name
+                        break
+
+                if link_field is not None and link_field in data['fields']:
+                    # If it links back to the correct pk
+                    if data['fields'][link_field] == pk:
+                        # Add to weak models
+                        weak_models[data['model']].append(data['fields'])
+
+        # Process into template friendly version
+        template_weak_models = []
+        for label, item_list in weak_models.items():
+            model = apps.get_model(label)
+            template_weak_models.append({
+                'model': model.__name__,
+                'items': item_list
+            })
+
+        return template_weak_models
 
     # Fetch links to other concepts
-    def get_strong_versions(self):
-        pass
+    def get_strong_versions(self, model):
+        strong_versions = []
+        for field in model._meta.get_fields():
+            if field.is_relation and issubclass(field.related_model, MDR._concept):
+                if field.name in self.item_version_data['fields']:
+                    pk = self.item_version_data['fields'][field.name]
+                    try:
+                        concept = MDR._concept.objects.get(pk=pk)
+                    except MDR._concept.DoesNotExist:
+                        concept = None
+                    if concept is not None:
+                        strong_versions.append({
+                            'model': field.related_model.__name__,
+                            'item': concept
+                        })
+
+        return strong_versions
 
     def dispatch(self, request, *args, **kwargs):
         exists = self.get_version()
