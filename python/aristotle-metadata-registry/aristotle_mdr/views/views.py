@@ -347,15 +347,10 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         self.version_dict['id'] = self.item_version_data['pk']
         self.version_dict['pk'] = self.item_version_data['pk']
         self.version_dict['get_verbose_name'] = self.item_version.content_type.name.title()
-        self.version_dict['created'] = parse_datetime(self.version_dict['created'])
+        self.version_dict['created'] = parse_datetime(self.concept_version_data['fields']['created'])
 
         self.version_dict['weak'] = self.get_weak_versions(item_model)
-        self.version_dict['strong'], remaining_fields = self.get_strong_versions(
-            item_model,
-            self.item_version_data['fields']
-        )
-        self.version_dict['components'] = remaining_fields
-        # logger.debug(self.version_dict)
+        self.version_dict['components'] = self.process_dict(self.item_version_data['fields'], item_model)
         return True
 
     # Fetch links from serialize weak entities
@@ -373,20 +368,6 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
                 field = model._meta.get_field(key)
                 field_model = field.related_model()
                 weak_models[field_model._meta.label_lower] = []
-
-        # Create replacement mapping fields to models
-        weak_replacements = {}
-        for label in weak_models.keys():
-            weak_model = apps.get_model(label)
-            replacements = {}
-            for field in weak_model._meta.get_fields():
-                if field.is_relation and\
-                        (issubclass(field.related_model, MDR._concept) or
-                            issubclass(field.related_model, MDR.aristotleComponent)):
-                    replacements[field.name] = field.related_model
-            weak_replacements[label] = replacements
-
-        logger.debug('Replacements are {}'.format(weak_replacements))
 
         # Add any models found before in the same revision to dict
         for version in self.revision.version_set.all():
@@ -408,7 +389,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
                     if data['fields'][link_field] == pk:
                         # Add to weak models
                         del data['fields'][link_field]
-                        final_fields = self.replace_pks(data['fields'], weak_replacements[data['model']])
+                        final_fields = self.process_dict(data['fields'], weak_model)
                         weak_models[data['model']].append(final_fields)
 
         # Process into template friendly version
@@ -423,42 +404,43 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
 
         return template_weak_models
 
-    def replace_pks(self, fields, replacements):
+    # Process fields dict, updatng field names and links
+    def process_dict(self, fields, model):
+        # Create replacement mapping fields to models
+        replacements = {}
+        for field in model._meta.get_fields():
+            if field.is_relation and\
+                    (issubclass(field.related_model, MDR._concept) or
+                        issubclass(field.related_model, MDR.aristotleComponent)):
+                replacements[field.name] = field.related_model
+
         updated_fields = {}
         for key, value in fields.items():
+            field = model._meta.get_field(key)
+            newkey = field.verbose_name.title()
             if key in replacements and type(value) == int:
                 model = replacements[key]
                 try:
                     obj = model.objects.get(pk=value)
                 except model.DoesNotExist:
                     obj = None
-                updated_fields[key] = {
-                    'is_link': True,
-                    'object': obj
-                }
 
-        fields.update(updated_fields)
-        return fields
+                if issubclass(model, MDR.aristotleComponent):
+                    updated_fields[newkey] = {
+                        'is_link': True,
+                        'object': obj,
+                        'linkid': obj.parentItem.id
+                    }
+                else:
+                    updated_fields[newkey] = {
+                        'is_link': True,
+                        'object': obj,
+                        'linkid': obj.id
+                    }
+            else:
+                updated_fields[newkey] = value
 
-    # Fetch links to other concepts
-    def get_strong_versions(self, model, fields_dict):
-        strong_versions = []
-        for field in model._meta.get_fields():
-            if field.is_relation and issubclass(field.related_model, MDR._concept):
-                if field.name in fields_dict:
-                    pk = fields_dict[field.name]
-                    del fields_dict[field.name]
-                    try:
-                        concept = MDR._concept.objects.get(pk=pk)
-                    except MDR._concept.DoesNotExist:
-                        concept = None
-                    if concept is not None:
-                        strong_versions.append({
-                            'model': field.related_model.__name__,
-                            'item': concept
-                        })
-
-        return strong_versions, fields_dict
+        return updated_fields
 
     def dispatch(self, request, *args, **kwargs):
         exists = self.get_version()

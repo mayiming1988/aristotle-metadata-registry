@@ -40,7 +40,11 @@
     <h2>Components</h2>
     {% for field, value in item.components.items %}
       <h3>{{ field }}</h3>
-      <p>{{ value|default:"None" }}</p>
+      {% if value.is_link %}
+        <p><a href="{% url 'aristotle:item' value.linkid %}">{{ value.object.name }}</a></p>
+      {% else %}
+        <p>{{ value|default:"None" }}</p>
+      {% endif %}
     {% endfor %}
     {% for weak in item.weak %}
     <h3>{{ weak.model }}</h3>
@@ -56,10 +60,10 @@
         {% for item in weak.items %}
           <tr>
           {% for value in item.values %}
-            {% if value.obj %}
-              <td>{{ value.obj.name }}</td>
+            {% if value.is_link %}
+              <td><a href="{% url 'aristotle:item' value.linkid %}">{{ value.object.name }}</a></td>
             {% else %}
-              <td>{{ value }}</td> 
+              <td>{{ value|default:"None" }}</td> 
             {% endif %}
           {% endfor %}
           </tr>
@@ -67,19 +71,6 @@
       </tbody>
     </table>
     {% endfor %}
-
-    <h2>Links</h2>
-    <table class="table">
-      <tbody>
-        {% for link in item.strong %}
-          <tr>
-            <th>{{ link.model }}</th>
-            <td><a href="{% url 'aristotle:item' link.item.id %}">{{ link.item.name }}</a></td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    </div>
 
 </section>
 {% endblock %}
