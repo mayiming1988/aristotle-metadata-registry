@@ -122,6 +122,10 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages,TestCase):
         response = self.client.get(check_url)
         self.assertTrue(response.status_code,200)
 
+    def test_user_can_edit_inclusions(self):
+        # TODO: Add test for #939
+        pass
+
 
 class DataCatalogViewPage(LoggedInViewConceptPages,TestCase):
     url_name='datacatalog'

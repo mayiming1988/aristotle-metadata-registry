@@ -68,7 +68,11 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
     pk_url_kwarg = 'iid'
     template_name = "aristotle_mdr/actions/concept_history_compare.html"
 
-    compare_exclude = 'favourites'
+    compare_exclude = [
+        'favourites',
+        'user_view_history',
+        'submitter',
+    ]
 
     def get_object(self, queryset=None):
         item = super().get_object(queryset)
@@ -227,6 +231,10 @@ class ConceptRenderMixin:
                 return HttpResponseRedirect(redirect_url)
             else:
                 return HttpResponseForbidden()
+
+        from aristotle_mdr.contrib.view_history.signals import metadata_item_viewed
+        metadata_item_viewed.send(sender=self.item, user=self.user.pk)
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
@@ -651,50 +659,3 @@ def extensions(request):
         "aristotle_mdr/static/extensions.html",
         {'content_extensions': content, 'download_extensions': downloads, }
     )
-
-
-# Search views
-
-class PermissionSearchView(FacetedSearchView):
-
-    results_per_page_values = getattr(settings, 'RESULTS_PER_PAGE', [])
-
-    def build_page(self):
-
-        try:
-            rpp = self.form.cleaned_data['rpp']
-        except (AttributeError, KeyError):
-            rpp = ''
-
-        if rpp in self.results_per_page_values:
-            self.results_per_page = rpp
-        else:
-            if len(self.results_per_page_values) > 0:
-                self.results_per_page = self.results_per_page_values[0]
-
-        return super().build_page()
-
-    def build_form(self):
-
-        form = super().build_form()
-        form.request = self.request
-        form.request.GET = self.clean_facets(self.request)
-        return form
-
-    def clean_facets(self, request):
-        get = request.GET.copy()
-        for k, val in get.items():
-            if k.startswith('f__'):
-                get.pop(k)
-                k = k[4:]
-                get.update({'f': '%s::%s' % (k, val)})
-        return get
-
-    def extra_context(self):
-        # needed to compare to indexed primary key value
-        if not self.request.user.is_anonymous():
-            favourites_list = self.request.user.profile.favourite_item_pks
-        else:
-            favourites_list = []
-
-        return {'rpp_values': self.results_per_page_values, 'favourites': favourites_list}

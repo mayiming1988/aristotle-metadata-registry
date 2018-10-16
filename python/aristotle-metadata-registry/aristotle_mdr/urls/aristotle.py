@@ -6,6 +6,7 @@ from django.urls import reverse_lazy
 from haystack.views import search_view_factory
 
 import aristotle_mdr.views as views
+from aristotle_mdr.views.search import PermissionSearchView
 import aristotle_mdr.forms as forms
 import aristotle_mdr.models as models
 from aristotle_mdr.contrib.generic.views import (
@@ -114,7 +115,7 @@ urlpatterns=[
     # Concept page overrides
     url(r'^item/(?P<iid>\d+)/dataelement/(?P<name_slug>.+)/?$', views.DataElementView.as_view(), name='dataelement'),
     url(r'^item/(?P<iid>\d+)(?:\/(?P<model_slug>\w+)\/(?P<name_slug>.+))?/?$', views.ConceptView.as_view(), name='item'),
-    url(r'^item/(?P<iid>\d+)(?:\/.*)?$', views.ConceptView.as_view(), name='item'),  # Catch every other 'item' URL and throw it for a redirect
+    url(r'^item/(?P<iid>\d+)(?:\/.*)?$', views.ConceptView.as_view(), name='item_short'),  # Catch every other 'item' URL and throw it for a redirect
     url(r'^item/(?P<uuid>[\w-]+)/?(.*)?$', views.concept_by_uuid, name='item_uuid'),
 
     url(r'^unmanaged/measure/(?P<iid>\d+)(?:\/(?P<model_slug>\w+)\/(?P<name_slug>.+))?/?$', views.measure, name='measure'),
@@ -198,7 +199,7 @@ urlpatterns=[
     url(
         r'^search/?$',
         search_view_factory(
-            view_class=views.PermissionSearchView,
+            view_class=PermissionSearchView,
             template='search/search.html',
             searchqueryset=None,
             form_class=forms.search.PermissionSearchForm
