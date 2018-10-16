@@ -51,92 +51,99 @@
                 {% include "aristotle_self_publish/concepts/publication_details.html" with item=item %}
             {% endif %}
 
-            <dt>{% trans 'Last updated'%}</dt>
-            <dd>
-                {% if request.user.is_authenticated %}
-                    {% if request.user.is_superuser or request.user.is_staff and item.workgroup in request.user.workgroups %}
-                        <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|date:'c' }}">
-                            <a href="{% url 'aristotle:item_history' iid=item.id %}">{{item.modified|naturaltime}}</a>
-                        </time>
-                    {% elif item.workgroup in request.user.workgroups or item.submitter == request.user %}
-                        <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|date:'c' }}">
-                            <a href="{% url 'aristotle:item_history' iid=item.id %}">{{item.modified|naturaltime}}</a>
-                        </time>
-                    {% endif %}
-                {% else %}
-                    <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|date:'c' }}">
-                        {{item.modified|naturaltime}}
-                    </time>
-                {% endif %}
-                {% if request.user.is_superuser or request.user.is_active and item.workgroup in request.user.workgroups %}
-                <span style="display:inline-block">By
-                    {% with editing_user=last_edit.revision.user %}
-                        {% if editing_user %}
-                            {% firstof editing_user.short_name editing_user.full_name editing_user.email %}
-                        {% else %}<em title="{% trans 'This may have been added during an import.'%}">{% trans 'Unknown' context "Unknown import user"%}</em>
-                        {% endif %}
-                    {% endwith %}
-                </span>
-                {% endif %}
-            </dd>
-            <dt>{% trans 'Created'%}</dt>
+            {% if item_is_version %}
+              <dt>{% trans 'Version Created' %}</dt>
+              <dd>{{ revision.date_created|date:'o-m-d H:i e' }}</dd>
+            {% else %}
+              <dt>{% trans 'Last updated'%}</dt>
+              <dd>
+                  {% if request.user.is_authenticated %}
+                      {% if request.user.is_superuser or request.user.is_staff and item.workgroup in request.user.workgroups %}
+                          <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|date:'c' }}">
+                              <a href="{% url 'aristotle:item_history' iid=item.id %}">{{item.modified|naturaltime}}</a>
+                          </time>
+                      {% elif item.workgroup in request.user.workgroups or item.submitter == request.user %}
+                          <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|date:'c' }}">
+                              <a href="{% url 'aristotle:item_history' iid=item.id %}">{{item.modified|naturaltime}}</a>
+                          </time>
+                      {% endif %}
+                  {% else %}
+                      <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|date:'c' }}">
+                          {{item.modified|naturaltime}}
+                      </time>
+                  {% endif %}
+                  {% if request.user.is_superuser or request.user.is_active and item.workgroup in request.user.workgroups %}
+                  <span style="display:inline-block">By
+                      {% with editing_user=last_edit.revision.user %}
+                          {% if editing_user %}
+                              {% firstof editing_user.short_name editing_user.full_name editing_user.email %}
+                          {% else %}<em title="{% trans 'This may have been added during an import.'%}">{% trans 'Unknown' context "Unknown import user"%}</em>
+                          {% endif %}
+                      {% endwith %}
+                  </span>
+                  {% endif %}
+              </dd>
+            {% endif %}
+            <dt>{% if item_is_version %}{% trans 'Item Created' %}{% else %}{% trans 'Created'%}{% endif %}</dt>
             <dd><time title="{{ item.created|date:'o-m-d' }}" datetime="{{ item.created|date:'c' }}">{{ item.created|date:'o-m-d' }}</time></dd>
 
         {% block asideContent %}{% endblock %}
 
-            <dt class="large">{% trans 'Supersedes'%}
-            </dt>
-            <dd class="large">
-            <ul>
-                {# This is inefficient - % for suprel in item.superseded_items_relation_set.all %#}
-                {% for suprel in item|visible_supersedes_items:request.user %}
-                    <li>
-                      <a href="{% url 'aristotle:item' iid=suprel.older_item.id %}">
-                        {{ suprel.older_item.name }}
-                      </a>
-                      <ul>
-                        {% for rel in suprel.rels %}
-                          <li>
-                            <span title="{% trans 'The registration authority that applied this relationship' %}">
-                              {{ rel.registration_authority.name }}
-                            </span>,
-                          {{ rel.date_effective }} -
-                          {{ rel.message }}
-                          </li>
-                        {% endfor %}
-                      </ul>
-                    </small></li>
-                {% empty %}
-                    <li><em>{% trans 'None' context 'No older objects' %}</em></li>
-                {% endfor %}
-                </ul>
-            </dd>
-            <dt class="large">{% trans 'Superseded by'%}
-            </dt>
-            <dd class="large">
-            <ul>
-                {% for suprel in item|visible_superseded_by_items:request.user %}
-                    <li>
-                      <a href="{% url 'aristotle:item' iid=suprel.newer_item.id %}">
-                        {{ suprel.newer_item.name }}
-                      </a>
-                      <ul>
-                        {% for rel in suprel.rels %}
-                          <li>
-                            <span title="{% trans 'The registration authority that applied this relationship' %}">
-                              {{ rel.registration_authority.name }}
-                            </span>,
-                          {{ rel.date_effective }}
-                          {% if rel.message %} - {{ rel.message }} {% endif %}
-                          </li>
-                        {% endfor %}
-                      </ul>
-                    </li>
-                {% empty %}
-                    <li><em>{% trans 'None' context 'No newer objects' %}</em></li>
-                {% endfor %}
-            </ul>
-            </dd>
+            {% if not hide_item_supersedes %}
+              <dt class="large">{% trans 'Supersedes'%}
+              </dt>
+              <dd class="large">
+              <ul>
+                  {# This is inefficient - % for suprel in item.superseded_items_relation_set.all %#}
+                  {% for suprel in item|visible_supersedes_items:request.user %}
+                      <li>
+                        <a href="{% url 'aristotle:item' iid=suprel.older_item.id %}">
+                          {{ suprel.older_item.name }}
+                        </a>
+                        <ul>
+                          {% for rel in suprel.rels %}
+                            <li>
+                              <span title="{% trans 'The registration authority that applied this relationship' %}">
+                                {{ rel.registration_authority.name }}
+                              </span>,
+                            {{ rel.date_effective }} -
+                            {{ rel.message }}
+                            </li>
+                          {% endfor %}
+                        </ul>
+                      </small></li>
+                  {% empty %}
+                      <li><em>{% trans 'None' context 'No older objects' %}</em></li>
+                  {% endfor %}
+                  </ul>
+              </dd>
+              <dt class="large">{% trans 'Superseded by'%}
+              </dt>
+              <dd class="large">
+              <ul>
+                  {% for suprel in item|visible_superseded_by_items:request.user %}
+                      <li>
+                        <a href="{% url 'aristotle:item' iid=suprel.newer_item.id %}">
+                          {{ suprel.newer_item.name }}
+                        </a>
+                        <ul>
+                          {% for rel in suprel.rels %}
+                            <li>
+                              <span title="{% trans 'The registration authority that applied this relationship' %}">
+                                {{ rel.registration_authority.name }}
+                              </span>,
+                            {{ rel.date_effective }}
+                            {% if rel.message %} - {{ rel.message }} {% endif %}
+                            </li>
+                          {% endfor %}
+                        </ul>
+                      </li>
+                  {% empty %}
+                      <li><em>{% trans 'None' context 'No newer objects' %}</em></li>
+                  {% endfor %}
+              </ul>
+              </dd>
+            {% endif %}
         {% if item.workgroup and request.user|in_workgroup:item.workgroup %}
             <hr>
             <dt>{% trans 'Workgroup' %}</dt>

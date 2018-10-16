@@ -16,6 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView, RedirectView
 from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_string
+from django.utils.dateparse import parse_datetime
 from django.contrib.contenttypes.models import ContentType
 from formtools.wizard.views import SessionWizardView
 
@@ -337,13 +338,22 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         self.version_dict = concept_version_data['fields']
         self.version_dict.update(item_version_data['fields'])
         updates = self.get_weak_versions()
-        self.version_dict.update(updates)
+
+        for attr, item_list in updates.items():
+            self.version_dict[attr] = {
+                'all': item_list,
+                'count': len(item_list)
+            }
+
         self.version_dict['meta'] = {
             'app_label': self.item_version.content_type.app_label,
             'model_name': self.item_version.content_type.model
         }
         self.version_dict['id'] = item_version_data['pk']
         self.version_dict['pk'] = item_version_data['pk']
+        self.version_dict['get_verbose_name'] = self.item_version.content_type.name.title()
+        self.version_dict['created'] = parse_datetime(self.version_dict['created'])
+        logger.debug(self.version_dict)
         return True
 
     def get_weak_versions(self):
@@ -379,7 +389,12 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
     def get_context_data(self, *args, **kwargs):
         context = super(ConceptRenderMixin, self).get_context_data(*args, **kwargs)
         context['hide_item_actions'] = True
+        context['hide_item_supersedes'] = True
+        context['hide_item_help'] = True
+        context['hide_item_related'] = True
         context['item'] = self.version_dict
+        context['revision'] = self.revision
+        context['item_is_version'] = True
         return context
 
 
