@@ -1471,25 +1471,25 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         ValueDomainViewPage.result = None
         response = self.client.get(reverse('aristotle:download',args=['csv-vd',self.item1.id]), follow=True)
         self.assertEqual(response.status_code,200)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=[self.item1.id]))
+        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=['csv-vd']) +
+                         '?items={}&title=Auto-Generated+Document'.format(self.item1.id))
         self.assertTrue(downloader_download.called)
         self.assertTrue(async_result.called)
 
-        response = self.client.get(reverse('aristotle:preparing_download', args=[self.item1.id]), follow=True)
+        response = self.client.get(reverse('aristotle:start_download', args=['csv-vd']) + '?' + response.request['QUERY_STRING'])
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:start_download', args=[self.item1.id]))
         self.assertTrue(async_result.called)
 
         ValueDomainViewPage.result = None
         response = self.client.get(reverse('aristotle:download',args=['csv-vd',self.item2.id]), follow=True)
         self.assertEqual(response.status_code,200)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=[self.item2.id]))
+        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=['csv-vd']) +
+                         '?items={}&title=Auto-Generated+Document'.format(self.item2.id))
         self.assertTrue(downloader_download.called)
         self.assertTrue(async_result.called)
 
-        response = self.client.get(reverse('aristotle:preparing_download', args=[self.item2.id]), follow=True)
+        response = self.client.get(reverse('aristotle:start_download', args=['csv-vd']) + '?' + response.request['QUERY_STRING'])
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:start_download', args=[self.item2.id]))
         self.assertTrue(async_result.called)
 
     @patch('aristotle_mdr.downloader.CSVDownloader.download.delay')
@@ -1502,13 +1502,13 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         ValueDomainViewPage.result = None
         response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item1.id]), follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=[self.item1.id]))
+        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=['csv-vd']) +
+                         '?items={}&title=Auto-Generated+Document'.format(self.item1.id))
         self.assertTrue(downloader_download.called)
         self.assertTrue(async_result.called)
 
-        response = self.client.get(reverse('aristotle:preparing_download', args=[self.item1.id]), follow=True)
+        response = self.client.get(reverse('aristotle:start_download', args=['csv-vd']) + '?' + response.request['QUERY_STRING'])
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:start_download', args=[self.item1.id]))
         self.assertTrue(async_result.called)
 
         ValueDomainViewPage.result = None
@@ -1525,13 +1525,13 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         ValueDomainViewPage.result = None
         response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item1.id]), follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=[self.item1.id]))
+        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=['csv-vd']) +
+                         '?items={}&title=Auto-Generated+Document'.format(self.item1.id))
         self.assertTrue(downloader_download.called)
         self.assertTrue(async_result.called)
 
-        response = self.client.get(reverse('aristotle:preparing_download', args=[self.item1.id]), follow=True)
+        response = self.client.get(reverse('aristotle:start_download', args=['csv-vd']) + '?' + response.request['QUERY_STRING'])
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:start_download', args=[self.item1.id]))
         self.assertTrue(async_result.called)
 
         ValueDomainViewPage.result = None
