@@ -160,7 +160,11 @@ def prepare_async_download(request, download_type):
     :param download_type: type of download
     :return: appropriate HTTP response object
     """
-    get_params = request.GET.copy()
+    try:
+        get_params = request.GET.copy()
+        items = get_params.getlist('items')
+    except KeyError:
+        return HttpResponseBadRequest()
     if get_params.get('format', False):
         get_params.pop('format')
     start_new_download = False
@@ -176,7 +180,7 @@ def prepare_async_download(request, download_type):
         if get_params.get('bulk'):
             redirect_url = reverse('aristotle:bulk_download', args=[download_type])
         else:
-            redirect_url = reverse('aristotle:download', args=[download_type, get_params.get('items')])
+            redirect_url = reverse('aristotle:download', args=[download_type, items])
 
         return redirect('{}?{}'.format(
             redirect_url,
@@ -237,7 +241,7 @@ def get_async_download(request, download_type):
         else:
             exc = job.get(propagate=False)
             logger.exception('Task {0} raised exception: {1!r}\n{2!r}'.format(res_id, exc, job.traceback))
-            return HttpResponseServerError
+            return HttpResponseServerError('cant produce document, Try again')
 
     job.forget()
     try:
@@ -249,12 +253,12 @@ def get_async_download(request, download_type):
         if debug:
             raise
         logger.exception('Should unpack 3 values from the cache', ValueError)
-        return HttpResponseServerError
+        return HttpResponseServerError('Cant unpack values')
     if not doc:
         if debug:
             raise ValueError('No document in the cache')
         # TODO: Need a design to avoid loop and refactor this to redirect to preparing-download
-        return HttpResponseServerError
+        return HttpResponseServerError('No document in cache')
     response = HttpResponse(doc, content_type=mime_type)
     response['Content-Disposition'] = 'attachment; filename="{}.{}"'.format(request.GET.get('title'), download_type)
     for key, val in properties.items():
