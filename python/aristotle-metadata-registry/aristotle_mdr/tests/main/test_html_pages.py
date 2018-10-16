@@ -97,6 +97,8 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             self.itemid
         )
 
+        cache.clear()
+
     def test_itempage_full_url(self):
         self.login_editor()
         full_url = url_slugify_concept(self.item)
@@ -231,6 +233,43 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             )
 
             self.assertNotEqual(response.content, b'wow')
+
+    @tag('cache')
+    @override_settings(CACHE_ITEM_PAGE=False)
+    def test_itempage_not_loaded_from_cache_if_setting_false(self):
+        # Load response into cache
+        cache.set(self.cache_key, HttpResponse('wow'))
+
+        # View item page in future
+        with mock.patch('aristotle_mdr.utils.utils.timezone.now') as mock_now:
+            mock_now.return_value = self.future_time
+
+            # Login as different user
+            self.login_editor()
+            response = self.reverse_get(
+                'aristotle:item',
+                reverse_args=[self.itemid, 'objectclass', 'test-item'],
+                status_code=200
+            )
+
+            self.assertNotEqual(response.content, b'wow')
+
+    @tag('cache')
+    @override_settings(CACHE_ITEM_PAGE=False)
+    def test_response_not_put_into_cache_if_setting_false(self):
+        # View in the future to avoid modified recently check
+        with mock.patch('aristotle_mdr.utils.utils.timezone.now') as mock_now:
+            mock_now.return_value = self.future_time
+
+            self.login_editor()
+            response = self.reverse_get(
+                'aristotle:item',
+                reverse_args=[self.itemid, 'objectclass', 'test-item'],
+                status_code=200
+            )
+
+        cached_itempage = cache.get(self.cache_key, None)
+        self.assertIsNone(cached_itempage)
 
     @tag('extrav')
     def test_no_extra_versions_created_adv_editor(self):
