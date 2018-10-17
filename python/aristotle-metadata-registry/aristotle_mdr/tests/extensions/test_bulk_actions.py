@@ -201,7 +201,6 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
         , fetch_redirect_response=False)
 
 
-
     def test_content_exists_in_bulk_txt_download_on_permitted_items(self):
         self.login_editor()
 
@@ -222,19 +221,18 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.redirect_chain), 1)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=["The title"]))
+        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=['txt']) +
+                         '?items={}&items={}&bulk=True&title=The+title'.format(self.item1.id, self.item5.id))
         self.assertTrue(self.async_result.called)
         self.assertTrue(self.downloader_download.called)
         self.assertEqual(len(self.downloader_download.mock_calls), 1)
         self.assertEqual(len(self.async_result.mock_calls), 1)
 
-        response = self.client.get(reverse('aristotle:preparing_download', args=["The title"]), follow=True)
+        response = self.client.get(reverse('aristotle:start_download', args=['txt']) + '?' + response.request['QUERY_STRING'])
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.redirect_chain), 1)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:start_download', args=["The title"]))
         self.assertTrue(self.downloader_download.called)
         self.assertEqual(len(self.downloader_download.mock_calls), 1)
-        self.assertEqual(len(self.async_result.mock_calls), 3)
+        self.assertEqual(len(self.async_result.mock_calls), 2)
 
         self.assertContains(response, self.item1.name)
         self.assertContains(response, self.item2.name)  # Will be in as its a component of DEC5

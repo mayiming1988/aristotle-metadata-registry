@@ -180,7 +180,7 @@ def prepare_async_download(request, download_type):
         if get_params.get('bulk'):
             redirect_url = reverse('aristotle:bulk_download', args=[download_type])
         else:
-            redirect_url = reverse('aristotle:download', args=[download_type, items])
+            redirect_url = reverse('aristotle:download', args=[download_type, items[0]])
 
         return redirect('{}?{}'.format(
             redirect_url,
