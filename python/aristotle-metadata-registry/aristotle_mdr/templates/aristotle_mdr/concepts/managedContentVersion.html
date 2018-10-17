@@ -21,12 +21,12 @@
 
     <h2>{% trans 'Definition'%}</h2>
     <div id="definition" class="definition">
-        {{ item.definition | safe}}
+        {{ item.definition|safe}}
     </div>
 
     {% if item.comments %}
         <h2>Comments</h2>
-        {{ item.comments | safe }}
+        {{ item.comments|safe }}
     {% endif %}
 
     <h2>Names & References</h2>
@@ -39,11 +39,20 @@
 
     <h2>Components</h2>
     {% for field, value in item.components.items %}
-      <h3>{{ field }}</h3>
+        <h3>
+          {{ field }}
+          {% if value.help_text %}
+            <small>
+              <a tabindex="0" type="button" class="aristotle-popover" data-toggle="popover" data-trigger="focus" title="{{ field }}" data-content="{{ value.help_text }}">
+                <i class="fa fa-2x fa-question-circle"></i>
+              </a>
+            </small>
+          {% endif %}
+        </h3>
       {% if value.is_link %}
         <p><a href="{% url 'aristotle:item' value.linkid %}">{{ value.object.name }}</a></p>
       {% else %}
-        <p>{{ value|default:"None" }}</p>
+        <p>{{ value.value|default:"None" }}</p>
       {% endif %}
     {% endfor %}
     {% for weak in item.weak %}
@@ -51,8 +60,15 @@
     <table class="table">
       <thead>
         <tr>
-          {% for key in weak.items.0.keys %}
-          <th>{{ key }}</th>
+          {% for header in weak.headers %}
+            <th>
+              {{ header.text }}
+              {% if header.help_text %}
+                <a tabindex="0" type="button" class="aristotle-popover" data-toggle="popover" data-trigger="focus" title="{{ header.text }}" data-content="{{ header.help_text }}">
+                  <i class="fa fa-question-circle"></i>
+                </a>
+              {% endif %}
+            </th>
           {% endfor %}
         <tr>
       </thead>
@@ -63,7 +79,7 @@
             {% if value.is_link %}
               <td><a href="{% url 'aristotle:item' value.linkid %}">{{ value.object.name }}</a></td>
             {% else %}
-              <td>{{ value|default:"None" }}</td> 
+              <td>{{ value.value|default:"None" }}</td> 
             {% endif %}
           {% endfor %}
           </tr>

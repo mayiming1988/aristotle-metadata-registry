@@ -383,7 +383,8 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         self.version_dict['created'] = parse_datetime(self.concept_version_data['fields']['created'])
 
         self.version_dict['weak'] = self.get_weak_versions(item_model)
-        self.version_dict['components'] = self.process_dict(self.item_version_data['fields'], item_model)
+        components = self.process_dict(self.item_version_data['fields'], item_model)
+        self.version_dict['components'] = components
         return True
 
     # Fetch links from serialize weak entities
@@ -405,12 +406,13 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
 
         # Process into template friendly version
         template_weak_models = []
-        for label, item_list in weak_items.items():
+        for label, item_dict in weak_items.items():
             model = apps.get_model(label)
 
             template_weak_models.append({
                 'model': model.__name__,
-                'items': item_list
+                'headers': item_dict['headers'],
+                'items': item_dict['items']
             })
 
         return template_weak_models
@@ -428,7 +430,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         updated_fields = {}
         for key, value in fields.items():
             field = model._meta.get_field(key)
-            newkey = field.verbose_name.title()
+            header = field.verbose_name.title()
             if key in replacements and type(value) == int:
                 sub_model = replacements[key]
                 try:
@@ -437,30 +439,42 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
                     obj = None
 
                 if issubclass(sub_model, MDR.aristotleComponent):
-                    updated_fields[newkey] = {
+                    updated_fields[header] = {
                         'is_link': True,
                         'object': obj,
-                        'linkid': obj.parentItem.id
+                        'linkid': obj.parentItem.id,
+                        'helptext': field.help_text
                     }
                 else:
-                    updated_fields[newkey] = {
+                    updated_fields[header] = {
                         'is_link': True,
                         'object': obj,
-                        'linkid': obj.id
+                        'linkid': obj.id,
+                        'helptext': field.help_text
                     }
             else:
-                updated_fields[newkey] = value
+                updated_fields[header] = {
+                    'is_link': False,
+                    'value': value,
+                    'help_text': field.help_text
+                }
 
         return updated_fields
 
     def get_related_versions(self, pk, mapping):
         # mapping should be a mapping of model labels to fields on item
 
-        related = defaultdict(list)
+        related = {}
         # Add any models found before in the same revision to dict
         for version in self.revision.version_set.all():
             data = json.loads(version.serialized_data)[0]
             if data['model'] in mapping:
+
+                if data['model'] not in related:
+                    related[data['model']] = {
+                        'items': []
+                    }
+
                 # There is a version in the revision that is of the correct
                 # type. Need to check wether it links to the correct item
                 related_model = apps.get_model(data['model'])
@@ -474,7 +488,17 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
                         # Add to weak models
                         del data['fields'][link_field]
                         final_fields = self.process_dict(data['fields'], related_model)
-                        related[data['model']].append(final_fields)
+
+                        if 'headers' not in related[data['model']]:
+                            headers = []
+                            for header, item in final_fields.items():
+                                headers.append({
+                                    'text': header,
+                                    'help_text': item['help_text']
+                                })
+                            related[data['model']]['headers'] = headers
+
+                        related[data['model']]['items'].append(final_fields)
 
         return related
 
