@@ -80,6 +80,21 @@ class DownloaderBase(object):
         """
         raise NotImplementedError
 
+    @classmethod
+    def get_cache_key(cls, user, iids = []):
+        return download_utils.get_download_cache_key(iids, user, download_type=cls.download_type)
+
+    @staticmethod
+    def cache_file(key, value, ttl=60):
+        """
+        This is the cache interface for all the download types.
+        :param key: Key is the combination of iid(s)
+        :param value: value is the value to be stored in the cache
+        :param ttl: It's the time to live for the cache storage
+        :return: returns None.
+        """
+        cache.set(key, value, ttl)
+
 
 class CSVDownloader(DownloaderBase):
     download_type = "csv-vd"
@@ -127,7 +142,7 @@ class CSVDownloader(DownloaderBase):
             writer.writerow(
                 [v.value, v.meaning, v.start_date, v.end_date, "supplementary"]
             )
-        cache.set(download_utils.get_download_cache_key(iid, user, download_type=CSVDownloader.download_type),
+            CSVDownloader.cache_file(CSVDownloader.get_cache_key(user, iid),
                   (mem_file.getvalue(),
                    'txt/csv',
                    {'Content-Disposition': 'attachment; filename="{}.csv"'.format(item.name)}

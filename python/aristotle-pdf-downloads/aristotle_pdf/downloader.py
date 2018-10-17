@@ -85,7 +85,7 @@ class PDFDownloader(DownloaderBase):
             for obj_type, qs in item.get_download_items()
         ]
 
-        cache.set(download_utils.get_download_cache_key(iid, user, download_type=PDFDownloader.download_type), (render_to_pdf(template, {
+        PDFDownloader.cache_file(PDFDownloader.get_cache_key(user, iid), (render_to_pdf(template, {
             'title': properties['title'],
             'item': item,
             'subitems': sub_items,
@@ -159,7 +159,7 @@ class PDFDownloader(DownloaderBase):
         mime_type = 'application/pdf'
         if debug_as_html:
             mime_type = 'text/html'
-        cache.set(download_utils.get_download_cache_key(iids, user, download_type=PDFDownloader.download_type), (render_to_pdf(
+        PDFDownloader.cache_file(PDFDownloader.get_cache_key(user, iids), (render_to_pdf(
                     template,
                     {
                         'title': title,
