@@ -1391,22 +1391,32 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
                         new_value_seen = True
                 self.assertTrue(new_value_seen)
 
+    @tag('version')
     def test_view_previous_version(self):
+        old_definition = self.item1.definition
         with reversion.create_revision():
-            self.item1.description = self.item1.description + ' update'
+            self.item1.save()
+
+        new_definition = 'brand new definition'
+        with reversion.create_revision():
+            self.item1.definition = new_definition
             self.item1.save()
 
         item1_concept = self.item1._concept_ptr
 
         versions = reversion.models.Version.objects.get_for_object(item1_concept)
-        latest_version = versions.first()
+        self.assertEqual(versions.count(), 2)
+        oldest_version = versions.last()
 
         self.login_viewer()
         response = self.reverse_get(
             'aristotle:item_version',
-            reverse_args=[latest_version.id],
+            reverse_args=[oldest_version.id],
             status_code=200
         )
+
+        item_context = response.context['item']
+        self.assertEqual(item_context['definition'], old_definition)
 
 
 class ObjectClassViewPage(LoggedInViewConceptPages, TestCase):
