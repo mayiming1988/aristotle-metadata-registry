@@ -1,6 +1,6 @@
 Changelog
 
-- 2.1.x
+- 2.2.0
   - Aristotle MDR core
     - Fixed bug where Workgroups showed incorrectly in dropdowns #901
     - Fixed bug where users of IE and Edge couldn't properly use select2 dropdowns #894
@@ -9,14 +9,28 @@ Changelog
     - Fix for dataset order display and reordering
     - Update logout redirect to home with a message
     - Increase text length for submitting organisation and responsible organisation fields
-    - Efficiency impovements on list pages
+    - Efficiency improvements on list pages
+    - Efficiency improvements on item pages
     - Dependancy updates
-    - Fixed a 500 error when attempting to browse to invalid content types, fixes #900
+    - Fixed a 500 error when attempting to browse to invalid content types #900
     - Improved field access to AristotleComponents when using the GraphQL API
+    - Fix logout redirect, now goes to homepage
+    - Improved supersedes relationships
+    - Updated javascript dependancies
+    - Addition of javascript unit tests
+    - Increase submitting organistaion max text length
+    - Custom 500 page (thanks @itepifanio)
+    - Fix issue when clicking on discussion comment notification
+    - Fix creation of unneccesary item versions for linked items
+    - Automatic desclection for items above the new status when changing status
+    - Fix issue with draggable table on Internet Explorer
+    - Restrict when change registration status is shown (thanks @ho9science)
   - UI improvements
     - Clicking the name of the latest comment in a discussion, jumps a user to that comment.
   - New features
-    - Users can now view and clear lists metadata they have seen previously.
+    - Users can now view and clear lists of metadata they have seen previously.
+    - Ability to share items from a users sandbox
+    - Users can now tag metadata, view lists of tagged items
 
 - 2.1.3
     - Identifier and Namespace searching
