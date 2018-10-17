@@ -547,3 +547,8 @@ def distinct_members_count(workgroup):
             users.add(user.id)
 
     return len(users)
+
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key)

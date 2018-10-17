@@ -327,6 +327,10 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         response = self.client.get(self.get_page(self.item2))
         self.assertEqual(response.status_code,200)
 
+        # Ensure short urls redirect properly
+        response = self.client.get(reverse("aristotle:item_short", args=[self.item1.pk]))
+        self.assertEqual(response.status_code,302)
+
     def test_editor_can_view(self):
         self.login_editor()
         response = self.client.get(self.get_page(self.item1))
@@ -1021,47 +1025,6 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         response = self.client.get(self.item1.get_absolute_url())
         self.assertEqual(response.status_code,200)
         self.assertNotContains(response, reverse('aristotle:item_history',args=[self.item1.id]))
-
-    def test_viewer_can_favourite(self):
-        self.login_viewer()
-        self.assertTrue(perms.user_can_view(self.viewer,self.item1))
-
-        response = self.client.post(reverse('friendly_login'), {'username': 'vicky@example.com', 'password': 'viewer'})
-        self.assertEqual(response.status_code,302)
-        self.assertEqual(self.viewer.profile.favourites.count(),0)
-
-        response = self.client.get(
-            reverse('aristotle:toggleFavourite', args=[self.item1.id]),
-            follow=True
-        )
-        self.assertRedirects(
-            response,
-            url_slugify_concept(self.item1)
-        )
-        self.assertEqual(self.viewer.profile.favourites.count(),1)
-        self.assertEqual(self.viewer.profile.favourites.first().item,self.item1)
-        self.assertContains(response, "added to favourites")
-
-        response = self.client.get(
-            reverse('aristotle:toggleFavourite', args=[self.item1.id]),
-            follow=True
-        )
-        self.assertRedirects(
-            response,
-            url_slugify_concept(self.item1)
-        )
-        self.assertEqual(self.viewer.profile.favourites.count(),0)
-        self.assertContains(response, "removed from favourites")
-
-        response = self.client.get(reverse('aristotle:toggleFavourite', args=[self.item2.id]))
-        self.assertEqual(response.status_code,403)
-        self.assertEqual(self.viewer.profile.favourites.count(),0)
-
-    def test_anon_cannot_favourite(self):
-        self.logout()
-
-        response = self.client.get(reverse('aristotle:toggleFavourite', args=[self.item1.id]))
-        self.assertRedirects(response,reverse('friendly_login')+"?next="+reverse('aristotle:toggleFavourite', args=[self.item1.id]))
 
     @tag('changestatus')
     def test_registrar_can_change_status(self):

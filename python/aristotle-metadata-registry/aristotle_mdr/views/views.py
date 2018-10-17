@@ -38,6 +38,7 @@ from aristotle_mdr import models as MDR
 from aristotle_mdr.utils import get_concepts_for_apps, fetch_aristotle_settings, fetch_aristotle_downloaders
 from aristotle_mdr.views.utils import generate_visibility_matrix
 from aristotle_mdr.contrib.slots.utils import get_allowed_slots
+from aristotle_mdr.contrib.favourites.models import Favourite, Tag
 
 from haystack.views import FacetedSearchView
 
@@ -70,6 +71,12 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
     model = MDR._concept
     pk_url_kwarg = 'iid'
     template_name = "aristotle_mdr/actions/concept_history_compare.html"
+
+    compare_exclude = [
+        'favourites',
+        'user_view_history',
+        'submitter',
+    ]
 
     def get_object(self, queryset=None):
         item = super().get_object(queryset)
@@ -228,6 +235,10 @@ class ConceptRenderMixin:
                 return HttpResponseRedirect(redirect_url)
             else:
                 return HttpResponseForbidden()
+
+        from aristotle_mdr.contrib.view_history.signals import metadata_item_viewed
+        metadata_item_viewed.send(sender=self.item, user=self.user.pk)
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
@@ -245,6 +256,28 @@ class ConceptRenderMixin:
         context['item'] = self.item
         context['statuses'] = self.item.current_statuses
         context['discussions'] = self.item.relatedDiscussions.all()
+
+        # Tags
+        if self.request.user.is_authenticated():
+            item_tags = Favourite.objects.filter(
+                tag__profile=self.request.user.profile,
+                tag__primary=False,
+                item=self.item
+            ).order_by('created').values_list('tag__name', flat=True)
+
+            user_tags = Tag.objects.filter(
+                profile=self.request.user.profile,
+                primary=False
+            ).values_list('name', flat=True)
+
+            item_tags = list(item_tags)
+            user_tags = list(user_tags)
+
+            context['tags'] = {
+                'item': item_tags,
+                'user': user_tags
+            }
+
         return context
 
     def get_template_names(self):
@@ -539,28 +572,6 @@ def create_list(request):
     )
 
 
-@login_required
-def toggleFavourite(request, iid):
-    item = get_object_or_404(MDR._concept, pk=iid).item
-    if not user_can_view(request.user, item):
-        if request.user.is_anonymous():
-            return redirect(reverse('friendly_login') + '?next=%s' % request.path)
-        else:
-            raise PermissionDenied
-    request.user.profile.toggleFavourite(item)
-    if request.GET.get('next', None):
-        return redirect(request.GET.get('next'))
-    if item.concept in request.user.profile.favourites.all():
-        message = _("%s added to favourites.") % (item.name)
-    else:
-        message = _("%s removed from favourites.") % (item.name)
-    message = _(message + " Review your favourites from the user menu.")
-    messages.add_message(request, messages.SUCCESS, message)
-    return redirect(url_slugify_concept(item))
-
-
-# Actions
-
 def display_review(wizard):
     if wizard.display_review is not None:
         return wizard.display_review
@@ -586,7 +597,7 @@ class ReviewChangesView(SessionWizardView):
             state = cleaned_data['state']
             ra = cleaned_data['registrationAuthorities']
 
-            static_content = {'new_state': str(MDR.STATES[state]), 'new_reg_date': cleaned_data['registrationDate']}
+            static_content = {'new_state': state, 'new_reg_date': cleaned_data['registrationDate']}
             # Need to check wether cascaded was true here
 
             if cascade == 1:
@@ -828,51 +839,3 @@ def extensions(request):
         "aristotle_mdr/static/extensions.html",
         {'content_extensions': content, 'download_extensions': downloads, }
     )
-
-
-# Search views
-
-class PermissionSearchView(FacetedSearchView):
-
-    results_per_page_values = getattr(settings, 'RESULTS_PER_PAGE', [])
-
-    def build_page(self):
-
-        try:
-            rpp = self.form.cleaned_data['rpp']
-        except (AttributeError, KeyError):
-            rpp = ''
-
-        if rpp in self.results_per_page_values:
-            self.results_per_page = rpp
-        else:
-            if len(self.results_per_page_values) > 0:
-                self.results_per_page = self.results_per_page_values[0]
-
-        return super().build_page()
-
-    def build_form(self):
-
-        form = super().build_form()
-        form.request = self.request
-        form.request.GET = self.clean_facets(self.request)
-        return form
-
-    def clean_facets(self, request):
-        get = request.GET.copy()
-        for k, val in get.items():
-            if k.startswith('f__'):
-                get.pop(k)
-                k = k[4:]
-                get.update({'f': '%s::%s' % (k, val)})
-        return get
-
-    def extra_context(self):
-        # needed to compare to indexed primary key value
-        if not self.request.user.is_anonymous():
-            favourites_pks = self.request.user.profile.favourites.all().values_list('id', flat=True)
-            favourites_list = list(favourites_pks)
-        else:
-            favourites_list = []
-
-        return {'rpp_values': self.results_per_page_values, 'favourites': favourites_list}

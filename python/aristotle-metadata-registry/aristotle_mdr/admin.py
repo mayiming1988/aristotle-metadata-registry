@@ -30,6 +30,7 @@ reversion.revisions.register(
     ],
     exclude=[
         'is_public', 'is_locked',
+        'user_view_history',
         'superseded_by_items', 'superseded_items',
         'superseded_by_items_relation_set',
         'superseded_items_relation_set',
@@ -143,6 +144,8 @@ class ConceptAdmin(CompareVersionAdmin, admin.ModelAdmin):
     name_suggest_fields = []
     actions_on_top = True
     actions_on_bottom = False
+
+    compare_exclude = ['favourites', 'user_view_history']
 
     def get_form(self, request, obj=None, **kwargs):
         # Thanks: http://stackoverflow.com/questions/6321916

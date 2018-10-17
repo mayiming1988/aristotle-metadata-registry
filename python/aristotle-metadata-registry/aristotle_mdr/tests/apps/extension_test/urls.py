@@ -1,7 +1,7 @@
 from django.conf.urls import include, url
 
-from aristotle_mdr.views import views
 from aristotle_mdr.forms.search import PermissionSearchForm
+from aristotle_mdr.views.search import PermissionSearchView
 
 from haystack.views import search_view_factory
 from haystack.query import SearchQuerySet
@@ -13,7 +13,7 @@ urlpatterns = [
     url(
         r'^fail_search/?',
         search_view_factory(
-            view_class=views.PermissionSearchView,
+            view_class=PermissionSearchView,
             template='search/search.html',
             searchqueryset= SearchQuerySet(),
             form_class=PermissionSearchForm

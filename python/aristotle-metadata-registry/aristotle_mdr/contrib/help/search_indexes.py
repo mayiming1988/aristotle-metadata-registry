@@ -9,6 +9,7 @@ from aristotle_mdr.search_indexes import baseObjectIndex
 
 class HelpObjectIndex(baseObjectIndex):
     name = indexes.CharField(model_attr='title')
+    name_sortable = indexes.CharField(model_attr='title', indexed=False, stored=True)
     facet_model_ct = indexes.IntegerField(faceted=True)
     is_public = indexes.BooleanField(model_attr='is_public')
 

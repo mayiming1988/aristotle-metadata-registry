@@ -80,9 +80,11 @@ SILENCED_SYSTEM_CHECKS = [
 ALLOWED_HOSTS = []
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+ARISTOTLE_ASYNC_SIGNALS = True
 
 INSTALLED_APPS = (
     'aristotle_mdr',
+    'aristotle_mdr.contrib.view_history',
     'aristotle_mdr.contrib.generic',
     'aristotle_mdr.contrib.help',
     'aristotle_mdr.contrib.slots',
@@ -90,6 +92,7 @@ INSTALLED_APPS = (
     'aristotle_mdr.contrib.browse',
     'aristotle_mdr.contrib.autocomplete',
     'aristotle_mdr.contrib.user_management',
+    'aristotle_mdr.contrib.favourites',
 
     'dal',
     'dal_select2',
