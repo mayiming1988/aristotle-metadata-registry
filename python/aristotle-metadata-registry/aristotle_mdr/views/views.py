@@ -252,6 +252,7 @@ class ConceptRenderMixin:
         context['item'] = self.item
         context['statuses'] = self.item.current_statuses
         context['discussions'] = self.item.relatedDiscussions.all()
+        context['vue'] = True
 
         # Tags
         if self.request.user.is_authenticated():
