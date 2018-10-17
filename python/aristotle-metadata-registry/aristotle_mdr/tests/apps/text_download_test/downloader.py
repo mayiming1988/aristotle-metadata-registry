@@ -70,7 +70,7 @@ class TestTextDownloader(DownloaderBase):
         properties = {
             'out': out,
             'user': None,
-            'url_id': out[0] or 'Auto-generated document'
+            'title': out[0] or 'Auto-generated document'
         }
         if user:
             properties['user'] = str(user)
@@ -106,6 +106,6 @@ class TestTextDownloader(DownloaderBase):
                 }
                 out.append(template.render(context))
 
-        cache.set(download_utils.get_download_cache_key(properties['url_id'], user), ("\n\n".join(out), 'text/plain', {}))
+        cache.set(download_utils.get_download_cache_key(iids, user, download_type=TestTextDownloader.download_type), ("\n\n".join(out), 'text/plain', {}))
 
         return True
