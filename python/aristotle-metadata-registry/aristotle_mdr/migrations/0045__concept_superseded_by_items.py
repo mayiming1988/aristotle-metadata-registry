@@ -9,7 +9,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_mdr', '0042_remove__concept_superseded_by'),
+        ('aristotle_mdr', '0044_remove__concept_superseded_by'),
     ]
 
     operations = [
