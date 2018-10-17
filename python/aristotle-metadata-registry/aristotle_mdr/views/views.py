@@ -390,44 +390,22 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
     def get_weak_versions(self, model):
         pk = self.item_version_data['pk']
 
-        if not hasattr(model, 'serialize_weak_entities'):
-            return {}
+        # Find weak models create mapping of model labels to link fields
+        weak_map = {'aristotle_mdr_slots.slot': 'concept'}
+        for field in model._meta.get_fields():
+            if field.is_relation and field.one_to_many and\
+                    issubclass(field.related_model, MDR.aristotleComponent):
+                weak_map[field.related_model._meta.label_lower] = field.field.name
 
-        # Find weak models add their app labels to dict
-        weak_models = {}
-        if model.serialize_weak_entities:
-            reverse_keys = [weak[1] for weak in model.serialize_weak_entities]
-            for key in reverse_keys:
-                field = model._meta.get_field(key)
-                field_model = field.related_model()
-                weak_models[field_model._meta.label_lower] = []
+        if len(weak_map) == 0:
+            return []
 
-        # Add any models found before in the same revision to dict
-        for version in self.revision.version_set.all():
-            data = json.loads(version.serialized_data)[0]
-            if data['model'] in weak_models:
-                # There is a version in the revision that is of the correct
-                # type. Need to check wether it links to the correct item
-                weak_model = apps.get_model(data['model'])
-
-                # Find the field that links the weak model back to our model
-                link_field = None
-                for field in weak_model._meta.get_fields():
-                    if field.is_relation and field.related_model == model:
-                        link_field = field.name
-                        break
-
-                if link_field is not None and link_field in data['fields']:
-                    # If it links back to the correct pk
-                    if data['fields'][link_field] == pk:
-                        # Add to weak models
-                        del data['fields'][link_field]
-                        final_fields = self.process_dict(data['fields'], weak_model)
-                        weak_models[data['model']].append(final_fields)
+        # Get any models found before in the same revision to dict
+        weak_items = self.get_related_versions(pk, weak_map)
 
         # Process into template friendly version
         template_weak_models = []
-        for label, item_list in weak_models.items():
+        for label, item_list in weak_items.items():
             model = apps.get_model(label)
 
             template_weak_models.append({
@@ -442,7 +420,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         # Create replacement mapping fields to models
         replacements = {}
         for field in model._meta.get_fields():
-            if field.is_relation and\
+            if field.is_relation and field.many_to_one and\
                     (issubclass(field.related_model, MDR._concept) or
                         issubclass(field.related_model, MDR.aristotleComponent)):
                 replacements[field.name] = field.related_model
@@ -452,13 +430,13 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
             field = model._meta.get_field(key)
             newkey = field.verbose_name.title()
             if key in replacements and type(value) == int:
-                model = replacements[key]
+                sub_model = replacements[key]
                 try:
-                    obj = model.objects.get(pk=value)
+                    obj = sub_model.objects.get(pk=value)
                 except model.DoesNotExist:
                     obj = None
 
-                if issubclass(model, MDR.aristotleComponent):
+                if issubclass(sub_model, MDR.aristotleComponent):
                     updated_fields[newkey] = {
                         'is_link': True,
                         'object': obj,
@@ -474,6 +452,31 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
                 updated_fields[newkey] = value
 
         return updated_fields
+
+    def get_related_versions(self, pk, mapping):
+        # mapping should be a mapping of model labels to fields on item
+
+        related = defaultdict(list)
+        # Add any models found before in the same revision to dict
+        for version in self.revision.version_set.all():
+            data = json.loads(version.serialized_data)[0]
+            if data['model'] in mapping:
+                # There is a version in the revision that is of the correct
+                # type. Need to check wether it links to the correct item
+                related_model = apps.get_model(data['model'])
+
+                # Find the field that links the weak model back to our model
+                link_field = mapping[data['model']]
+
+                if link_field and link_field in data['fields']:
+                    # If it links back to the correct pk
+                    if data['fields'][link_field] == pk:
+                        # Add to weak models
+                        del data['fields'][link_field]
+                        final_fields = self.process_dict(data['fields'], related_model)
+                        related[data['model']].append(final_fields)
+
+        return related
 
     def dispatch(self, request, *args, **kwargs):
         exists = self.get_version()
