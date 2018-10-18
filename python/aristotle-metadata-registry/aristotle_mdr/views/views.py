@@ -168,6 +168,54 @@ def render_if_condition_met(request, condition, objtype, iid, model_slug=None, n
     )
 
 
+class ConceptRenderView(TemplateView):
+    """
+    Class based view for rendering a concept, replaces render_if_condition_met
+    **This should be used with a permission mixin or check_item override**
+    """
+
+    objtype = MDR._concept
+    itemid_arg = 'iid'
+
+    def get_item(self):
+        itemid = self.kwargs[self.itemid_arg]
+        return get_object_or_404(self.objtype, pk=itemid).item
+
+    def check_item(self):
+        # To be overwritten
+        return True
+
+    def get_user(self):
+        return self.request.user
+
+    def dispatch(self, request, *args, **kwargs):
+        self.item = self.get_item()
+        self.user = self.get_user()
+        result = self.check_item()
+        if not result:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+
+        context['isFavourite'] = self.request.user.profile.is_favourite(self.item)
+        from reversion.models import Version
+        context['last_edit'] = Version.objects.get_for_object(self.item).first()
+        # Only display viewable slots
+        context['slots'] = get_allowed_slots(self.item, self.user)
+        context['item'] = self.item
+        return context
+
+    def get_template_names(self):
+        default_template = "{}/concepts/{}.html".format(
+            self.item.__class__._meta.app_label,
+            self.item.__class__._meta.model_name
+        )
+
+        return [default_template, self.item.template]
+
+
 def registrationHistory(request, iid):
     item = get_if_user_can_view(MDR._concept, request.user, iid)
     if not item:
@@ -192,6 +240,11 @@ def unauthorised(request, path=''):
         return render(request, "401.html", {"path": path, "anon": True, }, status=401)
     else:
         return render(request, "403.html", {"path": path, "anon": True, }, status=403)
+
+
+def not_found(request, path):
+    context = {'anon': request.user.is_anonymous(), 'path': path}
+    return render(request, "404.html", context)
 
 
 def create_list(request):
@@ -496,60 +549,6 @@ class ChangeStatusView(ReviewChangesView):
     def done(self, form_list, form_dict, **kwargs):
         self.register_changes(form_dict, 'change_status')
         return HttpResponseRedirect(url_slugify_concept(self.item))
-
-
-def supersede(request, iid):
-    item = get_object_or_404(MDR._concept, pk=iid).item
-    if not (item and user_can_edit(request.user, item)):
-        if request.user.is_anonymous():
-            return redirect(reverse('friendly_login') + '?next=%s' % request.path)
-        else:
-            raise PermissionDenied
-    qs=item.__class__.objects.all()
-    if request.method == 'POST':  # If the form has been submitted...
-        form = MDRForms.SupersedeForm(request.POST, user=request.user, item=item, qs=qs)  # A form bound to the POST data
-        if form.is_valid():
-            with transaction.atomic(), reversion.revisions.create_revision():
-                reversion.revisions.set_user(request.user)
-                item.superseded_by = form.cleaned_data['newerItem']
-                item.save()
-            return HttpResponseRedirect(url_slugify_concept(item))
-    else:
-        form = MDRForms.SupersedeForm(item=item, user=request.user, qs=qs)
-    return render(request, "aristotle_mdr/actions/supersedeItem.html", {"item": item, "form": form})
-
-
-def deprecate(request, iid):
-    item = get_object_or_404(MDR._concept, pk=iid).item
-    if not (item and user_can_edit(request.user, item)):
-        if request.user.is_anonymous():
-            return redirect(reverse('friendly_login') + '?next=%s' % request.path)
-        else:
-            raise PermissionDenied
-    qs=item.__class__.objects.filter().editable(request.user)
-    if request.method == 'POST':  # If the form has been submitted...
-        form = MDRForms.DeprecateForm(request.POST, user=request.user, item=item, qs=qs)  # A form bound to the POST data
-        if form.is_valid():
-            # Check use the itemset as there are permissions issues and we want to remove some:
-            #  Everything that was superseded, but isn't in the returned set
-            #  Everything that was in the returned set, but isn't already superseded
-            #  Everything left over can stay the same, as its already superseded
-            #    or wasn't superseded and is staying that way.
-            with transaction.atomic(), reversion.revisions.create_revision():
-                reversion.revisions.set_user(request.user)
-                for i in item.supersedes.all():
-                    if i not in form.cleaned_data['olderItems'] and user_can_edit(request.user, i):
-                        item.supersedes.remove(i)
-                for i in form.cleaned_data['olderItems']:
-                    if user_can_edit(request.user, i):  # Would check item.supersedes but its a set
-                        kwargs = {}
-                        if django_version > (1, 9):
-                            kwargs = {'bulk': False}
-                        item.supersedes.add(i, **kwargs)
-            return HttpResponseRedirect(url_slugify_concept(item))
-    else:
-        form = MDRForms.DeprecateForm(user=request.user, item=item, qs=qs)
-    return render(request, "aristotle_mdr/actions/deprecateItems.html", {"item": item, "form": form})
 
 
 def extensions(request):

@@ -38,7 +38,7 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
     install_requires = [
-        "Django>=1.11.1,<2.0",
+        "Django>=1.11.16,<2.0",
         'six', # Setuptools > 36 doesn't install this by default
         'pytz',
         'pyyaml',
@@ -86,9 +86,14 @@ setup(
         # File upload
         'django-constrainedfilefield[filetype]',
 
+        # Generic json field
+        'jsonfield',
+
         # User sessions
         'django-user-sessions',
         'geoip2',
+        
+        'attrs',
 
     ],
 

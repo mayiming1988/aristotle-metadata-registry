@@ -3,3 +3,4 @@ sphinx-rtd-theme
 whoosh
 dj-database-url
 -e python/aristotle-metadata-registry
+-e python/aristotle-bg-workers

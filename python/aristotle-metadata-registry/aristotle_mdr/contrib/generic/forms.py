@@ -1,13 +1,13 @@
 from django import forms
-from django.forms.models import BaseModelFormSet
-from aristotle_mdr.models import _concept, ValueDomain, ValueMeaning
-from aristotle_mdr.contrib.autocomplete import widgets
-from django.forms.models import modelformset_factory
+from django.db.models import DateField
+from django.forms.models import BaseModelFormSet, BaseInlineFormSet
 from django.forms import ModelChoiceField, CharField
 from django.forms.formsets import BaseFormSet
+from django.forms.models import modelformset_factory, inlineformset_factory
+
+from aristotle_mdr.models import _concept, AbstractValue, ValueDomain, ValueMeaning
+from aristotle_mdr.contrib.autocomplete import widgets
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
-from django.db.models import DateField
-from aristotle_mdr.models import AbstractValue
 
 
 import logging
@@ -23,22 +23,46 @@ datePickerOptions = {
 }
 
 
-class HiddenOrderFormset(BaseFormSet):
+class HiddenOrderMixin(object):
+    is_ordered = True
 
     def add_fields(self, form, index):
         super().add_fields(form, index)
         form.fields["ORDER"].widget = forms.HiddenInput()
 
 
-class HiddenOrderModelFormSet(BaseModelFormSet):
+class HiddenOrderFormset(HiddenOrderMixin, BaseFormSet):
+    pass
 
-    def add_fields(self, form, index):
-        super().add_fields(form, index)
-        form.fields["ORDER"].widget = forms.HiddenInput()
+
+class HiddenOrderModelFormSet(HiddenOrderMixin, BaseModelFormSet):
+    pass
+
+
+class HiddenOrderInlineFormset(HiddenOrderMixin, BaseInlineFormSet):
+    def save(self, commit=True):
+        super().save(commit=False)
+        # Save formset so we have access to deleted_objects and save_m2m
+
+        for form in self.ordered_forms:
+            # Loop through the forms so we can add the order value to the ordering field
+            # ordered_forms does not contain forms marked for deletion
+            obj = form.save(commit=False)
+            # setattr(obj, model_to_add_field, item)
+            setattr(obj, self.ordering_field, form.cleaned_data['ORDER'])
+            obj.save()
+
+        for obj in self.deleted_objects:
+            # Delete objects marked for deletion
+            obj.delete()
+
+        # Save any m2m relations on the ojects (not actually needed yet)
+        self.save_m2m()
 
 
 # Below are some util functions for creating o2m and m2m querysets
 # They are used in the generic alter views and the ExtraFormsetMixin
+
 
 def one_to_many_formset_excludes(item, model_to_add):
     # creates a list of extra fields to be excluded based on the item related to the weak entity
@@ -67,7 +91,7 @@ def one_to_many_formset_filters(formset, item):
     return formset
 
 
-def get_aristotle_widgets(model):
+def get_aristotle_widgets(model, ordering_field=None):
 
     _widgets = {}
 
@@ -85,6 +109,11 @@ def get_aristotle_widgets(model):
                 f.name: BootstrapDateTimePicker(options=datePickerOptions)
             })
 
+        if ordering_field is not None and f.name == ordering_field:
+            _widgets.update({
+                ordering_field: forms.HiddenInput()
+            })
+
     for f in model._meta.many_to_many:
         foreign_model = model._meta.get_field(f.name).related_model
         if foreign_model and issubclass(foreign_model, _concept):
@@ -97,19 +126,21 @@ def get_aristotle_widgets(model):
     return _widgets
 
 
-def ordered_formset_factory(model, excludes=[]):
+def ordered_formset_factory(model, ordering_field, exclude=[]):
     # Formset factory for a hidden order model formset with aristotle widgets
     _widgets = get_aristotle_widgets(model)
 
-    return modelformset_factory(
+    formset = modelformset_factory(
         model,
         formset=HiddenOrderModelFormSet,
         can_order=True,  # we assign this back to the ordering field
         can_delete=True,
-        exclude=excludes,
+        exclude=exclude,
         extra=0,
         widgets=_widgets
     )
+    formset.ordering_field = ordering_field
+    return formset
 
 
 def ordered_formset_save(formset, item, model_to_add_field, ordering_field):

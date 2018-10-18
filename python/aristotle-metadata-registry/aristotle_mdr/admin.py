@@ -23,8 +23,22 @@ from aristotle_mdr.register import register_concept
 from aristotle_mdr.utils import fetch_aristotle_settings
 
 reversion.revisions.register(MDR.Status)
-reversion.revisions.register(MDR._concept, follow=['statuses', 'workgroup', 'slots'])
+reversion.revisions.register(
+    MDR._concept,
+    follow=[
+        'statuses', 'workgroup', 'slots',
+    ],
+    exclude=[
+        'is_public', 'is_locked',
+        'superseded_by_items', 'superseded_items',
+        'superseded_by_items_relation_set',
+        'superseded_items_relation_set',
+        'modified',
+        'submitter',
+    ]
+)
 reversion.revisions.register(MDR.Workgroup)
+reversion.revisions.register(MDR.SupersedeRelationship)
 
 User = get_user_model()
 
@@ -123,7 +137,7 @@ class ConceptAdmin(CompareVersionAdmin, admin.ModelAdmin):
         # ('Registry', {'fields': ['workgroup']}),
         ('Relationships', {
             'classes': ('grp-collapse grp-closed',),
-            'fields': ['origin_URI', 'superseded_by', 'deprecated'],
+            'fields': ['origin_URI'],
         }),
     ]
     name_suggest_fields = []

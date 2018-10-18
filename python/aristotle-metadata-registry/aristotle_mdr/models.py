@@ -30,6 +30,7 @@ from aristotle_mdr.utils import (
 )
 from aristotle_mdr import comparators
 
+from jsonfield import JSONField
 from .fields import (
     ConceptForeignKey,
     ConceptManyToManyField,
@@ -650,14 +651,17 @@ class _concept(baseAristotleObject):
         help_text=_("Descriptive comments about the metadata item (8.1.2.2.3.4)"),
         blank=True
     )
-    submitting_organisation = models.CharField(max_length=256, blank=True)
-    responsible_organisation = models.CharField(max_length=256, blank=True)
+    submitting_organisation = ShortTextField(blank=True)
+    responsible_organisation = ShortTextField(blank=True)
 
-    superseded_by = ConceptForeignKey(
+    superseded_by_items = ConceptManyToManyField(  # 11.5.3.4
         'self',
-        related_name='supersedes',
-        blank=True,
-        null=True
+        through='SupersedeRelationship',
+        related_name="superseded_items",
+        # blank=True,
+        through_fields=('older_item', 'newer_item'),
+        symmetrical=False,
+        # help_text=_("")
     )
 
     tracker = FieldTracker()
@@ -739,9 +743,9 @@ class _concept(baseAristotleObject):
 
     @property
     def is_superseded(self):
-        return all(
+        return self.statuses.filter(state=STATES.superseded).count() > 0 and all(
             STATES.superseded == status.state for status in self.statuses.all()
-        ) and self.superseded_by
+        ) and self.superseded_by_items_relation_set.count() > 0
 
     @property
     def is_retired(self):
@@ -859,6 +863,24 @@ class concept(_concept):
         Return self, because we already have the correct item.
         """
         return self
+
+
+class SupersedeRelationship(TimeStampedModel):
+    older_item = ConceptForeignKey(
+        _concept,
+        related_name='superseded_by_items_relation_set',
+    )
+    newer_item = ConceptForeignKey(
+        _concept,
+        related_name='superseded_items_relation_set',
+    )
+    registration_authority = models.ForeignKey(RegistrationAuthority)
+    message = models.TextField(blank=True, null=True)
+    date_effective = models.DateField(
+        _('Date effective'),
+        help_text=_("The date the superseding relationship became effective."),
+        blank=True, null=True
+    )
 
 
 REVIEW_STATES = Choices(
@@ -1437,6 +1459,17 @@ class PossumProfile(models.Model):
         return vi.union(si).union(sti).union(mi).count()
 
     @property
+    def mySandboxContent(self):
+        return _concept.objects.filter(
+            Q(
+                submitter=self.user,
+                statuses__isnull=True
+            ) & Q(
+                Q(review_requests__isnull=True) | Q(review_requests__status=REVIEW_STATES.cancelled)
+            )
+        )
+
+    @property
     def editable_workgroups(self):
         if self.user.is_superuser:
             return Workgroup.objects.all()
@@ -1484,6 +1517,21 @@ class PossumProfile(models.Model):
             self.favourites.remove(item)
         else:
             self.favourites.add(item)
+
+
+class SandboxShare(models.Model):
+    uuid = models.UUIDField(
+        help_text=_("Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries"),
+        unique=True, default=uuid.uuid1, editable=False, null=False
+    )
+    profile = models.OneToOneField(
+        PossumProfile,
+        related_name='share'
+    )
+    created = models.DateTimeField(
+        auto_now=True
+    )
+    emails = JSONField()
 
 
 def create_user_profile(sender, instance, created, **kwargs):
@@ -1559,3 +1607,9 @@ def review_request_changed(sender, instance, *args, **kwargs):
         fire("action_signals.review_request_created", obj=instance, **kwargs)
     else:
         fire("action_signals.review_request_updated", obj=instance, **kwargs)
+
+
+@receiver(post_save, sender=SupersedeRelationship)
+def new_superseded_relation(sender, instance, *args, **kwargs):
+    if kwargs.get('created'):
+        fire("concept_changes.item_superseded", obj=instance, **kwargs)
