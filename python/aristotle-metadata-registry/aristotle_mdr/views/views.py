@@ -274,6 +274,11 @@ class ConceptRenderMixin:
                 'item': item_tags,
                 'user': user_tags
             }
+        else:
+            context['tags'] = {
+                'item': [],
+                'user': []
+            }
 
         return context
 
