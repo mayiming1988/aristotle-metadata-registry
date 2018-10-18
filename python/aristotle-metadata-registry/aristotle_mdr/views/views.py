@@ -329,8 +329,8 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
     slug_redirect = False
     version_arg = 'verid'
     template_name = 'aristotle_mdr/concepts/managedContentVersion.html'
-    concept_fields = ['references', 'submitting_organisation',
-                        'responsible_organistation', 'origin', 'origin_URI', 'comments']
+    concept_fields = ['references', 'submitting_organisation', 'responsible_organistation',
+                      'origin', 'origin_URI', 'comments']
 
     def check_item(self, item):
         return user_can_view(self.request.user, item)

@@ -18,6 +18,7 @@
     <div id="infobox" class="collapse navbar-collapse" >
         <header class="hidden-xs">{{ item.name }}</header>
         <dl>
+            {% block infobox_list %}
             <dt>{% trans 'Type' context "Object Type" %}</dt>
             <dd>
                 <a href="{% url 'aristotle_help:concept_help' item.meta.app_label item.meta.model_name %}"
@@ -51,39 +52,34 @@
                 {% include "aristotle_self_publish/concepts/publication_details.html" with item=item %}
             {% endif %}
 
-            {% if item_is_version %}
-              <dt>{% trans 'Version Created' %}</dt>
-              <dd>{{ revision.date_created|date:'o-m-d H:i e' }}</dd>
-            {% else %}
-              <dt>{% trans 'Last updated'%}</dt>
-              <dd>
-                  {% if request.user.is_authenticated %}
-                      {% if request.user.is_superuser or request.user.is_staff and item.workgroup in request.user.workgroups %}
-                          <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|date:'c' }}">
-                              <a href="{% url 'aristotle:item_history' iid=item.id %}">{{item.modified|naturaltime}}</a>
-                          </time>
-                      {% elif item.workgroup in request.user.workgroups or item.submitter == request.user %}
-                          <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|date:'c' }}">
-                              <a href="{% url 'aristotle:item_history' iid=item.id %}">{{item.modified|naturaltime}}</a>
-                          </time>
-                      {% endif %}
-                  {% else %}
-                      <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|date:'c' }}">
-                          {{item.modified|naturaltime}}
-                      </time>
-                  {% endif %}
-                  {% if request.user.is_superuser or request.user.is_active and item.workgroup in request.user.workgroups %}
-                  <span style="display:inline-block">By
-                      {% with editing_user=last_edit.revision.user %}
-                          {% if editing_user %}
-                              {% firstof editing_user.short_name editing_user.full_name editing_user.email %}
-                          {% else %}<em title="{% trans 'This may have been added during an import.'%}">{% trans 'Unknown' context "Unknown import user"%}</em>
-                          {% endif %}
-                      {% endwith %}
-                  </span>
-                  {% endif %}
-              </dd>
-            {% endif %}
+            <dt>{% trans 'Last updated'%}</dt>
+            <dd>
+                {% if request.user.is_authenticated %}
+                    {% if request.user.is_superuser or request.user.is_staff and item.workgroup in request.user.workgroups %}
+                        <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|date:'c' }}">
+                            <a href="{% url 'aristotle:item_history' iid=item.id %}">{{item.modified|naturaltime}}</a>
+                        </time>
+                    {% elif item.workgroup in request.user.workgroups or item.submitter == request.user %}
+                        <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|date:'c' }}">
+                            <a href="{% url 'aristotle:item_history' iid=item.id %}">{{item.modified|naturaltime}}</a>
+                        </time>
+                    {% endif %}
+                {% else %}
+                    <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|date:'c' }}">
+                        {{item.modified|naturaltime}}
+                    </time>
+                {% endif %}
+                {% if request.user.is_superuser or request.user.is_active and item.workgroup in request.user.workgroups %}
+                <span style="display:inline-block">By
+                    {% with editing_user=last_edit.revision.user %}
+                        {% if editing_user %}
+                            {% firstof editing_user.short_name editing_user.full_name editing_user.email %}
+                        {% else %}<em title="{% trans 'This may have been added during an import.'%}">{% trans 'Unknown' context "Unknown import user"%}</em>
+                        {% endif %}
+                    {% endwith %}
+                </span>
+                {% endif %}
+            </dd>
             <dt>{% if item_is_version %}{% trans 'Item Created' %}{% else %}{% trans 'Created'%}{% endif %}</dt>
             <dd><time title="{{ item.created|date:'o-m-d' }}" datetime="{{ item.created|date:'c' }}">{{ item.created|date:'o-m-d' }}</time></dd>
 
@@ -174,6 +170,7 @@
               <simple-list ul-class="taggle_list" li-class="taggle" :data="saved_tags"></simple-list>
             </dd>
           </div>
+        {% endblock %}
         </dl>
         {% bootstrap_modal "infobox_modal" size='lg' %}
     </div>
