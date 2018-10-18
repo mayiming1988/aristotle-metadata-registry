@@ -328,6 +328,8 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
     slug_redirect = False
     version_arg = 'verid'
     template_name = 'aristotle_mdr/concepts/managedContentVersion.html'
+    concept_fields = ['references', 'submitting_organisation',
+                        'responsible_organistation', 'origin', 'origin_URI', 'comments']
 
     def check_item(self, item):
         return user_can_view(self.request.user, item)
@@ -502,15 +504,13 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         version_dict = self.concept_version_data['fields']
         version_dict['item_data'] = {'Names & References': {}}
 
-        concept_fields = ['references', 'submitting_organisation',
-                          'responsible_organistation', 'origin', 'comments']
-
-        for field in concept_fields:
+        for field in self.concept_fields:
             if field in self.concept_version_data['fields']:
                 fieldobj = MDR._concept._meta.get_field(field)
                 field_data = {
                     'is_link': False,
-                    'value': self.concept_version_data['fields'][field]
+                    'value': self.concept_version_data['fields'][field],
+                    'help_text': fieldobj.help_text
                 }
 
                 if issubclass(type(fieldobj), RichTextField):
