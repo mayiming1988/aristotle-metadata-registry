@@ -3,6 +3,8 @@ from django.urls import reverse
 from django.test import TestCase, override_settings, tag
 from django.utils import timezone
 from django.db.models.fields import CharField, TextField
+from django.core.cache import cache
+from django.http import HttpResponse
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
@@ -14,6 +16,7 @@ from aristotle_mdr.forms.creation_wizards import (
 )
 from aristotle_mdr.tests import utils
 import datetime
+from unittest import mock
 
 from aristotle_mdr.utils import setup_aristotle_test_environment
 
@@ -72,8 +75,207 @@ class LoggedInViewHTMLPages(utils.LoggedInViewPages, TestCase):
         self.assertRedirects(response, reverse('aristotle:userHome'))
 
 
+# Tests that dont require running on all item types
+@tag('itempage_general')
+class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
+
+    def setUp(self):
+        super().setUp()
+
+        self.item = models.ObjectClass.objects.create(
+            name='Test Item',
+            definition='Test Item Description',
+            submitter=self.editor
+        )
+        self.itemid = self.item.id
+
+        self.future_time = timezone.now() + datetime.timedelta(days=30)
+
+        self.cache_key = 'view_cache_ConceptView_{}_{}'.format(
+            self.editor.id,
+            self.itemid
+        )
+
+    def test_itempage_full_url(self):
+        self.login_editor()
+        full_url = url_slugify_concept(self.item)
+        response = self.client.get(full_url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_itempage_redirect_id_only(self):
+        self.login_editor()
+
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.itemid],
+            status_code=302
+        )
+
+        self.assertEqual(response.url, url_slugify_concept(self.item))
+
+    def test_itempage_redirect_wrong_modelslug(self):
+        self.login_editor()
+
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.itemid, 'definition', 'wow'],
+            status_code=302
+        )
+
+        self.assertEqual(response.url, url_slugify_concept(self.item))
+
+    def test_itempage_wrong_model_modelslug(self):
+        self.login_editor()
+
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.itemid, 'property', 'wow'],
+            status_code=404
+        )
+
+    def test_itempage_wrong_name(self):
+        self.login_editor()
+
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.itemid, 'objectclass', 'wow'],
+            status_code=200
+        )
+
+    @tag('cache')
+    def test_itempage_caches(self):
+
+        # View in the future to avoid modified recently check
+        # No flux capacitors required
+        with mock.patch('aristotle_mdr.utils.utils.timezone.now') as mock_now:
+            mock_now.return_value = self.future_time
+
+            self.login_editor()
+            response = self.reverse_get(
+                'aristotle:item',
+                reverse_args=[self.itemid, 'objectclass', 'test-item'],
+                status_code=200
+            )
+
+        cached_itempage = cache.get(self.cache_key, None)
+        self.assertIsNotNone(cached_itempage)
+
+    @tag('cache')
+    def test_itempage_loaded_from_cache(self):
+
+        # Load response into cache
+        cache.set(self.cache_key, HttpResponse('wow'))
+
+        # View item page in future
+        with mock.patch('aristotle_mdr.utils.utils.timezone.now') as mock_now:
+            mock_now.return_value = self.future_time
+
+            self.login_editor()
+            response = self.reverse_get(
+                'aristotle:item',
+                reverse_args=[self.itemid, 'objectclass', 'test-item'],
+                status_code=200
+            )
+
+            self.assertEqual(response.content, b'wow')
+
+    @tag('cache')
+    def test_itempage_not_loaded_from_cache_if_modified(self):
+
+        # Load response into cache
+        cache.set(self.cache_key, HttpResponse('wow'))
+
+        # View page now (assumes this test wont take 300 seconds)
+        self.login_editor()
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.itemid, 'objectclass', 'test-item'],
+            status_code=200
+        )
+
+        self.assertNotEqual(response.content, b'wow')
+
+    @tag('cache')
+    def test_itempage_not_loaded_from_cache_if_nocache_set(self):
+        cache.set(self.cache_key, HttpResponse('wow'))
+
+        url = reverse('aristotle:item', args=[self.itemid, 'objectclass', 'test-item'])
+        url += '?nocache=true'
+
+        # View item page in future
+        with mock.patch('aristotle_mdr.utils.utils.timezone.now') as mock_now:
+            mock_now.return_value = self.future_time
+
+            self.login_editor()
+
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200)
+            self.assertNotEqual(response.content, b'wow')
+
+    @tag('extrav')
+    def test_no_extra_versions_created_adv_editor(self):
+
+        oc = models.ObjectClass.objects.create(
+            name='Test OC',
+            definition='Just a test',
+            submitter=self.editor
+        )
+
+        prop = models.Property.objects.create(
+            name='Test Prop',
+            definition='Just a test',
+            submitter=self.editor
+        )
+
+        dec = models.DataElementConcept.objects.create(
+            name='Test DEC',
+            definition='Just a test',
+            objectClass=oc,
+            property=prop,
+            submitter=self.editor
+        )
+
+        data = utils.model_to_dict_with_change_time(dec)
+        data.update({
+            'definition': 'More than a test',
+            'change_comments': 'A change was made'
+        })
+
+        from reversion import models as revmodels
+        self.assertEqual(revmodels.Version.objects.count(), 0)
+
+        self.login_editor()
+        response = self.reverse_post(
+            'aristotle:edit_item',
+            data=data,
+            status_code=302,
+            reverse_args=[dec.id]
+        )
+
+        dec = models.DataElementConcept.objects.get(pk=dec.pk)
+        self.assertEqual(dec.definition, 'More than a test')
+
+        # Should be 2 version, one for the _concept,
+        # one for the data element concept
+        self.assertEqual(revmodels.Version.objects.count(), 2)
+
+        from django.contrib.contenttypes.models import ContentType
+        concept_ct = ContentType.objects.get_for_model(models._concept)
+        dec_ct = ContentType.objects.get_for_model(models.DataElementConcept)
+
+        concept_version = revmodels.Version.objects.get(content_type=concept_ct)
+        dec_version = revmodels.Version.objects.get(content_type=dec_ct)
+
+        # check concept version
+        self.assertEqual(int(concept_version.object_id), dec._concept_ptr.id)
+
+        # check dec version
+        self.assertEqual(int(dec_version.object_id), dec.id)
+
+
 class LoggedInViewConceptPages(utils.LoggedInViewPages, utils.FormsetTestUtils):
     defaults = {}
+
     def setUp(self):
         super().setUp()
 
@@ -123,6 +325,10 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages, utils.FormsetTestUtils):
         self.assertEqual(response.status_code,200)
         response = self.client.get(self.get_page(self.item2))
         self.assertEqual(response.status_code,200)
+
+        # Ensure short urls redirect properly
+        response = self.client.get(reverse("aristotle:item_short", args=[self.item1.pk]))
+        self.assertEqual(response.status_code,302)
 
     def test_editor_can_view(self):
         self.login_editor()
@@ -818,47 +1024,6 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages, utils.FormsetTestUtils):
         response = self.client.get(self.item1.get_absolute_url())
         self.assertEqual(response.status_code,200)
         self.assertNotContains(response, reverse('aristotle:item_history',args=[self.item1.id]))
-
-    def test_viewer_can_favourite(self):
-        self.login_viewer()
-        self.assertTrue(perms.user_can_view(self.viewer,self.item1))
-
-        response = self.client.post(reverse('friendly_login'), {'username': 'vicky@example.com', 'password': 'viewer'})
-        self.assertEqual(response.status_code,302)
-        self.assertEqual(self.viewer.profile.favourites.count(),0)
-
-        response = self.client.get(
-            reverse('aristotle:toggleFavourite', args=[self.item1.id]),
-            follow=True
-        )
-        self.assertRedirects(
-            response,
-            url_slugify_concept(self.item1)
-        )
-        self.assertEqual(self.viewer.profile.favourites.count(),1)
-        self.assertEqual(self.viewer.profile.favourites.first().item,self.item1)
-        self.assertContains(response, "added to favourites")
-
-        response = self.client.get(
-            reverse('aristotle:toggleFavourite', args=[self.item1.id]),
-            follow=True
-        )
-        self.assertRedirects(
-            response,
-            url_slugify_concept(self.item1)
-        )
-        self.assertEqual(self.viewer.profile.favourites.count(),0)
-        self.assertContains(response, "removed from favourites")
-
-        response = self.client.get(reverse('aristotle:toggleFavourite', args=[self.item2.id]))
-        self.assertEqual(response.status_code,403)
-        self.assertEqual(self.viewer.profile.favourites.count(),0)
-
-    def test_anon_cannot_favourite(self):
-        self.logout()
-
-        response = self.client.get(reverse('aristotle:toggleFavourite', args=[self.item1.id]))
-        self.assertRedirects(response,reverse('friendly_login')+"?next="+reverse('aristotle:toggleFavourite', args=[self.item1.id]))
 
     @tag('changestatus')
     def test_registrar_can_change_status(self):

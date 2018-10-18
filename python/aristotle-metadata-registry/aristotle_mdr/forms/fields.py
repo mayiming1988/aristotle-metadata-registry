@@ -15,7 +15,7 @@ class ReviewChangesChoiceField(ModelMultipleChoiceField):
 
     def __init__(self, queryset, static_content, ra, user, **kwargs):
 
-        extra_info = self.build_extra_info(queryset, ra, user, static_content)
+        extra_info, deselections = self.build_extra_info(queryset, ra, user, static_content)
         static_content.pop('new_state')  # Added this to extra with a dynamic url attached
 
         headers = {
@@ -44,7 +44,8 @@ class ReviewChangesChoiceField(ModelMultipleChoiceField):
             attrs={'tableclass': 'table'},
             headers=headers,
             top_header=top_header,
-            order=order
+            order=order,
+            deselections=deselections
         )
 
         super().__init__(queryset, **kwargs)
@@ -56,6 +57,9 @@ class ReviewChangesChoiceField(ModelMultipleChoiceField):
         statuses = Status.objects.filter(concept__in=queryset, registrationAuthority=ra).select_related('concept')
         statuses = status_filter(statuses).order_by("-registrationDate", "-created")
 
+        new_state_num = static_content['new_state']
+        new_state = str(STATES[new_state_num])
+
         # Build a dict mapping concepts to their status data
         # So that no additional status queries need to be made
         states_dict = {}
@@ -63,14 +67,20 @@ class ReviewChangesChoiceField(ModelMultipleChoiceField):
             state_name = str(STATES[status.state])
             reg_date = status.registrationDate
             if status.concept.id not in states_dict:
-                states_dict[status.concept.id] = {'name': state_name, 'reg_date': reg_date}
+                states_dict[status.concept.id] = {
+                    'name': state_name,
+                    'reg_date': reg_date,
+                    'state': status.state
+                }
 
+        deselections = False
         for concept in subclassed_queryset:
             url = reverse('aristotle:registrationHistory', kwargs={'iid': concept.id})
 
             innerdict = {}
             # Get class name
-            innerdict.update({'type': concept.__class__.get_verbose_name()})
+            innerdict['type'] = concept.__class__.get_verbose_name()
+            innerdict['checked'] = True
 
             try:
                 state_info = states_dict[concept.id]
@@ -78,14 +88,21 @@ class ReviewChangesChoiceField(ModelMultipleChoiceField):
                 state_info = None
 
             if state_info:
-                innerdict.update({'old': {'url': url, 'text': state_info['name']}, 'old_reg_date': state_info['reg_date']})
+                innerdict['old'] = {
+                    'url': url,
+                    'text': state_info['name'],
+                    'old_reg_date': state_info['reg_date']
+                }
+                if state_info['state'] >= new_state_num:
+                    innerdict['checked'] = False
+                    deselections = True
 
-            innerdict.update({'perm': perms.user_can_change_status(user, concept)})
-            innerdict.update({'new_state': {'url': url, 'text': static_content['new_state']}})
+            innerdict['perm'] = perms.user_can_change_status(user, concept)
+            innerdict['new_state'] = {'url': url, 'text': new_state}
 
-            extra_info.update({concept.id: innerdict})
+            extra_info[concept.id] = innerdict
 
-        return extra_info
+        return (extra_info, deselections)
 
 
 class MultipleEmailField(Field):

@@ -14,11 +14,20 @@ aristotle-mdr-graphql = {path = "./python/aristotle-mdr-graphql", editable = tru
 aristotle-pdf-downloads = {path = "./python/aristotle-pdf-downloads", editable = true}
 comet-indicator-registry = {path = "./python/comet-indicator-registry", editable = true}
 mallard-questionnaire-registry = {path = "./python/mallard-questionnaire-registry", editable = true}
-aristotle-bg-workers = {path = "./python/aristotle-bg-workers", editable = true}
+# aristotle-bg-workers = {path = "./python/aristotle-bg-workers", editable = true}
 "psycopg2" = "~=2.7.0"
 "django-redis" = "*"
 "elasticsearch" = ">=5.0.0,<6.0.0"
 "django-haystack-elasticsearch" = "*"
+"5bb15f9" = {path = "./python/aristotle-pdf-downloads", editable = true}
+"5799a6d" = {path = "./python/aristotle-mdr-graphql", editable = true}
+"ca8a1ed" = {path = "./python/aristotle-mdr-api", editable = true}
+"fc411cc" = {path = "./python/aristotle-dataset-extensions", editable = true}
+"5352e90" = {path = "./python/comet-indicator-registry", editable = true}
+"437c906" = {path = "./python/aristotle-glossary", editable = true}
+"56c015b" = {path = "./python/aristotle-metadata-registry", editable = true}
+"0d47240" = {path = "./python/aristotle-bg-workers", editable = true}
+"a4c1046" = {path = "./python/mallard-questionnaire-registry", editable = true}
 
 [dev-packages]
 coverage = "*"

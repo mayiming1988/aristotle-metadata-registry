@@ -1,5 +1,5 @@
 {% load aristotle_tags %}
-{% if parent_item|can_edit:request.user %}
+{% if parent_item|can_edit:request.user and not hide_item_actions %}
     {% if item %}
         <a href="{{ item.get_absolute_url }}">
         {% if space %}

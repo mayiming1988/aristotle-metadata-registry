@@ -18,3 +18,5 @@
 {% for identifier in object.identifiers.all %}
 {{identifier.identifier}} {{identifier.version}}
 {% endfor %}
+
+{{object.meta.verbose_name}}

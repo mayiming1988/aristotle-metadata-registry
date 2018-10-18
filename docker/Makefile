@@ -11,3 +11,8 @@ metadata:
 
 server:
 	sudo docker-compose up
+
+elasticsearch_work:
+	sudo sysctl -w vm.max_map_count=262144
+esw:
+	sudo sysctl -w vm.max_map_count=262144
