@@ -242,8 +242,8 @@ class TestRaActiveMigration(MigrationsTestCase, TestCase):
 
 class TestSupersedingMigration(MigrationsTestCase, TestCase):
 
-    migrate_from = '0039_auto_20180828_1926'
-    migrate_to = '0041_change_superseding'
+    migrate_from = '0042_remove_possumprofile_favourites'
+    migrate_to = '0043_change_superseding'
 
     def setUpBeforeMigration(self, apps):
         objectclass = apps.get_model('aristotle_mdr', 'ObjectClass')
@@ -263,7 +263,7 @@ class TestSupersedingMigration(MigrationsTestCase, TestCase):
             name='An older OC',
             definition='Test Definition. Superseded.',
             superseded_by=self.oc_new
-        )    
+        )
 
         self.oc_old_2 = objectclass.objects.create(
             name='An different older OC',
@@ -304,3 +304,41 @@ class TestSupersedingMigration(MigrationsTestCase, TestCase):
             self.oc_old_2.superseded_by_items_relation_set.all().count(),
             0
         )
+
+
+@tag('favsmigration')
+class TestFavouritesMigration(MigrationsTestCase, TestCase):
+
+    migrate_from='0040_rename_favourites'
+    migrate_to='0041_migrate_favourites'
+
+    def setUpBeforeMigration(self, apps):
+        user = apps.get_model('aristotle_mdr_user_management', 'User')
+        profile = apps.get_model('aristotle_mdr', 'PossumProfile')
+        objectclass = apps.get_model('aristotle_mdr', 'ObjectClass')
+
+        self.user = user.objects.create(
+            email='wow@example.com',
+        )
+        # self.user.set_password('wow')
+
+        self.item1 = objectclass.objects.create(
+            name='Test Item',
+            definition='Just a test'
+        )
+
+        self.profile = profile.objects.create(user=self.user)
+
+        self.profile.old_favourites.add(self.item1._concept_ptr)
+
+    def test_migration(self):
+        tag = self.apps.get_model('aristotle_mdr_favourites', 'Tag')
+        favourite = self.apps.get_model('aristotle_mdr_favourites', 'Favourite')
+
+        self.assertTrue(tag.objects.filter(profile=self.profile.id, primary=True).exists())
+
+        favtag = tag.objects.get(profile=self.profile.id, primary=True)
+
+        itemfavs = favourite.objects.filter(tag=favtag, item=self.item1._concept_ptr.id)
+        self.assertTrue(itemfavs.exists())
+        self.assertEqual(itemfavs.count(), 1)
