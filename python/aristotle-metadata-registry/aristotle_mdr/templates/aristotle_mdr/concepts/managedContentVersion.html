@@ -24,37 +24,31 @@
         {{ item.definition|safe}}
     </div>
 
-    {% if item.comments %}
-        <h2>Comments</h2>
-        {{ item.comments|safe }}
-    {% endif %}
-
-    <h2>Names & References</h2>
-      <h3>References</h3>
-          <p>{{ item.references|safe|default:"None" }}</p>
-      <h3>Submitting Organisation</h3>
-          <p>{{ item.submitting_organisation|default:"None" }}</p>
-      <h3>Responsible Organisation</h3>
-          <p>{{ item.responsible_organisation|default:"None" }}</p>
-
-    <h2>Components</h2>
-    {% for field, value in item.components.items %}
-        <h3>
-          {{ field }}
-          {% if value.help_text %}
-            <small>
-              <a tabindex="0" type="button" class="aristotle-popover" data-toggle="popover" data-trigger="focus" title="{{ field }}" data-content="{{ value.help_text }}">
-                <i class="fa fa-2x fa-question-circle"></i>
-              </a>
-            </small>
+    {% for heading, fields in item.item_data.items %}
+      <h2>{{ heading }}</h2>
+      {% for field, value in fields.items %}
+          <h3>
+            {{ field }}
+            {% if value.help_text %}
+              <small>
+                <a tabindex="0" type="button" class="aristotle-popover" data-toggle="popover" data-trigger="focus" title="{{ field }}" data-content="{{ value.help_text }}">
+                  <i class="fa fa-2x fa-question-circle"></i>
+                </a>
+              </small>
+            {% endif %}
+          </h3>
+        {% if value.is_link %}
+          <p><a href="{% url 'aristotle:item' value.linkid %}">{{ value.object.name }}</a></p>
+        {% else %}
+          {% if field.is_html %}
+            <p>{{ value.value|safe|default:"None" }}</p>
+          {% else %}
+            <p>{{ value.value|default:"None" }}</p>
           {% endif %}
-        </h3>
-      {% if value.is_link %}
-        <p><a href="{% url 'aristotle:item' value.linkid %}">{{ value.object.name }}</a></p>
-      {% else %}
-        <p>{{ value.value|default:"None" }}</p>
-      {% endif %}
+        {% endif %}
+      {% endfor %}
     {% endfor %}
+
     {% for weak in item.weak %}
     <h3>{{ weak.model }}</h3>
     <table class="table">

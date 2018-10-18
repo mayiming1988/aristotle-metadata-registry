@@ -42,6 +42,8 @@ from aristotle_mdr.contrib.favourites.models import Favourite, Tag
 
 from haystack.views import FacetedSearchView
 
+from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -331,6 +333,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         return user_can_view(self.request.user, item)
 
     def get_item(self):
+        # Gets the current item
         return self.item_version.object
 
     def get_version(self):
@@ -372,6 +375,23 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         item_model = self.item_version.content_type.model_class()
 
         self.version_dict = self.concept_version_data['fields']
+        self.version_dict['item_data'] = {'Names & References': {}}
+
+        concept_fields = ['references', 'submitting_organisation',
+                          'responsible_organistation', 'origin', 'comments']
+
+        for field in concept_fields:
+            if field in self.concept_version_data['fields']:
+                fieldobj = MDR._concept._meta.get_field(field)
+                field_data = {
+                    'is_link': False,
+                    'value': self.concept_version_data['fields'][field]
+                }
+
+                if issubclass(type(fieldobj), RichTextField):
+                    field_data['is_html'] = True
+
+                self.version_dict['item_data']['Names & References'][fieldobj.verbose_name.title()] = field_data
 
         self.version_dict['meta'] = {
             'app_label': self.item_version.content_type.app_label,
@@ -384,7 +404,8 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
 
         self.version_dict['weak'] = self.get_weak_versions(item_model)
         components = self.process_dict(self.item_version_data['fields'], item_model)
-        self.version_dict['components'] = components
+        if len(components) > 0:
+            self.version_dict['item_data']['Components'] = components
         return True
 
     # Fetch links from serialize weak entities
