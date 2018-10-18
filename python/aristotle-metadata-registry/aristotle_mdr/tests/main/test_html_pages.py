@@ -85,7 +85,8 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.item = models.ObjectClass.objects.create(
             name='Test Item',
             definition='Test Item Description',
-            submitter=self.editor
+            submitter=self.editor,
+            workgroup=self.wg1
         )
         self.itemid = self.item.id
 
@@ -95,6 +96,8 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             self.editor.id,
             self.itemid
         )
+
+        cache.clear()
 
     def test_itempage_full_url(self):
         self.login_editor()
@@ -143,6 +146,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         )
 
     @tag('cache')
+    @override_settings(CACHE_ITEM_PAGE=True)
     def test_itempage_caches(self):
 
         # View in the future to avoid modified recently check
@@ -161,6 +165,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertIsNotNone(cached_itempage)
 
     @tag('cache')
+    @override_settings(CACHE_ITEM_PAGE=True)
     def test_itempage_loaded_from_cache(self):
 
         # Load response into cache
@@ -180,6 +185,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             self.assertEqual(response.content, b'wow')
 
     @tag('cache')
+    @override_settings(CACHE_ITEM_PAGE=True)
     def test_itempage_not_loaded_from_cache_if_modified(self):
 
         # Load response into cache
@@ -196,6 +202,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertNotEqual(response.content, b'wow')
 
     @tag('cache')
+    @override_settings(CACHE_ITEM_PAGE=True)
     def test_itempage_not_loaded_from_cache_if_nocache_set(self):
         cache.set(self.cache_key, HttpResponse('wow'))
 
@@ -211,6 +218,63 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             response = self.client.get(url)
             self.assertEqual(response.status_code, 200)
             self.assertNotEqual(response.content, b'wow')
+
+    @tag('cache')
+    @override_settings(CACHE_ITEM_PAGE=True)
+    def test_itempage_cached_per_user(self):
+        # Load response into cache
+        cache.set(self.cache_key, HttpResponse('wow'))
+
+        # View item page in future
+        with mock.patch('aristotle_mdr.utils.utils.timezone.now') as mock_now:
+            mock_now.return_value = self.future_time
+
+            # Login as different user
+            self.login_viewer()
+            response = self.reverse_get(
+                'aristotle:item',
+                reverse_args=[self.itemid, 'objectclass', 'test-item'],
+                status_code=200
+            )
+
+            self.assertNotEqual(response.content, b'wow')
+
+    @tag('cache')
+    @override_settings(CACHE_ITEM_PAGE=False)
+    def test_itempage_not_loaded_from_cache_if_setting_false(self):
+        # Load response into cache
+        cache.set(self.cache_key, HttpResponse('wow'))
+
+        # View item page in future
+        with mock.patch('aristotle_mdr.utils.utils.timezone.now') as mock_now:
+            mock_now.return_value = self.future_time
+
+            # Login as different user
+            self.login_editor()
+            response = self.reverse_get(
+                'aristotle:item',
+                reverse_args=[self.itemid, 'objectclass', 'test-item'],
+                status_code=200
+            )
+
+            self.assertNotEqual(response.content, b'wow')
+
+    @tag('cache')
+    @override_settings(CACHE_ITEM_PAGE=False)
+    def test_response_not_put_into_cache_if_setting_false(self):
+        # View in the future to avoid modified recently check
+        with mock.patch('aristotle_mdr.utils.utils.timezone.now') as mock_now:
+            mock_now.return_value = self.future_time
+
+            self.login_editor()
+            response = self.reverse_get(
+                'aristotle:item',
+                reverse_args=[self.itemid, 'objectclass', 'test-item'],
+                status_code=200
+            )
+
+        cached_itempage = cache.get(self.cache_key, None)
+        self.assertIsNone(cached_itempage)
 
     @tag('extrav')
     def test_no_extra_versions_created_adv_editor(self):
