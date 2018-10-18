@@ -542,6 +542,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         context['hide_item_help'] = True
         context['hide_item_related'] = True
         context['item'] = self.get_version_context_data()
+        context['current_item'] = self.item
         context['revision'] = self.revision
         context['item_is_version'] = True
         return context
