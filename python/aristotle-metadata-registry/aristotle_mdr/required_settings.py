@@ -274,4 +274,4 @@ AUTH_PASSWORD_VALIDATORS = [
 GEOIP_PATH = os.path.join(BASE_DIR, 'aristotle_mdr/vendor/geoip')
 
 # Caching
-CACHE_ITEM_PAGE = True
+CACHE_ITEM_PAGE = False

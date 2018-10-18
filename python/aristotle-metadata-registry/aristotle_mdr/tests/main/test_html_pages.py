@@ -146,6 +146,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         )
 
     @tag('cache')
+    @override_settings(CACHE_ITEM_PAGE=True)
     def test_itempage_caches(self):
 
         # View in the future to avoid modified recently check
@@ -164,6 +165,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertIsNotNone(cached_itempage)
 
     @tag('cache')
+    @override_settings(CACHE_ITEM_PAGE=True)
     def test_itempage_loaded_from_cache(self):
 
         # Load response into cache
@@ -183,6 +185,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             self.assertEqual(response.content, b'wow')
 
     @tag('cache')
+    @override_settings(CACHE_ITEM_PAGE=True)
     def test_itempage_not_loaded_from_cache_if_modified(self):
 
         # Load response into cache
@@ -199,6 +202,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertNotEqual(response.content, b'wow')
 
     @tag('cache')
+    @override_settings(CACHE_ITEM_PAGE=True)
     def test_itempage_not_loaded_from_cache_if_nocache_set(self):
         cache.set(self.cache_key, HttpResponse('wow'))
 
@@ -216,6 +220,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             self.assertNotEqual(response.content, b'wow')
 
     @tag('cache')
+    @override_settings(CACHE_ITEM_PAGE=True)
     def test_itempage_cached_per_user(self):
         # Load response into cache
         cache.set(self.cache_key, HttpResponse('wow'))
