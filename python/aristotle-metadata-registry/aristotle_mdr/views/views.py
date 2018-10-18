@@ -372,40 +372,8 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
 
         self.concept_version_data = json.loads(self.concept_version.serialized_data)[0]
         self.item_version_data = json.loads(self.item_version.serialized_data)[0]
-        item_model = self.item_version.content_type.model_class()
+        self.item_model = self.item_version.content_type.model_class()
 
-        self.version_dict = self.concept_version_data['fields']
-        self.version_dict['item_data'] = {'Names & References': {}}
-
-        concept_fields = ['references', 'submitting_organisation',
-                          'responsible_organistation', 'origin', 'comments']
-
-        for field in concept_fields:
-            if field in self.concept_version_data['fields']:
-                fieldobj = MDR._concept._meta.get_field(field)
-                field_data = {
-                    'is_link': False,
-                    'value': self.concept_version_data['fields'][field]
-                }
-
-                if issubclass(type(fieldobj), RichTextField):
-                    field_data['is_html'] = True
-
-                self.version_dict['item_data']['Names & References'][fieldobj.verbose_name.title()] = field_data
-
-        self.version_dict['meta'] = {
-            'app_label': self.item_version.content_type.app_label,
-            'model_name': self.item_version.content_type.model
-        }
-        self.version_dict['id'] = self.item_version_data['pk']
-        self.version_dict['pk'] = self.item_version_data['pk']
-        self.version_dict['get_verbose_name'] = self.item_version.content_type.name.title()
-        self.version_dict['created'] = parse_datetime(self.concept_version_data['fields']['created'])
-
-        self.version_dict['weak'] = self.get_weak_versions(item_model)
-        components = self.process_dict(self.item_version_data['fields'], item_model)
-        if len(components) > 0:
-            self.version_dict['item_data']['Components'] = components
         return True
 
     # Fetch links from serialize weak entities
@@ -530,13 +498,49 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
 
         return super().dispatch(request, *args, **kwargs)
 
+    def get_version_context_data(self):
+        version_dict = self.concept_version_data['fields']
+        version_dict['item_data'] = {'Names & References': {}}
+
+        concept_fields = ['references', 'submitting_organisation',
+                          'responsible_organistation', 'origin', 'comments']
+
+        for field in concept_fields:
+            if field in self.concept_version_data['fields']:
+                fieldobj = MDR._concept._meta.get_field(field)
+                field_data = {
+                    'is_link': False,
+                    'value': self.concept_version_data['fields'][field]
+                }
+
+                if issubclass(type(fieldobj), RichTextField):
+                    field_data['is_html'] = True
+
+                version_dict['item_data']['Names & References'][fieldobj.verbose_name.title()] = field_data
+
+        version_dict['meta'] = {
+            'app_label': self.item_version.content_type.app_label,
+            'model_name': self.item_version.content_type.model
+        }
+        version_dict['id'] = self.item_version_data['pk']
+        version_dict['pk'] = self.item_version_data['pk']
+        version_dict['get_verbose_name'] = self.item_version.content_type.name.title()
+        version_dict['created'] = parse_datetime(self.concept_version_data['fields']['created'])
+
+        version_dict['weak'] = self.get_weak_versions(self.item_model)
+        components = self.process_dict(self.item_version_data['fields'], self.item_model)
+        if len(components) > 0:
+            version_dict['item_data']['Components'] = components
+
+        return version_dict
+
     def get_context_data(self, *args, **kwargs):
         context = super(ConceptRenderMixin, self).get_context_data(*args, **kwargs)
         context['hide_item_actions'] = True
         context['hide_item_supersedes'] = True
         context['hide_item_help'] = True
         context['hide_item_related'] = True
-        context['item'] = self.version_dict
+        context['item'] = self.get_version_context_data()
         context['revision'] = self.revision
         context['item_is_version'] = True
         return context
