@@ -1552,12 +1552,14 @@ class PossumProfile(models.Model):
     @property
     def favourites(self):
         return _concept.objects.filter(
+            favourites__tag__primary=True,
             favourites__tag__profile=self
         ).distinct()
 
     @property
     def favourite_item_pks(self):
         qs = _concept.objects.filter(
+            favourites__tag__primary=True,
             favourites__tag__profile=self
         ).distinct().values_list('id', flat=True)
         return list(qs)
