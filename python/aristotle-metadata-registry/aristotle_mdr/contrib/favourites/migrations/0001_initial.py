@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('aristotle_mdr', '0040_remove_possumprofile_favourites'),
+        ('aristotle_mdr', '0040_rename_favourites'),
     ]
 
     operations = [
