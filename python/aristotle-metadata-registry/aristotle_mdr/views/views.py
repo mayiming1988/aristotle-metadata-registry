@@ -1,4 +1,3 @@
-from django import VERSION as django_version
 from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -331,6 +330,10 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
     template_name = 'aristotle_mdr/concepts/managedContentVersion.html'
     concept_fields = ['references', 'submitting_organisation', 'responsible_organistation',
                       'origin', 'origin_URI', 'comments']
+    default_weak_map = {
+        'aristotle_mdr_slots.slot': 'concept',
+        'aristotle_mdr_identifiers.scopedidentifier': 'concept'
+    }
 
     def check_item(self, item):
         return user_can_view(self.request.user, item)
@@ -384,7 +387,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         pk = self.item_version_data['pk']
 
         # Find weak models create mapping of model labels to link fields
-        weak_map = {'aristotle_mdr_slots.slot': 'concept'}
+        weak_map = self.default_weak_map
         for field in model._meta.get_fields():
             if field.is_relation and field.one_to_many and\
                     issubclass(field.related_model, MDR.aristotleComponent):
@@ -530,8 +533,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
 
         version_dict['weak'] = self.get_weak_versions(self.item_model)
         components = self.process_dict(self.item_version_data['fields'], self.item_model)
-        if len(components) > 0:
-            version_dict['item_data']['Components'] = components
+        version_dict['item_data']['Components'] = components
 
         return version_dict
 

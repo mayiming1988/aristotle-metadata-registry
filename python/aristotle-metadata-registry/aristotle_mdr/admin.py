@@ -26,7 +26,7 @@ reversion.revisions.register(MDR.Status)
 reversion.revisions.register(
     MDR._concept,
     follow=[
-        'statuses', 'workgroup', 'slots',
+        'statuses', 'slots', 'identifiers'
     ],
     exclude=[
         'is_public', 'is_locked',
