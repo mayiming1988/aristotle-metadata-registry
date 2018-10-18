@@ -57,20 +57,20 @@
 
         <h2 title="{% doc item 'definition' %}">{% trans 'Definition'%}</h2>
         <div id="definition" class="definition">
-            {{ item.definition | safe}}
+            {{ item.definition|bleach }}
         </div>
 
         {% block objSpecific %}{% endblock %}
 
         {% if item.comments %}
             <h2>Comments</h2>
-            {{ item.comments | safe }}
+            {{ item.comments|bleach }}
         {% endif %}
 
         {% if item.references %}
         <div>
         <h2>References</h2>
-            <p>{{ item.references | safe }}</p>
+            <p>{{ item.references|bleach }}</p>
             {% if item.submitting_organisation %}
             <h3>Submitting Organisation</h3>
                 <p>{{ item.submitting_organisation }}</p>

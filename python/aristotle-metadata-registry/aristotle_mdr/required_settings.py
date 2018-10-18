@@ -275,3 +275,15 @@ GEOIP_PATH = os.path.join(BASE_DIR, 'aristotle_mdr/vendor/geoip')
 
 # Caching
 CACHE_ITEM_PAGE = False
+
+# Sanitization
+BLEACH_ALLOWED_TAGS = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'em',
+                       'i', 'li', 'ol', 'strong', 'ul', 'table', 'tbody', 'thead',
+                       'tr', 'th', 'td', 'img', 'p']
+
+BLEACH_ALLOWED_ATTRIBUTES = {
+    'a': ['href', 'title'],
+    'abbr': ['title'],
+    'acronym': ['title'],
+    'img': ['src', 'height', 'width']
+}
