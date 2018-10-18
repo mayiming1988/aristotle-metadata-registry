@@ -1,5 +1,5 @@
 {% extends "aristotle_mdr/concepts/managedContent.html" %}
-{% load aristotle_tags %}
+{% load aristotle_tags util_tags %}
 
 {% block title %}{{ item.name }} {% if item.symbol %}({{ item.symbol }}){% endif %} {% endblock %}
 {% block asideContent %}
@@ -22,7 +22,7 @@
     {% if item.measure %}
     <h3>Measure information - <a href="{% url 'aristotle:measure' item.measure.pk %} ">{{ item.measure.name }}</a></h3>
     <div>
-        {{ item.measure.definition|safe }}
+        {{ item.measure.definition|bleach }}
     </div>
     {% endif %}
 

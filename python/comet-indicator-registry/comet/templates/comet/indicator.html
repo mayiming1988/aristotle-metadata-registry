@@ -1,5 +1,5 @@
 {% extends "aristotle_mdr/concepts/managedContent.html" %}
-{% load aristotle_tags %}
+{% load aristotle_tags util_tags %}
 
 {% block objSpecific %}
 {% if item.outcome_areas %}
@@ -22,11 +22,11 @@
 
 {% if item.rationale %}
 <h2>Rationale</h2>
-<p>{{ item.rationale|safe }}</p>
+<p>{{ item.rationale|bleach }}</p>
 {% endif %}
 
 <h2>Calculation rules</h2>
-    {{ item.computation_description|safe }}
+    {{ item.computation_description|bleach }}
     {% if item.numerator_computation or item.denominator_computation %}
     <h3>Computation Rule:
     </h3>
@@ -34,21 +34,21 @@
         <pre>{{ item.denominator_computation }}</pre>
     {% endif %}
     <h3>Numerators</h3>
-        {{ item.numerator_description|safe }}
+        {{ item.numerator_description }}
         <ul>
         {% for num in item.numerators.all %}
             <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=num showType=False %}
         {% endfor %}
         </ul>
     <h3>Denominators</h3>
-        {{ item.denominator_description|safe }}
+        {{ item.denominator_description }}
         <ul>
         {% for denom in item.denominators.all %}
             <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=denom showType=False %}
         {% endfor %}
         </ul>
 <h2>Disaggregation</h2>
-    {{ item.disaggregation_description|safe }}
+    {{ item.disaggregation_description|bleach }}
         <ul>
         {% for disagg in item.disaggregators.all %}
             <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=disagg showType=False %}

@@ -1,5 +1,5 @@
 {% extends "aristotle_mdr/concepts/managedContent.html" %}
-{% load aristotle_tags %}
+{% load aristotle_tags util_tags %}
 
 {% block objSpecific %}
 
@@ -16,7 +16,7 @@
     </a>
     {% bootstrap_modal 'editResponsesPopover' %}
     {% endif %}
-    <p>{{ item.question_text|safe }}
+    <p>{{ item.question_text|bleach }}
     </p>
 </div>
 </div>
