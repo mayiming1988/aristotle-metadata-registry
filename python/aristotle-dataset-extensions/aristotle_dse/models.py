@@ -180,6 +180,7 @@ class DistributionDataElementPath(aristotle.models.aristotleComponent):
         aristotle.models.DataElement,
         blank=True, null=True,
         help_text=_('An entity responsible for making the dataset available.'),
+        verbose_name='Data Element'
         )
     logical_path = models.CharField(
         max_length=256,
@@ -222,7 +223,8 @@ class DataSetSpecification(aristotle.models.concept):
         related_name='statistical_unit_of',
         blank=True,
         null=True,
-        help_text=_("Indiciates if the ordering for a dataset is must match exactly the order laid out in the specification.")
+        help_text=_("Indiciates if the ordering for a dataset is must match exactly the order laid out in the specification."),
+        verbose_name='Statistical Unit'
         )
     collection_method = aristotle.models.RichTextField(
         blank=True,
