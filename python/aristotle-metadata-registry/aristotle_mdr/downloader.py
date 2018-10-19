@@ -109,6 +109,7 @@ class CSVDownloader(DownloaderBase):
         user = getattr(request, 'user', None)
         properties = {
             'user': None,
+            'title': cls.item.name
         }
         if user:
             properties['user'] = str(user)

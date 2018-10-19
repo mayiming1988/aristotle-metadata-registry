@@ -40,10 +40,6 @@
                     <div class="col-md-2">File format</div>
                     <div class="col-md-1">:</div>
                     <div class="col-md-9">{{file_details.format}}</div>
-
-                    <div class="col-md-2">Bulk Download</div>
-                    <div class="col-md-1">:</div>
-                    <div class="col-md-9">{{file_details.is_bulk}}</div>
                 </div>
             </div>
         </div>
@@ -73,7 +69,7 @@
         }
 
         function expireDownload(){
-            let ErrorText = $('<div></div>').text('Your download expired, Please go back and download again');
+            let ErrorText = $('<div></div>').text('Your download expired, Please refresh this page to restart download');
             $('#download-link-wrapper>p').html(ErrorText);
             clearInterval(interval);
         }
@@ -119,17 +115,6 @@
             })
         }
 
-        {% if is_expired %}
-        downloadReady = true
-        expireDownload();
-        {% elif file_details.download_url %}
-        downloadReady = true
-        readyDownload({
-            ttl: {{file_details.ttl}},
-            download_url: '{{file_details.download_url}}'
-        });
-        {% endif %}
-
         function initDownload() {
             clearInterval(interval);
             interval = setInterval(getDownloadStatus, 10000);
@@ -138,6 +123,17 @@
 
         function init() {
             goBackDownloadButton();
+
+            {% if is_expired %}
+            downloadReady = true
+            expireDownload();
+            {% elif file_details.download_url %}
+            downloadReady = true
+            readyDownload({
+                ttl: {{file_details.ttl}},
+                download_url: '{{file_details.download_url}}'
+            });
+            {% endif %}
         }
 
         init();

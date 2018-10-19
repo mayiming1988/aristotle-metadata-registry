@@ -217,6 +217,8 @@ def prepare_async_download(request, download_type):
         context['is_expired'] = False
         if not cache.get(download_utils.get_download_cache_key(items, request=request, download_type=download_type)):
             context['is_expired'] = True
+            del request.session[download_key]
+            job.forget()
 
     if request.GET.get('format') == 'json':
         return JsonResponse(context)
