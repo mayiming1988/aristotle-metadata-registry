@@ -38,7 +38,7 @@
             {% endif %}
           </h3>
         {% if value.is_link %}
-          <p><a href="{% url 'aristotle:item' value.linkid %}">{{ value.object.name }}</a></p>
+          <p><a href="{% url 'aristotle:item' value.linkid %}">{{ value.object.name }}<span class="text-danger">*</span></a></p>
         {% else %}
           {% if value.is_html %}
             <p>{{ value.value|striptags|default:"None" }}</p>
@@ -71,7 +71,7 @@
           <tr>
           {% for value in item.values %}
             {% if value.is_link %}
-              <td><a href="{% url 'aristotle:item' value.linkid %}">{{ value.object.name }}</a></td>
+              <td><a href="{% url 'aristotle:item' value.linkid %}">{{ value.object.name }}<span class="text-danger">*</span></a></td>
             {% else %}
               <td>{{ value.value|default:"None" }}</td> 
             {% endif %}
@@ -83,4 +83,9 @@
     {% endfor %}
 
 </section>
+
+<p>
+  <span class="text-danger">*</span>
+  These links show the current name of the item, not the name at the time this version was created
+</p>
 {% endblock %}
