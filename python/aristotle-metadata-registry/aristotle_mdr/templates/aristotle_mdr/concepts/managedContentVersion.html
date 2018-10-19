@@ -40,7 +40,11 @@
         {% if value.is_link %}
           <p><a href="{% url 'aristotle:item' value.linkid %}">{{ value.object.name }}</a></p>
         {% else %}
-          <p>{{ value.value|default:"None" }}</p>
+          {% if value.is_html %}
+            <p>{{ value.value|striptags|default:"None" }}</p>
+          {% else %}
+            <p>{{ value.value|default:"None" }}</p>
+          {% endif %}
         {% endif %}
       {% endfor %}
     {% endfor %}
