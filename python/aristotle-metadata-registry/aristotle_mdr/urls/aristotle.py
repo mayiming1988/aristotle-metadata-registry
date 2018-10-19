@@ -127,7 +127,7 @@ urlpatterns=[
 
     url(r'^download/bulk/(?P<download_type>[a-zA-Z0-9\-\.]+)/?$', views.downloads.bulk_download, name='bulk_download'),
     url(r'^download/(?P<download_type>[a-zA-Z0-9\-\.]+)/(?P<iid>\d+)/?$', views.downloads.download, name='download'),
-    url(r'^perparing-download/(?P<download_type>[\w\-\. ]+)/?$',
+    url(r'^preparing-download/(?P<download_type>[\w\-\. ]+)/?$',
         views.downloads.prepare_async_download,
         name='preparing_download',
         ),
