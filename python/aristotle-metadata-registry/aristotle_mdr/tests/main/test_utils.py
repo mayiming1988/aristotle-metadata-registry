@@ -62,3 +62,9 @@ class UtilsTests(TestCase):
 
         url = utils.get_aristotle_url('aristotle_mdr.fake_model', 7, 'fake_name')
         self.assertTrue(url is None)
+
+    def test_pretify_camel_case(self):
+        pcc = utils.utils.pretify_camel_case
+        self.assertEqual(pcc('ScopedIdentifier'), 'Scoped Identifier')
+        self.assertEqual(pcc('Namespace'), 'Namespace')
+        self.assertEqual(pcc('LongerCamelCase'), 'Longer Camel Case')

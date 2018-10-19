@@ -31,7 +31,7 @@ from aristotle_mdr.perms import (
     user_can_change_status
 )
 from aristotle_mdr import perms
-from aristotle_mdr.utils import url_slugify_concept, CachePerItemUserMixin
+from aristotle_mdr.utils import url_slugify_concept, CachePerItemUserMixin, pretify_camel_case
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils import get_concepts_for_apps, fetch_aristotle_settings, fetch_aristotle_downloaders
@@ -405,7 +405,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
             model = apps.get_model(label)
 
             template_weak_models.append({
-                'model': model.__name__,
+                'model': pretify_camel_case(model.__name__),
                 'headers': item_dict['headers'],
                 'items': item_dict['items']
             })

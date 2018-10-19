@@ -46,7 +46,7 @@
     {% endfor %}
 
     {% for weak in item.weak %}
-    <h3>{{ weak.model }}</h3>
+    <h3>{{ weak.model }}{{ weak.items|length|pluralize }}</h3>
     <table class="table">
       <thead>
         <tr>

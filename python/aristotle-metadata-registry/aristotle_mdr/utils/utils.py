@@ -14,6 +14,7 @@ from django.db.models import Q
 import logging
 import inspect
 import datetime
+import re
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
@@ -366,3 +367,7 @@ def get_aristotle_url(label, obj_id, obj_name=None):
             return reverse('aristotle:userReviewDetails', args=[obj_id])
 
     return None
+
+
+def pretify_camel_case(camelcase):
+    return re.sub(r'([a-z0-9])([A-Z])', r'\1 \2', camelcase)
