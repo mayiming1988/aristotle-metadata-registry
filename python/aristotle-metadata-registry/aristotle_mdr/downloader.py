@@ -82,7 +82,7 @@ class DownloaderBase(object):
         raise NotImplementedError
 
     @classmethod
-    def get_cache_key(cls, user, iids = []):
+    def get_cache_key(cls, user, iids=[]):
         return download_utils.get_download_cache_key(iids, user, download_type=cls.download_type)
 
     @staticmethod
@@ -144,11 +144,11 @@ class CSVDownloader(DownloaderBase):
                 [v.value, v.meaning, v.start_date, v.end_date, "supplementary"]
             )
         CSVDownloader.cache_file(CSVDownloader.get_cache_key(user, iid),
-              (mem_file.getvalue(),
-               'txt/csv',
-               {'Content-Disposition': 'attachment; filename="{}.csv"'.format(item.name)}
-               )
-              )
+                                 (mem_file.getvalue(),
+                                  'txt/csv',
+                                  {'Content-Disposition': 'attachment; filename="{}.csv"'.format(item.name)}
+                                  )
+                                 )
         return iid
 
 

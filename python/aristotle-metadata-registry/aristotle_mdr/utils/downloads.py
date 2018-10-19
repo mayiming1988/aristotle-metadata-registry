@@ -5,8 +5,8 @@ from django.conf import settings
 from aristotle_mdr import exceptions as registry_exceptions
 from aristotle_mdr import constants as CONSTANTS
 
-def get_download_module(module_name):
 
+def get_download_module(module_name):
     import re
     if not re.search('^[a-zA-Z0-9\_\.]+$', module_name):  # pragma: no cover
         # bad module_name
@@ -37,15 +37,16 @@ def get_download_cache_key(identifier=[], user_pk=None, request=None, download_t
 
     d = delimiter
     if user_pk:
-        key= '{}{}{}{}{}'.format(download_type, d, identifier, d, user_pk)
+        key = '{}{}{}{}{}'.format(download_type, d, identifier, d, user_pk)
     elif request:
         user = getattr(request, 'user', None)
         unique_key = str(user)
-        key= '{}{}{}{}{}'.format(download_type, d, identifier, d, unique_key)
+        key = '{}{}{}{}{}'.format(download_type, d, identifier, d, unique_key)
     else:
         key = '{}{}{}'.format(download_type, d, identifier)
 
     return key
+
 
 def get_download_session_key(request, download_type, delimiter='_'):
     prefix = CONSTANTS.DOWNLOAD_KEY_PREFIX
