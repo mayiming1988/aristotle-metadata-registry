@@ -204,7 +204,7 @@ def prepare_async_download(request, download_type):
     context['items'] = items
     context['file_details'] = {
         'title': request.GET.get('title', 'Auto Generated Document'),
-        'items': ' and '.join(items),
+        'items': ', '.join([MDR._concept.objects.get_subclass(pk=int(iid)).name for iid in items]),
         'format': CONSTANTS.FILE_FORMAT[download_type],
         'is_bulk': request.GET.get('bulk', False),
         'ttl': int(CONSTANTS.TIME_TO_DOWNLOAD / 60),
