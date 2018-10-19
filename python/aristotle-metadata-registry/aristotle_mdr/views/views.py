@@ -363,6 +363,34 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         # Gets the current item
         return self.item_version.object
 
+    def get_mathcing_object_from_revision(self, revision, current_version, target_ct):
+        # Finds another version in the same revision with same id
+        current_ct = current_version.content_type
+        version_filter = Q(revision=revision) &\
+            Q(object_id=current_version.object_id) &\
+            ~Q(content_type_id=current_ct.id)
+
+        # Other versions in the revision could have the same id
+        versions = reversion.models.Version.objects.filter(
+            version_filter
+        )
+
+        target_version = None
+        for sub_version in versions:
+            ct = sub_version.content_type
+            if target_ct is not None:
+                if sub_version.content_type == target_ct:
+                    target_version = sub_version
+                    break
+            else:
+                if issubclass(ct.model_class(), MDR._concept):
+                    # Find version that is a _concept subclass
+                    # Since the pk is the _concept_ptr this is fine
+                    target_version = sub_version
+                    break
+
+        return target_version
+
     def get_version(self):
         try:
             version = reversion.models.Version.objects.get(id=self.kwargs[self.version_arg])
@@ -372,28 +400,23 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         self.revision = version.revision
         concept_ct = ContentType.objects.get_for_model(MDR._concept)
 
+        # If we got a concept version
         if version.content_type == concept_ct:
             self.concept_version = version
-            version_filter = Q(revision=self.revision) &\
-                Q(object_id=version.object_id) &\
-                ~Q(content_type_id=concept_ct.id)
-
-            # Other non concept versions in the revision could have the same id
-            non_concept_versions = reversion.models.Version.objects.filter(
-                version_filter
+            self.item_version = self.get_mathcing_object_from_revision(
+                self.revision,
+                version
             )
-
-            self.item_version = None
-            for sub_version in non_concept_versions:
-                ct = sub_version.content_type
-                # Find version that is a _concept subclass
-                # Since the pk is the _concept_ptr this is fine
-                if issubclass(ct.model_class(), MDR._concept):
-                    self.item_version = sub_version
-                    break
-
             if self.item_version is None:
                 return False
+        # If we got a concept subclass's version
+        elif issubclass(version.content_type.model_class(), MDR._concept):
+            self.item_version = version
+            self.concept_version = self.get_mathcing_object_from_revision(
+                self.revision,
+                version,
+                concept_ct
+            )
         else:
             return False
 
