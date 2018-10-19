@@ -31,7 +31,7 @@ from aristotle_mdr.perms import (
     user_can_change_status
 )
 from aristotle_mdr import perms
-from aristotle_mdr.utils import url_slugify_concept, CachePerItemUserMixin, pretify_camel_case
+from aristotle_mdr.utils import url_slugify_concept, pretify_camel_case
 
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
