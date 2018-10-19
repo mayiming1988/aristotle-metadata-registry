@@ -77,7 +77,11 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         'favourites',
         'user_view_history',
         'submitter',
+        'is_public',
+        'is_locked'
     ]
+
+    item_action_url = 'aristotle:item_version'
 
     def get_object(self, queryset=None):
         item = super().get_object(queryset)
@@ -85,6 +89,23 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
             raise PermissionDenied
         self.model = item.item.__class__  # Get the subclassed object
         return item
+
+    # Overwrite this to add item url
+    def _get_action_list(self):
+        action_list = []
+        versions = self._order_version_queryset(
+            reversion.models.Version.objects.get_for_object(
+                self.get_object()
+            ).select_related("revision__user")
+        )
+
+        for version in versions:
+            action_list.append({
+                'version': version,
+                'revision': version.revision,
+                'url': reverse(self.item_action_url, args=[version.id])
+            })
+        return action_list
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
