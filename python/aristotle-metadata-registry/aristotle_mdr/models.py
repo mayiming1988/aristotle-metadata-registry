@@ -1099,7 +1099,10 @@ class ValueMeaning(aristotleComponent):
         null=True, blank=True,
         help_text=_('The semantic definition of a possible value')
     )
-    conceptual_domain = ConceptForeignKey(ConceptualDomain)
+    conceptual_domain = ConceptForeignKey(
+        ConceptualDomain,
+        verbose_name='Conceptual Domain'
+    )
     order = models.PositiveSmallIntegerField("Position")
     start_date = models.DateField(
         blank=True,
@@ -1146,7 +1149,8 @@ class ValueDomain(concept):
         DataType,
         blank=True,
         null=True,
-        help_text=_('Datatype used in a Value Domain')
+        help_text=_('Datatype used in a Value Domain'),
+        verbose_name='Data Type'
     )
     format = models.CharField(  # 11.3.2.5.2.1
         max_length=100,
@@ -1163,13 +1167,15 @@ class ValueDomain(concept):
         UnitOfMeasure,
         blank=True,
         null=True,
-        help_text=_('Unit of Measure used in a Value Domain')
+        help_text=_('Unit of Measure used in a Value Domain'),
+        verbose_name='Unit Of Measure'
     )
     conceptual_domain = ConceptForeignKey(
         ConceptualDomain,
         blank=True,
         null=True,
-        help_text=_('The Conceptual Domain that this Value Domain which provides representation.')
+        help_text=_('The Conceptual Domain that this Value Domain which provides representation.'),
+        verbose_name='Conceptual Domain'
     )
     description = models.TextField(
         _('description'),
@@ -1217,7 +1223,8 @@ class AbstractValue(aristotleComponent):
     valueDomain = ConceptForeignKey(
         ValueDomain,
         related_name="%(class)s_set",
-        help_text=_("Enumerated Value Domain that this value meaning relates to")
+        help_text=_("Enumerated Value Domain that this value meaning relates to"),
+        verbose_name='Value Domain'
     )
     order = models.PositiveSmallIntegerField("Position")
     start_date = models.DateField(
@@ -1270,15 +1277,18 @@ class DataElementConcept(concept):
     template = "aristotle_mdr/concepts/dataElementConcept.html"
     objectClass = ConceptForeignKey(  # 11.2.3.3
         ObjectClass, blank=True, null=True,
-        help_text=_('references an Object_Class that is part of the specification of the Data_Element_Concept')
+        help_text=_('references an Object_Class that is part of the specification of the Data_Element_Concept'),
+        verbose_name='Object Class'
     )
     property = ConceptForeignKey(  # 11.2.3.1
         Property, blank=True, null=True,
         help_text=_('references a Property that is part of the specification of the Data_Element_Concept'),
+        verbose_name='Property'
     )
     conceptualDomain = ConceptForeignKey(  # 11.2.3.2
         ConceptualDomain, blank=True, null=True,
-        help_text=_('references a Conceptual_Domain that is part of the specification of the Data_Element_Concept')
+        help_text=_('references a Conceptual_Domain that is part of the specification of the Data_Element_Concept'),
+        verbose_name='Conceptual Domain'
     )
 
     @property_
