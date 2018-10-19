@@ -12,6 +12,7 @@ from aristotle_mdr.views import get_if_user_can_view
 from aristotle_mdr.utils import downloads as download_utils
 from celery import shared_task
 from django.core.cache import cache
+from aristotle_mdr import constants as CONSTANTS
 
 
 class DownloaderBase(object):
@@ -85,7 +86,7 @@ class DownloaderBase(object):
         return download_utils.get_download_cache_key(iids, user, download_type=cls.download_type)
 
     @staticmethod
-    def cache_file(key, value, ttl=60):
+    def cache_file(key, value, ttl=CONSTANTS.TIME_TO_DOWNLOAD):
         """
         This is the cache interface for all the download types.
         :param key: Key is the combination of iid(s)
@@ -142,12 +143,12 @@ class CSVDownloader(DownloaderBase):
             writer.writerow(
                 [v.value, v.meaning, v.start_date, v.end_date, "supplementary"]
             )
-            CSVDownloader.cache_file(CSVDownloader.get_cache_key(user, iid),
-                  (mem_file.getvalue(),
-                   'txt/csv',
-                   {'Content-Disposition': 'attachment; filename="{}.csv"'.format(item.name)}
-                   )
-                  )
+        CSVDownloader.cache_file(CSVDownloader.get_cache_key(user, iid),
+              (mem_file.getvalue(),
+               'txt/csv',
+               {'Content-Disposition': 'attachment; filename="{}.csv"'.format(item.name)}
+               )
+              )
         return iid
 
 

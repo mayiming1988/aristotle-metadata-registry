@@ -10,34 +10,57 @@
 
 {% block content %}
 <div style="height: 400px;">
-    <div id="download-wrapper" class="text-center">
-    {% if download_url %}
-        <div>Your document is ready to download</div>
-        <a download="" id="document-link" target="_blank" href="{{download_url}}">Click to download your document</a>
-    {% else %}
-        <i class="fa fa-spinner spinning"></i> Please wait while we are preparing your download
-    {% endif %}
+    <div id="download-wrapper" >
+        <div class="row">
+            <div class="col-md-1" id="download-nav-controls"></div>
+            <div class="col-md-3 text-right">
+                <i style="font-size: 10em;" class="fa {% if file_details.format == 'pdf' %}fa-file-pdf-o{% else %}fa-file-o{% endif %}"></i>
+            </div>
+            <div class="col-md-8">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h3>{{file_details.title}}</h3>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12" id="download-link-wrapper">
+                        <p>
+                        <i class="fa fa-spinner spinning"></i> Please wait while we are preparing your download
+                        </p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <h5>File details</h5>
+                    </div>
+                    <div class="col-md-2">Items</div>
+                    <div class="col-md-1">:</div>
+                    <div class="col-md-9">{{file_details.items}}</div>
+
+                    <div class="col-md-2">File format</div>
+                    <div class="col-md-1">:</div>
+                    <div class="col-md-9">{{file_details.format}}</div>
+
+                    <div class="col-md-2">Bulk Download</div>
+                    <div class="col-md-1">:</div>
+                    <div class="col-md-9">{{file_details.is_bulk}}</div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 <script>
     let interval = setInterval(getDownloadStatus, 1000);
-
+    let downloadReady = false;
         function success(data) {
-            if (data.isReady){
-                let downloadLink = $('<a></a>').text('Click to download your document');
-                downloadLink.attr('id', 'document-link')
-                let downloadText = $('<div></div>').text('Your document is ready to download');
-                downloadLink.attr({
-                    'download': '',
-                    'href': data.download_url,
-                    'target': '_blank'
-                });
-                $('#download-wrapper').html(downloadText);
-                $('#download-wrapper').append(downloadLink);
-                init();
+            if (data.is_expired) {
+                expireDownload();
+            }
+            else if (data.is_ready && !downloadReady){
+                readyDownload(data);
             }
         }
-        function getDownloadStatus () {
+        function getDownloadStatus() {
             $.ajax({
               dataType: 'json',
               url: window.location,
@@ -49,28 +72,71 @@
             });
         }
 
+        function expireDownload(){
+            let ErrorText = $('<div></div>').text('Your download expired, Please go back and download again');
+            $('#download-link-wrapper>p').html(ErrorText);
+            clearInterval(interval);
+        }
+
+        function readyDownload(data) {
+            downloadReady = true;
+            let downloadIcon = $('<i></i>').addClass('fa fa-download');
+            let downloadLink = $('<a></a>').text('You document is ready to download. Click here.');
+            let downloadText = $('<div></div>').text('Your download will expire in ' + data.file_details.ttl + ' minutes.');
+            downloadLink.attr({
+                'id': 'document-link',
+                'download': '',
+                'href': data.download_url,
+                'target': '_blank'
+            });
+            $('#download-link-wrapper>p').html(downloadText);
+            $('#download-link-wrapper>p').append(downloadIcon);
+            $('#download-link-wrapper>p').append(downloadLink);
+            console.log('is this a download ready situation?');
+            initDownload();
+
+        }
+
+        function goBackDownloadButton() {
+            if(!history.length) {
+                return;
+            }
+            let goBackButton = $('<button></button>');
+            goBackButton.append($('<i></i>').attr("class", "fa fa-arrow-left"));
+            goBackButton.append($('<span></span>').text(" Go Back"));
+            goBackButton.attr({
+                id: 'go-back-button',
+                onclick: 'history.go(-1)',
+                class: 'btn btn-primary pull-left'
+            });
+            $('div#download-nav-controls').append(goBackButton);
+        }
+
         function getDownload() {
             $('a#document-link').click(function (event) {
                 let thankYouDownload = $('<div></div>').text('Thank you for downloading the document');
-                let goBackButton = $('<button></button>');
-                goBackButton.append($('<i></i>').attr("class", "fa fa-arrow-left"));
-                goBackButton.append($('<span></span>').text(" Go Back"));
-                goBackButton.attr({
-                    onclick: 'history.go(-1)',
-                    class: 'btn btn-primary pull-left'
-                });
-                thankYouDownload.append(goBackButton);
-                $('#download-wrapper').html(thankYouDownload);
+                $('#download-link-wrapper>p').html(thankYouDownload);
             })
         }
 
-        {% if download_url %}
-        init();
+        {% if is_expired %}
+        downloadReady = true
+        expireDownload();
+        {% elif download_url %}
+        downloadReady = true
+        readyDownload({{context | escapejs | safe}})
         {% endif %}
 
-        function init() {
+        function initDownload() {
             clearInterval(interval);
+            interval = setInterval(getDownloadStatus, 10000);
             getDownload()
         }
+
+        function init() {
+            goBackDownloadButton();
+        }
+
+        init();
 </script>
 {% endblock %}

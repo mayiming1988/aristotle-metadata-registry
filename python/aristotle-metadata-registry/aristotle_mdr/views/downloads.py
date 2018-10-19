@@ -165,17 +165,25 @@ def prepare_async_download(request, download_type):
         items = get_params.getlist('items')
     except KeyError:
         return HttpResponseBadRequest()
+
+    download_key = download_utils.get_download_session_key(get_params, download_type)
+
     if get_params.get('format', False):
         get_params.pop('format')
     start_new_download = False
     try:
-        res_id = request.session[download_utils.get_download_session_key(get_params, download_type)]
+        # Check if the job exists
+        res_id = request.session[download_key]
         job = async_result(res_id)
         if job.status == states.PENDING:
+            # make sure you don't call a forget in the rest of the function or else it will go into infinite loop
+            del request.session[download_key]
+            job.forget()
             # Raising key error because key is invalid
             raise KeyError
     except KeyError:
         start_new_download = True
+
     if start_new_download:
         if get_params.get('bulk'):
             redirect_url = reverse('aristotle:bulk_download', args=[download_type])
@@ -193,20 +201,26 @@ def prepare_async_download(request, download_type):
         reverse('aristotle:start_download', args=[download_type]),
         urlencode(get_params, True)
     )
-
-    if request.GET.get('format') == 'json':
-        if job.ready():
-            return JsonResponse({
-                'isReady': True,
-                'download_url': download_url
-            })
-        else:
-            return JsonResponse({
-                'isReady': False
-            })
+    context['items'] = items
+    context['file_details'] = {
+        'title': request.GET.get('title', 'Auto Generated Document'),
+        'items': ' and '.join(items),
+        'format': CONSTANTS.FILE_FORMAT[download_type],
+        'is_bulk': request.GET.get('bulk', False),
+        'ttl': int(CONSTANTS.TIME_TO_DOWNLOAD / 60),
+        'isReady': False
+    }
 
     if job.ready():
         context['download_url'] = download_url
+        context['is_ready'] = True
+        context['is_expired'] = False
+        if not cache.get(download_utils.get_download_cache_key(items, request=request, download_type=download_type)):
+            context['is_expired'] = True
+
+    if request.GET.get('format') == 'json':
+        return JsonResponse(context)
+
     return render(request, template, context=context)
 
 
