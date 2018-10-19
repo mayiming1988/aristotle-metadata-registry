@@ -1,6 +1,6 @@
 $(document).ready(function() {
 
-  $('form').submit(function(e) {
+  $('form.ajaxform').submit(function(e) {
     // Stop standard form submission
     e.preventDefault()
 
