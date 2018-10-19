@@ -57,7 +57,7 @@
                 expireDownload();
             }
             else if (data.is_ready && !downloadReady){
-                readyDownload(data);
+                readyDownload(data.file_details);
             }
         }
         function getDownloadStatus() {
@@ -78,15 +78,15 @@
             clearInterval(interval);
         }
 
-        function readyDownload(data) {
+        function readyDownload(file_details) {
             downloadReady = true;
             let downloadIcon = $('<i></i>').addClass('fa fa-download');
             let downloadLink = $('<a></a>').text('You document is ready to download. Click here.');
-            let downloadText = $('<div></div>').text('Your download will expire in ' + data.file_details.ttl + ' minutes.');
+            let downloadText = $('<div></div>').text('Your download will expire in ' + file_details.ttl + ' minutes.');
             downloadLink.attr({
                 'id': 'document-link',
                 'download': '',
-                'href': data.download_url,
+                'href': file_details.download_url,
                 'target': '_blank'
             });
             $('#download-link-wrapper>p').html(downloadText);
@@ -122,9 +122,12 @@
         {% if is_expired %}
         downloadReady = true
         expireDownload();
-        {% elif download_url %}
+        {% elif file_details.download_url %}
         downloadReady = true
-        readyDownload({{context | escapejs | safe}})
+        readyDownload({
+            ttl: {{file_details.ttl}},
+            download_url: '{{file_details.download_url}}'
+        });
         {% endif %}
 
         function initDownload() {

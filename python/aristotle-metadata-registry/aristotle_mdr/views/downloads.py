@@ -212,7 +212,7 @@ def prepare_async_download(request, download_type):
     }
 
     if job.ready():
-        context['download_url'] = download_url
+        context['file_details']['download_url'] = download_url
         context['is_ready'] = True
         context['is_expired'] = False
         if not cache.get(download_utils.get_download_cache_key(items, request=request, download_type=download_type)):
