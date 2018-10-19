@@ -21,7 +21,7 @@
 
     <h2>{% trans 'Definition'%}</h2>
     <div id="definition" class="definition">
-        {{ item.definition|safe}}
+        {{ item.definition|striptags }}
     </div>
 
     {% for heading, fields in item.item_data.items %}
