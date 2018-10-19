@@ -10,6 +10,15 @@
     <dd>{{ revision.date_created|date:'o-m-d H:i e' }}</dd>
     <dt>{% trans 'Item Created' %}</dt>
     <dd><time title="{{ item.created|date:'o-m-d' }}" datetime="{{ item.created|date:'c' }}">{{ item.created|date:'o-m-d' }}</time></dd>
+    <dt>{% trans 'Workgroup' %}</dt>
+    <dd>
+      {% if item.workgroup %}
+        <a href="{% url 'aristotle:workgroup' item.workgroup.pk %}">{{ item.workgroup }}</a>
+        <span class="text-danger">*</span>
+      {% else %}
+        None
+      {% endif %}
+    </dd>
     <hr>
       <dt>{% trans 'Current Item' %}</dt>
       <dd><a href="{% url 'aristotle:item' current_item.id %}">{{ current_item.name }}</a></dd>

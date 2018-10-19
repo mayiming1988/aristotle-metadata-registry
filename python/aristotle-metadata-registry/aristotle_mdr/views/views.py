@@ -550,8 +550,19 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
 
     def get_version_context_data(self):
         version_dict = self.concept_version_data['fields']
+        # Keys under item_data are used as headings
         version_dict['item_data'] = {'Names & References': {}}
 
+        # Replace workgroup reference with wg object
+        if version_dict['workgroup']:
+            try:
+                workgroup = MDR.Workgroup.objects.get(pk=version_dict['workgroup'])
+            except MDR.Workgroup.DoesNotExist:
+                workgroup = None
+
+            version_dict['workgroup'] = workgroup
+
+        # Add concept fields as "Names & References"
         for field in self.concept_fields:
             if field in self.concept_version_data['fields']:
                 fieldobj = MDR._concept._meta.get_field(field)
@@ -564,8 +575,10 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
                 if issubclass(type(fieldobj), RichTextField):
                     field_data['is_html'] = True
 
+                # Keys under item_data are used as headings
                 version_dict['item_data']['Names & References'][fieldobj.verbose_name.title()] = field_data
 
+        # Add some extra data the temlate expects from a regular item object
         version_dict['meta'] = {
             'app_label': self.item_version.content_type.app_label,
             'model_name': self.item_version.content_type.model
@@ -575,6 +588,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         version_dict['get_verbose_name'] = self.item_version.content_type.name.title()
         version_dict['created'] = parse_datetime(self.concept_version_data['fields']['created'])
 
+        # Add weak entities and components
         version_dict['weak'] = self.get_weak_versions(self.item_model)
         components = self.process_dict(self.item_version_data['fields'], self.item_model)
         version_dict['item_data']['Components'] = components
