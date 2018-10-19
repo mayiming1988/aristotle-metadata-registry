@@ -2,7 +2,8 @@
 
 <!--Adding meta to refresh every 10 seconds-->
 {% block extra_head_scripts %}
-
+{% load staticfiles %}
+<script src="{% static 'aristotle_mdr/aristotle.downloads.js' %}" type="text/javascript"></script>
 {% endblock %}
 
 {% block title %} Preparing download{% endblock %}
@@ -45,81 +46,9 @@
         </div>
     </div>
 </div>
-<script>
-    let interval = setInterval(getDownloadStatus, 1000);
-    let downloadReady = false;
-        function success(data) {
-            if (data.is_expired) {
-                expireDownload();
-            }
-            else if (data.is_ready && !downloadReady){
-                readyDownload(data.file_details);
-            }
-        }
-        function getDownloadStatus() {
-            $.ajax({
-              dataType: 'json',
-              url: window.location,
-              data: {format: 'json'},
-              contentType: 'application/json',
-              success: success
-            }).fail(function (error){
-                console.log("failure", error);
-            });
-        }
-
-        function expireDownload(){
-            let ErrorText = $('<div></div>').text('Your download expired, Please refresh this page to restart download');
-            $('#download-link-wrapper>p').html(ErrorText);
-            clearInterval(interval);
-        }
-
-        function readyDownload(file_details) {
-            downloadReady = true;
-            let downloadIcon = $('<i></i>').addClass('fa fa-download');
-            let downloadLink = $('<a></a>').text(' You document is ready to download. Click here.');
-            let downloadText = $('<div></div>').text('Your download will expire in ' + file_details.ttl + ' minutes.');
-            downloadLink.attr({
-                'id': 'document-link',
-                'download': '',
-                'href': file_details.download_url,
-                'target': '_blank'
-            });
-            $('#download-link-wrapper>p').html(downloadText);
-            downloadLink.prepend(downloadIcon);
-            $('#download-link-wrapper>p').append(downloadLink);
-            initDownload();
-        }
-
-        function goBackDownloadButton() {
-            if(!history.length) {
-                return;
-            }
-            let goBackButton = $('<button></button>');
-            goBackButton.append($('<i></i>').attr("class", "fa fa-arrow-left"));
-            goBackButton.append($('<span></span>').text(" Go Back"));
-            goBackButton.attr({
-                id: 'go-back-button',
-                onclick: 'history.go(-1)',
-                class: 'btn btn-primary pull-left'
-            });
-            $('div#download-nav-controls').append(goBackButton);
-        }
-
-        function getDownload() {
-            $('a#document-link').click(function (event) {
-                let thankYouDownload = $('<div></div>').text('Thank you for downloading the document');
-                $('#download-link-wrapper>p').html(thankYouDownload);
-            })
-        }
-
-        function initDownload() {
-            clearInterval(interval);
-            interval = setInterval(getDownloadStatus, 10000);
-            getDownload()
-        }
-
-        function init() {
+<script async>
+    $(document).ready(function () {
+        function initDownloadsPage() {
             goBackDownloadButton();
 
             {% if is_expired %}
@@ -134,6 +63,8 @@
             {% endif %}
         }
 
-        init();
+        initDownloadsPage();
+    })
 </script>
+
 {% endblock %}

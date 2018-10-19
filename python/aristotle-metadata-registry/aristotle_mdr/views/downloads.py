@@ -86,6 +86,9 @@ def download(request, download_type, iid):
                     reverse('aristotle:preparing_download', args=[download_type]),
                     urlencode(get_params, True)
                 ))
+                download_key = request.session.get(download_utils.get_download_session_key(get_params, download_type))
+                if download_key:
+                    async_result(download_key).forget()
                 request.session[download_utils.get_download_session_key(get_params, download_type)] = res.id
                 return response
             except TemplateDoesNotExist:
@@ -136,6 +139,9 @@ def bulk_download(request, download_type, items=None):
                     reverse('aristotle:preparing_download', args=[download_type]),
                     urlencode(get_params, True)
                 ))
+                download_key = request.session.get(download_utils.get_download_session_key(get_params, download_type))
+                if download_key:
+                    async_result(download_key).forget()
                 request.session[download_utils.get_download_session_key(get_params, download_type)] = res.id
                 return response
             except TemplateDoesNotExist:

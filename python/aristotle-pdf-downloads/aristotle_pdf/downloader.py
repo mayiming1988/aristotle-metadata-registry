@@ -54,7 +54,7 @@ class PDFDownloader(DownloaderBase):
             'user': None,
             'view': request.GET.get('view', '').lower(),
             'page_size': request.GET.get('pagesize', page_size),
-            'title': "PDF Download for {obj.name}".format(obj=cls.item)
+            'title': cls.item.name
         }
 
         if user:
