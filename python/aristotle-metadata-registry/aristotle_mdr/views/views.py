@@ -39,6 +39,7 @@ from aristotle_mdr.utils import get_concepts_for_apps, fetch_aristotle_settings,
 from aristotle_mdr.views.utils import generate_visibility_matrix, CachePerItemUserMixin
 from aristotle_mdr.contrib.slots.utils import get_allowed_slots
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
+from aristotle_mdr.managers import ConceptManager
 
 from haystack.views import FacetedSearchView
 
@@ -479,24 +480,30 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
             if key in replacements and type(value) == int:
                 sub_model = replacements[key]
                 try:
-                    obj = sub_model.objects.get(pk=value)
+                    if issubclass(sub_model.objects, ConceptManager):
+                        obj = sub_model.objects.visible().get(pk=value)
+                    else:
+                        obj = sub_model.objects.get(pk=value)
                 except model.DoesNotExist:
                     obj = None
 
-                if issubclass(sub_model, MDR.aristotleComponent):
+                if obj is None:
                     updated_fields[header] = {
-                        'is_link': True,
-                        'object': obj,
-                        'linkid': obj.parentItem.id,
-                        'helptext': field.help_text
+                        'is_link': False,
+                        'value': 'Linked to object you do not have permission to view'
                     }
                 else:
                     updated_fields[header] = {
                         'is_link': True,
                         'object': obj,
-                        'linkid': obj.id,
                         'helptext': field.help_text
                     }
+
+                    if issubclass(sub_model, MDR.aristotleComponent):
+                        updated_fields[header]['linkid'] = obj.parentItem.id
+                    else:
+                        updated_fields[header]['linkid'] = obj.id
+
             else:
                 updated_fields[header] = {
                     'is_link': False,
