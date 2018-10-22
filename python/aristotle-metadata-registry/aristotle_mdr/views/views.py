@@ -496,7 +496,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
                     updated_fields[header] = {
                         'is_link': True,
                         'object': obj,
-                        'helptext': field.help_text
+                        'help_text': field.help_text
                     }
 
                     if issubclass(sub_model, MDR.aristotleComponent):
@@ -546,7 +546,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
                             for header, item in final_fields.items():
                                 headers.append({
                                     'text': header,
-                                    'help_text': item['help_text']
+                                    'help_text': item.get('help_text', '')
                                 })
                             related[data['model']]['headers'] = headers
 
