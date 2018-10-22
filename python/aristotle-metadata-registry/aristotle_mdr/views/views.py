@@ -480,11 +480,11 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
             if key in replacements and type(value) == int:
                 sub_model = replacements[key]
                 try:
-                    if issubclass(sub_model.objects, ConceptManager):
-                        obj = sub_model.objects.visible().get(pk=value)
+                    if issubclass(sub_model.objects.__class__, ConceptManager):
+                        obj = sub_model.objects.visible(self.request.user).get(pk=value)
                     else:
                         obj = sub_model.objects.get(pk=value)
-                except model.DoesNotExist:
+                except sub_model.DoesNotExist:
                     obj = None
 
                 if obj is None:
