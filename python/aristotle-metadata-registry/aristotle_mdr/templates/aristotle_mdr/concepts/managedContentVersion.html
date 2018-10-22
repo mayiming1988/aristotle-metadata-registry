@@ -38,7 +38,17 @@
             {% endif %}
           </h3>
         {% if value.is_link %}
-          <p><a href="{% url 'aristotle:item' value.linkid %}">{{ value.object.name }}<span class="text-danger">*</span></a></p>
+          {% if value.is_list %}
+            <p>
+              <ul>
+                {% for item in value.object_list %}
+                  <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}<span class="text-danger">*</span></a></li>
+                {% endfor %}
+              </ul>
+            </p>
+          {% else %}
+            <p><a href="{% url 'aristotle:item' value.linkid %}">{{ value.object.name }}<span class="text-danger">*</span></a></p>
+          {% endif %}
         {% else %}
           {% if value.is_html %}
             <p>{{ value.value|striptags|default:"None" }}</p>
@@ -71,7 +81,17 @@
           <tr>
           {% for value in item.values %}
             {% if value.is_link %}
-              <td><a href="{% url 'aristotle:item' value.linkid %}">{{ value.object.name }}<span class="text-danger">*</span></a></td>
+              {% if value.is_list %}
+              <td>
+                <ul>
+                  {% for item in value.object_list %}
+                    <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}<span class="text-danger">*</span></a></li>
+                  {% endfor %}
+                </ul>
+              </td>
+              {% else %}
+                <td><a href="{% url 'aristotle:item' value.linkid %}">{{ value.object.name }}<span class="text-danger">*</span></a></td>
+              {% endif %}
             {% else %}
               <td>{{ value.value|default:"None" }}</td> 
             {% endif %}

@@ -473,7 +473,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         # Create replacement mapping fields to models
         replacements = {}
         for field in model._meta.get_fields():
-            if field.is_relation and field.many_to_one and\
+            if field.is_relation and (field.many_to_one or field.many_to_many) and\
                     (issubclass(field.related_model, MDR._concept) or
                         issubclass(field.related_model, MDR.aristotleComponent)):
                 replacements[field.name] = field.related_model
@@ -483,34 +483,20 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         for key, value in fields.items():
             field = model._meta.get_field(key)
             header = field.verbose_name.title()
-            if key in replacements and type(value) == int:
+
+            replaced = False
+            if key in replacements:
+
                 sub_model = replacements[key]
-                try:
-                    if issubclass(sub_model.objects.__class__, ConceptManager):
-                        obj = sub_model.objects.visible(self.request.user).get(pk=value)
-                    else:
-                        obj = sub_model.objects.get(pk=value)
-                except sub_model.DoesNotExist:
-                    obj = None
 
-                if obj is None:
-                    updated_fields[header] = {
-                        'is_link': False,
-                        'value': 'Linked to object you do not have permission to view'
-                    }
-                else:
-                    updated_fields[header] = {
-                        'is_link': True,
-                        'object': obj,
-                        'help_text': field.help_text
-                    }
+                if type(value) == int and field.many_to_one:
+                    updated_fields[header] = self.lookup_object([value], sub_model, field)
+                    replaced = True
+                elif type(value) == list and field.many_to_many and value:
+                    updated_fields[header] = self.lookup_object(value, sub_model, field)
+                    replaced = True
 
-                    if issubclass(sub_model, MDR.aristotleComponent):
-                        updated_fields[header]['linkid'] = obj.parentItem.id
-                    else:
-                        updated_fields[header]['linkid'] = obj.id
-
-            else:
+            if not replaced:
                 updated_fields[header] = {
                     'is_link': False,
                     'value': value,
@@ -518,6 +504,36 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
                 }
 
         return updated_fields
+
+    def lookup_object(self, pk_list, sub_model, field):
+        if issubclass(sub_model.objects.__class__, ConceptManager):
+            objs = sub_model.objects.visible(self.request.user).filter(pk__in=pk_list)
+        else:
+            objs = sub_model.objects.filter(pk__in=pk_list)
+
+        objs_repr = {
+            'is_link': True,
+            'help_text': field.help_text
+        }
+
+        if len(objs) <= 0:
+            return {
+                'is_link': False,
+                'value': 'Linked to object(s) you do not have permission to view'
+            }
+        elif len(objs) == 1:
+            objs_repr['object'] = objs[0]
+            objs_repr['is_list'] = False
+
+            if issubclass(sub_model, MDR.aristotleComponent):
+                objs_repr['linkid'] = objs[0].parentItem.id
+            else:
+                objs_repr['linkid'] = objs[0].id
+        else:
+            objs_repr['object_list'] = list(objs)
+            objs_repr['is_list'] = True
+
+        return objs_repr
 
     def get_related_versions(self, pk, mapping):
         # mapping should be a mapping of model labels to fields on item
