@@ -2016,6 +2016,14 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
     url_name='dataElement'
     itemType=models.DataElement
 
+    def add_dec(self, wg):
+        dec = models.DataElementConcept.objects.create(
+            name='test dec',
+            definition='just a test',
+            workgroup=wg
+        )
+        self.item1.dataElementConcept = dec
+        self.item1.save()
 
     def test_cascade_action(self):
         self.logout()
@@ -2035,14 +2043,7 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
     @tag('version')
     def test_version_display_components(self):
 
-        dec = models.DataElementConcept.objects.create(
-            name='test dec',
-            definition='just a test',
-            workgroup=self.wg1
-        )
-        self.item1.dataElementConcept = dec
-        self.item1.save()
-
+        self.add_dec(self.wg1)
         self.update_defn_with_versions()
 
         latest = reversion.models.Version.objects.get_for_object(self.item1).first()
@@ -2063,6 +2064,24 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
         self.assertEqual(components['Data Element Concept']['object'], self.item1.dataElementConcept)
         self.assertEqual(components['Data Element Concept']['linkid'], self.item1.dataElementConcept.id)
         self.assertEqual(components['Data Element Concept']['help_text'], dec_ht)
+
+    @tag('version')
+    def test_version_display_component_permission(self):
+        self.add_dec(None)
+        self.update_defn_with_versions()
+
+        latest = reversion.models.Version.objects.get_for_object(self.item1).first()
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle:item_version',
+            reverse_args=[latest.id],
+            status_code=200
+        )
+
+        components = response.context['item']['item_data']['Components']
+
+        self.assertFalse(components['Data Element Concept']['is_link'], False)
+        self.assertTrue(components['Data Element Concept']['value'].startswith('Linked to object'))
 
 class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):
     url_name='dataelementderivation'
