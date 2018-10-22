@@ -2167,6 +2167,40 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
         self.assertEqual(components['Data Element Concept']['help_text'], dec_ht)
 
     @tag('version')
+    def test_version_display_component_from_multi_revision(self):
+
+        dec1 = models.DataElementConcept.objects.create(
+            name='dec1',
+            definition='just a test',
+            workgroup=self.wg1
+        )
+
+        dec2 = models.DataElementConcept.objects.create(
+            name='dec2',
+            definition='just a test',
+            workgroup=self.wg1
+        )
+
+        self.item1.dataElementConcept = dec1
+        self.item2.dataElementConcept = dec2
+
+        with reversion.create_revision():
+            self.item1.save()
+            self.item2.save()
+
+        latest = reversion.models.Version.objects.get_for_object(self.item1).first()
+
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle:item_version',
+            reverse_args=[latest.id],
+            status_code=200
+        )
+
+        components = response.context['item']['item_data']['Components']
+        self.assertEqual(components['Data Element Concept']['object'], self.item1.dataElementConcept)
+
+    @tag('version')
     def test_version_display_component_permission(self):
         self.add_dec(None)
         self.update_defn_with_versions()
