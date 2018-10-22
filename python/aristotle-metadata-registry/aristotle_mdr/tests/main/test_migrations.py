@@ -1,12 +1,15 @@
-from aristotle_mdr.tests.migrations import MigrationsTestCase
-from aristotle_mdr.utils import migrations as migration_utils
 from aristotle_mdr import models
 from aristotle_mdr.contrib.slots import models as slots_models
+from aristotle_mdr.models import STATES
+from aristotle_mdr.tests.migrations import MigrationsTestCase
+from aristotle_mdr.utils import migrations as migration_utils
 
 from django.core.exceptions import FieldDoesNotExist
 from django.conf import settings
 from django.test import TestCase, tag
 from django.apps import apps as current_apps
+from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 
 class TestUtils(TestCase):
@@ -178,3 +181,164 @@ class TestDedMigration(MigrationsTestCase, TestCase):
         orig_de_pks = [self.de1.pk, self.de2.pk]
 
         self.assertEqual(set(de_pks), set(orig_de_pks))
+
+
+class TestLowercaseEmailMigration(MigrationsTestCase, TestCase):
+
+    app = 'aristotle_mdr_user_management'
+    migrate_from = '0001_initial'
+    migrate_to = '0002_lowercase_emails'
+
+    def setUpBeforeMigration(self, apps):
+        user = apps.get_model('aristotle_mdr_user_management', 'User')
+
+        user.objects.create(
+            email='FIRST@example.com',
+        )
+        user.objects.create(
+            email='Second@example.com',
+        )
+
+    def test_migration(self):
+        user = self.apps.get_model('aristotle_mdr_user_management', 'User')
+        self.assertEqual(user.objects.count(), 2)
+        self.assertTrue(user.objects.filter(email='first@example.com').exists())
+        self.assertTrue(user.objects.filter(email='second@example.com').exists())
+        self.assertFalse(user.objects.filter(email='FIRST@example.com').exists())
+        self.assertFalse(user.objects.filter(email='Second@example.com').exists())
+
+
+class TestRaActiveMigration(MigrationsTestCase, TestCase):
+
+    migrate_from = '0032_add_new_active'
+    migrate_to = '0033_ra_levels'
+
+    def setUpBeforeMigration(self, apps):
+
+        ra = apps.get_model('aristotle_mdr', 'RegistrationAuthority')
+
+        self.ra1 = ra.objects.create(
+            name='ActiveRA',
+            definition='defn',
+            active=True
+        )
+        self.ra2 = ra.objects.create(
+            name='InactiveRA',
+            definition='defn',
+            active=False
+        )
+
+    def test_migration(self):
+
+        ra = self.apps.get_model('aristotle_mdr', 'RegistrationAuthority')
+        from aristotle_mdr.models import RA_ACTIVE_CHOICES
+
+        activera = ra.objects.get(name='ActiveRA')
+        self.assertEqual(activera.new_active, RA_ACTIVE_CHOICES.active)
+
+        inactivera = ra.objects.get(name='InactiveRA')
+        self.assertEqual(inactivera.new_active, RA_ACTIVE_CHOICES.inactive)
+
+
+class TestSupersedingMigration(MigrationsTestCase, TestCase):
+
+    migrate_from = '0042_remove_possumprofile_favourites'
+    migrate_to = '0043_change_superseding'
+
+    def setUpBeforeMigration(self, apps):
+        objectclass = apps.get_model('aristotle_mdr', 'ObjectClass')
+        registrationauthority = apps.get_model('aristotle_mdr', 'RegistrationAuthority')
+        Status = apps.get_model('aristotle_mdr', 'Status')
+
+        self.su = get_user_model().objects.create_superuser('super@example.com', 'user')
+
+        self.oc_new = objectclass.objects.create(
+            name='A newer OC',
+            definition='Test Definition',
+        )
+
+        # This highlights how backwards we got it.
+        # The old one has to be made *first*
+        self.oc_old_1 = objectclass.objects.create(
+            name='An older OC',
+            definition='Test Definition. Superseded.',
+            superseded_by=self.oc_new
+        )
+
+        self.oc_old_2 = objectclass.objects.create(
+            name='An different older OC',
+            definition='Test Definition. Not superseded',
+            superseded_by=self.oc_new
+        )
+
+        self.ra = registrationauthority.objects.create(
+            name='The RA',
+            definition='Test Definition',
+        )
+
+        Status.objects.create(
+            concept=self.oc_old_1,
+            registrationAuthority=self.ra,
+            registrationDate=timezone.now().date(),
+            state=STATES.superseded,
+        )
+
+        Status.objects.create(
+            concept=self.oc_new,
+            registrationAuthority=self.ra,
+            registrationDate=timezone.now().date(),
+            state=STATES.standard,
+        )
+    def test_migration(self):
+        objectclass = self.apps.get_model('aristotle_mdr', 'ObjectClass')
+        self.oc_new = objectclass.objects.get(name='A newer OC')
+        self.oc_old_1 = objectclass.objects.get(name='An older OC')
+        self.oc_old_2 = objectclass.objects.get(name='An different older OC')
+
+        self.assertEqual(
+            self.oc_old_1.superseded_by_items_relation_set.all().first().newer_item.pk,
+            self.oc_new.pk,
+        )
+
+        self.assertEqual(
+            self.oc_old_2.superseded_by_items_relation_set.all().count(),
+            0
+        )
+
+
+@tag('favsmigration')
+class TestFavouritesMigration(MigrationsTestCase, TestCase):
+
+    migrate_from='0040_rename_favourites'
+    migrate_to='0041_migrate_favourites'
+
+    def setUpBeforeMigration(self, apps):
+        user = apps.get_model('aristotle_mdr_user_management', 'User')
+        profile = apps.get_model('aristotle_mdr', 'PossumProfile')
+        objectclass = apps.get_model('aristotle_mdr', 'ObjectClass')
+
+        self.user = user.objects.create(
+            email='wow@example.com',
+        )
+        # self.user.set_password('wow')
+
+        self.item1 = objectclass.objects.create(
+            name='Test Item',
+            definition='Just a test'
+        )
+
+        self.profile = profile.objects.create(user=self.user)
+
+        self.profile.old_favourites.add(self.item1._concept_ptr)
+
+    def test_migration(self):
+        tag = self.apps.get_model('aristotle_mdr_favourites', 'Tag')
+        favourite = self.apps.get_model('aristotle_mdr_favourites', 'Favourite')
+
+        self.assertTrue(tag.objects.filter(profile=self.profile.id, primary=True).exists())
+
+        favtag = tag.objects.get(profile=self.profile.id, primary=True)
+
+        itemfavs = favourite.objects.filter(tag=favtag, item=self.item1._concept_ptr.id)
+        self.assertTrue(itemfavs.exists())
+        self.assertEqual(itemfavs.count(), 1)

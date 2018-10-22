@@ -381,7 +381,26 @@
                         <div></div>
                     {% endif %}
                     </div>
+                    <div>
                     {{ result.rendered_search_result|safe }}
+                    {% if result|is_concept %}
+                        {% if result.pk in recently_viewed.keys %}
+                            {% with stats=recently_viewed|get_item:result.pk %}
+                            <small>
+                                You've viewed this item 
+                                {% if stats.count > 9 %}
+                                    many times
+                                {% else %}
+                                    {{stats.count}} time{{stats.count|pluralize}}
+                                {% endif %}
+                                in the last month.
+
+                                Last visit: {{stats.last_viewed}}
+                            </small>
+                            {% endwith %}
+                        {% endif %}
+                    {% endif %}
+                    </div>
                 </li>
                 {% endif %}
             {% empty %}
@@ -450,3 +469,4 @@
 </div>
 {% bootstrap_modal 'search_concept_help' %}
 {% endblock %}
+  {

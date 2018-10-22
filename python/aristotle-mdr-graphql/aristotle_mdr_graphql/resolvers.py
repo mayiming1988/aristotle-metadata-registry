@@ -22,11 +22,19 @@ class AristotleResolver(object):
 
         # If object is a django model
         if isinstance(retval, Model):
-
             if isinstance(retval, mdr_models._concept):
                 # Use user_can_view to determine if we display
                 if perms.user_can_view(info.context.user, retval):
                     return retval
+                else:
+                    return None
+
+            if isinstance(retval, mdr_models.aristotleComponent):
+                # Use user_can_view to determine if we display
+                if perms.user_can_view(info.context.user, retval):
+                    return retval
+                else:
+                    return None
 
             return None
 
@@ -46,13 +54,20 @@ class AristotleResolver(object):
             if hasattr(queryset, 'visible'):
                 return queryset.visible(info.context.user)
 
+            if issubclass(queryset.model, mdr_models.aristotleComponent):
+                return queryset
+            
+            return None
+            
         elif isinstance(retval, QuerySet):
 
             # In case a queryset is returned
             if hasattr(retval, 'visible'):
                 return retval.visible(info.context.user)
-            else:
+            if issubclass(retval.model, mdr_models.aristotleComponent):
                 return retval
+
+            return None
 
         return retval
 

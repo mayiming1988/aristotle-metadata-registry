@@ -145,3 +145,10 @@ def remove_query_params(request, params=''):
     for p in params.split(","):
         dict_.pop(p.strip(), None)
     return dict_.urlencode()
+
+
+@register.filter
+def is_concept(result):
+    from django.apps import apps
+    kls = apps.get_model(app_label=result.app_label, model_name=result.model_name)
+    return issubclass(kls, MDR._concept)

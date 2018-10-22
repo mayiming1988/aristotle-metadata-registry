@@ -644,7 +644,7 @@ class ReviewRequestActionsPage(utils.LoggedInViewPages, TestCase):
     @tag('inactive_ra')
     def test_cannot_create_rr_against_incative_ra(self):
         self.login_editor()
-        self.ra.active = False
+        self.ra.active = 1
         self.ra.save()
 
         self.assertEqual(self.item1.review_requests.count(),0)
@@ -664,7 +664,7 @@ class ReviewRequestActionsPage(utils.LoggedInViewPages, TestCase):
         review = self.item3.review_requests.all()[0]
 
         # Make ra inactive
-        self.ra.active = False
+        self.ra.active = 1
         self.ra.save()
 
         response = self.client.get(reverse('aristotle:userReviewAccept',args=[review.pk]))
@@ -689,7 +689,7 @@ class ReviewRequestActionsPage(utils.LoggedInViewPages, TestCase):
         self.assertEqual(self.item1.review_requests.count(),1)
 
         # Make ra inactive
-        self.ra.active = False
+        self.ra.active = 1
         self.ra.save()
 
         # My review requests

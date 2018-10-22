@@ -2,7 +2,7 @@
 <div class="changeStatusDiv">
     <span>
         <label for="id_registrationDate">{{ form.registrationDate.label }}</label>:
-        {{ form.registrationDate.errors }}
+        <span class="text-danger">{{ form.registrationDate.errors }}</span>
     </span>
     <span class="pull-right">
         {{ form.registrationDate }}
@@ -24,7 +24,7 @@
         <i class="fa fa-2x fa-question-circle"></i>
         </a>
         </label>
-        {{ form.cascadeRegistration.errors }}
+        <span class="text-danger">{{ form.cascadeRegistration.errors }}</span>
     </span>
     <span class="pull-right">
         {{ form.cascadeRegistration }}
@@ -34,11 +34,11 @@
     <div>
         <span>
             {{ form.state.label }}
-            {{ form.state.errors }}
+            <span class="text-danger">{{ form.state.errors }}</span>
         </span>
         <span>
             {{ form.registrationAuthorities.label }}
-            {{ form.registrationAuthorities.errors }}
+            <span class="text-danger">{{ form.registrationAuthorities.errors }}</span>
         </span>
     </div>
     <div>

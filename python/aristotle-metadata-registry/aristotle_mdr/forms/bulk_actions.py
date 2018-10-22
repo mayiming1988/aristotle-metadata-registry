@@ -10,6 +10,7 @@ from django.utils.translation import ugettext_lazy as _
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 
 import aristotle_mdr.models as MDR
+import aristotle_mdr.contrib.favourites.models as fav_models
 from aristotle_mdr.forms import ChangeStatusForm
 from aristotle_mdr.forms.actions import RequestReviewForm as RequestReviewActionForm
 from aristotle_mdr.perms import (
@@ -100,6 +101,8 @@ class BulkActionForm(UserAwareForm):
 
     def __init__(self, form, *args, **kwargs):
         initial_items = kwargs.pop('items', [])
+        all_in_queryset = kwargs.pop('all_in_queryset', [])
+
         self.request = kwargs.pop('request')
         if 'user' in kwargs.keys():
             self.user = kwargs.get('user', None)
@@ -165,15 +168,27 @@ class AddFavouriteForm(LoggedInBulkActionForm):
 
     def make_changes(self):
         items = self.items_to_change
-        bad_items = [str(i.id) for i in items if not user_can_view(self.user, i)]
-        items = items.visible(self.user)
-        self.user.profile.favourites.add(*items)
 
-        message_text = "{0} items favourited.".format(len(items))
-        if bad_items:
-            return _("{0} Some items failed, they had the id's: {1}".format(message_text, ",".join(bad_items)))
-        else:
-            return _(message_text)
+        fav_tag, created = fav_models.Tag.objects.get_or_create(
+            profile=self.user.profile,
+            primary=True,
+        )
+
+        num_items = 0
+        bad_items = []
+        for item in items:
+            if not user_can_view(self.user, item):
+                bad_items.append(str(item.id))
+            else:
+                favourite, created = fav_models.Favourite.objects.get_or_create(
+                    tag=fav_tag,
+                    item=item
+                )
+                if created:
+                    num_items += 1
+
+        message_text = "{0} items favourited.".format(num_items)
+        return _(message_text)
 
 
 class RemoveFavouriteForm(LoggedInBulkActionForm):
@@ -183,8 +198,14 @@ class RemoveFavouriteForm(LoggedInBulkActionForm):
 
     def make_changes(self):
         items = self.items_to_change
-        self.user.profile.favourites.remove(*items)
-        return _('%(num_items)s items removed from favourites') % {'num_items': len(items)}
+        favourites = fav_models.Favourite.objects.filter(
+            tag__primary=True,
+            tag__profile=self.user.profile,
+            item__in=list(items)
+        )
+        num_favourites = favourites.count()
+        favourites.delete()
+        return _('%(num_items)s items removed from favourites') % {'num_items': num_favourites}
 
 
 class ChangeStateForm(ChangeStatusForm, BulkActionForm):

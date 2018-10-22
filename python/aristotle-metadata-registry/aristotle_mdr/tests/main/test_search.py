@@ -23,7 +23,7 @@ import unittest
 setup_aristotle_test_environment()
 
 
-class TestSearch(utils.LoggedInViewPages,TestCase):
+class TestSearch(utils.AristotleTestUtils, TestCase):
     def tearDown(self):
         call_command('clear_index', interactive=False, verbosity=0)
 
@@ -71,13 +71,13 @@ class TestSearch(utils.LoggedInViewPages,TestCase):
     def test_empty_search_loads(self):
         self.logout()
         response = self.client.get(reverse('aristotle:search'))
-        self.assertTrue(response.status_code == 200)
+        self.assertEqual(response.status_code, 200)
 
-    def test_one_result_search_doesnt_have__did_you_mean(self):
+    def test_one_result_search_doesnt_have_did_you_mean(self):
         self.logout()
         response = self.client.get(reverse('aristotle:search')+"?q=wolverine")
-        self.assertEqual(response.status_code,200)
-        self.assertEqual(len(response.context['page'].object_list),1)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['page'].object_list), 1)
         self.assertNotContains(response, "Did you mean")
         self.assertContains(response, "wolverine")
 
@@ -156,7 +156,7 @@ class TestSearch(utils.LoggedInViewPages,TestCase):
 
         i = self.xmen_wg.items.first()
 
-        self.registrar.profile.favourites.add(i)
+        self.favourite_item(self.registrar, i)
         self.assertTrue(i in self.registrar.profile.favourites.all())
 
         response = self.client.get(reverse('aristotle:search')+"?q=xman")
@@ -772,7 +772,7 @@ class TestTokenSearch(TestCase):
         # Tests that if only an identifier is used, all namespaces are returned
         self.add_identifiers()
         self.add_new_identifier(self.item_xmen[0], 'ice')
-        objs = self.query_search('id:*/ice')
+        objs = self.query_search('id:ice')
         self.assertEqual(len(objs),2)
 
     @tag('id_search')
@@ -791,6 +791,31 @@ class TestTokenSearch(TestCase):
         objs = self.query_search('id:ctm/test/1')
         self.assertEqual(len(objs),1)
         self.assertEqual(objs[0].object.name,"wolverine")
+
+    @tag('token_search')
+    def test_token_statuses_search(self):
+        # Tests that only the identifier with the correct
+        # namespace is returned when one is specified
+        objs = self.query_search('wolverine hs:standard')
+        self.assertEqual(len(objs),1)
+        self.assertEqual(objs[0].object.name,"wolverine")
+
+        objs = self.query_search('wolverine statuses:standard')
+        self.assertEqual(len(objs),1)
+        self.assertEqual(objs[0].object.name,"wolverine")
+
+        animal = models.ObjectClass.objects.create(
+            name="Wolverine (animal)",version="0.0.1",
+            definition="An regular animal found on Earth-1218 - not a mutant from a comic book."
+        )
+        self.ra.register(animal,models.STATES.recorded,self.su)
+
+        objs = self.query_search('wolverine statuses:standard,recorded')
+        self.assertEqual(len(objs),2)
+        objs = sorted(objs, key=lambda obj: len(obj.name))
+        self.assertEqual(objs[0].object.name,"wolverine")
+        self.assertEqual(objs[1].object.name,"Wolverine (animal)")
+
 
 class TestSearchDescriptions(TestCase):
     """

@@ -3,6 +3,8 @@ from django.urls import reverse
 from django.test import TestCase, override_settings, tag
 from django.utils import timezone
 from django.db.models.fields import CharField, TextField
+from django.core.cache import cache
+from django.http import HttpResponse
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
@@ -14,6 +16,7 @@ from aristotle_mdr.forms.creation_wizards import (
 )
 from aristotle_mdr.tests import utils
 import datetime
+from unittest import mock
 
 from aristotle_mdr.utils import setup_aristotle_test_environment
 
@@ -72,8 +75,271 @@ class LoggedInViewHTMLPages(utils.LoggedInViewPages, TestCase):
         self.assertRedirects(response, reverse('aristotle:userHome'))
 
 
+# Tests that dont require running on all item types
+@tag('itempage_general')
+class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
+
+    def setUp(self):
+        super().setUp()
+
+        self.item = models.ObjectClass.objects.create(
+            name='Test Item',
+            definition='Test Item Description',
+            submitter=self.editor,
+            workgroup=self.wg1
+        )
+        self.itemid = self.item.id
+
+        self.future_time = timezone.now() + datetime.timedelta(days=30)
+
+        self.cache_key = 'view_cache_ConceptView_{}_{}'.format(
+            self.editor.id,
+            self.itemid
+        )
+
+        cache.clear()
+
+    def test_itempage_full_url(self):
+        self.login_editor()
+        full_url = url_slugify_concept(self.item)
+        response = self.client.get(full_url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_itempage_redirect_id_only(self):
+        self.login_editor()
+
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.itemid],
+            status_code=302
+        )
+
+        self.assertEqual(response.url, url_slugify_concept(self.item))
+
+    def test_itempage_redirect_wrong_modelslug(self):
+        self.login_editor()
+
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.itemid, 'definition', 'wow'],
+            status_code=302
+        )
+
+        self.assertEqual(response.url, url_slugify_concept(self.item))
+
+    def test_itempage_wrong_model_modelslug(self):
+        self.login_editor()
+
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.itemid, 'property', 'wow'],
+            status_code=404
+        )
+
+    def test_itempage_wrong_name(self):
+        self.login_editor()
+
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.itemid, 'objectclass', 'wow'],
+            status_code=200
+        )
+
+    @tag('cache')
+    @override_settings(CACHE_ITEM_PAGE=True)
+    def test_itempage_caches(self):
+
+        # View in the future to avoid modified recently check
+        # No flux capacitors required
+        with mock.patch('aristotle_mdr.utils.utils.timezone.now') as mock_now:
+            mock_now.return_value = self.future_time
+
+            self.login_editor()
+            response = self.reverse_get(
+                'aristotle:item',
+                reverse_args=[self.itemid, 'objectclass', 'test-item'],
+                status_code=200
+            )
+
+        cached_itempage = cache.get(self.cache_key, None)
+        self.assertIsNotNone(cached_itempage)
+
+    @tag('cache')
+    @override_settings(CACHE_ITEM_PAGE=True)
+    def test_itempage_loaded_from_cache(self):
+
+        # Load response into cache
+        cache.set(self.cache_key, HttpResponse('wow'))
+
+        # View item page in future
+        with mock.patch('aristotle_mdr.utils.utils.timezone.now') as mock_now:
+            mock_now.return_value = self.future_time
+
+            self.login_editor()
+            response = self.reverse_get(
+                'aristotle:item',
+                reverse_args=[self.itemid, 'objectclass', 'test-item'],
+                status_code=200
+            )
+
+            self.assertEqual(response.content, b'wow')
+
+    @tag('cache')
+    @override_settings(CACHE_ITEM_PAGE=True)
+    def test_itempage_not_loaded_from_cache_if_modified(self):
+
+        # Load response into cache
+        cache.set(self.cache_key, HttpResponse('wow'))
+
+        # View page now (assumes this test wont take 300 seconds)
+        self.login_editor()
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.itemid, 'objectclass', 'test-item'],
+            status_code=200
+        )
+
+        self.assertNotEqual(response.content, b'wow')
+
+    @tag('cache')
+    @override_settings(CACHE_ITEM_PAGE=True)
+    def test_itempage_not_loaded_from_cache_if_nocache_set(self):
+        cache.set(self.cache_key, HttpResponse('wow'))
+
+        url = reverse('aristotle:item', args=[self.itemid, 'objectclass', 'test-item'])
+        url += '?nocache=true'
+
+        # View item page in future
+        with mock.patch('aristotle_mdr.utils.utils.timezone.now') as mock_now:
+            mock_now.return_value = self.future_time
+
+            self.login_editor()
+
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200)
+            self.assertNotEqual(response.content, b'wow')
+
+    @tag('cache')
+    @override_settings(CACHE_ITEM_PAGE=True)
+    def test_itempage_cached_per_user(self):
+        # Load response into cache
+        cache.set(self.cache_key, HttpResponse('wow'))
+
+        # View item page in future
+        with mock.patch('aristotle_mdr.utils.utils.timezone.now') as mock_now:
+            mock_now.return_value = self.future_time
+
+            # Login as different user
+            self.login_viewer()
+            response = self.reverse_get(
+                'aristotle:item',
+                reverse_args=[self.itemid, 'objectclass', 'test-item'],
+                status_code=200
+            )
+
+            self.assertNotEqual(response.content, b'wow')
+
+    @tag('cache')
+    @override_settings(CACHE_ITEM_PAGE=False)
+    def test_itempage_not_loaded_from_cache_if_setting_false(self):
+        # Load response into cache
+        cache.set(self.cache_key, HttpResponse('wow'))
+
+        # View item page in future
+        with mock.patch('aristotle_mdr.utils.utils.timezone.now') as mock_now:
+            mock_now.return_value = self.future_time
+
+            # Login as different user
+            self.login_editor()
+            response = self.reverse_get(
+                'aristotle:item',
+                reverse_args=[self.itemid, 'objectclass', 'test-item'],
+                status_code=200
+            )
+
+            self.assertNotEqual(response.content, b'wow')
+
+    @tag('cache')
+    @override_settings(CACHE_ITEM_PAGE=False)
+    def test_response_not_put_into_cache_if_setting_false(self):
+        # View in the future to avoid modified recently check
+        with mock.patch('aristotle_mdr.utils.utils.timezone.now') as mock_now:
+            mock_now.return_value = self.future_time
+
+            self.login_editor()
+            response = self.reverse_get(
+                'aristotle:item',
+                reverse_args=[self.itemid, 'objectclass', 'test-item'],
+                status_code=200
+            )
+
+        cached_itempage = cache.get(self.cache_key, None)
+        self.assertIsNone(cached_itempage)
+
+    @tag('extrav')
+    def test_no_extra_versions_created_adv_editor(self):
+
+        oc = models.ObjectClass.objects.create(
+            name='Test OC',
+            definition='Just a test',
+            submitter=self.editor
+        )
+
+        prop = models.Property.objects.create(
+            name='Test Prop',
+            definition='Just a test',
+            submitter=self.editor
+        )
+
+        dec = models.DataElementConcept.objects.create(
+            name='Test DEC',
+            definition='Just a test',
+            objectClass=oc,
+            property=prop,
+            submitter=self.editor
+        )
+
+        data = utils.model_to_dict_with_change_time(dec)
+        data.update({
+            'definition': 'More than a test',
+            'change_comments': 'A change was made'
+        })
+
+        from reversion import models as revmodels
+        self.assertEqual(revmodels.Version.objects.count(), 0)
+
+        self.login_editor()
+        response = self.reverse_post(
+            'aristotle:edit_item',
+            data=data,
+            status_code=302,
+            reverse_args=[dec.id]
+        )
+
+        dec = models.DataElementConcept.objects.get(pk=dec.pk)
+        self.assertEqual(dec.definition, 'More than a test')
+
+        # Should be 2 version, one for the _concept,
+        # one for the data element concept
+        self.assertEqual(revmodels.Version.objects.count(), 2)
+
+        from django.contrib.contenttypes.models import ContentType
+        concept_ct = ContentType.objects.get_for_model(models._concept)
+        dec_ct = ContentType.objects.get_for_model(models.DataElementConcept)
+
+        concept_version = revmodels.Version.objects.get(content_type=concept_ct)
+        dec_version = revmodels.Version.objects.get(content_type=dec_ct)
+
+        # check concept version
+        self.assertEqual(int(concept_version.object_id), dec._concept_ptr.id)
+
+        # check dec version
+        self.assertEqual(int(dec_version.object_id), dec.id)
+
+
 class LoggedInViewConceptPages(utils.LoggedInViewPages, utils.FormsetTestUtils):
     defaults = {}
+
     def setUp(self):
         super().setUp()
 
@@ -123,6 +389,10 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages, utils.FormsetTestUtils):
         self.assertEqual(response.status_code,200)
         response = self.client.get(self.get_page(self.item2))
         self.assertEqual(response.status_code,200)
+
+        # Ensure short urls redirect properly
+        response = self.client.get(reverse("aristotle:item_short", args=[self.item1.pk]))
+        self.assertEqual(response.status_code,302)
 
     def test_editor_can_view(self):
         self.login_editor()
@@ -612,68 +882,6 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages, utils.FormsetTestUtils):
         self.item1 = self.itemType.objects.get(id=self.item1.id) # Stupid cache
         self.assertTrue('cloned with no WG' not in self.item1.name)
 
-    def test_viewer_cannot_view_supersede_page(self):
-        self.login_viewer()
-        response = self.client.get(reverse('aristotle:supersede',args=[self.item1.id]))
-        self.assertEqual(response.status_code,403)
-        response = self.client.get(reverse('aristotle:supersede',args=[self.item2.id]))
-        self.assertEqual(response.status_code,403)
-
-    def test_editor_can_view_supersede_page(self):
-        self.login_editor()
-        response = self.client.get(reverse('aristotle:supersede',args=[self.item1.id]))
-        self.assertEqual(response.status_code,200)
-        response = self.client.get(reverse('aristotle:supersede',args=[self.item2.id]))
-        self.assertEqual(response.status_code,403)
-        response = self.client.get(reverse('aristotle:supersede',args=[self.item3.id]))
-        self.assertEqual(response.status_code,200)
-
-    def test_editor_can_remove_supersede_relation(self):
-        self.login_editor()
-        self.item2 = self.itemType.objects.create(name="supersede this",workgroup=self.wg1, **self.defaults)
-        self.item1.superseded_by = self.item2
-        self.item1.save()
-
-        self.assertTrue(self.item1 in self.item2.supersedes.all().select_subclasses())
-        response = self.client.post(
-            reverse('aristotle:supersede',args=[self.item1.id]),{'newerItem':""})
-        self.assertEqual(response.status_code,302)
-        self.item1 = self.itemType.objects.get(id=self.item1.id) # Stupid cache
-        self.assertTrue(self.item1.superseded_by == None)
-        self.assertTrue(self.item2.supersedes.count() == 0)
-
-    def test_viewer_cannot_view_deprecate_page(self):
-        self.login_viewer()
-        response = self.client.get(reverse('aristotle:deprecate',args=[self.item1.id]))
-        self.assertEqual(response.status_code,403)
-        response = self.client.get(reverse('aristotle:deprecate',args=[self.item2.id]))
-        self.assertEqual(response.status_code,403)
-
-    def test_editor_can_view_deprecate_page(self):
-        self.login_editor()
-        response = self.client.get(reverse('aristotle:deprecate',args=[self.item1.id]))
-        self.assertEqual(response.status_code,200)
-        response = self.client.get(reverse('aristotle:deprecate',args=[self.item2.id]))
-        self.assertEqual(response.status_code,403)
-        response = self.client.get(reverse('aristotle:deprecate',args=[self.item3.id]))
-        self.assertEqual(response.status_code,200)
-
-    def test_editor_can_deprecate_item(self):
-        self.login_editor()
-        response = self.client.get(reverse('aristotle:deprecate',args=[self.item1.id]))
-        self.assertEqual(response.status_code,200)
-        response = self.client.get(reverse('aristotle:deprecate',args=[self.item2.id]))
-        self.assertEqual(response.status_code,403)
-        response = self.client.get(reverse('aristotle:deprecate',args=[self.item3.id]))
-        self.assertEqual(response.status_code,200)
-
-        response = self.client.post(
-            reverse('aristotle:deprecate',args=[self.item3.id]),{'olderItems':[self.item1.id]})
-        self.assertEqual(response.status_code,302)
-
-        self.item1 = self.itemType.objects.get(id=self.item1.id) # Stupid cache
-        self.assertTrue(self.item1.superseded_by == self.item3.concept)
-
     def test_help_page_exists(self):
         self.logout()
         response = self.client.get(
@@ -881,47 +1089,6 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages, utils.FormsetTestUtils):
         self.assertEqual(response.status_code,200)
         self.assertNotContains(response, reverse('aristotle:item_history',args=[self.item1.id]))
 
-    def test_viewer_can_favourite(self):
-        self.login_viewer()
-        self.assertTrue(perms.user_can_view(self.viewer,self.item1))
-
-        response = self.client.post(reverse('friendly_login'), {'username': 'vicky@example.com', 'password': 'viewer'})
-        self.assertEqual(response.status_code,302)
-        self.assertEqual(self.viewer.profile.favourites.count(),0)
-
-        response = self.client.get(
-            reverse('aristotle:toggleFavourite', args=[self.item1.id]),
-            follow=True
-        )
-        self.assertRedirects(
-            response,
-            url_slugify_concept(self.item1)
-        )
-        self.assertEqual(self.viewer.profile.favourites.count(),1)
-        self.assertEqual(self.viewer.profile.favourites.first().item,self.item1)
-        self.assertContains(response, "added to favourites")
-
-        response = self.client.get(
-            reverse('aristotle:toggleFavourite', args=[self.item1.id]),
-            follow=True
-        )
-        self.assertRedirects(
-            response,
-            url_slugify_concept(self.item1)
-        )
-        self.assertEqual(self.viewer.profile.favourites.count(),0)
-        self.assertContains(response, "removed from favourites")
-
-        response = self.client.get(reverse('aristotle:toggleFavourite', args=[self.item2.id]))
-        self.assertEqual(response.status_code,403)
-        self.assertEqual(self.viewer.profile.favourites.count(),0)
-
-    def test_anon_cannot_favourite(self):
-        self.logout()
-
-        response = self.client.get(reverse('aristotle:toggleFavourite', args=[self.item1.id]))
-        self.assertRedirects(response,reverse('friendly_login')+"?next="+reverse('aristotle:toggleFavourite', args=[self.item1.id]))
-
     @tag('changestatus')
     def test_registrar_can_change_status(self):
         self.login_registrar()
@@ -957,7 +1124,7 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages, utils.FormsetTestUtils):
         self.make_review_request(self.item1, self.registrar)
 
         # Deactivate RA
-        self.ra.active = False
+        self.ra.active = 1
         self.ra.save()
 
         response = self.client.get(reverse('aristotle:changeStatus',args=[self.item1.id]))
@@ -1369,24 +1536,42 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         num_vals = getattr(self.item1,value_type+"Values").count()
         i=0
         for i,v in enumerate(getattr(self.item1,value_type+"Values").all()):
-            data.update({"form-%d-id"%i: v.pk, "form-%d-ORDER"%i : v.order, "form-%d-value"%i : v.value, "form-%d-meaning"%i : v.meaning+" -updated"})
-        data.update({"form-%d-DELETE"%i: 'checked', "form-%d-meaning"%i : v.meaning+" - deleted"}) # delete the last one.
+            data.update({
+                "%svalue_set-%d-valueDomain"%(value_type, i): self.item1.pk,
+                "%svalue_set-%d-id"%(value_type,i): v.pk,
+                "%svalue_set-%d-ORDER"%(value_type,i) : v.order,
+                "%svalue_set-%d-value"%(value_type,i) : v.value,
+                "%svalue_set-%d-meaning"%(value_type,i) : v.meaning+" -updated"
+            })
+        data.update({
+            "%svalue_set-%d-DELETE"%(value_type,i): 'checked',
+            "%svalue_set-%d-meaning"%(value_type,i) : v.meaning+" - deleted",
+            "%svalue_set-%d-valueDomain"%(value_type, i): self.item1.pk,
+        }) # delete the last one.
         # now add a new one
         i=i+1
-        data.update({"form-%d-ORDER"%i : i, "form-%d-value"%i : 100, "form-%d-meaning"%i : "new value -updated"})
+        data.update({
+            "%svalue_set-%d-ORDER"%(value_type,i) : i,
+            "%svalue_set-%d-value"%(value_type,i) : 100,
+            "%svalue_set-%d-meaning"%(value_type,i) : "new value (also an updated value)",
+            "%svalue_set-%d-valueDomain"%(value_type, i): self.item1.pk,
+        })
 
         data.update({
-            "form-TOTAL_FORMS":num_vals+1, "form-INITIAL_FORMS": num_vals, "form-MAX_NUM_FORMS":1000,
+            "%svalue_set-TOTAL_FORMS"%(value_type): i+1,
+            "%svalue_set-INITIAL_FORMS"%(value_type): num_vals,
+            "%svalue_set-MAX_NUM_FORMS"%(value_type):1000,
+        })
 
-            })
-        self.client.post(reverse(value_url,args=[self.item1.id]),data)
+        response = self.client.post(reverse(value_url,args=[self.item1.id]),data)
+        self.assertEqual(response.status_code, 302)
         self.item1 = models.ValueDomain.objects.get(pk=self.item1.pk)
 
-        self.assertTrue(num_vals == getattr(self.item1,value_type+"Values").count())
+        self.assertEqual(num_vals, getattr(self.item1,value_type+"Values").count())
         new_value_seen = False
         for v in getattr(self.item1,value_type+"Values").all():
             self.assertTrue('updated' in v.meaning) # This will fail if the deleted item isn't deleted
-            if v.value == '100':
+            if v.value == '100' and "new value" in v.meaning:
                 new_value_seen = True
         self.assertTrue(new_value_seen)
 
@@ -1430,18 +1615,25 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
 
         i=0
         for i,v in enumerate(getattr(self.item1,value_type+"Values").all()):
-            data.update({"form-%d-id"%i: v.pk, "form-%d-ORDER"%i : v.order, "form-%d-value"%i : v.value, "form-%d-meaning"%i : v.meaning+" -updated"})
+            data.update({
+                "%svalue_set-%d-valueDomain"%(value_type, i): self.item1.pk,
+                "%svalue_set-%d-id"%(value_type, i): v.pk,
+                "%svalue_set-%d-ORDER"%(value_type, i) : v.order,
+                "%svalue_set-%d-value"%(value_type, i) : v.value,
+                "%svalue_set-%d-meaning"%(value_type, i) : v.meaning+" -updated"
+            })
 
         # now add two new values that are all blank
         i=i+1
-        data.update({"form-%d-ORDER"%i : i, "form-%d-value"%i : '', "form-%d-meaning"%i : ""})
+        data.update({"%svalue_set-%d-ORDER"%(value_type, i) : i, "%svalue_set-%d-value"%(value_type, i) : '', "%svalue_set-%d-meaning"%(value_type, i) : ""})
         i=i+1
-        data.update({"form-%d-ORDER"%i : i, "form-%d-value"%i : '', "form-%d-meaning"%i : ""})
+        data.update({"%svalue_set-%d-ORDER"%(value_type, i) : i, "%svalue_set-%d-value"%(value_type, i) : '', "%svalue_set-%d-meaning"%(value_type, i) : ""})
 
         data.update({
-            "form-TOTAL_FORMS":num_vals+1, "form-INITIAL_FORMS": num_vals, "form-MAX_NUM_FORMS":1000,
-
-            })
+            "%svalue_set-TOTAL_FORMS"%(value_type): i+1,
+            "%svalue_set-INITIAL_FORMS"%(value_type): num_vals,
+            "%svalue_set-MAX_NUM_FORMS"%(value_type):1000,
+        })
         self.client.post(reverse(value_url,args=[self.item1.id]),data)
         self.item1 = models.ValueDomain.objects.get(pk=self.item1.pk)
 

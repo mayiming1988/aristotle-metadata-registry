@@ -1,8 +1,9 @@
 {% extends "aristotle_mdr/concepts/managedContent.html" %}
 
-{% load aristotle_tags i18n %}
+{% load aristotle_tags i18n util_tags %}
 
 {% block extra_head_scripts %}
+{{ block.super }}
 <link rel="stylesheet" href="{{ STATIC_URL }}/aristotle_dse/aristotle_dse.css" />
 {% endblock %}
 
@@ -84,7 +85,7 @@
                         {% endif %}
                     </td>
                     <td><ul>
-                        {% for s in item.current_statuses %}
+                        {% for s in deinc.child.valid_statuses|distinct:"registrationAuthority_id" %}
                             <li>[{{ s.registrationAuthority }}: {{ s.state_name }}]</li>
                         {% empty %}
                         <li><em>Unregistered</em></li>
@@ -135,7 +136,7 @@
             {% endif %}
             {% for deinc in item.dssdeinclusion_set.all %}
                 <tr>
-                    <td>{{ deinc.order }}<i class="fa fa-fw fa-"></i>{% include "aristotle_mdr/helpers/itemLink.html" with item=deinc.data_element %}
+                    <td>{{ deinc.order|default_if_none:" " }}<i class="fa fa-fw fa-"></i>{% include "aristotle_mdr/helpers/itemLink.html" with item=deinc.data_element %}
                         {% if deinc.specific_information %}
                         <div>
                             <strong>Specific Information:</strong>
@@ -149,7 +150,7 @@
                         {% endif %}
                     </td>
                     <td><ul>
-                        {% for s in item.current_statuses %}
+                        {% for s in deinc.data_element.valid_statuses|distinct:"registrationAuthority_id" %}
                             <li>[{{ s.registrationAuthority }}: {{ s.state_name }}]</li>
                         {% empty %}
                         <li><em>Unregistered</em></li>

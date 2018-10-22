@@ -6,6 +6,7 @@ from django.urls import reverse_lazy
 from haystack.views import search_view_factory
 
 import aristotle_mdr.views as views
+from aristotle_mdr.views.search import PermissionSearchView
 import aristotle_mdr.forms as forms
 import aristotle_mdr.models as models
 from aristotle_mdr.contrib.generic.views import (
@@ -16,7 +17,6 @@ from aristotle_mdr.contrib.generic.views import (
 )
 
 from django.utils.translation import ugettext_lazy as _
-
 
 urlpatterns=[
     url(r'^$', views.SmartRoot.as_view(
@@ -112,8 +112,10 @@ urlpatterns=[
     url(r'^item/(?P<iid>\d+)/registrationHistory/?$', views.registrationHistory, name='registrationHistory'),
     url(r'^item/(?P<iid>\d+)/child_states/?$', views.actions.CheckCascadedStates.as_view(), name='check_cascaded_states'),
 
-    url(r'^item/(?P<iid>\d+)(?:\/(?P<model_slug>\w+)\/(?P<name_slug>.+))?/?$', views.concept, name='item'),
-    url(r'^item/(?P<iid>\d+)(?:\/.*)?$', views.concept, name='item'),  # Catch every other 'item' URL and throw it for a redirect
+    # Concept page overrides
+    url(r'^item/(?P<iid>\d+)/dataelement/(?P<name_slug>.+)/?$', views.DataElementView.as_view(), name='dataelement'),
+    url(r'^item/(?P<iid>\d+)(?:\/(?P<model_slug>\w+)\/(?P<name_slug>.+))?/?$', views.ConceptView.as_view(), name='item'),
+    url(r'^item/(?P<iid>\d+)(?:\/.*)?$', views.ConceptView.as_view(), name='item_short'),  # Catch every other 'item' URL and throw it for a redirect
     url(r'^item/(?P<uuid>[\w-]+)/?(.*)?$', views.concept_by_uuid, name='item_uuid'),
 
     url(r'^unmanaged/measure/(?P<iid>\d+)(?:\/(?P<model_slug>\w+)\/(?P<name_slug>.+))?/?$', views.measure, name='measure'),
@@ -128,8 +130,8 @@ urlpatterns=[
     url(r'^download/bulk/(?P<download_type>[a-zA-Z0-9\-\.]+)/?$', views.downloads.bulk_download, name='bulk_download'),
     url(r'^download/(?P<download_type>[a-zA-Z0-9\-\.]+)/(?P<iid>\d+)/?$', views.downloads.download, name='download'),
 
-    url(r'^action/supersede/(?P<iid>\d+)$', views.supersede, name='supersede'),
-    url(r'^action/deprecate/(?P<iid>\d+)$', views.deprecate, name='deprecate'),
+    url(r'^action/supersede/(?P<iid>\d+)$', views.actions.SupersedeItemView.as_view(), name='supersede'),
+
     url(r'^action/bulkaction/?$', views.bulk_actions.BulkAction.as_view(), name='bulk_action'),
     url(r'^action/bulkaction/state/?$', views.bulk_actions.ChangeStatusBulkActionView.as_view(), name='change_state_bulk_action'),
     url(r'^action/compare/?$', views.comparator.compare_concepts, name='compare_concepts'),
@@ -147,11 +149,10 @@ urlpatterns=[
     url(r'^account/edit/?$', views.user_pages.EditView.as_view(), name='userEdit'),
     url(r'^account/profile/?$', views.user_pages.ProfileView.as_view(), name='userProfile'),
     url(r'^account/recent/?$', views.user_pages.recent, name='userRecentItems'),
-    url(r'^account/favourites/?$', views.user_pages.favourites, name='userFavourites'),
     url(r'^account/reviews/?$', views.user_pages.my_review_list, name='userMyReviewRequests'),
     url(r'^account/reviews/cancel/(?P<review_id>\d+)/?$', views.actions.ReviewCancelView.as_view(), name='userReviewCancel'),
-    url(r'^account/workgroups/?$', views.user_pages.workgroups, name='userWorkgroups'),
-    url(r'^account/workgroups/archives/?$', views.user_pages.workgroup_archives, name='user_workgroups_archives'),
+    url(r'^account/workgroups/?$', views.user_pages.MyWorkgroupList.as_view(), name='userWorkgroups'),
+    url(r'^account/workgroups/archives/?$', views.user_pages.WorkgroupArchiveList.as_view(), name='user_workgroups_archives'),
     url(r'^account/notifications(?:/folder/(?P<folder>all))?/?$', views.user_pages.inbox, name='userInbox'),
     url(r'^account/notifications/api/mark-all-as-read/', views.notify.MarkAllReadApiView.as_view(), name='api_mark_all_read'),
 
@@ -181,8 +182,6 @@ urlpatterns=[
     url(r'^organizations/?$', views.registrationauthority.all_organizations, name='all_organizations'),
     url(r'^registrationauthorities/?$', views.registrationauthority.all_registration_authorities, name='all_registration_authorities'),
 
-    url(r'^account/toggleFavourite/(?P<iid>\d+)/?$', views.toggleFavourite, name='toggleFavourite'),
-
     url(r'^extensions/?$', views.extensions, name='extensions'),
 
     url(r'^notifyredirect/(?P<content_type>\d+)/(?P<object_id>\d+)/', views.notification_redirect, name="notify_redirect"),
@@ -194,10 +193,13 @@ urlpatterns=[
 
     url(r'user/(?P<uid>\d+)/profilePicture.svg', views.user_pages.profile_picture, name="dynamic_profile_picture"),
 
+    url(r'share/(?P<share>[\w-]+)$', views.user_pages.SharedSandboxView.as_view(), name='sharedSandbox'),
+    url(r'share/(?P<share>[\w-]+)/(?P<iid>\d+)', views.user_pages.SharedItemView.as_view(), name='sharedSandboxItem'),
+
     url(
         r'^search/?$',
         search_view_factory(
-            view_class=views.PermissionSearchView,
+            view_class=PermissionSearchView,
             template='search/search.html',
             searchqueryset=None,
             form_class=forms.search.PermissionSearchForm

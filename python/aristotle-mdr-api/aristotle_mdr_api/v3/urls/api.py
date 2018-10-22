@@ -9,6 +9,7 @@ router.register(r'types', concepttypes.ConceptTypeViewSet)
 router.register(r'search', views.SearchViewSet, base_name="search")
 router.register(r'ras', views.RegistrationAuthorityViewSet)
 router.register(r'organizations', views.OrganizationViewSet)
+router.register(r'superseded_by', concepts.SupersededRelationshipViewSet)
 # router.register(r'about', about.About)
 
 
