@@ -364,6 +364,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
     }
 
     def check_item(self, item):
+        # Will 403 when user cant view the item
         return user_can_view(self.request.user, item)
 
     def get_item(self):
@@ -399,6 +400,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         return target_version
 
     def get_version(self):
+        # Get the version of a concept and its matching subclass
         try:
             version = reversion.models.Version.objects.get(id=self.kwargs[self.version_arg])
         except reversion.models.Version.DoesNotExist:
@@ -407,7 +409,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         self.revision = version.revision
         concept_ct = ContentType.objects.get_for_model(MDR._concept)
 
-        # If we got a concept version
+        # If we got a concept version id
         if version.content_type == concept_ct:
             self.concept_version = version
             self.item_version = self.get_matching_object_from_revision(
@@ -416,7 +418,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
             )
             if self.item_version is None:
                 return False
-        # If we got a concept subclass's version
+        # If we got a concept subclass's version id
         elif issubclass(version.content_type.model_class(), MDR._concept):
             self.item_version = version
             self.concept_version = self.get_matching_object_from_revision(
@@ -434,6 +436,9 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         return True
 
     def get_weak_versions(self, model):
+        # Get version data for weak entites (reverse relations to an
+        # aristotleComponent)
+
         pk = self.item_version_data['pk']
 
         # Find weak models create mapping of model labels to link fields
@@ -462,8 +467,9 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
 
         return template_weak_models
 
-    # Process fields dict, updatng field names and links
     def process_dict(self, fields, model):
+        # Process fields dict, updating field names and links
+
         # Create replacement mapping fields to models
         replacements = {}
         for field in model._meta.get_fields():
@@ -472,6 +478,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
                         issubclass(field.related_model, MDR.aristotleComponent)):
                 replacements[field.name] = field.related_model
 
+        # Create new mapping with user friendly keys and replaced models
         updated_fields = {}
         for key, value in fields.items():
             field = model._meta.get_field(key)
@@ -561,6 +568,8 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_version_context_data(self):
+        # Get the context data for this complete version
+
         version_dict = self.concept_version_data['fields']
         # Keys under item_data are used as headings
         version_dict['item_data'] = {'Names & References': {}}
