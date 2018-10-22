@@ -11,7 +11,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.translation import ugettext as _
 from django.utils import timezone
 
-from reversion import revisions as reversion
+import reversion
 
 from aristotle_mdr import models as aristotle_models
 from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
@@ -30,7 +30,6 @@ from aristotle_mdr.views.views import ConceptRenderMixin
 from aristotle_dse import forms, models
 
 
-@reversion.create_revision()
 def addDataElementsToDSS(request, dss_id):
     dss = get_object_or_404(models.DataSetSpecification, id=dss_id)
     if not user_can_edit(request.user, dss):
@@ -41,12 +40,15 @@ def addDataElementsToDSS(request, dss_id):
         if form.is_valid():
             cardinality = form.cleaned_data['cardinality']
             maxOccurs = form.cleaned_data['maximum_occurances']
-            for de in form.cleaned_data['dataElements']:
-                dss.addDataElement(
-                    data_element=de,
-                    maximum_occurances=maxOccurs,
-                    cardinality=cardinality
-                )
+            with reversion.revisions.create_revision():
+                for de in form.cleaned_data['dataElements']:
+                    dss.addDataElement(
+                        data_element=de,
+                        maximum_occurances=maxOccurs,
+                        cardinality=cardinality
+                    )
+                dss.save()
+                reversion.set_comment('Added data elements')
             return HttpResponseRedirect(reverse("aristotle_mdr:item", args=[dss.id]))
     else:
         form = forms.AddDataElementsToDSSForm(user=request.user, qs=qs, dss=dss)
@@ -61,7 +63,6 @@ def addDataElementsToDSS(request, dss_id):
     )
 
 
-@reversion.create_revision()
 def addClustersToDSS(request, dss_id):
     dss = get_object_or_404(models.DataSetSpecification, id=dss_id)
     if not user_can_edit(request.user, dss):
@@ -72,12 +73,15 @@ def addClustersToDSS(request, dss_id):
         if form.is_valid():
             cardinality = form.cleaned_data['cardinality']
             maxOccurs = form.cleaned_data['maximum_occurances']
-            for child_dss in form.cleaned_data['clusters']:
-                dss.addCluster(
-                    child=child_dss,
-                    maximum_occurances=maxOccurs,
-                    cardinality=cardinality
-                )
+            with reversion.revisions.create_revision():
+                for child_dss in form.cleaned_data['clusters']:
+                    dss.addCluster(
+                        child=child_dss,
+                        maximum_occurances=maxOccurs,
+                        cardinality=cardinality
+                    )
+                dss.save()
+                reversion.set_comment('Added clusters')
             return HttpResponseRedirect(reverse("aristotle_mdr:item", args=[dss.id]))
     else:
         form = forms.AddClustersToDSSForm(user=request.user, qs=qs, dss=dss)
@@ -97,14 +101,16 @@ class RemoveDEFromDSS(ConfirmDeleteView):
     form_title="Remove data element from dataset"
     form_delete_button_text="Remove data element"
 
-    @reversion.create_revision()
     def perform_deletion(self):
         de_id = self.kwargs['de_id']
         dss_id = self.kwargs['dss_id']
         de = get_object_or_404(aristotle_models.DataElement, id=de_id)
         dss = get_object_or_404(models.DataSetSpecification, id=dss_id)
         if user_can_view(self.request.user, de) and user_can_edit(self.request.user, dss):
-            dss.dssdeinclusion_set.filter(data_element=de).delete()
+            with reversion.revisions.create_revision():
+                dss.dssdeinclusion_set.filter(data_element=de).delete()
+                dss.save()
+                reversion.set_comment('Removed {}'.format(de.name))
             messages.success(
                 self.request,
                 _('The Data Element "%(de_name)s" was removed from the dataset "%(dss_name)s".') % {
@@ -130,14 +136,16 @@ class RemoveClusterFromDSS(ConfirmDeleteView):
     item_kwarg="dss_id"
     form_title="Remove data element from this dataset"
 
-    @reversion.create_revision()
     def perform_deletion(self):
         cluster_id = self.kwargs['cluster_id']
         dss_id = self.kwargs['dss_id']
         cluster = get_object_or_404(models.DataSetSpecification, id=cluster_id)
         dss = get_object_or_404(models.DataSetSpecification, id=dss_id)
         if user_can_view(self.request.user, cluster) and user_can_edit(self.request.user, dss):
-            dss.dssclusterinclusion_set.filter(child=cluster).delete()
+            with reversion.revisions.create_revision():
+                dss.dssclusterinclusion_set.filter(child=cluster).delete()
+                dss.save()
+                reversion.set_comment('Removed {}'.format(cluster.name))
             messages.success(
                 self.request,
                 _('The cluster "%(cl_name)s" was removed from the dataset "%(dss_name)s".') % {
@@ -148,7 +156,6 @@ class RemoveClusterFromDSS(ConfirmDeleteView):
             raise PermissionDenied
 
 
-@reversion.create_revision()
 def editDataElementInclusion(request, dss_id, de_id):
     dss = get_object_or_404(models.DataSetSpecification, id=dss_id)
     de = get_object_or_404(aristotle_models.DataElement, id=de_id)
@@ -159,7 +166,10 @@ def editDataElementInclusion(request, dss_id, de_id):
     if request.method == 'POST':
         form = forms.EditDataElementInclusionForm(request.POST, instance=inclusion)  # , user=request.user)
         if form.is_valid():
-            form.save()
+            with reversion.revisions.create_revision():
+                form.save()
+                dss.save()
+                reversion.set_comment('Edited data element inclusion')
             return HttpResponseRedirect(reverse("aristotle_mdr:item", args=[dss.id]))
     else:
         form = forms.EditDataElementInclusionForm(instance=inclusion)  # , user=request.user)
@@ -174,7 +184,6 @@ def editDataElementInclusion(request, dss_id, de_id):
     )
 
 
-@reversion.create_revision()
 def editClusterInclusion(request, dss_id, cluster_id):
     dss = get_object_or_404(models.DataSetSpecification, id=dss_id)
     cluster = get_object_or_404(models.DataSetSpecification, id=cluster_id)
@@ -185,7 +194,10 @@ def editClusterInclusion(request, dss_id, cluster_id):
     if request.method == 'POST':
         form = forms.EditClusterInclusionForm(request.POST, instance=inclusion)  # , user=request.user)
         if form.is_valid():
-            form.save()
+            with reversion.revisions.create_revision():
+                form.save()
+                dss.save()
+                reversion.set_comment('Edited cluster inclusion')
             return HttpResponseRedirect(reverse("aristotle_mdr:item", args=[dss.id]))
     else:
         form = forms.EditClusterInclusionForm(instance=inclusion)  # , user=request.user)
@@ -200,7 +212,6 @@ def editClusterInclusion(request, dss_id, cluster_id):
     )
 
 
-@reversion.create_revision()
 def editInclusionDetails(request, dss_id, inc_type, cluster_id):
     dss = get_object_or_404(models.DataSetSpecification, id=dss_id)
 
@@ -226,7 +237,10 @@ def editInclusionDetails(request, dss_id, inc_type, cluster_id):
     if request.method == 'POST':
         form = forms.EditClusterInclusionForm(request.POST, instance=inclusion)  # , user=request.user)
         if form.is_valid():
-            form.save()
+            with reversion.revisions.create_revision():
+                form.save()
+                dss.save()
+                reversion.set_comment('Edited inclusion details')
             return HttpResponseRedirect(reverse("aristotle_mdr:item", args=[dss.id]))
     else:
         form = forms.EditClusterInclusionForm(instance=inclusion)  # , user=request.user)
