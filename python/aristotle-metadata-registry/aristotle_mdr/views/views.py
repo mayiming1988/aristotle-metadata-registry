@@ -433,7 +433,6 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
 
         return True
 
-    # Fetch links from serialize weak entities
     def get_weak_versions(self, model):
         pk = self.item_version_data['pk']
 

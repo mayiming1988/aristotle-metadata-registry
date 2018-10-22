@@ -364,6 +364,46 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertFalse(names_and_refs['Responsible Organisation']['is_html'])
         self.assertEqual(names_and_refs['Responsible Organisation']['value'], 'My org')
 
+    @tag('version')
+    def test_version_workgroup_lookup(self):
+
+        with reversion.create_revision():
+            self.item.save()
+
+        latest = reversion.models.Version.objects.get_for_object(self.item).first()
+
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle:item_version',
+            reverse_args=[latest.id],
+            status_code=200
+        )
+
+        workgroup = response.context['item']['workgroup']
+        self.assertEqual(workgroup, self.wg1)
+
+    @tag('version')
+    def test_version_item_metadata(self):
+        # Does this make it meta meta data
+
+        with reversion.create_revision():
+            self.item.save()
+
+        latest = reversion.models.Version.objects.get_for_object(self.item).first()
+
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle:item_version',
+            reverse_args=[latest.id],
+            status_code=200
+        )
+
+        self.assertEqual(response.context['item']['id'], self.item.id)
+        self.assertEqual(response.context['item']['pk'], self.item.id)
+        self.assertEqual(response.context['item']['meta']['app_label'], 'aristotle_mdr')
+        self.assertEqual(response.context['item']['meta']['model_name'], 'objectclass')
+        self.assertEqual(response.context['item']['get_verbose_name'], 'Object Class')
+
 
 class LoggedInViewConceptPages(utils.AristotleTestUtils):
     defaults = {}
