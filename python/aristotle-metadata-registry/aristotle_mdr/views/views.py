@@ -370,7 +370,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         # Gets the current item
         return self.item_version.object
 
-    def get_mathcing_object_from_revision(self, revision, current_version, target_ct):
+    def get_matching_object_from_revision(self, revision, current_version, target_ct=None):
         # Finds another version in the same revision with same id
         current_ct = current_version.content_type
         version_filter = Q(revision=revision) &\
@@ -410,7 +410,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         # If we got a concept version
         if version.content_type == concept_ct:
             self.concept_version = version
-            self.item_version = self.get_mathcing_object_from_revision(
+            self.item_version = self.get_matching_object_from_revision(
                 self.revision,
                 version
             )
@@ -419,7 +419,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         # If we got a concept subclass's version
         elif issubclass(version.content_type.model_class(), MDR._concept):
             self.item_version = version
-            self.concept_version = self.get_mathcing_object_from_revision(
+            self.concept_version = self.get_matching_object_from_revision(
                 self.revision,
                 version,
                 concept_ct

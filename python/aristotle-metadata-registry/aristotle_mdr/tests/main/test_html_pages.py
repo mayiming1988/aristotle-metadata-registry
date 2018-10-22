@@ -382,6 +382,22 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertTrue(perms.user_can_view(user,item))
         self.assertTrue(perms.user_can_change_status(user,item))
 
+    def update_defn_with_versions(self, new_defn='brand new definition'):
+        with reversion.create_revision():
+            self.item1.save()
+
+        with reversion.create_revision():
+            self.item1.definition = new_defn
+            self.item1.save()
+
+        item1_concept = self.item1._concept_ptr
+
+        concept_versions = reversion.models.Version.objects.get_for_object(item1_concept)
+        self.assertEqual(concept_versions.count(), 2)
+
+        item_versions = reversion.models.Version.objects.get_for_object(self.item1)
+        self.assertEqual(concept_versions.count(), 2)
+
     # ---- tests ----
 
     def test_su_can_view(self):
@@ -1456,19 +1472,34 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
                 self.assertTrue(new_value_seen)
 
     @tag('version')
-    def test_view_previous_version(self):
+    def test_view_previous_version_from_concept(self):
         old_definition = self.item1.definition
-        with reversion.create_revision():
-            self.item1.save()
 
-        new_definition = 'brand new definition'
-        with reversion.create_revision():
-            self.item1.definition = new_definition
-            self.item1.save()
+        self.update_defn_with_versions()
 
         item1_concept = self.item1._concept_ptr
-
         versions = reversion.models.Version.objects.get_for_object(item1_concept)
+        self.assertEqual(versions.count(), 2)
+        oldest_version = versions.last()
+
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle:item_version',
+            reverse_args=[oldest_version.id],
+            status_code=200
+        )
+
+        item_context = response.context['item']
+        self.assertEqual(item_context['definition'], old_definition)
+
+    @tag('version')
+    def test_view_previous_version_from_item_version(self):
+
+        old_definition = self.item1.definition
+
+        self.update_defn_with_versions()
+
+        versions = reversion.models.Version.objects.get_for_object(self.item1)
         self.assertEqual(versions.count(), 2)
         oldest_version = versions.last()
 
