@@ -16,8 +16,9 @@ from aristotle_mdr.forms.creation_wizards import (
 )
 from aristotle_mdr.tests import utils
 import datetime
-from unittest import mock
+from unittest import mock, skip
 import reversion
+import json
 
 from aristotle_mdr.utils import setup_aristotle_test_environment
 
@@ -2222,6 +2223,23 @@ class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):
     url_name='dataelementderivation'
     itemType=models.DataElementDerivation
 
+    def create_linked_ded(self):
+
+        de1 = models.DataElement.objects.create(name='DE1 Name',definition="my definition",workgroup=self.wg1)
+        de2 = models.DataElement.objects.create(name='DE2 Name',definition="my definition",workgroup=self.wg1)
+        de3 = models.DataElement.objects.create(name='DE3 Name',definition="my definition",workgroup=self.wg1)
+        ded = models.DataElementDerivation.objects.create(name='DED Name', definition='my definition', workgroup=self.wg1)
+
+        ded_derives_1 = models.DedDerivesThrough.objects.create(data_element_derivation=ded, data_element=de1, order=0)
+        ded_derives_2 = models.DedDerivesThrough.objects.create(data_element_derivation=ded, data_element=de2, order=1)
+        ded_derives_3 = models.DedDerivesThrough.objects.create(data_element_derivation=ded, data_element=de3, order=2)
+
+        ded_inputs_1 = models.DedInputsThrough.objects.create(data_element_derivation=ded, data_element=de3, order=0)
+        ded_inputs_1 = models.DedInputsThrough.objects.create(data_element_derivation=ded, data_element=de2, order=1)
+        ded_inputs_1 = models.DedInputsThrough.objects.create(data_element_derivation=ded, data_element=de1, order=2)
+
+        return ded
+
     def derivation_m2m_concepts_save(self, url, attr):
         self.de1 = models.DataElement.objects.create(name='DE1 - visible',definition="my definition",workgroup=self.wg1)
         self.de2 = models.DataElement.objects.create(name='DE2 - not visible',definition="my definition",workgroup=self.wg2)
@@ -2483,18 +2501,7 @@ class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):
 
     def test_derivation_item_page(self):
 
-        de1 = models.DataElement.objects.create(name='DE1 Name',definition="my definition",workgroup=self.wg1)
-        de2 = models.DataElement.objects.create(name='DE2 Name',definition="my definition",workgroup=self.wg1)
-        de3 = models.DataElement.objects.create(name='DE3 Name',definition="my definition",workgroup=self.wg1)
-        ded = models.DataElementDerivation.objects.create(name='DED Name', definition='my definition', workgroup=self.wg1)
-
-        ded_derives_1 = models.DedDerivesThrough.objects.create(data_element_derivation=ded, data_element=de1, order=0)
-        ded_derives_2 = models.DedDerivesThrough.objects.create(data_element_derivation=ded, data_element=de2, order=1)
-        ded_derives_3 = models.DedDerivesThrough.objects.create(data_element_derivation=ded, data_element=de3, order=2)
-
-        ded_inputs_1 = models.DedInputsThrough.objects.create(data_element_derivation=ded, data_element=de3, order=0)
-        ded_inputs_1 = models.DedInputsThrough.objects.create(data_element_derivation=ded, data_element=de2, order=1)
-        ded_inputs_1 = models.DedInputsThrough.objects.create(data_element_derivation=ded, data_element=de1, order=2)
+        ded = self.create_linked_ded()
 
         self.login_editor()
         response = self.client.get(reverse("aristotle:item", args=[ded.pk]), follow=True)
@@ -2514,6 +2521,27 @@ class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):
         self.assertEqual(des[0].pk, de1.pk)
         self.assertEqual(des[1].pk, de2.pk)
         self.assertEqual(des[2].pk, de3.pk)
+
+    @skip('to be fixed in future')
+    @tag('ded_version')
+    def test_derivation_version_follow(self):
+
+        ded = self.create_linked_ded()
+
+        with reversion.create_revision():
+            ded.save()
+
+        versions = reversion.models.Version.objects.get_for_object(ded)
+        self.assertEqual(versions.count(), 1)
+
+        version = versions.first()
+
+        data = json.loads(version.serialized_data)
+        self.assertEqual(len(data), 1)
+
+        self.assertTrue('derivation_rule' in data[0]['fields'])
+        self.assertTrue('derives' in data[0]['fields'])
+        self.assertTrue('inputs' in data[0]['fields'])
 
 
 class LoggedInViewUnmanagedPages(utils.LoggedInViewPages):
