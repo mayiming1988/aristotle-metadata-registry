@@ -1517,26 +1517,33 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 class ObjectClassViewPage(LoggedInViewConceptPages, TestCase):
     url_name='objectClass'
     itemType=models.ObjectClass
+
+
 class PropertyViewPage(LoggedInViewConceptPages, TestCase):
     url_name='property'
     itemType=models.Property
+
+
 class UnitOfMeasureViewPage(LoggedInViewConceptPages, TestCase):
     url_name='unitOfMeasure'
     itemType=models.UnitOfMeasure
+
+
 class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
     url_name='valueDomain'
     itemType=models.ValueDomain
+
     def setUp(self):
         super().setUp()
 
         for i in range(4):
             models.PermissibleValue.objects.create(
                 value=i,meaning="test permissible meaning %d"%i,order=i,valueDomain=self.item1
-                )
+            )
         for i in range(4):
             models.SupplementaryValue.objects.create(
                 value=i,meaning="test supplementary meaning %d"%i,order=i,valueDomain=self.item1
-                )
+            )
 
         # Data used to test value domain conceptual domain link
         cd = models.ConceptualDomain.objects.create(
@@ -1754,6 +1761,48 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         for form in formset:
             self.assertFalse('value_meaning' in form.fields)
             self.assertTrue('meaning' in form.fields)
+
+    @tag('version')
+    def test_version_display_of_values(self):
+
+        self.update_defn_with_versions()
+
+        latest = reversion.models.Version.objects.get_for_object(self.item1).last()
+
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle:item_version',
+            reverse_args=[latest.id],
+            status_code=200
+        )
+
+        item_context = response.context['item']
+
+        self.assertEqual(len(item_context['weak']), 2)
+
+        # Check supplementary values are being displayed
+        supp_values = item_context['weak'][0]
+        self.assertEqual(supp_values['model'], 'Supplementary Value')
+
+        meaning_ht = models.AbstractValue._meta.get_field('meaning').help_text
+
+        self.assertEqual(len(supp_values['headers']), 6)
+        self.assertFalse('Value Domain' in supp_values['headers'])
+        self.assertEqual(len(supp_values['items']), 4)
+        self.assertEqual(supp_values['items'][0]['Meaning']['value'], 'test supplementary meaning 3')
+        self.assertEqual(supp_values['items'][0]['Meaning']['help_text'], meaning_ht)
+        self.assertEqual(supp_values['items'][0]['Meaning']['is_link'], False)
+
+        # Check permissible values are being displayed
+        perm_values = item_context['weak'][1]
+        self.assertEqual(perm_values['model'], 'Permissible Value')
+
+        self.assertEqual(len(perm_values['headers']), 6)
+        self.assertFalse('Value Domain' in perm_values['headers'])
+        self.assertEqual(len(perm_values['items']), 4)
+        self.assertEqual(perm_values['items'][0]['Meaning']['value'], 'test permissible meaning 3')
+        self.assertEqual(perm_values['items'][0]['Meaning']['help_text'], meaning_ht)
+        self.assertEqual(perm_values['items'][0]['Meaning']['is_link'], False)
 
 class ConceptualDomainViewPage(LoggedInViewConceptPages, TestCase):
     url_name='conceptualDomain'
