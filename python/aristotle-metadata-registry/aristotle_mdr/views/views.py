@@ -356,7 +356,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
     slug_redirect = False
     version_arg = 'verid'
     template_name = 'aristotle_mdr/concepts/managedContentVersion.html'
-    concept_fields = ['references', 'submitting_organisation', 'responsible_organistation',
+    concept_fields = ['references', 'submitting_organisation', 'responsible_organisation',
                       'origin', 'origin_URI', 'comments']
     default_weak_map = {
         'aristotle_mdr_slots.slot': 'concept',
@@ -581,6 +581,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
                 fieldobj = MDR._concept._meta.get_field(field)
                 field_data = {
                     'is_link': False,
+                    'is_html': False,
                     'value': self.concept_version_data['fields'][field],
                     'help_text': fieldobj.help_text
                 }
