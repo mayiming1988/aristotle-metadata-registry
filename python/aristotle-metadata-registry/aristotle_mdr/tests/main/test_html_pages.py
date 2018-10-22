@@ -404,6 +404,40 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.context['item']['meta']['model_name'], 'objectclass')
         self.assertEqual(response.context['item']['get_verbose_name'], 'Object Class')
 
+    @tag('version')
+    def test_view_non_concept_version(self):
+
+        with reversion.create_revision():
+            self.wg1.save()
+
+        latest = reversion.models.Version.objects.get_for_object(self.wg1).first()
+
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle:item_version',
+            reverse_args=[latest.id],
+            status_code=404
+        )
+
+    @tag('version')
+    def test_view_version_for_item_without_perm(self):
+
+        with reversion.create_revision():
+            item = models.ObjectClass.objects.create(
+                name='cant view',
+                definition='cant see this one',
+                submitter=self.editor
+            )
+
+        latest = reversion.models.Version.objects.get_for_object(item).first()
+
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle:item_version',
+            reverse_args=[latest.id],
+            status_code=403
+        )
+
 
 class LoggedInViewConceptPages(utils.AristotleTestUtils):
     defaults = {}
