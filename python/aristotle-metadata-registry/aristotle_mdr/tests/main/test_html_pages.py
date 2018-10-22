@@ -1804,6 +1804,40 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         self.assertEqual(perm_values['items'][0]['Meaning']['help_text'], meaning_ht)
         self.assertEqual(perm_values['items'][0]['Meaning']['is_link'], False)
 
+    @tag('version')
+    def test_version_display_of_value_meanings(self):
+
+        vm = self.vms[0]
+
+        models.PermissibleValue.objects.create(
+            value='1',
+            value_meaning = vm,
+            order=0,
+            valueDomain=self.item3
+        )
+
+        with reversion.create_revision():
+            self.item3.save()
+
+        latest = reversion.models.Version.objects.get_for_object(self.item3).last()
+
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle:item_version',
+            reverse_args=[latest.id],
+            status_code=200
+        )
+
+        weak_context = response.context['item']['weak']
+        perm_values = weak_context[0]['items']
+
+        self.assertEqual(weak_context[0]['model'], 'Permissible Value')
+
+        self.assertTrue(perm_values[0]['Value Meaning']['is_link'])
+        self.assertEqual(perm_values[0]['Value Meaning']['object'], vm)
+        self.assertEqual(perm_values[0]['Value Meaning']['linkid'], self.item3.conceptual_domain.id)
+
+
 class ConceptualDomainViewPage(LoggedInViewConceptPages, TestCase):
     url_name='conceptualDomain'
     itemType=models.ConceptualDomain
@@ -1997,6 +2031,38 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
 
         response = self.client.get(check_url)
         self.assertEqual(response.status_code,200)
+
+    @tag('version')
+    def test_version_display_components(self):
+
+        dec = models.DataElementConcept.objects.create(
+            name='test dec',
+            definition='just a test',
+            workgroup=self.wg1
+        )
+        self.item1.dataElementConcept = dec
+        self.item1.save()
+
+        self.update_defn_with_versions()
+
+        latest = reversion.models.Version.objects.get_for_object(self.item1).first()
+
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle:item_version',
+            reverse_args=[latest.id],
+            status_code=200
+        )
+
+        item_context = response.context['item']
+        components = item_context['item_data']['Components']
+
+        dec_ht = models.DataElement._meta.get_field('dataElementConcept').help_text
+
+        self.assertTrue(components['Data Element Concept']['is_link'])
+        self.assertEqual(components['Data Element Concept']['object'], self.item1.dataElementConcept)
+        self.assertEqual(components['Data Element Concept']['linkid'], self.item1.dataElementConcept.id)
+        self.assertEqual(components['Data Element Concept']['help_text'], dec_ht)
 
 class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):
     url_name='dataelementderivation'
