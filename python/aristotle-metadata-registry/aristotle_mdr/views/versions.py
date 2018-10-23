@@ -266,7 +266,12 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
     def lookup_object_refs(self):
         for label, id_list in self.obj_ids.items():
             model = apps.get_model(label)
-            object_qs = model.objects.filter(id__in=id_list)
+
+            if issubclass(model, MDR._concept):
+                object_qs = model.objects.visible(self.request.user).filter(id__in=id_list)
+            else:
+                object_qs = model.objects.filter(id__in=id_list)
+
             object_map = {}
             for obj in object_qs:
                 object_map[obj.id] = obj
