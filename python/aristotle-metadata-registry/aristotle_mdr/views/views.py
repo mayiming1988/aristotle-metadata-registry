@@ -28,11 +28,12 @@ from aristotle_mdr.perms import (
     user_can_change_status
 )
 from aristotle_mdr import perms
-from aristotle_mdr.utils import url_slugify_concept, CachePerItemUserMixin
+from aristotle_mdr.utils import url_slugify_concept
+
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils import get_concepts_for_apps, fetch_aristotle_settings, fetch_aristotle_downloaders
-from aristotle_mdr.views.utils import generate_visibility_matrix
+from aristotle_mdr.views.utils import generate_visibility_matrix, CachePerItemUserMixin
 from aristotle_mdr.contrib.slots.utils import get_allowed_slots
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
 
@@ -68,7 +69,11 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
     pk_url_kwarg = 'iid'
     template_name = "aristotle_mdr/actions/concept_history_compare.html"
 
-    compare_exclude = 'favourites'
+    compare_exclude = [
+        'favourites',
+        'user_view_history',
+        'submitter',
+    ]
 
     def get_object(self, queryset=None):
         item = super().get_object(queryset)
@@ -225,6 +230,10 @@ class ConceptRenderMixin:
                 return HttpResponseRedirect(redirect_url)
             else:
                 return HttpResponseForbidden()
+
+        from aristotle_mdr.contrib.view_history.signals import metadata_item_viewed
+        metadata_item_viewed.send(sender=self.item, user=self.user.pk)
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
@@ -261,6 +270,10 @@ class ConceptRenderMixin:
 
             context['item_tags'] = json.dumps(item_tags)
             context['user_tags'] = json.dumps(user_tags)
+
+        else:
+            context['item_tags'] = []
+            context['user_tags'] = []
 
         return context
 
@@ -405,7 +418,7 @@ class ReviewChangesView(SessionWizardView):
             state = cleaned_data['state']
             ra = cleaned_data['registrationAuthorities']
 
-            static_content = {'new_state': str(MDR.STATES[state]), 'new_reg_date': cleaned_data['registrationDate']}
+            static_content = {'new_state': state, 'new_reg_date': cleaned_data['registrationDate']}
             # Need to check wether cascaded was true here
 
             if cascade == 1:
@@ -647,50 +660,3 @@ def extensions(request):
         "aristotle_mdr/static/extensions.html",
         {'content_extensions': content, 'download_extensions': downloads, }
     )
-
-
-# Search views
-
-class PermissionSearchView(FacetedSearchView):
-
-    results_per_page_values = getattr(settings, 'RESULTS_PER_PAGE', [])
-
-    def build_page(self):
-
-        try:
-            rpp = self.form.cleaned_data['rpp']
-        except (AttributeError, KeyError):
-            rpp = ''
-
-        if rpp in self.results_per_page_values:
-            self.results_per_page = rpp
-        else:
-            if len(self.results_per_page_values) > 0:
-                self.results_per_page = self.results_per_page_values[0]
-
-        return super().build_page()
-
-    def build_form(self):
-
-        form = super().build_form()
-        form.request = self.request
-        form.request.GET = self.clean_facets(self.request)
-        return form
-
-    def clean_facets(self, request):
-        get = request.GET.copy()
-        for k, val in get.items():
-            if k.startswith('f__'):
-                get.pop(k)
-                k = k[4:]
-                get.update({'f': '%s::%s' % (k, val)})
-        return get
-
-    def extra_context(self):
-        # needed to compare to indexed primary key value
-        if not self.request.user.is_anonymous():
-            favourites_list = self.request.user.profile.favourite_item_pks
-        else:
-            favourites_list = []
-
-        return {'rpp_values': self.results_per_page_values, 'favourites': favourites_list}

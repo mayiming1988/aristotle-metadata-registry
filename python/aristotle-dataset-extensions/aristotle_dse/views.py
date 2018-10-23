@@ -178,7 +178,7 @@ def editDataElementInclusion(request, dss_id, de_id):
 def editClusterInclusion(request, dss_id, cluster_id):
     dss = get_object_or_404(models.DataSetSpecification, id=dss_id)
     cluster = get_object_or_404(models.DataSetSpecification, id=cluster_id)
-    if not (user_can_edit(request.user, dss) and user_can_view(request.user, cluster_id)):
+    if not (user_can_edit(request.user, dss) and user_can_view(request.user, cluster)):
         raise PermissionDenied
     inclusion = get_object_or_404(models.DSSClusterInclusion, child=cluster, dss=dss)
 

@@ -11,6 +11,10 @@ ARISTOTLE_SETTINGS['SITE_NAME'] = 'Aristotle Development Server'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+ARISTOTLE_ASYNC_SIGNALS = False
+INSTALLED_APPS = list(INSTALLED_APPS)+['aristotle_mdr.contrib.links','aristotle_dse','aristotle_glossary']
+ROOT_URLCONF = 'urls'
+ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] = ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS']+['aristotle_mdr_links','aristotle_dse','aristotle_glossary']
 
 MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',

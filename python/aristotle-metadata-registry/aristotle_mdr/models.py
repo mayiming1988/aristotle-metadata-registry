@@ -1552,12 +1552,14 @@ class PossumProfile(models.Model):
     @property
     def favourites(self):
         return _concept.objects.filter(
+            favourites__tag__primary=True,
             favourites__tag__profile=self
         ).distinct()
 
     @property
     def favourite_item_pks(self):
         qs = _concept.objects.filter(
+            favourites__tag__primary=True,
             favourites__tag__profile=self
         ).distinct().values_list('id', flat=True)
         return list(qs)
@@ -1568,6 +1570,12 @@ class PossumProfile(models.Model):
             favourites__tag__profile=self
         ).distinct().count()
         return count
+
+    def profile_picture_url(self):
+        if self.profilePicture:
+            return self.profilePicture.url
+        else:
+            return reverse("aristotle_mdr:dynamic_profile_picture", args=[self.user.id])
 
 
 class SandboxShare(models.Model):

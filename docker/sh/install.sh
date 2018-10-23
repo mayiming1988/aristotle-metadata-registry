@@ -2,5 +2,5 @@
 # pipenv graph
 # pipenv install --dev --system
 cd ..
-pipenv install --dev --system
+pipenv install --dev --system --skip-lock
 cd docker

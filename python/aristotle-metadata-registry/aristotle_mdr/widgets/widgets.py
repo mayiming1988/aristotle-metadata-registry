@@ -38,12 +38,13 @@ class RegistrationAuthoritySelect(forms.Select):
 
 class TableCheckboxSelect(CheckboxSelectMultiple):
 
-    def __init__(self, extra_info, static_info, headers, top_header, order, attrs=None, choices=(), **kwargs):
+    def __init__(self, extra_info, static_info, headers, top_header, order, attrs=None, choices=(), deselections=False, **kwargs):
         super().__init__(attrs, choices, **kwargs)
         self.extra_info = extra_info
         self.static_info = static_info
         self.order = order
         self.header_list = []
+        self.deselections = deselections
 
         for field in order:
             header = headers[field]
@@ -81,6 +82,7 @@ class TableCheckboxSelect(CheckboxSelectMultiple):
 
         option['extra'] = option_extra_list
         option['permission'] = option_extra['perm']
+        option['checked'] = option_extra['checked']
 
         if not option['permission']:
             self.badperms = True
@@ -94,7 +96,8 @@ class TableCheckboxSelect(CheckboxSelectMultiple):
             'static_info': self.static_info,
             'headers': self.header_list,
             'badperms': self.badperms,
-            'top_header': self.top_header
+            'top_header': self.top_header,
+            'deselections': self.deselections
         })
 
         return context

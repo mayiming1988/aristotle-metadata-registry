@@ -176,13 +176,17 @@ class AddFavouriteForm(LoggedInBulkActionForm):
         )
 
         num_items = 0
+        bad_items = []
         for item in items:
-            favourite, created = fav_models.Favourite.objects.get_or_create(
-                tag=fav_tag,
-                item=item
-            )
-            if created:
-                num_items += 1
+            if not user_can_view(self.user, item):
+                bad_items.append(str(item.id))
+            else:
+                favourite, created = fav_models.Favourite.objects.get_or_create(
+                    tag=fav_tag,
+                    item=item
+                )
+                if created:
+                    num_items += 1
 
         message_text = "{0} items favourited.".format(num_items)
         return _(message_text)

@@ -33,7 +33,7 @@ def move_to_old(apps, schema_migration):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_mdr', '0040_remove_possumprofile_favourites'),
+        ('aristotle_mdr', '0042_remove_possumprofile_favourites'),
     ]
 
     operations = [

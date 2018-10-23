@@ -269,7 +269,7 @@ class DeleteTagView(LoginRequiredMixin, View):
         })
 
 
-class EditTagView(AjaxFormMixin, UpdateView):
+class EditTagView(LoginRequiredMixin, AjaxFormMixin, UpdateView):
     model = Tag
     fields = ['description']
     pk_url_kwarg = 'tagid'

@@ -174,48 +174,6 @@ def get_concepts_for_apps(app_labels):
     return concepts
 
 
-class CachePerItemUserMixin:
-
-    cache_item_kwarg = 'iid'
-    cache_view_name = ''
-    cache_ttl = 300
-
-    def get(self, request, *args, **kwargs):
-        if request.user.is_anonymous():
-            user = 'anonymous'
-        else:
-            user = request.user.id
-
-        iid = kwargs[self.cache_item_kwarg]
-
-        CACHE_KEY = 'view_cache_%s_%s_%s' % (self.cache_view_name, user, iid)
-
-        can_use_cache = True
-
-        if 'nocache' in request.GET.keys():
-            can_use_cache = False
-
-        from aristotle_mdr.models import _concept
-
-        # If the item was modified within ttl, don't use cache
-        recently = timezone.now() - datetime.timedelta(seconds=self.cache_ttl)
-        if _concept.objects.filter(id=iid, modified__gte=recently).exists():
-            can_use_cache = False
-
-        if can_use_cache:
-            response = cache.get(CACHE_KEY, None)
-            if response is not None:
-                return response
-
-        response = super().get(request, *args, **kwargs)
-        response.render()
-
-        if can_use_cache:
-            cache.set(CACHE_KEY, response, self.cache_ttl)
-
-        return response
-
-
 error_messages = {
     "bulk_action_failed": "BULK_ACTION settings for registry are invalid.",
     "content_extensions_failed": "CONTENT_EXTENSIONS settings for registry are invalid.",

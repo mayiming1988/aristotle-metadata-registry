@@ -123,10 +123,11 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         if invalid:
             return self.form_invalid(form, formsets=extra_formsets)
         else:
-            with transaction.atomic(), reversion.revisions.create_revision():
+            # This was removed from the revision below due to a bug with saving
+            # long slots, links are still saved due to reversion follows
+            self.save_formsets(extra_formsets)
 
-                # Save formsets
-                self.save_formsets(extra_formsets)
+            with reversion.revisions.create_revision():
 
                 # save the change comments
                 if not change_comments:

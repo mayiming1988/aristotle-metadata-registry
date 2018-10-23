@@ -71,13 +71,13 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
     def test_empty_search_loads(self):
         self.logout()
         response = self.client.get(reverse('aristotle:search'))
-        self.assertTrue(response.status_code == 200)
+        self.assertEqual(response.status_code, 200)
 
-    def test_one_result_search_doesnt_have__did_you_mean(self):
+    def test_one_result_search_doesnt_have_did_you_mean(self):
         self.logout()
         response = self.client.get(reverse('aristotle:search')+"?q=wolverine")
-        self.assertEqual(response.status_code,200)
-        self.assertEqual(len(response.context['page'].object_list),1)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['page'].object_list), 1)
         self.assertNotContains(response, "Did you mean")
         self.assertContains(response, "wolverine")
 
