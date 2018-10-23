@@ -117,10 +117,10 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
 
     def get_matching_object_from_revision(self, revision, current_version, target_ct=None):
         # Finds another version in the same revision with same id
-        current_ct = current_version.content_type
+        current_ct_id = current_version.content_type_id
         version_filter = Q(revision=revision) &\
             Q(object_id=current_version.object_id) &\
-            ~Q(content_type_id=current_ct.id)
+            ~Q(content_type_id=current_ct_id)
 
         # Other versions in the revision could have the same id
         versions = reversion.models.Version.objects.filter(
@@ -129,9 +129,9 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
 
         target_version = None
         for sub_version in versions:
-            ct = sub_version.content_type
+            ctid = sub_version.content_type_id
             if target_ct is not None:
-                if sub_version.content_type == target_ct:
+                if ctid == target_ct.id:
                     target_version = sub_version
                     break
             else:
@@ -154,7 +154,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         concept_ct = ContentType.objects.get_for_model(MDR._concept)
 
         # If we got a concept version id
-        if version.content_type == concept_ct:
+        if version.content_type_id == concept_ct.id:
             self.concept_version = version
             self.item_version = self.get_matching_object_from_revision(
                 self.revision,
