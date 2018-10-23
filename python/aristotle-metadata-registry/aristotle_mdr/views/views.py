@@ -354,7 +354,11 @@ class DataElementView(ConceptRenderMixin, TemplateView):
 class VersionField:
 
     def __init__(self, value='', obj=None, help_text='', html=False):
-        self.value=str(value)
+        if not value:
+            self.value = ''
+        else:
+            self.value=str(value)
+
         self.obj=obj
         self.help_text=help_text
         self.is_html=html
@@ -538,7 +542,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
 
             if not replaced:
                 updated_fields[header] = VersionField(
-                    value=(value or ''),
+                    value=value,
                     help_text=field.help_text
                 )
 
