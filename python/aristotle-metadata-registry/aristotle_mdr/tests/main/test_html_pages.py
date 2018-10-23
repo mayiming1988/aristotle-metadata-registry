@@ -1913,7 +1913,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
 
         models.PermissibleValue.objects.create(
             value='1',
-            value_meaning = vm,
+            value_meaning=vm,
             order=0,
             valueDomain=self.item3
         )
@@ -2163,7 +2163,7 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
         dec_ht = models.DataElement._meta.get_field('dataElementConcept').help_text
 
         self.assertTrue(components['Data Element Concept'].is_link)
-        self.assertEqual(components['Data Element Concept'].obj, self.item1.dataElementConcept)
+        self.assertEqual(components['Data Element Concept'].obj, self.item1.dataElementConcept._concept_ptr)
         self.assertEqual(components['Data Element Concept'].link_id, self.item1.dataElementConcept.id)
         self.assertEqual(components['Data Element Concept'].help_text, dec_ht)
 
@@ -2199,7 +2199,7 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
         )
 
         components = response.context['item']['item_data']['Components']
-        self.assertEqual(components['Data Element Concept'].obj, self.item1.dataElementConcept)
+        self.assertEqual(components['Data Element Concept'].obj, self.item1.dataElementConcept._concept_ptr)
 
     @tag('version')
     def test_version_display_component_permission(self):
