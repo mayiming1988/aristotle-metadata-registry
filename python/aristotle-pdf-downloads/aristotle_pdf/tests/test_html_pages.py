@@ -30,7 +30,6 @@ def setUpModule():
 class LoggedInViewConceptPages(utils.LoggedInViewPages):
     defaults = {}
     # This result represents the result from the download view
-    result = None
 
     def setUp(self):
         super(LoggedInViewConceptPages, self).setUp()
@@ -154,33 +153,6 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         self.celery_result = None
         response = self.client.get(reverse('aristotle:download',args=['pdf',self.item2.id]))
         self.assertEqual(response.status_code,403)
-
-    @skip('Should pass once public link is implemented')
-    def test_public_link_no_sensitive_data(self):
-        self.login_viewer()
-        self.celery_result = None
-        response = self.client.get(
-            reverse('aristotle:download',args=['pdf', self.item1.id]),
-            {'public': 'true'},
-            follow=True
-        )
-
-        response = self.client.get('{}?{}'.format(
-            reverse('aristotle:start_download', args=['pdf']),
-            response.request['QUERY_STRING']),
-        )
-
-        self.assertEqual(response.status_code,200)
-        self.assertTrue(self.async_result.called)
-        self.assertEqual(len(self.async_result.mock_calls), 2)
-
-        self.assertNotContains(response, self.item1.name)
-        self.assertNotContains(response, self.item2.name)  # Will be in as its a component of DEC5
-        self.assertNotContains(response, self.item5.name)
-
-        self.assertNotContains(response, self.item1.definition)
-        self.assertNotContains(response, self.item2.definition)  # Will be in as its a component of DEC5
-        self.assertNotContains(response, self.item5.definition)
 
 
 class ObjectClassViewPage(LoggedInViewConceptPages, TestCase):

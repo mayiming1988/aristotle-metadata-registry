@@ -1512,7 +1512,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
 
         eq = QueryDict('', mutable=True)
         eq.setdefault('items', self.item1.id)
-        eq.setdefault('title', 'self.item1.name')
+        eq.setdefault('title', self.item1.name)
         response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item1.id]), follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=['csv-vd']) +
