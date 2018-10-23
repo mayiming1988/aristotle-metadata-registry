@@ -7,6 +7,7 @@ from django.core.exceptions import PermissionDenied, FieldDoesNotExist, ObjectDo
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.utils.dateparse import parse_datetime
+from django.urls import reverse
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils import pretify_camel_case
