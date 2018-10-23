@@ -47,13 +47,13 @@
               </ul>
             </p>
           {% else %}
-            <p><a href="{% url 'aristotle:item' value.linkid %}">{{ value.object.name }}<span class="text-danger">*</span></a></p>
+            <p><a href="{% url 'aristotle:item' value.link_id %}">{{ value }}<span class="text-danger">*</span></a></p>
           {% endif %}
         {% else %}
           {% if value.is_html %}
-            <p>{{ value.value|striptags|default:"None" }}</p>
+            <p>{{ value|striptags }}</p>
           {% else %}
-            <p>{{ value.value|default:"None" }}</p>
+            <p>{{ value }}</p>
           {% endif %}
         {% endif %}
       {% endfor %}
@@ -90,10 +90,10 @@
                 </ul>
               </td>
               {% else %}
-                <td><a href="{% url 'aristotle:item' value.linkid %}">{{ value.object.name }}<span class="text-danger">*</span></a></td>
+                <td><a href="{% url 'aristotle:item' value.link_id %}">{{ value }}<span class="text-danger">*</span></a></td>
               {% endif %}
             {% else %}
-              <td>{{ value.value|default:"None" }}</td> 
+              <td>{{ value }}</td> 
             {% endif %}
           {% endfor %}
           </tr>

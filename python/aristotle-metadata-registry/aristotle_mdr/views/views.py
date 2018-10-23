@@ -351,6 +351,46 @@ class DataElementView(ConceptRenderMixin, TemplateView):
         return model.objects.select_related(*related_objects).prefetch_related(*prefetch_objects)
 
 
+class VersionField:
+
+    def __init__(self, value='', obj=None, help_text='', html=False):
+        self.value=str(value)
+        self.obj=obj
+        self.help_text=help_text
+        self.is_html=html
+
+    @property
+    def is_link(self):
+        return (self.obj is not None)
+
+    @property
+    def is_list(self):
+        return self.obj and type(self.obj) == list
+
+    @property
+    def object_list(self):
+        if self.is_list:
+            return self.obj
+        else:
+            return []
+
+    @property
+    def link_id(self):
+        if not self.is_link:
+            return None
+
+        if issubclass(self.obj.__class__, MDR.aristotleComponent):
+            return self.obj.parentItem.id
+        else:
+            return self.obj.id
+
+    def __str__(self):
+        if self.is_link:
+            return self.obj.name
+        else:
+            return self.value or 'None'
+
+
 class ConceptVersionView(ConceptRenderMixin, TemplateView):
 
     slug_redirect = False
@@ -497,11 +537,10 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
                     replaced = True
 
             if not replaced:
-                updated_fields[header] = {
-                    'is_link': False,
-                    'value': value,
-                    'help_text': field.help_text
-                }
+                updated_fields[header] = VersionField(
+                    value=(value or ''),
+                    help_text=field.help_text
+                )
 
         return updated_fields
 
@@ -511,29 +550,19 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         else:
             objs = sub_model.objects.filter(pk__in=pk_list)
 
-        objs_repr = {
-            'is_link': True,
-            'help_text': field.help_text
-        }
+        ver_field = VersionField(help_text=field.help_text)
 
         if len(objs) <= 0:
-            return {
-                'is_link': False,
-                'value': 'Linked to object(s) you do not have permission to view'
-            }
+            ver_field.value = 'Linked to object(s) you do not have permission to view'
         elif len(objs) == 1:
-            objs_repr['object'] = objs[0]
-            objs_repr['is_list'] = False
-
-            if issubclass(sub_model, MDR.aristotleComponent):
-                objs_repr['linkid'] = objs[0].parentItem.id
-            else:
-                objs_repr['linkid'] = objs[0].id
+            ver_field.obj = objs[0]
         else:
-            objs_repr['object_list'] = list(objs)
-            objs_repr['is_list'] = True
+            ver_field.obj = list(objs)
 
-        return objs_repr
+        return ver_field
+
+    def replace_object_refs(self):
+        pass
 
     def get_related_versions(self, pk, mapping):
         # mapping should be a mapping of model labels to fields on item
@@ -568,7 +597,7 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
                             for header, item in final_fields.items():
                                 headers.append({
                                     'text': header,
-                                    'help_text': item.get('help_text', '')
+                                    'help_text': item.help_text
                                 })
                             related[data['model']]['headers'] = headers
 
@@ -577,6 +606,10 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         return related
 
     def dispatch(self, request, *args, **kwargs):
+        # Dict mapping models to a list of ids
+        self.object_ids = {}
+        # Dict mapping model -> id -> object
+        self.fetched_objects = {}
         exists = self.get_version()
         if not exists:
             return HttpResponseNotFound()
@@ -603,18 +636,15 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         for field in self.concept_fields:
             if field in self.concept_version_data['fields']:
                 fieldobj = MDR._concept._meta.get_field(field)
-                field_data = {
-                    'is_link': False,
-                    'is_html': False,
-                    'value': self.concept_version_data['fields'][field],
-                    'help_text': fieldobj.help_text
-                }
-
-                if issubclass(type(fieldobj), RichTextField):
-                    field_data['is_html'] = True
+                is_html = (issubclass(type(fieldobj), RichTextField))
+                field = VersionField(
+                    value=self.concept_version_data['fields'][field],
+                    help_text=fieldobj.help_text,
+                    html=is_html
+                )
 
                 # Keys under item_data are used as headings
-                version_dict['item_data']['Names & References'][fieldobj.verbose_name.title()] = field_data
+                version_dict['item_data']['Names & References'][fieldobj.verbose_name.title()] = field
 
         # Add some extra data the temlate expects from a regular item object
         version_dict['meta'] = {
