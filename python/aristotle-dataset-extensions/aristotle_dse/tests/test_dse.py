@@ -212,11 +212,11 @@ class DistributionViewPage(LoggedInViewConceptPages,TestCase):
         self.assertEqual(weak[0]['model'], 'Distribution Data Element Path')
         spec_classes = weak[0]['items'][0]['Specialisation Classes']
 
-        self.assertTrue(spec_classes['is_link'])
-        self.assertTrue(spec_classes['is_list'])
-        self.assertTrue(oc1 in spec_classes['object_list'])
-        self.assertTrue(oc2 in spec_classes['object_list'])
-        self.assertEqual(len(spec_classes['object_list']), 2)
+        self.assertTrue(spec_classes.is_link)
+        self.assertTrue(spec_classes.is_list)
+        self.assertTrue(oc1 in spec_classes.object_list)
+        self.assertTrue(oc2 in spec_classes.object_list)
+        self.assertEqual(len(spec_classes.object_list), 2)
 
 class DistributionWizardPage(FormsetTestUtils, ConceptWizardPage, TestCase):
     model=models.Distribution

@@ -357,13 +357,13 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         )
 
         names_and_refs = response.context['item']['item_data']['Names & References']
-        self.assertFalse(names_and_refs['References']['is_link'])
-        self.assertTrue(names_and_refs['References']['is_html'])
-        self.assertEqual(names_and_refs['References']['value'], '<p>refs</p>')
+        self.assertFalse(names_and_refs['References'].is_link)
+        self.assertTrue(names_and_refs['References'].is_html)
+        self.assertEqual(names_and_refs['References'].value, '<p>refs</p>')
 
-        self.assertFalse(names_and_refs['Responsible Organisation']['is_link'])
-        self.assertFalse(names_and_refs['Responsible Organisation']['is_html'])
-        self.assertEqual(names_and_refs['Responsible Organisation']['value'], 'My org')
+        self.assertFalse(names_and_refs['Responsible Organisation'].is_link)
+        self.assertFalse(names_and_refs['Responsible Organisation'].is_html)
+        self.assertEqual(names_and_refs['Responsible Organisation'].value, 'My org')
 
     @tag('version')
     def test_version_workgroup_lookup(self):
@@ -1891,9 +1891,9 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         self.assertEqual(len(supp_values['headers']), 6)
         self.assertFalse('Value Domain' in supp_values['headers'])
         self.assertEqual(len(supp_values['items']), 4)
-        self.assertEqual(supp_values['items'][0]['Meaning']['value'], 'test supplementary meaning 3')
-        self.assertEqual(supp_values['items'][0]['Meaning']['help_text'], meaning_ht)
-        self.assertEqual(supp_values['items'][0]['Meaning']['is_link'], False)
+        self.assertEqual(supp_values['items'][0]['Meaning'].value, 'test supplementary meaning 3')
+        self.assertEqual(supp_values['items'][0]['Meaning'].help_text, meaning_ht)
+        self.assertEqual(supp_values['items'][0]['Meaning'].is_link, False)
 
         # Check permissible values are being displayed
         perm_values = item_context['weak'][1]
@@ -1902,9 +1902,9 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         self.assertEqual(len(perm_values['headers']), 6)
         self.assertFalse('Value Domain' in perm_values['headers'])
         self.assertEqual(len(perm_values['items']), 4)
-        self.assertEqual(perm_values['items'][0]['Meaning']['value'], 'test permissible meaning 3')
-        self.assertEqual(perm_values['items'][0]['Meaning']['help_text'], meaning_ht)
-        self.assertEqual(perm_values['items'][0]['Meaning']['is_link'], False)
+        self.assertEqual(perm_values['items'][0]['Meaning'].value, 'test permissible meaning 3')
+        self.assertEqual(perm_values['items'][0]['Meaning'].help_text, meaning_ht)
+        self.assertEqual(perm_values['items'][0]['Meaning'].is_link, False)
 
     @tag('version')
     def test_version_display_of_value_meanings(self):
@@ -1935,9 +1935,9 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
 
         self.assertEqual(weak_context[0]['model'], 'Permissible Value')
 
-        self.assertTrue(perm_values[0]['Value Meaning']['is_link'])
-        self.assertEqual(perm_values[0]['Value Meaning']['object'], vm)
-        self.assertEqual(perm_values[0]['Value Meaning']['linkid'], self.item3.conceptual_domain.id)
+        self.assertTrue(perm_values[0]['Value Meaning'].is_link)
+        self.assertEqual(perm_values[0]['Value Meaning'].obj, vm)
+        self.assertEqual(perm_values[0]['Value Meaning'].link_id, self.item3.conceptual_domain.id)
 
 
 class ConceptualDomainViewPage(LoggedInViewConceptPages, TestCase):
@@ -2162,10 +2162,10 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
 
         dec_ht = models.DataElement._meta.get_field('dataElementConcept').help_text
 
-        self.assertTrue(components['Data Element Concept']['is_link'])
-        self.assertEqual(components['Data Element Concept']['object'], self.item1.dataElementConcept)
-        self.assertEqual(components['Data Element Concept']['linkid'], self.item1.dataElementConcept.id)
-        self.assertEqual(components['Data Element Concept']['help_text'], dec_ht)
+        self.assertTrue(components['Data Element Concept'].is_link)
+        self.assertEqual(components['Data Element Concept'].obj, self.item1.dataElementConcept)
+        self.assertEqual(components['Data Element Concept'].link_id, self.item1.dataElementConcept.id)
+        self.assertEqual(components['Data Element Concept'].help_text, dec_ht)
 
     @tag('version')
     def test_version_display_component_from_multi_revision(self):
@@ -2199,7 +2199,7 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
         )
 
         components = response.context['item']['item_data']['Components']
-        self.assertEqual(components['Data Element Concept']['object'], self.item1.dataElementConcept)
+        self.assertEqual(components['Data Element Concept'].obj, self.item1.dataElementConcept)
 
     @tag('version')
     def test_version_display_component_permission(self):
@@ -2216,8 +2216,8 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
 
         components = response.context['item']['item_data']['Components']
 
-        self.assertFalse(components['Data Element Concept']['is_link'], False)
-        self.assertTrue(components['Data Element Concept']['value'].startswith('Linked to object'))
+        self.assertFalse(components['Data Element Concept'].is_link, False)
+        self.assertTrue(components['Data Element Concept'].value.startswith('Linked to object'))
 
 class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):
     url_name='dataelementderivation'
