@@ -41,6 +41,7 @@ class VersionField:
         self.reference_label = reference_label
 
     def dereference(self, lookup):
+        # Lookup ids in a given dictionary
         if self.is_reference and self.reference_label in lookup:
             id_lookup = lookup[self.reference_label]
             if self.is_list:
@@ -64,11 +65,11 @@ class VersionField:
 
     @property
     def is_link(self):
-        return (self.obj is not None)
+        return (not self.is_reference and self.obj is not None)
 
     @property
     def is_list(self):
-        return self.obj and type(self.obj) == list
+        return (self.is_link and type(self.obj) == list)
 
     @property
     def object_list(self):
@@ -83,7 +84,7 @@ class VersionField:
             return None
 
         if issubclass(self.obj.__class__, MDR.aristotleComponent):
-            return self.obj.parentItem.id
+            return self.obj.parentItemId
         else:
             return self.obj.id
 
@@ -280,10 +281,9 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
             self.fetched_objects[label] = object_map
 
     def replace_object_refs(self, field_dict):
+        # Don't need to return the dict, passed as reference
         for key in field_dict.keys():
             field_dict[key].dereference(self.fetched_objects)
-
-        return field_dict
 
     def get_related_versions(self, pk, mapping):
         # mapping should be a mapping of model labels to fields on item
@@ -382,13 +382,14 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         weak = self.get_weak_versions(self.item_model)
         components = self.process_dict(self.item_version_data['fields'], self.item_model)
         self.lookup_object_refs()
-        version_dict['item_data']['Components'] = self.replace_object_refs(components)
+        self.replace_object_refs(components)
 
         for i in range(len(weak)):
             for j in range(len(weak[i]['items'])):
-                weak[i]['items'][j] = self.replace_object_refs(weak[i]['items'][j])
+                self.replace_object_refs(weak[i]['items'][j])
 
         version_dict['weak'] = weak
+        version_dict['item_data']['Components'] = components
 
         return version_dict
 
