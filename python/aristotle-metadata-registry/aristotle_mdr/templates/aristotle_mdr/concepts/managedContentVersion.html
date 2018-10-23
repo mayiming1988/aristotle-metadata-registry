@@ -37,25 +37,7 @@
               </small>
             {% endif %}
           </h3>
-        {% if value.is_link %}
-          {% if value.is_list %}
-            <p>
-              <ul>
-                {% for item in value.object_list %}
-                  <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}<span class="text-danger">*</span></a></li>
-                {% endfor %}
-              </ul>
-            </p>
-          {% else %}
-            <p><a href="{% url 'aristotle:item' value.link_id %}">{{ value }}<span class="text-danger">*</span></a></p>
-          {% endif %}
-        {% else %}
-          {% if value.is_html %}
-            <p>{{ value|striptags }}</p>
-          {% else %}
-            <p>{{ value }}</p>
-          {% endif %}
-        {% endif %}
+          <p>{% include 'aristotle_mdr/helpers/version_field.html' with field=value %}</p>
       {% endfor %}
     {% endfor %}
 
@@ -80,21 +62,7 @@
         {% for item in weak.items %}
           <tr>
           {% for value in item.values %}
-            {% if value.is_link %}
-              {% if value.is_list %}
-              <td>
-                <ul>
-                  {% for item in value.object_list %}
-                    <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}<span class="text-danger">*</span></a></li>
-                  {% endfor %}
-                </ul>
-              </td>
-              {% else %}
-                <td><a href="{% url 'aristotle:item' value.link_id %}">{{ value }}<span class="text-danger">*</span></a></td>
-              {% endif %}
-            {% else %}
-              <td>{{ value }}</td> 
-            {% endif %}
+            <td>{% include 'aristotle_mdr/helpers/version_field.html' with field=value %}</td>
           {% endfor %}
           </tr>
         {% endfor %}
