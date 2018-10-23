@@ -34,7 +34,7 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
 
     def setUp(self):
         super(LoggedInViewConceptPages, self).setUp()
-        self.result = None
+        self.celery_result = None
         self.item1 = self.itemType.objects.create(
             name="Test Item 1 (visible to tested viewers)",
             definition="my definition",
@@ -72,14 +72,14 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         return store_taskresult()
 
     def pdf_download_task_retrieve(self, iid):
-        if not self.result:
+        if not self.celery_result:
             # Creating an instance of fake Celery `AsyncResult` object
-            self.result = get_download_result(iid)
-        return self.result
+            self.celery_result = get_download_result(iid)
+        return self.celery_result
 
     def test_su_can_download_pdf(self):
         self.login_superuser()
-        self.result = None
+        self.celery_result = None
         response = self.client.get(reverse('aristotle:download',args=['pdf', self.item1.id]), follow=True)
         self.assertEqual(response.status_code,200)
         self.assertEqual(len(response.redirect_chain), 1)
@@ -94,7 +94,7 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         self.assertEqual(response.status_code,200)
         self.assertTrue(self.async_result.called)
 
-        self.result = None
+        self.celery_result = None
         response = self.client.get(reverse('aristotle:download',args=['pdf', self.item2.id]), follow=True)
         self.assertEqual(response.status_code,200)
         self.assertEqual(len(response.redirect_chain), 1)
@@ -111,7 +111,7 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
 
     def test_editor_can_download_pdf(self):
         self.login_editor()
-        self.result = None
+        self.celery_result = None
         response = self.client.get(reverse('aristotle:download',args=['pdf', self.item1.id]), follow=True)
         self.assertEqual(response.status_code,200)
         self.assertEqual(len(response.redirect_chain), 1)
@@ -126,13 +126,13 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         self.assertEqual(response.status_code,200)
         self.assertTrue(self.async_result.called)
 
-        self.result = None
+        self.celery_result = None
         response = self.client.get(reverse('aristotle:download',args=['pdf', self.item2.id]))
         self.assertEqual(response.status_code,403)
 
     def test_viewer_can_download_pdf(self):
         self.login_viewer()
-        self.result = None
+        self.celery_result = None
         response = self.client.get(reverse('aristotle:download',args=['pdf', self.item1.id]), follow=True)
         self.assertEqual(response.status_code,200)
         self.assertEqual(len(response.redirect_chain), 1)
@@ -151,14 +151,14 @@ class LoggedInViewConceptPages(utils.LoggedInViewPages):
         self.assertTrue(self.async_result.called)
         self.assertEqual(len(self.async_result.mock_calls), 2)
 
-        self.result = None
+        self.celery_result = None
         response = self.client.get(reverse('aristotle:download',args=['pdf',self.item2.id]))
         self.assertEqual(response.status_code,403)
 
     @skip('Should pass once public link is implemented')
     def test_public_link_no_sensitive_data(self):
         self.login_viewer()
-        self.result = None
+        self.celery_result = None
         response = self.client.get(
             reverse('aristotle:download',args=['pdf', self.item1.id]),
             {'public': 'true'},

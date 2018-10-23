@@ -1457,10 +1457,10 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         return store_taskresult()
 
     def csv_download_task_retrieve(self, iid):
-        if not self.result:
+        if not self.celery_result:
             # Creating an instance of fake Celery `AsyncResult` object
-            self.result = get_download_result(iid)
-        return self.result
+            self.celery_result = get_download_result(iid)
+        return self.celery_result
 
     @patch('aristotle_mdr.downloader.CSVDownloader.download.delay')
     @patch('aristotle_mdr.views.downloads.async_result')
@@ -1469,7 +1469,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         async_result.side_effect = self.csv_download_task_retrieve
 
         self.login_superuser()
-        self.result = None
+        self.celery_result = None
 
         eq = QueryDict('', mutable=True)
         eq.setdefault('items', self.item1.id)
@@ -1485,7 +1485,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(async_result.called)
 
-        self.result = None
+        self.celery_result = None
 
         eq = QueryDict('', mutable=True)
         eq.setdefault('items', self.item2.id)
@@ -1508,7 +1508,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         async_result.side_effect = self.csv_download_task_retrieve
 
         self.login_editor()
-        self.result = None
+        self.celery_result = None
 
         eq = QueryDict('', mutable=True)
         eq.setdefault('items', self.item1.id)
@@ -1524,7 +1524,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(async_result.called)
 
-        self.result = None
+        self.celery_result = None
         response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item2.id]))
         self.assertEqual(response.status_code, 403)
 
@@ -1535,7 +1535,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         async_result.side_effect = self.csv_download_task_retrieve
 
         self.login_viewer()
-        self.result = None
+        self.celery_result = None
         eq = QueryDict('', mutable=True)
         eq.setdefault('items', self.item1.id)
         eq.setdefault('title', self.item1.name)
@@ -1550,7 +1550,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(async_result.called)
 
-        self.result = None
+        self.celery_result = None
         response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item2.id]))
         self.assertEqual(response.status_code, 403)
 
@@ -1561,7 +1561,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         async_result.side_effect = self.csv_download_task_retrieve
 
         self.login_viewer()
-        self.result = None
+        self.celery_result = None
 
         eq = QueryDict('', mutable=True)
         eq.setdefault('items', self.item1.id)

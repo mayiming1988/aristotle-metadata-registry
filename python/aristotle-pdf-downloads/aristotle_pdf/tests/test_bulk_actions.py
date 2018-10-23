@@ -22,7 +22,7 @@ class QuickPDFDownloadTests(BulkActionsTest, TestCase):
 
     def setUp(self):
         super().setUp()
-        BulkDownloadTests.result = None
+        self.celery_result = None
         self.patcher1 = patch('aristotle_pdf.downloader.PDFDownloader.bulk_download.delay')
         self.patcher2 = patch('aristotle_mdr.views.downloads.async_result')
         self.downloader_download = self.patcher1.start()
@@ -44,10 +44,10 @@ class QuickPDFDownloadTests(BulkActionsTest, TestCase):
         Using taskResult to manage the celery tasks
         :return:
         """
-        if not BulkDownloadTests.result:
+        if not self.celery_result:
             # Creating an instance of fake Celery `AsyncResult` object
-            BulkDownloadTests.result = get_download_result(iid)
-        return BulkDownloadTests.result
+            self.celery_result = get_download_result(iid)
+        return self.celery_result
 
     def test_bulk_quick_pdf_download_on_permitted_items(self):
         self.login_editor()
@@ -83,7 +83,7 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
 
     def setUp(self):
         super().setUp()
-        BulkDownloadTests.result = None
+        self.celery_result = None
         self.patcher1 = patch('aristotle_pdf.downloader.PDFDownloader.bulk_download.delay')
         self.patcher2 = patch('aristotle_mdr.views.downloads.async_result')
         self.downloader_download = self.patcher1.start()
@@ -105,15 +105,15 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
         Using taskResult to manage the celery tasks
         :return:
         """
-        if not BulkDownloadTests.result:
+        if not self.celery_result:
             # Creating an instance of fake Celery `AsyncResult` object
-            BulkDownloadTests.result = get_download_result(iid)
-        return BulkDownloadTests.result
+            self.celery_result = get_download_result(iid)
+        return self.celery_result
 
 
     def test_bulk_pdf_download_on_permitted_items(self):
         self.login_editor()
-        BulkDownloadTests.result = None
+        self.celery_result = None
         self.assertEqual(self.editor.profile.favourites.count(), 0)
         response = self.client.post(
             reverse('aristotle:bulk_action'),
@@ -129,7 +129,7 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
 
     def test_bulk_pdf_download_on_forbidden_items(self):
         self.login_editor()
-        BulkDownloadTests.result = None
+        self.celery_result = None
         response = self.client.post(
             reverse('aristotle:bulk_action'),
             {
@@ -147,7 +147,7 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
 
     def test_bulk_pdf_download_on_forbidden_items_by_anonymous_user(self):
         self.logout()
-        BulkDownloadTests.result = None
+        self.celery_result = None
         response = self.client.post(
             reverse('aristotle:bulk_action'),
             {
@@ -184,7 +184,7 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
 
     def test_content_exists_in_bulk_pdf_download_on_permitted_items(self):
         self.login_editor()
-        BulkDownloadTests.result = None
+        self.celery_result = None
 
         self.item5 = models.DataElementConcept.objects.create(name="DEC1", definition="DEC5 definition", objectClass=self.item2, workgroup=self.wg1)
 
@@ -231,7 +231,7 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
 
     def test_content_not_exists_in_bulk_pdf_download_on_forbidden_items(self):
         self.logout()
-        BulkDownloadTests.result = None
+        self.celery_result = None
 
         self.item5 = models.DataElementConcept.objects.create(name="DEC1", definition="DEC5 definition", objectClass=self.item2, workgroup=self.wg1)
 

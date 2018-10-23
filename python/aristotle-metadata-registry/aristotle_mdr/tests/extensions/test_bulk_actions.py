@@ -100,7 +100,7 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
 
     def setUp(self):
         super().setUp()
-        BulkDownloadTests.result = None
+        self.celery_result = None
         self.patcher1 = patch('text_download_test.downloader.TestTextDownloader.bulk_download.delay')
         self.patcher2 = patch('aristotle_mdr.views.downloads.async_result')
         self.downloader_download = self.patcher1.start()
@@ -124,10 +124,10 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
         Using taskResult to manage the celery tasks
         :return:
         """
-        if not BulkDownloadTests.result:
+        if not self.celery_result:
             # Creating an instance of fake Celery `AsyncResult` object
-            BulkDownloadTests.result = get_download_result(iid)
-        return BulkDownloadTests.result
+            self.celery_result = get_download_result(iid)
+        return self.celery_result
 
     def test_bulk_txt_download_on_permitted_items(self):
         self.login_editor()
@@ -205,7 +205,7 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
         self.login_editor()
 
         self.item5 = models.DataElementConcept.objects.create(name="DEC1", definition="DEC5 definition", objectClass=self.item2, workgroup=self.wg1)
-
+        self.celery_result = None
         response = self.client.get(
             reverse(
                 'aristotle:bulk_download',
