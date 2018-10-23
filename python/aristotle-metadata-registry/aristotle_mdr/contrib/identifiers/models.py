@@ -53,3 +53,7 @@ class ScopedIdentifier(TimeStampedModel, MDR.aristotleComponent):
     @property
     def parentItem(self):
         return self.concept
+
+    @property
+    def parentItemId(self):
+        return self.concept_id

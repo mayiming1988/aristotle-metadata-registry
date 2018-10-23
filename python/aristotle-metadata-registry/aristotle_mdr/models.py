@@ -1126,6 +1126,10 @@ class ValueMeaning(aristotleComponent):
     def parentItem(self):
         return self.conceptual_domain
 
+    @property
+    def parentItemId(self):
+        return self.conceptual_domain_id
+
 
 class ValueDomain(concept):
     """
@@ -1248,6 +1252,10 @@ class AbstractValue(aristotleComponent):
     @property
     def parentItem(self):
         return self.valueDomain
+
+    @property
+    def parentItemId(self):
+        return self.valueDomain_id
 
 
 class PermissibleValue(AbstractValue):
