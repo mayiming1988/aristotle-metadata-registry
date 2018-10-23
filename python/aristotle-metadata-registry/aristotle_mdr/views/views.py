@@ -353,15 +353,44 @@ class DataElementView(ConceptRenderMixin, TemplateView):
 
 class VersionField:
 
-    def __init__(self, value='', obj=None, help_text='', html=False):
+    perm_message = 'Linked to object(s) you do not have permission to view'
+
+    def __init__(self, value='', obj=None, help_text='', html=False, reference_label=''):
         if not value:
             self.value = ''
         else:
             self.value=str(value)
 
-        self.obj=obj
+        if type(obj) == list and len(obj) == 1:
+            self.obj = obj[0]
+        else:
+            self.obj=obj
+
         self.help_text=help_text
         self.is_html=html
+        self.reference_label = reference_label
+
+    def dereference(self, lookup):
+        if self.is_reference and self.reference_label in lookup:
+            id_lookup = lookup[self.reference_label]
+            if self.is_list:
+                deref_list = []
+                for pk in self.obj:
+                    if pk in id_lookup:
+                        deref_list.append(id_lookup[pk])
+                self.obj = deref_list
+            else:
+                if self.obj in id_lookup:
+                    self.obj = id_lookup[self.obj]
+                else:
+                    self.obj = None
+                    self.value = self.perm_message
+
+        self.reference_label = ''
+
+    @property
+    def is_reference(self):
+        return self.reference_label is not ''
 
     @property
     def is_link(self):
@@ -549,24 +578,37 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         return updated_fields
 
     def lookup_object(self, pk_list, sub_model, field):
-        if issubclass(sub_model.objects.__class__, ConceptManager):
-            objs = sub_model.objects.visible(self.request.user).filter(pk__in=pk_list)
-        else:
-            objs = sub_model.objects.filter(pk__in=pk_list)
 
-        ver_field = VersionField(help_text=field.help_text)
-
-        if len(objs) <= 0:
-            ver_field.value = 'Linked to object(s) you do not have permission to view'
-        elif len(objs) == 1:
-            ver_field.obj = objs[0]
+        if issubclass(sub_model, MDR._concept):
+            label = MDR._concept._meta.label_lower
         else:
-            ver_field.obj = list(objs)
+            label = sub_model._meta.label_lower
+
+        self.obj_ids[label] += pk_list
+
+        ver_field = VersionField(
+            help_text=field.help_text,
+            obj=pk_list,
+            reference_label=label
+        )
 
         return ver_field
 
-    def replace_object_refs(self):
-        pass
+    def lookup_object_refs(self):
+        for label, id_list in self.obj_ids.items():
+            model = apps.get_model(label)
+            object_qs = model.objects.filter(id__in=id_list)
+            object_map = {}
+            for obj in object_qs:
+                object_map[obj.id] = obj
+
+            self.fetched_objects[label] = object_map
+
+    def replace_object_refs(self, field_dict):
+        for key in field_dict.keys():
+            field_dict[key].dereference(self.fetched_objects)
+
+        return field_dict
 
     def get_related_versions(self, pk, mapping):
         # mapping should be a mapping of model labels to fields on item
@@ -611,9 +653,10 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
 
     def dispatch(self, request, *args, **kwargs):
         # Dict mapping models to a list of ids
-        self.object_ids = {}
+        self.obj_ids = defaultdict(list)
         # Dict mapping model -> id -> object
         self.fetched_objects = {}
+
         exists = self.get_version()
         if not exists:
             return HttpResponseNotFound()
@@ -661,9 +704,16 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         version_dict['created'] = parse_datetime(self.concept_version_data['fields']['created'])
 
         # Add weak entities and components
-        version_dict['weak'] = self.get_weak_versions(self.item_model)
+        weak = self.get_weak_versions(self.item_model)
         components = self.process_dict(self.item_version_data['fields'], self.item_model)
-        version_dict['item_data']['Components'] = components
+        self.lookup_object_refs()
+        version_dict['item_data']['Components'] = self.replace_object_refs(components)
+
+        for i in range(len(weak)):
+            for j in range(len(weak[i]['items'])):
+                weak[i]['items'][j] = self.replace_object_refs(weak[i]['items'][j])
+
+        version_dict['weak'] = weak
 
         return version_dict
 
