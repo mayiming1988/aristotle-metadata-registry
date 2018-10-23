@@ -69,6 +69,26 @@ def in_workgroup(user, workgroup):
 
 
 @register.filter
+def can_change_status(item, user):
+    """
+    A filter that acts as a wrapper around ``aristotle_mdr.perms.can_change_status``.
+    Returns true if the user has permission to change status the item, otherwise it returns False.
+    If calling ``user_can_change_status`` throws an exception it safely returns False.
+
+    For example::
+
+      {% if myItem|can_change_status:request.user %}
+        {{ item }}
+      {% endif %}
+    """
+    # return perms.can_change_status(user, item)
+    try:
+        return perms.user_can_change_status(user, item)
+    except:  # pragma: no cover -- passing a bad item or user is the template authors fault
+        return None
+
+
+@register.filter
 def can_edit(item, user):
     """
     A filter that acts as a wrapper around ``aristotle_mdr.perms.user_can_edit``.
@@ -108,6 +128,38 @@ def can_view(item, user):
 
 
 @register.filter
+def can_supersede(item, user):
+    """
+    A filter that acts as a wrapper around ``aristotle_mdr.perms.user_can_supersede``.
+    Returns true if the user has permission to supersede the item, otherwise it returns False.
+    If calling ``user_can_supersede`` throws an exception it safely returns False.
+
+    For example::
+
+      {% if myItem|can_supersede:request.user %}
+        {{ item }}
+      {% endif %}
+    """
+    return perms.user_can_supersede(user, item)
+
+
+@register.filter
+def can_change_status(item, user):
+    """
+    A filter that acts as a wrapper around ``aristotle_mdr.perms.user_can_supersede``.
+    Returns true if the user has permission to supersede the item, otherwise it returns False.
+    If calling ``user_can_supersede`` throws an exception it safely returns False.
+
+    For example::
+
+      {% if myItem|can_supersede:request.user %}
+        {{ item }}
+      {% endif %}
+    """
+    return perms.user_can_change_status(user, item)
+
+
+@register.filter
 def can_view_iter(qs, user):
     """
     A filter that is a simple wrapper that applies the ``aristotle_mdr.models.ConceptManager.visible(user)``
@@ -123,10 +175,75 @@ def can_view_iter(qs, user):
           {{ item }}
         {% endfor %}
     """
-    try:
-        return qs.visible(user)
-    except:  # pragma: no cover -- passing a bad queryset is the template authors fault
-        return []
+    return qs.visible(user)
+
+
+@register.filter
+def visible_supersedes_items(item, user):
+    """
+    Fetch older items for a newer item
+    """
+    # TODO: Add to view
+    objects = item.__class__.objects.prefetch_related(
+        'superseded_by_items_relation_set__older_item',
+        # 'superseded_by_items_relation_set__newer_item',
+        'superseded_by_items_relation_set__registration_authority',
+    ).visible(user).filter(
+        superseded_by_items_relation_set__newer_item_id=item.pk
+    ).distinct()
+    sup_rels = [
+        {
+            "pk": obj.pk,
+            "older_item": obj,
+            "rels": [
+                {
+                    # "newer_item": sup.newer_item,
+                    "message": sup.message,
+                    "date_effective": sup.date_effective,
+                    "registration_authority": sup.registration_authority,
+                }
+                for sup in obj.superseded_by_items_relation_set.all()
+                if sup.newer_item_id == item.pk
+            ]
+        }
+        for obj in objects
+    ]
+    sup_rels.sort(key=lambda x: x['pk'])
+    return sup_rels
+
+
+@register.filter
+def visible_superseded_by_items(item, user):
+    """
+    Fetch newer items for an older item
+    """
+    # TODO: Add to view
+    objects = item.__class__.objects.prefetch_related(
+        # 'superseded_items_relation_set__older_item',
+        'superseded_items_relation_set__newer_item',
+        'superseded_items_relation_set__registration_authority',
+    ).visible(user).filter(
+        superseded_items_relation_set__older_item_id=item.pk
+    ).distinct()
+    sup_rels = [
+        {
+            "pk": obj.pk,
+            "newer_item": obj,
+            "rels": [
+                {
+                    # "newer_item": sup.newer_item,
+                    "message": sup.message,
+                    "date_effective": sup.date_effective,
+                    "registration_authority": sup.registration_authority,
+                }
+                for sup in obj.superseded_items_relation_set.all()
+                if sup.older_item_id == item.pk
+            ]
+        }
+        for obj in objects
+    ]
+    sup_rels.sort(key=lambda x: x['pk'])
+    return sup_rels
 
 
 @register.filter
@@ -174,8 +291,8 @@ def paginator_get(request, pageNumber, pop=''):
 
 
 @register.simple_tag
-def ifeq(a, b, val):
-    return val if a == b else ""
+def ifeq(a, b, val, default=""):
+    return val if a == b else default
 
 
 @register.simple_tag
@@ -405,3 +522,33 @@ def get_dataelements_from_m2m(ded, field_name):
         de_list.append(through_item.data_element)
 
     return de_list
+
+
+@register.filter
+def distinct_workgroups_count(user):
+
+    wgs = set()
+    roles = ['submitter_in', 'viewer_in', 'steward_in', 'workgroup_manager_in']
+    for role in roles:
+        manager = getattr(user, role)
+        for wg in manager.all():
+            wgs.add(wg.id)
+
+    return len(wgs)
+
+
+@register.filter
+def distinct_members_count(workgroup):
+    users = set()
+    roles = ['submitters', 'viewers', 'stewards', 'managers']
+    for role in roles:
+        manager = getattr(workgroup, role)
+        for user in manager.all():
+            users.add(user.id)
+
+    return len(users)
+
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key)

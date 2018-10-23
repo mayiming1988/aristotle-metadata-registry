@@ -13,6 +13,7 @@ from django.db.models import Q
 
 import logging
 import inspect
+import datetime
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
@@ -182,58 +183,6 @@ def get_concepts_for_apps(app_labels):
     return concepts
 
 
-# "There are only two hard problems in Computer Science: cache invalidation, naming things and off-by-one errors"
-def cache_per_item_user(ttl=None, prefix=None, cache_post=False):
-    '''
-    Modified from: https://djangosnippets.org/snippets/2524/
-    '''
-
-    def decorator(function):
-        def apply_cache(request, *args, **kwargs):
-            # Gera a parte do usuario que ficara na chave do cache
-            if request.user.is_anonymous():
-                user = 'anonymous'
-            else:
-                user = request.user.id
-
-            iid = kwargs['iid']
-
-            if prefix:  # pragma no cover - we don't use this
-                CACHE_KEY = '%s_%s_%s' % (prefix, user, iid)
-            else:
-                CACHE_KEY = 'view_cache_%s_%s_%s' % (function.__name__, user, iid)
-
-            if not cache_post and request.method == 'POST':
-                can_cache = False
-            else:
-                can_cache = True
-
-            from aristotle_mdr.models import _concept
-            import datetime
-            from django.utils import timezone
-
-            if 'nocache' not in request.GET.keys():
-                can_cache = False
-
-            # If the item was modified in the last 15 seconds, don't use cache
-            recently = timezone.now() - datetime.timedelta(seconds=15)
-            if _concept.objects.filter(id=iid, modified__gte=recently).exists():
-                can_cache = False
-
-            if can_cache:
-                response = cache.get(CACHE_KEY, None)
-            else:
-                response = None
-
-            if not response:
-                response = function(request, *args, **kwargs)
-                if can_cache:
-                    cache.set(CACHE_KEY, response, ttl)
-            return response
-        return apply_cache
-    return decorator
-
-
 error_messages = {
     "bulk_action_failed": "BULK_ACTION settings for registry are invalid.",
     "content_extensions_failed": "CONTENT_EXTENSIONS settings for registry are invalid.",
@@ -275,11 +224,13 @@ def validate_aristotle_settings(aristotle_settings, strict_mode):
             check_settings=aristotle_settings.get(sub_setting, [])
             assert(type(check_settings) is list)
             assert(all(type(f) is str for f in check_settings))
-        except:
+        except Exception as e:
+            logger.error(error_messages[err])
+            logger.error(e)
+            logger.error(str([sub_setting, check_settings, type(check_settings)]))
             if strict_mode:
                 raise ImproperlyConfigured(error_messages[err])
             else:
-                logger.error(error_messages[err])
                 aristotle_settings[sub_setting] = []
 
     return aristotle_settings

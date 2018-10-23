@@ -1,0 +1,48 @@
+{% extends "aristotle_mdr/user/userHome.html" %}
+{% load aristotle_tags i18n static %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block collapse-link%}<i class="fa fa-bookmark fa-fw"></i> {{ title }}</a>{% endblock %}
+{% block sidebar %}
+    {% include "aristotle_mdr/user/userSideBar.html" with activeTab='favourites' %}
+{% endblock %}
+
+{% block extra_head_scripts %}
+  {{ block.super }}
+  <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/taggle.css' %}" />
+{% endblock %}
+
+{% block page %}
+  <h1>
+    <a href="#">
+      <i class="fa fa-bookmark fa-fw"></i>
+      {{ title }}
+    </a>
+  </h1>
+  {% if tag %}
+  <noscript>
+    <form method="POST" action="{% url 'aristotle_favourites:tag_edit' tag.id %}">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea name="description" class="form-control">{{ tag.description }}</textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+  </noscript>
+  <div id="vue-container">
+    <switch-edit 
+      name="description" 
+      initial="{{ tag.description }}" 
+      submit-url="{% url 'aristotle_favourites:tag_edit' tag.id %}" 
+    ></switch-edit>
+  </div>
+  {% endif %}
+  {% if page_obj %}
+    {% include 'aristotle_mdr/favourites/ba_paginated_favourite_items.html' with page_obj=page_obj tags_list=False %}
+  {% endif %}
+  <a class="btn btn-default margin-above" href="{% url 'aristotle_favourites:favs_and_tags' %}">
+    Back
+  </a>
+  <script src="{% static 'aristotle_favourites/vue/tagPage.js' %}"></script>
+{% endblock %}

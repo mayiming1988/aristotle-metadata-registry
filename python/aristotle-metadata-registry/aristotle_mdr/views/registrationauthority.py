@@ -11,8 +11,10 @@ from aristotle_mdr.views.utils import (
     paginated_registration_authority_list,
     ObjectLevelPermissionRequiredMixin,
     RoleChangeView,
-    MemberRemoveFromGroupView
+    MemberRemoveFromGroupView,
+    AlertFieldsMixin
 )
+from aristotle_mdr import perms
 
 import logging
 
@@ -37,7 +39,8 @@ def organization(request, iid, *args, **kwargs):
 
 
 def all_registration_authorities(request):
-    ras = MDR.RegistrationAuthority.objects.order_by('name')
+    # All visible ras
+    ras = MDR.RegistrationAuthority.objects.filter(active__in=[0, 1]).order_by('name')
     return render(request, "aristotle_mdr/organization/all_registration_authorities.html", {'registrationAuthorities': ras})
 
 
@@ -109,7 +112,8 @@ class ListRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, Lis
 
     def dispatch(self, request, *args, **kwargs):
         super().dispatch(request, *args, **kwargs)
-        ras = MDR.RegistrationAuthority.objects.all()
+        # All visible ras
+        ras = MDR.RegistrationAuthority.objects.filter(active__in=[0, 1])
 
         text_filter = request.GET.get('filter', "")
         if text_filter:
@@ -128,6 +132,14 @@ class DetailsRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, 
     pk_url_kwarg = 'iid'
     context_object_name = "item"
 
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data()
+
+        is_manager = perms.user_is_registation_authority_manager(self.request.user, self.object)
+        context.update({'is_manager': is_manager})
+
+        return context
+
 
 class MembersRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = MDR.RegistrationAuthority
@@ -140,7 +152,7 @@ class MembersRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, 
     context_object_name = "item"
 
 
-class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, UpdateView):
+class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, AlertFieldsMixin, UpdateView):
     model = MDR.RegistrationAuthority
     template_name = "aristotle_mdr/user/registration_authority/edit.html"
     permission_required = "aristotle_mdr.change_registrationauthority"
@@ -151,6 +163,7 @@ class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequire
     fields = [
         'name',
         'definition',
+        'active',
         'locked_state',
         'public_state',
         'notprogressed',
@@ -162,6 +175,10 @@ class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequire
         'preferred',
         'superseded',
         'retired',
+    ]
+
+    alert_fields = [
+        'active'
     ]
 
     pk_url_kwarg = 'iid'

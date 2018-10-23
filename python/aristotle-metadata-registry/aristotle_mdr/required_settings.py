@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-# from aristotle_mdr.contrib.channels.settings import CHANNEL_LAYERS, HAYSTACK_SIGNAL_PROCESSOR
 
 BASE_DIR = os.getenv('aristotlemdr__BASE_DIR', os.path.dirname(os.path.dirname(__file__)))
 SECRET_KEY = os.getenv('aristotlemdr__SECRET_KEY', "OVERRIDE_THIS_IN_PRODUCTION")
@@ -81,17 +80,21 @@ SILENCED_SYSTEM_CHECKS = [
 ALLOWED_HOSTS = []
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+ARISTOTLE_ASYNC_SIGNALS = True
 
 INSTALLED_APPS = (
     'aristotle_mdr',
+    'aristotle_mdr.contrib.view_history',
     'aristotle_mdr.contrib.generic',
     'aristotle_mdr.contrib.help',
     'aristotle_mdr.contrib.slots',
     'aristotle_mdr.contrib.identifiers',
     'aristotle_mdr.contrib.browse',
+    'aristotle_mdr.contrib.autocomplete',
     'aristotle_mdr.contrib.user_management',
     'aristotle_mdr.contrib.stewards',
     'aristotle_mdr.contrib.groups',
+    'aristotle_mdr.contrib.favourites',
 
     'channels',
     'haystack_channels',
@@ -123,6 +126,8 @@ INSTALLED_APPS = (
     'organizations',
 
     'constrainedfilefield',
+    # 'aristotle_bg_workers',
+    # 'django_celery_results',
 )
 
 USE_L10N = True
@@ -147,7 +152,7 @@ SESSION_ENGINE = 'user_sessions.backends.db'
 
 ROOT_URLCONF = 'aristotle_mdr.urls'
 LOGIN_REDIRECT_URL = '/account/home'
-LOGOUT_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/home'
 LOGIN_URL = '/login'
 LOGOUT_URL = '/logout'
 
@@ -272,3 +277,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # GeoIP
 GEOIP_PATH = os.path.join(BASE_DIR, 'aristotle_mdr/vendor/geoip')
+
+# Caching
+CACHE_ITEM_PAGE = False

@@ -16,7 +16,7 @@ from aristotle_mdr.utils import setup_aristotle_test_environment
 setup_aristotle_test_environment()
 
 
-class UserHomePages(utils.LoggedInViewPages, TestCase):
+class UserHomePages(utils.AristotleTestUtils, TestCase):
     def setUp(self):
         super().setUp()
 
@@ -28,8 +28,6 @@ class UserHomePages(utils.LoggedInViewPages, TestCase):
         response = self.client.get(reverse('aristotle:userInbox',))
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse('aristotle:userInbox', args=['all']))
-        self.assertEqual(response.status_code, 200)
-        response = self.client.get(reverse('aristotle:userFavourites',))
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse('aristotle:userWorkgroups',))
         self.assertEqual(response.status_code, 200)
@@ -43,6 +41,27 @@ class UserHomePages(utils.LoggedInViewPages, TestCase):
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse('aristotle:userMyReviewRequests',))
         self.assertEqual(response.status_code, 200)
+
+    def create_content_and_share(self, user, emails):
+        # Create sandbox content with editor
+        models.ObjectClass.objects.create(
+            name='Sandpit',
+            definition='A pit containing on or more grains of sand',
+            submitter=user
+        )
+        models.ObjectClass.objects.create(
+            name='Sandbox',
+            definition='A box or box like object containing an amount of sandlike substances',
+            submitter=user
+        )
+
+        # Create share link with editor
+        share = models.SandboxShare.objects.create(
+            profile=user.profile,
+            emails=json.dumps(emails)
+        )
+
+        return share
 
     @tag('sandbox')
     def test_user_can_view_sandbox(self):
@@ -167,6 +186,223 @@ class UserHomePages(utils.LoggedInViewPages, TestCase):
         self.assertEqual(response_dict['completed'], False)
         self.assertTrue('message' in response_dict.keys())
 
+    @tag('share_link')
+    def test_create_share_link(self):
+        self.login_viewer()
+
+        data = {
+            'emails-0': 'firstone@example.com',
+            'emails-1': 'nextone@example.com'
+        }
+
+        response = self.reverse_post('aristotle_mdr:userSandbox', data, status_code=200, follow=True)
+
+        self.assertTrue(hasattr(self.viewer.profile, 'share'))
+        share = self.viewer.profile.share
+        emails = json.loads(share.emails)
+
+        self.assertEqual(emails, ['firstone@example.com', 'nextone@example.com'])
+
+        self.assertContext(response, 'display_share', True)
+        self.assertContains(response, share.uuid)
+
+    @tag('share_link')
+    def test_create_share_link_form_initial(self):
+        self.login_viewer()
+        emails = ['firstone@example.com', 'nextone@example.com']
+
+        models.SandboxShare.objects.create(
+            profile=self.viewer.profile,
+            emails=json.dumps(emails)
+        )
+
+        response = self.reverse_get('aristotle_mdr:userSandbox')
+        form = response.context['form']
+        self.assertEqual(form.initial['emails'], emails)
+
+    @tag('share_link')
+    def test_create_share_link_error_display(self):
+        self.login_viewer()
+
+        data = {
+            'emails-0': 'avalidemail@example.com',
+            'emails-1': 'anin,validemail@example.com',
+            'emails-2': 'anotherbademail@example'
+        }
+        response = self.reverse_post(
+            'aristotle_mdr:userSandbox',
+            data,
+            status_code=200,
+        )
+
+        self.assertTrue('form' in response.context)
+        form = response.context['form']
+
+        self.assertTrue('emails' in form.errors)
+        email_errors = form.errors['emails']
+
+        self.assertTrue(len(email_errors), 2)
+        self.assertTrue('anin,validemail@example.com is not a valid email address')
+        self.assertTrue('anotherbademail@example is not a valid email address')
+
+    @tag('share_link')
+    def test_view_sandbox_correct_email(self):
+        share = self.create_content_and_share(self.editor, ['vicky@example.com'])
+
+        # View share link as viewer
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle_mdr:sharedSandbox',
+            reverse_args=[share.uuid],
+            status_code=200
+        )
+
+        self.assertContext(response, 'share_user', self.editor)
+        self.assertContext(response, 'share_uuid', share.uuid)
+        self.assertContext(response, 'user', self.viewer)
+
+    @tag('share_link')
+    def test_create_link_no_emails(self):
+        self.login_viewer()
+        data = {}
+
+        response = self.reverse_post(
+            'aristotle_mdr:userSandbox',
+            data,
+            status_code=200,
+            follow=True
+        )
+
+        form = response.context['form']
+        self.assertEqual(len(form.errors), 0)
+
+        self.assertTrue(hasattr(self.viewer.profile, 'share'))
+        share = self.viewer.profile.share
+        emails = json.loads(share.emails)
+        self.assertEqual(emails, [])
+
+    @tag('share_link')
+    def test_view_sandbox_incorrect_email(self):
+        share = self.create_content_and_share(
+            self.editor,
+            ['steve@example.com', 'bob@example.com']
+        )
+
+        # Attempt to view share link as viewer
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle_mdr:sharedSandbox',
+            reverse_args=[share.uuid],
+            status_code=404
+        )
+
+    @tag('share_link')
+    def test_view_sandbox_item_correct_email(self):
+        share = self.create_content_and_share(
+            self.editor,
+            ['vicky@example.com', 'alice@example.com']
+        )
+
+        # Get sandbox item
+        item = models.ObjectClass.objects.get(name='Sandpit', submitter=self.editor)
+
+        # Attempt to view shared item
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle_mdr:sharedSandboxItem',
+            reverse_args=[share.uuid, item.id],
+            status_code=200
+        )
+
+        # Check for message
+        self.assertContains(response, 'You are viewing a shared item')
+
+        # Check action bar was not rendered
+        self.assertTemplateNotUsed('aristotle_mdr/concepts/actionbar.html')
+
+        self.assertInContext(response, 'breadcrumbs')
+
+    @tag('share_link')
+    def test_view_sanbox_item_incorrect_email(self):
+        share = self.create_content_and_share(
+            self.editor,
+            ['tester@example.com', 'alice@example.com']
+        )
+
+        # Get sandbox item
+        item = models.ObjectClass.objects.get(name='Sandpit', submitter=self.editor)
+
+        # Attempt to view shared item
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle_mdr:sharedSandboxItem',
+            reverse_args=[share.uuid, item.id],
+            status_code=404
+        )
+
+    @tag('share_link')
+    def test_view_incorrect_sandbox_item(self):
+        share = self.create_content_and_share(
+            self.editor,
+            ['vicky@example.com', 'alice@example.com']
+        )
+
+        # Create item as viewer
+        item = models.ObjectClass.objects.create(
+            name='Bad object',
+            definition='Bad',
+            submitter=self.su
+        )
+
+        # Attempt to view shared item
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle_mdr:sharedSandboxItem',
+            reverse_args=[share.uuid, item.id],
+            status_code=403
+        )
+
+    @tag('share_link')
+    def test_link_display_on_shared_item_page(self):
+        share = self.create_content_and_share(
+            self.editor,
+            ['vicky@example.com', 'alice@example.com']
+        )
+
+        sandbox = models.ObjectClass.objects.get(name='Sandbox', submitter=self.editor)
+
+        # Create a property that isn't in editors sandbox
+        prop = models.Property.objects.create(
+            name='Sandiness',
+            definition='Sandiness',
+            submitter=self.su
+        )
+
+        # Create a dec in the sandbox linking to another item in sanbox and an
+        # external item
+        dec = models.DataElementConcept.objects.create(
+            name='Sandbox-Sandiness',
+            definition='Sandbox Sandiness',
+            submitter=self.editor,
+            objectClass=sandbox,
+            property=prop
+        )
+
+        # View shared dec item
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle_mdr:sharedSandboxItem',
+            reverse_args=[share.uuid, dec.id],
+            status_code=200
+        )
+
+        # Check that correct links are displayed
+        self.assertContains(response, reverse('aristotle_mdr:sharedSandboxItem', args=[share.uuid, sandbox.id]))
+        self.assertNotContains(response, reverse('aristotle_mdr:item', args=[sandbox.id]))
+
+        self.assertContains(response, reverse('aristotle_mdr:item', args=[prop.id]))
+        self.assertNotContains(response, reverse('aristotle_mdr:sharedSandboxItem', args=[share.uuid, prop.id]))
+
     def test_user_can_edit_own_details(self):
         self.login_viewer()
         new_email = 'my_new@email.com'
@@ -185,8 +421,6 @@ class UserHomePages(utils.LoggedInViewPages, TestCase):
         self.check_generic_pages()
 
         # A viewer, has no registrar permissions:
-        response = self.client.get(reverse('aristotle:userRegistrarTools',))
-        self.assertEqual(response.status_code,403)
         response = self.client.get(reverse('aristotle:userReadyForReview',))
         self.assertEqual(response.status_code,403)
 
@@ -299,9 +533,6 @@ class UserHomePages(utils.LoggedInViewPages, TestCase):
         self.login_superuser()
         response = self.client.get("/login")
         self.assertRedirects(response, reverse('aristotle:userHome'))
-
-        response = self.client.get("/login?next=" + reverse('aristotle:userFavourites'))
-        self.assertRedirects(response, reverse('aristotle:userFavourites'))
 
 
 class UserDashRecentItems(utils.LoggedInViewPages, TestCase):
@@ -492,3 +723,76 @@ class UserProfileTests(TestCase):
 
         self.assertEqual(three_toga_color, response.context['toga_color'])
         self.assertEqual(three_headshot_color, response.context['headshot_color'])
+
+
+@tag('inactive_ra', 'newtest')
+class RegistrationAuthorityPages(utils.AristotleTestUtils, TestCase):
+
+    def test_inactive_ra_inactive_in_all_ra_list(self):
+
+        response = self.reverse_get(
+            'aristotle_mdr:all_registration_authorities',
+            status_code=200
+        )
+        self.assertEqual(len(response.context['registrationAuthorities']), 1)
+        self.assertNotContains(response, '(inactive)')
+
+        # Deactivate ra
+        self.ra.active = 1
+        self.ra.save()
+
+        # Check that removed from list
+        response = self.reverse_get(
+            'aristotle_mdr:all_registration_authorities',
+            status_code=200
+        )
+        self.assertEqual(len(response.context['registrationAuthorities']), 1)
+        self.assertContains(response, '(inactive)')
+
+    def test_hidden_ra_not_in_all_ra_list(self):
+
+        # Set ra to hidden
+        self.ra.active = 2
+        self.ra.save()
+
+        response = self.reverse_get(
+            'aristotle_mdr:all_registration_authorities',
+            status_code=200
+        )
+        self.assertEqual(len(response.context['registrationAuthorities']), 0)
+
+    def test_ra_shows_as_inactive_in_registrartools(self):
+
+        self.login_ramanager()
+
+        # Deactivate ra
+        self.ra.active = 1
+        self.ra.save()
+
+        response = self.reverse_get(
+            'aristotle_mdr:userRegistrarTools',
+            status_code=200
+        )
+        self.assertContains(response, 'Test RA')
+        self.assertContains(response, '(inactive)')
+
+    def test_hidden_ra_not_in_registrar_tools(self):
+
+        self.login_ramanager()
+
+        # Set ra to hidden
+        self.ra.active = 2
+        self.ra.save()
+
+        response = self.reverse_get(
+            'aristotle_mdr:userRegistrarTools',
+            status_code=200
+        )
+        self.assertNotContains(response, 'Test RA')
+
+    def test_active_in_ra_edit_form(self):
+
+        self.login_superuser()
+        response = self.client.get(reverse('aristotle_mdr:registrationauthority_edit', args=[self.ra.id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('active' in response.context['form'].fields)

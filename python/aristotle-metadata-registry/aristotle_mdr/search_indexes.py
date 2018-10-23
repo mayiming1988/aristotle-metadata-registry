@@ -39,6 +39,8 @@ class baseObjectIndex(indexes.SearchIndex):
     modified = indexes.DateTimeField(model_attr='modified')
     created = indexes.DateTimeField(model_attr='created')
     name = indexes.CharField(model_attr='name', boost=1)
+    # Thanks ElasticSearch - https://github.com/django-haystack/django-haystack/issues/569
+    name_sortable = indexes.CharField(model_attr='name', indexed=False, stored=True)
     django_ct_app_label = indexes.CharField()
     # django_ct_model_name = indexes.CharField()
     # access = indexes.MultiValueField()
@@ -95,6 +97,8 @@ class conceptIndex(baseObjectIndex):
     version = indexes.CharField(model_attr="version")
     submitter_id = indexes.IntegerField(model_attr="submitter_id", null=True)
     facet_model_ct = indexes.IntegerField(faceted=True)
+    identifier = indexes.MultiValueField()
+    namespace = indexes.MultiValueField()
 
     template_name = "search/searchItem.html"
 
@@ -160,3 +164,18 @@ class conceptIndex(baseObjectIndex):
         elif obj._is_locked:
             return RESTRICTION['Locked']
         return RESTRICTION['Unlocked']
+
+    def prepare_identifier(self, obj):
+        identifiers = []
+        for scoped_ident in obj.identifiers.all().select_related('namespace'):
+            identifiers.append(
+                '{}/{}/{}'.format(
+                    scoped_ident.namespace.shorthand_prefix,
+                    scoped_ident.identifier,
+                    scoped_ident.version
+                )
+            )
+        return identifiers
+
+    def prepare_namespace(self, obj):
+        return [ident.namespace.shorthand_prefix for ident in obj.identifiers.all().select_related('namespace')]

@@ -5,6 +5,8 @@ from django.contrib.admin.filters import RelatedFieldListFilter
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.db.models import BooleanField
+from django.forms import widgets
 
 import aristotle_mdr.models as MDR
 import aristotle_mdr.forms as MDRForms
@@ -21,8 +23,23 @@ from aristotle_mdr.register import register_concept
 from aristotle_mdr.utils import fetch_aristotle_settings
 
 reversion.revisions.register(MDR.Status)
-reversion.revisions.register(MDR._concept, follow=['statuses', 'workgroup', 'slots'])
+reversion.revisions.register(
+    MDR._concept,
+    follow=[
+        'statuses', 'workgroup', 'slots',
+    ],
+    exclude=[
+        'is_public', 'is_locked',
+        'user_view_history',
+        'superseded_by_items', 'superseded_items',
+        'superseded_by_items_relation_set',
+        'superseded_items_relation_set',
+        'modified',
+        'submitter',
+    ]
+)
 reversion.revisions.register(MDR.Workgroup)
+reversion.revisions.register(MDR.SupersedeRelationship)
 
 User = get_user_model()
 
@@ -121,12 +138,14 @@ class ConceptAdmin(CompareVersionAdmin, admin.ModelAdmin):
         # ('Registry', {'fields': ['workgroup']}),
         ('Relationships', {
             'classes': ('grp-collapse grp-closed',),
-            'fields': ['origin_URI', 'superseded_by', 'deprecated'],
+            'fields': ['origin_URI'],
         }),
     ]
     name_suggest_fields = []
     actions_on_top = True
     actions_on_bottom = False
+
+    compare_exclude = ['favourites', 'user_view_history']
 
     def get_form(self, request, obj=None, **kwargs):
         # Thanks: http://stackoverflow.com/questions/6321916
@@ -258,7 +277,7 @@ class RegistrationAuthorityAdmin(admin.ModelAdmin):
     filter_horizontal = ['managers', 'registrars']
 
     fieldsets = [
-        (None, {'fields': ['name', 'definition']}),
+        (None, {'fields': ['name', 'definition', 'active']}),
         ('Members', {'fields': ['managers', 'registrars']}),
         ('Visibility and control', {'fields': ['locked_state', 'public_state']}),
         ('Status descriptions',
@@ -358,9 +377,6 @@ register_concept(
     MDR.DataElementConcept,
     name_suggest_fields=['objectClass', 'property'],
     extra_fieldsets=[('Components', {'fields': ['objectClass', 'property']})],
-    reversion={
-        'follow': ['objectClass', 'property'],
-    },
     custom_search_index=aristotle_mdr_DataElementConceptSearchIndex
 )
 
@@ -379,9 +395,6 @@ register_concept(
     MDR.DataElement,
     name_suggest_fields=['dataElementConcept', 'valueDomain'],
     extra_fieldsets=[('Components', {'fields': ['dataElementConcept', 'valueDomain']})],
-    reversion={
-        'follow': ['dataElementConcept', 'valueDomain'],
-    },
     custom_search_index=aristotle_mdr_DataElementSearchIndex
 )
 
