@@ -1359,7 +1359,7 @@ class DataElement(concept):
 
 
 class DataElementDerivation(concept):
-    """
+    r"""
     Application of a derivation rule to one or more
     input :model:`aristotle_mdr.DataElement`\s to derive one or more
     output :model:`aristotle_mdr.DataElement`\s (3.2.33)
