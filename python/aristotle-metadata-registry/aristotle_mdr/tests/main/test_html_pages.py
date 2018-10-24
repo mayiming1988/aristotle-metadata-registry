@@ -336,6 +336,30 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         # check dec version
         self.assertEqual(int(dec_version.object_id), dec.id)
 
+    @tag('item_app_check')
+    def test_viewing_item_with_disabled_app(self):
+
+        enabled_apps = ['aristotle_dse']
+        with mock.patch('aristotle_mdr.views.views.fetch_metadata_apps', return_value=enabled_apps):
+            self.login_editor()
+            self.reverse_get(
+                'aristotle:item',
+                reverse_args=[self.item.id, 'objectclass', 'name'],
+                status_code=404
+            )
+
+    @tag('item_app_check')
+    def test_viewing_item_with_enabled_app(self):
+
+        enabled_apps = ['aristotle_mdr']
+        with mock.patch('aristotle_mdr.views.views.fetch_metadata_apps', return_value=enabled_apps):
+            self.login_editor()
+            self.reverse_get(
+                'aristotle:item',
+                reverse_args=[self.item.id, 'objectclass', 'name'],
+                status_code=200
+            )
+
 
 class LoggedInViewConceptPages(utils.LoggedInViewPages, utils.FormsetTestUtils):
     defaults = {}

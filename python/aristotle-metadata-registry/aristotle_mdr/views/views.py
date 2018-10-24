@@ -32,7 +32,12 @@ from aristotle_mdr.utils import url_slugify_concept
 
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
-from aristotle_mdr.utils import get_concepts_for_apps, fetch_aristotle_settings, fetch_aristotle_downloaders
+from aristotle_mdr.utils import (
+    get_concepts_for_apps,
+    fetch_aristotle_settings,
+    fetch_aristotle_downloaders,
+    fetch_metadata_apps
+)
 from aristotle_mdr.views.utils import generate_visibility_matrix, CachePerItemUserMixin
 from aristotle_mdr.contrib.slots.utils import get_allowed_slots
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
@@ -189,6 +194,12 @@ class ConceptRenderMixin:
         # To be overwritten
         return True
 
+    def check_app(self, item):
+        label = type(item)._meta.app_label
+        if label not in fetch_metadata_apps():
+            return False
+        return True
+
     def get_user(self):
         return self.request.user
 
@@ -222,6 +233,11 @@ class ConceptRenderMixin:
                 return HttpResponseRedirect(url)
 
         self.user = self.get_user()
+
+        app_enabled = self.check_app(self.item)
+        if not app_enabled:
+            return HttpResponseNotFound()
+
         result = self.check_item(self.item)
         if not result:
             if self.request.user.is_anonymous():
