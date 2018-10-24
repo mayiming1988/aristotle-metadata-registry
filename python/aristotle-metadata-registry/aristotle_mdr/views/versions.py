@@ -145,12 +145,13 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
 
         target_version = None
         for sub_version in versions:
-            ctid = sub_version.content_type_id
             if target_ct is not None:
+                ctid = sub_version.content_type_id
                 if ctid == target_ct.id:
                     target_version = sub_version
                     break
             else:
+                ct = sub_version.content_type
                 if issubclass(ct.model_class(), MDR._concept):
                     # Find version that is a _concept subclass
                     # Since the pk is the _concept_ptr this is fine
