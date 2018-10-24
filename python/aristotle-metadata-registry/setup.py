@@ -86,6 +86,9 @@ setup(
         # File upload
         'django-constrainedfilefield[filetype]',
 
+        # File type checking
+        'python-magic>=0.4.2'
+
         # Generic json field
         'jsonfield',
 
