@@ -214,8 +214,8 @@ class DistributionViewPage(LoggedInViewConceptPages,TestCase):
 
         self.assertTrue(spec_classes.is_link)
         self.assertTrue(spec_classes.is_list)
-        self.assertTrue(oc1 in spec_classes.object_list)
-        self.assertTrue(oc2 in spec_classes.object_list)
+        self.assertTrue(oc1._concept_ptr in spec_classes.object_list)
+        self.assertTrue(oc2._concept_ptr in spec_classes.object_list)
         self.assertEqual(len(spec_classes.object_list), 2)
 
 class DistributionWizardPage(FormsetTestUtils, ConceptWizardPage, TestCase):
