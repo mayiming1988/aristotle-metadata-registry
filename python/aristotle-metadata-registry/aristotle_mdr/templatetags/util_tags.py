@@ -75,6 +75,10 @@ def json_script(value, element_id):
 
 @register.filter(name='bleach')
 def bleach_filter(html):
+
+    if html is None:
+        return html
+
     clean_html = bleach.clean(
         html,
         tags=settings.BLEACH_ALLOWED_TAGS,
