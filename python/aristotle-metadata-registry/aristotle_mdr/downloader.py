@@ -43,7 +43,7 @@ class DownloaderBase(object):
 
     @classmethod
     def get_bulk_download_config(cls, request, items):
-        """
+        r"""
         This method must be overriden. This takes request object and returns a computed set of download config
         creates a dict of properties required to generate bulk_downloads
         -> properties must contain url_id to identify an unique download url of the format ([\w\-\. ]+)/?$
