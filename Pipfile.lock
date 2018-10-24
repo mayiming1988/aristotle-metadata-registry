@@ -234,9 +234,6 @@
             "version": "==5.6.1"
         },
         "django-constrainedfilefield": {
-            "extras": [
-                "filetype"
-            ],
             "hashes": [
                 "sha256:1e151a3dae2b545224127f2177ee5075ecfe0d75a65634df8715cd5b4a799756",
                 "sha256:a5f442a739c39a4ff15de4857436fb3a9edf2cc16c97be42228cd2c4e2024eff"
@@ -605,7 +602,6 @@
                 "sha256:f2674dcfad52ae6c49d4803fa027809540b130db1dec928cfbb9240316831375",
                 "sha256:f3765c0f582d2dfc72c15f3b5a82aecfae9498bd29ca840d72f37d7bd38bfcd5"
             ],
-            "markers": "platform_system != 'Windows' and extra == 'filetype'",
             "version": "==0.4.15"
         },
         "pytz": {
