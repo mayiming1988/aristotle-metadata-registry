@@ -22,6 +22,13 @@ from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
 
 
 class VersionField:
+    """
+    Field for use in previous version display
+    With fancy dereferencing
+    Template to render in helpers/version_field.html
+
+    Doesn't deal with lists of components (no many to many's for those)
+    """
 
     perm_message = 'Linked to object(s) you do not have permission to view'
 
@@ -42,20 +49,25 @@ class VersionField:
 
     def dereference(self, lookup):
         # Lookup ids in a given dictionary
+        replaced = False
         if self.is_reference and self.reference_label in lookup:
             id_lookup = lookup[self.reference_label]
             if self.is_list:
+                # No perm message for these
                 deref_list = []
                 for pk in self.obj:
                     if pk in id_lookup:
                         deref_list.append(id_lookup[pk])
                 self.obj = deref_list
+                replaced = True
             else:
                 if self.obj in id_lookup:
                     self.obj = id_lookup[self.obj]
-                else:
-                    self.obj = None
-                    self.value = self.perm_message
+                    replaced = True
+
+        if not replaced:
+            self.obj = None
+            self.value = self.perm_message
 
         self.reference_label = ''
 
@@ -65,11 +77,11 @@ class VersionField:
 
     @property
     def is_link(self):
-        return (not self.is_reference and self.obj is not None)
+        return (not self.is_reference and self.obj)
 
     @property
     def is_list(self):
-        return (self.is_link and type(self.obj) == list)
+        return (type(self.obj) == list)
 
     @property
     def object_list(self):
@@ -80,7 +92,7 @@ class VersionField:
 
     @property
     def link_id(self):
-        if not self.is_link:
+        if not self.is_link or self.is_list:
             return None
 
         if issubclass(self.obj.__class__, MDR.aristotleComponent):
@@ -90,7 +102,11 @@ class VersionField:
 
     def __str__(self):
         if self.is_link:
-            return self.obj.name
+            if hasattr(self.obj, 'name'):
+                return self.obj.name
+            else:
+                # Shouldn't actually happen, but just in case
+                return str(self.obj)
         else:
             return self.value or 'None'
 
