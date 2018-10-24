@@ -49,27 +49,28 @@ class VersionField:
 
     def dereference(self, lookup):
         # Lookup ids in a given dictionary
-        replaced = False
-        if self.is_reference and self.reference_label in lookup:
-            id_lookup = lookup[self.reference_label]
-            if self.is_list:
-                # No perm message for these
-                deref_list = []
-                for pk in self.obj:
-                    if pk in id_lookup:
-                        deref_list.append(id_lookup[pk])
-                self.obj = deref_list
-                replaced = True
-            else:
-                if self.obj in id_lookup:
-                    self.obj = id_lookup[self.obj]
+        if self.is_reference:
+            replaced = False
+            if self.reference_label in lookup:
+                id_lookup = lookup[self.reference_label]
+                if self.is_list:
+                    # No perm message for these
+                    deref_list = []
+                    for pk in self.obj:
+                        if pk in id_lookup:
+                            deref_list.append(id_lookup[pk])
+                    self.obj = deref_list
                     replaced = True
+                else:
+                    if self.obj in id_lookup:
+                        self.obj = id_lookup[self.obj]
+                        replaced = True
 
-        if not replaced:
-            self.obj = None
-            self.value = self.perm_message
+            if not replaced:
+                self.obj = None
+                self.value = self.perm_message
 
-        self.reference_label = ''
+            self.reference_label = ''
 
     @property
     def is_reference(self):
@@ -77,7 +78,7 @@ class VersionField:
 
     @property
     def is_link(self):
-        return (not self.is_reference and self.obj)
+        return (not self.is_reference and bool(self.obj))
 
     @property
     def is_list(self):
