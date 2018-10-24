@@ -2225,20 +2225,20 @@ class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):
 
     def create_linked_ded(self):
 
-        de1 = models.DataElement.objects.create(name='DE1 Name',definition="my definition",workgroup=self.wg1)
-        de2 = models.DataElement.objects.create(name='DE2 Name',definition="my definition",workgroup=self.wg1)
-        de3 = models.DataElement.objects.create(name='DE3 Name',definition="my definition",workgroup=self.wg1)
-        ded = models.DataElementDerivation.objects.create(name='DED Name', definition='my definition', workgroup=self.wg1)
+        self.de1 = models.DataElement.objects.create(name='DE1 Name',definition="my definition",workgroup=self.wg1)
+        self.de2 = models.DataElement.objects.create(name='DE2 Name',definition="my definition",workgroup=self.wg1)
+        self.de3 = models.DataElement.objects.create(name='DE3 Name',definition="my definition",workgroup=self.wg1)
+        self.ded = models.DataElementDerivation.objects.create(name='DED Name', definition='my definition', workgroup=self.wg1)
 
-        ded_derives_1 = models.DedDerivesThrough.objects.create(data_element_derivation=ded, data_element=de1, order=0)
-        ded_derives_2 = models.DedDerivesThrough.objects.create(data_element_derivation=ded, data_element=de2, order=1)
-        ded_derives_3 = models.DedDerivesThrough.objects.create(data_element_derivation=ded, data_element=de3, order=2)
+        ded_derives_1 = models.DedDerivesThrough.objects.create(data_element_derivation=self.ded, data_element=self.de1, order=0)
+        ded_derives_2 = models.DedDerivesThrough.objects.create(data_element_derivation=self.ded, data_element=self.de2, order=1)
+        ded_derives_3 = models.DedDerivesThrough.objects.create(data_element_derivation=self.ded, data_element=self.de3, order=2)
 
-        ded_inputs_1 = models.DedInputsThrough.objects.create(data_element_derivation=ded, data_element=de3, order=0)
-        ded_inputs_1 = models.DedInputsThrough.objects.create(data_element_derivation=ded, data_element=de2, order=1)
-        ded_inputs_1 = models.DedInputsThrough.objects.create(data_element_derivation=ded, data_element=de1, order=2)
+        ded_inputs_1 = models.DedInputsThrough.objects.create(data_element_derivation=self.ded, data_element=self.de3, order=0)
+        ded_inputs_1 = models.DedInputsThrough.objects.create(data_element_derivation=self.ded, data_element=self.de2, order=1)
+        ded_inputs_1 = models.DedInputsThrough.objects.create(data_element_derivation=self.ded, data_element=self.de1, order=2)
 
-        return ded
+        return self.ded
 
     def derivation_m2m_concepts_save(self, url, attr):
         self.de1 = models.DataElement.objects.create(name='DE1 - visible',definition="my definition",workgroup=self.wg1)
@@ -2513,14 +2513,14 @@ class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):
         item = response.context['item']
 
         des = get_dataelements_from_m2m(item, "inputs")
-        self.assertEqual(des[0].pk, de3.pk)
-        self.assertEqual(des[1].pk, de2.pk)
-        self.assertEqual(des[2].pk, de1.pk)
+        self.assertEqual(des[0].pk, self.de3.pk)
+        self.assertEqual(des[1].pk, self.de2.pk)
+        self.assertEqual(des[2].pk, self.de1.pk)
 
         des = get_dataelements_from_m2m(item, "derives")
-        self.assertEqual(des[0].pk, de1.pk)
-        self.assertEqual(des[1].pk, de2.pk)
-        self.assertEqual(des[2].pk, de3.pk)
+        self.assertEqual(des[0].pk, self.de1.pk)
+        self.assertEqual(des[1].pk, self.de2.pk)
+        self.assertEqual(des[2].pk, self.de3.pk)
 
     @skip('to be fixed in future')
     @tag('ded_version')
