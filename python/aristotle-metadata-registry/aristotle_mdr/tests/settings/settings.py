@@ -120,9 +120,6 @@ CACHES = {
     }
 }
 
-# Use prod webpack setting
-WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = os.path.join(BASE_DIR, 'webpack-stats-prod.json')
-
 # disable
 LOGGING = {
     'version': 1,

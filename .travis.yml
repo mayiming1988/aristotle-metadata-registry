@@ -10,6 +10,10 @@ defaults:
       - if [[ $SEARCH == elastic ]]; then sudo service elasticsearch start && sleep 10; fi
     # Make a posgres database
       - if [[ $DB == postgres* ]]; then ./scripts/prep_psql.sh; fi
+      - cd assets
+      - npm install
+      - npm run devbuild
+      - cd .. 
     script:
       - |
         case "$DB" in
@@ -43,6 +47,7 @@ defaults:
     install:
       - pip install codecov coveralls
       - pip install 'tox>=3.0'
+      - nvm install 8.12.0
     <<: *main_test_script
 
   - &test_accessibility_py36
@@ -58,8 +63,6 @@ defaults:
       - npm install
       - npm run devbuild
       - cd .. 
-      - rm ./python/aristotle-metadata-registry/webpack-stats-prod.json
-      - cp ./assets/dist/webpack-stats.json ./python/aristotle-metadata-registry/webpack-stats-prod.json
     script: ./scripts/tox_if.sh dj1.11-linux-ally-$ALLY-module_amr
 
   - &deploy_stage
