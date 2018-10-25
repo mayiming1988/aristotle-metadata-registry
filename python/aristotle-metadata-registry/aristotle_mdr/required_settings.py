@@ -279,7 +279,6 @@ WEBPACK_LOADER = {
         'POLL_INTERVAL': 0.1,
         'STATS_FILE': os.path.join(REPO_BASE_DIR, 'assets/dist/webpack-stats.json'),
         'TIMEOUT': None,
-        'IGNORE': ['.+\.hot-update.js', '.+\.map']
     }
 }
 
