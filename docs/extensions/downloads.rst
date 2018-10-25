@@ -72,7 +72,7 @@ The arguments are
   that was used to call the download view. The current user trying to download the
   item can be gotten by calling ``request.user``.
 
-iid - This is the id of the item that needs to be downloaded
+* ``iid`` - This is the id of the item that needs to be downloaded
 
 The return arguments are:
 
