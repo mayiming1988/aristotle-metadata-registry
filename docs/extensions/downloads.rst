@@ -6,11 +6,19 @@ desired to download metadata stored within a registry in a variety of download
 formats. Rather than include these within the Aristotle-MDR core codebase,
 additional download formats can be developed included via the download API.
 
+Downloads architecture
+---------------------------
+
+There are two parts to the downloads module
+
+* Django views will serve and it will start a job with Celery that will yield a download file asynchronously.
+* Celery will have the tasks registered from the downloads class. Celery worker will add the file to a redis cache.
+
 Creating a download module
 ---------------------------
 
 A download module is a specialised class, that sub-classes ``aristotle_mdr.downloader.DownloaderBase``
-and provides an appropriate ``download`` or ``bulk_download`` method.
+and provides an appropriate ``get_download_config`` and ``download`` or ``get_bulk_download_config`` and ``bulk_download`` methods.
 
 A download module is just a Django app that includes a specific set
 of files for generating downloads. The only files required in your app are:
@@ -52,20 +60,44 @@ Describing these options, these classes specifies the following downloads:
 
 Each download class must also define a class method with the following signature::
 
-    def download(cls, request, item):
+    def get_download_config(cls, request, iid):
+        return properties, iid
 
-This is called from Aristotle-MDR when it catches a download type that has been
-registered for this module. The arguments are:
+This is a download config which creates the json serializable properties for the request.
+This will ensure that the task can be passed on to Celery, which requires the objects to be json serializable.
+
+The arguments are 
 
 * ``request`` - the `request object <https://docs.djangoproject.com/en/stable/ref/request-response/>`_
   that was used to call the download view. The current user trying to download the
   item can be gotten by calling ``request.user``.
 
-* ``item`` - the item to be downloaded, as retrieved from the database.
+iid - This is the id of the item that needs to be downloaded
+
+The return arguments are:
+
+* ``properties`` - This will save essential information like user email(can be used by celery to get user object) and title of the document(to be displayed to the user while the download is generated).
+* ``iid`` - This would be same as the input argument in most cases. It is present to manipulate the iid if required.
+
+
+Each download class must also define a static method with the following signature::
+
+    @shared_task
+    def download(properties, iid):
+
+A shared task is a celery worker hook which will register this function as a celery task
+This is called from Aristotle-MDR when it catches a download type that has been
+registered for this module. The arguments are:
+
+* ``properties`` - This will contain all the variables required by celery task to prepare the download.
+
+* ``iid`` - the id of the item to be downloaded, to be retrieved from the database.
 
 **Note:** If a download method is called the user has been verified to have
 permissions to view the requested item only. Permissions for other items will
 have to be checked within the download method.
+
+The ``get_bulk_download_config`` and ``bulk_download`` method works in same fashion as ``get_download_config`` and ``download`` respectively.
 
 For more information see the ``DownloaderBase`` class below:
 
