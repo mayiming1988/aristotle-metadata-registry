@@ -2,6 +2,23 @@
   "$schema": "http://json-schema.org/schema#",
   "title": "Aristotle Validation Setup",
   "description": "Setup defining rules used to validate metadata",
+
+  "definitions": {
+    "check": {
+      "type": "object",
+      "properties": {
+        "validator": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["warning", "error"]
+        }
+      },
+      "required": ["validator"]
+    }
+  },
+
   "type": "array",
   "items": {
     "type": "object",
@@ -15,24 +32,40 @@
       "checks": {
         "type": "array",
         "items": {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string"
-            },
-            "field": {
-              "type": "string"
-            },
-            "output": {
-              "type": "string",
-              "enum": ["warning", "error"]
-            },
-            "rule": {
-              "type": "string"
+          "allOf": [
+            { "$ref": "#definitions/check" },
+            { 
+              "oneOf": [
+                {
+                  "properties": {
+                    "validator": {
+                      "type": "string",
+                      "const": "RegexValidator"
+                    },
+                    "field": {
+                      "type": "string"
+                    },
+                    "rule": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["rule", "field"]
+                },
+                {
+                  "properties": {
+                    "validator": {
+                      "type": "string",
+                      "const": "StatusValidator"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["status"]
+                }
+              ]
             }
-          },
-          "required": ["type", "field", "rule"],
-          "additionalProperties": false
+          ]
         }
       }
     },
