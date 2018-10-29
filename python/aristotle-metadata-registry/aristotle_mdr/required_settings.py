@@ -2,17 +2,16 @@
 import os
 
 BASE_DIR = os.getenv('aristotlemdr__BASE_DIR', os.path.dirname(os.path.dirname(__file__)))
-MDR_BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-REPO_BASE_DIR = os.path.dirname(os.path.dirname(BASE_DIR))
 SECRET_KEY = os.getenv('aristotlemdr__SECRET_KEY', "OVERRIDE_THIS_IN_PRODUCTION")
 STATIC_ROOT = os.getenv('aristotlemdr__STATIC_ROOT', os.path.join(BASE_DIR, "static"))
 MEDIA_ROOT = os.getenv('aristotlemdr__MEDIA_ROOT', os.path.join(BASE_DIR, "media"))
 
+# Non overridabe base dirs
+MDR_BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+REPO_BASE_DIR = os.path.dirname(os.path.dirname(BASE_DIR))
+
 TEMPLATES_DIRS = [os.path.join(BASE_DIR, 'templates')]
 FIXTURES_DIRS = [os.path.join(BASE_DIR, 'fixtures')]
-
-# SECURITY WARNING: don't run with debug turned on in production!!
-DEBUG = True
 
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 # This provides for quick easy set up, but should be changed to a production
@@ -274,14 +273,15 @@ GEOIP_PATH = os.path.join(BASE_DIR, 'aristotle_mdr/vendor/geoip')
 # Webpack loading
 WEBPACK_LOADER = {
     'DEFAULT': {
-        'CACHE': not DEBUG,
+        'CACHE': True,
         'BUNDLE_DIR_NAME': 'bundles/',
         'POLL_INTERVAL': 0.1,
-        'STATS_FILE': os.path.join(REPO_BASE_DIR, 'assets/dist/webpack-stats.json'),
+        'STATS_FILE': os.path.join(MDR_BASE_DIR, 'webpack-stats.json'),
         'TIMEOUT': None,
     }
 }
 
+# Django manifest location
 MANIFEST_DIR = BASE_DIR
 
 # Caching

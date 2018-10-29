@@ -3,6 +3,7 @@ Base settings necessary for running an Aristotle Instance in "the cloud (tm)"
 """
 
 import dj_database_url
+import os
 from aristotle_mdr.required_settings import *
 
 ALLOWED_HOSTS = ["*"]
@@ -84,3 +85,7 @@ if DEBUG and DEBUG_TOOLBAR:
     INSTALLED_APPS += ('debug_toolbar',)
     ip = socket.gethostbyname(socket.gethostname())
     INTERNAL_IPS = [ip[:-1] + '1']
+
+# Webpack Loading
+WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = os.path.join(REPO_BASE_DIR, 'assets/dist/webpack-stats.json')
+WEBPACK_LOADER['DEFAULT']['CACHE'] = False
