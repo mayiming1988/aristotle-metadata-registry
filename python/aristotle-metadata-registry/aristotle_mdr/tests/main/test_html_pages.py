@@ -336,6 +336,21 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         # check dec version
         self.assertEqual(int(dec_version.object_id), dec.id)
 
+    @tag('validate')
+    def test_validate(self):
+        dec = models.DataElementConcept.objects.create(
+            name='Testing DEC',
+            definition='Test Defn'
+        )
+
+        response = self.reverse_get(
+            'aristotle:validate',
+            reverse_args=[dec.id],
+            status_code=200
+        )
+
+        self.assertTrue(response.valid)
+
 
 class LoggedInViewConceptPages(utils.LoggedInViewPages, utils.FormsetTestUtils):
     defaults = {}
