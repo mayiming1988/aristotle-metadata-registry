@@ -1,6 +1,6 @@
 - status: Standard
   object: DataElementConcept
-  checks:    
+  checks:   
     - validator: RegexValidator
       name: Em Dash
       severity: warning

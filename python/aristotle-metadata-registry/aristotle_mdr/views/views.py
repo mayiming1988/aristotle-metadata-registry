@@ -683,15 +683,12 @@ class ValidationView(TemplateView):
         with open(path.join(self.base_dir, 'schema/schema.json')) as schemafile:
             self.schema = json.load(schemafile)
 
+        aristotle_validators = settings.ARISTOTLE_VALIDATORS
+        self.validators = {x: import_string(y) for x, y in aristotle_validators.items()}
+
         # Hard coded setup for now
         with open(path.join(self.base_dir, 'schema/setup.yaml')) as setupfile:
             self.setup = yaml.load(setupfile)
-
-        # Hard coded validators for now
-        self.validators = {
-            'RegexValidator': validators.RegexValidator,
-            'StatusValidator': validators.StatusValidator
-        }
 
         # Only one ra for now
         self.ra = MDR.RegistrationAuthority.objects.first()
