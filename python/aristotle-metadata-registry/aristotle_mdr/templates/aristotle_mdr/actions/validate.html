@@ -11,13 +11,19 @@
       No Validation rules avaliable
     </p>
   {% else %}
+    <div class="list-group">
     {% for result in results %}
-    <p>
-      {{ result.check }}: <i class="fa fa-{{ result.status|yesno:"check,times" }} text-{{ result.status|yesno:"success,danger" }}"></i>
+    <a href="#" class="list-group-item">
+      <div class="h4 list-group-item-heading">
+        {{ result.check }}: <i class="fa fa-{{ result.status|yesno:"check,times" }} text-{{ result.status|yesno:"success,danger" }}"></i>
+      </div>
       {% if result.message %}
-        <span class="bg-{{ result.status|yesno:"success,danger" }}">{{ result.message }}</span>
+        <p class="list-group-item-text">
+          {{ result.message }}
+        </p>
       {% endif %}
-    </p>
+    </a>
     {% endfor %}
+    </div>
   {% endif %}
 {% endblock %}
