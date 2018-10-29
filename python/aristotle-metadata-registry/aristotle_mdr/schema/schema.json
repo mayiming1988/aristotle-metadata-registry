@@ -13,6 +13,9 @@
         "severity": {
           "type": "string",
           "enum": ["warning", "error"]
+        },
+        "name": {
+          "type": "string"
         }
       },
       "required": ["validator"]

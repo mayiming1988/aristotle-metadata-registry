@@ -717,26 +717,24 @@ class ValidationView(TemplateView):
 
         results = []
         for check in checks:
-            result = {
-                'check': check['validator'],
-            }
             if check['validator'] in self.validators:
                 validator_class = self.validators[check['validator']]
                 validator = validator_class(check)
                 status, message = validator.validate(item)
 
-                result.update({
+                results.append({
+                    'check': validator.getName(),
                     'status': status,
                     'message': message
                 })
-                results.append(result)
             else:
-                result.update({
+                results.append({
+                    'check': rule['validator'],
                     'status': False,
                     'message': 'Validator not enabled'
                 })
-                results.append(result)
 
-        kwargs['valid'] = valid
+        kwargs['setup_valid'] = valid
         kwargs['results'] = results
+        kwargs['item_name'] = item.name
         return super().get(request, *args, **kwargs)

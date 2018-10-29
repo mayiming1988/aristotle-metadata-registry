@@ -4,7 +4,14 @@ import re
 class BaseValidator:
 
     def __init__(self, rule):
+        if 'name' in rule:
+            self.name = rule['name']
+        else:
+            self.name = 'Unnamed {}'.format(rule['validator'])
         self.rule = rule
+
+    def getName(self):
+        return self.name
 
     def validate(self, item):
         # To be overwritten in child

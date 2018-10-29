@@ -2,6 +2,7 @@
   object: DataElementConcept
   checks:    
     - validator: RegexValidator
+      name: Em Dash
       severity: warning
       field: name
       regex: \w+\u2014\w+
