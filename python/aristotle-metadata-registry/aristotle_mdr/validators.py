@@ -58,7 +58,7 @@ class StatusValidator(BaseValidator):
         last_status = statuses.first()
         last_state = last_status.state
 
-        if last_state in status:
+        if last_state in allowed_states:
             return True, 'Valid State'
         else:
             return False, 'Invalid State'
