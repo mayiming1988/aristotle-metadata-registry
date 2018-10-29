@@ -61,7 +61,10 @@
                       "const": "StatusValidator"
                     },
                     "status": {
-                      "type": "string"
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
                     }
                   },
                   "required": ["status"]

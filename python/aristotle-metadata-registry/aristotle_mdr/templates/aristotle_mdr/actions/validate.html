@@ -14,6 +14,9 @@
     {% for result in results %}
     <p>
       {{ result.check }}: <i class="fa fa-{{ result.status|yesno:"check,times" }} text-{{ result.status|yesno:"success,danger" }}"></i>
+      {% if result.message %}
+        <span class="bg-{{ result.status|yesno:"success,danger" }}">{{ result.message }}</span>
+      {% endif %}
     </p>
     {% endfor %}
   {% endif %}

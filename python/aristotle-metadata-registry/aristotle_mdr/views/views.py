@@ -698,7 +698,7 @@ class ValidationView(TemplateView):
         try:
             concept = MDR._concept.objects.get(id=self.kwargs['iid'])
         except MDR._concept.DoesNotExist:
-            return HttpResponseNotFound
+            return HttpResponseNotFound()
 
         # Slow query
         item = concept.item
@@ -719,7 +719,7 @@ class ValidationView(TemplateView):
                         if check['validator'] in self.validators:
                             validator_class = self.validators[check['validator']]
                             validator = validator_class(check)
-                            status, message = validator.validate(item)
+                            status, message = validator.validate(item, self.ra)
 
                             results.append({
                                 'check': validator.getName(),
