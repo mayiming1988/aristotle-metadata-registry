@@ -19,6 +19,9 @@ from formtools.wizard.views import SessionWizardView
 
 import json
 import copy
+import yaml
+import jsonschema
+from os import path
 
 import reversion
 from reversion_compare.views import HistoryCompareDetailView
@@ -36,6 +39,7 @@ from aristotle_mdr.utils import get_concepts_for_apps, fetch_aristotle_settings,
 from aristotle_mdr.views.utils import generate_visibility_matrix, CachePerItemUserMixin
 from aristotle_mdr.contrib.slots.utils import get_allowed_slots
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
+from aristotle_mdr import validators
 
 from haystack.views import FacetedSearchView
 
@@ -666,3 +670,73 @@ def extensions(request):
         "aristotle_mdr/static/extensions.html",
         {'content_extensions': content, 'download_extensions': downloads, }
     )
+
+
+class ValidationView(TemplateView):
+
+    template_name='aristotle_mdr/actions/validate.html'
+    base_dir=path.dirname(path.dirname(__file__))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        with open(path.join(self.base_dir, 'schema/schema.json')) as schemafile:
+            self.schema = json.load(schemafile)
+
+        with open(path.join(self.base_dir, 'schema/setup.yaml')) as setupfile:
+            self.setup = yaml.load(setupfile)
+
+        self.validators = {
+            'RegexValidator': validators.RegexValidator,
+            'StatusValidator': validators.StatusValidator
+        }
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            concept = MDR._concept.objects.get(id=self.kwargs['iid'])
+        except MDR._concept.DoesNotExist:
+            return HttpResponseNotFound
+
+        # Slow query
+        item = concept.item
+        itemtype = type(item).__name__
+
+        valid = True
+        try:
+            jsonschema.validate(self.setup, self.schema)
+        except jsonschema.exceptions.ValidationError as e:
+            logger.debug(e)
+            valid = False
+
+        checks = []
+        if valid:
+            for itemsetup in self.setup:
+                if itemsetup['object'] == itemtype:
+                    checks += itemsetup['checks']
+
+        results = []
+        for check in checks:
+            result = {
+                'check': check['validator'],
+            }
+            if check['validator'] in self.validators:
+                validator_class = self.validators[check['validator']]
+                validator = validator_class(check)
+                status, message = validator.validate(item)
+
+                result.update({
+                    'status': status,
+                    'message': message
+                })
+                results.append(result)
+            else:
+                result.update({
+                    'status': False,
+                    'message': 'Validator not enabled'
+                })
+                results.append(result)
+
+        kwargs['valid'] = valid
+        kwargs['results'] = results
+        return super().get(request, *args, **kwargs)

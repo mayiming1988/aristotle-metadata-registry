@@ -1,0 +1,17 @@
+{% extends 'aristotle_mdr/base.html' %}
+
+{% block title %}
+  Validate
+{% endblock %}
+
+{% block content %}
+  <h1>Validate</h1>
+  <p>
+    Schema {{ valid|yesno:"Valid,Invalid" }}
+  </p>
+  {% for result in results %}
+  <p>
+    {{ result.check }}: <i class="fa fa-{{ result.status|yesno:"check,times" }} text-{{ result.status|yesno:"success,danger" }}"></i>
+  </p>
+  {% endfor %}
+{% endblock %}
