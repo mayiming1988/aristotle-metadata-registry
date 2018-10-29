@@ -683,13 +683,18 @@ class ValidationView(TemplateView):
         with open(path.join(self.base_dir, 'schema/schema.json')) as schemafile:
             self.schema = json.load(schemafile)
 
+        # Hard coded setup for now
         with open(path.join(self.base_dir, 'schema/setup.yaml')) as setupfile:
             self.setup = yaml.load(setupfile)
 
+        # Hard coded validators for now
         self.validators = {
             'RegexValidator': validators.RegexValidator,
             'StatusValidator': validators.StatusValidator
         }
+
+        # Only one ra for now
+        self.ra = MDR.RegistrationAuthority.objects.first()
 
     def get(self, request, *args, **kwargs):
 
@@ -709,30 +714,21 @@ class ValidationView(TemplateView):
             logger.debug(e)
             valid = False
 
-        checks = []
+        results = []
         if valid:
             for itemsetup in self.setup:
                 if itemsetup['object'] == itemtype:
-                    checks += itemsetup['checks']
+                    for check in itemsetup['checks']:
+                        if check['validator'] in self.validators:
+                            validator_class = self.validators[check['validator']]
+                            validator = validator_class(check)
+                            status, message = validator.validate(item)
 
-        results = []
-        for check in checks:
-            if check['validator'] in self.validators:
-                validator_class = self.validators[check['validator']]
-                validator = validator_class(check)
-                status, message = validator.validate(item)
-
-                results.append({
-                    'check': validator.getName(),
-                    'status': status,
-                    'message': message
-                })
-            else:
-                results.append({
-                    'check': rule['validator'],
-                    'status': False,
-                    'message': 'Validator not enabled'
-                })
+                            results.append({
+                                'check': validator.getName(),
+                                'status': status,
+                                'message': message
+                            })
 
         kwargs['setup_valid'] = valid
         kwargs['results'] = results
