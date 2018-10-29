@@ -45,11 +45,11 @@
                     "field": {
                       "type": "string"
                     },
-                    "rule": {
+                    "regex": {
                       "type": "string"
                     }
                   },
-                  "required": ["rule", "field"]
+                  "required": ["regex", "field"]
                 },
                 {
                   "properties": {
