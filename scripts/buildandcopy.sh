@@ -11,6 +11,8 @@ if [[ -z "$STORAGE_BUCKET_NAME" ]]; then
     exit 1
 fi
 
+mkdir ./python/aristotle-metadata-registry/manifests
+
 cd assets
 echo "Running webpack build..."
 # Remove stats if it exists
@@ -27,5 +29,5 @@ export DJANGO_SETTINGS_MODULE=settings
 echo "Collecting static..."
 pipenv run django-admin collectstatic --no-input
 
-cp ./assets/dist/webpack-stats.json ./python/aristotle-metadata-registry/fixtures
+cp ./assets/dist/webpack-stats.json ./python/aristotle-metadata-registry/manifests
 echo "Done!"

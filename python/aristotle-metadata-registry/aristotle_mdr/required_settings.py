@@ -6,9 +6,9 @@ SECRET_KEY = os.getenv('aristotlemdr__SECRET_KEY', "OVERRIDE_THIS_IN_PRODUCTION"
 STATIC_ROOT = os.getenv('aristotlemdr__STATIC_ROOT', os.path.join(BASE_DIR, "static"))
 MEDIA_ROOT = os.getenv('aristotlemdr__MEDIA_ROOT', os.path.join(BASE_DIR, "media"))
 
-# Non overridabe base dirs
+# Non overridable base dirs
 MDR_BASE_DIR = os.path.dirname(__file__)
-REPO_BASE_DIR = os.path.dirname(os.path.dirname(BASE_DIR))
+REPO_BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(MDR_BASE_DIR)))
 
 TEMPLATES_DIRS = [os.path.join(BASE_DIR, 'templates')]
 FIXTURES_DIRS = [os.path.join(MDR_BASE_DIR, 'fixtures')]
@@ -275,13 +275,13 @@ WEBPACK_LOADER = {
         'CACHE': True,
         'BUNDLE_DIR_NAME': 'bundles/',
         'POLL_INTERVAL': 0.1,
-        'STATS_FILE': os.path.join(MDR_BASE_DIR, 'fixtures/webpack-stats.json'),
+        'STATS_FILE': os.path.join(MDR_BASE_DIR, 'manifests/webpack-stats.json'),
         'TIMEOUT': None,
     }
 }
 
 # Django manifest location
-MANIFEST_DIR = os.path.join(MDR_BASE_DIR, 'fixtures')
+MANIFEST_DIR = os.path.join(MDR_BASE_DIR, 'manifests')
 
 # Caching
 CACHE_ITEM_PAGE = False
