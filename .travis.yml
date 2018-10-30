@@ -69,10 +69,9 @@ defaults:
     stage: deploy-it
     language: python
     install:
-      - pip install codecov coveralls
-      - pip install 'tox>=3.0'
-    script: true
-    install: skip
+      - pip install pipenv
+      - nvm install 8.12.0
+    script: ./scripts/buildandcopy.sh
     after_success: true
     deploy: &deploy_step
       provider: pypi

@@ -47,7 +47,6 @@ TEMPLATES = [
                 'aristotle_mdr.context_processors.settings',
                 'django.contrib.messages.context_processors.messages',
             ],
-            'debug': DEBUG
         },
     },
 ]
