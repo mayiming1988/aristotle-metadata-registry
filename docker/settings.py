@@ -107,3 +107,4 @@ if 'STORAGE_BUCKET_NAME' in os.environ:
     STATICFILES_STORAGE = 'aristotle_mdr.storage.CustomManifestStaticFilesStorage'
     AWS_STORAGE_BUCKET_NAME=os.environ['STORAGE_BUCKET_NAME']
     AWS_QUERYSTRING_AUTH=False
+    AWS_DEFAULT_ACL=None
