@@ -7,11 +7,11 @@ STATIC_ROOT = os.getenv('aristotlemdr__STATIC_ROOT', os.path.join(BASE_DIR, "sta
 MEDIA_ROOT = os.getenv('aristotlemdr__MEDIA_ROOT', os.path.join(BASE_DIR, "media"))
 
 # Non overridabe base dirs
-MDR_BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+MDR_BASE_DIR = os.path.dirname(__file__)
 REPO_BASE_DIR = os.path.dirname(os.path.dirname(BASE_DIR))
 
 TEMPLATES_DIRS = [os.path.join(BASE_DIR, 'templates')]
-FIXTURES_DIRS = [os.path.join(BASE_DIR, 'fixtures')]
+FIXTURES_DIRS = [os.path.join(MDR_BASE_DIR, 'fixtures')]
 
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 # This provides for quick easy set up, but should be changed to a production
@@ -275,13 +275,13 @@ WEBPACK_LOADER = {
         'CACHE': True,
         'BUNDLE_DIR_NAME': 'bundles/',
         'POLL_INTERVAL': 0.1,
-        'STATS_FILE': os.path.join(MDR_BASE_DIR, 'webpack-stats.json'),
+        'STATS_FILE': os.path.join(MDR_BASE_DIR, 'fixtures/webpack-stats.json'),
         'TIMEOUT': None,
     }
 }
 
 # Django manifest location
-MANIFEST_DIR = BASE_DIR
+MANIFEST_DIR = os.path.join(MDR_BASE_DIR, 'fixtures')
 
 # Caching
 CACHE_ITEM_PAGE = False

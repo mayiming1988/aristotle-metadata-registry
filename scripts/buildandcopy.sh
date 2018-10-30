@@ -27,5 +27,5 @@ export DJANGO_SETTINGS_MODULE=settings
 echo "Collecting static..."
 pipenv run django-admin collectstatic --no-input
 
-cp ./assets/dist/webpack-stats.json ./python/aristotle-metadata-registry
+cp ./assets/dist/webpack-stats.json ./python/aristotle-metadata-registry/fixtures
 echo "Done!"
