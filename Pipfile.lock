@@ -210,9 +210,6 @@
             "version": "==5.6.1"
         },
         "django-constrainedfilefield": {
-            "extras": [
-                "filetype"
-            ],
             "hashes": [
                 "sha256:1e151a3dae2b545224127f2177ee5075ecfe0d75a65634df8715cd5b4a799756",
                 "sha256:a5f442a739c39a4ff15de4857436fb3a9edf2cc16c97be42228cd2c4e2024eff"
@@ -329,6 +326,13 @@
                 "sha256:b626eb9acd4b60f09d6222c772277717b78e0fde3c5772a7d3a309866b5e9f55"
             ],
             "version": "==1.6.0"
+        },
+        "django-webpack-loader": {
+            "hashes": [
+                "sha256:60bab6b9a037a5346fad12d2a70a6bc046afb33154cf75ed640b93d3ebd5f520",
+                "sha256:970b968c2a8975fb7eff56a3bab5d0d90d396740852d1e0c50c5cfe2b824199a"
+            ],
+            "version": "==0.6.0"
         },
         "djangorestframework": {
             "hashes": [
@@ -574,7 +578,6 @@
                 "sha256:f2674dcfad52ae6c49d4803fa027809540b130db1dec928cfbb9240316831375",
                 "sha256:f3765c0f582d2dfc72c15f3b5a82aecfae9498bd29ca840d72f37d7bd38bfcd5"
             ],
-            "markers": "platform_system != 'Windows' and extra == 'filetype'",
             "version": "==0.4.15"
         },
         "pytz": {
