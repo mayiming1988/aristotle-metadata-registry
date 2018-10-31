@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "Aristotle Validation Setup",
+  "description": "Setup defining rules used to validate metadata",
+
+  "definitions": {
+    "check": {
+      "type": "object",
+      "properties": {
+        "validator": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["warning", "error"]
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": ["validator"]
+    }
+  },
+
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string"
+      },
+      "object": {
+        "type": "string"
+      },
+      "checks": {
+        "type": "array",
+        "items": {
+          "allOf": [
+            { "$ref": "#definitions/check" },
+            { 
+              "oneOf": [
+                {
+                  "properties": {
+                    "validator": {
+                      "type": "string",
+                      "const": "RegexValidator"
+                    },
+                    "field": {
+                      "type": "string"
+                    },
+                    "regex": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["regex", "field"]
+                },
+                {
+                  "properties": {
+                    "validator": {
+                      "type": "string",
+                      "const": "StatusValidator"
+                    },
+                    "status": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": ["status"]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "required": ["status", "object", "checks"],
+    "additionalProperties": false
+  }
+}

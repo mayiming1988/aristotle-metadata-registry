@@ -18,7 +18,7 @@ PAGES_PER_RELATED_ITEM = 15
 
 
 def download(request, download_type, iid=None):
-    """
+    r"""
     By default, ``aristotle_mdr.views.download`` is called whenever a URL matches
     the pattern defined in ``aristotle_mdr.urls_aristotle``::
 
@@ -80,7 +80,7 @@ def download(request, download_type, iid=None):
 
 
 def bulk_download(request, download_type, items=None):
-    """
+    r"""
     By default, ``aristotle_mdr.views.bulk_download`` is called whenever a URL matches
     the pattern defined in ``aristotle_mdr.urls_aristotle``::
 

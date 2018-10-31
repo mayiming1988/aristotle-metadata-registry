@@ -276,3 +276,9 @@ GEOIP_PATH = os.path.join(BASE_DIR, 'aristotle_mdr/vendor/geoip')
 
 # Caching
 CACHE_ITEM_PAGE = False
+
+# Validators
+ARISTOTLE_VALIDATORS = {
+    'RegexValidator': 'aristotle_mdr.validators.RegexValidator',
+    'StatusValidator': 'aristotle_mdr.validators.StatusValidator'
+}
