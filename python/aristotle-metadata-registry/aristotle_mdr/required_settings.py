@@ -83,16 +83,17 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 ARISTOTLE_ASYNC_SIGNALS = True
 
 INSTALLED_APPS = (
+    'aristotle_mdr.contrib.reviews',
     'aristotle_mdr',
-    'aristotle_mdr.contrib.view_history',
     'aristotle_mdr.contrib.generic',
     'aristotle_mdr.contrib.help',
     'aristotle_mdr.contrib.slots',
     'aristotle_mdr.contrib.identifiers',
     'aristotle_mdr.contrib.browse',
     'aristotle_mdr.contrib.autocomplete',
-    'aristotle_mdr.contrib.user_management',
     'aristotle_mdr.contrib.favourites',
+    'aristotle_mdr.contrib.view_history',
+    'aristotle_mdr.contrib.user_management',
 
     'dal',
     'dal_select2',

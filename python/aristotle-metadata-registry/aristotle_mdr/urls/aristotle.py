@@ -149,8 +149,6 @@ urlpatterns=[
     url(r'^account/edit/?$', views.user_pages.EditView.as_view(), name='userEdit'),
     url(r'^account/profile/?$', views.user_pages.ProfileView.as_view(), name='userProfile'),
     url(r'^account/recent/?$', views.user_pages.recent, name='userRecentItems'),
-    url(r'^account/reviews/?$', views.user_pages.my_review_list, name='userMyReviewRequests'),
-    url(r'^account/reviews/cancel/(?P<review_id>\d+)/?$', views.actions.ReviewCancelView.as_view(), name='userReviewCancel'),
     url(r'^account/workgroups/?$', views.user_pages.MyWorkgroupList.as_view(), name='userWorkgroups'),
     url(r'^account/workgroups/archives/?$', views.user_pages.WorkgroupArchiveList.as_view(), name='user_workgroups_archives'),
     url(r'^account/notifications(?:/folder/(?P<folder>all))?/?$', views.user_pages.inbox, name='userInbox'),
@@ -159,12 +157,15 @@ urlpatterns=[
     url(r'^account/django/(.*)?$', views.user_pages.django_admin_wrapper, name='django_admin'),
 
 
-    url(r'^action/review/(?P<iid>\d+)?$', views.actions.SubmitForReviewView.as_view(), name='request_review'),
     url(r'^account/registrartools/?$', views.user_pages.RegistrarTools.as_view(), name='userRegistrarTools'),
-    url(r'^account/registrartools/review/?$', views.user_pages.review_list, name='userReadyForReview'),
-    url(r'^account/registrartools/review/details/(?P<review_id>\d+)/?$', views.user_pages.ReviewDetailsView.as_view(), name='userReviewDetails'),
-    url(r'^account/registrartools/review/accept/(?P<review_id>\d+)/?$', views.actions.ReviewAcceptView.as_view(), name='userReviewAccept'),
-    url(r'^account/registrartools/review/reject/(?P<review_id>\d+)/?$', views.actions.ReviewRejectView.as_view(), name='userReviewReject'),
+
+    # url(r'^account/reviews/?$', views.user_pages.my_review_list, name='userMyReviewRequests'),
+    # url(r'^account/reviews/cancel/(?P<review_id>\d+)/?$', views.actions.ReviewCancelView.as_view(), name='userReviewCancel'),
+    # url(r'^action/review/(?P<iid>\d+)?$', views.actions.SubmitForReviewView.as_view(), name='request_review'),
+    # url(r'^account/registrartools/review/?$', views.user_pages.review_list, name='userReadyForReview'),
+    # url(r'^account/registrartools/review/details/(?P<review_id>\d+)/?$', views.user_pages.ReviewDetailsView.as_view(), name='userReviewDetails'),
+    # url(r'^account/registrartools/review/accept/(?P<review_id>\d+)/?$', views.actions.ReviewAcceptView.as_view(), name='userReviewAccept'),
+    # url(r'^account/registrartools/review/reject/(?P<review_id>\d+)/?$', views.actions.ReviewRejectView.as_view(), name='userReviewReject'),
 
 
     url(r'^registrationauthority/create/?$', views.registrationauthority.CreateRegistrationAuthority.as_view(), name='registrationauthority_create'),
