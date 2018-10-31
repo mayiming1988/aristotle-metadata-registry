@@ -363,6 +363,23 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
         self.assertFalse(names_and_refs['Responsible Organisation'].is_link)
         self.assertFalse(names_and_refs['Responsible Organisation'].is_html)
+
+    @tag('validate')
+    def test_validation_runs(self):
+        dec = models.DataElementConcept.objects.create(
+            name='Testing DEC',
+            definition='Test Defn'
+        )
+        response = self.reverse_get(
+            'aristotle:validate',
+            reverse_args=[dec.id],
+            status_code=200
+        )
+
+        context = response.context
+        self.assertTrue(context['setup_valid'])
+        self.assertEqual(context['item_name'], 'Testing DEC')
+        self.assertEqual(len(context['results']), 2)
         self.assertEqual(names_and_refs['Responsible Organisation'].value, 'My org')
 
     @tag('version')
