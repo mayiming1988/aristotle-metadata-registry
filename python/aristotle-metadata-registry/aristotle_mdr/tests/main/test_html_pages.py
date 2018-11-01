@@ -363,6 +363,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
         self.assertFalse(names_and_refs['Responsible Organisation'].is_link)
         self.assertFalse(names_and_refs['Responsible Organisation'].is_html)
+        self.assertEqual(names_and_refs['Responsible Organisation'].value, 'My org')
 
     @tag('validate')
     def test_validation_runs(self):
@@ -380,7 +381,6 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertTrue(context['setup_valid'])
         self.assertEqual(context['item_name'], 'Testing DEC')
         self.assertEqual(len(context['results']), 2)
-        self.assertEqual(names_and_refs['Responsible Organisation'].value, 'My org')
 
     @tag('version')
     def test_version_workgroup_lookup(self):
