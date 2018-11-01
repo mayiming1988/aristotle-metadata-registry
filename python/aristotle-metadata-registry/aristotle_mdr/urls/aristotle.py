@@ -108,7 +108,7 @@ urlpatterns=[
     # url(r'^item/(?P<iid>\d+)/?$', views.items.concept, name='item'),
     url(r'^item/(?P<iid>\d+)/edit/?$', views.editors.EditItemView.as_view(), name='edit_item'),
     url(r'^item/(?P<iid>\d+)/clone/?$', views.editors.CloneItemView.as_view(), name='clone_item'),
-    url(r'^item/(?P<iid>\d+)/history/?$', views.ConceptHistoryCompareView.as_view(), name='item_history'),
+    url(r'^item/(?P<iid>\d+)/history/?$', views.versions.ConceptHistoryCompareView.as_view(), name='item_history'),
     url(r'^item/(?P<iid>\d+)/registrationHistory/?$', views.registrationHistory, name='registrationHistory'),
     url(r'^item/(?P<iid>\d+)/child_states/?$', views.actions.CheckCascadedStates.as_view(), name='check_cascaded_states'),
 
@@ -196,6 +196,7 @@ urlpatterns=[
     url(r'share/(?P<share>[\w-]+)$', views.user_pages.SharedSandboxView.as_view(), name='sharedSandbox'),
     url(r'share/(?P<share>[\w-]+)/(?P<iid>\d+)', views.user_pages.SharedItemView.as_view(), name='sharedSandboxItem'),
 
+    url(r'version/(?P<verid>\d+)', views.versions.ConceptVersionView.as_view(), name='item_version'),
     url(r'validate/(?P<iid>\d+)/$', views.ValidationView.as_view(), name='validate'),
 
     url(

@@ -1,12 +1,13 @@
-from django import VERSION as django_version
 from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist, ObjectDoesNotExist
 from django.urls import reverse
 from django.db import transaction
+from django.db.models import Q
 from django.http import HttpResponseRedirect, HttpResponseNotFound, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.defaultfilters import slugify
@@ -24,7 +25,6 @@ import jsonschema
 from os import path
 
 import reversion
-from reversion_compare.views import HistoryCompareDetailView
 
 from aristotle_mdr.perms import (
     user_can_view, user_can_edit,
@@ -47,6 +47,7 @@ from aristotle_mdr.contrib.favourites.models import Favourite, Tag
 from aristotle_mdr import validators
 
 from haystack.views import FacetedSearchView
+
 
 import logging
 
@@ -71,29 +72,6 @@ class SmartRoot(RedirectView):
 class DynamicTemplateView(TemplateView):
     def get_template_names(self):
         return ['aristotle_mdr/static/%s.html' % self.kwargs['template']]
-
-
-class ConceptHistoryCompareView(HistoryCompareDetailView):
-    model = MDR._concept
-    pk_url_kwarg = 'iid'
-    template_name = "aristotle_mdr/actions/concept_history_compare.html"
-
-    compare_exclude = [
-        'favourites',
-        'user_view_history',
-        'submitter',
-    ]
-
-    def get_object(self, queryset=None):
-        item = super().get_object(queryset)
-        if not user_can_view(self.request.user, item):
-            raise PermissionDenied
-        self.model = item.item.__class__  # Get the subclassed object
-        return item
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
 
 
 def notification_redirect(self, content_type, object_id):

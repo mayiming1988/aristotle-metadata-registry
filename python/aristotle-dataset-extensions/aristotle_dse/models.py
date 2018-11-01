@@ -167,9 +167,6 @@ class DistributionDataElementPath(aristotle.models.aristotleComponent):
     class Meta:
         ordering = ['order']
 
-    @property
-    def parentItem(self):
-        return self.distribution
 
     distribution = models.ForeignKey(
         Distribution,
@@ -180,6 +177,7 @@ class DistributionDataElementPath(aristotle.models.aristotleComponent):
         aristotle.models.DataElement,
         blank=True, null=True,
         help_text=_('An entity responsible for making the dataset available.'),
+        verbose_name='Data Element'
         )
     logical_path = models.CharField(
         max_length=256,
@@ -195,6 +193,14 @@ class DistributionDataElementPath(aristotle.models.aristotleComponent):
         help_text=_(""),
         blank=True
     )
+
+    @property
+    def parentItem(self):
+        return self.distribution
+
+    @property
+    def parentItemId(self):
+        return self.distribution_id
 
 
 CARDINALITY = Choices(('optional', _('Optional')), ('conditional', _('Conditional')), ('mandatory', _('Mandatory')))
@@ -222,7 +228,8 @@ class DataSetSpecification(aristotle.models.concept):
         related_name='statistical_unit_of',
         blank=True,
         null=True,
-        help_text=_("Indiciates if the ordering for a dataset is must match exactly the order laid out in the specification.")
+        help_text=_("Indiciates if the ordering for a dataset is must match exactly the order laid out in the specification."),
+        verbose_name='Statistical Unit'
         )
     collection_method = aristotle.models.RichTextField(
         blank=True,
@@ -291,10 +298,6 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         abstract=True
         ordering = ['order']
 
-    @property
-    def parentItem(self):
-        return self.dss
-
     dss = ConceptForeignKey(DataSetSpecification)
     maximum_occurances = models.PositiveIntegerField(
         default=1,
@@ -320,6 +323,14 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         blank=True,
         help_text=_("If a dataset is ordered, this indicates which position this item is in a dataset.")
         )
+
+    @property
+    def parentItem(self):
+        return self.dss
+
+    @property
+    def parentItemId(self):
+        return self.dss_id
 
 
 # Holds the link between a DSS and a Data Element with the DSS Specific details.
