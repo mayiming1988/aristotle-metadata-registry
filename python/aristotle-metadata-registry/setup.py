@@ -107,7 +107,10 @@ setup(
         'django-webpack-loader',
 
         # Storages
-        'django-storages'
+        'django-storages',
+
+        # Sanitization
+        'bleach'
 
     ],
 

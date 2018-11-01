@@ -239,6 +239,7 @@ CKEDITOR_CONFIGS = {
             {'name': 'document', 'items': ['Maximize', 'Source']},
         ],
         'width': "",
+        "removePlugins": "stylesheetparser",
     },
 }
 
@@ -287,6 +288,19 @@ MANIFEST_DIR = os.path.join(MDR_BASE_DIR, 'manifests')
 
 # Caching
 CACHE_ITEM_PAGE = False
+
+# Sanitization
+BLEACH_ALLOWED_TAGS = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'em',
+                       'i', 'li', 'ol', 'strong', 'ul', 'table', 'tbody', 'thead',
+                       'tr', 'th', 'td', 'img', 'p', 'h1', 'h2', 'h3', 'h4',
+                       'h5', 'h6', 'sub', 'sup']
+
+BLEACH_ALLOWED_ATTRIBUTES = {
+    'a': ['href', 'title'],
+    'abbr': ['title'],
+    'acronym': ['title'],
+    'img': ['src', 'height', 'width', 'alt']
+}
 
 # Validators
 ARISTOTLE_VALIDATORS = {

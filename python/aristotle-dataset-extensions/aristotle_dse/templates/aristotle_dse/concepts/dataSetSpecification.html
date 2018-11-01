@@ -74,12 +74,12 @@
                         {% if deinc.specific_information %}
                         <div>
                             <strong>Specific Information:</strong>
-                            {{ deinc.specific_information | safe }}
+                            {{ deinc.specific_information|bleach }}
                         </div>
                         {% endif %}
                         {% if deinc.conditional_obligation %}
                         <div>
-                            <strong>Conditional Obligation:</strong>{{ deinc.conditional_obligation|safe }}
+                            <strong>Conditional Obligation:</strong>{{ deinc.conditional_obligation|bleach }}
                         </div>
                         {% endif %}
                     </td>
@@ -139,12 +139,12 @@
                         {% if deinc.specific_information %}
                         <div>
                             <strong>Specific Information:</strong>
-                            {{ deinc.specific_information | safe }}
+                            {{ deinc.specific_information|bleach }}
                         </div>
                         {% endif %}
                         {% if deinc.conditional_obligation %}
                         <div>
-                            <strong>Conditional Obligation:</strong>{{ deinc.conditional_obligation | safe }}
+                            <strong>Conditional Obligation:</strong>{{ deinc.conditional_obligation|bleach }}
                         </div>
                         {% endif %}
                     </td>
