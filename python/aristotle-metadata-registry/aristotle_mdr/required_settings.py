@@ -8,6 +8,7 @@ MEDIA_ROOT = os.getenv('aristotlemdr__MEDIA_ROOT', os.path.join(BASE_DIR, "media
 
 # Non overridable base dirs
 MDR_BASE_DIR = os.path.dirname(__file__)
+# This is only used in development
 REPO_BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(MDR_BASE_DIR)))
 
 TEMPLATES_DIRS = [os.path.join(BASE_DIR, 'templates')]
