@@ -57,7 +57,7 @@
     "webpack-merge": "^4.1.4"
   },
   "scripts": {
-    "build": "webpack --config webpack.prod.js",
+    "build": "ASSET_PATH=$ASSET_PATH webpack --config webpack.prod.js",
     "devbuild": "webpack --config webpack.dev.js",
     "watch": "webpack --watch --config webpack.dev.js",
     "test": "karma start karma.conf.js --single-run",

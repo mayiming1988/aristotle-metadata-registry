@@ -7,6 +7,7 @@ const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 
 // Try the environment variable, otherwise use static
 const ASSET_PATH = process.env.ASSET_PATH || '/static/bundles/';
+console.log('ASSET_PATH: ', ASSET_PATH)
 
 module.exports = merge(common, {
   mode: 'production',
