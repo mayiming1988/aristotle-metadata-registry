@@ -288,4 +288,9 @@ BLEACH_ALLOWED_ATTRIBUTES = {
     'abbr': ['title'],
     'acronym': ['title'],
     'img': ['src', 'height', 'width']
+
+# Validators
+ARISTOTLE_VALIDATORS = {
+    'RegexValidator': 'aristotle_mdr.validators.RegexValidator',
+    'StatusValidator': 'aristotle_mdr.validators.StatusValidator'
 }

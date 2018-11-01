@@ -6,6 +6,10 @@ name = "pypi"
 [packages]
 django = "==1.11.16"
 django-haystack = ">=2.7.dev1,<2.8.0"
+"psycopg2" = "~=2.7.0"
+"django-redis" = "*"
+"elasticsearch" = ">=5.0.0,<6.0.0"
+"django-haystack-elasticsearch" = "*"
 aristotle-metadata-registry = {path = "./python/aristotle-metadata-registry", editable = true}
 aristotle-dataset-extensions = {path = "./python/aristotle-dataset-extensions", editable = true}
 aristotle-glossary = {path = "./python/aristotle-glossary/", editable = true}
@@ -14,10 +18,6 @@ aristotle-mdr-graphql = {path = "./python/aristotle-mdr-graphql", editable = tru
 aristotle-pdf-downloads = {path = "./python/aristotle-pdf-downloads", editable = true}
 comet-indicator-registry = {path = "./python/comet-indicator-registry", editable = true}
 mallard-questionnaire-registry = {path = "./python/mallard-questionnaire-registry", editable = true}
-"psycopg2" = "~=2.7.0"
-"django-redis" = "*"
-"elasticsearch" = ">=5.0.0,<6.0.0"
-"django-haystack-elasticsearch" = "*"
 
 [dev-packages]
 coverage = "*"

@@ -98,6 +98,11 @@ setup(
 
         'attrs',
 
+        # Webpack loading
+        'django-webpack-loader',
+
+        'jsonschema',
+
         # Sanitization
         'bleach'
 

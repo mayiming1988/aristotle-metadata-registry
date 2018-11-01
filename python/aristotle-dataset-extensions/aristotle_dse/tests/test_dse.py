@@ -12,6 +12,8 @@ setup_aristotle_test_environment()
 
 from aristotle_dse import models
 
+import reversion
+
 def setUpModule():
     from django.core.management import call_command
     call_command('load_aristotle_help', verbosity=0, interactive=False)
@@ -166,6 +168,55 @@ class DistributionViewPage(LoggedInViewConceptPages,TestCase):
 
         super().test_weak_editing_in_advanced_editor_dynamic(updating_field='logical_path', default_fields=default_fields)
 
+    @tag('version')
+    def test_version_display_many_to_many(self):
+
+        de = MDR.DataElement.objects.create(
+            name="test name",
+            definition="test definition",
+            workgroup=self.wg1
+        )
+        oc1 = MDR.ObjectClass.objects.create(
+            name='oc1',
+            definition='oc1',
+            workgroup=self.wg1
+        )
+        oc2 = MDR.ObjectClass.objects.create(
+            name='oc2',
+            definition='oc2',
+            workgroup=self.wg1
+        )
+        ddep = models.DistributionDataElementPath.objects.create(
+            data_element=de,
+            logical_path='/',
+            order=0,
+            distribution=self.item1
+        )
+        ddep.specialisation_classes.add(oc1)
+        ddep.specialisation_classes.add(oc2)
+
+        with reversion.create_revision():
+            self.item1.save()
+
+        latest = reversion.models.Version.objects.get_for_object(self.item1).first()
+
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle:item_version',
+            reverse_args=[latest.id],
+            status_code=200
+        )
+
+        weak = response.context['item']['weak']
+
+        self.assertEqual(weak[0]['model'], 'Distribution Data Element Path')
+        spec_classes = weak[0]['items'][0]['Specialisation Classes']
+
+        self.assertTrue(spec_classes.is_link)
+        self.assertTrue(spec_classes.is_list)
+        self.assertTrue(oc1._concept_ptr in spec_classes.object_list)
+        self.assertTrue(oc2._concept_ptr in spec_classes.object_list)
+        self.assertEqual(len(spec_classes.object_list), 2)
 
 class DistributionWizardPage(FormsetTestUtils, ConceptWizardPage, TestCase):
     model=models.Distribution

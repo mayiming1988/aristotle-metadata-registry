@@ -615,3 +615,59 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
 
         self.assertFalse(response_obj['success'])
         self.assertEqual(response_obj['message'], 'Tag could not be deleted')
+
+    @tag('property')
+    def test_favourites_property(self):
+
+        tag1 = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='my tag'
+        )
+        favtag = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='',
+            primary=True
+        )
+
+        models.Favourite.objects.create(
+            tag=tag1,
+            item=self.timtam
+        )
+        models.Favourite.objects.create(
+            tag=favtag,
+            item=self.tastiness
+        )
+
+        editor_favourites = self.editor.profile.favourites
+        self.assertEqual(editor_favourites.count(), 1)
+        self.assertEqual(editor_favourites[0], self.tastiness._concept_ptr)
+
+    @tag('property')
+    def test_favourites_item_pks_property(self):
+        tag1 = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='my tag'
+        )
+        favtag = models.Tag.objects.create(
+            profile=self.editor.profile,
+            name='',
+            primary=True
+        )
+
+        models.Favourite.objects.create(
+            tag=tag1,
+            item=self.timtam
+        )
+        models.Favourite.objects.create(
+            tag=favtag,
+            item=self.tastiness
+        )
+        models.Favourite.objects.create(
+            tag=favtag,
+            item=self.ttt
+        )
+
+        fav_pks = self.editor.profile.favourite_item_pks
+        self.assertEqual(len(fav_pks), 2)
+        self.assertTrue(self.tastiness.pk in fav_pks)
+        self.assertTrue(self.ttt.pk in fav_pks)

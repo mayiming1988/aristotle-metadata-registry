@@ -39,6 +39,9 @@ def register_queryset(qs):
 @register.filter
 def distinct(iterable, attr_name):
 
+    if not iterable:
+        return []
+
     seen = []
     filtered = []
     for item in iterable:
