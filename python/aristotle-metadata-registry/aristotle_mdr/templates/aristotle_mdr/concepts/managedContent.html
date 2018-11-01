@@ -1,22 +1,15 @@
 {% extends 'aristotle_mdr/base.html' %}
 {% load humanize i18n %}
-{% load compile_static %}
 {% load static from staticfiles %}
 {% load aristotle_tags util_tags %}
+{% load render_bundle from webpack_loader %}
 
-{% block extra_head_scripts %}
-    {% if item|can_edit:request.user %}
-        <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/aristotle.autocomplete.css' %}" />
-    {% endif %}
-    <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/aristotle.visuals.less'|compile %}" />
-    <script src="https://cdn.jsdelivr.net/npm/taggle@1.14.0/src/taggle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vue-simple-suggest@1.8.2/dist/iife.js"></script>
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/suggest.css' %}">
-    {{ tags|json_script:"tags-json" }}
-    <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/taggle.css' %}" />
-    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="{% static 'autocomplete_light/select2.css' %}" />
-    <link rel="stylesheet" type="text/css" href="{% static 'autocomplete_light/vendor/select2/dist/css/select2.css' %}" />
+{% block webpack_css_bundle %}
+  {% render_bundle 'itemPage' 'css' %}
+{% endblock %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'itemPage' 'js' %}
 {% endblock %}
 
 {% block title %}
@@ -150,6 +143,15 @@
   </div>
 </div>
 {% endif %}
+
+<tags-modal 
+  :open="modalOpen" 
+  item-tags="{{ item_tags }}" 
+  user-tags="{{ user_tags }}" 
+  submit-url="{% url 'aristotle_favourites:edit_tags' item.id %}"
+  @saved-tags="updateTags"
+  @hide="closeModal">
+</tags-modal>
 
 <script src="{% static 'aristotle_mdr/itemPage.js' %}"></script>
 

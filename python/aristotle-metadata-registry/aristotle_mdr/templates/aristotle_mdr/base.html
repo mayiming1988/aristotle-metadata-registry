@@ -1,5 +1,6 @@
-{% load i18n bootstrap3 compile_static aristotle_tags %}
+{% load i18n bootstrap3 aristotle_tags %}
 {% load static from staticfiles %}
+{% load render_bundle from webpack_loader %}
 
 <!doctype html>
 <html lang="en" style="height: 100%;">
@@ -20,14 +21,20 @@
       <link rel="icon" type="image/png" href="{% static 'aristotle_mdr/images/favicon.png' %}"/>
       <title>{% block title %}{% endblock %} - {{ config.SITE_NAME }}</title>
 
+    {# Webpack split chunk #}
+    {% render_bundle 'common' 'css' %}
+
+    {% block webpack_css_bundle %}
+    {% endblock %}
+
     {% include 'aristotle_mdr/scripts.html' %}
 
     {% block extra_head_scripts %}
         {% comment %}
-            Only for scripts that need to be inserted for other special templates
-            For example: look ups in supersedes, login, search, etc...
+          Should be using webpack instead of this tag
         {% endcomment %}
     {% endblock %}
+
    </head>
 
    <body>
@@ -56,6 +63,18 @@
     </div>
     {% include 'aristotle_mdr/footer.html' %}
     <div class="well hidden" id="loading_indicator"><i class="fa fa-spinner fa-spin"></i> {% trans 'Loading' %}</div>
+    
+
+    {# Webpack split chunk #}
+    {% render_bundle 'common' 'js' %}
+
+    {# Webpack bundle #}
+    {% block webpack_bundle %}
+      {% render_bundle 'base' 'js' %}
+    {% endblock %}
+
+    {# After bundle should be used sparingly #}
+    {% block after_bundle %}
+    {% endblock %}
    </body>
 </html>
-

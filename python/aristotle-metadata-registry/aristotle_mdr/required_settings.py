@@ -6,11 +6,13 @@ SECRET_KEY = os.getenv('aristotlemdr__SECRET_KEY', "OVERRIDE_THIS_IN_PRODUCTION"
 STATIC_ROOT = os.getenv('aristotlemdr__STATIC_ROOT', os.path.join(BASE_DIR, "static"))
 MEDIA_ROOT = os.getenv('aristotlemdr__MEDIA_ROOT', os.path.join(BASE_DIR, "media"))
 
-TEMPLATES_DIRS = [os.path.join(BASE_DIR, 'templates')]
-FIXTURES_DIRS = [os.path.join(BASE_DIR, 'fixtures')]
+# Non overridable base dirs
+MDR_BASE_DIR = os.path.dirname(__file__)
+# This is only used in development
+REPO_BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(MDR_BASE_DIR)))
 
-# SECURITY WARNING: don't run with debug turned on in production!!
-DEBUG = True
+TEMPLATES_DIRS = [os.path.join(BASE_DIR, 'templates')]
+FIXTURES_DIRS = [os.path.join(MDR_BASE_DIR, 'fixtures')]
 
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 # This provides for quick easy set up, but should be changed to a production
@@ -46,7 +48,6 @@ TEMPLATES = [
                 'aristotle_mdr.context_processors.settings',
                 'django.contrib.messages.context_processors.messages',
             ],
-            'debug': DEBUG
         },
     },
 ]
@@ -113,7 +114,6 @@ INSTALLED_APPS = (
     'ckeditor',
     'ckeditor_uploader',
 
-    'static_precompiler',
     'bootstrap3',
     'reversion',  # https://github.com/etianen/django-reversion
     'reversion_compare',  # https://github.com/jedie/django-reversion-compare
@@ -122,6 +122,9 @@ INSTALLED_APPS = (
     'organizations',
 
     'constrainedfilefield',
+
+    'webpack_loader',
+
     # 'aristotle_bg_workers',
     # 'django_celery_results',
 )
@@ -156,14 +159,12 @@ STATIC_URL = '/static/'
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    'static_precompiler.finders.StaticPrecompilerFinder',
 )
-ADMIN_MEDIA_PREFIX = '/static/admin/'
+STATICFILES_DIRS = [
+    os.path.join(REPO_BASE_DIR, 'assets/dist')
+]
 
-if DEBUG:  # pragma: no cover
-    # Testing forces DEBUG=False, so this will never get tested
-    STATIC_PRECOMPILER_CACHE_TIMEOUT = 1
-    STATIC_PRECOMPILER_DISABLE_AUTO_COMPILE = False
+ADMIN_MEDIA_PREFIX = '/static/admin/'
 
 BOOTSTRAP3 = {
     # The Bootstrap base URL
@@ -251,10 +252,6 @@ HAYSTACK_CONNECTIONS = {
     },
 }
 
-STATIC_PRECOMPILER_COMPILERS = (
-    ('static_precompiler.compilers.LESS', {"executable": "lesscpy"}),
-)
-
 ORGS_SLUGFIELD = 'autoslug.fields.AutoSlugField'
 
 # User Model
@@ -273,6 +270,20 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # GeoIP
 GEOIP_PATH = os.path.join(BASE_DIR, 'aristotle_mdr/vendor/geoip')
+
+# Webpack loading
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'CACHE': True,
+        'BUNDLE_DIR_NAME': 'bundles/',
+        'POLL_INTERVAL': 0.1,
+        'STATS_FILE': os.path.join(MDR_BASE_DIR, 'manifests/webpack-stats.json'),
+        'TIMEOUT': None,
+    }
+}
+
+# Django manifest location
+MANIFEST_DIR = os.path.join(MDR_BASE_DIR, 'manifests')
 
 # Caching
 CACHE_ITEM_PAGE = False

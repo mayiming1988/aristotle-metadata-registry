@@ -16,7 +16,7 @@ var
 sdist
 develop-eggs
 .installed.cfg
-lib
+#lib
 lib64
 __pycache__
 
@@ -53,7 +53,6 @@ nosetests.xml
 *.sqlite3
 whoosh_index/
 
-src/
 /static/
 /docs/_build
 
@@ -63,5 +62,6 @@ docker/data
 # Virtualenv
 .venv
 
-#vim
-.vim-django
+# webpack
+assets/node_modules/*
+assets/dist/*

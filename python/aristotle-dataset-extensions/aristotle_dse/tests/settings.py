@@ -7,6 +7,6 @@ INSTALLED_APPS = (
     'aristotle_dse',
 ) + INSTALLED_APPS
 
-ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] = ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] +['aristotle_dse']
+ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] = ['aristotle_dse']
 
 ROOT_URLCONF = 'aristotle_dse.tests.urls'

@@ -106,8 +106,6 @@ def measure(request, iid, model_slug, name_slug):
         }
     )
 
-    # return render_if_user_can_view(MDR.Measure, *args, **kwargs)
-
 
 class ConceptRenderMixin:
     """
@@ -251,7 +249,6 @@ class ConceptRenderMixin:
         context['item'] = self.item
         context['statuses'] = self.item.current_statuses
         context['discussions'] = self.item.relatedDiscussions.all()
-        context['vue'] = True
 
         # Tags
         if self.request.user.is_authenticated():
@@ -269,15 +266,12 @@ class ConceptRenderMixin:
             item_tags = list(item_tags)
             user_tags = list(user_tags)
 
-            context['tags'] = {
-                'item': item_tags,
-                'user': user_tags
-            }
+            context['item_tags'] = json.dumps(item_tags)
+            context['user_tags'] = json.dumps(user_tags)
+
         else:
-            context['tags'] = {
-                'item': [],
-                'user': []
-            }
+            context['item_tags'] = []
+            context['user_tags'] = []
 
         return context
 

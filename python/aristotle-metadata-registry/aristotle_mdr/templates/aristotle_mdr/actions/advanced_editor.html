@@ -1,29 +1,36 @@
 {% extends request.is_ajax|yesno:"aristotle_mdr/base_ajax.html,aristotle_mdr/base.html" %}
-{% load compile_static i18n %}
-{% load aristotle_tags %}
+{% load i18n aristotle_tags %}
 {% load static from staticfiles %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}Editing {{ item.name }}{% endblock %}
 {% block extra_head_scripts %}
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.wizard.less'|compile %}" />
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle_search.less'|compile %}" />
+    {% comment %}
     <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.moveable.less'|compile %}" />
+    {% endcomment %}
     {% if request.is_ajax %}
+        {% comment %}
         <script type="text/javascript">
             CKEDITOR_BASEPATH="/static/ckeditor/ckeditor/";
         </script>
         <script type="text/javascript" src="{% static 'ckeditor/ckeditor/ckeditor.js' %}"></script>
         <script type="text/javascript" src="{% static 'ckeditor/ckeditor-init.js' %}"></script>
         <script src="{% static 'aristotle_mdr/aristotle.moveable.js' %}"></script>
-
-        <script src="{% static 'autocomplete_light/jquery.init.js' %}"></script>
-        <script src="{% static 'autocomplete_light/autocomplete.init.js' %}"></script>
-        <script src="{% static 'autocomplete_light/vendor/select2/dist/js/select2.full.js' %}"></script>
-        <script src="{% static 'autocomplete_light/select2.js' %}"></script>
+        {% endcomment %}
     {% endif %}
 
 {% endblock %}
+
+{% if not request.is_ajax %}
+  {% block webpack_css_bundle %}
+    {% render_bundle 'advancedEditor' 'css' %}
+  {% endblock %}
+
+  {% block webpack_bundle %}
+    {% render_bundle 'advancedEditor' 'js' %}
+  {% endblock %}
+{% endif %}
 
 {% block content %}
 
