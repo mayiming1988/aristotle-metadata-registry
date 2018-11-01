@@ -26,7 +26,7 @@ reversion.revisions.register(MDR.Status)
 reversion.revisions.register(
     MDR._concept,
     follow=[
-        'statuses', 'workgroup', 'slots',
+        'statuses', 'slots', 'identifiers'
     ],
     exclude=[
         'is_public', 'is_locked',
@@ -437,15 +437,18 @@ register_concept(
     MDR.DataElementDerivation,
     extra_fieldsets=[('Derivation', {'fields': ['derivation_rule']})],
     extra_inlines=[DedDerivesInline, DedInputsInline],
-    custom_search_index=aristotle_mdr_DataElementDerivationSearchIndex
+    custom_search_index=aristotle_mdr_DataElementDerivationSearchIndex,
+    reversion={
+        'follow': ['derives', 'inputs'],
+    }
 )
 
 register_concept(
     MDR.ConceptualDomain,
     extra_inlines=[ValueMeaningInline],
     reversion={
-        'follow': ['valuemeaning_set', ],
-        'follow_classes': [MDR.ValueMeaning, ]
+        'follow': ['valuemeaning_set'],
+        'follow_classes': [MDR.ValueMeaning]
     }
 )
 

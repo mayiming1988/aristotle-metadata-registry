@@ -286,3 +286,9 @@ MANIFEST_DIR = os.path.join(MDR_BASE_DIR, 'manifests')
 
 # Caching
 CACHE_ITEM_PAGE = False
+
+# Validators
+ARISTOTLE_VALIDATORS = {
+    'RegexValidator': 'aristotle_mdr.validators.RegexValidator',
+    'StatusValidator': 'aristotle_mdr.validators.StatusValidator'
+}

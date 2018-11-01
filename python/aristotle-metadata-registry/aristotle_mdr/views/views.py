@@ -1,12 +1,13 @@
-from django import VERSION as django_version
 from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist, ObjectDoesNotExist
 from django.urls import reverse
 from django.db import transaction
+from django.db.models import Q
 from django.http import HttpResponseRedirect, HttpResponseNotFound, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.defaultfilters import slugify
@@ -19,9 +20,11 @@ from formtools.wizard.views import SessionWizardView
 
 import json
 import copy
+import yaml
+import jsonschema
+from os import path
 
 import reversion
-from reversion_compare.views import HistoryCompareDetailView
 
 from aristotle_mdr.perms import (
     user_can_view, user_can_edit,
@@ -32,12 +35,19 @@ from aristotle_mdr.utils import url_slugify_concept
 
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
-from aristotle_mdr.utils import get_concepts_for_apps, fetch_aristotle_settings, fetch_aristotle_downloaders
+from aristotle_mdr.utils import (
+    get_concepts_for_apps,
+    fetch_aristotle_settings,
+    fetch_aristotle_downloaders,
+    fetch_metadata_apps
+)
 from aristotle_mdr.views.utils import generate_visibility_matrix, CachePerItemUserMixin
 from aristotle_mdr.contrib.slots.utils import get_allowed_slots
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
+from aristotle_mdr import validators
 
 from haystack.views import FacetedSearchView
+
 
 import logging
 
@@ -62,29 +72,6 @@ class SmartRoot(RedirectView):
 class DynamicTemplateView(TemplateView):
     def get_template_names(self):
         return ['aristotle_mdr/static/%s.html' % self.kwargs['template']]
-
-
-class ConceptHistoryCompareView(HistoryCompareDetailView):
-    model = MDR._concept
-    pk_url_kwarg = 'iid'
-    template_name = "aristotle_mdr/actions/concept_history_compare.html"
-
-    compare_exclude = [
-        'favourites',
-        'user_view_history',
-        'submitter',
-    ]
-
-    def get_object(self, queryset=None):
-        item = super().get_object(queryset)
-        if not user_can_view(self.request.user, item):
-            raise PermissionDenied
-        self.model = item.item.__class__  # Get the subclassed object
-        return item
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
 
 
 def notification_redirect(self, content_type, object_id):
@@ -187,6 +174,12 @@ class ConceptRenderMixin:
         # To be overwritten
         return True
 
+    def check_app(self, item):
+        label = type(item)._meta.app_label
+        if label not in fetch_metadata_apps():
+            return False
+        return True
+
     def get_user(self):
         return self.request.user
 
@@ -220,6 +213,11 @@ class ConceptRenderMixin:
                 return HttpResponseRedirect(url)
 
         self.user = self.get_user()
+
+        app_enabled = self.check_app(self.item)
+        if not app_enabled:
+            return HttpResponseNotFound()
+
         result = self.check_item(self.item)
         if not result:
             if self.request.user.is_anonymous():
@@ -660,3 +658,64 @@ def extensions(request):
         "aristotle_mdr/static/extensions.html",
         {'content_extensions': content, 'download_extensions': downloads, }
     )
+
+
+class ValidationView(TemplateView):
+
+    template_name='aristotle_mdr/actions/validate.html'
+    base_dir=path.dirname(path.dirname(__file__))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        with open(path.join(self.base_dir, 'schema/schema.json')) as schemafile:
+            self.schema = json.load(schemafile)
+
+        aristotle_validators = settings.ARISTOTLE_VALIDATORS
+        self.validators = {x: import_string(y) for x, y in aristotle_validators.items()}
+
+        # Hard coded setup for now
+        with open(path.join(self.base_dir, 'schema/setup.yaml')) as setupfile:
+            self.setup = yaml.load(setupfile)
+
+        # Only one ra for now
+        self.ra = MDR.RegistrationAuthority.objects.first()
+
+    def get(self, request, *args, **kwargs):
+
+        try:
+            concept = MDR._concept.objects.get(id=self.kwargs['iid'])
+        except MDR._concept.DoesNotExist:
+            return HttpResponseNotFound()
+
+        # Slow query
+        item = concept.item
+        itemtype = type(item).__name__
+
+        valid = True
+        try:
+            jsonschema.validate(self.setup, self.schema)
+        except jsonschema.exceptions.ValidationError as e:
+            logger.debug(e)
+            valid = False
+
+        results = []
+        if valid:
+            for itemsetup in self.setup:
+                if itemsetup['object'] == itemtype:
+                    for check in itemsetup['checks']:
+                        if check['validator'] in self.validators:
+                            validator_class = self.validators[check['validator']]
+                            validator = validator_class(check)
+                            status, message = validator.validate(item, self.ra)
+
+                            results.append({
+                                'check': validator.getName(),
+                                'status': status,
+                                'message': message
+                            })
+
+        kwargs['setup_valid'] = valid
+        kwargs['results'] = results
+        kwargs['item_name'] = item.name
+        return super().get(request, *args, **kwargs)
