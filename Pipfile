@@ -28,7 +28,6 @@ dj-database-url = "*"
 django-tools = "*"
 mock = "*"
 wcag-zoo = "*"
-django-silk = "*"
 django-impersonate = "*"
 psycopg2 = "*"
 

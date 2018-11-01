@@ -16,7 +16,7 @@
             <a href='{{ relation.get_absolute_url }}'>{{ relation.name }}</a> for this link.
         {% endblocktrans %}
         <div class='well'>
-        {{ relation.definition|safe }}
+        {{ relation.definition|bleach }}
         </div>
         <strong>The concepts in this relationship are:</strong>
         <table class="table">

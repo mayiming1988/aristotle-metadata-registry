@@ -60,7 +60,7 @@
             <span class="author"><strong>System message: </strong></span>
             <small class="date" title='{{ comment.created }}'>Posted {{ comment.created|naturaltime }}</small>
         </header>
-        <div class="panel-body">{{ comment.body|safe|linebreaks }}</div>
+        <div class="panel-body">{{ comment.body|linebreaks }}</div>
     </div>
 
     {% else %}

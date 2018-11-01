@@ -101,8 +101,10 @@ setup(
         # Webpack loading
         'django-webpack-loader',
 
-        'attrs',
-        'jsonschema'
+        'jsonschema',
+
+        # Sanitization
+        'bleach'
 
     ],
 

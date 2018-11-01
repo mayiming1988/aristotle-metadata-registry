@@ -21,7 +21,7 @@
         You are about to add concepts to the roles for the relation
             <a href='{{link.relation.get_absolute_url}}'>{{ link.relation }}</a> for this link.
         <div class='well'>
-        {{ link.relation.definition|safe }}
+        {{ link.relation.definition|bleach }}
         </div>
     </div>
     <div>
