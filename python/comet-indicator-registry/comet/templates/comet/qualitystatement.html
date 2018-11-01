@@ -1,4 +1,5 @@
 {% extends "aristotle_mdr/concepts/managedContent.html" %}
+{% load util_tags %}
 
 {% block asideContent %}
     <dl>
@@ -18,27 +19,27 @@
 <dl class="qualityStatement">
     {% if item.timeliness %}
     <dt>Timeliness</dt>
-    <dd>{{ item.timeliness| safe }}</dd>
+    <dd>{{ item.timeliness|bleach }}</dd>
     {% endif %}
     {% if item.accessibility %}
     <dt>Accessibility</dt>
-    <dd>{{ item.accessibility| safe }}</dd>
+    <dd>{{ item.accessibility|bleach }}</dd>
     {% endif %}
     {% if item.interpretability %}
     <dt>Interpretability</dt>
-    <dd>{{ item.interpretability| safe }}</dd>
+    <dd>{{ item.interpretability|bleach }}</dd>
     {% endif %}
     {% if item.relevance %}
     <dt>Relevance</dt>
-    <dd>{{ item.relevance| safe }}</dd>
+    <dd>{{ item.relevance|bleach }}</dd>
     {% endif %}
     {% if item.accuracy %}
     <dt>Accuracy</dt>
-    <dd>{{ item.accuracy| safe }}</dd>
+    <dd>{{ item.accuracy|bleach }}</dd>
     {% endif %}
     {% if item.coherence %}
     <dt>Coherence</dt>
-    <dd>{{ item.coherence| safe }}</dd>
+    <dd>{{ item.coherence|bleach }}</dd>
     {% endif %}
 </dl>
 

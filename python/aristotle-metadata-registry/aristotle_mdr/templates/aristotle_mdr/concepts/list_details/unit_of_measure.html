@@ -1,6 +1,6 @@
 {% load aristotle_tags %}
 <div class="definition">
-    {{ item.definition|striptags|safe|truncatewords:50 }}
+    {{ item.definition|striptags|truncatewords:50 }}
 </div>
 <hr>
     {% if item.item.measure|can_view:request.user  %}
