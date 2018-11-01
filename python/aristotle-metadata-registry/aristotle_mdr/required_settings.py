@@ -287,7 +287,8 @@ BLEACH_ALLOWED_ATTRIBUTES = {
     'a': ['href', 'title'],
     'abbr': ['title'],
     'acronym': ['title'],
-    'img': ['src', 'height', 'width']
+    'img': ['src', 'height', 'width', 'alt']
+}
 
 # Validators
 ARISTOTLE_VALIDATORS = {
