@@ -1,128 +1,46 @@
-{% extends 'aristotle_mdr/base.html' %}
+{% extends 'aristotle_mdr/concepts/contentInfoBase.html' %}
 {% load humanize i18n %}
-{% load static from staticfiles %}
 {% load aristotle_tags util_tags %}
-{% load render_bundle from webpack_loader %}
 
-{% block webpack_css_bundle %}
-  {% render_bundle 'itemPage' 'css' %}
-{% endblock %}
+{% block infoContent %}
+  <section class="managed row">
+    {% include "aristotle_mdr/concepts/infobox.html" %}
+    <div v-pre>
+      {# Pre rendered content #}
+      {% include "aristotle_mdr/concepts/visibilityInfoBar.html" %}
 
-{% block webpack_bundle %}
-  {% render_bundle 'itemPage' 'js' %}
-{% endblock %}
+      <h2 title="{% doc item 'definition' %}">{% trans 'Definition'%}</h2>
+      <div id="definition" class="definition">
+          {{ item.definition|bleach }}
+      </div>
 
-{% block title %}
-    {{ item.name }}
-    {% if item.version %}
-        - v{{ item.version }}
-    {% endif %}
-    ({{ item.get_verbose_name }})
-{% endblock %}
+      {% block objSpecific %}{% endblock %}
 
-{% block content %}
-<div id="vue-container">
-  <header class="row">
-      {% if breadcrumbs %}
-        <ol class="breadcrumb">
-          {% for crumb in breadcrumbs %}
-            <li {% if crumb.active %}class="active"{% endif %}>
-              {% if crumb.url %}
-                <a href="{{ crumb.url }}">{{ crumb.name }}</a>
-              {% else %}
-                {{ crumb.name }}
-              {% endif %}
-            </li>
-          {% endfor %}
-        </ol>
+      {% if item.comments %}
+          <h2>Comments</h2>
+          {{ item.comments|bleach }}
       {% endif %}
-      {% block concept_title %}
-        {% include "aristotle_mdr/concepts/titles/display_title.html" %}
-      {% endblock %}
-      {% if not hide_item_actions %}
-        {% include "aristotle_mdr/concepts/actionbar.html" %}
+
+      {% if item.references %}
+      <div>
+      <h2>References</h2>
+          <p>{{ item.references|bleach }}</p>
+          {% if item.submitting_organisation %}
+          <h3>Submitting Organisation</h3>
+              <p>{{ item.submitting_organisation }}</p>
+          {% endif %}
+          {% if item.responsible_organisation %}
+          <h3>Responsible Organisation</h3>
+              <p>{{ item.responsible_organisation }}</p>
+          {% endif %}
+      </div>
       {% endif %}
-  </header>
-  
-  <!-- Nav tabs -->
-  <ul class="nav nav-tabs" role="tablist">
-    <li role="presentation" class="active"><a href="#item" aria-controls="home" role="tab" data-toggle="tab">Item</a></li>
-    <li role="presentation"><a href="#issues" aria-controls="profile" role="tab" data-toggle="tab">Issues</a></li>
-    <li role="presentation"><a href="#history" aria-controls="messages" role="tab" data-toggle="tab">History</a></li>
-    <li role="presentation"><a href="#related" aria-controls="settings" role="tab" data-toggle="tab">Related</a></li>
-  </ul>
-
-  <!--- Tab Panes --->
-  <div class="tab-content">
-    <div role="tabpanel" class="tab-pane active" id="item">
-
-      <section class="managed row">
-        {% include "aristotle_mdr/concepts/infobox.html" %}
-        <div v-pre>
-          {# Pre rendered content #}
-          {% include "aristotle_mdr/concepts/visibilityInfoBar.html" %}
-
-          <h2 title="{% doc item 'definition' %}">{% trans 'Definition'%}</h2>
-          <div id="definition" class="definition">
-              {{ item.definition|bleach }}
-          </div>
-
-          {% block objSpecific %}{% endblock %}
-
-          {% if item.comments %}
-              <h2>Comments</h2>
-              {{ item.comments|bleach }}
-          {% endif %}
-
-          {% if item.references %}
-          <div>
-          <h2>References</h2>
-              <p>{{ item.references|bleach }}</p>
-              {% if item.submitting_organisation %}
-              <h3>Submitting Organisation</h3>
-                  <p>{{ item.submitting_organisation }}</p>
-              {% endif %}
-              {% if item.responsible_organisation %}
-              <h3>Responsible Organisation</h3>
-                  <p>{{ item.responsible_organisation }}</p>
-              {% endif %}
-          </div>
-          {% endif %}
-          {% if 'aristotle_mdr.contrib.slots'|is_active_module %}
-              {% include "aristotle_mdr/slots/slots_display.html" %}
-          {% endif %}
-          {% if 'aristotle_mdr.contrib.links'|is_active_module %}
-              {% include "aristotle_mdr/links/links_display.html" %}
-          {% endif %}
-        </div>
-
-      </section>
+      {% if 'aristotle_mdr.contrib.slots'|is_active_module %}
+          {% include "aristotle_mdr/slots/slots_display.html" %}
+      {% endif %}
+      {% if 'aristotle_mdr.contrib.links'|is_active_module %}
+          {% include "aristotle_mdr/links/links_display.html" %}
+      {% endif %}
     </div>
-    <div role="tabpanel" class="tab-pane" id="issues">
-      <h1>Issues</h1>
-    </div>
-    <div role="tabpanel" class="tab-pane" id="history">
-      <h1>History</h1>
-    </div>
-    <div role="tabpanel" class="tab-pane" id="related">
-      <h1>Related content</h1>
-      {% block relationships %}{% endblock %}
-      {% for extension in config.CONTENT_EXTENSIONS %}
-          {% extra_content extension item request.user %}
-      {% endfor %}
-    </div>
-  </div>
-
-<tags-modal 
-  :open="modalOpen" 
-  item-tags="{{ item_tags }}" 
-  user-tags="{{ user_tags }}" 
-  submit-url="{% url 'aristotle_favourites:edit_tags' item.id %}"
-  @saved-tags="updateTags"
-  @hide="closeModal">
-</tags-modal>
-
-<script src="{% static 'aristotle_mdr/itemPage.js' %}"></script>
-
-</div>
+  </section>
 {% endblock %}
