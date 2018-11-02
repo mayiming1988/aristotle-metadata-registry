@@ -17,64 +17,64 @@
 
 <script>
 export default {
-  props: ['url'],
-  data: () => ({
-    show: false
-  }),
-  mounted: function() {
-    $.getJSON(this.url, (data) => {
-        let linkdata = data
-        // Import vis async just before we need it. It's a big library
-        import('vis').then((vis) => {
-          let nodes = new vis.DataSet(data['nodes']);
-          let edges = new vis.DataSet(data['edges']);
-        
-          // create a network
-          let container = document.getElementById('network');
-          let final_data = {
-            nodes: nodes,
-            edges: edges
-          };
-          let options = {
-              "clickToUse": true,
-              "nodes": {
-                "shape": 'box'
-      
-              },
-            "interaction": {
-            },
-              "groups": {
-                "active": {
-                    "color": {border:'black'},
-                    "font": {size:18},
-                    "shape": 'box'
-                },
-                "regular": {
-                    "font": {size:15},
-                    "shape": 'box'
-                },
-                "relation": {
-                    "font": {size:15},
-                    "shape": 'ellipse'
-                },
-            },
-              'layout': {
-                  'hierarchical': {
-                    'enabled': true,
-                    'direction': 'LR',
-                    'sortMethod': 'directed'
-                  }
-              }
-          };
-          var network = new vis.Network(container, final_data, options);
+    props: ['url'],
+    data: () => ({
+        show: false
+    }),
+    mounted: function() {
+        $.getJSON(this.url, (data) => {
+            let linkdata = data
+            // Import vis async just before we need it. It's a big library
+            import('vis').then((vis) => {
+                let nodes = new vis.DataSet(data['nodes']);
+                let edges = new vis.DataSet(data['edges']);
 
-          // Now show the component
-          if (!this.show) {
-            this.show = true
-          }
+                // create a network
+                let container = document.getElementById('network');
+                let final_data = {
+                    nodes: nodes,
+                    edges: edges
+                };
+                let options = {
+                    "clickToUse": true,
+                    "nodes": {
+                        "shape": 'box'
+
+                    },
+                    "interaction": {
+                    },
+                    "groups": {
+                        "active": {
+                            "color": {border:'black'},
+                            "font": {size:18},
+                            "shape": 'box'
+                        },
+                        "regular": {
+                            "font": {size:15},
+                            "shape": 'box'
+                        },
+                        "relation": {
+                            "font": {size:15},
+                            "shape": 'ellipse'
+                        },
+                    },
+                    'layout': {
+                        'hierarchical': {
+                            'enabled': true,
+                            'direction': 'LR',
+                            'sortMethod': 'directed'
+                        }
+                    }
+                };
+                var network = new vis.Network(container, final_data, options);
+
+                // Now show the component
+                if (!this.show) {
+                    this.show = true
+                }
+            })
         })
-    })
-  }
+    }
 }
 </script>
 

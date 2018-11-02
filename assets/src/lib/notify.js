@@ -3,25 +3,25 @@ var loading_notifications = false
 function fetch_api_data(callback, num) {
 
     if (!loading_notifications) {
-      loading_notifications = true;
-      //suppressLoadingBlock = true
-      var apiurl='/account/notifications/api/unread_list/'
-      var full_url = apiurl + '?max=' + num
+        loading_notifications = true;
+        //suppressLoadingBlock = true
+        var apiurl='/account/notifications/api/unread_list/'
+        var full_url = apiurl + '?max=' + num
 
-      setTimeout(function() {
-        $.ajax({
-          url: full_url, 
-          dataType: "json",
-          success: callback,
-          complete: function() {
-            loading_notifications = false
-            //suppressLoadingBlock = false
-          },
-          error: function() {
-            display_notify_error()
-          }
-        })
-      }, 500)
+        setTimeout(function() {
+            $.ajax({
+                url: full_url, 
+                dataType: "json",
+                success: callback,
+                complete: function() {
+                    loading_notifications = false
+                    //suppressLoadingBlock = false
+                },
+                error: function() {
+                    display_notify_error()
+                }
+            })
+        }, 500)
     }
 
 }
@@ -47,7 +47,7 @@ function fill_aristotle_notification_menu(data) {
                 }
                 menu.append(element)
             }
-            
+
             let divider = document.createElement('li')
             divider.className = 'divider'
             menu.append(divider)
@@ -65,10 +65,10 @@ function fill_aristotle_notification_menu(data) {
 }
 
 function update_notification_badge(data) {
-  var num_notifications = data.unread_count
-  $('.notify-badge').each(function() {
-    this.innerHTML = num_notifications
-  })
+    var num_notifications = data.unread_count
+    $('.notify-badge').each(function() {
+        this.innerHTML = num_notifications
+    })
 }
 
 function make_dropdown_item(text, href='#', icon=null) {
@@ -78,9 +78,9 @@ function make_dropdown_item(text, href='#', icon=null) {
     linkelement.href = href
 
     if (icon != null) {
-      let iconelement = document.createElement('i')
-      iconelement.className = icon
-      linkelement.appendChild(iconelement)
+        let iconelement = document.createElement('i')
+        iconelement.className = icon
+        linkelement.appendChild(iconelement)
     }
 
     linkelement.appendChild(textnode)
@@ -101,43 +101,43 @@ function display_notify_error() {
 }
 
 function mark_all_unread() {
-  var notify_mark_all_unread_url = '/account/notifications/api/mark-all-as-read/'
+    var notify_mark_all_unread_url = '/account/notifications/api/mark-all-as-read/'
 
-  $.getJSON(notify_mark_all_unread_url, function (data) {
-    if (data.status == 'success') {
-      reload_notifications()
-    }
-  })
+    $.getJSON(notify_mark_all_unread_url, function (data) {
+        if (data.status == 'success') {
+            reload_notifications()
+        }
+    })
 
 }
 
 export function reload_notifications() {
-  if (!loading_notifications) {
-    var menu = $('.notify-menu')[0]
+    if (!loading_notifications) {
+        var menu = $('.notify-menu')[0]
 
-    menu.innerHTML = ""
+        menu.innerHTML = ""
 
-    // Make loading icon li element
-    var listelement = document.createElement('li')
-    var centerdiv = document.createElement('div')
-    var icon = document.createElement('i')
-    centerdiv.className = 'text-center'
-    icon.className = 'fa fa-refresh fa-spin'
-    centerdiv.appendChild(icon)
-    listelement.appendChild(centerdiv)
+        // Make loading icon li element
+        var listelement = document.createElement('li')
+        var centerdiv = document.createElement('div')
+        var icon = document.createElement('i')
+        centerdiv.className = 'text-center'
+        icon.className = 'fa fa-refresh fa-spin'
+        centerdiv.appendChild(icon)
+        listelement.appendChild(centerdiv)
 
-    // Make text element
-    var textelement = make_dropdown_item('Fetching Notifications...')
+        // Make text element
+        var textelement = make_dropdown_item('Fetching Notifications...')
 
-    menu.append(listelement)
-    menu.append(textelement)
+        menu.append(listelement)
+        menu.append(textelement)
 
-    // Perform update
-    fetch_api_data(fill_aristotle_notification_menu, 5)
-  }
+        // Perform update
+        fetch_api_data(fill_aristotle_notification_menu, 5)
+    }
 
 }
 
 export function initNotifications() {
-  $('#header_menu_button_notifications').click(reload_notifications)
+    $('#header_menu_button_notifications').click(reload_notifications)
 }

@@ -12,38 +12,38 @@ import '../styles/aristotle.wizard.less'
 import '../styles/aristotle_search.less'
 
 export function initItemPage() {
-  init()
+    init()
 
-  $(document).ready(function() {
-    $('.modal').on('loaded.bs.modal', function() {
-      initChangeStatus()
-      initWidgets()
+    $(document).ready(function() {
+        $('.modal').on('loaded.bs.modal', function() {
+            initChangeStatus()
+            initWidgets()
+        })
     })
-  })
 
-  var vm = new Vue({
-    el: '#vue-container',
-    components: {
-      'simple-list': simpleList,
-      'favourite': favouriteComponent,
-      'tags-modal': tagsModal,
-      'links-display': linksDisplay
-    },
-    data: {
-      saved_tags: [],
-      modalOpen: false
-    },
-    methods: {
-      openModal: function() {
-        this.modalOpen = true
-      },
-      closeModal: function() {
-        this.modalOpen = false
-      },
-      updateTags: function(tags) {
-        this.saved_tags = tags
-        this.modalOpen = false
-      }
-    }
-  })
+    var vm = new Vue({
+        el: '#vue-container',
+        components: {
+            'simple-list': simpleList,
+            'favourite': favouriteComponent,
+            'tags-modal': tagsModal,
+            'links-display': linksDisplay
+        },
+        data: {
+            saved_tags: [],
+            modalOpen: false
+        },
+        methods: {
+            openModal: function() {
+                this.modalOpen = true
+            },
+            closeModal: function() {
+                this.modalOpen = false
+            },
+            updateTags: function(tags) {
+                this.saved_tags = tags
+                this.modalOpen = false
+            }
+        }
+    })
 }

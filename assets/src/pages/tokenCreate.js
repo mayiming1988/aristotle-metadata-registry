@@ -5,9 +5,9 @@ import { initJsonEditor } from '../lib/json_editor_init.js'
 initCore()
 
 if (ClipboardJS.isSupported()) {
-  new ClipboardJS('#copybutton');
+    new ClipboardJS('#copybutton');
 } else {
-  $('#copybutton').remove()
+    $('#copybutton').remove()
 }
 
 initJsonEditor()

@@ -20,23 +20,23 @@
 
 <script>
 export default {
-  props: ['id', 'title', 'text', 'visible'],
-  methods: {
-    yesAction: function() {
-      this.$emit('yes')
+    props: ['id', 'title', 'text', 'visible'],
+    methods: {
+        yesAction: function() {
+            this.$emit('yes')
+        },
+        noAction: function() {
+            this.$emit('no')
+        }
     },
-    noAction: function() {
-      this.$emit('no')
+    watch: {
+        visible: function(value) {
+            if (value == true) {
+                $('#' + this.id).modal('show')
+            } else {
+                $('#' + this.id).modal('hide')
+            }
+        }
     }
-  },
-  watch: {
-    visible: function(value) {
-      if (value == true) {
-        $('#' + this.id).modal('show')
-      } else {
-        $('#' + this.id).modal('hide')
-      }
-    }
-  }
 }
 </script>
