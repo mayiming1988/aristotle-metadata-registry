@@ -573,5 +573,5 @@ class SimpleItemGet:
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context['item'] = self.item
+        context['item'] = self.item.item
         return context
