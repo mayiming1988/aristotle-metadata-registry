@@ -556,7 +556,7 @@ class SimpleItemGet:
     item_id_arg = 'iid'
 
     def get(self, request, *args, **kwargs):
-        item_id = self.kwargs.get(self.item_id_args, None)
+        item_id = self.kwargs.get(self.item_id_arg, None)
         if item_id is None:
             return HttpResponseNotFound()
 
@@ -568,5 +568,10 @@ class SimpleItemGet:
         if not user_can_view(request.user, item):
             return HttpResponseForbidden()
 
-        kwargs['item'] = item
+        self.item = item
         return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['item'] = self.item
+        return context

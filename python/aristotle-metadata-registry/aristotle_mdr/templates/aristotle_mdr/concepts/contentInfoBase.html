@@ -49,7 +49,7 @@
       <a href="{% url 'aristotle:item' item.id %}" aria-controls="item">Item</a>
     </li>
     <li role="presentation" {% if activetab == "issues" %}class="active"{% endif %}>
-      <a href="#issues" aria-controls="issues" role="tab">Issues</a>
+      <a href="{% url 'aristotle_issues:item_issues' item.id %}" aria-controls="issues" role="tab">Issues</a>
     </li>
     <li role="presentation" {% if activetab == "history" %}class="active"{% endif %}>
       <a href="{% url 'aristotle:item_history' item.id %}" aria-controls="history" role="tab">History</a>

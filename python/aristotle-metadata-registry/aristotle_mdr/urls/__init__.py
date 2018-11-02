@@ -5,6 +5,7 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = [
+    url(r'^', include('aristotle_mdr.contrib.issues.urls', namespace="aristotle_issues")),
     url(r'^', include('aristotle_mdr.urls.base')),
     url(r'^browse/', include('aristotle_mdr.contrib.browse.urls')),
     url(r'^favourites/', include('aristotle_mdr.contrib.favourites.urls', namespace="aristotle_favourites")),
