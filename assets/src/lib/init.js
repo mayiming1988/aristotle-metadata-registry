@@ -17,90 +17,90 @@ import '../styles/pink.wcag.css'
 import 'eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css'
 
 export function initWidgets() {
-  // Initialize popovers
-  $('.aristotle-popover').popover()
+    // Initialize popovers
+    $('.aristotle-popover').popover()
 
-  // Initialize datepickers
-  $('.dj-datepicker').each((index, obj) => {
-    obj = $(obj)
-    var options = obj.attr('options')
-    if (options == undefined) {
-      options = {format: 'YYYY-MM-DD'}
-    } else {
-      options = JSON.parse(options)
-    }
-    obj.datetimepicker(options)
-  })
-  
-  //Initialise delete checkboxes
-  $('.delete-disable').click(function() {
-    var deletebox = $(this)
-    var checked = deletebox.prop('checked')
-    var form = deletebox.closest('form')
-    form.find('input').each(function() {
-      if ($(this).attr('id') != deletebox.attr('id') && $(this).attr('name') != 'csrfmiddlewaretoken') {
-        $(this).prop('disabled', checked)
-      }
+    // Initialize datepickers
+    $('.dj-datepicker').each((index, obj) => {
+        obj = $(obj)
+        var options = obj.attr('options')
+        if (options == undefined) {
+            options = {format: 'YYYY-MM-DD'}
+        } else {
+            options = JSON.parse(options)
+        }
+        obj.datetimepicker(options)
     })
-    form.find('.widget-button').each(function() {
-      $(this).prop('disabled', checked)
+
+    //Initialise delete checkboxes
+    $('.delete-disable').click(function() {
+        var deletebox = $(this)
+        var checked = deletebox.prop('checked')
+        var form = deletebox.closest('form')
+        form.find('input').each(function() {
+            if ($(this).attr('id') != deletebox.attr('id') && $(this).attr('name') != 'csrfmiddlewaretoken') {
+                $(this).prop('disabled', checked)
+            }
+        })
+        form.find('.widget-button').each(function() {
+            $(this).prop('disabled', checked)
+        })
     })
-  })
 
-  // Initialize django-autocomplete-light
-  initDAL()
+    // Initialize django-autocomplete-light
+    initDAL()
 
-  // Initialize ckeditor
-  initCKEditor()
+    // Initialize ckeditor
+    initCKEditor()
 
-  // Initialize moveable
-  initMoveable()
+    // Initialize moveable
+    initMoveable()
 }
 
 export function initSpinners() {
-  $(document).ajaxSend((event, request, settings) => {
-      $('#loading_indicator').show().addClass('loading').removeClass('hidden');
-  });
+    $(document).ajaxSend((event, request, settings) => {
+        $('#loading_indicator').show().addClass('loading').removeClass('hidden');
+    });
 
-  $(document).ajaxComplete((event, request, settings) => {
-      $('#loading_indicator').hide().removeClass('loading');
-  });
+    $(document).ajaxComplete((event, request, settings) => {
+        $('#loading_indicator').hide().removeClass('loading');
+    });
 }
 
 export function initModalScrap() {
-  // Needs to be run on document ready
-  $(document).ready(function() {
-    // Scrap modals if they lose focus so they can be loaded with new content
-    $('.modal').on('hidden.bs.modal', function(e)
-    {
-        if (!$(this).hasClass('exclude-scrap')) {
-          $(this).removeData();
-          var x = $(this).find('.modal-content > *');
-          x.remove()
-        }
-    });
+    // Needs to be run on document ready
+    $(document).ready(function() {
+        // Scrap modals if they lose focus so they can be loaded with new content
+        $('.modal').on('hidden.bs.modal', function(e)
+            {
+                if (!$(this).hasClass('exclude-scrap')) {
+                    $(this).removeData();
+                    var x = $(this).find('.modal-content > *');
+                    x.remove()
+                }
+            });
 
-    $('.modal').on('loaded.bs.modal', function() {
-        // Need to do this on modal show for newly added popovers
-        $('.dj-datepicker').datetimepicker({format: 'YYYY-MM-DD'})
-        $('.aristotle-popover').popover()
-    });
+        $('.modal').on('loaded.bs.modal', function() {
+            // Need to do this on modal show for newly added popovers
+            $('.dj-datepicker').datetimepicker({format: 'YYYY-MM-DD'})
+            $('.aristotle-popover').popover()
+        });
 
-  })
+    })
 }
 
 // This should be run on most pages
 export function initCore() {
-  initNotifications()
-  initMessages()
+    initNotifications()
+    initMessages()
 }
 
 // Init all function, only use if the page actually needs all this
 export default function init() {
 
-  initCore()
-  initWidgets()
-  initSpinners()
-  initModalScrap()
+    initCore()
+    initWidgets()
+    initSpinners()
+    initModalScrap()
 
 }

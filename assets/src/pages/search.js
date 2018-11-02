@@ -27,7 +27,7 @@ function clearFilters() {
 
 function checkFilters() {
     // Disgregard "any time" filters.
-    var x = $(".searchAdvanced input:checked[value != 'a']").length;
+        var x = $(".searchAdvanced input:checked[value != 'a']").length;
     var y = 0
     if (x==0) {
         y = $(".searchAdvanced .date input[type='text']").each( function() {
@@ -148,7 +148,7 @@ $(".dropdown-menu-form").keydown(function(e){
         $(this).find("label").first().focus();
         return false; // stops the page from scrolling
     }
- });
+});
 
 $(".dropdown-menu-form .dropdown-menu li").keydown(function(e){
     if(e.keyCode == 40) { // down
@@ -170,22 +170,22 @@ $(".dropdown-menu-form .dropdown-menu li").keydown(function(e){
 //set appropriate button to primary
 var set = false;
 $('.rpp').each(function() {
-  var current_rpp = $('#id_rpp').val()
-  if ($(this).val().valueOf() == current_rpp) {
-    $(this).addClass('btn-primary');
-    $(this).removeClass('btn-default');
-    set = true;
-  }
+    var current_rpp = $('#id_rpp').val()
+    if ($(this).val().valueOf() == current_rpp) {
+        $(this).addClass('btn-primary');
+        $(this).removeClass('btn-default');
+        set = true;
+    }
 });
 
 if (set == false) {
-  $('#default_rpp').addClass('btn-primary')
-  $('#default_rpp').removeClass('btn-default')
+    $('#default_rpp').addClass('btn-primary')
+    $('#default_rpp').removeClass('btn-default')
 }
 
 //on button click update hidden field
 $('.rpp').click(function() {
-  var new_rpp = $(this).val();
-  $('#id_rpp').val(new_rpp);
-  $('#search_form').submit();
+    var new_rpp = $(this).val();
+    $('#id_rpp').val(new_rpp);
+    $('#search_form').submit();
 });

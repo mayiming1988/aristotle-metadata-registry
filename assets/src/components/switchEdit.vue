@@ -26,51 +26,51 @@
 import { getCSRF } from '../lib/cookie.js'
 
 export default {
-  props: ['name', 'initial', 'submitUrl'], 
-  created: function() {
-    this.value = this.initial
-  },
-  data: function() {
-    return {
-      editing: false,
-      value: '',
-      error: ''
-    }
-  },
-  computed: {
-    divId: function() {
-      return 'switch-' + this.name
+    props: ['name', 'initial', 'submitUrl'], 
+    created: function() {
+        this.value = this.initial
     },
-    capitalName: function() {
-      return this.name.slice(0,1).toUpperCase() + this.name.slice(1)
-    },
-  },
-  methods: {
-    toggleEdit: function() {
-      this.editing = !this.editing
-    },
-    submitInput: function(e) {
-      var component = this
-      var data = {
-        csrfmiddlewaretoken: getCSRF()
-      }
-      data[this.name] = this.value
-      $.post(
-        this.submitUrl,
-        data,
-        function(data) {
-          if (data.success) {
-            component.editing = false
-          } else {
-            if (data.errors[component.name] != undefined) {
-              component.error = data.errors[component.name]
-            } else {
-              component.error = 'Field could not be updated'
-            }
-          }
+    data: function() {
+        return {
+            editing: false,
+            value: '',
+            error: ''
         }
-      )
+    },
+    computed: {
+        divId: function() {
+            return 'switch-' + this.name
+        },
+        capitalName: function() {
+            return this.name.slice(0,1).toUpperCase() + this.name.slice(1)
+        },
+    },
+    methods: {
+        toggleEdit: function() {
+            this.editing = !this.editing
+        },
+        submitInput: function(e) {
+            var component = this
+            var data = {
+                csrfmiddlewaretoken: getCSRF()
+            }
+            data[this.name] = this.value
+            $.post(
+                this.submitUrl,
+                data,
+                function(data) {
+                    if (data.success) {
+                        component.editing = false
+                    } else {
+                        if (data.errors[component.name] != undefined) {
+                            component.error = data.errors[component.name]
+                        } else {
+                            component.error = 'Field could not be updated'
+                        }
+                    }
+                }
+            )
+        }
     }
-  }
 }
 </script>

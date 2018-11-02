@@ -9,8 +9,8 @@ import '../styles/aristotle.dashboard.less'
 initCore()
 
 var vm = new Vue({
-  el: '#vue-container',
-  components: {
-    'switch-edit': switchEditComponent
-  }
+    el: '#vue-container',
+    components: {
+        'switch-edit': switchEditComponent
+    }
 })

@@ -20,42 +20,42 @@ import autocompleteTag from '../components/autocompleteTag.vue'
 import submitTags from '../components/submitTags.vue'
 
 export default {
-  components: {
-    'modal': Modal,
-    'autocomplete-tags': autocompleteTag,
-    'submit-tags': submitTags
-  },
-  data: () => ({
-    saved_tags: [],
-    current_tags: [],
-    user_tags: [],
-    selected: '',
-  }),
-  props: ['itemTags', 'userTags', 'submitUrl', 'open'],
-  created: function() {
-    this.saved_tags = JSON.parse(this.itemTags)
-    this.current_tags = this.saved_tags.slice()
-    this.user_tags = JSON.parse(this.userTags)
-    this.$emit('saved-tags', this.saved_tags)
-  },
-  methods: {
-    update_tags: function(tags) {
-      this.current_tags = tags
+    components: {
+        'modal': Modal,
+        'autocomplete-tags': autocompleteTag,
+        'submit-tags': submitTags
     },
-    update_saved_tags: function(tags) {
-      this.saved_tags = tags
+    data: () => ({
+        saved_tags: [],
+        current_tags: [],
+        user_tags: [],
+        selected: '',
+    }),
+    props: ['itemTags', 'userTags', 'submitUrl', 'open'],
+    created: function() {
+        this.saved_tags = JSON.parse(this.itemTags)
+        this.current_tags = this.saved_tags.slice()
+        this.user_tags = JSON.parse(this.userTags)
+        this.$emit('saved-tags', this.saved_tags)
+    },
+    methods: {
+        update_tags: function(tags) {
+            this.current_tags = tags
+        },
+        update_saved_tags: function(tags) {
+            this.saved_tags = tags
 
-      for (let tag of tags) {
-        if (!this.user_tags.includes(tag)) {
-          this.user_tags.push(tag)
+            for (let tag of tags) {
+                if (!this.user_tags.includes(tag)) {
+                    this.user_tags.push(tag)
+                }
+            }
+
+            this.$emit('saved-tags', this.saved_tags)
+        },
+        emitClose: function() {
+            this.$emit('hide')
         }
-      }
-
-      this.$emit('saved-tags', this.saved_tags)
-    },
-    emitClose: function() {
-      this.$emit('hide')
     }
-  }
 }
 </script>

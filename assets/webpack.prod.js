@@ -10,19 +10,19 @@ const ASSET_PATH = process.env.ASSET_PATH || '/static/bundles/';
 console.log('ASSET_PATH: ', ASSET_PATH)
 
 module.exports = merge(common, {
-  mode: 'production',
-  output: {
-    publicPath: ASSET_PATH
-  },
-  optimization: {
-    minimizer: [
-      new UglifyJsPlugin(),
-      new OptimizeCSSAssetsPlugin()
+    mode: 'production',
+    output: {
+        publicPath: ASSET_PATH
+    },
+    optimization: {
+        minimizer: [
+            new UglifyJsPlugin(),
+            new OptimizeCSSAssetsPlugin()
+        ]
+    },
+    plugins: [
+        new webpack.DefinePlugin({
+            'process.env.ASSET_PATH': JSON.stringify(ASSET_PATH)
+        })
     ]
-  },
-  plugins: [
-    new webpack.DefinePlugin({
-      'process.env.ASSET_PATH': JSON.stringify(ASSET_PATH)
-    })
-  ]
 })

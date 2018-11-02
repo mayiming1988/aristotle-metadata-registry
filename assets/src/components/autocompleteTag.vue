@@ -9,42 +9,42 @@ import VueSimpleSuggest from 'vue-simple-suggest'
 import tagComponent from './tag.vue'
 
 export default {
-  components: {
-    'taggle-tags': tagComponent,
-    'vue-simple-suggest': VueSimpleSuggest
-  },
-  props: ['current_tags', 'user_tags'],
-  computed: {
-    newTags: function() {
-      var newTags = []
-      for (var element of this.current_tags) {
-        if (!this.user_tags.includes(element)) {
-          newTags.push(element)
-        }
-      }
-      return newTags
-    }
-  },
-  methods: {
-    getSuggestions: function() {
-      var suggestions = []
-      for (var element of this.user_tags) {
-        // Add to suggestions if not in current tags
-        if (!this.current_tags.includes(element)) {
-          suggestions.push(element)
-        }
-      }
-      return suggestions
+    components: {
+        'taggle-tags': tagComponent,
+        'vue-simple-suggest': VueSimpleSuggest
     },
-    makeSuggestion: function(suggestion) {
-      if (suggestion != null) {
-        this.current_tags.push(suggestion)
-      }
+    props: ['current_tags', 'user_tags'],
+    computed: {
+        newTags: function() {
+            var newTags = []
+            for (var element of this.current_tags) {
+                if (!this.user_tags.includes(element)) {
+                    newTags.push(element)
+                }
+            }
+            return newTags
+        }
     },
-    update_tags: function(tags) {
-      this.$emit('tag-update', tags)
+    methods: {
+        getSuggestions: function() {
+            var suggestions = []
+            for (var element of this.user_tags) {
+                // Add to suggestions if not in current tags
+                if (!this.current_tags.includes(element)) {
+                    suggestions.push(element)
+                }
+            }
+            return suggestions
+        },
+        makeSuggestion: function(suggestion) {
+            if (suggestion != null) {
+                this.current_tags.push(suggestion)
+            }
+        },
+        update_tags: function(tags) {
+            this.$emit('tag-update', tags)
+        }
     }
-  }
 }
 </script>
 
