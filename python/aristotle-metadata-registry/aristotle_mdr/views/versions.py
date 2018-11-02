@@ -12,6 +12,7 @@ from django.urls import reverse
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils import pretify_camel_case
 from aristotle_mdr.views.views import ConceptRenderMixin
+from aristotle_mdr.views.utils import SimpleItemGet
 from aristotle_mdr.perms import user_can_view
 
 import json
@@ -469,3 +470,9 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['item'] = context['object'].item
+        context['activetab'] = 'history'
+        return context

@@ -9,7 +9,7 @@ from django.db.models import Count, Q, Model
 from django.db.models.functions import Lower
 from django.db.models.query import QuerySet
 from django.forms.models import model_to_dict
-from django.http import Http404, JsonResponse
+from django.http import Http404, JsonResponse, HttpResponseNotFound, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -23,6 +23,8 @@ from django.views.generic import (
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils import status_filter
+from aristotle_mdr.perms import user_can_view
+from aristotle_mdr.models import _concept
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
 
 import datetime
@@ -547,3 +549,24 @@ class TagsMixin:
             context['user_tags'] = []
 
         return context
+
+
+class SimpleItemGet:
+
+    item_id_arg = 'iid'
+
+    def get(self, request, *args, **kwargs):
+        item_id = self.kwargs.get(self.item_id_args, None)
+        if item_id is None:
+            return HttpResponseNotFound()
+
+        try:
+            item = _concept.objects.get(id=item_id)
+        except _concept.DoesNotExist:
+            return HttpResponseNotFound()
+
+        if not user_can_view(request.user, item):
+            return HttpResponseForbidden()
+
+        kwargs['item'] = item
+        return super().get(request, *args, **kwargs)

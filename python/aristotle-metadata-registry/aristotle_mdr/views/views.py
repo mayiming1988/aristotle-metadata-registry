@@ -252,8 +252,7 @@ class ConceptRenderMixin(TagsMixin):
         context['item'] = self.item
         context['statuses'] = self.item.current_statuses
         context['discussions'] = self.item.relatedDiscussions.all()
-
-
+        context['activetab'] = 'item'
         return context
 
     def get_template_names(self):

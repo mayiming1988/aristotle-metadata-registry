@@ -45,10 +45,15 @@
   
   <!-- Nav tabs -->
   <ul class="nav nav-tabs" role="tablist">
-    <li role="presentation" class="active"><a href="#item" aria-controls="home" role="tab" data-toggle="tab">Item</a></li>
-    <li role="presentation"><a href="#issues" aria-controls="profile" role="tab" data-toggle="tab">Issues</a></li>
-    <li role="presentation"><a href="#history" aria-controls="messages" role="tab" data-toggle="tab">History</a></li>
-    <li role="presentation"><a href="#related" aria-controls="settings" role="tab" data-toggle="tab">Related</a></li>
+    <li role="presentation" {% if activetab == "item" %}class="active"{% endif %}>
+      <a href="{% url 'aristotle:item' item.id %}" aria-controls="item">Item</a>
+    </li>
+    <li role="presentation" {% if activetab == "issues" %}class="active"{% endif %}>
+      <a href="#issues" aria-controls="issues" role="tab">Issues</a>
+    </li>
+    <li role="presentation" {% if activetab == "history" %}class="active"{% endif %}>
+      <a href="{% url 'aristotle:item_history' item.id %}" aria-controls="history" role="tab">History</a>
+    </li>
   </ul>
 
   {% block infoContent %}
