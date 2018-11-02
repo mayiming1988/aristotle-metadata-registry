@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from model_utils.models import TimeStampedModel
 
 from aristotle_mdr.fields import ConceptForeignKey
@@ -15,6 +16,10 @@ class Issue(models.Model):
     )
     item=ConceptForeignKey(
         _concept,
+        related_name='issues'
+    )
+    submitter=models.ForeignKey(
+        settings.AUTH_USER_MODEL,
         related_name='issues'
     )
     isopen=models.BooleanField(

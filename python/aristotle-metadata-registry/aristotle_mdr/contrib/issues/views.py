@@ -1,5 +1,5 @@
 from aristotle_mdr.views.utils import SimpleItemGet, TagsMixin
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, View
 
 
 class IssueDisplay(SimpleItemGet, TagsMixin, TemplateView):

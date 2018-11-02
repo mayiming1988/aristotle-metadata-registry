@@ -1,5 +1,6 @@
 from rest_framework import permissions
 
+
 class IsSuperuserOrReadOnly(permissions.BasePermission):
     """
     Allows access only to super users.
