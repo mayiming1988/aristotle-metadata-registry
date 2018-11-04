@@ -1,8 +1,8 @@
 from django import forms
 from django.core.exceptions import PermissionDenied
-from django.urls import reverse
 from django.db import transaction
 from django.forms import HiddenInput
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import mark_safe
 from django.utils.translation import ugettext_lazy as _
@@ -12,7 +12,6 @@ from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 import aristotle_mdr.models as MDR
 import aristotle_mdr.contrib.favourites.models as fav_models
 from aristotle_mdr.forms import ChangeStatusForm
-from aristotle_mdr.forms.actions import RequestReviewForm as RequestReviewActionForm
 from aristotle_mdr.perms import (
     user_can_view,
     user_is_registrar,
@@ -218,52 +217,6 @@ class ChangeStateForm(ChangeStatusForm, BulkActionForm):
     @classmethod
     def can_use(cls, user):
         return user_is_registrar(user)
-
-
-class RequestReviewForm(LoggedInBulkActionForm, RequestReviewActionForm):
-    confirm_page = "aristotle_mdr/actions/bulk_actions/request_review.html"
-    classes="fa-flag"
-    action_text = _('Request review')
-    items_label = "These are the items that will be reviewed. Add or remove additional items with the autocomplete box."
-
-    def make_changes(self):
-        import reversion
-        ra = self.cleaned_data['registrationAuthorities']
-        state = self.cleaned_data['state']
-        items = self.items_to_change
-        cascade = self.cleaned_data['cascadeRegistration']
-        registration_date = self.cleaned_data['registrationDate']
-        message = self.cleaned_data['changeDetails']
-
-        with transaction.atomic(), reversion.revisions.create_revision():
-            reversion.revisions.set_user(self.user)
-
-            review = MDR.ReviewRequest.objects.create(
-                requester=self.user,
-                registration_authority=ra,
-                registration_date=registration_date,
-                message=message,
-                state=state,
-                cascade_registration=cascade
-            )
-            failed = []
-            success = []
-            for item in items:
-                if item.can_view(self.user):
-                    success.append(item)
-                else:
-                    failed.append(item)
-
-            review.concepts = success
-
-            user_message = mark_safe(_(
-                "%(num_items)s items requested for review - <a href='%(url)s'>see the review here</a>."
-            ) % {
-                'num_items': len(success),
-                'url': reverse('aristotle:userReviewDetails', args=[review.id])
-            })
-            reversion.revisions.set_comment(message + "\n\n" + user_message)
-            return user_message
 
 
 class ChangeWorkgroupForm(BulkActionForm):

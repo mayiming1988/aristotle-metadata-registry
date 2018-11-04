@@ -39,7 +39,7 @@ from aristotle_mdr.utils import get_concepts_for_apps, fetch_aristotle_settings,
 from aristotle_mdr.views.utils import generate_visibility_matrix, CachePerItemUserMixin
 from aristotle_mdr.contrib.slots.utils import get_allowed_slots
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
-from aristotle_mdr import validators
+from aristotle_mdr.contrib.validators import validators
 
 from haystack.views import FacetedSearchView
 
@@ -722,7 +722,7 @@ class ValidationView(TemplateView):
                             status, message = validator.validate(item, self.ra)
 
                             results.append({
-                                'check': validator.getName(),
+                                'check': validator.get_name(),
                                 'status': status,
                                 'message': message
                             })

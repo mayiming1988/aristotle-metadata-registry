@@ -194,8 +194,9 @@ ARISTOTLE_SETTINGS = {
         'aristotle_mdr.forms.bulk_actions.RemoveFavouriteForm',
         'aristotle_mdr.forms.bulk_actions.ChangeStateForm',
         'aristotle_mdr.forms.bulk_actions.ChangeWorkgroupForm',
-        'aristotle_mdr.forms.bulk_actions.RequestReviewForm',
+        # 'aristotle_mdr.forms.bulk_actions.RequestReviewForm',
         'aristotle_mdr.forms.bulk_actions.BulkDownloadForm',
+        'aristotle_mdr.contrib.reviews.forms.RequestReviewBulkActionForm',
     ],
     'DASHBOARD_ADDONS': [],
     'METADATA_CREATION_WIZARDS': [
@@ -279,6 +280,7 @@ CACHE_ITEM_PAGE = False
 
 # Validators
 ARISTOTLE_VALIDATORS = {
-    'RegexValidator': 'aristotle_mdr.validators.RegexValidator',
-    'StatusValidator': 'aristotle_mdr.validators.StatusValidator'
+    'RegexValidator': 'aristotle_mdr.contrib.validators.RegexValidator',
+    'StatusValidator': 'aristotle_mdr.contrib.validators.StatusValidator',
+    'RelationValidator': 'aristotle_mdr.contrib.validators.RelationValidator',
 }
