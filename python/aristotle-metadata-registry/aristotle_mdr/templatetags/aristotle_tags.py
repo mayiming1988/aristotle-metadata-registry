@@ -507,6 +507,12 @@ def is_active_module(module_name):
 
 
 @register.filter
+def is_active_extension(extension_name):
+    from aristotle_mdr.utils.utils import is_active_extension
+    return is_active_extension(extension_name)
+
+
+@register.filter
 def user_roles_for_group(group, user):
     return group.list_roles_for_user(user)
 

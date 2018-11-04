@@ -1,22 +1,15 @@
 {% extends 'aristotle_mdr/base.html' %}
 {% load humanize i18n %}
-{% load compile_static %}
 {% load static from staticfiles %}
 {% load aristotle_tags util_tags %}
+{% load render_bundle from webpack_loader %}
 
-{% block extra_head_scripts %}
-    {% if item|can_edit:request.user %}
-        <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/aristotle.autocomplete.css' %}" />
-    {% endif %}
-    <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/aristotle.visuals.less'|compile %}" />
-    <script src="https://cdn.jsdelivr.net/npm/taggle@1.14.0/src/taggle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vue-simple-suggest@1.8.2/dist/iife.js"></script>
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/suggest.css' %}">
-    {{ tags|json_script:"tags-json" }}
-    <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/taggle.css' %}" />
-    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="{% static 'autocomplete_light/select2.css' %}" />
-    <link rel="stylesheet" type="text/css" href="{% static 'autocomplete_light/vendor/select2/dist/css/select2.css' %}" />
+{% block webpack_css_bundle %}
+  {% render_bundle 'itemPage' 'css' %}
+{% endblock %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'itemPage' 'js' %}
 {% endblock %}
 
 {% block title %}
@@ -84,7 +77,7 @@
         {% if 'aristotle_mdr.contrib.slots'|is_active_module %}
             {% include "aristotle_mdr/slots/slots_display.html" %}
         {% endif %}
-        {% if 'aristotle_mdr.contrib.links'|is_active_module %}
+        {% if 'aristotle_mdr_links'|is_active_extension %}
             {% include "aristotle_mdr/links/links_display.html" %}
         {% endif %}
         <h2>Related content</h2>
@@ -94,38 +87,14 @@
             {% endfor %}
       </div>
 
-      {% if request.user.is_authenticated %}
-      <div class="modal fade exclude-scrap" id="TagEditorModal" tabindex="-1" role="dialog" aria-labelledby="TagEditor">
-        <div class="modal-dialog" role="document">
-          <div class="modal-content">
-
-            <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-              <div class="modal-title h4" id="TagEditor">Tag Editor</div>
-            </div>
-            <div class="modal-body">
-              <p>Update your tags for this item, new tags (shown darker) will be created for you</p>
-
-              <autocomplete-tags :current_tags="current_tags" :user_tags="user_tags" @tag-update="update_tags"></autocomplete-tags>
-
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-              <submit-tags 
-                submit-url="{% url 'aristotle_favourites:edit_tags' item.id %}"
-                :tags="current_tags"
-                modal="#TagEditorModal"
-                @tags-saved="update_saved_tags"
-                >
-              </submit-tags>
-            </div>
-
-          </div>
-        </div>
-      </div>
-      {% endif %}
-
+      <tags-modal 
+        :open="modalOpen" 
+        item-tags="{{ item_tags }}" 
+        user-tags="{{ user_tags }}" 
+        submit-url="{% url 'aristotle_favourites:edit_tags' item.id %}"
+        @saved-tags="updateTags"
+        @hide="closeModal">
+      </tags-modal>
 </section>
 </div>
-<script src="{% static 'aristotle_mdr/itemPage.js' %}"></script>
 {% endblock %}

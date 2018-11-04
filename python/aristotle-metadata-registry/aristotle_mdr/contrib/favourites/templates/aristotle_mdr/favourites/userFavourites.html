@@ -1,5 +1,6 @@
 {% extends "aristotle_mdr/user/userHome.html" %}
 {% load aristotle_tags i18n static %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}Favourites and Tags{% endblock %}
 {% block collapse-link%}<i class="fa fa-bookmark fa-fw"></i> Favourites and Tags</a>{% endblock %}
@@ -7,9 +8,12 @@
     {% include "aristotle_mdr/user/userSideBar.html" with activeTab='favourites' %}
 {% endblock %}
 
-{% block extra_head_scripts %}
-  {{ block.super }}
-  <link rel="stylesheet" type="text/css" href="{% static 'aristotle_mdr/taggle.css' %}" />
+{% block webpack_css_bundle %}
+  {% render_bundle 'favourites' 'css' %}
+{% endblock %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'favourites' 'js' %}
 {% endblock %}
 
 {% block page %}

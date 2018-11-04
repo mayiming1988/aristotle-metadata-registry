@@ -798,7 +798,7 @@ class MockManagementForm(object):
             '{}-MIN_NUM_FORMS'.format(self.prefix): self.min_forms,
             '{}-MAX_NUM_FORMS'.format(self.prefix): self.max_forms
         }
-        
+
         for i, form in enumerate(self.forms):
             for field, value in form.items():
                 base['{}-{}-{}'.format(self.prefix, i, field)] = value

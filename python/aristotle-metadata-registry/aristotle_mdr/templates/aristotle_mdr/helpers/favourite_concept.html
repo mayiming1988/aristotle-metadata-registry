@@ -10,7 +10,7 @@
   </a>
 </noscript>
 <favourite initial="{{ isFavourite }}" submit-url="{% url 'aristotle_favourites:toggleFavourite' item.id %}" v-cloak></favourite>
-<a class="btn btn-default" data-toggle="modal" data-target="#TagEditorModal" v-cloak>
+<a class="btn btn-default" @click="openModal" v-cloak>
   <i class="fa fa-tag" aria-hidden="true"></i>
   Tag
 </a>
