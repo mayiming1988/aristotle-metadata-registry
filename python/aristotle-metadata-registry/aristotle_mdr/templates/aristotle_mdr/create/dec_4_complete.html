@@ -1,5 +1,5 @@
 {% extends "aristotle_mdr/create/dec_template_wrapper.html" %}
-{% load aristotle_tags i18n %}
+{% load aristotle_tags i18n util_tags %}
 
 {% block formarea %}
 
@@ -22,9 +22,9 @@
         {% endif %}
         <p>You are about going to create the following items:
             <ul>
-                {% if made_dec %}<li><strong>Data Element Concept - {{made_dec.name}}</strong><p>{{made_dec.definition|safe}}</p></li>{% endif %}
-                {% if made_oc  %}<li><strong>Object Class - {{made_oc.name}}</strong><p>{{made_oc.definition|safe}}</p></li>{% endif %}
-                {% if made_pr  %}<li><strong>Property - {{made_pr.name}}</strong><p>{{made_pr.definition|safe}}</p></li>{% endif %}
+                {% if made_dec %}<li><strong>Data Element Concept - {{made_dec.name}}</strong><p>{{made_dec.definition|bleach}}</p></li>{% endif %}
+                {% if made_oc  %}<li><strong>Object Class - {{made_oc.name}}</strong><p>{{made_oc.definition|bleach}}</p></li>{% endif %}
+                {% if made_pr  %}<li><strong>Property - {{made_pr.name}}</strong><p>{{made_pr.definition|bleach}}</p></li>{% endif %}
             </ul>
         </p>
     </div>

@@ -1,5 +1,5 @@
 {% extends 'aristotle_mdr/base.html' %}
-{% load aristotle_tags %}
+{% load aristotle_tags util_tags %}
 
 {% block title %}{{ item.name }}{% endblock %}
 {% block content %}
@@ -21,7 +21,7 @@
 <div>
     <div class="definition" id="definition">
         <h2 class="sr-only">Definition</h2>
-        {{ item.definition | safe }}
+        {{ item.definition|bleach }}
     </div>
     <div>
         {% block objSpecific %}

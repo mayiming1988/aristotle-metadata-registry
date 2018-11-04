@@ -1,17 +1,15 @@
 {% extends request.is_ajax|yesno:"aristotle_mdr/base_ajax.html,aristotle_mdr/base.html" %}
-{% load compile_static i18n %}
+{% load i18n %}
 {% load static %}
 
 {% block title %}Change dataset specification inclusion ordering for {{ item.name }}{% endblock %}
 {% block content %}
+    {% comment %}
     {% block extra_head_scripts %}
         <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
         <script src="{% static 'aristotle_mdr/aristotle.moveable.js' %}"></script>
-        <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.moveable.less'|compile %}" />
-        {% if request.is_ajax %}
-            {{ form.media }}
-        {% endif %}
     {% endblock %}
+    {% endcomment %}
 
 <form method="post" action="{% url 'aristotle_dse:editInclusionOrder' item.id include_type %}">
     <div class="modal-body">

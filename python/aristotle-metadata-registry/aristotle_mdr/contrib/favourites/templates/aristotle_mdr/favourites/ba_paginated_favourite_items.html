@@ -31,7 +31,7 @@
           </i>
         </td>
         <td><a href="{% url 'aristotle_mdr:item' item.id %}">{{ item.name }}</a></td>
-        <td>{{ item.definition|striptags }}</td>
+        <td>{{ item.definition|striptags|truncatewords:"50" }}</td>
         {% if tags_list %}
           <td>
             <ul class="taggle_list">

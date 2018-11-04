@@ -10,6 +10,7 @@ django-haystack = ">=2.7.dev1,<2.8.0"
 "django-redis" = "*"
 "elasticsearch" = ">=5.0.0,<6.0.0"
 "django-haystack-elasticsearch" = "*"
+
 aristotle-metadata-registry = {path = "./python/aristotle-metadata-registry", editable = true}
 aristotle-dataset-extensions = {path = "./python/aristotle-dataset-extensions", editable = true}
 aristotle-glossary = {path = "./python/aristotle-glossary/", editable = true}
@@ -28,9 +29,9 @@ dj-database-url = "*"
 django-tools = "*"
 mock = "*"
 wcag-zoo = "*"
-django-silk = "*"
 django-impersonate = "*"
 psycopg2 = "*"
+boto3 = "*"
 
 [requires]
 python_version = "3.6"

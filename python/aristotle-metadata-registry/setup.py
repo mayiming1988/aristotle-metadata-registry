@@ -62,7 +62,6 @@ setup(
         'diff-match-patch',
 
         # Fancy UI stuff
-        'django-static-precompiler',
         'django-autocomplete-light>=3.0.0,<3.3.0',
         'django-bootstrap3>8.0,<9.0',
         'django-bootstrap3-datetimepicker-2>=2.5.0',
@@ -102,7 +101,16 @@ setup(
         'django-webpack-loader',
 
         'attrs',
-        'jsonschema'
+        'jsonschema',
+
+        # Webpack loading
+        'django-webpack-loader',
+
+        # Storages
+        'django-storages',
+
+        # Sanitization
+        'bleach'
 
     ],
 

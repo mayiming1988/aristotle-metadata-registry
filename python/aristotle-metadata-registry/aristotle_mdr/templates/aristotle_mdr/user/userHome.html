@@ -1,14 +1,9 @@
 {% extends "aristotle_mdr/user/base.html" %}
-{% load aristotle_tags compile_static humanize %}
+{% load aristotle_tags humanize %}
 {% load static from staticfiles %}
 
 
 {% block title %}My Dashboard{% endblock %}
-{% block extra_head_scripts %}
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.dashboard.less'|compile %}" />
-    {% block individual_scripts %}
-    {% endblock %}
-{% endblock %}
 
 {% block page %}
 <h1><a href="#">My Dashboard</a> <small>- {% firstof user.get_full_name user.email %}</small></h1>

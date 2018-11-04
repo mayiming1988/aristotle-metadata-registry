@@ -1,5 +1,5 @@
 {% extends "aristotle_mdr/user/userHome.html" %}
-{% load i18n aristotle_tags %}
+{% load i18n aristotle_tags util_tags %}
 
 {% block collapse-link %}
     <i class="fa fa-university fa-fw"></i> {{ item.name }} - Details </a>
@@ -25,7 +25,7 @@
         </div>
 
     <header>Description</header>
-        <div class="well">{{ item.definition|safe }}</div>
+        <div class="well">{{ item.definition|bleach }}</div>
 
     <header>Status definitions</header>
     <p>

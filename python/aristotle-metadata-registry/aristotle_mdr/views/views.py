@@ -1,12 +1,13 @@
-from django import VERSION as django_version
 from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist, ObjectDoesNotExist
 from django.urls import reverse
 from django.db import transaction
+from django.db.models import Q
 from django.http import HttpResponseRedirect, HttpResponseNotFound, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.defaultfilters import slugify
@@ -24,7 +25,6 @@ import jsonschema
 from os import path
 
 import reversion
-from reversion_compare.views import HistoryCompareDetailView
 
 from aristotle_mdr.perms import (
     user_can_view, user_can_edit,
@@ -35,13 +35,19 @@ from aristotle_mdr.utils import url_slugify_concept
 
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
-from aristotle_mdr.utils import get_concepts_for_apps, fetch_aristotle_settings, fetch_aristotle_downloaders
+from aristotle_mdr.utils import (
+    get_concepts_for_apps,
+    fetch_aristotle_settings,
+    fetch_aristotle_downloaders,
+    fetch_metadata_apps
+)
 from aristotle_mdr.views.utils import generate_visibility_matrix, CachePerItemUserMixin
 from aristotle_mdr.contrib.slots.utils import get_allowed_slots
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
 from aristotle_mdr.contrib.validators import validators
 
 from haystack.views import FacetedSearchView
+
 
 import logging
 
@@ -66,29 +72,6 @@ class SmartRoot(RedirectView):
 class DynamicTemplateView(TemplateView):
     def get_template_names(self):
         return ['aristotle_mdr/static/%s.html' % self.kwargs['template']]
-
-
-class ConceptHistoryCompareView(HistoryCompareDetailView):
-    model = MDR._concept
-    pk_url_kwarg = 'iid'
-    template_name = "aristotle_mdr/actions/concept_history_compare.html"
-
-    compare_exclude = [
-        'favourites',
-        'user_view_history',
-        'submitter',
-    ]
-
-    def get_object(self, queryset=None):
-        item = super().get_object(queryset)
-        if not user_can_view(self.request.user, item):
-            raise PermissionDenied
-        self.model = item.item.__class__  # Get the subclassed object
-        return item
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
 
 
 def notification_redirect(self, content_type, object_id):
@@ -122,8 +105,6 @@ def measure(request, iid, model_slug, name_slug):
             # 'last_edit': last_edit
         }
     )
-
-    # return render_if_user_can_view(MDR.Measure, *args, **kwargs)
 
 
 class ConceptRenderMixin:
@@ -193,6 +174,12 @@ class ConceptRenderMixin:
         # To be overwritten
         return True
 
+    def check_app(self, item):
+        label = type(item)._meta.app_label
+        if label not in fetch_metadata_apps():
+            return False
+        return True
+
     def get_user(self):
         return self.request.user
 
@@ -226,6 +213,11 @@ class ConceptRenderMixin:
                 return HttpResponseRedirect(url)
 
         self.user = self.get_user()
+
+        app_enabled = self.check_app(self.item)
+        if not app_enabled:
+            return HttpResponseNotFound()
+
         result = self.check_item(self.item)
         if not result:
             if self.request.user.is_anonymous():
@@ -257,7 +249,6 @@ class ConceptRenderMixin:
         context['item'] = self.item
         context['statuses'] = self.item.current_statuses
         context['discussions'] = self.item.relatedDiscussions.all()
-        context['vue'] = True
 
         # Tags
         if self.request.user.is_authenticated():
@@ -275,15 +266,12 @@ class ConceptRenderMixin:
             item_tags = list(item_tags)
             user_tags = list(user_tags)
 
-            context['tags'] = {
-                'item': item_tags,
-                'user': user_tags
-            }
+            context['item_tags'] = json.dumps(item_tags)
+            context['user_tags'] = json.dumps(user_tags)
+
         else:
-            context['tags'] = {
-                'item': [],
-                'user': []
-            }
+            context['item_tags'] = []
+            context['user_tags'] = []
 
         return context
 

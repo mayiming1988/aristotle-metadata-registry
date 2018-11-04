@@ -1,10 +1,14 @@
 {% extends "aristotle_mdr/base.html" %} {# no ajax for this one #}
-{% load i18n compile_static %}
+{% load i18n %}
 {% load static from staticfiles %}
+{% load render_bundle from webpack_loader %}
 
-{% block extra_head_scripts %}
-    {{ form.media }}
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.compare.less'|compile %}" />
+{% block webpack_css_bundle %}
+  {% render_bundle 'compare' 'css' %}
+{% endblock %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'compare' 'js' %}
 {% endblock %}
 
 {% block title %}Concept comparator {{ item.name }}{% endblock %}

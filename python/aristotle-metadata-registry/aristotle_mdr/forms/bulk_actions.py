@@ -167,6 +167,7 @@ class AddFavouriteForm(LoggedInBulkActionForm):
 
     def make_changes(self):
         items = self.items_to_change
+        items = items.visible(self.user)
 
         fav_tag, created = fav_models.Tag.objects.get_or_create(
             profile=self.user.profile,
