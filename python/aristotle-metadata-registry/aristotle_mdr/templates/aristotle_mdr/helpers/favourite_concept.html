@@ -10,7 +10,11 @@
   </a>
 </noscript>
 <favourite initial="{{ isFavourite }}" submit-url="{% url 'aristotle_favourites:toggleFavourite' item.id %}" v-cloak></favourite>
-<a class="btn btn-default" @click="openModal" v-cloak>
+<a class="btn btn-default" @click="openTagsModal" v-cloak>
   <i class="fa fa-tag" aria-hidden="true"></i>
-  Tag
+  Tags
+</a>
+<a class="btn btn-default" @click="openIssuesModal" v-cloak>
+  <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
+  Issues
 </a>

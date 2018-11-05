@@ -60,13 +60,15 @@
   {% endblock %}
 
   <tags-modal 
-    :open="modalOpen" 
+    :open="tagsModalOpen" 
     item-tags="{{ item_tags }}" 
     user-tags="{{ user_tags }}" 
     submit-url="{% url 'aristotle_favourites:edit_tags' item.id %}"
     @saved-tags="updateTags"
-    @hide="closeModal">
+    @hide="closeTagsModal">
   </tags-modal>
+
+  <issue-modal v-model="issueModalOpen" :iid=3></issue-modal>
 
 </div>
 {% endblock %}

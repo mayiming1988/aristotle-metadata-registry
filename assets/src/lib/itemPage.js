@@ -4,6 +4,7 @@ import favouriteComponent from '../components/favourite.vue'
 import simpleList from '../components/simpleList.vue'
 import tagsModal from '../components/tagsModal.vue'
 import linksDisplay from '../components/linksDisplay.vue'
+import issueModal from '../components/issueModal.vue'
 
 import Vue from 'vue'
 
@@ -27,22 +28,30 @@ export function initItemPage() {
             'simple-list': simpleList,
             'favourite': favouriteComponent,
             'tags-modal': tagsModal,
-            'links-display': linksDisplay
+            'links-display': linksDisplay,
+            'issue-modal': issueModal
         },
         data: {
             saved_tags: [],
-            modalOpen: false
+            tagsModalOpen: false,
+            issueModalOpen: false,
         },
         methods: {
-            openModal: function() {
-                this.modalOpen = true
+            openTagsModal: function() {
+                this.tagsModalOpen = true
             },
-            closeModal: function() {
-                this.modalOpen = false
+            closeTagsModal: function() {
+                this.tagsModalOpen = false
+            },
+            openIssuesModal: function() {
+                this.issueModalOpen = true
+            },
+            closeIssuesModal: function() {
+                this.issueModalOpen = false
             },
             updateTags: function(tags) {
                 this.saved_tags = tags
-                this.modalOpen = false
+                this.tagsModalOpen = false
             }
         }
     })
