@@ -6,13 +6,11 @@
 </template>
 
 <script>
+import { capitalize } from '../lib/utils.js'
 export default {
     props: ['name'],
     methods: {
-        capitalize: (name) => {
-            let first = name.charAt(0)
-            return first.toUpperCase() + name.slice(1)
-        }
+        capitalize: capitalize
     }
 }
 </script>

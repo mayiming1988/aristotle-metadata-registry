@@ -11,7 +11,11 @@
 </template>
 
 <script>
+import { capitalize } from '../lib/utils.js'
 export default {
-    props: ['errors']
+    props: ['errors'],
+    methods: {
+        capitalize: capitalize
+    }
 }
 </script>
