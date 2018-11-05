@@ -27,13 +27,12 @@ export default {
         formField,
         apiErrors
     },
-    props: ['iid', 'value'],
+    props: ['iid', 'value', 'url'],
     data: () => ({
         formdata: {
             name: '',
             description: ''
-        },
-        url: '/api/v4/issues/'
+        }
     }),
     methods: {
         emitClose: function() {
