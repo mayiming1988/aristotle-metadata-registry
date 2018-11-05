@@ -1,10 +1,11 @@
 from aristotle_mdr.views.utils import SimpleItemGet, TagsMixin
-from django.views.generic import TemplateView, View
+from aristotle_mdr.contrib.issues import models
+from django.views.generic import TemplateView, DetailView
 
 
-class IssueDisplay(SimpleItemGet, TagsMixin, TemplateView):
+class IssueList(SimpleItemGet, TagsMixin, TemplateView):
 
-    template_name='aristotle_mdr/issues/display.html'
+    template_name='aristotle_mdr/issues/list.html'
 
     def get_issues(self):
         return self.item.issues.all()
@@ -14,3 +15,9 @@ class IssueDisplay(SimpleItemGet, TagsMixin, TemplateView):
         context['issues'] = self.get_issues()
         context['activetab'] = 'issues'
         return context
+
+
+class IssueDisplay(DetailView):
+
+    model=models.Issue
+    template_name='aristotle_mdr/issues/display.html'

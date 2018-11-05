@@ -1,0 +1,24 @@
+{% extends 'aristotle_mdr/concepts/contentInfoBase.html' %}
+
+{% block title %}Issues for {{ item.name }}{% endblock %}
+
+{% block infoContent %}
+  <h1>Issues</h1>
+  {% if issues %}
+    <div class="list-group">
+    {% for issue in issues %}
+    <a href="{% url 'aristotle_issues:issue' issue.id %}" class="list-group-item">
+        <div class="h4 list-group-item-heading">
+          <i class="fa fa-exclamation-circle"></i>
+          {{ issue.name }}
+        </div>
+        <div class="list-group-item-text">
+          Opened {{ issue.created|timesince }} ago by {{ issue.submitter.full_name }}
+        </div>
+      </a>
+    {% endfor %}
+    </div>
+  {% else %}
+    <p>No issues to display</p>
+  {% endif %}
+{% endblock %}
