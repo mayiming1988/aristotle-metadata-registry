@@ -4,9 +4,21 @@
 
 {% block infoContent %}
   <h1>Issues</h1>
-  {% for issue in issues %}
-    <p>{{ issue.name }}</p>
-  {% empty %}
-    <p>There are no issues</p>
-  {% endfor %}
+  {% if issues %}
+    <div class="list-group">
+    {% for issue in issues %}
+      <a href="#" class="list-group-item">
+        <div class="h4 list-group-item-heading">
+          <i class="fa fa-exclamation-circle"></i>
+          {{ issue.name }}
+        </div>
+        <div class="list-group-item-text">
+          Opened {{ issue.created|timesince }} ago by {{ issue.submitter.full_name }}
+        </div>
+      </a>
+    {% endfor %}
+    </div>
+  {% else %}
+    <p>No issues to display</p>
+  {% endif %}
 {% endblock %}

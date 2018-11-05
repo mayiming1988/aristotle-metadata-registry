@@ -6,7 +6,7 @@ from aristotle_mdr.fields import ConceptForeignKey
 from aristotle_mdr.models import _concept
 
 
-class Issue(models.Model):
+class Issue(TimeStampedModel):
 
     name=models.CharField(
         max_length=1000
