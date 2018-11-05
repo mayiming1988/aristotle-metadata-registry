@@ -11,7 +11,7 @@ SERIALIZATION_MODULES = { 'mdrjson' : 'aristotle_mdr_api.serializers.idjson' }
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
-        'aristotle_mdr_api.token_auth.permissions.AristotlePermissions',
+        'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'aristotle_mdr_api.token_auth.authentication.AristotleTokenAuthentication',

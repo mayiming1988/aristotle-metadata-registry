@@ -12,6 +12,7 @@ from rest_framework.decorators import detail_route
 from django.forms import model_to_dict
 from aristotle_mdr import models, perms
 from aristotle_mdr.forms.search import PermissionSearchQuerySet
+from aristotle_mdr_api.v3.permissions import AuthAndTokenOrRO
 
 from rest_framework import viewsets
 
@@ -44,6 +45,7 @@ class SearchViewSet(viewsets.GenericViewSet):
     base_name="search"
 
     permission_key = 'search'
+    permission_classes = (AuthAndTokenOrRO,)
 
 #    def get(self, request, format=None):
     def list(self, request):
@@ -93,6 +95,7 @@ class RegistrationAuthorityViewSet(UUIDLookupModelMixin, viewsets.ReadOnlyModelV
     serializer_class = RegistrationAuthoritySerializer
 
     permission_key = 'ra'
+    permission_classes = (AuthAndTokenOrRO,)
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
@@ -114,3 +117,4 @@ class OrganizationViewSet(UUIDLookupModelMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = OrganizationSerializer
 
     permission_key = 'organization'
+    permission_classes = (AuthAndTokenOrRO,)

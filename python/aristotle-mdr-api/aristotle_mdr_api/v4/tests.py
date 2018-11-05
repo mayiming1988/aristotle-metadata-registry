@@ -61,4 +61,6 @@ class IssueEndpointsTestCase(BaseAPITestCase):
         )
 
         response = self.post_issue(item)
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 400)
+        # Make sure error returned for item
+        self.assertTrue('item' in response.data)
