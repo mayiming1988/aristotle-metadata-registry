@@ -20,14 +20,23 @@ export default {
             })
             .then((response) => {
                 this.response = response
-                if (this.response.status == 400) {
-                    this.errors = this.response.data
-                }
                 this.loading = false
             })
-            .catch(() => {
+            .catch((error) => {
+                if (error.response) {
+                    // Server responded with non 2xx status
+                    if (error.response.status == 400) {
+                        this.errors = error.response.data
+                    }
+                    this.response = error.response
+                } else if (error.request) {
+                    // Request was sent, server did not respond
+                    this.errors = {'request': ['Request could not be completed. Please try again soon']}
+                } else {
+                    // Request wasnt sent
+                    this.errors = {'request': ['Request could not be completed']}
+                }
                 this.loading = false
-                this.errors = {'request': 'Request could not be completed'}
             })
         },
         post: function(url, data) {

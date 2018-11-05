@@ -12,6 +12,41 @@ import '../styles/aristotle.autocomplete.css'
 import '../styles/aristotle.wizard.less'
 import '../styles/aristotle_search.less'
 
+// Export root component for testing
+export var rootComponent = {
+    el: '#vue-container',
+    components: {
+        'simple-list': simpleList,
+        'favourite': favouriteComponent,
+        'tags-modal': tagsModal,
+        'links-display': linksDisplay,
+        'issue-modal': issueModal
+    },
+    data: {
+        saved_tags: [],
+        tagsModalOpen: false,
+        issueModalOpen: false,
+    },
+    methods: {
+        openTagsModal: function() {
+            this.tagsModalOpen = true
+        },
+        closeTagsModal: function() {
+            this.tagsModalOpen = false
+        },
+        openIssuesModal: function() {
+            this.issueModalOpen = true
+        },
+        closeIssuesModal: function() {
+            this.issueModalOpen = false
+        },
+        updateTags: function(tags) {
+            this.saved_tags = tags
+            this.tagsModalOpen = false
+        }
+    }
+}
+
 export function initItemPage() {
     init()
 
@@ -22,37 +57,5 @@ export function initItemPage() {
         })
     })
 
-    var vm = new Vue({
-        el: '#vue-container',
-        components: {
-            'simple-list': simpleList,
-            'favourite': favouriteComponent,
-            'tags-modal': tagsModal,
-            'links-display': linksDisplay,
-            'issue-modal': issueModal
-        },
-        data: {
-            saved_tags: [],
-            tagsModalOpen: false,
-            issueModalOpen: false,
-        },
-        methods: {
-            openTagsModal: function() {
-                this.tagsModalOpen = true
-            },
-            closeTagsModal: function() {
-                this.tagsModalOpen = false
-            },
-            openIssuesModal: function() {
-                this.issueModalOpen = true
-            },
-            closeIssuesModal: function() {
-                this.issueModalOpen = false
-            },
-            updateTags: function(tags) {
-                this.saved_tags = tags
-                this.tagsModalOpen = false
-            }
-        }
-    })
+    new Vue(rootComponent)
 }

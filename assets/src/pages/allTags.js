@@ -10,7 +10,8 @@ import '../styles/aristotle.dashboard.less'
 
 initCore()
 
-var vm = new Vue({
+// Export root component for testing
+export var rootComponent = {
     el: '#vue-container',
     components: {
         'yesno-modal': yesNoModal,
@@ -53,4 +54,6 @@ var vm = new Vue({
             this.modal_visible = false
         }
     }
-})
+}
+
+new Vue(rootComponent)

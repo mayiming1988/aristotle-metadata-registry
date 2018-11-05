@@ -1,5 +1,6 @@
 <template>
   <modal :value="value" title="Create Issue" @input="emitClose">
+    <api-errors :errors="errors"></api-errors>
     <form-field name="name">
       <input id="name" class="form-control" v-model="formdata.name" />
     </form-field>
@@ -16,13 +17,15 @@
 <script>
 import { Modal } from 'uiv'
 import formField from '../components/bsFormField.vue'
+import apiErrors from '../components/apiErrorDisplay.vue'
 import apiRequest from '../mixins/apiRequest.js'
 
 export default {
     mixins: [apiRequest],
     components: {
         Modal,
-        formField
+        formField,
+        apiErrors
     },
     props: ['iid', 'value'],
     data: () => ({
