@@ -68,7 +68,7 @@
     @hide="closeTagsModal">
   </tags-modal>
 
-  <issue-modal v-model="issueModalOpen" :iid=3></issue-modal>
+  <issue-modal v-model="issueModalOpen" :iid="{{ item.id }}"></issue-modal>
 
 </div>
 {% endblock %}
