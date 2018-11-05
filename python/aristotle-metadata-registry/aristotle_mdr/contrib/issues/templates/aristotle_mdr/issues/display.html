@@ -4,5 +4,10 @@
 
 {% block content %}
 <a href="{% url 'aristotle_issues:item_issues' object.item.id %}">All issues for this item</a>
-<h1>{{ object.name }}</h1>
+<h1>
+  <i class="text-success fa fa-exclamation-circle"></i>
+  {{ object.name }}
+</h1>
+<p class="text-muted">Opened {{ object.created|timesince }} ago by {{ object.submitter.full_name }}</p>
+<p>{{ object.description }}</p>
 {% endblock %}
