@@ -41,7 +41,13 @@ export default {
         createIssue: function() {
             let postdata = this.formdata
             postdata['item'] = this.iid
-            this.post(this.url, postdata)
+            let promise = this.post(this.url, postdata)
+            promise.then((response) => {
+                // If issue created and url returned
+                if (response.status == 201 && response.data['url']) {
+                    window.location.assign(response.data['url'])
+                }
+            })
         }
     }
 }

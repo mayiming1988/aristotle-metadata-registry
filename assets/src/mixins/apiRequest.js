@@ -12,17 +12,19 @@ export default {
             let csrf_token = getCSRF()
 
             this.loading = true
-            axios({
+            let promise = axios({
                 method: method,
                 url: url,
                 data: data,
                 headers: {'X-CSRFToken': csrf_token}
             })
-            .then((response) => {
+
+            promise.then((response) => {
                 this.response = response
                 this.loading = false
             })
-            .catch((error) => {
+
+            promise.catch((error) => {
                 if (error.response) {
                     // Server responded with non 2xx status
                     if (error.response.status == 400) {
@@ -38,12 +40,14 @@ export default {
                 }
                 this.loading = false
             })
+            // Return the promise so additional handlers can be added
+            return promise
         },
         post: function(url, data) {
-            this.request(url, data, 'post')
+            return this.request(url, data, 'post')
         },
         get: function(url, data) {
-            this.request(url, data, 'get')
+            return this.request(url, data, 'get')
         },
         isEmpty: function(obj) {
             return (Object.keys(obj).length == 0)
