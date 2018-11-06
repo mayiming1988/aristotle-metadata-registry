@@ -41,6 +41,7 @@ from .fields import (
 from .managers import (
     MetadataItemManager, ConceptManager,
     ReviewRequestQuerySet, WorkgroupQuerySet,
+    RegistrationAuthorityQuerySet,
     StatusQuerySet
 )
 
@@ -233,6 +234,7 @@ class RegistrationAuthority(Organization):
     A registration authority may register many administered items (3.2.2) as shown by the Registration
     (8.1.5.1) association class.
     """
+    objects = RegistrationAuthorityQuerySet.as_manager()
     template = "aristotle_mdr/organization/registrationAuthority.html"
     active = models.IntegerField(
         choices=RA_ACTIVE_CHOICES,

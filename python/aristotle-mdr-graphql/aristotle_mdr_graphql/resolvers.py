@@ -36,6 +36,12 @@ class AristotleResolver(object):
                 else:
                     return None
 
+            if isinstance(retval, mdr_models.RegistrationAuthority):
+                if retval.is_visible:
+                    return retval
+                else:
+                    return None
+
             return None
 
         elif isinstance(retval, Manager):

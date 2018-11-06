@@ -38,6 +38,11 @@ class WorkgroupQuerySet(MetadataItemQuerySet):
         return user.profile.workgroups
 
 
+class RegistrationAuthorityQuerySet(models.QuerySet):
+    def visible(self, user):
+        return self.all()
+
+
 class ConceptQuerySet(MetadataItemQuerySet):
 
     def visible(self, user):
@@ -188,4 +193,4 @@ class StatusQuerySet(models.QuerySet):
 
         It is **chainable** with other querysets.
         """
-        return self
+        return self.all()
