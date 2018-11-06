@@ -14,3 +14,12 @@ class IssueView(generics.RetrieveUpdateAPIView):
 class IssueCreateView(generics.CreateAPIView):
     permission_classes=(AuthCanViewEdit,)
     serializer_class=serializers.IssueSerializer
+
+
+class IssueCommentCreateView(generics.CreateAPIView):
+    permission_classes=(AuthCanViewEdit,)
+    serializer_class=serializers.IssueCommentSerializer
+
+    def create(self, request, *args, **kwargs):
+        request.data['issue'] = self.kwargs['issuepk']
+        return super().create(request, *args, **kwargs)
