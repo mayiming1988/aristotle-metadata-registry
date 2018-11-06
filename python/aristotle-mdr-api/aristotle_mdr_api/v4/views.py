@@ -19,7 +19,3 @@ class IssueCreateView(generics.CreateAPIView):
 class IssueCommentCreateView(generics.CreateAPIView):
     permission_classes=(AuthCanViewEdit,)
     serializer_class=serializers.IssueCommentSerializer
-
-    def create(self, request, *args, **kwargs):
-        request.data['issue'] = self.kwargs['issuepk']
-        return super().create(request, *args, **kwargs)

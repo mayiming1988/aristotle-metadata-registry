@@ -9,12 +9,11 @@ class IssueSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Issue
-        fields = ('name', 'description', 'item', 'isopen')
+        fields = ('name', 'description', 'item', 'isopen', 'submitter')
 
-    def create(self, validated_data):
-        user = self.context['request'].user
-        validated_data['submitter'] = user
-        return super().create(validated_data)
+    submitter = serializers.HiddenField(
+        default=serializers.CurrentUserDefault()
+    )
 
     def validate_item(self, value):
         if not user_can_view(self.context['request'].user, value):
@@ -33,8 +32,11 @@ class IssueCommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = IssueComment
-        fields = ('author', 'body')
-        read_only_fields = ('issue',)
+        fields = ('body', 'author', 'issue')
+
+    author = serializers.HiddenField(
+        default=serializers.CurrentUserDefault()
+    )
 
     def validate_issue(self, value):
         if not user_can_view(self.context['request'].user, value):
@@ -42,3 +44,6 @@ class IssueCommentSerializer(serializers.ModelSerializer):
                 'You don\'t have permission to comment on this issue'
             )
         return value
+
+    def create(self, validated_data):
+        return super().create(validated_data)

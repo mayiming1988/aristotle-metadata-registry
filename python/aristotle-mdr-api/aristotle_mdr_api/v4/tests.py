@@ -4,6 +4,7 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 
 from aristotle_mdr import models as mdr_models
+from aristotle_mdr.contrib.issues import models
 
 
 class BaseAPITestCase(TestCase):
@@ -64,3 +65,29 @@ class IssueEndpointsTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, 400)
         # Make sure error returned for item
         self.assertTrue('item' in response.data)
+
+    @tag('issue_comment')
+    def test_create_issue_comment(self):
+
+        self.login_user()
+        issue = models.Issue.objects.create(
+            name='Many problem',
+            description='many',
+            item=self.item,
+            submitter=self.user,
+        )
+
+        response = self.client.post(
+            reverse('api_v4:issue_comment'),
+            {
+                'body': 'Test comment',
+                'issue': issue.id
+            },
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, 201)
+
+        comments = issue.comments.all()
+        self.assertEqual(len(comments), 1)
+
