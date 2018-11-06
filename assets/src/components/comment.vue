@@ -7,9 +7,9 @@
       </span>
     </template>
 
-    <div class="panel-body">
+    <template>
       {{ body }}
-    </div>
+    </template>
   </user-panel>
 </template>
 
