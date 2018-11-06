@@ -1,8 +1,9 @@
 {% extends "aristotle_mdr/helpers/wizard_form_modal.html" %}
 
 {% load aristotle_tags %}
-{% load compile_static i18n %}
+{% load i18n %}
 {% load static %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}Change Status{% endblock %}
 
@@ -21,8 +22,11 @@
         "public":"{% trans 'public' %}"
     }
 </script>
-<script src="{% static 'aristotle_mdr/aristotle.status_change.js' %}"></script>
 {{ block.super }}
+{% endblock %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'changeStatus' 'js' %}
 {% endblock %}
 
 {% block form_tag %}

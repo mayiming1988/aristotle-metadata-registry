@@ -1,10 +1,15 @@
 {% extends 'aristotle_mdr/base.html' %}
-{% load compile_static i18n util_tags %}
+{% load i18n util_tags %}
 {% load static from staticfiles %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}Edit link - {% endblock %}
-{% block extra_head_scripts %}
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.wizard.less'|compile %}" />
+{% block webpack_css_bundle %}
+  {% render_bundle 'wizard' 'css' %}
+{% endblock %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'wizard' 'js' %}
 {% endblock %}
 
 {% block content %}
@@ -21,7 +26,7 @@
         You are about to add concepts to the roles for the relation
             <a href='{{link.relation.get_absolute_url}}'>{{ link.relation }}</a> for this link.
         <div class='well'>
-        {{ link.relation.definition|safe }}
+        {{ link.relation.definition|bleach }}
         </div>
     </div>
     <div>

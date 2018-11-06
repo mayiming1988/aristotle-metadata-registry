@@ -1,5 +1,5 @@
 {% extends request.is_ajax|yesno:"aristotle_mdr/base_ajax.html,aristotle_mdr/base.html" %}
-{% load aristotle_tags compile_static i18n %}
+{% load aristotle_tags i18n %}
 
 {% block title %}{{ item.dss.name }} - Modifying inclusion of {{ item.include.name }}{% endblock %}
 {% block content %}
@@ -9,9 +9,6 @@
           width:100%;
         }
         </style>
-        {% if request.is_ajax %}
-            {{ form.media }}
-        {% endif %}
     {% endblock %}
 
 <form method="post" action="{{request.get_full_path}}" >

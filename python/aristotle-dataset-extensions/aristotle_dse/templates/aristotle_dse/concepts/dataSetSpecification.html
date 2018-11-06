@@ -1,10 +1,14 @@
 {% extends "aristotle_mdr/concepts/managedContent.html" %}
 
-{% load aristotle_tags i18n util_tags %}
+{% load aristotle_tags util_tags i18n static %}
+{% load render_bundle from webpack_loader %}
 
-{% block extra_head_scripts %}
-{{ block.super }}
-<link rel="stylesheet" href="{{ STATIC_URL }}/aristotle_dse/aristotle_dse.css" />
+{% block webpack_css_bundle %}
+  {% render_bundle 'datasetSpecification' 'js' %}
+{% endblock %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'datasetSpecification' 'css' %}
 {% endblock %}
 
 {% block objSpecific %}
@@ -14,11 +18,6 @@
         <br> Each entry includes the item name, whether the item is <em>optional, mandatory or conditional</em> and the maximum times the item can occur in a dataset.
         <br> If the items must occur in a particular order in the dataset, the sequence number is included before the item name.
     </p>
-    <script>
-        $(function () {
-          $('[data-toggle="popover"]').popover()
-        })
-    </script>
 
         <table class="dssInclusions table table-striped table-condensed">
             <thead>
@@ -75,12 +74,12 @@
                         {% if deinc.specific_information %}
                         <div>
                             <strong>Specific Information:</strong>
-                            {{ deinc.specific_information | safe }}
+                            {{ deinc.specific_information|bleach }}
                         </div>
                         {% endif %}
                         {% if deinc.conditional_obligation %}
                         <div>
-                            <strong>Conditional Obligation:</strong>{{ deinc.conditional_obligation|safe }}
+                            <strong>Conditional Obligation:</strong>{{ deinc.conditional_obligation|bleach }}
                         </div>
                         {% endif %}
                     </td>
@@ -140,12 +139,12 @@
                         {% if deinc.specific_information %}
                         <div>
                             <strong>Specific Information:</strong>
-                            {{ deinc.specific_information | safe }}
+                            {{ deinc.specific_information|bleach }}
                         </div>
                         {% endif %}
                         {% if deinc.conditional_obligation %}
                         <div>
-                            <strong>Conditional Obligation:</strong>{{ deinc.conditional_obligation | safe }}
+                            <strong>Conditional Obligation:</strong>{{ deinc.conditional_obligation|bleach }}
                         </div>
                         {% endif %}
                     </td>

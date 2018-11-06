@@ -1,3 +1,4 @@
+{% load util_tags %}
 {% block content %}
 <section>
     <header>
@@ -9,7 +10,7 @@
         </small>
 </header>
 <div class="definition">
-    {{ item.definition | safe }}
+    {{ item.definition|bleach }}
 </div>
 <div class="status">
     {% include "aristotle_mdr/downloads/pdf/component/statuses.html" with statuses=item.current_statuses only %}

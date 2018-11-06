@@ -1,11 +1,11 @@
 from django.contrib import admin
-import aristotle_dse
+from aristotle_dse import models
 
 from aristotle_mdr.register import register_concept
 
 
 class DSSDEInclusionInline(admin.TabularInline):
-    model=aristotle_dse.models.DSSDEInclusion
+    model=models.DSSDEInclusion
     extra=0
     classes = ('grp-collapse grp-closed', )
     raw_id_fields = ('data_element', )
@@ -15,7 +15,7 @@ class DSSDEInclusionInline(admin.TabularInline):
 
 
 class DSSClusterInclusionInline(admin.TabularInline):
-    model=aristotle_dse.models.DSSClusterInclusion
+    model=models.DSSClusterInclusion
     extra=0
     classes = ('grp-collapse grp-closed', )
     fk_name = 'dss'
@@ -26,7 +26,7 @@ class DSSClusterInclusionInline(admin.TabularInline):
 
 
 register_concept(
-    aristotle_dse.models.DataSetSpecification,
+    models.DataSetSpecification,
     extra_fieldsets=[
         (
             'Methodology',
@@ -41,13 +41,13 @@ register_concept(
     extra_inlines=[DSSDEInclusionInline, DSSClusterInclusionInline],
     reversion={
         'follow': ['dssdeinclusion_set', 'dssclusterinclusion_set'],
-        'follow_classes': [aristotle_dse.models.DSSClusterInclusion, aristotle_dse.models.DSSDEInclusion]
+        'follow_classes': [models.DSSClusterInclusion, models.DSSDEInclusion]
     },
 )
 
 
 register_concept(
-    aristotle_dse.models.DataCatalog,
+    models.DataCatalog,
     extra_fieldsets=[
         ('Data Source',
             {'fields': ['issued', 'publisher', 'homepage', 'spatial', 'license']}),
@@ -56,7 +56,7 @@ register_concept(
 
 
 register_concept(
-    aristotle_dse.models.Dataset,
+    models.Dataset,
     extra_fieldsets=[
         ('Coverage',
             {'fields': ['spatial', 'temporal']}),
@@ -70,7 +70,7 @@ register_concept(
 
 
 register_concept(
-    aristotle_dse.models.Distribution,
+    models.Distribution,
     extra_fieldsets=[
         ('File details',
             {'fields': [
@@ -82,5 +82,9 @@ register_concept(
                 'license', 'rights', 'publisher',
                 'dct_modified', 'issued',
                 ]}),
-    ]
+    ],
+    reversion={
+        'follow': ['distributiondataelementpath_set'],
+        'follow_classes': [models.DistributionDataElementPath]
+    }
 )

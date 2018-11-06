@@ -3,13 +3,13 @@
 
 <span class="autocomplete-item block" data-html="true" data-value="{{ result.pk|unlocalize }}">
 {% if result.get_full_name %}
-    {{ result.highlight.full_name|safe }}
+    {{ result.highlight.full_name }}
     {% if result == request.user %}
     (You)
     {% endif %}
-    <div>{{ result.highlight.email|safe }}</div>
+    <div>{{ result.highlight.email }}</div>
 {% else %}
-    {{ result.highlight.email|safe }}
+    {{ result.highlight.email }}
     {% if result == request.user %}
     (You)
     {% endif %}

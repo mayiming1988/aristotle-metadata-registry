@@ -1,5 +1,5 @@
 {% extends 'aristotle_mdr/downloads/pdf/pdf.html' %}
-{% load aristotle_tags aristotle_help %}
+{% load aristotle_tags aristotle_help util_tags %}
 
 {% block title %}{{ item.name }}{% endblock %}
 {% block content %}
@@ -12,7 +12,7 @@
     </h1>
 </header>
 <div class="definition">
-    {{ item.definition | safe }}
+    {{ item.definition|bleach }}
 </div>
 <div class="status">
     {% include "aristotle_mdr/statuses.html" with statuses=item.current_statuses only %}

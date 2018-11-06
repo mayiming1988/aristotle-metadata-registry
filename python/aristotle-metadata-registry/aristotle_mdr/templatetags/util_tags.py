@@ -3,6 +3,9 @@ import json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
+from django.conf import settings
+
+import bleach
 
 register = template.Library()
 
@@ -36,6 +39,9 @@ def register_queryset(qs):
 @register.filter
 def distinct(iterable, attr_name):
 
+    if not iterable:
+        return []
+
     seen = []
     filtered = []
     for item in iterable:
@@ -68,3 +74,17 @@ def json_script(value, element_id):
         '<script id="{}" type="application/json">{}</script>',
         element_id, mark_safe(json_str)
     )
+
+
+@register.filter(name='bleach')
+def bleach_filter(html):
+
+    if html is None:
+        return html
+
+    clean_html = bleach.clean(
+        html,
+        tags=settings.BLEACH_ALLOWED_TAGS,
+        attributes=settings.BLEACH_ALLOWED_ATTRIBUTES
+    )
+    return mark_safe(clean_html)
