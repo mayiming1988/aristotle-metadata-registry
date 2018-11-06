@@ -6,6 +6,13 @@ class Command(BaseCommand):
     args = '<workgroup_id workgroup_id ...>'
     help = 'Recomputes and caches the public and locked statuses for the given workgroup(s). This is useful if the registration authorities associated with a workgroup change.'
 
+    def add_arguments(self, parser):
+        super(Command, self).add_arguments(parser)
+        parser.add_argument(
+            "--ra",
+            default=None,
+        )
+
     def handle(self, *args, **options):
         from haystack import connections
         for ra_id in options['ra']:

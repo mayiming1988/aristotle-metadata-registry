@@ -38,6 +38,11 @@ class WorkgroupQuerySet(MetadataItemQuerySet):
         return user.profile.workgroups
 
 
+class RegistrationAuthorityQuerySet(models.QuerySet):
+    def visible(self, user):
+        return self.all()
+
+
 class ConceptQuerySet(MetadataItemQuerySet):
 
     def visible(self, user):
@@ -178,3 +183,14 @@ class ReviewRequestQuerySet(models.QuerySet):
                 Q(registration_authority__registrars__profile__user=user) & ~Q(status=REVIEW_STATES.cancelled)
             )
         return self.filter(q)
+
+
+class StatusQuerySet(models.QuerySet):
+    def visible(self, user):
+        """
+        Returns a queryset that returns all reviews that the given user has
+        permission to view.
+
+        It is **chainable** with other querysets.
+        """
+        return self.all()
