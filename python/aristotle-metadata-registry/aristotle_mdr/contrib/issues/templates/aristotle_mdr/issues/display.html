@@ -12,4 +12,8 @@
 </h1>
 <p class="text-muted">Opened {{ object.created|timesince }} ago by {{ object.submitter.full_name }}</p>
 <p>{{ object.description }}</p>
+
+{% for comment in comments %}
+  {% include 'aristotle_mdr/helpers/comment.html' with comment=comment %}
+{% endfor %}
 {% endblock %}

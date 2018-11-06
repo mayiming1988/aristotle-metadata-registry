@@ -33,4 +33,23 @@ class Issue(TimeStampedModel):
         return self.item.can_view(user)
 
     def can_delete(self, user):
-        return self.can_view(user)
+        return self.can_edit(user) or self.item.can_edit(user)
+
+
+class IssueComment(TimeStampedModel):
+
+    issue=models.ForeignKey(
+        Issue,
+        related_name='comments'
+    )
+    author=models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name='issue_comments'
+    )
+    body=models.TextField()
+
+    def can_view(self, user):
+        return self.issue.item.can_view(user)
+
+    def can_edit(self, user):
+        return user.id == self.author.id
