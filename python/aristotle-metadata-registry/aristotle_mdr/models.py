@@ -40,7 +40,8 @@ from .fields import (
 
 from .managers import (
     MetadataItemManager, ConceptManager,
-    ReviewRequestQuerySet, WorkgroupQuerySet
+    ReviewRequestQuerySet, WorkgroupQuerySet,
+    StatusQuerySet
 )
 
 import logging
@@ -955,6 +956,7 @@ class Status(TimeStampedModel):
     A Registration_State is a collection of information about the Registration (8.1.5.1) of an Administered Item (8.1.2.2).
     The attributes of the Registration_State class are summarized here and specified more formally in 8.1.2.6.2.
     """
+    objects = StatusQuerySet.as_manager()
     concept = ConceptForeignKey(_concept, related_name="statuses")
     registrationAuthority = models.ForeignKey(RegistrationAuthority)
     changeDetails = models.TextField(blank=True, null=True)

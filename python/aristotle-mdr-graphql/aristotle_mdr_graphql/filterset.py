@@ -42,6 +42,11 @@ class AristotleFilterSet(FilterSet):
     #     return super().get_fields()
 
 
+class IdentifierFilterSet(FilterSet):
+    namespace = django_filters.CharFilter(name='namespace__shorthand_prefix', lookup_expr='iexact', distinct=True)
+    class Meta:
+        fields = ['namespace']
+
 class ConceptFilterSet(FilterSet):
 
     identifier = django_filters.CharFilter(name='identifiers__identifier', lookup_expr='iexact', distinct=True)

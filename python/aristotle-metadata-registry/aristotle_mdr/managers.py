@@ -178,3 +178,14 @@ class ReviewRequestQuerySet(models.QuerySet):
                 Q(registration_authority__registrars__profile__user=user) & ~Q(status=REVIEW_STATES.cancelled)
             )
         return self.filter(q)
+
+
+class StatusQuerySet(models.QuerySet):
+    def visible(self, user):
+        """
+        Returns a queryset that returns all reviews that the given user has
+        permission to view.
+
+        It is **chainable** with other querysets.
+        """
+        return self
