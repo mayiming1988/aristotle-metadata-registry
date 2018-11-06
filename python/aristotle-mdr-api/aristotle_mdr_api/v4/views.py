@@ -1,13 +1,16 @@
 from rest_framework import generics
 from aristotle_mdr.contrib.issues.models import Issue
 
-from aristotle_mdr_api.v4 import serializers, permissions
-from aristotle_mdr.perms import user_can_view
+from aristotle_mdr_api.v4 import serializers
+from aristotle_mdr_api.v4.permissions import AuthCanViewEdit, AuthFinePerms
 
 
 class IssueView(generics.RetrieveUpdateAPIView):
+    permission_classes=(AuthFinePerms,)
     serializer_class=serializers.IssueSerializer
+    queryset=Issue.objects.all()
 
 
 class IssueCreateView(generics.CreateAPIView):
+    permission_classes=(AuthCanViewEdit,)
     serializer_class=serializers.IssueSerializer

@@ -1,3 +1,4 @@
+from django.urls import reverse
 from rest_framework import serializers
 from aristotle_mdr.contrib.issues.models import Issue
 from aristotle_mdr.perms import user_can_view
@@ -21,3 +22,8 @@ class IssueSerializer(serializers.ModelSerializer):
                 'You don\'t have permission to create an issue against this item'
             )
         return value
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['url'] = reverse('aristotle_issues:issue', args=[instance.id])
+        return rep

@@ -25,3 +25,12 @@ class Issue(TimeStampedModel):
     isopen=models.BooleanField(
         default=True
     )
+
+    def can_edit(self, user):
+        return user.id == submitter.id
+
+    def can_view(self, user):
+        return self.item.can_view(user)
+
+    def can_delete(self, user):
+        return self.can_view(user)
