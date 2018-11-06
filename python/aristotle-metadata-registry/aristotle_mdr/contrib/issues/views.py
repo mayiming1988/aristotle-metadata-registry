@@ -56,5 +56,5 @@ class IssueDisplay(IssueBase, TemplateView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['object'] = self.issue
-        context['comments'] = self.issue.comments.all()
+        context['comments'] = self.issue.comments.select_related('author__profile').all()
         return context
