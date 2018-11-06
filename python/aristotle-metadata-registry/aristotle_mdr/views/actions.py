@@ -51,217 +51,217 @@ class ItemSubpageFormView(ItemSubpageView, FormView):
         return kwargs
 
 
-class SubmitForReviewView(ItemSubpageFormView):
-    form_class = actions.RequestReviewForm
-    template_name = "aristotle_mdr/actions/request_review.html"
+# class SubmitForReviewView(ItemSubpageFormView):
+#     form_class = actions.RequestReviewForm
+#     template_name = "aristotle_mdr/actions/request_review.html"
 
-    def get_context_data(self, *args, **kwargs):
-        kwargs = super().get_context_data(*args, **kwargs)
-        kwargs['reviews'] = self.get_item().review_requests.filter(status=MDR.REVIEW_STATES.submitted).all()
-        kwargs['status_matrix'] = json.dumps(generate_visibility_matrix(self.request.user))
-        return kwargs
+#     def get_context_data(self, *args, **kwargs):
+#         kwargs = super().get_context_data(*args, **kwargs)
+#         kwargs['reviews'] = self.get_item().review_requests.filter(status=MDR.REVIEW_STATES.submitted).all()
+#         kwargs['status_matrix'] = json.dumps(generate_visibility_matrix(self.request.user))
+#         return kwargs
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
+#     def get_form_kwargs(self):
+#         kwargs = super().get_form_kwargs()
+#         kwargs['user'] = self.request.user
+#         return kwargs
 
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        item = self.get_item()
+#     def post(self, request, *args, **kwargs):
+#         form = self.get_form()
+#         item = self.get_item()
 
-        if form.is_valid():
-            review = MDR.ReviewRequest.objects.create(
-                registration_authority=form.cleaned_data['registrationAuthorities'],
-                message=form.cleaned_data['changeDetails'],
-                state=form.cleaned_data['state'],
-                registration_date=form.cleaned_data['registrationDate'],
-                cascade_registration=form.cleaned_data['cascadeRegistration'],
-                requester=request.user
-            )
+#         if form.is_valid():
+#             review = MDR.ReviewRequest.objects.create(
+#                 registration_authority=form.cleaned_data['registrationAuthorities'],
+#                 message=form.cleaned_data['changeDetails'],
+#                 state=form.cleaned_data['state'],
+#                 registration_date=form.cleaned_data['registrationDate'],
+#                 cascade_registration=form.cleaned_data['cascadeRegistration'],
+#                 requester=request.user
+#             )
 
-            review.concepts.add(item)
-            message = mark_safe(
-                _("<a href='{url}'>Review submitted, click to review</a>").format(url=reverse('aristotle_mdr:userReviewDetails', args=[review.pk]))
-            )
-            messages.add_message(request, messages.INFO, message)
-            return HttpResponseRedirect(item.get_absolute_url())
-        else:
-            return self.form_invalid(form)
-
-
-class ReviewActionMixin(object):
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        review = self.get_review()
-        if not perms.user_can_view_review(self.request.user, review):
-            raise PermissionDenied
-        if review.status != MDR.REVIEW_STATES.submitted:
-            return HttpResponseRedirect(reverse('aristotle_mdr:userReviewDetails', args=[review.pk]))
-        return super().dispatch(*args, **kwargs)
-
-    def get_review(self):
-        self.review = get_object_or_404(MDR.ReviewRequest, pk=self.kwargs['review_id'])
-        return self.review
-
-    def get_context_data(self, *args, **kwargs):
-        kwargs = super().get_context_data(*args, **kwargs)
-        kwargs['review'] = self.get_review()
-        return kwargs
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
+#             review.concepts.add(item)
+#             message = mark_safe(
+#                 _("<a href='{url}'>Review submitted, click to review</a>").format(url=reverse('aristotle_mdr:userReviewDetails', args=[review.pk]))
+#             )
+#             messages.add_message(request, messages.INFO, message)
+#             return HttpResponseRedirect(item.get_absolute_url())
+#         else:
+#             return self.form_invalid(form)
 
 
-class ReviewCancelView(ReviewActionMixin, FormView):
-    form_class = actions.RequestReviewCancelForm
-    template_name = "aristotle_mdr/user/user_request_cancel.html"
+# class ReviewActionMixin(object):
+#     @method_decorator(login_required)
+#     def dispatch(self, *args, **kwargs):
+#         review = self.get_review()
+#         if not perms.user_can_view_review(self.request.user, review):
+#             raise PermissionDenied
+#         if review.status != MDR.REVIEW_STATES.submitted:
+#             return HttpResponseRedirect(reverse('aristotle_mdr:userReviewDetails', args=[review.pk]))
+#         return super().dispatch(*args, **kwargs)
 
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        review = self.get_review()
-        if not self.request.user == review.requester:
-            raise PermissionDenied
-        if review.status != MDR.REVIEW_STATES.submitted:
-            return HttpResponseRedirect(reverse('aristotle_mdr:userReviewDetails', args=[review.pk]))
+#     def get_review(self):
+#         self.review = get_object_or_404(MDR.ReviewRequest, pk=self.kwargs['review_id'])
+#         return self.review
 
-        return super().dispatch(*args, **kwargs)
+#     def get_context_data(self, *args, **kwargs):
+#         kwargs = super().get_context_data(*args, **kwargs)
+#         kwargs['review'] = self.get_review()
+#         return kwargs
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['instance'] = self.get_review()
-        return kwargs
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-
-        if form.is_valid():
-            review = form.save(commit=False)
-            review.status = MDR.REVIEW_STATES.cancelled
-            review.save()
-            message = _("Review successfully cancelled")
-            messages.add_message(request, messages.INFO, message)
-            return HttpResponseRedirect(reverse('aristotle_mdr:userMyReviewRequests'))
-        else:
-            return self.form_invalid(form)
+#     def get_form_kwargs(self):
+#         kwargs = super().get_form_kwargs()
+#         kwargs['user'] = self.request.user
+#         return kwargs
 
 
-class ReviewRejectView(ReviewActionMixin, FormView):
-    form_class = actions.RequestReviewRejectForm
-    template_name = "aristotle_mdr/user/user_request_reject.html"
+# class ReviewCancelView(ReviewActionMixin, FormView):
+#     form_class = actions.RequestReviewCancelForm
+#     template_name = "aristotle_mdr/user/user_request_cancel.html"
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['instance'] = self.get_review()
-        return kwargs
+#     @method_decorator(login_required)
+#     def dispatch(self, *args, **kwargs):
+#         review = self.get_review()
+#         if not self.request.user == review.requester:
+#             raise PermissionDenied
+#         if review.status != MDR.REVIEW_STATES.submitted:
+#             return HttpResponseRedirect(reverse('aristotle_mdr:userReviewDetails', args=[review.pk]))
 
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
+#         return super().dispatch(*args, **kwargs)
 
-        if form.is_valid():
-            review = form.save(commit=False)
-            review.reviewer = request.user
-            review.status = MDR.REVIEW_STATES.rejected
-            review.save()
-            message = _("Review successfully rejected")
-            messages.add_message(request, messages.INFO, message)
-            return HttpResponseRedirect(reverse('aristotle_mdr:userReadyForReview'))
-        else:
-            return self.form_invalid(form)
+#     def get_form_kwargs(self):
+#         kwargs = super().get_form_kwargs()
+#         kwargs['instance'] = self.get_review()
+#         return kwargs
+
+#     def post(self, request, *args, **kwargs):
+#         form = self.get_form()
+
+#         if form.is_valid():
+#             review = form.save(commit=False)
+#             review.status = MDR.REVIEW_STATES.cancelled
+#             review.save()
+#             message = _("Review successfully cancelled")
+#             messages.add_message(request, messages.INFO, message)
+#             return HttpResponseRedirect(reverse('aristotle_mdr:userMyReviewRequests'))
+#         else:
+#             return self.form_invalid(form)
 
 
-class ReviewAcceptView(ReviewChangesView):
+# class ReviewRejectView(ReviewActionMixin, FormView):
+#     form_class = actions.RequestReviewRejectForm
+#     template_name = "aristotle_mdr/user/user_request_reject.html"
 
-    change_step_name = 'review_accept'
+#     def get_form_kwargs(self):
+#         kwargs = super().get_form_kwargs()
+#         kwargs['instance'] = self.get_review()
+#         return kwargs
 
-    form_list = [
-        ('review_accept', actions.RequestReviewAcceptForm),
-        ('review_changes', ReviewChangesForm)
-    ]
+#     def post(self, request, *args, **kwargs):
+#         form = self.get_form()
 
-    templates = {
-        'review_accept': 'aristotle_mdr/user/user_request_accept.html',
-        'review_changes': 'aristotle_mdr/actions/review_state_changes.html'
-    }
+#         if form.is_valid():
+#             review = form.save(commit=False)
+#             review.reviewer = request.user
+#             review.status = MDR.REVIEW_STATES.rejected
+#             review.save()
+#             message = _("Review successfully rejected")
+#             messages.add_message(request, messages.INFO, message)
+#             return HttpResponseRedirect(reverse('aristotle_mdr:userReadyForReview'))
+#         else:
+#             return self.form_invalid(form)
 
-    condition_dict = {'review_changes': display_review}
-    display_review = None
-    review = None
 
-    def dispatch(self, request, *args, **kwargs):
+# class ReviewAcceptView(ReviewChangesView):
 
-        review = self.get_review()
+#     change_step_name = 'review_accept'
 
-        if not self.ra_active_check(review):
-            return HttpResponseNotFound('Registration Authority is not active')
+#     form_list = [
+#         ('review_accept', actions.RequestReviewAcceptForm),
+#         ('review_changes', ReviewChangesForm)
+#     ]
 
-        if not perms.user_can_view_review(self.request.user, review):
-            raise PermissionDenied
-        if review.status != MDR.REVIEW_STATES.submitted:
-            return HttpResponseRedirect(reverse('aristotle_mdr:userReviewDetails', args=[review.pk]))
+#     templates = {
+#         'review_accept': 'aristotle_mdr/user/user_request_accept.html',
+#         'review_changes': 'aristotle_mdr/actions/review_state_changes.html'
+#     }
 
-        return super().dispatch(request, *args, **kwargs)
+#     condition_dict = {'review_changes': display_review}
+#     display_review = None
+#     review = None
 
-    def ra_active_check(self, review):
-        return review.registration_authority.is_active
+#     def dispatch(self, request, *args, **kwargs):
 
-    def get_review(self):
-        self.review = get_object_or_404(MDR.ReviewRequest, pk=self.kwargs['review_id'])
-        return self.review
+#         review = self.get_review()
 
-    def get_items(self):
-        return self.get_review().concepts.all()
+#         if not self.ra_active_check(review):
+#             return HttpResponseNotFound('Registration Authority is not active')
 
-    def get_change_data(self, register=False):
-        review = self.get_review()
+#         if not perms.user_can_view_review(self.request.user, review):
+#             raise PermissionDenied
+#         if review.status != MDR.REVIEW_STATES.submitted:
+#             return HttpResponseRedirect(reverse('aristotle_mdr:userReviewDetails', args=[review.pk]))
 
-        # Register status changes
-        change_data = {
-            'registrationAuthorities': [review.registration_authority],
-            'state': review.state,
-            'registrationDate': review.registration_date,
-            'cascadeRegistration': review.cascade_registration,
-            'changeDetails': review.message
-        }
+#         return super().dispatch(request, *args, **kwargs)
 
-        if register:
-            # If registering cascade needs to be a boolean
-            # This is done autmoatically on clean for the change status forms
-            change_data['cascadeRegistration'] = (review.cascade_registration == 1)
+#     def ra_active_check(self, review):
+#         return review.registration_authority.is_active
 
-        return change_data
+#     def get_review(self):
+#         self.review = get_object_or_404(MDR.ReviewRequest, pk=self.kwargs['review_id'])
+#         return self.review
 
-    def get_context_data(self, *args, **kwargs):
-        kwargs = super().get_context_data(*args, **kwargs)
-        kwargs['status_matrix'] = json.dumps(generate_visibility_matrix(self.request.user))
-        kwargs['review'] = self.get_review()
-        return kwargs
+#     def get_items(self):
+#         return self.get_review().concepts.all()
 
-    def get_form_kwargs(self, step):
+#     def get_change_data(self, register=False):
+#         review = self.get_review()
 
-        kwargs = super().get_form_kwargs(step)
+#         # Register status changes
+#         change_data = {
+#             'registrationAuthorities': [review.registration_authority],
+#             'state': review.state,
+#             'registrationDate': review.registration_date,
+#             'cascadeRegistration': review.cascade_registration,
+#             'changeDetails': review.message
+#         }
 
-        if step == 'review_accept':
-            return {'user': self.request.user}
+#         if register:
+#             # If registering cascade needs to be a boolean
+#             # This is done autmoatically on clean for the change status forms
+#             change_data['cascadeRegistration'] = (review.cascade_registration == 1)
 
-        return kwargs
+#         return change_data
 
-    def done(self, form_list, form_dict, **kwargs):
-        review = self.get_review()
+#     def get_context_data(self, *args, **kwargs):
+#         kwargs = super().get_context_data(*args, **kwargs)
+#         kwargs['status_matrix'] = json.dumps(generate_visibility_matrix(self.request.user))
+#         kwargs['review'] = self.get_review()
+#         return kwargs
 
-        message = self.register_changes_with_message(form_dict)
+#     def get_form_kwargs(self, step):
 
-        # Update review object
-        review.reviewer = self.request.user
-        review.response = form_dict['review_accept'].cleaned_data['response']
-        review.status = MDR.REVIEW_STATES.accepted
-        review.save()
+#         kwargs = super().get_form_kwargs(step)
 
-        messages.add_message(self.request, messages.INFO, message)
+#         if step == 'review_accept':
+#             return {'user': self.request.user}
 
-        return HttpResponseRedirect(reverse('aristotle_mdr:userReadyForReview'))
+#         return kwargs
+
+#     def done(self, form_list, form_dict, **kwargs):
+#         review = self.get_review()
+
+#         message = self.register_changes_with_message(form_dict)
+
+#         # Update review object
+#         review.reviewer = self.request.user
+#         review.response = form_dict['review_accept'].cleaned_data['response']
+#         review.status = MDR.REVIEW_STATES.accepted
+#         review.save()
+
+#         messages.add_message(self.request, messages.INFO, message)
+
+#         return HttpResponseRedirect(reverse('aristotle_mdr:userReadyForReview'))
 
 
 class CheckCascadedStates(ItemSubpageView, DetailView):

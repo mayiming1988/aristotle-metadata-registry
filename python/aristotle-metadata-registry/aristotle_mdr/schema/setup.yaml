@@ -9,4 +9,62 @@
     - validator: StatusValidator
       severity: warning
       status:
-        - Standard
+        - Qualified
+
+- status: Recorded
+  object: DataElement
+  checks:   
+    - validator: RegexValidator
+      name: Data Element should have a name
+      severity: warning
+      field: name
+      regex: >
+        [\w ]+–\u2014[\w ]+, [\w ]+
+    - validator: RelationValidator
+      severity: error
+      field: valueDomain
+      name: Value Domain linked to Data Element
+    - validator: RelationValidator
+      severity: error
+      field: dataElementConcept
+      name: DataElementConcept linked to Data Element
+
+- status: Recorded
+  object: ConceptualDomain
+  checks:
+    - validator: RegexValidator
+      name: Has name more than one character
+      severity: error
+      field: name
+      regex: \w[\w ]+
+    - validator: RegexValidator
+      severity: warning
+      name: Has description that has more than one character
+      field: description
+      regex: .+
+
+- status: Recorded
+  checks:   
+    - validator: StatusValidator
+      name: Candidate -> Recorded
+      description: Metadata should progress along the lifecycle correctly
+      severity: warning
+      status:
+        - Candidate
+
+- status: Candidate
+  checks:   
+    - validator: StatusValidator
+      name: Not Progressed -> Candidate
+      description: Metadata should progress along the lifecycle correctly
+      severity: warning
+      status:
+        - Not Progressed
+
+- status: any
+  checks:
+    - validator: RegexValidator
+      name: Metadata should have a name
+      severity: warning
+      field: name
+      regex: \w[\w ]+

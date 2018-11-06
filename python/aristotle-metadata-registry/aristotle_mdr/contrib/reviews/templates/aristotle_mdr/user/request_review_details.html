@@ -1,0 +1,311 @@
+{% extends request.is_ajax|yesno:"aristotle_mdr/base_ajax.html,aristotle_mdr/base.html" %}
+{% load compile_static i18n humanize %}
+{% load aristotle_tags %}
+{% load static from staticfiles %}
+
+{% block title %}Review details{{ item.name }}{% endblock %}
+{% block content %}
+    <div class="modal-body">
+        <ol class="breadcrumb">
+          <li><a href="{% url 'aristotle_reviews:userReadyForReview' %}">Review list</a></li>
+          <li><a href="{{review.registration_authority.get_absolute_url }}">{{review.registration_authority.name }}</a></li>
+          <li class="active">Request review details</li>
+        </ol>
+        <div class="panel panel-default">
+          <div class="panel-heading clearfix">
+            <div class="h5 pull-left" style="margin:8px 0 0 0;">Review Overview</div>
+                <span class="pull-right">
+                <a class="btn btn-sm btn-success" href="{% url 'aristotle_reviews:request_update' review.id %}">Edit review</a>
+                </span>
+          </div>
+          <div class="panel-body">
+            <div class="table-row">
+            <div class="col-sm-6">
+                <i class="fa fa-fw fa-crosshairs"></i>
+                Target registration information:
+                <ul>
+                <li>Status: of <em>{{review.get_state_display}}</em></li>
+                <li>Registered in: <a href="{{review.registration_authority.get_absolute_url }}">{{review.registration_authority.name }}</a></li>
+                <li>Registration date: {{review.registration_date}}</li>
+                </ul>
+                    <i class="fa fa-fw fa-hashtag"></i> Number of items:
+                    {{review.concepts.count}}
+            </div>
+            <div class="col-sm-6">
+                <i class="fa fa-fw fa-user"></i> Requested by:
+                {{review.requester}}
+            <br>
+                <i class="fa fa-fw fa-calendar"></i> Requested on:
+                {{review.created}}
+            {% if review.due_date %}
+            <br>
+                <i class="fa fa-fw fa-calendar"></i> Due date:
+                {{review.due_date}}
+            {% endif %}
+            <br>
+                <i class="fa fa-fw fa-ellipsis-v"></i> Request status: 
+                {{review.get_status_display}}
+            </div>
+            </div>
+          </div>
+        </div>
+
+        <ul class="nav nav-tabs" role="tablist">
+          <li role="presentation" class="{% if active_tab == 'conversation' %}active {%endif%}"><a href="#review_chat"  role="tab" data-toggle="tab"><i class="fa fa-comments-o"></i> Conversation</a></li>
+          <li role="presentation"><a href="#review_items" role="tab" data-toggle="tab"><i class="fa fa-th-list"></i> Items</a></li>
+          <!-- TODO: Make tabs vue -->
+          <!--<li role="presentation"><a href="#review_checks" role="tab" data-toggle="tab"><i class="fa fa-check-square-o"></i> Validation</a></li>-->
+          <!--<li role="presentation"><a href="#review_impact" role="tab" data-toggle="tab"><i class="fa fa-flash"></i> Impact</a></li>-->
+          <li role="presentation" class="{% if active_tab == 'checks'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_checks' review.id %}" role="tab"><i class="fa fa-check-square-o"></i> Validation</a></li>
+          <li role="presentation" class="{% if active_tab == 'impact'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_impact' review.id %}" role="tab"><i class="fa fa-flash"></i> Impact</a></li>
+        </ul>
+
+        <div class="tab-content">
+          <div role="tabpanel" class="tab-pane {% if active_tab == 'conversation'%}active{%endif%}" id="review_chat">
+            
+            <div class="container" style="padding-top:10px">
+              {% if review.message %}
+                <div class="row">
+                <div class="col-sm-1">
+                <div class="thumbnail">
+                <img class="img-responsive user-photo" src="{{ review.requester.profile.profile_picture_url }}" alt=""></img>
+                </div><!-- /thumbnail -->
+                </div><!-- /col-sm-1 -->
+                
+                <div class="col-sm-8">
+                <div class="panel panel-default">
+                <div class="panel-heading">
+                  <strong>{% firstof review.requester.get_short_name review.requester.email %}</strong>
+                  <span class="text-muted" title="{{review.created}}">
+                  {{review.created|naturaltime}}
+                  </span>
+                </div>
+                <div class="panel-body">
+                  {{review.message|linebreaks}}
+                </div><!-- /panel-body -->
+                </div><!-- /panel panel-default -->
+                </div><!-- /col-sm-8 -->
+                </div>
+              {% endif %}
+  
+              {% for comment in review.comments.all %}
+                <div class="row">
+                <div class="col-xs-1">
+                <div class="thumbnail">
+                <img class="img-responsive user-photo" src="{{ comment.author.profile.profile_picture_url }}" alt=""></img>
+                </div><!-- /thumbnail -->
+                </div><!-- /col-sm-1 -->
+                
+                <div class="col-sm-8">
+                <div class="panel panel-default">
+                <div class="panel-heading">
+                  <strong>{% firstof comment.author.get_short_name comment.author.email %}</strong>
+                  <span class="text-muted" title="{{comment.created}}">
+                  {{comment.created|naturaltime}}
+                  </span>
+                </div>
+                <div class="panel-body">
+                  {{comment.body|linebreaks}}
+                </div><!-- /panel-body -->
+                </div><!-- /panel panel-default -->
+                </div><!-- /col-sm-8 -->
+                </div>
+              {% endfor %}
+              <div class="row">
+                <div class="col-sm-8 col-sm-offset-1">
+                  <hr>
+                <form method="post" action="{% url 'aristotle_reviews:request_add_comment' review.id %}">
+                  {% csrf_token %}
+                  <div class="panel panel-success">
+                  <div class="panel-heading">
+                    <div class="panel-title">Approve and endorse metadata</div>
+                  </div>
+                  <div class="panel-body">
+                    <p>
+                      Approve this review request to endorse the attached metadata as
+                      <em>{{review.get_state_display}}</em> in the registration authority 
+                      <a href="{{review.registration_authority.get_absolute_url }}">{{review.registration_authority.name }}</a>
+                    </p>
+                  {% if form.errors %}
+                    <div class="alert alert-danger">
+                      <!-- {{ form.errors }} -->
+                      You must enter a comment
+                    </div>
+                  {% endif %}
+                    <textarea name="body" class="form-control" rows="4" data-min-rows="4" placeholder="Enter your message here"></textarea>
+                  </div>
+                    <div class="panel-footer clearfix">
+                          <span class="pull-right">
+                          <button class="btn btn-success" name="approve" type="submit">Approve and Close</button>
+                          </span>
+                    </div>
+                </form>
+                </div>
+              </div>
+
+              <div class="row">
+              <div class="col-sm-8 col-sm-offset-1">
+              <form method="post" action="{% url 'aristotle_reviews:request_add_comment' review.id %}">
+                {% csrf_token %}
+                {% if form.errors %}
+                  <div class="alert alert-danger">
+                    <!-- {{ form.errors }} -->
+                    You must enter a comment
+                  </div>
+                {% endif %}
+                <hr>
+                <div class="container-fluid" style="margin-top:10px;">
+                    <!--<div class="row"><div class="col-xs-4"><hr style="margin-top:16px;border-top:1px solid #ccc;"></div><div class="col-xs-4 text-center"><a class="btn btn-md btn-warning" id="newPostButton">NEW POST</a></div><div class="col-xs-4"><hr style="margin-top:16px;border-top:1px solid #ccc;"></div></div>--></div>
+                <div>
+                    <div>
+                        <textarea name="body" class="form-control" rows="4" data-min-rows="4" placeholder="Enter your message here"></textarea>
+                        <br>
+                        <span class="pull-right">
+                        <button class="btn btn-default" type="submit">Add comment</button>
+                        <button class="btn btn-warning" name="reject" type="submit">Decline and Close</button>
+                        </div>
+                    </div>
+                </div>
+              </form>
+              </div>
+              </div>
+
+            </div>
+          </div>
+          <div role="tabpanel" class="tab-pane" id="review_items">
+            <h3>Items current listed for this review</h3>
+            <table>
+              <tr>
+              <th>
+                Item Details
+              </th>
+              <th>Last Modified</th>
+              </tr>
+                {% for item in review.concepts.all %}
+                  <tr>
+                    <td>
+                  {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item %}
+                    </td>
+                    <td>
+                      {{item.modified}}
+                    </td>
+                  </tr>
+                {% endfor %}
+            </table>
+          </div>
+          <div role="tabpanel" class="tab-pane {% if active_tab == 'checks'%}active{%endif%}" id="review_checks">
+            {% if active_tab == 'checks'%}
+              <table class="table">
+              <thead>
+                <tr>
+                <th>Item</th>
+                <th>Results</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for agg in total_results %}
+              <tr>
+              <td>{{ agg.item_name }}</td>
+              <td>
+                {% if not setup_valid %}
+                  <p>
+                    No Validation rules avaliable
+                  </p>
+                {% else %}
+                  {% with results=agg.results %}
+                    <div class="list-group">
+                    {% for result in agg.results %}
+                    <a href="#" class="list-group-item">
+                      <div class="h5 list-group-item-heading">
+                        {% if result.status %}
+                          <i class="fa fa-check text-success"></i><span class="sr-only">Success</span>
+                        {% elif result.rule.severity == 'warning' %}
+                          <i class="fa fa-circle" style="color:#ffc107;"></i><span class="sr-only">Warning</span>
+                        {% else %}
+                          <i class="fa fa-times text-danger"></i><span class="sr-only">Failure</span>
+                        {% endif %}
+                        {{ result.validator.get_name }}
+                        {% if result.validator.rule.description %}
+                          <button class="btn btn-default btn-xs" type="button" data-toggle="collapse" data-target="#collapse_rule_{{forloop.parentloop.counter}}_{{ forloop.counter }}" aria-expanded="false" aria-controls="collapseExample">
+                            More info
+                          </button>
+                        {% endif %}
+                      </div>
+                      {% if result.message %}
+                        <p class="list-group-item-text">
+                          {{ result.message }}
+                        </p>
+                      {% endif %}
+                      {% if result.validator.rule.description %}
+                        <div class="collapse" id="collapse_rule_{{forloop.parentloop.counter}}_{{ forloop.counter }}">
+                          <div class="well">
+                            {{result.validator.rule.description}}
+                          </div>
+                        </div>
+                      {% endif %}
+                      {% comment %}
+                      <pre>{% spaceless %}
+                        {{result}}
+                      {% endspaceless %}</pre>
+                      {% endcomment %}
+                    </a>
+                    {% endfor %}
+                    </div>
+                  {% endwith %}
+                {% endif %}
+              </td>
+              </tr>
+              {% endfor %}
+              </tbody>
+              </table>
+            {% endif %}
+          </div>
+          <div role="tabpanel" class="tab-pane {% if active_tab == 'impact'%}active{%endif%}" id="review_impact">
+            {% if active_tab == 'impact'%}
+            <table class="table">
+              <thead>
+                <tr>
+                <th rowspan=2>Name</th>
+                <th rowspan=2>Type</th>
+                <th colspan=2>Previous</th>
+                <th colspan=2>New</th>
+                </tr>
+                <tr>
+                <th>State</th>
+                <th>Registration Date</th>
+                <th>State</th>
+                <th>Registration Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for concept in statuses %}
+                <tr>
+                  <td>{{ concept }}
+                  {#{ concept.info }#}</td>
+                  <td>{{ concept.info.type }}</td>
+                  <td>{{ concept.info.text }}</td>
+                  <td>{{ concept.info.old_reg_date }}</td>
+                  <td>{{ concept.info.new_state.text }}</td>
+                  <td>{{ review.registration_date }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {%endif%}
+          </div>
+        </div>
+
+    </div>
+
+    <div class="modal-footer">
+        {% if request.is_ajax %}
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        {% else %}
+            <a class="btn btn-default" href="{{ next }}">Return to review list</a>
+        {% endif %}
+    </div>
+
+    {% block extra_head_scripts %}
+        <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.actions.less'|compile %}" />
+    {% endblock %}
+{% endblock %}

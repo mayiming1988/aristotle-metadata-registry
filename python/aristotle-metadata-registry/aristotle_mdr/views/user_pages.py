@@ -399,25 +399,25 @@ class RegistrarTools(LoginRequiredMixin, View):
         )
 
 
-@login_required
-def review_list(request):
-    if not request.user.profile.is_registrar:
-        raise PermissionDenied
-    authorities = [i[0] for i in request.user.profile.registrarAuthorities.filter(active=0).values_list('id')]
+# @login_required
+# def review_list(request):
+#     if not request.user.profile.is_registrar:
+#         raise PermissionDenied
+#     authorities = [i[0] for i in request.user.profile.registrarAuthorities.filter(active=0).values_list('id')]
 
-    # Registars can see items they have been asked to review
-    q = Q(Q(registration_authority__id__in=authorities) & ~Q(status=MDR.REVIEW_STATES.cancelled))
+#     # Registars can see items they have been asked to review
+#     q = Q(Q(registration_authority__id__in=authorities) & ~Q(status=MDR.REVIEW_STATES.cancelled))
 
-    reviews = MDR.ReviewRequest.objects.visible(request.user).filter(q)
-    return paginated_list(request, reviews, "aristotle_mdr/user/userReviewList.html", {'reviews': reviews})
+#     reviews = MDR.ReviewRequest.objects.visible(request.user).filter(q)
+#     return paginated_list(request, reviews, "aristotle_mdr/user/userReviewList.html", {'reviews': reviews})
 
 
-@login_required
-def my_review_list(request):
-    # Users can see any items they have been asked to review
-    q = Q(requester=request.user)
-    reviews = MDR.ReviewRequest.objects.visible(request.user).filter(q).filter(registration_authority__active=0)
-    return paginated_list(request, reviews, "aristotle_mdr/user/my_review_list.html", {'reviews': reviews})
+# @login_required
+# def my_review_list(request):
+#     # Users can see any items they have been asked to review
+#     q = Q(requester=request.user)
+#     reviews = MDR.ReviewRequest.objects.visible(request.user).filter(q).filter(registration_authority__active=0)
+#     return paginated_list(request, reviews, "aristotle_mdr/user/my_review_list.html", {'reviews': reviews})
 
 
 @login_required
@@ -425,23 +425,23 @@ def django_admin_wrapper(request, page_url):
     return render(request, "aristotle_mdr/user/admin.html", {'page_url': page_url})
 
 
-class ReviewDetailsView(DetailView):
-    pk_url_kwarg = 'review_id'
-    template_name = "aristotle_mdr/user/request_review_details.html"
-    context_object_name = "review"
+# class ReviewDetailsView(DetailView):
+#     pk_url_kwarg = 'review_id'
+#     template_name = "aristotle_mdr/user/request_review_details.html"
+#     context_object_name = "review"
 
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
+#     @method_decorator(login_required)
+#     def dispatch(self, *args, **kwargs):
+#         return super().dispatch(*args, **kwargs)
 
-    def get_context_data(self, *args, **kwargs):
-        # Call the base implementation first to get a context
-        context = super().get_context_data(*args, **kwargs)
-        context['next'] = self.request.GET.get('next', reverse('aristotle:userReadyForReview'))
-        return context
+#     def get_context_data(self, *args, **kwargs):
+#         # Call the base implementation first to get a context
+#         context = super().get_context_data(*args, **kwargs)
+#         context['next'] = self.request.GET.get('next', reverse('aristotle:userReadyForReview'))
+#         return context
 
-    def get_queryset(self):
-        return MDR.ReviewRequest.objects.visible(self.request.user)
+#     def get_queryset(self):
+#         return MDR.ReviewRequest.objects.visible(self.request.user)
 
 
 class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListView):
