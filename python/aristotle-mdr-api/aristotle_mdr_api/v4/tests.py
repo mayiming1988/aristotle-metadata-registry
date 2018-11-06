@@ -90,4 +90,3 @@ class IssueEndpointsTestCase(BaseAPITestCase):
 
         comments = issue.comments.all()
         self.assertEqual(len(comments), 1)
-

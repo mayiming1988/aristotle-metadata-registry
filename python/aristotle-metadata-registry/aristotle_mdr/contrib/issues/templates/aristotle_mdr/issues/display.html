@@ -1,9 +1,18 @@
 {% extends 'aristotle_mdr/concepts/contentInfoBase.html' %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}Issue{% endblock %}
 
+{% block webpack_css_bundle %}
+  {% render_bundle 'issue' 'css' %}
+{% endblock %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'issue' 'js' %}
+{% endblock %}
+
 {% block infoContent %}
-<a  class="btn btn-default" href="{% url 'aristotle_issues:item_issues' object.item.id %}">
+<a  class="btn btn-default" href="{% url 'aristotle_issues:item_issues' object.item_id %}">
   All issues for this item
 </a>
 <h1>
@@ -14,6 +23,17 @@
 <p>{{ object.description }}</p>
 
 {% for comment in comments %}
-  {% include 'aristotle_mdr/helpers/comment.html' with comment=comment %}
+  <comment
+    pic="{{ comment.author.profile.profile_picture_url }}"
+    name="{{ comment.author.get_short_name }}"
+    created="{{ comment.created }}"
+    body="{{ comment.body }}">
+  </comment>
 {% endfor %}
+
+<issue-comment
+  userid="{{ user.id }}"
+  issueid="{{ object.id }}"
+  url="{% url 'api_v4:issue_comment' %}">
+</issue-comment>
 {% endblock %}
