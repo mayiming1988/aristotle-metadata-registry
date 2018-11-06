@@ -25,5 +25,5 @@ class IssueSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
-        rep['url'] = reverse('aristotle_issues:issue', args=[instance.id])
+        rep['url'] = reverse('aristotle_issues:issue', args=[instance.item_id, instance.id])
         return rep

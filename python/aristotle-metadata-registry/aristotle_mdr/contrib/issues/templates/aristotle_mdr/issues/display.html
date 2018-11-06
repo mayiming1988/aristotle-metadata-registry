@@ -1,9 +1,11 @@
-{% extends 'aristotle_mdr/base.html' %}
+{% extends 'aristotle_mdr/concepts/contentInfoBase.html' %}
 
 {% block title %}Issue{% endblock %}
 
-{% block content %}
-<a href="{% url 'aristotle_issues:item_issues' object.item.id %}">All issues for this item</a>
+{% block infoContent %}
+<a  class="btn btn-default" href="{% url 'aristotle_issues:item_issues' object.item.id %}">
+  All issues for this item
+</a>
 <h1>
   <i class="text-success fa fa-exclamation-circle"></i>
   {{ object.name }}

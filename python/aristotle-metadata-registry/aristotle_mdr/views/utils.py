@@ -9,7 +9,14 @@ from django.db.models import Count, Q, Model
 from django.db.models.functions import Lower
 from django.db.models.query import QuerySet
 from django.forms.models import model_to_dict
-from django.http import Http404, JsonResponse, HttpResponseNotFound, HttpResponseForbidden
+from django.http import (
+    Http404,
+    JsonResponse,
+    HttpResponse,
+    HttpResponseNotFound,
+    HttpResponseForbidden
+)
+
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -555,18 +562,25 @@ class SimpleItemGet:
 
     item_id_arg = 'iid'
 
-    def get(self, request, *args, **kwargs):
+    def get_item(self, user):
         item_id = self.kwargs.get(self.item_id_arg, None)
         if item_id is None:
-            return HttpResponseNotFound()
+            return None, 404
 
         try:
             item = _concept.objects.get(id=item_id)
         except _concept.DoesNotExist:
-            return HttpResponseNotFound()
+            return None, 404
 
-        if not user_can_view(request.user, item):
-            return HttpResponseForbidden()
+        if not user_can_view(user, item):
+            return None, 403
+
+        return item, 200
+
+    def get(self, request, *args, **kwargs):
+        item, code = self.get_item(request.user)
+        if not item:
+            return HttpResponse(status_code=code)
 
         self.item = item
         return super().get(request, *args, **kwargs)

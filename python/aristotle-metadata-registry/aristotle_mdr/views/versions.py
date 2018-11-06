@@ -475,4 +475,5 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         context = super().get_context_data(*args, **kwargs)
         context['item'] = context['object'].item
         context['activetab'] = 'history'
+        context['hide_item_actions'] = True
         return context
