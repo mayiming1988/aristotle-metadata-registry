@@ -56,6 +56,14 @@ class IssueEndpointsTestCase(BaseAPITestCase):
         )
         return response
 
+    def create_test_issue(self):
+        return models.Issue.objects.create(
+            name='Many problem',
+            description='many',
+            item=self.item,
+            submitter=self.user,
+        )
+
     def test_create_issue_own_item(self):
 
         self.login_user()
@@ -80,12 +88,7 @@ class IssueEndpointsTestCase(BaseAPITestCase):
     def test_create_issue_comment(self):
 
         self.login_user()
-        issue = models.Issue.objects.create(
-            name='Many problem',
-            description='many',
-            item=self.item,
-            submitter=self.user,
-        )
+        issue = self.create_test_issue()
 
         response = self.client.post(
             reverse('api_v4:issue_comment'),
@@ -103,12 +106,7 @@ class IssueEndpointsTestCase(BaseAPITestCase):
 
     @tag('issue_comments')
     def test_cant_comment_non_viewable_issue(self):
-        issue = models.Issue.objects.create(
-            name='Many problem',
-            description='many',
-            item=self.item,
-            submitter=self.user,
-        )
+        issue = self.create_test_issue()
 
         self.login_other_user()
         response = self.client.post(
@@ -121,6 +119,57 @@ class IssueEndpointsTestCase(BaseAPITestCase):
         )
         self.assertEqual(response.status_code, 400)
         self.assertTrue('issue' in response.data)
+
+    @tag('update_and_comment')
+    def test_close_with_comment(self):
+        issue = self.create_test_issue()
+
+        self.login_user()
+        response = self.client.post(
+            reverse('api_v4:issue_update_and_comment', args=[issue.pk]),
+            {
+                'isopen': False,
+                'comment': {
+                    'body': 'Not an issue'
+                }
+            },
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('issue' in response.data)
+        self.assertTrue('comment' in response.data)
+        self.assertFalse(response.data['issue']['isopen'])
+
+        issue = models.Issue.objects.get(pk=issue.pk)
+        self.assertFalse(issue.isopen)
+        self.assertEqual(issue.comments.count(), 1)
+
+        issuecomment = issue.comments.first()
+        self.assertEqual(issuecomment.body, 'Not an issue')
+        self.assertEqual(issuecomment.author, self.user)
+
+    @tag('update_and_comment')
+    def test_close_without_comment(self):
+        issue = self.create_test_issue()
+
+        self.login_user()
+        response = self.client.post(
+            reverse('api_v4:issue_update_and_comment', args=[issue.pk]),
+            {
+                'isopen': False,
+            },
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('issue' in response.data)
+        self.assertFalse('comment' in response.data)
+        self.assertFalse(response.data['issue']['isopen'])
+
+        issue = models.Issue.objects.get(pk=issue.pk)
+        self.assertFalse(issue.isopen)
+        self.assertEqual(issue.comments.count(), 0)
 
 
 @tag('perms')
