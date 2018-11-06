@@ -15,12 +15,16 @@
 <a  class="btn btn-default" href="{% url 'aristotle_issues:item_issues' object.item_id %}">
   All issues for this item
 </a>
-<h1>
-  <i class="text-success fa fa-exclamation-circle"></i>
-  {{ object.name }}
-</h1>
-<p class="text-muted">Opened {{ object.created|timesince }} ago by {{ object.submitter.full_name }}</p>
-<p>{{ object.description }}</p>
+<div class="row">
+  <div class="col-sm-8 col-xs-offset-1">
+    <h1>
+      <i class="text-success fa fa-exclamation-circle"></i>
+      {{ object.name }}
+    </h1>
+    <p class="text-muted">Opened {{ object.created|timesince }} ago by {{ object.submitter.full_name }}</p>
+    <p>{{ object.description }}</p>
+  </div>
+</div>
 
 {% for comment in comments %}
   <comment
@@ -31,9 +35,21 @@
   </comment>
 {% endfor %}
 
+<comment 
+  v-for="comment in new_comments" 
+  :key="comment.id"
+  :pic="comment.pic"
+  :name="comment.name"
+  :created="comment.created"
+  :body="comment.body">
+</comment>
+
 <issue-comment
+  pic="{{ user.profile.profile_picture_url }}"
   userid="{{ user.id }}"
+  username="{{ user.get_short_name }}"
   issueid="{{ object.id }}"
-  url="{% url 'api_v4:issue_comment' %}">
+  url="{% url 'api_v4:issue_comment' %}"
+  @created="addComment">
 </issue-comment>
 {% endblock %}

@@ -1,20 +1,29 @@
 <template>
     <div>
         <api-errors :errors="errors"></api-errors>
-        <textarea v-model="body"></textarea>
-        <button class="btn btn-primary" @click="makeComment">Comment</button>
+        <user-panel :pic="pic">
+            <span slot="heading">
+                New Comment
+            </span>
+            <textarea class="form-control" v-model="body"></textarea>
+            <div class="panel-footer text-right" slot="footer">
+                <button class="btn btn-primary" @click="makeComment">Comment</button>
+            </div>
+        </user-panel>
     </div>
 </template>
 
 <script>
+import userPanel from './userPanel.vue'
 import apiErrors from '../components/apiErrorDisplay.vue'
 import apiRequest from '../mixins/apiRequest.js'
 
 export default {
     mixins: [apiRequest],
-    props: ['userid', 'issueid', 'url'],
+    props: ['pic', 'userid', 'username', 'issueid', 'url'],
     components: {
-        apiErrors
+        apiErrors,
+        userPanel
     },
     data: () => ({
         'body': ''
@@ -31,10 +40,23 @@ export default {
             promise.then((response) => {
                 // If comment created
                 if (response.status == 201) {
-                    this.$emit('created', response.data)
+                    let newcomment = {
+                        'pic': this.pic,
+                        'name': this.username,
+                        'created': '2018',
+                        'body': response.data['body']
+                    }
+                    this.$emit('created', newcomment)
+                    this.body = ''
                 }
             })
         }
     }
 }
 </script>
+
+<style>
+.text-right {
+    text-align: "right"
+}
+</style>

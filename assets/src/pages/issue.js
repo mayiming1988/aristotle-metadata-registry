@@ -14,6 +14,11 @@ export var rootComponent = {
     },
     data: {
         new_comments: []
+    },
+    methods: {
+        addComment: function(comment) {
+            this.new_comments.push(comment)
+        }
     }
 }
 
