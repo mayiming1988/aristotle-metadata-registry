@@ -293,7 +293,7 @@ CACHE_ITEM_PAGE = False
 BLEACH_ALLOWED_TAGS = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'em',
                        'i', 'li', 'ol', 'strong', 'ul', 'table', 'tbody', 'thead',
                        'tr', 'th', 'td', 'img', 'p', 'h1', 'h2', 'h3', 'h4',
-                       'h5', 'h6', 'sub', 'sup']
+                       'h5', 'h6', 'sub', 'sup', 'br']
 
 BLEACH_ALLOWED_ATTRIBUTES = {
     'a': ['href', 'title'],
