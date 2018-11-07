@@ -7,7 +7,7 @@
             </span>
             <textarea class="form-control" v-model="body"></textarea>
             <div class="panel-footer text-right" slot="footer">
-                <button v-if="canOpenClose" :class="openCloseClass">{{ openCloseText }}</button>
+                <button v-if="canOpenClose" :class="openCloseClass" @click="openClose">{{ openCloseText }}</button>
                 <button class="btn btn-primary" @click="makeComment">Comment</button>
             </div>
         </user-panel>
@@ -35,6 +35,15 @@ export default {
         this.isOpen = (this.issueIsOpen == 'True')
     },
     methods: {
+        emitComment: function(data) {
+            let newcomment = {
+                'pic': this.pic,
+                'name': this.userName,
+                'created': '2018',
+                'body': data['body']
+            }
+            this.$emit('created', newcomment)
+        },
         makeComment: function() {
             let data = {
                 'body': this.body,
@@ -46,14 +55,31 @@ export default {
             promise.then((response) => {
                 // If comment created
                 if (response.status == 201) {
-                    let newcomment = {
-                        'pic': this.pic,
-                        'name': this.userName,
-                        'created': '2018',
-                        'body': response.data['body']
-                    }
-                    this.$emit('created', newcomment)
+                    this.emitComment(response.data)
                     this.body = ''
+                }
+            })
+        },
+        openClose: function() {
+            let data = {
+                'isopen': !this.isOpen
+            }
+
+            if (this.body.length > 0) {
+                data['comment'] = {
+                    'body': this.body
+                }
+            }
+
+            let promise = this.post(this.openCloseUrl, data)
+            promise.then((response) => {
+                if (response.status == 200) {
+                    if (response.data['comment'] != undefined) {
+                        this.emitComment(response.data['comment'])
+                    }
+                    this.isOpen = response.data['issue']['isopen']
+                    this.body = ''
+                    this.$emit('update_open', response.data['issue']['isopen'])
                 }
             })
         }
@@ -65,13 +91,15 @@ export default {
         openCloseText: function() {
             let text
             if (this.isOpen) {
-                text = 'Close Issue'
+                text = 'Close'
             } else {
-                text = 'Open Issue'
+                text = 'Reopen'
             }
 
             if (this.body.length > 0) {
                 text += ' and comment'
+            } else {
+                text += ' Issue'
             }
             return text
         },
