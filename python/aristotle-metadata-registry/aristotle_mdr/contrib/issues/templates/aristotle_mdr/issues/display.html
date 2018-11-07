@@ -22,7 +22,13 @@
       {{ object.name }}
     </h1>
     <p class="text-muted">Opened {{ object.created|timesince }} ago by {{ object.submitter.full_name }}</p>
-    <p>{{ object.description }}</p>
+    <p>
+      <switch-edit-api
+        name="description"
+        initial="{{ object.description }}"
+        submit-url="{% url 'api_v4:issues' object.id %}">
+      </switch-edit-api>
+    </p>
   </div>
 </div>
 

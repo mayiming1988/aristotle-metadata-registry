@@ -49,6 +49,15 @@ export default {
         get: function(url, data) {
             return this.request(url, data, 'get')
         },
+        patch: function(url, data) {
+            return this.request(url, data, 'patch')
+        },
+        put: function(url, data) {
+            return this.request(url, data, 'put')
+        },
+        delete: function(url, data) {
+            return this.request(url, data, 'delete')
+        },
         isEmpty: function(obj) {
             return (Object.keys(obj).length == 0)
         }

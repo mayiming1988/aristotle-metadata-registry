@@ -5,6 +5,7 @@ import Vue from 'vue'
 import comment from '../components/comment.vue'
 import issueComment from '../components/issueComment.vue'
 import openClose from '../components/openClose.vue'
+import switchEditApi from '../components/switchEditApi.vue'
 
 initCore()
 
@@ -13,7 +14,8 @@ export var rootComponent = {
     components: {
         comment,
         issueComment,
-        openClose
+        openClose,
+        switchEditApi
     },
     data: {
         new_comments: [],

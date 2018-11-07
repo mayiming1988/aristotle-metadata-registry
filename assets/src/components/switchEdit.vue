@@ -2,8 +2,8 @@
   <div :id="divId">
     <div class="panel panel-default">
     <div class="panel-heading">
-      {{ capitalName }}
-      <a v-if="!editing" class="inline-action pull-right" href="#" @click="toggleEdit">
+      <strong>{{ capitalName }}</strong>
+      <a v-if="!editing && editable" class="inline-action pull-right" @click="toggleEdit">
         Edit <i class="fa fa-pencil" aria-hidden="true"></i>
       </a>
     </div>
@@ -24,32 +24,34 @@
 
 <script>
 import { getCSRF } from '../lib/cookie.js'
+import { capitalize } from '../lib/utils.js'
 
 export default {
     props: ['name', 'initial', 'submitUrl'], 
     created: function() {
         this.value = this.initial
     },
-    data: function() {
-        return {
-            editing: false,
-            value: '',
-            error: ''
-        }
-    },
+    data: () => ({
+        editing: false,
+        value: '',
+        error: ''
+    }),
     computed: {
         divId: function() {
             return 'switch-' + this.name
         },
         capitalName: function() {
-            return this.name.slice(0,1).toUpperCase() + this.name.slice(1)
+            return capitalize(this.name)
         },
+        editable: function() {
+            return (this.submitUrl != undefined)
+        }
     },
     methods: {
         toggleEdit: function() {
             this.editing = !this.editing
         },
-        submitInput: function(e) {
+        submitInput: function() {
             var component = this
             var data = {
                 csrfmiddlewaretoken: getCSRF()
