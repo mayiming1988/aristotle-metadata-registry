@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from django.core.exceptions import PermissionDenied
 
 from aristotle_mdr.contrib.issues.models import Issue
 from aristotle_mdr_api.v4 import serializers
@@ -34,7 +35,10 @@ class IssueUpdateAndCommentView(APIView):
 
     def get_object(self):
         pk = self.kwargs[self.pk_url_kwarg]
-        return get_object_or_404(Issue, pk=pk)
+        obj = get_object_or_404(Issue, pk=pk)
+        if not obj.can_alter_open(self.request.user):
+            raise PermissionDenied
+        return obj
 
     def post(self, request, *args, **kwargs):
         obj = self.get_object()

@@ -27,12 +27,12 @@ class Issue(TimeStampedModel):
     )
 
     def can_edit(self, user):
-        return user.id == submitter.id
+        return user.id == self.submitter.id
 
     def can_view(self, user):
         return self.item.can_view(user)
 
-    def can_delete(self, user):
+    def can_alter_open(self, user):
         return self.can_edit(user) or self.item.can_edit(user)
 
 

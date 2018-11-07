@@ -20,6 +20,9 @@ class BaseAPITestCase(TestCase):
             email='anothertestuser@example.com',
             password='1234'
         )
+        self.wg = mdr_models.Workgroup.objects.create(
+            name='Best Working Group'
+        )
 
     def login_user(self):
         self.client.login(
@@ -31,6 +34,15 @@ class BaseAPITestCase(TestCase):
         self.client.login(
             email=self.other_user.email,
             password='1234'
+        )
+
+    def create_test_issue(self, user=None):
+        submitter = user or self.user
+        return models.Issue.objects.create(
+            name='Many problem',
+            description='many',
+            item=self.item,
+            submitter=submitter,
         )
 
 
@@ -55,14 +67,6 @@ class IssueEndpointsTestCase(BaseAPITestCase):
             format='json'
         )
         return response
-
-    def create_test_issue(self):
-        return models.Issue.objects.create(
-            name='Many problem',
-            description='many',
-            item=self.item,
-            submitter=self.user,
-        )
 
     def test_create_issue_own_item(self):
 
@@ -188,6 +192,15 @@ class PermsTestCase(BaseAPITestCase):
             submitter=self.user
         )
 
+    def post_issue_close(self, issue):
+        return self.client.post(
+            reverse('api_v4:issue_update_and_comment', args=[issue.pk]),
+            {
+                'isopen': False,
+            },
+            format='json'
+        )
+
     def test_get_issue_allowed(self):
 
         self.login_user()
@@ -204,3 +217,31 @@ class PermsTestCase(BaseAPITestCase):
         )
         self.assertEqual(response.status_code, 403)
 
+    def test_close_issue_as_item_viewer(self):
+        self.wg.viewers.add(self.other_user)
+        self.item.workgroup = self.wg
+        self.item.save()
+
+        issue = self.create_test_issue()
+
+        self.login_other_user()
+        response = self.post_issue_close(issue)
+        self.assertEqual(response.status_code, 403)
+
+    def test_close_issue_as_item_editor(self):
+        self.wg.submitters.add(self.other_user)
+        self.item.workgroup = self.wg
+        self.item.save()
+
+        issue = self.create_test_issue()
+
+        self.login_other_user()
+        response = self.post_issue_close(issue)
+        self.assertEqual(response.status_code, 200)
+
+    def test_can_always_close_own_issue(self):
+        issue = self.create_test_issue(self.other_user)
+
+        self.login_other_user()
+        response = self.post_issue_close(issue)
+        self.assertEqual(response.status_code, 200)
