@@ -65,7 +65,8 @@ class UpdateAnotherUserSiteWidePerms(LoginRequiredMixin, AnotherUserMixin, Permi
 
     def form_valid(self, form):
         user = self.get_user()
-        with transaction.atomic(): #, reversion.revisions.create_revision():
+        with transaction.atomic():
+            # Maybe wrap inside reversion.revisions.create_revision() later
             user.is_superuser = form.cleaned_data['is_superuser']
             user.save()
         return super().form_valid(form)
