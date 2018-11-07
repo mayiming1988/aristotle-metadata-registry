@@ -464,12 +464,14 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
                 version_publishing = None
             if version_publishing is None:
                 versions = versions.none()
-            if self.request.user.is_anonymous:
-                first_visible_date = version_publishing.public_user_publication_date
+                first_visible_date = None
             else:
-                first_visible_date = (
-                    version_publishing.authenticated_user_publication_date or version_publishing.public_user_publication_date
-                )
+                if self.request.user.is_anonymous:
+                    first_visible_date = version_publishing.public_user_publication_date
+                else:
+                    first_visible_date = (
+                        version_publishing.authenticated_user_publication_date or version_publishing.public_user_publication_date
+                    )
 
             if not first_visible_date:
                 versions = versions.none()
