@@ -72,4 +72,5 @@ class IssueDisplay(IssueBase, TemplateView):
             self.issue,
             'can_alter_open'
         )
+        context['own_issue'] = (self.request.user.id == self.issue.submitter.id)
         return context

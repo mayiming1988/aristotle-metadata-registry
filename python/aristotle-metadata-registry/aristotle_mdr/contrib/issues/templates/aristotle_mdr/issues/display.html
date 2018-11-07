@@ -26,7 +26,8 @@
       <switch-edit-api
         name="description"
         initial="{{ object.description }}"
-        submit-url="{% url 'api_v4:issues' object.id %}">
+        {% if own_issue %}submit-url="{% url 'api_v4:issues' object.id %}"{% endif %}
+        >
       </switch-edit-api>
     </p>
   </div>
