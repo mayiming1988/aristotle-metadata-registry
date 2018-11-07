@@ -40,7 +40,7 @@ export default {
             let newcomment = {
                 'pic': this.pic,
                 'name': this.userName,
-                'created': '2018',
+                'created': data['created'],
                 'body': data['body']
             }
             this.$emit('created', newcomment)

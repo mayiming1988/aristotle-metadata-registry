@@ -32,7 +32,8 @@ class IssueCommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = IssueComment
-        fields = ('body', 'author', 'issue')
+        fields = ('body', 'author', 'issue', 'created')
+        read_only_fields = ('created',)
 
     author = serializers.HiddenField(
         default=serializers.CurrentUserDefault()

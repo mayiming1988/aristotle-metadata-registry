@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
 
-from aristotle_mdr.contrib.issues.models import Issue
+from aristotle_mdr.contrib.issues.models import Issue, IssueComment
 from aristotle_mdr_api.v4 import serializers
 from aristotle_mdr_api.v4.permissions import AuthCanViewEdit, AuthFinePerms
 from aristotle_mdr import perms
@@ -28,6 +28,12 @@ class IssueCommentCreateView(generics.CreateAPIView):
     """Create a comment against an issue"""
     permission_classes=(AuthCanViewEdit,)
     serializer_class=serializers.IssueCommentSerializer
+
+
+class IssueCommentRetrieveView(generics.RetrieveAPIView):
+    permission_classes=(AuthCanViewEdit,)
+    serializer_class=serializers.IssueCommentSerializer
+    queryset=IssueComment.objects.all()
 
 
 class IssueUpdateAndCommentView(APIView):

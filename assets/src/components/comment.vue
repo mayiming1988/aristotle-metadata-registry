@@ -3,7 +3,7 @@
     <template slot="heading">
       <strong>{{ name }}</strong>
       <span class="text-muted" :title="created">
-        {{ created }}
+        {{ displayCreated }}
       </span>
     </template>
 
@@ -15,6 +15,8 @@
 
 <script>
 import userPanel from './userPanel.vue'
+import moment from 'moment'
+
 export default {
     props: ['pic', 'name', 'created', 'body'],
     components: {
@@ -23,6 +25,9 @@ export default {
     computed: {
         bodyLines: function() {
             return this.body.split('\n')
+        },
+        displayCreated: function() {
+            return moment(this.created).format('Do MMM YYYY, hh:mm A')
         }
     }
 }

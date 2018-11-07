@@ -30,7 +30,7 @@
   <comment
     pic="{{ comment.author.profile.profile_picture_url }}"
     name="{{ comment.author.get_short_name }}"
-    created="{{ comment.created }}"
+    created="{{ comment.created|date:"c" }}"
     body="{{ comment.body }}">
   </comment>
 {% endfor %}
