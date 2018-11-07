@@ -467,14 +467,14 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
                 first_visible_date = (
                     version_publishing.authenticated_user_publication_date or version_publishing.public_user_publication_date
                 )
-            
+
             if not first_visible_date:
                 versions = versions.none()
             else:
                 versions = versions.filter(
-                    revision__date_created__gt = first_visible_date
+                    revision__date_created__gt=first_visible_date
                 )
-        
+
         versions = versions.order_by("-revision__date_created")
 
         for version in versions:
@@ -509,5 +509,5 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
             "public_date": public_date,
             "authenticated_date": authenticated_date,
         })
-        
+
         return context

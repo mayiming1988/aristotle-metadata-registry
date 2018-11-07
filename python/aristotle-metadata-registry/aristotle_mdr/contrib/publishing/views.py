@@ -13,7 +13,7 @@ class PublishMetadataFormView(GenericWithItemURLFormView):
     permission_checks = [is_submitter_or_super]
     template_name = "aristotle_mdr/publish/publish_metadata.html"
     form_class = MetadataPublishForm
-    
+
     def get_form_kwargs(self):
         """Return the keyword arguments for instantiating the form."""
         kwargs = super().get_form_kwargs()
