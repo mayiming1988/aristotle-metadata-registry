@@ -48,7 +48,7 @@
                         {% firstof action.revision.user.get_full_name  action.revision.user.email %}
                     {% endif %}
                 </td>
-                <td>{{action.revision.comment|default:""}}</td>
+                <td>{{action.revision.comment|default:"-"}}</td>
                 <td>
                     {# first_public_version #}
                     {% if action.revision.date_created > public_date %}
