@@ -458,7 +458,10 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         )
         # if not self.request.user.is_superuser
         if not self.request.user.is_superuser or not self.request.user not in metadata_item.workgroup.members:
-            version_publishing = metadata_item.versionpublicationrecord
+            try:
+                version_publishing = metadata_item.versionpublicationrecord
+            except:
+                version_publishing = None
             if version_publishing is None:
                 versions = versions.none()
             if self.request.user.is_anonymous:
