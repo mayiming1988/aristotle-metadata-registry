@@ -5,7 +5,7 @@
             <span slot="heading">
                 New Comment
             </span>
-            <textarea class="form-control" v-model="body"></textarea>
+            <textarea class="form-control ta-fixed-width" v-model="body"></textarea>
             <div class="panel-footer text-right" slot="footer">
                 <button v-if="canOpenClose" :class="openCloseClass" @click="openClose">{{ openCloseText }}</button>
                 <button class="btn btn-primary" @click="makeComment">Comment</button>

@@ -20,7 +20,7 @@ class IssueList(IssueBase, TemplateView):
     template_name='aristotle_mdr/issues/list.html'
 
     def get_issues(self):
-        return self.item.issues.all()
+        return self.item.issues.all().order_by('created')
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -58,7 +58,9 @@ class IssueDisplay(IssueBase, TemplateView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['object'] = self.issue
-        context['comments'] = self.issue.comments.select_related('author__profile').all()
+        context['comments'] = self.issue.comments.select_related(
+            'author__profile'
+        ).all().order_by('created')
         context['can_open_close'] = perms.user_can(
             self.request.user,
             self.issue,

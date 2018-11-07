@@ -8,7 +8,7 @@
     </template>
 
     <template>
-      {{ body }}
+      <p v-for="line in bodyLines" class="small-p">{{ line }}</p>
     </template>
   </user-panel>
 </template>
@@ -19,6 +19,17 @@ export default {
     props: ['pic', 'name', 'created', 'body'],
     components: {
       userPanel
+    },
+    computed: {
+        bodyLines: function() {
+            return this.body.split('\n')
+        }
     }
 }
 </script>
+
+<style>
+.small-p {
+    margin: 0
+}
+</style>
