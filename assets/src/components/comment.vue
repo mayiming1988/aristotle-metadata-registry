@@ -2,7 +2,7 @@
   <user-panel :pic="pic">
     <template slot="heading">
       <strong>{{ name }}</strong>
-      <span class="text-muted" :title="created">
+      <span class="text-muted" :title="displayCreated">
         {{ displayCreated }}
       </span>
     </template>

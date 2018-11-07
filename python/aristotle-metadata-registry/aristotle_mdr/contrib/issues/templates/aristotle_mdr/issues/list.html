@@ -4,21 +4,17 @@
 
 {% block infoContent %}
   <h1>Issues</h1>
-  {% if issues %}
-    <div class="list-group">
-    {% for issue in issues %}
-    <a href="{% url 'aristotle_issues:issue' issue.item_id issue.id %}" class="list-group-item">
-      <div class="h4 list-group-item-heading">
-        <i class="text-success fa fa-exclamation-circle"></i>
-        {{ issue.name }}
-      </div>
-      <div class="list-group-item-text">
-        Opened {{ issue.created|timesince }} ago by {{ issue.submitter.full_name }}
-      </div>
-    </a>
-    {% endfor %}
+  <ul class="nav nav-tabs" role="tablist">
+      <li role="presentation" class="active"><a href="#open" aria-controls="open" role="tab" data-toggle="tab">Open</a></li>
+      <li role="presentation"><a href="#closed" aria-controls="closed" role="tab" data-toggle="tab">Closed</a></li>
+  </ul>
+
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="open">
+      {% include 'aristotle_mdr/issues/sublist.html' with issues=open_issues context_class="success" %}
     </div>
-  {% else %}
-    <p>No issues to display</p>
-  {% endif %}
+    <div role="tabpanel" class="tab-pane" id="closed">
+      {% include 'aristotle_mdr/issues/sublist.html' with issues=closed_issues context_class="danger" %}
+    </div>
+  </div>
 {% endblock %}
