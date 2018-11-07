@@ -8,26 +8,30 @@ from django.core.exceptions import PermissionDenied
 from aristotle_mdr.contrib.issues.models import Issue
 from aristotle_mdr_api.v4 import serializers
 from aristotle_mdr_api.v4.permissions import AuthCanViewEdit, AuthFinePerms
+from aristotle_mdr import perms
 
 
 class IssueView(generics.RetrieveUpdateAPIView):
+    """Retrive and update and issue"""
     permission_classes=(AuthCanViewEdit,)
     serializer_class=serializers.IssueSerializer
     queryset=Issue.objects.all()
 
 
 class IssueCreateView(generics.CreateAPIView):
+    """Create a new issue"""
     permission_classes=(AuthCanViewEdit,)
     serializer_class=serializers.IssueSerializer
 
 
 class IssueCommentCreateView(generics.CreateAPIView):
+    """Create a comment against an issue"""
     permission_classes=(AuthCanViewEdit,)
     serializer_class=serializers.IssueCommentSerializer
 
 
 class IssueUpdateAndCommentView(APIView):
-
+    """Open or close an issue, with optional comment"""
     permission_classes=(AuthCanViewEdit,)
     issue_serializer=serializers.IssueSerializer
     comment_serializer=serializers.IssueCommentSerializer
@@ -36,7 +40,7 @@ class IssueUpdateAndCommentView(APIView):
     def get_object(self):
         pk = self.kwargs[self.pk_url_kwarg]
         obj = get_object_or_404(Issue, pk=pk)
-        if not obj.can_alter_open(self.request.user):
+        if not perms.user_can(self.request.user, obj, 'can_alter_open'):
             raise PermissionDenied
         return obj
 

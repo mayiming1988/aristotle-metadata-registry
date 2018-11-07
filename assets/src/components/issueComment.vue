@@ -7,6 +7,7 @@
             </span>
             <textarea class="form-control" v-model="body"></textarea>
             <div class="panel-footer text-right" slot="footer">
+                <button v-if="canOpenClose" :class="openCloseClass">{{ openCloseText }}</button>
                 <button class="btn btn-primary" @click="makeComment">Comment</button>
             </div>
         </user-panel>
@@ -20,29 +21,34 @@ import apiRequest from '../mixins/apiRequest.js'
 
 export default {
     mixins: [apiRequest],
-    props: ['pic', 'userid', 'username', 'issueid', 'url'],
+    props: ['pic', 'userId', 'userName', 'issueId', 'issueIsOpen',
+        'commentUrl', 'openCloseUrl', 'openClosePermission'],
     components: {
         apiErrors,
         userPanel
     },
     data: () => ({
-        'body': ''
+        body: '',
+        isOpen: false
     }),
+    created: function() {
+        this.isOpen = (this.issueIsOpen == 'True')
+    },
     methods: {
         makeComment: function() {
             let data = {
                 'body': this.body,
-                'author': this.userid,
-                'issue': this.issueid
+                'author': this.userId,
+                'issue': this.issueId
             }
 
-            let promise = this.post(this.url, data)
+            let promise = this.post(this.commentUrl, data)
             promise.then((response) => {
                 // If comment created
                 if (response.status == 201) {
                     let newcomment = {
                         'pic': this.pic,
-                        'name': this.username,
+                        'name': this.userName,
                         'created': '2018',
                         'body': response.data['body']
                     }
@@ -50,6 +56,32 @@ export default {
                     this.body = ''
                 }
             })
+        }
+    },
+    computed: {
+        canOpenClose: function() {
+            return (this.openClosePermission == 'True')
+        },
+        openCloseText: function() {
+            let text
+            if (this.isOpen) {
+                text = 'Close Issue'
+            } else {
+                text = 'Open Issue'
+            }
+
+            if (this.body.length > 0) {
+                text += ' and comment'
+            }
+            return text
+        },
+        openCloseClass: function() {
+            let base = 'btn btn-'
+            if (this.isOpen) {
+                return base + 'danger'
+            } else {
+                return base + 'success'
+            }
         }
     }
 }

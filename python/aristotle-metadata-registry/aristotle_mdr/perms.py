@@ -40,6 +40,21 @@ def can_delete_metadata(user, item):
     return False
 
 
+def user_can(user, item, method_name):
+    """When custom methods are required"""
+    if user.is_superuser:
+        return True
+
+    if user.is_anonymous:
+        return False
+
+    method = getattr(item, method_name)
+    if callable(method):
+        return method(user)
+
+    return False
+
+
 def user_can_view(user, item):
     """Can the user view the item?"""
     if user.is_superuser:

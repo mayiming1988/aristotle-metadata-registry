@@ -46,10 +46,13 @@
 
 <issue-comment
   pic="{{ user.profile.profile_picture_url }}"
-  userid="{{ user.id }}"
-  username="{{ user.get_short_name }}"
-  issueid="{{ object.id }}"
-  url="{% url 'api_v4:issue_comment' %}"
+  user-id="{{ user.id }}"
+  user-name="{{ user.get_short_name }}"
+  issue-id="{{ object.id }}"
+  issue-is-open="{{ object.isopen }}"
+  comment-url="{% url 'api_v4:issue_comment' %}"
+  open-close-url="{% url 'api_v4:issue_update_and_comment' object.id %}"
+  open-close-permission="{{ can_open_close }}"
   @created="addComment">
 </issue-comment>
 {% endblock %}

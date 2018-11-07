@@ -1,7 +1,9 @@
 from django.http import HttpResponseNotFound
+from django.views.generic import TemplateView, DetailView
+
 from aristotle_mdr.views.utils import SimpleItemGet, TagsMixin
 from aristotle_mdr.contrib.issues.models import Issue
-from django.views.generic import TemplateView, DetailView
+from aristotle_mdr import perms
 
 
 class IssueBase(SimpleItemGet):
@@ -57,4 +59,9 @@ class IssueDisplay(IssueBase, TemplateView):
         context = super().get_context_data(*args, **kwargs)
         context['object'] = self.issue
         context['comments'] = self.issue.comments.select_related('author__profile').all()
+        context['can_open_close'] = perms.user_can(
+            self.request.user,
+            self.issue,
+            'can_alter_open'
+        )
         return context

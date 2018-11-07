@@ -33,7 +33,7 @@ urlpatterns = [
     url(r'^auth/', include('rest_framework.urls', namespace='rest_framework')),
     # url(r'^api-token-auth/', tokenviews.obtain_auth_token),
     url(r'^token/', include('aristotle_mdr_api.token_auth.urls', namespace='token_auth')),
-    url(r'^(?P<version>(v3)?)/schemas/', version_schema),
+    url(r'^(?P<version>(v3|v4)?)/schemas/', version_schema),
     url(r'^schemas/', get_swagger_view(title='Aristotle API')),
     url(r'^$', APIRootView.as_view(), name="aristotle_api_root"),
 
