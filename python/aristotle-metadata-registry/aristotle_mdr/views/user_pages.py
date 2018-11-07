@@ -78,7 +78,7 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         user = self.get_user()
         sessions = self.get_sessions(user)
         context.update({
-            'user': user,
+            # 'user': user,
             'sessions': sessions,
             'session_key': self.request.session.session_key
         })
@@ -313,7 +313,7 @@ def get_cached_object_count(model_type):
 
 
 class EditView(LoginRequiredMixin, UpdateView):
-
+    context_object_name = "object"
     template_name = "aristotle_mdr/user/userEdit.html"
     form_class = MDRForms.EditUserForm
 

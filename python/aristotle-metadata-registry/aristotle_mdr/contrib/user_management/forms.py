@@ -80,4 +80,4 @@ class UserRegistrationForm(forms.ModelForm):
 
 
 class UpdateAnotherUserSiteWidePermsForm(forms.Form):
-    is_superuser = forms.BooleanField()
+    is_superuser = forms.BooleanField(required=False)
