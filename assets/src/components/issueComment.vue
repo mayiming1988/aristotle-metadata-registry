@@ -33,6 +33,7 @@ export default {
     }),
     created: function() {
         this.isOpen = (this.issueIsOpen == 'True')
+        this.$emit('set_open', this.isOpen)
     },
     methods: {
         emitComment: function(data) {
@@ -73,13 +74,14 @@ export default {
 
             let promise = this.post(this.openCloseUrl, data)
             promise.then((response) => {
+                // If success
                 if (response.status == 200) {
                     if (response.data['comment'] != undefined) {
                         this.emitComment(response.data['comment'])
                     }
                     this.isOpen = response.data['issue']['isopen']
                     this.body = ''
-                    this.$emit('update_open', response.data['issue']['isopen'])
+                    this.$emit('set_open', this.isOpen)
                 }
             })
         }

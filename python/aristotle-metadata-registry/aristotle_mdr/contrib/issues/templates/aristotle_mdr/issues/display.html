@@ -18,7 +18,7 @@
       All issues for this item
     </a>
     <h1>
-      <i class="text-success fa fa-exclamation-circle"></i>
+      <open-close :is-open="isOpen"></open-close>
       {{ object.name }}
     </h1>
     <p class="text-muted">Opened {{ object.created|timesince }} ago by {{ object.submitter.full_name }}</p>
@@ -53,6 +53,7 @@
   comment-url="{% url 'api_v4:issue_comment' %}"
   open-close-url="{% url 'api_v4:issue_update_and_comment' object.id %}"
   open-close-permission="{{ can_open_close }}"
+  @set_open="setIsOpen"
   @created="addComment">
 </issue-comment>
 {% endblock %}
