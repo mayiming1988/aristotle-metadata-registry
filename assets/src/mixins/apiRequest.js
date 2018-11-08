@@ -46,8 +46,8 @@ export default {
         post: function(url, data) {
             return this.request(url, data, 'post')
         },
-        get: function(url, data) {
-            return this.request(url, data, 'get')
+        get: function(url) {
+            return this.request(url, {}, 'get')
         },
         patch: function(url, data) {
             return this.request(url, data, 'patch')
