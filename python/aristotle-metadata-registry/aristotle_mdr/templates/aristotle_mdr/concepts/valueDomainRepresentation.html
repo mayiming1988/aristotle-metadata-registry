@@ -43,7 +43,7 @@ So we've split this out into its own template.
 </tr>
 {% endif %}
 </table>
-{% if item.permissiblevalue_set.count > 0 or item.supplementaryvalue_set.count > 0 or item|can_edit:request.user %}
+{% if item.permissiblevalue_set.count > 0 or item.supplementaryvalue_set.count > 0 %}
   <strong>Permissible Values</strong>
     <table class="codeList table table-striped">
         <thead>

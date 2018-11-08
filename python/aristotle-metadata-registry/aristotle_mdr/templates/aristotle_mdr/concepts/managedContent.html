@@ -60,6 +60,11 @@
             {{ item.comments|bleach }}
         {% endif %}
 
+        {% if item.origin %}
+            <h2>Origin</h2>
+            {{ item.origin|bleach }}
+        {% endif %}
+
         {% if item.references %}
         <div>
         <h2>References</h2>
