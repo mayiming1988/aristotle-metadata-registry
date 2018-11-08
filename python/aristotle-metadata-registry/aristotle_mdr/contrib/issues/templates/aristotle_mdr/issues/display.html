@@ -19,7 +19,15 @@
     </a>
     <h1>
       <open-close :is-open="isOpen"></open-close>
-      {{ object.name }}
+      {% if own_issue %}
+        <inline-edit
+          initial="{{ object.name }}"
+          submit-url="{% url 'api_v4:issues' object.id %}"
+          field-name="name">
+        </inline-edit>
+      {% else %}
+        {{ object.name }}
+      {% endif %}
     </h1>
     <p class="text-muted">Opened {{ object.created|timesince }} ago by {{ object.submitter.full_name }}</p>
     <p>

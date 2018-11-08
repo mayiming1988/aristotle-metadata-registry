@@ -8,11 +8,11 @@
       </a>
     </div>
     <div v-if="!editing" class="panel-body">
-      {{ value }}
+      <para :text="value"></para>
     </div>
     <div v-else class="panel-body">
       <div class="form-group">
-        <div v-if="error" class="alert alert-danger" role="alert">{{ error }}</div>
+        <api-errors :errors="errors"></api-errors>
         <textarea class="form-control" :name="name" v-model="value"></textarea>
       </div>
       <button class="btn btn-primary" type="submit" @click="submitInput">Save Changes</button>
@@ -25,16 +25,22 @@
 <script>
 import { getCSRF } from '../lib/cookie.js'
 import { capitalize } from '../lib/utils.js'
+import apiErrors from '../components/apiErrorDisplay.vue'
+import para from '../components/para.vue'
 
 export default {
     props: ['name', 'initial', 'submitUrl'], 
+    components: {
+        apiErrors,
+        para
+    },
     created: function() {
         this.value = this.initial
     },
     data: () => ({
         editing: false,
         value: '',
-        error: ''
+        errors: {}
     }),
     computed: {
         divId: function() {
@@ -64,11 +70,7 @@ export default {
                     if (data.success) {
                         component.editing = false
                     } else {
-                        if (data.errors[component.name] != undefined) {
-                            component.error = data.errors[component.name]
-                        } else {
-                            component.error = 'Field could not be updated'
-                        }
+                        component.errors = data.errors
                     }
                 }
             )

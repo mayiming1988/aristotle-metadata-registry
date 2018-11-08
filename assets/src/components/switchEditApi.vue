@@ -11,9 +11,7 @@ export default {
             data[this.name] = this.value
             this.patch(this.submitUrl, data)
             .then((response) => {
-                if (response.status == 200) {
-                    this.editing = false
-                }
+                this.editing = false
             })
         }
     }

@@ -8,6 +8,7 @@
     </template>
 
     <template>
+      <para :text="body"></para>
       <p v-for="line in bodyLines" class="small-p">{{ line }}</p>
     </template>
   </user-panel>
@@ -15,17 +16,16 @@
 
 <script>
 import userPanel from './userPanel.vue'
+import para from './para.vue'
 import moment from 'moment'
 
 export default {
     props: ['pic', 'name', 'created', 'body'],
     components: {
-      userPanel
+      userPanel,
+      para
     },
     computed: {
-        bodyLines: function() {
-            return this.body.split('\n')
-        },
         displayCreated: function() {
             return moment(this.created).format('Do MMM YYYY, hh:mm A')
         }
@@ -33,8 +33,3 @@ export default {
 }
 </script>
 
-<style>
-.small-p {
-    margin: 0
-}
-</style>
