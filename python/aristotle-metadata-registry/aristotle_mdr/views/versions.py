@@ -438,7 +438,8 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         'user_view_history',
         'submitter',
         'is_public',
-        'is_locked'
+        'is_locked',
+        'issues'
     ]
 
     item_action_url = 'aristotle:item_version'

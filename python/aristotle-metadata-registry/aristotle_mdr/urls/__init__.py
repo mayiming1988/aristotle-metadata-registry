@@ -15,6 +15,7 @@ urlpatterns = [
     url(r'^ac/', include('aristotle_mdr.contrib.autocomplete.urls', namespace="aristotle-autocomplete")),
     url(r'^', include('aristotle_mdr.contrib.healthcheck.urls', app_name="aristotle_mdr_hb", namespace="aristotle_hb")),
     url(r'^', include('aristotle_mdr.contrib.view_history.urls')),
+    url(r'^api/', include('aristotle_mdr_api.urls'))
 ]
 
 # This is only for dev work, so we can skip it.
