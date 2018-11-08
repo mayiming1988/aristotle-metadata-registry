@@ -457,7 +457,7 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
             reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
         )
         # if not self.request.user.is_superuser
-        if not self.request.user.is_superuser or not self.request.user not in metadata_item.workgroup.members:
+        if not (self.request.user.is_superuser or self.request.user in metadata_item.workgroup.members):
             try:
                 version_publishing = metadata_item.versionpublicationrecord
             except:
