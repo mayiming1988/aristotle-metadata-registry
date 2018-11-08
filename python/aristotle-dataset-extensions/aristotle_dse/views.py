@@ -345,7 +345,7 @@ class DatasetSpecificationView(ConceptRenderMixin, TemplateView):
 
         dssdeinclusions = (
             models.DSSDEInclusion.objects
-            .select_related('data_element')
+            .select_related('data_element', "data_element__valueDomain",  "data_element__valueDomain__data_type")
             .prefetch_related(
                 Prefetch('data_element__statuses', valid_statuses, 'valid_statuses')
             )
