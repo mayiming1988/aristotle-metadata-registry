@@ -202,6 +202,8 @@ class PermsTestCase(BaseAPITestCase):
         )
 
     def test_get_issue_allowed(self):
+        self.item.submitter = self.user
+        self.item.save()
 
         self.login_user()
         response = self.client.get(
