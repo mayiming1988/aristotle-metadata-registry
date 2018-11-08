@@ -35,7 +35,7 @@ class IssueTests(AristotleTestUtils, TestCase):
             reverse_args=[self.item.id],
             status_code=200
         )
-        self.assertEqual(response.context['activetab'], issues)
+        self.assertEqual(response.context['activetab'], 'issues')
 
         issues = response.context['issues']
         self.assertEqual(len(issues), 1)
