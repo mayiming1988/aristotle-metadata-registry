@@ -490,9 +490,9 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
             })
         return action_list
 
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
+    # # @method_decorator(login_required)
+    # def dispatch(self, *args, **kwargs):
+    #     return super().dispatch(*args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
