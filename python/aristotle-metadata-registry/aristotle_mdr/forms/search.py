@@ -174,14 +174,14 @@ class PermissionSearchQuerySet(SearchQuerySet):
             if user.profile.workgroups.count() > 0:
                 # for w in user.profile.workgroups.all():
                 #    q |= SQ(workgroup=str(w.id))
-                q |= SQ(workgroup__in=[int(w.id) for w in user.profile.workgroups.all()])
+                q |= SQ(workgroup__in=[int(w.id) for w in user.profile.myWorkgroups.all()])
             if user.profile.is_registrar:
                 # if registrar, also filter through items in the registered in their authorities
                 q |= SQ(registrationAuthorities__in=[str(r.id) for r in user.profile.registrarAuthorities])
         if public_only:
             q &= SQ(is_public=True)
         if user_workgroups_only:
-            q &= SQ(workgroup__in=[str(w.id) for w in user.profile.workgroups.all()])
+            q &= SQ(workgroup__in=[str(w.id) for w in user.profile.myWorkgroups.all()])
 
         if q:
             sqs = sqs.filter(q)

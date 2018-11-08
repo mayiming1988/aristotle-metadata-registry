@@ -67,9 +67,9 @@ Showing {{ paginator.count }} results.
             Manage <span class="caret"></span>
           </button>
           <ul class="dropdown-menu pull-right">
-            {% comment %}
-            <li><a href="#">View profile</a></li>
-            {% endcomment %}
+            <li><a href="{% url 'aristotle-user:view_another_user' user.pk %}">View profile</a></li>
+            <li><a href="{% url 'aristotle-user:update_another_user' user.pk %}">Edit profile</a></li>
+            <li><a href="{% url 'aristotle-user:update_another_user_site_perms' user.pk %}">Change site-wide permissions</a></li>
             <!-- li><a href="#">Change role</a></li -->
             <li role="separator" class="divider"></li>
             {% if user.is_active %}

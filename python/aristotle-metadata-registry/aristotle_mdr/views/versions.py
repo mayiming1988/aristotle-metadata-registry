@@ -454,11 +454,35 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
     # Overwrite this to add item url
     def _get_action_list(self):
         action_list = []
+        metadata_item = self.get_object()
         versions = self._order_version_queryset(
-            reversion.models.Version.objects.get_for_object(
-                self.get_object()
-            ).select_related("revision__user")
+            reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
         )
+        # if not self.request.user.is_superuser
+        if not (self.request.user.is_superuser or self.request.user in metadata_item.workgroup.members):
+            try:
+                version_publishing = metadata_item.versionpublicationrecord
+            except:
+                version_publishing = None
+            if version_publishing is None:
+                versions = versions.none()
+                first_visible_date = None
+            else:
+                if self.request.user.is_anonymous:
+                    first_visible_date = version_publishing.public_user_publication_date
+                else:
+                    first_visible_date = (
+                        version_publishing.authenticated_user_publication_date or version_publishing.public_user_publication_date
+                    )
+
+            if not first_visible_date:
+                versions = versions.none()
+            else:
+                versions = versions.filter(
+                    revision__date_created__gt=first_visible_date
+                )
+
+        versions = versions.order_by("-revision__date_created")
 
         for version in versions:
             action_list.append({
@@ -477,4 +501,23 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         context['item'] = context['object'].item
         context['activetab'] = 'history'
         context['hide_item_actions'] = True
+
+        try:
+            version_publishing = self.get_object().versionpublicationrecord
+        except:
+            return context
+        if version_publishing is None:
+            public_date = None
+            authenticated_date = None
+        else:
+            public_date = version_publishing.public_user_publication_date
+            authenticated_date = (
+                version_publishing.authenticated_user_publication_date or version_publishing.public_user_publication_date
+            )
+
+        context.update({
+            "public_date": public_date,
+            "authenticated_date": authenticated_date,
+        })
+
         return context

@@ -14,7 +14,6 @@ from rest_framework.reverse import reverse
 from reversion import revisions as reversion
 
 from aristotle_mdr import models, perms
-from aristotle_mdr.forms.search import PermissionSearchQuerySet
 from ..serializers.base import Serializer, Deserializer, exclude_fields
 from ..filters import concept_backend
 from aristotle_mdr_api.v3.permissions import AuthAndTokenOrRO

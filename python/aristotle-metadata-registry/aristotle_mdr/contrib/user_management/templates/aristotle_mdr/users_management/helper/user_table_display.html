@@ -1,12 +1,13 @@
 {% if user.get_full_name %}
-    <a href="">{{ user.get_full_name }}</a>
+    <a href="{% url 'aristotle-user:view_another_user' user.pk %}">
+    {{ user.get_full_name }}</a>
     {% if user == request.user %}
     (You)
     {% endif %}
 
     <div>{{ user.email }}</div>
 {% else %}
-    <a href="">
+    <a href="{% url 'aristotle-user:view_another_user' user.pk %}">
     {{ user.email }}
     </a>
     {% if user == request.user %}

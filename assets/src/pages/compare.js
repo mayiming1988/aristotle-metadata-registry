@@ -1,5 +1,5 @@
-import { initItemPage } from '../lib/itemPage.js'
+import init from '../lib/init.js'
 
 import '../styles/aristotle.compare.less'
 
-initItemPage()
+init()

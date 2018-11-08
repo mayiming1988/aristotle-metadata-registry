@@ -58,16 +58,19 @@
             {% with notecount=user.notifications.count %}
               <li class="dropdown">
                   <a id="header_menu_button_user" href="{% url 'aristotle:userHome' %}" accesskey="u" class="dropdown-toggle" role="menu" data-toggle="dropdown" title="{% trans 'Open user menu' %}">
-                      {% if user.is_superuser %}
-                          <i class="fa fa-user-md fa-lg"></i>
-                      {% else %}
-                          <i class="fa fa-user fa-lg"></i>
-                      {% endif %}
+                      <img style="" src="{{ request.user.profile.profile_picture_url }}" width="20px" alt="Profile Picture"></img>
                       {% firstof user.get_short_name user.email %}
+                      {% if user.is_superuser %}
+                          <em>(Admin)</em>
+                      {% endif %}
                   </a>
                   <ul class="dropdown-menu" role="menu">
                       <li><a href="{% url 'aristotle:userHome' %}">
                           <i class="fa fa-home fa-fw"></i> {% trans 'My Dashboard'%}
+                      </a></li>
+                      <li><a href="{% url 'aristotle:userProfile' %}">
+                          <img style="" src="{{ request.user.profile.profile_picture_url }}" width="18px" alt="Profile Picture"></img>
+                          {% trans 'My Profile'%}
                       </a></li>
                       <li><a href="{% url 'aristotle_favourites:favs_and_tags' %}">
                           <i class="fa fa-bookmark fa-fw"></i> {% trans 'Favourites and Tags'%}

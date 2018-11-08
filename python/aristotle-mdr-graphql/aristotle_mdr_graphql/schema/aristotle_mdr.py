@@ -1,3 +1,4 @@
+import graphene
 from graphene import relay
 from graphene_django.types import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
@@ -17,6 +18,7 @@ from aristotle_mdr_graphql.filterset import ConceptFilterSet
 
 
 class StatusNode(DjangoObjectType):
+    state_name = graphene.String()
     class Meta:
         model = mdr_models.Status
         default_resolver = resolvers.aristotle_resolver
@@ -53,9 +55,7 @@ SupplementaryValueNode = inline_type_from_model(mdr_models.SupplementaryValue)
 
 # Slots and Identifiers
 
-class ScopedIdentifierNode(DjangoObjectType):
-    class Meta:
-        model = ident_models.ScopedIdentifier
+from ..types import ScopedIdentifierNode
 
 SlotNode = type_from_model(slot_models.Slot)
 
