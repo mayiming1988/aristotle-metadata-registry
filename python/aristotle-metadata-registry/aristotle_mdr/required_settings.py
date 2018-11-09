@@ -94,6 +94,7 @@ INSTALLED_APPS = (
     'aristotle_mdr.contrib.autocomplete',
     'aristotle_mdr.contrib.user_management',
     'aristotle_mdr.contrib.favourites',
+    'aristotle_mdr.contrib.issues',
     'aristotle_mdr.contrib.publishing',
 
     'dal',
@@ -124,6 +125,14 @@ INSTALLED_APPS = (
     'constrainedfilefield',
 
     'webpack_loader',
+
+    'aristotle_mdr_api',
+    'aristotle_mdr_api.token_auth',
+    'rest_framework',
+    'rest_framework_swagger',
+    'django_filters',
+
+    'django_jsonforms'
 
     # 'aristotle_bg_workers',
     # 'django_celery_results',
@@ -306,4 +315,18 @@ BLEACH_ALLOWED_ATTRIBUTES = {
 ARISTOTLE_VALIDATORS = {
     'RegexValidator': 'aristotle_mdr.validators.RegexValidator',
     'StatusValidator': 'aristotle_mdr.validators.StatusValidator'
+}
+
+# Serialization
+SERIALIZATION_MODULES = {'mdrjson': 'aristotle_mdr_api.serializers.idjson'}
+
+# API
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'aristotle_mdr_api.token_auth.authentication.AristotleTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    )
 }

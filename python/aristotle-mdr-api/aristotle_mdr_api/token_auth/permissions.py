@@ -1,13 +1,13 @@
-from rest_framework.permissions import SAFE_METHODS
-from restfw_composed_permissions.base import BaseComposedPermision, BasePermissionComponent, And, Or
-from restfw_composed_permissions.generic.components import AllowOnlyAuthenticated
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 
-class TokenPermissions(BasePermissionComponent):
+class BaseTokenPermissions(BasePermission):
 
     permission_key = 'default'
+    non_token_read = False
+    non_token_write = False
 
-    def has_permission(self, permission, request, view):
+    def has_permission(self, request, view):
 
         token = request.auth
 
@@ -35,8 +35,8 @@ class TokenPermissions(BasePermissionComponent):
 
         else:
             # Default for non token auths
-            hasread = True
-            haswrite = False
+            hasread = self.non_token_read
+            haswrite = self.non_token_write
 
         if request.method in SAFE_METHODS and hasread:
             return True
@@ -47,6 +47,20 @@ class TokenPermissions(BasePermissionComponent):
         return False
 
 
-class AristotlePermissions(BaseComposedPermision):
+# Copy of djangorestframeworks permission to deal with CallableBool
+# Can be removed if using django 2
+class IsAuthenticated(BasePermission):
 
-    global_permission_set = (lambda s: And(AllowOnlyAuthenticated, TokenPermissions))
+    def has_permission(self, request, view):
+        result = (request.user and request.user.is_authenticated)
+        return bool(result)
+
+
+class TokenOrReadOnlyPerm(BaseTokenPermissions):
+    non_token_read = True
+    non_token_write = False
+
+
+class TokenOrAllowedPerm(BaseTokenPermissions):
+    non_token_read = True
+    non_token_write = True

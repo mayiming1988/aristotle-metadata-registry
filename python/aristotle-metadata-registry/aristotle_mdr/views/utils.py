@@ -9,7 +9,14 @@ from django.db.models import Count, Q, Model
 from django.db.models.functions import Lower
 from django.db.models.query import QuerySet
 from django.forms.models import model_to_dict
-from django.http import Http404, JsonResponse
+from django.http import (
+    Http404,
+    JsonResponse,
+    HttpResponse,
+    HttpResponseNotFound,
+    HttpResponseForbidden
+)
+
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -23,8 +30,12 @@ from django.views.generic import (
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils import status_filter
+from aristotle_mdr.perms import user_can_view
+from aristotle_mdr.models import _concept
+from aristotle_mdr.contrib.favourites.models import Favourite, Tag
 
 import datetime
+import json
 
 paginate_sort_opts = {
     "mod_asc": ["modified"],
@@ -515,3 +526,66 @@ class CachePerItemUserMixin:
             cache.set(CACHE_KEY, response, self.cache_ttl)
 
         return response
+
+
+class TagsMixin:
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data()
+
+        if self.request.user.is_authenticated():
+            item_tags = Favourite.objects.filter(
+                tag__profile=self.request.user.profile,
+                tag__primary=False,
+                item=self.item
+            ).order_by('created').values_list('tag__name', flat=True)
+
+            user_tags = Tag.objects.filter(
+                profile=self.request.user.profile,
+                primary=False
+            ).values_list('name', flat=True)
+
+            item_tags = list(item_tags)
+            user_tags = list(user_tags)
+
+            context['item_tags'] = json.dumps(item_tags)
+            context['user_tags'] = json.dumps(user_tags)
+
+        else:
+            context['item_tags'] = []
+            context['user_tags'] = []
+
+        return context
+
+
+class SimpleItemGet:
+
+    item_id_arg = 'iid'
+
+    def get_item(self, user):
+        item_id = self.kwargs.get(self.item_id_arg, None)
+        if item_id is None:
+            return None, 404
+
+        try:
+            item = _concept.objects.get(id=item_id)
+        except _concept.DoesNotExist:
+            return None, 404
+
+        if not user_can_view(user, item):
+            return None, 403
+
+        return item, 200
+
+    def get(self, request, *args, **kwargs):
+        item, code = self.get_item(request.user)
+        if not item:
+            return HttpResponse(status_code=code)
+
+        self.item = item
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['item'] = self.item.item
+        return context

@@ -16,12 +16,13 @@ describe('switchEditComponent', function() {
             propsData: {
                 name: 'description',
                 initial: 'yay',
+                submitUrl: '/test/'
             }
         })
     })
 
     it('displays correctly when not editing', function() {
-        assert.include(wrapper.html(), '<div class="panel-body">\n    yay\n  </div>')
+        assert.include(wrapper.html(), '<p class="small-p">yay</p>')
         assert.include(wrapper.html(), 'Edit <i')
         assert.notInclude(wrapper.html(), '<textarea')
     })

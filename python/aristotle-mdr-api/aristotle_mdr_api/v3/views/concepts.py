@@ -16,7 +16,7 @@ from reversion import revisions as reversion
 from aristotle_mdr import models, perms
 from ..serializers.base import Serializer, Deserializer, exclude_fields
 from ..filters import concept_backend
-from .. import permissions
+from aristotle_mdr_api.v3.permissions import AuthAndTokenOrRO
 
 from ..views.utils import (
     DescriptionStubSerializerMixin,
@@ -110,6 +110,7 @@ class ConceptViewSet(
     filter_class = concept_backend.ConceptFilter
 
     permission_key = 'metadata'
+    permission_classes = (AuthAndTokenOrRO,)
 
     serializers = {
         'default': ConceptDetailSerializer,
@@ -259,6 +260,7 @@ class SupersededRelationshipViewSet(viewsets.ReadOnlyModelViewSet):
     filter_class = concept_backend.SupersedeRelationshipFilter
 
     serializer_class = SupersededRelationshipSerializer
+    permission_classes = (AuthAndTokenOrRO,)
 
     def get_queryset(self):
         """
