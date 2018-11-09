@@ -5,6 +5,7 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = [
+    url(r'^', include('aristotle_mdr.contrib.issues.urls', namespace="aristotle_issues")),
     url(r'^', include('aristotle_mdr.contrib.publishing.urls', app_name="aristotle_mdr_publishing", namespace="aristotle_publishing")),
     url(r'^', include('aristotle_mdr.urls.base')),
     url(r'^browse/', include('aristotle_mdr.contrib.browse.urls')),
@@ -15,6 +16,7 @@ urlpatterns = [
     url(r'^ac/', include('aristotle_mdr.contrib.autocomplete.urls', namespace="aristotle-autocomplete")),
     url(r'^', include('aristotle_mdr.contrib.healthcheck.urls', app_name="aristotle_mdr_hb", namespace="aristotle_hb")),
     url(r'^', include('aristotle_mdr.contrib.view_history.urls')),
+    url(r'^api/', include('aristotle_mdr_api.urls'))
 ]
 
 # This is only for dev work, so we can skip it.

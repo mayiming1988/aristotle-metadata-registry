@@ -57,10 +57,10 @@ class ConceptQuerySet(MetadataItemQuerySet):
             ObjectClass.objects.visible().filter(name__contains="Person")
         """
         from aristotle_mdr.models import REVIEW_STATES
+        if user is None or user.is_anonymous():
+            return self.public()
         if user.is_superuser:
             return self.all()
-        if user.is_anonymous():
-            return self.public()
         q = Q(_is_public=True)
 
         if user.is_active:

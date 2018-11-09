@@ -376,13 +376,13 @@ class TokenTestCase(utils.LoggedInViewPages, TestCase):
         content = json.loads(response.content)
         self.assertEqual(len(content['created']), 0)
         self.assertEqual(len(content['errors']), 1)
-        print(content['errors'][0]['message'])
         self.assertTrue('You don\'t have permission' in content['errors'][0]['message'])
         self.assertTrue('Test WG 1 Workgroup' in content['errors'][0]['message'])
 
 
 class SlotTestCase(BaseSlotsTestCase, TestCase):
 
+    @tag('slots')
     def test_slot_view_perms_api(self):
         # Test slot permissions on apis
 

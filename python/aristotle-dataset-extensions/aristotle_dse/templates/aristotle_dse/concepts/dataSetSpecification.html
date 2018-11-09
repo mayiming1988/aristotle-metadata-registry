@@ -23,7 +23,7 @@
             <thead>
                 <tr>
                     <th>
-                            Components
+                        Clusters
                     </th>
                     <th>Statuses
                     </th>
@@ -111,8 +111,46 @@
             {% endfor %}
             </tbody>
             {% endif %}
-            {% if item.dssdeinclusion_set.exists or item|can_edit:request.user %}
+        </table>
+        <table class="dssInclusions table table-striped table-condensed">
+            <thead>
+                <tr>
+                    <th>
+                    </th>
+                    <th>
+                        Data Element
+                    </th>
+                    <th>
+                        Data&nbsp;Type
+                    </th>
+                    <th>
+                        Format
+                    </th>
+                    {% comment %}
+                    <th>Statuses
+                    </th>
+                    {% endcomment %}
+                    <th>
+                        <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left" data-html="true"
+                            title="Data Element Inclusion" data-content="The rules for inclusion for a data element within a data set.<br>May be optional, mandatory or conditional">
+                            Inclusion</a>
+                    </th>
+                    <th class="maxOccurs">
+                        <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left"
+                            title="Maximum Occurances" data-content="The maximum number of times a data element may be repeated in a data set.">
+                            #</a>
+                    </th>
+                    {% if item|can_edit:request.user %}
+                    <th title="Use the links in this column to edit or remove data elements from this Dataset specification">
+                        <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left"
+                            title="Edit or delete" data-content="Use the links in this column to edit or remove data elements from this Dataset specification.">
+                            Edit</a>
+                    </th>
+                    {% endif %}
+                </tr>
+            </thead>
             <tbody>
+            {% if item.dssdeinclusion_set.exists or item|can_edit:request.user %}
                 <tr>
                     <th colspan=5>Data Elements
                     {% if item|can_edit:request.user %}
@@ -135,7 +173,9 @@
             {% endif %}
             {% for deinc in item.dssdeinclusion_set.all %}
                 <tr>
-                    <td>{{ deinc.order|default_if_none:" " }}<i class="fa fa-fw fa-"></i>{% include "aristotle_mdr/helpers/itemLink.html" with item=deinc.data_element %}
+                    <td>{{ deinc.order|default_if_none:" " }}
+                    </td><td>
+                        {% include "aristotle_mdr/helpers/itemLink.html" with item=deinc.data_element %}
                         {% if deinc.specific_information %}
                         <div>
                             <strong>Specific Information:</strong>
@@ -148,6 +188,13 @@
                         </div>
                         {% endif %}
                     </td>
+                    <td>
+                        {% firstof deinc.data_element.valueDomain.data_type.name "-" %}
+                    </td>
+                    <td>
+                        {% firstof deinc.data_element.valueDomain.format "-" %}
+                    </td>
+                    {% comment %}
                     <td><ul>
                         {% for s in deinc.data_element.valid_statuses|distinct:"registrationAuthority_id" %}
                             <li>[{{ s.registrationAuthority }}: {{ s.state_name }}]</li>
@@ -156,6 +203,7 @@
                         {% endfor %}
                         </ul>
                     </td>
+                    {% endcomment %}
                     <td>{{ deinc.cardinality }}</td>
                     <td>{{ deinc.maximum_occurances }}</td>
                     {% if item|can_edit:request.user %}
