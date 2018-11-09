@@ -67,6 +67,12 @@ For more details on how to access this data contact the data custodian listed be
                     <th>Path name</th>
                     <th>Data Element</th>
                     <th>Definition</th>
+                    <th>
+                        Data&nbsp;Type
+                    </th>
+                    <th>
+                        Format
+                    </th>
                     <th title='Number of datasets using this data element'>#</th>
                 </tr>
             </thead>
@@ -92,6 +98,12 @@ For more details on how to access this data contact the data custodian listed be
                     </td>
                     <td>
                         {{column.data_element.definition|striptags}}
+                    </td>
+                    <td>
+                        {% firstof column.data_element.valueDomain.data_type.name "-" %}
+                    </td>
+                    <td>
+                        {% firstof column.data_element.valueDomain.format "-" %}
                     </td>
                     <td>
                         {{column.data_element.distributiondataelementpath_set.count}}

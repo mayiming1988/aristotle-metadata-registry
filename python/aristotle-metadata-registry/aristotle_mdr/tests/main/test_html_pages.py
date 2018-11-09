@@ -677,6 +677,30 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertEqual(response.status_code,200)
         self.assertContains(response, change_comment)
 
+        self.logout()
+        response = self.client.get(reverse('aristotle:item_history',args=[self.item1.id]))
+        self.assertEqual(response.status_code,403)
+        # self.assertNotContains(response, change_comment)
+
+        models.Status.objects.create(
+            concept=self.item1,
+            registrationAuthority=self.ra,
+            registrationDate = datetime.date(2009,4,28),
+            state =  models.STATES.standard
+            )
+
+        self.item1 = self.itemType.objects.get(pk=self.item1.pk)
+        self.assertTrue(self.item1._is_public)
+        self.assertTrue(self.item1.can_view(None))
+
+        response = self.client.get(self.get_page(self.item1))
+        self.assertEqual(response.status_code,200)
+
+        response = self.client.get(reverse('aristotle:item_history',args=[self.item1.id]))
+        self.assertEqual(response.status_code,200)
+        self.assertNotContains(response, change_comment)
+
+
     def test_submitter_can_save_via_edit_page_with_slots(self):
         self.login_editor()
         response = self.client.get(reverse('aristotle:edit_item',args=[self.item1.id]))
@@ -1228,26 +1252,26 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertEqual(self.item1.name,updated_name_again)
 
 
-    def test_anon_cannot_view_item_history(self):
-        self.logout()
-        response = self.client.get(reverse('aristotle:item_history',args=[self.item1.id]))
-        self.assertEqual(response.status_code,302)
-        response = self.client.get(reverse('aristotle:item_history',args=[self.item2.id]))
-        self.assertEqual(response.status_code,302)
+    # def test_anon_cannot_view_item_history(self):
+    #     self.logout()
+    #     response = self.client.get(reverse('aristotle:item_history',args=[self.item1.id]))
+    #     self.assertEqual(response.status_code,302)
+    #     response = self.client.get(reverse('aristotle:item_history',args=[self.item2.id]))
+    #     self.assertEqual(response.status_code,302)
 
 
-        # Register to check if link is on page... it shouldn't be
-        models.Status.objects.create(
-            concept=self.item1,
-            registrationAuthority=self.ra,
-            registrationDate = datetime.date(2009,4,28),
-            state =  models.STATES.standard
-            )
+    #     # Register to check if link is on page... it shouldn't be
+    #     models.Status.objects.create(
+    #         concept=self.item1,
+    #         registrationAuthority=self.ra,
+    #         registrationDate = datetime.date(2009,4,28),
+    #         state =  models.STATES.standard
+    #         )
 
-        # Anon users shouldn't even have the link to history *any* items
-        response = self.client.get(self.item1.get_absolute_url())
-        self.assertEqual(response.status_code,200)
-        self.assertNotContains(response, reverse('aristotle:item_history',args=[self.item1.id]))
+    #     # Anon users shouldn't even have the link to history *any* items
+    #     response = self.client.get(self.item1.get_absolute_url())
+    #     self.assertEqual(response.status_code,200)
+    #     self.assertNotContains(response, reverse('aristotle:item_history',args=[self.item1.id]))
 
     @tag('changestatus')
     def test_registrar_can_change_status(self):

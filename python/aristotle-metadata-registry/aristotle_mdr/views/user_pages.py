@@ -66,16 +66,19 @@ class ProfileView(LoginRequiredMixin, TemplateView):
 
     template_name='aristotle_mdr/user/userProfile.html'
 
+    def get_user(self):
+        return self.request.user
+
     def get_sessions(self, user):
         return user.session_set.filter(expire_date__gt=datetime.datetime.now())
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
 
-        user = self.request.user
+        user = self.get_user()
         sessions = self.get_sessions(user)
         context.update({
-            'user': user,
+            # 'user': user,
             'sessions': sessions,
             'session_key': self.request.session.session_key
         })
@@ -127,10 +130,10 @@ def home(request):
                     revdata['versions'].append({'id': ver.object_id, 'text': str(ver), 'url': url})
                 else:
                     # Fallback, results in db query
-                    print(ver)
-                    # obj = ver.object
-                    # if hasattr(obj, 'get_absolute_url'):
-                    #     revdata['versions'].append({'id': ver.object_id, 'text': str(ver), 'url': obj.get_absolute_url})
+                    # print(ver)
+                    obj = ver.object
+                    if hasattr(obj, 'get_absolute_url'):
+                        revdata['versions'].append({'id': ver.object_id, 'text': str(ver), 'url': obj.get_absolute_url})
 
             seen_ver_ids.append(ver.object_id)
 
@@ -310,7 +313,7 @@ def get_cached_object_count(model_type):
 
 
 class EditView(LoginRequiredMixin, UpdateView):
-
+    context_object_name = "object"
     template_name = "aristotle_mdr/user/userEdit.html"
     form_class = MDRForms.EditUserForm
 

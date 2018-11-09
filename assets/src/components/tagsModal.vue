@@ -1,5 +1,5 @@
 <template>
-  <modal v-model="open" title="Tag Editor" @hide="emitClose">
+  <modal :value="open" @input="emitClose" title="Tag Editor" @hide="emitClose">
     <p>Update your tags for this item, new tags (shown darker) will be created for you</p>
 
     <autocomplete-tags :current_tags="current_tags" :user_tags="user_tags" @tag-update="update_tags"></autocomplete-tags>

@@ -41,10 +41,18 @@ from aristotle_mdr.utils import (
     fetch_aristotle_downloaders,
     fetch_metadata_apps
 )
-from aristotle_mdr.views.utils import generate_visibility_matrix, CachePerItemUserMixin
+from aristotle_mdr.views.utils import (
+    generate_visibility_matrix,
+    CachePerItemUserMixin,
+    TagsMixin
+)
 from aristotle_mdr.contrib.slots.utils import get_allowed_slots
+<<<<<<< HEAD
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
 from aristotle_mdr.contrib.validators import validators
+=======
+from aristotle_mdr import validators
+>>>>>>> 5353cbeab0440222bac3e2aadc3913e4bb68f0d1
 
 from haystack.views import FacetedSearchView
 
@@ -107,7 +115,7 @@ def measure(request, iid, model_slug, name_slug):
     )
 
 
-class ConceptRenderMixin:
+class ConceptRenderMixin(TagsMixin):
     """
     Class based view for rendering a concept, replaces render_if_condition_met
     **This should be used with a permission mixin or check_item override**
@@ -249,30 +257,7 @@ class ConceptRenderMixin:
         context['item'] = self.item
         context['statuses'] = self.item.current_statuses
         context['discussions'] = self.item.relatedDiscussions.all()
-
-        # Tags
-        if self.request.user.is_authenticated():
-            item_tags = Favourite.objects.filter(
-                tag__profile=self.request.user.profile,
-                tag__primary=False,
-                item=self.item
-            ).order_by('created').values_list('tag__name', flat=True)
-
-            user_tags = Tag.objects.filter(
-                profile=self.request.user.profile,
-                primary=False
-            ).values_list('name', flat=True)
-
-            item_tags = list(item_tags)
-            user_tags = list(user_tags)
-
-            context['item_tags'] = json.dumps(item_tags)
-            context['user_tags'] = json.dumps(user_tags)
-
-        else:
-            context['item_tags'] = []
-            context['user_tags'] = []
-
+        context['activetab'] = 'item'
         return context
 
     def get_template_names(self):

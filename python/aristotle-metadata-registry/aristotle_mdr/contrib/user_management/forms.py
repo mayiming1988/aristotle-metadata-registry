@@ -77,3 +77,7 @@ class UserRegistrationForm(forms.ModelForm):
     class Meta:
         model = get_user_model()
         fields = ['short_name', 'full_name']
+
+
+class UpdateAnotherUserSiteWidePermsForm(forms.Form):
+    is_superuser = forms.BooleanField(required=False)
