@@ -10,7 +10,7 @@ def concept_saved(message):
 
     for user in instance.favourited_by:
         if sorted(message['changed_fields']) == ['modified', 'superseded_by_id']:
-            messages.favourite_superseded(recipient=p.user, obj=instance)
+            messages.favourite_superseded(recipient=user, obj=instance)
         else:
             messages.favourite_updated(recipient=user, obj=instance)
 
