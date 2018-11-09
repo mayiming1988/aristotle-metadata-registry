@@ -15,6 +15,11 @@ describe('apiRequest', function() {
     beforeEach(function() {
         this.wrapper = shallowMount(apiRequest)
         this.server = sinon.createFakeServer({autoRespond: true})
+        this.server.respondWith([
+            200,
+            {'Content-Type': 'application/json'},
+            JSON.stringify({some: 'data'})
+        ])
         document.cookie = 'csrftoken=faketoken'
     })
 
@@ -24,22 +29,28 @@ describe('apiRequest', function() {
         document.cookie = ''
     })
 
-    it('makes get request', function(done) {
-        this.server.respondWith([
-            200,
-            {'Content-Type': 'application/json'},
-            JSON.stringify({some: 'data'})
-        ])
+    it('makes requests', function(done) {
         let promise = this.wrapper.vm.get('/fake/api/')
 
-        promise.then((response) => {
-            console.log('we in')
+        promise.then(() => {
             assert.equal(this.server.requests.length, 1)
             let request = this.server.requests[0]
             assert.equal(request.method, 'GET')
 
             assert.deepEqual(this.wrapper.vm.response.data, {some: 'data'})
-            done()
         })
+        .then(done, done)
+    })
+
+    it('sets token header correctly', function(done) {
+        let promise = this.wrapper.vm.get('/fake/api/')
+
+        promise.then(() => {
+            assert.equal(this.server.requests.length, 1)
+            let request = this.server.requests[0]
+            let headers = request.requestHeaders
+            assert.equal(headers['X-CSRFToken'], 'faketoken')
+        })
+        .then(done, done)
     })
 })
