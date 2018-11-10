@@ -6,6 +6,11 @@ if ! [[ "$PWD" = *aristotle-metadata-registry ]]; then
     exit 1
 fi
 
+if [[ "$TRAVIS" == "true" ]] && [[ "$TRAVIS_BRANCH" != "master" || "$TRAVIS_PULL_REQUEST" != "false" ]]; then
+    echo "Not on correct branch. skipping..."
+    exit 0
+fi
+
 if [[ -z "$STORAGE_BUCKET_NAME" ]]; then
     echo "STORAGE_BUCKET_NAME environment variable must be set"
     exit 1
