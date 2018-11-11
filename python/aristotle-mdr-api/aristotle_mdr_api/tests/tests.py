@@ -9,6 +9,7 @@ from aristotle_mdr.contrib.slots.tests import BaseSlotsTestCase
 from rest_framework.test import APIClient
 
 import json
+from unittest.mock import patch
 
 
 class TokenTestCase(utils.LoggedInViewPages, TestCase):
@@ -80,6 +81,7 @@ class TokenTestCase(utils.LoggedInViewPages, TestCase):
 
     # ------ Tests ------
 
+    @tag('create_token')
     def test_create_token(self):
 
         response = self.client.get(reverse('token_auth:token_create'))
@@ -374,13 +376,13 @@ class TokenTestCase(utils.LoggedInViewPages, TestCase):
         content = json.loads(response.content)
         self.assertEqual(len(content['created']), 0)
         self.assertEqual(len(content['errors']), 1)
-        print(content['errors'][0]['message'])
         self.assertTrue('You don\'t have permission' in content['errors'][0]['message'])
         self.assertTrue('Test WG 1 Workgroup' in content['errors'][0]['message'])
 
 
 class SlotTestCase(BaseSlotsTestCase, TestCase):
 
+    @tag('slots')
     def test_slot_view_perms_api(self):
         # Test slot permissions on apis
 

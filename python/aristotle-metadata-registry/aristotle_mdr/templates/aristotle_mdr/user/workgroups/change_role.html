@@ -1,9 +1,5 @@
 {% extends request.is_ajax|yesno:"aristotle_mdr/base_ajax.html,aristotle_mdr/base.html" %}
 
-{% block extra_head_scripts %}
-    {{ form.media }}
-{% endblock %}
-
 {% block title %}Change users roles in {{ item.name }}{% endblock %}
 {% block content %}
 <form method="post" action="{% url 'aristotle:workgroup_member_change_role' item.id  user_to_change.pk %}">

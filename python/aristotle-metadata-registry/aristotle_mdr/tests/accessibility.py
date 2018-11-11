@@ -40,7 +40,6 @@ class TestWebPageAccessibilityBase(utils.LoggedInViewPages):
         self.cd = models.ConceptualDomain.objects.create(name="Test CD 1")
         self.de = models.DataElement.objects.create(name="Test DE 1", dataElementConcept=self.dec, valueDomain=self.vd)
 
-        call_command('compilestatic', interactive=False, verbosity=0)
         call_command('collectstatic', interactive=False, verbosity=0)
 
         process = subprocess.Popen(
@@ -51,7 +50,6 @@ class TestWebPageAccessibilityBase(utils.LoggedInViewPages):
         # Verify the static files are in the right place.
         assert('admin' in dir_listing)
         assert('aristotle_mdr' in dir_listing)
-        assert('COMPILED' in dir_listing)
         print("All setup")
 
     def pages_tester(self, pages, media_types=MEDIA_TYPES):
@@ -59,12 +57,11 @@ class TestWebPageAccessibilityBase(utils.LoggedInViewPages):
         failures = 0
         total_results = []
         for url in pages:
-            print()
-            print("Testing url for WCAG compliance [%s] " % url, end="", flush=True, file=sys.stderr)
+            print("\nTesting url for WCAG compliance [%s] " % url, end="", flush=True, file=sys.stderr)
             print('*', end="", flush=True, file=sys.stderr)
 
             response = self.client.get(url, follow=True)
-            self.assertTrue(response.status_code == 200)
+            self.assertEqual(response.status_code, 200)
             html = response.content
 
             for media in media_types:

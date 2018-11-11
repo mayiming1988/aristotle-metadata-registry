@@ -4,15 +4,14 @@
 {% load bootstrap3 %}
 {% load static from staticfiles %}
 {% load aristotle_tags aristotle_search_tags %}
-{% load compile_static %}
+{% load render_bundle from webpack_loader %}
 
-{% block extra_head_scripts %}
-    <script src="{% static 'aristotle_mdr/aristotle.search.js' %}" type="text/javascript"></script>
-    <!--[if !IE]> -->
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle_search.less'|compile %}" />
-    <![endif]-->
-    <!--[if lt IE 9]>
-    <![endif]-->
+{% block webpack_css_bundle %}
+  {% render_bundle 'search' 'css' %}
+{% endblock %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'search' 'js' %}
 {% endblock %}
 
 {% block header %}
@@ -103,7 +102,7 @@
                             <li role="presentation" class="divider"></li>
                             <li role="presentation">
                                 <label role="menuitem" for='id_{{form.mds.name}}'>Modified after...</label>
-                                {{ form.mds|safe }}
+                                {{ form.mds }}
                             </li>
                             <li role="presentation">
                                 <label role="menuitem" for='id_{{form.mde.name}}'>Modified before...</label>
@@ -469,4 +468,3 @@
 </div>
 {% bootstrap_modal 'search_concept_help' %}
 {% endblock %}
-  {

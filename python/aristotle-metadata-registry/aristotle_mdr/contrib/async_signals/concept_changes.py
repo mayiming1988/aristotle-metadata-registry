@@ -8,11 +8,11 @@ def concept_saved(message):
     if not instance:
         return
 
-    for p in instance.favourited_by.all():
+    for user in instance.favourited_by:
         if sorted(message['changed_fields']) == ['modified', 'superseded_by_id']:
-            messages.favourite_superseded(recipient=p.user, obj=instance)
+            messages.favourite_superseded(recipient=user, obj=instance)
         else:
-            messages.favourite_updated(recipient=p.user, obj=instance)
+            messages.favourite_updated(recipient=user, obj=instance)
 
     # for status in instance.current_statuses().all():
     #     for registrar in status.registrationAuthority.registrars.all():

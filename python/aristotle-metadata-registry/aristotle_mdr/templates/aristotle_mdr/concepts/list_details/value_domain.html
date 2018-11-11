@@ -1,10 +1,10 @@
 {% load aristotle_tags %}
 <div class="definition">
-    {{ item.definition|striptags|safe|truncatewords:50 }}
+    {{ item.definition|striptags|truncatewords:50 }}
 </div>
 {% if item.item.description %}
 <div class="description">
-    {{ item.description|striptags|safe|truncatewords:50 }}
+    {{ item.description|striptags|truncatewords:50 }}
 </div>
 {% endif %}
 <hr>

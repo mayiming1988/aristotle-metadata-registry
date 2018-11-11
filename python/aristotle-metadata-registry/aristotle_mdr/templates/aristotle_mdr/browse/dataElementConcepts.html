@@ -1,6 +1,5 @@
 {% extends 'aristotle_mdr/base.html' %}
-
-
+{% load util_tags %}
 
 {% block title %}Browsing Data Element Concepts based on {{ objectClass.name }}{% endblock %}
 {% block content %}
@@ -10,7 +9,7 @@
     </h1>
 <strong>About <em>{{ objectClass.name }}</em></strong>
 <div id="definition">
-    {{ objectClass.definition | safe }}
+    {{ objectClass.definition|bleach }}
 </div>
 {% if items %}
 <p>

@@ -32,11 +32,10 @@ class Question(aristotle.models.concept):
 
 
 class ResponseDomain(aristotle.models.aristotleComponent):
+
     class Meta:
         ordering = ['order']
-    @property
-    def parentItem(self):
-        return self.question
+
     question = models.ForeignKey(Question, related_name="response_domains")
     value_domain = models.ForeignKey(aristotle.models.ValueDomain)
     maximum_occurances = models.PositiveIntegerField(
@@ -55,6 +54,14 @@ class ResponseDomain(aristotle.models.aristotleComponent):
         help_text=_("If a dataset is ordered, this indicates which position this item is in a dataset.")
         )
 
+    @property
+    def parentItem(self):
+        return self.question
+
+    @property
+    def parentItemId(self):
+        return self.question_id
+
 
 """
 class QuestionModule(aristotle.models.concept):
@@ -64,7 +71,7 @@ class QuestionModule(aristotle.models.concept):
     instruction_text = aristotle.models.RichTextField(blank=True,null=True)
     sqbl_definition = TextField(blank=True,null=True)
     administration_modes = models.ManyToManyField(AdministrationMode,blank=True,null=True)
-    
+
 class Questionnaire(aristotle.models.concept):
     template = "mallard-qr/questionnaire.html"
     submodules = models.ManyToManyField(QuestionModule,blank=True,null=True)

@@ -1,13 +1,16 @@
 {% extends "aristotle_mdr/user/userHome.html" %}
 
 {% load static from staticfiles %}
-{% load compile_static %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}All Discussions{% endblock %}
 
-{% block extra_head_scripts %}
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.dashboard.less'|compile %}" />
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle_discussions.less'|compile %}" />
+{% block webpack_css_bundle %}
+  {% render_bundle 'discussions' 'css' %}
+{% endblock %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'discussions' 'js' %}
 {% endblock %}
 
 {% block sidebar %}

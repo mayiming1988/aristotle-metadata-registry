@@ -26,7 +26,7 @@ reversion.revisions.register(MDR.Status)
 reversion.revisions.register(
     MDR._concept,
     follow=[
-        'statuses', 'workgroup', 'slots',
+        'statuses', 'slots', 'identifiers'
     ],
     exclude=[
         'is_public', 'is_locked',
@@ -36,6 +36,7 @@ reversion.revisions.register(
         'superseded_items_relation_set',
         'modified',
         'submitter',
+        'issues'
     ]
 )
 reversion.revisions.register(MDR.Workgroup)
@@ -145,7 +146,7 @@ class ConceptAdmin(CompareVersionAdmin, admin.ModelAdmin):
     actions_on_top = True
     actions_on_bottom = False
 
-    compare_exclude = ['favourites', 'user_view_history']
+    compare_exclude = ['favourites', 'user_view_history', 'issues']
 
     def get_form(self, request, obj=None, **kwargs):
         # Thanks: http://stackoverflow.com/questions/6321916
@@ -437,15 +438,18 @@ register_concept(
     MDR.DataElementDerivation,
     extra_fieldsets=[('Derivation', {'fields': ['derivation_rule']})],
     extra_inlines=[DedDerivesInline, DedInputsInline],
-    custom_search_index=aristotle_mdr_DataElementDerivationSearchIndex
+    custom_search_index=aristotle_mdr_DataElementDerivationSearchIndex,
+    reversion={
+        'follow': ['derives', 'inputs'],
+    }
 )
 
 register_concept(
     MDR.ConceptualDomain,
     extra_inlines=[ValueMeaningInline],
     reversion={
-        'follow': ['valuemeaning_set', ],
-        'follow_classes': [MDR.ValueMeaning, ]
+        'follow': ['valuemeaning_set'],
+        'follow_classes': [MDR.ValueMeaning]
     }
 )
 

@@ -61,6 +61,14 @@ services:
         - ../:/usr/src/app
         - ../../../data:/data
 
+  webpack:
+    tty: false
+    working_dir: /usr/src/app/aristotle-metadata-registry/assets
+    image: node:8.12
+    command: npm run installandwatch
+    volumes:
+        - ../../:/usr/src/app
+
   worker:
     <<: *django
     command: sh ./docker/sh/entrypoint/worker.sh

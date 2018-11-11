@@ -5,9 +5,11 @@
   </span>
 </div>
 {% if picker_id %}
+{% comment %}
 <script>
   $(function(){
     $("#{{picker_id}}:has(input:not([readonly],[disabled]))").datetimepicker({{options|safe}});
   });
 </script>
+{% endcomment %}
 {% endif %}
