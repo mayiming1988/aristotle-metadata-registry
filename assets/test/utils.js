@@ -29,3 +29,9 @@ export function assertSingleMessage(message) {
     assert.equal(lis.length, 1)
     assert.equal(lis[0].textContent, message)
 }
+
+export function assertSingleEmit(wrapper, event, value) {
+    assert.isOk(wrapper.emitted(event))
+    assert.equal(wrapper.emitted(event).length, 1)
+    assert.equal(wrapper.emitted(event)[0][0], value)
+}
