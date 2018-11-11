@@ -6,6 +6,7 @@ import moment from 'moment'
 var assert = chai.assert
 
 import commentComponent from '../src/components/comment.vue'
+import para from '../src/components/para.vue'
 
 describe('comment', function() {
 
@@ -28,4 +29,30 @@ describe('comment', function() {
     //it('displays date correctly', function() {
     //    assert.equal(this.wrapper.vm.displayCreated, '9th Nov 2018, 05:17 PM')
     //})
+
+    it('sets paragraph text', function() {
+        this.wrapper.setProps({
+            created: this.datestring,
+            body: 'Heck yeah'
+        })
+        assert.equal(this.wrapper.find('para-stub').props('text'), 'Heck yeah')
+    })
+
+    it('renders name bold', function() {
+        this.wrapper.setProps({
+            created: this.datestring,
+            name: 'Big name'
+        })
+        let strong = this.wrapper.find('strong')
+        assert.equal(strong.text(), 'Big name')
+    })
+
+    it('passes pic prop', function() {
+        let fakepic = 'http://example.com/pic.jpg'
+        this.wrapper.setProps({
+            created: this.datestring,
+            pic: fakepic
+        })
+        assert.equal(this.wrapper.find('userpanel-stub').props('pic'), fakepic)
+    })
 })
