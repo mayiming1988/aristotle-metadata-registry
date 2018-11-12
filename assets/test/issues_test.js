@@ -101,7 +101,7 @@ describe('issueComment', function() {
         assert.equal(this.wrapper.find('button').text(), 'Reopen Issue')
     })
 
-    it('creates comment when button clicked', function() {
+    it('creates comment when button clicked', function(done) {
         // Setup fake post method
         let fakeresponse = {
             status: 201,
@@ -141,5 +141,9 @@ describe('issueComment', function() {
             issue: '8'
         }
         assert.isTrue(call.calledWithExactly('/fake/api/', expected_data))
+        call.returnValue.then(() => {
+            assert.equal(this.wrapper.vm.body, '')
+        })
+        .then(done, done)
     })
 })
