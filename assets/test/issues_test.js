@@ -119,7 +119,9 @@ describe('issueComment', function() {
         this.wrapper.setProps({
             commentUrl: '/fake/api/',
             userId: '7',
-            issueId: '8'
+            issueId: '8',
+            pic: 'example.com/pic.jpg',
+            userName: 'John'
         })
         this.wrapper.setData({
             body: 'Test body'
@@ -132,7 +134,7 @@ describe('issueComment', function() {
         // Click comment button
         commentButton.trigger('click')
 
-        // Check calls
+        // Check calls and emmits
         assert.isTrue(fakepost.calledOnce)
         let call = fakepost.firstCall
         let expected_data = {
@@ -143,6 +145,12 @@ describe('issueComment', function() {
         assert.isTrue(call.calledWithExactly('/fake/api/', expected_data))
         call.returnValue.then(() => {
             assert.equal(this.wrapper.vm.body, '')
+            assertSingleEmit(this.wrapper, 'created', {
+                pic: 'example.com/pic.jpg',
+                name: 'John',
+                created: '2018',
+                body: 'Test comment'
+            })
         })
         .then(done, done)
     })

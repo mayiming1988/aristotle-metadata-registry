@@ -33,5 +33,5 @@ export function assertSingleMessage(message) {
 export function assertSingleEmit(wrapper, event, value) {
     assert.isOk(wrapper.emitted(event))
     assert.equal(wrapper.emitted(event).length, 1)
-    assert.equal(wrapper.emitted(event)[0][0], value)
+    assert.deepEqual(wrapper.emitted(event)[0][0], value)
 }
