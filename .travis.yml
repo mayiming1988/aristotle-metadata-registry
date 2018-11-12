@@ -68,7 +68,9 @@ defaults:
   - &deploy_stage
     stage: deploy-it
     language: python
+    python: 3.6
     install:
+      - pip install -U pip
       - pip install pipenv
       - nvm install 8.12.0
     script: ./scripts/buildandcopy.sh
