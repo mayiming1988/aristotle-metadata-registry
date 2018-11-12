@@ -22,6 +22,7 @@ cd assets
 echo "Running webpack build..."
 # Remove stats if it exists
 rm -f ./dist/webpack-stats.json
+npm install
 npm run build
 echo "Webpack build complete!"
 cd ..
