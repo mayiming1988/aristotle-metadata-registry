@@ -1,4 +1,5 @@
 import chai from 'chai'
+import sinon from 'sinon'
 import VueTestUtils from '@vue/test-utils'
 import { assertSingleEmit } from './utils.js'
 
@@ -83,5 +84,62 @@ describe('issueComment', function() {
             isOpen: true
         })
         assert.equal(this.wrapper.vm.openCloseClass, 'btn btn-danger')
+    })
+
+    it('doesnt render button if no open close permission', function() {
+        assert.isFalse(this.wrapper.vm.canOpenClose)
+        assert.equal(this.wrapper.vm.openCloseText, 'Reopen Issue')
+        assert.notEqual(this.wrapper.find('button').text(), 'Reopen Issue')
+    })
+
+    it('renders button if open close permission', function() {
+        this.wrapper.setProps({
+            openClosePermission: 'True'
+        })
+        assert.isTrue(this.wrapper.vm.canOpenClose)
+        assert.equal(this.wrapper.vm.openCloseText, 'Reopen Issue')
+        assert.equal(this.wrapper.find('button').text(), 'Reopen Issue')
+    })
+
+    it('creates comment when button clicked', function() {
+        // Setup fake post method
+        let fakeresponse = {
+            status: 201,
+            data: {
+                created: '2018',
+                body: 'Test comment'
+            }
+        }
+        let fakepost = sinon.fake.resolves(fakeresponse)
+        this.wrapper.setMethods({
+            post: fakepost
+        })
+
+        // Set props and data
+        this.wrapper.setProps({
+            commentUrl: '/fake/api/',
+            userId: '7',
+            issueId: '8'
+        })
+        this.wrapper.setData({
+            body: 'Test body'
+        })
+
+        // Get comment button
+        let commentButton = this.wrapper.find('button.btn-primary')
+        assert.isTrue(commentButton.exists())
+        
+        // Click comment button
+        commentButton.trigger('click')
+
+        // Check calls
+        assert.isTrue(fakepost.calledOnce)
+        let call = fakepost.firstCall
+        let expected_data = {
+            body: 'Test body',
+            author: '7',
+            issue: '8'
+        }
+        assert.isTrue(call.calledWithExactly('/fake/api/', expected_data))
     })
 })
