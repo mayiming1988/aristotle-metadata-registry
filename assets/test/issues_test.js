@@ -215,4 +215,75 @@ describe('issueComment', function() {
         }
         assert.isTrue(call.calledWithExactly('/fake/api/', expected))
     })
+
+    it('emits set_open when open changed', function(done) {
+        let fake = fakePromiseMethod(this.wrapper, 'post', {
+            status: 200,
+            data: {
+                issue: {
+                    isopen: true
+                }
+            }
+        })
+        
+        // Set data and props
+        this.wrapper.setProps({
+            openCloseUrl: '/fake/api/',
+            openClosePermission: 'True'
+        })
+        this.wrapper.setData({
+            isOpen: false,
+        })
+
+        clickElementIfExists(this.wrapper, 'button.btn-success')
+
+        assert.isTrue(fake.calledOnce)
+        fake.firstCall.returnValue.then(() => {
+            assert.isTrue(this.wrapper.vm.isOpen)
+            assert.isOk(this.wrapper.emitted('set_open'))
+            assert.equal(this.wrapper.emitted('set_open').length, 2)
+            assert.equal(this.wrapper.emitted('set_open')[1][0], true)
+            assert.isNotOk(this.wrapper.emitted('created'))
+        })
+        .then(done, done)
+    })
+
+    it('emits created when open changed with comment', function(done) {
+        let fake = fakePromiseMethod(this.wrapper, 'post', {
+            status: 200,
+            data: {
+                issue: {
+                    isopen: true
+                },
+                comment: {
+                    body: 'Heck',
+                    created: '2018'
+                }
+            }
+        })
+        
+        // Set data and props
+        this.wrapper.setProps({
+            openCloseUrl: '/fake/api/',
+            openClosePermission: 'True',
+            pic: 'example.com/pic.jpg',
+            userName: 'John'
+        })
+        this.wrapper.setData({
+            isOpen: false,
+        })
+
+        clickElementIfExists(this.wrapper, 'button.btn-success')
+
+        assert.isTrue(fake.calledOnce)
+        fake.firstCall.returnValue.then(() => {
+            assertSingleEmit(this.wrapper, 'created', {
+                pic: 'example.com/pic.jpg',
+                name: 'John',
+                created: '2018',
+                body: 'Heck'
+            })
+        })
+        .then(done, done)
+    })
 })
