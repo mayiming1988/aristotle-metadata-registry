@@ -62,7 +62,8 @@ describe('switchEditApi', function() {
         let fake = fakePromiseMethod(this.wrapper, 'patch', {})
 
         this.wrapper.setData({
-            value: 'Nice description'
+            value: 'Nice description',
+            editing: true
         })
         clickElementIfExists(this.wrapper, 'button.btn-primary')
 
@@ -72,7 +73,7 @@ describe('switchEditApi', function() {
         )
     })
 
-    it('sets editing false on success', function(done) {
+    it('sets editing false on success', function() {
         // setup fake patch method
         let fake = sinon.fake.resolves({status: 200})
         this.wrapper.setMethods({
@@ -87,15 +88,13 @@ describe('switchEditApi', function() {
         clickElementIfExists(this.wrapper, 'button.btn-primary')
 
         assert.isTrue(fake.calledOnce)
-        console.log(fake.firstCall.returnValue)
         let call = fake.firstCall
-        call.returnValue.then(() => {
+        return this.wrapper.vm.$nextTick().then(() => {
             assert.isFalse(this.wrapper.vm.editing)
         })
-        .then(done, done)
     })
 
-    it('keeps editing true on fail', function(done) {
+    it('keeps editing true on fail', function() {
         // setup fake patch method
         let fake = sinon.fake.rejects()
         this.wrapper.setMethods({
@@ -110,9 +109,8 @@ describe('switchEditApi', function() {
         clickElementIfExists(this.wrapper, 'button.btn-primary')
 
         assert.isTrue(fake.calledOnce)
-        fake.firstCall.returnValue.then(() => {
-            assert.isFalse(this.wrapper.vm.editing)
+        return this.wrapper.vm.$nextTick().then(() => {
+            assert.isTrue(this.wrapper.vm.editing)
         })
-        .then(done, done)
     })
 })

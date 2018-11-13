@@ -129,7 +129,7 @@ describe('issueComment', function() {
         assert.isTrue(call.calledWithExactly('/fake/api/', expected_data))
     })
 
-    it('emitts created after comment created', function(done) {
+    it('emitts created after comment created', function() {
         // Setup fake post method
         let fake = fakePromiseMethod(this.wrapper, 'post', {
             status: 201,
@@ -154,7 +154,7 @@ describe('issueComment', function() {
         // Check call and emit
         assert.isTrue(fake.calledOnce)
         let call = fake.firstCall
-        call.returnValue.then(() => {
+        return this.wrapper.vm.$nextTick().then(() => {
             assert.equal(this.wrapper.vm.body, '')
             assertSingleEmit(this.wrapper, 'created', {
                 pic: 'example.com/pic.jpg',
@@ -163,7 +163,6 @@ describe('issueComment', function() {
                 body: 'Test comment'
             })
         })
-        .then(done, done)
     })
 
     it('calls post on open close, with no comment', function() {
@@ -216,7 +215,7 @@ describe('issueComment', function() {
         assert.isTrue(call.calledWithExactly('/fake/api/', expected))
     })
 
-    it('emits set_open when open changed', function(done) {
+    it('emits set_open when open changed', function() {
         let fake = fakePromiseMethod(this.wrapper, 'post', {
             status: 200,
             data: {
@@ -238,18 +237,16 @@ describe('issueComment', function() {
         clickElementIfExists(this.wrapper, 'button.btn-success')
 
         assert.isTrue(fake.calledOnce)
-        let call = fake.firstCall
-        call.returnValue.then(() => {
+        return this.wrapper.vm.$nextTick().then(() => {
             assert.isTrue(this.wrapper.vm.isOpen)
             assert.isOk(this.wrapper.emitted('set_open'))
             assert.equal(this.wrapper.emitted('set_open').length, 2)
             assert.isTrue(this.wrapper.emitted('set_open')[1][0])
             assert.isNotOk(this.wrapper.emitted('created'))
         })
-        .then(done, done)
     })
 
-    it('emits created when open changed with comment', function(done) {
+    it('emits created when open changed with comment', function() {
         let fake = fakePromiseMethod(this.wrapper, 'post', {
             status: 200,
             data: {
@@ -278,7 +275,7 @@ describe('issueComment', function() {
 
         assert.isTrue(fake.calledOnce)
         let call = fake.firstCall
-        call.returnValue.then(() => {
+        return this.wrapper.vm.$nextTick().then(() => {
             assertSingleEmit(this.wrapper, 'created', {
                 pic: 'example.com/pic.jpg',
                 name: 'John',
@@ -287,6 +284,5 @@ describe('issueComment', function() {
             })
             assert.equal(this.wrapper.vm.body, '')
         })
-        .then(done, done)
     })
 })
