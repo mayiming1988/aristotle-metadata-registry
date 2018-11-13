@@ -16,6 +16,14 @@ module.exports = (config) => {
             }
         },
         reporters: ['mocha'],
+        mochaReporter: {
+            colors: {
+                success: 'green',
+                info: 'blue',
+                warning: 'yellow',
+                error: 'red'
+            }
+        },
         files: [
             // all files ending in "_test"
             { pattern: 'test/*_test.js', watched: false },

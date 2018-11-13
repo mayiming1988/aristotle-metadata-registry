@@ -66,8 +66,7 @@ describe('ckeditor initializer', function() {
         document.getElementById('id_important').remove()
     })
 
-    it('initializes', function() {
-        this.skip()
+    it.skip('initializes', function() {
         initCKEditor()
         let textarea = document.getElementById('id_important')
         assert.equal(textarea.getAttribute('data-processed'), 1)

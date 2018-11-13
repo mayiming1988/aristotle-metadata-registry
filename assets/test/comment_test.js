@@ -27,8 +27,7 @@ describe('comment', function() {
     })
 
     // Skipped until we can mock timezone
-    it('displays date correctly', function() {
-        this.skip()
+    it.skip('displays date correctly', function() {
         assert.equal(this.wrapper.vm.displayCreated, '9th Nov 2018, 05:17 PM')
     })
 
