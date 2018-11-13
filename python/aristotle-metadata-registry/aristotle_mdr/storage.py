@@ -5,6 +5,7 @@ import hashlib
 import re
 import os
 import json
+import logging
 
 from storages.backends.s3boto3 import S3Boto3Storage, SpooledTemporaryFile
 
@@ -76,6 +77,12 @@ class SelectiveHashingMixin:
 # Fixes I/O error on computing hash thanks to
 # https://github.com/jschneier/django-storages/issues/382#issuecomment-377174808
 class CustomS3Boto3Storage(S3Boto3Storage):
+
+    def __init__(self, *args, **kwargs):
+        for name in logging.Logger.manager.loggerDict.keys():
+            if ('boto' in name) or ('urllib3' in name):
+                logging.getLogger(name).setLevel(logging.WARNING)
+        super().__init__(*args, **kwargs)
 
     def _save_content(self, obj, content, parameters):
         """
