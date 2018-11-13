@@ -283,6 +283,7 @@ describe('issueComment', function() {
                 created: '2018',
                 body: 'Heck'
             })
+            assert.equal(this.wrapper.vm.body, '')
         })
         .then(done, done)
     })
