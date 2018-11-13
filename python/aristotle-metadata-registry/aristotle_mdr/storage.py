@@ -78,12 +78,6 @@ class SelectiveHashingMixin:
 # https://github.com/jschneier/django-storages/issues/382#issuecomment-377174808
 class CustomS3Boto3Storage(S3Boto3Storage):
 
-    def __init__(self, *args, **kwargs):
-        for name in logging.Logger.manager.loggerDict.keys():
-            if ('boto' in name) or ('urllib3' in name):
-                logging.getLogger(name).setLevel(logging.WARNING)
-        super().__init__(*args, **kwargs)
-
     def _save_content(self, obj, content, parameters):
         """
         We create a clone of the content file as when this is passed to boto3 it wrongly closes

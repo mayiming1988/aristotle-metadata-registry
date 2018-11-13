@@ -90,6 +90,9 @@ LOGGING = {
     }
 }
 
+if 'NO_LOGGING' in os.environ:
+    LOGGING = None
+
 # Debug toolbar
 DEBUG_TOOLBAR = os.environ.get('DJANGO_DEBUG_TOOLBAR', False) == "True"
 if DEBUG and DEBUG_TOOLBAR:
