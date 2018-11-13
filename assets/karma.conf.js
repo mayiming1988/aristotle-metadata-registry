@@ -12,9 +12,10 @@ module.exports = (config) => {
             // Need this for travis container environment
             ChromeHeadlessNoSandbox: {
                 base: 'ChromeHeadless',
-                flags: ['--no-sandbox']
+                // flags: ['--no-sandbox']
             }
         },
+        reporters: ['mocha'],
         files: [
             // all files ending in "_test"
             { pattern: 'test/*_test.js', watched: false },
