@@ -38,9 +38,18 @@ export function assertSingleEmit(wrapper, event, value) {
 }
 
 export function fakePromiseMethod(wrapper, method, return_value) {
+    if (return_value == undefined) {
+        return_value = {}
+    }
     let fake = sinon.fake.resolves(return_value)
     wrapper.setMethods({
         [method]: fake
     })
     return fake
+}
+
+export function clickElementIfExists(wrapper, selector) {
+    let element = wrapper.find(selector)
+    assert.isTrue(element.exists())
+    element.trigger('click')
 }

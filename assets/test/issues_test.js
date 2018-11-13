@@ -1,7 +1,7 @@
 import chai from 'chai'
 import sinon from 'sinon'
 import VueTestUtils from '@vue/test-utils'
-import { assertSingleEmit, fakePromiseMethod } from './utils.js'
+import { assertSingleEmit, fakePromiseMethod, clickElementIfExists } from './utils.js'
 
 var assert = chai.assert
 
@@ -103,13 +103,7 @@ describe('issueComment', function() {
 
     it('calls api request on button clicked', function() {
         // Setup fake post method
-        let fake = fakePromiseMethod(this.wrapper, 'post', {
-            status: 201,
-            data: {
-                created: '2018',
-                body: 'Test comment'
-            }
-        })
+        let fake = fakePromiseMethod(this.wrapper, 'post')
 
         // Set props and data
         this.wrapper.setProps({
@@ -122,9 +116,7 @@ describe('issueComment', function() {
         })
 
         // Click comment button
-        let commentButton = this.wrapper.find('button.btn-primary')
-        assert.isTrue(commentButton.exists())
-        commentButton.trigger('click')
+        clickElementIfExists(this.wrapper, 'button.btn-primary')
 
         // Check calls
         assert.isTrue(fake.calledOnce)
@@ -147,7 +139,7 @@ describe('issueComment', function() {
             }
         })
 
-        // Set props and data
+        // Set props
         this.wrapper.setProps({
             commentUrl: '/fake/api/',
             userId: '7',
@@ -157,9 +149,7 @@ describe('issueComment', function() {
         })
 
         // Click comment button
-        let commentButton = this.wrapper.find('button.btn-primary')
-        assert.isTrue(commentButton.exists())
-        commentButton.trigger('click')
+        clickElementIfExists(this.wrapper, 'button.btn-primary')
 
         // Check call and emit
         assert.isTrue(fake.calledOnce)
@@ -174,5 +164,55 @@ describe('issueComment', function() {
             })
         })
         .then(done, done)
+    })
+
+    it('calls post on open close, with no comment', function() {
+        let fake = fakePromiseMethod(this.wrapper, 'post')
+
+        // Set data and props
+        this.wrapper.setProps({
+            openCloseUrl: '/fake/api/',
+            openClosePermission: 'True'
+        })
+        this.wrapper.setData({
+            isOpen: false
+        })
+        
+        clickElementIfExists(this.wrapper, 'button.btn-success')
+
+        // Check called correctly
+        assert.isTrue(fake.calledOnce)
+        let call = fake.firstCall
+        let expected = {
+            isopen: true
+        }
+        assert.isTrue(call.calledWithExactly('/fake/api/', expected))
+    })
+
+    it('calls post on open close with comment', function() {
+        let fake = fakePromiseMethod(this.wrapper, 'post')
+
+        // Set data and props
+        this.wrapper.setProps({
+            openCloseUrl: '/fake/api/',
+            openClosePermission: 'True'
+        })
+        this.wrapper.setData({
+            isOpen: false,
+            body: 'Some comment'
+        })
+        
+        clickElementIfExists(this.wrapper, 'button.btn-success')
+
+        // Check called correctly
+        assert.isTrue(fake.calledOnce)
+        let call = fake.firstCall
+        let expected = {
+            isopen: true,
+            comment: {
+                body: 'Some comment'
+            }
+        }
+        assert.isTrue(call.calledWithExactly('/fake/api/', expected))
     })
 })
