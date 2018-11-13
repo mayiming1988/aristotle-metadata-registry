@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+if ! [[ -z "$DISABLE_COLLECTSTATIC" ]]; then
+    echo "Collectstatic disabled"
+    exit 0
+fi
+
 if ! [[ "$PWD" = *aristotle-metadata-registry ]]; then
     echo "Must be run from root of repo"
     exit 1
