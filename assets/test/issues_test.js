@@ -6,6 +6,7 @@ import { assertSingleEmit, fakePromiseMethod, clickElementIfExists } from './uti
 var assert = chai.assert
 
 import issueComment from '../src/components/issueComment.vue'
+import issueModal from '../src/components/issueModal.vue'
 
 describe('issueComment', function() {
 
@@ -284,5 +285,59 @@ describe('issueComment', function() {
             })
             assert.equal(this.wrapper.vm.body, '')
         })
+    })
+
+    it('updates body on textarea input', function() {
+        assert.equal(this.wrapper.vm.body, '')
+        this.wrapper.find('textarea').setValue('Comment body')
+        assert.equal(this.wrapper.vm.body, 'Comment body')
+    })
+})
+
+describe('issueModal', function() {
+
+    beforeEach(function() {
+        this.wrapper = VueTestUtils.shallowMount(issueModal)
+    })
+
+    afterEach(function() {
+        this.wrapper = {}
+    })
+
+    it('updates formdata name input', function() {
+        assert.equal(this.wrapper.vm.formdata.name, '')
+        this.wrapper.find('input').setValue('Issue Name')
+        assert.equal(this.wrapper.vm.formdata.name, 'Issue Name')
+    })
+
+    it('updates formdata description input', function() {
+        assert.equal(this.wrapper.vm.formdata.description, '')
+        this.wrapper.find('textarea').setValue('Issue Description')
+        assert.equal(this.wrapper.vm.formdata.description, 'Issue Description')
+    })
+
+    it('emitts close when button clicked', function() {
+        clickElementIfExists(this.wrapper, 'button.btn-default')
+        assertSingleEmit(this.wrapper, 'input', false)
+    })
+
+    it('calls post on create issue click', function() {
+        this.wrapper.setProps({
+            iid: '1',
+            url: '/fake/api/'
+        })
+        this.wrapper.setData({
+            formdata: {name: 'Test Name', description: 'Test Desc'}
+        })
+        let fake = fakePromiseMethod(this.wrapper, 'post', {})
+        clickElementIfExists(this.wrapper, 'button.btn-primary')
+
+        assert.isTrue(fake.calledOnce)
+        let expected_data = {
+            name: 'Test Name',
+            description: 'Test Desc',
+            item: '1'
+        }
+        assert.isTrue(fake.calledWithExactly('/fake/api/', expected_data))
     })
 })
