@@ -101,7 +101,7 @@ describe('apiRequest', function() {
         assert.isTrue(this.wrapper.vm.hasErrors)
     })
 
-    it('reports has errors properly', function() {
+    it('reports has response properly', function() {
         assert.isFalse(this.wrapper.vm.hasResponse)
         this.wrapper.setData({response: {some: 'errors'}})
         assert.isTrue(this.wrapper.vm.hasResponse)

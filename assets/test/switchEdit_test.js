@@ -11,10 +11,8 @@ var shallowMount = VueTestUtils.shallowMount
 
 describe('switchEditComponent', function() {
 
-    var wrapper
-
     beforeEach(function() {
-        wrapper = shallowMount(switchEditComponent, {
+        this.wrapper = shallowMount(switchEditComponent, {
             propsData: {
                 name: 'description',
                 initial: 'yay',
@@ -24,26 +22,26 @@ describe('switchEditComponent', function() {
     })
 
     it('displays correctly when not editing', function() {
-        assert.equal(wrapper.find('para-stub').props('text'), 'yay')
-        assert.equal(wrapper.find('a.inline-action').text(), 'Edit')
-        assert.isFalse(wrapper.find('textarea').exists())
+        assert.equal(this.wrapper.find('para-stub').props('text'), 'yay')
+        assert.equal(this.wrapper.find('a.inline-action').text(), 'Edit')
+        assert.isFalse(this.wrapper.find('textarea').exists())
     })
 
     it('displays correctly when editing', function() {
-        wrapper.setData({editing: true})
-        assert.isTrue(wrapper.find('textarea').exists())
-        assert.equal(wrapper.find('button.btn-primary').text(), 'Save Changes')
-        assert.equal(wrapper.find('button.btn-default').text(), 'Cancel')
-        assert.isFalse(wrapper.find('a.inline-action').exists())
+        this.wrapper.setData({editing: true})
+        assert.isTrue(this.wrapper.find('textarea').exists())
+        assert.equal(this.wrapper.find('button.btn-primary').text(), 'Save Changes')
+        assert.equal(this.wrapper.find('button.btn-default').text(), 'Cancel')
+        assert.isFalse(this.wrapper.find('a.inline-action').exists())
     })
 
     it('computes capital name', function() {
-        assert.equal(wrapper.vm.capitalName, 'Description')
+        assert.equal(this.wrapper.vm.capitalName, 'Description')
     })
 
     it('sets div id', function() {
-        assert.equal(wrapper.vm.divId, 'switch-description')
-        assert.equal(wrapper.attributes('id'), 'switch-description')
+        assert.equal(this.wrapper.vm.divId, 'switch-description')
+        assert.equal(this.wrapper.attributes('id'), 'switch-description')
     })
 })
 
@@ -77,6 +75,29 @@ describe('switchEditApi', function() {
     it('sets editing false on success', function(done) {
         // setup fake patch method
         let fake = sinon.fake.resolves({status: 200})
+        this.wrapper.setMethods({
+            patch: fake
+        })
+
+        // Set data
+        this.wrapper.setData({
+            editing: true
+        })
+
+        clickElementIfExists(this.wrapper, 'button.btn-primary')
+
+        assert.isTrue(fake.calledOnce)
+        console.log(fake.firstCall.returnValue)
+        let call = fake.firstCall
+        call.returnValue.then(() => {
+            assert.isFalse(this.wrapper.vm.editing)
+        })
+        .then(done, done)
+    })
+
+    it('keeps editing true on fail', function(done) {
+        // setup fake patch method
+        let fake = sinon.fake.rejects()
         this.wrapper.setMethods({
             patch: fake
         })

@@ -238,11 +238,12 @@ describe('issueComment', function() {
         clickElementIfExists(this.wrapper, 'button.btn-success')
 
         assert.isTrue(fake.calledOnce)
-        fake.firstCall.returnValue.then(() => {
+        let call = fake.firstCall
+        call.returnValue.then(() => {
             assert.isTrue(this.wrapper.vm.isOpen)
             assert.isOk(this.wrapper.emitted('set_open'))
             assert.equal(this.wrapper.emitted('set_open').length, 2)
-            assert.equal(this.wrapper.emitted('set_open')[1][0], true)
+            assert.isTrue(this.wrapper.emitted('set_open')[1][0])
             assert.isNotOk(this.wrapper.emitted('created'))
         })
         .then(done, done)
@@ -276,7 +277,8 @@ describe('issueComment', function() {
         clickElementIfExists(this.wrapper, 'button.btn-success')
 
         assert.isTrue(fake.calledOnce)
-        fake.firstCall.returnValue.then(() => {
+        let call = fake.firstCall
+        call.returnValue.then(() => {
             assertSingleEmit(this.wrapper, 'created', {
                 pic: 'example.com/pic.jpg',
                 name: 'John',
