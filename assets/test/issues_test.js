@@ -1,7 +1,7 @@
 import chai from 'chai'
 import sinon from 'sinon'
 import VueTestUtils from '@vue/test-utils'
-import { assertSingleEmit } from './utils.js'
+import { assertSingleEmit, fakePromiseMethod } from './utils.js'
 
 var assert = chai.assert
 
@@ -101,18 +101,14 @@ describe('issueComment', function() {
         assert.equal(this.wrapper.find('button').text(), 'Reopen Issue')
     })
 
-    it('creates comment when button clicked', function(done) {
+    it('calls api request on button clicked', function() {
         // Setup fake post method
-        let fakeresponse = {
+        let fake = fakePromiseMethod(this.wrapper, 'post', {
             status: 201,
             data: {
                 created: '2018',
                 body: 'Test comment'
             }
-        }
-        let fakepost = sinon.fake.resolves(fakeresponse)
-        this.wrapper.setMethods({
-            post: fakepost
         })
 
         // Set props and data
@@ -120,29 +116,54 @@ describe('issueComment', function() {
             commentUrl: '/fake/api/',
             userId: '7',
             issueId: '8',
-            pic: 'example.com/pic.jpg',
-            userName: 'John'
         })
         this.wrapper.setData({
             body: 'Test body'
         })
 
-        // Get comment button
+        // Click comment button
         let commentButton = this.wrapper.find('button.btn-primary')
         assert.isTrue(commentButton.exists())
-        
-        // Click comment button
         commentButton.trigger('click')
 
-        // Check calls and emmits
-        assert.isTrue(fakepost.calledOnce)
-        let call = fakepost.firstCall
+        // Check calls
+        assert.isTrue(fake.calledOnce)
+        let call = fake.firstCall
         let expected_data = {
             body: 'Test body',
             author: '7',
             issue: '8'
         }
         assert.isTrue(call.calledWithExactly('/fake/api/', expected_data))
+    })
+
+    it('emitts created after comment created', function(done) {
+        // Setup fake post method
+        let fake = fakePromiseMethod(this.wrapper, 'post', {
+            status: 201,
+            data: {
+                created: '2018',
+                body: 'Test comment'
+            }
+        })
+
+        // Set props and data
+        this.wrapper.setProps({
+            commentUrl: '/fake/api/',
+            userId: '7',
+            issueId: '8',
+            userName: 'John',
+            pic: 'example.com/pic.jpg'
+        })
+
+        // Click comment button
+        let commentButton = this.wrapper.find('button.btn-primary')
+        assert.isTrue(commentButton.exists())
+        commentButton.trigger('click')
+
+        // Check call and emit
+        assert.isTrue(fake.calledOnce)
+        let call = fake.firstCall
         call.returnValue.then(() => {
             assert.equal(this.wrapper.vm.body, '')
             assertSingleEmit(this.wrapper, 'created', {
