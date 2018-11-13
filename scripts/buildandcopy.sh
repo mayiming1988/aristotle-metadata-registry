@@ -32,6 +32,7 @@ pipenv install --dev
 export PYTHONPATH=./docker
 export DATABASE_URL=sqlite://:memory:
 export DJANGO_SETTINGS_MODULE=settings
+export NO_LOGGING=1
 echo "Collecting static..."
 pipenv run django-admin collectstatic --no-input
 
