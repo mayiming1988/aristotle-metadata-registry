@@ -45,7 +45,7 @@ export default {
             promise.then((response) => {
                 // If issue created and url returned
                 if (response.status == 201 && response.data['url']) {
-                    window.location.assign(response.data['url'])
+                    this.redirect(response.data['url'])
                 }
             })
         }

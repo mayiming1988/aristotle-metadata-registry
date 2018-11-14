@@ -60,6 +60,9 @@ export default {
         },
         isEmpty: function(obj) {
             return (Object.keys(obj).length == 0)
+        },
+        redirect: function(url) {
+            window.location.assign(url)
         }
     },
     computed: {

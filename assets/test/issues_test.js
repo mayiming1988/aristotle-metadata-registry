@@ -340,4 +340,25 @@ describe('issueModal', function() {
         }
         assert.isTrue(fake.calledWithExactly('/fake/api/', expected_data))
     })
+
+    it('redirects on 201 response with url', function() {
+        let fake = fakePromiseMethod(this.wrapper, 'post', {
+            status: 201,
+            data: {
+                url: 'some/fake/url/'
+            }
+        })
+        let fakeRedi = sinon.fake()
+        this.wrapper.setMethods({
+            redirect: fakeRedi
+        })
+
+        clickElementIfExists(this.wrapper, 'button.btn-primary')
+
+        assert.isTrue(fake.calledOnce)
+        return this.wrapper.vm.$nextTick().then(() => {
+            assert.isTrue(fakeRedi.calledOnce)
+            assert.isTrue(fakeRedi.calledWithExactly('some/fake/url/'))
+        })
+    })
 })
