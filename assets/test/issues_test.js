@@ -154,7 +154,6 @@ describe('issueComment', function() {
 
         // Check call and emit
         assert.isTrue(fake.calledOnce)
-        let call = fake.firstCall
         return this.wrapper.vm.$nextTick().then(() => {
             assert.equal(this.wrapper.vm.body, '')
             assertSingleEmit(this.wrapper, 'created', {
@@ -275,7 +274,6 @@ describe('issueComment', function() {
         clickElementIfExists(this.wrapper, 'button.btn-success')
 
         assert.isTrue(fake.calledOnce)
-        let call = fake.firstCall
         return this.wrapper.vm.$nextTick().then(() => {
             assertSingleEmit(this.wrapper, 'created', {
                 pic: 'example.com/pic.jpg',
