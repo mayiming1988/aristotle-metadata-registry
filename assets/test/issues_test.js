@@ -361,4 +361,24 @@ describe('issueModal', function() {
             assert.isTrue(fakeRedi.calledWithExactly('some/fake/url/'))
         })
     })
+
+    it('doesn\'t redirect on non 201 status', function() {
+        let fake = fakePromiseMethod(this.wrapper, 'post', {
+            status: 999,
+            data: {
+                url: 'some/fake/url/'
+            }
+        })
+        let fakeRedi = sinon.fake()
+        this.wrapper.setMethods({
+            redirect: fakeRedi
+        })
+
+        clickElementIfExists(this.wrapper, 'button.btn-primary')
+
+        assert.isTrue(fake.calledOnce)
+        return this.wrapper.vm.$nextTick().then(() => {
+            assert.isFalse(fakeRedi.called)
+        })
+    })
 })
