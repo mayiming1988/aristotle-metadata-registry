@@ -14,6 +14,7 @@ import '../styles/aristotle.less'
 import '../styles/aristotle.visuals.less'
 import '../styles/bootstrap.wcag.css'
 import '../styles/pink.wcag.css'
+import '../styles/aristotle.autocomplete.css'
 import 'eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css'
 
 export function initWidgets() {

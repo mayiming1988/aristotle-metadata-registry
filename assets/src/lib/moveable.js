@@ -1,4 +1,5 @@
 import '../vendor/jquery-ui.min.js'
+import { initDALWidget } from './dal_simple_init.js'
 
 import '../styles/aristotle.moveable.less'
 
@@ -51,6 +52,10 @@ function addCode(id) {
     var total_forms_identifier = 'input[name=' + id + '-TOTAL_FORMS]'
     $(total_forms_identifier).val(num_forms);
 
+    $(new_form).find('[data-autocomplete-light-function=select2]').each(function() {
+        var element = $(this);
+        initDALWidget(element)
+    })
 }
 
 function renumberRow(row,num) {

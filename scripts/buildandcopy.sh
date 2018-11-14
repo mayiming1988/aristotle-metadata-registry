@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+if ! [[ -z "$DISABLE_COLLECTSTATIC" ]]; then
+    echo "Collectstatic disabled"
+    exit 0
+fi
+
 if ! [[ "$PWD" = *aristotle-metadata-registry ]]; then
     echo "Must be run from root of repo"
     exit 1
@@ -16,7 +21,7 @@ if [[ -z "$STORAGE_BUCKET_NAME" ]]; then
     exit 1
 fi
 
-mkdir -p ./python/aristotle-metadata-registry/manifests
+mkdir -p ./python/aristotle-metadata-registry/aristotle_mdr/manifests
 
 cd assets
 echo "Running webpack build..."
@@ -32,6 +37,7 @@ pipenv install --dev
 export PYTHONPATH=./docker
 export DATABASE_URL=sqlite://:memory:
 export DJANGO_SETTINGS_MODULE=settings
+export NO_LOGGING=1
 echo "Collecting static..."
 pipenv run django-admin collectstatic --no-input
 
