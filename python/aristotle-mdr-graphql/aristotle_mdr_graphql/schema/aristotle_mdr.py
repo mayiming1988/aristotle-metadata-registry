@@ -73,7 +73,7 @@ DataElementNode = type_from_concept_model(
     extra_filter_fields=['dataElementConcept','valueDomain','dataElementConcept__objectClass'],
 )
 
-DataElementConceptNode = type_from_model(mdr_models.DataElementConcept)
+DataElementConceptNode = type_from_concept_model(mdr_models.DataElementConcept)
 DataElementDerivationNode = type_from_concept_model(mdr_models.DataElementDerivation)
 
 
