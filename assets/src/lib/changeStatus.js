@@ -1,7 +1,6 @@
 export function initChangeStatus() {
     $("#changeStatus input").change(function() {
         var state = $('#changeStatus input[name$=state]:checked').val();
-        console.log(state);
         var selected_ras = $("#changeStatus input[name$=registrationAuthorities]:checked");
         if (selected_ras.length == 0) {
             // Diffent name on review create form
@@ -14,9 +13,6 @@ export function initChangeStatus() {
             var new_visibility = "hidden";
             selected_ras.each(function( index ) {
                 var ra = $(this).val();
-                console.log(
-                    status_matrix[ra].states[state]
-                );
                 var potential_vis = status_matrix[ra].states[state];
                 if (potential_vis == "public") {
                     new_visibility = potential_vis;

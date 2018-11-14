@@ -15,7 +15,6 @@ export function initDAL() {
 
 export function initDALWidget(element) {
     // Templating result
-    console.log(element)
     function template_result(item) {
         if (!item.body) {
             return item.text;
