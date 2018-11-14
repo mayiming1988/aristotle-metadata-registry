@@ -17,6 +17,10 @@ class PublishMetadataFormView(GenericWithItemURLFormView):
     def get_form_kwargs(self):
         """Return the keyword arguments for instantiating the form."""
         kwargs = super().get_form_kwargs()
+
+        VersionPublicationRecord.objects.get_or_create(
+            concept=self.item,
+        )
         kwargs.update({'instance': self.item.versionpublicationrecord})
         return kwargs
 

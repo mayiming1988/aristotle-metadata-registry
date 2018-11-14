@@ -8,7 +8,6 @@ import issueModal from '../components/issueModal.vue'
 
 import Vue from 'vue'
 
-import '../styles/aristotle.autocomplete.css'
 import '../styles/aristotle.wizard.less'
 import '../styles/aristotle_search.less'
 

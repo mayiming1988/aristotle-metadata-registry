@@ -21,7 +21,7 @@ if [[ -z "$STORAGE_BUCKET_NAME" ]]; then
     exit 1
 fi
 
-mkdir -p ./python/aristotle-metadata-registry/manifests
+mkdir -p ./python/aristotle-metadata-registry/aristotle_mdr/manifests
 
 cd assets
 echo "Running webpack build..."
