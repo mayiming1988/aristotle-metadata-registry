@@ -10,7 +10,7 @@ def concept_saved(message):
 
     for user in instance.favourited_by:
         if sorted(message['changed_fields']) == ['modified', 'superseded_by_id']:
-            messages.favourite_superseded(recipient=p.user, obj=instance)
+            messages.favourite_superseded(recipient=user, obj=instance)
         else:
             messages.favourite_updated(recipient=user, obj=instance)
 
@@ -25,17 +25,17 @@ def concept_saved(message):
                 messages.workgroup_item_new(recipient=user, obj=instance)
             else:
                 messages.workgroup_item_updated(recipient=user, obj=instance)
-    for post in instance.relatedDiscussions.all():
-        DiscussionComment.objects.create(
-            post=post,
-            body='The item "{name}" (id:{iid}) has been changed.\n\n\
-                <a href="{url}">View it on the main site.</a>.'.format(
-                name=instance.name,
-                iid=instance.id,
-                url=reverse("aristotle:item", args=[instance.id])
-            ),
-            author=None,
-        )
+    # for post in instance.relatedDiscussions.all():
+    #     DiscussionComment.objects.create(
+    #         post=post,
+    #         body='The item "{name}" (id:{iid}) has been changed.\n\n\
+    #             <a href="{url}">View it on the main site.</a>.'.format(
+    #             name=instance.name,
+    #             iid=instance.id,
+    #             url=reverse("aristotle:item", args=[instance.id])
+    #         ),
+    #         author=None,
+    #     )
 
 
 def new_comment_created(message, **kwargs):

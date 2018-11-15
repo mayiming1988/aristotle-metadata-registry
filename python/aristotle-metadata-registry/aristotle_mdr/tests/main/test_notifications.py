@@ -37,6 +37,61 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
             workgroup=self.wg1,
         )
 
+    def test_subscriber_is_notified_of_discussion(self):
+        self.assertEqual(self.wg1.discussions.all().count(), 0)
+        user1 = get_user_model().objects.create_user('subscriber@example.com','subscriber')
+
+        self.assertEqual(user1.notifications.count(), 0)
+        models.DiscussionPost.objects.create(
+            title="Hello",
+            body="Sam",
+            author=self.viewer,
+            workgroup=self.wg1
+        )
+        self.assertEqual(self.wg1.discussions.all().count(), 1)
+        self.assertEqual(user1.notifications.count(), 0)
+
+        self.wg1.viewers.add(user1)
+
+        models.DiscussionPost.objects.create(
+            title="Hello",
+            body="Again",
+            author=self.viewer,
+            workgroup=self.wg1
+        )
+
+        self.assertEqual(self.wg1.discussions.all().count(), 2)
+        self.assertTrue('made a new post' in user1.notifications.first().verb )
+        self.assertTrue(self.viewer == user1.notifications.first().actor )
+        self.assertEqual(user1.notifications.count(), 1)
+
+    def test_subscriber_is_notified_of_comment(self):
+        self.assertEqual(self.wg1.discussions.all().count(), 0)
+        kenobi = get_user_model().objects.create_user('kenodi@jedi.order','')
+        grievous = get_user_model().objects.create_user('gen.grevious@separatist.mil','')
+        self.wg1.viewers.add(kenobi)
+        self.wg1.viewers.add(grievous)
+
+        self.assertEqual(kenobi.notifications.count(), 0)
+        self.assertEqual(grievous.notifications.count(), 0)
+        surprise = models.DiscussionPost.objects.create(
+            title="Hello",
+            body="There",
+            author=kenobi,
+            workgroup=self.wg1
+        )
+        self.assertEqual(kenobi.notifications.count(), 0)
+        self.assertEqual(grievous.notifications.count(), 1)
+
+        models.DiscussionComment.objects.create(
+            body="General kenobi!!",
+            author=grievous,
+            post=surprise,
+        )
+
+        self.assertEqual(kenobi.notifications.count(), 1)
+        self.assertEqual(grievous.notifications.count(), 1)
+
     def test_subscriber_is_notified_of_supersede(self):
         user1 = get_user_model().objects.create_user('subscriber@example.com','subscriber')
         self.wg1.viewers.add(user1)

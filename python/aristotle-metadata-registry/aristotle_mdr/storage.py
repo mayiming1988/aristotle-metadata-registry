@@ -5,6 +5,7 @@ import hashlib
 import re
 import os
 import json
+import logging
 
 from storages.backends.s3boto3 import S3Boto3Storage, SpooledTemporaryFile
 
