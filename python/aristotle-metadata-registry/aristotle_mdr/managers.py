@@ -1,7 +1,8 @@
 from django.db import models
 from django.db.models import Q
+from django.utils import timezone
 from django.utils.module_loading import import_string
-from aristotle_mdr.utils import fetch_aristotle_settings
+from aristotle_mdr.utils import fetch_aristotle_settings, status_filter
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
 
@@ -194,3 +195,32 @@ class StatusQuerySet(models.QuerySet):
         It is **chainable** with other querysets.
         """
         return self.all()
+
+    def current(self, when=timezone.now()):
+        """
+        Returns a queryset that returns all reviews that the given user has
+        permission to view.
+
+        It is **chainable** with other querysets.
+        """
+        if hasattr(when, 'date'):
+            when = when.date()
+
+        states = status_filter(self, when=timezone.now())
+        states = states.order_by("registrationAuthority", "-registrationDate", "-created")
+
+        from django.db import connection
+        if connection.vendor == 'postgresql':
+            states = states.distinct('registrationAuthority')
+        else:
+            current_ids = []
+            seen_ras = []
+            for s in states:
+                ra = s.registrationAuthority
+                if ra not in seen_ras:
+                    current_ids.append(s.pk)
+                    seen_ras.append(ra)
+            # We hit again so we can return this as a queryset
+            states = states.filter(pk__in=current_ids)
+
+        return states.select_related('registrationAuthority')
