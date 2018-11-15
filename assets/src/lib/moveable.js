@@ -1,6 +1,6 @@
-import '../vendor/jquery-ui.min.js'
+import 'src/vendor/jquery-ui.min.js'
 
-import '../styles/aristotle.moveable.less'
+import 'src/styles/aristotle.moveable.less'
 
 function replacePrefix(element, num_forms) {
     var name = $(element).attr('name')

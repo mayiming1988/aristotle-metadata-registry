@@ -1,9 +1,9 @@
-import { initCore } from '../lib/init.js'
+import { initCore } from 'src/lib/init.js'
 
 import rootComponent from '@/root/allTags.js'
 import Vue from 'vue'
 
-import '../styles/aristotle.dashboard.less'
+import 'src/styles/aristotle.dashboard.less'
 
 initCore()
 new Vue(rootComponent)

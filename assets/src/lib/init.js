@@ -8,12 +8,12 @@ import { initCKEditor } from './ckeditor_simple_init.js'
 import { initMoveable } from './moveable.js'
 
 // Always on styles
-import '../styles/bootstrap.less'
+import 'src/styles/bootstrap.less'
 import 'font-awesome/css/font-awesome.css'
-import '../styles/aristotle.less'
-import '../styles/aristotle.visuals.less'
-import '../styles/bootstrap.wcag.css'
-import '../styles/pink.wcag.css'
+import 'src/styles/aristotle.less'
+import 'src/styles/aristotle.visuals.less'
+import 'src/styles/bootstrap.wcag.css'
+import 'src/styles/pink.wcag.css'
 import 'eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css'
 
 export function initWidgets() {

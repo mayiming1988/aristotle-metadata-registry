@@ -16,8 +16,8 @@
 
 <script>
 import { Modal } from 'uiv'
-import autocompleteTag from '../components/autocompleteTag.vue'
-import submitTags from '../components/submitTags.vue'
+import autocompleteTag from '@/autocompleteTag.vue'
+import submitTags from '@/submitTags.vue'
 
 export default {
     components: {

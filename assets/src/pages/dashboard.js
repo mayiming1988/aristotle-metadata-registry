@@ -1,6 +1,6 @@
 // Rendered on user base template
-import init from '../lib/init.js'
+import init from 'src/lib/init.js'
 
-import '../styles/aristotle.dashboard.less'
+import 'src/styles/aristotle.dashboard.less'
 
 init()

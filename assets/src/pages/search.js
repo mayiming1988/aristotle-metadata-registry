@@ -1,6 +1,6 @@
-import { initCore, initWidgets } from '../lib/init.js'
+import { initCore, initWidgets } from 'src/lib/init.js'
 
-import '../styles/aristotle_search.less'
+import 'src/styles/aristotle_search.less'
 
 initCore()
 initWidgets()

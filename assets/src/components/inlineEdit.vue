@@ -16,8 +16,8 @@
 </template>
 
 <script>
-import apiRequest from '../mixins/apiRequest.js'
-import apiErrors from '../components/apiErrorDisplay.vue'
+import apiRequest from 'src/mixins/apiRequest.js'
+import apiErrors from '@/apiErrorDisplay.vue'
 
 export default {
     mixins: [apiRequest],

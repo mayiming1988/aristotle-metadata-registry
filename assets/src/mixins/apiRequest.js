@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { getCSRF } from '../lib/cookie.js'
+import { getCSRF } from 'src/lib/cookie.js'
 
 export default {
     data: () => ({

@@ -16,8 +16,8 @@
 
 <script>
 import userPanel from './userPanel.vue'
-import apiErrors from '../components/apiErrorDisplay.vue'
-import apiRequest from '../mixins/apiRequest.js'
+import apiErrors from '@/apiErrorDisplay.vue'
+import apiRequest from 'src/mixins/apiRequest.js'
 
 export default {
     mixins: [apiRequest],
