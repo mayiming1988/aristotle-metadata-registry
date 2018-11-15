@@ -820,7 +820,7 @@ class _concept(baseAristotleObject):
 
     def current_statuses(self, qs=None, when=timezone.now()):
         # TODO: Look at deprecating qs argument
-        
+
         if qs is None:
             qs = self.statuses.all()
 
