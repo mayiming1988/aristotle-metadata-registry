@@ -95,6 +95,16 @@ matrix:
       python: 3.6
       script: tox -e flake8
 
+    - stage: stylecheck
+      language: node_js
+      node_js: 10
+      before_install:
+        - cd assets
+      install:
+        - npm install
+      script:
+        - npm run lint
+
     - stage: documentation
       language: python
       install:
@@ -105,7 +115,7 @@ matrix:
 
     - stage: frontend
       language: node_js
-      node_js: 8
+      node_js: 10
       before_install:
         - cd assets
       install:
