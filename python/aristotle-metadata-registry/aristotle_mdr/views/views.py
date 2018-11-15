@@ -47,12 +47,8 @@ from aristotle_mdr.views.utils import (
     TagsMixin
 )
 from aristotle_mdr.contrib.slots.utils import get_allowed_slots
-<<<<<<< HEAD
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
 from aristotle_mdr.contrib.validators import validators
-=======
-from aristotle_mdr import validators
->>>>>>> 5353cbeab0440222bac3e2aadc3913e4bb68f0d1
 
 from haystack.views import FacetedSearchView
 
