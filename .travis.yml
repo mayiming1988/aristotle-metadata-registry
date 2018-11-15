@@ -66,25 +66,6 @@ defaults:
     script: ./scripts/tox_if.sh dj1.11-linux-ally-$ALLY-module_amr
 
   - &deploy_stage
-    stage: deploy-it
-    language: python
-    python: 3.6
-    install:
-      - pip install -U pip
-      - pip install pipenv
-      - nvm install 8.12.0
-    script: ./scripts/buildandcopy.sh
-    after_success: true
-    deploy: &deploy_step
-      provider: pypi
-      user: Samuel.Spencer
-      skip_upload_docs: true
-      password:
-        secure: fNL+70u1QPgkC3+6iLSPBBeo/J1VrwVn6Tg9PdKR3n4X/m6MgAboDc93CfccfsxVxGqsIRBtEfUwRCJ6MrajWqgfQhjQ9KodiYzPVS8vPUQyOtn73AB8iPYKgKX1pFn6UVXcnI67RmtPyJJEUFPbqy5saKZfRpjVRH3vjM2mDJ0=
-      on:
-        branch: master
-      distributions: sdist bdist_wheel
-      repo: aristotle-mdr/aristotle-metadata-registry
 
 matrix:
 
@@ -170,12 +151,32 @@ matrix:
     - <<: *test_accessibility_py36
       env: ALLY=static MODULE=aristotle-metadata-registry
 
-    - <<: *deploy_stage
+
+    - stage: push-it
       if: branch = master
+      language: python
+      python: 3.6
+      install:
+        - pip install -U pip
+        - pip install pipenv
+        - nvm install 8.12.0
+      script: ./scripts/buildandcopy.sh
+
+    - stage: deploy-it
+      if: branch = master
+      install: skip
+      script: true
+      after_success: true
       deploy:
-        <<: *deploy_step
+        provider: pypi
+        user: Samuel.Spencer
+        skip_upload_docs: true
+        password:
+          secure: fNL+70u1QPgkC3+6iLSPBBeo/J1VrwVn6Tg9PdKR3n4X/m6MgAboDc93CfccfsxVxGqsIRBtEfUwRCJ6MrajWqgfQhjQ9KodiYzPVS8vPUQyOtn73AB8iPYKgKX1pFn6UVXcnI67RmtPyJJEUFPbqy5saKZfRpjVRH3vjM2mDJ0=
         on:
           branch: master
+        distributions: sdist bdist_wheel
+        repo: aristotle-mdr/aristotle-metadata-registry
 
 after_success:
   - ./scripts/coverage_reporter.sh $MODULE
