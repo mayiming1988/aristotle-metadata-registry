@@ -83,7 +83,15 @@ module.exports = (config) => {
                     $: "jquery",
                     jQuery: "jquery"
                 }),
-            ]
+            ],
+            resolve: {
+                alias: {
+                    // Use compiler version of vue
+                    'vue$': 'vue/dist/vue.esm.js',
+                    'src': path.resolve(__dirname, 'src'),
+                    '@': path.resolve(__dirname, 'src/components')
+                }
+            }
         },
         webpackMiddleware: {
             // webpack-dev-middleware configuration
