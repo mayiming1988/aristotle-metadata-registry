@@ -1,5 +1,5 @@
 $( document ).ready( function() {
-    $('div.suggest_name_wrapper button').click(function(e) {
+    $('div.suggest_name_wrapper button').click(function() {
         var fields = $(this).data('suggestFields').split(',');
         var sep = $(this).data('separator');
         if (!sep) {
@@ -7,8 +7,8 @@ $( document ).ready( function() {
         }
         var name = "";
         $.each(fields, function(i,field) {
-            input = $('#id_'+field);
-            var field_name=input.val();
+            let input = $('#id_'+field);
+            let field_name=input.val();
             if (input.parent().hasClass('autocomplete-light-widget')) {
                 field_name=input.parent().find('.title').data('name');
                 if (field_name){
@@ -26,9 +26,9 @@ $( document ).ready( function() {
         return false;
     });
 
-    $('a').click(function(e) {
+    $('a').click(function() {
         if ($(this).attr('href')) {
-            var url = $(this).attr('href').replace('django\/admin','account\/django')
+            var url = $(this).attr('href').replace('django/admin','account/django')
             var title = $('title').text()
 
             top.window.history.pushState("", title, url);

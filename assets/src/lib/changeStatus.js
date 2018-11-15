@@ -1,22 +1,21 @@
+/* global status_matrix, current_visibility, same_visibility_text,
+   diff_visibility_text, select_state_to_see, visibility_translations */
+
 export function initChangeStatus() {
     $("#changeStatus input").change(function() {
         var state = $('#changeStatus input[name$=state]:checked').val();
-        console.log(state);
         var selected_ras = $("#changeStatus input[name$=registrationAuthorities]:checked");
         if (selected_ras.length == 0) {
             // Diffent name on review create form
-            var selected_ras = $("#changeStatus input[name=registration_authority]:checked")
+            selected_ras = $("#changeStatus input[name=registration_authority]:checked")
         }
         if ((typeof state === "undefined") || (selected_ras.length == 0)){
             $('#potential').html(select_state_to_see);
         } else {
             $('#potential').html(this.name);
             var new_visibility = "hidden";
-            selected_ras.each(function( index ) {
+            selected_ras.each(function() {
                 var ra = $(this).val();
-                console.log(
-                    status_matrix[ra].states[state]
-                );
                 var potential_vis = status_matrix[ra].states[state];
                 if (potential_vis == "public") {
                     new_visibility = potential_vis;

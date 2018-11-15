@@ -64,7 +64,7 @@ function renumberRow(row,num) {
 
 function reorderRows(panelList) {
 
-    $('.moveablerow', panelList).each(function(index, elem) {
+    $('.moveablerow', panelList).each(function(index) {
         renumberRow(this,index);
         $(this).find('input[name$=-DELETE]').attr('title',"Delete item "+index);
     });
@@ -95,7 +95,7 @@ export function initMoveable() {
         addCode($(this).attr('formid'));
     });
 
-    $("form").submit(function(event) {
+    $("form").submit(function() {
         $(".draggableTable .moveablerow").each(function() {
             var row = this;
             if ($(row).find("input[name$=-id]").val() == "") {

@@ -58,11 +58,11 @@ export function initWidgets() {
 }
 
 export function initSpinners() {
-    $(document).ajaxSend((event, request, settings) => {
+    $(document).ajaxSend(() => {
         $('#loading_indicator').show().addClass('loading').removeClass('hidden');
     });
 
-    $(document).ajaxComplete((event, request, settings) => {
+    $(document).ajaxComplete(() => {
         $('#loading_indicator').hide().removeClass('loading');
     });
 }
@@ -71,7 +71,7 @@ export function initModalScrap() {
     // Needs to be run on document ready
     $(document).ready(function() {
         // Scrap modals if they lose focus so they can be loaded with new content
-        $('.modal').on('hidden.bs.modal', function(e)
+        $('.modal').on('hidden.bs.modal', function()
             {
                 if (!$(this).hasClass('exclude-scrap')) {
                     $(this).removeData();

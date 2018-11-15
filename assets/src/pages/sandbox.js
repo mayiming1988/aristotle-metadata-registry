@@ -1,3 +1,4 @@
+/* globals delete_submit_url */
 import { initCore } from 'src/lib/init.js'
 import { ajaxForm } from 'src/lib/ajaxforms.js'
 import { initMultifield } from 'src/lib/multifield.js'

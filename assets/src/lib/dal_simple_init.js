@@ -1,4 +1,3 @@
-import { getCSRF } from './cookie.js'
 // DAL needs the full version
 import 'select2/dist/js/select2.full.js'
 import 'select2/dist/css/select2.css'
@@ -72,7 +71,7 @@ export function initDAL() {
 
                     return data;
                 },
-                processResults: function (data, page) {
+                processResults: function (data) {
                     if (element.attr('data-tags')) {
                         $.each(data.results, function(index, value) {
                             value.id = value.text;

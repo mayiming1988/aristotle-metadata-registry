@@ -28,7 +28,7 @@ export function ajaxForm(selector='form.ajaxform') {
                         window.location.assign(data.redirect)
                     } else {
                         var alert = $('<div>', {class: 'alert alert-success ajax-success', role: 'alert', text: data.message})
-                        var container = $('.ajax-success-container').first()
+                        let container = $('.ajax-success-container').first()
                         if (container != undefined) {
                             container.append(alert)
                         } else {
@@ -52,7 +52,7 @@ export function ajaxForm(selector='form.ajaxform') {
 
                         // If field was found
                         if (field.length !=  0) {
-                            var container = field.closest('.field-container')
+                            let container = field.closest('.field-container')
                             var label = container.find('label').first()
                             var ul = $('<ul>', {class: 'alert alert-danger ajax-error'})
                             for (var j = 0; j < errors.length; j++) {

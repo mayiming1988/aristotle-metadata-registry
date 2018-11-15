@@ -1,3 +1,4 @@
+/* globals CKEDITOR */
 import 'ckeditor/ckeditor.js'
 
 export function initCKEditor() {

@@ -83,7 +83,8 @@
       "sourceType": "module"
     },
     "globals": {
-      "$": true
+      "$": true,
+      "jQuery": true
     }
   },
   "author": "",
