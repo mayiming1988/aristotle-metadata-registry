@@ -23,10 +23,10 @@
 </template>
 
 <script>
-import { getCSRF } from '../lib/cookie.js'
-import { capitalize } from '../lib/utils.js'
-import apiErrors from '../components/apiErrorDisplay.vue'
-import para from '../components/para.vue'
+import { getCSRF } from 'src/lib/cookie.js'
+import { capitalize } from 'src/lib/utils.js'
+import apiErrors from '@/apiErrorDisplay.vue'
+import para from '@/para.vue'
 
 export default {
     props: ['name', 'initial', 'submitUrl'], 

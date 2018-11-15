@@ -135,7 +135,9 @@ module.exports = {
     resolve: {
         alias: {
             // Use compiler version of vue
-            'vue$': 'vue/dist/vue.esm.js'
+            'vue$': 'vue/dist/vue.esm.js',
+            'src': path.resolve(__dirname, 'src'),
+            '@': path.resolve(__dirname, 'src/components')
         }
     }
 };

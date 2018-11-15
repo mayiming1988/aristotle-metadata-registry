@@ -50,9 +50,7 @@ class IssueDisplay(IssueBase, TemplateView):
         return issue
 
     def get(self, request, *args, **kwargs):
-        item, code = self.get_item(request.user)
-        if not item:
-            return HttpResponse(status_code=code)
+        item = self.get_item(request.user)
 
         self.item = item
         self.issue = self.get_issue()

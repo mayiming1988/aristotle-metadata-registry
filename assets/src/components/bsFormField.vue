@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import { capitalize } from '../lib/utils.js'
+import { capitalize } from 'src/lib/utils.js'
 export default {
     props: ['name'],
     methods: {

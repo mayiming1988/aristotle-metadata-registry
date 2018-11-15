@@ -2,6 +2,11 @@ const webpack = require('webpack')
 const path = require('path')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 
+var dev_wp_config = require('./webpack.dev.js')
+delete dev_wp_config['entry']
+delete dev_wp_config['output']
+dev_wp_config['optimization'] = {minimize: false}
+
 process.env.CHROME_BIN = require('puppeteer').executablePath()
 
 module.exports = (config) => {
@@ -13,6 +18,15 @@ module.exports = (config) => {
             ChromeHeadlessNoSandbox: {
                 base: 'ChromeHeadless',
                 flags: ['--no-sandbox']
+            }
+        },
+        reporters: ['mocha'],
+        mochaReporter: {
+            colors: {
+                success: 'green',
+                info: 'blue',
+                warning: 'yellow',
+                error: 'red'
             }
         },
         files: [
@@ -69,7 +83,15 @@ module.exports = (config) => {
                     $: "jquery",
                     jQuery: "jquery"
                 }),
-            ]
+            ],
+            resolve: {
+                alias: {
+                    // Use compiler version of vue
+                    'vue$': 'vue/dist/vue.esm.js',
+                    'src': path.resolve(__dirname, 'src'),
+                    '@': path.resolve(__dirname, 'src/components')
+                }
+            }
         },
         webpackMiddleware: {
             // webpack-dev-middleware configuration

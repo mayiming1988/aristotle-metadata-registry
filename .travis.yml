@@ -47,7 +47,7 @@ defaults:
     install:
       - pip install codecov coveralls
       - pip install 'tox>=3.0'
-      - nvm install 8.12.0
+      - nvm install 10.13.0
     <<: *main_test_script
 
   - &test_accessibility_py36
@@ -56,7 +56,7 @@ defaults:
     install:
       - pip install codecov coveralls
       - pip install 'tox>=3.0'
-      - nvm install 8.12.0
+      - nvm install 10.13.0
     python: 3.6
     before_script:
       - cd assets
@@ -78,6 +78,16 @@ matrix:
       python: 3.6
       script: tox -e flake8
 
+    - stage: stylecheck
+      language: node_js
+      node_js: 10
+      before_install:
+        - cd assets
+      install:
+        - npm install
+      script:
+        - npm run lint
+
     - stage: documentation
       language: python
       install:
@@ -88,7 +98,7 @@ matrix:
 
     - stage: frontend
       language: node_js
-      node_js: 8
+      node_js: 10
       before_install:
         - cd assets
       install:

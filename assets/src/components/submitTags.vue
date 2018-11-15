@@ -3,8 +3,8 @@
 </template>
 
 <script>
-import { getCSRF } from '../lib/cookie.js'
-import { addHeaderMessage } from '../lib/messages.js'
+import { getCSRF } from 'src/lib/cookie.js'
+import { addHeaderMessage } from 'src/lib/messages.js'
 
 export default {
     props: ['submitUrl', 'tags'],

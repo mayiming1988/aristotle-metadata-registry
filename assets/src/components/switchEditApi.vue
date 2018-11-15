@@ -1,6 +1,6 @@
 <script>
-import switchEdit from '../components/switchEdit.vue'
-import apiRequest from '../mixins/apiRequest.js'
+import switchEdit from '@/switchEdit.vue'
+import apiRequest from 'src/mixins/apiRequest.js'
 
 export default {
     extends: switchEdit,
