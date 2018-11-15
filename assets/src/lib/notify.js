@@ -29,10 +29,10 @@ function fetch_api_data(callback, num) {
 // Callback for notify menu
 function fill_aristotle_notification_menu(data) {
     update_notification_badge(data)
-    var menu = $('.notify-menu')[0]
+    var menu = $('.notify-menu').first()
     var notify_unread_url = '/account/notifications'
     if (menu) {
-        menu.innerHTML = "";
+        menu.empty()
         if (data.unread_list.length > 0) {
             for (var i=0; i < data.unread_list.length; i++) {
                 var item = data.unread_list[i];
@@ -113,9 +113,8 @@ function mark_all_unread() {
 
 export function reload_notifications() {
     if (!loading_notifications) {
-        var menu = $('.notify-menu')[0]
-
-        menu.innerHTML = ""
+        var menu = $('.notify-menu').first()
+        menu.empty()
 
         // Make loading icon li element
         var listelement = document.createElement('li')

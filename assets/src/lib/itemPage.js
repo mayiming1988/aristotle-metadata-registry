@@ -4,7 +4,6 @@ import { initChangeStatus } from 'src/lib/changeStatus.js'
 import Vue from 'vue'
 import rootComponent from '@/root/itemPage.js'
 
-import 'src/styles/aristotle.autocomplete.css'
 import 'src/styles/aristotle.wizard.less'
 import 'src/styles/aristotle_search.less'
 
