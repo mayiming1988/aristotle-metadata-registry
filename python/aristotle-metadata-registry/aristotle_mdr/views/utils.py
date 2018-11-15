@@ -22,6 +22,7 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 from django.core.cache import cache
+from django.core.exceptions import PermissionDenied
 
 from django.views.generic.detail import BaseDetailView
 from django.views.generic import (
@@ -565,22 +566,20 @@ class SimpleItemGet:
     def get_item(self, user):
         item_id = self.kwargs.get(self.item_id_arg, None)
         if item_id is None:
-            return None, 404
+            raise Http404
 
         try:
             item = _concept.objects.get(id=item_id)
         except _concept.DoesNotExist:
-            return None, 404
+            raise Http404
 
         if not user_can_view(user, item):
-            return None, 403
+            raise PermissionDenied
 
-        return item, 200
+        return item
 
     def get(self, request, *args, **kwargs):
-        item, code = self.get_item(request.user)
-        if not item:
-            return HttpResponse(status_code=code)
+        item = self.get_item(request.user)
 
         self.item = item
         return super().get(request, *args, **kwargs)

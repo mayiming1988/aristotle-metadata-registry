@@ -14,12 +14,14 @@ class IssueTests(AristotleTestUtils, TestCase):
             workgroup=self.wg1
         )
 
-    def create_test_issue(self, name='Test Issue'):
+    def create_test_issue(self, name='Test Issue', user=None):
+        if not user:
+            user = self.editor
         return models.Issue.objects.create(
             name=name,
             description='Just a test',
             item=self.item,
-            submitter=self.editor
+            submitter=user
         )
 
     def test_issue_create(self):
@@ -84,3 +86,46 @@ class IssueTests(AristotleTestUtils, TestCase):
         )
 
         self.assertFalse(response.context['own_issue'])
+
+    def test_openclose_perm_editor(self):
+        issue = self.create_test_issue(self.viewer)
+        self.login_editor()
+
+        response = self.reverse_get(
+            'aristotle_issues:issue',
+            reverse_args=[self.item.id, issue.pk],
+            status_code=200
+        )
+        self.assertTrue(response.context['can_open_close'])
+
+    def test_openclose_perm_outsider(self):
+        issue = self.create_test_issue()
+        self.make_item_public(self.item, self.ra)
+        self.login_regular_user()
+
+        response = self.reverse_get(
+            'aristotle_issues:issue',
+            reverse_args=[self.item.id, issue.pk],
+            status_code=200
+        )
+        self.assertFalse(response.context['can_open_close'])
+
+    def test_view_issue_invalid_item(self):
+        issue = self.create_test_issue()
+
+        self.login_editor()
+        response = self.reverse_get(
+            'aristotle_issues:issue',
+            reverse_args=[70000, issue.pk],
+            status_code=404
+        )
+
+    def test_view_issue_no_perm_item(self):
+        issue = self.create_test_issue()
+
+        self.login_regular_user()
+        response = self.reverse_get(
+            'aristotle_issues:issue',
+            reverse_args=[self.item.id, issue.pk],
+            status_code=403
+        )
