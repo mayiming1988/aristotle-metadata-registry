@@ -97,21 +97,26 @@ matrix:
         - npm run test
 
     - stage: testing-aristotle-mdr
+      if: type = push
       env: DJANGO_VERSION='1.11'  DB=sqlite  SEARCH=elastic MODULE=amr
       <<: *main_test_script_py36
     - stage: testing-aristotle-mdr
       env: DJANGO_VERSION='1.11'  DB=postgres  SEARCH=elastic MODULE=amr
       <<: *main_test_script_py36
     - stage: testing-aristotle-mdr
+      if: type = push
       env: DJANGO_VERSION='1.11'  DB=sqlite    SEARCH=whoosh MODULE=amr
       <<: *main_test_script_py36
     - stage: testing-aristotle-mdr
+      if: type = push
       env: DJANGO_VERSION='1.11'  DB=postgres  SEARCH=whoosh MODULE=amr
       <<: *main_test_script_py36
     - stage: testing-aristotle-mdr
+      if: type = push
       env: DJANGO_VERSION='1.11'  DB=mariadb   SEARCH=whoosh MODULE=amr
       <<: *main_test_script_py36
     - stage: testing-aristotle-mdr
+      if: type = push
       env: DJANGO_VERSION='1.11'  DB=mariadb   SEARCH=elastic MODULE=amr
       <<: *main_test_script_py36
 
@@ -152,7 +157,7 @@ matrix:
       env: ALLY=static MODULE=aristotle-metadata-registry
 
 
-    - stage: push-it
+    - stage: deploy-it
       if: branch = master
       language: python
       python: 3.6
