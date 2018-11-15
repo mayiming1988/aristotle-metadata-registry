@@ -7,6 +7,7 @@ var assert = chai.assert
 
 import issueComment from '../src/components/issueComment.vue'
 import issueModal from '../src/components/issueModal.vue'
+import rootComponent from '../src/components/root/issues.js'
 
 describe('issueComment', function() {
 
@@ -378,5 +379,34 @@ describe('issueModal', function() {
         return this.wrapper.vm.$nextTick().then(() => {
             assert.isFalse(fakeRedi.called)
         })
+    })
+})
+
+describe('issueRootComponent', function() {
+
+    beforeEach(function() {
+        // convert root component data to function
+        let initData = rootComponent.data
+        this.wrapper = VueTestUtils.shallowMount(rootComponent, {
+            data: () => (initData)
+        })
+    })
+
+    afterEach(function() {
+        this.wrapper = {}
+    })
+
+    it('sets is open correctly', function() {
+        assert.isTrue(this.wrapper.vm.isOpen)
+        this.wrapper.vm.setIsOpen(false)
+        assert.isFalse(this.wrapper.vm.isOpen)
+    })
+
+    it('adds comment correctly', function() {
+        assert.isEmpty(this.wrapper.vm.new_comments)
+        this.wrapper.vm.addComment({body: 'yeah'})
+        this.wrapper.vm.addComment({body: 'wow'})
+        let expected = [{body: 'yeah'}, {body: 'wow'}]
+        assert.deepEqual(this.wrapper.vm.new_comments, expected)
     })
 })

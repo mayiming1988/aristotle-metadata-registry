@@ -2,6 +2,11 @@ const webpack = require('webpack')
 const path = require('path')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 
+var dev_wp_config = require('./webpack.dev.js')
+delete dev_wp_config['entry']
+delete dev_wp_config['output']
+dev_wp_config['optimization'] = {minimize: false}
+
 process.env.CHROME_BIN = require('puppeteer').executablePath()
 
 module.exports = (config) => {
