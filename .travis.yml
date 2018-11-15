@@ -159,23 +159,14 @@ matrix:
 
     - stage: deploy-it
       if: branch = master
-      language: python
-      python: 3.6
-      install:
-        - pip install -U pip
-        - pip install pipenv
-        - nvm install 8.12.0
-      script: ./scripts/buildandcopy.sh
-
-    - stage: deploy-it
-      if: branch = master
       install: skip
-      script: true
+      script: ./scripts/buildandcopy.sh
       after_success: true
       deploy:
         provider: pypi
         user: Samuel.Spencer
         skip_upload_docs: true
+        skip_cleanup: true
         password:
           secure: fNL+70u1QPgkC3+6iLSPBBeo/J1VrwVn6Tg9PdKR3n4X/m6MgAboDc93CfccfsxVxGqsIRBtEfUwRCJ6MrajWqgfQhjQ9KodiYzPVS8vPUQyOtn73AB8iPYKgKX1pFn6UVXcnI67RmtPyJJEUFPbqy5saKZfRpjVRH3vjM2mDJ0=
         on:
