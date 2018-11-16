@@ -368,8 +368,8 @@ class TestLinkPages(LinkTestBase, TestCase):
         self.assertEqual(response.context['wizard']['steps'].current, '1')
 
         step_data['add_link_wizard-current_step'] = 1
-        step_data['1-role_{}'.format(self.relation_role1.pk)] = self.item2
-        step_data['1-role_{}'.format(self.relation_role2.pk)] = self.item3
+        step_data['1-role_{}'.format(self.relation_role1.pk)] = self.item2.pk
+        step_data['1-role_{}'.format(self.relation_role2.pk)] = self.item3.pk
 
         response = self.reverse_post(
             'aristotle_mdr_links:add_link',
@@ -384,6 +384,7 @@ class TestLinkPages(LinkTestBase, TestCase):
 
         self.assertEqual(len(nfe), 1)
         self.assertTrue(nfe[0].endswith('Must be one of the attached concepts'))
+        import pdb; pdb.set_trace()
 
 
 class TestLinkPerms(LinkTestBase, TestCase):
