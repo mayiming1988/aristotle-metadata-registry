@@ -378,13 +378,13 @@ class TestLinkPages(LinkTestBase, TestCase):
             status_code=200
         )
         self.assertEqual(response.context['wizard']['steps'].current, '1')
-        self.assertEqual(response.status_code, 200)
 
         nfe = response.context['form'].non_field_errors()
 
         self.assertEqual(len(nfe), 1)
         self.assertTrue(nfe[0].endswith('Must be one of the attached concepts'))
-        import pdb; pdb.set_trace()
+        # Check that the error is actually rendered
+        self.assertContains(response, 'Must be one of the attached concepts')
 
 
 class TestLinkPerms(LinkTestBase, TestCase):
