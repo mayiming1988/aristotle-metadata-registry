@@ -8,7 +8,7 @@ register = template.Library()
 
 @register.filter
 def get_links(item):
-    return Link.objects.filter(linkend__concept=item).all().distinct()
+    return Link.objects.filter(root_item=item)
 
 
 @register.filter

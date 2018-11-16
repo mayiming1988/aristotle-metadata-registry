@@ -23,6 +23,6 @@ urlpatterns = [
         views.AddLinkWizard.as_view(), name='add_link'),
     url(r'^relation/link/edit/(?P<linkid>\d+)$',
         views.EditLinkFormView.as_view(), name='edit_link'),
-    url(r'^relation/link/json/(?P<linkid>\d+)$',
+    url(r'^relation/link/json/(?P<iid>\d+)$',
         views.link_json_for_item, name='link_json_for_item'),
 ]
