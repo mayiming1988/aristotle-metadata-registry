@@ -26,7 +26,6 @@ from aristotle_mdr.utils import (
     url_slugify_workgroup,
     url_slugify_registration_authoritity,
     url_slugify_organization,
-    status_filter,
 )
 from aristotle_mdr import comparators
 
@@ -819,12 +818,10 @@ class _concept(baseAristotleObject):
         concept_visibility_updated.send(sender=self.__class__, concept=self)
 
     def current_statuses(self, qs=None, when=timezone.now()):
-        # TODO: Look at deprecating qs argument
-
         if qs is None:
             qs = self.statuses.all()
 
-        return qs.all().current(when)
+        return qs.current(when)
 
     def get_download_items(self):
         """

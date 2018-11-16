@@ -29,7 +29,6 @@ from django.views.generic import (
 )
 
 from aristotle_mdr import models as MDR
-from aristotle_mdr.utils import status_filter
 from aristotle_mdr.perms import user_can_view
 from aristotle_mdr.models import _concept
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
@@ -266,7 +265,7 @@ def get_status_queryset():
     """
 
     return (
-        status_filter(MDR.Status.objects)
+        MDR.Status.objects.valid()
         .order_by("registrationAuthority", "-registrationDate", "-created")
         .select_related('registrationAuthority')
     )
