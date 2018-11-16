@@ -87,6 +87,7 @@ class Link(TimeStampedModel):
     Concept_Systems (9.1.2.2) through the assertion_inclusion (9.1.3.5) association.
     """
     relation = ConceptForeignKey(Relation)
+    root_item = ConceptForeignKey(MDR._concept, related_name='owned_links')
 
     def concepts(self):
         return MDR._concept.objects.filter(linkend__link=self).all().distinct()
