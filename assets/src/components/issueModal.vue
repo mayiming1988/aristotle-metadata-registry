@@ -16,9 +16,9 @@
 
 <script>
 import { Modal } from 'uiv'
-import formField from '../components/bsFormField.vue'
-import apiErrors from '../components/apiErrorDisplay.vue'
-import apiRequest from '../mixins/apiRequest.js'
+import formField from '@/bsFormField.vue'
+import apiErrors from '@/apiErrorDisplay.vue'
+import apiRequest from 'src/mixins/apiRequest.js'
 
 export default {
     mixins: [apiRequest],
@@ -45,7 +45,7 @@ export default {
             promise.then((response) => {
                 // If issue created and url returned
                 if (response.status == 201 && response.data['url']) {
-                    window.location.assign(response.data['url'])
+                    this.redirect(response.data['url'])
                 }
             })
         }

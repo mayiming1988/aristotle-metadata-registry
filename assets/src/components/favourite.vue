@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import { addHeaderMessage } from '../lib/messages.js'
+import { addHeaderMessage } from 'src/lib/messages.js'
 
 export default {
     props: ['initial', 'submitUrl'],

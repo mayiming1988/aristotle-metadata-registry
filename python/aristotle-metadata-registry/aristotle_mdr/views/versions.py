@@ -12,7 +12,6 @@ from django.urls import reverse
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils import pretify_camel_case
 from aristotle_mdr.views.views import ConceptRenderMixin
-from aristotle_mdr.views.utils import SimpleItemGet
 from aristotle_mdr.perms import user_can_view
 
 import json

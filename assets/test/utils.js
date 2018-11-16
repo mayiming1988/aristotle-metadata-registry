@@ -1,4 +1,5 @@
 import chai from 'chai'
+import sinon from 'sinon'
 
 const assert = chai.assert
 
@@ -28,4 +29,27 @@ export function assertSingleMessage(message) {
     let lis = ul.querySelectorAll('li')
     assert.equal(lis.length, 1)
     assert.equal(lis[0].textContent, message)
+}
+
+export function assertSingleEmit(wrapper, event, value) {
+    assert.isOk(wrapper.emitted(event))
+    assert.equal(wrapper.emitted(event).length, 1)
+    assert.deepEqual(wrapper.emitted(event)[0][0], value)
+}
+
+export function fakePromiseMethod(wrapper, method, return_value) {
+    if (return_value == undefined) {
+        return_value = {}
+    }
+    let fake = sinon.fake.resolves(return_value)
+    wrapper.setMethods({
+        [method]: fake
+    })
+    return fake
+}
+
+export function clickElementIfExists(wrapper, selector) {
+    let element = wrapper.find(selector)
+    assert.isTrue(element.exists())
+    element.trigger('click')
 }

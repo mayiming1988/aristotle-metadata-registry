@@ -1,3 +1,3 @@
-import { initItemPage } from '../lib/itemPage.js'
+import { initItemPage } from 'src/lib/itemPage.js'
 
 initItemPage()

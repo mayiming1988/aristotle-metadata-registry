@@ -1,6 +1,7 @@
-import { initCore } from '../lib/init.js'
-import { ajaxForm } from '../lib/ajaxforms.js'
-import { initMultifield } from '../lib/multifield.js'
+/* globals delete_submit_url */
+import { initCore } from 'src/lib/init.js'
+import { ajaxForm } from 'src/lib/ajaxforms.js'
+import { initMultifield } from 'src/lib/multifield.js'
 import ClipboardJS from 'clipboard'
 
 initCore()

@@ -1,6 +1,6 @@
-import { initItemPage } from '../lib/itemPage.js'
+import { initItemPage } from 'src/lib/itemPage.js'
 
-import '../styles/aristotle_dse.css'
+import 'src/styles/aristotle_dse.css'
 
 initItemPage()
 

@@ -764,6 +764,15 @@ class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils, FormsetTestUtils):
             item=item
         )
 
+    def make_item_public(self, item, ra):
+        s = models.Status.objects.create(
+            concept=item,
+            registrationAuthority=ra,
+            registrationDate=timezone.now(),
+            state=ra.public_state
+        )
+        return s
+
 
 @attr.s
 class MockManagementForm(object):
