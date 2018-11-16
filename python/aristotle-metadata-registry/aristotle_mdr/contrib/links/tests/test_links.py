@@ -169,6 +169,14 @@ class LinkTestBase(utils.AristotleTestUtils):
         )
 
 class TestLinkPages(LinkTestBase, TestCase):
+
+    def register_relation(self):
+        self.ra.register(
+            item=self.relation,
+            state=STATES.standard,
+            user=self.su
+        )
+
     def test_superuser_can_view_edit_links(self):
         self.login_superuser()
         response = self.client.get(self.item1.get_absolute_url())
@@ -250,6 +258,7 @@ class TestLinkPages(LinkTestBase, TestCase):
         self.assertTrue(self.item2 not in self.link1.concepts())
         self.assertTrue(self.item3 in self.link1.concepts())
 
+    @tag('link_wizard')
     def test_add_link_wizard(self):
         self.wizard_form_name = "add_link_wizard"
         next_url = reverse("aristotle:home")
@@ -338,6 +347,44 @@ class TestLinkPages(LinkTestBase, TestCase):
             reverse_args=[self.item1.id],
             status_code=403
         )
+
+    @tag('root_required')
+    def test_root_item_is_required_as_one_end(self):
+
+        self.register_relation()
+        self.login_editor()
+
+        step_data = {
+            'add_link_wizard-current_step': 0,
+            '0-relation': str(self.relation.pk)
+        }
+
+        response = self.reverse_post(
+            'aristotle_mdr_links:add_link',
+            step_data,
+            reverse_args=[self.item1.id],
+            status_code=200
+        )
+        self.assertEqual(response.context['wizard']['steps'].current, '1')
+
+        step_data['add_link_wizard-current_step'] = 1
+        step_data['1-role_{}'.format(self.relation_role1.pk)] = self.item2
+        step_data['1-role_{}'.format(self.relation_role2.pk)] = self.item3
+
+        response = self.reverse_post(
+            'aristotle_mdr_links:add_link',
+            step_data,
+            reverse_args=[self.item1.id],
+            status_code=200
+        )
+        self.assertEqual(response.context['wizard']['steps'].current, '1')
+        self.assertEqual(response.status_code, 200)
+
+        nfe = response.context['form'].non_field_errors()
+
+        self.assertEqual(len(nfe), 1)
+        self.assertTrue(nfe[0].endswith('Must be one of the attached concepts'))
+
 
 class TestLinkPerms(LinkTestBase, TestCase):
     def test_superuser_can_edit_links(self):

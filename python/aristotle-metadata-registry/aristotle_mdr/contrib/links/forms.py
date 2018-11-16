@@ -61,7 +61,25 @@ class AddLink_SelectRelation_1(UserAwareForm, forms.Form):
 
 
 class AddLink_SelectConcepts_2(LinkEndEditorBase):
-    pass
+
+    def __init__(self, *args, **kwargs):
+        if 'root_item' in kwargs:
+            self.root_item = kwargs.pop('root_item')
+        super().__init__(*args, **kwargs)
+
+    def clean(self, *args, **kwargs):
+        super().clean(*args, **kwargs)
+        cleaned_data = self.cleaned_data
+
+        root_item_present = False
+        for field, data in cleaned_data.items():
+            if field.startswith('role_') and data == self.root_item:
+                root_item_present = True
+                break
+
+        if not root_item_present:
+            error_msg = '{} Must be one of the attached concepts'.format(self.root_item.name)
+            self.add_error(None, error_msg)
 
 
 class AddLink_Confirm_3(forms.Form):

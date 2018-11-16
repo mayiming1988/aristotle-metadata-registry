@@ -127,7 +127,8 @@ class AddLinkWizard(SessionWizardView):
             self.relation = self.get_cleaned_data_for_step('0')['relation']
             kwargs.update({
                 'roles': self.relation.relationrole_set.all(),
-                'user': self.request.user
+                'user': self.request.user,
+                'root_item': self.root_item
             })
 
         return kwargs
