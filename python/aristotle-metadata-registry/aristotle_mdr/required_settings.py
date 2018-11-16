@@ -84,6 +84,7 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 ARISTOTLE_ASYNC_SIGNALS = True
 
 INSTALLED_APPS = (
+    'aristotle_bg_workers',
     'aristotle_mdr',
     'aristotle_mdr.contrib.view_history',
     'aristotle_mdr.contrib.generic',
@@ -123,6 +124,7 @@ INSTALLED_APPS = (
     'organizations',
 
     'constrainedfilefield',
+    'django_celery_results',
 
     'webpack_loader',
 
@@ -134,8 +136,7 @@ INSTALLED_APPS = (
 
     'django_jsonforms'
 
-    # 'aristotle_bg_workers',
-    # 'django_celery_results',
+    'aristotle_bg_workers',
 )
 
 USE_L10N = True

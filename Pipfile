@@ -33,5 +33,6 @@ django-impersonate = "*"
 psycopg2 = "*"
 boto3 = "*"
 
+
 [requires]
 python_version = "3.6"
