@@ -6,6 +6,7 @@ from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import FormView
 
 from aristotle_mdr import models as MDR
+from aristotle_mdr.perms import user_can_edit
 from aristotle_mdr.contrib.links import forms as link_forms
 from aristotle_mdr.contrib.links import models as link_models
 from aristotle_mdr.contrib.links import perms
@@ -19,7 +20,7 @@ class EditLinkFormView(FormView):
 
     def dispatch(self, request, *args, **kwargs):
         self.link = get_object_or_404(
-            link_models.Link, pk=self.kwargs['iid']
+            link_models.Link, pk=self.kwargs['linkid']
         )
         self.relation = self.link.relation
         if request.user.is_anonymous():
@@ -101,6 +102,12 @@ class AddLinkWizard(SessionWizardView):
             return redirect(reverse('friendly_login') + '?next=%s' % request.path)
         if not request.user.has_perm('aristotle_mdr_links.add_link'):
             raise PermissionDenied
+
+        self.root_item = get_object_or_404(MDR._concept, id=kwargs['iid'])
+
+        if not user_can_edit(self.request.user, self.root_item):
+            raise PermissionDenied
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_template_names(self):
@@ -149,10 +156,11 @@ class AddLinkWizard(SessionWizardView):
     def done(self, *args, **kwargs):
         self.relation = self.get_cleaned_data_for_step('0')['relation']
 
-        link = link_models.Link.objects.create(relation=self.relation)
+        link = link_models.Link.objects.create(
+            relation=self.relation,
+            root_item=self.root_item
+        )
         for role, concepts in self.get_role_concepts():
-            # if role.multiplicity == 1:
-            #     concepts = [concepts]
             for concept in concepts:
                 link_models.LinkEnd.objects.create(link=link, role=role, concept=concept)
 

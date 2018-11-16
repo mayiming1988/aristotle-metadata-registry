@@ -107,7 +107,7 @@ class RelationCreationWizard(utils.FormsetTestUtils, ConceptWizardPage, TestCase
         self.assertEqual(roles[1].multiplicity, 1)
 
 
-class LinkTestBase(utils.LoggedInViewPages):
+class LinkTestBase(utils.AristotleTestUtils):
     def setUp(self, *args, **kwargs):
         super().setUp(*args, **kwargs)
         self.item1 = ObjectClass.objects.create(
@@ -142,7 +142,10 @@ class LinkTestBase(utils.LoggedInViewPages):
             relation=self.relation
         )
 
-        self.link1 = models.Link.objects.create(relation=self.relation)
+        self.link1 = models.Link.objects.create(
+            relation=self.relation,
+            root_item=self.item1
+        )
         self.link1_end1 = self.link1.add_link_end(
             role = self.relation_role1,
             concept = self.item1
@@ -152,7 +155,10 @@ class LinkTestBase(utils.LoggedInViewPages):
             concept = self.item2
         )
 
-        self.link2 = models.Link.objects.create(relation=self.relation)
+        self.link2 = models.Link.objects.create(
+            relation=self.relation,
+            root_item=self.item2
+        )
         self.link2_end1 = self.link2.add_link_end(
             role = self.relation_role1,
             concept = self.item2
@@ -247,7 +253,8 @@ class TestLinkPages(LinkTestBase, TestCase):
     def test_add_link_wizard(self):
         self.wizard_form_name = "add_link_wizard"
         next_url = reverse("aristotle:home")
-        self.wizard_url = reverse('aristotle_mdr_links:add_link')+'?next=' + next_url
+        self.wizard_url = reverse('aristotle_mdr_links:add_link', args=[self.item1.pk])
+        self.wizard_url += '?next=' + next_url
 
         self.ra.register(
             item=self.relation,
@@ -310,6 +317,27 @@ class TestLinkPages(LinkTestBase, TestCase):
 
         self.assertEqual(self.item1.linkend_set.count(), self.relation.relationrole_set.count())
 
+        link = self.relation.link_set.first()
+        self.assertEqual(link.root_item, self.item1._concept_ptr)
+
+    def test_add_link_root_item_set(self):
+
+        self.login_editor()
+        response = self.reverse_get(
+            'aristotle_mdr_links:add_link',
+            reverse_args=[self.item1.id],
+            status_code=200
+        )
+
+        self.assertEqual(response.context['view'].root_item, self.item1._concept_ptr)
+
+    def test_cant_add_link_on_non_editable_item(self):
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle_mdr_links:add_link',
+            reverse_args=[self.item1.id],
+            status_code=403
+        )
 
 class TestLinkPerms(LinkTestBase, TestCase):
     def test_superuser_can_edit_links(self):
