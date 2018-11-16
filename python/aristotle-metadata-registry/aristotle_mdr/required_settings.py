@@ -82,6 +82,7 @@ ALLOWED_HOSTS = []
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 INSTALLED_APPS = (
+    'aristotle_bg_workers',
     'aristotle_mdr',
     'aristotle_mdr.contrib.generic',
     'aristotle_mdr.contrib.help',
@@ -118,7 +119,6 @@ INSTALLED_APPS = (
     'organizations',
 
     'constrainedfilefield',
-    'aristotle_bg_workers',
     'django_celery_results',
 )
 

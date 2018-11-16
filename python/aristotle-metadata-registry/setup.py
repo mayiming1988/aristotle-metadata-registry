@@ -84,7 +84,10 @@ setup(
         'django-improved-user>=1.0.0',
 
         # File upload
-        'django-constrainedfilefield[filetype]',
+        'django-constrainedfilefield',
+
+        # File type checking
+        'python-magic>=0.4.2'
 
         # Generic json field
         'jsonfield',

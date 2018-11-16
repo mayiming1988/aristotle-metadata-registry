@@ -29,7 +29,6 @@ dj-database-url = "*"
 django-tools = "*"
 mock = "*"
 wcag-zoo = "*"
-django-silk = "*"
 
 [requires]
 python_version = "3.6"
