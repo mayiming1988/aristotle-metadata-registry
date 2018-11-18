@@ -748,8 +748,29 @@ class GeneralTestUtils:
         self.assertTrue(key in context)
 
 
+class WizardTestUtils:
+    """Helper for testing django-formtools wizards"""
 
-class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils, FormsetTestUtils):
+    def assertWizardStep(self, response, step):
+        strstep = str(step)
+        self.assertEqual(response.context['wizard']['steps'].current, strstep)
+
+    def post_to_wizard(self, datalist, url):
+
+        step = 0
+        response = self.client.get(url)
+
+        for formdata in datalist:
+            self.assertWizardStep(response, step)
+            response = self.client.post(url, formdata)
+            self.assertEqual(response.status_code, 200)
+            step += 1
+
+        return response
+
+
+class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils,
+                         WizardTestUtils, FormsetTestUtils):
     """Combination of the above 3 utils plus some aristotle specific utils"""
 
     def favourite_item(self, user, item):
