@@ -205,7 +205,7 @@ class StatusQuerySet(models.QuerySet):
             Q(until_date__gte=when) |
             Q(until_date__isnull=True)
         )
-    
+
         return self.filter(
             registered_before_now & registration_still_valid
         )
