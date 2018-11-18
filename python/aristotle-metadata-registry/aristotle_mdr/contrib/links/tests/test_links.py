@@ -306,7 +306,6 @@ class TestLinkPages(LinkTestBase, TestCase):
         self.assertEqual(response.status_code, 200)
 
         step_1_data = {}
-        step_1_data.update(step_0_data)
         step_1_data.update({self.wizard_form_name+'-current_step': '1'})
         for role in self.relation.relationrole_set.all():
             step_1_data.update({'1-role_%s'%role.pk: self.item1.pk})
@@ -319,7 +318,6 @@ class TestLinkPages(LinkTestBase, TestCase):
         self.assertEqual(wizard['steps'].current, '2')
 
         step_2_data = {}
-        step_2_data.update(step_1_data)
         step_2_data.update({self.wizard_form_name+'-current_step': '2'})
         response = self.client.post(self.wizard_url, step_2_data)
         self.assertRedirects(response, next_url)
