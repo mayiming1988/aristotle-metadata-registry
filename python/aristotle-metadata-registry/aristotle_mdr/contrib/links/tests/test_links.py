@@ -315,7 +315,6 @@ class TestLinkPages(LinkTestBase, TestCase):
         wizard = response.context['wizard']
         self.assertEqual(response.status_code, 200)  # OK, lets go!
 
-        print(wizard['form'].errors)
         self.assertEqual(len(wizard['form'].errors.keys()), 0)
         self.assertWizardStep(response, 3)
 
