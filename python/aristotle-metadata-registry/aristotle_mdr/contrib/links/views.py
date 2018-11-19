@@ -126,7 +126,7 @@ class AddLinkWizard(SessionWizardView):
             kwargs['user'] = self.request.user
         elif istep == 1:
             relation = self.get_cleaned_data_for_step('0')['relation']
-            kwargs['relation'] = relation
+            kwargs['roles'] = self.get_roles()
         elif istep == 2:
             relation = self.get_cleaned_data_for_step('0')['relation']
             kwargs.update({
@@ -158,10 +158,12 @@ class AddLinkWizard(SessionWizardView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        if int(self.steps.current) == 2:
+        istep = int(self.steps.current)
+        if istep == 1:
+            context['roles_exist'] = context['form'].fields['role'].queryset.exists()
+        elif istep == 2:
             context['roles'] = self.get_roles()
-        if int(self.steps.current) == 3:
-
+        elif istep == 3:
             context.update({
                 'relation': self.get_cleaned_data_for_step('0')['relation'],
                 'role_concepts': self.get_role_concepts()

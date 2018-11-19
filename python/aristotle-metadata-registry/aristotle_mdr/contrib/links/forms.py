@@ -62,10 +62,10 @@ class AddLink_SelectRelation_1(UserAwareForm, forms.Form):
 
 class AddLink_SelectRole_2(forms.Form):
 
-    def __init__(self, *args, relation=None, **kwargs):
+    def __init__(self, *args, roles=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['role'] = forms.ModelChoiceField(
-            queryset=RelationRole.objects.filter(relation=relation),
+            queryset=roles,
             widget=forms.widgets.RadioSelect,
             empty_label=None
         )
