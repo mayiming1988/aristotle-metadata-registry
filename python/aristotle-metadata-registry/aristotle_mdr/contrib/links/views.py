@@ -87,14 +87,16 @@ class EditLinkFormView(FormView):
 class AddLinkWizard(SessionWizardView):
     form_list = base_form_list = [
         link_forms.AddLink_SelectRelation_1,
-        link_forms.AddLink_SelectConcepts_2,
-        link_forms.AddLink_Confirm_3,
+        link_forms.AddLink_SelectRole_2,
+        link_forms.AddLink_SelectConcepts_3,
+        link_forms.AddLink_Confirm_4,
     ]
     base_form_count = len(form_list)
     template_names = [
         "aristotle_mdr_links/actions/add_link_wizard_1_select_relation.html",
-        "aristotle_mdr_links/actions/add_link_wizard_2_select_concepts.html",
-        "aristotle_mdr_links/actions/add_link_wizard_3_confirm.html"
+        "aristotle_mdr_links/actions/add_link_wizard_2_select_role.html",
+        "aristotle_mdr_links/actions/add_link_wizard_3_select_concepts.html",
+        "aristotle_mdr_links/actions/add_link_wizard_4_confirm.html"
     ]
 
     def dispatch(self, request, *args, **kwargs):
@@ -119,19 +121,32 @@ class AddLinkWizard(SessionWizardView):
 
     def get_form_kwargs(self, step):
         kwargs = super().get_form_kwargs(step)
-        if int(step) == 0:
+        istep = int(step)
+        if istep == 0:
+            kwargs['user'] = self.request.user
+        elif istep == 1:
+            relation = self.get_cleaned_data_for_step('0')['relation']
+            kwargs['relation'] = relation
+        elif istep == 2:
+            relation = self.get_cleaned_data_for_step('0')['relation']
             kwargs.update({
-                'user': self.request.user
-            })
-        if int(step) == 1:
-            self.relation = self.get_cleaned_data_for_step('0')['relation']
-            kwargs.update({
-                'roles': self.relation.relationrole_set.all(),
+                'roles': relation.relationrole_set.all(),
                 'user': self.request.user,
                 'root_item': self.root_item
             })
 
         return kwargs
+
+    def get_form_initial(self, step):
+        initial = super().get_form_initial(step)
+        istep = int(step)
+
+        if istep == 2:
+            role = self.get_cleaned_data_for_step('1')['role']
+            rolekey = 'role_{}'.format(role.pk)
+            initial[rolekey] = self.root_item
+
+        return initial
 
     def get_role_concepts(self):
         role_concepts = []
@@ -144,13 +159,15 @@ class AddLinkWizard(SessionWizardView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         if int(self.steps.current) == 1:
-            context.update({'roles': self.get_roles()})
+            context['roles'] = self.get_roles()
         if int(self.steps.current) == 2:
 
             context.update({
                 'relation': self.get_cleaned_data_for_step('0')['relation'],
                 'role_concepts': self.get_role_concepts()
             })
+
+        context['root_item'] = self.root_item
         return context
 
     @transaction.atomic

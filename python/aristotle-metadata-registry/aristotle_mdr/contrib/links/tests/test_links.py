@@ -346,14 +346,13 @@ class TestLinkPages(LinkTestBase, TestCase):
             status_code=403
         )
 
-    @tag('root_required')
     def test_root_item_is_required_as_one_end(self):
 
         self.register_relation()
         self.login_editor()
 
-        role1key = '1-role_{}'.format(self.relation_role1.pk)
-        role2key = '1-role_{}'.format(self.relation_role2.pk)
+        role1key = '2-role_{}'.format(self.relation_role1.pk)
+        role2key = '2-role_{}'.format(self.relation_role2.pk)
         wizard_data = [
             {
                 'add_link_wizard-current_step': 0,
@@ -361,6 +360,10 @@ class TestLinkPages(LinkTestBase, TestCase):
             },
             {
                 'add_link_wizard-current_step': 1,
+                '1-role': self.relation_role1.pk
+            },
+            {
+                'add_link_wizard-current_step': 2,
                 role1key: self.item2.pk,
                 role2key: self.item3.pk
             }
@@ -370,7 +373,7 @@ class TestLinkPages(LinkTestBase, TestCase):
             wizard_data,
             reverse('aristotle_mdr_links:add_link', args=[self.item1.id])
         )
-        self.assertWizardStep(response, 1)
+        self.assertWizardStep(response, 2)
 
         nfe = response.context['form'].non_field_errors()
 
@@ -379,6 +382,51 @@ class TestLinkPages(LinkTestBase, TestCase):
         # Check that the error is actually rendered
         self.assertContains(response, 'Must be one of the attached concepts')
 
+    def test_current_item_prefilled_step3(self):
+        self.register_relation()
+        self.login_editor()
+
+        wizard_data = [
+            {
+                'add_link_wizard-current_step': 0,
+                '0-relation': str(self.relation.pk)
+            },
+            {
+                'add_link_wizard-current_step': 1,
+                '1-role': self.relation_role1.pk
+            }
+        ]
+
+        response = self.post_to_wizard(
+            wizard_data,
+            reverse('aristotle_mdr_links:add_link', args=[self.item1.id])
+        )
+
+        self.assertWizardStep(response, '2')
+        form = response.context['form']
+        self.assertDictEqual(form.initial, {'role_1': self.item1._concept_ptr})
+
+    def test_role_choices_correct(self):
+        self.register_relation()
+        self.login_editor()
+
+        wizard_data = [
+            {
+                'add_link_wizard-current_step': 0,
+                '0-relation': str(self.relation.pk)
+            }
+        ]
+
+        response = self.post_to_wizard(
+            wizard_data,
+            reverse('aristotle_mdr_links:add_link', args=[self.item1.id])
+        )
+        self.assertWizardStep(response, 1)
+        form = response.context['form']
+        self.assertCountEqual(
+            form.fields['role'].queryset,
+            [self.relation_role1, self.relation_role2],
+        )
 
 class TestLinkPerms(LinkTestBase, TestCase):
     def test_superuser_can_edit_links(self):

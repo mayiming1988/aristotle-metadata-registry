@@ -3,7 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.forms.creation_wizards import UserAwareForm
-from aristotle_mdr.contrib.links.models import Relation
+from aristotle_mdr.contrib.links.models import Relation, RelationRole
 from aristotle_mdr.contrib.autocomplete import widgets
 
 
@@ -60,7 +60,17 @@ class AddLink_SelectRelation_1(UserAwareForm, forms.Form):
         self.fields['relation'].queryset = Relation.objects.all().visible(self.user)
 
 
-class AddLink_SelectConcepts_2(LinkEndEditorBase):
+class AddLink_SelectRole_2(forms.Form):
+
+    def __init__(self, *args, relation=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['role'] = forms.ModelChoiceField(
+            queryset=RelationRole.objects.filter(relation=relation),
+            widget=widgets.ConceptAutocompleteSelect(model=RelationRole)
+        )
+
+
+class AddLink_SelectConcepts_3(LinkEndEditorBase):
 
     def __init__(self, *args, **kwargs):
         if 'root_item' in kwargs:
@@ -82,5 +92,5 @@ class AddLink_SelectConcepts_2(LinkEndEditorBase):
             self.add_error(None, error_msg)
 
 
-class AddLink_Confirm_3(forms.Form):
+class AddLink_Confirm_4(forms.Form):
     pass

@@ -759,6 +759,7 @@ class WizardTestUtils:
 
         step = 0
         response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
 
         for formdata in datalist:
             self.assertWizardStep(response, step)
