@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import Q
+from django.utils import timezone
 from django.utils.module_loading import import_string
 from aristotle_mdr.utils import fetch_aristotle_settings
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
@@ -188,9 +189,51 @@ class ReviewRequestQuerySet(models.QuerySet):
 class StatusQuerySet(models.QuerySet):
     def visible(self, user):
         """
-        Returns a queryset that returns all reviews that the given user has
+        Returns a queryset that returns all statuses that the given user has
         permission to view.
 
         It is **chainable** with other querysets.
         """
         return self.all()
+
+    def valid(self):
+        return self.valid_at_date(timezone.now().date())
+
+    def valid_at_date(self, when=timezone.now().date()):
+        registered_before_now = Q(registrationDate__lte=when)
+        registration_still_valid = (
+            Q(until_date__gte=when) |
+            Q(until_date__isnull=True)
+        )
+
+        return self.filter(
+            registered_before_now & registration_still_valid
+        )
+
+    def current(self, when=timezone.now()):
+        """
+        Returns a queryset that returns the most up to date statuses
+
+        It is **chainable** with other querysets.
+        """
+        if hasattr(when, 'date'):
+            when = when.date()
+
+        states = self.valid_at_date(when)
+        states = states.order_by("registrationAuthority", "-registrationDate", "-created")
+
+        from django.db import connection
+        if connection.vendor == 'postgresql':
+            states = states.distinct('registrationAuthority')
+        else:
+            current_ids = []
+            seen_ras = []
+            for s in states:
+                ra = s.registrationAuthority
+                if ra not in seen_ras:
+                    current_ids.append(s.pk)
+                    seen_ras.append(ra)
+            # We hit again so we can return this as a queryset
+            states = states.filter(pk__in=current_ids)
+
+        return states.select_related('registrationAuthority')
