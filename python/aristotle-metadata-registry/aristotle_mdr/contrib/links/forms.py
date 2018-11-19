@@ -66,7 +66,8 @@ class AddLink_SelectRole_2(forms.Form):
         super().__init__(*args, **kwargs)
         self.fields['role'] = forms.ModelChoiceField(
             queryset=RelationRole.objects.filter(relation=relation),
-            widget=widgets.ConceptAutocompleteSelect(model=RelationRole)
+            widget=forms.widgets.RadioSelect,
+            empty_label=None
         )
 
 
