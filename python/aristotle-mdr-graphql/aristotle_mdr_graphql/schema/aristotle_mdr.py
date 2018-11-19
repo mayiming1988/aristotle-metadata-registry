@@ -17,13 +17,6 @@ from aristotle_mdr_graphql import resolvers
 from aristotle_mdr_graphql.filterset import ConceptFilterSet
 
 
-class StatusNode(DjangoObjectType):
-    state_name = graphene.String()
-    class Meta:
-        model = mdr_models.Status
-        default_resolver = resolvers.aristotle_resolver
-
-
 WorkgroupNode = type_from_model(mdr_models.Workgroup)
 # OrganizationNode = type_from_model(mdr_models.Organization)
 

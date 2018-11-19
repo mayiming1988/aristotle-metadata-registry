@@ -277,20 +277,6 @@ def setup_aristotle_test_environment():
             raise
 
 
-def status_filter(qs, when=timezone.now().date()):
-    registered_before_now = Q(registrationDate__lte=when)
-    registration_still_valid = (
-        Q(until_date__gte=when) |
-        Q(until_date__isnull=True)
-    )
-
-    states = qs.filter(
-        registered_before_now & registration_still_valid
-    )
-
-    return states
-
-
 # Given a models label, id and name, Return a url to that objects page
 # Used to avoid a database hit just to use get_absolute_url
 def get_aristotle_url(label, obj_id, obj_name=None):
