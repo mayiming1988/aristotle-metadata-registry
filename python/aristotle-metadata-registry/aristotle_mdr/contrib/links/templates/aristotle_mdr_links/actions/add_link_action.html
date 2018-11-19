@@ -1,6 +1,6 @@
 {% load aristotle_tags i18n %}
 
-<li><a class="" href="{% url 'aristotle_mdr_links:add_link' item.id %}?next={{item.get_absolute_url}}">
+<li><a class="" href="{% url 'aristotle_mdr_links:add_link' item.id %}">
     <i class="fa fa-fw fa-link"></i>
     {% trans 'Add link'%}
 </a></li>

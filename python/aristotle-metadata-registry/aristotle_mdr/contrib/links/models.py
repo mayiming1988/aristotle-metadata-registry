@@ -20,15 +20,16 @@ from aristotle_mdr.fields import ConceptForeignKey
 
 class Relation(MDR.concept):  # 9.1.2.4
     """
+    Relation is a class each instance of which models a relation (3.2.119), a sense in which concepts (3.2.18)
+    may be connected via constituent relation roles (3.2.120).
     """
-    arity = models.PositiveIntegerField(  # 9.1.2.4.3.1
-        help_text=_('number of elements in the relation'),
-        validators=[MinValueValidator(2)],
-        null=True
-    )
     serialize_weak_entities = [
         ('roles', 'relationrole_set'),
     ]
+
+    @property
+    def arity(self):
+        return self.relationrole_set.count()
 
 
 class RelationRole(MDR.aristotleComponent):  # 9.1.2.5

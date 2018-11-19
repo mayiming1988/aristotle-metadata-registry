@@ -22,7 +22,6 @@ def setUpModule():
 class RelationViewPage(LoggedInViewConceptPages, TestCase):
     url_name = 'relation'
     itemType = models.Relation
-    defaults = {'arity': 2}
 
     def setUp(self):
         super().setUp()
@@ -42,9 +41,7 @@ class RelationViewPage(LoggedInViewConceptPages, TestCase):
 
 class RelationAdminPage(AdminPageForConcept, TestCase):
     itemType = models.Relation
-    create_defaults = {'arity': 2}
     form_defaults = {
-        'arity': 2,
         'relationrole_set-TOTAL_FORMS':0,
         'relationrole_set-INITIAL_FORMS':0,
         'relationrole_set-MAX_NUM_FORMS':1,
@@ -53,7 +50,6 @@ class RelationAdminPage(AdminPageForConcept, TestCase):
 
 class RelationCreationWizard(utils.FormsetTestUtils, ConceptWizardPage, TestCase):
     model=models.Relation
-    extra_step2_data = {'results-arity': 2}
 
     @tag('edit_formsets')
     def test_weak_editor_during_create(self):
@@ -76,7 +72,6 @@ class RelationCreationWizard(utils.FormsetTestUtils, ConceptWizardPage, TestCase
             'initial-name':item_name,
             'results-name':item_name,
             'results-definition':"Test Definition",
-            'results-arity': 2
         }
 
         role_formset_data = [
@@ -130,7 +125,7 @@ class LinkTestBase(utils.AristotleTestUtils):
             definition="my definition",
         )
 
-        self.relation = models.Relation.objects.create(name="test_relation", definition="Used for testing", arity=2)
+        self.relation = models.Relation.objects.create(name="test_relation", definition="Used for testing")
         self.relation_role1 = models.RelationRole.objects.create(
             name="part1", definition="first role", multiplicity=1,
             ordinal=1,
@@ -263,9 +258,8 @@ class TestLinkPages(LinkTestBase, TestCase):
     @tag('link_wizard')
     def test_add_link_wizard(self):
         self.wizard_form_name = "add_link_wizard"
-        next_url = reverse("aristotle:home")
+        finish_url = reverse("aristotle:item", args=[self.item1.pk])
         self.wizard_url = reverse('aristotle_mdr_links:add_link', args=[self.item1.pk])
-        self.wizard_url += '?next=' + next_url
 
         self.register_relation()
         self.item1.linkend_set.all().delete()
@@ -329,7 +323,7 @@ class TestLinkPages(LinkTestBase, TestCase):
             self.wizard_form_name+'-current_step': '3'
         }
         response = self.client.post(self.wizard_url, step_3_data)
-        self.assertRedirects(response, next_url)
+        self.assertRedirects(response, finish_url, fetch_redirect_response=False)
 
         self.assertEqual(self.item1.linkend_set.count(), self.relation.relationrole_set.count())
 
@@ -431,6 +425,7 @@ class TestLinkPages(LinkTestBase, TestCase):
             form.fields['role'].queryset,
             [self.relation_role1, self.relation_role2],
         )
+
 
 class TestLinkPerms(LinkTestBase, TestCase):
     def test_superuser_can_edit_links(self):

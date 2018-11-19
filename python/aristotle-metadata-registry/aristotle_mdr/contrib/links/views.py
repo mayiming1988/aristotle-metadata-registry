@@ -183,7 +183,7 @@ class AddLinkWizard(SessionWizardView):
                 link_models.LinkEnd.objects.create(link=link, role=role, concept=concept)
 
         return HttpResponseRedirect(
-            self.request.GET.get('next', self.relation.get_absolute_url())
+            reverse('aristotle:item', args=[self.root_item.id])
         )
 
 
