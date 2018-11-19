@@ -150,7 +150,7 @@ class AddLinkWizard(SessionWizardView):
 
     def get_role_concepts(self):
         role_concepts = []
-        for role, concepts in zip(self.get_roles(), self.get_cleaned_data_for_step('1').values()):
+        for role, concepts in zip(self.get_roles(), self.get_cleaned_data_for_step('2').values()):
             if role.multiplicity == 1:
                 concepts = [concepts]
             role_concepts.append((role, concepts))
@@ -158,9 +158,9 @@ class AddLinkWizard(SessionWizardView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        if int(self.steps.current) == 1:
-            context['roles'] = self.get_roles()
         if int(self.steps.current) == 2:
+            context['roles'] = self.get_roles()
+        if int(self.steps.current) == 3:
 
             context.update({
                 'relation': self.get_cleaned_data_for_step('0')['relation'],

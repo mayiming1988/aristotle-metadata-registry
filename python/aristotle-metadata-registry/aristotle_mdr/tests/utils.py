@@ -755,7 +755,24 @@ class WizardTestUtils:
         strstep = str(step)
         self.assertEqual(response.context['wizard']['steps'].current, strstep)
 
-    def post_to_wizard(self, datalist, url):
+    def transform_datalist(self, datalist, wizard_name):
+        cskey = '{}-current_step'.format(wizard_name)
+        newlist = []
+        step = 0
+        for formdata in datalist:
+            newformdata = {
+                cskey: str(step)
+            }
+            for key, value in formdata.items():
+                prekey = '{}-{}'.format(step, key)
+                newformdata[prekey] = value
+            newlist.append(newformdata)
+            step += 1
+
+        return newlist
+
+    def post_direct_to_wizard(self, datalist, url):
+        """Post to wizard without modifying datalist"""
 
         step = 0
         response = self.client.get(url)
@@ -768,6 +785,12 @@ class WizardTestUtils:
             step += 1
 
         return response
+
+    def post_to_wizard(self, datalist, url, wizard_name):
+        """Add current step and prefixes to datalist before posting"""
+
+        updated_datalist = self.transform_datalist(datalist, wizard_name)
+        return self.post_direct_to_wizard(updated_datalist, url)
 
 
 class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils,

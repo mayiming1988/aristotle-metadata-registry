@@ -141,6 +141,8 @@ class LinkTestBase(utils.AristotleTestUtils):
             ordinal=2,
             relation=self.relation
         )
+        self.role1key = 'role_{}'.format(self.relation_role1.pk)
+        self.role2key = 'role_{}'.format(self.relation_role2.pk)
 
         self.link1 = models.Link.objects.create(
             relation=self.relation,
@@ -265,11 +267,7 @@ class TestLinkPages(LinkTestBase, TestCase):
         self.wizard_url = reverse('aristotle_mdr_links:add_link', args=[self.item1.pk])
         self.wizard_url += '?next=' + next_url
 
-        self.ra.register(
-            item=self.relation,
-            state=STATES.standard,
-            user=self.su
-        )
+        self.register_relation()
         self.item1.linkend_set.all().delete()
 
         self.assertTrue(self.relation.can_view(self.editor))
@@ -299,27 +297,38 @@ class TestLinkPages(LinkTestBase, TestCase):
         response = self.client.post(self.wizard_url, step_0_data)
         wizard = response.context['wizard']
         self.assertEqual(response.status_code, 200)  # OK, lets go!
-
-        self.assertEqual(wizard['steps'].current, '1')
+        self.assertWizardStep(response, 1)
         self.assertFalse('relation' in wizard['form'].errors.keys())
 
         self.assertEqual(response.status_code, 200)
 
-        step_1_data = {}
-        step_1_data.update({self.wizard_form_name+'-current_step': '1'})
-        for role in self.relation.relationrole_set.all():
-            step_1_data.update({'1-role_%s'%role.pk: self.item1.pk})
-
+        step_1_data = {
+            self.wizard_form_name+'-current_step': '1',
+            '1-role': self.relation_role1.pk
+        }
         response = self.client.post(self.wizard_url, step_1_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertWizardStep(response, 2)
+
+
+        step_2_data = {
+            self.wizard_form_name+'-current_step': '2'
+        }
+        for role in self.relation.relationrole_set.all():
+            step_2_data.update({'2-role_%s'%role.pk: self.item1.id})
+
+        response = self.client.post(self.wizard_url, step_2_data)
         wizard = response.context['wizard']
         self.assertEqual(response.status_code, 200)  # OK, lets go!
 
+        print(wizard['form'].errors)
         self.assertEqual(len(wizard['form'].errors.keys()), 0)
-        self.assertEqual(wizard['steps'].current, '2')
+        self.assertWizardStep(response, 3)
 
-        step_2_data = {}
-        step_2_data.update({self.wizard_form_name+'-current_step': '2'})
-        response = self.client.post(self.wizard_url, step_2_data)
+        step_3_data = {
+            self.wizard_form_name+'-current_step': '3'
+        }
+        response = self.client.post(self.wizard_url, step_3_data)
         self.assertRedirects(response, next_url)
 
         self.assertEqual(self.item1.linkend_set.count(), self.relation.relationrole_set.count())
@@ -351,27 +360,23 @@ class TestLinkPages(LinkTestBase, TestCase):
         self.register_relation()
         self.login_editor()
 
-        role1key = '2-role_{}'.format(self.relation_role1.pk)
-        role2key = '2-role_{}'.format(self.relation_role2.pk)
         wizard_data = [
             {
-                'add_link_wizard-current_step': 0,
-                '0-relation': str(self.relation.pk)
+                'relation': str(self.relation.pk)
             },
             {
-                'add_link_wizard-current_step': 1,
-                '1-role': self.relation_role1.pk
+                'role': self.relation_role1.pk
             },
             {
-                'add_link_wizard-current_step': 2,
-                role1key: self.item2.pk,
-                role2key: self.item3.pk
+                self.role1key: self.item2.pk,
+                self.role2key: self.item3.pk
             }
         ]
 
         response = self.post_to_wizard(
             wizard_data,
-            reverse('aristotle_mdr_links:add_link', args=[self.item1.id])
+            reverse('aristotle_mdr_links:add_link', args=[self.item1.id]),
+            'add_link_wizard'
         )
         self.assertWizardStep(response, 2)
 
@@ -388,18 +393,17 @@ class TestLinkPages(LinkTestBase, TestCase):
 
         wizard_data = [
             {
-                'add_link_wizard-current_step': 0,
-                '0-relation': str(self.relation.pk)
+                'relation': str(self.relation.pk)
             },
             {
-                'add_link_wizard-current_step': 1,
-                '1-role': self.relation_role1.pk
+                'role': self.relation_role1.pk
             }
         ]
 
         response = self.post_to_wizard(
             wizard_data,
-            reverse('aristotle_mdr_links:add_link', args=[self.item1.id])
+            reverse('aristotle_mdr_links:add_link', args=[self.item1.id]),
+            'add_link_wizard'
         )
 
         self.assertWizardStep(response, '2')
@@ -412,14 +416,14 @@ class TestLinkPages(LinkTestBase, TestCase):
 
         wizard_data = [
             {
-                'add_link_wizard-current_step': 0,
-                '0-relation': str(self.relation.pk)
+                'relation': str(self.relation.pk)
             }
         ]
 
         response = self.post_to_wizard(
             wizard_data,
-            reverse('aristotle_mdr_links:add_link', args=[self.item1.id])
+            reverse('aristotle_mdr_links:add_link', args=[self.item1.id]),
+            'add_link_wizard'
         )
         self.assertWizardStep(response, 1)
         form = response.context['form']
