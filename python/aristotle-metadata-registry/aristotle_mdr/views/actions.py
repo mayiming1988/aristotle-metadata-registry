@@ -39,9 +39,9 @@ class ItemSubpageView(object):
             raise PermissionDenied
         return self.item
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         self.item = self.get_item()
-        return super().dispatch(*args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class ItemSubpageFormView(ItemSubpageView, FormView):

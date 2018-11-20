@@ -20,7 +20,7 @@ class AristotleObjectType(DjangoObjectType):
     class Meta:
         model = mdr_models._concept
         interfaces = (relay.Node, )
-        filter_fields = [] #'__all__'
+        filter_fields = []  # type: ignore
 
     @classmethod
     def __init_subclass_with_meta__(cls, *args, **kwargs):

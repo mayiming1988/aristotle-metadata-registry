@@ -143,20 +143,20 @@ def can_supersede(item, user):
     return perms.user_can_supersede(user, item)
 
 
-@register.filter
-def can_change_status(item, user):
-    """
-    A filter that acts as a wrapper around ``aristotle_mdr.perms.user_can_supersede``.
-    Returns true if the user has permission to supersede the item, otherwise it returns False.
-    If calling ``user_can_supersede`` throws an exception it safely returns False.
-
-    For example::
-
-      {% if myItem|can_supersede:request.user %}
-        {{ item }}
-      {% endif %}
-    """
-    return perms.user_can_change_status(user, item)
+# @register.filter
+# def can_change_status(item, user):
+#     """
+#     A filter that acts as a wrapper around ``aristotle_mdr.perms.user_can_supersede``.
+#     Returns true if the user has permission to supersede the item, otherwise it returns False.
+#     If calling ``user_can_supersede`` throws an exception it safely returns False.
+#
+#     For example::
+#
+#       {% if myItem|can_supersede:request.user %}
+#         {{ item }}
+#       {% endif %}
+#     """
+#     return perms.user_can_change_status(user, item)
 
 
 @register.filter

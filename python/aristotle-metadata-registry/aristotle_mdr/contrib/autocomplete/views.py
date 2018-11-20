@@ -1,3 +1,4 @@
+from typing import Any
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied
@@ -13,7 +14,7 @@ from dal import autocomplete
 
 
 class GenericAutocomplete(autocomplete.Select2QuerySetView):
-    model = None
+    model: Any = None
     template_name = "autocomplete_light/item.html"
 
     def dispatch(self, request, *args, **kwargs):
