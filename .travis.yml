@@ -79,6 +79,13 @@ matrix:
       script: tox -e flake8
 
     - stage: stylecheck
+      language: python
+      install:
+        - pip install mypy
+      python: 3.6
+      script: mypy ./python/*/aristotle_*
+
+    - stage: stylecheck
       language: node_js
       node_js: 10
       before_install:
@@ -87,6 +94,7 @@ matrix:
         - npm install
       script:
         - npm run lint
+
 
     - stage: documentation
       language: python
