@@ -468,6 +468,33 @@ class TestLinkPages(LinkTestBase, TestCase):
         self.assertTrue(response.context['roles_exist'])
         self.assertNotContains(response, 'alert alert-danger')
 
+    def test_link_viewable_from_root(self):
+
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.item1.id, 'objectclass', 'item1'],
+            status_code=200
+        )
+        self.assertContains(response, '<h2>Relationships</h2>')
+        self.assertEqual(len(response.context['links']), 1)
+
+    def test_link_not_viewable_from_non_root(self):
+        # Make item2 viewable
+        self.item2.workgroup = self.wg1
+        self.item2.save()
+        # Remove link 2
+        self.link2.delete()
+
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.item2.id, 'objectclass', 'item2'],
+            status_code=200
+        )
+        self.assertNotContains(response, '<h2>Relationships</h2>')
+        self.assertEqual(len(response.context['links']), 0)
+
 
 class TestLinkPerms(LinkTestBase, TestCase):
     def test_superuser_can_edit_links(self):
