@@ -228,7 +228,6 @@ class TestLinkPages(LinkTestBase, TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.relation.name)
         self.assertFalse(perms.user_can_change_link(self.editor,self.link2))
-        self.assertContains(response, reverse('aristotle_mdr_links:edit_link', args=[self.link1.pk]))
         self.assertNotContains(response, reverse('aristotle_mdr_links:edit_link', args=[self.link2.pk]))
 
     def test_editor_user_can_view_some_edit_link_pages(self):
