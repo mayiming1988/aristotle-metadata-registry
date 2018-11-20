@@ -410,7 +410,7 @@ class TestLinkPages(LinkTestBase, TestCase):
 
         self.assertWizardStep(response, '2')
         form = response.context['form']
-        self.assertDictEqual(form.initial, {'role_1': self.item1._concept_ptr})
+        self.assertDictEqual(form.initial, {self.role1key: self.item1._concept_ptr})
 
     def test_role_choices_correct(self):
         self.register_relation()
