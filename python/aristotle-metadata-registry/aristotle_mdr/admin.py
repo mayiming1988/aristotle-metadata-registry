@@ -1,3 +1,4 @@
+from typing import List, Sequence
 from django.db.models import Q
 from django.contrib import admin
 from django.contrib.auth import get_user_model
@@ -142,7 +143,7 @@ class ConceptAdmin(CompareVersionAdmin, admin.ModelAdmin):
             'fields': ['origin_URI'],
         }),
     ]
-    name_suggest_fields = []
+    name_suggest_fields: List[str] = []
     actions_on_top = True
     actions_on_bottom = False
 
@@ -269,7 +270,7 @@ class OrganizationAdmin(admin.ModelAdmin):
         from django.template.response import TemplateResponse
         return TemplateResponse(request, ["admin/promote_org_to_ra.html"], context)
 
-    promote_to_ra.short_description = "Promote to registration authority"
+    promote_to_ra.short_description = "Promote to registration authority"  # type: ignore
 
 
 class RegistrationAuthorityAdmin(admin.ModelAdmin):
@@ -321,7 +322,7 @@ class UserAdmin(BaseUserAdmin):
     )
     form = UserChangeForm
     add_form = UserCreationForm
-    list_display = ('email', 'full_name', 'short_name', 'is_staff')
+    list_display: Sequence = ('email', 'full_name', 'short_name', 'is_staff')
     search_fields = ('email', 'full_name', 'short_name')
     ordering = ('email',)
 
@@ -333,8 +334,8 @@ class AristotleUserAdmin(UserAdmin):
         from django.contrib.humanize.templatetags.humanize import naturaltime
         return naturaltime(obj.last_login)
 
-    time_since_login.admin_order_field = 'last_login'
-    time_since_login.short_description = _('Last login')
+    time_since_login.admin_order_field = 'last_login'  # type: ignore
+    time_since_login.short_description = _('Last login')  # type: ignore
 
     inlines = [AristotleProfileInline]
     list_display = ['email', 'full_name', 'short_name', 'time_since_login', 'date_joined']

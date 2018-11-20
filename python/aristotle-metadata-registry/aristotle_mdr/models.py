@@ -26,7 +26,6 @@ from aristotle_mdr.utils import (
     url_slugify_workgroup,
     url_slugify_registration_authoritity,
     url_slugify_organization,
-    status_filter,
 )
 from aristotle_mdr import comparators
 
@@ -108,9 +107,10 @@ class baseAristotleObject(TimeStampedModel):
 
     def was_modified_recently(self):
         return self.modified >= timezone.now() - datetime.timedelta(days=1)
-    was_modified_recently.admin_order_field = 'modified'
-    was_modified_recently.boolean = True
-    was_modified_recently.short_description = 'Modified recently?'
+
+    was_modified_recently.admin_order_field = 'modified'  # type: ignore
+    was_modified_recently.boolean = True  # type: ignore
+    was_modified_recently.short_description = 'Modified recently?'  # type: ignore
 
     def description_stub(self):
         from django.utils.html import strip_tags
@@ -676,8 +676,8 @@ class _concept(baseAristotleObject):
     tracker = FieldTracker()
 
     comparator = comparators.Comparator
-    edit_page_excludes = None
-    admin_page_excludes = None
+    edit_page_excludes: list = []
+    admin_page_excludes: list = []
     registerable = True
 
     class Meta:
@@ -792,8 +792,8 @@ class _concept(baseAristotleObject):
 
     def is_public(self):
         return self._is_public
-    is_public.boolean = True
-    is_public.short_description = 'Public'
+    is_public.boolean = True  # type: ignore
+    is_public.short_description = 'Public'  # type: ignore
 
     def check_is_locked(self, when=timezone.now()):
         """
@@ -809,8 +809,8 @@ class _concept(baseAristotleObject):
     def is_locked(self):
         return self._is_locked
 
-    is_locked.boolean = True
-    is_locked.short_description = 'Locked'
+    is_locked.boolean = True  # type: ignore
+    is_locked.short_description = 'Locked'  # type: ignore
 
     def recache_states(self):
         self._is_public = self.check_is_public()
@@ -821,27 +821,8 @@ class _concept(baseAristotleObject):
     def current_statuses(self, qs=None, when=timezone.now()):
         if qs is None:
             qs = self.statuses.all()
-        if hasattr(when, 'date'):
-            when = when.date()
 
-        states = status_filter(qs, when)
-        states = states.order_by("registrationAuthority", "-registrationDate", "-created")
-
-        from django.db import connection
-        if connection.vendor == 'postgresql':
-            states = states.distinct('registrationAuthority')
-        else:
-            current_ids = []
-            seen_ras = []
-            for s in states:
-                ra = s.registrationAuthority
-                if ra not in seen_ras:
-                    current_ids.append(s.pk)
-                    seen_ras.append(ra)
-            # We hit again so we can return this as a queryset
-            states = states.filter(pk__in=current_ids)
-
-        return states.select_related('registrationAuthority')
+        return qs.current(when)
 
     def get_download_items(self):
         """

@@ -6,7 +6,6 @@ from aristotle_mdr_graphql.resolvers import aristotle_resolver
 from textwrap import dedent
 
 
-
 def inline_type_from_model(meta_model, filter_fields=None, description=None):
 
     modelname = meta_model.__name__

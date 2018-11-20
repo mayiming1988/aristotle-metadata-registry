@@ -11,7 +11,7 @@ from graphene_django.types import DjangoObjectType
 logger = logging.getLogger(__name__)
 
 from aristotle_mdr_graphql import resolvers
-from .filterset import IdentifierFilterSet
+from .filterset import IdentifierFilterSet, StatusFilterSet
 from .fields import DjangoListFilterField
 
 
@@ -20,7 +20,7 @@ class AristotleObjectType(DjangoObjectType):
     class Meta:
         model = mdr_models._concept
         interfaces = (relay.Node, )
-        filter_fields = [] #'__all__'
+        filter_fields = []  # type: ignore
 
     @classmethod
     def __init_subclass_with_meta__(cls, *args, **kwargs):
@@ -45,9 +45,17 @@ class ScopedIdentifierNode(DjangoObjectType):
         return self.namespace.shorthand_prefix
 
 
+class StatusNode(DjangoObjectType):
+    state_name = graphene.String()
+    class Meta:
+        model = mdr_models.Status
+        default_resolver = resolvers.aristotle_resolver
+
+
 class AristotleConceptObjectType(DjangoObjectType):
     metadata_type = graphene.String()
     identifiers = DjangoListFilterField(ScopedIdentifierNode, filterset_class=IdentifierFilterSet)
+    statuses = DjangoListFilterField(StatusNode, filterset_class=StatusFilterSet)
 
     class Meta:
         model = mdr_models._concept

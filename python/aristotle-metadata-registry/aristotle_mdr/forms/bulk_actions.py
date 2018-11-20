@@ -1,3 +1,4 @@
+from typing import Any
 from django import forms
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
@@ -76,7 +77,7 @@ class ForbiddenAllowedModelMultipleChoiceField(forms.ModelMultipleChoiceField):
 
 class BulkActionForm(UserAwareForm):
     classes = ""
-    confirm_page = None
+    confirm_page: Any = None
     all_in_queryset = forms.BooleanField(
         label=_("All items"),
         required=False,

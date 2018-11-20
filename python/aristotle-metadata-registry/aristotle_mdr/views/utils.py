@@ -1,3 +1,4 @@
+from typing import Dict
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 
 from django.conf import settings
@@ -30,7 +31,6 @@ from django.views.generic import (
 )
 
 from aristotle_mdr import models as MDR
-from aristotle_mdr.utils import status_filter
 from aristotle_mdr.perms import user_can_view
 from aristotle_mdr.models import _concept
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
@@ -267,7 +267,7 @@ def get_status_queryset():
     """
 
     return (
-        status_filter(MDR.Status.objects)
+        MDR.Status.objects.valid()
         .order_by("registrationAuthority", "-registrationDate", "-created")
         .select_related('registrationAuthority')
     )
@@ -281,7 +281,7 @@ class SortedListView(ListView):
     allowed_sorts can be a dict mapping names to sorts or just a list of sorts
     """
 
-    allowed_sorts = []
+    allowed_sorts: Dict[str, str] = {}
     default_sort = ''
 
     def dispatch(self, request, *args, **kwargs):
@@ -430,7 +430,7 @@ class MemberRemoveFromGroupView(GroupMemberMixin, LoginRequiredMixin, ObjectLeve
 class AlertFieldsMixin:
     """Provide a list of fields where help text should be rendered as an alert"""
 
-    alert_fields = []
+    alert_fields: list = []
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -452,7 +452,7 @@ class AjaxFormMixin:
     appears
     """
 
-    ajax_success_message = None
+    ajax_success_message = ''
 
     def form_invalid(self, form):
 
@@ -473,7 +473,7 @@ class AjaxFormMixin:
         if self.request.is_ajax():
             data = {'success': True}
             # If success message set
-            if self.ajax_success_message is not None:
+            if self.ajax_success_message:
                 data['message'] = self.ajax_success_message
                 return JsonResponse(data)
             else:

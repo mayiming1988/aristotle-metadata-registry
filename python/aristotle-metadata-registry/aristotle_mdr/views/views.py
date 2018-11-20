@@ -1,3 +1,4 @@
+from typing import Any
 from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -120,7 +121,7 @@ class ConceptRenderMixin(TagsMixin):
     slug_redirect determines wether /item/id redirects to /item/id/model_slug/name_slug
     """
 
-    objtype = None
+    objtype: Any = None
     itemid_arg = 'iid'
     modelslug_arg = 'model_slug'
     nameslug_arg = 'name_slug'
@@ -392,11 +393,11 @@ def display_review(wizard):
 
 class ReviewChangesView(SessionWizardView):
 
-    items = None
-    display_review = None
+    items: Any = None
+    display_review: Any = None
 
     # Override this
-    change_step_name = None
+    change_step_name = ''
 
     def get_form_kwargs(self, step):
 
