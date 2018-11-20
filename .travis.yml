@@ -71,6 +71,7 @@ matrix:
 
   include:
     - stage: stylecheck
+      name: "Python Lint"
       language: python
       install:
         - pip install codecov coveralls
@@ -78,14 +79,14 @@ matrix:
       python: 3.6
       script: tox -e flake8
 
-    - stage: stylecheck
+    - name: "Python Type Checking"
       language: python
       install:
         - pip install mypy
       python: 3.6
       script: mypy ./python/*/aristotle_*
 
-    - stage: stylecheck
+    - name: "JS Lint"
       language: node_js
       node_js: 10
       before_install:
@@ -97,6 +98,7 @@ matrix:
 
 
     - stage: documentation
+      name: "Documentation"
       language: python
       install:
         - pip install codecov coveralls
@@ -105,6 +107,7 @@ matrix:
       script: ./scripts/tox_if.sh docs
 
     - stage: frontend
+      name: "Frontend Tests"
       language: node_js
       node_js: 10
       before_install:
@@ -115,25 +118,31 @@ matrix:
         - npm run test
 
     - stage: testing-aristotle-mdr
+      name: "Aristotle Tests Sqlite/Elasticsearch"
       if: type = push
       env: DJANGO_VERSION='1.11'  DB=sqlite  SEARCH=elastic MODULE=amr
       <<: *main_test_script_py36
     - stage: testing-aristotle-mdr
+      name: "Aristotle Tests Postgres/Elasticsearch"
       env: DJANGO_VERSION='1.11'  DB=postgres  SEARCH=elastic MODULE=amr
       <<: *main_test_script_py36
     - stage: testing-aristotle-mdr
+      name: "Aristotle Tests Sqlite/Whoosh"
       if: type = push
       env: DJANGO_VERSION='1.11'  DB=sqlite    SEARCH=whoosh MODULE=amr
       <<: *main_test_script_py36
     - stage: testing-aristotle-mdr
+      name: "Aristotle Tests Postgres/Whoosh"
       if: type = push
       env: DJANGO_VERSION='1.11'  DB=postgres  SEARCH=whoosh MODULE=amr
       <<: *main_test_script_py36
     - stage: testing-aristotle-mdr
+      name: "Aristotle Tests Mariadb/Whoosh"
       if: type = push
       env: DJANGO_VERSION='1.11'  DB=mariadb   SEARCH=whoosh MODULE=amr
       <<: *main_test_script_py36
     - stage: testing-aristotle-mdr
+      name: "Aristotle Tests Mariadb/Elasticsearch"
       if: type = push
       env: DJANGO_VERSION='1.11'  DB=mariadb   SEARCH=elastic MODULE=amr
       <<: *main_test_script_py36
@@ -147,22 +156,27 @@ matrix:
     #   <<: *main_test_script_py36
 
     - stage: testing-modules
+      name: "Dataset Extenstions Tests"
       env: DJANGO_VERSION='1.11'  DB=postgres   SEARCH=elastic MODULE=dse
       <<: *main_test_script_py36
 
     - stage: testing-modules
+      name: "Comet Tests"
       env: DJANGO_VERSION='1.11'  DB=postgres   SEARCH=elastic MODULE=cir
       <<: *main_test_script_py36
 
     - stage: testing-modules
+      name: "PDF Downloads Tests"
       env: DJANGO_VERSION='1.11'  DB=postgres   SEARCH=elastic MODULE=apd
       <<: *main_test_script_py36
 
     - stage: testing-modules
+      name: "Graphql Tests"
       env: DJANGO_VERSION='1.11'  DB=postgres   SEARCH=elastic MODULE=gql
       <<: *main_test_script_py36
 
     - stage: testing-modules
+      name: "API Tests"
       env: DJANGO_VERSION='1.11'  DB=postgres   SEARCH=elastic MODULE=api
       <<: *main_test_script_py36
 
@@ -176,6 +190,7 @@ matrix:
 
 
     - stage: deploy-it
+      name: "Deploy"
       if: branch = master
       install: skip
       script: ./scripts/buildandcopy.sh
