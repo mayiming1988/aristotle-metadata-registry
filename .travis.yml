@@ -52,6 +52,7 @@ defaults:
 
   - &test_accessibility_py36
     stage: accessibility
+    name: "Accessibility Tests"
     language: python
     install:
       - pip install codecov coveralls
