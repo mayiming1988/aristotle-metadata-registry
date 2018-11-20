@@ -146,7 +146,7 @@ class ConceptAdmin(CompareVersionAdmin, admin.ModelAdmin):
     actions_on_top = True
     actions_on_bottom = False
 
-    compare_exclude = ['favourites', 'user_view_history', 'issues']
+    compare_exclude = ['favourites', 'user_view_history', 'issues', 'owned_links']
 
     def get_form(self, request, obj=None, **kwargs):
         # Thanks: http://stackoverflow.com/questions/6321916

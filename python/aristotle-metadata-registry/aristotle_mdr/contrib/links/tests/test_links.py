@@ -502,7 +502,10 @@ class TestLinkPerms(LinkTestBase, TestCase):
             name="another_test_relation", definition="Used for testing",
         )
 
-        self.new_link = models.Link.objects.create(relation=self.new_relation)
+        self.new_link = models.Link.objects.create(
+            relation=self.new_relation,
+            root_item=self.item1
+        )
         self.assertNotEqual(self.new_link.relation, self.relation_role1.relation)
 
         with self.assertRaises(ValidationError):

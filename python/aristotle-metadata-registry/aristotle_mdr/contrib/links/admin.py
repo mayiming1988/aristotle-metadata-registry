@@ -14,7 +14,6 @@ class RoleRelationInline(admin.TabularInline):
 
 register_concept(
     links.Relation,
-    extra_fieldsets=[('Extra details', {'fields': ['arity']})],
     extra_inlines=[RoleRelationInline],
     reversion={
         'follow': ['relationrole_set'],
