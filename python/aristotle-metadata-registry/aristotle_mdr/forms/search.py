@@ -1,3 +1,4 @@
+from typing import List, Dict
 import datetime
 from django import forms
 from django.core.exceptions import ImproperlyConfigured
@@ -204,8 +205,8 @@ class PermissionSearchQuerySet(SearchQuerySet):
 
 
 class TokenSearchForm(FacetedSearchForm):
-    token_models = []
-    kwargs = {}
+    token_models: List[object] = []
+    kwargs: Dict[str, str] = {}
     allowed_tokens = [
         'statuses',
         'highest_state',
