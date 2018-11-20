@@ -30,7 +30,6 @@ class UserAwareModelForm(UserAwareForm, forms.ModelForm):
         exclude = ['superseded_by_items', '_is_public', '_is_locked', 'originURI', 'submitter']
 
 
-
 class WorkgroupVerificationMixin(forms.ModelForm):
     cant_move_any_permission_error = _("You do not have permission to move an item between workgroups.")
     cant_move_from_permission_error = _("You do not have permission to remove an item from this workgroup.")

@@ -59,7 +59,7 @@ class PDFDownloader(DownloaderBase):
 
         if user:
             item_props['user'] = str(user)
-        return item_props, iid
+        return item_props
 
     @staticmethod
     @shared_task(name='aristotle_pdf_downloads.downloader.download')
@@ -118,7 +118,7 @@ class PDFDownloader(DownloaderBase):
         }
         if user:
             properties['user'] = str(user)
-        return properties, items
+        return properties
 
     @staticmethod
     @shared_task(name='aristotle_pdf_downloads.downloader.bulk_download')

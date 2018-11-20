@@ -113,7 +113,7 @@ class CSVDownloader(DownloaderBase):
         }
         if user:
             properties['user'] = str(user)
-        return properties, iid
+        return properties
 
     @classmethod
     def bulk_download(cls, request, item):
