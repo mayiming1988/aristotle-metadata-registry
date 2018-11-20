@@ -6,5 +6,6 @@ urlpatterns = [
     url(r'^account/tasks/$', views.TaskRunnerView.as_view(), name="run_task"),
     url(r'^account/tasks/history/$', views.TaskListView.as_view(), name="task_history"),
     url(r'^account/tasks/recent/$', views.TaskListLimitedView.as_view(), name="task_history_recent"),
-    url(r'^tasks/starttask/(?P<task_name>\w+)', views.GenericTaskView.as_view(), name="starttask")
+    url(r'^tasks/starttask/(?P<task_name>\w+)', views.GenericTaskView.as_view(), name="starttask"),
+    url(r'^tasks/stoptask/', views.GenericTaskStopView.as_view(), name="stoptask"),
 ]

@@ -19,6 +19,7 @@ aristotle-mdr-graphql = {path = "./python/aristotle-mdr-graphql", editable = tru
 aristotle-pdf-downloads = {path = "./python/aristotle-pdf-downloads", editable = true}
 comet-indicator-registry = {path = "./python/comet-indicator-registry", editable = true}
 mallard-questionnaire-registry = {path = "./python/mallard-questionnaire-registry", editable = true}
+aristotle-bg-workers = {path = "./python/aristotle-bg-workers", editable = true}
 
 [dev-packages]
 coverage = "*"
@@ -32,6 +33,7 @@ wcag-zoo = "*"
 django-impersonate = "*"
 psycopg2 = "*"
 boto3 = "*"
+redis = ">2.10,<3.0"
 
 
 [requires]

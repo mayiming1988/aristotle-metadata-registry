@@ -21,3 +21,10 @@ app.autodiscover_tasks(related_name='downloader')
 @app.task(bind=True)
 def debug_task(self):
     print('Request: {0!r}'.format(self.request))
+
+
+from celery import signals
+@signals.setup_logging.connect
+def setup_celery_logging(**kwargs):
+    pass
+app.log.setup()

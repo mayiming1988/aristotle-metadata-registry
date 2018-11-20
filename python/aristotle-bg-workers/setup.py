@@ -18,6 +18,6 @@ setup(
     zip_safe=False,
     install_requires=[
         'celery',
-        'django-celery-results'
+        'django-celery-results==1.0.4'
     ]
 )

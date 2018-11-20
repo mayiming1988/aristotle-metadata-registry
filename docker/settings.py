@@ -7,8 +7,6 @@ import socket
 import os
 from aristotle_mdr.required_settings import *
 
-INSTALLED_APPS = INSTALLED_APPS + ("aristotle_pdf",)
-
 ALLOWED_HOSTS = ["*"]
 DEBUG = os.environ.get('DJANGO_DEBUG', False) == "True"
 ARISTOTLE_SETTINGS['SITE_NAME'] = 'Aristotle Development Server'
@@ -16,7 +14,7 @@ ARISTOTLE_SETTINGS['DOWNLOADERS'] = ['aristotle_mdr.downloader.CSVDownloader', '
 
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-ARISTOTLE_ASYNC_SIGNALS = False
+
 ROOT_URLCONF = 'urls'
 
 ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] += [

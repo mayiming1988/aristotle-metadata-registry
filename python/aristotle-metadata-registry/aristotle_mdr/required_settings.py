@@ -81,7 +81,7 @@ SILENCED_SYSTEM_CHECKS = [
 ALLOWED_HOSTS = []
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
-ARISTOTLE_ASYNC_SIGNALS = True
+ARISTOTLE_ASYNC_SIGNALS = os.getenv('ARISTOTLE_ASYNC_SIGNALS', False) == "True"
 
 INSTALLED_APPS = (
     'aristotle_bg_workers',
@@ -134,9 +134,7 @@ INSTALLED_APPS = (
     'rest_framework_swagger',
     'django_filters',
 
-    'django_jsonforms'
-
-    'aristotle_bg_workers',
+    'django_jsonforms',
 )
 
 USE_L10N = True
