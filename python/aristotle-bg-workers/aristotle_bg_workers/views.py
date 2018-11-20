@@ -34,8 +34,7 @@ class GenericTaskView(IsSuperUserMixin, View):
 
         task_promise = app.send_task(task_name, kwargs={"requester": self.request.user.email})
         display_name = get_pretty_name(task_name)
-        # store_task(task_promise.id, display_name, request.user)
-        
+
         return HttpResponse(task_promise.id)
 
 
@@ -143,27 +142,6 @@ class GetTaskStatusView(TaskListView):
             tasks = self.get_annotated_list(self.get_queryset().order_by('-id')[:5])
 
             for task in tasks:
-                # try:
-                #     extra = task.extrainfo
-                # except ObjectDoesNotExist:
-                #     extra = None
-
-                # # If extra not attached the signal may not have completed
-                # if not extra:
-                #     # Query it directly in this case
-                #     try:
-                #         extra = ExtraTaskInfo.objects.get(celery_task_id=task.task_id)
-                #     except ExtraTaskInfo.DoesNotExist:
-                #         extra = None
-
-                # if extra:
-                #     name = extra.task_name
-                #     date_started = date_convert(extra.date_started)
-                #     task_user = extra.task_creator.full_name
-                # else:
-                #     name = 'Unknown'
-                #     date_started = 'Unknown'
-                #     task_user = 'Unknown'
 
                 date_done = date_convert(task.date_done)
                 if task.status == 'STARTED':

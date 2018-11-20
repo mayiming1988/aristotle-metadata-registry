@@ -13,7 +13,6 @@ import aristotle_mdr.perms as perms
 from aristotle_mdr.utils import url_slugify_concept
 from celery import states
 from django_celery_results.models import TaskResult
-from aristotle_bg_workers.helpers import store_task
 
 from django_tools.unittest_utils.BrowserDebug import debug_response
 
