@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist, ObjectDoesNotExist
 from django.urls import reverse
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 from django.http import HttpResponseRedirect, HttpResponseNotFound, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.defaultfilters import slugify
@@ -47,9 +47,11 @@ from aristotle_mdr.views.utils import (
     TagsMixin
 )
 from aristotle_mdr.contrib.slots.utils import get_allowed_slots
+from aristotle_mdr.contrib.links.models import Link, LinkEnd
 from aristotle_mdr import validators
 
 from haystack.views import FacetedSearchView
+from reversion.models import Version
 
 
 import logging
@@ -187,7 +189,6 @@ class ConceptRenderMixin(TagsMixin):
         return self.request.user
 
     def get_redirect(self):
-
         if not self.modelslug_arg:
             model_correct = True
         else:
@@ -237,6 +238,17 @@ class ConceptRenderMixin(TagsMixin):
 
         return super().dispatch(request, *args, **kwargs)
 
+    def get_links(self):
+        leqs = LinkEnd.objects.select_related('concept').select_related('role')
+        links = Link.objects.filter(
+            root_item=self.item
+        ).select_related(
+            'relation'
+        ).prefetch_related(
+            Prefetch('linkend_set', queryset=leqs)
+        )
+        return links
+
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
 
@@ -245,7 +257,6 @@ class ConceptRenderMixin(TagsMixin):
         else:
             context['isFavourite'] = self.request.user.profile.is_favourite(self.item)
 
-        from reversion.models import Version
         context['last_edit'] = Version.objects.get_for_object(self.item).first()
         # Only display viewable slots
         context['slots'] = get_allowed_slots(self.item, self.user)
@@ -253,6 +264,7 @@ class ConceptRenderMixin(TagsMixin):
         context['statuses'] = self.item.current_statuses
         context['discussions'] = self.item.relatedDiscussions.all()
         context['activetab'] = 'item'
+        context['links'] = self.get_links()
         return context
 
     def get_template_names(self):
