@@ -8,7 +8,6 @@ import django.db.models.deletion
 
 
 def forward_add_root_item(apps, schema_editor):
-    print('running data migration..')
     link_model = apps.get_model('aristotle_mdr_links', 'Link')
     for link in link_model.objects.all():
         first_le = link.linkend_set.order_by('created').select_related('concept').first()
@@ -28,9 +27,4 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(forward_add_root_item, backward_add_root_item),
-        migrations.AlterField(
-            model_name='link',
-            name='root_item',
-            field=aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='owned_links', to='aristotle_mdr._concept'),
-        )
     ]

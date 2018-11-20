@@ -8,7 +8,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_mdr_links', '0007_migrate_root_item'),
+        ('aristotle_mdr_links', '0008_root_non_nullable'),
     ]
 
     operations = [
