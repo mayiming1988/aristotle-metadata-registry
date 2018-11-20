@@ -7,6 +7,18 @@ from django.db import migrations
 import django.db.models.deletion
 
 
+def forward_add_root_item(apps, schema_editor):
+    link_model = apps.get_model('aristotle_mdr_links', 'Link')
+    for link in link_model.objects.all():
+        first_le = link.linkend_set.order_by('created').select_related('concept').first()
+        link.root_item = first_le.concept
+        link.save()
+
+
+def backward_add_root_item(apps, schema_editor):
+    print('Root items will be lost')
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -18,7 +30,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='link',
             name='root_item',
-            field=aristotle_mdr.fields.ConceptForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, related_name='owned_links', to='aristotle_mdr._concept'),
-            preserve_default=False,
+            field=aristotle_mdr.fields.ConceptForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='owned_links', to='aristotle_mdr._concept'),
         ),
+        migrations.RunPython(forward_add_root_item, backward_add_root_item),
+        migrations.AlterField(
+            model_name='link',
+            name='root_item',
+            field=aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='owned_links', to='aristotle_mdr._concept'),
+        )
     ]
