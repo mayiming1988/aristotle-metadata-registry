@@ -495,6 +495,18 @@ class TestLinkPages(LinkTestBase, TestCase):
         self.assertNotContains(response, '<h2>Relationships</h2>')
         self.assertEqual(len(response.context['links']), 0)
 
+    def test_arity_prop_2_roles(self):
+        self.assertEqual(self.relation.arity, 2)
+
+    def test_arity_prop_3_roles(self):
+        rr3 = models.RelationRole.objects.create(
+            name='New Role',
+            definition='So New',
+            ordinal=3,
+            relation=self.relation
+        )
+        self.assertEqual(self.relation.arity, 3)
+
 
 class TestLinkPerms(LinkTestBase, TestCase):
     def test_superuser_can_edit_links(self):
