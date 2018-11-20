@@ -1,3 +1,4 @@
+from typing import Any
 from aristotle_mdr.utils import get_download_template_path_for_item
 
 from django.http import HttpResponse
@@ -19,7 +20,7 @@ class DownloaderBase(object):
       * the string "__all__" indicating the downloader supports all metadata types
       * the string "__template__" indicating the downloader supports any metadata type with a matching download template
     """
-    metadata_register = {}
+    metadata_register: Any = {}
     icon_class = ""
     description = ""
 

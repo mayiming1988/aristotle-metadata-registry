@@ -1,3 +1,4 @@
+from typing import List, Callable, Any
 from django import forms
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist
 from django.urls import reverse
@@ -47,9 +48,9 @@ def generic_foreign_key_factory_view(request, **kwargs):
 
 
 class GenericWithItemURLView(View):
-    user_checks = []
-    permission_checks = [user_can_view]
-    model_base = _concept
+    user_checks: List[Callable] = []
+    permission_checks: List[Callable] = [user_can_view]
+    model_base: object = _concept
     item_kwarg = "iid"
 
     def dispatch(self, request, *args, **kwargs):
@@ -81,11 +82,11 @@ class GenericWithItemURLFormView(GenericWithItemURLView, FormView):
 
 
 class GenericAlterManyToSomethingFormView(GenericWithItemURLFormView):
-    permission_checks = [user_can_edit]
-    model_base = None
-    model_to_add = None
-    model_base_field = None
-    form_title = None
+    permission_checks: List[Callable] = [user_can_edit]
+    model_base: Any = None
+    model_to_add: Any = None
+    model_base_field = ''
+    form_title = ''
     form_submit_text = _('Save')
 
     def get_context_data(self, *args, **kwargs):
@@ -363,7 +364,7 @@ class GenericAlterManyToManyOrderView(GenericAlterManyToManyView):
 class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
     is_ordered = False
     ordering_field = None
-    formset_class = None
+    formset_class: Any = None
     template_name = "aristotle_mdr/generic/actions/alter_one_to_many.html"
     formset_factory = inlineformset_factory
     formset = None
@@ -504,8 +505,8 @@ class UnorderedGenericAlterOneToManyView(GenericAlterOneToManyViewBase):
     `Dataset`s, to alter the `DataElement`s attached to a `Dataset`, `Dataset` is the
     `base_model` and `model_to_add` is `DataElement`.
     """
-    model_to_add_field = None
-    form_add_another_text = None
+    model_to_add_field = ''
+    form_add_another_text = ''
     formset = None
 
 

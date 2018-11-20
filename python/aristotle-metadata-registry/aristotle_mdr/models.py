@@ -107,9 +107,10 @@ class baseAristotleObject(TimeStampedModel):
 
     def was_modified_recently(self):
         return self.modified >= timezone.now() - datetime.timedelta(days=1)
-    was_modified_recently.admin_order_field = 'modified'
-    was_modified_recently.boolean = True
-    was_modified_recently.short_description = 'Modified recently?'
+
+    was_modified_recently.admin_order_field = 'modified' # type: ignore
+    was_modified_recently.boolean = True # type: ignore
+    was_modified_recently.short_description = 'Modified recently?' # type: ignore
 
     def description_stub(self):
         from django.utils.html import strip_tags
@@ -675,8 +676,8 @@ class _concept(baseAristotleObject):
     tracker = FieldTracker()
 
     comparator = comparators.Comparator
-    edit_page_excludes = None
-    admin_page_excludes = None
+    edit_page_excludes: list = []
+    admin_page_excludes: list = []
     registerable = True
 
     class Meta:
@@ -791,8 +792,8 @@ class _concept(baseAristotleObject):
 
     def is_public(self):
         return self._is_public
-    is_public.boolean = True
-    is_public.short_description = 'Public'
+    is_public.boolean = True  # type: ignore
+    is_public.short_description = 'Public'  # type: ignore
 
     def check_is_locked(self, when=timezone.now()):
         """
@@ -808,8 +809,8 @@ class _concept(baseAristotleObject):
     def is_locked(self):
         return self._is_locked
 
-    is_locked.boolean = True
-    is_locked.short_description = 'Locked'
+    is_locked.boolean = True  # type: ignore
+    is_locked.short_description = 'Locked'  # type: ignore
 
     def recache_states(self):
         self._is_public = self.check_is_public()
