@@ -4,7 +4,7 @@
 
 {% block title %}Reject review for {{ item.name }}{% endblock %}
 {% block content %}
-{{ form.media }}
+{# {{ form.media }} #}
 <form method="post" action="{% url 'aristotle:userReviewCancel' review.id %}">{% csrf_token %}
     <div class="modal-body">
         <ol class="breadcrumb">

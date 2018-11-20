@@ -4,7 +4,6 @@ from django.core.validators import EmailValidator
 from django.core.exceptions import ValidationError
 import aristotle_mdr.models as MDR
 from aristotle_mdr.models import STATES, Status
-from aristotle_mdr.utils import status_filter
 from django.forms.widgets import EmailInput
 from aristotle_mdr.widgets.widgets import TableCheckboxSelect, MultiTextWidget
 from django.urls import reverse
@@ -55,7 +54,7 @@ class ReviewChangesChoiceField(ModelMultipleChoiceField):
         extra_info = {}
         subclassed_queryset = queryset.select_subclasses()
         statuses = Status.objects.filter(concept__in=queryset, registrationAuthority=ra).select_related('concept')
-        statuses = status_filter(statuses).order_by("-registrationDate", "-created")
+        statuses = statuses.valid().order_by("-registrationDate", "-created")
 
         new_state_num = static_content['new_state']
         new_state = str(STATES[new_state_num])

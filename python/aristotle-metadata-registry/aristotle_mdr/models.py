@@ -26,7 +26,6 @@ from aristotle_mdr.utils import (
     url_slugify_workgroup,
     url_slugify_registration_authoritity,
     url_slugify_organization,
-    status_filter,
 )
 from aristotle_mdr import comparators
 
@@ -821,27 +820,8 @@ class _concept(baseAristotleObject):
     def current_statuses(self, qs=None, when=timezone.now()):
         if qs is None:
             qs = self.statuses.all()
-        if hasattr(when, 'date'):
-            when = when.date()
 
-        states = status_filter(qs, when)
-        states = states.order_by("registrationAuthority", "-registrationDate", "-created")
-
-        from django.db import connection
-        if connection.vendor == 'postgresql':
-            states = states.distinct('registrationAuthority')
-        else:
-            current_ids = []
-            seen_ras = []
-            for s in states:
-                ra = s.registrationAuthority
-                if ra not in seen_ras:
-                    current_ids.append(s.pk)
-                    seen_ras.append(ra)
-            # We hit again so we can return this as a queryset
-            states = states.filter(pk__in=current_ids)
-
-        return states.select_related('registrationAuthority')
+        return qs.current(when)
 
     def get_download_items(self):
         """
