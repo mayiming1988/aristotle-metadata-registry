@@ -165,11 +165,21 @@ class LinkTestBase(utils.AristotleTestUtils):
             concept = self.item4
         )
 
+        self.blank_relation = models.Relation.objects.create(
+            name='Blank Relation',
+            definition='Super blank'
+        )
+
+
 class TestLinkPages(LinkTestBase, TestCase):
 
-    def register_relation(self):
+    def register_relation(self, relation=None):
+
+        if not relation:
+            relation = self.relation
+
         self.ra.register(
-            item=self.relation,
+            item=relation,
             state=STATES.standard,
             user=self.su
         )
@@ -424,6 +434,40 @@ class TestLinkPages(LinkTestBase, TestCase):
             form.fields['role'].queryset,
             [self.relation_role1, self.relation_role2],
         )
+
+    def test_no_roles_message_displays(self):
+        self.register_relation(self.blank_relation)
+        self.login_editor()
+
+        wizard_data = [{'relation': str(self.blank_relation.pk)}]
+
+        response = self.post_to_wizard(
+            wizard_data,
+            reverse('aristotle_mdr_links:add_link', args=[self.item1.id]),
+            'add_link_wizard'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertWizardStep(response, 1)
+
+        self.assertFalse(response.context['roles_exist'])
+        self.assertContains(response, 'alert alert-danger')
+
+    def test_no_roles_message_doesnt_display(self):
+        self.register_relation()
+        self.login_editor()
+
+        wizard_data = [{'relation': str(self.relation.pk)}]
+
+        response = self.post_to_wizard(
+            wizard_data,
+            reverse('aristotle_mdr_links:add_link', args=[self.item1.id]),
+            'add_link_wizard'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertWizardStep(response, 1)
+
+        self.assertTrue(response.context['roles_exist'])
+        self.assertNotContains(response, 'alert alert-danger')
 
 
 class TestLinkPerms(LinkTestBase, TestCase):
