@@ -108,9 +108,9 @@ class baseAristotleObject(TimeStampedModel):
     def was_modified_recently(self):
         return self.modified >= timezone.now() - datetime.timedelta(days=1)
 
-    was_modified_recently.admin_order_field = 'modified' # type: ignore
-    was_modified_recently.boolean = True # type: ignore
-    was_modified_recently.short_description = 'Modified recently?' # type: ignore
+    was_modified_recently.admin_order_field = 'modified'  # type: ignore
+    was_modified_recently.boolean = True  # type: ignore
+    was_modified_recently.short_description = 'Modified recently?'  # type: ignore
 
     def description_stub(self):
         from django.utils.html import strip_tags
