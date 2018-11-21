@@ -71,6 +71,15 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
             item=self.tastiness
         )
 
+    def get_tag(self, user, item, tag):
+        tag = models.Favourite.objects.get(
+            item_id=item.id,
+            tag__primary=False,
+            tag__profile=user.profile,
+            tag__name=tag
+        )
+        return tag
+
     def check_favourite(self, user, item, status):
         favourited = models.Favourite.objects.filter(
             item_id=item.id,
@@ -222,14 +231,19 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
             reverse_args=[self.timtam.id]
         )
 
-        response_obj = json.loads(response.content)
-        self.assertTrue(response_obj['success'])
-
         self.check_tag(self.editor, self.timtam, 'very good', True)
         self.check_tag(self.editor, self.timtam, 'amazing', True)
 
         self.check_tag_count(self.editor, 2)
         self.check_favourite_count(self.editor, 2)
+
+        response_obj = json.loads(response.content)
+        vg = self.get_tag(self.editor, self.timtam, 'very good')
+        am = self.get_tag(self.editor, self.timtam, 'amazing')
+        self.assertCountEqual(
+            response_obj['tags'],
+            [{'id': vg.id, 'name': 'very good'}, {'id': am.id, 'name': 'amazing'}]
+        )
 
     def test_tag_edit_add_and_remove_tags(self):
 
@@ -256,14 +270,18 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
             reverse_args=[self.timtam.id]
         )
 
-        response_obj = json.loads(response.content)
-        self.assertTrue(response_obj['success'])
-
         self.check_tag(self.editor, self.timtam, 'very good', False)
         self.check_tag(self.editor, self.timtam, '10/10', True)
 
         self.check_tag_count(self.editor, 2)
         self.check_favourite_count(self.editor, 1)
+
+        response_obj = json.loads(response.content)
+        ten = self.get_tag(self.editor, self.timtam, '10/10')
+        self.assertCountEqual(
+            response_obj['tags'],
+            [{'id': ten.id, 'name': '10/10'}]
+        )
 
     def test_edit_tag_description(self):
 

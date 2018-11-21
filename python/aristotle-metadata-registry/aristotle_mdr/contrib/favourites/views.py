@@ -1,3 +1,4 @@
+from typing import Dict
 from django.shortcuts import get_object_or_404
 from aristotle_mdr.utils import url_slugify_concept
 from django.contrib.auth.decorators import login_required
@@ -77,13 +78,14 @@ class EditTags(LoginRequiredMixin, View):
             tag__profile=user.profile,
             tag__primary=False,
             item=item
-        ).values_list('tag__name', flat=True)
+        ).values_list('tag__name', 'tag__id')
 
+        tags_map = dict(current_tags)
         tags_json = post_data.get('tags', '')
 
         if tags_json:
             tags = set(json.loads(tags_json))
-            current_set = set(current_tags)
+            current_set = set(tags_map.keys())
 
             new = tags - current_set
             deleted = current_set - tags
@@ -98,6 +100,7 @@ class EditTags(LoginRequiredMixin, View):
                     tag=tag_obj,
                     item=item
                 )
+                tags_map[tag_obj.name] = tag_obj.id
 
             for tag in deleted:
                 tag_obj, created = Tag.objects.get_or_create(
@@ -109,18 +112,18 @@ class EditTags(LoginRequiredMixin, View):
                     tag=tag_obj,
                     item=item
                 ).delete()
+                del tags_map[tag]
 
-        return self.get_json_response()
+        return self.get_json_response(tags_map)
 
-    def get_json_response(self, success=True):
-        response_dict = {
-            'success': success,
-        }
+    def get_json_response(self, tags_map: Dict[str, int]):
+        tags_list = []
+        for name, id in tags_map.items():
+            tags_list.append({'id': id, 'name': name})
 
-        if success:
-            response_dict['message'] = 'Tags Updated'
+        response = {'tags': tags_list}
 
-        return JsonResponse(response_dict)
+        return JsonResponse(response)
 
 
 class FavouritesAndTags(LoginRequiredMixin, ListView):
