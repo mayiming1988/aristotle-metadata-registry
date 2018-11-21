@@ -3,11 +3,11 @@ import VueTestUtils from '@vue/test-utils'
 import sinon from 'sinon'
 
 import { addMessageRow, assertSingleMessage } from './utils.js'
-import favouriteComponent from '../src/components/favourite.vue'
-import tagComponent from '../src/components/tag.vue'
-import autoCompleteTagComponent from '../src/components/autocompleteTag.vue'
-import tagsModal from '../src/components/tagsModal.vue'
-import submitTags from '../src/components/submitTags.vue'
+import favouriteComponent from '@/favourite.vue'
+import tagComponent from '@/tags/tag.vue'
+import autoCompleteTagComponent from '@/tags/autocompleteTag.vue'
+import tagsModal from '@/tags/tagsModal.vue'
+import submitTags from '@/tags/submitTags.vue'
 
 var assert = chai.assert
 var mount = VueTestUtils.mount
