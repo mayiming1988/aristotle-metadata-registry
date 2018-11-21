@@ -10,6 +10,7 @@ from aristotle_mdr.perms import user_can_edit
 from aristotle_mdr.contrib.links import forms as link_forms
 from aristotle_mdr.contrib.links import models as link_models
 from aristotle_mdr.contrib.links import perms
+from aristotle_mdr.contrib.links.utils import get_links_for_concept
 
 from formtools.wizard.views import SessionWizardView
 
@@ -191,7 +192,7 @@ class AddLinkWizard(SessionWizardView):
 
 def link_json_for_item(request, iid):
     item = get_object_or_404(MDR._concept, pk=iid).item
-    links = link_models.Link.objects.filter(linkend__concept=item).all().distinct()
+    links = get_links_for_concept(item)
 
     nodes = []
     edges = []

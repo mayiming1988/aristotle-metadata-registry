@@ -49,6 +49,7 @@ from aristotle_mdr.views.utils import (
 )
 from aristotle_mdr.contrib.slots.utils import get_allowed_slots
 from aristotle_mdr.contrib.links.models import Link, LinkEnd
+from aristotle_mdr.contrib.links.utils import get_links_for_concept
 from aristotle_mdr import validators
 
 from haystack.views import FacetedSearchView
@@ -240,15 +241,7 @@ class ConceptRenderMixin(TagsMixin):
         return super().dispatch(request, *args, **kwargs)
 
     def get_links(self):
-        leqs = LinkEnd.objects.select_related('concept').select_related('role')
-        links = Link.objects.filter(
-            root_item=self.item
-        ).select_related(
-            'relation'
-        ).prefetch_related(
-            Prefetch('linkend_set', queryset=leqs)
-        )
-        return links
+        return get_links_for_concept(self.item)
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
