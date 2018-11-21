@@ -1,5 +1,6 @@
 {% load aristotle_tags %}
 {% load humanize i18n %}
+{% load url_tags %}
 
 <aside id="infobox-wrap" class="col-xs-12 col-sm-4 pull-right navbar navbar-default">
     <div class="navbar-header">
@@ -168,7 +169,12 @@
             <hr>
             <dt>Your Tags</dt>
             <dd>
-              <simple-list ul-class="taggle_list" li-class="taggle" :data="saved_tags"></simple-list>
+              <simple-linked-list 
+                ul-class="taggle_list" 
+                li-class="taggle" 
+                :data="saved_tags" 
+                link-template="{% urltemplate 'aristotle_favourites:tag' %}">
+              </simple-linked-list>
             </dd>
           </div>
           {% endif %}

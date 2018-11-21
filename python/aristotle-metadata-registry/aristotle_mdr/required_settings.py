@@ -132,7 +132,8 @@ INSTALLED_APPS = (
     'rest_framework_swagger',
     'django_filters',
 
-    'django_jsonforms'
+    'django_jsonforms',
+    'missing'
 
     # 'aristotle_bg_workers',
     # 'django_celery_results',
