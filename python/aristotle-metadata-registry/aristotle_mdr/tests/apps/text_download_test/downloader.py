@@ -29,7 +29,7 @@ class TestTextDownloader(DownloaderBase):
         user = getattr(request, 'user', None)
         if user:
             properties['user'] = str(user)
-        return properties, item
+        return properties
 
     @staticmethod
     @shared_task(name='aristotle_mdr.tests.apps.text_download_test.downloader.download')
