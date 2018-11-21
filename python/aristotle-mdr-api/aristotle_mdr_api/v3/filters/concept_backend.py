@@ -16,7 +16,7 @@ class SupersedeRelationshipBackend(DjangoFilterBackend):
 class SupersedeRelationshipFilter(django_filters.rest_framework.FilterSet):
     class Meta:
         model = MDR.SupersedeRelationship
-        fields = {}
+        fields: dict = {}
         strict = django_filters.STRICTNESS.RAISE_VALIDATION_ERROR
 
     superseded_by = django_filters.UUIDFilter(
@@ -105,7 +105,7 @@ class ConceptFilter(django_filters.rest_framework.FilterSet):
         elif len(args) == 3:
             kwargs = dict([
                 ('identifiers__%s'%k, v)
-                for k, v in 
+                for k, v in
                 zip(
                     ['namespace__shorthand_prefix', 'identifier', 'version'],
                     args
@@ -118,11 +118,11 @@ class ConceptFilter(django_filters.rest_framework.FilterSet):
     def queryset_filter(self, queryset, name, value):
         # construct the full lookup expression.
         f,v = value.split(':', 1)
-        
+
         if self.has_forbidden_join(queryset.model()._meta.model, f):
             raise PermissionDenied(detail="Joining on that field is not allowed")
-        
-        
+
+
         try:
             queryset = queryset.filter(**{f:v})
         except:

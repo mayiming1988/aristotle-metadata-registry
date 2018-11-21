@@ -95,7 +95,7 @@ class PermissionWizard(SessionWizardView):
 
 
 class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
-    widgets = {}
+    widgets: dict = {}
     templates = {
         "initial": "aristotle_mdr/create/concept_wizard_1_search.html",
         "results": "aristotle_mdr/create/concept_wizard_2_results.html",

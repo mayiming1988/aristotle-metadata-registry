@@ -16,7 +16,7 @@ class DescriptionStubSerializerMixin(object):
 
 
 class MultiSerializerViewSetMixin(viewsets.ReadOnlyModelViewSet):
-    serializers = {
+    serializers: dict = {
         'default': None,
     }
 

@@ -20,4 +20,4 @@ class IsSuperuserOrReadOnly(permissions.BasePermission):
         )
 
 
-AuthAndTokenOrRO = (IsAuthenticated & TokenOrReadOnlyPerm)
+AuthAndTokenOrRO = (IsAuthenticated & TokenOrReadOnlyPerm)  # type: ignore

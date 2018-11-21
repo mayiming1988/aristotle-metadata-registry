@@ -15,13 +15,13 @@ BASE_RESTRICTION = {
     1: 'Locked',
     2: 'Unlocked',
 }
-RESTRICTION = {}
+RESTRICTION: dict = {}
 # reverse the dictionary to make two-way look ups easier
 RESTRICTION.update([(k, v) for k, v in BASE_RESTRICTION.items()])
 RESTRICTION.update([(str(k), v) for k, v in BASE_RESTRICTION.items()])
 RESTRICTION.update([(v, k) for k, v in BASE_RESTRICTION.items()])
 
-registered_indexes = []
+registered_indexes: list = []
 
 
 class ConceptFallbackCharField(indexes.CharField):

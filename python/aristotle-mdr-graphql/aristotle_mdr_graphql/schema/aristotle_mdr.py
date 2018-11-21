@@ -42,7 +42,7 @@ UnitOfMeasureNode = type_from_concept_model(mdr_models.UnitOfMeasure)
 DataTypeNode = type_from_concept_model(mdr_models.DataType)
 ConceptualDomainNode = type_from_concept_model(mdr_models.ConceptualDomain)
 
-ValueMeaningNode = inline_type_from_model(mdr_models.ValueMeaning)
+# ValueMeaningNode = inline_type_from_model(mdr_models.ValueMeaning)
 PermissibleValueNode = inline_type_from_model(mdr_models.PermissibleValue)
 SupplementaryValueNode = inline_type_from_model(mdr_models.SupplementaryValue)
 

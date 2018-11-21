@@ -1,3 +1,4 @@
+from typing import List
 from django import forms
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -31,7 +32,7 @@ class RequestReviewForm(ChangeStatusGenericForm):
 class RequestReviewCancelForm(UserAwareModelForm):
     class Meta:
         model = MDR.ReviewRequest
-        fields = []
+        fields: List[str] = []
 
 
 class RequestReviewRejectForm(UserAwareModelForm):

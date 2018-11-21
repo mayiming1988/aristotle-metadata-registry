@@ -10,7 +10,7 @@ import ckeditor_uploader.fields
 
 class Migration(migrations.Migration):
 
-    dependencies = [
+    dependencies: list = [
     ]
 
     operations = [

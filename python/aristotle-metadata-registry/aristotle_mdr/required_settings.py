@@ -78,7 +78,7 @@ SILENCED_SYSTEM_CHECKS = [
     'models.E023',  # This gets called because we named a model with an underscore
 ]
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS: list = []
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 ARISTOTLE_ASYNC_SIGNALS = os.getenv('ARISTOTLE_ASYNC_SIGNALS', False) == "True"

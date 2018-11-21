@@ -4,6 +4,7 @@
         <span>last refreshed: {{ lastUpdated }}</span>
         <span>Status: {{ status }}</span>
         </small>
+    <div class="alert alert-warning"><strong>Warning:</strong> Stopping running tasks may leave data in an unstable state. Only do when necessary</div>
     <table id="tasks" class="table">
     <thead>
       <tr>
@@ -21,7 +22,12 @@
         <br>
         <small>{{ task.id }}</small>
         </td>
-        <td>{{ task.status }}</td>
+        <td>{{ task.status }}
+            <button v-if="can_be_stopped(task)" class="btn btn-xs btn-primary" v-on:click="stop_task(task)" title="Stop this task">
+                <i class="fa fa-stop"></i>
+                <span class="sr-only">Stop task</span>
+            </button>
+        </td>
         <td>{{ task.date_started }}</td>
         <td>{{ task.date_done }}</td>
         <td>{{ task.user }}</td>
@@ -39,7 +45,7 @@ import moment from 'moment'
 
 export default {
     mixins: [apiRequest],
-    props: ['taskListUrl', 'refreshList'],
+    props: ['taskListUrl', 'taskStopUrl', 'refreshList'],
     data: () => ({
         tasks: [],
         body: '',
@@ -52,6 +58,13 @@ export default {
         this.timer = setInterval(this.statusUpdate, 7000)
     },
     methods: {
+        stop_task: function(task) {
+            task.status = "STOPPING"
+            let promise = this.get(this.taskStopUrl, {}, {pk: task.pk})
+            promise.then((response) => {
+                this.statusUpdate()
+            })
+        },
         statusUpdate: function() {
             this.status = "loading"
             let promise = this.get(this.taskListUrl, {})
@@ -77,6 +90,12 @@ export default {
                 }
             }
             return task_names
+        },
+        can_be_stopped: function(task) {
+            if (!['SUCCESS', 'FAILURE', 'STOPPED'].includes(task.status)) {
+                return true
+            }
+            return false
         }
     },
     watch: {

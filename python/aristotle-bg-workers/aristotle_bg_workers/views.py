@@ -42,11 +42,18 @@ class GenericTaskStopView(IsSuperUserMixin, View):
 
     def get(self, request):
         from celery.result import AsyncResult
-        task_uuid = request.GET.get("uuid")
-        meta = {"requester": self.request.user.email}
-        AsyncResult(task_uuid).forget() #update_state(meta=meta, state="STOPPED")
+        task_id = request.GET.get("uuid")
+        if task_id is not None:
+            meta = {"requester": self.request.user.email}
+        else:
+            task_result_pk = request.GET.get("pk")
+            result = TaskResult.objects.get(pk=task_result_pk)
+            task_id = result.task_id
+        # AsyncResult(task_id).forget()
+        from celery.task.control import revoke
+        revoke(task_id, terminate=True)
 
-        return HttpResponse(task_uuid)
+        return HttpResponse(task_id)
 
 
 class TaskListView(IsSuperUserMixin, ListView):
@@ -152,18 +159,23 @@ class GetTaskStatusView(TaskListView):
                     result = task.safe_result.get('result',"")
                 except:
                     result = ""
+                try:
+                    start_date = date_convert(task.safe_result.get('start_date',""))
+                except:
+                    start_date = "-"
                 if result and task.status != 'STARTED':
                     formatted_result = result.strip('\"').replace("\\n", "<br />")
                 else:
                     formatted_result = ""
 
                 results_list.append({
+                    'pk': task.id,
                     'id': task.task_id,
                     'task_name': task.task_name,
                     'display_name': task.display_name,
                     'status': task.status,
                     'date_done': date_done,
-                    'date_started': "000-00",
+                    'date_started': start_date,
                     'user': getattr(task.requester, "email", "Unknown"),
                     'result': formatted_result
                 })

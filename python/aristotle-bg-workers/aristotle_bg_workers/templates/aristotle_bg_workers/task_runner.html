@@ -42,6 +42,7 @@
 
 <task-runner-list 
   task-list-url="{% url "aristotle_bg_workers:dbstatus" %}"
+  task-stop-url="{% url 'aristotle_bg_workers:stoptask' %}"
   @refresh-completed="refreshTaskListComplete"
   :refresh-list="refreshList"
   ></task-runner-list>
