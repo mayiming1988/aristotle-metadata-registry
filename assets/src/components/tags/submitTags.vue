@@ -15,7 +15,7 @@ export default {
             var url = this.submitUrl
             var tags = this.tags
             var data = {
-                tags: JSON.stringify(this.flatTags),
+                tags: JSON.stringify(this.tags),
                 csrfmiddlewaretoken: csrf_token
             }
 
@@ -24,16 +24,11 @@ export default {
                 data,
                 (data) => {
                     addHeaderMessage(data.message)
-                    this.$emit('tags-saved', this.flatTags)
+                    this.$emit('tags-saved', this.tags)
                 }
             )
 
         },
-    },
-    computed: {
-        flatTags: function() {
-            return flatten(this.tags, 'name')
-        }
     }
 }
 </script>
