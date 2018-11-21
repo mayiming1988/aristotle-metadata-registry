@@ -781,8 +781,10 @@ class WizardTestUtils:
         for formdata in datalist:
             self.assertWizardStep(response, step)
             response = self.client.post(url, formdata)
-            self.assertEqual(response.status_code, 200)
-            step += 1
+            if step < len(datalist) - 1:
+                # If not last step
+                self.assertEqual(response.status_code, 200)
+                step += 1
 
         return response
 

@@ -335,8 +335,59 @@ class TestLinkPages(LinkTestBase, TestCase):
 
         self.assertEqual(self.item1.linkend_set.count(), self.relation.relationrole_set.count())
 
-        link = self.relation.link_set.first()
+        link = self.relation.link_set.last()
         self.assertEqual(link.root_item, self.item1._concept_ptr)
+        self.assertEqual(
+            link.linkend_set.get(role=self.relation_role1).concept,
+            self.item1._concept_ptr
+        )
+        self.assertEqual(
+            link.linkend_set.get(role=self.relation_role2).concept,
+            self.item1._concept_ptr
+        )
+
+    @tag('gt1m')
+    def test_add_link_gt1_multiplicity(self):
+
+        self.relation_role1.multiplicity = 3
+        self.relation_role1.save()
+        self.relation_role2.multiplicity = 3
+        self.relation_role2.save()
+
+        self.register_relation()
+        self.login_editor()
+
+        wizard_data = [
+            {
+                'relation': str(self.relation.pk)
+            },
+            {
+                'role': self.relation_role1.pk
+            },
+            {
+                self.role1key: self.item1.pk,
+                self.role2key: self.item3.pk
+            },
+            {}
+        ]
+
+        response = self.post_to_wizard(
+            wizard_data,
+            reverse('aristotle_mdr_links:add_link', args=[self.item1.id]),
+            'add_link_wizard'
+        )
+        self.assertEqual(response.status_code, 302)
+
+        link = self.relation.link_set.last()
+        self.assertEqual(link.root_item, self.item1._concept_ptr)
+        self.assertEqual(
+            link.linkend_set.get(role=self.relation_role1).concept,
+            self.item1._concept_ptr
+        )
+        self.assertEqual(
+            link.linkend_set.get(role=self.relation_role2).concept,
+            self.item3._concept_ptr
+        )
 
     def test_add_link_root_item_set(self):
 
