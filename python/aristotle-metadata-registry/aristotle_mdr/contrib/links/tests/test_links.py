@@ -346,7 +346,6 @@ class TestLinkPages(LinkTestBase, TestCase):
             self.item1._concept_ptr
         )
 
-    @tag('gt1m')
     def test_add_link_gt1_multiplicity(self):
 
         self.relation_role1.multiplicity = 3
@@ -408,7 +407,8 @@ class TestLinkPages(LinkTestBase, TestCase):
             status_code=403
         )
 
-    def test_root_item_is_required_as_one_end(self):
+    # Used by 2 following tests
+    def check_root_item_is_required_as_one_end(self):
 
         self.register_relation()
         self.login_editor()
@@ -439,6 +439,17 @@ class TestLinkPages(LinkTestBase, TestCase):
         self.assertTrue(nfe[0].endswith('Must be one of the attached concepts'))
         # Check that the error is actually rendered
         self.assertContains(response, 'Must be one of the attached concepts')
+
+    def test_root_item_is_required_as_one_end(self):
+        self.check_root_item_is_required_as_one_end()
+
+    def test_root_item_is_required_gt1_multiplicity(self):
+        self.relation_role1.multiplicity = 3
+        self.relation_role1.save()
+        self.relation_role2.multiplicity = 3
+        self.relation_role2.save()
+
+        self.check_root_item_is_required_as_one_end()
 
     def test_current_item_prefilled_step3(self):
         self.register_relation()
@@ -557,6 +568,81 @@ class TestLinkPages(LinkTestBase, TestCase):
             relation=self.relation
         )
         self.assertEqual(self.relation.arity, 3)
+
+    def test_saving_more_items_than_multiplicity_allows(self):
+
+        self.relation_role1.multiplicity = 2
+        self.relation_role1.save()
+        self.relation_role2.multiplicity = 2
+        self.relation_role2.save()
+
+        self.register_relation()
+        self.login_editor()
+
+        newitem = ObjectClass.objects.create(
+            name='Third item',
+            definition='The third one',
+            workgroup=self.wg1
+        )
+
+        wizard_data = [
+            {
+                'relation': str(self.relation.pk)
+            },
+            {
+                'role': self.relation_role1.pk
+            },
+            {
+                self.role1key: [self.item1.pk, self.item3.pk, newitem.pk],
+                self.role2key: [self.item3.pk]
+            }
+        ]
+
+        response = self.post_to_wizard(
+            wizard_data,
+            reverse('aristotle_mdr_links:add_link', args=[self.item1.id]),
+            'add_link_wizard'
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertWizardStep(response, 2)  # Still on step 2
+        errors = response.context['form'].errors
+        self.assertEqual(errors[self.role1key], ['Only 2 concepts are valid for this link'])
+        self.assertFalse(self.role2key in errors)
+
+    def test_not_allowed_item_and_wrong_multiplicity(self):
+        # wrong item is removed from cleaned_data before
+        # multiplicity is checked (obnly if >1)
+        self.relation_role1.multiplicity = 2
+        self.relation_role1.save()
+
+        self.register_relation()
+        self.login_editor()
+
+        wizard_data = [
+            {
+                'relation': str(self.relation.pk)
+            },
+            {
+                'role': self.relation_role1.pk
+            },
+            {
+                self.role1key: self.item2.pk,
+                self.role2key: self.item1.pk
+            }
+        ]
+
+        response = self.post_to_wizard(
+            wizard_data,
+            reverse('aristotle_mdr_links:add_link', args=[self.item1.id]),
+            'add_link_wizard'
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertWizardStep(response, 2)  # Still on step 2
+        errors = response.context['form'].errors
+        self.assertTrue(self.role1key in errors)
+        self.assertFalse(self.role2key in errors)
 
 
 class TestLinkPerms(LinkTestBase, TestCase):

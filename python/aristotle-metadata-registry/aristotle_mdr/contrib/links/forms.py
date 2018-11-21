@@ -88,7 +88,7 @@ class AddLink_SelectConcepts_3(LinkEndEditorBase):
         for field, data in cleaned_data.items():
             if field.startswith('role_'):
                 if isinstance(data, QuerySet):
-                    # If we were using >1 multiplicity
+                    # If data is queryset (non 1 multiplicity)
                     if self.root_item in data:
                         root_item_present = True
                         break
