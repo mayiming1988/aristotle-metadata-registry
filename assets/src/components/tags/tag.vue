@@ -69,5 +69,5 @@ export default {
 </script>
 
 <style>
-@import '../styles/taggle.css';
+@import '../../styles/taggle.css';
 </style>

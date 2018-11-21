@@ -1,6 +1,6 @@
 import favouriteComponent from '@/favourite.vue'
 import simpleList from '@/simpleList.vue'
-import tagsModal from '@/tagsModal.vue'
+import tagsModal from '@/tags/tagsModal.vue'
 import linksDisplay from '@/linksDisplay.vue'
 import issueModal from '@/issueModal.vue'
 
