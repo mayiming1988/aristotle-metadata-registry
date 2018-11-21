@@ -2,7 +2,7 @@
   <modal :value="open" @input="emitClose" title="Tag Editor" @hide="emitClose">
     <p>Update your tags for this item, new tags (shown darker) will be created for you</p>
 
-    <autocomplete-tags :current_tags="current_tags" :user_tags="user_tags" @tag-update="update_tags"></autocomplete-tags>
+    <autocomplete-tags :current_tags="current_tags" :user_tags="userTagsFlat" @tag-update="update_tags"></autocomplete-tags>
     <div slot="footer">
       <button type="button" class="btn btn-default" @click="emitClose">Close</button>
       <submit-tags 
@@ -34,7 +34,11 @@ export default {
     props: ['itemTags', 'userTags', 'submitUrl', 'open'],
     created: function() {
         let saved_tags = JSON.parse(this.itemTags)
-        this.current_tags = saved_tags.slice() // Deep copy
+        for (let tag of this.saved_tags) {
+            tag['name'] = tag['tag__name']
+            tag['id'] = tag['tag__id']
+        }
+        this.current_tags = flatten(saved_tags, 'name')
         this.user_tags = JSON.parse(this.userTags)
         this.$emit('saved-tags', saved_tags)
     },
@@ -53,6 +57,11 @@ export default {
         },
         emitClose: function() {
             this.$emit('hide')
+        }
+    },
+    computed: {
+        userTagsFlat: function() {
+            return flatten(this.user_tags, 'name')
         }
     }
 }

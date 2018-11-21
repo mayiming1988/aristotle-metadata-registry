@@ -1,7 +1,7 @@
 <template>
     <simpleList :ulClass="ulClass" :liClass="liClass" :data="data">
         <template slot-scope="slProps">
-            <a :href="getUrl(slProps.item)">{{ slProps.item }}</a>
+            <a :href="getUrl(slProps.item.id)">{{ slProps.item.name }}</a>
         </template>
     </simpleList>
 </template>
