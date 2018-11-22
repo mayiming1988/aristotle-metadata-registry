@@ -122,28 +122,38 @@ describe('tagsModal', function() {
     var wrapper
 
     beforeEach(() => {
-        let user_tags = ['amazing', 'very good', 'sweet']
-        let item_tags = ['ok', 'not so good']
+        this.user_tags = [
+            {'id': 7, 'name': 'amazing'},
+            {'id': 9, 'name': 'very good'},
+            {'id': 10, 'name': 'sweet'}
+        ]
+        this.item_tags = [
+            {'tag__id': 8, 'tag__name': 'ok'},
+            {'tag__id': 6, 'tag__name': 'not so good'}
+        ]
 
         wrapper = shallowMount(tagsModal, {
             propsData: {
-                itemTags: JSON.stringify(item_tags),
-                userTags: JSON.stringify(user_tags)
+                itemTags: JSON.stringify(this.item_tags),
+                userTags: JSON.stringify(this.user_tags)
             }
         })
     })
 
     it('sets initial tags from json', () => {
-        assert.deepEqual(wrapper.vm.user_tags, ['amazing', 'very good', 'sweet'])
+        assert.deepEqual(wrapper.vm.user_tags, this.user_tags)
         assert.deepEqual(wrapper.vm.current_tags, ['ok', 'not so good'])
-        assert.deepEqual(wrapper.vm.saved_tags, ['ok', 'not so good'])
     })
 
     it('emits initial saved tags', () => {
         let emitted = wrapper.emitted()
 
         assert.equal(emitted['saved-tags'].length, 1)
-        assert.deepEqual(emitted['saved-tags'][0][0], ['ok', 'not so good'])
+        let emmitted_tags = emitted['saved-tags'][0][0]
+        assert.equal(emmitted_tags[0]['name'], 'ok')
+        assert.equal(emmitted_tags[0]['id'], 8)
+        assert.equal(emmitted_tags[1]['name'], 'not so good')
+        assert.equal(emmitted_tags[1]['id'], 6)
     })
 
     it('updates current tags', () => {
@@ -153,9 +163,11 @@ describe('tagsModal', function() {
     })
 
     it('updates saved tags', () => {
-        let tags = ['wow', 'great']
+        let tags = [
+            {'id': 11, 'name': 'wow'},
+            {'id': 12, 'name': 'great'}
+        ]
         wrapper.vm.update_saved_tags(tags)
-        assert.deepEqual(wrapper.vm.saved_tags, tags)
 
         let emitted = wrapper.emitted()
         assert.equal(emitted['saved-tags'].length, 2)
@@ -163,10 +175,20 @@ describe('tagsModal', function() {
     })
 
     it('updates user tags when tags saved', () => {
-        let tags = ['ok', 'not so good', 'amazing', 'sweet']
-        let newusertags = ['amazing', 'very good', 'sweet', 'ok', 'not so good']
+        let tags = [
+            {'id': 8, 'name': 'ok'}, 
+            {'id': 6, 'name': 'not so good'}, 
+            {'id': 7, 'name': 'amazing'}, 
+            {'id': 10, 'name': 'sweet'}
+        ]
+        let newusertags = [
+            {'id': 7, 'name': 'amazing'}, 
+            {'id': 9, 'name': 'very good'},
+            {'id': 10, 'name': 'sweet'},
+            {'id': 8, 'name': 'ok'}, 
+            {'id': 6, 'name': 'not so good'}
+        ]
         wrapper.vm.update_saved_tags(tags)
-        assert.deepEqual(wrapper.vm.saved_tags, tags)
         assert.deepEqual(wrapper.vm.user_tags, newusertags)
     })
 })
@@ -191,17 +213,8 @@ describe('submitTags', function() {
     })
 
     it('submits tags and displays message', function() {
-        addMessageRow(document.body)
-
-        let response = {'success': true, 'message': 'Tags updated'}
-        this.server.respondWith([
-            200,
-            {'Content-Type': 'application/json'},
-            JSON.stringify(response)
-        ])
 
         wrapper.vm.submit_tags()
-        this.server.respond()
 
         assert.equal(this.server.requests.length, 1)
         let request = this.server.requests[0]
@@ -213,11 +226,26 @@ describe('submitTags', function() {
         let tags = JSON.parse(params.get('tags'))
         assert.deepEqual(tags, ['wow', 'amazing', 'good'])
 
+    })
+
+    it('emits tags and displays message', function() {
+        addMessageRow(document.body)
+
+        let response = {'tags': [{'id': 7, 'name': 'woah'}]}
+        this.server.respondWith([
+            200,
+            {'Content-Type': 'application/json'},
+            JSON.stringify(response)
+        ])
+
+        wrapper.vm.submit_tags()
+        this.server.respond()
+        
         // Check message and emit
-        assertSingleMessage('Tags updated')
+        assertSingleMessage('Tags Saved')
         let emitted = wrapper.emitted()
         assert.equal(emitted['tags-saved'].length, 1)
-        assert.deepEqual(emitted['tags-saved'][0][0], ['wow', 'amazing', 'good'])
+        assert.deepEqual(emitted['tags-saved'][0][0], response['tags'])
 
         // Cleanup dom
         document.getElementById('messages-row').remove()
