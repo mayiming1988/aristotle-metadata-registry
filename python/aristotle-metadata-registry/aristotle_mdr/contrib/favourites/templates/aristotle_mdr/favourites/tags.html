@@ -20,6 +20,7 @@
   <div id="vue-container">
     <h1>
       <i class="fa fa-bookmark fa-fw"></i>
+      <noscript>{{ title }}</noscript>
       <inline-edit
         initial="{{ title }}"
         field-name="name"
@@ -28,14 +29,7 @@
     </h1>
     {% if tag %}
     <noscript>
-      <form method="POST" action="{% url 'aristotle_favourites:tag_edit' tag.id %}">
-        {% csrf_token %}
-        <div class="form-group">
-          <label for="description">Description</label>
-          <textarea name="description" class="form-control">{{ tag.description }}</textarea>
-        </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
-      </form>
+      {{ tag.description }}
     </noscript>
     <switch-edit 
       name="description" 
