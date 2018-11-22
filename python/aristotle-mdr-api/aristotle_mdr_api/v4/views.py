@@ -1,3 +1,4 @@
+from typing import Dict
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.views import APIView
@@ -5,8 +6,9 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
 
+from aristotle_mdr.models import _concept
 from aristotle_mdr.contrib.issues.models import Issue, IssueComment
-from aristotle_mdr.contrib.favourites.models import Tag
+from aristotle_mdr.contrib.favourites.models import Tag, Favourite
 from aristotle_mdr_api.v4 import serializers
 from aristotle_mdr_api.v4.permissions import AuthCanViewEdit, AuthFinePerms
 from aristotle_mdr import perms
@@ -32,6 +34,7 @@ class IssueCommentCreateView(generics.CreateAPIView):
 
 
 class IssueCommentRetrieveView(generics.RetrieveAPIView):
+    """Retrieve an issue comment"""
     permission_classes=(AuthCanViewEdit,)
     serializer_class=serializers.IssueCommentSerializer
     queryset=IssueComment.objects.all()
@@ -94,3 +97,70 @@ class TagView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes=(AuthCanViewEdit,)
     serializer_class=serializers.TagSerializer
     queryset=Tag.objects.all()
+
+
+class ItemTagUpdateView(APIView):
+    """Update tags on an item"""
+    permission_classes=(AuthCanViewEdit,)
+    pk_url_kwarg='iid'
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        item_id = self.kwargs[self.pk_url_kwarg]
+        item = get_object_or_404(_concept, pk=item_id)
+
+        # Get all the tags on this item by this user
+        current_tags = Favourite.objects.filter(
+            tag__profile=user.profile,
+            tag__primary=False,
+            item=item
+        ).values_list('tag__name', 'tag__id')
+
+        tags_map = dict(current_tags)
+
+        if 'tags' in request.data:
+            tags = set(request.data['tags'])
+            current_set = set(tags_map.keys())
+            new = tags - current_set
+            deleted = current_set - tags
+
+            for tag in new:
+                tag_obj, created = Tag.objects.get_or_create(
+                    profile=user.profile,
+                    name=tag,
+                    primary=False
+                )
+                Favourite.objects.create(
+                    tag=tag_obj,
+                    item=item
+                )
+                tags_map[tag_obj.name] = tag_obj.id
+
+            for tag in deleted:
+                tag_obj, created = Tag.objects.get_or_create(
+                    profile=user.profile,
+                    name=tag,
+                    primary=False
+                )
+                Favourite.objects.filter(
+                    tag=tag_obj,
+                    item=item
+                ).delete()
+                del tags_map[tag]
+
+            return self.get_json_response(tags_map)
+        else:
+            return Response(
+                {'Request': ['Incorrect Request']},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def get_json_response(self, tags_map: Dict[str, int]):
+        tags_list = []
+        for name, id in tags_map.items():
+            tags_list.append({'id': id, 'name': name})
+
+        return Response(
+            {'tags': tags_list},
+            status=status.HTTP_200_OK
+        )

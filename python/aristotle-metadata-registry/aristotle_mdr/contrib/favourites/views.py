@@ -67,9 +67,6 @@ class ToggleFavourite(LoginRequiredMixin, View):
 class EditTags(LoginRequiredMixin, View):
 
     def post(self, request, *args, **kwargs):
-        import logging
-        logger = logging.getLogger(__name__)
-
         user = self.request.user
         post_data = self.request.POST
         item_id = self.kwargs['iid']
@@ -84,7 +81,6 @@ class EditTags(LoginRequiredMixin, View):
 
         tags_map = dict(current_tags)
         tags_json = post_data.get('tags', '')
-        logger.debug('Post Data: {}'.format(post_data))
 
         if tags_json:
             tags = set(json.loads(tags_json))
@@ -118,7 +114,6 @@ class EditTags(LoginRequiredMixin, View):
                 ).delete()
                 del tags_map[tag]
 
-        logger.debug('Tags Map: {}'.format(tags_map))
         return self.get_json_response(tags_map)
 
     def get_json_response(self, tags_map: Dict[str, int]):

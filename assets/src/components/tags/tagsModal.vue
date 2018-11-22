@@ -2,12 +2,14 @@
   <modal :value="open" @input="emitClose" title="Tag Editor" @hide="emitClose">
     <p>Update your tags for this item, new tags (shown darker) will be created for you</p>
 
+    <api-errors :errors="errors"></api-errors>
     <autocomplete-tags :current_tags="current_tags" :user_tags="userTagsFlat" @tag-update="update_tags"></autocomplete-tags>
     <div slot="footer">
       <button type="button" class="btn btn-default" @click="emitClose">Close</button>
       <submit-tags 
         :submit-url="submitUrl"
         :tags="current_tags"
+        @error="setErrors"
         @tags-saved="update_saved_tags">
       </submit-tags>
     </div>
@@ -19,16 +21,19 @@ import { Modal } from 'uiv'
 import autocompleteTag from '@/tags/autocompleteTag.vue'
 import submitTags from '@/tags/submitTags.vue'
 import { flatten } from 'src/lib/utils.js'
+import apiErrors from '@/apiErrorDisplay.vue'
 
 export default {
     components: {
         'modal': Modal,
         'autocomplete-tags': autocompleteTag,
-        'submit-tags': submitTags
+        'submit-tags': submitTags,
+        'api-errors': apiErrors
     },
     data: () => ({
         current_tags: [],
         user_tags: [],
+        errors: {},
         selected: '',
     }),
     props: ['itemTags', 'userTags', 'submitUrl', 'open'],
@@ -54,9 +59,13 @@ export default {
             }
 
             this.$emit('saved-tags', tags)
+            this.emitClose()
         },
         emitClose: function() {
             this.$emit('hide')
+        },
+        setErrors: function(errors) {
+            this.errors = errors
         }
     },
     computed: {

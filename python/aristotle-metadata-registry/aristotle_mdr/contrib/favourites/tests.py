@@ -10,8 +10,7 @@ import json
 import re
 
 
-@tag('favourites')
-class FavouritesTestCase(AristotleTestUtils, TestCase):
+class BaseFavouritesTestCase(TestCase):
 
     def setUp(self):
         super().setUp()
@@ -32,8 +31,6 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
             property=self.tastiness,
             submitter=self.editor
         )
-
-    # --- Utils ---
 
     def create_some_favs_and_tags(self):
         # Create tags
@@ -89,7 +86,6 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
         self.assertEqual(favourited, status)
 
     def check_tag(self, user, item, tag, status):
-
         tagged = models.Favourite.objects.filter(
             item_id=item.id,
             tag__primary=False,
@@ -110,7 +106,9 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
         ).count()
         self.assertEqual(user_favourites, count)
 
-    # --- Tests ---
+
+@tag('favourites')
+class FavouritesTestCase(AristotleTestUtils, TestCase):
 
     def test_toggle_favourite_function_on(self):
 
@@ -214,107 +212,6 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, '/about')
-
-    def test_tag_edit_add_tags(self):
-
-        self.login_editor()
-
-        tags = ['very good', 'amazing']
-        post_data = {
-            'tags': json.dumps(tags)
-        }
-
-        response = self.reverse_post(
-            'aristotle_favourites:edit_tags',
-            post_data,
-            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
-            reverse_args=[self.timtam.id]
-        )
-
-        self.check_tag(self.editor, self.timtam, 'very good', True)
-        self.check_tag(self.editor, self.timtam, 'amazing', True)
-
-        self.check_tag_count(self.editor, 2)
-        self.check_favourite_count(self.editor, 2)
-
-        response_obj = json.loads(response.content)
-        vg = self.get_tag(self.editor, self.timtam, 'very good')
-        am = self.get_tag(self.editor, self.timtam, 'amazing')
-        self.assertCountEqual(
-            response_obj['tags'],
-            [{'id': vg.id, 'name': 'very good'}, {'id': am.id, 'name': 'amazing'}]
-        )
-
-    @tag('existing')
-    def test_tag_edit_add_existing_tag(self):
-
-        self.login_editor()
-        tag = models.Tag.objects.create(
-            profile=self.editor.profile,
-            name='very good',
-            primary=False
-        )
-        tags = ['very good']
-        post_data = {
-            'tags': json.dumps(tags)
-        }
-
-        response = self.reverse_post(
-            'aristotle_favourites:edit_tags',
-            post_data,
-            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
-            reverse_args=[self.timtam.id]
-        )
-
-        self.check_tag(self.editor, self.timtam, 'very good', True)
-
-        self.check_tag_count(self.editor, 1)
-        self.check_favourite_count(self.editor, 1)
-
-        response_obj = json.loads(response.content)
-        vg = self.get_tag(self.editor, self.timtam, 'very good')
-        self.assertCountEqual(
-            response_obj['tags'],
-            [{'id': vg.id, 'name': 'very good'}]
-        )
-
-    def test_tag_edit_add_and_remove_tags(self):
-
-        self.login_editor()
-
-        tag = models.Tag.objects.create(
-            profile=self.editor.profile,
-            name='very good',
-            primary=False
-        )
-        models.Favourite.objects.create(
-            tag=tag,
-            item=self.timtam,
-        )
-
-        post_data = {
-            'tags': json.dumps(['10/10'])
-        }
-
-        response = self.reverse_post(
-            'aristotle_favourites:edit_tags',
-            post_data,
-            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
-            reverse_args=[self.timtam.id]
-        )
-
-        self.check_tag(self.editor, self.timtam, 'very good', False)
-        self.check_tag(self.editor, self.timtam, '10/10', True)
-
-        self.check_tag_count(self.editor, 2)
-        self.check_favourite_count(self.editor, 1)
-
-        response_obj = json.loads(response.content)
-        ten = self.get_tag(self.editor, self.timtam, '10/10')
-        self.assertCountEqual(
-            response_obj['tags'],
-            [{'id': ten.id, 'name': '10/10'}]
-        )
 
     def test_edit_tag_description(self):
 

@@ -3,8 +3,11 @@ from django.test import TestCase, tag
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 
+from aristotle_mdr.tests.utils import AristotleTestUtils
 from aristotle_mdr import models as mdr_models
 from aristotle_mdr.contrib.issues import models
+from aristotle_mdr.contrib.favourites.models import Tag, Favourite
+from aristotle_mdr.contrib.favourites.tests import BaseFavouritesTestCase
 
 
 class BaseAPITestCase(TestCase):
@@ -174,6 +177,111 @@ class IssueEndpointsTestCase(BaseAPITestCase):
         issue = models.Issue.objects.get(pk=issue.pk)
         self.assertFalse(issue.isopen)
         self.assertEqual(issue.comments.count(), 0)
+
+
+class TagsEndpointsTestCase(BaseAPITestCase, BaseFavouritesTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.timtam = mdr_models.ObjectClass.objects.create(
+            name='Tim Tam',
+            definition='Chocolate covered biscuit',
+            submitter=self.user
+        )
+
+    def test_tag_edit_add_tags(self):
+
+        self.login_user()
+
+        post_data = {
+            'tags': ['very good', 'amazing']
+        }
+
+        response = self.client.post(
+            reverse('api_v4:item_tags', args=[self.timtam.id]),
+            post_data,
+            format='json'
+        )
+
+        self.check_tag(self.user, self.timtam, 'very good', True)
+        self.check_tag(self.user, self.timtam, 'amazing', True)
+
+        self.check_tag_count(self.user, 2)
+        self.check_favourite_count(self.user, 2)
+
+        response_obj = response.data
+        vg = self.get_tag(self.user, self.timtam, 'very good')
+        am = self.get_tag(self.user, self.timtam, 'amazing')
+        self.assertCountEqual(
+            response_obj['tags'],
+            [{'id': vg.id, 'name': 'very good'}, {'id': am.id, 'name': 'amazing'}]
+        )
+
+    def test_tag_edit_add_existing_tag(self):
+
+        self.login_user()
+        tag = Tag.objects.create(
+            profile=self.user.profile,
+            name='very good',
+            primary=False
+        )
+        post_data = {
+            'tags': ['very good']
+        }
+
+        response = self.client.post(
+            reverse('api_v4:item_tags', args=[self.timtam.id]),
+            post_data,
+            format='json'
+        )
+
+        self.check_tag(self.user, self.timtam, 'very good', True)
+
+        self.check_tag_count(self.user, 1)
+        self.check_favourite_count(self.user, 1)
+
+        response_obj = response.data
+        vg = self.get_tag(self.user, self.timtam, 'very good')
+        self.assertCountEqual(
+            response_obj['tags'],
+            [{'id': vg.id, 'name': 'very good'}]
+        )
+
+    def test_tag_edit_add_and_remove_tags(self):
+
+        self.login_user()
+
+        tag = Tag.objects.create(
+            profile=self.user.profile,
+            name='very good',
+            primary=False
+        )
+        Favourite.objects.create(
+            tag=tag,
+            item=self.timtam,
+        )
+
+        post_data = {
+            'tags': ['10/10']
+        }
+        response = self.client.post(
+            reverse('api_v4:item_tags', args=[self.timtam.id]),
+            post_data,
+            format='json'
+        )
+
+        self.check_tag(self.user, self.timtam, 'very good', False)
+        self.check_tag(self.user, self.timtam, '10/10', True)
+
+        self.check_tag_count(self.user, 2)
+        self.check_favourite_count(self.user, 1)
+
+        response_obj = response.data
+        ten = self.get_tag(self.user, self.timtam, '10/10')
+        self.assertCountEqual(
+            response_obj['tags'],
+            [{'id': ten.id, 'name': '10/10'}]
+        )
 
 
 @tag('perms')
