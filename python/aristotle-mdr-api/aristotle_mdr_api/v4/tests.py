@@ -201,6 +201,7 @@ class TagsEndpointsTestCase(BaseAPITestCase, BaseFavouritesTestCase):
             post_data,
             format='json'
         )
+        self.assertEqual(response.status_code, 200)
 
         self.check_tag(self.user, self.timtam, 'very good', True)
         self.check_tag(self.user, self.timtam, 'amazing', True)
@@ -233,6 +234,7 @@ class TagsEndpointsTestCase(BaseAPITestCase, BaseFavouritesTestCase):
             post_data,
             format='json'
         )
+        self.assertEqual(response.status_code, 200)
 
         self.check_tag(self.user, self.timtam, 'very good', True)
 
@@ -247,7 +249,6 @@ class TagsEndpointsTestCase(BaseAPITestCase, BaseFavouritesTestCase):
         )
 
     def test_tag_edit_add_and_remove_tags(self):
-
         self.login_user()
 
         tag = Tag.objects.create(
@@ -268,6 +269,7 @@ class TagsEndpointsTestCase(BaseAPITestCase, BaseFavouritesTestCase):
             post_data,
             format='json'
         )
+        self.assertEqual(response.status_code, 200)
 
         self.check_tag(self.user, self.timtam, 'very good', False)
         self.check_tag(self.user, self.timtam, '10/10', True)
@@ -281,6 +283,21 @@ class TagsEndpointsTestCase(BaseAPITestCase, BaseFavouritesTestCase):
             response_obj['tags'],
             [{'id': ten.id, 'name': '10/10'}]
         )
+
+    def test_tag_edit_incorrect_data(self):
+        self.login_user()
+
+        post_data = {
+            'bags': ['10/10']
+        }
+        response = self.client.post(
+            reverse('api_v4:item_tags', args=[self.timtam.id]),
+            post_data,
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['Request'][0], 'Incorrect Request')
 
 
 @tag('perms')
