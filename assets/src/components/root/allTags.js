@@ -1,20 +1,20 @@
 import yesNoModal from '@/yesNoModal.vue'
 import deleteButton from '@/deleteButton.vue'
-import errorAlert from '@/errorAlert.vue'
-import { getCSRF } from 'src/lib/cookie.js'
+import apiRequest from 'src/mixins/apiRequest.js' 
+import apiErrors from '@/apiErrorDisplay.vue'
 
 export default {
     el: '#vue-container',
+    mixins: [apiRequest],
     components: {
         'yesno-modal': yesNoModal,
         'delete-button': deleteButton,
-        'error-alert': errorAlert
+        'api-errors': apiErrors
     },
     data: {
         modal_text: 'Are you sure',
         modal_visible: false,
         tag_item: null,
-        error_msg: ''
     },
     methods: {
         deleteClicked: function(item) {
@@ -23,24 +23,11 @@ export default {
             this.modal_visible = true
         },
         deleteConfirmed: function() {
-            var data = {
-                tagid: this.tag_item.id,
-                csrfmiddlewaretoken: getCSRF()
-            }
-            var component = this;
-
-            $.post(
-                '/favourites/tagDelete',
-                data,
-                function(data) {
-                    if (data.success) {
-                        $(component.tag_item.target).closest('tr').remove()
-                    } else {
-                        component.error_msg = data.message
-                    }
-                    component.modal_visible = false
-                }
-            )
+            this.delete(this.tag_item['url'])
+            .then(() => {
+                $(this.tag_item.target).closest('tr').remove()
+                this.modal_visible = false
+            })
         },
         deleteCancelled: function() {
             this.modal_visible = false

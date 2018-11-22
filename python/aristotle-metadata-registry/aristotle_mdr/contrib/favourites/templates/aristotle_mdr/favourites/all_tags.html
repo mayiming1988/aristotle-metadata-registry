@@ -19,7 +19,6 @@
 {% block page %}
   <div id="vue-container">
     <h1>All Tags</h1>
-    <error-alert :error="error_msg"></error-alert>
     {% if page_obj %}
       <table class="table">
         <thead>
@@ -39,7 +38,11 @@
             <td>{{ item.description }}</td>
             <td>{{ item.num_items }}</td>
             <td>
-              <delete-button item-id="{{ item.id }}" item-name="{{ item.name }}" @click="deleteClicked">
+              <delete-button 
+                item-id="{{ item.id }}" 
+                item-name="{{ item.name }}" 
+                url="{% url 'api_v4:tags' item.id %}"
+                @click="deleteClicked">
               </delete-button>
             </td>
           </tr>

@@ -7,4 +7,5 @@ urlpatterns = [
     url(r'issues/(?P<pk>\d+)/updatecomment/$', views.IssueUpdateAndCommentView.as_view(), name='issue_update_and_comment'),
     url(r'issues/comments/$', views.IssueCommentCreateView.as_view(), name='issue_comment'),
     url(r'issues/comments/(?P<pk>\d+)/$', views.IssueCommentRetrieveView.as_view(), name='issue_comment_get'),
+    url(r'tags/(?P<pk>\d+)/$', views.TagView.as_view(), name='tags'),
 ]

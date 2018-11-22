@@ -47,3 +47,9 @@ export default {
     }
 }
 </script>
+
+<style>
+.inline-edit {
+    display: inline-block;
+}
+</style>

@@ -1,8 +1,11 @@
 from django.urls import reverse
 from rest_framework import serializers
 from aristotle_mdr.contrib.issues.models import Issue, IssueComment
+from aristotle_mdr.contrib.favourites.models import Tag
 from aristotle_mdr.perms import user_can_view
 from aristotle_mdr.models import _concept
+
+from aristotle_mdr_api.v4.fields import CurrentProfileDefault
 
 
 class IssueSerializer(serializers.ModelSerializer):
@@ -46,5 +49,14 @@ class IssueCommentSerializer(serializers.ModelSerializer):
             )
         return value
 
-    def create(self, validated_data):
-        return super().create(validated_data)
+
+class TagSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Tag
+        fields = ('name', 'description', 'created', 'profile')
+        read_only_fields = ('created', 'profile')
+
+    profile = serializers.HiddenField(
+        default=CurrentProfileDefault()
+    )

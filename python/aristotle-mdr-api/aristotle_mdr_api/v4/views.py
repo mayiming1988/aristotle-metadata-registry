@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
 
 from aristotle_mdr.contrib.issues.models import Issue, IssueComment
+from aristotle_mdr.contrib.favourites.models import Tag
 from aristotle_mdr_api.v4 import serializers
 from aristotle_mdr_api.v4.permissions import AuthCanViewEdit, AuthFinePerms
 from aristotle_mdr import perms
@@ -86,3 +87,10 @@ class IssueUpdateAndCommentView(APIView):
             response_content,
             status=status.HTTP_200_OK,
         )
+
+
+class TagView(generics.RetrieveUpdateDestroyAPIView):
+    """Retrive and update and issue"""
+    permission_classes=(AuthCanViewEdit,)
+    serializer_class=serializers.TagSerializer
+    queryset=Tag.objects.all()
