@@ -190,7 +190,6 @@ class TagsEndpointsTestCase(BaseAPITestCase, BaseFavouritesTestCase):
         )
 
     def test_tag_edit_add_tags(self):
-
         self.login_user()
 
         post_data = {

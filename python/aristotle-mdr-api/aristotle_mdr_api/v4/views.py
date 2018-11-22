@@ -1,8 +1,10 @@
 from typing import Dict
+import coreapi
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.schemas import AutoSchema
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
 
@@ -103,6 +105,12 @@ class ItemTagUpdateView(APIView):
     """Update tags on an item"""
     permission_classes=(AuthCanViewEdit,)
     pk_url_kwarg='iid'
+    schema = AutoSchema(
+        manual_fields=[
+            coreapi.Field(name='tags', required=True, location='form',
+                          description='A list of tags for the item')
+        ]
+    )
 
     def post(self, request, *args, **kwargs):
         user = request.user
