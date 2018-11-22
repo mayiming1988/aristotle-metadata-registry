@@ -2,7 +2,7 @@ import chai from 'chai'
 import VueTestUtils from '@vue/test-utils'
 import sinon from 'sinon'
 
-import { addMessageRow, assertSingleMessage } from './utils.js'
+import { addMessageRow, assertSingleMessage, fakePromiseMethod } from './utils.js'
 import favouriteComponent from '@/favourite.vue'
 import tagComponent from '@/tags/tag.vue'
 import autoCompleteTagComponent from '@/tags/autocompleteTag.vue'
@@ -195,59 +195,44 @@ describe('tagsModal', function() {
 
 describe('submitTags', function() {
 
-    var wrapper
-
     beforeEach(function() {
-        wrapper = shallowMount(submitTags, {
+        this.wrapper = shallowMount(submitTags, {
             propsData: {
                 submitUrl: '/submittags',
                 tags: ['wow', 'amazing', 'good']
             }
         })
-
-        this.server = sinon.createFakeServer()
-    })
-
-    afterEach(function() {
-        this.server.restore()
     })
 
     it('submits tags and displays message', function() {
-
-        wrapper.vm.submit_tags()
-
-        assert.equal(this.server.requests.length, 1)
-        let request = this.server.requests[0]
-        assert.equal(request.url, '/submittags')
-        assert.equal(request.method, 'POST')
-
-        // Check submitted tags
-        let params = new URLSearchParams(request.requestBody)
-        let tags = JSON.parse(params.get('tags'))
-        assert.deepEqual(tags, ['wow', 'amazing', 'good'])
-
+        let fakepost = fakePromiseMethod(this.wrapper, 'post')
+        this.wrapper.vm.submit_tags()
+        assert.isTrue(fakepost.calledOnce)
+        assert.isTrue(
+            fakepost.firstCall.calledWithExactly(
+                '/submittags',
+                {tags: ['wow', 'amazing', 'good']}
+            )
+        )
     })
 
     it('emits tags and displays message', function() {
         addMessageRow(document.body)
 
         let response = {'tags': [{'id': 7, 'name': 'woah'}]}
-        this.server.respondWith([
-            200,
-            {'Content-Type': 'application/json'},
-            JSON.stringify(response)
-        ])
+        fakePromiseMethod(this.wrapper, 'post', {data: response})
 
-        wrapper.vm.submit_tags()
-        this.server.respond()
+        this.wrapper.vm.submit_tags()
         
-        // Check message and emit
-        assertSingleMessage('Tags Saved')
-        let emitted = wrapper.emitted()
-        assert.equal(emitted['tags-saved'].length, 1)
-        assert.deepEqual(emitted['tags-saved'][0][0], response['tags'])
+        return this.wrapper.vm.$nextTick().then(() => {
+            // Check message and emit
+            assertSingleMessage('Tags Saved')
+            let emitted = this.wrapper.emitted()
+            assert.equal(emitted['tags-saved'].length, 1)
+            assert.deepEqual(emitted['tags-saved'][0][0], response['tags'])
 
-        // Cleanup dom
-        document.getElementById('messages-row').remove()
+            // Cleanup dom
+            document.getElementById('messages-row').remove()
+        })
     })
 })
