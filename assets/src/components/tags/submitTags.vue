@@ -3,36 +3,26 @@
 </template>
 
 <script>
-import { getCSRF } from 'src/lib/cookie.js'
 import { addHeaderMessage } from 'src/lib/messages.js'
-import { flatten } from 'src/lib/utils.js'
+import { getCSRF } from 'src/lib/cookie.js'
 
 export default {
     props: ['submitUrl', 'tags'],
+    data: () => ({
+        message: 'Tags Saved',
+    }),
     methods: {
         submit_tags: function() {
-            var csrf_token = getCSRF()
-            var url = this.submitUrl
-            var tags = this.tags
             var data = {
-                tags: JSON.stringify(this.flatTags),
-                csrfmiddlewaretoken: csrf_token
+                tags: JSON.stringify(this.tags),
+                csrfmiddlewaretoken: getCSRF()
             }
 
-            $.post(
-                url,
-                data,
-                (data) => {
-                    addHeaderMessage(data.message)
-                    this.$emit('tags-saved', this.flatTags)
-                }
-            )
-
-        },
-    },
-    computed: {
-        flatTags: function() {
-            return flatten(this.tags, 'name')
+            $.post(this.submitUrl, data, (rdata) => {
+                console.log(rdata)
+                addHeaderMessage(this.message)
+                this.$emit('tags-saved', rdata['tags'])
+            })
         }
     }
 }

@@ -34,7 +34,7 @@ export default {
     props: ['itemTags', 'userTags', 'submitUrl', 'open'],
     created: function() {
         let saved_tags = JSON.parse(this.itemTags)
-        for (let tag of this.saved_tags) {
+        for (let tag of saved_tags) {
             tag['name'] = tag['tag__name']
             tag['id'] = tag['tag__id']
         }
@@ -48,7 +48,7 @@ export default {
         },
         update_saved_tags: function(tags) {
             for (let tag of tags) {
-                if (!this.user_tags.includes(tag)) {
+                if (!this.userTagsFlat.includes(tag['name'])) {
                     this.user_tags.push(tag)
                 }
             }
