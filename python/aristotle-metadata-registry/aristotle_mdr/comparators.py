@@ -8,7 +8,8 @@ class Comparator(CompareMixin, CompareMethodsMixin):
         'favourites',
         'user_view_history',
         'submitter',
-        'issues'
+        'issues',
+        'owned_links'
     ]
 
 

@@ -23,6 +23,7 @@ if __name__ == "__main__":
             os.environ.setdefault("DJANGO_SETTINGS_MODULE", module + ".tests.settings")
 
         execute_from_command_line(command)
+        exit()
 
     elif 'schemamigration' in sys.argv:
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "aristotle_mdr.tests.settings.settings")
