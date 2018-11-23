@@ -38,7 +38,7 @@ export default {
         },
         saveValue: function() {
             let data = {}
-            data[this.name] = this.value
+            data[this.fieldName] = this.value
             this.patch(this.submitUrl, data)
             .then((response) => {
                 this.editing = false
