@@ -293,9 +293,9 @@ class TagsEndpointsTestCase(BaseAPITestCase, BaseFavouritesTestCase):
             post_data,
             format='json'
         )
-        print(response.data)
 
         self.assertEqual(response.status_code, 400)
+
 
 @tag('perms')
 class PermsTestCase(BaseAPITestCase):
@@ -368,3 +368,33 @@ class PermsTestCase(BaseAPITestCase):
         self.login_other_user()
         response = self.post_issue_close(issue)
         self.assertEqual(response.status_code, 200)
+
+    def test_item_tag_edit_perms(self):
+        oc = mdr_models.ObjectClass.objects.create(
+            name='Wow',
+            definition='wow',
+            submitter=self.other_user
+        )
+
+        self.login_user()
+        response = self.client.put(
+            reverse('api_v4:item_tags', args=[oc.id]),
+            {'tags': [{'name': 'wowee'}]},
+            format='json'
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_tag_view_perms(self):
+        tag = Tag.objects.create(
+            name='mytag',
+            description='Yeet',
+            profile=self.other_user.profile
+        )
+
+        self.login_user()
+        response = self.client.patch(
+            reverse('api_v4:tags', args=[tag.id]),
+            {'description': 'no'},
+            format='json'
+        )
+        self.assertEqual(response.status_code, 403)
