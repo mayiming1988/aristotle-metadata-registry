@@ -204,14 +204,21 @@ describe('submitTags', function() {
         })
     })
 
+    it('calculates tags list', function() {
+        assert.deepEqual(
+            this.wrapper.vm.tagsList,
+            [{name: 'wow'}, {name: 'amazing'}, {name: 'good'}]
+        )
+    })
+
     it('submits tags and displays message', function() {
-        let fakepost = fakePromiseMethod(this.wrapper, 'post')
+        let fakepost = fakePromiseMethod(this.wrapper, 'put')
         this.wrapper.vm.submit_tags()
         assert.isTrue(fakepost.calledOnce)
         assert.isTrue(
             fakepost.firstCall.calledWithExactly(
                 '/submittags',
-                {tags: ['wow', 'amazing', 'good']}
+                {tags: [{name: 'wow'}, {name: 'amazing'}, {name: 'good'}]}
             )
         )
     })
@@ -220,7 +227,7 @@ describe('submitTags', function() {
         addMessageRow(document.body)
 
         let response = {'tags': [{'id': 7, 'name': 'woah'}]}
-        fakePromiseMethod(this.wrapper, 'post', {data: response})
+        fakePromiseMethod(this.wrapper, 'put', {data: response})
 
         this.wrapper.vm.submit_tags()
         

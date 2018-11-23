@@ -15,10 +15,10 @@ export default {
     methods: {
         submit_tags: function() {
             var data = {
-                tags: this.tags,
+                tags: this.tagsList,
             }
 
-            this.post(this.submitUrl, data)
+            this.put(this.submitUrl, data)
             .then((response) => {
                 addHeaderMessage(this.message)
                 this.$emit('tags-saved', response.data['tags'])
@@ -28,6 +28,15 @@ export default {
     watch: {
         errors: function(value) {
             this.$emit('errors', value)
+        }
+    },
+    computed: {
+        tagsList: function() {
+            let list = []
+            for (let tagname of this.tags) {
+                list.push({name: tagname})
+            }
+            return list
         }
     }
 }

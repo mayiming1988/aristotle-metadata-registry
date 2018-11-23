@@ -101,74 +101,25 @@ class TagView(generics.RetrieveUpdateDestroyAPIView):
     queryset=Tag.objects.all()
 
 
-class ItemTagUpdateView(APIView):
-    """Update tags on an item"""
+class ItemTagUpdateView(generics.UpdateAPIView):
     permission_classes=(AuthCanViewEdit,)
+    serializer_class=serializers.ItemTagSerializer
     pk_url_kwarg='iid'
-    schema = AutoSchema(
-        manual_fields=[
-            coreapi.Field(name='tags', required=True, location='form',
-                          description='A list of tags for the item')
-        ]
-    )
 
-    def post(self, request, *args, **kwargs):
-        user = request.user
+    def dispatch(self, request, *args, **kwargs):
         item_id = self.kwargs[self.pk_url_kwarg]
-        item = get_object_or_404(_concept, pk=item_id)
+        self.item = get_object_or_404(_concept, pk=item_id)
+        return super().dispatch(request, *args, *kwargs)
 
-        # Get all the tags on this item by this user
-        current_tags = Favourite.objects.filter(
-            tag__profile=user.profile,
+    def get_object(self):
+        self.check_object_permissions(self.request, self.item)
+        return Favourite.objects.filter(
+            tag__profile=self.request.user.profile,
             tag__primary=False,
-            item=item
-        ).values_list('tag__name', 'tag__id')
+            item=self.item
+        ).select_related('tag')
 
-        tags_map = dict(current_tags)
-
-        if 'tags' in request.data:
-            tags = set(request.data['tags'])
-            current_set = set(tags_map.keys())
-            new = tags - current_set
-            deleted = current_set - tags
-
-            for tag in new:
-                tag_obj, created = Tag.objects.get_or_create(
-                    profile=user.profile,
-                    name=tag,
-                    primary=False
-                )
-                Favourite.objects.create(
-                    tag=tag_obj,
-                    item=item
-                )
-                tags_map[tag_obj.name] = tag_obj.id
-
-            for tag in deleted:
-                tag_obj, created = Tag.objects.get_or_create(
-                    profile=user.profile,
-                    name=tag,
-                    primary=False
-                )
-                Favourite.objects.filter(
-                    tag=tag_obj,
-                    item=item
-                ).delete()
-                del tags_map[tag]
-
-            return self.get_json_response(tags_map)
-        else:
-            return Response(
-                {'Request': ['Incorrect Request']},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-    def get_json_response(self, tags_map: Dict[str, int]):
-        tags_list = []
-        for name, id in tags_map.items():
-            tags_list.append({'id': id, 'name': name})
-
-        return Response(
-            {'tags': tags_list},
-            status=status.HTTP_200_OK
-        )
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['item'] = self.item
+        return context

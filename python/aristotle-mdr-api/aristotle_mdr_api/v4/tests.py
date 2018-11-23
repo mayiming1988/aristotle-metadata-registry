@@ -189,14 +189,15 @@ class TagsEndpointsTestCase(BaseAPITestCase, BaseFavouritesTestCase):
             submitter=self.user
         )
 
+    @tag('newview')
     def test_tag_edit_add_tags(self):
         self.login_user()
 
         post_data = {
-            'tags': ['very good', 'amazing']
+            'tags': [{'name': 'very good'}, {'name': 'amazing'}],
         }
 
-        response = self.client.post(
+        response = self.client.put(
             reverse('api_v4:item_tags', args=[self.timtam.id]),
             post_data,
             format='json'
@@ -212,10 +213,11 @@ class TagsEndpointsTestCase(BaseAPITestCase, BaseFavouritesTestCase):
         response_obj = response.data
         vg = self.get_tag(self.user, self.timtam, 'very good')
         am = self.get_tag(self.user, self.timtam, 'amazing')
-        self.assertCountEqual(
-            response_obj['tags'],
-            [{'id': vg.id, 'name': 'very good'}, {'id': am.id, 'name': 'amazing'}]
-        )
+
+        self.assertEqual(response_obj['tags'][1]['id'], vg.id)
+        self.assertEqual(response_obj['tags'][1]['name'], 'very good')
+        self.assertEqual(response_obj['tags'][0]['id'], am.id)
+        self.assertEqual(response_obj['tags'][0]['name'], 'amazing')
 
     def test_tag_edit_add_existing_tag(self):
 
@@ -226,10 +228,10 @@ class TagsEndpointsTestCase(BaseAPITestCase, BaseFavouritesTestCase):
             primary=False
         )
         post_data = {
-            'tags': ['very good']
+            'tags': [{'name': 'very good'}]
         }
 
-        response = self.client.post(
+        response = self.client.put(
             reverse('api_v4:item_tags', args=[self.timtam.id]),
             post_data,
             format='json'
@@ -243,10 +245,8 @@ class TagsEndpointsTestCase(BaseAPITestCase, BaseFavouritesTestCase):
 
         response_obj = response.data
         vg = self.get_tag(self.user, self.timtam, 'very good')
-        self.assertCountEqual(
-            response_obj['tags'],
-            [{'id': vg.id, 'name': 'very good'}]
-        )
+        self.assertEqual(response_obj['tags'][0]['id'], vg.id)
+        self.assertEqual(response_obj['tags'][0]['name'], 'very good')
 
     def test_tag_edit_add_and_remove_tags(self):
         self.login_user()
@@ -262,9 +262,9 @@ class TagsEndpointsTestCase(BaseAPITestCase, BaseFavouritesTestCase):
         )
 
         post_data = {
-            'tags': ['10/10']
+            'tags': [{'name': '10/10'}]
         }
-        response = self.client.post(
+        response = self.client.put(
             reverse('api_v4:item_tags', args=[self.timtam.id]),
             post_data,
             format='json'
@@ -279,26 +279,23 @@ class TagsEndpointsTestCase(BaseAPITestCase, BaseFavouritesTestCase):
 
         response_obj = response.data
         ten = self.get_tag(self.user, self.timtam, '10/10')
-        self.assertCountEqual(
-            response_obj['tags'],
-            [{'id': ten.id, 'name': '10/10'}]
-        )
+        self.assertEqual(response_obj['tags'][0]['id'], ten.id)
+        self.assertEqual(response_obj['tags'][0]['name'], '10/10')
 
     def test_tag_edit_incorrect_data(self):
         self.login_user()
 
         post_data = {
-            'bags': ['10/10']
+            'tags': [{'game': '10/10'}]
         }
-        response = self.client.post(
+        response = self.client.put(
             reverse('api_v4:item_tags', args=[self.timtam.id]),
             post_data,
             format='json'
         )
+        print(response.data)
 
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data['Request'][0], 'Incorrect Request')
-
 
 @tag('perms')
 class PermsTestCase(BaseAPITestCase):
