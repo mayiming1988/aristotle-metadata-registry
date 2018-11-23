@@ -296,6 +296,24 @@ class TagsEndpointsTestCase(BaseAPITestCase, BaseFavouritesTestCase):
 
         self.assertEqual(response.status_code, 400)
 
+    def test_tag_view_patch(self):
+        tag = Tag.objects.create(
+            name='mytag',
+            description='Yeet',
+            profile=self.user.profile
+        )
+
+        self.login_user()
+        response = self.client.patch(
+            reverse('api_v4:tags', args=[tag.id]),
+            {'description': 'no'},
+            format='json'
+        )
+        self.assertEqual(response.status_code, 200)
+
+        tag = tag.objects.get(id=tag.id)
+        self.assertEqual(tag.description, 'no')
+
 
 @tag('perms')
 class PermsTestCase(BaseAPITestCase):
