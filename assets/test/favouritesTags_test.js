@@ -8,6 +8,7 @@ import tagComponent from '@/tags/tag.vue'
 import autoCompleteTagComponent from '@/tags/autocompleteTag.vue'
 import tagsModal from '@/tags/tagsModal.vue'
 import submitTags from '@/tags/submitTags.vue'
+import allTagsRoot from '@/root/allTags.js'
 
 var assert = chai.assert
 var mount = VueTestUtils.mount
@@ -241,5 +242,36 @@ describe('submitTags', function() {
             // Cleanup dom
             document.getElementById('messages-row').remove()
         })
+    })
+})
+
+
+describe('allTagsRoot', function() {
+
+    beforeEach(function() {
+        let initData = allTagsRoot.data
+        this.wrapper = shallowMount(allTagsRoot, {
+            data: () => (initData)
+        })
+    })
+
+    it('sets state on delete clicked', function() {
+        this.wrapper.vm.deleteClicked({name: 'MyTag', url: 'tags/mytag'})
+        assert.equal(this.wrapper.vm.modal_text, 'Are you sure you want to delete MyTag')
+        assert.isTrue(this.wrapper.vm.modal_visible)
+        assert.deepEqual(this.wrapper.vm.tag_item, {name: 'MyTag', url: 'tags/mytag'})
+    })
+    
+    it('hides modal on delete cancelled', function() {
+        this.wrapper.setData({modal_visible: true})
+        this.wrapper.vm.deleteCancelled()
+        assert.isFalse(this.wrapper.vm.modal_visible)
+    })
+
+    it('makes request on delete confirmed', function() {
+        let fake = fakePromiseMethod(this.wrapper, 'delete')
+        this.wrapper.setData({tag_item: {url: 'tags/5'}})
+        this.wrapper.vm.deleteConfirmed()
+        assert.isTrue(fake.calledWithExactly('tags/5'))
     })
 })
