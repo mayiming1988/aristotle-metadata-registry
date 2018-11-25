@@ -11,10 +11,10 @@ export default {
         this.tag_editor = new Taggle('taggle-editor', {
             preserveCase: true,
             tags: this.tags,
-            onTagAdd: function(e, tag) {
+            onTagAdd: () => {
                 this.updateTags()
             },
-            onTagRemove: function(e, tag) {
+            onTagRemove: () => {
                 this.updateTags()
             }
         })
@@ -22,22 +22,19 @@ export default {
         // Attach events, used by autocomplete
         var input = this.tag_editor.getInput()
         input.addEventListener('input', (e) => {
-            this.$emit('input', $(e.target).val())
+            this.$emit('input', e)
         })
 
         input.addEventListener('focus', (e) => {
-            this.$emit('focus')
+            this.$emit('focus', e)
             this.$emit('input', '')
         })
 
         input.addEventListener('blur', (e) => {
-            this.$emit('blur', e)
+            if (e.relatedTarget.tagName != 'BUTTON') {
+                this.$emit('blur', e)
+            }
         })
-
-        // input.addEventListener('keydown', (e) => {
-        //     this.keyDown(e)
-        // })
-
 
     },
     methods: {
