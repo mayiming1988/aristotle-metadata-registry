@@ -8,33 +8,37 @@ import Taggle from 'taggle'
 export default {
     props: ['tags', 'newtags'],
     mounted: function() {
-        var component = this;
-
         this.tag_editor = new Taggle('taggle-editor', {
             preserveCase: true,
-            tags: component.tags,
+            tags: this.tags,
             onTagAdd: function(e, tag) {
-                component.updateTags()
+                this.updateTags()
             },
             onTagRemove: function(e, tag) {
-                component.updateTags()
+                this.updateTags()
             }
         })
 
         // Attach events, used by autocomplete
         var input = this.tag_editor.getInput()
-        $(input).on('input', function(e) {
-            component.$emit('input', $(e.target).val())
+        input.addEventListener('input', (e) => {
+            this.$emit('input', $(e.target).val())
         })
 
-        $(input).on('focus', function(e) {
-            component.$emit('focus')
-            component.$emit('input', $(this).val())
+        input.addEventListener('focus', (e) => {
+            this.$emit('focus')
+            this.$emit('input', '')
         })
 
-        $(input).on('blur', function(e) {
-            component.$emit('blur', e)
+        input.addEventListener('blur', (e) => {
+            this.$emit('blur', e)
         })
+
+        // input.addEventListener('keydown', (e) => {
+        //     this.keyDown(e)
+        // })
+
+
     },
     methods: {
         updateTags: function() {
