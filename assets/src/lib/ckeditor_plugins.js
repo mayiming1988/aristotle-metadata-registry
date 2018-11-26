@@ -1,4 +1,5 @@
 /* globals CKEDITOR */
+import 'src/styles/ckeditor_plugins.css'
 import { initDALWidget } from 'src/lib/dal_simple_init.js'
 
 function addDialog(editor, dialoghtml) {
@@ -21,20 +22,23 @@ function addDialog(editor, dialoghtml) {
                 }
             ],
             onOk: function() {
-                let g_id = $('#id_items').val()
-                let link_text = $('#id_link').val();
+                let select = document.querySelector('#id_items')
+                let option = select.options[select.selectedIndex]
+                let g_id = option.value
+                let link_text = option.title
 
                 let content = '<a class="aristotle_glossary" data-aristotle-glossary-id="'+g_id+'" href="/item/'+g_id+'">' + link_text + '</a>';
-                editor.insertHtml( content, 'unfiltered_html');
+                editor.insertHtml(content, 'unfiltered_html');
             },
             onLoad: function() {
-                initDALWidget($('.cke_dialog_body [data-autocomplete-light-function=select2]'))
+                // Initialize the select2 box
+                initDALWidget($('.cke_dialog_body [data-autocomplete-light-function=select2]').first())
             }
         };
     });
 }
 
-function addGlossaryItemDialog (editor) {
+function requestGlossary(editor) {
     $.ajax({
         url:'/glossary/search_dialog/',
     })
@@ -60,5 +64,5 @@ export function addPlugins(editor) {
             });
         }
     });
-    addGlossaryItemDialog(editor)
+    requestGlossary(editor)
 }

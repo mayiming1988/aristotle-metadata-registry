@@ -11,11 +11,11 @@ Technically not a real form, but a massive convenience for the glossary item Tin
 Never saves.
 """
 class GlossarySearchForm(UserAwareForm):
+
     items = forms.ModelChoiceField(
-                queryset=GlossaryItem.objects.all(),
-                label=_("Glossary Item"),
-                widget=widgets.ConceptAutocompleteSelect(
-                    model=GlossaryItem
-                )
-            )
-    link  = forms.CharField(required=False,label=_('Link text'))
+        queryset=GlossaryItem.objects.all(),
+        label=_("Glossary Item"),
+        widget=widgets.ConceptAutocompleteSelect(
+            model=GlossaryItem
+        )
+    )
