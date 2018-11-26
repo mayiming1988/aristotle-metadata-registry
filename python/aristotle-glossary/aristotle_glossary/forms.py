@@ -6,10 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from aristotle_glossary.models import GlossaryItem
 from aristotle_mdr.contrib.autocomplete import widgets
 
-"""
-Technically not a real form, but a massive convenience for the glossary item TinyMCE bit
-Never saves.
-"""
+
 class GlossarySearchForm(UserAwareForm):
 
     items = forms.ModelChoiceField(

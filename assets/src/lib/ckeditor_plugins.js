@@ -2,7 +2,7 @@
 import 'src/styles/ckeditor_plugins.css'
 import { initDALWidget } from 'src/lib/dal_simple_init.js'
 
-function addDialog(editor, dialoghtml) {
+function addGlossaryDialog(editor, dialoghtml) {
     editor.dialog.add('glossaryListDialog', function(editor) {
         return {
             title : 'Glossary search',
@@ -38,9 +38,9 @@ function addDialog(editor, dialoghtml) {
     });
 }
 
-function requestGlossary(editor) {
+function requestDialog(editor, url, addFunction) {
     $.ajax({
-        url:'/glossary/search_dialog/',
+        url: url,
     })
     .done(function(data) {
         let dialog = $(data)
@@ -48,11 +48,12 @@ function requestGlossary(editor) {
         dialog.find('input').addClass('cke_dialog_ui_input_text')
         dialog.find('label').addClass('cke_dialog_ui_labeled_label').css('display','block')
 
-        addDialog(editor, dialog.html())
+        addFunction(editor, dialog.html())
     });
 }
 
 export function addPlugins(editor) {
+    let glossary_form_url = '/glossary/search_dialog/'
     editor.plugins.add('aristotle_glossary', {
         icons: 'glossary',
         init: function( editor ) {
@@ -64,5 +65,5 @@ export function addPlugins(editor) {
             });
         }
     });
-    requestGlossary(editor)
+    requestDialog(editor, glossary_form_url, addGlossaryDialog)
 }
