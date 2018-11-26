@@ -1,5 +1,6 @@
 <div>
     <style>
+        /*
         .cke_reset_all .autocomplete-light-widget {
             background-color:white;
         }
@@ -12,5 +13,16 @@
         .cke_reset_all a.ac_preview_link * {
             color:#428bca;
         }
+        .cke_dialog_ui_input_select {
+          width: 100%;
+        }
+        */
+        .select2-container * {
+          z-index: 10010;
+        }
+        .cke_dialog_body .select2-container .select2-selection--single {
+          position: relative;
+        }
     </style>
-    {{ form.as_p }}</div>
+    {{ form.as_p }}
+</div>
