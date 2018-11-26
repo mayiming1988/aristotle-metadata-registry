@@ -208,7 +208,6 @@ class FavouriteView(LoginRequiredMixin, ListView):
     template_name = "aristotle_mdr/favourites/tags.html"
 
     def get_queryset(self):
-
         try:
             tag = Tag.objects.get(profile=self.request.user.profile, primary=True)
         except Tag.DoesNotExist:

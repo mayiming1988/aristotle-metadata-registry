@@ -530,6 +530,7 @@ class LoggedInViewPages(object):
 
         self.newuser = get_user_model().objects.create_user('nathan@example.com','noobie')
         self.newuser.save()
+        super().setUp()
 
     def get_page(self, item):
         return url_slugify_concept(item)

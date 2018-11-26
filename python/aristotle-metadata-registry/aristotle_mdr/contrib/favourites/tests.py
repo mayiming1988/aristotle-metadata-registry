@@ -108,7 +108,7 @@ class BaseFavouritesTestCase(TestCase):
 
 
 @tag('favourites')
-class FavouritesTestCase(AristotleTestUtils, TestCase):
+class FavouritesTestCase(AristotleTestUtils, BaseFavouritesTestCase):
 
     def test_toggle_favourite_function_on(self):
 
@@ -212,79 +212,6 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, '/about')
-
-    def test_edit_tag_description(self):
-
-        tag = models.Tag.objects.create(
-            profile=self.editor.profile,
-            name='very good'
-        )
-        post_data = {
-            'description': 'Metadata that is very good'
-        }
-
-        self.login_editor()
-        response = self.reverse_post(
-            'aristotle_favourites:tag_edit',
-            post_data,
-            reverse_args=[tag.id],
-            status_code=302
-        )
-        self.assertEqual(response.url, reverse('aristotle_favourites:tag', args=[tag.id]))
-
-        tag = models.Tag.objects.get(id=tag.id)
-        self.assertEqual(tag.description, 'Metadata that is very good')
-        messages = list(get_messages(response.wsgi_request))
-        self.assertTrue(messages[1].message.startswith('Description updated'))
-
-    def test_edit_tag_description_json(self):
-        tag = models.Tag.objects.create(
-            profile=self.editor.profile,
-            name='very good'
-        )
-        post_data = {
-            'description': 'Metadata that is very good'
-        }
-
-        self.login_editor()
-        response = self.reverse_post(
-            'aristotle_favourites:tag_edit',
-            post_data,
-            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
-            reverse_args=[tag.id],
-            status_code=200
-        )
-        response_obj = json.loads(response.content)
-
-        tag = models.Tag.objects.get(id=tag.id)
-        self.assertEqual(tag.description, 'Metadata that is very good')
-        self.assertEqual(response_obj['success'], True)
-        self.assertEqual(response_obj['message'], 'Tag description updated')
-
-    def test_edit_tag_description_empty(self):
-        tag = models.Tag.objects.create(
-            profile=self.editor.profile,
-            name='very good',
-            description='only the best of the best'
-        )
-        post_data = {
-            'description': ''
-        }
-
-        self.login_editor()
-        response = self.reverse_post(
-            'aristotle_favourites:tag_edit',
-            post_data,
-            HTTP_X_REQUESTED_WITH='XMLHttpRequest',
-            reverse_args=[tag.id],
-            status_code=200
-        )
-        response_obj = json.loads(response.content)
-
-        tag = models.Tag.objects.get(id=tag.id)
-        self.assertEqual(tag.description, '')
-        self.assertEqual(response_obj['success'], True)
-        self.assertEqual(response_obj['message'], 'Tag description updated')
 
     def test_favs_and_tags_display(self):
 
@@ -457,66 +384,6 @@ class FavouritesTestCase(AristotleTestUtils, TestCase):
         self.assertEqual(obj_list[0].num_items, 2)
         self.assertEqual(obj_list[1].id, tag1.id)
         self.assertEqual(obj_list[1].num_items, 1)
-
-    def test_delete_valid_tag(self):
-
-        tag1 = models.Tag.objects.create(
-            profile=self.editor.profile,
-            name='my tag'
-        )
-        tag2 = models.Tag.objects.create(
-            profile=self.editor.profile,
-            name='my other tag'
-        )
-
-        self.login_editor()
-        postdata = {
-            'tagid': tag1.id
-        }
-        response = self.reverse_post(
-            'aristotle_favourites:tag_delete',
-            postdata,
-            status_code=200
-        )
-
-        self.assertFalse(models.Tag.objects.filter(id=postdata['tagid']).exists())
-
-    def test_delete_invalid_tag(self):
-
-        self.login_editor()
-        postdata = {
-            'tagid': 777
-        }
-        response = self.reverse_post(
-            'aristotle_favourites:tag_delete',
-            postdata,
-            status_code=200
-        )
-        response_obj = json.loads(response.content)
-
-        self.assertFalse(response_obj['success'])
-        self.assertEqual(response_obj['message'], 'Tag not found')
-
-    def test_delete_tag_witout_permission(self):
-
-        tag1 = models.Tag.objects.create(
-            profile=self.editor.profile,
-            name='my tag'
-        )
-
-        self.login_viewer()
-        postdata = {
-            'tagid': tag1.id
-        }
-        response = self.reverse_post(
-            'aristotle_favourites:tag_delete',
-            postdata,
-            status_code=200
-        )
-        response_obj = json.loads(response.content)
-
-        self.assertFalse(response_obj['success'])
-        self.assertEqual(response_obj['message'], 'Tag could not be deleted')
 
     @tag('property')
     def test_favourites_property(self):

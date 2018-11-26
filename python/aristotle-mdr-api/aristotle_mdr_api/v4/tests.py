@@ -314,6 +314,32 @@ class TagsEndpointsTestCase(BaseAPITestCase, BaseFavouritesTestCase):
         tag = tag.objects.get(id=tag.id)
         self.assertEqual(tag.description, 'no')
 
+    def test_tag_delete(self):
+        tag = Tag.objects.create(
+            name='mytag',
+            description='Yeet',
+            profile=self.user.profile
+        )
+
+        self.login_user()
+        response = self.client.delete(
+            reverse('api_v4:tags', args=[tag.id]),
+            {'description': 'no'},
+            format='json'
+        )
+        self.assertEqual(response.status_code, 204)
+
+        self.assertFalse(Tag.objects.filter(id=tag.id).exists())
+
+    def test_request_invalid_item(self):
+        self.login_user()
+        response = self.client.delete(
+            reverse('api_v4:tags', args=[99]),
+            {'description': 'no'},
+            format='json'
+        )
+        self.assertEqual(response.status_code, 404)
+
 
 @tag('perms')
 class PermsTestCase(BaseAPITestCase):
@@ -416,3 +442,20 @@ class PermsTestCase(BaseAPITestCase):
             format='json'
         )
         self.assertEqual(response.status_code, 403)
+
+    def test_tag_delete_perms(self):
+        tag = Tag.objects.create(
+            name='mytag',
+            description='Yeet',
+            profile=self.other_user.profile
+        )
+
+        self.login_user()
+        response = self.client.delete(
+            reverse('api_v4:tags', args=[tag.id]),
+            {'description': 'no'},
+            format='json'
+        )
+        self.assertEqual(response.status_code, 403)
+
+        self.assertTrue(Tag.objects.filter(id=tag.id).exists())
