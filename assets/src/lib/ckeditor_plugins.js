@@ -25,10 +25,17 @@ function addGlossaryDialog(editor, dialoghtml) {
                 let select = document.querySelector('#id_items')
                 let option = select.options[select.selectedIndex]
                 let g_id = option.value
-                let link_text = option.title
+                let link_text = document.createTextNode(option.title)
 
-                let content = '<a class="aristotle_glossary" data-aristotle-glossary-id="'+g_id+'" href="/item/'+g_id+'">' + link_text + '</a>';
-                editor.insertHtml(content, 'unfiltered_html');
+                //let content = '<a class="aristotle_glossary" data-aristotle-glossary-id="'+g_id+'" href="/item/'+g_id+'">' + link_text + '</a>';
+
+                let link = document.createElement('a')
+                link.className = 'aristotle-concept-link'
+                link.href = '/item/' + g_id
+                link.setAttribute('data-aristotle-concept-id', g_id)
+                link.appendChild(link_text)
+                console.log(link.outerHTML)
+                editor.insertHtml(link.outerHTML);
             },
             onLoad: function() {
                 // Initialize the select2 box

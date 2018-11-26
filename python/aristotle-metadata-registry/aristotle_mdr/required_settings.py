@@ -305,7 +305,7 @@ BLEACH_ALLOWED_TAGS = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'em',
                        'h5', 'h6', 'sub', 'sup', 'br', 'u']
 
 BLEACH_ALLOWED_ATTRIBUTES = {
-    'a': ['href', 'title'],
+    'a': ['href', 'title', 'class', 'data-aristotle-concept-id'],
     'abbr': ['title'],
     'acronym': ['title'],
     'img': ['src', 'height', 'width', 'alt']
