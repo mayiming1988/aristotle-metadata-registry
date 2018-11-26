@@ -35,5 +35,10 @@ export default {
             this.saved_tags = tags
             this.tagsModalOpen = false
         }
+    },
+    computed: {
+        hasTags: function() {
+            return this.saved_tags.length > 0
+        }
     }
 }

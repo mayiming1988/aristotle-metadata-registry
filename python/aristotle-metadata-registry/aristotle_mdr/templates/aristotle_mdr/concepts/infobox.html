@@ -165,7 +165,7 @@
             <dd><a href="{% url 'aristotle:userSandbox' %}">{% trans "Sandboxed Item" %}</a></dd>
         {% endif %}
           {% if request.user.is_authenticated %}
-          <div class="vue-tags" v-cloak>
+          <div class="vue-tags" v-cloak v-if="hasTags">
             <hr>
             <dt>Your Tags</dt>
             <dd>
