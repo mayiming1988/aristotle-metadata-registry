@@ -21,23 +21,27 @@
     <h1>
       <i class="fa fa-bookmark fa-fw"></i>
       <noscript>{{ title }}</noscript>
-      <inline-edit
-        initial="{{ title }}"
-        field-name="name"
-        submit-url="{% url 'api_v4:tags' tag.id %}">
-      </inline-edit>
+      {% if tag %}
+        <inline-edit
+          initial="{{ title }}"
+          field-name="name"
+          submit-url="{% url 'api_v4:tags' tag.id %}">
+        </inline-edit>
+      {% else %}
+        {{ title }}
+      {% endif %}
     </h1>
     {% if tag %}
-    <noscript>
-      {{ tag.description }}
-    </noscript>
-    <switch-edit 
-      name="description" 
-      initial="{{ tag.description }}" 
-      submit-url="{% url 'api_v4:tags' tag.id %}">
-    </switch-edit>
+      <noscript>
+        {{ tag.description }}
+      </noscript>
+      <switch-edit 
+        name="description" 
+        initial="{{ tag.description }}" 
+        submit-url="{% url 'api_v4:tags' tag.id %}">
+      </switch-edit>
+    {% endif %}
   </div>
-  {% endif %}
   {% if page_obj %}
     {% include 'aristotle_mdr/favourites/ba_paginated_favourite_items.html' with page_obj=page_obj tags_list=False %}
   {% endif %}
