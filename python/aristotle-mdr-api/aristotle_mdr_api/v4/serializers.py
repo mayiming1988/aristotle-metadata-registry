@@ -2,14 +2,6 @@ from django.urls import reverse
 from rest_framework import serializers
 from aristotle_mdr.contrib.issues.models import Issue, IssueComment
 from aristotle_mdr.perms import user_can_view
-from aristotle_mdr.models import _concept
-
-
-class ConceptSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model=_concept
-        fields=('id', 'uuid', 'name', 'definition', 'short_definition')
 
 
 class IssueSerializer(serializers.ModelSerializer):

@@ -12,12 +12,6 @@ from aristotle_mdr import perms
 from aristotle_mdr.models import _concept
 
 
-class ConceptView(generics.RetrieveAPIView):
-    permission_classes=(AuthCanViewEdit,)
-    serializer_class=serializers.ConceptSerializer
-    queryset=_concept.objects.all()
-
-
 class IssueView(generics.RetrieveUpdateAPIView):
     """Retrive and update and issue"""
     permission_classes=(AuthCanViewEdit,)
