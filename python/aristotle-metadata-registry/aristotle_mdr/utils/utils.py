@@ -337,7 +337,7 @@ def strip_tags(text):
 def truncate_words(text, numwords):
     words = text.split(' ')
     if len(words) > numwords:
-        lesswords = ' '.josin(words[:numwords])
+        lesswords = ' '.join(words[:numwords])
         lesswords += '...'
         return lesswords
     else:
