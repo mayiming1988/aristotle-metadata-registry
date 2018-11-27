@@ -1,11 +1,27 @@
-import axios from 'axios'
+import request from 'src/lib/request.js'
 import 'bootstrap/js/tooltip.js'
 
-function fetchDescription() {
-    let desc = $(this).attr('data-description')
+function fetchDefinition(id) {
+    let apiurl = '/api/v4/item/' + id
+
+    let promise = request('get', apiurl, {})
+    
+    // Return a new promise that returns the definition
+    return promise.then((result) => {
+        return result.data['definition']
+    })
+}
+
+function getToolText() {
+    let desc = $(this).attr('data-definition')
     if (desc) {
         return desc
     } else {
+        fetchDefinition($(this).attr('data-aristotle-concept-id'))
+        .then((defn) => {
+            $(this).attr('data-definition', defn)
+            $(this).tooltip('show')
+        })
         return 'Loading...'
     }
 }
@@ -13,7 +29,8 @@ function fetchDescription() {
 export function initConceptLinks() {
     $(document).ready(function() {
         $('a.aristotle-concept-link').tooltip({
-            title: fetchDescription,
+            title: getToolText,
+            trigger: 'hover',
             placement: 'bottom'
         })
     })
