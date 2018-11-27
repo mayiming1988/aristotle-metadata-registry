@@ -7,6 +7,7 @@ import rootComponent from '@/root/itemPage.js'
 
 import 'src/styles/aristotle.wizard.less'
 import 'src/styles/aristotle_search.less'
+import 'src/styles/conceptlink.css'
 
 export function initItemPage() {
     init()
