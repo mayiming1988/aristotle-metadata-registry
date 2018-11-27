@@ -9,7 +9,7 @@ class ConceptSerializer(serializers.ModelSerializer):
 
     class Meta:
         model=_concept
-        fields=('id', 'uuid', 'name', 'definition')
+        fields=('id', 'uuid', 'name', 'definition', 'short_definition')
 
 
 class IssueSerializer(serializers.ModelSerializer):

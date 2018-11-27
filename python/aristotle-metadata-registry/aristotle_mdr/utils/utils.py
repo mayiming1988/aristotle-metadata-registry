@@ -11,6 +11,7 @@ from django.utils.translation import ugettext as _
 from django.utils import timezone
 from django.db.models import Q
 
+import bleach
 import logging
 import inspect
 import datetime
@@ -327,3 +328,17 @@ def get_aristotle_url(label, obj_id, obj_name=None):
 
 def pretify_camel_case(camelcase):
     return re.sub(r'([a-z0-9])([A-Z])', r'\1 \2', camelcase)
+
+
+def strip_tags(text):
+    return bleach.clean(text, tags=[], strip=True)
+
+
+def truncate_words(text, numwords):
+    words = text.split(' ')
+    if len(words) > numwords:
+        lesswords = ' '.josin(words[:numwords])
+        lesswords += '...'
+        return lesswords
+    else:
+        return text

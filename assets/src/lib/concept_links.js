@@ -8,7 +8,7 @@ function fetchDefinition(id) {
     
     // Return a new promise that returns the definition
     return promise.then((result) => {
-        return result.data['definition']
+        return result.data['short_definition']
     })
 }
 
