@@ -10,8 +10,6 @@ import aristotle_glossary.models as gmodels
 from aristotle_mdr import perms
 from aristotle_mdr.tests.main.test_admin_pages import AdminPageForConcept
 from aristotle_mdr.tests.main.test_html_pages import LoggedInViewConceptPages
-from django.test.utils import setup_test_environment
-setup_test_environment()
 
 
 def setUpModule():
