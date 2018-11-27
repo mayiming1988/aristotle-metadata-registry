@@ -31,7 +31,9 @@ export default {
         })
 
         input.addEventListener('blur', (e) => {
-            if (e.relatedTarget.tagName != 'BUTTON') {
+            // If related target not set or clicking on non button element
+            if (e.relatedTarget == null || e.relatedTarget.tagName != 'BUTTON') {
+                console.log(e)
                 this.$emit('blur', e)
             }
         })
