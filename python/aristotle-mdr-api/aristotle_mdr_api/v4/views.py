@@ -1,18 +1,13 @@
-from typing import Dict
-import coreapi
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.schemas import AutoSchema
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
 
-from aristotle_mdr.models import _concept
 from aristotle_mdr.contrib.issues.models import Issue, IssueComment
-from aristotle_mdr.contrib.favourites.models import Tag, Favourite
 from aristotle_mdr_api.v4 import serializers
-from aristotle_mdr_api.v4.permissions import AuthCanViewEdit, AuthFinePerms
+from aristotle_mdr_api.v4.permissions import AuthCanViewEdit
 from aristotle_mdr import perms
 
 
@@ -92,34 +87,3 @@ class IssueUpdateAndCommentView(APIView):
             response_content,
             status=status.HTTP_200_OK,
         )
-
-
-class TagView(generics.RetrieveUpdateDestroyAPIView):
-    """Retrive and update and issue"""
-    permission_classes=(AuthCanViewEdit,)
-    serializer_class=serializers.TagSerializer
-    queryset=Tag.objects.all()
-
-
-class ItemTagUpdateView(generics.UpdateAPIView):
-    permission_classes=(AuthCanViewEdit,)
-    serializer_class=serializers.ItemTagSerializer
-    pk_url_kwarg='iid'
-
-    def dispatch(self, request, *args, **kwargs):
-        item_id = self.kwargs[self.pk_url_kwarg]
-        self.item = get_object_or_404(_concept, pk=item_id)
-        return super().dispatch(request, *args, *kwargs)
-
-    def get_object(self):
-        self.check_object_permissions(self.request, self.item)
-        return Favourite.objects.filter(
-            tag__profile=self.request.user.profile,
-            tag__primary=False,
-            item=self.item
-        ).select_related('tag')
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['item'] = self.item
-        return context

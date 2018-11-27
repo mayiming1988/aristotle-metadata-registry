@@ -3,7 +3,6 @@ from django.test import TestCase, tag
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 
-from aristotle_mdr.tests.utils import AristotleTestUtils
 from aristotle_mdr import models as mdr_models
 from aristotle_mdr.contrib.issues import models
 from aristotle_mdr.contrib.favourites.models import Tag, Favourite
