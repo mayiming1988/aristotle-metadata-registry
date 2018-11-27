@@ -2,6 +2,7 @@ from django.conf.urls import url
 from aristotle_mdr_api.v4 import views
 
 urlpatterns = [
+    url(r'item/(?P<pk>\d+)/$', views.ConceptView.as_view(), name='item'),
     url(r'issues/$', views.IssueCreateView.as_view(), name='issues_create'),
     url(r'issues/(?P<pk>\d+)/$', views.IssueView.as_view(), name='issues'),
     url(r'issues/(?P<pk>\d+)/updatecomment/$', views.IssueUpdateAndCommentView.as_view(), name='issue_update_and_comment'),

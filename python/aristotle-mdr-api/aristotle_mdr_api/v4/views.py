@@ -9,6 +9,13 @@ from aristotle_mdr.contrib.issues.models import Issue, IssueComment
 from aristotle_mdr_api.v4 import serializers
 from aristotle_mdr_api.v4.permissions import AuthCanViewEdit, AuthFinePerms
 from aristotle_mdr import perms
+from aristotle_mdr.models import _concept
+
+
+class ConceptView(generics.RetrieveAPIView):
+    permission_classes=(AuthCanViewEdit,)
+    serializer_class=serializers.ConceptSerializer
+    queryset=_concept.objects.all()
 
 
 class IssueView(generics.RetrieveUpdateAPIView):
