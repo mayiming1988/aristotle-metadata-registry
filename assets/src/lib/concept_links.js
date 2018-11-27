@@ -17,11 +17,16 @@ function getToolText() {
     if (desc) {
         return desc
     } else {
-        fetchDefinition($(this).attr('data-aristotle-concept-id'))
-        .then((defn) => {
-            $(this).attr('data-definition', defn)
-            $(this).tooltip('show')
-        })
+        let loadingattr = $(this).attr('data-loading')
+        if (!loadingattr) {
+            $(this).attr('data-loading', '1')
+            fetchDefinition($(this).attr('data-aristotle-concept-id'))
+            .then((defn) => {
+                $(this).attr('data-definition', defn)
+                $(this).attr('data-loading', '')
+                $(this).tooltip('show')
+            })
+        }
         return 'Loading...'
     }
 }
