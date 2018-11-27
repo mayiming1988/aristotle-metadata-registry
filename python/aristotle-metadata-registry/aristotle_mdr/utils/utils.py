@@ -326,15 +326,15 @@ def get_aristotle_url(label, obj_id, obj_name=None):
     return None
 
 
-def pretify_camel_case(camelcase):
+def pretify_camel_case(camelcase: str) -> str:
     return re.sub(r'([a-z0-9])([A-Z])', r'\1 \2', camelcase)
 
 
-def strip_tags(text):
+def strip_tags(text: str) -> str:
     return bleach.clean(text, tags=[], strip=True)
 
 
-def truncate_words(text, numwords):
+def truncate_words(text: str, numwords: int) -> str:
     words = text.split(' ')
     if len(words) > numwords:
         lesswords = ' '.join(words[:numwords])
