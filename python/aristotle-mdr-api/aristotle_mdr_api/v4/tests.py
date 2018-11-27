@@ -216,9 +216,9 @@ class TagsEndpointsTestCase(BaseAPITestCase, BaseFavouritesTestCase):
 
         sorted_tags = sorted(response_obj['tags'], key=lambda i: i['name'])
         self.assertEqual(len(sorted_tags), 2)
-        self.assertEqual(sorted_tags[1]['id'], vg.id)
+        self.assertEqual(sorted_tags[1]['id'], vg.tag.id)
         self.assertEqual(sorted_tags[1]['name'], 'very good')
-        self.assertEqual(sorted_tags[0]['id'], am.id)
+        self.assertEqual(sorted_tags[0]['id'], am.tag.id)
         self.assertEqual(sorted_tags[0]['name'], 'amazing')
 
     def test_tag_edit_add_existing_tag(self):
@@ -248,7 +248,7 @@ class TagsEndpointsTestCase(BaseAPITestCase, BaseFavouritesTestCase):
         response_obj = response.data
         vg = self.get_tag(self.user, self.timtam, 'very good')
         self.assertEqual(len(response_obj['tags']), 1)
-        self.assertEqual(response_obj['tags'][0]['id'], vg.id)
+        self.assertEqual(response_obj['tags'][0]['id'], vg.tag.id)
         self.assertEqual(response_obj['tags'][0]['name'], 'very good')
 
     def test_tag_edit_add_and_remove_tags(self):
@@ -283,7 +283,7 @@ class TagsEndpointsTestCase(BaseAPITestCase, BaseFavouritesTestCase):
         response_obj = response.data
         ten = self.get_tag(self.user, self.timtam, '10/10')
         self.assertEqual(len(response_obj['tags']), 1)
-        self.assertEqual(response_obj['tags'][0]['id'], ten.id)
+        self.assertEqual(response_obj['tags'][0]['id'], ten.tag.id)
         self.assertEqual(response_obj['tags'][0]['name'], '10/10')
 
     def test_tag_edit_incorrect_data(self):
