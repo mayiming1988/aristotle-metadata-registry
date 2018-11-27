@@ -1,5 +1,4 @@
-import axios from 'axios'
-import { getCSRF } from 'src/lib/cookie.js'
+import request from 'src/lib/request.js'
 
 export default {
     data: () => ({
@@ -9,15 +8,8 @@ export default {
     }),
     methods: {
         request: function(url, data, method) {
-            let csrf_token = getCSRF()
-
             this.loading = true
-            let promise = axios({
-                method: method,
-                url: url,
-                data: data,
-                headers: {'X-CSRFToken': csrf_token}
-            })
+            let promise = request(method, url, data)
 
             promise.then((response) => {
                 this.response = response
