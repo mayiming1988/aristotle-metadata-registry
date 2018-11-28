@@ -8,7 +8,7 @@
     <th>Help Text</th>
   </thead>
   <tbody>
-    {% for item in page %}
+    {% for item in page_obj %}
       <td>{{ item.name }}</td>
       <td>{{ item.type }}</td>
       <td>{{ item.help_text }}</td>
@@ -16,4 +16,4 @@
   </tbody>
 </table>
 
-{% include 'aristotle_mdr/helpers/paginator.html' with page=page %}
+{% include 'aristotle_mdr/helpers/paginator.html' with page=page_obj %}
