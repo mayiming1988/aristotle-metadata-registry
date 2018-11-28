@@ -92,7 +92,7 @@ class CustomFieldsTestCase(AristotleTestUtils, TestCase):
             'aristotle_custom_fields:list',
             status_code=200
         )
-        page = response.context['page_obj']
+        flist = response.context['list']
 
-        self.assertEqual(page[0], cf1)
-        self.assertEqual(page[1], cf2)
+        self.assertEqual(flist[0][0], 'CF1')
+        self.assertEqual(flist[1][0], 'CF2')

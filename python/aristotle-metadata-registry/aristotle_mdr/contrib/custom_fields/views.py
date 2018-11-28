@@ -3,6 +3,7 @@ from django.views.generic import CreateView, UpdateView, DeleteView, ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from aristotle_mdr.mixins import IsSuperUserMixin
+from aristotle_mdr.views.generic import BootTableListView
 from aristotle_mdr.contrib.custom_fields import models
 
 
@@ -44,10 +45,12 @@ class CustomFieldDeleteView(IsSuperUserMixin, DeleteView):
         return reverse('aristotle_mdr:userAdminTools')
 
 
-class CustomFieldListView(IsSuperUserMixin, ListView):
+class CustomFieldListView(IsSuperUserMixin, BootTableListView):
     queryset=models.CustomField.objects.all()
     paginate_by=20
-    template_name='aristotle_mdr/custom_fields/list.html'
+    page_heading='List of custom fields'
+    headers = ['Name', 'Type', 'Help Text']
+    attrs = ['name', 'type', 'help_text']
 
     def get_success_url(self):
         return reverse('aristotle_mdr:userAdminTools')
