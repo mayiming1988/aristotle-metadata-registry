@@ -53,13 +53,14 @@ function addGlossaryDialog(editor, dialoghtml) {
                 let select = document.querySelector('#id_items')
                 let option = select.options[select.selectedIndex]
                 let g_id = option.value
-                let link_text = document.createTextNode(option.title)
+                let g_name = option.title
 
-                let link = document.createElement('a')
-                link.className = 'aristotle-concept-link'
-                link.href = '/item/' + g_id
-                link.setAttribute('data-aristotle-concept-id', g_id)
-                link.appendChild(link_text)
+                let linkattrs = {
+                    class: 'aristotle-concept-link',
+                    href: '/item/' + g_id,
+                    'data-aristotle-concept-id': g_id
+                }
+                let link = buildElement('a', linkattrs, g_name)
                 editor.insertHtml(link.outerHTML);
             },
             onLoad: function() {
