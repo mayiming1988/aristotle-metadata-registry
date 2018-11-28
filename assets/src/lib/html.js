@@ -3,7 +3,7 @@ export function buildElement(tagName, attrs, text) {
     for (let item of Object.entries(attrs)) {
         elem.setAttribute(item[0], item[1])
     }
-    if (text != undefined) {
+    if (text) {
         elem.appendChild(document.createTextNode(text))
     }
     return elem

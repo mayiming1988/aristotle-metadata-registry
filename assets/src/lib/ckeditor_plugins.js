@@ -3,11 +3,11 @@ import 'src/styles/ckeditor_plugins.css'
 import { initDALWidget } from 'src/lib/dal_simple_init.js'
 import { buildElement } from 'src/lib/html.js'
 
-function buildDialogHtml(item_label, dalurl) {
+function buildDialogHtml(item_label, select_id, dalurl) {
     let final_label = item_label + ':'
     let div = document.createElement('div')
     let select2box = buildElement('select', {
-        id: 'id_items',
+        id: select_id,
         class: 'aristotle-select2',
         name: 'items',
         required: '',
@@ -22,7 +22,7 @@ function buildDialogHtml(item_label, dalurl) {
     )
     let label = buildElement(
         'label', 
-        {for: 'id_items'},
+        {for: select_id},
         final_label 
     )
     select2box.appendChild(option)
@@ -31,10 +31,10 @@ function buildDialogHtml(item_label, dalurl) {
     return div.outerHTML
 }
 
-function addGlossaryDialog(editor, dialoghtml) {
-    editor.dialog.add('glossaryListDialog', function(editor) {
+function addDialog(editor, dialogname, dialogtitle, dialoghtml, select_id) {
+    editor.dialog.add(dialogname, function(editor) {
         return {
-            title : 'Glossary search',
+            title : dialogtitle,
             minWidth : 400,
             minHeight : 200,
             contents :
@@ -51,18 +51,20 @@ function addGlossaryDialog(editor, dialoghtml) {
                 }
             ],
             onOk: function() {
-                let select = document.querySelector('#id_items')
+                let select = document.getElementById(select_id)
                 let option = select.options[select.selectedIndex]
                 let g_id = option.value
-                let g_name = option.title
+                if (g_id) {
+                    let g_name = option.title
 
-                let linkattrs = {
-                    class: 'aristotle-concept-link',
-                    href: '/item/' + g_id,
-                    'data-aristotle-concept-id': g_id
+                    let linkattrs = {
+                        class: 'aristotle-concept-link',
+                        href: '/item/' + g_id,
+                        'data-aristotle-concept-id': g_id
+                    }
+                    let link = buildElement('a', linkattrs, g_name)
+                    editor.insertHtml(link.outerHTML);
                 }
-                let link = buildElement('a', linkattrs, g_name)
-                editor.insertHtml(link.outerHTML);
             },
             onLoad: function() {
                 // Initialize the select2 box
@@ -84,6 +86,10 @@ export function addPlugins(editor) {
             });
         }
     });
-    let html = buildDialogHtml('Glossary Item', '/ac/concept/aristotle_glossary-glossaryitem')
-    addGlossaryDialog(editor, html)
+    let html = buildDialogHtml(
+        'Glossary Item', 
+        'id_glossary',
+        '/ac/concept/aristotle_glossary-glossaryitem'
+    )
+    addDialog(editor, 'glossaryListDialog', 'Glossary search', html, 'id_glossary')
 }
