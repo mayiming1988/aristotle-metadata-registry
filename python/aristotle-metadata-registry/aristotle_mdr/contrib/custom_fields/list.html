@@ -1,0 +1,19 @@
+{% extends 'aristotle_mdr/user/base.html' %}
+
+<h1>List of custom fields</h1>
+<table class="table">
+  <thead>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Help Text</th>
+  </thead>
+  <tbody>
+    {% for item in page %}
+      <td>{{ item.name }}</td>
+      <td>{{ item.type }}</td>
+      <td>{{ item.help_text }}</td>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% include 'aristotle_mdr/helpers/paginator.html' with page=page %}

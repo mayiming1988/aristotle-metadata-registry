@@ -46,6 +46,7 @@ class CustomFieldDeleteView(IsSuperUserMixin, DeleteView):
 
 class CustomFieldListView(IsSuperUserMixin, ListView):
     queryset=models.CustomField.objects.all()
+    paginate_by=20
     template_name='aristotle_mdr/custom_fields/list.html'
 
     def get_success_url(self):
