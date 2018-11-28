@@ -1,6 +1,34 @@
 /* globals CKEDITOR */
 import 'src/styles/ckeditor_plugins.css'
 import { initDALWidget } from 'src/lib/dal_simple_init.js'
+import { buildElement } from 'src/lib/utils.js'
+
+function buildDialogHtml() {
+    let div = document.createElement('div')
+    let select2box = buildElement('select', {
+        id: 'id_items',
+        class: 'aristotle-select2',
+        name: 'items',
+        required: '',
+        'data-html': 'true',
+        'data-autocomplete-light-url': '/ac/concept/aristotle_glossary-glossaryitem',
+        'data-autocomplete-light-function': 'select2'
+    })
+    let option = buildElement(
+        'option', 
+        {value: '', selected: ''},
+        '---------'
+    )
+    let label = buildElement(
+        'label', 
+        {for: 'id_items'},
+        'Glossary Item:'
+    )
+    select2box.appendChild(option)
+    div.appendChild(label)
+    div.appendChild(select2box)
+    return div.outerHTML
+}
 
 function addGlossaryDialog(editor, dialoghtml) {
     editor.dialog.add('glossaryListDialog', function(editor) {
@@ -69,5 +97,6 @@ export function addPlugins(editor) {
             });
         }
     });
-    requestDialog(editor, glossary_form_url, addGlossaryDialog)
+    let html = buildDialogHtml()
+    addGlossaryDialog(editor, html)
 }
