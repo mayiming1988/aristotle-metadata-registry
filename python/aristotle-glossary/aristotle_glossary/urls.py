@@ -7,6 +7,5 @@ from aristotle_glossary import views
 urlpatterns = [
     url(r'^/?$', views.glossary, name='glossary'),
     url(r'^jsonlist/', views.json_list, name='json_list'),
-    url(r'^search_dialog/?$',  views.search_dialog, name='search_dialog'),
     url(r'^about/(?P<template>.+)/?$', views.DynamicTemplateView.as_view(), name="about"),
 ]

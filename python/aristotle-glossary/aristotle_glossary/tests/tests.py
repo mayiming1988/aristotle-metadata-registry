@@ -67,23 +67,6 @@ class GlossaryItemAdminPage(AdminPageForConcept,TestCase):
         'alternate_definitions-MAX_NUM_FORMS':1,
         }
 
-class CustomGlossaryDialogTests(utils.LoggedInViewPages,TestCase):
-    """
-    There isn't much we can do to test these yet, but we can verify they at least load.
-    They are in the wizard section as they are used in the editing pages.
-    """
-    def test_glossary_search_dialog(self):
-        self.logout()
-        response = self.client.get(reverse('aristotle_glossary:search_dialog'))
-        self.assertEqual(response.status_code,302) # redirect to login
-
-        self.login_editor()
-        response = self.client.get(reverse('aristotle_glossary:search_dialog'))
-        self.assertEqual(response.status_code,200)
-
-        response = self.client.post(reverse('aristotle_glossary:search_dialog'),{})
-        self.assertEqual(response.status_code,200)
-
 
 class GlossaryViewPage(LoggedInViewConceptPages,TestCase):
     url_name='glossary'

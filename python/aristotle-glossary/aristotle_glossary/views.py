@@ -6,22 +6,19 @@ from django.views.generic import TemplateView
 from aristotle_mdr.utils import url_slugify_concept
 from aristotle_glossary import models, forms
 
-def glossary(request):
-    return render(request,"aristotle_glossary/glossary.html",
-        {'terms':models.GlossaryItem.objects.visible(request.user).order_by('name').all()
-        })
 
-@permission_required('aristotle_mdr.user_is_editor')
-def search_dialog(request):
-    """This is a custom dialog for TinyMCE
-    Use a view to make generating the form portions needed easier.
-    """
-    form = forms.GlossarySearchForm(user=request.user) # A form bound to the POST data
-    return render(request,"aristotle_glossary/glossary_dialog.html",{'form':form})
+def glossary(request):
+    return render(
+        request,
+        "aristotle_glossary/glossary.html",
+        {'terms': models.GlossaryItem.objects.visible(request.user).order_by('name').all()}
+    )
+
 
 class DynamicTemplateView(TemplateView):
     def get_template_names(self):
         return ['aristotle_glossary/static/%s.html' % self.kwargs['template']]
+
 
 def json_list(request):
     item_ids = []

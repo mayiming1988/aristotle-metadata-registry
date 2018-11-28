@@ -1,9 +1,10 @@
 /* globals CKEDITOR */
 import 'src/styles/ckeditor_plugins.css'
 import { initDALWidget } from 'src/lib/dal_simple_init.js'
-import { buildElement } from 'src/lib/utils.js'
+import { buildElement } from 'src/lib/html.js'
 
-function buildDialogHtml() {
+function buildDialogHtml(item_label, dalurl) {
+    let final_label = item_label + ':'
     let div = document.createElement('div')
     let select2box = buildElement('select', {
         id: 'id_items',
@@ -11,7 +12,7 @@ function buildDialogHtml() {
         name: 'items',
         required: '',
         'data-html': 'true',
-        'data-autocomplete-light-url': '/ac/concept/aristotle_glossary-glossaryitem',
+        'data-autocomplete-light-url': dalurl,
         'data-autocomplete-light-function': 'select2'
     })
     let option = buildElement(
@@ -22,7 +23,7 @@ function buildDialogHtml() {
     let label = buildElement(
         'label', 
         {for: 'id_items'},
-        'Glossary Item:'
+        final_label 
     )
     select2box.appendChild(option)
     div.appendChild(label)
@@ -71,22 +72,7 @@ function addGlossaryDialog(editor, dialoghtml) {
     });
 }
 
-function requestDialog(editor, url, addFunction) {
-    $.ajax({
-        url: url,
-    })
-    .done(function(data) {
-        let dialog = $(data)
-
-        dialog.find('input').addClass('cke_dialog_ui_input_text')
-        dialog.find('label').addClass('cke_dialog_ui_labeled_label').css('display','block')
-
-        addFunction(editor, dialog.html())
-    });
-}
-
 export function addPlugins(editor) {
-    let glossary_form_url = '/glossary/search_dialog/'
     editor.plugins.add('aristotle_glossary', {
         icons: 'glossary',
         init: function( editor ) {
@@ -98,6 +84,6 @@ export function addPlugins(editor) {
             });
         }
     });
-    let html = buildDialogHtml()
+    let html = buildDialogHtml('Glossary Item', '/ac/concept/aristotle_glossary-glossaryitem')
     addGlossaryDialog(editor, html)
 }
