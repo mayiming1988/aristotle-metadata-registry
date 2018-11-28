@@ -3,8 +3,8 @@ from django_celery_results.models import TaskResult
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.views.generic import View, ListView, TemplateView
-from django.contrib.auth.mixins import UserPassesTestMixin
 
+from aristotle_mdr.mixins import IsSuperUserMixin
 from aristotle_mdr.utils import fetch_aristotle_settings
 
 from aristotle_bg_workers.models import ExtraTaskInfo
@@ -15,10 +15,6 @@ from aristotle_bg_workers.tasks import reindex_task, loadhelp_task
 
 from django_celery_results.models import TaskResult
 
-class IsSuperUserMixin(UserPassesTestMixin):
-
-    def test_func(self):
-        return self.request.user.is_superuser
 
 class GenericTaskView(IsSuperUserMixin, View):
 
