@@ -69,7 +69,7 @@ class MultiUpdateListSerializer(serializers.ListSerializer):
                 return_list.append(self.child.create(data))
             else:
                 # Submitted existing item
-                return_list.append(self.child.update(data))
+                return_list.append(self.child.update(db_item, data))
 
         for iid, item in db_mapping.items():
             if iid not in data_mapping:

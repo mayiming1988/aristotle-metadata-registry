@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 
 from aristotle_mdr import models as mdr_models
 from aristotle_mdr.contrib.issues import models
+from aristotle_mdr.contrib.custom_fields import models as cf_models
 
 
 class BaseAPITestCase(TestCase):
@@ -23,11 +24,21 @@ class BaseAPITestCase(TestCase):
         self.wg = mdr_models.Workgroup.objects.create(
             name='Best Working Group'
         )
+        self.su = self.um.objects.create_user(
+            email='super@example.com',
+            password='1234'
+        )
 
     def login_user(self):
         self.client.login(
             email='testuser@example.com',
             password='testing123'
+        )
+
+    def login_superuser(self):
+        self.client.login(
+            email='super@example.com',
+            password='1234'
         )
 
     def login_other_user(self):
@@ -174,6 +185,74 @@ class IssueEndpointsTestCase(BaseAPITestCase):
         issue = models.Issue.objects.get(pk=issue.pk)
         self.assertFalse(issue.isopen)
         self.assertEqual(issue.comments.count(), 0)
+
+
+class CustomFieldsTestCase(BaseAPITestCase):
+
+    def create_test_fields(self):
+        cf_models.CustomField.objects.create(
+            name='Spiciness',
+            type='int',
+            help_text='The Spiciness'
+        )
+        cf_models.CustomField.objects.create(
+            name='Blandness',
+            type='int',
+            help_text='The Blandness'
+        )
+
+    def test_multiple_create(self):
+        self.login_superuser()
+        postdata = [
+            {'id': 1, 'name': 'Spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
+            {'id': 2, 'name': 'Blandness', 'type': 'int', 'help_text': 'The Blandness'}
+        ]
+
+        response = self.client.post(
+            reverse('api_v4:custom_field_list'),
+            postdata,
+            format='json'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(cf_models.CustomField.objects.count(), 2)
+        self.assertEqual(cf_models.CustomField.objects.get(id=1).name, 'Spiciness')
+        self.assertEqual(cf_models.CustomField.objects.get(id=2).name, 'Blandness')
+
+    def test_multiple_update(self):
+        self.create_test_fields()
+        self.login_superuser()
+
+        postdata = [
+            {'id': 1, 'name': 'Spic', 'type': 'int', 'help_text': 'The Spiciness'},
+            {'id': 2, 'name': 'Bland', 'type': 'int', 'help_text': 'The Blandness'}
+        ]
+
+        response = self.client.post(
+            reverse('api_v4:custom_field_list'),
+            postdata,
+            format='json'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(cf_models.CustomField.objects.count(), 2)
+        self.assertEqual(cf_models.CustomField.objects.get(id=1).name, 'Spic')
+        self.assertEqual(cf_models.CustomField.objects.get(id=2).name, 'Bland')
+
+    def test_multiple_delete(self):
+        self.create_test_fields()
+        self.login_superuser()
+
+        postdata = [
+            {'id': 1, 'name': 'Spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
+        ]
+
+        response = self.client.post(
+            reverse('api_v4:custom_field_list'),
+            postdata,
+            format='json'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(cf_models.CustomField.objects.count(), 1)
+        self.assertEqual(cf_models.CustomField.objects.get(id=1).name, 'Spiciness')
 
 
 @tag('perms')

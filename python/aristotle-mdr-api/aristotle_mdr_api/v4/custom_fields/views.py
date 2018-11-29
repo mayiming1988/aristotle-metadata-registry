@@ -24,7 +24,7 @@ class CustomFieldListView(generics.ListAPIView):
 
         serializer = self.get_serializer(queryset, data=request.data, many=True)
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
+        serializer.save()
         return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
