@@ -1,4 +1,5 @@
 from django.urls import reverse
+from django.db.models.query import QuerySet
 from rest_framework import serializers
 from aristotle_mdr.contrib.issues.models import Issue, IssueComment
 from aristotle_mdr.perms import user_can_view
@@ -48,3 +49,31 @@ class IssueCommentSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return super().create(validated_data)
+
+
+class MultiUpdateListMixin:
+    """
+    To be used for multple updates on a list serializer
+    Creates new models and deltes missing models
+    """
+
+    def update(self, instance: QuerySet, validated_data: dict):
+        db_mapping = {obj.id: obj for obj in instance}
+        data_mapping = {obj['id']: obj for obj in validated_data}
+
+        return_list = []
+        for iid, data in data_mapping.items():
+            db_item = db_mapping.get(iid, None)
+            if db_item is None:
+                # Submitted new item
+                return_list.append(self.child.create(data))
+            else:
+                # Submitted existing item
+                return_list.append(self.child.update(data))
+
+        for iid, item in db_mapping.items():
+            if iid not in data_mapping:
+                # Item has been removed
+                item.delete()
+
+        return return_list
