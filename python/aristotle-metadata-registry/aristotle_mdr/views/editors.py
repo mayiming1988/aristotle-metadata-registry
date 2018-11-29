@@ -118,6 +118,7 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
 
         if form.is_valid():
             item = form.save(commit=False)
+            form.save_custom_fields(item)
             change_comments = form.data.get('change_comments', None)
             form_invalid = False
         else:

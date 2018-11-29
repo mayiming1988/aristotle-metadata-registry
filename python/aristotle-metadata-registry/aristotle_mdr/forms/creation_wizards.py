@@ -177,7 +177,7 @@ def subclassed_modelform(set_model):
     return MyForm
 
 
-def subclassed_modelform(set_model, extra_mixins=[]):
+def subclassed_mixin_modelform(set_model, extra_mixins=[]):
     meta_attrs = {'model': set_model}
     if set_model.edit_page_excludes:
         meta_attrs['exclude'] = set(list(UserAwareModelForm._meta.exclude) + list(set_model.edit_page_excludes))
@@ -197,11 +197,11 @@ def subclassed_modelform(set_model, extra_mixins=[]):
 
 def subclassed_edit_modelform(set_model, extra_mixins=[]):
     extra_mixins = [CheckIfModifiedMixin] + extra_mixins
-    return subclassed_modelform(set_model, extra_mixins)
+    return subclassed_mixin_modelform(set_model, extra_mixins=extra_mixins)
 
 
 def subclassed_clone_modelform(set_model):
-    return subclassed_modelform(set_model)
+    return subclassed_mixin_modelform(set_model)
 
 
 def subclassed_wizard_2_Results(set_model):

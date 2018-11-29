@@ -9,6 +9,7 @@ from django.http import HttpResponse
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
 import aristotle_mdr.contrib.identifiers.models as ident_models
+from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.utils import url_slugify_concept
 from aristotle_mdr.forms.creation_wizards import (
     WorkgroupVerificationMixin,
@@ -480,6 +481,56 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             status_code=403
         )
 
+    @tag('custfield')
+    def test_submitter_can_save_via_edit_page_with_custom_fields(self):
+        self.login_editor()
+        cf = CustomField.objects.create(
+            name='MyCustomField',
+            type='int',
+            help_text='Custom'
+        )
+
+        postdata = utils.model_to_dict_with_change_time(self.item)
+        postdata['custom_MyCustomField'] = 4
+        response = self.reverse_post(
+            'aristotle:edit_item',
+            postdata,
+            reverse_args=[self.item.id],
+            status_code=302
+        )
+        self.item1 = models.ObjectClass.objects.get(pk=self.item.pk)
+        self.assertRedirects(response,url_slugify_concept(self.item))
+
+        cv_query = CustomValue.objects.filter(
+            field=cf,
+            concept=self.item1._concept_ptr
+        )
+        self.assertTrue(cv_query.count(), 1)
+        cv = cv_query.first()
+        self.assertEqual(cv.content, '4')
+
+    @tag('custfield')
+    def test_submitter_can_save_via_edit_page_custom_fields_initial(self):
+        self.login_editor()
+        cf = CustomField.objects.create(
+            name='MyCustomField',
+            type='int',
+            help_text='Custom'
+        )
+        cv = CustomValue.objects.create(
+            field=cf,
+            concept=self.item,
+            content='4'
+        )
+        response = self.reverse_get(
+            'aristotle:edit_item',
+            reverse_args=[self.item.id],
+            status_code=200
+        )
+        initial = response.context['form'].initial
+        self.assertTrue('Custom' in initial)
+        self.assertEqual(intial['Custom'], '4')
+
 
 class LoggedInViewConceptPages(utils.AristotleTestUtils):
     defaults = {}
@@ -749,6 +800,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertEqual(slots[0].order, 0)
         self.assertEqual(slots[1].name, 'more_extra')
         self.assertEqual(slots[1].order, 1)
+
 
     def test_submitter_can_save_via_edit_page_with_identifiers(self):
 
