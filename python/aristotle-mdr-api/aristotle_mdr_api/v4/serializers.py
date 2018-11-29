@@ -51,7 +51,7 @@ class IssueCommentSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-class MultiUpdateListMixin:
+class MultiUpdateListSerializer(serializers.ListSerializer):
     """
     To be used for multple updates on a list serializer
     Creates new models and deltes missing models
