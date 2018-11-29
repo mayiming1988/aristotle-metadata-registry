@@ -1,7 +1,7 @@
 from django.http import HttpResponseNotFound
 from django.views.generic import TemplateView, DetailView
 
-from aristotle_mdr.views.utils import SimpleItemGet, TagsMixin
+from aristotle_mdr.views.utils import SimpleItemGet
 from aristotle_mdr.contrib.issues.models import Issue
 from aristotle_mdr import perms
 

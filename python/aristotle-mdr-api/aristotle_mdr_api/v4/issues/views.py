@@ -31,6 +31,7 @@ class IssueCommentCreateView(generics.CreateAPIView):
 
 
 class IssueCommentRetrieveView(generics.RetrieveAPIView):
+    """Retrieve an issue comment"""
     permission_classes=(AuthCanViewEdit,)
     serializer_class=serializers.IssueCommentSerializer
     queryset=IssueComment.objects.all()

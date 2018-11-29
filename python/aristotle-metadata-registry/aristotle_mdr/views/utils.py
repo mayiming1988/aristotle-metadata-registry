@@ -547,12 +547,12 @@ class TagsMixin:
                 tag__profile=self.request.user.profile,
                 tag__primary=False,
                 item=self.item
-            ).order_by('created').values_list('tag__name', flat=True)
+            ).order_by('created').values('tag__id', 'tag__name')
 
             user_tags = Tag.objects.filter(
                 profile=self.request.user.profile,
                 primary=False
-            ).values_list('name', flat=True)
+            ).values('id', 'name')
 
             item_tags = list(item_tags)
             user_tags = list(user_tags)
