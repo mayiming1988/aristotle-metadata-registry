@@ -1,8 +1,9 @@
-from typing import Iterable
+from typing import Iterable, List
 from django import forms
 
 from aristotle_mdr.contrib.custom_fields.types import type_field_mapping
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
+from aristotle_mdr.models import _concept
 
 
 class CustomValueFormMixin:
@@ -12,20 +13,23 @@ class CustomValueFormMixin:
         self.cfields = {'custom_{}'.format(cf.name): cf for cf in custom_fields}
         self.custom_field_names = []
         for custom_field in self.cfields.values():
-            field_class = type_field_mapping[custom_field.type]
+            field = type_field_mapping[custom_field.type]
+            field_class = field['field']
+            field_default_args = field.get('args', {})
             custom_fname = 'custom_{}'.format(custom_field.name)
             self.fields[custom_fname] = field_class(
                 required=False,
                 label=custom_field.name,
-                help_text=custom_field.help_text
+                help_text=custom_field.help_text,
+                **field_default_args
             )
             self.custom_field_names.append(custom_fname)
 
     @property
-    def custom_fields(self):
+    def custom_fields(self) -> List:
         return [self[fname] for fname in self.custom_field_names]
 
-    def save_custom_fields(self, concept):
+    def save_custom_fields(self, concept: _concept) -> _concept:
         for fname in self.custom_field_names:
             data = self.cleaned_data[fname]
             if fname in self.cfields:

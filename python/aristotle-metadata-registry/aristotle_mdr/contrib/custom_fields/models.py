@@ -21,3 +21,7 @@ class CustomValue(TimeStampedModel):
     field = models.ForeignKey(CustomField)
     content = models.TextField()
     concept = ConceptForeignKey(_concept)
+
+    @property
+    def is_html(self):
+        return self.field.type == 'html'

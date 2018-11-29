@@ -1,5 +1,13 @@
+{% load util_tags %}
+
 <h2>Custom Fields</h2>
 {% for cv in custom_values %}
   <h3>{{ cv.field.name }}</h3>
-  <p>{{ cv.content }}</p>
+  <p>
+    {% if cv.is_html %}
+      {{ cv.content|bleach }}
+    {% else %}
+      {{ cv.content }}
+    {% endif %}
+  </p>
 {% endfor %}
