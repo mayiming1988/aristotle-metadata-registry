@@ -1,5 +1,5 @@
 {% extends "aristotle_mdr/base.html" %}
-{% load compile_static i18n humanize %}
+{% load i18n humanize %}
 {% load aristotle_tags %}
 
 {% block title %}Request review for multiple items{% endblock %}
@@ -54,5 +54,4 @@
         <input type="submit" name="confirmed" class="btn btn-primary" value="Request Review" />
     </div>
 </form>
-{% include 'autocomplete_light/static.html' %}
 {% endblock %}

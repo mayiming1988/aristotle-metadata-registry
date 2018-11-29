@@ -11,13 +11,9 @@ from model_utils import Choices
 from model_utils.models import TimeStampedModel
 
 from aristotle_mdr import models as MDR
-from aristotle_mdr.fields import ConceptForeignKey
+from aristotle_mdr import perms
+from aristotle_mdr.fields import ConceptForeignKey, ShortTextField
 from aristotle_mdr.contrib.async_signals.utils import fire
-# from .signals import metadata_item_viewed
-
-from aristotle_mdr.fields import (
-    ShortTextField,
-)
 
 
 from aristotle_mdr.managers import (
@@ -28,14 +24,19 @@ from aristotle_mdr.managers import (
 
 
 REVIEW_STATES = Choices(
-    (0, 'submitted', _('Submitted')),
-    (5, 'cancelled', _('Cancelled')),
-    (10, 'accepted', _('Accepted')),
-    (15, 'rejected', _('Rejected')),
+    (0, 'open', _('Open')),
+    (5, 'revoked', _('Revoked')),
+    (10, 'approved', _('Approved')),
+    (15, 'closed', _('Closed')),
 )
 
+class StatusMixin:
+    @property
+    def status_code(self):
+        return {x:y for x,y,z in REVIEW_STATES._triples}[self.status]
 
-class ReviewRequest(TimeStampedModel):
+
+class ReviewRequest(StatusMixin, TimeStampedModel):
     objects = ReviewRequestQuerySet.as_manager()
     concepts = models.ManyToManyField(
         MDR._concept, related_name="rr_review_requests"
@@ -56,15 +57,16 @@ class ReviewRequest(TimeStampedModel):
         related_name='rr_workgroup_reviews',
         null=True
     )
-    message = models.TextField(blank=True, null=True, help_text=_("An optional message accompanying a request, this will accompany the approved registration status"))
+    # title = ShortTextField(blank=True, null=True, help_text=_("A title for the review"))
+    title = models.TextField(blank=True, null=True, help_text=_("An optional message accompanying a request, this will accompany the approved registration status"))
     # reviewer = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, help_text=_("The user performing a review"), related_name='reviewed_requests')
     # response = models.TextField(blank=True, null=True, help_text=_("An optional message responding to a request"))
     status = models.IntegerField(
         choices=REVIEW_STATES,
-        default=REVIEW_STATES.submitted,
+        default=REVIEW_STATES.open,
         help_text=_('Status of a review')
     )
-    state = models.IntegerField(
+    target_registration_state = models.IntegerField(
         choices=MDR.STATES,
         help_text=_("The state at which a user wishes a metadata item to be endorsed")
     )
@@ -83,6 +85,14 @@ class ReviewRequest(TimeStampedModel):
         help_text=_("Update the registration of associated items")
     )
 
+    @property
+    def message(self):
+        return self.title
+
+    @property
+    def state(self):
+        return self.target_registration_state
+
     def get_absolute_url(self):
         return reverse(
             "aristotle_reviews:userReviewDetails",
@@ -90,16 +100,36 @@ class ReviewRequest(TimeStampedModel):
         )
 
     def __str__(self):
-        return "Review of {count} items as {state} in {ra} registraion authority".format(
+        return "Review of {count} items in {ra} registraion authority".format(
             count=self.concepts.count(),
-            state=self.get_state_display(),
             ra=self.registration_authority,
         )
+
+    def is_open(self):
+        return self.status == REVIEW_STATES.open
+
+    def can_view(self, user):
+        return perms.user_can_view_review(user, self)
+
+    def can_edit(self, user):
+        return perms.user_can_edit_review(user, self)
+
+    def timeline(self):
+        keep_going = True
+        comments = self.comments.all()
+        endorsements = self.endorsements.all()
+        state_changes = self.state_changes.all()
+        from itertools import chain
+        wall = list(chain(comments, endorsements, state_changes))
+        wall.sort(key=lambda x: x.created)
+        return wall
 
 
 class ReviewComment(TimeStampedModel):
     class Meta:
         ordering = ['created']
+
+    timeline_type = "comment"
 
     request = models.ForeignKey(ReviewRequest, related_name='comments')
     body = models.TextField()
@@ -111,16 +141,55 @@ class ReviewComment(TimeStampedModel):
     def edited(self):
         return self.created != self.modified
 
+    def can_view(self, user):
+        return perms.user_can_view_review(user, self)
 
-# class RegistrationAuthorityBusinessRule(TimeStampedModel):
-#     registration_authority = models.ForeignKey(
-#         MDR.RegistrationAuthority,
-#         help_text=_("The registration authority the requester wishes to endorse the metadata item"),
-#         related_name='validation_business_rules'
-#     )
-#     name = ShortTextField(
-#         # help_text=_("An optional message accompanying a request, this will accompany the approved registration status")
-#     )
-#     rule = models.TextField(
-#         # help_text=_("An optional message accompanying a request, this will accompany the approved registration status")
-#     )
+    def can_edit(self, user):
+        return perms.user_can_edit_review(user, self)
+
+
+class ReviewStatusChangeTimeline(StatusMixin, TimeStampedModel):
+    class Meta:
+        ordering = ['created']
+    
+    timeline_type = "status_change"
+
+    request = models.ForeignKey(ReviewRequest, related_name='state_changes')
+    status = models.IntegerField(
+        choices=REVIEW_STATES,
+        default=REVIEW_STATES.open,
+        help_text=_('Status of a review')
+    )
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True
+    )
+
+    def can_view(self, user):
+        return perms.user_can_view_review(user, self)
+
+    def can_edit(self, user):
+        return False
+
+
+class ReviewEndorsementTimeline(TimeStampedModel):
+    class Meta:
+        ordering = ['created']
+
+    timeline_type = "endorsement"
+
+    request = models.ForeignKey(ReviewRequest, related_name='endorsements')
+    registration_state = models.IntegerField(
+        choices=MDR.STATES,
+        help_text=_("The state at which a user wishes a metadata item to be endorsed")
+    )
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True
+    )
+
+    def can_view(self, user):
+        return perms.user_can_view_review(user, self)
+
+    def can_edit(self, user):
+        return False

@@ -10,11 +10,15 @@ from aristotle_mdr.forms.creation_wizards import UserAwareModelForm, UserAwareFo
 from aristotle_mdr.forms.forms import ChangeStatusGenericForm
 from django.core.exceptions import ValidationError
 
-from aristotle_mdr.forms.bulk_actions import LoggedInBulkActionForm
+from aristotle_mdr.forms.bulk_actions import LoggedInBulkActionForm, RedirectBulkActionMixin
 from aristotle_mdr.models import _concept
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
+from aristotle_mdr.contrib.autocomplete.widgets import ConceptAutocompleteSelectMultiple
 
 from . import models
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class RequestReviewForm(ChangeStatusGenericForm):
@@ -37,25 +41,101 @@ class RequestReviewForm(ChangeStatusGenericForm):
         return MDR.RegistrationAuthority.objects.get(id=int(value))
 
 
-class RequestReviewCancelForm(UserAwareModelForm):
+class RequestReviewCreateForm(UserAwareModelForm):
     class Meta:
         model = models.ReviewRequest
-        fields = []
+        fields = [
+            'registration_authority', 'title', 'due_date', 'target_registration_state',
+            'registration_date', 'concepts',
+            'cascade_registration'
+        ]
+        widgets = {
+            'title': forms.Textarea(),
+            'target_registration_state': forms.RadioSelect(),
+            'due_date': BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"}),
+            'registration_date': BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"}),
+            'concepts': ConceptAutocompleteSelectMultiple(),
+            'cascade_registration': forms.RadioSelect(),
+        }
+        help_texts = {
+            'target_registration_state': "The state for endorsement for metadata in this review",
+            'due_date': "Date this review needs to be actioned by",
+            'registration_date': "Date the metadata will be endorsed at",
+            'title': "A short title for this review",
+            'concepts': "List of concepts for review",
+            'cascade_registration': "Include related items when registering metadata. When enabled, see the full list of metadata under the \"impact\" tab.",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['target_registration_state'].choices = MDR.STATES
+        self.fields['concepts'].queryset = self.fields['concepts'].queryset.all().visible(self.user)
+        self.fields['concepts'].widget.choices = self.fields['concepts'].choices
 
 
-class RequestReviewRejectForm(UserAwareModelForm):
+class RequestReviewUpdateForm(UserAwareModelForm):
     class Meta:
         model = models.ReviewRequest
-        fields = []
+        fields = [
+            'title', 'due_date', 'target_registration_state', 'registration_date', 'concepts',
+            'cascade_registration'
+        ]
+        widgets = {
+            'title': forms.Textarea(),
+            'target_registration_state': forms.RadioSelect(),
+            'due_date': BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"}),
+            'registration_date': BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"}),
+            'concepts': ConceptAutocompleteSelectMultiple(),
+            'cascade_registration': forms.RadioSelect(),
+        }
+        help_texts = {
+            'target_registration_state': "The state for endorsement for metadata in this review",
+            'due_date': "Date this review needs to be actioned by",
+            'registration_date': "Date the metadata will be endorsed at",
+            'title': "A short title for this review",
+            'concepts': "List of concepts for review",
+            'cascade_registration': "Include related items when registering metadata. When enabled, see the full list of metadata under the \"impact\" tab.",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['target_registration_state'].choices = MDR.STATES
+        self.fields['concepts'].queryset = self.fields['concepts'].queryset.all().visible(self.user)
+        self.fields['concepts'].widget.choices = self.fields['concepts'].choices
 
 
 class RequestReviewAcceptForm(UserAwareForm):
-    response = forms.CharField(
-        max_length=512,
+    status_message = forms.CharField(
         required=False,
-        label=_("Reply to the original review request below."),
+        label=_("Status message"),
+        help_text=_("Describe why the status is being changed."),
         widget=forms.Textarea
     )
+    close_review = forms.ChoiceField(
+        initial=1,
+        widget=forms.RadioSelect(),
+        choices=[(0, _('No')), (1, _('Yes'))],
+        label=_("Do you want to close this review?")
+    )
+
+
+class RequestReviewEndorseForm(RequestReviewAcceptForm):
+    registration_state = forms.ChoiceField(
+        widget=forms.RadioSelect(),
+        choices=MDR.STATES,
+        label=_("Registration State"),
+        help_text = "The state for endorsement for metadata in this review",
+    )
+    registration_date = forms.DateField(
+        widget=BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"}),
+        label=_("Registration Date"),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['close_review'].initial = 0
+
 
 
 class RequestCommentForm(UserAwareModelForm):
@@ -64,48 +144,15 @@ class RequestCommentForm(UserAwareModelForm):
         fields = ['body']
 
 
-class RequestReviewBulkActionForm(LoggedInBulkActionForm, RequestReviewForm):
-    confirm_page = "aristotle_mdr/actions/bulk_actions/request_review.html"
+class RequestReviewBulkActionForm(RedirectBulkActionMixin, LoggedInBulkActionForm, RequestReviewForm):
     classes="fa-flag"
     action_text = _('Request review')
-    items_label = "These are the items that will be reviewed. Add or remove additional items with the autocomplete box."
 
-    def make_changes(self):
-        import reversion
-        ra = self.cleaned_data['registrationAuthorities']
-        state = self.cleaned_data['state']
-        items = self.items_to_change
-        cascade = self.cleaned_data['cascadeRegistration']
-        registration_date = self.cleaned_data['registrationDate']
-        message = self.cleaned_data['changeDetails']
-
-        with transaction.atomic(), reversion.revisions.create_revision():
-            reversion.revisions.set_user(self.user)
-
-            review = models.ReviewRequest.objects.create(
-                requester=self.user,
-                registration_authority=ra,
-                registration_date=registration_date,
-                message=message,
-                state=state,
-                due_date = self.cleaned_data['due_date'],
-                cascade_registration=cascade
-            )
-            failed = []
-            success = []
-            for item in items:
-                if item.can_view(self.user):
-                    success.append(item)
-                else:
-                    failed.append(item)
-
-            review.concepts = success
-
-            user_message = mark_safe(_(
-                "%(num_items)s items requested for review - <a href='%(url)s'>see the review here</a>."
-            ) % {
-                'num_items': len(success),
-                'url': reverse('aristotle_reviews:userReviewDetails', args=[review.id])
-            })
-            reversion.revisions.set_comment(message + "\n\n" + user_message)
-            return user_message
+    @classmethod
+    def get_redirect_url(cls, request):
+        from urllib.parse import urlencode
+        params = {'items': request.POST.getlist("items")}
+        return "{}?{}".format(
+            reverse("aristotle_reviews:review_create"),
+            urlencode(params, True)
+        )

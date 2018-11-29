@@ -1,6 +1,11 @@
 from django.urls import reverse
 from rest_framework import serializers
-from aristotle_mdr.contrib.reviews.models import ReviewRequest, ReviewComment, REVIEW_STATES
+from rest_framework.fields import CurrentUserDefault
+
+from aristotle_mdr.contrib.reviews.models import (
+    ReviewRequest, ReviewComment, REVIEW_STATES,
+    ReviewStatusChangeTimeline
+)
 from aristotle_mdr.perms import user_can_view
 from aristotle_mdr.models import _concept
 
@@ -53,17 +58,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         return rep
 
 
-class ReviewCommentSerializer(serializers.ModelSerializer):
-    """ A comment """
-    class Meta:
-        model = ReviewComment
-        fields = ('body', 'author', 'request', 'created')
-        read_only_fields = ('created', 'request', 'author')
-
-    author = serializers.HiddenField(
-        default=serializers.CurrentUserDefault()
-    )
-
+class ReviewTimelineMixin:
     def validate_request(self, value):
         if not user_can_view(self.context['request'].user, value):
             raise serializers.ValidationError(
@@ -71,8 +66,32 @@ class ReviewCommentSerializer(serializers.ModelSerializer):
             )
         return value
 
-    def create(self, validated_data):
-        return super().create(validated_data)
+
+class ReviewCommentSerializer(ReviewTimelineMixin, serializers.ModelSerializer):
+    """ A comment """
+    class Meta:
+        model = ReviewComment
+        fields = ('body', 'author', 'request', 'created')
+        read_only_fields = ('created',)
+
+    author = serializers.HiddenField(
+        default=serializers.CurrentUserDefault()
+    )
+
+    # def create(self, validated_data):
+    #     return super().create(validated_data)
+
+
+class ReviewStatusChangeSerializer(ReviewTimelineMixin, serializers.ModelSerializer):
+    """ A comment """
+    class Meta:
+        model = ReviewStatusChangeTimeline
+        fields = ('status', 'request', 'created', 'actor')
+        read_only_fields = ('created',)
+
+    actor = serializers.HiddenField(
+        default=serializers.CurrentUserDefault()
+    )
 
 
 class ReviewUpdateAndCommentSerializer(ReviewSerializer):
@@ -89,8 +108,15 @@ class ReviewUpdateAndCommentSerializer(ReviewSerializer):
     def update(self, instance, validated_data):
         comment = validated_data.pop('comment', None)
 
-        logger.critical(validated_data)
         review = super().update(instance, validated_data) #ReviewRequest.objects.update(**validated_data)
+        try:
+            user = self.context.get("request", {}).user
+        except:
+            user = None
+        update = ReviewStatusChangeTimeline.objects.create(
+            request=review, status=review.status,
+            actor=user
+        )
         if comment:
-            comment = ReviewComment.objects.create(request=review, **comment)
+            comment = ReviewComment.objects.create(request=review, author=user, **comment)
         return review

@@ -58,7 +58,7 @@ class IssueEndpointsTestCase(BaseAPITestCase):
 
     def post_issue(self, item):
         response = self.client.post(
-            reverse('api_v4:issues_create'),
+            reverse('api_v4:issues:create'),
             {
                 'name': 'Test issue',
                 'description': 'Just a test one',
@@ -95,7 +95,7 @@ class IssueEndpointsTestCase(BaseAPITestCase):
         issue = self.create_test_issue()
 
         response = self.client.post(
-            reverse('api_v4:issue_comment'),
+            reverse('api_v4:issues:comment'),
             {
                 'body': 'Test comment',
                 'issue': issue.id
@@ -114,7 +114,7 @@ class IssueEndpointsTestCase(BaseAPITestCase):
 
         self.login_other_user()
         response = self.client.post(
-            reverse('api_v4:issue_comment'),
+            reverse('api_v4:issues:comment'),
             {
                 'body': 'Test comment',
                 'issue': issue.id
@@ -130,7 +130,7 @@ class IssueEndpointsTestCase(BaseAPITestCase):
 
         self.login_user()
         response = self.client.post(
-            reverse('api_v4:issue_update_and_comment', args=[issue.pk]),
+            reverse('api_v4:issues:update_and_comment', args=[issue.pk]),
             {
                 'isopen': False,
                 'comment': {
@@ -159,7 +159,7 @@ class IssueEndpointsTestCase(BaseAPITestCase):
 
         self.login_user()
         response = self.client.post(
-            reverse('api_v4:issue_update_and_comment', args=[issue.pk]),
+            reverse('api_v4:issues:update_and_comment', args=[issue.pk]),
             {
                 'isopen': False,
             },
@@ -194,7 +194,7 @@ class PermsTestCase(BaseAPITestCase):
 
     def post_issue_close(self, issue):
         return self.client.post(
-            reverse('api_v4:issue_update_and_comment', args=[issue.pk]),
+            reverse('api_v4:issues:update_and_comment', args=[issue.pk]),
             {
                 'isopen': False,
             },

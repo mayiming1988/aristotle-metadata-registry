@@ -37,6 +37,7 @@ from aristotle_mdr.utils import url_slugify_concept
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils import (
+    cascade_items_queryset,
     get_concepts_for_apps,
     fetch_aristotle_settings,
     fetch_aristotle_downloaders,
@@ -402,20 +403,7 @@ class ReviewChangesView(SessionWizardView):
             # Need to check wether cascaded was true here
 
             if cascade == 1:
-                all_ids = []
-                for item in items:
-
-                    # Can't cascade from _concept
-                    if isinstance(item, MDR._concept):
-                        cascade = item.item.registry_cascade_items
-                    else:
-                        cascade = item.registry_cascade_items
-
-                    cascaded_ids = [a.id for a in cascade]
-                    cascaded_ids.append(item.id)
-                    all_ids.extend(cascaded_ids)
-
-                queryset = MDR._concept.objects.filter(id__in=all_ids)
+                queryset = cascade_items_queryset(items=items)
             else:
                 ids = [a.id for a in items]
                 queryset = MDR._concept.objects.filter(id__in=ids)
@@ -536,6 +524,8 @@ class ReviewChangesView(SessionWizardView):
             reversion.revisions.set_user(self.request.user)
 
             success, failed = self.register_changes(form_dict, change_form)
+            logger.critical(success)
+            logger.critical(failed)
 
             bad_items = sorted([str(i.id) for i in failed])
             count = self.get_items().count()

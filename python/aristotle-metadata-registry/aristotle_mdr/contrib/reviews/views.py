@@ -3,6 +3,7 @@ from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.db.models import Q, Count
 from django.http import Http404, HttpResponseRedirect, HttpResponse, HttpResponseNotFound
 from django.shortcuts import get_object_or_404
@@ -20,14 +21,18 @@ from django.views.generic import (DetailView,
                                   UpdateView
                                   )
 
+import reversion
+
 from aristotle_mdr import models as MDR
 from aristotle_mdr import perms
 from aristotle_mdr.forms.forms import ReviewChangesForm
+from aristotle_mdr.utils import cascade_items_queryset, get_status_change_details
 from aristotle_mdr.views import ReviewChangesView, display_review
 from aristotle_mdr.views.actions import ItemSubpageFormView
 from aristotle_mdr.views.utils import (
     generate_visibility_matrix,
-    paginated_list
+    paginated_list,
+    UserFormViewMixin,
 )
 
 import json
@@ -44,7 +49,7 @@ def my_review_list(request):
     # Users can see any items they have been asked to review
     q = Q(requester=request.user)
     reviews = models.ReviewRequest.objects.visible(request.user).filter(q).filter(registration_authority__active=0)
-    return paginated_list(request, reviews, "aristotle_mdr/user/my_review_list.html", {'reviews': reviews})
+    return paginated_list(request, reviews, "aristotle_mdr/reviews/my_review_list.html", {'reviews': reviews})
 
 
 @login_required
@@ -54,30 +59,10 @@ def review_list(request):
     authorities = [i[0] for i in request.user.profile.registrarAuthorities.filter(active=0).values_list('id')]
 
     # Registars can see items they have been asked to review
-    q = Q(Q(registration_authority__id__in=authorities) & ~Q(status=models.REVIEW_STATES.cancelled))
+    q = Q(Q(registration_authority__id__in=authorities) & ~Q(status=models.REVIEW_STATES.revoked))
 
     reviews = models.ReviewRequest.objects.visible(request.user).filter(q)
-    return paginated_list(request, reviews, "aristotle_mdr/user/userReviewList.html", {'reviews': reviews})
-
-
-class ReviewDetailsView(DetailView):
-    pk_url_kwarg = 'review_id'
-    template_name = "aristotle_mdr/user/request_review_details.html"
-    context_object_name = "review"
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
-
-    def get_context_data(self, *args, **kwargs):
-        # Call the base implementation first to get a context
-        context = super().get_context_data(*args, **kwargs)
-        context['next'] = self.request.GET.get('next', reverse('aristotle_reviews:userReadyForReview'))
-        context['active_tab'] = "conversation"
-        return context
-
-    def get_queryset(self):
-        return models.ReviewRequest.objects.visible(self.request.user)
+    return paginated_list(request, reviews, "aristotle_mdr/reviews/reviewers_review_list.html", {'reviews': reviews})
 
 
 class SubmitForReviewView(ItemSubpageFormView):
@@ -86,7 +71,7 @@ class SubmitForReviewView(ItemSubpageFormView):
 
     def get_context_data(self, *args, **kwargs):
         kwargs = super().get_context_data(*args, **kwargs)
-        kwargs['reviews'] = self.get_item().review_requests.filter(status=MDR.REVIEW_STATES.submitted).all()
+        kwargs['reviews'] = self.get_item().review_requests.filter(status=models.REVIEW_STATES.open).all()
         kwargs['status_matrix'] = json.dumps(generate_visibility_matrix(self.request.user))
         return kwargs
 
@@ -119,7 +104,9 @@ class SubmitForReviewView(ItemSubpageFormView):
             return self.form_invalid(form)
 
 
-class ReviewActionMixin(object):
+class ReviewActionMixin(UserFormViewMixin):
+    pk_url_kwarg = 'review_id'
+    context_object_name = "review"
     user_form = True
 
     @method_decorator(login_required)
@@ -127,8 +114,8 @@ class ReviewActionMixin(object):
         review = self.get_review()
         if not perms.user_can_view_review(self.request.user, review):
             raise PermissionDenied
-        if review.status != models.REVIEW_STATES.submitted:
-            return HttpResponseRedirect(reverse('aristotle_reviews:userReviewDetails', args=[review.pk]))
+        # if review.status != models.REVIEW_STATES.open:
+        #     return HttpResponseRedirect(reverse('aristotle_reviews:userReviewDetails', args=[review.pk]))
         return super().dispatch(*args, **kwargs)
 
     def get_review(self):
@@ -137,105 +124,88 @@ class ReviewActionMixin(object):
 
     def get_context_data(self, *args, **kwargs):
         kwargs = super().get_context_data(*args, **kwargs)
-        kwargs['review'] = self.get_review()
+        review = self.get_review()
+        kwargs['review'] = review
+        kwargs['can_approve_review'] = perms.user_can_approve_review(self.request.user, review)
+        kwargs['can_open_close_review'] = perms.user_can_close_or_reopen_review(self.request.user, review)
+        if hasattr(self, "active_tab_name"):
+            kwargs['active_tab'] = self.active_tab_name
         return kwargs
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        if self.user_form:
-            kwargs['user'] = self.request.user
-        return kwargs
+    def get_queryset(self):
+        return models.ReviewRequest.objects.visible(self.request.user)
+
+
+class ReviewDetailsView(ReviewActionMixin, DetailView):
+    template_name = "aristotle_mdr/reviews/review/details.html"
+    active_tab_name = "details"
+
+    def get_context_data(self, *args, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(*args, **kwargs)
+        # context['next'] = self.request.GET.get('next', reverse('aristotle_reviews:userReadyForReview'))
+        review = self.get_review()
+        context['can_accept_review'] = review.status == models.REVIEW_STATES.open and perms.user_can_approve_review(self.request.user, self.get_review())
+        return context
+
+
+class ReviewListItemsView(ReviewActionMixin, DetailView):
+    template_name = "aristotle_mdr/reviews/review/list.html"
+    active_tab_name = "itemlist"
+
+    def get_context_data(self, *args, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(*args, **kwargs)
+        context['next'] = self.request.GET.get('next', reverse('aristotle_reviews:userReadyForReview'))
+        return context
 
 
 class ReviewUpdateView(ReviewActionMixin, UpdateView):
-    template_name = "aristotle_mdr/reviews/update.html"
-    fields = [
-        'due_date', 'registration_date', 'concepts',
-        'message'
-    ]
-    pk_url_kwarg = 'review_id'
+    template_name = "aristotle_mdr/reviews/review/update.html"
+    form_class = forms.RequestReviewUpdateForm
     context_object_name = "item" #review"
     model = models.ReviewRequest
-    user_form = False
+    user_form = True
 
     def get_success_url(self):
         return self.get_review().get_absolute_url()
 
 
-class ReviewCancelView(ReviewActionMixin, FormView):
-    form_class = forms.RequestReviewCancelForm
-    template_name = "aristotle_mdr/user/user_request_cancel.html"
+class ReviewCreateView(UserFormViewMixin, CreateView):
+    template_name = "aristotle_mdr/reviews/review/create.html"
+    form_class = forms.RequestReviewCreateForm
+    model = models.ReviewRequest
+    user_form = True
 
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        review = self.get_review()
-        if not self.request.user == review.requester:
-            raise PermissionDenied
-        if review.status != models.REVIEW_STATES.submitted:
-            return HttpResponseRedirect(reverse('aristotle_reviews:userReviewDetails', args=[review.pk]))
+    def get_initial(self):
+        initial = super().get_initial()
+        
+        item_ids = self.request.GET.getlist("items")
+        initial_metadata = MDR._concept.objects.visible(self.request.user).filter(id__in=item_ids)
+        initial.update({
+            "concepts": initial_metadata,
+        })
+            
+        return initial
 
-        return super().dispatch(*args, **kwargs)
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['instance'] = self.get_review()
-        return kwargs
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-
-        if form.is_valid():
-            review = form.save(commit=False)
-            review.status = models.REVIEW_STATES.cancelled
-            review.save()
-            message = _("Review successfully cancelled")
-            messages.add_message(request, messages.INFO, message)
-            return HttpResponseRedirect(reverse('aristotle_reviews:userMyReviewRequests'))
-        else:
-            return self.form_invalid(form)
+    def form_valid(self, form):
+        """
+        If the form is valid, save the associated model.
+        """
+        self.object = form.save(commit=False)
+        self.object.requester = self.request.user
+        self.object.save()
+        return super().form_valid(form)
 
 
-class ReviewRejectView(ReviewActionMixin, FormView):
-    form_class = forms.RequestReviewRejectForm
-    template_name = "aristotle_mdr/user/user_request_reject.html"
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['instance'] = self.get_review()
-        return kwargs
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-
-        if form.is_valid():
-            review = form.save(commit=False)
-            review.reviewer = request.user
-            review.status = MDR.REVIEW_STATES.rejected
-            review.save()
-            message = _("Review successfully rejected")
-            messages.add_message(request, messages.INFO, message)
-            return HttpResponseRedirect(reverse('aristotle_reviews:userReadyForReview'))
-        else:
-            return self.form_invalid(form)
-
-
-class ReviewAcceptView(ReviewChangesView):
+class ReviewStatusChangeBase(ReviewActionMixin, ReviewChangesView):
 
     change_step_name = 'review_accept'
-
-    form_list = [
-        ('review_accept', forms.RequestReviewAcceptForm),
-        ('review_changes', ReviewChangesForm)
-    ]
-
-    templates = {
-        'review_accept': 'aristotle_mdr/user/user_request_accept.html',
-        'review_changes': 'aristotle_mdr/actions/review_state_changes.html'
-    }
 
     condition_dict = {'review_changes': display_review}
     display_review = None
     review = None
+    user_form = True
 
     def dispatch(self, request, *args, **kwargs):
 
@@ -246,8 +216,9 @@ class ReviewAcceptView(ReviewChangesView):
 
         if not perms.user_can_view_review(self.request.user, review):
             raise PermissionDenied
-        if review.status != models.REVIEW_STATES.submitted:
-            return HttpResponseRedirect(reverse('aristotle_reviews:userReviewDetails', args=[review.pk]))
+        if review.status != models.REVIEW_STATES.open:
+            messages.add_message(self.request, messages.WARNING, "This review is already closed. Re-open this review to endorse content.")
+            return HttpResponseRedirect(reverse('aristotle_reviews:review_details', args=[review.pk]))
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -263,10 +234,10 @@ class ReviewAcceptView(ReviewChangesView):
         # Register status changes
         change_data = {
             'registrationAuthorities': [review.registration_authority],
-            'state': review.state,
+            'state': review.target_registration_state,
             'registrationDate': review.registration_date,
             'cascadeRegistration': review.cascade_registration,
-            'changeDetails': review.message
+            'changeDetails': self.get_cleaned_data_for_step(self.change_step_name)['status_message']
         }
 
         if register:
@@ -291,26 +262,86 @@ class ReviewAcceptView(ReviewChangesView):
 
         return kwargs
 
+
+class ReviewAcceptView(ReviewStatusChangeBase):
+
+    form_list = [
+        ('review_accept', forms.RequestReviewAcceptForm),
+        ('review_changes', ReviewChangesForm)
+    ]
+
+    templates = {
+        'review_accept': 'aristotle_mdr/user/user_request_accept.html',
+        'review_changes': 'aristotle_mdr/actions/review_state_changes.html'
+    }
+
     def done(self, form_list, form_dict, **kwargs):
         review = self.get_review()
 
-        message = self.register_changes_with_message(form_dict)
+        with transaction.atomic(), reversion.revisions.create_revision():
+            message = self.register_changes_with_message(form_dict)
+    
+            if form_dict['review_accept'].cleaned_data['close_review'] == "1":
+                review.status = models.REVIEW_STATES.approved
+                review.save()
+    
+            update = models.ReviewStatusChangeTimeline.objects.create(
+                request=review, status=models.REVIEW_STATES.approved,
+                actor=self.request.user
+            )
+            update = models.ReviewEndorsementTimeline.objects.create(
+                request=review,
+                registration_state=review.target_registration_state,
+                actor=self.request.user
+            )
+    
+            messages.add_message(self.request, messages.INFO, message)
 
-        # Update review object
-        # review.reviewer = self.request.user
-        # review.response = form_dict['review_accept'].cleaned_data['response']
-        review.status = models.REVIEW_STATES.accepted
-        review.save()
+        return HttpResponseRedirect(reverse('aristotle_reviews:review_details', args=[review.pk]))
 
-        messages.add_message(self.request, messages.INFO, message)
 
-        return HttpResponseRedirect(reverse('aristotle_reviews:userReadyForReview'))
+class ReviewEndorseView(ReviewStatusChangeBase):
+
+    form_list = [
+        ('review_accept', forms.RequestReviewEndorseForm),
+        ('review_changes', ReviewChangesForm)
+    ]
+
+    templates = {
+        'review_accept': 'aristotle_mdr/user/user_request_endorse.html',
+        'review_changes': 'aristotle_mdr/actions/review_state_changes.html'
+    }
+
+    def get_change_data(self, register=False):
+        change_data = super().get_change_data(register)
+        change_data['state'] = int(self.get_cleaned_data_for_step(self.change_step_name)['registration_state'])
+        change_data['registrationDate'] = self.get_cleaned_data_for_step(self.change_step_name)['registration_date']
+
+        return change_data
+
+    def done(self, form_list, form_dict, **kwargs):
+        review = self.get_review()
+
+        with transaction.atomic(), reversion.revisions.create_revision():
+            message = self.register_changes_with_message(form_dict)
+
+            if int(form_dict['review_accept'].cleaned_data['close_review']) == 1:
+                review.status = models.REVIEW_STATES.closed
+                review.save()
+    
+            update = models.ReviewEndorsementTimeline.objects.create(
+                request=review,
+                registration_state=self.get_cleaned_data_for_step(self.change_step_name)['registration_state'],
+                actor=self.request.user
+            )
+    
+            messages.add_message(self.request, messages.INFO, message)
+
+        return HttpResponseRedirect(reverse('aristotle_reviews:review_details', args=[review.pk]))
 
 
 class ReviewCommentCreateView(ReviewActionMixin, CreateView):
-    pk_url_kwarg = 'review_id'
-    template_name = "aristotle_mdr/user/request_review_details.html"
-    context_object_name = "review"
+    template_name = "aristotle_mdr/reviews/review/details.html"
     fields = ['body']
     model = models.ReviewComment
     user_form = False
@@ -326,97 +357,45 @@ class ReviewCommentCreateView(ReviewActionMixin, CreateView):
     def get_success_url(self):
         return self.get_review().get_absolute_url()
 
-    # def get(self, request, *args, **kwargs):
-    #     return HttpResponseRedirect(
-    #         reverse('aristotle_reviews:request_review', args=[self.kwargs.get('review_id')])
-    #     )
 
-    # def get_context_data(self, *args, **kwargs):
-    #     # Call the base implementation first to get a context
-    #     context = super().get_context_data(*args, **kwargs)
-    #     context['next'] = self.request.GET.get('next', reverse('aristotle_reviews:userReadyForReview'))
-    #     return context
-
-    # def get_queryset(self):
-    #     return models.ReviewRequest.objects.visible(self.request.user)
-
-class ReviewImpactView(ReviewActionMixin, TemplateView):
+class ReviewIssuesView(ReviewActionMixin, TemplateView):
     pk_url_kwarg = 'review_id'
-    template_name = "aristotle_mdr/user/request_review_details.html"
+    template_name = "aristotle_mdr/reviews/review/issues.html"
     context_object_name = "review"
+    active_tab_name = "issues"
 
     def get_context_data(self, *args, **kwargs):
         # Call the base implementation first to get a context
         context = super().get_context_data(*args, **kwargs)
-        context['active_tab'] = "impact"
+
+        from aristotle_mdr.contrib.issues.models import Issue
+        base_qs = Issue.objects.filter(item__rr_review_requests=self.get_review())
+        context['open_issues'] = base_qs.filter(isopen=True).order_by('created')
+        context['closed_issues'] = base_qs.filter(isopen=False).order_by('created')
+
+        return context
 
 
-        # TODO: These are hacky imports for the below code
-        from aristotle_mdr.models import Status, STATES
-        from aristotle_mdr.utils import status_filter
-        ra = self.get_review().registration_authority
-        user = self.request.user
-        queryset = self.get_review().concepts.all()
-        static_content = {'new_state': self.get_review().state}
+class ReviewImpactView(ReviewActionMixin, TemplateView):
+    pk_url_kwarg = 'review_id'
+    template_name = "aristotle_mdr/reviews/review/impact.html"
+    context_object_name = "review"
+    active_tab_name = "impact"
 
-        # TODO:
-        # This was stolen from aristotle_mdr.forms.fields.ReviewChangesChoiceField.build_extra_info
-        # Make this generic
-        extra_info = {}
-        subclassed_queryset = list(queryset.select_subclasses())
-        statuses = Status.objects.filter(concept__in=queryset, registrationAuthority=ra).select_related('concept')
-        statuses = status_filter(statuses).order_by("-registrationDate", "-created")
+    def get_context_data(self, *args, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(*args, **kwargs)
+        review = self.get_review()
+        if review.cascade_registration:
+            queryset = cascade_items_queryset(items=review.concepts.all())
+        else:
+            queryset = review.concepts.all()
+        extra_info, any_higher = get_status_change_details(queryset,review.registration_authority, review.state)
 
-        new_state_num = static_content['new_state']
-        new_state = str(STATES[new_state_num])
-
-        # Build a dict mapping concepts to their status data
-        # So that no additional status queries need to be made
-        states_dict = {}
-        for status in statuses:
-            state_name = str(STATES[status.state])
-            reg_date = status.registrationDate
-            if status.concept.id not in states_dict:
-                states_dict[status.concept.id] = {
-                    'name': state_name,
-                    'reg_date': reg_date,
-                    'state': status.state
-                }
-
-        deselections = False
-        for concept in subclassed_queryset:
-            url = reverse('aristotle:registrationHistory', kwargs={'iid': concept.id})
-
-            innerdict = {}
-            # Get class name
-            innerdict['type'] = concept.__class__.get_verbose_name()
-            innerdict['checked'] = True
-
-            try:
-                state_info = states_dict[concept.id]
-            except KeyError:
-                state_info = None
-
-            if state_info:
-                innerdict['old'] = {
-                    'url': url,
-                    'text': state_info['name'],
-                    'old_reg_date': state_info['reg_date']
-                }
-                if state_info['state'] >= new_state_num:
-                    innerdict['checked'] = False
-                    deselections = True
-
-            innerdict['perm'] = perms.user_can_change_status(user, concept)
-            innerdict['new_state'] = {'url': url, 'text': new_state}
-
-            extra_info[concept.id] = innerdict
-
-        # TODO: End of copied code
-        for concept in subclassed_queryset:
+        for concept in queryset:
             concept.info = extra_info[concept.id]
 
-        context['statuses'] = subclassed_queryset
+        context['statuses'] = queryset
 
         return context
 
@@ -430,15 +409,14 @@ from aristotle_mdr.contrib.validators.validators import Checker
 
 class ReviewValidationView(ReviewActionMixin, TemplateView):
     pk_url_kwarg = 'review_id'
-    template_name = "aristotle_mdr/user/request_review_details.html"
+    template_name = "aristotle_mdr/reviews/review/validation.html"
     context_object_name = "review"
     base_dir=path.dirname(path.dirname(path.dirname(__file__)))
+    active_tab_name = "checks"
 
     def get_context_data(self, *args, **kwargs):
         # Call the base implementation first to get a context
         context = super().get_context_data(*args, **kwargs)
-        context['active_tab'] = "checks"
-
 
         # TODO: more copies
         with open(path.join(self.base_dir, 'schema/schema.json')) as schemafile:

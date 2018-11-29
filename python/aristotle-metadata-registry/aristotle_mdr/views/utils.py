@@ -438,6 +438,14 @@ class AlertFieldsMixin:
         return context
 
 
+class UserFormViewMixin:
+    def get_form_kwargs(self, *args, **kwargs):
+        kwargs = super().get_form_kwargs(*args, **kwargs)
+        if getattr(self, 'user_form', False):
+            kwargs['user'] = self.request.user
+        return kwargs
+
+
 class AjaxFormMixin:
     """
     Mixin to be used with form view for ajax functionality,

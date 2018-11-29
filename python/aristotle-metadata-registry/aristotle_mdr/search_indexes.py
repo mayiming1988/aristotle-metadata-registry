@@ -6,6 +6,8 @@ from django.template import TemplateDoesNotExist, loader
 from django.utils import timezone
 from django.template import loader
 
+from aristotle_mdr.contrib.reviews.models import REVIEW_STATES
+
 import logging
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
@@ -111,7 +113,7 @@ class conceptIndex(baseObjectIndex):
 
     def prepare_registrationAuthorities(self, obj):
         ras_stats = [str(s.registrationAuthority.id) for s in obj.current_statuses().all()]
-        ras_reqs = [str(rr.registration_authority.id) for rr in obj.review_requests.filter(~Q(status=models.REVIEW_STATES.cancelled)).all()]
+        ras_reqs = [str(rr.registration_authority.id) for rr in obj.review_requests.filter(~Q(status=REVIEW_STATES.closed)).all()]
 
         return list(set(ras_stats + ras_reqs))
 

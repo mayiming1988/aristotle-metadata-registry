@@ -1477,7 +1477,7 @@ class PossumProfile(models.Model):
                 submitter=self.user,
                 statuses__isnull=True
             ) & Q(
-                Q(review_requests__isnull=True) | Q(review_requests__status=REVIEW_STATES.cancelled)
+                Q(rr_review_requests__isnull=True) | Q(rr_review_requests__status=REVIEW_STATES.revoked)
             )
         )
 

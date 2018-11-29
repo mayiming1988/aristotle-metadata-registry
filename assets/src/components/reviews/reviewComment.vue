@@ -2,7 +2,6 @@
     <div>
         <api-errors :errors="errors"></api-errors>
         <user-panel :pic="pic">
-            <pre>{{ this.reviewState }}</pre>
             <span slot="heading">
                 New Comment
             </span>
@@ -35,7 +34,6 @@ export default {
     }),
     created: function() {
         this.reviewState = this.initialReviewState
-        this.$emit('set_status', this.reviewState)
     },
     methods: {
         emitComment: function(data) {

@@ -9,10 +9,13 @@
 
 <script>
 export default {
-    props: ['reviewStatus'],
+    props: ['reviewStatus','initialStatus'],
     computed: {
+        current_status: function() {
+            return this.reviewStatus || this.initialStatus
+        },
         iconClass: function () {
-            switch(this.reviewStatus) {
+            switch(this.current_status) {
                 case "open":
                     return "certificate"
                 case "revoked":
@@ -24,7 +27,7 @@ export default {
             }
         },
         alertClass: function() {
-            switch(this.reviewStatus) {
+            switch(this.current_status) {
                 case "open":
                     return "info"
                 case "revoked":
@@ -36,7 +39,7 @@ export default {
             }
         },
         alertText: function() {
-            switch(this.reviewStatus) {
+            switch(this.current_status) {
                 case "open":
                     return "Open"
                 case "revoked":

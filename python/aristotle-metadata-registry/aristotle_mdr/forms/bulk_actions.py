@@ -74,8 +74,16 @@ class ForbiddenAllowedModelMultipleChoiceField(forms.ModelMultipleChoiceField):
         return qs
 
 
+class RedirectBulkActionMixin:
+    redirect = True
+
+    def get_redirect_url(self):
+        return self.redirect_url
+
+
 class BulkActionForm(UserAwareForm):
     classes = ""
+    redirect: bool = True
     confirm_page: Any = None
     all_in_queryset = forms.BooleanField(
         label=_("All items"),
@@ -100,7 +108,7 @@ class BulkActionForm(UserAwareForm):
     queryset = MDR._concept.objects.all()
 
     def __init__(self, form, *args, **kwargs):
-        initial_items = kwargs.pop('items', [])
+        self.initial_items = kwargs.pop('items', [])
         all_in_queryset = kwargs.pop('all_in_queryset', [])
 
         self.request = kwargs.pop('request')
@@ -119,7 +127,7 @@ class BulkActionForm(UserAwareForm):
             label=self.items_label,
             validate_queryset=MDR._concept.objects.all(),
             queryset=queryset,
-            initial=initial_items,
+            initial=self.initial_items,
             required=False,
             widget=widgets.ConceptAutocompleteSelectMultiple()
         )

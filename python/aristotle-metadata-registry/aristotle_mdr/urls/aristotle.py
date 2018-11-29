@@ -159,15 +159,15 @@ urlpatterns=[
     url(r'^account/registrartools/?$', views.user_pages.RegistrarTools.as_view(), name='userRegistrarTools'),
 
     url(r'^registrationauthority/create/?$', views.registrationauthority.CreateRegistrationAuthority.as_view(), name='registrationauthority_create'),
-    url(r'^registrationauthority/all/?$', views.registrationauthority.ListRegistrationAuthority.as_view(), name='registrationauthority_list'),
+    url(r'^account/admin/registrationauthority/all/?$', views.registrationauthority.ListRegistrationAuthority.as_view(), name='registrationauthority_list'),
 
-    url(r'^organization/registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/details/$', views.registrationauthority.DetailsRegistrationAuthority.as_view(), name='registrationauthority_details'),
-    url(r'^organization/registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/members/$', views.registrationauthority.MembersRegistrationAuthority.as_view(), name='registrationauthority_members'),
-    url(r'^organization/registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/edit', views.registrationauthority.EditRegistrationAuthority.as_view(), name='registrationauthority_edit'),
-    url(r'^organization/registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/add_user/?$', views.registrationauthority.AddUser.as_view(), name='registrationauthority_add_user'),
-    url(r'^organization/registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/change_roles/(?P<user_pk>.+)?/?$', views.registrationauthority.ChangeUserRoles.as_view(), name='registrationauthority_change_user_roles'),
-    url(r'^organization/registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/remove/(?P<user_pk>\d+)/?$', views.registrationauthority.RemoveUser.as_view(), name='registrationauthority_member_remove'),
-    url(r'^organization/registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/?$', views.registrationauthority.registrationauthority, name='registrationAuthority'),
+    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/details/$', views.registrationauthority.DetailsRegistrationAuthority.as_view(), name='registrationauthority_details'),
+    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/members/$', views.registrationauthority.MembersRegistrationAuthority.as_view(), name='registrationauthority_members'),
+    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/edit', views.registrationauthority.EditRegistrationAuthority.as_view(), name='registrationauthority_edit'),
+    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/add_user/?$', views.registrationauthority.AddUser.as_view(), name='registrationauthority_add_user'),
+    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/change_roles/(?P<user_pk>.+)?/?$', views.registrationauthority.ChangeUserRoles.as_view(), name='registrationauthority_change_user_roles'),
+    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/remove/(?P<user_pk>\d+)/?$', views.registrationauthority.RemoveUser.as_view(), name='registrationauthority_member_remove'),
+    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/?$', views.registrationauthority.registrationauthority, name='registrationAuthority'),
 
     url(r'^organization/(?P<iid>\d+)?(?:\/(?P<name_slug>.+))?/?$', views.registrationauthority.organization, name='organization'),
     url(r'^organizations/?$', views.registrationauthority.all_organizations, name='all_organizations'),

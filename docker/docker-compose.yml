@@ -71,7 +71,7 @@ services:
 
   worker:
     <<: *django
-    command: sh ./docker/sh/entrypoint/worker.sh
+    command: sh ./sh/entrypoint/worker.sh
     links:
       - redis
     volumes:
