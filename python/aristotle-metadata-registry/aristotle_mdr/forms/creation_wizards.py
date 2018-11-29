@@ -177,30 +177,31 @@ def subclassed_modelform(set_model):
     return MyForm
 
 
-def subclassed_edit_modelform(set_model):
-    class MyForm(ConceptForm, CheckIfModifiedMixin):
-        change_comments = forms.CharField(widget=forms.Textarea, required=False)
+def subclassed_modelform(set_model, extra_mixins=[]):
+    meta_attrs = {'model': set_model}
+    if set_model.edit_page_excludes:
+        meta_attrs['exclude'] = set(list(UserAwareModelForm._meta.exclude) + list(set_model.edit_page_excludes))
+    else:
+        meta_attrs['fields'] = '__all__'
 
-        class Meta(ConceptForm.Meta):
-            model = set_model
-            if set_model.edit_page_excludes:
-                exclude = set(list(UserAwareModelForm._meta.exclude) + list(set_model.edit_page_excludes))
-            else:
-                fields = '__all__'
-    return MyForm
+    meta_class = type('Meta', (ConceptForm.Meta,), meta_attrs)
+
+    form_class_bases = extra_mixins + [ConceptForm]
+    form_class_attrs = {'Meta': meta_class}
+    form_class_attrs['change_comments'] = forms.CharField(widget=forms.Textarea, required=False)
+
+    form_class = type('MyForm', tuple(form_class_bases), form_class_attrs)
+
+    return form_class
+
+
+def subclassed_edit_modelform(set_model, extra_mixins=[]):
+    extra_mixins = [CheckIfModifiedMixin] + extra_mixins
+    return subclassed_modelform(set_model, extra_mixins)
 
 
 def subclassed_clone_modelform(set_model):
-    class MyForm(ConceptForm):
-        change_comments = forms.CharField(widget=forms.Textarea, required=False)
-
-        class Meta(ConceptForm.Meta):
-            model = set_model
-            if set_model.edit_page_excludes:
-                exclude = set(list(UserAwareModelForm._meta.exclude) + list(set_model.edit_page_excludes))
-            else:
-                fields = '__all__'
-    return MyForm
+    return subclassed_modelform(set_model)
 
 
 def subclassed_wizard_2_Results(set_model):

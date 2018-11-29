@@ -7,21 +7,25 @@
 {% endif %}
 <table class="table">
   <thead>
-    {% for head in headers %}
-    <th>{{ head }}</th>
-    {% endfor %}
+    <tr>
+      {% for head in headers %}
+      <th>{{ head }}</th>
+      {% endfor %}
+    </tr>
   </thead>
   <tbody>
     {% for itemdict in list %}
-      {% for attr in itemdict.attrs %}
-        <td>{{ attr }}</td>
-      {% endfor %}
-      {% if update_url_name %}
-        <td><a class="btn btn-primary" href="{% url update_url_name itemdict.pk %}">Update</a></td>
-      {% endif %}
-      {% if delete_url_name %}
-        <td><a class="btn btn-danger" href="{% url delete_url_name itemdict.pk %}">Delete</a></td>
-      {% endif %}
+      <tr>
+        {% for attr in itemdict.attrs %}
+          <td>{{ attr }}</td>
+        {% endfor %}
+        {% if update_url_name %}
+          <td><a class="btn btn-primary" href="{% url update_url_name itemdict.pk %}">Update</a></td>
+        {% endif %}
+        {% if delete_url_name %}
+          <td><a class="btn btn-danger" href="{% url delete_url_name itemdict.pk %}">Delete</a></td>
+        {% endif %}
+      </tr>
     {% endfor %}
   </tbody>
 </table>

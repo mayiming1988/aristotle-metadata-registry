@@ -18,6 +18,8 @@ from aristotle_mdr.views.utils import ObjectLevelPermissionRequiredMixin
 from aristotle_mdr.contrib.identifiers.models import ScopedIdentifier
 from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.slots.utils import get_allowed_slots
+from aristotle_mdr.contrib.custom_fields.forms import CustomValueFormMixin
+from aristotle_mdr.contrib.custom_fields.models import CustomField
 
 import logging
 
@@ -60,13 +62,17 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         self.identifiers_active = is_active_module('aristotle_mdr.contrib.identifiers')
 
     def get_form_class(self):
-        return MDRForms.wizards.subclassed_edit_modelform(self.model)
+        return MDRForms.wizards.subclassed_edit_modelform(
+            self.model,
+            extra_mixins=[CustomValueFormMixin]
+        )
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs.update({
             'user': self.request.user,
             'instance': self.item,
+            'custom_fields': CustomField.objects.all()
         })
         return kwargs
 
