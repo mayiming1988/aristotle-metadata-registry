@@ -1,5 +1,6 @@
 {% extends 'aristotle_mdr/user/base.html' %}
 
 {% block page %}
+  <h1>Delete {{ object.name }}</h1>
   {% include 'aristotle_mdr/helpers/delete.html' with object_name=object.name %}
 {% endblock %}

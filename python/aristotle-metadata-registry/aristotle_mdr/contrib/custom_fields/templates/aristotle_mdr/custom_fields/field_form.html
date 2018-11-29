@@ -6,6 +6,7 @@
   <form action="" method="post">
     {% csrf_token %}
     {% include 'aristotle_mdr/helpers/fancy_table_form.html' with form=form %}
+    <a class="btn btn-default" href="{{ cancel_url }}">Cancel</a>
     <button class="btn btn-success" type="submit">{{ submit_text }}</button>
   </form>
 {% endblock %}

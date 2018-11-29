@@ -3,14 +3,15 @@ from django.views.generic import CreateView, UpdateView, DeleteView, ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from aristotle_mdr.mixins import IsSuperUserMixin
-from aristotle_mdr.views.generic import BootTableListView
+from aristotle_mdr.views.generic import BootTableListView, CancelUrlMixin
 from aristotle_mdr.contrib.custom_fields import models
 
 
-class CustomFieldCreateView(IsSuperUserMixin, CreateView):
+class CustomFieldCreateView(IsSuperUserMixin, CancelUrlMixin, CreateView):
     model=models.CustomField
     fields='__all__'
     template_name='aristotle_mdr/custom_fields/field_form.html'
+    cancel_url_name='aristotle_custom_fields:list'
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -22,10 +23,11 @@ class CustomFieldCreateView(IsSuperUserMixin, CreateView):
         return reverse('aristotle_custom_fields:list')
 
 
-class CustomFieldUpdateView(IsSuperUserMixin, UpdateView):
+class CustomFieldUpdateView(IsSuperUserMixin, CancelUrlMixin, UpdateView):
     model=models.CustomField
     fields='__all__'
     template_name='aristotle_mdr/custom_fields/field_form.html'
+    cancel_url_name='aristotle_custom_fields:list'
 
     def get_success_url(self):
         return reverse('aristotle_custom_fields:list')
@@ -37,9 +39,10 @@ class CustomFieldUpdateView(IsSuperUserMixin, UpdateView):
         return context
 
 
-class CustomFieldDeleteView(IsSuperUserMixin, DeleteView):
+class CustomFieldDeleteView(IsSuperUserMixin, CancelUrlMixin, DeleteView):
     model=models.CustomField
     template_name='aristotle_mdr/custom_fields/delete.html'
+    cancel_url_name='aristotle_custom_fields:list'
 
     def get_success_url(self):
         return reverse('aristotle_custom_fields:list')

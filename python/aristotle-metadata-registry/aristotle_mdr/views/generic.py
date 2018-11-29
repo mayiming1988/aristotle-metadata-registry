@@ -60,5 +60,11 @@ class BootTableListView(ListView):
         return context
 
 
-class DeleteCancelView(DeleteView):
-    pass
+class CancelUrlMixin:
+    cancel_url_name=''
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        if self.cancel_url_name:
+            context['cancel_url'] = reverse(self.cancel_url_name)
+        return context
