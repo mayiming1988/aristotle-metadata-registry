@@ -19,7 +19,7 @@ from aristotle_mdr.contrib.identifiers.models import ScopedIdentifier
 from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.slots.utils import get_allowed_slots
 from aristotle_mdr.contrib.custom_fields.forms import CustomValueFormMixin
-from aristotle_mdr.contrib.custom_fields.models import CustomField
+from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 
 import logging
 
@@ -76,8 +76,22 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         })
         return kwargs
 
-    def get_extra_formsets(self, item=None, postdata=None):
+    def get_custom_values(self):
+        qs = CustomValue.objects.filter(
+            concept=self.item._concept_ptr
+        ).select_related('field')
+        return qs
 
+    def get_initial(self):
+        initial = super().get_initial()
+        cvs = self.get_custom_values()
+        for cv in cvs:
+            fname = 'custom_{}'.format(cv.field.name)
+            initial[fname] = cv.content
+
+        return initial
+
+    def get_extra_formsets(self, item=None, postdata=None):
         extra_formsets = super().get_extra_formsets(item, postdata)
 
         if self.slots_active:

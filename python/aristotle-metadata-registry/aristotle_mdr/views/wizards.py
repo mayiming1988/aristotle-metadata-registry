@@ -174,7 +174,6 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             extra_formsets = self.get_extra_formsets(item=self.model, postdata=self.request.POST)
 
             formsets_invalid = self.validate_formsets(extra_formsets)
-            print('formsets_invalid is {}'.format(formsets_invalid))
             if formsets_invalid:
                 form = self.get_form(data=self.request.POST, files=self.request.FILES)
                 return self.render(form=form, extra_formsets=extra_formsets)

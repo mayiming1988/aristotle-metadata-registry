@@ -499,7 +499,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             status_code=302
         )
         self.item1 = models.ObjectClass.objects.get(pk=self.item.pk)
-        self.assertRedirects(response,url_slugify_concept(self.item))
+        self.assertRedirects(response, url_slugify_concept(self.item))
 
         cv_query = CustomValue.objects.filter(
             field=cf,
@@ -510,7 +510,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(cv.content, '4')
 
     @tag('custfield')
-    def test_submitter_can_save_via_edit_page_custom_fields_initial(self):
+    def test_edit_page_custom_fields_initial(self):
         self.login_editor()
         cf = CustomField.objects.create(
             name='MyCustomField',
@@ -528,8 +528,8 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             status_code=200
         )
         initial = response.context['form'].initial
-        self.assertTrue('Custom' in initial)
-        self.assertEqual(intial['Custom'], '4')
+        self.assertTrue('custom_MyCustomField' in initial)
+        self.assertEqual(initial['custom_MyCustomField'], '4')
 
 
 class LoggedInViewConceptPages(utils.AristotleTestUtils):
