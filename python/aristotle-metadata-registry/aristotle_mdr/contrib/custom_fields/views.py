@@ -53,7 +53,7 @@ class CustomFieldListView(IsSuperUserMixin, BootTableListView):
     paginate_by=20
     model_name='Custom Field'
     headers = ['Name', 'Type', 'Help Text']
-    attrs = ['name', 'type', 'help_text']
+    attrs = ['name', 'hr_type', 'help_text']
     create_url_name='aristotle_custom_fields:create'
     update_url_name='aristotle_custom_fields:update'
     delete_url_name='aristotle_custom_fields:delete'

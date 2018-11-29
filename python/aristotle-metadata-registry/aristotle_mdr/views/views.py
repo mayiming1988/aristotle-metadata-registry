@@ -279,7 +279,7 @@ class ConceptRenderMixin(TagsMixin):
 
 
 # General concept view
-class ConceptView(CachePerItemUserMixin, ConceptRenderMixin, TemplateView):
+class ConceptView(ConceptRenderMixin, TemplateView):
 
     slug_redirect = True
     cache_item_kwarg = 'iid'

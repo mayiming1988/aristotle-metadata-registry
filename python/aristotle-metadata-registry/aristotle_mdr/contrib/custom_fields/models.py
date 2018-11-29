@@ -11,6 +11,11 @@ class CustomField(TimeStampedModel):
     type = models.CharField(max_length=10, choices=type_choices)
     help_text = models.CharField(max_length=1000)
 
+    @property
+    def hr_type(self):
+        """Human readable type"""
+        return type_choices[self.type]
+
 
 class CustomValue(TimeStampedModel):
     field = models.ForeignKey(CustomField)
