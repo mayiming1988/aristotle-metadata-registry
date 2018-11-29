@@ -7,9 +7,10 @@ from aristotle_mdr.contrib.custom_fields.types import type_choices
 
 
 class CustomField(TimeStampedModel):
-    name = models.CharField(max_length=1000)
+    order = models.IntegerField(unique=True)
+    name = models.CharField(max_length=1000, unique=True)
     type = models.CharField(max_length=10, choices=type_choices)
-    help_text = models.CharField(max_length=1000)
+    help_text = models.CharField(max_length=1000, blank=True)
 
     @property
     def hr_type(self):
@@ -27,6 +28,9 @@ class CustomValue(TimeStampedModel):
     field = models.ForeignKey(CustomField)
     content = models.TextField()
     concept = ConceptForeignKey(_concept)
+
+    class Meta:
+        unique_together = ('field', 'concept')
 
     @property
     def is_html(self):
