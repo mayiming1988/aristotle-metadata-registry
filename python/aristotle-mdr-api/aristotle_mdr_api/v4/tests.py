@@ -191,21 +191,34 @@ class CustomFieldsTestCase(BaseAPITestCase):
 
     def create_test_fields(self):
         cf_models.CustomField.objects.create(
+            order=1,
             name='Spiciness',
             type='int',
             help_text='The Spiciness'
         )
         cf_models.CustomField.objects.create(
+            order=2,
             name='Blandness',
             type='int',
             help_text='The Blandness'
         )
 
+    def test_list_custom_fields(self):
+        self.create_test_fields()
+        self.login_superuser()
+
+        response = self.client.get(
+            reverse('api_v4:custom_field_list'),
+        )
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(len(response.data), 2)
+
     def test_multiple_create(self):
         self.login_superuser()
         postdata = [
-            {'id': 1, 'name': 'Spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
-            {'id': 2, 'name': 'Blandness', 'type': 'int', 'help_text': 'The Blandness'}
+            {'id': 1, 'order': 1, 'name': 'Spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
+            {'id': 2, 'order': 2, 'name': 'Blandness', 'type': 'int', 'help_text': 'The Blandness'}
         ]
 
         response = self.client.post(
@@ -223,8 +236,8 @@ class CustomFieldsTestCase(BaseAPITestCase):
         self.login_superuser()
 
         postdata = [
-            {'id': 1, 'name': 'Spic', 'type': 'int', 'help_text': 'The Spiciness'},
-            {'id': 2, 'name': 'Bland', 'type': 'int', 'help_text': 'The Blandness'}
+            {'id': 1, 'order': 1, 'name': 'Spic', 'type': 'int', 'help_text': 'The Spiciness'},
+            {'id': 2, 'order': 2, 'name': 'Bland', 'type': 'int', 'help_text': 'The Blandness'}
         ]
 
         response = self.client.post(
@@ -242,7 +255,7 @@ class CustomFieldsTestCase(BaseAPITestCase):
         self.login_superuser()
 
         postdata = [
-            {'id': 1, 'name': 'Spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
+            {'id': 1, 'order': 1, 'name': 'Spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
         ]
 
         response = self.client.post(
