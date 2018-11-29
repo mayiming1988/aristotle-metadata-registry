@@ -16,6 +16,12 @@ class CustomField(TimeStampedModel):
         """Human readable type"""
         return type_choices[self.type]
 
+    def can_view(self, user):
+        return user.is_superuser
+
+    def can_edit(self, user):
+        return user.is_superuser
+
 
 class CustomValue(TimeStampedModel):
     field = models.ForeignKey(CustomField)
