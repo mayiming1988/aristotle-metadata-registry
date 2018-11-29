@@ -8,16 +8,16 @@ def concept_saved(message):
     if not instance:
         return
 
-    for p in instance.favourited_by.all():
+    for user in instance.favourited_by:
         if sorted(message['changed_fields']) == ['modified', 'superseded_by_id']:
-            messages.favourite_superseded(recipient=p.user, obj=instance)
+            messages.favourite_superseded(recipient=user, obj=instance)
         else:
-            messages.favourite_updated(recipient=p.user, obj=instance)
+            messages.favourite_updated(recipient=user, obj=instance)
 
-    for status in instance.current_statuses().all():
-        for registrar in status.registrationAuthority.registrars.all():
-            if sorted(message['changed_fields']) == ['modified', 'superseded_by_id']:
-                messages.registrar_item_superseded(recipient=registrar, obj=instance)
+    # for status in instance.current_statuses().all():
+    #     for registrar in status.registrationAuthority.registrars.all():
+    #         if sorted(message['changed_fields']) == ['modified', 'superseded_by_id']:
+    #             messages.registrar_item_superseded(recipient=registrar, obj=instance)
 
     if instance.workgroup:
         for user in instance.workgroup.viewers.all():
@@ -25,21 +25,17 @@ def concept_saved(message):
                 messages.workgroup_item_new(recipient=user, obj=instance)
             else:
                 messages.workgroup_item_updated(recipient=user, obj=instance)
-    try:
-        # This will fail during first load, and if admins delete aristotle.
-        for post in instance.relatedDiscussions.all():
-            DiscussionComment.objects.create(
-                post=post,
-                body='The item "{name}" (id:{iid}) has been changed.\n\n\
-                    <a href="{url}">View it on the main site.</a>.'.format(
-                    name=instance.name,
-                    iid=instance.id,
-                    url=reverse("aristotle:item", args=[instance.id])
-                ),
-                author=None,
-            )
-    except:
-        pass
+    # for post in instance.relatedDiscussions.all():
+    #     DiscussionComment.objects.create(
+    #         post=post,
+    #         body='The item "{name}" (id:{iid}) has been changed.\n\n\
+    #             <a href="{url}">View it on the main site.</a>.'.format(
+    #             name=instance.name,
+    #             iid=instance.id,
+    #             url=reverse("aristotle:item", args=[instance.id])
+    #         ),
+    #         author=None,
+    #     )
 
 
 def new_comment_created(message, **kwargs):
@@ -68,3 +64,17 @@ def status_changed(message, **kwargs):
                 messages.registrar_item_registered(recipient=registrar, obj=concept)
             else:
                 messages.registrar_item_changed_status(recipient=registrar, obj=concept)
+
+
+def item_superseded(message, **kwargs):
+    new_super_rel = safe_object(message)
+    concept = new_super_rel.older_item
+
+    for user in concept.favourited_by.all():
+        if concept.can_view(user) and new_super_rel.newer_item.can_view(user):
+            messages.favourite_superseded(recipient=user, obj=concept)
+
+    for status in concept.current_statuses().all():
+        for registrar in status.registrationAuthority.registrars.all():
+            if concept.can_view(registrar) and new_super_rel.newer_item.can_view(registrar):
+                messages.registrar_item_superseded(recipient=registrar, obj=concept)

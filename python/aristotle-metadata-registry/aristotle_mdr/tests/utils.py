@@ -1,4 +1,5 @@
 from django import VERSION as django_version
+import attr
 import datetime
 import random
 import string
@@ -12,7 +13,6 @@ import aristotle_mdr.perms as perms
 from aristotle_mdr.utils import url_slugify_concept
 from celery import states
 from django_celery_results.models import TaskResult
-from aristotle_bg_workers.helpers import store_task
 
 from django_tools.unittest_utils.BrowserDebug import debug_response
 
@@ -750,9 +750,71 @@ class GeneralTestUtils:
         self.assertTrue(key in context)
 
 
+
 class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils, FormsetTestUtils):
-    """Combination of the above 3 utils for easy usage"""
-    pass
+    """Combination of the above 3 utils plus some aristotle specific utils"""
+
+    def favourite_item(self, user, item):
+        from aristotle_mdr.contrib.favourites.models import Favourite, Tag
+        favtag, created = Tag.objects.get_or_create(
+            profile=user.profile,
+            name='',
+            primary=True
+        )
+        Favourite.objects.get_or_create(
+            tag=favtag,
+            item=item
+        )
+
+    def make_item_public(self, item, ra):
+        s = models.Status.objects.create(
+            concept=item,
+            registrationAuthority=ra,
+            registrationDate=timezone.now(),
+            state=ra.public_state
+        )
+        return s
+
+
+@attr.s
+class MockManagementForm(object):
+    prefix = attr.ib(default=0)
+    max_forms = attr.ib(default=1000)
+    min_forms = attr.ib(default=0)
+    mock_form = attr.ib(default=None)
+    is_ordered = attr.ib(default=False)
+    initial_forms = attr.ib(init=False)
+    forms = []
+
+    def __attrs_post_init__(self):
+        self.forms = []
+        self.initial_forms_count = len(self.forms)
+
+    def add_forms(self, forms=[]):
+        assert type(forms) is list
+        for form in forms:
+            self.add_form(form)
+
+    def add_form(self, form={}):
+        assert type(form) is dict
+        if self.is_ordered:
+            form['ORDER'] = form.get('ORDER', len(self.forms))
+        if form:
+            self.forms.append(form)
+
+    def as_dict(self):
+        base = {
+            '{}-INITIAL_FORMS'.format(self.prefix): self.initial_forms_count,
+            '{}-TOTAL_FORMS'.format(self.prefix): len(self.forms),
+            '{}-MIN_NUM_FORMS'.format(self.prefix): self.min_forms,
+            '{}-MAX_NUM_FORMS'.format(self.prefix): self.max_forms
+        }
+
+        for i, form in enumerate(self.forms):
+            for field, value in form.items():
+                base['{}-{}-{}'.format(self.prefix, i, field)] = value
+
+        return base
 
 
 class AsyncResultMock:

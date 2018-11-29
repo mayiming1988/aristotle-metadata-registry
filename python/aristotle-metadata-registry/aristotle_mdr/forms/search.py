@@ -1,3 +1,4 @@
+from typing import List, Dict
 import datetime
 from django import forms
 from django.core.exceptions import ImproperlyConfigured
@@ -21,6 +22,10 @@ from aristotle_mdr.widgets.bootstrap import (
 )
 
 from aristotle_mdr.utils import fetch_metadata_apps
+
+import logging
+logger = logging.getLogger(__name__)
+logger.debug("Logging started for " + __name__)
 
 
 QUICK_DATES = Choices(
@@ -170,14 +175,14 @@ class PermissionSearchQuerySet(SearchQuerySet):
             if user.profile.workgroups.count() > 0:
                 # for w in user.profile.workgroups.all():
                 #    q |= SQ(workgroup=str(w.id))
-                q |= SQ(workgroup__in=[int(w.id) for w in user.profile.workgroups.all()])
+                q |= SQ(workgroup__in=[int(w.id) for w in user.profile.myWorkgroups.all()])
             if user.profile.is_registrar:
                 # if registrar, also filter through items in the registered in their authorities
                 q |= SQ(registrationAuthorities__in=[str(r.id) for r in user.profile.registrarAuthorities])
         if public_only:
             q &= SQ(is_public=True)
         if user_workgroups_only:
-            q &= SQ(workgroup__in=[str(w.id) for w in user.profile.workgroups.all()])
+            q &= SQ(workgroup__in=[str(w.id) for w in user.profile.myWorkgroups.all()])
 
         if q:
             sqs = sqs.filter(q)
@@ -200,8 +205,8 @@ class PermissionSearchQuerySet(SearchQuerySet):
 
 
 class TokenSearchForm(FacetedSearchForm):
-    token_models = []
-    kwargs = {}
+    token_models: List[object] = []
+    kwargs: Dict[str, str] = {}
     allowed_tokens = [
         'statuses',
         'highest_state',
@@ -669,16 +674,16 @@ class PermissionSearchForm(TokenSearchForm):
     def apply_sorting(self, sqs):  # pragma: no cover, no security issues, standard Haystack methods, so already tested.
         sort_order = self.cleaned_data['sort']
         if sort_order == SORT_OPTIONS.modified_ascending:
-            sqs = sqs.order_by('-modified')
+            sqs = sqs.order_by('-modified', 'name_sortable')
         elif sort_order == SORT_OPTIONS.modified_descending:
-            sqs = sqs.order_by('modified')
+            sqs = sqs.order_by('modified', '-name_sortable')
         elif sort_order == SORT_OPTIONS.created_ascending:
-            sqs = sqs.order_by('-created')
+            sqs = sqs.order_by('-created', 'name_sortable')
         elif sort_order == SORT_OPTIONS.created_descending:
-            sqs = sqs.order_by('created')
+            sqs = sqs.order_by('created', '-name_sortable')
         elif sort_order == SORT_OPTIONS.alphabetical:
-            sqs = sqs.order_by('name')
+            sqs = sqs.order_by('name_sortable')
         elif sort_order == SORT_OPTIONS.state:
-            sqs = sqs.order_by('-highest_state')
+            sqs = sqs.order_by('-highest_state', 'name_sortable')
 
         return sqs

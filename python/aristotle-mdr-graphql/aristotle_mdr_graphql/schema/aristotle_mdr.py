@@ -1,3 +1,4 @@
+import graphene
 from graphene import relay
 from graphene_django.types import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
@@ -10,16 +11,10 @@ from aristotle_mdr.contrib.identifiers import models as ident_models
 from aristotle_mdr.contrib.slots import models as slot_models
 from aristotle_mdr_graphql.fields import AristotleFilterConnectionField, AristotleConceptFilterConnectionField
 from aristotle_mdr_graphql.types import AristotleObjectType
-from aristotle_mdr_graphql.utils import type_from_model, type_from_concept_model
+from aristotle_mdr_graphql.utils import type_from_model, type_from_concept_model, inline_type_from_model
 
 from aristotle_mdr_graphql import resolvers
 from aristotle_mdr_graphql.filterset import ConceptFilterSet
-
-
-class StatusNode(DjangoObjectType):
-    class Meta:
-        model = mdr_models.Status
-        default_resolver = resolvers.aristotle_resolver
 
 
 WorkgroupNode = type_from_model(mdr_models.Workgroup)
@@ -46,13 +41,14 @@ PropertyNode = type_from_concept_model(mdr_models.Property)
 UnitOfMeasureNode = type_from_concept_model(mdr_models.UnitOfMeasure)
 DataTypeNode = type_from_concept_model(mdr_models.DataType)
 ConceptualDomainNode = type_from_concept_model(mdr_models.ConceptualDomain)
-ValueMeaningNode = type_from_model(mdr_models.ValueMeaning)
+
+# ValueMeaningNode = inline_type_from_model(mdr_models.ValueMeaning)
+PermissibleValueNode = inline_type_from_model(mdr_models.PermissibleValue)
+SupplementaryValueNode = inline_type_from_model(mdr_models.SupplementaryValue)
 
 # Slots and Identifiers
 
-class ScopedIdentifierNode(DjangoObjectType):
-    class Meta:
-        model = ident_models.ScopedIdentifier
+from ..types import ScopedIdentifierNode
 
 SlotNode = type_from_model(slot_models.Slot)
 
@@ -70,19 +66,9 @@ DataElementNode = type_from_concept_model(
     extra_filter_fields=['dataElementConcept','valueDomain','dataElementConcept__objectClass'],
 )
 
-DataElementConceptNode = type_from_model(mdr_models.DataElementConcept)
+DataElementConceptNode = type_from_concept_model(mdr_models.DataElementConcept)
 DataElementDerivationNode = type_from_concept_model(mdr_models.DataElementDerivation)
 
-
-class PermissibleValueNode(DjangoObjectType):
-    class Meta:
-        model = mdr_models.PermissibleValue
-        exclude_fields = ['value_meaning']
-
-class SupplementaryValueNode(DjangoObjectType):
-    class Meta:
-        model = mdr_models.SupplementaryValue
-        exclude_fields = ['value_meaning']
 
 
 class Query(object):

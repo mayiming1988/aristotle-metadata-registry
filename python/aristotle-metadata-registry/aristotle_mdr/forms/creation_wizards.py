@@ -24,18 +24,10 @@ class UserAwareForm(forms.Form):
         super().__init__(*args, **kwargs)
 
 
-class UserAwareModelForm(UserAwareForm, forms.ModelForm):  # , autocomplete_light.ModelForm):
+class UserAwareModelForm(UserAwareForm, forms.ModelForm):
     class Meta:
         model = MDR._concept
-        exclude = ['superseded_by', '_is_public', '_is_locked', 'originURI', 'submitter']
-
-    def _media(self):
-        js = ('aristotle_mdr/aristotle.wizard.js', )  # , '/static/tiny_mce/tiny_mce.js', '/static/aristotle_mdr/aristotle.tinymce.js')
-        media = forms.Media(js=js)
-        for field in self.fields.values():
-            media = media + field.widget.media
-        return media
-    media = property(_media)
+        exclude = ['superseded_by_items', '_is_public', '_is_locked', 'originURI', 'submitter']
 
 
 class WorkgroupVerificationMixin(forms.ModelForm):
@@ -180,14 +172,6 @@ def subclassed_modelform(set_model):
 def subclassed_edit_modelform(set_model):
     class MyForm(ConceptForm, CheckIfModifiedMixin):
         change_comments = forms.CharField(widget=forms.Textarea, required=False)
-
-        def _media(self):
-            js = ('aristotle_mdr/aristotle.moveable.js', )
-            media = forms.Media(js=js)
-            for field in self.fields.values():
-                media = media + field.widget.media
-            return media
-        media = property(_media)
 
         class Meta(ConceptForm.Meta):
             model = set_model

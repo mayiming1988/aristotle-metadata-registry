@@ -26,7 +26,6 @@ from aristotle_mdr.utils import (
     url_slugify_workgroup,
     url_slugify_registration_authoritity,
     url_slugify_organization,
-    status_filter,
 )
 from aristotle_mdr import comparators
 
@@ -40,7 +39,9 @@ from .fields import (
 
 from .managers import (
     MetadataItemManager, ConceptManager,
-    ReviewRequestQuerySet, WorkgroupQuerySet
+    ReviewRequestQuerySet, WorkgroupQuerySet,
+    RegistrationAuthorityQuerySet,
+    StatusQuerySet
 )
 
 import logging
@@ -106,9 +107,10 @@ class baseAristotleObject(TimeStampedModel):
 
     def was_modified_recently(self):
         return self.modified >= timezone.now() - datetime.timedelta(days=1)
-    was_modified_recently.admin_order_field = 'modified'
-    was_modified_recently.boolean = True
-    was_modified_recently.short_description = 'Modified recently?'
+
+    was_modified_recently.admin_order_field = 'modified'  # type: ignore
+    was_modified_recently.boolean = True  # type: ignore
+    was_modified_recently.short_description = 'Modified recently?'  # type: ignore
 
     def description_stub(self):
         from django.utils.html import strip_tags
@@ -232,6 +234,7 @@ class RegistrationAuthority(Organization):
     A registration authority may register many administered items (3.2.2) as shown by the Registration
     (8.1.5.1) association class.
     """
+    objects = RegistrationAuthorityQuerySet.as_manager()
     template = "aristotle_mdr/organization/registrationAuthority.html"
     active = models.IntegerField(
         choices=RA_ACTIVE_CHOICES,
@@ -597,6 +600,12 @@ class DiscussionPost(discussionAbstract):
     def active(self):
         return not self.closed
 
+    def get_absolute_url(self):
+        return reverse(
+            "aristotle:discussionsPost",
+            args=[self.pk]
+        )
+
 
 class DiscussionComment(discussionAbstract):
     post = models.ForeignKey(DiscussionPost, related_name='comments')
@@ -654,18 +663,21 @@ class _concept(baseAristotleObject):
     submitting_organisation = ShortTextField(blank=True)
     responsible_organisation = ShortTextField(blank=True)
 
-    superseded_by = ConceptForeignKey(
+    superseded_by_items = ConceptManyToManyField(  # 11.5.3.4
         'self',
-        related_name='supersedes',
-        blank=True,
-        null=True
+        through='SupersedeRelationship',
+        related_name="superseded_items",
+        # blank=True,
+        through_fields=('older_item', 'newer_item'),
+        symmetrical=False,
+        # help_text=_("")
     )
 
     tracker = FieldTracker()
 
     comparator = comparators.Comparator
-    edit_page_excludes = None
-    admin_page_excludes = None
+    edit_page_excludes: list = []
+    admin_page_excludes: list = []
     registerable = True
 
     class Meta:
@@ -740,15 +752,23 @@ class _concept(baseAristotleObject):
 
     @property
     def is_superseded(self):
-        return all(
+        return self.statuses.filter(state=STATES.superseded).count() > 0 and all(
             STATES.superseded == status.state for status in self.statuses.all()
-        ) and self.superseded_by
+        ) and self.superseded_by_items_relation_set.count() > 0
 
     @property
     def is_retired(self):
         return all(
             STATES.retired == status.state for status in self.statuses.all()
         ) and self.statuses.count() > 0
+
+    @property
+    def favourited_by(self):
+        from django.contrib.auth import get_user_model
+        user_model = get_user_model()
+        return user_model.objects.filter(
+            profile__tags__favourites__item=self
+        ).distinct()
 
     def check_is_public(self, when=timezone.now()):
         """
@@ -772,8 +792,8 @@ class _concept(baseAristotleObject):
 
     def is_public(self):
         return self._is_public
-    is_public.boolean = True
-    is_public.short_description = 'Public'
+    is_public.boolean = True  # type: ignore
+    is_public.short_description = 'Public'  # type: ignore
 
     def check_is_locked(self, when=timezone.now()):
         """
@@ -789,8 +809,8 @@ class _concept(baseAristotleObject):
     def is_locked(self):
         return self._is_locked
 
-    is_locked.boolean = True
-    is_locked.short_description = 'Locked'
+    is_locked.boolean = True  # type: ignore
+    is_locked.short_description = 'Locked'  # type: ignore
 
     def recache_states(self):
         self._is_public = self.check_is_public()
@@ -801,27 +821,8 @@ class _concept(baseAristotleObject):
     def current_statuses(self, qs=None, when=timezone.now()):
         if qs is None:
             qs = self.statuses.all()
-        if hasattr(when, 'date'):
-            when = when.date()
 
-        states = status_filter(qs, when)
-        states = states.order_by("registrationAuthority", "-registrationDate", "-created")
-
-        from django.db import connection
-        if connection.vendor == 'postgresql':
-            states = states.distinct('registrationAuthority')
-        else:
-            current_ids = []
-            seen_ras = []
-            for s in states:
-                ra = s.registrationAuthority
-                if ra not in seen_ras:
-                    current_ids.append(s.pk)
-                    seen_ras.append(ra)
-            # We hit again so we can return this as a queryset
-            states = states.filter(pk__in=current_ids)
-
-        return states
+        return qs.current(when)
 
     def get_download_items(self):
         """
@@ -860,6 +861,24 @@ class concept(_concept):
         Return self, because we already have the correct item.
         """
         return self
+
+
+class SupersedeRelationship(TimeStampedModel):
+    older_item = ConceptForeignKey(
+        _concept,
+        related_name='superseded_by_items_relation_set',
+    )
+    newer_item = ConceptForeignKey(
+        _concept,
+        related_name='superseded_items_relation_set',
+    )
+    registration_authority = models.ForeignKey(RegistrationAuthority)
+    message = models.TextField(blank=True, null=True)
+    date_effective = models.DateField(
+        _('Date effective'),
+        help_text=_("The date the superseding relationship became effective."),
+        blank=True, null=True
+    )
 
 
 REVIEW_STATES = Choices(
@@ -920,6 +939,7 @@ class Status(TimeStampedModel):
     A Registration_State is a collection of information about the Registration (8.1.5.1) of an Administered Item (8.1.2.2).
     The attributes of the Registration_State class are summarized here and specified more formally in 8.1.2.6.2.
     """
+    objects = StatusQuerySet.as_manager()
     concept = ConceptForeignKey(_concept, related_name="statuses")
     registrationAuthority = models.ForeignKey(RegistrationAuthority)
     changeDetails = models.TextField(blank=True, null=True)
@@ -1064,7 +1084,10 @@ class ValueMeaning(aristotleComponent):
         null=True, blank=True,
         help_text=_('The semantic definition of a possible value')
     )
-    conceptual_domain = ConceptForeignKey(ConceptualDomain)
+    conceptual_domain = ConceptForeignKey(
+        ConceptualDomain,
+        verbose_name='Conceptual Domain'
+    )
     order = models.PositiveSmallIntegerField("Position")
     start_date = models.DateField(
         blank=True,
@@ -1087,6 +1110,10 @@ class ValueMeaning(aristotleComponent):
     @property
     def parentItem(self):
         return self.conceptual_domain
+
+    @property
+    def parentItemId(self):
+        return self.conceptual_domain_id
 
 
 class ValueDomain(concept):
@@ -1111,7 +1138,8 @@ class ValueDomain(concept):
         DataType,
         blank=True,
         null=True,
-        help_text=_('Datatype used in a Value Domain')
+        help_text=_('Datatype used in a Value Domain'),
+        verbose_name='Data Type'
     )
     format = models.CharField(  # 11.3.2.5.2.1
         max_length=100,
@@ -1128,13 +1156,15 @@ class ValueDomain(concept):
         UnitOfMeasure,
         blank=True,
         null=True,
-        help_text=_('Unit of Measure used in a Value Domain')
+        help_text=_('Unit of Measure used in a Value Domain'),
+        verbose_name='Unit Of Measure'
     )
     conceptual_domain = ConceptForeignKey(
         ConceptualDomain,
         blank=True,
         null=True,
-        help_text=_('The Conceptual Domain that this Value Domain which provides representation.')
+        help_text=_('The Conceptual Domain that this Value Domain which provides representation.'),
+        verbose_name='Conceptual Domain'
     )
     description = models.TextField(
         _('description'),
@@ -1182,7 +1212,8 @@ class AbstractValue(aristotleComponent):
     valueDomain = ConceptForeignKey(
         ValueDomain,
         related_name="%(class)s_set",
-        help_text=_("Enumerated Value Domain that this value meaning relates to")
+        help_text=_("Enumerated Value Domain that this value meaning relates to"),
+        verbose_name='Value Domain'
     )
     order = models.PositiveSmallIntegerField("Position")
     start_date = models.DateField(
@@ -1206,6 +1237,10 @@ class AbstractValue(aristotleComponent):
     @property
     def parentItem(self):
         return self.valueDomain
+
+    @property
+    def parentItemId(self):
+        return self.valueDomain_id
 
 
 class PermissibleValue(AbstractValue):
@@ -1235,15 +1270,18 @@ class DataElementConcept(concept):
     template = "aristotle_mdr/concepts/dataElementConcept.html"
     objectClass = ConceptForeignKey(  # 11.2.3.3
         ObjectClass, blank=True, null=True,
-        help_text=_('references an Object_Class that is part of the specification of the Data_Element_Concept')
+        help_text=_('references an Object_Class that is part of the specification of the Data_Element_Concept'),
+        verbose_name='Object Class'
     )
     property = ConceptForeignKey(  # 11.2.3.1
         Property, blank=True, null=True,
         help_text=_('references a Property that is part of the specification of the Data_Element_Concept'),
+        verbose_name='Property'
     )
     conceptualDomain = ConceptForeignKey(  # 11.2.3.2
         ConceptualDomain, blank=True, null=True,
-        help_text=_('references a Conceptual_Domain that is part of the specification of the Data_Element_Concept')
+        help_text=_('references a Conceptual_Domain that is part of the specification of the Data_Element_Concept'),
+        verbose_name='Conceptual Domain'
     )
 
     @property_
@@ -1369,11 +1407,6 @@ class PossumProfile(models.Model):
         blank=True,
         null=True
     )
-    favourites = models.ManyToManyField(
-        _concept,
-        related_name='favourited_by',
-        blank=True
-    )
     profilePictureWidth = models.IntegerField(
         blank=True,
         null=True
@@ -1489,13 +1522,63 @@ class PossumProfile(models.Model):
         return perms.user_is_workgroup_manager(self.user, wg)
 
     def is_favourite(self, item):
-        return self.favourites.filter(pk=item.pk).exists()
+        from aristotle_mdr.contrib.favourites.models import Favourite
+        fav = Favourite.objects.filter(
+            tag__primary=True,
+            tag__profile=self,
+            item=item
+        )
+        return fav.exists()
 
     def toggleFavourite(self, item):
+        from aristotle_mdr.contrib.favourites.models import Favourite, Tag
+
         if self.is_favourite(item):
-            self.favourites.remove(item)
+            fav = Favourite.objects.filter(
+                tag__primary=True,
+                tag__profile=self,
+                item=item
+            )
+            fav.delete()
+            return False
         else:
-            self.favourites.add(item)
+            fav_tag, created = Tag.objects.get_or_create(
+                profile=self,
+                primary=True,
+            )
+            Favourite.objects.create(
+                tag=fav_tag,
+                item=item
+            )
+            return True
+
+    @property
+    def favourites(self):
+        return _concept.objects.filter(
+            favourites__tag__primary=True,
+            favourites__tag__profile=self
+        ).distinct()
+
+    @property
+    def favourite_item_pks(self):
+        qs = _concept.objects.filter(
+            favourites__tag__primary=True,
+            favourites__tag__profile=self
+        ).distinct().values_list('id', flat=True)
+        return list(qs)
+
+    @property
+    def favs_and_tags_count(self):
+        count = _concept.objects.filter(
+            favourites__tag__profile=self
+        ).distinct().count()
+        return count
+
+    def profile_picture_url(self):
+        if self.profilePicture:
+            return self.profilePicture.url
+        else:
+            return reverse("aristotle_mdr:dynamic_profile_picture", args=[self.user.id])
 
 
 class SandboxShare(models.Model):
@@ -1586,3 +1669,9 @@ def review_request_changed(sender, instance, *args, **kwargs):
         fire("action_signals.review_request_created", obj=instance, **kwargs)
     else:
         fire("action_signals.review_request_updated", obj=instance, **kwargs)
+
+
+@receiver(post_save, sender=SupersedeRelationship)
+def new_superseded_relation(sender, instance, *args, **kwargs):
+    if kwargs.get('created'):
+        fire("concept_changes.item_superseded", obj=instance, **kwargs)

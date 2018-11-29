@@ -23,7 +23,7 @@ import unittest
 setup_aristotle_test_environment()
 
 
-class TestSearch(utils.LoggedInViewPages,TestCase):
+class TestSearch(utils.AristotleTestUtils, TestCase):
     def tearDown(self):
         call_command('clear_index', interactive=False, verbosity=0)
 
@@ -71,13 +71,13 @@ class TestSearch(utils.LoggedInViewPages,TestCase):
     def test_empty_search_loads(self):
         self.logout()
         response = self.client.get(reverse('aristotle:search'))
-        self.assertTrue(response.status_code == 200)
+        self.assertEqual(response.status_code, 200)
 
-    def test_one_result_search_doesnt_have__did_you_mean(self):
+    def test_one_result_search_doesnt_have_did_you_mean(self):
         self.logout()
         response = self.client.get(reverse('aristotle:search')+"?q=wolverine")
-        self.assertEqual(response.status_code,200)
-        self.assertEqual(len(response.context['page'].object_list),1)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['page'].object_list), 1)
         self.assertNotContains(response, "Did you mean")
         self.assertContains(response, "wolverine")
 
@@ -156,7 +156,7 @@ class TestSearch(utils.LoggedInViewPages,TestCase):
 
         i = self.xmen_wg.items.first()
 
-        self.registrar.profile.favourites.add(i)
+        self.favourite_item(self.registrar, i)
         self.assertTrue(i in self.registrar.profile.favourites.all())
 
         response = self.client.get(reverse('aristotle:search')+"?q=xman")

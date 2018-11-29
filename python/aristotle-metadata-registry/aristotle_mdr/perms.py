@@ -37,6 +37,20 @@ def can_delete_metadata(user, item):
     if item.submitter == user and item.workgroup is None:
         if not item.statuses.exists():
             return True
+    return False
+
+
+def user_can(user, item, method_name):
+    """When custom methods are required"""
+    if user.is_superuser:
+        return True
+
+    if user.is_anonymous:
+        return False
+
+    method = getattr(item, method_name)
+    if callable(method):
+        return method(user)
 
     return False
 
@@ -153,7 +167,6 @@ def user_is_workgroup_manager(user, workgroup=None):
 def user_can_change_status(user, item):
     """Can the user change the status of the item?"""
 
-    # Cache if the user can view as we use it a few times.
     can_view = user_can_view(user, item)
     if not can_view:
         return False
@@ -164,6 +177,17 @@ def user_can_change_status(user, item):
     if item.review_requests.visible(user):
         return True
     if user.profile.is_registrar and item.is_public():
+        return True
+    return False
+
+
+def user_can_supersede(user, item):
+    if user.is_superuser:
+        return True
+    if not user_can_view(user, item):
+        return False
+
+    if user.profile.is_registrar:
         return True
     return False
 
@@ -186,6 +210,8 @@ def user_can_view_review(user, review):
 
 
 def user_in_workgroup(user, wg):
+    if user.is_anonymous:
+        return False
     if user.is_superuser:
         return True
     return user in wg.members
@@ -212,6 +238,9 @@ def user_can_move_any_workgroup(user):
 
 def user_can_add_or_remove_workgroup(user, workgroup):
     workgroup_change_access = fetch_aristotle_settings().get('WORKGROUP_CHANGES', [])
+
+    if user.is_anonymous:
+        return False
 
     if user.is_superuser:
         return True

@@ -15,13 +15,13 @@ BASE_RESTRICTION = {
     1: 'Locked',
     2: 'Unlocked',
 }
-RESTRICTION = {}
+RESTRICTION: dict = {}
 # reverse the dictionary to make two-way look ups easier
 RESTRICTION.update([(k, v) for k, v in BASE_RESTRICTION.items()])
 RESTRICTION.update([(str(k), v) for k, v in BASE_RESTRICTION.items()])
 RESTRICTION.update([(v, k) for k, v in BASE_RESTRICTION.items()])
 
-registered_indexes = []
+registered_indexes: list = []
 
 
 class ConceptFallbackCharField(indexes.CharField):
@@ -39,6 +39,8 @@ class baseObjectIndex(indexes.SearchIndex):
     modified = indexes.DateTimeField(model_attr='modified')
     created = indexes.DateTimeField(model_attr='created')
     name = indexes.CharField(model_attr='name', boost=1)
+    # Thanks ElasticSearch - https://github.com/django-haystack/django-haystack/issues/569
+    name_sortable = indexes.CharField(model_attr='name', indexed=False, stored=True)
     django_ct_app_label = indexes.CharField()
     # django_ct_model_name = indexes.CharField()
     # access = indexes.MultiValueField()

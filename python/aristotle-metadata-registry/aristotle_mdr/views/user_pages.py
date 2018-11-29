@@ -30,7 +30,7 @@ from aristotle_mdr.views.utils import (paginated_list,
                                        paginated_registration_authority_list,
                                        GenericListWorkgroup,
                                        AjaxFormMixin)
-from aristotle_mdr.views.views import ConceptRenderView
+from aristotle_mdr.views.views import ConceptRenderMixin
 from aristotle_mdr.utils import fetch_metadata_apps
 from aristotle_mdr.utils import get_aristotle_url
 
@@ -66,16 +66,19 @@ class ProfileView(LoginRequiredMixin, TemplateView):
 
     template_name='aristotle_mdr/user/userProfile.html'
 
+    def get_user(self):
+        return self.request.user
+
     def get_sessions(self, user):
         return user.session_set.filter(expire_date__gt=datetime.datetime.now())
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
 
-        user = self.request.user
+        user = self.get_user()
         sessions = self.get_sessions(user)
         context.update({
-            'user': user,
+            # 'user': user,
             'sessions': sessions,
             'session_key': self.request.session.session_key
         })
@@ -127,6 +130,7 @@ def home(request):
                     revdata['versions'].append({'id': ver.object_id, 'text': str(ver), 'url': url})
                 else:
                     # Fallback, results in db query
+                    # print(ver)
                     obj = ver.object
                     if hasattr(obj, 'get_absolute_url'):
                         revdata['versions'].append({'id': ver.object_id, 'text': str(ver), 'url': obj.get_absolute_url})
@@ -135,7 +139,22 @@ def home(request):
 
         recentdata.append(revdata)
 
-    page = render(request, "aristotle_mdr/user/userHome.html", {"item": request.user, 'recentdata': recentdata})
+    recently_viewed = []
+    for viewed in (
+        request.user.recently_viewed_metadata.all()
+        .order_by("-view_date")
+        .prefetch_related('concept')[:5]
+    ):
+        recently_viewed.append(viewed)
+
+    page = render(
+        request, "aristotle_mdr/user/userHome.html",
+        {
+            "item": request.user,
+            'recentdata': recentdata,
+            "recently_viewed": recently_viewed,
+        }
+    )
     return page
 
 
@@ -294,7 +313,7 @@ def get_cached_object_count(model_type):
 
 
 class EditView(LoginRequiredMixin, UpdateView):
-
+    context_object_name = "object"
     template_name = "aristotle_mdr/user/userEdit.html"
     form_class = MDRForms.EditUserForm
 
@@ -355,17 +374,6 @@ class EditView(LoginRequiredMixin, UpdateView):
                 return self.form_invalid(form)
 
         return HttpResponseRedirect(self.get_success_url())
-
-
-@login_required
-def favourites(request):
-    items = request.user.profile.favourites.select_subclasses()
-    context = {
-        'help': request.GET.get("help", False),
-        'favourite': request.GET.get("favourite", False),
-        # "select_all_list_queryset_filter": 'favourited_by__user=user'  # no information leakage here.
-    }
-    return paginated_list(request, items, "aristotle_mdr/user/userFavourites.html", context)
 
 
 class RegistrarTools(LoginRequiredMixin, View):
@@ -565,12 +573,14 @@ class SharedSandboxView(LoginRequiredMixin, GetShareMixin, ListView):
         return self.share.profile.mySandboxContent
 
 
-class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderView):
+class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderMixin, TemplateView):
     """View to display an item in a shared sandbox"""
 
-    def check_item(self):
+    slug_redirect = False
+
+    def check_item(self, item):
         self.sandbox_ids = list(self.user.profile.mySandboxContent.values_list('id', flat=True))
-        if self.item.id in self.sandbox_ids:
+        if item.id in self.sandbox_ids:
             return True
         else:
             return False

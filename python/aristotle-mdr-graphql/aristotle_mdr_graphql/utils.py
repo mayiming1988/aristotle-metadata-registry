@@ -6,6 +6,26 @@ from aristotle_mdr_graphql.resolvers import aristotle_resolver
 from textwrap import dedent
 
 
+def inline_type_from_model(meta_model, filter_fields=None, description=None):
+
+    modelname = meta_model.__name__
+    new_modelname = modelname + 'Node'
+    description = description or dedent(meta_model.__doc__)
+
+    _filter_fields = []
+    if filter_fields is not None:
+        _filter_fields = filter_fields
+
+    meta_class = type('Meta', (object, ), dict(
+        model=meta_model,
+        description=description,
+        filter_fields=_filter_fields,
+        default_resolver= aristotle_resolver,
+    ))
+    dynamic_class = type(new_modelname, (DjangoObjectType, ), dict(Meta=meta_class))
+    return dynamic_class
+
+
 def type_from_model(meta_model, filter_fields=None, description=None):
 
     modelname = meta_model.__name__

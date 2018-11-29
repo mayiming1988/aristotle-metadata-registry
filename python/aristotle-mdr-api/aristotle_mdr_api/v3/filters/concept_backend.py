@@ -9,6 +9,26 @@ from django_filters.rest_framework import DjangoFilterBackend
 from aristotle_mdr import models as MDR
 
 
+class SupersedeRelationshipBackend(DjangoFilterBackend):
+    pass
+
+
+class SupersedeRelationshipFilter(django_filters.rest_framework.FilterSet):
+    class Meta:
+        model = MDR.SupersedeRelationship
+        fields: dict = {}
+        strict = django_filters.STRICTNESS.RAISE_VALIDATION_ERROR
+
+    superseded_by = django_filters.UUIDFilter(
+        name='newer_item__uuid',
+        label="Superseded by"
+    )
+    superseded_item = django_filters.UUIDFilter(
+        name='older_item__uuid',
+        label="Superseded by"
+    )
+
+
 class ConceptFilterBackend(DjangoFilterBackend):
     pass
 
@@ -16,6 +36,7 @@ class ConceptFilterBackend(DjangoFilterBackend):
 class ConceptFilter(django_filters.rest_framework.FilterSet):
     superseded_by = django_filters.UUIDFilter(
         name='superseded_by__uuid',
+        method='superseded_by_filter',
         label="Superseded by"
     )
     identifier = django_filters.CharFilter(
@@ -70,6 +91,10 @@ class ConceptFilter(django_filters.rest_framework.FilterSet):
         }
         strict = django_filters.STRICTNESS.RAISE_VALIDATION_ERROR
 
+
+    def superseded_by_filter(self, queryset, name, value):
+        return queryset.filter(superseded_by_items__uuid=value)
+
     def identifier_filter(self, queryset, name, value):
         # construct the full lookup expression.
         args = value.split('::')
@@ -80,7 +105,7 @@ class ConceptFilter(django_filters.rest_framework.FilterSet):
         elif len(args) == 3:
             kwargs = dict([
                 ('identifiers__%s'%k, v)
-                for k, v in 
+                for k, v in
                 zip(
                     ['namespace__shorthand_prefix', 'identifier', 'version'],
                     args
@@ -93,11 +118,11 @@ class ConceptFilter(django_filters.rest_framework.FilterSet):
     def queryset_filter(self, queryset, name, value):
         # construct the full lookup expression.
         f,v = value.split(':', 1)
-        
+
         if self.has_forbidden_join(queryset.model()._meta.model, f):
             raise PermissionDenied(detail="Joining on that field is not allowed")
-        
-        
+
+
         try:
             queryset = queryset.filter(**{f:v})
         except:
@@ -111,10 +136,10 @@ class ConceptFilter(django_filters.rest_framework.FilterSet):
 
     def has_forbidden_join(self, model, join):
         disallowed_models = [
-            'User','Permission', 'Group',  # django.contrib.auth
-            'Revision', 'Version', # django_reversion
+            "User", "Permission", "Group",  # django.contrib.auth
+            "Revision", "Version", # django_reversion
             "PossumProfile","Discussion","Workgroup", #  aristotle_mdr
-            'Notification', 
+            "Notification",
         ]
         checking_model = model
         forbidden = False

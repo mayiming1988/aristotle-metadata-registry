@@ -1,15 +1,29 @@
+from typing import Dict
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Count, Q
+from django.db import connection
+from django.db.models import Count, Q, Model
 from django.db.models.functions import Lower
-from django.http import Http404, JsonResponse
+from django.db.models.query import QuerySet
+from django.forms.models import model_to_dict
+from django.http import (
+    Http404,
+    JsonResponse,
+    HttpResponse,
+    HttpResponseNotFound,
+    HttpResponseForbidden
+)
+
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
+from django.core.cache import cache
+from django.core.exceptions import PermissionDenied
 
 from django.views.generic.detail import BaseDetailView
 from django.views.generic import (
@@ -17,6 +31,12 @@ from django.views.generic import (
 )
 
 from aristotle_mdr import models as MDR
+from aristotle_mdr.perms import user_can_view
+from aristotle_mdr.models import _concept
+from aristotle_mdr.contrib.favourites.models import Favourite, Tag
+
+import datetime
+import json
 
 paginate_sort_opts = {
     "mod_asc": ["modified"],
@@ -222,6 +242,37 @@ def generate_visibility_matrix(user):
     return matrix
 
 
+def get_query_safe_context(context):
+    """
+    Returns context as static data forcing no further queries to be executed
+    Note this will evaluate all querysets in the context
+    """
+
+    update = {}
+    for key, value in context.items():
+
+        if isinstance(value, Model):
+            update[key] = model_to_dict(value)
+
+        if isinstance(value, QuerySet):
+            update[key] = value.values()
+
+    context.update(update)
+    return context
+
+
+def get_status_queryset():
+    """
+    Get a queryset for all valid statuses and their ra's
+    """
+
+    return (
+        MDR.Status.objects.valid()
+        .order_by("registrationAuthority", "-registrationDate", "-created")
+        .select_related('registrationAuthority')
+    )
+
+
 class SortedListView(ListView):
     """
     Can be used to replace current paginated fucntion views,
@@ -230,7 +281,7 @@ class SortedListView(ListView):
     allowed_sorts can be a dict mapping names to sorts or just a list of sorts
     """
 
-    allowed_sorts = []
+    allowed_sorts: Dict[str, str] = {}
     default_sort = ''
 
     def dispatch(self, request, *args, **kwargs):
@@ -283,9 +334,9 @@ class GenericListWorkgroup(LoginRequiredMixin, SortedListView):
     paginate_by = 20
 
     allowed_sorts = {
-        'items': 'items__count',
+        'items': 'num_items',
         'name': 'name',
-        'users': 'viewers__count'
+        'users': 'num_viewers'
     }
 
     default_sort = 'name'
@@ -294,7 +345,7 @@ class GenericListWorkgroup(LoginRequiredMixin, SortedListView):
         raise NotImplementedError
 
     def get_queryset(self):
-        workgroups = self.get_initial_queryset().annotate(Count('items')).annotate(Count('viewers'))
+        workgroups = self.get_initial_queryset().annotate(num_items=Count('items', distinct=True), num_viewers=Count('viewers', distinct=True))
         workgroups = workgroups.prefetch_related('viewers', 'managers', 'submitters', 'stewards')
 
         if self.text_filter:
@@ -379,7 +430,7 @@ class MemberRemoveFromGroupView(GroupMemberMixin, LoginRequiredMixin, ObjectLeve
 class AlertFieldsMixin:
     """Provide a list of fields where help text should be rendered as an alert"""
 
-    alert_fields = []
+    alert_fields: list = []
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -401,7 +452,7 @@ class AjaxFormMixin:
     appears
     """
 
-    ajax_success_message = None
+    ajax_success_message = ''
 
     def form_invalid(self, form):
 
@@ -416,11 +467,13 @@ class AjaxFormMixin:
             return super().form_invalid(form)
 
     def form_valid(self, form):
+        # Need to call super here for modelFormMixin compatibility
+        response = super().form_valid(form)
 
         if self.request.is_ajax():
             data = {'success': True}
             # If success message set
-            if self.ajax_success_message is not None:
+            if self.ajax_success_message:
                 data['message'] = self.ajax_success_message
                 return JsonResponse(data)
             else:
@@ -428,4 +481,110 @@ class AjaxFormMixin:
                 data['redirect'] = self.get_success_url()
                 return JsonResponse(data)
         else:
-            return super().form_valid(form)
+            return response
+
+
+class CachePerItemUserMixin:
+
+    cache_item_kwarg = 'iid'
+    cache_view_name = ''
+    cache_ttl = 300
+
+    def get(self, request, *args, **kwargs):
+        if not settings.CACHE_ITEM_PAGE:
+            return super().get(request, *args, **kwargs)
+
+        if request.user.is_anonymous():
+            user = 'anonymous'
+        else:
+            user = request.user.id
+
+        iid = kwargs[self.cache_item_kwarg]
+
+        CACHE_KEY = 'view_cache_%s_%s_%s' % (self.cache_view_name, user, iid)
+
+        can_use_cache = True
+
+        if 'nocache' in request.GET.keys():
+            can_use_cache = False
+
+        from aristotle_mdr.models import _concept
+
+        # If the item was modified within ttl, don't use cache
+        recently = timezone.now() - datetime.timedelta(seconds=self.cache_ttl)
+        if _concept.objects.filter(id=iid, modified__gte=recently).exists():
+            can_use_cache = False
+
+        if can_use_cache:
+            response = cache.get(CACHE_KEY, None)
+            if response is not None:
+                return response
+
+        response = super().get(request, *args, **kwargs)
+        response.render()
+
+        if can_use_cache:
+            cache.set(CACHE_KEY, response, self.cache_ttl)
+
+        return response
+
+
+class TagsMixin:
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data()
+
+        if self.request.user.is_authenticated():
+            item_tags = Favourite.objects.filter(
+                tag__profile=self.request.user.profile,
+                tag__primary=False,
+                item=self.item
+            ).order_by('created').values_list('tag__name', flat=True)
+
+            user_tags = Tag.objects.filter(
+                profile=self.request.user.profile,
+                primary=False
+            ).values_list('name', flat=True)
+
+            item_tags = list(item_tags)
+            user_tags = list(user_tags)
+
+            context['item_tags'] = json.dumps(item_tags)
+            context['user_tags'] = json.dumps(user_tags)
+
+        else:
+            context['item_tags'] = []
+            context['user_tags'] = []
+
+        return context
+
+
+class SimpleItemGet:
+
+    item_id_arg = 'iid'
+
+    def get_item(self, user):
+        item_id = self.kwargs.get(self.item_id_arg, None)
+        if item_id is None:
+            raise Http404
+
+        try:
+            item = _concept.objects.get(id=item_id)
+        except _concept.DoesNotExist:
+            raise Http404
+
+        if not user_can_view(user, item):
+            raise PermissionDenied
+
+        return item
+
+    def get(self, request, *args, **kwargs):
+        item = self.get_item(request.user)
+
+        self.item = item
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['item'] = self.item.item
+        return context

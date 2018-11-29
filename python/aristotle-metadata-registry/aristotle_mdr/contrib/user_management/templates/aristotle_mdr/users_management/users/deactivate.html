@@ -1,5 +1,5 @@
 {% extends request.is_ajax|yesno:"aristotle_mdr/base_ajax.html,aristotle_mdr/base.html" %}
-{% load compile_static i18n %}
+{% load i18n %}
 {% load aristotle_tags %}
 
 {% block title %}Deactivate user {% firstof deactivate_user.get_full_name  deactivate_user.email %}{% endblock %}

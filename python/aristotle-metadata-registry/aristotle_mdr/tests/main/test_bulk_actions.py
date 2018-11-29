@@ -2,6 +2,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.test import TestCase, tag
 from django.test.utils import override_settings
+from django.utils import timezone
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
@@ -10,12 +11,13 @@ import aristotle_mdr.tests.utils as utils
 import datetime
 
 from aristotle_mdr.utils import setup_aristotle_test_environment
+from aristotle_mdr.models import STATES
 
 
 setup_aristotle_test_environment()
 
 
-class BulkActionsTest(utils.LoggedInViewPages):
+class BulkActionsTest(utils.AristotleTestUtils):
     def setUp(self):
         super().setUp()
 
@@ -43,6 +45,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
             reverse('aristotle:change_state_bulk_action'),
             postdata
         )
+        self.assertFalse(change_state_response.context['deselections'])
 
         self.assertEqual(change_state_response.status_code, 200)
         self.assertEqual(change_state_response.context['wizard']['steps'].step1, 2) # check we are now on second step
@@ -56,6 +59,39 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         )
 
         return review_response
+
+    def create_review_request(self, items):
+        self.login_registrar()
+        # Make a RR so the registrar can change status
+        review = models.ReviewRequest.objects.create(
+            requester=self.su,
+            registration_authority=self.ra,
+            state=self.ra.locked_state,
+            registration_date=datetime.date(2013,4,2)
+        )
+        for item in items:
+            review.concepts.add(item)
+
+    def review_changes(self, items, new_state):
+
+        reg_date = datetime.date(2014, 10, 27)
+        postdata = {
+            'change_state-state': new_state,
+            'change_state-items': [str(a) for a in items],
+            'change_state-registrationDate': reg_date,
+            'change_state-cascadeRegistration': 0,
+            'change_state-registrationAuthorities': [self.ra.id],
+            'submit_next': 'value',  # Go to review changes page
+            'change_status_bulk_action_view-current_step': 'change_state',
+        }
+
+        response = self.reverse_post(
+            'aristotle:change_state_bulk_action',
+            postdata,
+            status_code=200
+        )
+
+        return response
 
     def test_bulk_add_favourite_on_permitted_items(self):
         self.login_editor()
@@ -99,7 +135,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         )
         self.assertEqual(self.editor.profile.favourites.count(), 1)
         self.assertFalse(self.item4 in self.editor.profile.favourites.all())
-        self.assertContains(response, "Some items failed, they had the id&#39;s: %s" % self.item4.id)
+        self.assertContains(response, "1 items favourited")
         self.assertEqual(len(response.redirect_chain), 1)
         self.assertEqual(response.redirect_chain[0][1], 302)
 
@@ -149,8 +185,8 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         self.assertTrue(self.item1.concept not in self.new_workgroup.items.all())
         self.assertTrue(self.item2.concept not in self.new_workgroup.items.all())
         self.assertTrue(self.item4.concept not in self.new_workgroup.items.all())
-
         response = self.client.post(
+
             reverse('aristotle:bulk_action'),
             {
                 'bulkaction': 'aristotle_mdr.forms.bulk_actions.ChangeWorkgroupForm',
@@ -321,6 +357,95 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
     @tag('changestatus')
     def test_bulk_status_change_on_permitted_items_with_review(self):
         self.bulk_status_change_on_permitted_items(review_changes=True)
+
+    @tag('changestatus')
+    def test_registered_lower_deselections_on_change_status(self):
+        self.login_registrar()
+        # Make a RR so the registrar can change status
+        items = [self.item1.id, self.item2.id]
+        self.create_review_request(items)
+
+        # Register item1 as candidate
+        models.Status.objects.create(
+            concept=self.item1,
+            registrationAuthority=self.ra,
+            registrationDate=timezone.now(),
+            state=STATES.candidate
+        )
+
+        # Register item2 as standard
+        models.Status.objects.create(
+            concept=self.item2,
+            registrationAuthority=self.ra,
+            registrationDate=timezone.now(),
+            state=STATES.standard
+        )
+
+        self.assertTrue(perms.user_can_change_status(self.registrar, self.item1))
+        self.assertTrue(perms.user_can_change_status(self.registrar, self.item2))
+
+        response = self.review_changes(items, STATES.standard)
+        self.assertTrue(response.context['deselections'])
+
+        form = response.context['form']
+        extra_info = form.fields['selected_list'].widget.extra_info
+        self.assertTrue(extra_info[self.item1.id]['perm'])
+        self.assertTrue(extra_info[self.item1.id]['checked'])
+        self.assertTrue(extra_info[self.item2.id]['perm'])
+        self.assertFalse(extra_info[self.item2.id]['checked'])
+
+    @tag('changestatus')
+    def test_registered_higher_deselections_on_change_status(self):
+        self.login_registrar()
+        # Make a RR so the registrar can change status
+        items = [self.item1.id, self.item2.id]
+        self.create_review_request(items)
+
+        # Register item1 as candidate
+        models.Status.objects.create(
+            concept=self.item1,
+            registrationAuthority=self.ra,
+            registrationDate=timezone.now(),
+            state=STATES.standard
+        )
+
+        # Register item2 as standard
+        models.Status.objects.create(
+            concept=self.item2,
+            registrationAuthority=self.ra,
+            registrationDate=timezone.now(),
+            state=STATES.preferred
+        )
+
+        self.assertTrue(perms.user_can_change_status(self.registrar, self.item1))
+        self.assertTrue(perms.user_can_change_status(self.registrar, self.item2))
+
+        response = self.review_changes(items, STATES.standard)
+        self.assertTrue(response.context['deselections'])
+
+        form = response.context['form']
+        extra_info = form.fields['selected_list'].widget.extra_info
+        self.assertTrue(extra_info[self.item1.id]['perm'])
+        self.assertFalse(extra_info[self.item1.id]['checked'])
+        self.assertTrue(extra_info[self.item2.id]['perm'])
+        self.assertFalse(extra_info[self.item2.id]['checked'])
+
+    @tag('changestatus')
+    def test_deslections_on_first_registration(self):
+        self.login_registrar()
+        # Make a RR so the registrar can change status
+        items = [self.item1.id]
+        self.create_review_request(items)
+
+        self.assertTrue(perms.user_can_change_status(self.registrar, self.item1))
+
+        response = self.review_changes(items, STATES.standard)
+        self.assertFalse(response.context['deselections'])
+
+        form = response.context['form']
+        extra_info = form.fields['selected_list'].widget.extra_info
+        self.assertTrue(extra_info[self.item1.id]['perm'])
+        self.assertTrue(extra_info[self.item1.id]['checked'])
 
     @tag('changestatus')
     def test_bulk_status_change_cascade_common_child(self):

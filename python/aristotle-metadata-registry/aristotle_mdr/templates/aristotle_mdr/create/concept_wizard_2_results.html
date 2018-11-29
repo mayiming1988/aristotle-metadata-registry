@@ -1,11 +1,12 @@
 {% extends template_name %}
-{% load aristotle_tags i18n static compile_static %}
+{% load aristotle_tags i18n static %}
 
 {% block extra_head_scripts %}
 {{ block.super }}
+{% comment %}
 <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
-<link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.moveable.less'|compile %}" />
 <script src="{% static 'aristotle_mdr/aristotle.moveable.js' %}"></script>
+{% endcomment %}
 {% endblock %}
 
 {% block formarea %}

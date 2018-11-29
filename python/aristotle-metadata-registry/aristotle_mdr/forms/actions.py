@@ -1,3 +1,4 @@
+from typing import List
 from django import forms
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -18,7 +19,7 @@ from .utils import RegistrationAuthorityMixin
 class RequestReviewForm(ChangeStatusGenericForm):
 
     def __init__(self, *args, **kwargs):
-        super(ChangeStatusGenericForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.set_registration_authority_field(
             field_name='registrationAuthorities'
         )
@@ -31,7 +32,7 @@ class RequestReviewForm(ChangeStatusGenericForm):
 class RequestReviewCancelForm(UserAwareModelForm):
     class Meta:
         model = MDR.ReviewRequest
-        fields = []
+        fields: List[str] = []
 
 
 class RequestReviewRejectForm(UserAwareModelForm):
@@ -91,4 +92,39 @@ class DeleteSandboxForm(UserAwareForm):
         if not can_delete_metadata(self.user, item):
             raise ValidationError("Item could not be deleted", code="invalid")
 
+        return item
+
+
+class SupersedeForm(forms.ModelForm):
+    class Meta:
+        model = MDR.SupersedeRelationship
+        fields = ['newer_item', 'registration_authority', 'message', 'date_effective']
+
+    def __init__(self, *args, **kwargs):
+        self.item = kwargs.pop('item')
+        self.user = kwargs.pop('user')
+        super().__init__(*args, **kwargs)
+
+        qs = self.item.item._meta.model.objects.visible(self.user)
+
+        self.fields['newer_item']=forms.ModelChoiceField(
+            queryset=qs,
+            empty_label="None",
+            label=_("Superseded by"),
+            widget=widgets.ConceptAutocompleteSelect(
+                model=self.item._meta.model
+            )
+        )
+        self.fields['registration_authority']=forms.ModelChoiceField(
+            queryset=self.user.profile.registrarAuthorities,
+            empty_label="None",
+            label=_("Registration authority"),
+        )
+
+    def clean_newer_item(self):
+        item = self.cleaned_data['newer_item']
+        if not item:
+            return None
+        if self.item.id == item.id:
+            raise forms.ValidationError("An item may not supersede itself")
         return item

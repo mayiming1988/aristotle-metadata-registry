@@ -2,7 +2,7 @@
 
 {% block title %}Delete items{% endblock %}
 {% block content %}
-{{ form.media }}
+{# {{ form.media }} #}
 <form method="post" action="{% url 'aristotle:bulk_action' %}?next={{next}}">{% csrf_token %}
     <p>
         Use this page to confirm you wish to delete the following items.

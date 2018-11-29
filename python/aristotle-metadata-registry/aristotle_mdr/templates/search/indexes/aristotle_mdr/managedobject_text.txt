@@ -6,6 +6,7 @@
 {{ object.submitting_organisation }}
 {{ object.responsible_organisation }}
 {{ object.origin_URI }}
+{{ item.origin }}
 
 {% for state in object.statuses.all %}{{ state.state_name }} {% endfor %}
 
@@ -18,3 +19,5 @@
 {% for identifier in object.identifiers.all %}
 {{identifier.identifier}} {{identifier.version}}
 {% endfor %}
+
+{{object.meta.verbose_name}}

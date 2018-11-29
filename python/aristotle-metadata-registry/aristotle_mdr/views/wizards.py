@@ -16,7 +16,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from aristotle_mdr.contrib.help.models import ConceptHelp
 from aristotle_mdr.utils import fetch_aristotle_settings, fetch_metadata_apps
-from aristotle_mdr.contrib.generic.forms import ordered_formset_save
 from aristotle_mdr.contrib.generic.views import ExtraFormsetMixin
 
 from formtools.wizard.views import SessionWizardView
@@ -96,7 +95,7 @@ class PermissionWizard(SessionWizardView):
 
 
 class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
-    widgets = {}
+    widgets: dict = {}
     templates = {
         "initial": "aristotle_mdr/create/concept_wizard_1_search.html",
         "results": "aristotle_mdr/create/concept_wizard_2_results.html",

@@ -1,10 +1,11 @@
 import graphene
-from aristotle_mdr_graphql.schema.aristotle_mdr import Query as AristotleMDRQuery
-from aristotle_mdr_graphql.schema.aristotle_dse import Query as AristotleDSEQuery
-from aristotle_mdr_graphql.schema.comet import Query as CometQuery
+from .aristotle_mdr import Query as AristotleMDRQuery
+from .aristotle_dse import Query as AristotleDSEQuery
+from .comet import Query as CometQuery
+# from .user import SingleUserQuery
 from graphene_django.debug import DjangoDebug
 
-class AristotleQuery(CometQuery, AristotleDSEQuery, AristotleMDRQuery, graphene.ObjectType):
+class AristotleQuery(AristotleDSEQuery, AristotleMDRQuery, CometQuery, graphene.ObjectType):
     "The query root of the Aristotle GraphQL API"
     pass
 #     #debug = graphene.Field(DjangoDebug, name='__debug')

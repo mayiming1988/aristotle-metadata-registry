@@ -23,7 +23,7 @@ logger.debug("Logging started for " + __name__)
 PAGES_PER_RELATED_ITEM = 15
 
 
-def download(request, download_type, iid):
+def download(request, download_type, iid=None):
     r"""
     By default, ``aristotle_mdr.views.download`` is called whenever a URL matches
     the pattern defined in ``aristotle_mdr.urls_aristotle``::
@@ -77,10 +77,10 @@ def download(request, download_type, iid):
             try:
                 # properties requested for the file requested
                 kls.item = item
-                properties, iid, *args = kls.get_download_config(request, iid)
+                properties = kls.get_download_config(request, iid)
                 if get_params.get('public', False):
                     properties['user'] = False
-                res = kls.download.delay(properties, iid, *args)
+                res = kls.download.delay(properties, iid)
                 get_params.setdefault('title', properties.get('title', 'Auto-Generated Document'))
                 response = redirect('{}?{}'.format(
                     reverse('aristotle:preparing_download', args=[download_type]),
@@ -127,10 +127,10 @@ def bulk_download(request, download_type, items=None):
         if download_type == kls.download_type:
             try:
                 # properties for download template
-                properties, items, *args = kls.get_bulk_download_config(request, items)
+                properties = kls.get_bulk_download_config(request, items)
                 if get_params.get('public', False):
                     properties['user'] = False
-                res = kls.bulk_download.delay(properties, items, *args)
+                res = kls.bulk_download.delay(properties, items)
                 if not properties.get('title', ''):
                     properties['title'] = 'Auto-generated document'
                 get_params.pop('title')

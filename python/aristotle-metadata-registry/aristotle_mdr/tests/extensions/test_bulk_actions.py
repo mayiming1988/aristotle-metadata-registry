@@ -23,11 +23,10 @@ class TestBulkActions(BulkActionsTest, TestCase):
             name="Test Object",
             workgroup=self.wg1,
         )
-        self.su.profile.favourites.add(self.item)
 
     def test_incomplete_action_exists(self):
         self.login_superuser()
-        response = self.client.get(reverse('aristotle:userFavourites'))
+        response = self.client.get(reverse('browse_concepts', args=['aristotle_mdr', 'objectclass']))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'incomplete action')
 

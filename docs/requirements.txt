@@ -4,3 +4,4 @@ whoosh
 dj-database-url
 -e python/aristotle-metadata-registry
 -e python/aristotle-bg-workers
+-e python/aristotle-mdr-api

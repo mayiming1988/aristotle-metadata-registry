@@ -1,11 +1,15 @@
 {% extends "aristotle_mdr/base.html" %}
 {% load static %}
-{% load compile_static %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}Signup{% endblock %}
 
-{% block extra_head_scripts %}
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/login.less'|compile %}" />
+{% block webpack_css_bundle %}
+  {% render_bundle 'login' 'css' %}
+{% endblock %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'login' 'js' %}
 {% endblock %}
 
 {% block content %}
@@ -60,7 +64,7 @@
                 {% endif %}
                 <p>{{ field }}</p>
                 {% if field.help_text %}
-                  <p class="help">{{ field.help_text|safe }}</p>
+                  <p class="help">{{ field.help_text }}</p>
                 {% endif %}
               </div>
               {% endfor %}

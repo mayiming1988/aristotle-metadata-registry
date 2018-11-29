@@ -6,11 +6,13 @@ SECRET_KEY = os.getenv('aristotlemdr__SECRET_KEY', "OVERRIDE_THIS_IN_PRODUCTION"
 STATIC_ROOT = os.getenv('aristotlemdr__STATIC_ROOT', os.path.join(BASE_DIR, "static"))
 MEDIA_ROOT = os.getenv('aristotlemdr__MEDIA_ROOT', os.path.join(BASE_DIR, "media"))
 
-TEMPLATES_DIRS = [os.path.join(BASE_DIR, 'templates')]
-FIXTURES_DIRS = [os.path.join(BASE_DIR, 'fixtures')]
+# Non overridable base dirs
+MDR_BASE_DIR = os.path.dirname(__file__)
+# This is only used in development
+REPO_BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(MDR_BASE_DIR)))
 
-# SECURITY WARNING: don't run with debug turned on in production!!
-DEBUG = True
+TEMPLATES_DIRS = [os.path.join(BASE_DIR, 'templates')]
+FIXTURES_DIRS = [os.path.join(MDR_BASE_DIR, 'fixtures')]
 
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 # This provides for quick easy set up, but should be changed to a production
@@ -46,7 +48,6 @@ TEMPLATES = [
                 'aristotle_mdr.context_processors.settings',
                 'django.contrib.messages.context_processors.messages',
             ],
-            'debug': DEBUG
         },
     },
 ]
@@ -77,13 +78,15 @@ SILENCED_SYSTEM_CHECKS = [
     'models.E023',  # This gets called because we named a model with an underscore
 ]
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS: list = []
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+ARISTOTLE_ASYNC_SIGNALS = os.getenv('ARISTOTLE_ASYNC_SIGNALS', False) == "True"
 
 INSTALLED_APPS = (
     'aristotle_bg_workers',
     'aristotle_mdr',
+    'aristotle_mdr.contrib.view_history',
     'aristotle_mdr.contrib.generic',
     'aristotle_mdr.contrib.help',
     'aristotle_mdr.contrib.slots',
@@ -91,6 +94,9 @@ INSTALLED_APPS = (
     'aristotle_mdr.contrib.browse',
     'aristotle_mdr.contrib.autocomplete',
     'aristotle_mdr.contrib.user_management',
+    'aristotle_mdr.contrib.favourites',
+    'aristotle_mdr.contrib.issues',
+    'aristotle_mdr.contrib.publishing',
 
     'dal',
     'dal_select2',
@@ -110,7 +116,6 @@ INSTALLED_APPS = (
     'ckeditor',
     'ckeditor_uploader',
 
-    'static_precompiler',
     'bootstrap3',
     'reversion',  # https://github.com/etianen/django-reversion
     'reversion_compare',  # https://github.com/jedie/django-reversion-compare
@@ -120,6 +125,16 @@ INSTALLED_APPS = (
 
     'constrainedfilefield',
     'django_celery_results',
+
+    'webpack_loader',
+
+    'aristotle_mdr_api',
+    'aristotle_mdr_api.token_auth',
+    'rest_framework',
+    'rest_framework_swagger',
+    'django_filters',
+
+    'django_jsonforms',
 )
 
 USE_L10N = True
@@ -152,14 +167,12 @@ STATIC_URL = '/static/'
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    'static_precompiler.finders.StaticPrecompilerFinder',
 )
-ADMIN_MEDIA_PREFIX = '/static/admin/'
+STATICFILES_DIRS = [
+    os.path.join(REPO_BASE_DIR, 'assets/dist')
+]
 
-if DEBUG:  # pragma: no cover
-    # Testing forces DEBUG=False, so this will never get tested
-    STATIC_PRECOMPILER_CACHE_TIMEOUT = 1
-    STATIC_PRECOMPILER_DISABLE_AUTO_COMPILE = False
+ADMIN_MEDIA_PREFIX = '/static/admin/'
 
 BOOTSTRAP3 = {
     # The Bootstrap base URL
@@ -234,6 +247,7 @@ CKEDITOR_CONFIGS = {
             {'name': 'document', 'items': ['Maximize', 'Source']},
         ],
         'width': "",
+        "removePlugins": "stylesheetparser",
     },
 }
 
@@ -246,10 +260,6 @@ HAYSTACK_CONNECTIONS = {
         'INCLUDE_SPELLING': True,
     },
 }
-
-STATIC_PRECOMPILER_COMPILERS = (
-    ('static_precompiler.compilers.LESS', {"executable": "lesscpy"}),
-)
 
 ORGS_SLUGFIELD = 'autoslug.fields.AutoSlugField'
 
@@ -269,3 +279,53 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # GeoIP
 GEOIP_PATH = os.path.join(BASE_DIR, 'aristotle_mdr/vendor/geoip')
+
+# Webpack loading
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'CACHE': True,
+        'BUNDLE_DIR_NAME': 'bundles/',
+        'POLL_INTERVAL': 0.1,
+        'STATS_FILE': os.path.join(MDR_BASE_DIR, 'manifests/webpack-stats.json'),
+        'TIMEOUT': None,
+    }
+}
+
+# Django manifest location
+MANIFEST_DIR = os.path.join(MDR_BASE_DIR, 'manifests')
+
+# Caching
+CACHE_ITEM_PAGE = False
+
+# Sanitization
+BLEACH_ALLOWED_TAGS = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'em',
+                       'i', 'li', 'ol', 'strong', 'ul', 'table', 'tbody', 'thead',
+                       'tr', 'th', 'td', 'img', 'p', 'h1', 'h2', 'h3', 'h4',
+                       'h5', 'h6', 'sub', 'sup', 'br', 'u']
+
+BLEACH_ALLOWED_ATTRIBUTES = {
+    'a': ['href', 'title'],
+    'abbr': ['title'],
+    'acronym': ['title'],
+    'img': ['src', 'height', 'width', 'alt']
+}
+
+# Validators
+ARISTOTLE_VALIDATORS = {
+    'RegexValidator': 'aristotle_mdr.validators.RegexValidator',
+    'StatusValidator': 'aristotle_mdr.validators.StatusValidator'
+}
+
+# Serialization
+SERIALIZATION_MODULES = {'mdrjson': 'aristotle_mdr_api.serializers.idjson'}
+
+# API
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'aristotle_mdr_api.token_auth.authentication.AristotleTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    )
+}

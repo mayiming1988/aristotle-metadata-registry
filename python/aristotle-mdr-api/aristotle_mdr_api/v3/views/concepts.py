@@ -14,18 +14,15 @@ from rest_framework.reverse import reverse
 from reversion import revisions as reversion
 
 from aristotle_mdr import models, perms
-from aristotle_mdr.forms.search import PermissionSearchQuerySet
 from ..serializers.base import Serializer, Deserializer, exclude_fields
 from ..filters import concept_backend
-from .. import permissions
+from aristotle_mdr_api.v3.permissions import AuthAndTokenOrRO
 
 from ..views.utils import (
     DescriptionStubSerializerMixin,
     MultiSerializerViewSetMixin,
     ConceptResultsPagination,
-    UUIDLookupModelMixin,
-    api_excluded_fields,
-    get_api_fields,
+    UUIDLookupModelMixin
 )
 
 import logging
@@ -113,6 +110,7 @@ class ConceptViewSet(
     filter_class = concept_backend.ConceptFilter
 
     permission_key = 'metadata'
+    permission_classes = (AuthAndTokenOrRO,)
 
     serializers = {
         'default': ConceptDetailSerializer,
@@ -140,13 +138,6 @@ class ConceptViewSet(
             locked = None
             public = None
             queryset = queryset.public()
-
-        #     # superseded_by_id = self.request.query_params.get('superseded_by', None)
-        #     # if superseded_by_id is not None:
-        #     #     queryset = queryset.filter(superseded_by=superseded_by_id)
-        #     is_superseded = self.request.query_params.get('is_superseded', False)
-        #     if is_superseded:
-        #         queryset = queryset.filter(superseded_by__isnull=False)
 
         if locked is not None:
             locked = locked not in ["False","0","F"]
@@ -231,3 +222,64 @@ class ConceptViewSet(
             if settings.DEBUG and 'explode' in request.query_params.keys():
                 raise
             return Response({'error': str(e)})
+
+
+class SupersededRelationshipSerializer(serializers.ModelSerializer):
+    older_item = serializers.SerializerMethodField()
+    newer_item = serializers.SerializerMethodField()
+    registration_authority = serializers.SerializerMethodField()
+    class Meta:
+        model = models.SupersedeRelationship
+        fields = [
+            'older_item', 'newer_item',
+            'registration_authority',
+            'message', 'date_effective',
+        ]
+
+    def get_older_item(self,instance):
+        return instance.older_item.uuid
+
+    def get_newer_item(self,instance):
+        return instance.newer_item.uuid
+
+    def get_registration_authority(self,instance):
+        return instance.registration_authority.uuid
+
+
+class SupersededRelationshipViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    retrieve:
+    Provides access to a specific metadata item.
+
+    list:
+    Provides access to a paginated list of metadata items.
+    """
+
+    queryset = models.SupersedeRelationship.objects.all()
+    filter_backends = (concept_backend.SupersedeRelationshipBackend,)
+    filter_class = concept_backend.SupersedeRelationshipFilter
+
+    serializer_class = SupersededRelationshipSerializer
+    permission_classes = (AuthAndTokenOrRO,)
+
+    def get_queryset(self):
+        """
+        Possible arguments include:
+
+        type (string) : restricts to a particular concept type, eg. dataelement
+
+        """
+        # from django.contrib.auth import AnonymousUser
+        # self.request.user = AnonymousUser
+        queryset = super().get_queryset()
+
+        from django.db.models import OuterRef, Subquery
+
+        visible_metadata = models._concept.objects.visible(self.request.user).values("pk")
+        # newer_visible = MDR._concepts.visible(self.request.user)
+        queryset = queryset.filter(
+            newer_item__in=Subquery(visible_metadata),
+            older_item__in=Subquery(visible_metadata),
+        )
+
+        return queryset

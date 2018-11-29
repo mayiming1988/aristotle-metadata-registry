@@ -241,6 +241,12 @@ class Serializer(PySerializer):
                                     ser[subfield.name] = getattr(related,subfield.name)
                         weak_serial.append(ser)
                     self._current[f] = weak_serial
+            superseded_by = obj.superseded_by_items.first()
+            if superseded_by:
+                superseded_by = superseded_by.uuid
+            else:
+                superseded_by = None
+            self._current["superseded_by"] = superseded_by
 
             self.end_object(obj)
             if self.first:
@@ -347,8 +353,8 @@ def Deserializer(manifest, **options):
                             else:
                                 return force_text(model._meta.pk.to_python(value), strings_only=True)
                     else:
-                        def m2m_convert(v):
-                            return force_text(model._meta.pk.to_python(v), strings_only=True)
+                        def m2m_convert(value):
+                            return force_text(model._meta.pk.to_python(value), strings_only=True)
 
                     try:
                         m2m_data[field.name] = []

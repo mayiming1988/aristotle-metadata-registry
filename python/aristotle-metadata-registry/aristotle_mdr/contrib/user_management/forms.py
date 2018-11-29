@@ -8,8 +8,6 @@ from aristotle_mdr.forms.utils import FormRequestMixin
 from aristotle_mdr.utils import fetch_aristotle_settings
 from aristotle_mdr.fields import LowerEmailFormField
 
-from organizations.backends.forms import UserRegistrationForm
-
 
 class UserInvitationForm(FormRequestMixin, forms.Form):
     email_list = forms.CharField(
@@ -77,3 +75,7 @@ class UserRegistrationForm(forms.ModelForm):
     class Meta:
         model = get_user_model()
         fields = ['short_name', 'full_name']
+
+
+class UpdateAnotherUserSiteWidePermsForm(forms.Form):
+    is_superuser = forms.BooleanField(required=False)

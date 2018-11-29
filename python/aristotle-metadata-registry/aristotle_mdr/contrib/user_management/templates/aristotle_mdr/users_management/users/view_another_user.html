@@ -1,0 +1,109 @@
+{% extends "aristotle_mdr/user/userHome.html" %}
+
+{% block title %}Profile for {% firstof object.short_name object.full_name object.email %}{% endblock %}
+{% block sidebar %}
+    {% include "aristotle_mdr/user/userSideBar.html" with activeTab='adminTools' %}
+{% endblock %}
+
+{% block page %}
+<h1>
+View profile for <em>{% firstof object.short_name object.full_name object.email %}</em>
+</h1>
+
+<div class="row">
+  <div class="col-md-3">
+    
+    <div class="panel panel-default hidden-sm hidden-xs">
+      <div class="panel-body">
+        <img class="img-responsive" src="{{ object.profile.profile_picture_url }}" alt="Profile Picture"></img>
+      </div>
+    </div>
+
+    <div class="panel panel-default hidden-xl hidden-lg hidden-md">
+      <div class="panel-body">
+        <img class="img-responsive" style="margin:auto;max-width:100px;" src="{{ object.profile.profile_picture_url }}" alt="Profile Picture"></img>
+      </div>
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        Actions
+      </div>
+      <div class="list-group">
+        <a class="list-group-item" href="{% url 'aristotle-user:update_another_user' object.pk %}">Edit Profile</a>
+        <!--<a class="list-group-item" href="{% url 'password_change' %}">Change Password</a>-->
+        <!--<a class="list-group-item" href="{% url 'recently_viewed_metadata' %}">View History</a>-->
+        <!--<a class="list-group-item" href="{% url 'aristotle:userRecentItems' %}">View Recent Actions</a>-->
+        <!--<a class="list-group-item" href="{% url 'aristotle:userRoles' %}">View My Roles</a>-->
+        <!-- a class="list-group-item" href="{% url 'recently_viewed_metadata' %}">View search history</a -->
+      </div>
+    </div>
+
+  </div>
+  <div class="col-md-9">
+
+    <h2>{{ object.full_name }}</h2>
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        Personal Info
+      </div>
+      <table class="table">
+        <tbody>
+          <tr>
+            <th>Email</th>
+            <td>{{ object.email }}</td>
+          </tr>
+          <tr>
+            <th>Display Name</th>
+            <td>{{ object.short_name }}</td>
+          </tr>
+          <tr>
+            <th>Full Name</th>
+            <td>{{ object.full_name }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        Registry details
+      </div>
+      <table class="table">
+        <tbody>
+          <tr>
+            <th>State</th>
+            <td>
+            {% if object.is_active %}
+              Active
+                <a class="pull-right btn btn-sm btn-danger" href="{% url 'aristotle-user:deactivate_user' object.pk %}">Deactivate this user</a>
+            {% else %}
+              Inactive
+                <a class="pull-right btn btn-sm btn-warning" href="{% url 'aristotle-user:reactivate_user' object.pk %}">Reactivate user account</a>
+            {% endif %}
+            </td>
+          </tr>
+          <tr>
+            <th>Site-wide Permissions</th>
+            <td>
+              <ul>
+                {% if object.is_superuser %}
+                <li>Registry Administrator</li>
+                {% endif %}
+                
+                {% if not object.is_superuser %}
+                  <li>No extra permissions</li>
+                {% endif %}
+              </ul>
+              <a class="pull-right btn btn-sm btn-warning" href="{% url 'aristotle-user:update_another_user_site_perms' object.pk %}">Update permissions</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

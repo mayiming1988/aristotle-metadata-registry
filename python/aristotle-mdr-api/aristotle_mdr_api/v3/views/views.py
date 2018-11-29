@@ -12,6 +12,8 @@ from rest_framework.decorators import detail_route
 from django.forms import model_to_dict
 from aristotle_mdr import models, perms
 from aristotle_mdr.forms.search import PermissionSearchQuerySet
+from aristotle_mdr_api.v3.permissions import AuthAndTokenOrRO
+from .concepts import ConceptListSerializer
 
 from rest_framework import viewsets
 
@@ -19,9 +21,7 @@ from .utils import (
     DescriptionStubSerializerMixin,
     MultiSerializerViewSetMixin,
     ConceptResultsPagination,
-    UUIDLookupModelMixin,
-    api_excluded_fields,
-    get_api_fields
+    UUIDLookupModelMixin
 )
 
 
@@ -34,7 +34,8 @@ class ConceptSearchSerializer(serializers.Serializer):
         super(ConceptSearchSerializer,self).__init__(*args,**kwargs)
     def get_object(self,instance):
         data = {}
-        return ConceptDetailSerializer(instance.object,context={'request': self.request}).data
+        return ConceptListSerializer(instance.object,context={'request': self.request}).data
+
 
 from haystack.models import SearchResult
 #class SearchList(APIView):
@@ -46,11 +47,13 @@ class SearchViewSet(viewsets.GenericViewSet):
     base_name="search"
 
     permission_key = 'search'
+    permission_classes = (AuthAndTokenOrRO,)
+    queryset = "None"
 
-#    def get(self, request, format=None):
+
     def list(self, request):
         if not self.request.query_params.keys():
-            return Response({'search_options':'q model state ra'.split()})
+            return Response({'search_options':'q models state ra'.split()})
 
         items = PermissionSearchQuerySet().auto_query(self.request.query_params['q'])
         if self.request.query_params.get('models') is not None:
@@ -59,13 +62,12 @@ class SearchViewSet(viewsets.GenericViewSet):
             if type(models) != type([]):
                 models = [models]
             for mod in models:
-                    # print(mod)
-                    if len(mod.split('.',1)) == 2:
-                        app_label,model=mod.split('.',1)
-                        i = ContentType.objects.get(app_label=app_label,model=model)
-                    else:
-                        i = ContentType.objects.get(model=mod)
-                    search_models.append(i.model_class())
+                if len(mod.split('.',1)) == 2:
+                    app_label,model=mod.split('.',1)
+                    i = ContentType.objects.get(app_label=app_label,model=model)
+                else:
+                    i = ContentType.objects.get(model=mod)
+                search_models.append(i.model_class())
             items = items.models(*search_models)
         items = items.apply_permission_checks(user=request.user)
 
@@ -95,6 +97,7 @@ class RegistrationAuthorityViewSet(UUIDLookupModelMixin, viewsets.ReadOnlyModelV
     serializer_class = RegistrationAuthoritySerializer
 
     permission_key = 'ra'
+    permission_classes = (AuthAndTokenOrRO,)
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
@@ -116,3 +119,4 @@ class OrganizationViewSet(UUIDLookupModelMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = OrganizationSerializer
 
     permission_key = 'organization'
+    permission_classes = (AuthAndTokenOrRO,)

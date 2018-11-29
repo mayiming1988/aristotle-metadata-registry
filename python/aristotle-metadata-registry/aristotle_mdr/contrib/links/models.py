@@ -63,8 +63,19 @@ class RelationRole(MDR.aristotleComponent):  # 9.1.2.5
     def parentItem(self):
         return self.relation
 
+    @property
+    def parentItemId(self):
+        return self.relation_id
+
     def __str__(self):
         return "{0.name}".format(self)
+
+    def get_absolute_url(self):
+        return "%s#role_%s_%s" % (
+            self.parentItem.get_absolute_url(),
+            self.name,
+            self.pk
+        )
 
 
 class Link(TimeStampedModel):
