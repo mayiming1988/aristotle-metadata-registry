@@ -40,6 +40,9 @@
           {% endif %}
       </div>
       {% endif %}
+      {% if custom_values %}
+        {% include 'aristotle_mdr/custom_fields/custom_fields_display.html' %}
+      {% endif %}
       {% if 'aristotle_mdr.contrib.slots'|is_active_module %}
           {% include "aristotle_mdr/slots/slots_display.html" %}
       {% endif %}

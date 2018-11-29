@@ -49,6 +49,7 @@ from aristotle_mdr.views.utils import (
 )
 from aristotle_mdr.contrib.slots.utils import get_allowed_slots
 from aristotle_mdr.contrib.links.models import Link, LinkEnd
+from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
 from aristotle_mdr import validators
 
@@ -243,6 +244,12 @@ class ConceptRenderMixin(TagsMixin):
     def get_links(self):
         return get_links_for_concept(self.item)
 
+    def get_custom_values(self):
+        qs = CustomValue.objects.filter(
+            concept=self.item._concept_ptr
+        ).select_related('field')
+        return qs
+
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
 
@@ -259,6 +266,7 @@ class ConceptRenderMixin(TagsMixin):
         context['discussions'] = self.item.relatedDiscussions.all()
         context['activetab'] = 'item'
         context['links'] = self.get_links()
+        context['custom_values'] = self.get_custom_values()
         return context
 
     def get_template_names(self):

@@ -1,0 +1,5 @@
+<h2>Custom Fields</h2>
+{% for cv in custom_values %}
+  <h3>{{ cv.field.name }}</h3>
+  <p>{{ cv.content }}</p>
+{% endfor %}
