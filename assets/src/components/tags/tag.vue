@@ -8,33 +8,36 @@ import Taggle from 'taggle'
 export default {
     props: ['tags', 'newtags'],
     mounted: function() {
-        var component = this;
-
         this.tag_editor = new Taggle('taggle-editor', {
             preserveCase: true,
-            tags: component.tags,
-            onTagAdd: function(e, tag) {
-                component.updateTags()
+            tags: this.tags,
+            onTagAdd: () => {
+                this.updateTags()
             },
-            onTagRemove: function(e, tag) {
-                component.updateTags()
+            onTagRemove: () => {
+                this.updateTags()
             }
         })
 
         // Attach events, used by autocomplete
         var input = this.tag_editor.getInput()
-        $(input).on('input', function(e) {
-            component.$emit('input', $(e.target).val())
+        input.addEventListener('input', (e) => {
+            this.$emit('input', e)
         })
 
-        $(input).on('focus', function(e) {
-            component.$emit('focus')
-            component.$emit('input', $(this).val())
+        input.addEventListener('focus', (e) => {
+            this.$emit('focus', e)
+            this.$emit('input', '')
         })
 
-        $(input).on('blur', function(e) {
-            component.$emit('blur', e)
+        input.addEventListener('blur', (e) => {
+            // If related target not set or clicking on non button element
+            if (e.relatedTarget == null || e.relatedTarget.tagName != 'BUTTON') {
+                console.log(e)
+                this.$emit('blur', e)
+            }
         })
+
     },
     methods: {
         updateTags: function() {
@@ -69,5 +72,5 @@ export default {
 </script>
 
 <style>
-@import '../styles/taggle.css';
+@import '../../styles/taggle.css';
 </style>

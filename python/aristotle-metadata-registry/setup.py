@@ -95,7 +95,7 @@ setup(
         'django-user-sessions',
         'geoip2',
 
-        'attrs',
+        'django-missing',
 
         # Webpack loading
         'django-webpack-loader',
@@ -111,7 +111,6 @@ setup(
 
         # Sanitization
         'bleach'
-
     ],
 
 )
