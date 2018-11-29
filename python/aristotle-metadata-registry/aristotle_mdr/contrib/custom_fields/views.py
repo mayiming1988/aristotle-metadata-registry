@@ -19,7 +19,7 @@ class CustomFieldCreateView(IsSuperUserMixin, CreateView):
         return context
 
     def get_success_url(self):
-        return reverse('aristotle_mdr:userAdminTools')
+        return reverse('aristotle_custom_fields:list')
 
 
 class CustomFieldUpdateView(IsSuperUserMixin, UpdateView):
@@ -28,7 +28,7 @@ class CustomFieldUpdateView(IsSuperUserMixin, UpdateView):
     template_name='aristotle_mdr/custom_fields/field_form.html'
 
     def get_success_url(self):
-        return reverse('aristotle_mdr:userAdminTools')
+        return reverse('aristotle_custom_fields:list')
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -42,15 +42,15 @@ class CustomFieldDeleteView(IsSuperUserMixin, DeleteView):
     template_name='aristotle_mdr/custom_fields/delete.html'
 
     def get_success_url(self):
-        return reverse('aristotle_mdr:userAdminTools')
+        return reverse('aristotle_custom_fields:list')
 
 
 class CustomFieldListView(IsSuperUserMixin, BootTableListView):
-    queryset=models.CustomField.objects.all()
+    model=models.CustomField
     paginate_by=20
-    page_heading='List of custom fields'
+    model_name='Custom Field'
     headers = ['Name', 'Type', 'Help Text']
     attrs = ['name', 'type', 'help_text']
-
-    def get_success_url(self):
-        return reverse('aristotle_mdr:userAdminTools')
+    create_url_name='aristotle_custom_fields:create'
+    update_url_name='aristotle_custom_fields:update'
+    delete_url_name='aristotle_custom_fields:delete'

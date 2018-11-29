@@ -1,3 +1,5 @@
-{% extends 'aristotle_mdr/user/base %}
+{% extends 'aristotle_mdr/user/base.html' %}
 
-{% include 'aristotle_mdr/helpers/delete.html with object_name=object.name %}
+{% block page %}
+  {% include 'aristotle_mdr/helpers/delete.html' with object_name=object.name %}
+{% endblock %}
