@@ -18,7 +18,7 @@ class BootTableListView(ListView):
     delete_url_name=''
     update_url_name=''
 
-    def get_context_data(self):
+    def get_context_data(self) -> dict:
         context = super().get_context_data()
         headers = copy(self.headers)
         if self.page_heading:
@@ -30,6 +30,11 @@ class BootTableListView(ListView):
             create_button_text = self.create_button_text
         else:
             create_button_text = 'New {}'.format(self.model_name)
+
+        if self.create_url_name:
+            create_url = reverse(self.create_url_name)
+        else:
+            create_url = ''
 
         if self.update_url_name:
             headers.append('Update')
@@ -53,7 +58,7 @@ class BootTableListView(ListView):
             'headers': headers,
             'page_heading': page_heading,
             'create_button_text': create_button_text,
-            'create_url': reverse(self.create_url_name),
+            'create_url': create_url,
             'delete_url_name': self.delete_url_name,
             'update_url_name': self.update_url_name
         })

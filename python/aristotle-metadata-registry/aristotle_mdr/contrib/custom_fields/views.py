@@ -1,5 +1,6 @@
+from typing import Iterable
 from django.urls import reverse
-from django.views.generic import CreateView, UpdateView, DeleteView, ListView
+from django.views.generic import CreateView, UpdateView, DeleteView, ListView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from aristotle_mdr.mixins import IsSuperUserMixin
@@ -44,16 +45,26 @@ class CustomFieldDeleteView(IsSuperUserMixin, CancelUrlMixin, DeleteView):
     template_name='aristotle_mdr/custom_fields/delete.html'
     cancel_url_name='aristotle_custom_fields:list'
 
-    def get_success_url(self):
+    def get_success_url(self) -> str:
         return reverse('aristotle_custom_fields:list')
 
 
 class CustomFieldListView(IsSuperUserMixin, BootTableListView):
+    template_name='aristotle_mdr/custom_fields/list.html'
     model=models.CustomField
     paginate_by=20
     model_name='Custom Field'
     headers = ['Name', 'Type', 'Help Text']
     attrs = ['name', 'hr_type', 'help_text']
-    create_url_name='aristotle_custom_fields:create'
-    update_url_name='aristotle_custom_fields:update'
-    delete_url_name='aristotle_custom_fields:delete'
+
+
+class CustomFieldMultiEditView(TemplateView):
+    template_name='aristotle_mdr/custom_fields/multiedit.html'
+
+    def get_custom_fields(self) -> Iterable[models.CustomField]:
+        return models.CustomField.objects.all()
+
+    def get_context_data(self, *args, **kwargs) -> dict:
+        context = super().get_context_data(*args, **kwargs)
+        context['custom_fields'] = self.get_custom_fields()
+        return context

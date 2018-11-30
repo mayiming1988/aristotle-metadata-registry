@@ -1,19 +1,5 @@
-{% extends 'aristotle_mdr/user/base.html' %}
+{% extends 'aristotle_mdr/generic/boottablelist.html' %}
 
-<h1>List of custom fields</h1>
-<table class="table">
-  <thead>
-    <th>Name</th>
-    <th>Type</th>
-    <th>Help Text</th>
-  </thead>
-  <tbody>
-    {% for item in page_obj %}
-      <td>{{ item.name }}</td>
-      <td>{{ item.type }}</td>
-      <td>{{ item.help_text }}</td>
-    {% endfor %}
-  </tbody>
-</table>
-
-{% include 'aristotle_mdr/helpers/paginator.html' with page=page_obj %}
+{% block extra_content %}
+  <a href="{% url 'aristotle_custom_fields:edit' %}" class="btn btn-primary pull-right">Edit</a>
+{% endblock %}

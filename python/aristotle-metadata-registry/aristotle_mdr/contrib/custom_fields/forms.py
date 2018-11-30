@@ -8,8 +8,13 @@ from aristotle_mdr.models import _concept
 
 class CustomValueFormMixin:
 
+    custom_field_names: List[str]
+    fields: dict
+    cfields: dict
+    cleaned_data: dict
+
     def __init__(self, custom_fields: Iterable[CustomField], **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(**kwargs)  # type: ignore
         self.cfields = {'custom_{}'.format(cf.name): cf for cf in custom_fields}
         self.custom_field_names = []
         for custom_field in self.cfields.values():
@@ -27,7 +32,7 @@ class CustomValueFormMixin:
 
     @property
     def custom_fields(self) -> List:
-        return [self[fname] for fname in self.custom_field_names]
+        return [self[fname] for fname in self.custom_field_names]  # type: ignore
 
     def save_custom_fields(self, concept: _concept) -> _concept:
         for fname in self.custom_field_names:
