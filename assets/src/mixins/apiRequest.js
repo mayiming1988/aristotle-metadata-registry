@@ -44,20 +44,20 @@ export default {
             // Return the promise so additional handlers can be added
             return promise
         },
-        post: function(url, data, params) {
-            return this.request(url, data, params, 'post')
+        post: function(url, data) {
+            return this.request(url, data, 'post')
         },
-        get: function(url, data, params) {
-            return this.request(url, data, params, 'get')
+        get: function(url, params) {
+            return this.request(url, {}, params, 'get')
         },
         patch: function(url, data, params) {
-            return this.request(url, data, params, 'patch')
+            return this.request(url, data, 'patch')
         },
-        put: function(url, data, params) {
-            return this.request(url, data, params, 'put')
+        put: function(url, data) {
+            return this.request(url, data, 'put')
         },
-        delete: function(url, data, params) {
-            return this.request(url, data, params, 'delete')
+        delete: function(url, data) {
+            return this.request(url, data, 'delete')
         },
         isEmpty: function(obj) {
             return (Object.keys(obj).length == 0)

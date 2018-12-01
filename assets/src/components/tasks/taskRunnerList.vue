@@ -60,14 +60,14 @@ export default {
     methods: {
         stop_task: function(task) {
             task.status = "STOPPING"
-            let promise = this.get(this.taskStopUrl, {}, {pk: task.pk})
+            let promise = this.get(this.taskStopUrl, {pk: task.pk})
             promise.then((response) => {
                 this.statusUpdate()
             })
         },
         statusUpdate: function() {
             this.status = "loading"
-            let promise = this.get(this.taskListUrl, {})
+            let promise = this.get(this.taskListUrl)
             promise.then((response) => {
                 this.lastUpdated = moment().format()
                 this.status = "complete"
@@ -104,8 +104,7 @@ export default {
                 this.statusUpdate()
             }
         }
-    },
-    computed: {}
+    }
 }
 </script>
 

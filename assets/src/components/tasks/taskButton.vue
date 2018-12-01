@@ -20,7 +20,6 @@ export default {
         processing: false,
         details: ""
     }),
-    created: function() {},
     methods: {
         startTask: function() {
             let promise = this.get(this.taskUrl, {})

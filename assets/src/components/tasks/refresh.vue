@@ -10,20 +10,15 @@ import apiRequest from 'src/mixins/apiRequest.js'
 
 export default {
     mixins: [apiRequest],
-    props: [],
     data: () => ({
         isActive: true,
         processing: false,
         details: ""
     }),
-    created: function() {
-    },
     methods: {
         refresh: function() {
             this.$emit('refresh-tasks')
         }
-    },
-    computed: {
     }
 }
 </script>
