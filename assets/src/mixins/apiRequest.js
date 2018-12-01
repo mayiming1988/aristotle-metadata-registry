@@ -50,7 +50,7 @@ export default {
         get: function(url, params) {
             return this.request(url, {}, params, 'get')
         },
-        patch: function(url, data, params) {
+        patch: function(url, data) {
             return this.request(url, data, 'patch')
         },
         put: function(url, data) {
