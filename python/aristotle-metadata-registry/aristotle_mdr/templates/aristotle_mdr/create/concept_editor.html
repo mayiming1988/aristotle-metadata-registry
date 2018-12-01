@@ -20,7 +20,7 @@
         <li role="presentation">
             <a href="#tab_names" aria-controls="profile" role="tab" data-toggle="tab">Names & References</a>
         </li>
-        {% if form.object_specific_fields %}
+        {% if form.object_specific_fields or weak_formsets or through_formsets %}
         <li role="presentation">
             <a href="#tab_components" aria-controls="messages" role="tab" data-toggle="tab">{# { model_name|title } #} {% trans 'Components' context 'For making an item' %}</a>
         </li>
@@ -126,7 +126,7 @@
                 </div>
             {% endfor %}
         </div>
-        {% if form.object_specific_fields %}
+        {% if form.object_specific_fields or weak_formsets or through_formsets %}
         <div role="tabpanel" class="tab-pane" id="tab_components">
         {% for field in form.object_specific_fields %}
             {% if forloop.first %}

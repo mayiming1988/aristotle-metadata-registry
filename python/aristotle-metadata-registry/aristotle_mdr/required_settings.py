@@ -135,6 +135,8 @@ INSTALLED_APPS = (
     'django_filters',
 
     'django_jsonforms',
+    'missing'
+
 )
 
 USE_L10N = True

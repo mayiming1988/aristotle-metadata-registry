@@ -342,3 +342,63 @@ class TestFavouritesMigration(MigrationsTestCase, TestCase):
         itemfavs = favourite.objects.filter(tag=favtag, item=self.item1._concept_ptr.id)
         self.assertTrue(itemfavs.exists())
         self.assertEqual(itemfavs.count(), 1)
+
+
+class TestLinkRootMigration(MigrationsTestCase, TestCase):
+
+    app = 'aristotle_mdr_links'
+    migrate_from = '0006_link_root_item'
+    migrate_to = '0007_migrate_root_item'
+
+    def setUpBeforeMigration(self, apps):
+        objectclass = apps.get_model('aristotle_mdr', 'ObjectClass')
+        relation = apps.get_model('aristotle_mdr_links', 'Relation')
+        relation_role = apps.get_model('aristotle_mdr_links', 'RelationRole')
+
+        link = apps.get_model('aristotle_mdr_links', 'Link')
+        linkend = apps.get_model('aristotle_mdr_links', 'LinkEnd')
+
+        self.item1 = objectclass.objects.create(
+            name='Item1',
+            definition='Item1'
+        )
+        self.item2 = objectclass.objects.create(
+            name='Item2',
+            definition='Item2'
+        )
+
+        self.relation = relation.objects.create(
+            name='Good relation',
+            definition='Very good'
+        )
+        rr1 = relation_role.objects.create(
+            name='First item',
+            definition='First',
+            ordinal=1,
+            relation=self.relation
+        )
+        rr2 = relation_role.objects.create(
+            name='Second item',
+            definition='Second',
+            ordinal=2,
+            relation=self.relation
+        )
+
+        self.link = link.objects.create(
+            relation=self.relation
+        )
+        linkend1 = linkend.objects.create(
+            link=self.link,
+            role=rr1,
+            concept=self.item1._concept_ptr
+        )
+        linkend1 = linkend.objects.create(
+            link=self.link,
+            role=rr2,
+            concept=self.item2._concept_ptr
+        )
+
+    def test_migration(self):
+        link_model = self.apps.get_model('aristotle_mdr_links', 'Link')
+        link = link_model.objects.get(id=self.link.id)
+        self.assertEqual(link.root_item.id, self.item1.id)

@@ -532,6 +532,7 @@ class LoggedInViewPages(object):
 
         self.newuser = get_user_model().objects.create_user('nathan@example.com','noobie')
         self.newuser.save()
+        super().setUp()
 
     def get_page(self, item):
         return url_slugify_concept(item)
@@ -750,8 +751,55 @@ class GeneralTestUtils:
         self.assertTrue(key in context)
 
 
+class WizardTestUtils:
+    """Helper for testing django-formtools wizards"""
 
-class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils, FormsetTestUtils):
+    def assertWizardStep(self, response, step):
+        strstep = str(step)
+        self.assertEqual(response.context['wizard']['steps'].current, strstep)
+
+    def transform_datalist(self, datalist, wizard_name):
+        cskey = '{}-current_step'.format(wizard_name)
+        newlist = []
+        step = 0
+        for formdata in datalist:
+            newformdata = {
+                cskey: str(step)
+            }
+            for key, value in formdata.items():
+                prekey = '{}-{}'.format(step, key)
+                newformdata[prekey] = value
+            newlist.append(newformdata)
+            step += 1
+
+        return newlist
+
+    def post_direct_to_wizard(self, datalist, url):
+        """Post to wizard without modifying datalist"""
+
+        step = 0
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        for formdata in datalist:
+            self.assertWizardStep(response, step)
+            response = self.client.post(url, formdata)
+            if step < len(datalist) - 1:
+                # If not last step
+                self.assertEqual(response.status_code, 200)
+                step += 1
+
+        return response
+
+    def post_to_wizard(self, datalist, url, wizard_name):
+        """Add current step and prefixes to datalist before posting"""
+
+        updated_datalist = self.transform_datalist(datalist, wizard_name)
+        return self.post_direct_to_wizard(updated_datalist, url)
+
+
+class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils,
+                         WizardTestUtils, FormsetTestUtils):
     """Combination of the above 3 utils plus some aristotle specific utils"""
 
     def favourite_item(self, user, item):
