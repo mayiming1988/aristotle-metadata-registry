@@ -45,19 +45,19 @@ export default {
             return promise
         },
         post: function(url, data) {
-            return this.request(url, data, 'post')
+            return this.request(url, data, {}, 'post')
         },
         get: function(url, params) {
             return this.request(url, {}, params, 'get')
         },
         patch: function(url, data) {
-            return this.request(url, data, 'patch')
+            return this.request(url, data, {}, 'patch')
         },
         put: function(url, data) {
-            return this.request(url, data, 'put')
+            return this.request(url, data, {}, 'put')
         },
         delete: function(url, data) {
-            return this.request(url, data, 'delete')
+            return this.request(url, data, {}, 'delete')
         },
         isEmpty: function(obj) {
             return (Object.keys(obj).length == 0)
