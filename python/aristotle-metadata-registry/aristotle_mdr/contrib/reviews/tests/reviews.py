@@ -1,8 +1,13 @@
 from django.urls import reverse
 from django.test import TestCase, tag
-import aristotle_mdr.models as models
+import aristotle_mdr.models as MDR
 import aristotle_mdr.tests.utils as utils
+from aristotle_mdr import perms
 from aristotle_mdr.utils import url_slugify_concept
+from aristotle_mdr.contrib.reviews import models
+
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 import datetime
 from aristotle_mdr.utils import setup_aristotle_test_environment
@@ -10,6 +15,124 @@ from aristotle_mdr.utils import setup_aristotle_test_environment
 
 setup_aristotle_test_environment()
 
+# I wanted to call this review-R-Ls or rev-U-R-Ls.
+review_urls = [
+    'aristotle_reviews:review_details',
+    'aristotle_reviews:review_list',
+    'aristotle_reviews:request_impact',
+    # 'aristotle_reviews:request_checks',
+    'aristotle_reviews:request_update',
+    'aristotle_reviews:request_issues',
+]
+
+review_accept_urls = [
+    'aristotle_reviews:accept_review',
+    'aristotle_reviews:endorse_review',
+]
+
+
+class ReviewRequestPermissions(utils.LoggedInViewPages, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.other_ra = MDR.RegistrationAuthority.objects.create(name="Other RA")
+        self.other_registrar = User.objects.create(email="otto@other-register.com")
+        self.other_ra.registrars.add(self.other_registrar)
+        
+        self.review_request = models.ReviewRequest.objects.create(
+            registration_authority = self.ra,
+            requester = self.viewer,
+            title = "My Review",
+            target_registration_state = MDR.STATES.standard,
+            registration_date = "2018-01-01",
+        )
+
+    def test_user_can_view_review(self):
+        perm = perms.user_can_view_review
+
+        self.assertTrue(perm(self.viewer, self.review_request))
+        self.assertTrue(perm(self.registrar, self.review_request))
+        self.assertTrue(perm(self.su, self.review_request))
+        self.assertFalse(perm(self.editor, self.review_request))
+        self.assertFalse(perm(self.other_registrar, self.review_request))
+
+        # Revoke review
+        self.review_request.status = models.REVIEW_STATES.revoked
+
+        self.assertTrue(perm(self.viewer, self.review_request))
+        self.assertFalse(perm(self.registrar, self.review_request))
+        self.assertTrue(perm(self.su, self.review_request))
+        self.assertFalse(perm(self.editor, self.review_request))
+        self.assertFalse(perm(self.other_registrar, self.review_request))
+
+    def test_user_can_approve_review(self):
+        perm = perms.user_can_approve_review
+        self.assertTrue(perm(self.registrar, self.review_request))
+        self.assertTrue(perm(self.su, self.review_request))
+        self.assertFalse(perm(self.viewer, self.review_request))
+        self.assertFalse(perm(self.editor, self.review_request))
+        self.assertFalse(perm(self.other_registrar, self.review_request))
+
+        # Closed review
+        self.review_request.status = models.REVIEW_STATES.closed
+        self.assertFalse(perm(self.registrar, self.review_request))
+        self.assertFalse(perm(self.su, self.review_request))
+        self.assertFalse(perm(self.viewer, self.review_request))
+        self.assertFalse(perm(self.editor, self.review_request))
+        self.assertFalse(perm(self.other_registrar, self.review_request))
+
+        # Revoked review
+        self.review_request.status = models.REVIEW_STATES.revoked
+        self.assertFalse(perm(self.registrar, self.review_request))
+        self.assertFalse(perm(self.su, self.review_request))
+        self.assertFalse(perm(self.viewer, self.review_request))
+        self.assertFalse(perm(self.editor, self.review_request))
+        self.assertFalse(perm(self.other_registrar, self.review_request))
+
+        # Approved review
+        self.review_request.status = models.REVIEW_STATES.approved
+        self.assertFalse(perm(self.registrar, self.review_request))
+        self.assertFalse(perm(self.su, self.review_request))
+        self.assertFalse(perm(self.viewer, self.review_request))
+        self.assertFalse(perm(self.editor, self.review_request))
+        self.assertFalse(perm(self.other_registrar, self.review_request))
+
+    def test_user_can_close_or_reopen_review(self):
+        perm = perms.user_can_close_or_reopen_review
+        self.assertTrue(perm(self.registrar, self.review_request))
+        self.assertTrue(perm(self.su, self.review_request))
+        self.assertTrue(perm(self.viewer, self.review_request))
+        self.assertFalse(perm(self.editor, self.review_request))
+        self.assertFalse(perm(self.other_registrar, self.review_request))
+
+        # Revoked review
+        self.review_request.status = models.REVIEW_STATES.revoked
+        self.assertFalse(perm(self.registrar, self.review_request))
+        self.assertTrue(perm(self.su, self.review_request))
+        self.assertTrue(perm(self.viewer, self.review_request))
+        self.assertFalse(perm(self.editor, self.review_request))
+        self.assertFalse(perm(self.other_registrar, self.review_request))
+
+    def test_user_can_edit_review(self):
+        perm = perms.user_can_edit_review
+
+        self.assertTrue(perm(self.viewer, self.review_request))
+        self.assertFalse(perm(self.registrar, self.review_request))
+        self.assertTrue(perm(self.ramanager, self.review_request))
+        self.assertTrue(perm(self.su, self.review_request))
+        self.assertFalse(perm(self.editor, self.review_request))
+        self.assertFalse(perm(self.other_registrar, self.review_request))
+
+        # Revoke review
+        self.review_request.status = models.REVIEW_STATES.revoked
+
+        self.assertTrue(perm(self.viewer, self.review_request))
+        self.assertFalse(perm(self.registrar, self.review_request))
+        self.assertFalse(perm(self.ramanager, self.review_request))
+        self.assertTrue(perm(self.su, self.review_request))
+        self.assertFalse(perm(self.editor, self.review_request))
+        self.assertFalse(perm(self.other_registrar, self.review_request))
+
+# user_can_view_review_comment
 
 class ReviewRequestActionsPage(utils.LoggedInViewPages, TestCase):
     def setUp(self):
@@ -38,48 +161,106 @@ class ReviewRequestActionsPage(utils.LoggedInViewPages, TestCase):
         else:
             self.assertTrue(item.current_statuses().count() == 0)
 
-    def post_public_rr(self, item):
+    def post_public_rr(self, items, ra=None):
+        if ra is None:
+            ra = self.ra
         response = self.client.post(
-            reverse('aristotle:request_review',args=[item.id]),
+            reverse('aristotle_reviews:review_create'),
             {
-                'registrationAuthorities': [str(self.ra.id)],
-                'state': self.ra.public_state,
-                'cascadeRegistration': 0,
-                'changeDetails': "Please review this",
-                'registrationDate':datetime.date(2010,1,1)
+                'concepts': [i.pk for i in items],
+                'registration_authority': ra.id,
+                'target_registration_state': self.ra.public_state,
+                'cascade_registration': 0,
+                'title': "Please review this",
+                'registration_date':datetime.date(2010,1,1)
             }
         )
         return response
 
-    def test_viewer_cannot_request_review_for_private_item(self):
-        self.login_viewer()
+    def check_urls(self, review_pk, urls, status_code):
+        for url in urls:
+            try:
+                response = self.client.get(
+                    reverse(url, args=[review_pk])
+                )
+                self.assertEqual(response.status_code, status_code)
+            except: #pragma: no cover
+                print(url)
+                print(response)
+                raise
 
-        response = self.client.get(reverse('aristotle:request_review',args=[self.item3.id]))
-        self.assertEqual(response.status_code,403)
+    # def test_viewer_cannot_request_review_for_private_item(self):
+    #     self.login_viewer()
 
-        response = self.client.get(reverse('aristotle:request_review',args=[self.item2.id]))
-        self.assertEqual(response.status_code,403)
+    #     response = self.client.get(reverse('aristotle:request_review',args=[self.item3.id]))
+    #     self.assertEqual(response.status_code,403)
 
-        response = self.client.get(reverse('aristotle:request_review',args=[self.item1.id]))
-        self.assertEqual(response.status_code,200)
+    #     response = self.client.get(reverse('aristotle:request_review',args=[self.item2.id]))
+    #     self.assertEqual(response.status_code,403)
+
+    #     response = self.client.get(reverse('aristotle:request_review',args=[self.item1.id]))
+    #     self.assertEqual(response.status_code,200)
 
     def test_viewer_can_request_review(self):
         self.login_editor()
 
-        response = self.client.get(reverse('aristotle:request_review',args=[self.item3.id]))
+        response = self.client.get(reverse('aristotle_reviews:review_create'))
         self.assertEqual(response.status_code,200)
 
-        response = self.client.get(reverse('aristotle:request_review',args=[self.item2.id]))
-        self.assertEqual(response.status_code,403)
+        self.assertEqual(self.item1.rr_review_requests.count(),0)
+        response = self.post_public_rr([self.item1])
+        self.assertEqual(self.item1.rr_review_requests.count(),1)
 
-        response = self.client.get(reverse('aristotle:request_review',args=[self.item1.id]))
-        self.assertEqual(response.status_code,200)
+        review_pk = response.url.rstrip("/").rsplit("/")[-2]
 
-        self.assertEqual(self.item1.review_requests.count(),0)
-        response = self.post_public_rr(self.item1)
+        # response = self.client.get(
+        #     reverse('aristotle_reviews:review_list'),
+        #     args=[review_pk]
+        # )
+        self.check_urls(review_pk, review_urls, 200)
+        self.check_urls(review_pk, review_accept_urls, 403)
 
-        self.assertRedirects(response,url_slugify_concept(self.item1))
-        self.assertEqual(self.item1.review_requests.count(),1)
+        # Can't see, can't reviews
+        self.assertEqual(self.item2.rr_review_requests.count(),0)
+        response = self.post_public_rr([self.item2])
+        self.assertEqual(self.item2.rr_review_requests.count(),0)
+
+        self.assertTrue("concepts" in response.context['form'].errors.keys())
+        self.assertTrue(
+            "{} is not one of the available choices".format(self.item2.pk)
+            in str(response.context['form'].errors['concepts'])
+        )
+        
+
+    def test_registrar_can_view_review(self):
+        self.login_editor()
+
+        self.assertEqual(self.item1.rr_review_requests.count(),0)
+        response = self.post_public_rr([self.item1])
+        self.assertEqual(self.item1.rr_review_requests.count(),1)
+
+        review_pk = response.url.rstrip("/").rsplit("/")[-2]
+
+        self.login_registrar()
+
+        self.check_urls(review_pk, review_urls, 200)
+        self.check_urls(review_pk, review_accept_urls, 200)
+
+    def test_registrar_cant_view_other_ra_reviews(self):
+        self.login_editor()
+
+        other_ra = models.RegistrationAuthority.objects.create(name="Other RA!", definition="")
+
+        self.assertEqual(self.item1.rr_review_requests.count(),0)
+        response = self.post_public_rr([self.item1], ra=other_ra)
+        self.assertEqual(self.item1.rr_review_requests.count(),1)
+
+        review_pk = response.url.rstrip("/").rsplit("/")[-2]
+
+        self.login_registrar()
+
+        self.check_urls(review_pk, review_rls, 403)
+        self.check_urls(review_pk, review_accept_urls, 403)
 
     def test_registrar_has_valid_items_in_review(self):
 

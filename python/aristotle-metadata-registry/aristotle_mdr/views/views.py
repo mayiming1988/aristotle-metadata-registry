@@ -51,7 +51,6 @@ from aristotle_mdr.views.utils import (
 from aristotle_mdr.contrib.slots.utils import get_allowed_slots
 from aristotle_mdr.contrib.links.models import Link, LinkEnd
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
-from aristotle_mdr import validators
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
 from aristotle_mdr.contrib.validators import validators
 

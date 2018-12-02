@@ -223,7 +223,7 @@ def user_can_edit_review(user, review):
         return False
 
     # If a registrar is in the registration authority for the request they can see it.
-    return user.manager_in.filter(pk=review.registration_authority.pk).exists()
+    return user in review.registration_authority.managers.all()
 
 
 def user_can_edit_review_comment(user, reviewcomment):
@@ -240,7 +240,7 @@ def user_can_edit_review_comment(user, reviewcomment):
         return False
 
     # If a registrar is in the registration authority for the request they can see it.
-    return user.manager_in.filter(pk=reviewcomment.request.registration_authority.pk).exists()
+    return user in reviewcomment.request.registration_authority.managers.all()
 
 
 def user_can_view_review_comment(user, reviewcomment):
@@ -266,22 +266,23 @@ def user_can_close_or_reopen_review(user, review):
     if user.is_superuser:
         return True
 
+    # If you arent the requester or a super user, you can reopen a revoked request
+    from aristotle_mdr.contrib.reviews.models import REVIEW_STATES
+    if review.status == REVIEW_STATES.revoked:
+        return False
+
     # If a registrar is in the registration authority for the request they can see it.
     return user.registrar_in.filter(pk=review.registration_authority.pk).exists()
 
 
 def user_can_approve_review(user, review):
-    # A user can see all their requests
-    if review.requester == user:
-        return True
+    # Can't approve a closed request
+    from aristotle_mdr.contrib.reviews.models import REVIEW_STATES
+    if review.status != REVIEW_STATES.open:
+        return False
 
     if user.is_superuser:
         return True
-
-    # Can't approve a closed request
-    from aristotle_mdr.models import REVIEW_STATES
-    if review.status == REVIEW_STATES.cancelled:
-        return False
 
     # If a registrar is in the registration authority for the request they can see it.
     return user.registrar_in.filter(pk=review.registration_authority.pk).exists()

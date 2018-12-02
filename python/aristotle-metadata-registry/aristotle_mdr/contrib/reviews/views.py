@@ -65,45 +65,6 @@ def review_list(request):
     return paginated_list(request, reviews, "aristotle_mdr/reviews/reviewers_review_list.html", {'reviews': reviews})
 
 
-class SubmitForReviewView(ItemSubpageFormView):
-    form_class = forms.RequestReviewForm
-    template_name = "aristotle_mdr/actions/request_review.html"
-
-    def get_context_data(self, *args, **kwargs):
-        kwargs = super().get_context_data(*args, **kwargs)
-        kwargs['reviews'] = self.get_item().review_requests.filter(status=models.REVIEW_STATES.open).all()
-        kwargs['status_matrix'] = json.dumps(generate_visibility_matrix(self.request.user))
-        return kwargs
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
-
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        item = self.get_item()
-
-        if form.is_valid():
-            review = models.ReviewRequest.objects.create(
-                registration_authority=form.cleaned_data['registrationAuthorities'],
-                message=form.cleaned_data['changeDetails'],
-                state=form.cleaned_data['state'],
-                registration_date=form.cleaned_data['registrationDate'],
-                cascade_registration=form.cleaned_data['cascadeRegistration'],
-                requester=request.user
-            )
-
-            review.concepts.add(item)
-            message = mark_safe(
-                _("<a href='{url}'>Review submitted, click to review</a>").format(url=reverse('aristotle_reviews:userReviewDetails', args=[review.pk]))
-            )
-            messages.add_message(request, messages.INFO, message)
-            return HttpResponseRedirect(item.get_absolute_url())
-        else:
-            return self.form_invalid(form)
-
-
 class ReviewActionMixin(UserFormViewMixin):
     pk_url_kwarg = 'review_id'
     context_object_name = "review"
@@ -214,7 +175,7 @@ class ReviewStatusChangeBase(ReviewActionMixin, ReviewChangesView):
         if not self.ra_active_check(review):
             return HttpResponseNotFound('Registration Authority is not active')
 
-        if not perms.user_can_view_review(self.request.user, review):
+        if not perms.user_can_approve_review(self.request.user, review):
             raise PermissionDenied
         if review.status != models.REVIEW_STATES.open:
             messages.add_message(self.request, messages.WARNING, "This review is already closed. Re-open this review to endorse content.")
@@ -338,24 +299,6 @@ class ReviewEndorseView(ReviewStatusChangeBase):
             messages.add_message(self.request, messages.INFO, message)
 
         return HttpResponseRedirect(reverse('aristotle_reviews:review_details', args=[review.pk]))
-
-
-class ReviewCommentCreateView(ReviewActionMixin, CreateView):
-    template_name = "aristotle_mdr/reviews/review/details.html"
-    fields = ['body']
-    model = models.ReviewComment
-    user_form = False
-
-    def form_valid(self, form):
-        """
-        If the form is valid, save the associated model.
-        """
-        form.instance.request = self.get_review()
-        form.instance.author = self.request.user
-        return super().form_valid(form)
-
-    def get_success_url(self):
-        return self.get_review().get_absolute_url()
 
 
 class ReviewIssuesView(ReviewActionMixin, TemplateView):

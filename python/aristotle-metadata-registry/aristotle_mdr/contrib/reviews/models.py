@@ -95,7 +95,7 @@ class ReviewRequest(StatusMixin, TimeStampedModel):
 
     def get_absolute_url(self):
         return reverse(
-            "aristotle_reviews:userReviewDetails",
+            "aristotle_reviews:review_details",
             kwargs={'review_id': self.pk}
         )
 
