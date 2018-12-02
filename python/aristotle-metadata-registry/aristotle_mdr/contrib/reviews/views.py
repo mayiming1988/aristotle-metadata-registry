@@ -37,12 +37,22 @@ from aristotle_mdr.views.utils import (
 
 import json
 
+# For validator view
+import yaml
+from os import path
+from django.conf import settings
+from django.utils.module_loading import import_string
+import jsonschema
+from aristotle_mdr.contrib.validators.validators import Checker
+# ---
+
 from . import models, forms
 
 import logging
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
+
 
 @login_required
 def my_review_list(request):
@@ -124,7 +134,7 @@ class ReviewListItemsView(ReviewActionMixin, DetailView):
 class ReviewUpdateView(ReviewActionMixin, UpdateView):
     template_name = "aristotle_mdr/reviews/review/update.html"
     form_class = forms.RequestReviewUpdateForm
-    context_object_name = "item" #review"
+    context_object_name = "item"
     model = models.ReviewRequest
     user_form = True
 
@@ -140,13 +150,13 @@ class ReviewCreateView(UserFormViewMixin, CreateView):
 
     def get_initial(self):
         initial = super().get_initial()
-        
+
         item_ids = self.request.GET.getlist("items")
         initial_metadata = MDR._concept.objects.visible(self.request.user).filter(id__in=item_ids)
         initial.update({
             "concepts": initial_metadata,
         })
-            
+
         return initial
 
     def form_valid(self, form):
@@ -241,11 +251,11 @@ class ReviewAcceptView(ReviewStatusChangeBase):
 
         with transaction.atomic(), reversion.revisions.create_revision():
             message = self.register_changes_with_message(form_dict)
-    
+
             if form_dict['review_accept'].cleaned_data['close_review'] == "1":
                 review.status = models.REVIEW_STATES.approved
                 review.save()
-    
+
             update = models.ReviewStatusChangeTimeline.objects.create(
                 request=review, status=models.REVIEW_STATES.approved,
                 actor=self.request.user
@@ -255,7 +265,7 @@ class ReviewAcceptView(ReviewStatusChangeBase):
                 registration_state=review.target_registration_state,
                 actor=self.request.user
             )
-    
+
             messages.add_message(self.request, messages.INFO, message)
 
         return HttpResponseRedirect(reverse('aristotle_reviews:review_details', args=[review.pk]))
@@ -289,13 +299,13 @@ class ReviewEndorseView(ReviewStatusChangeBase):
             if int(form_dict['review_accept'].cleaned_data['close_review']) == 1:
                 review.status = models.REVIEW_STATES.closed
                 review.save()
-    
+
             update = models.ReviewEndorsementTimeline.objects.create(
                 request=review,
                 registration_state=self.get_cleaned_data_for_step(self.change_step_name)['registration_state'],
                 actor=self.request.user
             )
-    
+
             messages.add_message(self.request, messages.INFO, message)
 
         return HttpResponseRedirect(reverse('aristotle_reviews:review_details', args=[review.pk]))
@@ -333,7 +343,7 @@ class ReviewImpactView(ReviewActionMixin, TemplateView):
             queryset = cascade_items_queryset(items=review.concepts.all())
         else:
             queryset = review.concepts.all()
-        extra_info, any_higher = get_status_change_details(queryset,review.registration_authority, review.state)
+        extra_info, any_higher = get_status_change_details(queryset, review.registration_authority, review.state)
 
         for concept in queryset:
             concept.info = extra_info[concept.id]
@@ -342,13 +352,6 @@ class ReviewImpactView(ReviewActionMixin, TemplateView):
 
         return context
 
-
-import yaml
-from os import path
-from django.conf import settings
-from django.utils.module_loading import import_string
-import jsonschema
-from aristotle_mdr.contrib.validators.validators import Checker
 
 class ReviewValidationView(ReviewActionMixin, TemplateView):
     pk_url_kwarg = 'review_id'
@@ -377,20 +380,20 @@ class ReviewValidationView(ReviewActionMixin, TemplateView):
         total_results = []
         for concept in self.get_review().concepts.all():
             kwargs = {}
-            
-            #TODO: Copied agin
-            
+
+            # TODO: Copied agin
+
             # Slow query
             item = concept.item
             itemtype = type(item).__name__
-    
+
             valid = True
             try:
                 jsonschema.validate(self.setup, self.schema)
             except jsonschema.exceptions.ValidationError as e:
                 logger.critical(e)
                 valid = False
-    
+
             results = []
             if valid:
                 for itemsetup in self.setup:
@@ -407,4 +410,3 @@ class ReviewValidationView(ReviewActionMixin, TemplateView):
         context['setup_valid'] = True
 
         return context
-    

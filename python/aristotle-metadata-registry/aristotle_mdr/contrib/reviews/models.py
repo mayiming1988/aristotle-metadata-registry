@@ -30,10 +30,11 @@ REVIEW_STATES = Choices(
     (15, 'closed', _('Closed')),
 )
 
+
 class StatusMixin:
     @property
     def status_code(self):
-        return {x:y for x,y,z in REVIEW_STATES._triples}[self.status]
+        return {x: y for x, y, z in REVIEW_STATES._triples}[self.status]
 
 
 class ReviewRequest(StatusMixin, TimeStampedModel):
@@ -151,7 +152,7 @@ class ReviewComment(TimeStampedModel):
 class ReviewStatusChangeTimeline(StatusMixin, TimeStampedModel):
     class Meta:
         ordering = ['created']
-    
+
     timeline_type = "status_change"
 
     request = models.ForeignKey(ReviewRequest, related_name='state_changes')

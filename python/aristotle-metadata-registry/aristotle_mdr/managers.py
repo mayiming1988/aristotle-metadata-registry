@@ -74,8 +74,8 @@ class ConceptQuerySet(MetadataItemQuerySet):
             if user.profile.is_registrar:
                 # Registars can see items they have been asked to review
                 q |= Q(
-                    Q(rr_review_requests__registration_authority__registrars__profile__user=user)
-                    & ~Q(review_requests__status=REVIEW_STATES.revoked)
+                    Q(rr_review_requests__registration_authority__registrars__profile__user=user) &
+                    ~Q(review_requests__status=REVIEW_STATES.revoked)
                 )
                 # Registars can see items that have been registered in their registration authority
                 q |= Q(
@@ -182,8 +182,8 @@ class ReviewRequestQuerySet(models.QuerySet):
         if user.profile.is_registrar:
             # Registars can see reviews for the registration authority
             q |= Q(
-                Q(registration_authority__registrars__profile__user=user)
-                & ~Q(status=REVIEW_STATES.revoked)
+                Q(registration_authority__registrars__profile__user=user) &
+                ~Q(status=REVIEW_STATES.revoked)
             )
         return self.filter(q)
 

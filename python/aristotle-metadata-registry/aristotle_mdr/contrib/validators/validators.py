@@ -6,12 +6,6 @@ from django.utils.module_loading import import_string
 
 from aristotle_mdr.models import STATES
 
-"""
-This is the "example" module.
-
-The example module supplies one function, factorial().  For example,
-
-"""
 
 class Checker:
     def __init__(self, ruleset):

@@ -7,11 +7,13 @@ from django.utils.timezone import now
 import datetime
 
 from aristotle_mdr.tests import utils
+
+from aristotle_mdr import models as MDR
+from aristotle_mdr.contrib.validators import validators
+
 from aristotle_mdr.utils import setup_aristotle_test_environment
 
 setup_aristotle_test_environment()
-from aristotle_mdr import models as MDR
-from aristotle_mdr.contrib.validators import validators
 
 
 class ValidationTester:
@@ -188,7 +190,7 @@ class TestStatusValidator(ValidationTester, TestCase):
 
         self.assertValid(
             validator.validate(self.item, self.ra),
-            expected_message = 'Valid State'
+            expected_message='Valid State'
         )
 
     def test_status_validation_fail(self):

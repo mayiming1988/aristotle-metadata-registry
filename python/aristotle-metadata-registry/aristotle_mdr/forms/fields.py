@@ -10,6 +10,7 @@ from django.urls import reverse
 from aristotle_mdr import perms
 from aristotle_mdr.utils import get_status_change_details
 
+
 class ReviewChangesChoiceField(ModelMultipleChoiceField):
 
     def __init__(self, queryset, static_content, ra, user, **kwargs):
@@ -54,7 +55,7 @@ class ReviewChangesChoiceField(ModelMultipleChoiceField):
         for key, item in extra_info.items():
             item['checked'] = not item['has_higher_status']
             item['perm'] = perms.user_can_change_status(user, item['concept'])
-                
+
         return (extra_info, deselections)
 
 

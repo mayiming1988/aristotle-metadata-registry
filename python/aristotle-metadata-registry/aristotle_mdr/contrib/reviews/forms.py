@@ -125,7 +125,7 @@ class RequestReviewEndorseForm(RequestReviewAcceptForm):
         widget=forms.RadioSelect(),
         choices=MDR.STATES,
         label=_("Registration State"),
-        help_text = "The state for endorsement for metadata in this review",
+        help_text="The state for endorsement for metadata in this review",
     )
     registration_date = forms.DateField(
         widget=BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"}),
@@ -135,7 +135,6 @@ class RequestReviewEndorseForm(RequestReviewAcceptForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['close_review'].initial = 0
-
 
 
 class RequestCommentForm(UserAwareModelForm):
