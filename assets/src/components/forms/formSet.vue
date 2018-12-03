@@ -3,15 +3,14 @@
         <draggable :list="formsData" :options="sortableConfig">
             <Form 
                 v-for="(item, index) in formsData" 
-                :value="formsData[index]"
-                @input="dataEdit(index, $event)"
-                :key="item.id" 
+                v-model="formsData[index]"
+                :key="item.vid" 
                 :fields="fields" 
                 :inline="true"
                 :scope="getScope(index)"
                 :showSubmit="false">
                 <template slot="before">
-                    <i class="fa fa-2x fa-bars pull-left grabber"></i>
+                    <i class="fa fa-lg fa-bars pull-left grabber"></i>
                 </template>
                 <template slot="after">
                     <button class="btn btn-danger" @click="deleteRow(index)">Delete</button>
@@ -44,17 +43,28 @@ export default {
         },
         initial: {
             type: Array
+        },
+        dontSubmitFields: {
+            type: Array
         }
     },
     data: () => ({
         sortableConfig: {
             handle: '.grabber',
         },
+        stripFields: ['vid'],
         formsData: []
     }),
     created: function() {
         if (this.initial) {
             this.formsData = this.initial
+        }
+        for (let field of this.dontSubmitFields) {
+            this.stripFields.push(field)
+        }
+        for (let i=0; i < this.formsData.length; i++) {
+            // Add a vue id to each item as unique key
+            this.formsData[i]['vid'] = i
         }
     },
     methods: {
@@ -65,16 +75,30 @@ export default {
             return 'form' + index.toString()
         },
         addRow: function() {
-            this.formsData.push({})
+            let newrow = {'vid': this.formsData.length}
+            this.formsData.push(newrow)
         },
         deleteRow: function(index) {
             this.formsData.splice(index, 1)
         },
-        dataEdit: function(index, value) {
-            Object.assign(this.formsData[index], value)
+        postProcess: function() {
+            let fdata = []
+            for (let i=0; i < this.formsData.length; i++) {
+                // Get shallow clone of item
+                let item = Object.assign({}, this.formsData[i])
+                // Remove unneeded fields
+                for (let field of this.stripFields) {
+                    delete item[field]
+                }
+                // Reorder
+                item['order'] = i + 1
+                fdata.push(item)
+            }
+            return fdata
         },
         submitFormSet: function() {
-            return 0
+            let dataToSubmit = this.postProcess()
+            console.log(dataToSubmit)
         }
     }
 }

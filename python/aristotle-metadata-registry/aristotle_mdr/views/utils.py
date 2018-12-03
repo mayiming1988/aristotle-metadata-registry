@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Any
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 
 from django.conf import settings
@@ -594,21 +594,38 @@ class SimpleItemGet:
 
 class VueFormView(FormView):
 
-    widget_tag_mapping: Dict[str, str] = {'Textarea': 'textarea', 'Select': 'select'}
+    # Mapping of widgets to extra fields data
+    widget_mapping: Dict[str, Dict] = {
+        'Textarea': {'tag': 'textarea'},
+        'Select': {'tag': 'select'},
+    }
 
+    # Attributes to pull from field as rules
     rules_attrs_to_pull: List[str] = ['required', 'max_length', 'min_length']
+    # Mapping of django rule names to vee-validate rule names
     rules_mapping: Dict[str, str] = {'max_length': 'max', 'min_length': 'min'}
 
-    def get_vue_form_fields(self, form: forms.Form) -> str:
+    # Base field data
+    default_tag = 'input'
+
+    def get_vue_initial(self):
+        # To be overwritten
+        return {}
+
+    def get_vue_form_fields(self, form: forms.Form) -> Dict[str, Dict]:
         vuefields = {}
         for fname, field in form.fields.items():
             widget_name = type(field.widget).__name__
+
             field_data = {
                 'rules': {},
-                'tag': self.widget_tag_mapping.get(widget_name, 'input'),
+                'tag': self.default_tag,
                 'label': field.label,
                 'options': []
             }
+
+            if widget_name in self.widget_mapping:
+                field_data.update(self.widget_mapping[widget_name])
 
             if widget_name == 'Select':
                 field_data['options'] = field.choices
@@ -623,9 +640,12 @@ class VueFormView(FormView):
                             field_data['rules'][attr] = attrdata
 
             vuefields[fname] = field_data
-        return json.dumps(vuefields)
+        return vuefields
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data()
-        context['vue_fields'] = self.get_vue_form_fields(context['form'])
+        context['vue_fields'] = json.dumps(
+            self.get_vue_form_fields(context['form'])
+        )
+        context['vue_initial'] = json.dumps(self.get_vue_initial())
         return context

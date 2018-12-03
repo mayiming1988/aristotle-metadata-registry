@@ -74,8 +74,3 @@ class CustomFieldMultiEditView(VueFormView):
         fields = self.get_custom_fields()
         serializer = CustomFieldSerializer(fields, many=True)
         return serializer.data
-
-    def get_context_data(self, *args, **kwargs) -> dict:
-        context = super().get_context_data(*args, **kwargs)
-        context['initial'] = json.dumps(self.get_vue_initial())
-        return context
