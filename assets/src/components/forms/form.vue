@@ -1,10 +1,12 @@
 <template>
-    <div class="vue-form">
-        <bsFieldWrapper v-for="(fielddata, name) in fields" :name="name">
-            <span>{{ fe_errors.first(name) }}</span>
+    <div class="vue-form" :class="{'form-inline': inline}">
+        <apiErrors :errors="errors"></apiErrors>
+        <bsFieldWrapper v-for="(fielddata, name) in fields" :name="name" :displayLabel="!inline">
+            <span class="text-danger" v-if="!inline">{{ fe_errors.first(name) }}</span>
             <formField 
             :tag="fielddata.tag" 
             :name="name" 
+            :placeholder="placeholder(name)"
             v-model="formdata[name]" 
             v-validate="fielddata.rules">
             </formField>
@@ -14,15 +16,33 @@
 </template>
 
 <script>
+import { capitalize } from 'src/lib/utils.js'
+
+import apiErrors from '@/apiErrorDisplay.vue'
 import formField from '@/forms/formField.vue'
 import bsFieldWrapper from '@/forms/bsFieldWrapper.vue'
 
 export default {
     components: {
+        apiErrors,
         bsFieldWrapper,
         formField
     },
-    props: ['fields', 'initial'],
+    props: {
+        fields: {
+            type: Object
+        },
+        initial: {
+            type: Object
+        },
+        errors: {
+            type: Object
+        },
+        inline: {
+            type: Boolean,
+            default: false
+        }
+    },
     data: () => ({
         formdata: {}
     }),
@@ -33,6 +53,15 @@ export default {
         for (let key of Object.keys(this.fields)) {
             if (this.formdata[key] === undefined) {
                 this.formdata[key] = ''
+            }
+        }
+    },
+    methods: {
+        placeholder: function(field) {
+            if (this.inline) {
+                return capitalize(field)
+            } else {
+                return ''
             }
         }
     }

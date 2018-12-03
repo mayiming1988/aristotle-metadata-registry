@@ -1,5 +1,5 @@
 <template>
-    <Form :fields="fields" :initial="initial"></Form>
+    <Form :fields="fields" :initial="initial" :inline="true"></Form>
 </template>
 
 <script>
