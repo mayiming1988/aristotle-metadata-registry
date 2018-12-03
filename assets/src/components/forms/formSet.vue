@@ -11,15 +11,17 @@
                 :scope="getScope(index)"
                 :showSubmit="false">
                 <template slot="before">
-                    <i class="fa fa-bars pull-left grabber"></i>
+                    <i class="fa fa-2x fa-bars pull-left grabber"></i>
                 </template>
                 <template slot="after">
                     <button class="btn btn-danger" @click="deleteRow(index)">Delete</button>
                 </template>
             </Form>
         </draggable>
-        <button class="btn btn-success" @click="addRow">Add</button>
-        <button class="btn btn-primary" @click="submitFormSet">Submit</button>
+        <div class="vue-formset-button-group">
+            <button class="btn btn-success" @click="addRow">Add</button>
+            <button class="btn btn-primary" @click="submitFormSet">Submit</button>
+        </div>
     </div>
 </template>
 
@@ -80,6 +82,9 @@ export default {
 
 <style>
 .grabber {
-    padding-top: 5px
+    padding-top: 5px;
+}
+.vue-formset-button-group {
+    margin-top: 10px;
 }
 </style>

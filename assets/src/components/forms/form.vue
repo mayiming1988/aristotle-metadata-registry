@@ -80,3 +80,9 @@ export default {
     }
 }
 </script>
+
+<style>
+.form-inline .form-group {
+    margin-right: 6px;
+}
+</style>
