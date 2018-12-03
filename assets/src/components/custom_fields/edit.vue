@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import Form from '@/form.vue'
+import Form from '@/forms/form.vue'
 
 export default {
     components: {
@@ -13,7 +13,10 @@ export default {
         fields: {
             'name': {
                 'tag': 'input',
-                required: false
+                'rules': {
+                    required: true,
+                    max: 7
+                }
             }
         },
         initial: {

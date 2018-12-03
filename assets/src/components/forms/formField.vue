@@ -1,35 +1,29 @@
 <template>
-    <div :class="fieldClass">
-        <component :is="tag" :required="required" :value="value" @input="emitInput"></component>
-    </div>
+    <component :is="tag" :id="name" :class="fieldClass" :value="value" @input="emitInput"></component>
 </template>
 
 <script>
 export default {
     props: {
-        fieldClass: {
-            type: String,
-            default: 'form-field'
-        },
         tag: {
             type: String,
             default: 'input'
         },
-        required: {
-            type: Boolean,
-            default: false
+        name: {
+            type: String,
+            required: true
         },
         value: {
             type: String,
             default: ''
         },
-        error: {
-            type: Array,
+        fieldClass: {
+            type: String,
+            default: 'form-control'
         }
     },
     methods: {
         emitInput: function(event) {
-            console.log(event)
             this.$emit('input', event.target.value)
         }
     }
