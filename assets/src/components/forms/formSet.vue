@@ -1,15 +1,22 @@
 <template>
     <div class="vue-formset">
-        <Form 
-            v-for="(item, index) in formsData" 
-            v-model="formsData[index]"
-            :key="index" 
-            :fields="fields" 
-            :inline="true"
-            :scope="getScope(index)"
-            :showSubmit="false">
-            <button class="btn btn-danger" @click="deleteRow(index)">Delete</button>
-        </Form>
+        <draggable :list="formsData" :options="sortableConfig">
+            <Form 
+                v-for="(item, index) in formsData" 
+                v-model="formsData[index]"
+                :key="index" 
+                :fields="fields" 
+                :inline="true"
+                :scope="getScope(index)"
+                :showSubmit="false">
+                <template slot="before">
+                    <i class="fa fa-bars pull-left grabber"></i>
+                </template>
+                <template slot="after">
+                    <button class="btn btn-danger" @click="deleteRow(index)">Delete</button>
+                </template>
+            </Form>
+        </draggable>
         <button class="btn btn-success" @click="addRow">Add</button>
         <button class="btn btn-primary" @click="submitFormSet">Submit</button>
     </div>
@@ -17,8 +24,11 @@
 
 <script>
 import Form from '@/forms/form.vue'
+import draggable from 'vuedraggable'
+
 export default {
     components: {
+        draggable,
         Form
     },
     props: {
@@ -30,6 +40,9 @@ export default {
         }
     },
     data: () => ({
+        sortableConfig: {
+            handle: '.grabber'
+        },
         formsData: []
     }),
     created: function() {

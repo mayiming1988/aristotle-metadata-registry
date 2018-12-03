@@ -1,5 +1,6 @@
 <template>
     <div class="vue-form" :class="{'form-inline': inline}">
+        <slot name="before"></slot>
         <apiErrors :errors="errors"></apiErrors>
         <bsFieldWrapper v-for="(fielddata, name) in fields" :name="name" :label="fielddata.label" :displayLabel="!inline" :hasErrors="fe_errors.has(name)">
             <span class="text-danger" v-if="!inline">{{ fe_errors.first(name) }}</span>
@@ -15,7 +16,7 @@
             </formField>
         </bsFieldWrapper>
         <button v-if="showSubmit" class="btn btn-primary" type="submit" @click="submitClicked">Submit</button>
-        <slot></slot>
+        <slot name="after"></slot>
     </div>
 </template>
 
