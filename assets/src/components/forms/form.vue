@@ -11,7 +11,7 @@
             v-validate="fielddata.rules">
             </formField>
         </bsFieldWrapper>
-        <button class="btn btn-primary" type="submit">Submit</button>
+        <button v-if="showSubmit" class="btn btn-primary" type="submit" @click="submitClicked">Submit</button>
     </div>
 </template>
 
@@ -41,6 +41,10 @@ export default {
         inline: {
             type: Boolean,
             default: false
+        },
+        showSubmit: {
+            type: Boolean,
+            default: true
         }
     },
     data: () => ({
@@ -63,6 +67,9 @@ export default {
             } else {
                 return ''
             }
+        },
+        submitClicked: function() {
+            this.$emit('submitted', this.formdata)
         }
     }
 }
