@@ -7,6 +7,7 @@
             :tag="fielddata.tag" 
             :name="name" 
             :placeholder="placeholder(name)"
+            :options="fielddata.options"
             v-model="formdata[name]" 
             v-validate="fielddata.rules">
             </formField>

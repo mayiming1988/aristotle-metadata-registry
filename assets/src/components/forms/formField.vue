@@ -1,5 +1,7 @@
 <template>
-    <component :is="tag" :id="name" :class="fieldClass" :value="value" @input="emitInput"></component>
+    <component :is="tag" :id="name" :class="fieldClass" :value="value" @input="emitInput">
+        <option v-for="option in options" :value="option[0]">{{ option[1] }}</option>
+    </component>
 </template>
 
 <script>
@@ -20,6 +22,10 @@ export default {
         fieldClass: {
             type: String,
             default: 'form-control'
+        },
+        options: {
+            type: Array,
+            default: []
         }
     },
     methods: {

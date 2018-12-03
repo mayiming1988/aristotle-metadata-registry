@@ -11,7 +11,7 @@ from django.db.models.functions import Lower
 from django.db.models.query import QuerySet
 from django.forms.models import model_to_dict
 from django.views.generic import FormView
-from django.forms import Form
+from django import forms
 from django.http import (
     Http404,
     JsonResponse,
@@ -594,13 +594,24 @@ class SimpleItemGet:
 
 class VueFormView(FormView):
 
+    widget_tag_mapping: Dict[str, str] = {'Textarea': 'textarea', 'Select': 'select'}
+
     rules_attrs_to_pull: List[str] = ['required', 'max_length', 'min_length']
     rules_mapping: Dict[str, str] = {'max_length': 'max', 'min_length': 'min'}
 
-    def get_vue_form_fields(self, form: Form) -> str:
+    def get_vue_form_fields(self, form: forms.Form) -> str:
         vuefields = {}
         for fname, field in form.fields.items():
-            field_data = {'rules': {}, 'tag': 'input', 'label': field.label}
+            widget_name = type(field.widget).__name__
+            field_data = {
+                'rules': {},
+                'tag': self.widget_tag_mapping.get(widget_name, 'input'),
+                'label': field.label,
+                'options': []
+            }
+
+            if widget_name == 'Select':
+                field_data['options'] = field.choices
 
             for attr in self.rules_attrs_to_pull:
                 if hasattr(field, attr):
