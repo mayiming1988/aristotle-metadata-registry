@@ -3,8 +3,9 @@
         <draggable :list="formsData" :options="sortableConfig">
             <Form 
                 v-for="(item, index) in formsData" 
-                v-model="formsData[index]"
-                :key="index" 
+                :value="formsData[index]"
+                @input="dataEdit(index, $event)"
+                :key="item.id" 
                 :fields="fields" 
                 :inline="true"
                 :scope="getScope(index)"
@@ -35,19 +36,26 @@ export default {
         fields: {
             type: Object
         },
+        orderField: {
+            type: String,
+            default: 'order'
+        },
         initial: {
             type: Array
         }
     },
     data: () => ({
         sortableConfig: {
-            handle: '.grabber'
+            handle: '.grabber',
         },
         formsData: []
     }),
     created: function() {
         if (this.initial) {
             this.formsData = this.initial
+            for (let i=0; i < this.formsData.length; i++) {
+                this.formsData[i]['id'] = i
+            }
         }
     },
     methods: {
@@ -63,9 +71,19 @@ export default {
         deleteRow: function(index) {
             this.formsData.splice(index, 1)
         },
+        dataEdit: function(index, value) {
+            console.log(index, value)
+            Object.assign(this.formsData[index], value)
+        },
         submitFormSet: function() {
             return 0
         }
     }
 }
 </script>
+
+<style>
+.grabber {
+    padding-top: 5px
+}
+</style>
