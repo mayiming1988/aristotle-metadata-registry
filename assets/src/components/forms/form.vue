@@ -1,14 +1,15 @@
 <template>
     <div class="vue-form" :class="{'form-inline': inline}">
         <apiErrors :errors="errors"></apiErrors>
-        <bsFieldWrapper v-for="(fielddata, name) in fields" :name="name" :label="fielddata.label" :displayLabel="!inline" :hasErrors="fe_errors.has(name)">
-            <span class="text-danger" v-if="!inline">{{ fe_errors.first(name) }}</span>
+        <bsFieldWrapper v-for="(fielddata, name) in fields" :name="getName(name)" :label="fielddata.label" :displayLabel="!inline" :hasErrors="fe_errors.has(getName(name))">
+            <span class="text-danger" v-if="!inline">{{ fe_errors.first(getName(name)) }}</span>
             <formField 
             :tag="fielddata.tag" 
-            :name="name" 
+            :name="getName(name)" 
             :placeholder="placeholder(name)"
             :options="fielddata.options"
-            v-model="formdata[name]" 
+            :value="formData[name]" 
+            @input="fieldInput(name, $event)"
             v-validate="fielddata.rules">
             </formField>
         </bsFieldWrapper>
@@ -30,6 +31,10 @@ export default {
         formField
     },
     props: {
+        fieldPrefix: {
+            type: String,
+            default: ''
+        },
         fields: {
             type: Object
         },
@@ -49,15 +54,15 @@ export default {
         }
     },
     data: () => ({
-        formdata: {}
+        formData: {}
     }),
     created: function() {
         if (this.initial) {
-            this.formdata = this.initial
+            this.formData = this.initial
         }
         for (let key of Object.keys(this.fields)) {
-            if (this.formdata[key] === undefined) {
-                this.formdata[key] = ''
+            if (this.formData[key] === undefined) {
+                this.formData[key] = ''
             }
         }
     },
@@ -74,7 +79,19 @@ export default {
             }
         },
         submitClicked: function() {
-            this.$emit('submitted', this.formdata)
+            this.$emit('submitted', this.formData)
+        },
+        getName: function(name) {
+            if (this.fieldPrefix) {
+                return this.fieldPrefix + name
+            } else {
+                return name
+            }
+        },
+        fieldInput: function(fname, value) {
+            console.log(value)
+            this.formData[fname] = value
+            this.$emit('input', this.formData)
         }
     }
 }

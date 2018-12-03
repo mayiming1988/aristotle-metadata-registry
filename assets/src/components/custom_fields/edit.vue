@@ -1,22 +1,23 @@
 <template>
-    <Form :fields="fields" :initial="initial" :inline="true"></Form>
+    <FormSet :fields="fields" :initial="initial"></FormSet>
 </template>
 
 <script>
-import Form from '@/forms/form.vue'
+import FormSet from '@/forms/formSet.vue'
 
 export default {
     components: {
-        Form
+        FormSet
     },
     props: ['dataFields'],
     created: function() {
         this.fields = JSON.parse(this.dataFields)
     },
     data: () => ({
-        initial: {
-            'name': 'wow'
-        }
+        initial: [
+            {'name': 'wow'},
+            {'name': 'pow'}
+        ]
     })
 }
 </script>
