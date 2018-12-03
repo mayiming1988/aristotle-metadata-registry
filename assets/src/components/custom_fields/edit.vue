@@ -13,12 +13,6 @@ export default {
     created: function() {
         this.fields = JSON.parse(this.dataFields)
         this.initial = JSON.parse(this.dataInitial)
-    },
-    data: () => ({
-        oldinitial: [
-            {'id': 1, 'name': 'wow'},
-            {'id': 2, 'name': 'pow'}
-        ]
-    })
+    }
 }
 </script>

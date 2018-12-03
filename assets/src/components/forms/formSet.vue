@@ -68,9 +68,6 @@ export default {
         }
     },
     methods: {
-        getPrefix: function(index) {
-            return index.toString() + '-'
-        },
         getScope: function(index) {
             return 'form' + index.toString()
         },

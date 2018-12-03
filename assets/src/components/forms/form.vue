@@ -2,8 +2,8 @@
     <div class="vue-form" :class="{'form-inline': inline}">
         <slot name="before"></slot>
         <apiErrors :errors="errors"></apiErrors>
-        <bsFieldWrapper v-for="(fielddata, name) in fields" :name="name" :label="fielddata.label" :displayLabel="!inline" :hasErrors="fe_errors.has(name)">
-            <span class="text-danger" v-if="!inline">{{ fe_errors.first(name) }}</span>
+        <bsFieldWrapper v-for="(fielddata, name) in fields" :name="name" :label="fielddata.label" :displayLabel="!inline" :hasErrors="hasError(name)">
+            <span class="text-danger formset-fe-error">{{ firstError(name) }}</span>
             <formField 
             :tag="fielddata.tag" 
             :name="name" 
@@ -57,6 +57,12 @@ export default {
         }
     },
     methods: {
+        hasError: function(field_name) {
+            return this.fe_errors.has(this.scope + '.' + field_name)
+        },
+        firstError: function(field_name) {
+            return this.fe_errors.first(this.scope + '.' + field_name)
+        },
         placeholder: function(field) {
             if (this.inline) {
                 if (this.fields[field]['label']) {
@@ -84,5 +90,8 @@ export default {
 <style>
 .form-inline .form-group {
     margin-right: 6px;
+}
+.form-inline .formset-fe-error {
+    display: block
 }
 </style>
