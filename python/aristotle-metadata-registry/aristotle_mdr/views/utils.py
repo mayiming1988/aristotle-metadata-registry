@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 
 from django.conf import settings
@@ -10,6 +10,8 @@ from django.db.models import Count, Q, Model
 from django.db.models.functions import Lower
 from django.db.models.query import QuerySet
 from django.forms.models import model_to_dict
+from django.views.generic import FormView
+from django.forms import Form
 from django.http import (
     Http404,
     JsonResponse,
@@ -587,4 +589,32 @@ class SimpleItemGet:
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['item'] = self.item.item
+        return context
+
+
+class VueFormView(FormView):
+
+    rules_attrs_to_pull: List[str] = ['required', 'max_length', 'min_length']
+    rules_mapping: Dict[str, str] = {'max_length': 'max', 'min_length': 'min'}
+
+    def get_vue_form_fields(self, form: Form) -> str:
+        vuefields = {}
+        for fname, field in form.fields.items():
+            field_data = {'rules': {}, 'tag': 'input', 'label': field.label}
+
+            for attr in self.rules_attrs_to_pull:
+                if hasattr(field, attr):
+                    attrdata = getattr(field, attr)
+                    if attrdata:
+                        if attr in self.rules_mapping:
+                            field_data['rules'][self.rules_mapping[attr]] = attrdata
+                        else:
+                            field_data['rules'][attr] = attrdata
+
+            vuefields[fname] = field_data
+        return json.dumps(vuefields)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data()
+        context['vue_fields'] = self.get_vue_form_fields(context['form'])
         return context

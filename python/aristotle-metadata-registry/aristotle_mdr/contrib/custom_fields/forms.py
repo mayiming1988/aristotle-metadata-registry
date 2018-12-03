@@ -6,6 +6,12 @@ from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.models import _concept
 
 
+class CustomFieldForm(forms.ModelForm):
+    class Meta:
+        model = CustomField
+        exclude = ['order']
+
+
 class CustomValueFormMixin:
 
     custom_field_names: List[str]

@@ -1,11 +1,13 @@
 from typing import Iterable
 from django.urls import reverse
-from django.views.generic import CreateView, UpdateView, DeleteView, ListView, TemplateView
+from django.views.generic import CreateView, UpdateView, DeleteView, ListView, FormView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from aristotle_mdr.mixins import IsSuperUserMixin
+from aristotle_mdr.views.utils import VueFormView
 from aristotle_mdr.views.generic import BootTableListView, CancelUrlMixin
 from aristotle_mdr.contrib.custom_fields import models
+from aristotle_mdr.contrib.custom_fields.forms import CustomFieldForm
 
 
 class CustomFieldCreateView(IsSuperUserMixin, CancelUrlMixin, CreateView):
@@ -58,8 +60,9 @@ class CustomFieldListView(IsSuperUserMixin, BootTableListView):
     attrs = ['name', 'hr_type', 'help_text']
 
 
-class CustomFieldMultiEditView(TemplateView):
+class CustomFieldMultiEditView(VueFormView):
     template_name='aristotle_mdr/custom_fields/multiedit.html'
+    form_class=CustomFieldForm
 
     def get_custom_fields(self) -> Iterable[models.CustomField]:
         return models.CustomField.objects.all()

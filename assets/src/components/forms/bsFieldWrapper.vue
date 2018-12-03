@@ -1,7 +1,7 @@
 <template>
-  <div class="form-group">
-    <label :class="labelClass" :for="name">{{ capitalize(name) }}</label>
-    <slot class="form-control"></slot>
+  <div class="form-group" :class="{'has-error': hasErrors}">
+    <label :class="{'sr-only': !displayLabel}" :for="name">{{ labelToDisplay }}</label>
+    <slot></slot>
   </div>
 </template>
 
@@ -12,20 +12,27 @@ export default {
         name: {
             type: String
         },
+        label: {
+            type: String
+        },
         displayLabel: {
             type: Boolean,
             default: true
+        },
+        hasErrors: {
+            type: Boolean,
+            default: false
         }
     },
     methods: {
         capitalize: capitalize
     },
     computed: {
-        labelClass: function() {
-            if (!this.displayLabel) {
-                return 'sr-only'
+        labelToDisplay: function() {
+            if (this.label != undefined) {
+                return this.label
             } else {
-                return ''
+                return capitalize(this.name)
             }
         }
     }

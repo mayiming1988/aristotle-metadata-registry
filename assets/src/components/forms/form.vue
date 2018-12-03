@@ -1,7 +1,7 @@
 <template>
     <div class="vue-form" :class="{'form-inline': inline}">
         <apiErrors :errors="errors"></apiErrors>
-        <bsFieldWrapper v-for="(fielddata, name) in fields" :name="name" :displayLabel="!inline">
+        <bsFieldWrapper v-for="(fielddata, name) in fields" :name="name" :label="fielddata.label" :displayLabel="!inline" :hasErrors="fe_errors.has(name)">
             <span class="text-danger" v-if="!inline">{{ fe_errors.first(name) }}</span>
             <formField 
             :tag="fielddata.tag" 
@@ -63,7 +63,11 @@ export default {
     methods: {
         placeholder: function(field) {
             if (this.inline) {
-                return capitalize(field)
+                if (this.fields[field]['label']) {
+                    return this.fields[field]['label']
+                } else {
+                    return capitalize(field)
+                }
             } else {
                 return ''
             }

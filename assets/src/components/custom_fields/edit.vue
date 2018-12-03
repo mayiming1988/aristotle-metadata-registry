@@ -9,16 +9,11 @@ export default {
     components: {
         Form
     },
+    props: ['dataFields'],
+    created: function() {
+        this.fields = JSON.parse(this.dataFields)
+    },
     data: () => ({
-        fields: {
-            'name': {
-                'tag': 'input',
-                'rules': {
-                    required: true,
-                    max: 7
-                }
-            }
-        },
         initial: {
             'name': 'wow'
         }
