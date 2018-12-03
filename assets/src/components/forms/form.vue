@@ -10,7 +10,8 @@
             :options="fielddata.options"
             :value="value[name]" 
             @input="fieldInput(name, $event)"
-            v-validate="fielddata.rules">
+            v-validate="fielddata.rules"
+            :data-vv-scopr="scope">
             </formField>
         </bsFieldWrapper>
         <button v-if="showSubmit" class="btn btn-primary" type="submit" @click="submitClicked">Submit</button>
@@ -32,6 +33,10 @@ export default {
         formField
     },
     props: {
+        scope: {
+            type: String,
+            default: 'form'
+        },
         fieldPrefix: {
             type: String,
             default: ''
@@ -77,6 +82,7 @@ export default {
             }
         },
         fieldInput: function(fname, value) {
+            // Emit a shallow copy, since we shouldn't alter props directly
             let copy = Object.assign({}, this.value)
             copy[fname] = value
             this.$emit('input', copy)

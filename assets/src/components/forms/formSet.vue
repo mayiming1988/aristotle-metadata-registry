@@ -6,7 +6,7 @@
             :key="index" 
             :fields="fields" 
             :inline="true"
-            :fieldPrefix="getPrefix(index)"
+            :scope="getScope(index)"
             :showSubmit="false">
             <button class="btn btn-danger" @click="deleteRow(index)">Delete</button>
         </Form>
@@ -40,6 +40,9 @@ export default {
     methods: {
         getPrefix: function(index) {
             return index.toString() + '-'
+        },
+        getScope: function(index) {
+            return 'form' + index.toString()
         },
         addRow: function() {
             this.formsData.push({})
