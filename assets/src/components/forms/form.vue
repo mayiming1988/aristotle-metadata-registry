@@ -8,7 +8,7 @@
             :name="getName(name)" 
             :placeholder="placeholder(name)"
             :options="fielddata.options"
-            :value="formData[name]" 
+            :value="value[name]" 
             @input="fieldInput(name, $event)"
             v-validate="fielddata.rules">
             </formField>
@@ -38,7 +38,7 @@ export default {
         fields: {
             type: Object
         },
-        initial: {
+        value: {
             type: Object
         },
         errors: {
@@ -51,19 +51,6 @@ export default {
         showSubmit: {
             type: Boolean,
             default: true
-        }
-    },
-    data: () => ({
-        formData: {}
-    }),
-    created: function() {
-        if (this.initial) {
-            this.formData = this.initial
-        }
-        for (let key of Object.keys(this.fields)) {
-            if (this.formData[key] === undefined) {
-                this.formData[key] = ''
-            }
         }
     },
     methods: {
@@ -79,7 +66,7 @@ export default {
             }
         },
         submitClicked: function() {
-            this.$emit('submitted', this.formData)
+            this.$emit('submitted', this.value)
         },
         getName: function(name) {
             if (this.fieldPrefix) {
@@ -89,9 +76,9 @@ export default {
             }
         },
         fieldInput: function(fname, value) {
-            console.log(value)
-            this.formData[fname] = value
-            this.$emit('input', this.formData)
+            let copy = Object.assign({}, this.value)
+            copy[fname] = value
+            this.$emit('input', copy)
         }
     }
 }

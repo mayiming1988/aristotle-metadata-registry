@@ -2,6 +2,7 @@
     <div class="vue-formset">
         <Form 
             v-for="(item, index) in formsData" 
+            v-model="formsData[index]"
             :key="index" 
             :fields="fields" 
             :inline="true"
