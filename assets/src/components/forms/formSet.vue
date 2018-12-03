@@ -8,6 +8,7 @@
             :inline="true"
             :fieldPrefix="getPrefix(index)"
             :showSubmit="false">
+            <button class="btn btn-danger" @click="deleteRow(index)">Delete</button>
         </Form>
         <button class="btn btn-success" @click="addRow">Add</button>
         <button class="btn btn-primary" @click="submitFormSet">Submit</button>
@@ -42,6 +43,9 @@ export default {
         },
         addRow: function() {
             this.formsData.push({})
+        },
+        deleteRow: function(index) {
+            this.formsData.splice(index, 1)
         },
         submitFormSet: function() {
             return 0

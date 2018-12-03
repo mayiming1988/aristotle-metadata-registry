@@ -14,6 +14,7 @@
             </formField>
         </bsFieldWrapper>
         <button v-if="showSubmit" class="btn btn-primary" type="submit" @click="submitClicked">Submit</button>
+        <slot></slot>
     </div>
 </template>
 
