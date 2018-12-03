@@ -53,9 +53,6 @@ export default {
     created: function() {
         if (this.initial) {
             this.formsData = this.initial
-            for (let i=0; i < this.formsData.length; i++) {
-                this.formsData[i]['id'] = i
-            }
         }
     },
     methods: {
@@ -72,7 +69,6 @@ export default {
             this.formsData.splice(index, 1)
         },
         dataEdit: function(index, value) {
-            console.log(index, value)
             Object.assign(this.formsData[index], value)
         },
         submitFormSet: function() {

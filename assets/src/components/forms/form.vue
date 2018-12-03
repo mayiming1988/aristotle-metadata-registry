@@ -12,7 +12,7 @@
             :value="value[name]" 
             @input="fieldInput(name, $event)"
             v-validate="fielddata.rules"
-            :data-vv-scopr="scope">
+            :data-vv-scope="scope">
             </formField>
         </bsFieldWrapper>
         <button v-if="showSubmit" class="btn btn-primary" type="submit" @click="submitClicked">Submit</button>

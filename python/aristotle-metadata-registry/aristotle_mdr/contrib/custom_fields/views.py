@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Iterable, List, Dict
 from django.urls import reverse
 from django.views.generic import CreateView, UpdateView, DeleteView, ListView, FormView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -8,6 +8,9 @@ from aristotle_mdr.views.utils import VueFormView
 from aristotle_mdr.views.generic import BootTableListView, CancelUrlMixin
 from aristotle_mdr.contrib.custom_fields import models
 from aristotle_mdr.contrib.custom_fields.forms import CustomFieldForm
+from aristotle_mdr_api.v4.custom_fields.serializers import CustomFieldSerializer
+
+import json
 
 
 class CustomFieldCreateView(IsSuperUserMixin, CancelUrlMixin, CreateView):
@@ -67,7 +70,12 @@ class CustomFieldMultiEditView(VueFormView):
     def get_custom_fields(self) -> Iterable[models.CustomField]:
         return models.CustomField.objects.all()
 
+    def get_vue_initial(self) -> List[Dict[str, str]]:
+        fields = self.get_custom_fields()
+        serializer = CustomFieldSerializer(fields, many=True)
+        return serializer.data
+
     def get_context_data(self, *args, **kwargs) -> dict:
         context = super().get_context_data(*args, **kwargs)
-        context['custom_fields'] = self.get_custom_fields()
+        context['initial'] = json.dumps(self.get_vue_initial())
         return context

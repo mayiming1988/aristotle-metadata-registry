@@ -9,14 +9,15 @@ export default {
     components: {
         FormSet
     },
-    props: ['dataFields'],
+    props: ['dataFields', 'dataInitial'],
     created: function() {
         this.fields = JSON.parse(this.dataFields)
+        this.initial = JSON.parse(this.dataInitial)
     },
     data: () => ({
-        initial: [
-            {'name': 'wow'},
-            {'name': 'pow'}
+        oldinitial: [
+            {'id': 1, 'name': 'wow'},
+            {'id': 2, 'name': 'pow'}
         ]
     })
 }
