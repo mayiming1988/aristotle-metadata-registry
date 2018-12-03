@@ -1,11 +1,11 @@
 <template>
     <div class="vue-form" :class="{'form-inline': inline}">
         <apiErrors :errors="errors"></apiErrors>
-        <bsFieldWrapper v-for="(fielddata, name) in fields" :name="getName(name)" :label="fielddata.label" :displayLabel="!inline" :hasErrors="fe_errors.has(getName(name))">
-            <span class="text-danger" v-if="!inline">{{ fe_errors.first(getName(name)) }}</span>
+        <bsFieldWrapper v-for="(fielddata, name) in fields" :name="name" :label="fielddata.label" :displayLabel="!inline" :hasErrors="fe_errors.has(name)">
+            <span class="text-danger" v-if="!inline">{{ fe_errors.first(name) }}</span>
             <formField 
             :tag="fielddata.tag" 
-            :name="getName(name)" 
+            :name="name" 
             :placeholder="placeholder(name)"
             :options="fielddata.options"
             :value="value[name]" 
@@ -36,10 +36,6 @@ export default {
         scope: {
             type: String,
             default: 'form'
-        },
-        fieldPrefix: {
-            type: String,
-            default: ''
         },
         fields: {
             type: Object
@@ -73,13 +69,6 @@ export default {
         },
         submitClicked: function() {
             this.$emit('submitted', this.value)
-        },
-        getName: function(name) {
-            if (this.fieldPrefix) {
-                return this.fieldPrefix + name
-            } else {
-                return name
-            }
         },
         fieldInput: function(fname, value) {
             // Emit a shallow copy, since we shouldn't alter props directly
