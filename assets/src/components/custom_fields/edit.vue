@@ -1,5 +1,10 @@
 <template>
-    <FormSet :fields="fields" :initial="initial"></FormSet>
+    <FormSet 
+        :fields="fields" 
+        :initial="initial" 
+        :url="url" 
+        :dontSubmitFields="dontSubmit">
+    </FormSet>
 </template>
 
 <script>
@@ -9,7 +14,10 @@ export default {
     components: {
         FormSet
     },
-    props: ['dataFields', 'dataInitial'],
+    props: ['dataFields', 'dataInitial', 'url'],
+    data: () => ({
+        dontSubmit: ['hr_type']    
+    }),
     created: function() {
         this.fields = JSON.parse(this.dataFields)
         this.initial = JSON.parse(this.dataInitial)

@@ -1,9 +1,8 @@
 <template>
     <div class="vue-form" :class="{'form-inline': inline}">
         <slot name="before"></slot>
-        <apiErrors :errors="errors"></apiErrors>
-        <bsFieldWrapper v-for="(fielddata, name) in fields" :name="name" :label="fielddata.label" :displayLabel="!inline" :hasErrors="hasError(name)">
-            <span class="text-danger formset-fe-error">{{ firstError(name) }}</span>
+        <bsFieldWrapper v-for="(fielddata, name) in fields" :name="name" :label="fielddata.label" :displayLabel="showLabels" :hasErrors="hasError(name)">
+            <singleError :feError="firstError(name)" :beErrors="getBackendErrors(name)"></singleError>
             <formField 
             :tag="fielddata.tag" 
             :name="name" 
@@ -23,15 +22,15 @@
 <script>
 import { capitalize } from 'src/lib/utils.js'
 
-import apiErrors from '@/apiErrorDisplay.vue'
+import singleError from '@/forms/singleError.vue'
 import formField from '@/forms/formField.vue'
 import bsFieldWrapper from '@/forms/bsFieldWrapper.vue'
 
 export default {
     components: {
-        apiErrors,
         bsFieldWrapper,
-        formField
+        formField,
+        singleError
     },
     props: {
         scope: {
@@ -54,14 +53,31 @@ export default {
         showSubmit: {
             type: Boolean,
             default: true
+        },
+        showLabels: {
+            type: Boolean,
+            default: true
         }
     },
     methods: {
+        mounted: function() {
+            this.$validator.validate()
+        },
         hasError: function(field_name) {
-            return this.fe_errors.has(this.scope + '.' + field_name)
+            let hasfe = this.fe_errors.has(field_name, this.scope)
+            let hasbe = (this.errors && this.errors[field_name])
+            return hasfe || hasbe
         },
         firstError: function(field_name) {
-            return this.fe_errors.first(this.scope + '.' + field_name)
+            return this.fe_errors.first(field_name, this.scope)
+        },
+        getBackendErrors: function(field_name) {
+            if (this.errors) {
+                if (this.errors[field_name] != undefined) {
+                    return this.errors[field_name]
+                }
+            }
+            return []
         },
         placeholder: function(field) {
             if (this.inline) {
@@ -75,7 +91,11 @@ export default {
             }
         },
         submitClicked: function() {
-            this.$emit('submitted', this.value)
+            this.$validator.validate().then((result) => {
+                if (result) {
+                    this.$emit('submitted', this.value)
+                }
+            })
         },
         fieldInput: function(fname, value) {
             // Emit a shallow copy, since we shouldn't alter props directly
@@ -92,6 +112,9 @@ export default {
     margin-right: 6px;
 }
 .form-inline .formset-fe-error {
-    display: block
+    display: block;
+}
+.form-inline label {
+    display: block;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-    <component :is="tag" :id="name" :class="fieldClass" :value="value" @input="emitInput">
+    <component :is="tag" :name="name" :class="fieldClass" :value="value" @input="emitInput">
         <option v-for="option in options" :value="option[0]" :selected="option[0] == value">{{ option[1] }}</option>
     </component>
 </template>

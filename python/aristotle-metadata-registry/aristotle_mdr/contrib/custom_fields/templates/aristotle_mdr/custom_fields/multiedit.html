@@ -12,6 +12,10 @@
 {% block page %}
 <h1>MultiEdit</h1>
 <div id="vue-container">
-  <cf-edit data-fields="{{ vue_fields }}" data-initial="{{ vue_initial }}"><cf-edit>
+  <cf-edit 
+    data-fields="{{ vue_fields }}" 
+    data-initial="{{ vue_initial }}"
+    url="{% url 'api_v4:custom_field_list' %}">
+  <cf-edit>
 </div>
 {% endblock %}

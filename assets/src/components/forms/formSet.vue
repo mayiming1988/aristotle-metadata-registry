@@ -1,5 +1,6 @@
 <template>
     <div class="vue-formset">
+        <alert v-if="message.length > 0" type="success">{{ message }}</alert>
         <draggable :list="formsData" :options="sortableConfig">
             <Form 
                 v-for="(item, index) in formsData" 
@@ -7,8 +8,10 @@
                 :key="item.vid" 
                 :fields="fields" 
                 :inline="true"
+                :errors="errors[index]"
                 :scope="getScope(index)"
-                :showSubmit="false">
+                :showSubmit="false"
+                :showLabels="false">
                 <template slot="before">
                     <i class="fa fa-lg fa-bars pull-left grabber"></i>
                 </template>
@@ -25,14 +28,21 @@
 </template>
 
 <script>
+import apiRequest from 'src/mixins/apiRequest.js'
+
+import { Alert } from 'uiv'
+import apiErrors from '@/apiErrorDisplay.vue'
 import Form from '@/forms/form.vue'
 import draggable from 'vuedraggable'
 
 export default {
     components: {
         draggable,
-        Form
+        Form,
+        apiErrors,
+        Alert
     },
+    mixins: [apiRequest],
     props: {
         fields: {
             type: Object
@@ -46,9 +56,13 @@ export default {
         },
         dontSubmitFields: {
             type: Array
+        },
+        url: {
+            type: String
         }
     },
     data: () => ({
+        message: '',
         sortableConfig: {
             handle: '.grabber',
         },
@@ -98,6 +112,9 @@ export default {
         submitFormSet: function() {
             let dataToSubmit = this.postProcess()
             console.log(dataToSubmit)
+            this.post(this.url, dataToSubmit).then((response) => {
+                this.message = 'Custom Fields Updated'
+            })
         }
     }
 }
