@@ -77,10 +77,7 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         return kwargs
 
     def get_custom_values(self):
-        qs = CustomValue.objects.filter(
-            concept=self.item._concept_ptr
-        ).select_related('field')
-        return qs
+        return CustomValue.objects.get_for_item(self.item._concept_ptr)
 
     def get_initial(self):
         initial = super().get_initial()

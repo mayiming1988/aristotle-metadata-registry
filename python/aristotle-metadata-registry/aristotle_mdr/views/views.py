@@ -245,10 +245,7 @@ class ConceptRenderMixin(TagsMixin):
         return get_links_for_concept(self.item)
 
     def get_custom_values(self):
-        qs = CustomValue.objects.filter(
-            concept=self.item._concept_ptr
-        ).select_related('field')
-        return qs
+        return CustomValue.objects.get_for_item(self.item._concept_ptr)
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)

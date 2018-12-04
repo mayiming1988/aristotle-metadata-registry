@@ -3,6 +3,7 @@ from model_utils.models import TimeStampedModel
 
 from aristotle_mdr.models import _concept
 from aristotle_mdr.fields import ConceptForeignKey
+from aristotle_mdr.contrib.custom_fields.managers import CustomValueManager
 from aristotle_mdr.contrib.custom_fields.types import type_choices
 
 
@@ -28,6 +29,8 @@ class CustomValue(TimeStampedModel):
     field = models.ForeignKey(CustomField)
     content = models.TextField()
     concept = ConceptForeignKey(_concept)
+
+    objects = CustomValueManager()
 
     class Meta:
         unique_together = ('field', 'concept')
