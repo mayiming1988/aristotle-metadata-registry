@@ -217,8 +217,8 @@ class CustomFieldsTestCase(BaseAPITestCase):
     def test_multiple_create(self):
         self.login_superuser()
         postdata = [
-            {'id': 1, 'order': 1, 'name': 'Spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
-            {'id': 2, 'order': 2, 'name': 'Blandness', 'type': 'int', 'help_text': 'The Blandness'}
+            {'order': 1, 'name': 'Spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
+            {'order': 2, 'name': 'Blandness', 'type': 'int', 'help_text': 'The Blandness'}
         ]
 
         response = self.client.post(

@@ -6,7 +6,7 @@ from aristotle_mdr.contrib.custom_fields.models import CustomField
 
 class CustomFieldSerializer(serializers.ModelSerializer):
 
-    id = serializers.IntegerField()
+    id = serializers.IntegerField(required=False)
     order = serializers.IntegerField()
     name = serializers.CharField(max_length=1000)
 
