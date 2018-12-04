@@ -60,12 +60,9 @@ export default {
         }
     },
     methods: {
-        mounted: function() {
-            this.$validator.validate()
-        },
         hasErrors: function(field_name) {
             let hasfe = this.fe_errors.has(field_name, this.scope)
-            let hasbe = (this.errors && this.errors[field_name])
+            let hasbe = (this.errors != undefined && this.errors[field_name] != undefined)
             return hasfe || hasbe
         },
         getFrontendError: function(field_name) {

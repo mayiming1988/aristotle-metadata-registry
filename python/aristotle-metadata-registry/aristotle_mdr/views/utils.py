@@ -608,9 +608,18 @@ class VueFormView(FormView):
     # Base field data
     default_tag = 'input'
 
+    # Fields to strip from initial
+    non_write_fields: List = []
+
     def get_vue_initial(self):
         # To be overwritten
         return {}
+
+    def strip_fields(self, data: List[Dict]):
+        for item in data:
+            for fname in self.non_write_fields:
+                if fname in data:
+                    del data[fname]
 
     def get_vue_form_fields(self, form: forms.Form) -> Dict[str, Dict]:
         vuefields = {}
@@ -647,5 +656,7 @@ class VueFormView(FormView):
         context['vue_fields'] = json.dumps(
             self.get_vue_form_fields(context['form'])
         )
-        context['vue_initial'] = json.dumps(self.get_vue_initial())
+        initial = self.get_vue_initial()
+        self.strip_fields(initial)
+        context['vue_initial'] = json.dumps(initial)
         return context

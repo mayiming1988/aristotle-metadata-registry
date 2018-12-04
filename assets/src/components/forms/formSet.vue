@@ -1,6 +1,5 @@
 <template>
     <div class="vue-formset">
-        <alert v-if="message.length > 0" type="success">{{ message }}</alert>
         <draggable :list="formsData" :options="sortableConfig">
             <Form 
                 v-for="(item, index) in formsData" 
@@ -28,10 +27,6 @@
 </template>
 
 <script>
-import apiRequest from 'src/mixins/apiRequest.js'
-
-import { Alert } from 'uiv'
-import apiErrors from '@/apiErrorDisplay.vue'
 import Form from '@/forms/form.vue'
 import draggable from 'vuedraggable'
 
@@ -39,10 +34,7 @@ export default {
     components: {
         draggable,
         Form,
-        apiErrors,
-        Alert
     },
-    mixins: [apiRequest],
     props: {
         fields: {
             type: Object
@@ -54,11 +46,8 @@ export default {
         initial: {
             type: Array
         },
-        dontSubmitFields: {
+        errors: {
             type: Array
-        },
-        url: {
-            type: String
         }
     },
     data: () => ({
@@ -72,11 +61,6 @@ export default {
     created: function() {
         if (this.initial) {
             this.formsData = this.initial
-        }
-        if (this.dontSubmitFields) {
-            for (let field of this.dontSubmitFields) {
-                this.stripFields.push(field)
-            }
         }
         for (let i=0; i < this.formsData.length; i++) {
             // Add a vue id to each item as unique key
@@ -111,9 +95,7 @@ export default {
         },
         submitFormSet: function() {
             let dataToSubmit = this.postProcess()
-            this.post(this.url, dataToSubmit).then((response) => {
-                this.message = 'Custom Fields Updated'
-            })
+            this.$emit('submit', dataToSubmit)
         }
     }
 }

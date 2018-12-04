@@ -25,6 +25,7 @@ class CustomFieldListView(IsSuperUserMixin, BootTableListView):
 class CustomFieldMultiEditView(VueFormView):
     template_name='aristotle_mdr/custom_fields/multiedit.html'
     form_class=CustomFieldForm
+    non_write_fields = ['hr_type']
 
     def get_custom_fields(self) -> Iterable[models.CustomField]:
         return models.CustomField.objects.all()
