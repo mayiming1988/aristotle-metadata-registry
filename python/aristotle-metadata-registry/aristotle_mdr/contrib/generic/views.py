@@ -511,7 +511,6 @@ class UnorderedGenericAlterOneToManyView(GenericAlterOneToManyViewBase):
 
 
 class ExtraFormsetMixin:
-
     # Mixin of utils function for adding addtional formsets to a view
     # extra_formsets must contain formset, type, title and saveargs
     # See EditItemView for example usage
@@ -669,6 +668,14 @@ class ExtraFormsetMixin:
         final_formset = formset(**fsargs)
 
         return final_formset
+
+    def get_slots_formset(self):
+        from aristotle_mdr.contrib.slots.forms import slot_inlineformset_factory
+        return slot_inlineformset_factory()
+
+    def get_identifier_formset(self):
+        from aristotle_mdr.contrib.identifiers.forms import identifier_inlineformset_factory
+        return identifier_inlineformset_factory()
 
     def get_model_field(self, model, search_model):
         # get the field in the model that we are adding so it can be excluded from form

@@ -14,7 +14,9 @@ from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
+from aristotle_mdr.contrib.custom_fields.models import CustomField
 from aristotle_mdr.contrib.help.models import ConceptHelp
+from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.utils import fetch_aristotle_settings, fetch_metadata_apps
 from aristotle_mdr.contrib.generic.views import ExtraFormsetMixin
 
@@ -117,6 +119,7 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             duplicates = self.find_duplicates()
             kwargs = self.get_form_kwargs(step)
             kwargs.update({
+                'custom_fields': CustomField.objects.all(),
                 'data': data,
                 'files': files,
                 'prefix': self.get_form_prefix(step, self.form_list[step]),
@@ -125,6 +128,23 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             })
             return MDRForms.wizards.subclassed_wizard_2_Results(self.model)(**kwargs)
         return super().get_form(step, data, files)
+
+    def get_extra_formsets(self, item=None, postdata=None):
+        extra_formsets = super().get_extra_formsets(item, postdata)
+
+        slots_formset = self.get_slots_formset()(
+            queryset=Slot.objects.none(),
+            data=postdata
+        )
+
+        extra_formsets.append({
+            'formset': slots_formset,
+            'title': 'Slots',
+            'type': 'slot',
+            'saveargs': None
+        })
+
+        return extra_formsets
 
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
@@ -141,6 +161,7 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             else:
                 context.update({'similar_items': self.find_similar()})
             context['step_title'] = _('Select or create')
+            context['show_slots_tab'] = True
 
             if 'extra_formsets' in kwargs:
                 fslist = kwargs['extra_formsets']
@@ -202,7 +223,10 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             if not formsets_invalid:
                 final_formsets = []
                 for info in extra_formsets:
-                    info['saveargs']['item'] = saved_item
+                    if info['type'] != 'slots':
+                        info['saveargs']['item'] = saved_item
+                    else:
+                        info['formset'].instance = saved_item
                     final_formsets.append(info)
 
                 self.save_formsets(final_formsets)

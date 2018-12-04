@@ -10,6 +10,8 @@ from aristotle_mdr.managers import ConceptQuerySet
 from aristotle_mdr.perms import user_can_move_between_workgroups, user_can_move_any_workgroup, user_can_remove_from_workgroup
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 
+from aristotle_mdr.contrib.custom_fields.forms import CustomValueFormMixin
+
 
 class UserAwareForm(forms.Form):
     def __init__(self, *args, **kwargs):
@@ -216,7 +218,7 @@ def subclassed_wizard_2_Results(set_model):
     return MyForm
 
 
-class Concept_2_Results(ConceptForm):
+class Concept_2_Results(CustomValueFormMixin, ConceptForm):
     make_new_item = forms.BooleanField(
         initial=False,
         label=_("I've reviewed these items, and none of them meet my needs. Make me a new one."),

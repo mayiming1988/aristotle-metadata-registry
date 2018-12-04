@@ -160,14 +160,6 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
 
             return HttpResponseRedirect(url_slugify_concept(self.item))
 
-    def get_slots_formset(self):
-        from aristotle_mdr.contrib.slots.forms import slot_inlineformset_factory
-        return slot_inlineformset_factory()
-
-    def get_identifier_formset(self):
-        from aristotle_mdr.contrib.identifiers.forms import identifier_inlineformset_factory
-        return identifier_inlineformset_factory()
-
     def form_invalid(self, form, formsets=None):
         """
         If the form is invalid, re-render the context data with the
