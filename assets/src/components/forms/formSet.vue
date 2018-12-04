@@ -59,8 +59,10 @@ export default {
         if (this.initial) {
             this.formsData = this.initial
         }
-        for (let field of this.dontSubmitFields) {
-            this.stripFields.push(field)
+        if (this.dontSubmitFields) {
+            for (let field of this.dontSubmitFields) {
+                this.stripFields.push(field)
+            }
         }
         for (let i=0; i < this.formsData.length; i++) {
             // Add a vue id to each item as unique key
