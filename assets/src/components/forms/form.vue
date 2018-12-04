@@ -1,8 +1,8 @@
 <template>
     <div class="vue-form" :class="{'form-inline': inline}">
         <slot name="before"></slot>
-        <bsFieldWrapper v-for="(fielddata, name) in fields" :name="name" :label="fielddata.label" :displayLabel="showLabels" :hasErrors="hasError(name)">
-            <singleError :feError="firstError(name)" :beErrors="getBackendErrors(name)"></singleError>
+        <bsFieldWrapper v-for="(fielddata, name) in fields" :name="name" :label="fielddata.label" :displayLabel="showLabels" :hasErrors="hasErrors(name)">
+            <singleError :feError="getFrontendError(name)" :beErrors="getBackendErrors(name)"></singleError>
             <formField 
             :tag="fielddata.tag" 
             :name="name" 
@@ -63,12 +63,12 @@ export default {
         mounted: function() {
             this.$validator.validate()
         },
-        hasError: function(field_name) {
+        hasErrors: function(field_name) {
             let hasfe = this.fe_errors.has(field_name, this.scope)
             let hasbe = (this.errors && this.errors[field_name])
             return hasfe || hasbe
         },
-        firstError: function(field_name) {
+        getFrontendError: function(field_name) {
             return this.fe_errors.first(field_name, this.scope)
         },
         getBackendErrors: function(field_name) {

@@ -111,7 +111,6 @@ export default {
         },
         submitFormSet: function() {
             let dataToSubmit = this.postProcess()
-            console.log(dataToSubmit)
             this.post(this.url, dataToSubmit).then((response) => {
                 this.message = 'Custom Fields Updated'
             })

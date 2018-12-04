@@ -13,47 +13,6 @@ from aristotle_mdr_api.v4.custom_fields.serializers import CustomFieldSerializer
 import json
 
 
-class CustomFieldCreateView(IsSuperUserMixin, CancelUrlMixin, CreateView):
-    model=models.CustomField
-    fields='__all__'
-    template_name='aristotle_mdr/custom_fields/field_form.html'
-    cancel_url_name='aristotle_custom_fields:list'
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context['heading'] = 'Create Custom Field'
-        context['submit_text'] = 'Create'
-        return context
-
-    def get_success_url(self):
-        return reverse('aristotle_custom_fields:list')
-
-
-class CustomFieldUpdateView(IsSuperUserMixin, CancelUrlMixin, UpdateView):
-    model=models.CustomField
-    fields='__all__'
-    template_name='aristotle_mdr/custom_fields/field_form.html'
-    cancel_url_name='aristotle_custom_fields:list'
-
-    def get_success_url(self):
-        return reverse('aristotle_custom_fields:list')
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context['heading'] = 'Update Custom Field'
-        context['submit_text'] = 'Update'
-        return context
-
-
-class CustomFieldDeleteView(IsSuperUserMixin, CancelUrlMixin, DeleteView):
-    model=models.CustomField
-    template_name='aristotle_mdr/custom_fields/delete.html'
-    cancel_url_name='aristotle_custom_fields:list'
-
-    def get_success_url(self) -> str:
-        return reverse('aristotle_custom_fields:list')
-
-
 class CustomFieldListView(IsSuperUserMixin, BootTableListView):
     template_name='aristotle_mdr/custom_fields/list.html'
     model=models.CustomField
