@@ -5,18 +5,30 @@ from aristotle_mdr.models import _concept
 from aristotle_mdr.fields import ConceptForeignKey
 from aristotle_mdr.contrib.custom_fields.managers import CustomValueManager
 from aristotle_mdr.contrib.custom_fields.types import type_choices
+from aristotle_mdr.contrib.slots.models import permission_choices
 
 
 class CustomField(TimeStampedModel):
     order = models.IntegerField(unique=True)
     name = models.CharField(max_length=1000, unique=True)
     type = models.CharField(max_length=10, choices=type_choices)
+    # Optional
     help_text = models.CharField(max_length=1000, blank=True)
+    allowed_models = ConceptForeignKey(_concept, blank=True, null=True)
+    visibility = models.IntegerField(
+        choices=permission_choices,
+        default=permission_choices.public
+    )
 
     @property
     def hr_type(self):
         """Human readable type"""
         return type_choices[self.type]
+
+    @property
+    def hr_visibility(self):
+        """Human readable visibility"""
+        return permission_choices[self.visibility]
 
     def can_view(self, user):
         return user.is_superuser

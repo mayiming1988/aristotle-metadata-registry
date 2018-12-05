@@ -8,9 +8,17 @@ These are based on the Slots definition in ISO/IEC 11179 Part 3 - 7.2.2.4
 from django.db import models
 
 from model_utils.models import TimeStampedModel
+from model_utils import Choices
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.fields import ConceptForeignKey
+
+
+permission_choices = Choices(
+    (0, 'public', 'Public'),
+    (1, 'auth', 'Authenticated'),
+    (2, 'workgroup', 'Workgroup'),
+)
 
 
 class Slot(TimeStampedModel):
@@ -22,13 +30,14 @@ class Slot(TimeStampedModel):
     value = models.TextField()
     order = models.PositiveSmallIntegerField("Position", default=0)
     permission = models.IntegerField(
-        choices=(
-            (0, 'Public'),
-            (1, 'Authenticated'),
-            (2, 'Workgroup'),
-        ),
-        default=0
+        choices=permission_choices,
+        default=permission_choices.public
     )
+
+    @property
+    def hr_permission(self):
+        """Human readable permission"""
+        return permission_choices[self.permission]
 
     def __str__(self):
         return u"{0} - {1}".format(self.name, self.value)
