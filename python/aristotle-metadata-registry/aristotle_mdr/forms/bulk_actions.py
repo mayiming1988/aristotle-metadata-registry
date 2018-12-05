@@ -83,7 +83,7 @@ class RedirectBulkActionMixin:
 
 class BulkActionForm(UserAwareForm):
     classes = ""
-    redirect: bool = True
+    redirect: bool = False
     confirm_page: Any = None
     all_in_queryset = forms.BooleanField(
         label=_("All items"),
