@@ -21,6 +21,8 @@ class CustomFieldListView(IsSuperUserMixin, BootTableListView):
     headers = ['Name', 'Type', 'Help Text']
     attrs = ['name', 'hr_type', 'help_text']
 
+    delete_url_name = 'aristotle_custom_fields:delete'
+
 
 class CustomFieldMultiEditView(VueFormView):
     template_name='aristotle_mdr/custom_fields/multiedit.html'
@@ -34,3 +36,12 @@ class CustomFieldMultiEditView(VueFormView):
         fields = self.get_custom_fields()
         serializer = CustomFieldSerializer(fields, many=True)
         return serializer.data
+
+
+class CustomFieldDeleteView(IsSuperUserMixin, CancelUrlMixin, DeleteView):
+    model=models.CustomField
+    template_name='aristotle_mdr/custom_fields/delete.html'
+    cancel_url_name='aristotle_custom_fields:list'
+
+    def get_success_url(self) -> str:
+        return reverse('aristotle_custom_fields:list')
