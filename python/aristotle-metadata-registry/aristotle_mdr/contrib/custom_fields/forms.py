@@ -22,6 +22,7 @@ class CustomFieldForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if 'allowed_models' in self.fields:
             self.fields['allowed_models'].queryset = self.get_concept_qs()
+            self.fields['allowed_models'].empty_label = 'All'
 
 
 class CustomValueFormMixin:
