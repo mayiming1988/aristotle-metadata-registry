@@ -637,7 +637,8 @@ class VueFormView(FormView):
                 field_data.update(self.widget_mapping[widget_name])
 
             if widget_name == 'Select':
-                field_data['options'] = field.choices
+                # field.choices can be an iterator hence the need for this
+                field_data['options'] = [(c[0], c[1]) for c in field.choices]
 
             for attr in self.rules_attrs_to_pull:
                 if hasattr(field, attr):

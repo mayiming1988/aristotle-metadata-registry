@@ -1,3 +1,5 @@
+from typing import List
+from django.apps import apps
 from django.conf import settings
 from django.urls import reverse
 from django.core.cache import cache
@@ -327,3 +329,14 @@ def get_aristotle_url(label, obj_id, obj_name=None):
 
 def pretify_camel_case(camelcase):
     return re.sub(r'([a-z0-9])([A-Z])', r'\1 \2', camelcase)
+
+
+def get_concept_models() -> List:
+    """Returns models for any concept subclass"""
+    from aristotle_mdr.models import _concept
+    models = []
+    for app_config in apps.get_app_configs():
+        for model in app_config.get_models():
+            if issubclass(model, _concept):
+                models.append(model)
+    return models

@@ -1,5 +1,6 @@
 from typing import Iterable, List
 from django import forms
+from django.contrib.contenttypes.models import ContentType
 
 from aristotle_mdr.contrib.custom_fields.types import type_field_mapping
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
@@ -10,6 +11,14 @@ class CustomFieldForm(forms.ModelForm):
     class Meta:
         model = CustomField
         exclude = ['order']
+
+    def get_concept_qs(self):
+        return ContentType.objects.filter(app_label='aristotle_mdr')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'allowed_models' in self.fields:
+            self.fields['allowed_models'].queryset = self.get_concept_qs()
 
 
 class CustomValueFormMixin:

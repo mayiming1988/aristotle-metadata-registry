@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.contenttypes.models import ContentType
 from model_utils.models import TimeStampedModel
 
 from aristotle_mdr.models import _concept
@@ -14,7 +15,7 @@ class CustomField(TimeStampedModel):
     type = models.CharField(max_length=10, choices=type_choices)
     # Optional
     help_text = models.CharField(max_length=1000, blank=True)
-    allowed_models = ConceptForeignKey(_concept, blank=True, null=True)
+    allowed_models = models.ForeignKey(ContentType, blank=True, null=True)
     visibility = models.IntegerField(
         choices=permission_choices,
         default=permission_choices.public

@@ -200,3 +200,8 @@ class UtilsTests(TestCase):
         self.assertFalse(field.is_link)
         self.assertFalse(field.is_reference)
         self.assertEqual(str(field), field.perm_message)
+
+    def test_get_concept_models(self):
+        cm = utils.utils.get_concept_models()
+        self.assertTrue(models.DataElement in cm)
+        self.assertFalse(models.PermissibleValue in cm)
