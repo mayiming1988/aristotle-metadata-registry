@@ -1,5 +1,11 @@
 <template>
     <div class="vue-formset">
+        <div v-if="showLabels" class="row">
+            <div class="col-md-1 text-center"><label>Order</label></div>
+            <div v-for="(fielddata, name) in fields" class="col-md-2">
+                <label v-if="fielddata.label">{{ fielddata.label }}</label>
+            </div>
+        </div>
         <draggable :list="formsData" :options="sortableConfig">
             <Form 
                 v-for="(item, index) in formsData" 
@@ -12,10 +18,14 @@
                 :showSubmit="false"
                 :showLabels="false">
                 <template slot="before">
-                    <i class="fa fa-lg fa-bars pull-left grabber"></i>
+                    <div class="col-md-1 text-center">
+                        <i class="fa fa-lg fa-bars grabber"></i>
+                    </div>
                 </template>
                 <template slot="after">
-                    <button class="btn btn-danger" @click="deleteRow(index)">Delete</button>
+                    <div class="col-md-2">
+                        <button class="btn btn-danger" @click="deleteRow(index)">Delete</button>
+                    </div>
                 </template>
             </Form>
         </draggable>
@@ -42,6 +52,10 @@ export default {
         orderField: {
             type: String,
             default: 'order'
+        },
+        showLabels: {
+            type: Boolean,
+            default: true
         },
         initial: {
             type: Array

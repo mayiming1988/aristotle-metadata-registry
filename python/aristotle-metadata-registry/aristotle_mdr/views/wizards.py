@@ -190,7 +190,6 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
         return super().get(*args, **kwargs)
 
     def post(self, *args, **kwargs):
-
         if self.steps.current == 'results':
             extra_formsets = self.get_extra_formsets(item=self.model, postdata=self.request.POST)
 
@@ -218,7 +217,6 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
                 form.save_m2m()
 
         if 'results_postdata' in self.request.session:
-
             extra_formsets = self.get_extra_formsets(item=self.model, postdata=self.request.session['results_postdata'])
             formsets_invalid = self.validate_formsets(extra_formsets)
             if not formsets_invalid:

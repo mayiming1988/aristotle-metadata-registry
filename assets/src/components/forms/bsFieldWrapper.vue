@@ -1,5 +1,5 @@
 <template>
-  <div class="form-group" :class="{'has-error': hasErrors}">
+  <div class="form-group" :class="{'has-error': hasErrors, 'col-md-2': column}">
     <label :class="{'sr-only': !displayLabel}" :for="name">{{ labelToDisplay }}</label>
     <slot></slot>
   </div>
@@ -20,6 +20,10 @@ export default {
             default: true
         },
         hasErrors: {
+            type: Boolean,
+            default: false
+        },
+        column: {
             type: Boolean,
             default: false
         }

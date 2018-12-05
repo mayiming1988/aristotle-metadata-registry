@@ -1,18 +1,18 @@
 <template>
-    <div class="vue-form" :class="{'form-inline': inline}">
+    <div class="vue-form" :class="{'row': inline}">
         <slot name="before"></slot>
-        <bsFieldWrapper v-for="(fielddata, name) in fields" :name="name" :label="fielddata.label" :displayLabel="showLabels" :hasErrors="hasErrors(name)">
+        <bsFieldWrapper v-for="(fielddata, name) in fields" :name="name" :label="fielddata.label" :displayLabel="showLabels" :hasErrors="hasErrors(name)" :column="inline">
             <singleError :feError="getFrontendError(name)" :beErrors="getBackendErrors(name)"></singleError>
-            <formField 
-            :tag="fielddata.tag" 
-            :name="name" 
-            :placeholder="placeholder(name)"
-            :options="fielddata.options"
-            :value="value[name]" 
-            @input="fieldInput(name, $event)"
-            v-validate="fielddata.rules"
-            :data-vv-scope="scope">
-            </formField>
+                <formField 
+                :tag="fielddata.tag" 
+                :name="name" 
+                :placeholder="placeholder(name)"
+                :options="fielddata.options"
+                :value="value[name]" 
+                @input="fieldInput(name, $event)"
+                v-validate="fielddata.rules"
+                :data-vv-scope="scope">
+                </formField>
         </bsFieldWrapper>
         <button v-if="showSubmit" class="btn btn-primary" type="submit" @click="submitClicked">Submit</button>
         <slot name="after"></slot>
