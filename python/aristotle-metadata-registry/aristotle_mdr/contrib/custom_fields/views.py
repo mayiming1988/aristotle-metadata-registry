@@ -5,7 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 
 from aristotle_mdr.mixins import IsSuperUserMixin
 from aristotle_mdr.views.utils import VueFormView
-from aristotle_mdr.views.generic import BootTableListView, CancelUrlMixin
+from aristotle_mdr.contrib.generic.views import BootTableListView, CancelUrlMixin
 from aristotle_mdr.contrib.custom_fields import models
 from aristotle_mdr.contrib.custom_fields.forms import CustomFieldForm
 from aristotle_mdr_api.v4.custom_fields.serializers import CustomFieldSerializer

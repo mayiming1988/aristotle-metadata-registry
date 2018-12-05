@@ -10,6 +10,7 @@ from django.shortcuts import redirect, get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import FormView, TemplateView, View
 from django.core.signing import TimestampSigner
+from django.views.generic import ListView, DeleteView
 
 from aristotle_mdr.contrib.autocomplete import widgets
 from aristotle_mdr.models import _concept, ValueDomain, AbstractValue
@@ -24,6 +25,7 @@ from aristotle_mdr.contrib.generic.forms import (
 import reversion
 import inspect
 import re
+from copy import copy
 
 import logging
 logger = logging.getLogger(__name__)
@@ -775,3 +777,74 @@ class ConfirmDeleteView(GenericWithItemURLView, TemplateView):
     def post(self, *args, **kwargs):
         self.perform_deletion()
         return HttpResponseRedirect(self.get_success_url())
+
+
+class BootTableListView(ListView):
+    """Lists objects in a bootstrap table (with optional pagination)"""
+    template_name='aristotle_mdr/generic/boottablelist.html'
+    # Need to override these
+    headers: List[str]
+    attrs: List[str]
+    model_name=''
+    # Can optionally override these
+    page_heading=''
+    create_button_text=''
+    create_url_name=''
+    delete_url_name=''
+    update_url_name=''
+
+    def get_context_data(self) -> dict:
+        context = super().get_context_data()
+        headers = copy(self.headers)
+        if self.page_heading:
+            page_heading = self.page_heading
+        else:
+            page_heading = 'List of {}s'.format(self.model_name)
+
+        if self.create_button_text:
+            create_button_text = self.create_button_text
+        else:
+            create_button_text = 'New {}'.format(self.model_name)
+
+        if self.create_url_name:
+            create_url = reverse(self.create_url_name)
+        else:
+            create_url = ''
+
+        if self.update_url_name:
+            headers.append('Update')
+        if self.delete_url_name:
+            headers.append('Delete')
+
+        if context['page_obj'] is not None:
+            iterable = context['page_obj']
+        else:
+            iterable = context['object_list']
+
+        final_list = []
+        for item in iterable:
+            itemdict = {'attrs': [], 'pk': item.pk}
+            for attr in self.attrs:
+                itemdict['attrs'].append(getattr(item, attr))
+            final_list.append(itemdict)
+
+        context.update({
+            'list': final_list,
+            'headers': headers,
+            'page_heading': page_heading,
+            'create_button_text': create_button_text,
+            'create_url': create_url,
+            'delete_url_name': self.delete_url_name,
+            'update_url_name': self.update_url_name
+        })
+        return context
+
+
+class CancelUrlMixin:
+    cancel_url_name=''
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        if self.cancel_url_name:
+            context['cancel_url'] = reverse(self.cancel_url_name)
+        return context
