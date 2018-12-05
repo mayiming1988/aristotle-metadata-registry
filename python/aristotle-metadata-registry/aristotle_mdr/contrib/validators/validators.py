@@ -1,3 +1,4 @@
+from typing import List, Callable, Any
 import re
 from aristotle_mdr import models
 from django.conf import settings
@@ -42,7 +43,7 @@ class Checker:
 
 
 class BaseValidator:
-    allowed_types = None
+    allowed_types: List[str] = []
 
     def __init__(self, rule):
         if 'validator' not in rule.keys():
