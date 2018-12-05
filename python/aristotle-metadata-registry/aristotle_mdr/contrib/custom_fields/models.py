@@ -23,6 +23,9 @@ class CustomField(TimeStampedModel):
 
     objects = CustomFieldManager()
 
+    class Meta:
+        ordering = ['order']
+
     @property
     def hr_type(self):
         """Human readable type"""
@@ -48,6 +51,7 @@ class CustomValue(TimeStampedModel):
     objects = CustomValueManager()
 
     class Meta:
+        ordering = ['field__order']
         unique_together = ('field', 'concept')
 
     @property

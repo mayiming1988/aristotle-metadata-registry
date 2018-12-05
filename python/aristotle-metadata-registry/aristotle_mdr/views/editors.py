@@ -71,7 +71,7 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         kwargs.update({
             'user': self.request.user,
             'instance': self.item,
-            'custom_fields': CustomField.objects.all()
+            'custom_fields': CustomField.objects.get_for_model(type(self.item))
         })
         return kwargs
 
