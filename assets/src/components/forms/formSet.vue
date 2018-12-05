@@ -5,6 +5,7 @@
             <div v-for="(fielddata, name) in fields" class="col-md-2">
                 <label v-if="fielddata.label">{{ fielddata.label }}</label>
             </div>
+            <div class="col-md-2"><label>Delete</label></div>
         </div>
         <draggable :list="formsData" :options="sortableConfig">
             <Form 
