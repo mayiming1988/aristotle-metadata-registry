@@ -14,7 +14,7 @@
                 :key="item.vid" 
                 :fields="fields" 
                 :inline="true"
-                :errors="be_errors[item.vid]"
+                :errors="getError(item.vid)"
                 :scope="getScope(index)"
                 :showSubmit="false"
                 :showLabels="false">
@@ -75,6 +75,7 @@ export default {
             handle: '.grabber',
         },
         stripFields: ['vid'],
+        be_errors: {},
         formsData: []
     }),
     created: function() {
@@ -86,18 +87,21 @@ export default {
             this.formsData[i]['vid'] = i
         }
     },
-    computed: {
-        be_errors: function() {
+    watch: {
+        errors: function() {
             let error_map = {}
             for (let i=0; i < this.errors.length; i++) {
                 let err = this.errors[i]
                 let vid = this.formsData[i]['vid']
                 error_map[vid] = err
             }
-            return error_map
+            this.be_errors = error_map
         }
     },
     methods: {
+        getError: function(vid) {
+            return this.be_errors[vid]
+        },
         getScope: function(index) {
             return 'form' + index.toString()
         },
