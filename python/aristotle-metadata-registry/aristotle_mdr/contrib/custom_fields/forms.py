@@ -25,6 +25,7 @@ class CustomFieldForm(forms.ModelForm):
 
 
 class CustomValueFormMixin:
+    """Used with concept form"""
 
     custom_field_names: List[str]
     fields: dict

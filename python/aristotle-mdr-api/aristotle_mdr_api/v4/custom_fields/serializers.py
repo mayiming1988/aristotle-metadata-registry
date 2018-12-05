@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from aristotle_mdr_api.v4.serializers import MultiUpdateListSerializer
+from aristotle_mdr_api.v4.serializers import MultiUpdateNoDeleteListSerializer
 from aristotle_mdr.contrib.custom_fields.models import CustomField
 
 
@@ -14,4 +14,4 @@ class CustomFieldSerializer(serializers.ModelSerializer):
         model = CustomField
         fields = ('id', 'order', 'name', 'type', 'help_text', 'hr_type')
         read_only_fields = ('hr_type',)
-        list_serializer_class = MultiUpdateListSerializer
+        list_serializer_class = MultiUpdateNoDeleteListSerializer

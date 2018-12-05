@@ -1,4 +1,5 @@
 from typing import Iterable, Dict
+from django.db.models import Model
 from django.urls import reverse
 from django.db.models.query import QuerySet
 from rest_framework import serializers
@@ -63,7 +64,7 @@ class MultiUpdateListSerializer(serializers.ListSerializer):
     perform_delete = True
 
     def update(self, instance: QuerySet, validated_data: Iterable[Dict]):
-        db_mapping = {obj.id: obj for obj in instance}
+        db_mapping: Dict[int, Model] = {obj.id: obj for obj in instance}
 
         existing_data = []
         new_data = []
@@ -90,9 +91,13 @@ class MultiUpdateListSerializer(serializers.ListSerializer):
 
         # Delete existing items
         if self.perform_delete:
-            for iid, item in db_mapping.items():
+            for iid, inst in db_mapping.items():
                 if iid not in submitted_ids:
                     # Item has been removed
-                    item.delete()
+                    inst.delete()
 
         return return_list
+
+
+class MultiUpdateNoDeleteListSerializer(MultiUpdateListSerializer):
+    perform_delete = False
