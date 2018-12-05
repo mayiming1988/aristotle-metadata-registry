@@ -76,7 +76,8 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         return kwargs
 
     def get_custom_values(self):
-        return CustomValue.objects.get_for_item(self.item._concept_ptr)
+        # If we are editing, must be able to see all values
+        return CustomValue.objects.get_for_item(self.item.concept)
 
     def get_initial(self):
         initial = super().get_initial()

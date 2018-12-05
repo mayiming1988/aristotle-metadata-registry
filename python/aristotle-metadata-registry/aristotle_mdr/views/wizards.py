@@ -186,7 +186,6 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
     def get(self, *args, **kwargs):
         if 'results_postdata' in self.request.session.keys():
             self.request.session.pop('results_postdata')
-
         return super().get(*args, **kwargs)
 
     def post(self, *args, **kwargs):
