@@ -17,11 +17,13 @@ class CustomFieldsTestCase(AristotleTestUtils, TestCase):
 
     def test_custom_fields_list(self):
         cf1 = CustomField.objects.create(
+            order=0,
             name='CF1',
             type='str',
             help_text='Custom Field 1'
         )
         cf2 = CustomField.objects.create(
+            order=1,
             name='CF2',
             type='str',
             help_text='Custom Field 2'
@@ -34,8 +36,8 @@ class CustomFieldsTestCase(AristotleTestUtils, TestCase):
         )
         flist = response.context['list']
 
-        self.assertEqual(flist[0][0], 'CF1')
-        self.assertEqual(flist[1][0], 'CF2')
+        self.assertEqual(flist[0]['attrs'][0], 'CF1')
+        self.assertEqual(flist[1]['attrs'][0], 'CF2')
 
     def test_custom_field_delete(self):
         cf = self.create_test_field()
