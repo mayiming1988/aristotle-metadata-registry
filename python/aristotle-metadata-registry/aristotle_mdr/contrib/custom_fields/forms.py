@@ -5,6 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 from aristotle_mdr.contrib.custom_fields.types import type_field_mapping
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.models import _concept
+from aristotle_mdr.utils.utils import get_concept_content_types
 
 
 class CustomFieldForm(forms.ModelForm):
@@ -13,7 +14,9 @@ class CustomFieldForm(forms.ModelForm):
         exclude = ['order']
 
     def get_concept_qs(self):
-        return ContentType.objects.filter(app_label='aristotle_mdr')
+        mapping = get_concept_content_types()
+        ids = [ct.id for ct in mapping.values()]
+        return ContentType.objects.filter(id__in=ids)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

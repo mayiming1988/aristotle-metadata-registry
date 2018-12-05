@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 from django.apps import apps
 from django.conf import settings
 from django.urls import reverse
@@ -11,7 +11,8 @@ from django.utils.module_loading import import_string
 from django.utils.text import get_text_list
 from django.utils.translation import ugettext as _
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, Model
+from django.contrib.contenttypes.models import ContentType
 
 import logging
 import inspect
@@ -331,7 +332,7 @@ def pretify_camel_case(camelcase):
     return re.sub(r'([a-z0-9])([A-Z])', r'\1 \2', camelcase)
 
 
-def get_concept_models() -> List:
+def get_concept_models() -> List[Model]:
     """Returns models for any concept subclass"""
     from aristotle_mdr.models import _concept
     models = []
@@ -340,3 +341,8 @@ def get_concept_models() -> List:
             if issubclass(model, _concept):
                 models.append(model)
     return models
+
+
+def get_concept_content_types() -> Dict[Model, ContentType]:
+    models = get_concept_models()
+    return ContentType.objects.get_for_models(*models)
