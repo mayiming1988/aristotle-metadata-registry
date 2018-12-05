@@ -214,6 +214,7 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             if saved_item is not None:
                 saved_item.submitter = self.request.user
                 saved_item.save()
+                form.save_custom_fields(saved_item)
                 form.save_m2m()
 
         if 'results_postdata' in self.request.session:
@@ -223,7 +224,7 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             if not formsets_invalid:
                 final_formsets = []
                 for info in extra_formsets:
-                    if info['type'] != 'slots':
+                    if info['type'] != 'slot':
                         info['saveargs']['item'] = saved_item
                     else:
                         info['formset'].instance = saved_item

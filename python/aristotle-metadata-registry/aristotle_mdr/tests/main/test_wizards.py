@@ -1,8 +1,11 @@
+from unittest import skip
 from django.test import TestCase, tag
 from django.urls import reverse
 from django.core.management import call_command
 
 import aristotle_mdr.models as models
+from aristotle_mdr.contrib.slots.models import Slot
+from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 import aristotle_mdr.tests.utils as utils
 from aristotle_mdr.utils import url_slugify_concept
 
@@ -62,10 +65,11 @@ class ConceptWizard_TestInvalidUrls(HaystackReindexMixin, utils.LoggedInViewPage
 
 
 
-class ConceptWizardPage(HaystackReindexMixin, utils.LoggedInViewPages):
+class ConceptWizardPage(HaystackReindexMixin, utils.AristotleTestUtils):
     wizard_name="Harry Potter" # This used to be needed, now its not. We kept it cause its funny.
     wizard_form_name="dynamic_aristotle_wizard"
     extra_step2_data = {}
+    step_names = ['initial', 'results']
     # def tearDown(self):
     #     call_command('clear_index', interactive=False, verbosity=0)
 
@@ -116,6 +120,7 @@ class ConceptWizardPage(HaystackReindexMixin, utils.LoggedInViewPages):
     def do_test_for_issue333(self,response):
         self.assertTrue(self.extra_wg in response.context['form'].fields['workgroup'].queryset)
 
+    @tag('wizardobj')
     def test_editor_can_make_object(self):
         self.login_editor()
         step_1_data = {
@@ -142,10 +147,10 @@ class ConceptWizardPage(HaystackReindexMixin, utils.LoggedInViewPages):
             self.wizard_form_name+'-current_step': 'results',
             'results-name':"Test Item",
         }
-        management_forms = utils.get_management_forms(self.model, item_is_model=True)
+        management_forms = utils.get_management_forms(self.model, item_is_model=True, slots=True)
         step_2_data.update(management_forms)
         step_2_data.update(self.extra_step2_data)
-        
+
         response = self.client.post(self.wizard_url, step_2_data)
         wizard = response.context['wizard']
         self.assertTrue('definition' in wizard['form'].errors.keys())
@@ -175,6 +180,81 @@ class ConceptWizardPage(HaystackReindexMixin, utils.LoggedInViewPages):
         self.assertEqual(models._concept.objects.filter(name="Test Item").count(),1)
         item = models._concept.objects.filter(name="Test Item").first()
         self.assertRedirects(response,url_slugify_concept(item))
+
+    @tag('wizardobjslots')
+    def test_editor_can_make_object_with_slots(self):
+        wizard_data = [
+            {
+                'dynamic_aristotle_wizard-current_step': 'initial',
+                'initial-name': 'My new object'
+            },
+            {
+                'dynamic_aristotle_wizard-current_step': 'results',
+                'results-name': 'My new object',
+                'results-definition': 'Brand new'
+            }
+        ]
+        slots_data = [
+            {'name': 'Extra', 'type': 'String', 'value': 'SomeExtraData',
+             'order': 0, 'permission': 0}
+        ]
+
+        formsets = utils.get_management_forms(self.model, item_is_model=True)
+        formsets.update(self.get_formset_postdata(slots_data, 'slots'))
+        wizard_data[1].update(formsets)
+
+        self.login_editor()
+        response = self.post_direct_to_wizard(
+            wizard_data,
+            self.wizard_url,
+            self.step_names
+        )
+        self.assertEqual(response.status_code, 302)
+        item = models._concept.objects.get(name='My new object')
+        self.assertEqual(item.definition, 'Brand new')
+        slot = Slot.objects.get(
+            concept=item,
+            name='Extra'
+        )
+        self.assertEqual(slot.value, 'SomeExtraData')
+
+    @tag('wizardobjcf')
+    def test_editor_can_make_object_with_custom_values(self):
+        cf = CustomField.objects.create(
+            order=0,
+            name='ExtraInfo',
+            type='str',
+        )
+
+        wizard_data = [
+            {
+                'dynamic_aristotle_wizard-current_step': 'initial',
+                'initial-name': 'My new object'
+            },
+            {
+                'dynamic_aristotle_wizard-current_step': 'results',
+                'results-name': 'My new object',
+                'results-definition': 'Brand new',
+                'results-custom_ExtraInfo': 'SomeExtraInformation'
+            }
+        ]
+        formsets = utils.get_management_forms(self.model, item_is_model=True, slots=True)
+        wizard_data[1].update(formsets)
+
+        self.login_editor()
+        response = self.post_direct_to_wizard(
+            wizard_data,
+            self.wizard_url,
+            self.step_names
+        )
+        self.assertEqual(response.status_code, 302)
+
+        concept = models._concept.objects.get(name='My new object')
+        cv = CustomValue.objects.get(
+            concept=concept,
+            field=cf
+        )
+        self.assertEqual(cv.content, 'SomeExtraInformation')
 
     def test_editor_can_make_object__where_item_already_has_duplicate_name(self):
         self.item_existing = self.model.objects.create(
@@ -250,7 +330,7 @@ class ObjectClassWizardPage(ConceptWizardPage,TestCase):
 class PropertyWizardPage(ConceptWizardPage,TestCase):
     model=models.Property
 
-class ConceptualDomainWizardPage(FormsetTestUtils, ConceptWizardPage, TestCase):
+class ConceptualDomainWizardPage(ConceptWizardPage, TestCase):
     model=models.ConceptualDomain
 
     def post_first_step(self):
@@ -328,7 +408,7 @@ class ConceptualDomainWizardPage(FormsetTestUtils, ConceptWizardPage, TestCase):
         self.assertContains(response, 'This field is required.')
 
 
-class ValueDomainWizardPage(FormsetTestUtils, ConceptWizardPage,TestCase):
+class ValueDomainWizardPage(ConceptWizardPage,TestCase):
     model=models.ValueDomain
 
     @tag('edit_formsets')
@@ -392,7 +472,7 @@ class DataElementWizardPage(ConceptWizardPage, TestCase):
     model=models.DataElement
 
 
-class DataElementDerivationWizardPage(FormsetTestUtils, ConceptWizardPage,TestCase):
+class DataElementDerivationWizardPage(ConceptWizardPage,TestCase):
     model=models.DataElementDerivation
 
     @tag('edit_formsets')
@@ -906,7 +986,7 @@ class DataElementAdvancedWizardPage(HaystackReindexMixin, utils.LoggedInViewPage
         self.assertTrue(models.DataElementConcept.objects.filter(name="Animagus--Animal type").exists())
         self.assertTrue(models.DataElement.objects.filter(name="Animagus--Animal type, MoM Code").exists())
 
-"""
+    @skip('Test needs to be updated')
     def test_editor_can_make_object__no_prior_components(self):
         self.login_editor()
         step_1_data = {
@@ -1024,7 +1104,6 @@ class DataElementAdvancedWizardPage(HaystackReindexMixin, utils.LoggedInViewPage
         wizard = response.context['wizard']
         self.assertEqual(response.status_code, 200)
         self.assertTrue('name' in wizard['form'].errors.keys())
-"""
 
 """Ordinary. Wizarding. Level. Examinations. O.W.L.s. More commonly known as 'Owls'.
 Study hard and you will be rewarded.

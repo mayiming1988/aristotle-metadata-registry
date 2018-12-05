@@ -129,7 +129,6 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
 
         if form.is_valid():
             item = form.save(commit=False)
-            form.save_custom_fields(item)
             change_comments = form.data.get('change_comments', None)
             form_invalid = False
         else:
@@ -157,6 +156,7 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
                 # Save item
                 form.save_m2m()
                 item.save()
+                form.save_custom_fields(item)
 
             return HttpResponseRedirect(url_slugify_concept(self.item))
 
