@@ -24,18 +24,10 @@ class UserAwareForm(forms.Form):
         super().__init__(*args, **kwargs)
 
 
-class UserAwareModelForm(UserAwareForm, forms.ModelForm):  # , autocomplete_light.ModelForm):
+class UserAwareModelForm(UserAwareForm, forms.ModelForm):
     class Meta:
         model = MDR._concept
         exclude = ['superseded_by_items', '_is_public', '_is_locked', 'originURI', 'submitter']
-
-    def _media(self):
-        js = ('aristotle_mdr/aristotle.wizard.js', )  # , '/static/tiny_mce/tiny_mce.js', '/static/aristotle_mdr/aristotle.tinymce.js')
-        media = forms.Media(js=js)
-        for field in self.fields.values():
-            media = media + field.widget.media
-        return media
-    media = property(_media)
 
 
 class WorkgroupVerificationMixin(forms.ModelForm):

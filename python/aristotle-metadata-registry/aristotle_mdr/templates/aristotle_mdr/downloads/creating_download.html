@@ -1,0 +1,70 @@
+{% extends 'aristotle_mdr/base.html' %}
+
+<!--Adding meta to refresh every 10 seconds-->
+{% block extra_head_scripts %}
+{% load staticfiles %}
+<script src="{% static 'aristotle_mdr/aristotle.downloads.js' %}" type="text/javascript"></script>
+{% endblock %}
+
+{% block title %} Preparing download{% endblock %}
+
+
+{% block content %}
+<div style="height: 400px;">
+    <div id="download-wrapper" >
+        <div class="row">
+            <div class="col-md-1" id="download-nav-controls"></div>
+            <div class="col-md-3 text-right">
+                <i style="font-size: 10em;" class="fa {% if file_details.format == 'pdf' %}fa-file-pdf-o{% else %}fa-file-o{% endif %}"></i>
+            </div>
+            <div class="col-md-8">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h3>{{file_details.title}}</h3>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12" id="download-link-wrapper">
+                        <p>
+                        <i class="fa fa-spinner fa-pulse"></i> Please wait while we are preparing your download
+                        </p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <h5>File details</h5>
+                    </div>
+                    <div class="col-md-2">Items</div>
+                    <div class="col-md-1">:</div>
+                    <div class="col-md-9">{{file_details.items}}</div>
+
+                    <div class="col-md-2">File format</div>
+                    <div class="col-md-1">:</div>
+                    <div class="col-md-9">{{file_details.format}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script async>
+    $(document).ready(function () {
+        function initDownloadsPage() {
+            goBackDownloadButton();
+
+            {% if is_expired %}
+            downloadReady = true
+            expireDownload();
+            {% elif file_details.download_url %}
+            downloadReady = true
+            readyDownload({
+                ttl: {{file_details.ttl}},
+                download_url: '{{file_details.download_url}}'
+            });
+            {% endif %}
+        }
+
+        initDownloadsPage();
+    })
+</script>
+
+{% endblock %}
