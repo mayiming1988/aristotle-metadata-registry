@@ -5,7 +5,7 @@
             <div v-for="(fielddata, name) in fields" class="col-md-2">
                 <label v-if="fielddata.label">{{ fielddata.label }}</label>
             </div>
-            <div class="col-md-2"><label>Delete</label></div>
+            <div v-if="showDelete" class="col-md-2"><label>Delete</label></div>
         </div>
         <draggable :list="formsData" :options="sortableConfig">
             <Form 
@@ -14,7 +14,7 @@
                 :key="item.vid" 
                 :fields="fields" 
                 :inline="true"
-                :errors="errors[index]"
+                :errors="be_errors[item.vid]"
                 :scope="getScope(index)"
                 :showSubmit="false"
                 :showLabels="false">
@@ -23,7 +23,7 @@
                         <i class="fa fa-lg fa-bars grabber"></i>
                     </div>
                 </template>
-                <template slot="after">
+                <template v-if="showDelete" slot="after">
                     <div class="col-md-2">
                         <button class="btn btn-danger" @click="deleteRow(index)">Delete</button>
                     </div>
@@ -58,6 +58,10 @@ export default {
             type: Boolean,
             default: true
         },
+        showDelete: {
+            type: Boolean,
+            default: true
+        },
         initial: {
             type: Array
         },
@@ -80,6 +84,17 @@ export default {
         for (let i=0; i < this.formsData.length; i++) {
             // Add a vue id to each item as unique key
             this.formsData[i]['vid'] = i
+        }
+    },
+    computed: {
+        be_errors: function() {
+            let error_map = {}
+            for (let i=0; i < this.errors.length; i++) {
+                let err = this.errors[i]
+                let vid = this.formsData[i]['vid']
+                error_map[vid] = err
+            }
+            return error_map
         }
     },
     methods: {

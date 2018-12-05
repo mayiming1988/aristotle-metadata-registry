@@ -16,7 +16,8 @@
     data-fields="{{ vue_fields }}" 
     data-initial="{{ vue_initial }}"
     data-dont-submit="{{ vue_dont_submit }}"
-    url="{% url 'api_v4:custom_field_list' %}">
+    url="{% url 'api_v4:custom_field_list' %}"
+    :show-delete="false">
   </formset>
 </div>
 {% endblock %}

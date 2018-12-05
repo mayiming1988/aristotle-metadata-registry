@@ -5,6 +5,8 @@
             :fields="fields" 
             :initial="initial" 
             :errors="errors"
+            :showLabeld="showLabels"
+            :showDelete="showDelete"
             @submit="onSubmit">
         </FormSet>
     </div>
@@ -22,7 +24,8 @@ export default {
         Alert
     },
     data: () => ({
-        message: ''
+        message: '',
+        errors: []
     }),
     props: {
         dataFields: {
@@ -34,16 +37,24 @@ export default {
         },
         url: {
             type: String
-        }
+        },
+        showLabels: {
+            type: Boolean,
+            default: true
+        },
+        showDelete: {
+            type: Boolean,
+            default: true
+        },
     },
     created: function() {
         this.fields = JSON.parse(this.dataFields)
         this.initial = JSON.parse(this.dataInitial)
-        this.errors = []
     },
     methods: {
         onSubmit: function(data) {
-            this.post(this.url, data).then((response) => {
+            this.post(this.url, data)
+            .then(() => {
                 this.message = 'Custom Fields Updated'
             })
         }
