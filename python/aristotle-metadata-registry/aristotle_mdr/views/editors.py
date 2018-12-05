@@ -17,7 +17,6 @@ from aristotle_mdr import models as MDR
 from aristotle_mdr.views.utils import ObjectLevelPermissionRequiredMixin
 from aristotle_mdr.contrib.identifiers.models import ScopedIdentifier
 from aristotle_mdr.contrib.slots.models import Slot
-from aristotle_mdr.contrib.slots.utils import get_allowed_slots
 from aristotle_mdr.contrib.custom_fields.forms import CustomValueFormMixin
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 

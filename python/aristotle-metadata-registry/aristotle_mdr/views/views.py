@@ -47,7 +47,7 @@ from aristotle_mdr.views.utils import (
     CachePerItemUserMixin,
     TagsMixin
 )
-from aristotle_mdr.contrib.slots.utils import get_allowed_slots
+from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.links.models import Link, LinkEnd
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
@@ -257,7 +257,7 @@ class ConceptRenderMixin(TagsMixin):
 
         context['last_edit'] = Version.objects.get_for_object(self.item).first()
         # Only display viewable slots
-        context['slots'] = get_allowed_slots(self.item, self.user)
+        context['slots'] = Slot.objects.get_item_allowed(self.item, self.user)
         context['item'] = self.item
         context['statuses'] = self.item.current_statuses
         context['discussions'] = self.item.relatedDiscussions.all()

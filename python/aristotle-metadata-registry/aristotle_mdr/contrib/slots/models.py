@@ -8,17 +8,12 @@ These are based on the Slots definition in ISO/IEC 11179 Part 3 - 7.2.2.4
 from django.db import models
 
 from model_utils.models import TimeStampedModel
-from model_utils import Choices
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.fields import ConceptForeignKey
 
-
-permission_choices = Choices(
-    (0, 'public', 'Public'),
-    (1, 'auth', 'Authenticated'),
-    (2, 'workgroup', 'Workgroup'),
-)
+from aristotle_mdr.contrib.slots.choices import permission_choices
+from aristotle_mdr.contrib.slots.manager import SlotsManager
 
 
 class Slot(TimeStampedModel):
@@ -33,6 +28,8 @@ class Slot(TimeStampedModel):
         choices=permission_choices,
         default=permission_choices.public
     )
+
+    objects = SlotsManager()
 
     @property
     def hr_permission(self):

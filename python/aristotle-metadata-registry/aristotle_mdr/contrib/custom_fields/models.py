@@ -6,7 +6,7 @@ from aristotle_mdr.models import _concept
 from aristotle_mdr.fields import ConceptForeignKey
 from aristotle_mdr.contrib.custom_fields.managers import CustomValueManager
 from aristotle_mdr.contrib.custom_fields.types import type_choices
-from aristotle_mdr.contrib.slots.models import permission_choices
+from aristotle_mdr.contrib.slots.choices import permission_choices
 
 
 class CustomField(TimeStampedModel):
