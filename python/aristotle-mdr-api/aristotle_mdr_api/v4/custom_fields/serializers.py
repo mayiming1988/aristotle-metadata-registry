@@ -12,6 +12,7 @@ class CustomFieldSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomField
-        fields = ('id', 'order', 'name', 'type', 'help_text', 'hr_type')
-        read_only_fields = ('hr_type',)
+        fields = ('id', 'order', 'name', 'type', 'help_text', 'hr_type',
+                  'allowed_models', 'visibility', 'hr_visibility')
+        read_only_fields = ('hr_type', 'hr_visibility')
         list_serializer_class = MultiUpdateNoDeleteListSerializer

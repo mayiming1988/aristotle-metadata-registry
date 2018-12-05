@@ -180,7 +180,7 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         fscontext = self.get_formset_context(extra_formsets)
         context.update(fscontext)
 
-        context['show_slots_tab'] = self.slots_active
+        context['show_slots_tab'] = self.slots_active or context['form'].custom_fields
         context['show_id_tab'] = self.identifiers_active
 
         return context

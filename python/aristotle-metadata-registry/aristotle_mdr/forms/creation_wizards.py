@@ -134,8 +134,6 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
             elif type(self.fields[f]) == forms.fields.DateTimeField:
                 self.fields[f].widget = BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"})
 
-        self.show_slots_tab = True
-
     def concept_fields(self):
         # version/workgroup are displayed with name/definition
         field_names = [field.name for field in MDR.baseAristotleObject._meta.fields] + ['version', 'workgroup']

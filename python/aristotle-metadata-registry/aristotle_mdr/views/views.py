@@ -263,6 +263,7 @@ class ConceptRenderMixin(TagsMixin):
         context['discussions'] = self.item.relatedDiscussions.all()
         context['activetab'] = 'item'
         context['links'] = self.get_links()
+
         context['custom_values'] = self.get_custom_values()
         return context
 
