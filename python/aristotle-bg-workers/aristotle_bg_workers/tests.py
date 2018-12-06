@@ -9,7 +9,7 @@ from django_celery_results.models import TaskResult
 from aristotle_bg_workers.models import ExtraTaskInfo
 
 from aristotle_mdr.tests.utils import LoggedInViewPages
-from aristotle_bg_workers.helpers import store_task
+# from aristotle_bg_workers.helpers import store_task
 import json
 
 
@@ -19,7 +19,7 @@ class BackgroundTaskTestCase(LoggedInViewPages, TestCase):
     # As such this doesnt test celery integration
 
     def store_taskresult(self, id, name, user, status='SUCCESS'):
-        store_task(id, name, user)
+        # store_task(id, name, user)
 
         tr = TaskResult.objects.create(
             task_id=id,
@@ -50,7 +50,7 @@ class BackgroundTaskTestCase(LoggedInViewPages, TestCase):
         self.assertEqual(response.status_code, 200)
 
     @patch('aristotle_bg_workers.views.app.send_task')
-    @patch('aristotle_bg_workers.views.store_task')
+    # @patch('aristotle_bg_workers.views.store_task')
     def test_task_start(self, helper, reindex_task):
         # Have to mock from views since helpers has already been imported
 
@@ -65,15 +65,15 @@ class BackgroundTaskTestCase(LoggedInViewPages, TestCase):
         reindex_task.assert_called_once_with('reindex')
         self.assertTrue(helper.called)
 
-    def test_store_task(self):
+    # def test_store_task(self):
 
-        # Tests the store_task helper function
-        store_task('12345', 'Test Task', self.su)
+    #     # Tests the store_task helper function
+    #     store_task('12345', 'Test Task', self.su)
 
-        eti = ExtraTaskInfo.objects.get(celery_task_id="12345")
+    #     eti = ExtraTaskInfo.objects.get(celery_task_id="12345")
 
-        self.assertEqual(eti.task_name, 'Test Task')
-        self.assertEqual(eti.task_creator, self.su)
+    #     self.assertEqual(eti.task_name, 'Test Task')
+    #     self.assertEqual(eti.task_creator, self.su)
 
     def test_extra_info_stored(self):
 
@@ -82,19 +82,19 @@ class BackgroundTaskTestCase(LoggedInViewPages, TestCase):
         self.assertEqual(tr.extrainfo.task_name, 'Test Task')
         self.assertEqual(tr.extrainfo.task_creator, self.su)
 
-    def test_extra_info_stored_reverse(self):
-        # Test if they are attached if task result stored first
+    # def test_extra_info_stored_reverse(self):
+    #     # Test if they are attached if task result stored first
 
-        tr = TaskResult.objects.create(
-            task_id='222-222',
-            status='STARTED'
-        )
+    #     tr = TaskResult.objects.create(
+    #         task_id='222-222',
+    #         status='STARTED'
+    #     )
 
-        store_task('222-222', 'Reverse Test Task', self.su)
+    #     store_task('222-222', 'Reverse Test Task', self.su)
 
-        new_tr = TaskResult.objects.get(task_id='222-222')
-        self.assertEqual(new_tr.extrainfo.task_name, 'Reverse Test Task')
-        self.assertEqual(new_tr.extrainfo.task_creator, self.su)
+    #     new_tr = TaskResult.objects.get(task_id='222-222')
+    #     self.assertEqual(new_tr.extrainfo.task_name, 'Reverse Test Task')
+    #     self.assertEqual(new_tr.extrainfo.task_creator, self.su)
 
     def test_task_status(self):
 

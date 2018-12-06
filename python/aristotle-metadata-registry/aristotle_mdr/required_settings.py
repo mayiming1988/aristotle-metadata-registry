@@ -81,9 +81,10 @@ SILENCED_SYSTEM_CHECKS = [
 ALLOWED_HOSTS: list = []
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
-ARISTOTLE_ASYNC_SIGNALS = True
+ARISTOTLE_ASYNC_SIGNALS = os.getenv('ARISTOTLE_ASYNC_SIGNALS', False) == "True"
 
 INSTALLED_APPS = (
+    'aristotle_bg_workers',
     'aristotle_mdr.contrib.reviews',
     'aristotle_mdr',
     'aristotle_mdr.contrib.generic',
@@ -124,6 +125,7 @@ INSTALLED_APPS = (
     'organizations',
 
     'constrainedfilefield',
+    'django_celery_results',
 
     'webpack_loader',
 
@@ -136,8 +138,6 @@ INSTALLED_APPS = (
     'django_jsonforms',
     'missing'
 
-    # 'aristotle_bg_workers',
-    # 'django_celery_results',
 )
 
 USE_L10N = True
