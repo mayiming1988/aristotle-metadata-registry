@@ -1,9 +1,8 @@
-import Vue from 'vue'
-
 import { initCore } from 'src/lib/init.js'
-import customFieldEditRoot from '@/root/customFieldEdit.js'
+import renderComponents from 'src/lib/renderComponents.js'
+import apiFormSet from '@/forms/apiFormSet.vue'
 
 import 'src/styles/aristotle.dashboard.less'
 
 initCore()
-new Vue(customFieldEditRoot)
+renderComponents({'formset': apiFormSet})
