@@ -39,5 +39,5 @@ class CustomFieldManager(Manager):
     def get_for_model(self, model):
         """Return the fields for a given model"""
         ct = ContentType.objects.get_for_model(model)
-        fil = Q(allowed_models__isnull=True) | Q(allowed_models=ct)
+        fil = Q(allowed_model__isnull=True) | Q(allowed_model=ct)
         return self.get_queryset().filter(fil)

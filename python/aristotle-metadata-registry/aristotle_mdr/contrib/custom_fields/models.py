@@ -15,7 +15,7 @@ class CustomField(TimeStampedModel):
     type = models.CharField(max_length=10, choices=type_choices)
     # Optional
     help_text = models.CharField(max_length=1000, blank=True)
-    allowed_models = models.ForeignKey(ContentType, blank=True, null=True)
+    allowed_model = models.ForeignKey(ContentType, blank=True, null=True)
     visibility = models.IntegerField(
         choices=permission_choices,
         default=permission_choices.public
