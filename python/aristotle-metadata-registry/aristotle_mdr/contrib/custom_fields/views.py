@@ -22,7 +22,7 @@ class CustomFieldListView(IsSuperUserMixin, BootTableListView):
     paginate_by=20
     model_name='Custom Field'
     headers = ['Name', 'Type', 'Help Text', 'Model', 'Visibility']
-    attrs = ['name', 'hr_type', 'help_text', 'allowed_models', 'hr_visibility']
+    attrs = ['name', 'hr_type', 'help_text', 'allowed_model', 'hr_visibility']
     blank_value = {
         'allowed_models': 'All'
     }

@@ -20,9 +20,9 @@ class CustomFieldForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if 'allowed_models' in self.fields:
-            self.fields['allowed_models'].queryset = self.get_concept_qs()
-            self.fields['allowed_models'].empty_label = 'All'
+        if 'allowed_model' in self.fields:
+            self.fields['allowed_model'].queryset = self.get_concept_qs()
+            self.fields['allowed_model'].empty_label = 'All'
 
 
 class CustomFieldDeleteForm(forms.Form):
