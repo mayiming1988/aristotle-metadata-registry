@@ -25,6 +25,18 @@ class CustomFieldForm(forms.ModelForm):
             self.fields['allowed_models'].empty_label = 'All'
 
 
+class CustomFieldDeleteForm(forms.Form):
+
+    method = forms.ChoiceField(
+        choices=[
+            ('migrate', 'Move values to standard slots'),
+            ('delete', 'Remove all values')
+        ],
+        widget=forms.RadioSelect,
+        initial='migrate',
+    )
+
+
 class CustomValueFormMixin:
     """Used with concept form"""
 

@@ -2,5 +2,12 @@
 
 {% block page %}
   <h1>Delete {{ object.name }}</h1>
-  {% include 'aristotle_mdr/helpers/delete.html' with object_name=object.name %}
+  <div class="alert alert-danger">Are you sure you want to delete {{ object.name }}?</div>
+  <p>Choose how the current values for this field will be dealt with</p>
+  <form action="" method="POST">
+    {% csrf_token %}
+    {{ form }}
+    <a class="btn btn-default" href="{{ cancel_url }}">Cancel</a>
+    <button type="submit" class="btn btn-danger">Delete</button>
+  </form>
 {% endblock %}

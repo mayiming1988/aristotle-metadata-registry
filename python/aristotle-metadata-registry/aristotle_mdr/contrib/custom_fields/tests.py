@@ -1,17 +1,34 @@
 from django.test import TestCase
 from aristotle_mdr.tests.utils import AristotleTestUtils
 
-from aristotle_mdr.contrib.custom_fields.models import CustomField
+from aristotle_mdr.models import ObjectClass
+from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 
 
 class CustomFieldsTestCase(AristotleTestUtils, TestCase):
 
+    def setUp(self):
+        super().setUp()
+        self.item = ObjectClass.objects.create(
+            name='Very Custom Item',
+            definition='Oh so custom'
+        )
+
     def create_test_field(self):
         cf = CustomField.objects.create(
             order=0,
-            name='Spicness',
+            name='Bad Word',
             type='str',
-            help_text='The spiciness of the metadata'
+            help_text='A real bad word'
+        )
+        return cf
+
+    def create_test_field_with_values(self):
+        cf = self.create_test_field()
+        CustomValue.objects.create(
+            field=cf,
+            concept=self.item.concept,
+            content='Heck'
         )
         return cf
 
@@ -40,12 +57,14 @@ class CustomFieldsTestCase(AristotleTestUtils, TestCase):
         self.assertEqual(flist[1]['attrs'][0], 'CF2')
 
     def test_custom_field_delete(self):
-        cf = self.create_test_field()
+        cf = self.create_test_field_with_values()
+        self.assertEqual(cf.values.count(), 1)
         self.login_superuser()
         response = self.reverse_post(
             'aristotle_custom_fields:delete',
-            {},
+            {'method': 'delete'},
             reverse_args=[cf.id],
             status_code=302
         )
         self.assertFalse(CustomField.objects.filter(id=cf.id).exists())
+        self.assertEqual(CustomValue.objects.all().count(), 0)

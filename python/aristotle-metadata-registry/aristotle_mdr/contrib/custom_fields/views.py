@@ -1,14 +1,17 @@
 from typing import Iterable, List, Dict
+from django.http import HttpResponseRedirect
 from django.urls import reverse
-from django.views.generic import CreateView, UpdateView, DeleteView, ListView, FormView
+from django.views.generic import ListView, FormView
+from django.views.generic.detail import SingleObjectMixin
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from aristotle_mdr.mixins import IsSuperUserMixin
 from aristotle_mdr.views.utils import VueFormView
 from aristotle_mdr.contrib.generic.views import BootTableListView, CancelUrlMixin
 from aristotle_mdr.contrib.custom_fields import models
-from aristotle_mdr.contrib.custom_fields.forms import CustomFieldForm
+from aristotle_mdr.contrib.custom_fields.forms import CustomFieldForm, CustomFieldDeleteForm
 from aristotle_mdr_api.v4.custom_fields.serializers import CustomFieldSerializer
+from aristotle_mdr.contrib.slots.models import Slot
 
 import json
 
@@ -24,7 +27,7 @@ class CustomFieldListView(IsSuperUserMixin, BootTableListView):
     delete_url_name = 'aristotle_custom_fields:delete'
 
 
-class CustomFieldMultiEditView(VueFormView):
+class CustomFieldMultiEditView(IsSuperUserMixin, VueFormView):
     template_name='aristotle_mdr/custom_fields/multiedit.html'
     form_class=CustomFieldForm
     non_write_fields = ['hr_type']
@@ -38,10 +41,44 @@ class CustomFieldMultiEditView(VueFormView):
         return serializer.data
 
 
-class CustomFieldDeleteView(IsSuperUserMixin, CancelUrlMixin, DeleteView):
+class CustomFieldDeleteView(IsSuperUserMixin, CancelUrlMixin, SingleObjectMixin, FormView):
     model=models.CustomField
+    form_class=CustomFieldDeleteForm
     template_name='aristotle_mdr/custom_fields/delete.html'
     cancel_url_name='aristotle_custom_fields:list'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().dispatch(request, *args, **kwargs)
+
+    def delete(self):
+        self.object.delete()
+        return HttpResponseRedirect(self.get_success_url())
+
+    def migrate(self):
+        new_slots = []
+        exiting_values = models.CustomValue.objects.filter(field=self.object)
+        for value in existing_values:
+            vslot = Slot(
+                name=self.object.name[:256],
+                order=value.order,
+                type=self.object.hr_type,
+                concept=value.concept_id,
+                permission=self.object.visibility,
+                value=value.content
+            )
+            new_slots.append(vslot)
+
+        Slot.objects.bulk_create(new_slots)
+        return self.delete()
+
+    def form_valid(self, form):
+        method = form.cleaned_data['method']
+
+        if method == 'delete':
+            return self.delete()
+        elif method == 'migrate':
+            return self.migrate()
 
     def get_success_url(self) -> str:
         return reverse('aristotle_custom_fields:list')
