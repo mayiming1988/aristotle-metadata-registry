@@ -82,7 +82,6 @@ class UtilsTests(TestCase):
 
     @tag('version')
     def test_version_field_value_only(self):
-
         field = VersionField(
             value='My Value',
             help_text='Help Me'
@@ -96,7 +95,6 @@ class UtilsTests(TestCase):
 
     @tag('version')
     def test_version_field_reference(self):
-
         field = VersionField(
             obj=[self.oc1.id, self.oc2.id],
             reference_label='aristotle_mdr._concept',
@@ -124,7 +122,6 @@ class UtilsTests(TestCase):
 
     @tag('version')
     def test_version_field_list_handling(self):
-
         field = VersionField(
             obj=[self.oc1],
         )
@@ -149,7 +146,6 @@ class UtilsTests(TestCase):
 
     @tag('version')
     def test_version_field_obj_display(self):
-
         field = VersionField(
             obj=self.oc1,
         )
@@ -162,7 +158,6 @@ class UtilsTests(TestCase):
 
     @tag('version')
     def test_version_field_component_display(self):
-
         vd = models.ValueDomain.objects.create(
             name='Test Value Domain',
             definition='Test Definition'
@@ -186,7 +181,6 @@ class UtilsTests(TestCase):
 
     @tag('version')
     def test_version_field_invalid_lookup(self):
-
         field = VersionField(
             obj=[2],
             reference_label='aristotle_mdr._concept'
@@ -205,3 +199,7 @@ class UtilsTests(TestCase):
         cm = utils.utils.get_concept_models()
         self.assertTrue(models.DataElement in cm)
         self.assertFalse(models.PermissibleValue in cm)
+
+    def test_get_concept_models_doesnt_return_concept(self):
+        cm = utils.utils.get_concept_models()
+        self.assertFalse(models._concept in cm)

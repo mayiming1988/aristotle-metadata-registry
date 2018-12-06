@@ -338,7 +338,7 @@ def get_concept_models() -> List[Model]:
     models = []
     for app_config in apps.get_app_configs():
         for model in app_config.get_models():
-            if issubclass(model, _concept):
+            if issubclass(model, _concept) and model != _concept:
                 models.append(model)
     return models
 
