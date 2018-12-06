@@ -6,7 +6,7 @@ from django.views.generic.detail import SingleObjectMixin
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from aristotle_mdr.mixins import IsSuperUserMixin
-from aristotle_mdr.views.utils import VueFormView
+from aristotle_mdr.contrib.generic.views import VueFormView
 from aristotle_mdr.contrib.generic.views import BootTableListView, CancelUrlMixin
 from aristotle_mdr.contrib.custom_fields import models
 from aristotle_mdr.contrib.custom_fields.forms import CustomFieldForm, CustomFieldDeleteForm
@@ -30,7 +30,7 @@ class CustomFieldListView(IsSuperUserMixin, BootTableListView):
 class CustomFieldMultiEditView(IsSuperUserMixin, VueFormView):
     template_name='aristotle_mdr/custom_fields/multiedit.html'
     form_class=CustomFieldForm
-    non_write_fields = ['hr_type']
+    non_write_fields = ['hr_type', 'hr_visibility']
 
     def get_custom_fields(self) -> Iterable[models.CustomField]:
         return models.CustomField.objects.all()

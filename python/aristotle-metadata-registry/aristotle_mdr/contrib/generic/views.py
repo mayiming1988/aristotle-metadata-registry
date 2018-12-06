@@ -1,4 +1,4 @@
-from typing import List, Callable, Any
+from typing import List, Callable, Any, Dict
 from django import forms
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist
 from django.urls import reverse
@@ -22,6 +22,7 @@ from aristotle_mdr.contrib.generic.forms import (
     HiddenOrderFormset, HiddenOrderInlineFormset,
     get_aristotle_widgets
 )
+import json
 import reversion
 import inspect
 import re
@@ -847,4 +848,71 @@ class CancelUrlMixin:
         context = super().get_context_data(*args, **kwargs)
         if self.cancel_url_name:
             context['cancel_url'] = reverse(self.cancel_url_name)
+        return context
+
+
+class VueFormView(FormView):
+
+    # Mapping of widgets to extra fields data
+    widget_mapping: Dict[str, Dict] = {
+        'Textarea': {'tag': 'textarea'},
+        'Select': {'tag': 'select'},
+    }
+
+    # Attributes to pull from field as rules
+    rules_attrs_to_pull: List[str] = ['required', 'max_length', 'min_length']
+
+    # Base field data
+    default_tag = 'input'
+
+    # Fields to strip from initial
+    non_write_fields: List = []
+
+    def get_vue_initial(self):
+        # To be overwritten
+        return {}
+
+    def strip_fields(self, data: List[Dict]):
+        for item in data:
+            for fname in self.non_write_fields:
+                if fname in data:
+                    del data[fname]
+
+    def get_vue_form_fields(self, form: forms.Form) -> Dict[str, Dict]:
+        vuefields = {}
+        for fname, field in form.fields.items():
+            widget_name = type(field.widget).__name__
+
+            field_data = {
+                'rules': {},
+                'tag': self.default_tag,
+                'label': field.label,
+                'options': [],
+                'default': field.initial
+            }
+
+            if widget_name in self.widget_mapping:
+                field_data.update(self.widget_mapping[widget_name])
+
+            if widget_name == 'Select':
+                # field.choices can be an iterator hence the need for this
+                field_data['options'] = [(c[0], c[1]) for c in field.choices]
+
+            for attr in self.rules_attrs_to_pull:
+                if hasattr(field, attr):
+                    attrdata = getattr(field, attr)
+                    if attrdata:
+                        field_data['rules'][attr] = attrdata
+
+            vuefields[fname] = field_data
+        return vuefields
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data()
+        context['vue_fields'] = json.dumps(
+            self.get_vue_form_fields(context['form'])
+        )
+        initial = self.get_vue_initial()
+        self.strip_fields(initial)
+        context['vue_initial'] = json.dumps(initial)
         return context

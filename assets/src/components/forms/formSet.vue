@@ -70,7 +70,7 @@ export default {
         },
         errors: {
             type: Array
-        },
+        }
     },
     data: () => ({
         message: '',
@@ -108,6 +108,18 @@ export default {
             this.error_map = error_map
         }
     },
+    computed: {
+        default: function() {
+            let defaults = {}
+            for (let fname in this.fields) {
+                let field = this.fields[fname]
+                if (field.default != null) {
+                    defaults[fname] = field.default
+                }
+            }
+            return defaults
+        }
+    },
     methods: {
         getError: function(vid) {
             return this.error_map[vid]
@@ -117,7 +129,7 @@ export default {
         },
         addRow: function() {
             let newrow = {'vid': this.formsData.length}
-            this.formsData.push(newrow)
+            this.formsData.push(this.default)
         },
         deleteRow: function(index) {
             this.formsData.splice(index, 1)
@@ -138,7 +150,7 @@ export default {
             return fdata
         },
         submitFormSet: function() {
-            if (!$v.formsData.$invalid) {
+            if (!$v.$invalid) {
                 let dataToSubmit = this.postProcess()
                 this.$emit('submit', dataToSubmit)
             }
