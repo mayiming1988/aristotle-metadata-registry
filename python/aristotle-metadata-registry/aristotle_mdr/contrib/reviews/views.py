@@ -1,5 +1,6 @@
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -9,6 +10,7 @@ from django.http import Http404, HttpResponseRedirect, HttpResponse, HttpRespons
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
+from django.utils.module_loading import import_string
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 # from django.views.generic import ListView, TemplateView, DeleteView
@@ -22,6 +24,7 @@ from django.views.generic import (DetailView,
                                   )
 
 import reversion
+import json
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr import perms
@@ -35,20 +38,10 @@ from aristotle_mdr.views.utils import (
     UserFormViewMixin,
 )
 
-import json
-
-# For validator view
-import yaml
-from os import path
-from django.conf import settings
-from django.utils.module_loading import import_string
-import jsonschema
-from aristotle_mdr.contrib.validators.validators import Checker
-# ---
-
 from . import models, forms
 
 import logging
+
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
@@ -287,7 +280,14 @@ class ReviewEndorseView(ReviewStatusChangeBase):
         change_data = super().get_change_data(register)
         change_data['state'] = int(self.get_cleaned_data_for_step(self.change_step_name)['registration_state'])
         change_data['registrationDate'] = self.get_cleaned_data_for_step(self.change_step_name)['registration_date']
+        cascade = self.get_cleaned_data_for_step(self.change_step_name)['cascade_registration']
 
+        try:
+            cascade = int(cascade)
+        except:
+            cascade = 0
+
+        change_data['cascadeRegistration'] = cascade
         return change_data
 
     def done(self, form_list, form_dict, **kwargs):
@@ -357,54 +357,22 @@ class ReviewValidationView(ReviewActionMixin, TemplateView):
     pk_url_kwarg = 'review_id'
     template_name = "aristotle_mdr/reviews/review/validation.html"
     context_object_name = "review"
-    base_dir=path.dirname(path.dirname(path.dirname(__file__)))
     active_tab_name = "checks"
 
     def get_context_data(self, *args, **kwargs):
         # Call the base implementation first to get a context
         context = super().get_context_data(*args, **kwargs)
 
-        # TODO: more copies
-        with open(path.join(self.base_dir, 'schema/schema.json')) as schemafile:
-            self.schema = json.load(schemafile)
+        all_the_concepts = [item.item
+            for main_item in self.get_review().concepts.all()    
+                for item in main_item.item.registry_cascade_items
+        ]
 
-        aristotle_validators = settings.ARISTOTLE_VALIDATORS
-        self.validators = {x: import_string(y) for x, y in aristotle_validators.items()}
-        # Hard coded setup for now
-        with open(path.join(self.base_dir, 'schema/setup.yaml')) as setupfile:
-            self.setup = yaml.load(setupfile)
+        Runner = import_string(settings.ARISTOTLE_VALIDATION_RUNNER)
         self.ra = self.get_review().registration_authority
 
-        _kwargs = kwargs
-        kwargs = {}
-        total_results = []
-        for concept in self.get_review().concepts.all():
-            kwargs = {}
-
-            # TODO: Copied agin
-
-            # Slow query
-            item = concept.item
-            itemtype = type(item).__name__
-
-            valid = True
-            try:
-                jsonschema.validate(self.setup, self.schema)
-            except jsonschema.exceptions.ValidationError as e:
-                logger.critical(e)
-                valid = False
-
-            results = []
-            if valid:
-                for itemsetup in self.setup:
-                    checker = Checker(itemsetup)
-                    results += checker.run_rules(item, self.get_review().state, self.ra)
-
-            kwargs['setup_valid'] = valid
-            kwargs['results'] = results
-            kwargs['item_name'] = item.name
-
-            total_results.append(kwargs)
+        runner = Runner(registration_authority=self.ra, state=self.get_review().state)
+        total_results = runner.validate_metadata(metadata=all_the_concepts)
 
         context['total_results'] = total_results
         context['setup_valid'] = True

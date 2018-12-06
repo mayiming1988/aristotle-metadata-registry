@@ -67,7 +67,7 @@
           <!-- TODO: Make tabs vue -->
           <li role="presentation" class="{% if active_tab == 'details'%}active{%endif%}"><a href="{% url 'aristotle_reviews:review_details' review.id %}" role="tab"><i class="fa fa-comments-o"></i> Conversation</a></li>
           <li role="presentation" class="{% if active_tab == 'itemlist'%}active{%endif%}"><a href="{% url 'aristotle_reviews:review_list' review.id %}" role="tab"><i class="fa fa-th-list"></i> Items</a></li>
-          <!--<li role="presentation" class="{% if active_tab == 'checks'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_checks' review.id %}" role="tab"><i class="fa fa-check-square-o"></i> Validation</a></li>-->
+          <li role="presentation" class="{% if active_tab == 'checks'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_checks' review.id %}" role="tab"><i class="fa fa-check-square-o"></i> Validation</a></li>
           <li role="presentation" class="{% if active_tab == 'impact'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_impact' review.id %}" role="tab"><i class="fa fa-flash"></i> Impact</a></li>
           <li role="presentation" class="{% if active_tab == 'issues'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_issues' review.id %}" role="tab"><i class="fa fa-exclamation-circle"></i> Issues</a></li>
         </ul>

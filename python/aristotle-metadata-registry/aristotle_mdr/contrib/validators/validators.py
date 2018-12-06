@@ -8,7 +8,7 @@ from django.utils.module_loading import import_string
 from aristotle_mdr.models import STATES
 
 
-class Checker:
+class RuleChecker:
     def __init__(self, ruleset):
         aristotle_validators = settings.ARISTOTLE_VALIDATORS
         self.validators = {x: import_string(y) for x, y in aristotle_validators.items()}
@@ -20,7 +20,7 @@ class Checker:
             if check['validator'] in self.validators
         ]
 
-    def run_rules(self, item, target_state, ra=None):
+    def run_rule(self, item, target_state, ra=None):
         item = item.item
         itemtype = type(item).__name__
         if self.object_type not in [None, itemtype, "any"]:

@@ -315,6 +315,9 @@ BLEACH_ALLOWED_ATTRIBUTES = {
 }
 
 # Validators
+ARISTOTLE_VALIDATION_RUNNER = 'aristotle_mdr.contrib.validators.runner'
+ARISTOTLE_VALIDATION_FILERUNNER_PATH = os.getenv('aristotlemdr__FILE_VALIDATION_RUNNER_PATH', None)
+
 ARISTOTLE_VALIDATORS = {
     'RegexValidator': 'aristotle_mdr.contrib.validators.RegexValidator',
     'StatusValidator': 'aristotle_mdr.contrib.validators.StatusValidator',

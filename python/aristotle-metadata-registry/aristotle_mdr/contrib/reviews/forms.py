@@ -131,6 +131,11 @@ class RequestReviewEndorseForm(RequestReviewAcceptForm):
         widget=BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"}),
         label=_("Registration Date"),
     )
+    cascade_registration = forms.ChoiceField(
+        initial=0,
+        choices=[(0, _('No')), (1, _('Yes'))],
+        label=_("Do you want to request a status change for associated items")
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

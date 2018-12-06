@@ -68,11 +68,13 @@ class ReviewRequest(StatusMixin, TimeStampedModel):
         help_text=_('Status of a review')
     )
     target_registration_state = models.IntegerField(
+        null=True, blank=True,  # Maybe we dont know what level is appropriate yet?
         choices=MDR.STATES,
         help_text=_("The state at which a user wishes a metadata item to be endorsed")
     )
     registration_date = models.DateField(
         _('Date registration effective'),
+        null=True, blank=True,  # Maybe we dont know when it will be registered?
         help_text=_("date and time you want the metadata to be registered from")
     )
     due_date = models.DateField(
