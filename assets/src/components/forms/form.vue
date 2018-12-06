@@ -1,110 +1,69 @@
 <template>
-    <div class="vue-form" :class="{'row': inline}">
-        <slot name="before"></slot>
-        <bsFieldWrapper v-for="(fielddata, name) in fields" :name="name" :label="fielddata.label" :displayLabel="showLabels" :hasErrors="hasErrors(name)" :column="inline">
-            <singleError :feErrors="getFrontendError(name)" :beErrors="getBackendErrors(name)"></singleError>
-                <formField 
-                :tag="fielddata.tag" 
-                :name="name" 
-                :placeholder="placeholder(name)"
-                :options="fielddata.options"
-                :value="value[name]" 
-                @input="fieldInput(name, $event)">
-                </formField>
-        </bsFieldWrapper>
-        <button v-if="showSubmit" class="btn btn-primary" type="submit" @click="submitClicked">Submit</button>
-        <slot name="after"></slot>
-    </div>
+    <baseForm 
+        v-model="formData"
+        :fields="fields" 
+        :errors="errors" 
+        :showLabels="showLabels" 
+        :fe_errors="$v.formData">
+        <template slot="after">
+            <button class="btn btn-primary" @click="emitData">Submit</button>
+        </template>
+    </baseForm>
 </template>
 
 <script>
-import { capitalize } from 'src/lib/utils.js'
+import { validationMixin } from 'vuelidate'
+import getValidations from 'src/lib/forms/getValidations.js'
 
-import singleError from '@/forms/singleError.vue'
-import formField from '@/forms/formField.vue'
-import bsFieldWrapper from '@/forms/bsFieldWrapper.vue'
+import baseForm from '@/forms/baseForm.vue'
 
+/*
+Wraps base form with frontend validation, emits data to submit
+Use apiForm in django template
+*/
 export default {
     components: {
-        bsFieldWrapper,
-        formField,
-        singleError
+        baseForm
     },
+    mixins: [validationMixin],
+    data: () => ({
+        formData: {}
+    }),
     props: {
         fields: {
-            type: Object
-        },
-        value: {
-            type: Object
-        },
-        errors: {
-            type: Object
-        },
-        fe_errors: {
             type: Object
         },
         inline: {
             type: Boolean,
             default: false
         },
-        showSubmit: {
-            type: Boolean,
-            default: true
-        },
         showLabels: {
             type: Boolean,
             default: true
+        },
+        errors: {
+            type: Object
+        },
+        initial: {
+            type: Object
+        }
+    },
+    validations() {
+        return {
+            formData: getValidations(this.fields)
+        }
+    },
+    created: function() {
+        if (this.initial) {
+            this.formData = this.initial
         }
     },
     methods: {
-        hasErrors: function(field_name) {
-            let hasfe = this.fe_errors[field_name].$invalid
-            let hasbe = (this.errors != undefined && this.errors[field_name] != undefined)
-            return hasbe || hasfe
-        },
-        getFrontendError: function(field_name) {
-            return this.fe_errors[field_name]
-        },
-        getBackendErrors: function(field_name) {
-            if (this.errors) {
-                if (this.errors[field_name] != undefined) {
-                    return this.errors[field_name]
-                }
+        emitData: function() {
+            if (!this.$v.invalid) {
+                this.$emit('submit', this.formData)
             }
-            return []
-        },
-        placeholder: function(field) {
-            if (this.inline) {
-                if (this.fields[field]['label']) {
-                    return this.fields[field]['label']
-                } else {
-                    return capitalize(field)
-                }
-            } else {
-                return ''
-            }
-        },
-        submitClicked: function() {
-            this.$emit('submitted', this.value)
-        },
-        fieldInput: function(fname, value) {
-            // Emit a shallow copy, since we shouldn't alter props directly
-            let copy = Object.assign({}, this.value)
-            copy[fname] = value
-            this.$emit('input', copy)
         }
     }
 }
 </script>
-
-<style>
-.form-inline .form-group {
-    margin-right: 6px;
-}
-.form-inline .formset-fe-error {
-    display: block;
-}
-.form-inline label {
-    display: block;
-}
-</style>

@@ -8,7 +8,7 @@
             <div v-if="showDelete" class="col-md-2"><label>Delete</label></div>
         </div>
         <draggable :list="formsData" :options="sortableConfig">
-            <Form 
+            <baseForm 
                 v-for="(item, index) in formsData" 
                 v-model="formsData[index]"
                 :key="item.vid" 
@@ -28,7 +28,7 @@
                         <button class="btn btn-danger" @click="deleteRow(index)">Delete</button>
                     </div>
                 </template>
-            </Form>
+            </baseForm>
         </draggable>
         <div class="vue-formset-button-group">
             <button class="btn btn-success" @click="addRow">Add</button>
@@ -40,13 +40,18 @@
 <script>
 import { validationMixin } from 'vuelidate'
 import getValidations from 'src/lib/forms/getValidations.js'
-import Form from '@/forms/form.vue'
+import baseForm from '@/forms/baseForm.vue'
 import draggable from 'vuedraggable'
 
+/* 
+Formset with validation,
+emits a submit event
+use apiFormset in django templates
+*/
 export default {
     components: {
         draggable,
-        Form,
+        baseForm,
     },
     mixins: [validationMixin],
     props: {
