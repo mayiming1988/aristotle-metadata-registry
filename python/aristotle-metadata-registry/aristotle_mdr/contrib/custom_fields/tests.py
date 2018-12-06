@@ -2,6 +2,7 @@ from django.test import TestCase
 from aristotle_mdr.tests.utils import AristotleTestUtils
 
 from aristotle_mdr.models import ObjectClass
+from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 
 
@@ -12,6 +13,10 @@ class CustomFieldsTestCase(AristotleTestUtils, TestCase):
         self.item = ObjectClass.objects.create(
             name='Very Custom Item',
             definition='Oh so custom'
+        )
+        self.item2 = ObjectClass.objects.create(
+            name='Some Other Item',
+            definition='Yeah Whatever'
         )
 
     def create_test_field(self):
@@ -29,6 +34,11 @@ class CustomFieldsTestCase(AristotleTestUtils, TestCase):
             field=cf,
             concept=self.item.concept,
             content='Heck'
+        )
+        CustomValue.objects.create(
+            field=cf,
+            concept=self.item2.concept,
+            content='Flip'
         )
         return cf
 
@@ -58,7 +68,7 @@ class CustomFieldsTestCase(AristotleTestUtils, TestCase):
 
     def test_custom_field_delete(self):
         cf = self.create_test_field_with_values()
-        self.assertEqual(cf.values.count(), 1)
+        self.assertEqual(cf.values.count(), 2)
         self.login_superuser()
         response = self.reverse_post(
             'aristotle_custom_fields:delete',
@@ -68,3 +78,24 @@ class CustomFieldsTestCase(AristotleTestUtils, TestCase):
         )
         self.assertFalse(CustomField.objects.filter(id=cf.id).exists())
         self.assertEqual(CustomValue.objects.all().count(), 0)
+
+    def test_custom_field_migrate(self):
+        cf = self.create_test_field_with_values()
+        self.assertEqual(cf.values.count(), 2)
+        self.login_superuser()
+        response = self.reverse_post(
+            'aristotle_custom_fields:delete',
+            {'method': 'migrate'},
+            reverse_args=[cf.id],
+            status_code=302
+        )
+        self.assertFalse(CustomField.objects.filter(id=cf.id).exists())
+        self.assertEqual(CustomValue.objects.all().count(), 0)
+
+        slot1 = Slot.objects.get(concept=self.item.concept, name='Bad Word')
+        self.assertEqual(slot1.type, 'Text')
+        self.assertEqual(slot1.value, 'Heck')
+
+        slot2 = Slot.objects.get(concept=self.item2.concept, name='Bad Word')
+        self.assertEqual(slot2.type, 'Text')
+        self.assertEqual(slot2.value, 'Flip')

@@ -57,13 +57,12 @@ class CustomFieldDeleteView(IsSuperUserMixin, CancelUrlMixin, SingleObjectMixin,
 
     def migrate(self):
         new_slots = []
-        exiting_values = models.CustomValue.objects.filter(field=self.object)
+        existing_values = models.CustomValue.objects.filter(field=self.object)
         for value in existing_values:
             vslot = Slot(
                 name=self.object.name[:256],
-                order=value.order,
                 type=self.object.hr_type,
-                concept=value.concept_id,
+                concept_id=value.concept_id,
                 permission=self.object.visibility,
                 value=value.content
             )
