@@ -602,8 +602,6 @@ class VueFormView(FormView):
 
     # Attributes to pull from field as rules
     rules_attrs_to_pull: List[str] = ['required', 'max_length', 'min_length']
-    # Mapping of django rule names to vee-validate rule names
-    rules_mapping: Dict[str, str] = {'max_length': 'max', 'min_length': 'min'}
 
     # Base field data
     default_tag = 'input'
@@ -644,10 +642,7 @@ class VueFormView(FormView):
                 if hasattr(field, attr):
                     attrdata = getattr(field, attr)
                     if attrdata:
-                        if attr in self.rules_mapping:
-                            field_data['rules'][self.rules_mapping[attr]] = attrdata
-                        else:
-                            field_data['rules'][attr] = attrdata
+                        field_data['rules'][attr] = attrdata
 
             vuefields[fname] = field_data
         return vuefields

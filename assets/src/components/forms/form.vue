@@ -9,9 +9,7 @@
                 :placeholder="placeholder(name)"
                 :options="fielddata.options"
                 :value="value[name]" 
-                @input="fieldInput(name, $event)"
-                v-validate="fielddata.rules"
-                :data-vv-scope="scope">
+                @input="fieldInput(name, $event)">
                 </formField>
         </bsFieldWrapper>
         <button v-if="showSubmit" class="btn btn-primary" type="submit" @click="submitClicked">Submit</button>
@@ -33,10 +31,6 @@ export default {
         singleError
     },
     props: {
-        scope: {
-            type: String,
-            default: 'form'
-        },
         fields: {
             type: Object
         },
@@ -61,12 +55,12 @@ export default {
     },
     methods: {
         hasErrors: function(field_name) {
-            let hasfe = this.fe_errors.has(field_name, this.scope)
+            // let hasfe = this.fe_errors.has(field_name, this.scope)
             let hasbe = (this.errors != undefined && this.errors[field_name] != undefined)
-            return hasfe || hasbe
+            return hasbe
         },
         getFrontendError: function(field_name) {
-            return this.fe_errors.first(field_name, this.scope)
+            return ''
         },
         getBackendErrors: function(field_name) {
             if (this.errors) {
@@ -88,11 +82,7 @@ export default {
             }
         },
         submitClicked: function() {
-            this.$validator.validate().then((result) => {
-                if (result) {
-                    this.$emit('submitted', this.value)
-                }
-            })
+            this.$emit('submitted', this.value)
         },
         fieldInput: function(fname, value) {
             // Emit a shallow copy, since we shouldn't alter props directly

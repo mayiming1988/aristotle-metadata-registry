@@ -15,7 +15,6 @@
                 :fields="fields" 
                 :inline="true"
                 :errors="getError(item.vid)"
-                :scope="getScope(index)"
                 :showSubmit="false"
                 :showLabels="false">
                 <template slot="before">
