@@ -21,7 +21,8 @@
     "vis": "^4.21.0",
     "vue": "^2.5.17",
     "vue-simple-suggest": "^1.8.2",
-    "vuedraggable": "^2.17.0"
+    "vuedraggable": "^2.17.0",
+    "vuelidate": "^0.7.4"
   },
   "devDependencies": {
     "@babel/core": "^7.2.0",

@@ -15,6 +15,7 @@
                 :fields="fields" 
                 :inline="true"
                 :errors="getError(item.vid)"
+                :fe_errors="$v.formsData.$each[index]"
                 :showSubmit="false"
                 :showLabels="false">
                 <template slot="before">
@@ -37,6 +38,8 @@
 </template>
 
 <script>
+import { validationMixin } from 'vuelidate'
+import getValidations from 'src/lib/forms/getValidations.js'
 import Form from '@/forms/form.vue'
 import draggable from 'vuedraggable'
 
@@ -45,6 +48,7 @@ export default {
         draggable,
         Form,
     },
+    mixins: [validationMixin],
     props: {
         fields: {
             type: Object
@@ -66,7 +70,7 @@ export default {
         },
         errors: {
             type: Array
-        }
+        },
     },
     data: () => ({
         message: '',
@@ -74,9 +78,16 @@ export default {
             handle: '.grabber',
         },
         stripFields: ['vid'],
-        be_errors: {},
+        error_map: {},
         formsData: []
     }),
+    validations() {
+        return {
+            formsData: {
+                $each: getValidations(this.fields)
+            }
+        }
+    },
     created: function() {
         if (this.initial) {
             this.formsData = this.initial
@@ -94,12 +105,12 @@ export default {
                 let vid = this.formsData[i]['vid']
                 error_map[vid] = err
             }
-            this.be_errors = error_map
+            this.error_map = error_map
         }
     },
     methods: {
         getError: function(vid) {
-            return this.be_errors[vid]
+            return this.error_map[vid]
         },
         getScope: function(index) {
             return 'form' + index.toString()
@@ -127,8 +138,10 @@ export default {
             return fdata
         },
         submitFormSet: function() {
-            let dataToSubmit = this.postProcess()
-            this.$emit('submit', dataToSubmit)
+            if (!$v.formsData.$invalid) {
+                let dataToSubmit = this.postProcess()
+                this.$emit('submit', dataToSubmit)
+            }
         }
     }
 }

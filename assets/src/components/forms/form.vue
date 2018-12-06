@@ -2,7 +2,7 @@
     <div class="vue-form" :class="{'row': inline}">
         <slot name="before"></slot>
         <bsFieldWrapper v-for="(fielddata, name) in fields" :name="name" :label="fielddata.label" :displayLabel="showLabels" :hasErrors="hasErrors(name)" :column="inline">
-            <singleError :feError="getFrontendError(name)" :beErrors="getBackendErrors(name)"></singleError>
+            <singleError :feErrors="getFrontendError(name)" :beErrors="getBackendErrors(name)"></singleError>
                 <formField 
                 :tag="fielddata.tag" 
                 :name="name" 
@@ -40,6 +40,9 @@ export default {
         errors: {
             type: Object
         },
+        fe_errors: {
+            type: Object
+        },
         inline: {
             type: Boolean,
             default: false
@@ -55,12 +58,12 @@ export default {
     },
     methods: {
         hasErrors: function(field_name) {
-            // let hasfe = this.fe_errors.has(field_name, this.scope)
+            let hasfe = this.fe_errors[field_name].$invalid
             let hasbe = (this.errors != undefined && this.errors[field_name] != undefined)
-            return hasbe
+            return hasbe || hasfe
         },
         getFrontendError: function(field_name) {
-            return ''
+            return this.fe_errors[field_name]
         },
         getBackendErrors: function(field_name) {
             if (this.errors) {
