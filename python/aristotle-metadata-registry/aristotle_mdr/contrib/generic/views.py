@@ -788,24 +788,44 @@ class BootTableListView(ListView):
     attrs: List[str]
     model_name=''
     # Can optionally override these
+    blank_value: Dict[str, str]
     page_heading=''
     create_button_text=''
     create_url_name=''
     delete_url_name=''
     update_url_name=''
 
+    def get_heading(self) -> str:
+        if self.page_heading:
+            return self.page_heading
+        else:
+            return 'List of {}s'.format(self.model_name)
+
+    def get_create_text(self) -> str:
+        if self.create_button_text:
+            return self.create_button_text
+        else:
+            return 'New {}'.format(self.model_name)
+
+    def get_listing(self, iterable) -> List[Dict]:
+        listing = []
+        for item in iterable:
+            itemdict = {'attrs': [], 'pk': item.pk}
+            for attr in self.attrs:
+                val = getattr(item, attr)
+                if not val and attr in self.blank_value:
+                    val = self.blank_value[attr]
+                itemdict['attrs'].append(val)
+            listing.append(itemdict)
+
+        return listing
+
     def get_context_data(self) -> dict:
         context = super().get_context_data()
         headers = copy(self.headers)
-        if self.page_heading:
-            page_heading = self.page_heading
-        else:
-            page_heading = 'List of {}s'.format(self.model_name)
 
-        if self.create_button_text:
-            create_button_text = self.create_button_text
-        else:
-            create_button_text = 'New {}'.format(self.model_name)
+        page_heading = self.get_heading()
+        create_button_text = self.get_create_text()
 
         if self.create_url_name:
             create_url = reverse(self.create_url_name)
@@ -822,12 +842,7 @@ class BootTableListView(ListView):
         else:
             iterable = context['object_list']
 
-        final_list = []
-        for item in iterable:
-            itemdict = {'attrs': [], 'pk': item.pk}
-            for attr in self.attrs:
-                itemdict['attrs'].append(getattr(item, attr))
-            final_list.append(itemdict)
+        final_list = self.get_listing(iterable)
 
         context.update({
             'list': final_list,
