@@ -14,6 +14,7 @@ from .validators import RuleChecker
 
 logger = logging.getLogger(__name__)
 
+
 @attr.s
 class BaseValidationRunner:
     registration_authority = attr.ib()
