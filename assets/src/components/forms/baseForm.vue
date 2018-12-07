@@ -71,12 +71,12 @@ export default {
             }
             return []
         },
-        placeholder: function(field) {
+        placeholder: function(field_name) {
             if (this.inline) {
-                if (this.fields[field]['label']) {
-                    return this.fields[field]['label']
+                if (this.fields[field_name]['label'] != undefined) {
+                    return this.fields[field_name]['label']
                 } else {
-                    return capitalize(field)
+                    return capitalize(field_name)
                 }
             } else {
                 return ''
