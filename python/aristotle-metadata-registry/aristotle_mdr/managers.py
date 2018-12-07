@@ -5,6 +5,8 @@ from django.utils.module_loading import import_string
 from aristotle_mdr.utils import fetch_aristotle_settings
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
+from aristotle_mdr.contrib.reviews.models import REVIEW_STATES
+
 
 class UUIDManager(models.Manager):
     def create_uuid(self, instance):
@@ -57,7 +59,6 @@ class ConceptQuerySet(MetadataItemQuerySet):
             ObjectClass.objects.filter(name__contains="Person").visible()
             ObjectClass.objects.visible().filter(name__contains="Person")
         """
-        from aristotle_mdr.contrib.reviews.models import REVIEW_STATES
         if user is None or user.is_anonymous():
             return self.public()
         if user.is_superuser:
@@ -173,7 +174,6 @@ class ReviewRequestQuerySet(models.QuerySet):
 
         It is **chainable** with other querysets.
         """
-        from aristotle_mdr.contrib.reviews.models import REVIEW_STATES
         if user.is_superuser:
             return self.all()
         if user.is_anonymous():

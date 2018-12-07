@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from aristotle_mdr.utils import fetch_aristotle_settings
 
+from aristotle_mdr.contrib.reviews.models import REVIEW_STATES
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -201,7 +203,6 @@ def user_can_view_review(user, review):
         return True
 
     # None else can see a cancelled request
-    from aristotle_mdr.contrib.reviews.models import REVIEW_STATES
     if review.status == REVIEW_STATES.revoked:
         return False
 
@@ -218,7 +219,6 @@ def user_can_edit_review(user, review):
         return True
 
     # None else can see a cancelled request
-    from aristotle_mdr.contrib.reviews.models import REVIEW_STATES
     if review.status == REVIEW_STATES.revoked:
         return False
 
@@ -235,7 +235,6 @@ def user_can_edit_review_comment(user, reviewcomment):
         return True
 
     # None else can see a cancelled request
-    from aristotle_mdr.contrib.reviews.models import REVIEW_STATES
     if reviewcomment.review.status == REVIEW_STATES.revoked:
         return False
 
@@ -267,7 +266,6 @@ def user_can_close_or_reopen_review(user, review):
         return True
 
     # If you arent the requester or a super user, you can reopen a revoked request
-    from aristotle_mdr.contrib.reviews.models import REVIEW_STATES
     if review.status == REVIEW_STATES.revoked:
         return False
 
@@ -277,7 +275,6 @@ def user_can_close_or_reopen_review(user, review):
 
 def user_can_approve_review(user, review):
     # Can't approve a closed request
-    from aristotle_mdr.contrib.reviews.models import REVIEW_STATES
     if review.status != REVIEW_STATES.open:
         return False
 
