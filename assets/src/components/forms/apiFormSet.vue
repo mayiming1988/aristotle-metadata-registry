@@ -1,6 +1,7 @@
 <template>
     <div class="outer-formset">
         <alert v-if="message.length > 0" type="success" dismissible>{{ message }}</alert>
+        <alert v-if="request_error.length > 0" type="danger" dismissible>{{ request_error }}</alert>
         <FormSet 
             :fields="fields" 
             :initial="initial" 
@@ -24,8 +25,9 @@ export default {
         Alert
     },
     data: () => ({
+        combine_errors: false, // Override from mixin
         message: '',
-        errors: []
+        errors: [],
     }),
     props: {
         dataFields: {
@@ -56,6 +58,13 @@ export default {
             this.post(this.url, data)
             .then(() => {
                 this.message = 'Custom Fields Updated'
+            })
+            .catch(() => {
+                if (typeof this.errors === 'object' && this.errors['request'] != undefined) {
+                    // Make sure errors is always an array
+                    this.reqerror = this.errors['request']
+                    this.errors = []
+                }
             })
         }
     }

@@ -155,7 +155,7 @@ export default {
             return fdata
         },
         submitFormSet: function() {
-            if (!$v.$invalid) {
+            if (!this.$v.$invalid) {
                 let dataToSubmit = this.postProcess()
                 this.$emit('submit', dataToSubmit)
             }
