@@ -34,7 +34,8 @@ export default {
     },
     props: {
         fields: {
-            type: Object
+            type: Object,
+            required: true
         },
         value: {
             type: Object
@@ -43,7 +44,8 @@ export default {
             type: Object
         },
         fe_errors: {
-            type: Object
+            type: Object,
+            required: true
         },
         inline: {
             type: Boolean,
