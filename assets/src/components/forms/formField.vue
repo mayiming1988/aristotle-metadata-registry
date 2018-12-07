@@ -17,7 +17,6 @@ export default {
         },
         value: {
             type: [String, Number],
-            default: ''
         },
         fieldClass: {
             type: String,
