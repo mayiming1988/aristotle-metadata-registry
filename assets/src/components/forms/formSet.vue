@@ -23,8 +23,8 @@
                         <i class="fa fa-lg fa-bars grabber"></i>
                     </div>
                 </template>
-                <template v-if="showDelete" slot="after">
-                    <div class="col-md-2">
+                <template v-if="showDeleteItem(item.new)" slot="after">
+                    <div class="col-md-1">
                         <button class="btn btn-danger" @click="deleteRow(index)">Delete</button>
                     </div>
                 </template>
@@ -82,7 +82,7 @@ export default {
         sortableConfig: {
             handle: '.grabber',
         },
-        stripFields: ['vid'],
+        stripFields: ['vid', 'new'],
         error_map: {},
         formsData: []
     }),
@@ -100,6 +100,7 @@ export default {
         for (let i=0; i < this.formsData.length; i++) {
             // Add a vue id to each item as unique key
             this.formsData[i]['vid'] = i
+            this.formsData[i]['new'] = false
         }
     },
     watch: {
@@ -115,7 +116,7 @@ export default {
     },
     computed: {
         default: function() {
-            let defaults = {}
+            let defaults = {vid: this.formsData.length, new: true}
             for (let fname in this.fields) {
                 let field = this.fields[fname]
                 if (field.default != null) {
@@ -133,7 +134,6 @@ export default {
             return 'form' + index.toString()
         },
         addRow: function() {
-            let newrow = {'vid': this.formsData.length}
             this.formsData.push(this.default)
         },
         deleteRow: function(index) {
@@ -158,6 +158,13 @@ export default {
             if (!$v.$invalid) {
                 let dataToSubmit = this.postProcess()
                 this.$emit('submit', dataToSubmit)
+            }
+        },
+        showDeleteItem: function(isnew) {
+            if (this.showDelete) {
+                return true
+            } else {
+                return isnew
             }
         }
     }
