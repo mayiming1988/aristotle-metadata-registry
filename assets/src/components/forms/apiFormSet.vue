@@ -1,7 +1,7 @@
 <template>
     <div class="outer-formset">
-        <alert v-if="message.length > 0" type="success" dismissible>{{ message }}</alert>
-        <alert v-if="request_error.length > 0" type="danger" dismissible>{{ request_error }}</alert>
+        <alert v-if="message.length > 0" type="success">{{ message }}</alert>
+        <alert v-if="request_error.length > 0" type="danger">{{ request_error }}</alert>
         <FormSet 
             :fields="fields" 
             :initial="initial" 
