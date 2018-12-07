@@ -1,3 +1,7 @@
+"""
+Aristotle MDR 11179 Slots with alternate management
+Defined as a field by registry administrator
+"""
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from model_utils.models import TimeStampedModel
