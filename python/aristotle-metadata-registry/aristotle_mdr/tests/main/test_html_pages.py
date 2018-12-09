@@ -498,13 +498,16 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
     def make_review_request(self, item, user):
 
+        from aristotle_mdr.contrib.reviews.models import ReviewRequest
+
         self.assertFalse(perms.user_can_view(user,item))
         self.item1.save()
         self.item1 = self.itemType.objects.get(pk=item.pk)
 
-        review = models.ReviewRequest.objects.create(
+        review = ReviewRequest.objects.create(
             requester=self.su,registration_authority=self.ra,
-            state=self.ra.public_state,
+            target_registration_state=self.ra.public_state,
+            due_date=datetime.date(2010,1,1),
             registration_date=datetime.date(2010,1,1)
         )
 

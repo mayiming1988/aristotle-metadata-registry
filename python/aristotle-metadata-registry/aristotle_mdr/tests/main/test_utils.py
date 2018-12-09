@@ -49,12 +49,6 @@ class UtilsTests(TestCase):
         ra = models.RegistrationAuthority.objects.create(name="tname",definition="my definition")
         org = models.Organization.objects.create(name="tname",definition="my definition")
         wg = models.Workgroup.objects.create(name="tname",definition="my definition")
-        rr = models.ReviewRequest.objects.create(
-            requester=user,
-            registration_authority=ra,
-            state=ra.public_state,
-            registration_date=datetime.date(2010,1,1)
-        )
 
         url = utils.get_aristotle_url(item._meta.label_lower, item.pk, item.name)
         self.assertEqual(url, reverse('aristotle:item', args=[item.pk]))
@@ -67,9 +61,6 @@ class UtilsTests(TestCase):
 
         url = utils.get_aristotle_url(wg._meta.label_lower, wg.pk, wg.name)
         self.assertEqual(url, reverse('aristotle:workgroup', args=[wg.pk, wg.name]))
-
-        url = utils.get_aristotle_url(rr._meta.label_lower, rr.pk)
-        self.assertEqual(url, reverse('aristotle:userReviewDetails', args=[rr.pk]))
 
         url = utils.get_aristotle_url('aristotle_mdr.fake_model', 7, 'fake_name')
         self.assertTrue(url is None)
