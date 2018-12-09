@@ -497,24 +497,6 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
     # ---- utils ----
 
-    def make_review_request(self, item, user):
-        self.assertFalse(perms.user_can_view(user,item))
-        self.item1.save()
-        self.item1 = self.itemType.objects.get(pk=item.pk)
-
-        review = ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            target_registration_state=self.ra.public_state,
-            due_date=datetime.date(2010,1,1),
-            registration_date=datetime.date(2010,1,1)
-        )
-
-        review.concepts.add(item)
-
-        self.assertTrue(perms.user_can_view(user,item))
-        self.assertTrue(perms.user_can_change_status(user,item))
-        return review
-
     def update_defn_with_versions(self, new_defn='brand new definition'):
         with reversion.create_revision():
             self.item1.save()

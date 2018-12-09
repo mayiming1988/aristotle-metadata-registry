@@ -16,6 +16,8 @@ from django_celery_results.models import TaskResult
 
 from django_tools.unittest_utils.BrowserDebug import debug_response
 
+from aristotle_mdr.contrib.reviews.models import ReviewRequest
+
 from time import sleep
 import random
 
@@ -822,6 +824,25 @@ class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils,
             state=ra.public_state
         )
         return s
+
+    def make_review_request(self, item, user):
+        self.assertFalse(perms.user_can_view(user,item))
+        item.save()
+        item = item.__class__.objects.get(pk=item.pk)
+
+        review = ReviewRequest.objects.create(
+            requester=self.su,registration_authority=self.ra,
+            target_registration_state=self.ra.public_state,
+            due_date=datetime.date(2010,1,1),
+            registration_date=datetime.date(2010,1,1)
+        )
+
+        review.concepts.add(item)
+
+        self.assertTrue(perms.user_can_view(user,item))
+        self.assertTrue(perms.user_can_change_status(user,item))
+        return review
+
 
 
 @attr.s
