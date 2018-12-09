@@ -5,7 +5,7 @@ from django.utils.module_loading import import_string
 from aristotle_mdr.utils import fetch_aristotle_settings
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
-from aristotle_mdr.contrib.reviews.models import REVIEW_STATES
+from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
 
 
 class UUIDManager(models.Manager):

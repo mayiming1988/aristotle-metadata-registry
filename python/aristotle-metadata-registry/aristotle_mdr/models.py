@@ -1472,7 +1472,7 @@ class PossumProfile(models.Model):
 
     @property
     def mySandboxContent(self):
-        from aristotle_mdr.contrib.reviews.models import REVIEW_STATES
+        from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
         return _concept.objects.filter(
             Q(
                 submitter=self.user,

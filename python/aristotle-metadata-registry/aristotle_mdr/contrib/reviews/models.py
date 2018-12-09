@@ -22,13 +22,7 @@ from aristotle_mdr.managers import (
     # WorkgroupQuerySet
 )
 
-
-REVIEW_STATES = Choices(
-    (0, 'open', _('Open')),
-    (5, 'revoked', _('Revoked')),
-    (10, 'approved', _('Approved')),
-    (15, 'closed', _('Closed')),
-)
+from .const import REVIEW_STATES
 
 
 class StatusMixin:

@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from aristotle_mdr.utils import fetch_aristotle_settings
 
-from aristotle_mdr.contrib.reviews.models import REVIEW_STATES
+from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
 
 import logging
 logger = logging.getLogger(__name__)
