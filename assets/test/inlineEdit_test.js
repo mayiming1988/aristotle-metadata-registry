@@ -40,7 +40,7 @@ describe('inlineEdit', function() {
 
     it('displays errors', function() {
         this.wrapper.setData({editing: true, errors: {field: ['Big error']}})
-        let errorstub = this.wrapper.find('apierrors-stub')
+        let errorstub = this.wrapper.find('api-errors-stub')
         assert.deepEqual(errorstub.props('errors'), {field: ['Big error']})
     })
 })
