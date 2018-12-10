@@ -83,11 +83,13 @@ export default {
         },
         stripFields: ['vid', 'new'],
         error_map: {},
-        formsData: []
+        formsData: [],
+        nextVid: 0
     }),
     created: function() {
         if (this.initial) {
             this.formsData = this.initial
+            this.nextVid = this.formsData.length
         }
         for (let i=0; i < this.formsData.length; i++) {
             // Add a vue id to each item as unique key
@@ -111,7 +113,7 @@ export default {
     },
     computed: {
         default: function() {
-            let defaults = {vid: this.formsData.length, new: true}
+            let defaults = {vid: this.nextVid, new: true}
             for (let fname in this.fields) {
                 let field = this.fields[fname]
                 if (field.default != null) {
@@ -127,6 +129,7 @@ export default {
         },
         addRow: function() {
             this.formsData.push(this.default)
+            this.nextVid += 1
         },
         deleteRow: function(index) {
             this.formsData.splice(index, 1)
