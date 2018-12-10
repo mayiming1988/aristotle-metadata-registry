@@ -1386,7 +1386,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.item1.save()
         self.item1 = self.itemType.objects.get(pk=self.item1.pk)
 
-        self.make_review_request(self.item1, self.registrar)
+        review = self.make_review_request(self.item1, self.registrar)
 
         self.assertTrue(perms.user_can_view(self.registrar,self.item1))
         self.assertTrue(perms.user_can_change_status(self.registrar,self.item1))
