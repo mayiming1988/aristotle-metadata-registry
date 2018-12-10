@@ -45,7 +45,7 @@ class CustomValueFormMixin:
     cfields: dict
     cleaned_data: dict
 
-    def __init__(self, custom_fields: Iterable[CustomField], **kwargs):
+    def __init__(self, custom_fields: Iterable[CustomField]=[], **kwargs):
         super().__init__(**kwargs)  # type: ignore
         self.cfields = {'custom_{}'.format(cf.name): cf for cf in custom_fields}
         self.custom_field_names = []

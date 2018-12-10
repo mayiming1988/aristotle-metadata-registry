@@ -155,6 +155,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     @tag('cache')
     @override_settings(CACHE_ITEM_PAGE=True)
+    @skip('Cache mixin not currently used')
     def test_itempage_caches(self):
 
         # View in the future to avoid modified recently check
@@ -174,6 +175,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     @tag('cache')
     @override_settings(CACHE_ITEM_PAGE=True)
+    @skip('Cache mixin not currently used')
     def test_itempage_loaded_from_cache(self):
 
         # Load response into cache
@@ -492,7 +494,8 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         cf = CustomField.objects.create(
             name='MyCustomField',
             type='int',
-            help_text='Custom'
+            help_text='Custom',
+            order=0
         )
 
         postdata = utils.model_to_dict_with_change_time(self.item)
@@ -520,7 +523,8 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         cf = CustomField.objects.create(
             name='MyCustomField',
             type='int',
-            help_text='Custom'
+            help_text='Custom',
+            order=0
         )
         cv = CustomValue.objects.create(
             field=cf,
@@ -535,6 +539,10 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         initial = response.context['form'].initial
         self.assertTrue('custom_MyCustomField' in initial)
         self.assertEqual(initial['custom_MyCustomField'], '4')
+
+    @tag('custfield')
+    def test_get_for_model_call(self):
+        pass
 
 
 class LoggedInViewConceptPages(utils.AristotleTestUtils):

@@ -365,6 +365,7 @@ class ConceptualDomainWizardPage(ConceptWizardPage, TestCase):
             {'name': 'Test2', 'definition': 'test defn', 'start_date': '1999-01-01', 'end_date': '2090-01-01', 'ORDER': 1}
         ]
         step_2_data.update(self.get_formset_postdata(valuemeaning_formset_data, 'value_meaning', 0))
+        step_2_data.update(self.get_formset_postdata([], 'slots'))
 
 
         response = self.client.post(self.wizard_url, step_2_data)
@@ -400,6 +401,7 @@ class ConceptualDomainWizardPage(ConceptWizardPage, TestCase):
             {'name': 'Test2', 'definition': 'test defn', 'start_date': '1999-01-01', 'end_date': '2090-01-01', 'ORDER': 1}
         ]
         step_2_data.update(self.get_formset_postdata(valuemeaning_formset_data, 'value_meaning', 0))
+        step_2_data.update(self.get_formset_postdata([], 'slots'))
 
         response = self.client.post(self.wizard_url, step_2_data)
         self.assertEqual(response.status_code, 200)
@@ -433,6 +435,7 @@ class ValueDomainWizardPage(ConceptWizardPage,TestCase):
             'results-name':item_name,
             'results-definition':"Test Definition",
         }
+        step_2_data.update(self.get_formset_postdata([], 'slots'))
 
         permissible_formset_data = [
             {'value': 'Test1', 'meaning': 'Test1', 'start_date': '1999-01-01', 'end_date': '2090-01-01', 'ORDER': 0},
@@ -501,6 +504,7 @@ class DataElementDerivationWizardPage(ConceptWizardPage,TestCase):
             'results-name':item_name,
             'results-definition':"Test Definition",
         }
+        step_2_data.update(self.get_formset_postdata([], 'slots'))
 
         inputs_formset_data = [
             {'data_element': self.de3.pk, 'ORDER': 0},
@@ -542,7 +546,7 @@ class DataElementDerivationWizardPage(ConceptWizardPage,TestCase):
         self.assertEqual(models.DedDerivesThrough.objects.get(order=1).data_element, self.de3)
 
 
-class DataElementConceptAdvancedWizardPage(HaystackReindexMixin, utils.LoggedInViewPages, TestCase):
+class DataElementConceptAdvancedWizardPage(HaystackReindexMixin, utils.AristotleTestUtils, TestCase):
     wizard_url_name="createDataElementConcept"
     wizard_form_name="data_element_concept_wizard"
     model=models.DataElementConcept

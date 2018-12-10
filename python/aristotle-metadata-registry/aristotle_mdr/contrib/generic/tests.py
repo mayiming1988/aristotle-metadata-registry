@@ -74,7 +74,7 @@ class VueFormTestCase(TestCase):
         fields = self.get_fields()
         self.assertEqual(fields['name']['options'], [])
         self.assertEqual(fields['description']['options'], [])
-        self.assertCountEqual(fields['fruit']['options'], [['a', 'apple'], ['b', 'bananna']])
+        self.assertCountEqual(fields['fruit']['options'], [['a', 'Apple'], ['b', 'Bananna']])
 
     def test_rules_correct(self):
         fields = self.get_fields()

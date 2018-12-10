@@ -801,7 +801,7 @@ class WizardTestUtils:
         return response
 
     def post_to_wizard(self, datalist: List[Dict[str, str]],
-                       url: str, wizard_name: str, step_names: List[str]):
+                       url: str, wizard_name: str, step_names: List[str]=[]):
         """Add current step and prefixes to datalist before posting"""
 
         updated_datalist = self.transform_datalist(datalist, wizard_name, step_names)

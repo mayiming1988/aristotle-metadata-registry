@@ -73,6 +73,7 @@ class RelationCreationWizard(ConceptWizardPage, TestCase):
             'results-name':item_name,
             'results-definition':"Test Definition",
         }
+        step_2_data.update(self.get_formset_postdata([], 'slots'))
 
         role_formset_data = [
             {'name': 'parent', 'definition': 'ok', 'multiplicity': 1, 'ORDER': 0},
