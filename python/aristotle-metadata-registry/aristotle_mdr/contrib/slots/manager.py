@@ -13,7 +13,7 @@ class SimplePermsQueryset(QuerySet):
 
     def visible(self, user, workgroup=None):
         if user.is_authenticated:
-            if workgroup in user.profile.workgroups:
+            if workgroup in user.profile.workgroups or user.is_superuser:
                 # return all slots
                 return self
             else:

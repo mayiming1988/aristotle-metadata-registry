@@ -17,7 +17,11 @@ from django.utils.translation import ugettext_lazy as _
 from aristotle_mdr.contrib.custom_fields.models import CustomField
 from aristotle_mdr.contrib.help.models import ConceptHelp
 from aristotle_mdr.contrib.slots.models import Slot
-from aristotle_mdr.utils import fetch_aristotle_settings, fetch_metadata_apps
+from aristotle_mdr.utils import (
+    fetch_aristotle_settings,
+    fetch_metadata_apps,
+    is_active_module
+)
 from aristotle_mdr.contrib.generic.views import ExtraFormsetMixin
 
 from formtools.wizard.views import SessionWizardView
