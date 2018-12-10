@@ -1,5 +1,5 @@
 <template>
-    <component :is="tag" :name="name" :class="fieldClass" :value="value" @input="emitInput" @change="emitInput">
+    <component :is="tag" :name="name" :class="fieldClass" :value="value" @input="emitOnInput" @change="emitOnChange">
         <option v-for="option in options" :value="option[0]" :selected="option[0] == value">{{ option[1] }}</option>
     </component>
 </template>
@@ -28,8 +28,17 @@ export default {
         }
     },
     methods: {
-        emitInput: function(event) {
-            this.$emit('input', event.target.value)
+        emitOnInput: function(event) {
+            if (this.tag != 'select')  {
+                this.$emit('input', event.target.value)
+            }
+        },
+        emitOnChange: function(event) {
+            // Need to use change since ie11 doesnt fire input events
+            // for select elements :(
+            if (this.tag == 'select') {
+                this.$emit('input', event.target.value)
+            }
         },
         hasOptions: function() {
             return Object.keys(this.options) > 0
