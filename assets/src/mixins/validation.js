@@ -1,4 +1,3 @@
-/* globals $v */
 import { validationMixin } from 'vuelidate'
 import getValidations from 'src/lib/forms/getValidations.js'
 
