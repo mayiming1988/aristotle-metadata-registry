@@ -75,10 +75,15 @@ class UtilsTests(TestCase):
         self.assertTrue(url is None)
 
     def test_pretify_camel_case(self):
-        pcc = utils.utils.pretify_camel_case
+        pcc = utils.text.pretify_camel_case
         self.assertEqual(pcc('ScopedIdentifier'), 'Scoped Identifier')
         self.assertEqual(pcc('Namespace'), 'Namespace')
         self.assertEqual(pcc('LongerCamelCase'), 'Longer Camel Case')
+
+    def test_capitalize_words(self):
+        cw = utils.text.capitalize_words
+        self.assertEqual(cw('some lower case words'), 'Some Lower Case Words')
+        self.assertEqual(cw('Mixed case Words'), 'Mixed Case Words')
 
     @tag('version')
     def test_version_field_value_only(self):

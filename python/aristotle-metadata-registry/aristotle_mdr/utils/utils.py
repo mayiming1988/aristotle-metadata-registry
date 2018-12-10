@@ -328,10 +328,6 @@ def get_aristotle_url(label, obj_id, obj_name=None):
     return None
 
 
-def pretify_camel_case(camelcase):
-    return re.sub(r'([a-z0-9])([A-Z])', r'\1 \2', camelcase)
-
-
 def get_concept_models() -> List[Model]:
     """Returns models for any concept subclass"""
     from aristotle_mdr.models import _concept
