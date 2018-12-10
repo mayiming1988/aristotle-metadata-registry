@@ -63,7 +63,9 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
     def create_review_request(self, items):
         self.login_registrar()
         # Make a RR so the registrar can change status
-        review = models.ReviewRequest.objects.create(
+        from aristotle_mdr.contrib.reviews.models import ReviewRequest
+        
+        review = ReviewRequest.objects.create(
             requester=self.su,
             registration_authority=self.ra,
             state=self.ra.locked_state,
@@ -284,13 +286,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
     # Function used for the 2 tests below
     def bulk_status_change_on_permitted_items(self, review_changes):
         self.login_registrar()
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            state=self.ra.locked_state,
-            registration_date=datetime.date(2013,4,2)
-        )
-        review.concepts.add(self.item1)
-        review.concepts.add(self.item2)
+        self.create_review_request([self.item1, self.item2])
 
         self.assertTrue(perms.user_can_change_status(self.registrar, self.item1))
         self.assertTrue(perms.user_can_change_status(self.registrar, self.item2))
@@ -509,12 +505,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
     @tag('changestatus')
     def test_bulk_status_change_on_forbidden_items(self):
         self.login_registrar()
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            registration_date=datetime.date(2010,1,1),
-            state=self.ra.locked_state
-        )
-        review.concepts.add(self.item1)
+        self.make_review_request(self.item1, self.registrar)
 
         self.assertTrue(perms.user_can_change_status(self.registrar, self.item1))
         self.assertFalse(perms.user_can_change_status(self.registrar, self.item4))
