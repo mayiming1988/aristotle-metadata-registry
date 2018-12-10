@@ -11,8 +11,6 @@ import model_utils.fields
 
 class Migration(migrations.Migration):
 
-    replaces = [('aristotle_mdr_custom_fields', '0001_initial'), ('aristotle_mdr_custom_fields', '0002_auto_20181129_2322'), ('aristotle_mdr_custom_fields', '0003_auto_20181205_0314'), ('aristotle_mdr_custom_fields', '0004_auto_20181205_0329'), ('aristotle_mdr_custom_fields', '0005_auto_20181206_0559')]
-
     initial = True
 
     dependencies = [
@@ -75,7 +73,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='customfield',
-            name='allowed_models',
+            name='allowed_model',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='contenttypes.ContentType'),
         ),
         migrations.AddField(
@@ -90,11 +88,6 @@ class Migration(migrations.Migration):
         migrations.AlterModelOptions(
             name='customvalue',
             options={'ordering': ['field__order']},
-        ),
-        migrations.RenameField(
-            model_name='customfield',
-            old_name='allowed_models',
-            new_name='allowed_model',
         ),
         migrations.AlterField(
             model_name='customvalue',
