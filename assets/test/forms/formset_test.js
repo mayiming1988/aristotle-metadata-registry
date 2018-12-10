@@ -66,4 +66,16 @@ describe('FormSet', function() {
         let expectedData = [{name: 'Yes', type: 'Boolean', vid: 0, new: false}]
         assert.deepEqual(wrapper.vm.formsData, expectedData)
     })
+
+    it('doesnt repeat vid values when remove then delete', function() {
+        let initial = [{name: 'Yes', type: 'Boolean'}, {name: 'No', type: 'Boolean'}]
+        let wrapper = getWrapper(initial, ntfields)
+
+        wrapper.vm.deleteRow(0)
+        wrapper.vm.addRow()
+
+        let firstvid = wrapper.vm.formsData[0].vid
+        let secondvid = wrapper.vm.formsData[1].vid
+        assert.notEqual(firstvid, secondvid)
+    })
 })
