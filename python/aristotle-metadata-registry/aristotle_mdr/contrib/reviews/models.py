@@ -190,3 +190,10 @@ class ReviewEndorsementTimeline(TimeStampedModel):
 
     def can_edit(self, user):
         return False
+
+@receiver(post_save, sender=ReviewRequest)
+def review_request_changed(sender, instance, *args, **kwargs):
+    if kwargs.get('created'):
+        fire("action_signals.review_request_created", obj=instance, **kwargs)
+    else:
+        fire("action_signals.review_request_updated", obj=instance, **kwargs)
