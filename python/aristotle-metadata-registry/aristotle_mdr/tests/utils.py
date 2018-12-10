@@ -825,13 +825,15 @@ class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils,
         )
         return s
 
-    def make_review_request(self, item, user):
+    def make_review_request(self, item, user, requester=None):
+        if not requester:
+            requester = self.su
         self.assertFalse(perms.user_can_view(user,item))
         item.save()
         item = item.__class__.objects.get(pk=item.pk)
 
         review = ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
+            requester=requester,registration_authority=self.ra,
             target_registration_state=self.ra.public_state,
             due_date=datetime.date(2010,1,1),
             registration_date=datetime.date(2010,1,1)
@@ -843,7 +845,21 @@ class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils,
         self.assertTrue(perms.user_can_change_status(user,item))
         return review
 
+    def make_review_request_iterable(self, items, user=None, request_kwargs={}):
+        kwargs = {
+            "requester": self.su,
+            "registration_authority": self.ra,
+            "target_registration_state": self.ra.locked_state,
+            "registration_date": datetime.date(2013,4,2)
+        }
+        kwargs.update(request_kwargs)
 
+        review = ReviewRequest.objects.create(**kwargs)
+
+        for item in items:
+            review.concepts.add(item)
+
+        return review
 
 @attr.s
 class MockManagementForm(object):

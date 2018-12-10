@@ -155,7 +155,9 @@ class RequestReviewBulkActionForm(RedirectBulkActionMixin, LoggedInBulkActionFor
     @classmethod
     def get_redirect_url(cls, request):
         from urllib.parse import urlencode
-        params = {'items': request.POST.getlist("items")}
+        items = request.POST.getlist("items")
+        item_ids = MDR._concept.objects.visible(user=request.user).filter(id__in=items).values_list('id', flat=True)
+        params = {'items': item_ids}
         return "{}?{}".format(
             reverse("aristotle_reviews:review_create"),
             urlencode(params, True)
