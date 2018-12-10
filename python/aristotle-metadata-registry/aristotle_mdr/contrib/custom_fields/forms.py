@@ -16,7 +16,7 @@ class CustomFieldForm(forms.ModelForm):
     def get_concept_qs(self):
         mapping = get_concept_content_types()
         ids = [ct.id for ct in mapping.values()]
-        return ContentType.objects.filter(id__in=ids)
+        return ContentType.objects.filter(id__in=ids).order_by('model')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
