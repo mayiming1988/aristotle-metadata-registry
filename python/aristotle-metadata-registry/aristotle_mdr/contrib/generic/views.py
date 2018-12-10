@@ -867,6 +867,11 @@ class CancelUrlMixin:
 
 
 class VueFormView(FormView):
+    """
+    A view for returning a serialized json representation of a django form
+    for use with vue components. Does not permit the POST method as that
+    should be handled by the api
+    """
 
     # Mapping of widgets to extra fields data
     widget_mapping: Dict[str, Dict] = {
@@ -888,10 +893,9 @@ class VueFormView(FormView):
         return {}
 
     def strip_fields(self, data: List[Dict]):
-        for item in data:
-            for fname in self.non_write_fields:
-                if fname in data:
-                    del data[fname]
+        for fname in self.non_write_fields:
+            if fname in data:
+                del data[fname]
 
     def get_vue_form_fields(self, form: forms.Form) -> Dict[str, Dict]:
         vuefields = {}
@@ -921,6 +925,9 @@ class VueFormView(FormView):
 
             vuefields[fname] = field_data
         return vuefields
+
+    def post(self, request, *args, **kwargs):
+        return self.http_method_not_allowed(request, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data()
