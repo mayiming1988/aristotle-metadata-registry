@@ -4,7 +4,7 @@
         :fields="fields" 
         :errors="errors" 
         :showLabels="showLabels" 
-        :fe_errors="validationErrors">
+        :fe_errors="getValidationErrors('formData')">
         <template slot="after">
             <button class="btn btn-primary" @click="emitData">Submit</button>
         </template>
@@ -52,9 +52,12 @@ export default {
             this.formData = this.initial
         }
     },
+    validations: function() {
+        return this.getValidations(this.fields, 'formData')
+    },
     methods: {
         emitData: function() {
-            if (this.dataValid) {
+            if (this.isDataValid('formdata')) {
                 this.$emit('submit', this.formData)
             }
         }
