@@ -15,7 +15,7 @@
                 :fields="fields" 
                 :inline="true"
                 :errors="getError(item.vid)"
-                :fe_errors="$v.formsData.$each[index]"
+                :fe_errors="getIndexValidationErrors('formsData', index)"
                 :showSubmit="false"
                 :showLabels="false">
                 <template slot="before">
@@ -97,6 +97,9 @@ export default {
             this.formsData[i]['new'] = false
         }
     },
+    validations: function() {
+        return this.getValidations(this.fields, 'formsData', true)
+    },
     watch: {
         errors: function() {
             let error_map = {}
@@ -124,9 +127,6 @@ export default {
         getError: function(vid) {
             return this.error_map[vid]
         },
-        getScope: function(index) {
-            return 'form' + index.toString()
-        },
         addRow: function() {
             this.formsData.push(this.default)
         },
@@ -149,7 +149,7 @@ export default {
             return fdata
         },
         submitFormSet: function() {
-            if (this.dataValid) {
+            if (this.isDataValid('formsData')) {
                 let dataToSubmit = this.postProcess()
                 this.$emit('submit', dataToSubmit)
             }

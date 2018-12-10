@@ -11,31 +11,31 @@ export default {
     mixins: [validationMixin],
     data: () => ({
         formDataPropName: 'formData',
-        multipleForms: false,
-        fields: {}
+        multipleForms: false
     }),
     methods: {
         isFieldValid: function(field) {
-            return !$v[this.formDataPropName][field].$invalid
-        }
-    },
-    computed: {
-        dataValid: function() {
-            return !$v[this.formDataPropName].$invalid
+            return !this.$v[this.formDataPropName][field].$invalid
         },
-        validationErrors: function() {
-            return $v[this.formDataPropName]
+        getValidations: function(fields, dataPropName, multipleForms=false) {
+            let validations = {}
+            let dataValidations = getValidations(fields)
+            if (!multipleForms) {
+                validations[dataPropName] = dataValidations
+                return validations
+            } else {
+                validations[dataPropName] = {$each: dataValidations}
+                return validations
+            }
+        },
+        isDataValid: function(dataPropName) {
+            return !this.$v[dataPropName].$invalid
+        },
+        getValidationErrors: function(dataPropName) {
+            return this.$v[dataPropName]
+        },
+        getIndexValidationErrors: function(dataPropName, index) {
+            return this.$v[dataPropName].$each[index]
         }
     },
-    validations: function() {
-        let validations = {}
-        let dataValidations = getValidations(this.fields)
-        if (!this.multipleForms) {
-            validations[this.formDataPropName] = dataValidations
-            return validations
-        } else {
-            validations[this.formDataPropName] = {$each: dataValidations}
-            return validations
-        }
-    }
 }
