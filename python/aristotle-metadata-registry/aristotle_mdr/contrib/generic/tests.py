@@ -10,8 +10,6 @@ from aristotle_mdr.contrib.generic.views import VueFormView
 
 import json
 
-setup_aristotle_test_environment()
-
 
 class TestGenericPagesLoad(utils.LoggedInViewPages, TestCase):
 

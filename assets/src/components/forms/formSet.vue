@@ -38,8 +38,7 @@
 </template>
 
 <script>
-import { validationMixin } from 'vuelidate'
-import getValidations from 'src/lib/forms/getValidations.js'
+import validationMixin from 'src/mixins/validation.js'
 import baseForm from '@/forms/baseForm.vue'
 import draggable from 'vuedraggable'
 
@@ -78,6 +77,8 @@ export default {
         }
     },
     data: () => ({
+        formDataPropName: 'formsData',
+        multipleForms: true,
         message: '',
         sortableConfig: {
             handle: '.grabber',
@@ -86,13 +87,6 @@ export default {
         error_map: {},
         formsData: []
     }),
-    validations() {
-        return {
-            formsData: {
-                $each: getValidations(this.fields)
-            }
-        }
-    },
     created: function() {
         if (this.initial) {
             this.formsData = this.initial
@@ -155,7 +149,7 @@ export default {
             return fdata
         },
         submitFormSet: function() {
-            if (!this.$v.$invalid) {
+            if (this.dataValid) {
                 let dataToSubmit = this.postProcess()
                 this.$emit('submit', dataToSubmit)
             }

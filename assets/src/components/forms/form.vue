@@ -4,7 +4,7 @@
         :fields="fields" 
         :errors="errors" 
         :showLabels="showLabels" 
-        :fe_errors="$v.formData">
+        :fe_errors="validationErrors">
         <template slot="after">
             <button class="btn btn-primary" @click="emitData">Submit</button>
         </template>
@@ -12,8 +12,7 @@
 </template>
 
 <script>
-import { validationMixin } from 'vuelidate'
-import getValidations from 'src/lib/forms/getValidations.js'
+import validationMixin from 'src/mixins/validation.js'
 
 import baseForm from '@/forms/baseForm.vue'
 
@@ -48,11 +47,6 @@ export default {
             type: Object
         }
     },
-    validations() {
-        return {
-            formData: getValidations(this.fields)
-        }
-    },
     created: function() {
         if (this.initial) {
             this.formData = this.initial
@@ -60,7 +54,7 @@ export default {
     },
     methods: {
         emitData: function() {
-            if (!this.$v.invalid) {
+            if (this.dataValid) {
                 this.$emit('submit', this.formData)
             }
         }
