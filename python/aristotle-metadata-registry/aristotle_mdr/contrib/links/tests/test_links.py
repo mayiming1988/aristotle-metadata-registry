@@ -48,7 +48,7 @@ class RelationAdminPage(AdminPageForConcept, TestCase):
     }
 
 
-class RelationCreationWizard(utils.FormsetTestUtils, ConceptWizardPage, TestCase):
+class RelationCreationWizard(ConceptWizardPage, TestCase):
     model=models.Relation
 
     @tag('edit_formsets')

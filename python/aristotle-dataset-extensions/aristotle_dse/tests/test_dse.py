@@ -218,7 +218,7 @@ class DistributionViewPage(LoggedInViewConceptPages,TestCase):
         self.assertTrue(oc2._concept_ptr in spec_classes.object_list)
         self.assertEqual(len(spec_classes.object_list), 2)
 
-class DistributionWizardPage(FormsetTestUtils, ConceptWizardPage, TestCase):
+class DistributionWizardPage(ConceptWizardPage, TestCase):
     model=models.Distribution
 
     def do_test_for_issue333(self,response):
