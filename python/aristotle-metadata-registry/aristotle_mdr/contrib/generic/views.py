@@ -16,6 +16,7 @@ from aristotle_mdr.contrib.autocomplete import widgets
 from aristotle_mdr.models import _concept, ValueDomain, AbstractValue
 from aristotle_mdr.perms import user_can_edit, user_can_view
 from aristotle_mdr.utils import construct_change_message
+from aristotle_mdr.utils.text import capitalize_words
 from aristotle_mdr.contrib.generic.forms import (
     ordered_formset_factory, ordered_formset_save,
     one_to_many_formset_excludes, one_to_many_formset_filters,
@@ -887,6 +888,8 @@ class VueFormView(FormView):
 
     # Fields to strip from initial
     non_write_fields: List = []
+    # Wether to capitalize option names
+    capitalize_options: bool = True
 
     def get_vue_initial(self):
         # To be overwritten
@@ -915,7 +918,11 @@ class VueFormView(FormView):
 
             if widget_name == 'Select':
                 # field.choices can be an iterator hence the need for this
-                field_data['options'] = [(c[0], c[1]) for c in field.choices]
+                field_data['options'] = [[c[0], c[1]] for c in field.choices]
+
+                if self.capitalize_options:
+                    for item in field_data['options']:
+                        item[1] = capitalize_words(item[1])
 
             for attr in self.rules_attrs_to_pull:
                 if hasattr(field, attr):
