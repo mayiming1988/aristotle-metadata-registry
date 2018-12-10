@@ -7,25 +7,40 @@ import Formset from '@/forms/formSet.vue'
 
 describe('FormSet', function() {
 
-    beforeEach(function() {
-        // this.wrapper = VueTestUtils.shallowMount(Formset)
-    })
-
-    afterEach(function() {
-        this.wrapper = {}
-    })
+    function getWrapper(initial, fields) {
+        let propsData = {fields: fields, initial: initial}
+        return VueTestUtils.shallowMount(Formset, {propsData: propsData})
+    }
 
     it('Sets data to initial', function() {
-        let propsData = {
-            fields: {name: {tag: 'input', rules: {required: false}}},
-            initial: [{name: 'Heck'}, {name: 'Flip'}]
-        }
-        let wrapper = VueTestUtils.shallowMount(Formset, {propsData: propsData})
+        let fields = {name: {tag: 'input', rules: {required: false}}} 
+        let initial = [{name: 'Heck'}, {name: 'Flip'}]
+        let wrapper = getWrapper(initial, fields)
 
         let expectedData = [
             {name: 'Heck', vid: 0, new: false}, 
             {name: 'Flip', vid: 1, new: false}
         ]
         assert.deepEqual(wrapper.vm.formsData, expectedData)
+    })
+
+    it('sets default item value correctly', function() {
+        let fields = {name: {default: 'wow'}, desc: {}, type: {default: 'swell'}}
+        let wrapper = getWrapper([], fields)
+        
+        let expectedDefault = {name: 'wow', type: 'swell', vid: 0, new: true}
+        assert.deepEqual(wrapper.vm.default, expectedDefault)
+    })
+
+    it('Maps backend errors to vid', function() {
+        let fields = {name: {rules: {required: true}}, type: {rules: {required: false}}}
+        let initial = [{name: 'Grape', type: 'Fruit'}, {name: 'lmao', type: 'Abbreviation'}]
+        let wrapper = getWrapper(initial, fields)
+        wrapper.setProps({
+            errors: [{name: ['Required']}, {type: ['That type is bad']}]
+        })
+
+        let expectedMap = {0: {name: ['Required']}, 1: {type: ['That type is bad']}}
+        assert.deepEqual(wrapper.vm.error_map, expectedMap)
     })
 })

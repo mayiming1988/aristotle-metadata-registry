@@ -77,8 +77,6 @@ export default {
         }
     },
     data: () => ({
-        formDataPropName: 'formsData',
-        multipleForms: true,
         message: '',
         sortableConfig: {
             handle: '.grabber',
