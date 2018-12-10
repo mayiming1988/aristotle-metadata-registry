@@ -555,6 +555,13 @@ class DataElementConceptAdvancedWizardPage(HaystackReindexMixin, utils.Aristotle
     def wizard_url(self):
         return reverse('aristotle:%s'%self.wizard_url_name)
 
+    def test_show_slots_tab_false(self):
+        self.login_editor()
+        response = self.client.get(self.wizard_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('show_slots_tab' in response.context)
+        self.assertFalse(response.context['show_slots_tab'])
+
     def test_editor_can_make_object__has_prior_components(self):
         self.login_editor()
         from reversion.revisions import create_revision
@@ -770,6 +777,13 @@ class DataElementAdvancedWizardPage(HaystackReindexMixin, utils.LoggedInViewPage
     @property
     def wizard_url(self):
         return reverse('aristotle:%s'%self.wizard_url_name)
+
+    def test_show_slots_tab_false(self):
+        self.login_editor()
+        response = self.client.get(self.wizard_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('show_slots_tab' in response.context)
+        self.assertFalse(response.context['show_slots_tab'])
 
     def test_editor_can_make_object__has_prior_components(self):
         self.login_editor()

@@ -408,6 +408,11 @@ class MultiStepAristotleWizard(PermissionWizard):
             })
         return initial
 
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['show_slots_tab'] = False
+        return context
+
 
 class DataElementConceptWizard(MultiStepAristotleWizard):
     __doc__ = _(
