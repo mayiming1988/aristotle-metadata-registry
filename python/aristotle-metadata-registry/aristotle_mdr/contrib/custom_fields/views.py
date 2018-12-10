@@ -24,7 +24,7 @@ class CustomFieldListView(IsSuperUserMixin, BootTableListView):
     headers = ['Name', 'Type', 'Help Text', 'Model', 'Visibility']
     attrs = ['name', 'hr_type', 'help_text', 'allowed_model', 'hr_visibility']
     blank_value = {
-        'allowed_models': 'All'
+        'allowed_model': 'All'
     }
 
     delete_url_name = 'aristotle_custom_fields:delete'
