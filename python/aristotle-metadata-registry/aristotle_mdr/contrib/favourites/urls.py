@@ -8,6 +8,4 @@ urlpatterns = [
     url(r'^favourites/?$', views.FavouriteView.as_view(), name='favs'),
     url(r'^tag/(?P<tagid>\d+)/?$', views.TagView.as_view(), name='tag'),
     url(r'^allTags?$', views.AllTagView.as_view(), name='all_tags'),
-    url(r'^tagEdit/(?P<tagid>\d+)/?$', views.EditTagView.as_view(), name='tag_edit'),
-    url(r'^tagDelete/?$', views.DeleteTagView.as_view(), name='tag_delete'),
 ]

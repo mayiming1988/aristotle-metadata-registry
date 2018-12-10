@@ -20,7 +20,7 @@ module.exports = (config) => {
                 flags: ['--no-sandbox']
             }
         },
-        reporters: ['mocha'],
+        reporters: ['mocha', 'coverage'],
         mochaReporter: {
             colors: {
                 success: 'green',
@@ -63,7 +63,8 @@ module.exports = (config) => {
                         use: [{
                             loader: 'babel-loader',
                             options: {
-                                presets: ['@babel/preset-env']
+                                presets: ['@babel/preset-env'],
+                                plugins: ['istanbul']
                             }
                         }]
                     },

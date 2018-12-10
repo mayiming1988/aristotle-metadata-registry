@@ -1,9 +1,10 @@
-from __future__ import absolute_import, unicode_literals
-from celery import shared_task
+import datetime
+from io import StringIO
+
 from django.core.management import call_command
 
+from celery import shared_task, Task
 from celery.utils.log import get_task_logger
-from io import StringIO
 
 logger = get_task_logger(__name__)
 
@@ -31,12 +32,48 @@ Errors:
     return message
 
 
-@shared_task(name='reindex')
-def reindex_task():
-    return run_django_command('rebuild_index', interactive=False)
+class AristotleTask(Task):
+    def update_state(self, task_id=None, state=None, meta=None):
+        if task_id is None:
+            task_id = self.request.id
+        self.backend.store_result(task_id, meta, state=state, request=self.request)
 
 
-@shared_task(name='load_help')
-def loadhelp_task():
+@shared_task(base=AristotleTask, bind=True, name='long__reindex')
+def reindex_task(self, *args, **kwargs):
+    meta = {"requester": kwargs['requester'], "start_date": datetime.datetime.now()}
+    self.update_state(meta=meta, state="STARTED")
+    # from time import sleep
+    # sleep(30)
+    # self.update_state(meta=meta, state="DOING")
+    # from time import sleep
+    # sleep(30)
+    meta.update({"result": run_django_command('rebuild_index', interactive=False)})
+    return meta
 
-    return run_django_command('load_aristotle_help')
+
+@shared_task(base=AristotleTask, bind=True, name='long__load_help')
+def loadhelp_task(*args, **kwargs):
+    meta = {"requester": kwargs['requester'], "start_date": datetime.datetime.now()}
+    self.update_state(meta=meta, state="STARTED")
+    meta.update({"result": run_django_command('load_aristotle_help')})
+    return meta
+
+
+@shared_task(name='fire_async_signal')
+def fire_async_signal(namespace, signal_name, message = {}):
+    from django.utils.module_loading import import_string
+    import_string("%s.%s" % (namespace, signal_name))(message)
+
+
+@shared_task(name='update_search_index')
+def update_search_index(action, sender, instance, **kwargs):
+    from django.apps import apps
+    sender = apps.get_model(sender['app_label'], sender['model_name'])
+    instance = apps.get_model(instance['app_label'], instance['model_name']).objects.filter(pk=instance['pk']).first()
+    processor = apps.get_app_config('haystack').signal_processor
+    if action == "save":
+        logger.critical("UPDATING INDEX FOR {}".format(instance))
+        processor.handle_save(sender, instance, **kwargs)
+    elif action == "delete":
+        processor.handle_delete(sender, instance, **kwargs)

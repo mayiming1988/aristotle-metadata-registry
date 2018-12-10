@@ -28,6 +28,12 @@ class Tag(models.Model):
     def __str__(self):
         return self.name
 
+    def can_view(self, user):
+        return user.profile == self.profile
+
+    def can_edit(self, user):
+        return self.can_view(user)
+
 
 class Favourite(models.Model):
 

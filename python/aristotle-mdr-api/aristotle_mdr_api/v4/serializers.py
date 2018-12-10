@@ -5,7 +5,6 @@ from django.db.models.query import QuerySet
 from rest_framework import serializers
 from aristotle_mdr.contrib.issues.models import Issue, IssueComment
 from aristotle_mdr.perms import user_can_view
-from aristotle_mdr.models import _concept
 
 
 class IssueSerializer(serializers.ModelSerializer):

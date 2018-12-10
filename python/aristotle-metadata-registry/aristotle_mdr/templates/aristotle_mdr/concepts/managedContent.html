@@ -61,7 +61,7 @@
     :open="tagsModalOpen" 
     item-tags="{{ item_tags }}" 
     user-tags="{{ user_tags }}" 
-    submit-url="{% url 'aristotle_favourites:edit_tags' item.id %}"
+    submit-url="{% url 'api_v4:item_tags' item.id %}"
     @saved-tags="updateTags"
     @hide="closeTagsModal">
   </tags-modal>

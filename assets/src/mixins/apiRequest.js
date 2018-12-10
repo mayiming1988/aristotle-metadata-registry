@@ -11,7 +11,7 @@ export default {
         response: {}
     }),
     methods: {
-        request: function(url, data, method) {
+        request: function(url, data, params, method) {
             let csrf_token = getCSRF()
 
             this.loading = true
@@ -19,6 +19,7 @@ export default {
                 method: method,
                 url: url,
                 data: data,
+                params: params,
                 headers: {'X-CSRFToken': csrf_token}
             })
 
@@ -53,19 +54,19 @@ export default {
             }
         },
         post: function(url, data) {
-            return this.request(url, data, 'post')
+            return this.request(url, data, {}, 'post')
         },
-        get: function(url) {
-            return this.request(url, {}, 'get')
+        get: function(url, params) {
+            return this.request(url, {}, params, 'get')
         },
         patch: function(url, data) {
-            return this.request(url, data, 'patch')
+            return this.request(url, data, {}, 'patch')
         },
         put: function(url, data) {
-            return this.request(url, data, 'put')
+            return this.request(url, data, {}, 'put')
         },
         delete: function(url, data) {
-            return this.request(url, data, 'delete')
+            return this.request(url, data, {}, 'delete')
         },
         isEmpty: function(obj) {
             return (Object.keys(obj).length == 0)

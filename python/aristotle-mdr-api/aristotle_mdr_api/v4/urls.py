@@ -3,6 +3,7 @@ from aristotle_mdr_api.v4 import views
 
 urlpatterns = [
     url(r'cfields/', include('aristotle_mdr_api.v4.custom_fields.urls')),
+    url(r'tags/', include('aristotle_mdr_api.v4.tags.urls')),
     url(r'issues/$', views.IssueCreateView.as_view(), name='issues_create'),
     url(r'issues/(?P<pk>\d+)/$', views.IssueView.as_view(), name='issues'),
     url(r'issues/(?P<pk>\d+)/updatecomment/$', views.IssueUpdateAndCommentView.as_view(), name='issue_update_and_comment'),

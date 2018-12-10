@@ -1,3 +1,4 @@
+// Util functions used by tests
 import chai from 'chai'
 import sinon from 'sinon'
 

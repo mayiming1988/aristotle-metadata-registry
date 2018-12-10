@@ -2,12 +2,13 @@ import chai from 'chai'
 import VueTestUtils from '@vue/test-utils'
 import sinon from 'sinon'
 
-import { addMessageRow, assertSingleMessage } from './utils.js'
-import favouriteComponent from '../src/components/favourite.vue'
-import tagComponent from '../src/components/tag.vue'
-import autoCompleteTagComponent from '../src/components/autocompleteTag.vue'
-import tagsModal from '../src/components/tagsModal.vue'
-import submitTags from '../src/components/submitTags.vue'
+import { addMessageRow, assertSingleMessage, fakePromiseMethod } from './utils.js'
+import favouriteComponent from '@/favourite.vue'
+import tagComponent from '@/tags/tag.vue'
+import autoCompleteTagComponent from '@/tags/autocompleteTag.vue'
+import tagsModal from '@/tags/tagsModal.vue'
+import submitTags from '@/tags/submitTags.vue'
+import allTagsRoot from '@/root/allTags.js'
 
 var assert = chai.assert
 var mount = VueTestUtils.mount
@@ -122,28 +123,38 @@ describe('tagsModal', function() {
     var wrapper
 
     beforeEach(() => {
-        let user_tags = ['amazing', 'very good', 'sweet']
-        let item_tags = ['ok', 'not so good']
+        this.user_tags = [
+            {'id': 7, 'name': 'amazing'},
+            {'id': 9, 'name': 'very good'},
+            {'id': 10, 'name': 'sweet'}
+        ]
+        this.item_tags = [
+            {'tag__id': 8, 'tag__name': 'ok'},
+            {'tag__id': 6, 'tag__name': 'not so good'}
+        ]
 
         wrapper = shallowMount(tagsModal, {
             propsData: {
-                itemTags: JSON.stringify(item_tags),
-                userTags: JSON.stringify(user_tags)
+                itemTags: JSON.stringify(this.item_tags),
+                userTags: JSON.stringify(this.user_tags)
             }
         })
     })
 
     it('sets initial tags from json', () => {
-        assert.deepEqual(wrapper.vm.user_tags, ['amazing', 'very good', 'sweet'])
+        assert.deepEqual(wrapper.vm.user_tags, this.user_tags)
         assert.deepEqual(wrapper.vm.current_tags, ['ok', 'not so good'])
-        assert.deepEqual(wrapper.vm.saved_tags, ['ok', 'not so good'])
     })
 
     it('emits initial saved tags', () => {
         let emitted = wrapper.emitted()
 
         assert.equal(emitted['saved-tags'].length, 1)
-        assert.deepEqual(emitted['saved-tags'][0][0], ['ok', 'not so good'])
+        let emmitted_tags = emitted['saved-tags'][0][0]
+        assert.equal(emmitted_tags[0]['name'], 'ok')
+        assert.equal(emmitted_tags[0]['id'], 8)
+        assert.equal(emmitted_tags[1]['name'], 'not so good')
+        assert.equal(emmitted_tags[1]['id'], 6)
     })
 
     it('updates current tags', () => {
@@ -153,9 +164,11 @@ describe('tagsModal', function() {
     })
 
     it('updates saved tags', () => {
-        let tags = ['wow', 'great']
+        let tags = [
+            {'id': 11, 'name': 'wow'},
+            {'id': 12, 'name': 'great'}
+        ]
         wrapper.vm.update_saved_tags(tags)
-        assert.deepEqual(wrapper.vm.saved_tags, tags)
 
         let emitted = wrapper.emitted()
         assert.equal(emitted['saved-tags'].length, 2)
@@ -163,63 +176,102 @@ describe('tagsModal', function() {
     })
 
     it('updates user tags when tags saved', () => {
-        let tags = ['ok', 'not so good', 'amazing', 'sweet']
-        let newusertags = ['amazing', 'very good', 'sweet', 'ok', 'not so good']
+        let tags = [
+            {'id': 8, 'name': 'ok'}, 
+            {'id': 6, 'name': 'not so good'}, 
+            {'id': 7, 'name': 'amazing'}, 
+            {'id': 10, 'name': 'sweet'}
+        ]
+        let newusertags = [
+            {'id': 7, 'name': 'amazing'}, 
+            {'id': 9, 'name': 'very good'},
+            {'id': 10, 'name': 'sweet'},
+            {'id': 8, 'name': 'ok'}, 
+            {'id': 6, 'name': 'not so good'}
+        ]
         wrapper.vm.update_saved_tags(tags)
-        assert.deepEqual(wrapper.vm.saved_tags, tags)
         assert.deepEqual(wrapper.vm.user_tags, newusertags)
     })
 })
 
 describe('submitTags', function() {
 
-    var wrapper
-
     beforeEach(function() {
-        wrapper = shallowMount(submitTags, {
+        this.wrapper = shallowMount(submitTags, {
             propsData: {
                 submitUrl: '/submittags',
                 tags: ['wow', 'amazing', 'good']
             }
         })
-
-        this.server = sinon.createFakeServer()
     })
 
-    afterEach(function() {
-        this.server.restore()
+    it('calculates tags list', function() {
+        assert.deepEqual(
+            this.wrapper.vm.tagsList,
+            [{name: 'wow'}, {name: 'amazing'}, {name: 'good'}]
+        )
     })
 
     it('submits tags and displays message', function() {
+        let fakepost = fakePromiseMethod(this.wrapper, 'put')
+        this.wrapper.vm.submit_tags()
+        assert.isTrue(fakepost.calledOnce)
+        assert.isTrue(
+            fakepost.firstCall.calledWithExactly(
+                '/submittags',
+                {tags: [{name: 'wow'}, {name: 'amazing'}, {name: 'good'}]}
+            )
+        )
+    })
+
+    it('emits tags and displays message', function() {
         addMessageRow(document.body)
 
-        let response = {'success': true, 'message': 'Tags updated'}
-        this.server.respondWith([
-            200,
-            {'Content-Type': 'application/json'},
-            JSON.stringify(response)
-        ])
+        let response = {'tags': [{'id': 7, 'name': 'woah'}]}
+        fakePromiseMethod(this.wrapper, 'put', {data: response})
 
-        wrapper.vm.submit_tags()
-        this.server.respond()
+        this.wrapper.vm.submit_tags()
+        
+        return this.wrapper.vm.$nextTick().then(() => {
+            // Check message and emit
+            assertSingleMessage('Tags Saved')
+            let emitted = this.wrapper.emitted()
+            assert.equal(emitted['tags-saved'].length, 1)
+            assert.deepEqual(emitted['tags-saved'][0][0], response['tags'])
 
-        assert.equal(this.server.requests.length, 1)
-        let request = this.server.requests[0]
-        assert.equal(request.url, '/submittags')
-        assert.equal(request.method, 'POST')
+            // Cleanup dom
+            document.getElementById('messages-row').remove()
+        })
+    })
+})
 
-        // Check submitted tags
-        let params = new URLSearchParams(request.requestBody)
-        let tags = JSON.parse(params.get('tags'))
-        assert.deepEqual(tags, ['wow', 'amazing', 'good'])
 
-        // Check message and emit
-        assertSingleMessage('Tags updated')
-        let emitted = wrapper.emitted()
-        assert.equal(emitted['tags-saved'].length, 1)
-        assert.deepEqual(emitted['tags-saved'][0][0], ['wow', 'amazing', 'good'])
+describe('allTagsRoot', function() {
 
-        // Cleanup dom
-        document.getElementById('messages-row').remove()
+    beforeEach(function() {
+        let initData = allTagsRoot.data
+        this.wrapper = shallowMount(allTagsRoot, {
+            data: () => (initData)
+        })
+    })
+
+    it('sets state on delete clicked', function() {
+        this.wrapper.vm.deleteClicked({name: 'MyTag', url: 'tags/mytag'})
+        assert.equal(this.wrapper.vm.modal_text, 'Are you sure you want to delete MyTag')
+        assert.isTrue(this.wrapper.vm.modal_visible)
+        assert.deepEqual(this.wrapper.vm.tag_item, {name: 'MyTag', url: 'tags/mytag'})
+    })
+    
+    it('hides modal on delete cancelled', function() {
+        this.wrapper.setData({modal_visible: true})
+        this.wrapper.vm.deleteCancelled()
+        assert.isFalse(this.wrapper.vm.modal_visible)
+    })
+
+    it('makes request on delete confirmed', function() {
+        let fake = fakePromiseMethod(this.wrapper, 'delete')
+        this.wrapper.setData({tag_item: {url: 'tags/5'}})
+        this.wrapper.vm.deleteConfirmed()
+        assert.isTrue(fake.calledWithExactly('tags/5'))
     })
 })
