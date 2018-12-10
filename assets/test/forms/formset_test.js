@@ -7,12 +7,17 @@ import Formset from '@/forms/formSet.vue'
 
 describe('FormSet', function() {
 
-    let ntfields = {name: {rules: {required: true}}, type: {rules: {required: false}}}
 
     function getWrapper(initial, fields) {
         let propsData = {fields: fields, initial: initial}
         return VueTestUtils.shallowMount(Formset, {propsData: propsData})
     }
+
+    beforeEach(function() {
+        // Some sample data used in many tests
+        this.ntfields = {name: {rules: {required: true}}, type: {rules: {required: false}}}
+        this.ntinitial = [{name: 'Yes', type: 'Boolean'}, {name: 'No', type: 'Boolean'}]
+    })
 
     it('Sets data to initial', function() {
         let fields = {name: {tag: 'input', rules: {required: false}}} 
@@ -36,7 +41,7 @@ describe('FormSet', function() {
 
     it('Maps backend errors to vid', function() {
         let initial = [{name: 'Grape', type: 'Fruit'}, {name: 'lmao', type: 'Abbreviation'}]
-        let wrapper = getWrapper(initial, ntfields)
+        let wrapper = getWrapper(initial, this.ntfields)
         wrapper.setProps({
             errors: [{name: ['Required']}, {type: ['That type is bad']}]
         })
@@ -58,8 +63,7 @@ describe('FormSet', function() {
     })
 
     it('deletes row', function() {
-        let initial = [{name: 'Yes', type: 'Boolean'}, {name: 'No', type: 'Boolean'}]
-        let wrapper = getWrapper(initial, ntfields)
+        let wrapper = getWrapper(this.ntinitial, this.ntfields)
 
         wrapper.vm.deleteRow(1)
 
@@ -67,9 +71,8 @@ describe('FormSet', function() {
         assert.deepEqual(wrapper.vm.formsData, expectedData)
     })
 
-    it('doesnt repeat vid values when remove then delete', function() {
-        let initial = [{name: 'Yes', type: 'Boolean'}, {name: 'No', type: 'Boolean'}]
-        let wrapper = getWrapper(initial, ntfields)
+    it('doesnt repeat vid values when remove then add', function() {
+        let wrapper = getWrapper(this.ntinitial, this.ntfields)
 
         wrapper.vm.deleteRow(0)
         wrapper.vm.addRow()
@@ -78,4 +81,19 @@ describe('FormSet', function() {
         let secondvid = wrapper.vm.formsData[1].vid
         assert.notEqual(firstvid, secondvid)
     })
+
+    it('computes final data correctly', function() {
+        let wrapper = getWrapper(this.ntinitial, this.ntfields)
+
+        let postdata = wrapper.vm.postProcess()
+        // Check that postdata is a copy
+        assert.isFalse(postdata === wrapper.vm.formsData)
+
+        let expectedPostData = [
+            {name: 'Yes', type: 'Boolean', order: 1},
+            {name: 'No', type: 'Boolean', order: 2}
+        ]
+        assert.deepEqual(postdata, expectedPostData)
+    })
+
 })
