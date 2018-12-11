@@ -1,15 +1,13 @@
 from django.template import Context, Template
-from django.test import TestCase
+from django.test import TestCase, override_settings
+from django.utils.safestring import SafeString
 
 import aristotle_mdr.models as models
 
 from django.core.exceptions import FieldDoesNotExist
 from django.template.exceptions import TemplateSyntaxError
 
-# Execute in a test environment.
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-setup_aristotle_test_environment()
+from aristotle_mdr.templatetags import util_tags
 
 
 preamble = "{% load aristotle_tags %}"
@@ -62,3 +60,32 @@ class TestTemplateTags_aristotle_tags_py(TestCase):
 
     def test_in_workgroup(self):
         self.use_safe_filter('in_workgroup')
+
+
+class UtilTagsTestCase(TestCase):
+
+    @override_settings(BLEACH_ALLOWED_TAGS=['a'])
+    def test_bleach_non_allowed_tags(self):
+        html = '<b>Bold</b> <u>Underline</u>'
+        bleached = util_tags.bleach_filter(html)
+        self.assertEqual(type(bleached), SafeString)
+        self.assertEqual(bleached, '&lt;b&gt;Bold&lt;/b&gt; &lt;u&gt;Underline&lt;/u&gt;')
+
+    @override_settings(BLEACH_ALLOWED_TAGS=['a'])
+    def test_bleach_mixed_tags(self):
+        html = '<a>Link</a> <u>Underline</u>'
+        bleached = util_tags.bleach_filter(html)
+        self.assertEqual(type(bleached), SafeString)
+        self.assertEqual(bleached, '<a>Link</a> &lt;u&gt;Underline&lt;/u&gt;')
+
+    @override_settings(BLEACH_ALLOWED_TAGS=['a'])
+    @override_settings(BLEACH_ALLOWED_ATTRIBUTES={'a': 'href'})
+    def test_bleach_removes_not_allowed_attrs(self):
+        html = '<a href="/url" title="Wow">Link</a>'
+        bleached = util_tags.bleach_filter(html)
+        self.assertEqual(type(bleached), SafeString)
+        self.assertEqual(bleached, '<a href="/url">Link</a>')
+
+    def test_bleach_handles_none(self):
+        bleached = util_tags.bleach_filter(None)
+        self.assertIsNone(bleached)

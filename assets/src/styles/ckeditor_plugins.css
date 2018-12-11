@@ -1,0 +1,11 @@
+.select2-container * {
+    z-index: 10010;
+}
+
+.cke_dialog_body .select2-container .select2-selection--single {
+    position: relative;
+}
+
+.cke_dialog_body label {
+    display: block !important
+}
