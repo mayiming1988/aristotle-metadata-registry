@@ -22,7 +22,7 @@ from aristotle_mdr.perms import (
 )
 from aristotle_mdr.utils import construct_change_message
 from aristotle_mdr.views.utils import get_status_queryset
-from aristotle_mdr.views.views import ConceptRenderMixin
+from aristotle_mdr.views.views import ConceptRenderView
 
 from aristotle_dse import forms, models
 
@@ -320,7 +320,7 @@ class DynamicTemplateView(TemplateView):
         return ['aristotle_dse/static/%s.html' % self.kwargs['template']]
 
 
-class DatasetSpecificationView(ConceptRenderMixin, TemplateView):
+class DatasetSpecificationView(ConceptRenderView):
 
     objtype = models.DataSetSpecification
     modelslug_arg = None

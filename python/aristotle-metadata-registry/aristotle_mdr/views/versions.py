@@ -11,7 +11,7 @@ from django.urls import reverse
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils.text import pretify_camel_case
-from aristotle_mdr.views.views import ConceptRenderMixin
+from aristotle_mdr.views.views import ConceptRenderView
 from aristotle_mdr.perms import user_can_view
 
 import json
@@ -112,7 +112,7 @@ class VersionField:
             return self.value or 'None'
 
 
-class ConceptVersionView(ConceptRenderMixin, TemplateView):
+class ConceptVersionView(ConceptRenderView):
 
     slug_redirect = False
     version_arg = 'verid'
