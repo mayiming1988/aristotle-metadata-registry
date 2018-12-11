@@ -412,7 +412,8 @@ class ConceptVersionView(ConceptRenderView):
         return version_dict
 
     def get_context_data(self, *args, **kwargs):
-        context = super(ConceptRenderMixin, self).get_context_data(*args, **kwargs)
+        context = kwargs
+        context['view'] = self
         context['hide_item_actions'] = True
         context['hide_item_supersedes'] = True
         context['hide_item_help'] = True
