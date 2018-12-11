@@ -169,7 +169,7 @@ class PermsTestCase(BaseAPITestCase):
 
         self.login_user()
         response = self.client.get(
-            reverse('api_v4:issues', args=[self.issue.pk]),
+            reverse('api_v4:issues:issue', args=[self.issue.pk]),
         )
         self.assertEqual(response.status_code, 200)
 
@@ -177,7 +177,7 @@ class PermsTestCase(BaseAPITestCase):
 
         self.login_other_user()
         response = self.client.get(
-            reverse('api_v4:issues', args=[self.issue.pk]),
+            reverse('api_v4:issues:issue', args=[self.issue.pk]),
         )
         self.assertEqual(response.status_code, 403)
 
