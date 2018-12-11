@@ -192,18 +192,19 @@ class IssueEndpointsTestCase(BaseAPITestCase):
 class CustomFieldsTestCase(BaseAPITestCase):
 
     def create_test_fields(self):
-        cf_models.CustomField.objects.create(
+        cf1 = cf_models.CustomField.objects.create(
             order=1,
             name='Spiciness',
             type='int',
             help_text='The Spiciness'
         )
-        cf_models.CustomField.objects.create(
+        cf2 = cf_models.CustomField.objects.create(
             order=2,
             name='Blandness',
             type='int',
             help_text='The Blandness'
         )
+        return [cf1.id, cf2.id]
 
     def test_list_custom_fields(self):
         self.create_test_fields()
@@ -234,12 +235,12 @@ class CustomFieldsTestCase(BaseAPITestCase):
         self.assertEqual(cf_models.CustomField.objects.filter(name='Blandness').count(), 1)
 
     def test_multiple_update(self):
-        self.create_test_fields()
+        ids = self.create_test_fields()
         self.login_superuser()
 
         postdata = [
-            {'id': 1, 'order': 1, 'name': 'Spic', 'type': 'int', 'help_text': 'The Spiciness'},
-            {'id': 2, 'order': 2, 'name': 'Bland', 'type': 'int', 'help_text': 'The Blandness'}
+            {'id': ids[0], 'order': 1, 'name': 'Spic', 'type': 'int', 'help_text': 'The Spiciness'},
+            {'id': ids[1], 'order': 2, 'name': 'Bland', 'type': 'int', 'help_text': 'The Blandness'}
         ]
 
         response = self.client.post(
@@ -253,11 +254,11 @@ class CustomFieldsTestCase(BaseAPITestCase):
         self.assertEqual(cf_models.CustomField.objects.filter(name='Bland').count(), 1)
 
     def test_multiple_delete_does_not_work(self):
-        self.create_test_fields()
+        ids = self.create_test_fields()
         self.login_superuser()
 
         postdata = [
-            {'id': 1, 'order': 1, 'name': 'Spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
+            {'id': ids[0], 'order': 1, 'name': 'Spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
         ]
 
         response = self.client.post(
