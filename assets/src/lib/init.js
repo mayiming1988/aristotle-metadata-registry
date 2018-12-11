@@ -1,6 +1,10 @@
+// Polyfills
+import '@babel/polyfill'
+import 'mdn-polyfills/Element.prototype.closest'
+
 import 'bootstrap'
 import 'eonasdan-bootstrap-datetimepicker'
-import '@babel/polyfill'
+
 import { initNotifications } from './notify.js'
 import { initMessages } from './messages.js'
 import { initDAL } from './dal_simple_init.js'
@@ -8,13 +12,13 @@ import { initCKEditor } from './ckeditor_simple_init.js'
 import { initMoveable } from './moveable.js'
 
 // Always on styles
-import '../styles/bootstrap.less'
+import 'src/styles/bootstrap.less'
 import 'font-awesome/css/font-awesome.css'
-import '../styles/aristotle.less'
-import '../styles/aristotle.visuals.less'
-import '../styles/bootstrap.wcag.css'
-import '../styles/pink.wcag.css'
-import '../styles/aristotle.autocomplete.css'
+import 'src/styles/aristotle.less'
+import 'src/styles/aristotle.visuals.less'
+import 'src/styles/bootstrap.wcag.css'
+import 'src/styles/pink.wcag.css'
+import 'src/styles/aristotle.autocomplete.css'
 import 'eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css'
 
 export function initWidgets() {
@@ -59,11 +63,11 @@ export function initWidgets() {
 }
 
 export function initSpinners() {
-    $(document).ajaxSend((event, request, settings) => {
+    $(document).ajaxSend(() => {
         $('#loading_indicator').show().addClass('loading').removeClass('hidden');
     });
 
-    $(document).ajaxComplete((event, request, settings) => {
+    $(document).ajaxComplete(() => {
         $('#loading_indicator').hide().removeClass('loading');
     });
 }
@@ -72,7 +76,7 @@ export function initModalScrap() {
     // Needs to be run on document ready
     $(document).ready(function() {
         // Scrap modals if they lose focus so they can be loaded with new content
-        $('.modal').on('hidden.bs.modal', function(e)
+        $('.modal').on('hidden.bs.modal', function()
             {
                 if (!$(this).hasClass('exclude-scrap')) {
                     $(this).removeData();

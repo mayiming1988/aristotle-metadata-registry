@@ -1,7 +1,7 @@
-import '../vendor/jquery-ui.min.js'
+import 'src/vendor/jquery-ui.min.js'
 import { initDALWidget } from './dal_simple_init.js'
 
-import '../styles/aristotle.moveable.less'
+import 'src/styles/aristotle.moveable.less'
 
 function replacePrefix(element, num_forms) {
     var name = $(element).attr('name')
@@ -69,7 +69,7 @@ function renumberRow(row,num) {
 
 function reorderRows(panelList) {
 
-    $('.moveablerow', panelList).each(function(index, elem) {
+    $('.moveablerow', panelList).each(function(index) {
         renumberRow(this,index);
         $(this).find('input[name$=-DELETE]').attr('title',"Delete item "+index);
     });
@@ -100,7 +100,7 @@ export function initMoveable() {
         addCode($(this).attr('formid'));
     });
 
-    $("form").submit(function(event) {
+    $("form").submit(function() {
         $(".draggableTable .moveablerow").each(function() {
             var row = this;
             if ($(row).find("input[name$=-id]").val() == "") {

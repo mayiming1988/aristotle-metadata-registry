@@ -1,3 +1,4 @@
+from typing import List, Dict
 from django import VERSION as django_version
 import attr
 import datetime
@@ -11,11 +12,15 @@ from django.utils import timezone
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
 from aristotle_mdr.utils import url_slugify_concept
+from celery import states
+from django_celery_results.models import TaskResult
 
 from django_tools.unittest_utils.BrowserDebug import debug_response
 
-from time import sleep
+from aristotle_mdr.contrib.reviews.models import ReviewRequest
 
+from time import sleep
+import random
 
 def wait_for_signal_to_fire(seconds=1):
     sleep(seconds)
@@ -530,6 +535,7 @@ class LoggedInViewPages(object):
 
         self.newuser = get_user_model().objects.create_user('nathan@example.com','noobie')
         self.newuser.save()
+        super().setUp()
 
     def get_page(self, item):
         return url_slugify_concept(item)
@@ -651,7 +657,7 @@ class LoggedInViewPages(object):
 class FormsetTestUtils:
     """Utilities to help create formset post data"""
 
-    def get_formset_postdata(self, datalist, prefix='form', initialforms=0):
+    def get_formset_postdata(self, datalist: List[Dict], prefix: str='form', initialforms: int=0):
         """
         Get postdata for a formset
 
@@ -680,8 +686,7 @@ class FormsetTestUtils:
 
         return postdata
 
-    def post_formset(self, url, extra_postdata={}, **kwargs):
-
+    def post_formset(self, url: str, extra_postdata: Dict={}, **kwargs):
         postdata = self.get_formset_postdata(**kwargs)
         postdata.update(extra_postdata)
         response = self.client.post(url, postdata)
@@ -748,8 +753,65 @@ class GeneralTestUtils:
         self.assertTrue(key in context)
 
 
+class WizardTestUtils:
+    """Helper for testing django-formtools wizards"""
 
-class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils, FormsetTestUtils):
+    def assertWizardStep(self, response, step):
+        strstep = str(step)
+        self.assertEqual(response.context['wizard']['steps'].current, strstep)
+
+    def get_step_name(self, step: int, step_names: List[str]) -> str:
+        if step_names:
+            name = step_names[step]
+        else:
+            name = str(step)
+
+        return name
+
+    def transform_datalist(self, datalist, wizard_name, step_names=[]):
+        cskey = '{}-current_step'.format(wizard_name)
+        newlist = []
+        step = 0
+        for formdata in datalist:
+            sn = self.get_step_name(step, step_names)
+            newformdata = {
+                cskey: sn
+            }
+            for key, value in formdata.items():
+                prekey = '{}-{}'.format(sn, key)
+                newformdata[prekey] = value
+            newlist.append(newformdata)
+            step += 1
+
+        return newlist
+
+    def post_direct_to_wizard(self, datalist, url, step_names=[]):
+        """Post to wizard without modifying datalist"""
+
+        step = 0
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        for formdata in datalist:
+            self.assertWizardStep(response, self.get_step_name(step, step_names))
+            response = self.client.post(url, formdata)
+            if step < len(datalist) - 1:
+                # If not last step
+                self.assertEqual(response.status_code, 200)
+                step += 1
+
+        return response
+
+    def post_to_wizard(self, datalist: List[Dict[str, str]],
+                       url: str, wizard_name: str, step_names: List[str]=[]):
+        """Add current step and prefixes to datalist before posting"""
+
+        updated_datalist = self.transform_datalist(datalist, wizard_name, step_names)
+        return self.post_direct_to_wizard(updated_datalist, url, step_names)
+
+
+class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils,
+                         WizardTestUtils, FormsetTestUtils):
     """Combination of the above 3 utils plus some aristotle specific utils"""
 
     def favourite_item(self, user, item):
@@ -764,6 +826,50 @@ class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils, FormsetTestUtils):
             item=item
         )
 
+    def make_item_public(self, item, ra):
+        s = models.Status.objects.create(
+            concept=item,
+            registrationAuthority=ra,
+            registrationDate=timezone.now(),
+            state=ra.public_state
+        )
+        return s
+
+    def make_review_request(self, item, user, requester=None):
+        if not requester:
+            requester = self.su
+        self.assertFalse(perms.user_can_view(user,item))
+        item.save()
+        item = item.__class__.objects.get(pk=item.pk)
+
+        review = ReviewRequest.objects.create(
+            requester=requester,registration_authority=self.ra,
+            target_registration_state=self.ra.public_state,
+            due_date=datetime.date(2010,1,1),
+            registration_date=datetime.date(2010,1,1)
+        )
+
+        review.concepts.add(item)
+
+        self.assertTrue(perms.user_can_view(user,item))
+        self.assertTrue(perms.user_can_change_status(user,item))
+        return review
+
+    def make_review_request_iterable(self, items, user=None, request_kwargs={}):
+        kwargs = {
+            "requester": self.su,
+            "registration_authority": self.ra,
+            "target_registration_state": self.ra.locked_state,
+            "registration_date": datetime.date(2013,4,2)
+        }
+        kwargs.update(request_kwargs)
+
+        review = ReviewRequest.objects.create(**kwargs)
+
+        for item in items:
+            review.concepts.add(item)
+
+        return review
 
 @attr.s
 class MockManagementForm(object):
@@ -804,3 +910,69 @@ class MockManagementForm(object):
                 base['{}-{}-{}'.format(self.prefix, i, field)] = value
 
         return base
+
+
+class AsyncResultMock:
+    """
+    This mock AsyncResult class will replace celery's AsyncResult class to facilitate ready and status features
+    First attempt to ready() will send a Pending state and the second attempt will make sure it is a success
+    """
+
+    def __init__(self, task_id):
+        """
+        initialize the mock async result
+        :param task_id: task_id for mock task
+        """
+        self.status = states.RECEIVED
+        self.state = states.RECEIVED
+        self.id = task_id
+        self.result = ''
+
+    def ready(self):
+        """
+        not ready in the first try and ready in the next
+        returns true once the worker finishes it's task
+        :return: bool
+        """
+        is_ready = self.status == states.SUCCESS
+
+        self.status = states.SUCCESS
+        self.state = states.SUCCESS
+        return is_ready
+
+    def successful(self):
+        """
+        Returns true once the worker finishes it's task successfully
+        :return: bool
+        """
+        return self.status == states.SUCCESS
+
+    def forget(self):
+        """
+        deletes itself
+        :return:
+        """
+        del self
+
+    def get(self):
+        result = self.result
+        self.forget()
+        return result
+
+
+def store_taskresult(status='SUCCESS'):
+    iid = ''.join(random.SystemRandom().choice('abcdefghijklmnopqrstuvwxyz0123456789-') for i in range(10))
+    tr = TaskResult.objects.create(
+        task_id=iid,
+        status=status
+    )
+    tr.save()
+    return tr
+
+def get_download_result(iid):
+    """
+    Using taskResult to manage the celery tasks
+    :return:
+    """
+    tr = TaskResult.objects.get(id=iid)
+    return AsyncResultMock(tr.task_id)

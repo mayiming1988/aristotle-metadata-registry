@@ -16,8 +16,8 @@
 </template>
 
 <script>
-import apiRequest from '../mixins/apiRequest.js'
-import apiErrors from '../components/apiErrorDisplay.vue'
+import apiRequest from 'src/mixins/apiRequest.js'
+import apiErrors from '@/apiErrorDisplay.vue'
 
 export default {
     mixins: [apiRequest],
@@ -38,7 +38,7 @@ export default {
         },
         saveValue: function() {
             let data = {}
-            data[this.name] = this.value
+            data[this.fieldName] = this.value
             this.patch(this.submitUrl, data)
             .then((response) => {
                 this.editing = false
@@ -47,3 +47,9 @@ export default {
     }
 }
 </script>
+
+<style>
+.inline-edit {
+    display: inline-block;
+}
+</style>

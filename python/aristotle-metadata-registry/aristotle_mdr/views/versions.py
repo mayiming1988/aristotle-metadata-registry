@@ -10,9 +10,8 @@ from django.utils.dateparse import parse_datetime
 from django.urls import reverse
 
 from aristotle_mdr import models as MDR
-from aristotle_mdr.utils import pretify_camel_case
-from aristotle_mdr.views.views import ConceptRenderMixin
-from aristotle_mdr.views.utils import SimpleItemGet
+from aristotle_mdr.utils.text import pretify_camel_case
+from aristotle_mdr.views.views import ConceptRenderView
 from aristotle_mdr.perms import user_can_view
 
 import json
@@ -113,7 +112,7 @@ class VersionField:
             return self.value or 'None'
 
 
-class ConceptVersionView(ConceptRenderMixin, TemplateView):
+class ConceptVersionView(ConceptRenderView):
 
     slug_redirect = False
     version_arg = 'verid'
@@ -413,7 +412,8 @@ class ConceptVersionView(ConceptRenderMixin, TemplateView):
         return version_dict
 
     def get_context_data(self, *args, **kwargs):
-        context = super(ConceptRenderMixin, self).get_context_data(*args, **kwargs)
+        context = kwargs
+        context['view'] = self
         context['hide_item_actions'] = True
         context['hide_item_supersedes'] = True
         context['hide_item_help'] = True
@@ -439,7 +439,8 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         'submitter',
         'is_public',
         'is_locked',
-        'issues'
+        'issues',
+        'owned_links'
     ]
 
     item_action_url = 'aristotle:item_version'

@@ -1,6 +1,6 @@
-import { initCore } from '../lib/init.js'
+import { initCore } from 'src/lib/init.js'
 import ClipboardJS from 'clipboard'
-import { initJsonEditor } from '../lib/json_editor_init.js'
+import { initJsonEditor } from 'src/lib/json_editor_init.js'
 
 initCore()
 

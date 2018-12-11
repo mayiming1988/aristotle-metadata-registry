@@ -1,6 +1,6 @@
-import { initCore, initWidgets } from '../lib/init.js'
+import { initCore, initWidgets } from 'src/lib/init.js'
 
-import '../styles/aristotle_search.less'
+import 'src/styles/aristotle_search.less'
 
 initCore()
 initWidgets()
@@ -98,7 +98,7 @@ $('.dropdown-menu-date input[type=text]').on('click', function(e) {
 });
 
 
-$('.dropdown-menu-date .dropdown-menu').on('click', function(e) {
+$('.dropdown-menu-date .dropdown-menu').on('click', function() {
     updateDateRadioDetails(this);
     clearCustomDates(this);
 });
@@ -118,7 +118,7 @@ $('.sort-order-box .dropdown-menu').each( function() {
 });
 
 // Setup the advance/clear toggle button in the navbar
-$('#advanced_nav_link').on('click', function(e) {
+$('#advanced_nav_link').on('click', function() {
     if ($(this).hasClass("clearFilters")) {
         clearFilters();
         clearCustomDates();

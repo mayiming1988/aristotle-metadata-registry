@@ -2,7 +2,7 @@ from django import template
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import format_html
-from django.utils.safestring import mark_safe
+from django.utils.safestring import mark_safe, SafeString
 from django.conf import settings
 
 import bleach
@@ -77,7 +77,7 @@ def json_script(value, element_id):
 
 
 @register.filter(name='bleach')
-def bleach_filter(html):
+def bleach_filter(html: str) -> SafeString:
 
     if html is None:
         return html

@@ -1,3 +1,4 @@
+from typing import Dict
 from django.shortcuts import get_object_or_404
 from aristotle_mdr.utils import url_slugify_concept
 from django.contrib.auth.decorators import login_required
@@ -66,7 +67,6 @@ class ToggleFavourite(LoginRequiredMixin, View):
 class EditTags(LoginRequiredMixin, View):
 
     def post(self, request, *args, **kwargs):
-
         user = self.request.user
         post_data = self.request.POST
         item_id = self.kwargs['iid']
@@ -77,13 +77,15 @@ class EditTags(LoginRequiredMixin, View):
             tag__profile=user.profile,
             tag__primary=False,
             item=item
-        ).values_list('tag__name', flat=True)
+        ).values_list('tag__name', 'tag__id')
 
+        tags_map = dict(current_tags)
         tags_json = post_data.get('tags', '')
 
         if tags_json:
             tags = set(json.loads(tags_json))
-            current_set = set(current_tags)
+            logger.debug(tags)
+            current_set = set(tags_map.keys())
 
             new = tags - current_set
             deleted = current_set - tags
@@ -98,6 +100,7 @@ class EditTags(LoginRequiredMixin, View):
                     tag=tag_obj,
                     item=item
                 )
+                tags_map[tag_obj.name] = tag_obj.id
 
             for tag in deleted:
                 tag_obj, created = Tag.objects.get_or_create(
@@ -109,18 +112,18 @@ class EditTags(LoginRequiredMixin, View):
                     tag=tag_obj,
                     item=item
                 ).delete()
+                del tags_map[tag]
 
-        return self.get_json_response()
+        return self.get_json_response(tags_map)
 
-    def get_json_response(self, success=True):
-        response_dict = {
-            'success': success,
-        }
+    def get_json_response(self, tags_map: Dict[str, int]):
+        tags_list = []
+        for name, id in tags_map.items():
+            tags_list.append({'id': id, 'name': name})
 
-        if success:
-            response_dict['message'] = 'Tags Updated'
+        response = {'tags': tags_list}
 
-        return JsonResponse(response_dict)
+        return JsonResponse(response)
 
 
 class FavouritesAndTags(LoginRequiredMixin, ListView):
@@ -205,7 +208,6 @@ class FavouriteView(LoginRequiredMixin, ListView):
     template_name = "aristotle_mdr/favourites/tags.html"
 
     def get_queryset(self):
-
         try:
             tag = Tag.objects.get(profile=self.request.user.profile, primary=True)
         except Tag.DoesNotExist:
@@ -241,50 +243,3 @@ class AllTagView(LoginRequiredMixin, ListView):
     def get_context_data(self):
         context = super().get_context_data()
         return context
-
-
-class DeleteTagView(LoginRequiredMixin, View):
-
-    def post(self, request, *args, **kwargs):
-        pk = self.request.POST['tagid']
-        message = ''
-        success = False
-
-        try:
-            tag = Tag.objects.get(pk=pk)
-        except:
-            message = 'Tag not found'
-            tag = None
-
-        if tag is not None:
-            if tag.profile.id == self.request.user.profile.id:
-                tag.delete()
-                success = True
-            else:
-                message = 'Tag could not be deleted'
-
-        return JsonResponse({
-            'success': success,
-            'message': message
-        })
-
-
-class EditTagView(LoginRequiredMixin, AjaxFormMixin, UpdateView):
-    model = Tag
-    fields = ['description']
-    pk_url_kwarg = 'tagid'
-    ajax_success_message = 'Tag description updated'
-
-    def get_success_url(self):
-        return reverse('aristotle_favourites:tag', args=[self.kwargs['tagid']])
-
-    def form_invalid(self, form):
-        if not self.request.is_ajax():
-            messages.add_message(self.request, messages.SUCCESS, 'Description could not be updated')
-            return HttpResponseRedirect(self.get_success_url())
-        return super().form_invalid(form)
-
-    def form_valid(self, form):
-        if not self.request.is_ajax():
-            messages.add_message(self.request, messages.SUCCESS, 'Description updated')
-        return super().form_valid(form)

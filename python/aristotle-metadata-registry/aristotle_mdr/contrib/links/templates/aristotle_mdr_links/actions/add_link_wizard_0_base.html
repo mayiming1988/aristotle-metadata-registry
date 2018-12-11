@@ -17,18 +17,25 @@
     <form method="post" action="">{% csrf_token %}
     <div class="modal-body">
         {{wizard.management_form}}
-            {% if form.errors %}
-                {{form.errors}}
-            {% endif %}
         <ol class="breadcrumb">
           <li class="active">Add new link</a></li>
         </ol>
         <h1>{% block form_title %}{% endblock %}</h1>
+        {% if form.non_field_errors %}
+            <ul class="alert alert-danger">
+              {% for error in form.non_field_errors %}
+                <li>{{ error }}<li>
+              {% endfor %}
+            </ul>
+        {% endif %}
         {% block wizard_content %}
         {% endblock %}
         <div class="modal-footer">
-            <a class="btn btn-default" href="">Cancel</a>
-            <input type="submit" class="btn btn-primary" value="{% block form_save_text %}Next{% endblock %}" />
+          <a class="btn btn-default" href="{% url 'aristotle:item' root_item.id %}">Cancel</a>
+          {% if wizard.steps.prev %}
+            <button name="wizard_goto_step" class="btn btn-default" type="submit" value="{{ wizard.steps.prev }}" formnovalidate>{% trans "Previous" %}</button>
+          {% endif %}
+          <input type="submit" class="btn btn-primary" value="{% block form_save_text %}Next{% endblock %}" />
         </div>
     </div>
     </form>

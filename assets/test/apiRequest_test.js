@@ -32,53 +32,49 @@ describe('apiRequest', function() {
     })
 
 
-    it('makes requests', function(done) {
+    it('makes requests', function() {
         let promise = this.wrapper.vm.get('/fake/api/')
 
-        promise.then(() => {
+        return promise.then(() => {
             let request = getSingleRequest(this.server.requests)
             assert.equal(request.method, 'GET')
 
             assert.deepEqual(this.wrapper.vm.response.data, {some: 'data'})
         })
-        .then(done, done)
     })
 
-    it('sets csrf token header', function(done) {
+    it('sets csrf token header', function() {
         let promise = this.wrapper.vm.get('/fake/api/')
 
-        promise.then(() => {
+        return promise.then(() => {
             let request = getSingleRequest(this.server.requests)
             let headers = request.requestHeaders
             assert.equal(headers['X-CSRFToken'], 'faketoken')
         })
-        .then(done, done)
     })
 
 
-    it('posts data', function(done) {
+    it('posts data', function() {
         let promise = this.wrapper.vm.post('/fake/api/', {good: 'data'})
 
-        promise.then(() => {
+        return promise.then(() => {
             let request = getSingleRequest(this.server.requests)
             let body = JSON.parse(request.requestBody)
             assert.deepEqual(body, {good: 'data'})
         })
-        .then(done, done)
     })
 
-    it('sets response on success', function(done) {
+    it('sets response on success', function() {
         let promise = this.wrapper.vm.get('/fake/api/')
 
-        promise.then((response) => {
+        return promise.then((response) => {
             let request = getSingleRequest(this.server.requests)
             assert.equal(request.status, 200)
             assert.equal(this.wrapper.vm.response, response)
         })
-        .then(done, done)
     })
 
-    it('sets errors and response on 400', function(done) {
+    it('sets errors and response on 400', function() {
         this.server.respondWith([
             400,
             {'Content-Type': 'application/json'},
@@ -86,13 +82,12 @@ describe('apiRequest', function() {
         ])
         let promise = this.wrapper.vm.get('/fake/api/')
 
-        promise.catch((error) => {
+        return promise.catch((error) => {
             let request = getSingleRequest(this.server.requests)
             assert.equal(request.status, 400)
             assert.equal(this.wrapper.vm.response, error.response)
             assert.deepEqual(this.wrapper.vm.errors, {some: ['data']})
         })
-        .then(done, done)
     })
 
     it('reports has errors properly', function() {
@@ -101,7 +96,7 @@ describe('apiRequest', function() {
         assert.isTrue(this.wrapper.vm.hasErrors)
     })
 
-    it('reports has errors properly', function() {
+    it('reports has response properly', function() {
         assert.isFalse(this.wrapper.vm.hasResponse)
         this.wrapper.setData({response: {some: 'errors'}})
         assert.isTrue(this.wrapper.vm.hasResponse)

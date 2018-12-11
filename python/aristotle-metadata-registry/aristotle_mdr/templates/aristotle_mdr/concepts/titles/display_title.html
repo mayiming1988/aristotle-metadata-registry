@@ -2,7 +2,7 @@
 {% load aristotle_tags %}
 
 <h1 id="objectTitle"  class="pull-left">
-    <a href="#">{{ item.name }}</a>
+    <a href="{{ item.get_absolute_url }}">{{ item.name }}</a>
     {% if item.version %}
     <em class="version" title="{% trans 'Version'%} {{ item.version }}">
         {{ item.version }}

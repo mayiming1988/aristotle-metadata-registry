@@ -1,26 +1,36 @@
 from django.conf import settings
-from django.urls import reverse
-from django.test import TestCase, override_settings, tag
-from django.utils import timezone
-from django.db.models.fields import CharField, TextField
 from django.core.cache import cache
+from django.db.models.fields import CharField, TextField
 from django.http import HttpResponse
+from django.http import QueryDict
+from django.test import TestCase, override_settings, tag, RequestFactory
+from django.urls import reverse
+from django.utils import timezone
+from django.contrib.auth.models import AnonymousUser
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
+from aristotle_mdr.downloader import CSVDownloader
 import aristotle_mdr.contrib.identifiers.models as ident_models
+from aristotle_mdr.contrib.slots.choices import permission_choices
+from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.utils import url_slugify_concept
 from aristotle_mdr.forms.creation_wizards import (
     WorkgroupVerificationMixin,
     CheckIfModifiedMixin
 )
 from aristotle_mdr.tests import utils
+from aristotle_mdr.views import ConceptRenderView
 import datetime
 from unittest import mock, skip
 import reversion
 import json
 
 from aristotle_mdr.utils import setup_aristotle_test_environment
+from aristotle_mdr.tests.utils import store_taskresult, get_download_result
+from aristotle_mdr.contrib.reviews.models import ReviewRequest
+
+from mock import patch
 
 from aristotle_mdr.templatetags.aristotle_tags import get_dataelements_from_m2m
 
@@ -99,7 +109,44 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             self.itemid
         )
 
+        self.factory = RequestFactory()
+
         cache.clear()
+
+    def setup_custom_values(self):
+        allfield = CustomField.objects.create(
+            order=0,
+            name='AllField',
+            type='String',
+            visibility=permission_choices.public
+        )
+        authfield = CustomField.objects.create(
+            order=1,
+            name='AuthField',
+            type='String',
+            visibility=permission_choices.auth
+        )
+        wgfield = CustomField.objects.create(
+            order=2,
+            name='WgField',
+            type='String',
+            visibility=permission_choices.workgroup
+        )
+        self.allval = CustomValue.objects.create(
+            field=allfield,
+            content='All Value',
+            concept=self.item
+        )
+        self.authval = CustomValue.objects.create(
+            field=authfield,
+            content='Auth Value',
+            concept=self.item
+        )
+        self.wgval = CustomValue.objects.create(
+            field=wgfield,
+            content='Workgroup Value',
+            concept=self.item
+        )
 
     def test_itempage_full_url(self):
         self.login_editor()
@@ -149,6 +196,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     @tag('cache')
     @override_settings(CACHE_ITEM_PAGE=True)
+    @skip('Cache mixin not currently used')
     def test_itempage_caches(self):
 
         # View in the future to avoid modified recently check
@@ -168,6 +216,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     @tag('cache')
     @override_settings(CACHE_ITEM_PAGE=True)
+    @skip('Cache mixin not currently used')
     def test_itempage_loaded_from_cache(self):
 
         # Load response into cache
@@ -389,23 +438,6 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
                 status_code=200
             )
 
-    @tag('validate')
-    def test_validation_runs(self):
-        dec = models.DataElementConcept.objects.create(
-            name='Testing DEC',
-            definition='Test Defn'
-        )
-        response = self.reverse_get(
-            'aristotle:validate',
-            reverse_args=[dec.id],
-            status_code=200
-        )
-
-        context = response.context
-        self.assertTrue(context['setup_valid'])
-        self.assertEqual(context['item_name'], 'Testing DEC')
-        self.assertEqual(len(context['results']), 2)
-
     @tag('version')
     def test_version_workgroup_lookup(self):
 
@@ -480,6 +512,93 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             status_code=403
         )
 
+    @tag('custfield')
+    def test_submitter_can_save_via_edit_page_with_custom_fields(self):
+        self.login_editor()
+        cf = CustomField.objects.create(
+            name='MyCustomField',
+            type='int',
+            help_text='Custom',
+            order=0
+        )
+
+        postdata = utils.model_to_dict_with_change_time(self.item)
+        postdata['custom_MyCustomField'] = 4
+        response = self.reverse_post(
+            'aristotle:edit_item',
+            postdata,
+            reverse_args=[self.item.id],
+            status_code=302
+        )
+        self.item1 = models.ObjectClass.objects.get(pk=self.item.pk)
+        self.assertRedirects(response, url_slugify_concept(self.item))
+
+        cv_query = CustomValue.objects.filter(
+            field=cf,
+            concept=self.item1._concept_ptr
+        )
+        self.assertTrue(cv_query.count(), 1)
+        cv = cv_query.first()
+        self.assertEqual(cv.content, '4')
+
+    @tag('custfield')
+    def test_edit_page_custom_fields_initial(self):
+        self.login_editor()
+        cf = CustomField.objects.create(
+            name='MyCustomField',
+            type='int',
+            help_text='Custom',
+            order=0
+        )
+        cv = CustomValue.objects.create(
+            field=cf,
+            concept=self.item,
+            content='4'
+        )
+        response = self.reverse_get(
+            'aristotle:edit_item',
+            reverse_args=[self.item.id],
+            status_code=200
+        )
+        initial = response.context['form'].initial
+        self.assertTrue('custom_MyCustomField' in initial)
+        self.assertEqual(initial['custom_MyCustomField'], '4')
+
+    def get_custom_values_for_user(self, user):
+        """Util function used for the following 3 tests"""
+        view = ConceptRenderView()
+        request = self.factory.get('/anitemurl/')
+        request.user = user
+        view.request = request
+        view.item = self.item
+        return view.get_custom_values()
+
+    @tag('custfield')
+    def test_view_custom_values_unath(self):
+        self.setup_custom_values()
+        anon = AnonymousUser()
+        cvs = self.get_custom_values_for_user(anon)
+        self.assertEqual(len(cvs), 1)
+        self.assertEqual(cvs[0].content, 'All Value')
+
+    @tag('custfield')
+    def test_view_custom_values_auth(self):
+        self.setup_custom_values()
+        cvs = self.get_custom_values_for_user(self.regular)
+        self.assertEqual(len(cvs), 2)
+        self.assertEqual(cvs[0].content, 'All Value')
+        self.assertEqual(cvs[1].content, 'Auth Value')
+
+    @tag('custfield')
+    def test_view_custom_values_auth(self):
+        self.setup_custom_values()
+        cvs = self.get_custom_values_for_user(self.viewer)
+        self.assertEqual(len(cvs), 3)
+        self.assertEqual(cvs[0].content, 'All Value')
+        self.assertEqual(cvs[1].content, 'Auth Value')
+        self.assertEqual(cvs[2].content, 'Workgroup Value')
+
+
 
 class LoggedInViewConceptPages(utils.AristotleTestUtils):
     defaults = {}
@@ -507,23 +626,6 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         )
 
     # ---- utils ----
-
-    def make_review_request(self, item, user):
-
-        self.assertFalse(perms.user_can_view(user,item))
-        self.item1.save()
-        self.item1 = self.itemType.objects.get(pk=item.pk)
-
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            state=self.ra.public_state,
-            registration_date=datetime.date(2010,1,1)
-        )
-
-        review.concepts.add(item)
-
-        self.assertTrue(perms.user_can_view(user,item))
-        self.assertTrue(perms.user_can_change_status(user,item))
 
     def update_defn_with_versions(self, new_defn='brand new definition'):
         with reversion.create_revision():
@@ -749,6 +851,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertEqual(slots[0].order, 0)
         self.assertEqual(slots[1].name, 'more_extra')
         self.assertEqual(slots[1].order, 1)
+
 
     def test_submitter_can_save_via_edit_page_with_identifiers(self):
 
@@ -1116,13 +1219,8 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
             reversion.set_comment("change 1")
             self.item1.save()
 
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            state=self.ra.public_state,
-            registration_date=datetime.date(2010,1,1)
-        )
+        self.make_review_request(self.item1, self.registrar)
 
-        review.concepts.add(self.item1)
         with reversion.revisions.create_revision():
             self.item1.name = "change 2"
             reversion.set_comment("change 2")
@@ -1183,13 +1281,8 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.item1 = self.itemType.objects.get(pk=self.item1.pk)
         self.assertEqual(self.item1.name,updated_name)
 
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            state=self.ra.public_state,
-            registration_date=datetime.date(2010,1,1)
-        )
+        self.make_review_request(self.item1, self.registrar)
 
-        review.concepts.add(self.item1)
         self.ra.register(
             item=self.item1,
             state=models.STATES.incomplete,
@@ -1380,13 +1473,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.item1.save()
         self.item1 = self.itemType.objects.get(pk=self.item1.pk)
 
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            state=self.ra.public_state,
-            registration_date=datetime.date(2010,1,1)
-        )
-
-        review.concepts.add(self.item1)
+        self.make_review_request(self.item1, self.registrar)
 
         self.assertTrue(perms.user_can_view(self.registrar,self.item1))
         self.assertTrue(perms.user_can_change_status(self.registrar,self.item1))
@@ -1430,13 +1517,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.item1.save()
         self.item1 = self.itemType.objects.get(pk=self.item1.pk)
 
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            state=self.ra.public_state,
-            registration_date=datetime.date(2010,1,1)
-        )
-
-        review.concepts.add(self.item1)
+        review = self.make_review_request(self.item1, self.registrar)
 
         self.assertTrue(perms.user_can_view(self.registrar,self.item1))
         self.assertTrue(perms.user_can_change_status(self.registrar,self.item1))
@@ -1872,26 +1953,136 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
 
         self.assertTrue(num_vals == getattr(self.item1,value_type+"Values").count())
 
-    def test_su_can_download_csv(self):
+    def csv_download_cache(self, properties, iid):
+        CSVDownloader.download(properties, iid)
+        return store_taskresult()
+
+    def csv_download_task_retrieve(self, iid):
+        if not self.celery_result:
+            # Creating an instance of fake Celery `AsyncResult` object
+            self.celery_result = get_download_result(iid)
+        return self.celery_result
+
+    @patch('aristotle_mdr.downloader.CSVDownloader.download.delay')
+    @patch('aristotle_mdr.views.downloads.async_result')
+    def test_su_can_download_csv(self, async_result, downloader_download):
+        downloader_download.side_effect = self.csv_download_cache
+        async_result.side_effect = self.csv_download_task_retrieve
+
         self.login_superuser()
-        response = self.client.get(reverse('aristotle:download',args=['csv-vd',self.item1.id]))
-        self.assertEqual(response.status_code,200)
-        response = self.client.get(reverse('aristotle:download',args=['csv-vd',self.item2.id]))
-        self.assertEqual(response.status_code,200)
+        self.celery_result = None
 
-    def test_editor_can_download_csv(self):
+        eq = QueryDict('', mutable=True)
+        eq.setdefault('items', self.item1.id)
+        eq.setdefault('title', self.item1.name)
+        response = self.client.get(reverse('aristotle:download',args=['csv-vd',self.item1.id]), follow=True)
+        self.assertEqual(response.status_code,200)
+        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=['csv-vd']) +
+                         '?' + eq.urlencode())
+        self.assertTrue(downloader_download.called)
+        self.assertTrue(async_result.called)
+
+        response = self.client.get(reverse('aristotle:start_download', args=['csv-vd']) + '?' + response.request['QUERY_STRING'])
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(async_result.called)
+
+        self.celery_result = None
+
+        eq = QueryDict('', mutable=True)
+        eq.setdefault('items', self.item2.id)
+        eq.setdefault('title', self.item2.name)
+        response = self.client.get(reverse('aristotle:download',args=['csv-vd',self.item2.id]), follow=True)
+        self.assertEqual(response.status_code,200)
+        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=['csv-vd']) +
+                         '?' + eq.urlencode())
+        self.assertTrue(downloader_download.called)
+        self.assertTrue(async_result.called)
+
+        response = self.client.get(reverse('aristotle:start_download', args=['csv-vd']) + '?' + response.request['QUERY_STRING'])
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(async_result.called)
+
+    @patch('aristotle_mdr.downloader.CSVDownloader.download.delay')
+    @patch('aristotle_mdr.views.downloads.async_result')
+    def test_editor_can_download_csv(self, async_result, downloader_download):
+        downloader_download.side_effect = self.csv_download_cache
+        async_result.side_effect = self.csv_download_task_retrieve
+
         self.login_editor()
-        response = self.client.get(reverse('aristotle:download',args=['csv-vd',self.item1.id]))
-        self.assertEqual(response.status_code,200)
-        response = self.client.get(reverse('aristotle:download',args=['csv-vd',self.item2.id]))
-        self.assertEqual(response.status_code,403)
+        self.celery_result = None
 
-    def test_viewer_can_download_csv(self):
+        eq = QueryDict('', mutable=True)
+        eq.setdefault('items', self.item1.id)
+        eq.setdefault('title', self.item1.name)
+        response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item1.id]), follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=['csv-vd']) +
+                         '?' + eq.urlencode())
+        self.assertTrue(downloader_download.called)
+        self.assertTrue(async_result.called)
+
+        response = self.client.get(reverse('aristotle:start_download', args=['csv-vd']) + '?' + response.request['QUERY_STRING'])
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(async_result.called)
+
+        self.celery_result = None
+        response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item2.id]))
+        self.assertEqual(response.status_code, 403)
+
+    @patch('aristotle_mdr.downloader.CSVDownloader.download.delay')
+    @patch('aristotle_mdr.views.downloads.async_result')
+    def test_viewer_can_download_csv(self, async_result, downloader_download):
+        downloader_download.side_effect = self.csv_download_cache
+        async_result.side_effect = self.csv_download_task_retrieve
+
         self.login_viewer()
-        response = self.client.get(reverse('aristotle:download',args=['csv-vd',self.item1.id]))
-        self.assertEqual(response.status_code,200)
-        response = self.client.get(reverse('aristotle:download',args=['csv-vd',self.item2.id]))
-        self.assertEqual(response.status_code,403)
+        self.celery_result = None
+        eq = QueryDict('', mutable=True)
+        eq.setdefault('items', self.item1.id)
+        eq.setdefault('title', self.item1.name)
+        response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item1.id]), follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=['csv-vd']) +
+                         '?' + eq.urlencode())
+        self.assertTrue(downloader_download.called)
+        self.assertTrue(async_result.called)
+
+        response = self.client.get(reverse('aristotle:start_download', args=['csv-vd']) + '?' + response.request['QUERY_STRING'])
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(async_result.called)
+
+        self.celery_result = None
+        response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item2.id]))
+        self.assertEqual(response.status_code, 403)
+
+    @patch('aristotle_mdr.downloader.CSVDownloader.download.delay')
+    @patch('aristotle_mdr.views.downloads.async_result')
+    def test_viewer_can_see_content(self, async_result, downloader_download):
+        downloader_download.side_effect = self.csv_download_cache
+        async_result.side_effect = self.csv_download_task_retrieve
+
+        self.login_viewer()
+        self.celery_result = None
+
+        eq = QueryDict('', mutable=True)
+        eq.setdefault('items', self.item1.id)
+        eq.setdefault('title', self.item1.name)
+        response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item1.id]), follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=['csv-vd']) +
+                         '?' + eq.urlencode())
+        self.assertTrue(downloader_download.called)
+        self.assertTrue(async_result.called)
+
+        response = self.client.get(
+            reverse('aristotle:start_download', args=['csv-vd']) + '?' + response.request['QUERY_STRING'])
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(async_result.called)
+
+        self.assertContains(response, self.item1.permissibleValues.all()[0].meaning)
+        self.assertContains(response, self.item1.permissibleValues.all()[1].meaning)
+
+
 
     def test_values_shown_on_page(self):
         self.login_viewer()

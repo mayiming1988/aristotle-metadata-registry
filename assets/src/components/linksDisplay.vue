@@ -66,7 +66,7 @@ export default {
                         }
                     }
                 };
-                var network = new vis.Network(container, final_data, options);
+                new vis.Network(container, final_data, options);
 
                 // Now show the component
                 if (!this.show) {

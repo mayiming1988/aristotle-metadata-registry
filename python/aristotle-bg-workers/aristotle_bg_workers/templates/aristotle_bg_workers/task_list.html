@@ -1,4 +1,4 @@
-{% load i18n aristotle_bg_tags aristotle_tags %}
+{% load i18n aristotle_tags %}
 
 <table class="table">
 <thead>
@@ -22,17 +22,24 @@
     </tr>
 </thead>
 <tbody>
-    {% for item in page_obj %}
+    {% for item in annotated_list %}
     <tr>
-        <td>
-            {% firstof item.extrainfo.task_name item.task_id %}
+        <td data-task-id="{{ item.task_id }}">
+            {% firstof item.display_name item.task_name item.task_id %}
         </td>
         <td>{{ item.status }}
         </td>
         <td>{{ item.date_done }}</td>
-        <td>{{ item.extrainfo.task_creator.full_name }}</td>
+        <td>{{ item.requester }}</td>
         {% if not noresult %}
-        <td><tt>{{ item.result|dejson|linebreaks }}</tt></td>
+        <td>
+            <tt>{{ item.safe_result.result|linebreaks }}</tt>
+            {% if item.traceback %}
+            <tt>
+            {{ item.traceback|linebreaks }}
+            </tt>
+            {% endif %}
+        </td>
         {% endif %}
     </tr>
     {% endfor %}

@@ -1,0 +1,72 @@
+{% load i18n aristotle_tags humanize %}
+
+{% if page.has_other_pages %}
+Showing {{ page.start_index }} - {{ page.end_index }} of {{ page.paginator.count }} results.
+{% else %}
+Showing {{ page.paginator.count }} results.
+{% endif %}
+
+<table class="table">
+<thead>
+    <tr>
+        <th>{% trans 'Message' %}</th>
+        <th>{% trans 'Registration Authority' %}</th>
+        <th title="{% trans 'Number of items' %}">#</th>
+        <th>{% trans 'Status' %}</th>
+        <th>
+            {% if sort == "mod_asc" %}
+            <a href="?{% paginator_get request page.number %}&sort=mod_desc"><i class="fa fa-sort-asc"></i></a>
+            {% elif sort == "mod_desc" %}
+            <a href="?{% paginator_get request page.number %}&sort=mod_asc"><i class="fa fa-sort-desc"></i></a>
+            {% else %}
+            <a href="?{% paginator_get request page.number %}&sort=mod_desc"><i class="fa fa-sort"></i></a>
+            {% endif %}
+            {% trans 'Last modified' %}
+        </th>
+        <th>
+            {% if sort == "cre_asc" %}
+            <a href="?{% paginator_get request page.number %}&sort=cre_desc"><i class="fa fa-sort-asc"></i></a>
+            {% elif sort == "cre_desc" %}
+            <a href="?{% paginator_get request page.number %}&sort=cre_asc"><i class="fa fa-sort-desc"></i></a>
+            {% else %}
+            <a href="?{% paginator_get request page.number %}&sort=cre_desc"><i class="fa fa-sort"></i></a>
+            {% endif %}
+            {% trans 'Submitted' %}
+        </th>
+    </tr>
+</thead>
+<tbody>
+    {% for item in page %}
+    <tr>
+        <td>
+            <a href="{% url 'aristotle_reviews:review_details' item.id %}">
+                {% if item.message %}
+                    {{ item.message }}
+                {% else %}
+                    {% trans "No message given" %}
+                {% endif %}
+            </a>
+        </td>
+        <td>{{ item.registration_authority.name }}</td>
+        <td>
+            <a href="{% url 'aristotle_reviews:review_list' item.id %}">
+            {{ item.concepts.count }}
+        </td>
+        <td>{{ item.get_status_display }}
+        </td>
+        <td>
+            <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|date:'c' }}">
+                {{item.modified|naturaltime}}
+            </time>
+        </td>
+        <td>
+            <time title="{{ item.created|date:'o-m-d H:i e' }}" datetime="{{ item.created|date:'c' }}">
+                {{item.created|naturaltime}}
+            </time>
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>
+</table>
+
+{% include "aristotle_mdr/helpers/paginator.html" with page=page %}

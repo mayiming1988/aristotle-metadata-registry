@@ -1,6 +1,6 @@
-import { initCore } from '../lib/init.js'
+import { initCore } from 'src/lib/init.js'
 
-import '../styles/taggle.css'
-import '../styles/aristotle.dashboard.less'
+import 'src/styles/taggle.css'
+import 'src/styles/aristotle.dashboard.less'
 
 initCore()

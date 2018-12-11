@@ -1,3 +1,4 @@
+from typing import Any
 from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -7,7 +8,7 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist, ObjectDoesNotExist
 from django.urls import reverse
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 from django.http import HttpResponseRedirect, HttpResponseNotFound, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.defaultfilters import slugify
@@ -36,6 +37,7 @@ from aristotle_mdr.utils import url_slugify_concept
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils import (
+    cascade_items_queryset,
     get_concepts_for_apps,
     fetch_aristotle_settings,
     fetch_aristotle_downloaders,
@@ -46,10 +48,15 @@ from aristotle_mdr.views.utils import (
     CachePerItemUserMixin,
     TagsMixin
 )
-from aristotle_mdr.contrib.slots.utils import get_allowed_slots
-from aristotle_mdr import validators
+from aristotle_mdr.contrib.slots.models import Slot
+from aristotle_mdr.contrib.links.models import Link, LinkEnd
+from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
+from aristotle_mdr.contrib.links.utils import get_links_for_concept
+from aristotle_mdr.contrib.favourites.models import Favourite, Tag
+from aristotle_mdr.contrib.validators import validators
 
 from haystack.views import FacetedSearchView
+from reversion.models import Version
 
 
 import logging
@@ -110,7 +117,7 @@ def measure(request, iid, model_slug, name_slug):
     )
 
 
-class ConceptRenderMixin(TagsMixin):
+class ConceptRenderView(TagsMixin, TemplateView):
     """
     Class based view for rendering a concept, replaces render_if_condition_met
     **This should be used with a permission mixin or check_item override**
@@ -118,7 +125,7 @@ class ConceptRenderMixin(TagsMixin):
     slug_redirect determines wether /item/id redirects to /item/id/model_slug/name_slug
     """
 
-    objtype = None
+    objtype: Any = None
     itemid_arg = 'iid'
     modelslug_arg = 'model_slug'
     nameslug_arg = 'name_slug'
@@ -187,7 +194,6 @@ class ConceptRenderMixin(TagsMixin):
         return self.request.user
 
     def get_redirect(self):
-
         if not self.modelslug_arg:
             model_correct = True
         else:
@@ -237,6 +243,13 @@ class ConceptRenderMixin(TagsMixin):
 
         return super().dispatch(request, *args, **kwargs)
 
+    def get_links(self):
+        return get_links_for_concept(self.item)
+
+    def get_custom_values(self):
+        allowed = CustomField.objects.get_allowed_fields(self.item.concept, self.request.user)
+        return CustomValue.objects.get_allowed_for_item(self.item._concept_ptr, allowed)
+
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
 
@@ -245,14 +258,16 @@ class ConceptRenderMixin(TagsMixin):
         else:
             context['isFavourite'] = self.request.user.profile.is_favourite(self.item)
 
-        from reversion.models import Version
         context['last_edit'] = Version.objects.get_for_object(self.item).first()
         # Only display viewable slots
-        context['slots'] = get_allowed_slots(self.item, self.user)
+        context['slots'] = Slot.objects.get_item_allowed(self.item, self.user)
         context['item'] = self.item
         context['statuses'] = self.item.current_statuses
         context['discussions'] = self.item.relatedDiscussions.all()
         context['activetab'] = 'item'
+        context['links'] = self.get_links()
+
+        context['custom_values'] = self.get_custom_values()
         return context
 
     def get_template_names(self):
@@ -265,7 +280,7 @@ class ConceptRenderMixin(TagsMixin):
 
 
 # General concept view
-class ConceptView(CachePerItemUserMixin, ConceptRenderMixin, TemplateView):
+class ConceptView(ConceptRenderView):
 
     slug_redirect = True
     cache_item_kwarg = 'iid'
@@ -275,7 +290,7 @@ class ConceptView(CachePerItemUserMixin, ConceptRenderMixin, TemplateView):
         return user_can_view(self.request.user, item)
 
 
-class DataElementView(ConceptRenderMixin, TemplateView):
+class DataElementView(ConceptRenderView):
 
     objtype = MDR.DataElement
 
@@ -380,11 +395,11 @@ def display_review(wizard):
 
 class ReviewChangesView(SessionWizardView):
 
-    items = None
-    display_review = None
+    items: Any = None
+    display_review: Any = None
 
     # Override this
-    change_step_name = None
+    change_step_name = ''
 
     def get_form_kwargs(self, step):
 
@@ -400,20 +415,7 @@ class ReviewChangesView(SessionWizardView):
             # Need to check wether cascaded was true here
 
             if cascade == 1:
-                all_ids = []
-                for item in items:
-
-                    # Can't cascade from _concept
-                    if isinstance(item, MDR._concept):
-                        cascade = item.item.registry_cascade_items
-                    else:
-                        cascade = item.registry_cascade_items
-
-                    cascaded_ids = [a.id for a in cascade]
-                    cascaded_ids.append(item.id)
-                    all_ids.extend(cascaded_ids)
-
-                queryset = MDR._concept.objects.filter(id__in=all_ids)
+                queryset = cascade_items_queryset(items=items)
             else:
                 ids = [a.id for a in items]
                 queryset = MDR._concept.objects.filter(id__in=ids)
@@ -534,6 +536,8 @@ class ReviewChangesView(SessionWizardView):
             reversion.revisions.set_user(self.request.user)
 
             success, failed = self.register_changes(form_dict, change_form)
+            logger.critical(success)
+            logger.critical(failed)
 
             bad_items = sorted([str(i.id) for i in failed])
             count = self.get_items().count()
@@ -638,64 +642,3 @@ def extensions(request):
         "aristotle_mdr/static/extensions.html",
         {'content_extensions': content, 'download_extensions': downloads, }
     )
-
-
-class ValidationView(TemplateView):
-
-    template_name='aristotle_mdr/actions/validate.html'
-    base_dir=path.dirname(path.dirname(__file__))
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        with open(path.join(self.base_dir, 'schema/schema.json')) as schemafile:
-            self.schema = json.load(schemafile)
-
-        aristotle_validators = settings.ARISTOTLE_VALIDATORS
-        self.validators = {x: import_string(y) for x, y in aristotle_validators.items()}
-
-        # Hard coded setup for now
-        with open(path.join(self.base_dir, 'schema/setup.yaml')) as setupfile:
-            self.setup = yaml.load(setupfile)
-
-        # Only one ra for now
-        self.ra = MDR.RegistrationAuthority.objects.first()
-
-    def get(self, request, *args, **kwargs):
-
-        try:
-            concept = MDR._concept.objects.get(id=self.kwargs['iid'])
-        except MDR._concept.DoesNotExist:
-            return HttpResponseNotFound()
-
-        # Slow query
-        item = concept.item
-        itemtype = type(item).__name__
-
-        valid = True
-        try:
-            jsonschema.validate(self.setup, self.schema)
-        except jsonschema.exceptions.ValidationError as e:
-            logger.debug(e)
-            valid = False
-
-        results = []
-        if valid:
-            for itemsetup in self.setup:
-                if itemsetup['object'] == itemtype:
-                    for check in itemsetup['checks']:
-                        if check['validator'] in self.validators:
-                            validator_class = self.validators[check['validator']]
-                            validator = validator_class(check)
-                            status, message = validator.validate(item, self.ra)
-
-                            results.append({
-                                'check': validator.getName(),
-                                'status': status,
-                                'message': message
-                            })
-
-        kwargs['setup_valid'] = valid
-        kwargs['results'] = results
-        kwargs['item_name'] = item.name
-        return super().get(request, *args, **kwargs)

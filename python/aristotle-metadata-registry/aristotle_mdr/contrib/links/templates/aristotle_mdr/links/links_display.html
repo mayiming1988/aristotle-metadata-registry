@@ -1,7 +1,5 @@
 {% load i18n util_tags link_tags %}
 
-{% if item.linkend_set.exists %}
-
 <div>
 <h2>Relationships</h2>
 <p>
@@ -23,27 +21,27 @@
             <td><span class='sr-only'>Actions</span></td>
         </tr>
     </thead>
-        {% for link in item|get_links %}
+        {% for link in links %}
         <tbody>
             {% for e in link.linkend_set.all %}
             <tr>
-                {% with linkend_count=link.linkend_set.count %}
+                {% with linkend_count=link.linkend_set|length %}
                 {% if forloop.first %}
                 <td rowspan="{{ linkend_count }}">
-                    <a href="{{ e.link.relation.get_absolute_url }}">{{ e.link.relation.name }}</a>
+                    <a href="{% url 'aristotle:item' e.link.relation.id %}">{{ e.link.relation.name }}</a>
                     <div>
                         {{ e.link.relation.definition|striptags }}
                     </div>
                 </td>
                 {% endif %}
                 <td title="{{e.role.definition}}">
-                    <a href="{{ e.link.relation.get_absolute_url }}#role_{{e.role.pk}}">{{ e.role.name }}</a>
+                    <a href="{% url 'aristotle:item' e.link.relation.id %}#role_{{e.role.pk}}">{{ e.role.name }}</a>
                 </td>
                 <td>
                     {% if e.concept.concept == item.concept %}
                         <strong class="active_link" title="">{{ e.concept.name }}</strong>
                     {% else %}
-                        <a href="{{ e.concept.get_absolute_url }}">{{ e.concept.name }}</a>
+                        <a href="{% url 'aristotle:item' e.concept.id %}">{{ e.concept.name }}</a>
                     {% endif %}
                 </td>
                 {% if forloop.first %}
@@ -64,9 +62,5 @@
 </table>
 </div>
 
-{% endif %}
-
-{% if item|get_links %}
 <links-display url="{% url 'aristotle_mdr_links:link_json_for_item' iid=item.id %}">
 </links-display>
-{% endif %}

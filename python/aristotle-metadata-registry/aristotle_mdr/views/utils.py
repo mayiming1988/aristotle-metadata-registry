@@ -1,3 +1,4 @@
+from typing import Dict, List, Any
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 
 from django.conf import settings
@@ -9,6 +10,8 @@ from django.db.models import Count, Q, Model
 from django.db.models.functions import Lower
 from django.db.models.query import QuerySet
 from django.forms.models import model_to_dict
+from django.views.generic import FormView
+from django import forms
 from django.http import (
     Http404,
     JsonResponse,
@@ -22,6 +25,7 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 from django.core.cache import cache
+from django.core.exceptions import PermissionDenied
 
 from django.views.generic.detail import BaseDetailView
 from django.views.generic import (
@@ -29,7 +33,6 @@ from django.views.generic import (
 )
 
 from aristotle_mdr import models as MDR
-from aristotle_mdr.utils import status_filter
 from aristotle_mdr.perms import user_can_view
 from aristotle_mdr.models import _concept
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
@@ -266,7 +269,7 @@ def get_status_queryset():
     """
 
     return (
-        status_filter(MDR.Status.objects)
+        MDR.Status.objects.valid()
         .order_by("registrationAuthority", "-registrationDate", "-created")
         .select_related('registrationAuthority')
     )
@@ -280,7 +283,7 @@ class SortedListView(ListView):
     allowed_sorts can be a dict mapping names to sorts or just a list of sorts
     """
 
-    allowed_sorts = []
+    allowed_sorts: Dict[str, str] = {}
     default_sort = ''
 
     def dispatch(self, request, *args, **kwargs):
@@ -429,12 +432,20 @@ class MemberRemoveFromGroupView(GroupMemberMixin, LoginRequiredMixin, ObjectLeve
 class AlertFieldsMixin:
     """Provide a list of fields where help text should be rendered as an alert"""
 
-    alert_fields = []
+    alert_fields: list = []
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context.update({'alert_fields': self.alert_fields})
         return context
+
+
+class UserFormViewMixin:
+    def get_form_kwargs(self, *args, **kwargs):
+        kwargs = super().get_form_kwargs(*args, **kwargs)
+        if getattr(self, 'user_form', False):
+            kwargs['user'] = self.request.user
+        return kwargs
 
 
 class AjaxFormMixin:
@@ -451,7 +462,7 @@ class AjaxFormMixin:
     appears
     """
 
-    ajax_success_message = None
+    ajax_success_message = ''
 
     def form_invalid(self, form):
 
@@ -472,7 +483,7 @@ class AjaxFormMixin:
         if self.request.is_ajax():
             data = {'success': True}
             # If success message set
-            if self.ajax_success_message is not None:
+            if self.ajax_success_message:
                 data['message'] = self.ajax_success_message
                 return JsonResponse(data)
             else:
@@ -538,12 +549,12 @@ class TagsMixin:
                 tag__profile=self.request.user.profile,
                 tag__primary=False,
                 item=self.item
-            ).order_by('created').values_list('tag__name', flat=True)
+            ).order_by('created').values('tag__id', 'tag__name')
 
             user_tags = Tag.objects.filter(
                 profile=self.request.user.profile,
                 primary=False
-            ).values_list('name', flat=True)
+            ).values('id', 'name')
 
             item_tags = list(item_tags)
             user_tags = list(user_tags)
@@ -565,22 +576,20 @@ class SimpleItemGet:
     def get_item(self, user):
         item_id = self.kwargs.get(self.item_id_arg, None)
         if item_id is None:
-            return None, 404
+            raise Http404
 
         try:
             item = _concept.objects.get(id=item_id)
         except _concept.DoesNotExist:
-            return None, 404
+            raise Http404
 
         if not user_can_view(user, item):
-            return None, 403
+            raise PermissionDenied
 
-        return item, 200
+        return item
 
     def get(self, request, *args, **kwargs):
-        item, code = self.get_item(request.user)
-        if not item:
-            return HttpResponse(status_code=code)
+        item = self.get_item(request.user)
 
         self.item = item
         return super().get(request, *args, **kwargs)

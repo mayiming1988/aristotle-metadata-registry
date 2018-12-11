@@ -1,5 +1,5 @@
-import { initCore } from '../lib/init.js'
+import { initCore } from 'src/lib/init.js'
 
-import '../styles/aristotle.help.less'
+import 'src/styles/aristotle.help.less'
 
 initCore()

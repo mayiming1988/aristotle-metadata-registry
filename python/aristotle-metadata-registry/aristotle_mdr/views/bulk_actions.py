@@ -42,6 +42,9 @@ class BulkAction(FormView):
             return HttpResponseRedirect(url)
         action_form = action['form']
 
+        if action_form.redirect:
+            return HttpResponseRedirect(action_form.get_redirect_url(request))
+
         if issubclass(action_form, ChangeStateForm):
             # If the form is a change state form
             # Put the items into the users session and redirect

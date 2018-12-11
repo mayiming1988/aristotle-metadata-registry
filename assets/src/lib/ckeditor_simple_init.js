@@ -1,4 +1,7 @@
+/* globals CKEDITOR */
 import 'ckeditor/ckeditor.js'
+import { addPlugins } from 'src/lib/ckeditor_plugins.js'
+addPlugins(CKEDITOR)
 
 export function initCKEditor() {
     $('textarea[data-type=ckeditortype]').each(function() {

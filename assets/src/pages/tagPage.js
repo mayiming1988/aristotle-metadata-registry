@@ -1,19 +1,10 @@
-import { initCore } from '../lib/init.js'
-import switchEditComponent from '../components/switchEdit.vue'
+import { renderComponents } from 'src/lib/renderComponents.js'
+import { initCore } from 'src/lib/init.js'
 
-import Vue from 'vue'
+import switchEditComponent from '@/switchEdit.vue'
 
-import '../styles/taggle.css'
-import '../styles/aristotle.dashboard.less'
+import 'src/styles/taggle.css'
+import 'src/styles/aristotle.dashboard.less'
 
 initCore()
-
-// Export root component for testing
-export var rootComponent = {
-    el: '#vue-container',
-    components: {
-        'switch-edit': switchEditComponent
-    }
-}
-
-new Vue(rootComponent)
+renderComponents({'switch-edit': switchEditComponent})

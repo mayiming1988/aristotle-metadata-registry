@@ -39,7 +39,7 @@ def super_intelligent_hueristics(resource,data):
                 queries &= Q(name__icontains=token)
         de = DataElement.objects.filter(queries) #.filter(Q(valueDomain__maximum_length__gte=max_length) | Q(valueDomain=None))
         if not de.exists():
-            print name
+            print(name)
             count = -1
             vd = ValueDomain.objects.create(name="Value Domain for %s"%name, description="Auto-generated", maximum_length=max_length)
             de = DataElement.objects.create(name=name,definition="Auto-generated data element for resource '%s'"%resource['name'],valueDomain=vd)
@@ -66,7 +66,7 @@ def super_intelligent_hueristics(resource,data):
         else:
             count = de.all().count()
             de = de.first()
-            print " %s is like %s and %s others" %(name, de.name, count-1)
+            print(" %s is like %s and %s others" %(name, de.name, count-1))
         data_elements.append([name, de, count])
 
     return data_elements
@@ -267,7 +267,7 @@ class Command(BaseCommand):
             timeout=5
         )
         if dataset.status_code != 200:
-            print "Dataset failed --- ", dataset.text
+            print("Dataset failed --- ", dataset.text)
             return False
         dataset = json.loads(dataset.text)
         dataset = dataset['result']
@@ -281,14 +281,14 @@ class Command(BaseCommand):
             timeout=5
         )
         if dataset.status_code != 200:
-            print "Dataset failed --- ", dataset.text
+            print("Dataset failed --- ", dataset.text)
             return False
         dataset = json.loads(dataset.text)
         dataset = dataset['result']
         return dataset
 
     def load_dataset(self, dataset):
-        print "loading - ", dataset['name']
+        print("loading - ", dataset['name'])
         try:
             with transaction.atomic():
                 org = dataset.get('organization',None) or dataset.get('organisation',None)
@@ -301,7 +301,7 @@ class Command(BaseCommand):
                         self.vprint('made Organization : ', publishing_org.name, v=1)
                 else:
                     publishing_org = None
-                    print "no organi[sz]ation for dataset - ", dataset['name']
+                    print("no organi[sz]ation for dataset - ", dataset['name'])
                 ds_checks = DSE.Dataset.objects.filter(
                     identifiers__namespace__naming_authority=self.catalog.publisher,
                     identifiers__identifier=dataset['name'],
@@ -382,5 +382,5 @@ class Command(BaseCommand):
         except KeyboardInterrupt:
             raise
         except:
-            print "Everything just went bad - ", dataset['name']
+            print("Everything just went bad - ", dataset['name'])
             raise

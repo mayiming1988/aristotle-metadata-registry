@@ -272,7 +272,15 @@ class DataSetSpecification(aristotle.models.concept):
 
     @property
     def registry_cascade_items(self):
-        return list(self.clusters.all()) + list(self.data_elements.all())
+        # return list(self.clusters.all()) + list(self.data_elements.all())
+        return (
+            list(self.clusters.all()) +
+            list(self.data_elements.all()) +
+            list(aristotle.models.ObjectClass.objects.filter(dataelementconcept__dataelement__dssInclusions__dss=self)) +
+            list(aristotle.models.Property.objects.filter(dataelementconcept__dataelement__dssInclusions__dss=self)) +
+            list(aristotle.models.ValueDomain.objects.filter(dataelement__dssInclusions__dss=self)) +
+            list(aristotle.models.DataElementConcept.objects.filter(dataelement__dssInclusions__dss=self))
+        )
 
     def get_download_items(self):
         return [
