@@ -27,8 +27,8 @@ from aristotle_mdr.utils import (
     url_slugify_registration_authoritity,
     url_slugify_organization,
     strip_tags,
-    truncate_words
 )
+from aristotle_mdr.utils.text import truncate_words
 from aristotle_mdr import comparators
 
 from jsonfield import JSONField

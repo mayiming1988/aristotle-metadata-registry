@@ -329,14 +329,8 @@ def get_aristotle_url(label, obj_id, obj_name=None):
     return None
 
 
-def truncate_words(text: str, numwords: int) -> str:
-    words = text.split(' ')
-    if len(words) > numwords:
-        lesswords = ' '.join(words[:numwords])
-        lesswords += '...'
-        return lesswords
-    else:
-        return text
+def strip_tags(text: str) -> str:
+    return bleach.clean(text, tags=[], strip=True)
 
 
 def get_concept_models() -> List[Model]:

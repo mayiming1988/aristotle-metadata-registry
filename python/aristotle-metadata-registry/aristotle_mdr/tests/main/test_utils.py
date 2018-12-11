@@ -90,12 +90,12 @@ class UtilsTests(TestCase):
 
     def test_truncate_words_required(self):
         text = 'A whole bunch of words'
-        trunced = utils.utils.truncate_words(text, 3)
+        trunced = utils.text.truncate_words(text, 3)
         self.assertEqual(trunced, 'A whole bunch...')
 
     def test_truncate_words_not_required(self):
         text = 'Only some words'
-        trunced = utils.utils.truncate_words(text, 3)
+        trunced = utils.text.truncate_words(text, 3)
         self.assertEqual(trunced, text)
 
     def test_capitalize_words(self):
