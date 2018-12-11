@@ -230,8 +230,8 @@ class CustomFieldsTestCase(BaseAPITestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(cf_models.CustomField.objects.count(), 2)
-        self.assertEqual(cf_models.CustomField.objects.get(id=1).name, 'Spiciness')
-        self.assertEqual(cf_models.CustomField.objects.get(id=2).name, 'Blandness')
+        self.assertEqual(cf_models.CustomField.objects.filter(name='Spiciness').count(), 1)
+        self.assertEqual(cf_models.CustomField.objects.filter(name='Blandness').count(), 1)
 
     def test_multiple_update(self):
         self.create_test_fields()
@@ -249,8 +249,8 @@ class CustomFieldsTestCase(BaseAPITestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(cf_models.CustomField.objects.count(), 2)
-        self.assertEqual(cf_models.CustomField.objects.get(id=1).name, 'Spic')
-        self.assertEqual(cf_models.CustomField.objects.get(id=2).name, 'Bland')
+        self.assertEqual(cf_models.CustomField.objects.filter(name='Spic').count(), 1)
+        self.assertEqual(cf_models.CustomField.objects.filter(name='Bland').count(), 1)
 
     def test_multiple_delete_does_not_work(self):
         self.create_test_fields()
