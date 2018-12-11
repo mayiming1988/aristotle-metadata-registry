@@ -115,7 +115,7 @@ def measure(request, iid, model_slug, name_slug):
     )
 
 
-class ConceptRenderMixin(TagsMixin):
+class ConceptRenderView(TagsMixin, TemplateView):
     """
     Class based view for rendering a concept, replaces render_if_condition_met
     **This should be used with a permission mixin or check_item override**
@@ -278,7 +278,7 @@ class ConceptRenderMixin(TagsMixin):
 
 
 # General concept view
-class ConceptView(ConceptRenderMixin, TemplateView):
+class ConceptView(ConceptRenderView):
 
     slug_redirect = True
     cache_item_kwarg = 'iid'
@@ -288,7 +288,7 @@ class ConceptView(ConceptRenderMixin, TemplateView):
         return user_can_view(self.request.user, item)
 
 
-class DataElementView(ConceptRenderMixin, TemplateView):
+class DataElementView(ConceptRenderView):
 
     objtype = MDR.DataElement
 
