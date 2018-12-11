@@ -10,6 +10,8 @@ from aristotle_mdr.managers import ConceptQuerySet
 from aristotle_mdr.perms import user_can_move_between_workgroups, user_can_move_any_workgroup, user_can_remove_from_workgroup
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 
+from aristotle_mdr.contrib.custom_fields.forms import CustomValueFormMixin
+
 
 class UserAwareForm(forms.Form):
     def __init__(self, *args, **kwargs):
@@ -124,8 +126,6 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
             elif type(self.fields[f]) == forms.fields.DateTimeField:
                 self.fields[f].widget = BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"})
 
-        self.show_slots_tab = True
-
     def concept_fields(self):
         # version/workgroup are displayed with name/definition
         field_names = [field.name for field in MDR.baseAristotleObject._meta.fields] + ['version', 'workgroup']
@@ -169,30 +169,31 @@ def subclassed_modelform(set_model):
     return MyForm
 
 
-def subclassed_edit_modelform(set_model):
-    class MyForm(ConceptForm, CheckIfModifiedMixin):
-        change_comments = forms.CharField(widget=forms.Textarea, required=False)
+def subclassed_mixin_modelform(set_model, extra_mixins=[]):
+    meta_attrs = {'model': set_model}
+    if set_model.edit_page_excludes:
+        meta_attrs['exclude'] = set(list(UserAwareModelForm._meta.exclude) + list(set_model.edit_page_excludes))
+    else:
+        meta_attrs['fields'] = '__all__'
 
-        class Meta(ConceptForm.Meta):
-            model = set_model
-            if set_model.edit_page_excludes:
-                exclude = set(list(UserAwareModelForm._meta.exclude) + list(set_model.edit_page_excludes))
-            else:
-                fields = '__all__'
-    return MyForm
+    meta_class = type('Meta', (ConceptForm.Meta,), meta_attrs)
+
+    form_class_bases = extra_mixins + [ConceptForm]
+    form_class_attrs = {'Meta': meta_class}
+    form_class_attrs['change_comments'] = forms.CharField(widget=forms.Textarea, required=False)
+
+    form_class = type('MyForm', tuple(form_class_bases), form_class_attrs)
+
+    return form_class
+
+
+def subclassed_edit_modelform(set_model, extra_mixins=[]):
+    extra_mixins = [CheckIfModifiedMixin] + extra_mixins
+    return subclassed_mixin_modelform(set_model, extra_mixins=extra_mixins)
 
 
 def subclassed_clone_modelform(set_model):
-    class MyForm(ConceptForm):
-        change_comments = forms.CharField(widget=forms.Textarea, required=False)
-
-        class Meta(ConceptForm.Meta):
-            model = set_model
-            if set_model.edit_page_excludes:
-                exclude = set(list(UserAwareModelForm._meta.exclude) + list(set_model.edit_page_excludes))
-            else:
-                fields = '__all__'
-    return MyForm
+    return subclassed_mixin_modelform(set_model)
 
 
 def subclassed_wizard_2_Results(set_model):
@@ -207,7 +208,7 @@ def subclassed_wizard_2_Results(set_model):
     return MyForm
 
 
-class Concept_2_Results(ConceptForm):
+class Concept_2_Results(CustomValueFormMixin, ConceptForm):
     make_new_item = forms.BooleanField(
         initial=False,
         label=_("I've reviewed these items, and none of them meet my needs. Make me a new one."),

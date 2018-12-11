@@ -11,6 +11,7 @@
 </template>
 
 <script>
+// Displays all errors in one place
 import { capitalize } from 'src/lib/utils.js'
 export default {
     props: ['errors'],

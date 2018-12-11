@@ -1,3 +1,4 @@
+from typing import List, Dict
 from django import VERSION as django_version
 import attr
 import datetime
@@ -654,7 +655,7 @@ class LoggedInViewPages(object):
 class FormsetTestUtils:
     """Utilities to help create formset post data"""
 
-    def get_formset_postdata(self, datalist, prefix='form', initialforms=0):
+    def get_formset_postdata(self, datalist: List[Dict], prefix: str='form', initialforms: int=0):
         """
         Get postdata for a formset
 
@@ -683,8 +684,7 @@ class FormsetTestUtils:
 
         return postdata
 
-    def post_formset(self, url, extra_postdata={}, **kwargs):
-
+    def post_formset(self, url: str, extra_postdata: Dict={}, **kwargs):
         postdata = self.get_formset_postdata(**kwargs)
         postdata.update(extra_postdata)
         response = self.client.post(url, postdata)
@@ -758,23 +758,32 @@ class WizardTestUtils:
         strstep = str(step)
         self.assertEqual(response.context['wizard']['steps'].current, strstep)
 
-    def transform_datalist(self, datalist, wizard_name):
+    def get_step_name(self, step: int, step_names: List[str]) -> str:
+        if step_names:
+            name = step_names[step]
+        else:
+            name = str(step)
+
+        return name
+
+    def transform_datalist(self, datalist, wizard_name, step_names=[]):
         cskey = '{}-current_step'.format(wizard_name)
         newlist = []
         step = 0
         for formdata in datalist:
+            sn = self.get_step_name(step, step_names)
             newformdata = {
-                cskey: str(step)
+                cskey: sn
             }
             for key, value in formdata.items():
-                prekey = '{}-{}'.format(step, key)
+                prekey = '{}-{}'.format(sn, key)
                 newformdata[prekey] = value
             newlist.append(newformdata)
             step += 1
 
         return newlist
 
-    def post_direct_to_wizard(self, datalist, url):
+    def post_direct_to_wizard(self, datalist, url, step_names=[]):
         """Post to wizard without modifying datalist"""
 
         step = 0
@@ -782,7 +791,7 @@ class WizardTestUtils:
         self.assertEqual(response.status_code, 200)
 
         for formdata in datalist:
-            self.assertWizardStep(response, step)
+            self.assertWizardStep(response, self.get_step_name(step, step_names))
             response = self.client.post(url, formdata)
             if step < len(datalist) - 1:
                 # If not last step
@@ -791,11 +800,12 @@ class WizardTestUtils:
 
         return response
 
-    def post_to_wizard(self, datalist, url, wizard_name):
+    def post_to_wizard(self, datalist: List[Dict[str, str]],
+                       url: str, wizard_name: str, step_names: List[str]=[]):
         """Add current step and prefixes to datalist before posting"""
 
-        updated_datalist = self.transform_datalist(datalist, wizard_name)
-        return self.post_direct_to_wizard(updated_datalist, url)
+        updated_datalist = self.transform_datalist(datalist, wizard_name, step_names)
+        return self.post_direct_to_wizard(updated_datalist, url, step_names)
 
 
 class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils,

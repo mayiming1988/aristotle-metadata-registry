@@ -42,5 +42,6 @@ python_version = "3.6"
 
 [scripts]
 test = "django-admin test --settings=aristotle_mdr.tests.settings.settings"
+djshell = "django-admin shell --settings=aristotle_mdr.tests.settings.settings"
 lint = "flake8"
 type = "/bin/sh -c 'mypy ./python/*/aristotle_*'"

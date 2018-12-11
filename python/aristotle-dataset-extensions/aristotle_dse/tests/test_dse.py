@@ -11,6 +11,7 @@ from aristotle_mdr.utils import setup_aristotle_test_environment, url_slugify_co
 setup_aristotle_test_environment()
 
 from aristotle_dse import models
+from unittest import skip
 
 import reversion
 
@@ -40,55 +41,52 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages,TestCase):
     url_name='datasetspecification'
     itemType=models.DataSetSpecification
 
+    @skip('Weak editing currently disabled on this model')
     def test_weak_editing_in_advanced_editor_dynamic(self):
+        oc = MDR.ObjectClass.objects.create(
+            name="a very nice object class"
+        )
+        oc.save()
 
-        pass
-        # Weak editing currently disabled on this model
+        de = MDR.DataElement.objects.create(
+            name="test name",
+            definition="test definition",
+        )
+        de.save()
 
-        # oc = MDR.ObjectClass.objects.create(
-        #     name="a very nice object class"
-        # )
-        # oc.save()
-        #
-        # de = MDR.DataElement.objects.create(
-        #     name="test name",
-        #     definition="test definition",
-        # )
-        # de.save()
-        #
-        # for i in range(4):
-        #     models.DSSDEInclusion.objects.create(
-        #         data_element=de,
-        #         specific_information="test info",
-        #         conditional_obligation="test obligation",
-        #         order=i,
-        #         dss=self.item1
-        #     )
-        # for i in range(4):
-        #     inc = models.DSSDEInclusion.objects.create(
-        #         data_element=de,
-        #         specific_information="test info",
-        #         conditional_obligation="test obligation",
-        #         order=i,
-        #         dss=self.item1
-        #     )
-        #     clust = models.DSSClusterInclusion.objects.create(
-        #         specific_information="test info",
-        #         conditional_obligation="test obligation",
-        #         order=i,
-        #         dss=self.item1,
-        #         child=self.item1
-        #     )
-        #
-        #
-        # #self.item1.addCluster(child=self.item3)
-        # default_fields = {
-        #     'specialisation_classes': oc.id,
-        #     'data_element': de.id,
-        #     'child': self.item1.id
-        # }
-        #
-        # super().test_weak_editing_in_advanced_editor_dynamic(updating_field='specific_information', default_fields=default_fields)
+        for i in range(4):
+            models.DSSDEInclusion.objects.create(
+                data_element=de,
+                specific_information="test info",
+                conditional_obligation="test obligation",
+                order=i,
+                dss=self.item1
+            )
+        for i in range(4):
+            inc = models.DSSDEInclusion.objects.create(
+                data_element=de,
+                specific_information="test info",
+                conditional_obligation="test obligation",
+                order=i,
+                dss=self.item1
+            )
+            clust = models.DSSClusterInclusion.objects.create(
+                specific_information="test info",
+                conditional_obligation="test obligation",
+                order=i,
+                dss=self.item1,
+                child=self.item1
+            )
+
+
+        #self.item1.addCluster(child=self.item3)
+        default_fields = {
+            'specialisation_classes': oc.id,
+            'data_element': de.id,
+            'child': self.item1.id
+        }
+
+        super().test_weak_editing_in_advanced_editor_dynamic(updating_field='specific_information', default_fields=default_fields)
 
     def test_add_data_element(self):
         de,created = MDR.DataElement.objects.get_or_create(name="Person-sex, Code N",
@@ -218,7 +216,7 @@ class DistributionViewPage(LoggedInViewConceptPages,TestCase):
         self.assertTrue(oc2._concept_ptr in spec_classes.object_list)
         self.assertEqual(len(spec_classes.object_list), 2)
 
-class DistributionWizardPage(FormsetTestUtils, ConceptWizardPage, TestCase):
+class DistributionWizardPage(ConceptWizardPage, TestCase):
     model=models.Distribution
 
     def do_test_for_issue333(self,response):
@@ -253,6 +251,7 @@ class DistributionWizardPage(FormsetTestUtils, ConceptWizardPage, TestCase):
             'results-name':item_name,
             'results-definition':"Test Definition",
         }
+        step_2_data.update(self.get_formset_postdata([], 'slots'))
 
         ddep_formset_data = [
             {'data_element': self.de1.pk, 'logical_path': '/garbage/file', 'specialisation_classes': [self.oc1.pk, self.oc3.pk], 'ORDER': 0},

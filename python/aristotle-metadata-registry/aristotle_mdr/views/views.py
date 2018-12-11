@@ -47,8 +47,9 @@ from aristotle_mdr.views.utils import (
     CachePerItemUserMixin,
     TagsMixin
 )
-from aristotle_mdr.contrib.slots.utils import get_allowed_slots
+from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.links.models import Link, LinkEnd
+from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
 from aristotle_mdr import validators
 
@@ -114,7 +115,7 @@ def measure(request, iid, model_slug, name_slug):
     )
 
 
-class ConceptRenderMixin(TagsMixin):
+class ConceptRenderView(TagsMixin, TemplateView):
     """
     Class based view for rendering a concept, replaces render_if_condition_met
     **This should be used with a permission mixin or check_item override**
@@ -243,6 +244,10 @@ class ConceptRenderMixin(TagsMixin):
     def get_links(self):
         return get_links_for_concept(self.item)
 
+    def get_custom_values(self):
+        allowed = CustomField.objects.get_allowed_fields(self.item.concept, self.request.user)
+        return CustomValue.objects.get_allowed_for_item(self.item._concept_ptr, allowed)
+
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
 
@@ -253,12 +258,14 @@ class ConceptRenderMixin(TagsMixin):
 
         context['last_edit'] = Version.objects.get_for_object(self.item).first()
         # Only display viewable slots
-        context['slots'] = get_allowed_slots(self.item, self.user)
+        context['slots'] = Slot.objects.get_item_allowed(self.item, self.user)
         context['item'] = self.item
         context['statuses'] = self.item.current_statuses
         context['discussions'] = self.item.relatedDiscussions.all()
         context['activetab'] = 'item'
         context['links'] = self.get_links()
+
+        context['custom_values'] = self.get_custom_values()
         return context
 
     def get_template_names(self):
@@ -271,7 +278,7 @@ class ConceptRenderMixin(TagsMixin):
 
 
 # General concept view
-class ConceptView(CachePerItemUserMixin, ConceptRenderMixin, TemplateView):
+class ConceptView(ConceptRenderView):
 
     slug_redirect = True
     cache_item_kwarg = 'iid'
@@ -281,7 +288,7 @@ class ConceptView(CachePerItemUserMixin, ConceptRenderMixin, TemplateView):
         return user_can_view(self.request.user, item)
 
 
-class DataElementView(ConceptRenderMixin, TemplateView):
+class DataElementView(ConceptRenderView):
 
     objtype = MDR.DataElement
 
