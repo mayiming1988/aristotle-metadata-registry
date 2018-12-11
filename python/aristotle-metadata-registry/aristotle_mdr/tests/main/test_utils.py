@@ -80,6 +80,24 @@ class UtilsTests(TestCase):
         self.assertEqual(pcc('Namespace'), 'Namespace')
         self.assertEqual(pcc('LongerCamelCase'), 'Longer Camel Case')
 
+    def test_strip_tags_link_text(self):
+        stripped = utils.utils.strip_tags('My <a href="/url/">Linked</a> Text')
+        self.assertEqual(stripped, 'My Linked Text')
+
+    def test_strip_tags_normal_text(self):
+        stripped = utils.utils.strip_tags('Some Normal Text')
+        self.assertEqual(stripped, 'Some Normal Text')
+
+    def test_truncate_words_required(self):
+        text = 'A whole bunch of words'
+        trunced = utils.text.truncate_words(text, 3)
+        self.assertEqual(trunced, 'A whole bunch...')
+
+    def test_truncate_words_not_required(self):
+        text = 'Only some words'
+        trunced = utils.text.truncate_words(text, 3)
+        self.assertEqual(trunced, text)
+
     def test_capitalize_words(self):
         cw = utils.text.capitalize_words
         self.assertEqual(cw('some lower case words'), 'Some Lower Case Words')

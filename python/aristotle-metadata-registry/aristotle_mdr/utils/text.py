@@ -11,3 +11,13 @@ def capmatch(match):
 
 def capitalize_words(text):
     return re.sub(r'[ ](.)', capmatch, text.title())
+
+
+def truncate_words(text: str, numwords: int) -> str:
+    words = text.split(' ')
+    if len(words) > numwords:
+        lesswords = ' '.join(words[:numwords])
+        lesswords += '...'
+        return lesswords
+    else:
+        return text

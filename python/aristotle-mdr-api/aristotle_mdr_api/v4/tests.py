@@ -59,6 +59,25 @@ class BaseAPITestCase(TestCase):
         )
 
 
+class ConceptAPITestCase(BaseAPITestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.item = mdr_models.ObjectClass.objects.create(
+            name='Test Concept',
+            definition='Concept Definition',
+            submitter=self.user
+        )
+        self.concept = self.item._concept_ptr
+
+    def test_get_concept(self):
+        self.login_user()
+        response = self.client.get(
+            reverse('api_v4:item', args=[self.concept.id]),
+        )
+        self.assertEqual(response.status_code, 200)
+
+
 class IssueEndpointsTestCase(BaseAPITestCase):
 
     def setUp(self):

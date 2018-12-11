@@ -14,6 +14,7 @@ from django.utils import timezone
 from django.db.models import Q, Model
 from django.contrib.contenttypes.models import ContentType
 
+import bleach
 import logging
 import inspect
 import datetime
@@ -326,6 +327,10 @@ def get_aristotle_url(label, obj_id, obj_name=None):
             return reverse('aristotle:userReviewDetails', args=[obj_id])
 
     return None
+
+
+def strip_tags(text: str) -> str:
+    return bleach.clean(text, tags=[], strip=True)
 
 
 def get_concept_models() -> List[Model]:
