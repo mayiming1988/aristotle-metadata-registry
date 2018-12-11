@@ -1,0 +1,46 @@
+{% extends "aristotle_mdr/reviews/review/base.html" %}
+{% load i18n humanize %}
+{% load aristotle_tags %}
+{% load static from staticfiles %}
+
+{% block title %}Review details{{ item.name }}{% endblock %}
+{% block tabpanel %}
+<div role="tabpanel" class="tab-pane active" id="review_impact">
+  <div class="panel">
+    <div class="panel-body">
+    Below is a full list of metadata that has will be registered, if all items
+    related to those in this review are endorsed.
+    </div>
+  </div>
+  <table class="table">
+    <thead>
+      <tr>
+      <th rowspan=2>Name</th>
+      <th rowspan=2>Type</th>
+      <th colspan=2>Previous</th>
+      <th colspan=2>New</th>
+      </tr>
+      <tr>
+      <th>State</th>
+      <th>Registration Date</th>
+      <th>State</th>
+      <th>Registration Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for concept in statuses %}
+      <tr>
+        <td><a href="{{concept.get_absolute_url}}">{{ concept }}</a><br>
+        {# <tt>{{ concept.info }}</tt> #}
+        </td>
+        <td>{{ concept.info.type }}</td>
+        <td>{{ concept.info.old.text }}</td>
+        <td>{{ concept.info.old.old_reg_date }}</td>
+        <td>{{ concept.info.new_state.text }}</td>
+        <td>{{ review.registration_date }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock tabpanel %}

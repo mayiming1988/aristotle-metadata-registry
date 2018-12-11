@@ -22,7 +22,8 @@ def pre_save_clean(sender, instance, *args, **kwargs):
 
 class AristotleSignalProcessor(signals.BaseSignalProcessor):
     def setup(self):
-        from aristotle_mdr.models import _concept, ReviewRequest, concept_visibility_updated
+        from aristotle_mdr.models import _concept, concept_visibility_updated
+        from aristotle_mdr.contrib.reviews.models import ReviewRequest
         from aristotle_mdr.contrib.help.models import HelpPage, ConceptHelp
         post_save.connect(self.handle_concept_save)
         # post_revision_commit.connect(self.handle_concept_revision)
@@ -65,7 +66,7 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
         self.async_handle_delete(obj.__class__, obj, **kwargs)
 
     def update_visibility_review_request(self, sender, instance, **kwargs):
-        from aristotle_mdr.models import ReviewRequest
+        from aristotle_mdr.contrib.reviews.models import ReviewRequest
         assert(sender in [ReviewRequest, ReviewRequest.concepts.through])
         for concept in instance.concepts.all():
             obj = concept.item

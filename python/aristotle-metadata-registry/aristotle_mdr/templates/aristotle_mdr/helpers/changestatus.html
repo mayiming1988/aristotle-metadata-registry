@@ -1,12 +1,15 @@
 <section>
-<div class="changeStatusDiv">
-    <span>
+<div class="changeStatusDiv container">
+    <div class="col-sm-4 col-md-2">
         <label for="id_registrationDate">{{ form.registrationDate.label }}</label>:
         <span class="text-danger">{{ form.registrationDate.errors }}</span>
-    </span>
-    <span class="pull-right">
+    </div>
+    <div class="col-sm-7 col-md-4">
         {{ form.registrationDate }}
-    </span>
+        <div>
+            Date the registration state will be active from.
+        </div>
+    </div>
 </div>
 <div class="changeStatusDiv">
     <span>

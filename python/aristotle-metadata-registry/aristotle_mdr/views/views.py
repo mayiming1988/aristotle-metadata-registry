@@ -37,6 +37,7 @@ from aristotle_mdr.utils import url_slugify_concept
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils import (
+    cascade_items_queryset,
     get_concepts_for_apps,
     fetch_aristotle_settings,
     fetch_aristotle_downloaders,
@@ -51,7 +52,8 @@ from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.links.models import Link, LinkEnd
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
-from aristotle_mdr import validators
+from aristotle_mdr.contrib.favourites.models import Favourite, Tag
+from aristotle_mdr.contrib.validators import validators
 
 from haystack.views import FacetedSearchView
 from reversion.models import Version
@@ -413,20 +415,7 @@ class ReviewChangesView(SessionWizardView):
             # Need to check wether cascaded was true here
 
             if cascade == 1:
-                all_ids = []
-                for item in items:
-
-                    # Can't cascade from _concept
-                    if isinstance(item, MDR._concept):
-                        cascade = item.item.registry_cascade_items
-                    else:
-                        cascade = item.registry_cascade_items
-
-                    cascaded_ids = [a.id for a in cascade]
-                    cascaded_ids.append(item.id)
-                    all_ids.extend(cascaded_ids)
-
-                queryset = MDR._concept.objects.filter(id__in=all_ids)
+                queryset = cascade_items_queryset(items=items)
             else:
                 ids = [a.id for a in items]
                 queryset = MDR._concept.objects.filter(id__in=ids)
@@ -547,6 +536,8 @@ class ReviewChangesView(SessionWizardView):
             reversion.revisions.set_user(self.request.user)
 
             success, failed = self.register_changes(form_dict, change_form)
+            logger.critical(success)
+            logger.critical(failed)
 
             bad_items = sorted([str(i.id) for i in failed])
             count = self.get_items().count()
@@ -651,64 +642,3 @@ def extensions(request):
         "aristotle_mdr/static/extensions.html",
         {'content_extensions': content, 'download_extensions': downloads, }
     )
-
-
-class ValidationView(TemplateView):
-
-    template_name='aristotle_mdr/actions/validate.html'
-    base_dir=path.dirname(path.dirname(__file__))
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        with open(path.join(self.base_dir, 'schema/schema.json')) as schemafile:
-            self.schema = json.load(schemafile)
-
-        aristotle_validators = settings.ARISTOTLE_VALIDATORS
-        self.validators = {x: import_string(y) for x, y in aristotle_validators.items()}
-
-        # Hard coded setup for now
-        with open(path.join(self.base_dir, 'schema/setup.yaml')) as setupfile:
-            self.setup = yaml.load(setupfile)
-
-        # Only one ra for now
-        self.ra = MDR.RegistrationAuthority.objects.first()
-
-    def get(self, request, *args, **kwargs):
-
-        try:
-            concept = MDR._concept.objects.get(id=self.kwargs['iid'])
-        except MDR._concept.DoesNotExist:
-            return HttpResponseNotFound()
-
-        # Slow query
-        item = concept.item
-        itemtype = type(item).__name__
-
-        valid = True
-        try:
-            jsonschema.validate(self.setup, self.schema)
-        except jsonschema.exceptions.ValidationError as e:
-            logger.debug(e)
-            valid = False
-
-        results = []
-        if valid:
-            for itemsetup in self.setup:
-                if itemsetup['object'] == itemtype:
-                    for check in itemsetup['checks']:
-                        if check['validator'] in self.validators:
-                            validator_class = self.validators[check['validator']]
-                            validator = validator_class(check)
-                            status, message = validator.validate(item, self.ra)
-
-                            results.append({
-                                'check': validator.getName(),
-                                'status': status,
-                                'message': message
-                            })
-
-        kwargs['setup_valid'] = valid
-        kwargs['results'] = results
-        kwargs['item_name'] = item.name
-        return super().get(request, *args, **kwargs)

@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from aristotle_mdr.utils import fetch_aristotle_settings
 
+from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -176,6 +178,8 @@ def user_can_change_status(user, item):
     # If this item has any requested reviews for a registration authority this user is a registrar of:
     if item.review_requests.visible(user):
         return True
+    if item.rr_review_requests.visible(user):
+        return True
     if user.profile.is_registrar and item.is_public():
         return True
     return False
@@ -201,9 +205,83 @@ def user_can_view_review(user, review):
         return True
 
     # None else can see a cancelled request
-    from aristotle_mdr.models import REVIEW_STATES
-    if review.status == REVIEW_STATES.cancelled:
+    if review.status == REVIEW_STATES.revoked:
         return False
+
+    # If a registrar is in the registration authority for the request they can see it.
+    return user.registrar_in.filter(pk=review.registration_authority.pk).exists()
+
+
+def user_can_edit_review(user, review):
+    # A user can edit all their requests
+    if review.requester == user:
+        return True
+
+    if user.is_superuser:
+        return True
+
+    # None else can see a cancelled request
+    if review.status == REVIEW_STATES.revoked:
+        return False
+
+    # If a registrar is in the registration authority for the request they can see it.
+    return user in review.registration_authority.managers.all()
+
+
+def user_can_edit_review_comment(user, reviewcomment):
+    # A user can edit all their requests
+    if reviewcomment.author == user:
+        return True
+
+    if user.is_superuser:
+        return True
+
+    # None else can see a cancelled request
+    if reviewcomment.review.status == REVIEW_STATES.revoked:
+        return False
+
+    # If a registrar is in the registration authority for the request they can see it.
+    return user in reviewcomment.request.registration_authority.managers.all()
+
+
+def user_can_view_review_comment(user, reviewcomment):
+    return user_can_view_review(user, reviewcomment.review)
+
+
+def user_can_revoke_review(user, review):
+    # A user can see all their requests
+    if review.requester == user:
+        return True
+
+    if user.is_superuser:
+        return True
+
+    return False
+
+
+def user_can_close_or_reopen_review(user, review):
+    # A user can see all their requests
+    if review.requester == user:
+        return True
+
+    if user.is_superuser:
+        return True
+
+    # If you arent the requester or a super user, you can reopen a revoked request
+    if review.status == REVIEW_STATES.revoked:
+        return False
+
+    # If a registrar is in the registration authority for the request they can see it.
+    return user.registrar_in.filter(pk=review.registration_authority.pk).exists()
+
+
+def user_can_approve_review(user, review):
+    # Can't approve a closed request
+    if review.status != REVIEW_STATES.open:
+        return False
+
+    if user.is_superuser:
+        return True
 
     # If a registrar is in the registration authority for the request they can see it.
     return user.registrar_in.filter(pk=review.registration_authority.pk).exists()

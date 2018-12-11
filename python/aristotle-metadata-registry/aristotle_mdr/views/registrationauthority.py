@@ -6,7 +6,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import CreateView, ListView, DetailView, UpdateView
 
 from aristotle_mdr import models as MDR
-from aristotle_mdr import forms as MDRForms
+from aristotle_mdr.forms import actions
 from aristotle_mdr.views.utils import (
     paginated_registration_authority_list,
     ObjectLevelPermissionRequiredMixin,
@@ -69,7 +69,7 @@ class AddUser(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, UpdateView
     permission_required = "aristotle_mdr.change_registrationauthority_memberships"
     raise_exception = True
     redirect_unauthenticated_users = True
-    form_class = MDRForms.actions.AddRegistrationUserForm
+    form_class = actions.AddRegistrationUserForm
 
     model = MDR.RegistrationAuthority
     pk_url_kwarg = 'iid'
@@ -189,7 +189,7 @@ class ChangeUserRoles(RoleChangeView):
     model = MDR.RegistrationAuthority
     template_name = "aristotle_mdr/user/registration_authority/change_role.html"
     permission_required = "aristotle_mdr.change_registrationauthority_memberships"
-    form_class = MDRForms.actions.ChangeRegistrationUserRolesForm
+    form_class = actions.ChangeRegistrationUserRolesForm
     pk_url_kwarg = 'iid'
     context_object_name = "item"
 

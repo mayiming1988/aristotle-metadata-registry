@@ -347,3 +347,83 @@ def get_concept_models() -> List[Model]:
 def get_concept_content_types() -> Dict[Model, ContentType]:
     models = get_concept_models()
     return ContentType.objects.get_for_models(*models)
+
+
+def pretify_camel_case(camelcase):
+    return re.sub(r'([a-z0-9])([A-Z])', r'\1 \2', camelcase)
+
+
+def cascade_items_queryset(items=[]):
+    from aristotle_mdr.models import _concept
+
+    all_ids = []
+    for item in items:
+
+        # Can't cascade from _concept
+        if isinstance(item, _concept):
+            cascade = item.item.registry_cascade_items
+        else:
+            cascade = item.registry_cascade_items
+
+        cascaded_ids = [a.id for a in cascade]
+        cascaded_ids.append(item.id)
+        all_ids.extend(cascaded_ids)
+
+    return _concept.objects.filter(id__in=all_ids)
+
+
+def get_status_change_details(queryset, ra, new_state):
+    from aristotle_mdr.models import _concept, STATES, Status
+    from aristotle_mdr import perms
+    extra_info = {}
+    subclassed_queryset = queryset.select_subclasses()
+    statuses = Status.objects.filter(concept__in=queryset, registrationAuthority=ra).select_related('concept')
+    statuses = statuses.valid().order_by("-registrationDate", "-created")
+
+    # new_state_num = static_content['new_state']
+    new_state_text = str(STATES[new_state])
+
+    # Build a dict mapping concepts to their status data
+    # So that no additional status queries need to be made
+    states_dict = {}
+    for status in statuses:
+        state_name = str(STATES[status.state])
+        reg_date = status.registrationDate
+        if status.concept.id not in states_dict:
+            states_dict[status.concept.id] = {
+                'name': state_name,
+                'reg_date': reg_date,
+                'state': status.state
+            }
+
+    any_have_higher_status = False
+    for concept in subclassed_queryset:
+        url = reverse('aristotle:registrationHistory', kwargs={'iid': concept.id})
+
+        innerdict = {}
+        # Get class name
+        innerdict['type'] = concept.__class__.get_verbose_name()
+        innerdict['concept'] = concept
+        innerdict['has_higher_status'] = False
+
+        try:
+            state_info = states_dict[concept.id]
+        except KeyError:
+            state_info = ""
+
+        if state_info:
+            innerdict['old'] = {
+                'url': url,
+                'text': state_info['name'],
+                'old_reg_date': state_info['reg_date']
+            }
+            innerdict['old_reg_date'] = state_info['reg_date']
+            if state_info['state'] >= new_state:
+                innerdict['has_higher_status'] = True
+                any_have_higher_status = True
+
+        innerdict['new_state'] = {'url': url, 'text': new_state_text}
+
+        extra_info[concept.id] = innerdict
+
+    return extra_info, any_have_higher_status

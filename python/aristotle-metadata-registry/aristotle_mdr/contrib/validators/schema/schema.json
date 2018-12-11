@@ -16,6 +16,9 @@
         },
         "name": {
           "type": "string"
+        },
+        "description": {
+          "type": "string"
         }
       },
       "required": ["validator"]
@@ -43,7 +46,7 @@
                   "properties": {
                     "validator": {
                       "type": "string",
-                      "const": "RegexValidator"
+                      "enum": ["RegexValidator"]
                     },
                     "field": {
                       "type": "string"
@@ -52,13 +55,13 @@
                       "type": "string"
                     }
                   },
-                  "required": ["regex", "field"]
+                  "required": ["validator", "regex", "field"]
                 },
                 {
                   "properties": {
                     "validator": {
                       "type": "string",
-                      "const": "StatusValidator"
+                      "enum": ["StatusValidator"]
                     },
                     "status": {
                       "type": "array",
@@ -67,7 +70,19 @@
                       }
                     }
                   },
-                  "required": ["status"]
+                  "required": ["validator", "status"]
+                },
+                {
+                  "properties": {
+                    "validator": {
+                      "type": "string",
+                      "enum": ["RelationValidator"]
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["validator", "field"]
                 }
               ]
             }
@@ -75,7 +90,7 @@
         }
       }
     },
-    "required": ["status", "object", "checks"],
+    "required": ["status", "checks"],
     "additionalProperties": false
   }
 }

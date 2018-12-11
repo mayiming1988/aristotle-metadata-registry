@@ -85,16 +85,17 @@ ARISTOTLE_ASYNC_SIGNALS = os.getenv('ARISTOTLE_ASYNC_SIGNALS', False) == "True"
 
 INSTALLED_APPS = (
     'aristotle_bg_workers',
+    'aristotle_mdr.contrib.reviews',
     'aristotle_mdr',
-    'aristotle_mdr.contrib.view_history',
     'aristotle_mdr.contrib.generic',
     'aristotle_mdr.contrib.help',
     'aristotle_mdr.contrib.slots',
     'aristotle_mdr.contrib.identifiers',
     'aristotle_mdr.contrib.browse',
     'aristotle_mdr.contrib.autocomplete',
-    'aristotle_mdr.contrib.user_management',
     'aristotle_mdr.contrib.favourites',
+    'aristotle_mdr.contrib.view_history',
+    'aristotle_mdr.contrib.user_management',
     'aristotle_mdr.contrib.issues',
     'aristotle_mdr.contrib.publishing',
     'aristotle_mdr.contrib.custom_fields',
@@ -206,8 +207,9 @@ ARISTOTLE_SETTINGS = {
         'aristotle_mdr.forms.bulk_actions.RemoveFavouriteForm',
         'aristotle_mdr.forms.bulk_actions.ChangeStateForm',
         'aristotle_mdr.forms.bulk_actions.ChangeWorkgroupForm',
-        'aristotle_mdr.forms.bulk_actions.RequestReviewForm',
+        # 'aristotle_mdr.forms.bulk_actions.RequestReviewForm',
         'aristotle_mdr.forms.bulk_actions.BulkDownloadForm',
+        'aristotle_mdr.contrib.reviews.forms.RequestReviewBulkActionForm',
     ],
     'DASHBOARD_ADDONS': [],
     'METADATA_CREATION_WIZARDS': [
@@ -314,9 +316,13 @@ BLEACH_ALLOWED_ATTRIBUTES = {
 }
 
 # Validators
+ARISTOTLE_VALIDATION_RUNNER = 'aristotle_mdr.contrib.validators.runner'
+ARISTOTLE_VALIDATION_FILERUNNER_PATH = os.getenv('aristotlemdr__FILE_VALIDATION_RUNNER_PATH', None)
+
 ARISTOTLE_VALIDATORS = {
-    'RegexValidator': 'aristotle_mdr.validators.RegexValidator',
-    'StatusValidator': 'aristotle_mdr.validators.StatusValidator'
+    'RegexValidator': 'aristotle_mdr.contrib.validators.RegexValidator',
+    'StatusValidator': 'aristotle_mdr.contrib.validators.StatusValidator',
+    'RelationValidator': 'aristotle_mdr.contrib.validators.RelationValidator',
 }
 
 # Serialization

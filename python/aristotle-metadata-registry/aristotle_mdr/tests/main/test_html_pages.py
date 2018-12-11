@@ -28,6 +28,7 @@ import json
 
 from aristotle_mdr.utils import setup_aristotle_test_environment
 from aristotle_mdr.tests.utils import store_taskresult, get_download_result
+from aristotle_mdr.contrib.reviews.models import ReviewRequest
 
 from mock import patch
 
@@ -437,23 +438,6 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
                 status_code=200
             )
 
-    @tag('validate')
-    def test_validation_runs(self):
-        dec = models.DataElementConcept.objects.create(
-            name='Testing DEC',
-            definition='Test Defn'
-        )
-        response = self.reverse_get(
-            'aristotle:validate',
-            reverse_args=[dec.id],
-            status_code=200
-        )
-
-        context = response.context
-        self.assertTrue(context['setup_valid'])
-        self.assertEqual(context['item_name'], 'Testing DEC')
-        self.assertEqual(len(context['results']), 2)
-
     @tag('version')
     def test_version_workgroup_lookup(self):
 
@@ -642,23 +626,6 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         )
 
     # ---- utils ----
-
-    def make_review_request(self, item, user):
-
-        self.assertFalse(perms.user_can_view(user,item))
-        self.item1.save()
-        self.item1 = self.itemType.objects.get(pk=item.pk)
-
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            state=self.ra.public_state,
-            registration_date=datetime.date(2010,1,1)
-        )
-
-        review.concepts.add(item)
-
-        self.assertTrue(perms.user_can_view(user,item))
-        self.assertTrue(perms.user_can_change_status(user,item))
 
     def update_defn_with_versions(self, new_defn='brand new definition'):
         with reversion.create_revision():
@@ -1252,13 +1219,8 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
             reversion.set_comment("change 1")
             self.item1.save()
 
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            state=self.ra.public_state,
-            registration_date=datetime.date(2010,1,1)
-        )
+        self.make_review_request(self.item1, self.registrar)
 
-        review.concepts.add(self.item1)
         with reversion.revisions.create_revision():
             self.item1.name = "change 2"
             reversion.set_comment("change 2")
@@ -1319,13 +1281,8 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.item1 = self.itemType.objects.get(pk=self.item1.pk)
         self.assertEqual(self.item1.name,updated_name)
 
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            state=self.ra.public_state,
-            registration_date=datetime.date(2010,1,1)
-        )
+        self.make_review_request(self.item1, self.registrar)
 
-        review.concepts.add(self.item1)
         self.ra.register(
             item=self.item1,
             state=models.STATES.incomplete,
@@ -1516,13 +1473,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.item1.save()
         self.item1 = self.itemType.objects.get(pk=self.item1.pk)
 
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            state=self.ra.public_state,
-            registration_date=datetime.date(2010,1,1)
-        )
-
-        review.concepts.add(self.item1)
+        self.make_review_request(self.item1, self.registrar)
 
         self.assertTrue(perms.user_can_view(self.registrar,self.item1))
         self.assertTrue(perms.user_can_change_status(self.registrar,self.item1))
@@ -1566,13 +1517,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.item1.save()
         self.item1 = self.itemType.objects.get(pk=self.item1.pk)
 
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            state=self.ra.public_state,
-            registration_date=datetime.date(2010,1,1)
-        )
-
-        review.concepts.add(self.item1)
+        review = self.make_review_request(self.item1, self.registrar)
 
         self.assertTrue(perms.user_can_view(self.registrar,self.item1))
         self.assertTrue(perms.user_can_change_status(self.registrar,self.item1))

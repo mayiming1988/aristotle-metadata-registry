@@ -1479,12 +1479,13 @@ class PossumProfile(models.Model):
 
     @property
     def mySandboxContent(self):
+        from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
         return _concept.objects.filter(
             Q(
                 submitter=self.user,
                 statuses__isnull=True
             ) & Q(
-                Q(review_requests__isnull=True) | Q(review_requests__status=REVIEW_STATES.cancelled)
+                Q(rr_review_requests__isnull=True) | Q(rr_review_requests__status=REVIEW_STATES.revoked)
             )
         )
 

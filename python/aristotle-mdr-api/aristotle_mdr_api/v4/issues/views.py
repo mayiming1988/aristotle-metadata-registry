@@ -6,8 +6,8 @@ from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
 
 from aristotle_mdr.contrib.issues.models import Issue, IssueComment
-from aristotle_mdr_api.v4 import serializers
-from aristotle_mdr_api.v4.permissions import AuthCanViewEdit
+from . import serializers
+from aristotle_mdr_api.v4.permissions import AuthCanViewEdit, AuthFinePerms
 from aristotle_mdr import perms
 from aristotle_mdr.models import _concept
 

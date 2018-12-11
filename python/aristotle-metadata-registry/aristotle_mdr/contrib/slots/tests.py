@@ -15,7 +15,7 @@ import json
 setup_aristotle_test_environment()
 
 
-class BaseSlotsTestCase(utils.LoggedInViewPages):
+class BaseSlotsTestCase(utils.AristotleTestUtils):
 
     def setUp(self):
         super().setUp()
@@ -65,13 +65,7 @@ class BaseSlotsTestCase(utils.LoggedInViewPages):
         return response
 
     def make_newoc_public(self):
-        review = mdr_models.ReviewRequest.objects.create(
-            requester=self.su,
-            registration_authority=self.ra,
-            state=self.ra.public_state,
-            registration_date=datetime.date(2010, 1, 1)
-        )
-        review.concepts.add(self.newoc)
+        self.make_review_request(self.newoc, self.registrar)
         self.ra.register(self.newoc, self.ra.public_state, self.registrar)
 
 
