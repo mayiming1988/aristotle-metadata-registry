@@ -1,6 +1,10 @@
+// Polyfills
+import '@babel/polyfill'
+import 'mdn-polyfills/Element.prototype.closest'
+
 import 'bootstrap'
 import 'eonasdan-bootstrap-datetimepicker'
-import '@babel/polyfill'
+
 import { initNotifications } from './notify.js'
 import { initMessages } from './messages.js'
 import { initDAL } from './dal_simple_init.js'

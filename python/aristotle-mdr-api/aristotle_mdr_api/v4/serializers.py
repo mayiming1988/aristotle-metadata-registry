@@ -44,6 +44,3 @@ class IssueCommentSerializer(serializers.ModelSerializer):
                 'You don\'t have permission to comment on this issue'
             )
         return value
-
-    def create(self, validated_data):
-        return super().create(validated_data)
