@@ -75,7 +75,7 @@ class UtilsTests(TestCase):
         self.assertTrue(url is None)
 
     def test_pretify_camel_case(self):
-        pcc = utils.utils.pretify_camel_case
+        pcc = utils.text.pretify_camel_case
         self.assertEqual(pcc('ScopedIdentifier'), 'Scoped Identifier')
         self.assertEqual(pcc('Namespace'), 'Namespace')
         self.assertEqual(pcc('LongerCamelCase'), 'Longer Camel Case')
@@ -98,9 +98,13 @@ class UtilsTests(TestCase):
         trunced = utils.utils.truncate_words(text, 3)
         self.assertEqual(trunced, text)
 
+    def test_capitalize_words(self):
+        cw = utils.text.capitalize_words
+        self.assertEqual(cw('some lower case words'), 'Some Lower Case Words')
+        self.assertEqual(cw('Mixed case Words'), 'Mixed Case Words')
+
     @tag('version')
     def test_version_field_value_only(self):
-
         field = VersionField(
             value='My Value',
             help_text='Help Me'
@@ -114,7 +118,6 @@ class UtilsTests(TestCase):
 
     @tag('version')
     def test_version_field_reference(self):
-
         field = VersionField(
             obj=[self.oc1.id, self.oc2.id],
             reference_label='aristotle_mdr._concept',
@@ -142,7 +145,6 @@ class UtilsTests(TestCase):
 
     @tag('version')
     def test_version_field_list_handling(self):
-
         field = VersionField(
             obj=[self.oc1],
         )
@@ -167,7 +169,6 @@ class UtilsTests(TestCase):
 
     @tag('version')
     def test_version_field_obj_display(self):
-
         field = VersionField(
             obj=self.oc1,
         )
@@ -180,7 +181,6 @@ class UtilsTests(TestCase):
 
     @tag('version')
     def test_version_field_component_display(self):
-
         vd = models.ValueDomain.objects.create(
             name='Test Value Domain',
             definition='Test Definition'
@@ -204,7 +204,6 @@ class UtilsTests(TestCase):
 
     @tag('version')
     def test_version_field_invalid_lookup(self):
-
         field = VersionField(
             obj=[2],
             reference_label='aristotle_mdr._concept'
@@ -218,3 +217,12 @@ class UtilsTests(TestCase):
         self.assertFalse(field.is_link)
         self.assertFalse(field.is_reference)
         self.assertEqual(str(field), field.perm_message)
+
+    def test_get_concept_models(self):
+        cm = utils.utils.get_concept_models()
+        self.assertTrue(models.DataElement in cm)
+        self.assertFalse(models.PermissibleValue in cm)
+
+    def test_get_concept_models_doesnt_return_concept(self):
+        cm = utils.utils.get_concept_models()
+        self.assertFalse(models._concept in cm)

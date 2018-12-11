@@ -3,20 +3,24 @@ from django.core.cache import cache
 from django.db.models.fields import CharField, TextField
 from django.http import HttpResponse
 from django.http import QueryDict
-from django.test import TestCase, override_settings, tag
+from django.test import TestCase, override_settings, tag, RequestFactory
 from django.urls import reverse
 from django.utils import timezone
+from django.contrib.auth.models import AnonymousUser
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
 from aristotle_mdr.downloader import CSVDownloader
 import aristotle_mdr.contrib.identifiers.models as ident_models
+from aristotle_mdr.contrib.slots.choices import permission_choices
+from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.utils import url_slugify_concept
 from aristotle_mdr.forms.creation_wizards import (
     WorkgroupVerificationMixin,
     CheckIfModifiedMixin
 )
 from aristotle_mdr.tests import utils
+from aristotle_mdr.views import ConceptRenderView
 import datetime
 from unittest import mock, skip
 import reversion
@@ -104,7 +108,44 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             self.itemid
         )
 
+        self.factory = RequestFactory()
+
         cache.clear()
+
+    def setup_custom_values(self):
+        allfield = CustomField.objects.create(
+            order=0,
+            name='AllField',
+            type='String',
+            visibility=permission_choices.public
+        )
+        authfield = CustomField.objects.create(
+            order=1,
+            name='AuthField',
+            type='String',
+            visibility=permission_choices.auth
+        )
+        wgfield = CustomField.objects.create(
+            order=2,
+            name='WgField',
+            type='String',
+            visibility=permission_choices.workgroup
+        )
+        self.allval = CustomValue.objects.create(
+            field=allfield,
+            content='All Value',
+            concept=self.item
+        )
+        self.authval = CustomValue.objects.create(
+            field=authfield,
+            content='Auth Value',
+            concept=self.item
+        )
+        self.wgval = CustomValue.objects.create(
+            field=wgfield,
+            content='Workgroup Value',
+            concept=self.item
+        )
 
     def test_itempage_full_url(self):
         self.login_editor()
@@ -154,6 +195,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     @tag('cache')
     @override_settings(CACHE_ITEM_PAGE=True)
+    @skip('Cache mixin not currently used')
     def test_itempage_caches(self):
 
         # View in the future to avoid modified recently check
@@ -173,6 +215,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     @tag('cache')
     @override_settings(CACHE_ITEM_PAGE=True)
+    @skip('Cache mixin not currently used')
     def test_itempage_loaded_from_cache(self):
 
         # Load response into cache
@@ -485,6 +528,93 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             status_code=403
         )
 
+    @tag('custfield')
+    def test_submitter_can_save_via_edit_page_with_custom_fields(self):
+        self.login_editor()
+        cf = CustomField.objects.create(
+            name='MyCustomField',
+            type='int',
+            help_text='Custom',
+            order=0
+        )
+
+        postdata = utils.model_to_dict_with_change_time(self.item)
+        postdata['custom_MyCustomField'] = 4
+        response = self.reverse_post(
+            'aristotle:edit_item',
+            postdata,
+            reverse_args=[self.item.id],
+            status_code=302
+        )
+        self.item1 = models.ObjectClass.objects.get(pk=self.item.pk)
+        self.assertRedirects(response, url_slugify_concept(self.item))
+
+        cv_query = CustomValue.objects.filter(
+            field=cf,
+            concept=self.item1._concept_ptr
+        )
+        self.assertTrue(cv_query.count(), 1)
+        cv = cv_query.first()
+        self.assertEqual(cv.content, '4')
+
+    @tag('custfield')
+    def test_edit_page_custom_fields_initial(self):
+        self.login_editor()
+        cf = CustomField.objects.create(
+            name='MyCustomField',
+            type='int',
+            help_text='Custom',
+            order=0
+        )
+        cv = CustomValue.objects.create(
+            field=cf,
+            concept=self.item,
+            content='4'
+        )
+        response = self.reverse_get(
+            'aristotle:edit_item',
+            reverse_args=[self.item.id],
+            status_code=200
+        )
+        initial = response.context['form'].initial
+        self.assertTrue('custom_MyCustomField' in initial)
+        self.assertEqual(initial['custom_MyCustomField'], '4')
+
+    def get_custom_values_for_user(self, user):
+        """Util function used for the following 3 tests"""
+        view = ConceptRenderView()
+        request = self.factory.get('/anitemurl/')
+        request.user = user
+        view.request = request
+        view.item = self.item
+        return view.get_custom_values()
+
+    @tag('custfield')
+    def test_view_custom_values_unath(self):
+        self.setup_custom_values()
+        anon = AnonymousUser()
+        cvs = self.get_custom_values_for_user(anon)
+        self.assertEqual(len(cvs), 1)
+        self.assertEqual(cvs[0].content, 'All Value')
+
+    @tag('custfield')
+    def test_view_custom_values_auth(self):
+        self.setup_custom_values()
+        cvs = self.get_custom_values_for_user(self.regular)
+        self.assertEqual(len(cvs), 2)
+        self.assertEqual(cvs[0].content, 'All Value')
+        self.assertEqual(cvs[1].content, 'Auth Value')
+
+    @tag('custfield')
+    def test_view_custom_values_auth(self):
+        self.setup_custom_values()
+        cvs = self.get_custom_values_for_user(self.viewer)
+        self.assertEqual(len(cvs), 3)
+        self.assertEqual(cvs[0].content, 'All Value')
+        self.assertEqual(cvs[1].content, 'Auth Value')
+        self.assertEqual(cvs[2].content, 'Workgroup Value')
+
+
 
 class LoggedInViewConceptPages(utils.AristotleTestUtils):
     defaults = {}
@@ -754,6 +884,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertEqual(slots[0].order, 0)
         self.assertEqual(slots[1].name, 'more_extra')
         self.assertEqual(slots[1].order, 1)
+
 
     def test_submitter_can_save_via_edit_page_with_identifiers(self):
 

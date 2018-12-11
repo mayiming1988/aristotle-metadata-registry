@@ -2,6 +2,9 @@ import request from 'src/lib/request.js'
 
 export default {
     data: () => ({
+        request_error: '',
+        // Wether to put request error in this.errors
+        combine_errors: true,
         errors: {},
         loading: false,
         response: {}
@@ -25,15 +28,21 @@ export default {
                     this.response = error.response
                 } else if (error.request) {
                     // Request was sent, server did not respond
-                    this.errors = {'request': ['Request could not be completed. Please try again soon']}
+                    this.setRequestError('Request could not be completed. Please try again soon')
                 } else {
                     // Request wasnt sent
-                    this.errors = {'request': ['Request could not be completed']}
+                    this.setRequestError('Request could not be completed')
                 }
                 this.loading = false
             })
             // Return the promise so additional handlers can be added
             return promise
+        },
+        setRequestError: function(error_msg) {
+            this.request_error = error_msg
+            if (this.combine_errors) {
+                this.errors = {'request': [error_msg]}
+            }
         },
         post: function(url, data) {
             return this.request(url, data, {}, 'post')

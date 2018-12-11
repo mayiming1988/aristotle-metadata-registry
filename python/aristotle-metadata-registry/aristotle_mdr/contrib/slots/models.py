@@ -12,6 +12,9 @@ from model_utils.models import TimeStampedModel
 from aristotle_mdr import models as MDR
 from aristotle_mdr.fields import ConceptForeignKey
 
+from aristotle_mdr.contrib.slots.choices import permission_choices
+from aristotle_mdr.contrib.slots.manager import SlotsManager
+
 
 class Slot(TimeStampedModel):
     # on save confirm the concept and model are correct, otherwise reject
@@ -22,13 +25,16 @@ class Slot(TimeStampedModel):
     value = models.TextField()
     order = models.PositiveSmallIntegerField("Position", default=0)
     permission = models.IntegerField(
-        choices=(
-            (0, 'Public'),
-            (1, 'Authenticated'),
-            (2, 'Workgroup'),
-        ),
-        default=0
+        choices=permission_choices,
+        default=permission_choices.public
     )
+
+    objects = SlotsManager()
+
+    @property
+    def hr_permission(self):
+        """Human readable permission"""
+        return permission_choices[self.permission]
 
     def __str__(self):
         return u"{0} - {1}".format(self.name, self.value)

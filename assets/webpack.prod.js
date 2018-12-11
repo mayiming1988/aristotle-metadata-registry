@@ -3,7 +3,7 @@ const common = require('./webpack.common.js');
 const webpack = require('webpack')
 
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
-const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
+const TerserPlugin = require('terser-webpack-plugin');
 
 // Try the environment variable, otherwise use static
 const ASSET_PATH = process.env.ASSET_PATH || '/static/bundles/';
@@ -16,7 +16,7 @@ module.exports = merge(common, {
     },
     optimization: {
         minimizer: [
-            new UglifyJsPlugin(),
+            new TerserPlugin(),
             new OptimizeCSSAssetsPlugin()
         ]
     },

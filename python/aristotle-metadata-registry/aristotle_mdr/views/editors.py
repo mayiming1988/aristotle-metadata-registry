@@ -17,7 +17,8 @@ from aristotle_mdr import models as MDR
 from aristotle_mdr.views.utils import ObjectLevelPermissionRequiredMixin
 from aristotle_mdr.contrib.identifiers.models import ScopedIdentifier
 from aristotle_mdr.contrib.slots.models import Slot
-from aristotle_mdr.contrib.slots.utils import get_allowed_slots
+from aristotle_mdr.contrib.custom_fields.forms import CustomValueFormMixin
+from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 
 import logging
 
@@ -60,18 +61,34 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         self.identifiers_active = is_active_module('aristotle_mdr.contrib.identifiers')
 
     def get_form_class(self):
-        return MDRForms.wizards.subclassed_edit_modelform(self.model)
+        return MDRForms.wizards.subclassed_edit_modelform(
+            self.model,
+            extra_mixins=[CustomValueFormMixin]
+        )
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs.update({
             'user': self.request.user,
             'instance': self.item,
+            'custom_fields': CustomField.objects.get_for_model(type(self.item))
         })
         return kwargs
 
-    def get_extra_formsets(self, item=None, postdata=None):
+    def get_custom_values(self):
+        # If we are editing, must be able to see all values
+        return CustomValue.objects.get_for_item(self.item.concept)
 
+    def get_initial(self):
+        initial = super().get_initial()
+        cvs = self.get_custom_values()
+        for cv in cvs:
+            fname = 'custom_{}'.format(cv.field.name)
+            initial[fname] = cv.content
+
+        return initial
+
+    def get_extra_formsets(self, item=None, postdata=None):
         extra_formsets = super().get_extra_formsets(item, postdata)
 
         if self.slots_active:
@@ -139,16 +156,9 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
                 # Save item
                 form.save_m2m()
                 item.save()
+                form.save_custom_fields(item)
 
             return HttpResponseRedirect(url_slugify_concept(self.item))
-
-    def get_slots_formset(self):
-        from aristotle_mdr.contrib.slots.forms import slot_inlineformset_factory
-        return slot_inlineformset_factory()
-
-    def get_identifier_formset(self):
-        from aristotle_mdr.contrib.identifiers.forms import identifier_inlineformset_factory
-        return identifier_inlineformset_factory()
 
     def form_invalid(self, form, formsets=None):
         """
@@ -170,7 +180,7 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         fscontext = self.get_formset_context(extra_formsets)
         context.update(fscontext)
 
-        context['show_slots_tab'] = self.slots_active
+        context['show_slots_tab'] = self.slots_active or context['form'].custom_fields
         context['show_id_tab'] = self.identifiers_active
 
         return context
