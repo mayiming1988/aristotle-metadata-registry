@@ -54,6 +54,6 @@ describe('comment', function() {
             created: this.datestring,
             pic: fakepic
         })
-        assert.equal(this.wrapper.find('userpanel-stub').props('pic'), fakepic)
+        assert.equal(this.wrapper.find('user-panel-stub').props('pic'), fakepic)
     })
 })

@@ -530,7 +530,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         self.assertRedirects(response, reverse('aristotle:userHome'))
 
 
-class UserDashRecentItems(utils.LoggedInViewPages, TestCase):
+class UserDashRecentItems(utils.AristotleTestUtils, TestCase):
     def setUp(self):
         super().setUp()
         import haystack
@@ -563,6 +563,7 @@ class UserDashRecentItems(utils.LoggedInViewPages, TestCase):
             'results-definition': "Test Definition",
             'results-workgroup': self.wg1.pk
         }
+        step_2_data.update(self.get_formset_postdata([], 'slots'))
         response = self.client.post(wizard_url, step_2_data)
         self.assertTrue(models._concept.objects.filter(name="Test Item").exists())
         self.assertEqual(models._concept.objects.filter(name="Test Item").count(), 1)

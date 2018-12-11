@@ -1,3 +1,5 @@
+from typing import List, Dict
+from django.apps import apps
 from django.conf import settings
 from django.urls import reverse
 from django.core.cache import cache
@@ -9,7 +11,8 @@ from django.utils.module_loading import import_string
 from django.utils.text import get_text_list
 from django.utils.translation import ugettext as _
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, Model
+from django.contrib.contenttypes.models import ContentType
 
 import logging
 import inspect
@@ -323,6 +326,22 @@ def get_aristotle_url(label, obj_id, obj_name=None):
             return reverse('aristotle:userReviewDetails', args=[obj_id])
 
     return None
+
+
+def get_concept_models() -> List[Model]:
+    """Returns models for any concept subclass"""
+    from aristotle_mdr.models import _concept
+    models = []
+    for app_config in apps.get_app_configs():
+        for model in app_config.get_models():
+            if issubclass(model, _concept) and model != _concept:
+                models.append(model)
+    return models
+
+
+def get_concept_content_types() -> Dict[Model, ContentType]:
+    models = get_concept_models()
+    return ContentType.objects.get_for_models(*models)
 
 
 def pretify_camel_case(camelcase):

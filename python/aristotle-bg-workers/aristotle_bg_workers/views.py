@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.http.response import HttpResponse, JsonResponse
 from django.views.generic import View, ListView, TemplateView
 
+from aristotle_mdr.mixins import IsSuperUserMixin
 from aristotle_mdr.utils import fetch_aristotle_settings
 
 from django_celery_results.models import TaskResult
@@ -22,10 +23,6 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
-class IsSuperUserMixin(UserPassesTestMixin):
-
-    def test_func(self):
-        return self.request.user.is_superuser
 
 
 class GenericTaskView(IsSuperUserMixin, View):

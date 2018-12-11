@@ -19,7 +19,7 @@ from django.core.serializers.python import Serializer as PySerializer
 from aristotle_mdr import models as MDR
 from django.core.serializers.json import Serializer as JSONSerializer
 
-from aristotle_mdr.contrib.slots.utils import get_allowed_slots
+from aristotle_mdr.contrib.slots.models import Slot
 
 import uuid
 import datetime
@@ -87,7 +87,7 @@ class Serializer(PySerializer):
                 user = None
 
             if user:
-                allowed_slots = get_allowed_slots(obj, user)
+                allowed_slots = Slot.objects.get_item_allowed(obj, user)
             else:
                 allowed_slots = []
 
