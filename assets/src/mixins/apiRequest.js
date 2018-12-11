@@ -7,9 +7,9 @@ export default {
         response: {}
     }),
     methods: {
-        request: function(url, data, method) {
+        request: function(url, data, params, method) {
             this.loading = true
-            let promise = request(method, url, data)
+            let promise = request(method, url, data, params)
 
             promise.then((response) => {
                 this.response = response
