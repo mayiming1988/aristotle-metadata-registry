@@ -34,7 +34,7 @@
             class="navbar-form navbar-left" role="search">
                 <label class="sr-only" for="searchText">Search:</label>
                 <div class="input-group">
-                    <input type="text" class="form-control" id="searchText" name="q" accesskey="q">
+                    <input type="text" class="extended-search-bar form-control" placeholder="Search for metadata" id="searchText" name="q" accesskey="q">
                     <span class="input-group-btn">
                     <button class="btn btn-primary" type="submit" title="{% trans 'Search' %}">
                         {% bootstrap_icon "search" %}&nbsp;
@@ -69,7 +69,8 @@
                           <i class="fa fa-home fa-fw"></i> {% trans 'My Dashboard'%}
                       </a></li>
                       <li><a href="{% url 'aristotle:userProfile' %}">
-                          <img style="" src="{{ request.user.profile.profile_picture_url }}" width="18px" alt="Profile Picture"></img>
+                          <img style="" src="{{ request.user.profile.profile_picture_url }}" width="18px"
+                               alt="Profile Picture"/>
                           {% trans 'My Profile'%}
                       </a></li>
                       <li><a href="{% url 'aristotle_favourites:favs_and_tags' %}">
