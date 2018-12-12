@@ -11,13 +11,7 @@ def get_download_module(module_name):
     if not re.search(r'^[a-zA-Z0-9\_\.]+$', module_name):  # pragma: no cover
         # bad module_name
         raise registry_exceptions.BadDownloadModuleName("Download name isn't a valid Python module name.")
-    try:
         return import_module("%s.downloader" % module_name)
-    except:
-        debug = getattr(settings, 'DEBUG')
-        if debug:
-            raise
-        return None
 
 
 def get_download_cache_key(identifier=[], user_pk=None, request=None, download_type='txt', delimiter=':'):
