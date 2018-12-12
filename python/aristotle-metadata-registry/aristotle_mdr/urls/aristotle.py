@@ -127,14 +127,14 @@ urlpatterns=[
     url(r'^create/(?P<app_label>.+)/(?P<model_name>.+)/?$', views.wizards.create_item, name='createItem'),
     url(r'^create/(?P<model_name>.+)/?$', views.wizards.create_item, name='createItem'),
 
-    url(r'^download/bulk/(?P<download_type>[a-zA-Z0-9\-\.]+)/?$', views.downloads.bulk_download, name='bulk_download'),
-    url(r'^download/(?P<download_type>[a-zA-Z0-9\-\.]+)/(?P<iid>\d+)/?$', views.downloads.download, name='download'),
+    url(r'^download/bulk/(?P<download_type>[a-zA-Z0-9\-\.]+)/?$', views.downloads.BulkDownloadView.as_view(), name='bulk_download'),
+    url(r'^download/(?P<download_type>[a-zA-Z0-9\-\.]+)/(?P<iid>\d+)/?$', views.downloads.DownloadView.as_view(), name='download'),
     url(r'^preparing-download/(?P<download_type>[\w\-\. ]+)/?$',
-        views.downloads.prepare_async_download,
+        views.downloads.PrepareAsyncDownloadView.as_view(),
         name='preparing_download',
         ),
     url(r'^downloading/(?P<download_type>[\w\-\. ]+)/?$',
-        views.downloads.get_async_download,
+        views.downloads.GetAsyncDownloadView.as_view(),
         name='start_download',
         ),
 
