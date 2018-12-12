@@ -1,11 +1,8 @@
 {% extends 'aristotle_mdr_links/actions/add_link_wizard_0_base.html' %}
-{% load compile_static i18n util_tags %}
+{% load i18n util_tags %}
 {% load static from staticfiles %}
 
 {% block title %}Create link - confirm{% endblock %}
-{% block extra_head_scripts %}
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.wizard.less'|compile %}" />
-{% endblock %}
 
 {% block form_title %}Step 3: Confirm link details{% endblock %}
 
@@ -16,7 +13,7 @@
             <a href='{{ relation.get_absolute_url }}'>{{ relation.name }}</a> for this link.
         {% endblocktrans %}
         <div class='well'>
-        {{ relation.definition|safe }}
+        {{ relation.definition|bleach }}
         </div>
         <strong>The concepts in this relationship are:</strong>
         <table class="table">

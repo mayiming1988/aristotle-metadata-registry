@@ -1,12 +1,12 @@
 {% extends "aristotle_mdr/user/userHome.html" %}
-{% load i18n aristotle_tags %}
+{% load i18n aristotle_tags util_tags %}
 
 {% block collapse-link %}
     <i class="fa fa-university fa-fw"></i> {{ item.name }} - Details </a>
 {% endblock %}
 
 {% block sidebar %}
-    {% include "aristotle_mdr/user/userSideBar.html" with activeTab='adminTools' %}
+    {% include "aristotle_mdr/user/userSideBar.html" with activeTab='registrarTools' %}
 {% endblock %}
 
 {% block page %}
@@ -15,13 +15,17 @@
     <section id="workgroups">
         <div class="btn-group pull-right" role="group" aria-label="...">
 
-            <a class="btn btn-default" href="{% url 'aristotle:registrationauthority_edit' item.pk %}">Edit</a>
+            {% if is_manager %}
+              <a class="btn btn-default" href="{% url 'aristotle:registrationauthority_edit' item.pk %}">Edit</a>
+            {% endif %}
             <a class="btn btn-default" href="{{ item.get_absolute_url }}">View public page</a>
-            <a class="btn btn-default" href="{% url 'aristotle:registrationauthority_members' item.pk %}">See members</a>
+            {% if is_manager %}
+              <a class="btn btn-default" href="{% url 'aristotle:registrationauthority_members' item.pk %}">See members</a>
+            {% endif %}
         </div>
 
     <header>Description</header>
-        <div class="well">{{ item.definition|safe }}</div>
+        <div class="well">{{ item.definition|bleach }}</div>
 
     <header>Status definitions</header>
     <p>

@@ -20,6 +20,7 @@
             <th scope="col">{% trans 'Date/time' %}</th>
             <th scope="col">{% trans 'User' %}</th>
             <th scope="col">{% trans 'Comment' %}</th>
+            <th scope="col">{% trans 'Visiblity' %}</th>
         </tr>
     </thead>
     <tbody>
@@ -47,7 +48,17 @@
                         {% firstof action.revision.user.get_full_name  action.revision.user.email %}
                     {% endif %}
                 </td>
-                <td>{{action.revision.comment|default:""}}</td>
+                <td>{{action.revision.comment|linebreaks|default:"-"}}</td>
+                <td>
+                    {# first_public_version #}
+                    {% if action.revision.date_created > public_date %}
+                    <i class="fa fa-fw fa-globe"></i> Public
+                    {% elif action.revision.date_created > authenticated_date %}
+                    <i class="fa fa-fw fa-user-circle-o"></i> Logged in users
+                    {% else %}
+                    <i class="fa fa-fw fa-users"></i> Workgroup only
+                    {% endif %}
+                </td>
             </tr>
         {% endfor %}
     </tbody>

@@ -22,6 +22,10 @@ from aristotle_mdr.widgets.bootstrap import (
 
 from aristotle_mdr.utils import fetch_metadata_apps
 
+import logging
+logger = logging.getLogger(__name__)
+logger.debug("Logging started for " + __name__)
+
 
 QUICK_DATES = Choices(
     ('', 'anytime', _('Any time')),
@@ -43,6 +47,22 @@ SORT_OPTIONS = Choices(
     ('aa', 'alphabetical', _('Alphabetical')),
     ('s', 'state', _('Registration state')),
 )
+
+SHORT_STATE_MAP = {
+    "i": "incomplete",
+    "inc": "incomplete",
+    "c": "candidate",
+    "can": "candidate",
+    "rec": "recorded",
+    "q": "qualified",
+    "qual": "qualified",
+    "st": "standard",
+    "p": "preferred",
+    "pre": "preferred",
+    "pref": "preferred",
+    "sup": "superseded",
+    "ret": "retired",
+}
 
 
 # This function is not critical and are mathematically sound, so testing is not required.
@@ -154,14 +174,14 @@ class PermissionSearchQuerySet(SearchQuerySet):
             if user.profile.workgroups.count() > 0:
                 # for w in user.profile.workgroups.all():
                 #    q |= SQ(workgroup=str(w.id))
-                q |= SQ(workgroup__in=[int(w.id) for w in user.profile.workgroups.all()])
+                q |= SQ(workgroup__in=[int(w.id) for w in user.profile.myWorkgroups.all()])
             if user.profile.is_registrar:
                 # if registrar, also filter through items in the registered in their authorities
                 q |= SQ(registrationAuthorities__in=[str(r.id) for r in user.profile.registrarAuthorities])
         if public_only:
             q &= SQ(is_public=True)
         if user_workgroups_only:
-            q &= SQ(workgroup__in=[str(w.id) for w in user.profile.workgroups.all()])
+            q &= SQ(workgroup__in=[str(w.id) for w in user.profile.myWorkgroups.all()])
 
         if q:
             sqs = sqs.filter(q)
@@ -186,6 +206,35 @@ class PermissionSearchQuerySet(SearchQuerySet):
 class TokenSearchForm(FacetedSearchForm):
     token_models = []
     kwargs = {}
+    allowed_tokens = [
+        'statuses',
+        'highest_state',
+        'name',
+        'version',
+        'identifier',
+        'namespace',
+    ]
+
+    token_shortnames = {
+        'id': 'identifier',
+        'ns': 'namespace',
+        'hs': 'highest_state',
+    }
+
+    def _clean_state(self, value):
+        value = value.lower().strip(" ")
+        if value in SHORT_STATE_MAP.keys():
+            value = SHORT_STATE_MAP[value]
+        return getattr(MDR.STATES, value.lower(), None)
+
+    def process_highest_state(self, value):
+        return self._clean_state(value)
+
+    def process_statuses(self, values):
+        return [
+            self._clean_state(value)
+            for value in values.split(",")
+        ]
 
     def prepare_tokens(self):
         try:
@@ -196,11 +245,33 @@ class TokenSearchForm(FacetedSearchForm):
         kwargs = {}
         query_text = []
         token_models = []
+        boost_ups = []
         for word in query.split(" "):
+            if word.startswith("+"):
+                boost_strength = min(4, len(word) - len(word.lstrip('+')))
+                boost_val = round(0.1 + 1.1 ** (boost_strength ** 1.35), 3)
+                query_text.append(word)
+                boost_ups.append((word.lstrip("+"), boost_val))
+                continue
+
+            word = word.replace("+", " ")
             if ":" in word:
                 opt, arg = word.split(":", 1)
-                if opt in opts:
-                    kwargs[str(opt)]=arg
+
+                if opt in self.token_shortnames:
+                    opt = self.token_shortnames[opt]
+
+                if opt in opts and opt in self.allowed_tokens:
+                    clean_arguments_func = getattr(self, "process_%s" % opt, None)
+                    if not clean_arguments_func:
+                        kwargs[str(opt)]=arg
+                    else:
+                        # if we have a processor, run that.
+                        clean_value = clean_arguments_func(arg)
+                        if type(clean_value) is list:
+                            kwargs["%s__in" % str(opt)] = clean_value
+                        elif clean_value is not None:
+                            kwargs[str(opt)] = clean_value
                 elif opt == "type":
                     # we'll allow these through and assume they meant content type
 
@@ -226,6 +297,7 @@ class TokenSearchForm(FacetedSearchForm):
         self.token_models = token_models
         self.query_text = " ".join(query_text)
         self.kwargs = kwargs
+        self.boost_ups = boost_ups
         return kwargs
 
     def search(self):
@@ -246,6 +318,9 @@ class TokenSearchForm(FacetedSearchForm):
             sqs = sqs.models(*self.token_models)
         if kwargs:
             sqs = sqs.filter(**kwargs)
+
+        for word, boost_value in self.boost_ups:
+            sqs = sqs.boost(word, boost_value)
 
         if self.load_all:
             sqs = sqs.load_all()
@@ -362,7 +437,9 @@ class PermissionSearchForm(TokenSearchForm):
             raise ImproperlyConfigured("Aristotle Search Queryset connection must be a subclass of PermissionSearchQuerySet")
         super().__init__(*args, **kwargs)
 
-        self.fields['ra'].choices = [(ra.id, ra.name) for ra in MDR.RegistrationAuthority.objects.all()]
+        # Show visible workgroups ordered by active state and name
+        # Inactive last
+        self.fields['ra'].choices = [(ra.id, ra.name) for ra in MDR.RegistrationAuthority.objects.filter(active__in=[0, 1]).order_by('active', 'name')]
 
         self.fields['models'].choices = [
             m for m in model_choices()
@@ -596,16 +673,16 @@ class PermissionSearchForm(TokenSearchForm):
     def apply_sorting(self, sqs):  # pragma: no cover, no security issues, standard Haystack methods, so already tested.
         sort_order = self.cleaned_data['sort']
         if sort_order == SORT_OPTIONS.modified_ascending:
-            sqs = sqs.order_by('-modified')
+            sqs = sqs.order_by('-modified', 'name_sortable')
         elif sort_order == SORT_OPTIONS.modified_descending:
-            sqs = sqs.order_by('modified')
+            sqs = sqs.order_by('modified', '-name_sortable')
         elif sort_order == SORT_OPTIONS.created_ascending:
-            sqs = sqs.order_by('-created')
+            sqs = sqs.order_by('-created', 'name_sortable')
         elif sort_order == SORT_OPTIONS.created_descending:
-            sqs = sqs.order_by('created')
+            sqs = sqs.order_by('created', '-name_sortable')
         elif sort_order == SORT_OPTIONS.alphabetical:
-            sqs = sqs.order_by('name')
+            sqs = sqs.order_by('name_sortable')
         elif sort_order == SORT_OPTIONS.state:
-            sqs = sqs.order_by('-highest_state')
+            sqs = sqs.order_by('-highest_state', 'name_sortable')
 
         return sqs

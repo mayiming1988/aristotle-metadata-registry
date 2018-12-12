@@ -1,12 +1,12 @@
 {% extends "aristotle_mdr/concepts/managedContent.html" %}
 
-{% load aristotle_tags %}
+{% load aristotle_tags util_tags %}
 
 {% block objSpecific %}
 <h2>Question Information</h2>
 
     <h3>Question Text</h3>
-    {{ item.questionText | safe }}
+    {{ item.questionText|bleach }}
 
     <h3>Response Length: {{ item.responseLength }}</h3>
 

@@ -38,19 +38,20 @@ skip_migrations = (
     # os.environ.get('DATABASE_URL', "").startswith('mssql')
 )
 
+ARISTOTLE_ASYNC_SIGNALS = False
 
 print("Running test-suite with connection string %s" % os.environ.get('DATABASE_URL'))
 
 if skip_migrations:  # pragma: no cover
     print("Skipping migrations")
     class DisableMigrations(object):
-    
+
         def __contains__(self, item):
             return True
-    
+
         def __getitem__(self, item):
             return None
-    
+
     MIGRATION_MODULES = DisableMigrations()
 
 db_from_env = dj_database_url.config(conn_max_age=500, default='sqlite:////tmp/db.db')
@@ -128,30 +129,34 @@ LOGGING = {
         },
         'simple': {
             'format': '%(levelname)s %(message)s'
-        },
+        }
     },
     'handlers': {
         'console-simple': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
-            },
+        },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
-            },
-        },
+        }
+    },
     'loggers': {
         'aristotle_mdr': {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,
-            },
+        },
         'django': {
             'handlers': ['console-simple'],
             'level': 'INFO',
             'propagate': True,
-            },
         }
     }
+}
+
+# Webpack Loading
+WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = os.path.join(REPO_BASE_DIR, 'assets/dist/webpack-stats.json')
+WEBPACK_LOADER['DEFAULT']['CACHE'] = False

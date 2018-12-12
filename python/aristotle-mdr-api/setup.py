@@ -29,12 +29,11 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
-    install_requires = [
-        'djangorestframework>=3.0',
+    install_requires=[
+        'djangorestframework>=3.8',
         'django-rest-swagger',
         'django_filter',
         'django-jsonforms',
-        'djangorestframework-composed-permissions'
     ]
 
 )

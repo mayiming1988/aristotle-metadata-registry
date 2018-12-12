@@ -1,5 +1,7 @@
 include LICENSE
 include README.rst
+include webpack-stats.json
+include staticfiles.json
 recursive-include aristotle_mdr/contrib *
 recursive-include aristotle_mdr/locale *
 recursive-include aristotle_mdr/static *

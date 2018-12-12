@@ -1,11 +1,16 @@
 {% extends 'aristotle_mdr/base.html' %}
-{% load compile_static i18n %}
+{% load i18n %}
 {% load static from staticfiles %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}Cloning {{ item.name }}{% endblock %}
-{% block extra_head_scripts %}
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.wizard.less'|compile %}" />
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle_search.less'|compile %}" />
+
+{% block webpack_css_bundle %}
+  {% render_bundle 'wizard' 'css' %}
+{% endblock %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'wizard' 'js' %}
 {% endblock %}
 
 {% block content %}
@@ -17,7 +22,7 @@
         </ol>
         <div class="alert alert-danger">
             {% blocktrans %}
-            Reusing existing metadata helps users find and compare similar items. Cloning and item should only be done where a similar but clearly different item exists and can be used as a template for quickly creating a new item in the registry.
+            Reusing existing metadata helps users find and compare similar items. Cloning an item should only be done where a similar but clearly different item exists and can be used as a template for quickly creating a new item in the registry.
             {% endblocktrans %}
         </div>
         <div>

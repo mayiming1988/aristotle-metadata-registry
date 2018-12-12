@@ -1,15 +1,5 @@
-# Lets run on the new infrastructure
 sudo: false
-
-# We're having issues on the default Trusty setup, lets wait for now
 dist: trusty
-
-language: python
-python: 3.6
-
-install:
-  - pip install codecov coveralls
-  - pip install 'tox>=3.0'
 
 defaults:
   - &main_test_script
@@ -20,7 +10,10 @@ defaults:
       - if [[ $SEARCH == elastic ]]; then sudo service elasticsearch start && sleep 10; fi
     # Make a posgres database
       - if [[ $DB == postgres* ]]; then ./scripts/prep_psql.sh; fi
-
+      - cd assets
+      - npm install
+      - npm run devbuild
+      - cd .. 
     script:
       - |
         case "$DB" in
@@ -31,11 +24,6 @@ defaults:
         esac
         echo "Running script with DATABASE_URL="$DATABASE_URL
         echo "Running script with DB="$DB
-        echo $TRAVIS_BRANCH
-        echo "HEAD to TRAVIS_BRANCH"
-        git diff --name-only HEAD...$TRAVIS_BRANCH
-        echo "TRAVIS_BRANCH to HEAD"
-        git diff --name-only $TRAVIS_BRANCH...HEAD
         ./scripts/tox_if.sh dj$DJANGO_VERSION-test-linux-db-$DB-search-$SEARCH-module_$MODULE
     services:
       - postgresql
@@ -54,18 +42,38 @@ defaults:
       mariadb: '10.1'
 
   - &main_test_script_py36
-      python: 3.6
-      <<: *main_test_script
+    language: python
+    python: 3.6
+    install:
+      - pip install codecov coveralls
+      - pip install 'tox>=3.0'
+      - nvm install 8.12.0
+    <<: *main_test_script
 
   - &test_accessibility_py36
     stage: accessibility
+    language: python
+    install:
+      - pip install codecov coveralls
+      - pip install 'tox>=3.0'
+      - nvm install 8.12.0
     python: 3.6
+    before_script:
+      - cd assets
+      - npm install
+      - npm run devbuild
+      - cd .. 
     script: ./scripts/tox_if.sh dj1.11-linux-ally-$ALLY-module_amr
 
   - &deploy_stage
     stage: deploy-it
-    script: true
-    install: skip
+    language: python
+    python: 3.6
+    install:
+      - pip install -U pip
+      - pip install pipenv
+      - nvm install 8.12.0
+    script: ./scripts/buildandcopy.sh
     after_success: true
     deploy: &deploy_step
       provider: pypi
@@ -78,16 +86,34 @@ defaults:
       distributions: sdist bdist_wheel
       repo: aristotle-mdr/aristotle-metadata-registry
 
-jobs:
+matrix:
 
   include:
     - stage: stylecheck
+      language: python
+      install:
+        - pip install codecov coveralls
+        - pip install 'tox>=3.0'
       python: 3.6
       script: tox -e flake8
 
     - stage: documentation
+      language: python
+      install:
+        - pip install codecov coveralls
+        - pip install 'tox>=3.0'
       python: 3.6
       script: ./scripts/tox_if.sh docs
+
+    - stage: frontend
+      language: node_js
+      node_js: 8
+      before_install:
+        - cd assets
+      install:
+        - npm install
+      script:
+        - npm run test
 
     - stage: testing-aristotle-mdr
       env: DJANGO_VERSION='1.11'  DB=sqlite  SEARCH=elastic MODULE=amr
@@ -136,7 +162,7 @@ jobs:
       env: DJANGO_VERSION='1.11'  DB=postgres   SEARCH=elastic MODULE=api
       <<: *main_test_script_py36
 
-  # Test Accessibility
+    # Test Accessibility
     - <<: *test_accessibility_py36
       env: ALLY=metadata_item MODULE=aristotle-metadata-registry
     - <<: *test_accessibility_py36
@@ -156,3 +182,8 @@ after_success:
 
 notifications:
   webhooks: https://outlook.office.com/webhook/4fa8f482-f261-4599-b76a-ba888c6820aa@1f298417-594f-4f6d-9bdb-8de767590d70/TravisCI/f4b13393a46b434288af9a0b1b2d4db1/1dbc8307-f5fb-45a9-b87f-4e128b5d9895
+
+env:
+  global:
+  - AWS_DEFAULT_REGION=ap-southeast-2
+  - PATH=$HOME/.local/bin:$PATH

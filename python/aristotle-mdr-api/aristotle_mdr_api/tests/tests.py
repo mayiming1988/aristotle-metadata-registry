@@ -9,6 +9,7 @@ from aristotle_mdr.contrib.slots.tests import BaseSlotsTestCase
 from rest_framework.test import APIClient
 
 import json
+from unittest.mock import patch
 
 
 class TokenTestCase(utils.LoggedInViewPages, TestCase):
@@ -50,7 +51,7 @@ class TokenTestCase(utils.LoggedInViewPages, TestCase):
             }
         }
 
-        self.versions = ['v2', 'v3']
+        self.versions = ['v3']
 
     # ------ Util Functions ------
 
@@ -80,6 +81,7 @@ class TokenTestCase(utils.LoggedInViewPages, TestCase):
 
     # ------ Tests ------
 
+    @tag('create_token')
     def test_create_token(self):
 
         response = self.client.get(reverse('token_auth:token_create'))
@@ -264,9 +266,7 @@ class TokenTestCase(utils.LoggedInViewPages, TestCase):
             self.assertEqual(response.status_code, 200)
 
             response = self.client.post('/api/' + version + '/metadata/', {}, HTTP_AUTHORIZATION=auth)
-            if version == 'v2':
-                self.assertEqual(response.status_code, 405) # Write not allowed on v2
-            else:
+            if version == 'v3':
                 self.assertEqual(response.status_code, 200)
 
             response = self.client.get('/api/' + version + '/search/', HTTP_AUTHORIZATION=auth)
@@ -376,19 +376,19 @@ class TokenTestCase(utils.LoggedInViewPages, TestCase):
         content = json.loads(response.content)
         self.assertEqual(len(content['created']), 0)
         self.assertEqual(len(content['errors']), 1)
-        print(content['errors'][0]['message'])
         self.assertTrue('You don\'t have permission' in content['errors'][0]['message'])
         self.assertTrue('Test WG 1 Workgroup' in content['errors'][0]['message'])
 
 
 class SlotTestCase(BaseSlotsTestCase, TestCase):
 
+    @tag('slots')
     def test_slot_view_perms_api(self):
         # Test slot permissions on apis
 
         self.make_newoc_public()
 
-        for version in ['v2', 'v3']:
+        for version in ['v3']:
             self.client.logout()
             url = '/api/' + version + '/metadata/' + str(self.newoc.uuid) + '/?format=json'
             response = self.client.get(url)

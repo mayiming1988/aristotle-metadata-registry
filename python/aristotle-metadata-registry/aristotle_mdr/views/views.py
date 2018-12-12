@@ -1,13 +1,14 @@
-
-from django import VERSION as django_version
 from django.apps import apps
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, FieldDoesNotExist, ObjectDoesNotExist
 from django.urls import reverse
 from django.db import transaction
-from django.http import HttpResponseRedirect
+from django.db.models import Q
+from django.http import HttpResponseRedirect, HttpResponseNotFound, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.defaultfilters import slugify
 from django.utils.translation import ugettext_lazy as _
@@ -19,23 +20,37 @@ from formtools.wizard.views import SessionWizardView
 
 import json
 import copy
+import yaml
+import jsonschema
+from os import path
 
 import reversion
-from reversion_compare.views import HistoryCompareDetailView
 
 from aristotle_mdr.perms import (
     user_can_view, user_can_edit,
     user_can_change_status
 )
 from aristotle_mdr import perms
-from aristotle_mdr.utils import cache_per_item_user, url_slugify_concept
+from aristotle_mdr.utils import url_slugify_concept
+
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
-from aristotle_mdr.utils import get_concepts_for_apps, fetch_aristotle_settings, fetch_aristotle_downloaders
-from aristotle_mdr.views.utils import generate_visibility_matrix
+from aristotle_mdr.utils import (
+    get_concepts_for_apps,
+    fetch_aristotle_settings,
+    fetch_aristotle_downloaders,
+    fetch_metadata_apps
+)
+from aristotle_mdr.views.utils import (
+    generate_visibility_matrix,
+    CachePerItemUserMixin,
+    TagsMixin
+)
 from aristotle_mdr.contrib.slots.utils import get_allowed_slots
+from aristotle_mdr import validators
 
 from haystack.views import FacetedSearchView
+
 
 import logging
 
@@ -62,23 +77,6 @@ class DynamicTemplateView(TemplateView):
         return ['aristotle_mdr/static/%s.html' % self.kwargs['template']]
 
 
-class ConceptHistoryCompareView(HistoryCompareDetailView):
-    model = MDR._concept
-    pk_url_kwarg = 'iid'
-    template_name = "aristotle_mdr/actions/concept_history_compare.html"
-
-    def get_object(self, queryset=None):
-        item = super().get_object(queryset)
-        if not user_can_view(self.request.user, item):
-            raise PermissionDenied
-        self.model = item.item.__class__  # Get the subclassed object
-        return item
-
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
-
-
 def notification_redirect(self, content_type, object_id):
 
     ct = ContentType.objects.get(id=content_type)
@@ -95,28 +93,9 @@ def get_if_user_can_view(objtype, user, iid):
         return False
 
 
-def render_if_user_can_view(item_type, request, *args, **kwargs):
-    # request = kwargs.pop('request')
-    return render_if_condition_met(
-        request, user_can_view, item_type, *args, **kwargs
-    )
-
-
-@login_required
-def render_if_user_can_edit(item_type, request, *args, **kwargs):
-    request = kwargs.pop('request')
-    return render_if_condition_met(
-        request, user_can_edit, item_type, *args, **kwargs
-    )
-
-
 def concept_by_uuid(request, uuid):
     item = get_object_or_404(MDR._concept, uuid=uuid)
     return redirect(url_slugify_concept(item))
-
-
-def concept(*args, **kwargs):
-    return render_if_user_can_view(MDR._concept, *args, **kwargs)
 
 
 def measure(request, iid, model_slug, name_slug):
@@ -130,42 +109,191 @@ def measure(request, iid, model_slug, name_slug):
         }
     )
 
-    # return render_if_user_can_view(MDR.Measure, *args, **kwargs)
 
+class ConceptRenderMixin(TagsMixin):
+    """
+    Class based view for rendering a concept, replaces render_if_condition_met
+    **This should be used with a permission mixin or check_item override**
 
-@cache_per_item_user(ttl=300, cache_post=False)
-def render_if_condition_met(request, condition, objtype, iid, model_slug=None, name_slug=None, subpage=None):
-    item = get_object_or_404(objtype, pk=iid).item
-    if item._meta.model_name != model_slug or not slugify(item.name).startswith(str(name_slug)):
-        return redirect(url_slugify_concept(item))
-    if not condition(request.user, item):
-        if request.user.is_anonymous():
-            return redirect(
-                reverse('friendly_login') + '?next=%s' % request.path
-            )
+    slug_redirect determines wether /item/id redirects to /item/id/model_slug/name_slug
+    """
+
+    objtype = None
+    itemid_arg = 'iid'
+    modelslug_arg = 'model_slug'
+    nameslug_arg = 'name_slug'
+    slug_redirect = False
+
+    def get_queryset(self):
+        itemid = self.kwargs[self.itemid_arg]
+
+        if self.objtype:
+            model = self.objtype
         else:
-            raise PermissionDenied
+            model = None
+            # If we have a model_slug try using that
+            model_slug = self.kwargs.get(self.modelslug_arg, '')
+            if model_slug:
+                try:
+                    rel = MDR._concept._meta.get_field(model_slug)
+                except FieldDoesNotExist:
+                    rel = None
 
-    # We add a user_can_edit flag in addition
-    # to others as we have odd rules around who can edit objects.
-    isFavourite = request.user.is_authenticated() and request.user.profile.is_favourite(item)
-    from reversion.models import Version
-    last_edit = Version.objects.get_for_object(item).first()
+                # Check if it is an auto created one to one field
+                if rel and rel.one_to_one and rel.auto_created and issubclass(rel.related_model, MDR._concept):
+                    model = rel.related_model
 
-    # Only display viewable slots
-    slots = get_allowed_slots(item, request.user)
+        if model is None:
+            model = type(MDR._concept.objects.get_subclass(id=itemid))
 
-    default_template = "%s/concepts/%s.html" % (item.__class__._meta.app_label, item.__class__._meta.model_name)
-    return render(
-        request, [default_template, item.template],
-        {
-            'item': item,
-            'slots': slots,
-            # 'view': request.GET.get('view', '').lower(),
-            'isFavourite': isFavourite,
-            'last_edit': last_edit
-        }
-    )
+        return self.get_related(model)
+
+    def get_item(self):
+        itemid = self.kwargs[self.itemid_arg]
+        queryset = self.get_queryset()
+        try:
+            item = queryset.get(pk=itemid)
+        except ObjectDoesNotExist:
+            item = None
+        return item
+
+    def get_related(self, model):
+        """Return a queryset fetching related concepts"""
+
+        related_fields = []
+        prefetch_fields = ['statuses']
+        for field in model._meta.get_fields():
+            if field.is_relation and field.many_to_one and issubclass(field.related_model, MDR._concept):
+                # If a field is a foreign key that links to a concept
+                related_fields.append(field.name)
+            elif field.is_relation and field.one_to_many and issubclass(field.related_model, MDR.AbstractValue):
+                # If field is a reverse foreign key that links to an
+                # abstract value
+                prefetch_fields.append(field.name)
+
+        return model.objects.select_related(*related_fields).prefetch_related(*prefetch_fields)
+
+    def check_item(self, item):
+        # To be overwritten
+        return True
+
+    def check_app(self, item):
+        label = type(item)._meta.app_label
+        if label not in fetch_metadata_apps():
+            return False
+        return True
+
+    def get_user(self):
+        return self.request.user
+
+    def get_redirect(self):
+
+        if not self.modelslug_arg:
+            model_correct = True
+        else:
+            model_slug = self.kwargs.get(self.modelslug_arg, '')
+            model_correct = (self.item._meta.model_name == model_slug)
+
+        name_slug = self.kwargs.get(self.nameslug_arg, '')
+        # name_correct = (slugify(self.item.name) == name_slug)
+        name_present = (name_slug is not None)
+
+        if not model_correct or not name_present:
+            return True, url_slugify_concept(self.item)
+        else:
+            return False, ''
+
+    def dispatch(self, request, *args, **kwargs):
+        self.item = self.get_item()
+
+        if self.item is None:
+            # If item was not found and no redirect was needed
+            return HttpResponseNotFound()
+
+        if self.slug_redirect:
+            redirect, url = self.get_redirect()
+            if redirect:
+                return HttpResponseRedirect(url)
+
+        self.user = self.get_user()
+
+        app_enabled = self.check_app(self.item)
+        if not app_enabled:
+            return HttpResponseNotFound()
+
+        result = self.check_item(self.item)
+        if not result:
+            if self.request.user.is_anonymous():
+                redirect_url = '{}?next={}'.format(
+                    reverse('friendly_login'),
+                    self.request.path
+                )
+                return HttpResponseRedirect(redirect_url)
+            else:
+                return HttpResponseForbidden()
+
+        from aristotle_mdr.contrib.view_history.signals import metadata_item_viewed
+        metadata_item_viewed.send(sender=self.item, user=self.user.pk)
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+
+        if self.request.user.is_anonymous():
+            context['isFavourite'] = False
+        else:
+            context['isFavourite'] = self.request.user.profile.is_favourite(self.item)
+
+        from reversion.models import Version
+        context['last_edit'] = Version.objects.get_for_object(self.item).first()
+        # Only display viewable slots
+        context['slots'] = get_allowed_slots(self.item, self.user)
+        context['item'] = self.item
+        context['statuses'] = self.item.current_statuses
+        context['discussions'] = self.item.relatedDiscussions.all()
+        context['activetab'] = 'item'
+        return context
+
+    def get_template_names(self):
+        default_template = "{}/concepts/{}.html".format(
+            self.item.__class__._meta.app_label,
+            self.item.__class__._meta.model_name
+        )
+
+        return [default_template, self.item.template]
+
+
+# General concept view
+class ConceptView(CachePerItemUserMixin, ConceptRenderMixin, TemplateView):
+
+    slug_redirect = True
+    cache_item_kwarg = 'iid'
+    cache_view_name = 'ConceptView'
+
+    def check_item(self, item):
+        return user_can_view(self.request.user, item)
+
+
+class DataElementView(ConceptRenderMixin, TemplateView):
+
+    objtype = MDR.DataElement
+
+    def check_item(self, item):
+        return user_can_view(self.request.user, item)
+
+    def get_related(self, model):
+        related_objects = [
+            'valueDomain',
+            'dataElementConcept__objectClass',
+            'dataElementConcept__property'
+        ]
+        prefetch_objects = [
+            'valueDomain__permissiblevalue_set',
+            'valueDomain__supplementaryvalue_set',
+            'statuses'
+        ]
+        return model.objects.select_related(*related_objects).prefetch_related(*prefetch_objects)
 
 
 def registrationHistory(request, iid):
@@ -192,6 +320,15 @@ def unauthorised(request, path=''):
         return render(request, "401.html", {"path": path, "anon": True, }, status=401)
     else:
         return render(request, "403.html", {"path": path, "anon": True, }, status=403)
+
+
+def not_found(request, path):
+    context = {'anon': request.user.is_anonymous(), 'path': path}
+    return render(request, "404.html", context)
+
+
+def handler500(request, *args, **argv):
+    return render(request, '500.html')
 
 
 def create_list(request):
@@ -234,28 +371,6 @@ def create_list(request):
     )
 
 
-@login_required
-def toggleFavourite(request, iid):
-    item = get_object_or_404(MDR._concept, pk=iid).item
-    if not user_can_view(request.user, item):
-        if request.user.is_anonymous():
-            return redirect(reverse('friendly_login') + '?next=%s' % request.path)
-        else:
-            raise PermissionDenied
-    request.user.profile.toggleFavourite(item)
-    if request.GET.get('next', None):
-        return redirect(request.GET.get('next'))
-    if item.concept in request.user.profile.favourites.all():
-        message = _("%s added to favourites.") % (item.name)
-    else:
-        message = _("%s removed from favourites.") % (item.name)
-    message = _(message + " Review your favourites from the user menu.")
-    messages.add_message(request, messages.SUCCESS, message)
-    return redirect(url_slugify_concept(item))
-
-
-# Actions
-
 def display_review(wizard):
     if wizard.display_review is not None:
         return wizard.display_review
@@ -281,7 +396,7 @@ class ReviewChangesView(SessionWizardView):
             state = cleaned_data['state']
             ra = cleaned_data['registrationAuthorities']
 
-            static_content = {'new_state': str(MDR.STATES[state]), 'new_reg_date': cleaned_data['registrationDate']}
+            static_content = {'new_state': state, 'new_reg_date': cleaned_data['registrationDate']}
             # Need to check wether cascaded was true here
 
             if cascade == 1:
@@ -498,60 +613,6 @@ class ChangeStatusView(ReviewChangesView):
         return HttpResponseRedirect(url_slugify_concept(self.item))
 
 
-def supersede(request, iid):
-    item = get_object_or_404(MDR._concept, pk=iid).item
-    if not (item and user_can_edit(request.user, item)):
-        if request.user.is_anonymous():
-            return redirect(reverse('friendly_login') + '?next=%s' % request.path)
-        else:
-            raise PermissionDenied
-    qs=item.__class__.objects.all()
-    if request.method == 'POST':  # If the form has been submitted...
-        form = MDRForms.SupersedeForm(request.POST, user=request.user, item=item, qs=qs)  # A form bound to the POST data
-        if form.is_valid():
-            with transaction.atomic(), reversion.revisions.create_revision():
-                reversion.revisions.set_user(request.user)
-                item.superseded_by = form.cleaned_data['newerItem']
-                item.save()
-            return HttpResponseRedirect(url_slugify_concept(item))
-    else:
-        form = MDRForms.SupersedeForm(item=item, user=request.user, qs=qs)
-    return render(request, "aristotle_mdr/actions/supersedeItem.html", {"item": item, "form": form})
-
-
-def deprecate(request, iid):
-    item = get_object_or_404(MDR._concept, pk=iid).item
-    if not (item and user_can_edit(request.user, item)):
-        if request.user.is_anonymous():
-            return redirect(reverse('friendly_login') + '?next=%s' % request.path)
-        else:
-            raise PermissionDenied
-    qs=item.__class__.objects.filter().editable(request.user)
-    if request.method == 'POST':  # If the form has been submitted...
-        form = MDRForms.DeprecateForm(request.POST, user=request.user, item=item, qs=qs)  # A form bound to the POST data
-        if form.is_valid():
-            # Check use the itemset as there are permissions issues and we want to remove some:
-            #  Everything that was superseded, but isn't in the returned set
-            #  Everything that was in the returned set, but isn't already superseded
-            #  Everything left over can stay the same, as its already superseded
-            #    or wasn't superseded and is staying that way.
-            with transaction.atomic(), reversion.revisions.create_revision():
-                reversion.revisions.set_user(request.user)
-                for i in item.supersedes.all():
-                    if i not in form.cleaned_data['olderItems'] and user_can_edit(request.user, i):
-                        item.supersedes.remove(i)
-                for i in form.cleaned_data['olderItems']:
-                    if user_can_edit(request.user, i):  # Would check item.supersedes but its a set
-                        kwargs = {}
-                        if django_version > (1, 9):
-                            kwargs = {'bulk': False}
-                        item.supersedes.add(i, **kwargs)
-            return HttpResponseRedirect(url_slugify_concept(item))
-    else:
-        form = MDRForms.DeprecateForm(user=request.user, item=item, qs=qs)
-    return render(request, "aristotle_mdr/actions/deprecateItems.html", {"item": item, "form": form})
-
-
 def extensions(request):
     content=[]
     aristotle_apps = fetch_aristotle_settings().get('CONTENT_EXTENSIONS', [])
@@ -579,49 +640,62 @@ def extensions(request):
     )
 
 
-# Search views
+class ValidationView(TemplateView):
 
-class PermissionSearchView(FacetedSearchView):
+    template_name='aristotle_mdr/actions/validate.html'
+    base_dir=path.dirname(path.dirname(__file__))
 
-    results_per_page_values = getattr(settings, 'RESULTS_PER_PAGE', [])
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    def build_page(self):
+        with open(path.join(self.base_dir, 'schema/schema.json')) as schemafile:
+            self.schema = json.load(schemafile)
+
+        aristotle_validators = settings.ARISTOTLE_VALIDATORS
+        self.validators = {x: import_string(y) for x, y in aristotle_validators.items()}
+
+        # Hard coded setup for now
+        with open(path.join(self.base_dir, 'schema/setup.yaml')) as setupfile:
+            self.setup = yaml.load(setupfile)
+
+        # Only one ra for now
+        self.ra = MDR.RegistrationAuthority.objects.first()
+
+    def get(self, request, *args, **kwargs):
 
         try:
-            rpp = self.form.cleaned_data['rpp']
-        except (AttributeError, KeyError):
-            rpp = ''
+            concept = MDR._concept.objects.get(id=self.kwargs['iid'])
+        except MDR._concept.DoesNotExist:
+            return HttpResponseNotFound()
 
-        if rpp in self.results_per_page_values:
-            self.results_per_page = rpp
-        else:
-            if len(self.results_per_page_values) > 0:
-                self.results_per_page = self.results_per_page_values[0]
+        # Slow query
+        item = concept.item
+        itemtype = type(item).__name__
 
-        return super().build_page()
+        valid = True
+        try:
+            jsonschema.validate(self.setup, self.schema)
+        except jsonschema.exceptions.ValidationError as e:
+            logger.debug(e)
+            valid = False
 
-    def build_form(self):
+        results = []
+        if valid:
+            for itemsetup in self.setup:
+                if itemsetup['object'] == itemtype:
+                    for check in itemsetup['checks']:
+                        if check['validator'] in self.validators:
+                            validator_class = self.validators[check['validator']]
+                            validator = validator_class(check)
+                            status, message = validator.validate(item, self.ra)
 
-        form = super().build_form()
-        form.request = self.request
-        form.request.GET = self.clean_facets(self.request)
-        return form
+                            results.append({
+                                'check': validator.getName(),
+                                'status': status,
+                                'message': message
+                            })
 
-    def clean_facets(self, request):
-        get = request.GET.copy()
-        for k, val in get.items():
-            if k.startswith('f__'):
-                get.pop(k)
-                k = k[4:]
-                get.update({'f': '%s::%s' % (k, val)})
-        return get
-
-    def extra_context(self):
-        # needed to compare to indexed primary key value
-        if not self.request.user.is_anonymous():
-            favourites_pks = self.request.user.profile.favourites.all().values_list('id', flat=True)
-            favourites_list = list(favourites_pks)
-        else:
-            favourites_list = []
-
-        return {'rpp_values': self.results_per_page_values, 'favourites': favourites_list}
+        kwargs['setup_valid'] = valid
+        kwargs['results'] = results
+        kwargs['item_name'] = item.name
+        return super().get(request, *args, **kwargs)

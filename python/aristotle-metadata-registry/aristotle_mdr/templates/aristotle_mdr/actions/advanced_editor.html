@@ -1,22 +1,36 @@
 {% extends request.is_ajax|yesno:"aristotle_mdr/base_ajax.html,aristotle_mdr/base.html" %}
-{% load compile_static i18n %}
+{% load i18n aristotle_tags %}
 {% load static from staticfiles %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}Editing {{ item.name }}{% endblock %}
 {% block extra_head_scripts %}
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.wizard.less'|compile %}" />
-    <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle_search.less'|compile %}" />
-    <script src="{% static 'aristotle_mdr/jqueryui/jquery-ui.min.js' %}"></script>
+    {% comment %}
+    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="{% static 'aristotle_mdr/aristotle.moveable.less'|compile %}" />
+    {% endcomment %}
     {% if request.is_ajax %}
+        {% comment %}
         <script type="text/javascript">
             CKEDITOR_BASEPATH="/static/ckeditor/ckeditor/";
         </script>
         <script type="text/javascript" src="{% static 'ckeditor/ckeditor/ckeditor.js' %}"></script>
+        <script type="text/javascript" src="{% static 'ckeditor/ckeditor-init.js' %}"></script>
         <script src="{% static 'aristotle_mdr/aristotle.moveable.js' %}"></script>
+        {% endcomment %}
     {% endif %}
 
 {% endblock %}
+
+{% if not request.is_ajax %}
+  {% block webpack_css_bundle %}
+    {% render_bundle 'advancedEditor' 'css' %}
+  {% endblock %}
+
+  {% block webpack_bundle %}
+    {% render_bundle 'advancedEditor' 'js' %}
+  {% endblock %}
+{% endif %}
 
 {% block content %}
 
@@ -28,8 +42,29 @@
         </ol>
         {% if item.is_superseded  %}
             <div class=" alert alert-info">
-                {% trans 'This item has been superseded by the newer version,'%}
-                <em>{% include "aristotle_mdr/helpers/itemLink.html" with item=item.superseded_by %}</em>.
+                {% trans 'This item has been superseded by one or more newer versions' %}
+                <ul>
+                    {% for suprel in item|visible_superseded_by_items:request.user %}
+                        <li>
+                          <a href="{% url 'aristotle:item' iid=suprel.newer_item.id %}">
+                            {{ suprel.newer_item.name }}
+                          </a>
+                          <ul>
+                            {% for rel in suprel.rels %}
+                              <li>
+                                <span title="{% trans 'The registration authority that applied this relationship' %}">
+                                  {{ rel.registration_authority.name }}
+                                </span>,
+                              {{ rel.date_effective }} -
+                              {{ rel.message }}
+                              </li>
+                            {% endfor %}
+                          </ul>
+                        </li>
+                    {% empty %}
+                        <li><em>{% trans 'None' context 'No newer objects' %}</em></li>
+                    {% endfor %}
+                </ul>
             </div>
         {% endif %}
         {% if item.is_retired %}

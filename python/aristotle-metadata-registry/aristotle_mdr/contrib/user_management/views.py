@@ -1,20 +1,75 @@
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm
-from django.urls import reverse
+from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.db.models import Q
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
 from django.views.generic import ListView, TemplateView, FormView, View
-from django.db.models import Q
-from django.conf import settings
-from django.core.exceptions import ValidationError
 
 from organizations.backends.defaults import BaseBackend
 from organizations.backends.tokens import RegistrationTokenGenerator
 
 from aristotle_mdr.utils.utils import fetch_aristotle_settings
+from aristotle_mdr.views.user_pages import (
+    EditView as EditUserView,
+    ProfileView
+)
 from . import forms
+
+
+class AnotherUserMixin:
+    raise_exception = True
+    redirect_unauthenticated_users = True
+    permission_required = "aristotle_mdr.list_registry_users"
+
+    def get_success_url(self):
+        return reverse('aristotle-user:view_another_user', args=[self.kwargs['user_pk']])
+
+    def get_user(self, querySet=None):
+        return get_user_model().objects.get(pk=self.kwargs['user_pk'])
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            'object': self.get_user(),
+        })
+        return context
+
+
+class UpdateAnotherUser(LoginRequiredMixin, AnotherUserMixin, PermissionRequiredMixin, EditUserView):
+    template_name = "aristotle_mdr/users_management/users/update_another_user.html"
+
+    def get_object(self, querySet=None):
+        return self.get_user()
+
+
+class ViewAnotherUser(LoginRequiredMixin, AnotherUserMixin, PermissionRequiredMixin, ProfileView):
+    template_name = "aristotle_mdr/users_management/users/view_another_user.html"
+
+
+class UpdateAnotherUserSiteWidePerms(LoginRequiredMixin, AnotherUserMixin, PermissionRequiredMixin, FormView):
+    template_name = "aristotle_mdr/users_management/users/update_another_user_site_perms.html"
+    form_class = forms.UpdateAnotherUserSiteWidePermsForm
+
+    def get_initial(self):
+        user = self.get_user()
+        initial = {
+            "is_superuser": user.is_superuser,
+        }
+        return initial
+
+    def form_valid(self, form):
+        user = self.get_user()
+        with transaction.atomic():
+            # Maybe wrap inside reversion.revisions.create_revision() later
+            user.is_superuser = form.cleaned_data['is_superuser']
+            user.save()
+        return super().form_valid(form)
 
 
 class RegistryOwnerUserList(LoginRequiredMixin, PermissionRequiredMixin, ListView):
@@ -23,12 +78,13 @@ class RegistryOwnerUserList(LoginRequiredMixin, PermissionRequiredMixin, ListVie
     permission_required = "aristotle_mdr.list_registry_users"
     raise_exception = True
     redirect_unauthenticated_users = True
+    paginate_by = 50
 
     def get_queryset(self):
         q = self.request.GET.get('q', None)
         queryset = get_user_model().objects.all().order_by(
             '-is_active', 'full_name', 'short_name', 'email'
-        )
+        ).prefetch_related('viewer_in', 'submitter_in', 'steward_in', 'workgroup_manager_in')
         if q:
             queryset = queryset.filter(
                 Q(short_name__icontains=q) |
@@ -138,7 +194,6 @@ class SignupMixin:
     def send_password_reset(self, user_email, request):
 
         form = PasswordResetForm({'email': user_email})
-
         if form.is_valid():
             form.save(
                 request=request,

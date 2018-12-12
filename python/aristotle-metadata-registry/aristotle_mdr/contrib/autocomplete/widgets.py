@@ -1,25 +1,9 @@
 from dal.autocomplete import ModelSelect2Multiple, ModelSelect2
 from django.urls import reverse_lazy
+from django import forms
 
 
 class ConceptAutocompleteBase(object):
-
-    class Media:
-        """Automatically include static files for the admin."""
-
-        css = {
-            'all': (
-                'autocomplete_light/vendor/select2/dist/css/select2.css',
-                'autocomplete_light/select2.css',
-                'aristotle_mdr/aristotle.autocomplete.css',
-            )
-        }
-        js = (
-            'autocomplete_light/jquery.init.js',
-            'autocomplete_light/autocomplete.init.js',
-            'autocomplete_light/vendor/select2/dist/js/select2.full.js',
-            'autocomplete_light/select2.js',
-        )
 
     def __init__(self, *args, **kwargs):
         self.model = kwargs.pop('model', None)
@@ -32,7 +16,10 @@ class ConceptAutocompleteBase(object):
             url = 'aristotle-autocomplete:concept'
         kwargs.update(
             url=url,
-            attrs={'data-html': 'true'}
+            attrs={
+                'class': 'aristotle-select2',
+                'data-html': 'true'
+            }
         )
         super().__init__(*args, **kwargs)
 
@@ -64,3 +51,16 @@ class UserAutocompleteSelect(UserAutocompleteMixin, ModelSelect2):
 
 class UserAutocompleteSelectMultiple(UserAutocompleteMixin, ModelSelect2Multiple):
     url = 'aristotle-autocomplete:user'
+
+
+class WorkgroupAutocompleteMixin(object):
+    def __init__(self, *args, **kwargs):
+        kwargs.update(
+            url=reverse_lazy(self.url),
+            attrs={'data-html': 'true'}
+        )
+        super().__init__(*args, **kwargs)
+
+
+class WorkgroupAutocompleteSelect(WorkgroupAutocompleteMixin, ModelSelect2):
+    url = 'aristotle-autocomplete:workgroup'

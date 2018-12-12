@@ -11,3 +11,4 @@ from . import actions
 from . import sitemaps
 from . import registrationauthority
 from . import notify
+from . import versions

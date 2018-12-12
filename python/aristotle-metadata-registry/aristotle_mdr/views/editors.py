@@ -21,10 +21,6 @@ from aristotle_mdr.contrib.slots.utils import get_allowed_slots
 
 import logging
 
-from aristotle_mdr.contrib.generic.forms import (
-    one_to_many_formset_excludes, one_to_many_formset_filters,
-    ordered_formset_factory, ordered_formset_save,
-)
 from aristotle_mdr.contrib.generic.views import ExtraFormsetMixin
 
 
@@ -127,10 +123,11 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         if invalid:
             return self.form_invalid(form, formsets=extra_formsets)
         else:
-            with transaction.atomic(), reversion.revisions.create_revision():
+            # This was removed from the revision below due to a bug with saving
+            # long slots, links are still saved due to reversion follows
+            self.save_formsets(extra_formsets)
 
-                # Save formsets
-                self.save_formsets(extra_formsets)
+            with reversion.revisions.create_revision():
 
                 # save the change comments
                 if not change_comments:

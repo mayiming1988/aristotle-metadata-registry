@@ -1,9 +1,14 @@
 {% extends "aristotle_mdr/concepts/managedContent.html" %}
 
-{% load aristotle_tags i18n %}
+{% load aristotle_tags util_tags i18n static %}
+{% load render_bundle from webpack_loader %}
 
-{% block extra_head_scripts %}
-<link rel="stylesheet" href="{{ STATIC_URL }}/aristotle_dse/aristotle_dse.css" />
+{% block webpack_css_bundle %}
+  {% render_bundle 'datasetSpecification' 'js' %}
+{% endblock %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'datasetSpecification' 'css' %}
 {% endblock %}
 
 {% block objSpecific %}
@@ -13,17 +18,12 @@
         <br> Each entry includes the item name, whether the item is <em>optional, mandatory or conditional</em> and the maximum times the item can occur in a dataset.
         <br> If the items must occur in a particular order in the dataset, the sequence number is included before the item name.
     </p>
-    <script>
-        $(function () {
-          $('[data-toggle="popover"]').popover()
-        })
-    </script>
 
         <table class="dssInclusions table table-striped table-condensed">
             <thead>
                 <tr>
                     <th>
-                            Components
+                        Clusters
                     </th>
                     <th>Statuses
                     </th>
@@ -74,17 +74,17 @@
                         {% if deinc.specific_information %}
                         <div>
                             <strong>Specific Information:</strong>
-                            {{ deinc.specific_information | safe }}
+                            {{ deinc.specific_information|bleach }}
                         </div>
                         {% endif %}
                         {% if deinc.conditional_obligation %}
                         <div>
-                            <strong>Conditional Obligation:</strong>{{ deinc.conditional_obligation|safe }}
+                            <strong>Conditional Obligation:</strong>{{ deinc.conditional_obligation|bleach }}
                         </div>
                         {% endif %}
                     </td>
                     <td><ul>
-                        {% for s in item.current_statuses %}
+                        {% for s in deinc.child.valid_statuses|distinct:"registrationAuthority_id" %}
                             <li>[{{ s.registrationAuthority }}: {{ s.state_name }}]</li>
                         {% empty %}
                         <li><em>Unregistered</em></li>
@@ -111,8 +111,46 @@
             {% endfor %}
             </tbody>
             {% endif %}
-            {% if item.dssdeinclusion_set.exists or item|can_edit:request.user %}
+        </table>
+        <table class="dssInclusions table table-striped table-condensed">
+            <thead>
+                <tr>
+                    <th>
+                    </th>
+                    <th>
+                        Data Element
+                    </th>
+                    <th>
+                        Data&nbsp;Type
+                    </th>
+                    <th>
+                        Format
+                    </th>
+                    {% comment %}
+                    <th>Statuses
+                    </th>
+                    {% endcomment %}
+                    <th>
+                        <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left" data-html="true"
+                            title="Data Element Inclusion" data-content="The rules for inclusion for a data element within a data set.<br>May be optional, mandatory or conditional">
+                            Inclusion</a>
+                    </th>
+                    <th class="maxOccurs">
+                        <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left"
+                            title="Maximum Occurances" data-content="The maximum number of times a data element may be repeated in a data set.">
+                            #</a>
+                    </th>
+                    {% if item|can_edit:request.user %}
+                    <th title="Use the links in this column to edit or remove data elements from this Dataset specification">
+                        <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left"
+                            title="Edit or delete" data-content="Use the links in this column to edit or remove data elements from this Dataset specification.">
+                            Edit</a>
+                    </th>
+                    {% endif %}
+                </tr>
+            </thead>
             <tbody>
+            {% if item.dssdeinclusion_set.exists or item|can_edit:request.user %}
                 <tr>
                     <th colspan=5>Data Elements
                     {% if item|can_edit:request.user %}
@@ -135,27 +173,37 @@
             {% endif %}
             {% for deinc in item.dssdeinclusion_set.all %}
                 <tr>
-                    <td>{{ deinc.order }}<i class="fa fa-fw fa-"></i>{% include "aristotle_mdr/helpers/itemLink.html" with item=deinc.data_element %}
+                    <td>{{ deinc.order|default_if_none:" " }}
+                    </td><td>
+                        {% include "aristotle_mdr/helpers/itemLink.html" with item=deinc.data_element %}
                         {% if deinc.specific_information %}
                         <div>
                             <strong>Specific Information:</strong>
-                            {{ deinc.specific_information | safe }}
+                            {{ deinc.specific_information|bleach }}
                         </div>
                         {% endif %}
                         {% if deinc.conditional_obligation %}
                         <div>
-                            <strong>Conditional Obligation:</strong>{{ deinc.conditional_obligation | safe }}
+                            <strong>Conditional Obligation:</strong>{{ deinc.conditional_obligation|bleach }}
                         </div>
                         {% endif %}
                     </td>
+                    <td>
+                        {% firstof deinc.data_element.valueDomain.data_type.name "-" %}
+                    </td>
+                    <td>
+                        {% firstof deinc.data_element.valueDomain.format "-" %}
+                    </td>
+                    {% comment %}
                     <td><ul>
-                        {% for s in item.current_statuses %}
+                        {% for s in deinc.data_element.valid_statuses|distinct:"registrationAuthority_id" %}
                             <li>[{{ s.registrationAuthority }}: {{ s.state_name }}]</li>
                         {% empty %}
                         <li><em>Unregistered</em></li>
                         {% endfor %}
                         </ul>
                     </td>
+                    {% endcomment %}
                     <td>{{ deinc.cardinality }}</td>
                     <td>{{ deinc.maximum_occurances }}</td>
                     {% if item|can_edit:request.user %}

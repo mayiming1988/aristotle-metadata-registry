@@ -9,6 +9,7 @@ from aristotle_mdr.search_indexes import baseObjectIndex
 
 class HelpObjectIndex(baseObjectIndex):
     name = indexes.CharField(model_attr='title')
+    name_sortable = indexes.CharField(model_attr='title', indexed=False, stored=True)
     facet_model_ct = indexes.IntegerField(faceted=True)
     is_public = indexes.BooleanField(model_attr='is_public')
 
@@ -31,6 +32,12 @@ class HelpObjectIndex(baseObjectIndex):
         from django.contrib.contenttypes.models import ContentType
         ct = ContentType.objects.get_for_model(obj)
         return ct.pk
+
+    def prepare(self, obj):
+        # Slightly down-rank help in search
+        data = super().prepare(obj)
+        data['boost'] = 0.95
+        return data
 
 
 class ConceptHelpIndex(HelpObjectIndex, indexes.Indexable):

@@ -38,14 +38,14 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
     install_requires = [
-        "Django>=1.11.1,<2.0",
+        "Django>=1.11.16,<2.0",
         'six', # Setuptools > 36 doesn't install this by default
         'pytz',
         'pyyaml',
         'lesscpy',
 
         'django-model-utils>=2.3.1',
-        'django-notifications-hq>=1.4',
+        'django-notifications-hq==1.4',
         'django-braces',
         'docutils',
 
@@ -62,8 +62,7 @@ setup(
         'diff-match-patch',
 
         # Fancy UI stuff
-        'django-static-precompiler',
-        'django-autocomplete-light>=3.0.0',
+        'django-autocomplete-light>=3.0.0,<3.3.0',
         'django-bootstrap3>8.0,<9.0',
         'django-bootstrap3-datetimepicker-2>=2.5.0',
 
@@ -71,10 +70,6 @@ setup(
 
         # required for help, but thats required
         'django-autoslug',
-        # for more 'real-time' notifications
-        'channels>1.0,<2.0',
-        'django-haystack-channels',
-        'asgi-redis',
 
         # This is only needed for Migration 0024 once this is squashed, remove this dependency
         'sqlparse',
@@ -85,14 +80,37 @@ setup(
         'django-organizations',
 
         # Improved User Model
-        'django-improved-user==1.0a2',
+        'django-improved-user>=1.0.0',
 
         # File upload
-        'django-constrainedfilefield[filetype]',
+        'django-constrainedfilefield',
+
+        # File type checking
+        'python-magic>=0.4.2'
+
+        # Generic json field
+        'jsonfield',
 
         # User sessions
         'django-user-sessions',
         'geoip2',
+
+        'attrs',
+
+        # Webpack loading
+        'django-webpack-loader',
+
+        'attrs',
+        'jsonschema',
+
+        # Webpack loading
+        'django-webpack-loader',
+
+        # Storages
+        'django-storages',
+
+        # Sanitization
+        'bleach'
 
     ],
 
