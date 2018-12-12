@@ -92,9 +92,6 @@ def download(request, download_type, iid=None):
                 request.session[download_utils.get_download_session_key(get_params, download_type)] = res.id
                 return response
             except TemplateDoesNotExist:
-                debug = getattr(settings, 'DEBUG')
-                if debug:
-                    raise
                 # Maybe another downloader can serve this up
                 continue
 
@@ -145,9 +142,6 @@ def bulk_download(request, download_type, items=None):
                 request.session[download_utils.get_download_session_key(get_params, download_type)] = res.id
                 return response
             except TemplateDoesNotExist:
-                debug = getattr(settings, 'DEBUG')
-                if debug:
-                    raise
                 # Maybe another downloader can serve this up
                 continue
 
@@ -244,14 +238,11 @@ def get_async_download(request, download_type):
     :return:
     """
     items = request.GET.getlist('items', None)
-    debug = getattr(settings, 'DEBUG')
     download_key = download_utils.get_download_session_key(request.GET, download_type)
     try:
         res_id = request.session[download_key]
     except KeyError:
         logger.exception('There is no key for request')
-        if debug:
-            raise
         raise Http404
 
     job = async_result(res_id)
@@ -272,13 +263,9 @@ def get_async_download(request, download_type):
             (None, '', '')
         )
     except ValueError:
-        if debug:
-            raise
         logger.exception('Should unpack 3 values from the cache', ValueError)
         return HttpResponseServerError('Cant unpack values')
     if not doc:
-        if debug:
-            raise ValueError('No document in the cache')
         # TODO: Need a design to avoid loop and refactor this to redirect to preparing-download
         return HttpResponseServerError('No document in cache')
     response = HttpResponse(doc, content_type=mime_type)

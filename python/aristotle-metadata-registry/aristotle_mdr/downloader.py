@@ -16,7 +16,7 @@ from django.core.cache import cache
 from aristotle_mdr import constants as CONSTANTS
 
 
-class DownloaderBase(object):
+class DownloaderBase:
     """
     Required class properties:
 
