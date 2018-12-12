@@ -1,18 +1,18 @@
-from typing import Any
+from typing import Any, List
 from aristotle_mdr.utils import get_download_template_path_for_item
 
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
+from django.core.cache import cache
 
 import io
 import csv
 from aristotle_mdr.contrib.help.models import ConceptHelp
 from aristotle_mdr import models as MDR
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AnonymousUser
 from aristotle_mdr.views import get_if_user_can_view
 from aristotle_mdr.utils import downloads as download_utils
 from celery import shared_task
-from django.core.cache import cache
 from aristotle_mdr import constants as CONSTANTS
 
 
@@ -30,32 +30,36 @@ class DownloaderBase:
       * the string "__template__" indicating the downloader supports any metadata type with a matching download template
     """
     metadata_register: Any = {}
-    icon_class = ""
-    description = ""
+    icon_class: str = ""
+    description: str = ""
+    # A unique identifier for the downloader (used in url and passed to task)
+    download_type: str
 
-    @classmethod
-    def get_download_config(cls, request, iid):
-        """
-        This method must be overriden. This method takes in a request object and item and
-        creates a download config for the download method.
-        This returns config created and item/iid
-        """
-        raise NotImplementedError
+    item_ids: List[int] = []
 
-    @classmethod
-    def get_bulk_download_config(cls, request, items):
-        r"""
-        This method must be overriden. This takes request object and returns a computed set of download config
-        creates a dict of properties required to generate bulk_downloads
-        -> properties must contain url_id to identify an unique download url of the format ([\w\-\. ]+)/?$
-        :param request: request object from the client
-        :param items: items to download
-        :return: The set of properties required by bulk_download method
-        """
-        raise NotImplementedError
+    default_options = {
+        'include_supporting': False,
+        'subclasses': [],
+        'front_page': None,
+        'back_page': None,
+        'email_to_user': False
+    }
 
-    @staticmethod
-    def download(properties, iid):
+    def __init__(self, item_ids: List[int], user_id: int, options: Dict[str, Any]={}):
+        self.item_ids = item_ids
+        self.error = False
+
+        self.items = MDR._concept.objects.filter(id__in=item_ids).select_subclasses()
+        self.user = get_user_model().filter(id=user_id)
+
+        self.options = self.default_options.copy()
+        self.options.update(options)
+
+    @property
+    def bulk(self):
+        return len(self.item_ids) > 1
+
+    def download(self):
         """
         This method must be overriden and return the downloadable object of appropriate type
         and mime type for the object
@@ -72,22 +76,14 @@ class DownloaderBase:
         """
         raise NotImplementedError
 
-    @staticmethod
-    def bulk_download(properties, item):
-        """
-        This method must be overriden and
-        return a bulk downloaded set of items in an appropriate file format and
-        mime type for the object
-        This is a static method because it is a celery task
-        """
-        raise NotImplementedError
+    def get_cache_key(self):
+        return download_utils.get_download_cache_key(
+            self.item_ids,
+            self.user,
+            download_type=self.download_type
+        )
 
-    @classmethod
-    def get_cache_key(cls, user, iids=[]):
-        return download_utils.get_download_cache_key(iids, user, download_type=cls.download_type)
-
-    @staticmethod
-    def cache_file(key, value, ttl=CONSTANTS.TIME_TO_DOWNLOAD):
+    def store_file(self, value, ttl=CONSTANTS.TIME_TO_DOWNLOAD):
         """
         This is the cache interface for all the download types.
         :param key: Key is the combination of iid(s)
@@ -95,9 +91,11 @@ class DownloaderBase:
         :param ttl: It's the time to live for the cache storage
         :return: returns None.
         """
+        key = self.get_cache_key()
         cache.set(key, value, ttl)
 
 
+# Deprecated
 class CSVDownloader(DownloaderBase):
     download_type = "csv-vd"
     metadata_register = {'aristotle_mdr': ['valuedomain']}
