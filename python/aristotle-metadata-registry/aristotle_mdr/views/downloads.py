@@ -1,10 +1,17 @@
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
-from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseServerError
-from django.shortcuts import render, redirect
+from django.http import (
+    Http404,
+    HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseServerError,
+    HttpResponseNotFound,
+    HttpResponsePermissionDenied
+)
+from django.shortcuts import render, redirect, get_object_or_404
 from django.template import TemplateDoesNotExist
-from django.views.generic import TemplateView, View
+from django.views.generic import TemplateView, View, FormView
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.views import get_if_user_can_view
@@ -22,6 +29,51 @@ logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
 PAGES_PER_RELATED_ITEM = 15
+
+
+class BaseDownloadView(TemplateView):
+    """
+    Base class inherited by single and bulk download view
+    """
+
+    title = 'Auto Generated Content'
+    template_name = 'aristotle_mdr/downloads/creating_download.html'
+
+    def get(self, request, *args, **kwargs):
+        try:
+            download_type = self.kwargs['download_type']
+            iid = self.kwargs['iid']
+        except KeyError:
+            return HttpResponseNotFound()
+
+        concept = get_object_or_404(MDR._concept, pk=iid)
+        item = concept.item
+
+        if not user_can_view(self.request.user, item):
+            return HttpResponsePermissionDenied()
+
+        get_params = request.GET.copy()
+        get_params.setdefault('items', iid)
+        download_opts = fetch_aristotle_downloaders()
+        for kls in download_opts:
+            if download_type == kls.download_type:
+                # properties requested for the file requested
+                kls.item = item
+                properties = kls.get_download_config(request, iid)
+                if get_params.get('public', False):
+                    properties['user'] = False
+                res = kls.download.delay(properties, iid)
+                response = redirect('{}?{}'.format(
+                    reverse('aristotle:preparing_download', args=[download_type]),
+                    urlencode(get_params, True)
+                ))
+                download_key = request.session.get(download_utils.get_download_session_key(get_params, download_type))
+                if download_key:
+                    async_result(download_key).forget()
+                request.session[download_utils.get_download_session_key(get_params, download_type)] = res.id
+                return response
+
+        return HttpResponseNotFound()
 
 
 class DownloadView(View):
@@ -80,50 +132,44 @@ class DownloadView(View):
         download_opts = fetch_aristotle_downloaders()
         for kls in download_opts:
             if download_type == kls.download_type:
-                try:
-                    # properties requested for the file requested
-                    kls.item = item
-                    properties = kls.get_download_config(request, iid)
-                    if get_params.get('public', False):
-                        properties['user'] = False
-                    res = kls.download.delay(properties, iid)
-                    get_params.setdefault('title', properties.get('title', 'Auto-Generated Document'))
-                    response = redirect('{}?{}'.format(
-                        reverse('aristotle:preparing_download', args=[download_type]),
-                        urlencode(get_params, True)
-                    ))
-                    download_key = request.session.get(download_utils.get_download_session_key(get_params, download_type))
-                    if download_key:
-                        async_result(download_key).forget()
-                    request.session[download_utils.get_download_session_key(get_params, download_type)] = res.id
-                    return response
-                except TemplateDoesNotExist:
-                    # Maybe another downloader can serve this up
-                    continue
+                # properties requested for the file requested
+                kls.item = item
+                properties = kls.get_download_config(request, iid)
+                if get_params.get('public', False):
+                    properties['user'] = False
+                res = kls.download.delay(properties, iid)
+                get_params.setdefault('title', properties.get('title', 'Auto-Generated Document'))
+                response = redirect('{}?{}'.format(
+                    reverse('aristotle:preparing_download', args=[download_type]),
+                    urlencode(get_params, True)
+                ))
+                download_key = request.session.get(download_utils.get_download_session_key(get_params, download_type))
+                if download_key:
+                    async_result(download_key).forget()
+                request.session[download_utils.get_download_session_key(get_params, download_type)] = res.id
+                return response
 
         raise Http404
 
 
 class BulkDownloadView(View):
+    r"""
+    By default, ``aristotle_mdr.views.bulk_download`` is called whenever a URL matches
+    the pattern defined in ``aristotle_mdr.urls_aristotle``::
+
+        bulk_download/(?P<download_type>[a-zA-Z0-9\-\.]+)/?
+
+    This is passed into ``bulk_download`` which takes the items GET arguments from the
+    request and determines if a user has permission to view the requested items.
+    For any items the user can download they are exported in the desired format as
+    described in ``aristotle_mdr.views.download``.
+
+    If the requested module is able to be imported, ``downloader.py`` from the given module
+    is imported, this file **MUST** have a ``bulk_download`` function defined which returns
+    a Django ``HttpResponse`` object of some form.
+    """
 
     def get(request, download_type, items=None):
-        r"""
-        By default, ``aristotle_mdr.views.bulk_download`` is called whenever a URL matches
-        the pattern defined in ``aristotle_mdr.urls_aristotle``::
-
-            bulk_download/(?P<download_type>[a-zA-Z0-9\-\.]+)/?
-
-        This is passed into ``bulk_download`` which takes the items GET arguments from the
-        request and determines if a user has permission to view the requested items.
-        For any items the user can download they are exported in the desired format as
-        described in ``aristotle_mdr.views.download``.
-
-        If the requested module is able to be imported, ``downloader.py`` from the given module
-        is imported, this file **MUST** have a ``bulk_download`` function defined which returns
-        a Django ``HttpResponse`` object of some form.
-        """
-
-        # downloadOpts = fetch_aristotle_settings().get('DOWNLOADERS', [])
         items = request.GET.getlist('items')
         download_opts = fetch_aristotle_downloaders()
         get_params = request.GET.copy()
@@ -290,3 +336,10 @@ class GetAsyncDownloadView(View):
                 response[key] = val
         del request.session[download_key]
         return response
+
+
+class DownloadOptionsView(FormView):
+    """
+    Form with options before the download
+    """
+    pass

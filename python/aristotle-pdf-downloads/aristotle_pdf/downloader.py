@@ -38,8 +38,7 @@ class PDFDownloader(DownloaderBase):
     icon_class = "fa-file-pdf-o"
     description = "Downloads for various content types in the PDF format"
 
-    @classmethod
-    def get_download_config(cls, request, iid):
+    def get_download_config(self) -> Dict[str, Any]:
         """
         Create configuration for pdf download method
         :param request: request object
@@ -48,134 +47,59 @@ class PDFDownloader(DownloaderBase):
         """
         # page size for the pdf
         page_size = getattr(settings, 'PDF_PAGE_SIZE', "A4")
-        user = getattr(request, 'user', None)
 
-        item_props = {
-            'user': None,
-            'view': request.GET.get('view', '').lower(),
-            'page_size': request.GET.get('pagesize', page_size),
-            'title': cls.item.name
-        }
-
-        if user:
-            item_props['user'] = str(user)
-        return item_props
-
-    @staticmethod
-    @shared_task(name='aristotle_pdf_downloads.downloader.download')
-    def download(properties, iid):
-        """Built in download method
-        create pdf_context and return the results to celery backend.
-        :param properties: properties of the pdf template to be generated
-        :param iid: id of the item
-        :return: return the iid of the task
-        """
-        User = get_user_model()
-        user = properties['user']
-        if user and user != str(AnonymousUser()):
-            user = User.objects.get(email=user)
-        else:
-            user = AnonymousUser()
-        item = MDR._concept.objects.get_subclass(pk=iid)
-        item = get_if_user_can_view(item.__class__, user, iid)
-        template = get_download_template_path_for_item(item, PDFDownloader.download_type)
-
+        item = self.items[0]
         sub_items = [
             (obj_type, qs.visible(user).order_by('name').distinct())
             for obj_type, qs in item.get_download_items()
         ]
 
-        PDFDownloader.cache_file(PDFDownloader.get_cache_key(user, iid), (render_to_pdf(template, {
-            'title': properties['title'],
-            'item': item,
+        context = {
+            'user': None,
+            'page_size': settings.PDF_PAGE_SIZE,
+            'title': self.item.name,
             'subitems': sub_items,
             'tableOfContents': len(sub_items) > 0,
-            'view': properties['view'].lower(),
-            'pagesize': properties['page_size'],
-        }), 'application/pdf', {}))
+        }
 
-        return iid
+        return context
 
-    @classmethod
-    def get_bulk_download_config(cls, request, items):
+    def get_bulk_download_config(self) -> Dict[str, Any]:
         """
         generate properties for pdf document
         :param request: API request object
         :param items: items to download
         :return: properties computed, items
         """
-        user = getattr(request, 'user', None)
 
-        properties = {
-            'user': None,
-            'title': request.GET.get('title', '').strip() or 'Auto-generated document',
-            'subtitle': request.GET.get('subtitle', None),
-            'debug_as_html': request.GET.get('html', False),
-            'page_size': request.GET.get('pagesize', None),
-            # TODO: will fail for parallel download for a single user
-            # if this document is title is not specified for more than one documents. Use items instead
-            'url_id': request.GET.get('title', None) or 'Auto-generated document',
-        }
-        if user:
-            properties['user'] = str(user)
-        return properties
+        _list = "<li>" + "</li><li>".join([item.name for item in items if item]) + "</li>"
+        subtitle = mark_safe("Generated from the following metadata items:<ul>%s<ul>" % _list)
 
-    @staticmethod
-    @shared_task(name='aristotle_pdf_downloads.downloader.bulk_download')
-    def bulk_download(properties, iids=[], title=None, subtitle=None):
-        """Built in download method"""
-        items = []
-        User = get_user_model()
-        template = 'aristotle_mdr/downloads/pdf/bulk_download.html'
-        page_size = getattr(settings, 'PDF_PAGE_SIZE', "A4")
-        user = properties.get('user')
-        if user and user != str(AnonymousUser()):
-            user = User.objects.get(email=user)
-        else:
-            user = AnonymousUser()
-
-        for iid in iids:
-            item = MDR._concept.objects.get_subclass(pk=iid)
-            if item.can_view(user):
-                items.append(item)
         item_querysets = items_for_bulk_download(items, user)
 
-        if title is None:
-            if properties.get('title', None):
-                title = properties.get('title')
-            else:
-                title = "Auto-generated document"
+        properties = {
+            'user': str(self.user),
+            'title': 'Auto-generated document',
+            'subtitle': subtitle,
+            'debug_as_html': False,
+            'page_size': settings.PDF_PAGE_SIZE,
+            'items': self.items,
+            'included_items': sorted(
+                [(k, v) for k, v in item_querysets.items()],
+                key=lambda k_v: k_v[0]._meta.model_name
+            ),
+        }
+        return properties
 
-        if subtitle is None:
-            if properties.get('subtitle', None):
-                subtitle = properties.get('subtitle')
-            else:
-                _list = "<li>" + "</li><li>".join([item.name for item in items if item]) + "</li>"
-                subtitle = mark_safe("Generated from the following metadata items:<ul>%s<ul>" % _list)
+    def download(self):
+        if self.bulk:
+            context = self.get_bulk_download_config()
+            template = 'aristotle_mdr/downloads/pdf/bulk_download.html'
+        else:
+            template = get_download_template_path_for_item(item, self.download_type)
+            context = self.get_download_config()
 
-        subItems = []
-
-        debug_as_html = bool(properties.get('debug_as_html'))
-        mime_type = 'application/pdf'
-        if debug_as_html:
-            mime_type = 'text/html'
-        PDFDownloader.cache_file(PDFDownloader.get_cache_key(user, iids), (render_to_pdf(
-                    template,
-                    {
-                        'title': title,
-                        'subtitle': subtitle,
-                        'items': items,
-                        'included_items': sorted(
-                            [(k, v) for k, v in item_querysets.items()],
-                            key=lambda k_v: k_v[0]._meta.model_name
-                        ),
-                        'pagesize': properties.get('pagesize', page_size),
-                    },
-                    preamble_template='aristotle_mdr/downloads/pdf/bulk_download_title.html',
-                    debug_as_html=debug_as_html
-                    ), mime_type, {})
-                  )
-        return title
+        return render_to_pdf(template, context)
 
 
 def generate_outline_str(bookmarks, indent=0):
