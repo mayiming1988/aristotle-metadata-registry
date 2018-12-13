@@ -44,12 +44,15 @@ class DownloaderBase:
         'email_to_user': False
     }
 
-    def __init__(self, item_ids: List[int], user_id: int, options: Dict[str, Any]={}):
+    def __init__(self, item_ids: List[int], user_id: Optional[int], options: Dict[str, Any]={}):
         self.item_ids = item_ids
         self.error = False
 
         self.items = MDR._concept.objects.filter(id__in=item_ids).select_subclasses()
-        self.user = get_user_model().objects.get(id=user_id)
+        if user_id is not None:
+            self.user = get_user_model().objects.get(id=user_id)
+        else:
+            self.user = AnonymousUser()
 
         self.options = self.default_options.copy()
         self.options.update(options)

@@ -52,7 +52,12 @@ class DownloadView(TemplateView):
 
         get_params = request.GET.copy()
 
-        task_args = [download_type, item_ids, request.user.id]
+        if request.user.is_authenticated:
+            user_id = request.user.id
+        else:
+            user_id = None
+
+        task_args = [download_type, item_ids, user_id]
         res = app.send_task(
             'download',
             args=task_args
