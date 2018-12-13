@@ -1,3 +1,4 @@
+from typing import List, Dict, Any, Iterable
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
@@ -15,8 +16,7 @@ from django.views.generic import TemplateView, View, FormView
 from aristotle_mdr import models as MDR
 from aristotle_mdr.views import get_if_user_can_view
 from aristotle_mdr.utils import fetch_aristotle_downloaders, downloads as download_utils
-# from aristotle_bg_workers.tasks import download
-from aristotle_bg_workers.celery import app
+from aristotle_bg_workers.tasks import download
 from celery.result import AsyncResult as async_result
 from celery import states
 from django.core.cache import cache
@@ -32,23 +32,22 @@ logger.debug("Logging started for " + __name__)
 PAGES_PER_RELATED_ITEM = 15
 
 
-class DownloadView(TemplateView):
+class BaseDownloadView(TemplateView):
     """
-    Base class inherited by single and bulk download view
+    Base class inherited by single and bulk download views below
     """
 
     title = 'Auto Generated Content'
     template_name = 'aristotle_mdr/downloads/creating_download.html'
     bulk = False
 
-    def get_item_id_list(self):
-        iid = int(self.kwargs['iid'])
-        item_ids = [iid]
-        return item_ids
+    def get_item_id_list(self) -> List[int]:
+        """Returns a list of item ids"""
+        raise NotImplementedError
 
     def get(self, request, *args, **kwargs):
         download_type = self.kwargs['download_type']
-        item_ids = self.get_item_id_list()
+        self.item_ids = self.get_item_id_list()
 
         get_params = request.GET.copy()
 
@@ -58,11 +57,7 @@ class DownloadView(TemplateView):
             user_id = None
 
         task_args = [download_type, item_ids, user_id]
-        res = app.send_task(
-            'download',
-            args=task_args
-        )
-        # res = download.delay(*task_args)
+        res = download.delay(*task_args)
 
         downloader_class = None
         dl_classes = fetch_aristotle_downloaders()
@@ -78,72 +73,52 @@ class DownloadView(TemplateView):
         self.download_type = download_type
         return super().get(request, *args, **kwargs)
 
-    def get_context_data(self, *args, **kwargs):
+    def get_item_names(self) -> Iterable[str]:
+        name_list = MDR._concept.objects.filter(id__in=self.item_ids).values_list('name', flat=True)
+        return name_list
+
+    def get_file_title(self, item_names: Iterable[str]) -> str:
+        """Should be overwritten"""
+        return 'Item Download'
+
+    def get_file_details(self) -> Dict[str, Any]:
+        item_names = self.get_item_names()
+        return {
+            'title': self.get_file_title(),
+            'items': ', '.join(item_names),
+            'format': CONSTANTS.FILE_FORMAT[self.download_type],
+            'is_bulk': len(self.item_ids) > 1,
+            'isReady': False
+        }
+
+    def get_context_data(self, *args, **kwargs) -> Dict[str, Any]:
         context = super().get_context_data(*args, **kwargs)
 
-        item_ids = self.get_item_id_list()
         context.update({
-            'items': item_ids,
-            'file_details': {
-                'title': self.request.GET.get('title', self.title),
-                'items': 'The item names',
-                'format': CONSTANTS.FILE_FORMAT[self.download_type],
-                'is_bulk': self.bulk,
-                'ttl': int(CONSTANTS.TIME_TO_DOWNLOAD / 60),
-                'isReady': False
-            }
+            'items': self.item_ids,
+            'file_details': self.get_file_details()
         })
         return context
 
 
-class BulkDownloadView(View):
-    r"""
-    By default, ``aristotle_mdr.views.bulk_download`` is called whenever a URL matches
-    the pattern defined in ``aristotle_mdr.urls_aristotle``::
+class DownloadView(BaseDownloadView):
 
-        bulk_download/(?P<download_type>[a-zA-Z0-9\-\.]+)/?
+    def get_item_id_list(self):
+        iid = int(self.kwargs['iid'])
+        item_ids = [iid]
+        return item_ids
 
-    This is passed into ``bulk_download`` which takes the items GET arguments from the
-    request and determines if a user has permission to view the requested items.
-    For any items the user can download they are exported in the desired format as
-    described in ``aristotle_mdr.views.download``.
+    def get_file_title(self, item_names):
+        return item_names[0] + ' Download'
 
-    If the requested module is able to be imported, ``downloader.py`` from the given module
-    is imported, this file **MUST** have a ``bulk_download`` function defined which returns
-    a Django ``HttpResponse`` object of some form.
-    """
 
-    def get(request, download_type, items=None):
-        items = request.GET.getlist('items')
-        download_opts = fetch_aristotle_downloaders()
-        get_params = request.GET.copy()
-        get_params.setdefault('bulk', True)
-        for kls in download_opts:
-            if download_type == kls.download_type:
-                try:
-                    # properties for download template
-                    properties = kls.get_bulk_download_config(request, items)
-                    if get_params.get('public', False):
-                        properties['user'] = False
-                    res = kls.bulk_download.delay(properties, items)
-                    if not properties.get('title', ''):
-                        properties['title'] = 'Auto-generated document'
-                    get_params.pop('title')
-                    get_params.setdefault('title', properties['title'])
-                    response = redirect('{}?{}'.format(
-                        reverse('aristotle:preparing_download', args=[download_type]),
-                        urlencode(get_params, True)
-                    ))
-                    download_key = request.session.get(download_utils.get_download_session_key(get_params, download_type))
-                    if download_key:
-                        async_result(download_key).forget()
-                    request.session[download_utils.get_download_session_key(get_params, download_type)] = res.id
-                    return response
-                except TemplateDoesNotExist:
-                    # Maybe another downloader can serve this up
-                    continue
+class BulkDownloadView(BaseDownloadView):
 
-        raise Http404
+    def get_item_id_list(self):
+        return request.GET.getlist('items')
+
+    def get_file_title(self, item_names):
+        return 'Bulk Download'
 
 
 class DownloadStatusView(View):

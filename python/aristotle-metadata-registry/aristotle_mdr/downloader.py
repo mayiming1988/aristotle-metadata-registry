@@ -1,4 +1,4 @@
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Optional
 from aristotle_mdr.utils import get_download_template_path_for_item
 
 from django.contrib.auth import get_user_model
@@ -38,7 +38,7 @@ class DownloaderBase:
 
     default_options = {
         'include_supporting': False,
-        'subclasses': [],
+        'subclasses': None,
         'front_page': None,
         'back_page': None,
         'email_to_user': False
@@ -54,6 +54,7 @@ class DownloaderBase:
         else:
             self.user = AnonymousUser()
 
+        # Shallow copy of options
         self.options = self.default_options.copy()
         self.options.update(options)
 
