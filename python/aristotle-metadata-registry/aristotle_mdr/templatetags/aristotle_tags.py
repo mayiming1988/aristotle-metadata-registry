@@ -416,9 +416,17 @@ def downloadMenu(item):
                 except:
                     # TODO: Should probably do something with this error
                     pass  # Something very bad has happened in the template.
+
+    dlOptionsForItem = []
+    for dl_class in downloadsForItem:
+        dlOptionsForItem.append({
+            'label': dl_class.label,
+            'download_type': dl_class.download_type,
+            'icon_class': dl_class.icon_class
+        })
     return get_template(
         "aristotle_mdr/helpers/downloadMenu.html").render(
-        {'item': item, 'download_options': downloadsForItem, }
+        {'item': item, 'download_options': dlOptionsForItem, }
     )
 
 
