@@ -77,3 +77,16 @@ def update_search_index(action, sender, instance, **kwargs):
         processor.handle_save(sender, instance, **kwargs)
     elif action == "delete":
         processor.handle_delete(sender, instance, **kwargs)
+
+
+@shared_task(name='download')
+def download(download_type: str, item_ids: List[int], user_id: int):
+    dl_classes = fetch_aristotle_downloaders()
+    for klass in dl_classes:
+        if klass.download_type == download_type:
+            downloader = klass(item_ids, user_id, {})
+            result = downloader.download()
+            downloader.store_file(result)
+            return True
+
+    return False

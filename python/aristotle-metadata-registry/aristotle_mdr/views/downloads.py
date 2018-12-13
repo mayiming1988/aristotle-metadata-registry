@@ -16,6 +16,7 @@ from django.views.generic import TemplateView, View, FormView
 from aristotle_mdr import models as MDR
 from aristotle_mdr.views import get_if_user_can_view
 from aristotle_mdr.utils import fetch_aristotle_downloaders, downloads as download_utils
+from aristotle_bg_workers.tasks import download as download_task
 from celery.result import AsyncResult as async_result
 from celery import states
 from django.core.cache import cache
@@ -31,125 +32,55 @@ logger.debug("Logging started for " + __name__)
 PAGES_PER_RELATED_ITEM = 15
 
 
-class BaseDownloadView(TemplateView):
+class DownloadView(TemplateView):
     """
     Base class inherited by single and bulk download view
     """
 
     title = 'Auto Generated Content'
     template_name = 'aristotle_mdr/downloads/creating_download.html'
+    bulk = False
 
-    def get(self, request, *args, **kwargs):
-        try:
-            download_type = self.kwargs['download_type']
-            iid = self.kwargs['iid']
-        except KeyError:
-            return HttpResponseNotFound()
-
-        concept = get_object_or_404(MDR._concept, pk=iid)
-        item = concept.item
-
-        if not user_can_view(self.request.user, item):
-            return HttpResponsePermissionDenied()
-
-        get_params = request.GET.copy()
-        get_params.setdefault('items', iid)
-        download_opts = fetch_aristotle_downloaders()
-        for kls in download_opts:
-            if download_type == kls.download_type:
-                # properties requested for the file requested
-                kls.item = item
-                properties = kls.get_download_config(request, iid)
-                if get_params.get('public', False):
-                    properties['user'] = False
-                res = kls.download.delay(properties, iid)
-                response = redirect('{}?{}'.format(
-                    reverse('aristotle:preparing_download', args=[download_type]),
-                    urlencode(get_params, True)
-                ))
-                download_key = request.session.get(download_utils.get_download_session_key(get_params, download_type))
-                if download_key:
-                    async_result(download_key).forget()
-                request.session[download_utils.get_download_session_key(get_params, download_type)] = res.id
-                return response
-
-        return HttpResponseNotFound()
-
-
-class DownloadView(View):
-    r"""
-    By default, ``aristotle_mdr.views.download`` is called whenever a URL matches
-    the pattern defined in ``aristotle_mdr.urls_aristotle``::
-
-        download/(?P<download_type>[a-zA-Z0-9\-\.]+)/(?P<iid>\d+)/?
-
-    This is passed into ``download`` which resolves the item id (``iid``), and
-    determines if a user has permission to view the requested item with that id. If
-    a user is allowed to download this file, ``download`` iterates through each
-    download type defined in ``ARISTOTLE_SETTINGS.DOWNLOADERS``.
-
-    A download option tuple takes the following form form::
-
-        ('file_type','display_name','font_awesome_icon_name','module_name'),
-
-    With ``file_type`` allowing only ASCII alphanumeric and underscores,
-    ``display_name`` can be any valid python string,
-    ``font_awesome_icon_name`` can be any Font Awesome icon and
-    ``module_name`` is the name of the python module that provides a downloader
-    for this file type.
-
-    For example, the Aristotle-PDF with Aristotle-MDR is a PDF downloader which has the
-    download definition tuple::
-
-            ('pdf','PDF','fa-file-pdf-o','aristotle_pdr'),
-
-    Where a ``file_type`` multiple is defined multiple times, **the last matching
-    instance in the tuple is used**.
-
-    Next, the module that is defined for a ``file_type`` is dynamically imported using
-    ``exec``, and is wrapped in a ``try: except`` block to catch any exceptions. If
-    the ``module_name`` does not match the regex ``^[a-zA-Z0-9\_]+$`` ``download``
-    raises an exception.
-
-    If the module is able to be imported, ``downloader.py`` from the given module
-    is imported, this file **MUST** have a ``download`` function defined which returns
-    a Django ``HttpResponse`` object of some form.
-    """
+    def get_item_id_list(self):
+        iid = self.kwargs['iid']
+        item_ids = [iid]
+        return item_ids
 
     def get(self, request, *args, **kwargs):
         download_type = self.kwargs['download_type']
-        iid = self.kwargs.get('iid', None)
+        item_ids = self.get_item_id_list()
 
-        item = MDR._concept.objects.get_subclass(pk=iid)
-        item = get_if_user_can_view(item.__class__, request.user, iid)
-        if not item:
-            if request.user.is_anonymous():
-                return redirect(reverse('friendly_login') + '?next=%s' % request.path)
-            else:
-                raise PermissionDenied
         get_params = request.GET.copy()
-        get_params.setdefault('items', iid)
-        download_opts = fetch_aristotle_downloaders()
-        for kls in download_opts:
-            if download_type == kls.download_type:
-                # properties requested for the file requested
-                kls.item = item
-                properties = kls.get_download_config(request, iid)
-                if get_params.get('public', False):
-                    properties['user'] = False
-                res = kls.download.delay(properties, iid)
-                get_params.setdefault('title', properties.get('title', 'Auto-Generated Document'))
-                response = redirect('{}?{}'.format(
-                    reverse('aristotle:preparing_download', args=[download_type]),
-                    urlencode(get_params, True)
-                ))
-                download_key = request.session.get(download_utils.get_download_session_key(get_params, download_type))
-                if download_key:
-                    async_result(download_key).forget()
-                request.session[download_utils.get_download_session_key(get_params, download_type)] = res.id
-                return response
 
-        raise Http404
+        res = download_task.delay(download_type, item_ids, request.user.id)
+
+        downloader_class = None
+        dl_classes = fetch_aristotle_downloaders()
+        for klass in dl_classes:
+            if klass.download_type == download_type:
+                downloader_class = klass
+
+        if not downloader_class:
+            return HttpResponseNotFound()
+
+        request.session['download_result_id'] = res.id
+        res.forget()
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            'items': item_ids,
+            'file_details': {
+                'title': request.GET.get('title', self.title),
+                'items': 'The item names',
+                'format': CONSTANTS.FILE_FORMAT[download_type],
+                'is_bulk': self.bulk,
+                'ttl': int(CONSTANTS.TIME_TO_DOWNLOAD / 60),
+                'isReady': False
+            }
+        })
+        return context
 
 
 class BulkDownloadView(View):
@@ -202,7 +133,7 @@ class BulkDownloadView(View):
         raise Http404
 
 
-class PrepareAsyncDownloadView(TemplateView):
+class DownloadStatusView(View):
     """
     This view lets user know that the download is being prepared.
     Checks:
@@ -218,41 +149,11 @@ class PrepareAsyncDownloadView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         download_type = self.kwargs['download_type']
-        # Thanks to stackoverflow answer: https://stackoverflow.com/a/23177986
-        try:
-            get_params = request.GET.copy()
-            items = get_params.getlist('items')
-        except KeyError:
-            return HttpResponseBadRequest()
+        download_key = 'download_result_id'
 
-        download_key = download_utils.get_download_session_key(get_params, download_type)
-
-        if get_params.get('format', False):
-            get_params.pop('format')
-        start_new_download = False
-        try:
-            # Check if the job exists
-            res_id = request.session[download_key]
-            job = async_result(res_id)
-            if job.status == states.PENDING:
-                # make sure you don't call a forget in the rest of the function or else it will go into infinite loop
-                del request.session[download_key]
-                job.forget()
-                # Raising key error because key is invalid
-                raise KeyError
-        except KeyError:
-            start_new_download = True
-
-        if start_new_download:
-            if get_params.get('bulk'):
-                redirect_url = reverse('aristotle:bulk_download', args=[download_type])
-            else:
-                redirect_url = reverse('aristotle:download', args=[download_type, items[0]])
-
-            return redirect('{}?{}'.format(
-                redirect_url,
-                urlencode(get_params, True)
-            ))
+        # Check if the job exists
+        res_id = request.session[download_key]
+        job = async_result(res_id)
 
         context = {}
         download_url = '{}?{}'.format(
@@ -276,16 +177,12 @@ class PrepareAsyncDownloadView(TemplateView):
             if not cache.get(download_utils.get_download_cache_key(items, request=request, download_type=download_type)):
                 context['is_expired'] = True
                 del request.session[download_key]
-                job.forget()
 
-        if request.GET.get('format') == 'json':
-            return JsonResponse(context)
-
-        return super().get(request, *args, **kwargs)
+        job.forget()
+        return JsonResponse(context)
 
 
-# TODO: need a better redirect architecture, needs refactor.
-class GetAsyncDownloadView(View):
+class GetDownloadFileView(View):
     """
     This will return the download if the download is cached in redis.
     Checks:

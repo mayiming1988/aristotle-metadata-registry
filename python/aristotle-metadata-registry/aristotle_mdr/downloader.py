@@ -35,8 +35,6 @@ class DownloaderBase:
     # A unique identifier for the downloader (used in url and passed to task)
     download_type: str
 
-    item_ids: List[int] = []
-
     default_options = {
         'include_supporting': False,
         'subclasses': [],

@@ -1,5 +1,6 @@
 let interval = setInterval(getDownloadStatus, 1000);
 let downloadReady = false;
+
 function success(data) {
     if (data.is_expired) {
         expireDownload();
@@ -12,7 +13,7 @@ function success(data) {
 function getDownloadStatus() {
     $.ajax({
         dataType: 'json',
-        url: window.location,
+        url: '/dlstatus',
         data: {format: 'json'},
         contentType: 'application/json',
         success: success
