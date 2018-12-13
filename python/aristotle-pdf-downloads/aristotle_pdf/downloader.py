@@ -1,3 +1,4 @@
+from typing import Dict, Any
 from aristotle_mdr.utils import get_download_template_path_for_item, downloads as download_utils
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth import get_user_model
@@ -12,10 +13,11 @@ from django.template.loader import select_template, get_template
 from django.template import Context
 from django.utils.safestring import mark_safe
 from django.core.cache import cache
+from django.core.files.base import ContentFile
 from celery import shared_task
 
 from aristotle_mdr.contrib.help.models import ConceptHelp
-
+from aristotle_mdr.utils import fetch_aristotle_settings
 from aristotle_mdr.downloader import DownloaderBase
 
 import logging
@@ -38,6 +40,17 @@ class PDFDownloader(DownloaderBase):
     icon_class = "fa-file-pdf-o"
     description = "Downloads for various content types in the PDF format"
 
+    def get_base_download_config(self) -> Dict[str, Any]:
+        # page size for the pdf
+        aristotle_settings = fetch_aristotle_settings()
+        page_size = aristotle_settings.get('PDF_PAGE_SIZE', 'A4')
+
+        context = {
+            'user': self.user,
+            'page_size': page_size,
+        }
+        return context
+
     def get_download_config(self) -> Dict[str, Any]:
         """
         Create configuration for pdf download method
@@ -45,22 +58,19 @@ class PDFDownloader(DownloaderBase):
         :param iid: id of the item requested
         :return: properties for item, id of the item
         """
-        # page size for the pdf
-        page_size = getattr(settings, 'PDF_PAGE_SIZE', "A4")
+        context = self.get_base_download_config()
 
         item = self.items[0]
         sub_items = [
-            (obj_type, qs.visible(user).order_by('name').distinct())
+            (obj_type, qs.visible(self.user).order_by('name').distinct())
             for obj_type, qs in item.get_download_items()
         ]
 
-        context = {
-            'user': None,
-            'page_size': settings.PDF_PAGE_SIZE,
-            'title': self.item.name,
+        context.update({
+            'title': item.name,
             'subitems': sub_items,
             'tableOfContents': len(sub_items) > 0,
-        }
+        })
 
         return context
 
@@ -71,35 +81,35 @@ class PDFDownloader(DownloaderBase):
         :param items: items to download
         :return: properties computed, items
         """
+        context = self.get_base_download_config()
 
         _list = "<li>" + "</li><li>".join([item.name for item in items if item]) + "</li>"
         subtitle = mark_safe("Generated from the following metadata items:<ul>%s<ul>" % _list)
 
         item_querysets = items_for_bulk_download(items, user)
 
-        properties = {
-            'user': str(self.user),
+        context.update({
             'title': 'Auto-generated document',
             'subtitle': subtitle,
-            'debug_as_html': False,
-            'page_size': settings.PDF_PAGE_SIZE,
             'items': self.items,
             'included_items': sorted(
                 [(k, v) for k, v in item_querysets.items()],
                 key=lambda k_v: k_v[0]._meta.model_name
             ),
-        }
-        return properties
+        })
+        return context
 
     def download(self):
         if self.bulk:
             context = self.get_bulk_download_config()
             template = 'aristotle_mdr/downloads/pdf/bulk_download.html'
         else:
+            item = self.items[0]
             template = get_download_template_path_for_item(item, self.download_type)
             context = self.get_download_config()
 
-        return render_to_pdf(template, context)
+        byte_string = render_to_pdf(template, context)
+        return ContentFile(byte_string)
 
 
 def generate_outline_str(bookmarks, indent=0):

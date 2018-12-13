@@ -4,12 +4,14 @@ import os
 BASE_DIR = os.getenv('aristotlemdr__BASE_DIR', os.path.dirname(os.path.dirname(__file__)))
 SECRET_KEY = os.getenv('aristotlemdr__SECRET_KEY', "OVERRIDE_THIS_IN_PRODUCTION")
 STATIC_ROOT = os.getenv('aristotlemdr__STATIC_ROOT', os.path.join(BASE_DIR, "static"))
-MEDIA_ROOT = os.getenv('aristotlemdr__MEDIA_ROOT', os.path.join(BASE_DIR, "media"))
+# MEDIA_ROOT = os.getenv('aristotlemdr__MEDIA_ROOT', os.path.join(BASE_DIR, "media"))
 
 # Non overridable base dirs
 MDR_BASE_DIR = os.path.dirname(__file__)
 # This is only used in development
 REPO_BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(MDR_BASE_DIR)))
+
+MEDIA_ROOT = os.path.join(REPO_BASE_DIR, 'media')
 
 TEMPLATES_DIRS = [os.path.join(BASE_DIR, 'templates')]
 FIXTURES_DIRS = [os.path.join(MDR_BASE_DIR, 'fixtures')]

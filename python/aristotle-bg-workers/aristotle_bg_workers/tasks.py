@@ -6,6 +6,8 @@ from django.core.management import call_command
 from celery import shared_task, Task
 from celery.utils.log import get_task_logger
 
+from aristotle_mdr.utils.utils import fetch_aristotle_downloaders
+
 logger = get_task_logger(__name__)
 
 
@@ -15,19 +17,10 @@ def run_django_command(cmd, *args, **kwargs):
     call_command(cmd, stdout=out, stderr=err, **kwargs)
     err.seek(0)
     out.seek(0)
-    message = (
-"""Result:
-
-{out}
-
-Errors:
-
-{err}
-"""
-).format(
-    err=str(err.read()) or "None",
-    out=str(out.read())
-)
+    message = 'Result:\n\n{out}\n\n{err}'.format(
+        err=str(err.read()) or "None",
+        out=str(out.read())
+    )
     logger.debug(message)
     return message
 
@@ -43,11 +36,6 @@ class AristotleTask(Task):
 def reindex_task(self, *args, **kwargs):
     meta = {"requester": kwargs['requester'], "start_date": datetime.datetime.now()}
     self.update_state(meta=meta, state="STARTED")
-    # from time import sleep
-    # sleep(30)
-    # self.update_state(meta=meta, state="DOING")
-    # from time import sleep
-    # sleep(30)
     meta.update({"result": run_django_command('rebuild_index', interactive=False)})
     return meta
 
@@ -73,14 +61,14 @@ def update_search_index(action, sender, instance, **kwargs):
     instance = apps.get_model(instance['app_label'], instance['model_name']).objects.filter(pk=instance['pk']).first()
     processor = apps.get_app_config('haystack').signal_processor
     if action == "save":
-        logger.critical("UPDATING INDEX FOR {}".format(instance))
+        logger.debug("UPDATING INDEX FOR {}".format(instance))
         processor.handle_save(sender, instance, **kwargs)
     elif action == "delete":
         processor.handle_delete(sender, instance, **kwargs)
 
 
 @shared_task(name='download')
-def download(download_type: str, item_ids: List[int], user_id: int):
+def download(download_type, item_ids, user_id):
     dl_classes = fetch_aristotle_downloaders()
     for klass in dl_classes:
         if klass.download_type == download_type:

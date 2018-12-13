@@ -23,8 +23,6 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
-
-
 class GenericTaskView(IsSuperUserMixin, View):
 
     def get(self, request, task_name):
@@ -85,7 +83,7 @@ class TaskListView(IsSuperUserMixin, ListView):
             except Exception as e:
                 logger.warning(e)
                 return None
-        
+
         for task in qs:
             task.safe_result = json.loads(task.result)
             task.requester = get_user(task)

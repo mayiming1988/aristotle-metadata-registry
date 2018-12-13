@@ -129,12 +129,12 @@ urlpatterns=[
 
     url(r'^download/bulk/(?P<download_type>[a-zA-Z0-9\-\.]+)/?$', views.downloads.BulkDownloadView.as_view(), name='bulk_download'),
     url(r'^download/(?P<download_type>[a-zA-Z0-9\-\.]+)/(?P<iid>\d+)/?$', views.downloads.DownloadView.as_view(), name='download'),
-    url(r'^dlstatus?$',
+    url(r'^dlstatus/?$',
         views.downloads.DownloadStatusView.as_view(),
         name='download_status',
         ),
-    url(r'^downloading/(?P<download_type>[\w\-\. ]+)/?$',
-        views.downloads.GetDownloadFile.as_view(),
+    url(r'^downloading/?$',
+        views.downloads.GetDownloadFileView.as_view(),
         name='start_download',
         ),
 

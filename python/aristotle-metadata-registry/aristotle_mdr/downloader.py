@@ -1,10 +1,11 @@
-from typing import Any, List
+from typing import Any, List, Dict
 from aristotle_mdr.utils import get_download_template_path_for_item
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
 from django.core.cache import cache
+from django.core.files.storage import get_storage_class
 
 import io
 import csv
@@ -48,7 +49,7 @@ class DownloaderBase:
         self.error = False
 
         self.items = MDR._concept.objects.filter(id__in=item_ids).select_subclasses()
-        self.user = get_user_model().filter(id=user_id)
+        self.user = get_user_model().objects.get(id=user_id)
 
         self.options = self.default_options.copy()
         self.options.update(options)
@@ -74,23 +75,11 @@ class DownloaderBase:
         """
         raise NotImplementedError
 
-    def get_cache_key(self):
-        return download_utils.get_download_cache_key(
-            self.item_ids,
-            self.user,
-            download_type=self.download_type
-        )
-
-    def store_file(self, value, ttl=CONSTANTS.TIME_TO_DOWNLOAD):
-        """
-        This is the cache interface for all the download types.
-        :param key: Key is the combination of iid(s)
-        :param value: value is the value to be stored in the cache
-        :param ttl: It's the time to live for the cache storage
-        :return: returns None.
-        """
-        key = self.get_cache_key()
-        cache.set(key, value, ttl)
+    def store_file(self, content):
+        storage_class = get_storage_class()
+        storage = storage_class()
+        result = storage.save('myfile.pdf', content)
+        return result
 
 
 # Deprecated

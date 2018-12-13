@@ -7,7 +7,6 @@ from django.http import (
     HttpResponseBadRequest,
     HttpResponseServerError,
     HttpResponseNotFound,
-    HttpResponsePermissionDenied
 )
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template import TemplateDoesNotExist
@@ -16,7 +15,8 @@ from django.views.generic import TemplateView, View, FormView
 from aristotle_mdr import models as MDR
 from aristotle_mdr.views import get_if_user_can_view
 from aristotle_mdr.utils import fetch_aristotle_downloaders, downloads as download_utils
-from aristotle_bg_workers.tasks import download as download_task
+# from aristotle_bg_workers.tasks import download
+from aristotle_bg_workers.celery import app
 from celery.result import AsyncResult as async_result
 from celery import states
 from django.core.cache import cache
@@ -42,7 +42,7 @@ class DownloadView(TemplateView):
     bulk = False
 
     def get_item_id_list(self):
-        iid = self.kwargs['iid']
+        iid = int(self.kwargs['iid'])
         item_ids = [iid]
         return item_ids
 
@@ -52,7 +52,12 @@ class DownloadView(TemplateView):
 
         get_params = request.GET.copy()
 
-        res = download_task.delay(download_type, item_ids, request.user.id)
+        task_args = [download_type, item_ids, request.user.id]
+        res = app.send_task(
+            'download',
+            args=task_args
+        )
+        # res = download.delay(*task_args)
 
         downloader_class = None
         dl_classes = fetch_aristotle_downloaders()
@@ -64,17 +69,20 @@ class DownloadView(TemplateView):
             return HttpResponseNotFound()
 
         request.session['download_result_id'] = res.id
-        res.forget()
+        # res.forget()
+        self.download_type = download_type
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
+
+        item_ids = self.get_item_id_list()
         context.update({
             'items': item_ids,
             'file_details': {
-                'title': request.GET.get('title', self.title),
+                'title': self.request.GET.get('title', self.title),
                 'items': 'The item names',
-                'format': CONSTANTS.FILE_FORMAT[download_type],
+                'format': CONSTANTS.FILE_FORMAT[self.download_type],
                 'is_bulk': self.bulk,
                 'ttl': int(CONSTANTS.TIME_TO_DOWNLOAD / 60),
                 'isReady': False
@@ -148,37 +156,26 @@ class DownloadStatusView(View):
     template_name = 'aristotle_mdr/downloads/creating_download.html'
 
     def get(self, request, *args, **kwargs):
-        download_type = self.kwargs['download_type']
         download_key = 'download_result_id'
 
         # Check if the job exists
         res_id = request.session[download_key]
         job = async_result(res_id)
 
-        context = {}
-        download_url = '{}?{}'.format(
-            reverse('aristotle:start_download', args=[download_type]),
-            urlencode(get_params, True)
-        )
-        context['items'] = items
-        context['file_details'] = {
-            'title': request.GET.get('title', 'Auto Generated Document'),
-            'items': ', '.join([MDR._concept.objects.get_subclass(pk=int(iid)).name for iid in items]),
-            'format': CONSTANTS.FILE_FORMAT[download_type],
-            'is_bulk': request.GET.get('bulk', False),
-            'ttl': int(CONSTANTS.TIME_TO_DOWNLOAD / 60),
-            'isReady': False
+        context = {
+            'is_ready': False,
+            'is_expired': False,
+            'state': job.state,
+            'file_details': {}
         }
 
         if job.ready():
-            context['file_details']['download_url'] = download_url
+            if type(job.result) == bool:
+                context['file_details']['result'] = job.result
             context['is_ready'] = True
             context['is_expired'] = False
-            if not cache.get(download_utils.get_download_cache_key(items, request=request, download_type=download_type)):
-                context['is_expired'] = True
-                del request.session[download_key]
 
-        job.forget()
+        # job.forget()
         return JsonResponse(context)
 
 
@@ -194,10 +191,9 @@ class GetDownloadFileView(View):
     """
 
     def get(self, request, *args, **kwargs):
-        download_type = self.kwargs['download_type']
         items = request.GET.getlist('items', None)
+        download_key = 'download_result_id'
 
-        download_key = download_utils.get_download_session_key(request.GET, download_type)
         try:
             res_id = request.session[download_key]
         except KeyError:
@@ -215,7 +211,7 @@ class GetDownloadFileView(View):
                 logger.exception('Task {0} raised exception: {1!r}\n{2!r}'.format(res_id, exc, job.traceback))
                 return HttpResponseServerError('cant produce document, Try again')
 
-        job.forget()
+        # job.forget()
         try:
             doc, mime_type, properties = cache.get(
                 download_utils.get_download_cache_key(items, request=request, download_type=download_type),
