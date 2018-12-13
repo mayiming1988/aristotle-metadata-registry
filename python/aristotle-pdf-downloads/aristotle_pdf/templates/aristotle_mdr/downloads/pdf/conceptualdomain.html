@@ -8,7 +8,7 @@
     {% with total=item.dataelementconcept_set.count %}
             <h3>Data Element Concepts implementing this Conceptual Domain</h3>
             <ul>
-            {% for dec in item.dataelementconcept_set.all|can_view_iter:request.user %}
+            {% for dec in item.dataelementconcept_set.all|can_view_iter:user %}
                 <li>
                     {% include "aristotle_mdr/helpers/inlineDetails.html" with item=dec %}
                 </li>
@@ -20,7 +20,7 @@
     {% with total=item.valuedomain_set.count %}
             <h3>Value Domains implementing this Conceptual Domain</h3>
             <ul>
-            {% for vd in item.valuedomain_set.all|can_view_iter:request.user %}
+            {% for vd in item.valuedomain_set.all|can_view_iter:user %}
                 <li>
                     {% include "aristotle_mdr/helpers/inlineDetails.html" with item=vd %}
                 </li>

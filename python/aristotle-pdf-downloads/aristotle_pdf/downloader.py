@@ -68,6 +68,7 @@ class PDFDownloader(DownloaderBase):
 
         context.update({
             'title': item.name,
+            'item': item,
             'subitems': sub_items,
             'tableOfContents': len(sub_items) > 0,
         })
