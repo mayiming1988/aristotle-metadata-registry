@@ -42,6 +42,8 @@ class BaseDownloadView(TemplateView):
     template_name = 'aristotle_mdr/downloads/creating_download.html'
     bulk = False
 
+    options_session_key = 'download_options'
+
     def get_item_id_list(self) -> List[int]:
         """Returns a list of item ids"""
         raise NotImplementedError
@@ -57,8 +59,13 @@ class BaseDownloadView(TemplateView):
         else:
             user_id = None
 
-        task_args = [download_type, item_ids, user_id]
-        res = download.delay(*task_args)
+        if self.options_session_key in request.session:
+            options = request.session[self.options_session_key]
+        else:
+            # Default option on the downloader class will be used
+            options = {}
+
+        res = download.delay(download_type, item_ids, user_id, {})
 
         downloader_class = None
         dl_classes = fetch_aristotle_downloaders()

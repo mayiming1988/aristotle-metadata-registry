@@ -69,12 +69,12 @@ def update_search_index(action, sender, instance, **kwargs):
 
 
 @shared_task(name='download')
-def download(download_type, item_ids, user_id):
+def download(download_type, item_ids, user_id, options={}):
     dl_classes = fetch_aristotle_downloaders()
     for klass in dl_classes:
         if klass.download_type == download_type:
             # Instanciate downloader class
-            downloader = klass(item_ids, user_id, {})
+            downloader = klass(item_ids, user_id, options)
             # Create and store file
             result = downloader.download()
             downloader.store_file(result)
