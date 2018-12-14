@@ -9,6 +9,9 @@ from django.core.files.storage import get_storage_class
 
 import io
 import csv
+from hashlib import sha256
+import pickle
+
 from aristotle_mdr.contrib.help.models import ConceptHelp
 from aristotle_mdr import models as MDR
 from aristotle_mdr.views import get_if_user_can_view
@@ -48,15 +51,29 @@ class DownloaderBase:
         self.item_ids = item_ids
         self.error = False
 
-        self.items = MDR._concept.objects.filter(id__in=item_ids).select_subclasses()
         if user_id is not None:
             self.user = get_user_model().objects.get(id=user_id)
         else:
             self.user = AnonymousUser()
 
+        self.items = MDR._concept.objects.filter(id__in=item_ids).visible(self.user).select_subclasses()
+
         # Shallow copy of options
         self.options = self.default_options.copy()
         self.options.update(options)
+
+    def get_filename(self):
+        if self.user.is_authenticated:
+            userpart = str(self.user.id)
+        else:
+            userpart = 'anon'
+
+        arghash = sha256()
+
+        arghash.update(pickle.dumps((self.item_ids)))
+        arghash.update(pickle.dumps(self.options))
+
+        return '-'.join([userpart, arghash.hexdigest()])
 
     @property
     def bulk(self):
@@ -82,7 +99,8 @@ class DownloaderBase:
     def store_file(self, content):
         storage_class = get_storage_class()
         storage = storage_class()
-        result = storage.save('myfile.pdf', content)
+        filename = self.get_filename()
+        result = storage.save(filename, content)
         return result
 
 

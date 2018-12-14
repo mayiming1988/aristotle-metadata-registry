@@ -48,6 +48,7 @@ class PDFDownloader(DownloaderBase):
         context = {
             'user': self.user,
             'page_size': page_size,
+            'view': 'simple'
         }
         return context
 
@@ -84,10 +85,10 @@ class PDFDownloader(DownloaderBase):
         """
         context = self.get_base_download_config()
 
-        _list = "<li>" + "</li><li>".join([item.name for item in items if item]) + "</li>"
+        _list = "<li>" + "</li><li>".join([item.name for item in self.items if item]) + "</li>"
         subtitle = mark_safe("Generated from the following metadata items:<ul>%s<ul>" % _list)
 
-        item_querysets = items_for_bulk_download(items, user)
+        item_querysets = items_for_bulk_download(self.items, self.user)
 
         context.update({
             'title': 'Auto-generated document',
@@ -180,20 +181,20 @@ def render_to_pdf(template_src, context_dict,
     return document.write_pdf()
 
 
+# TODO this needs some optimisation
 def items_for_bulk_download(items, user):
     iids = {}
     item_querysets = {}  # {PythonClass:{help:ConceptHelp,qs:Queryset}}
     for item in items:
-        if item and item.can_view(user):
-            if item.__class__ not in iids.keys():
-                iids[item.__class__] = []
-            iids[item.__class__].append(item.pk)
+        if item.__class__ not in iids.keys():
+            iids[item.__class__] = []
+        iids[item.__class__].append(item.pk)
 
-            for metadata_type, qs in item.get_download_items():
-                if metadata_type not in item_querysets.keys():
-                    item_querysets[metadata_type] = {'help': None, 'qs': qs}
-                else:
-                    item_querysets[metadata_type]['qs'] |= qs
+        for metadata_type, qs in item.get_download_items():
+            if metadata_type not in item_querysets.keys():
+                item_querysets[metadata_type] = {'help': None, 'qs': qs}
+            else:
+                item_querysets[metadata_type]['qs'] |= qs
 
     for metadata_type, ids_set in iids.items():
         query = metadata_type.objects.filter(pk__in=ids_set)

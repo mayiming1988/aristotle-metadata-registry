@@ -2,6 +2,7 @@ import datetime
 from io import StringIO
 
 from django.core.management import call_command
+from django.core.exceptions import PermissionDenied
 
 from celery import shared_task, Task
 from celery.utils.log import get_task_logger
@@ -72,7 +73,9 @@ def download(download_type, item_ids, user_id):
     dl_classes = fetch_aristotle_downloaders()
     for klass in dl_classes:
         if klass.download_type == download_type:
+            # Instanciate downloader class
             downloader = klass(item_ids, user_id, {})
+            # Create and store file
             result = downloader.download()
             downloader.store_file(result)
             return True

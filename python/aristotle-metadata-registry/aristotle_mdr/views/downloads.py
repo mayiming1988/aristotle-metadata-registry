@@ -133,13 +133,15 @@ class DownloadStatusView(View):
     :return: appropriate HTTP response object
     """
 
-    template_name = 'aristotle_mdr/downloads/creating_download.html'
-
     def get(self, request, *args, **kwargs):
         download_key = 'download_result_id'
 
         # Check if the job exists
-        res_id = request.session[download_key]
+        try:
+            res_id = request.session[download_key]
+        except KeyError:
+            return HttpResponseNotFound()
+
         job = async_result(res_id)
 
         context = {
