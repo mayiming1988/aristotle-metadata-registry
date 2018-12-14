@@ -34,10 +34,11 @@ class DownloaderBase:
       * the string "__template__" indicating the downloader supports any metadata type with a matching download template
     """
     metadata_register: Any = {}
-    icon_class: str = ""
+    icon_class: str = 'file-text-o'
     description: str = ""
     # A unique identifier for the downloader (used in url and passed to task)
     download_type: str
+    file_extension: str = ''
 
     default_options = {
         'include_supporting': False,
@@ -69,11 +70,14 @@ class DownloaderBase:
             userpart = 'anon'
 
         arghash = sha256()
-
         arghash.update(pickle.dumps((self.item_ids)))
         arghash.update(pickle.dumps(self.options))
 
-        return '-'.join([userpart, arghash.hexdigest()])
+        fname = '-'.join([userpart, arghash.hexdigest()])
+        if self.file_extension:
+            return '.'.join([fname, self.file_extension])
+
+        return fname
 
     @property
     def bulk(self):
@@ -107,6 +111,7 @@ class DownloaderBase:
 # Deprecated
 class CSVDownloader(DownloaderBase):
     download_type = "csv-vd"
+    file_extension = 'csv'
     metadata_register = {'aristotle_mdr': ['valuedomain']}
     label = "CSV list of values"
     icon_class = "fa-file-excel-o"

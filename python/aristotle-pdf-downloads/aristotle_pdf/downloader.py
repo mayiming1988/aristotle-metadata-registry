@@ -35,6 +35,7 @@ logger.debug("Logging started for " + __name__)
 
 class PDFDownloader(DownloaderBase):
     download_type = "pdf"
+    file_extension = 'pdf'
     metadata_register = '__template__'
     label = "PDF"
     icon_class = "fa-file-pdf-o"
