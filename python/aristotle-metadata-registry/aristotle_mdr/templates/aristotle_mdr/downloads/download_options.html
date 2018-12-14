@@ -1,0 +1,9 @@
+{% extends 'aristotle_mdr/base.html' %}
+
+{% block content %}
+<form method="POST">
+  {% csrf_token %}
+  {{ form }}
+  <button class='btn btn-primary'>Download</button>
+</form>
+{% endblock %}

@@ -22,6 +22,7 @@ from celery import states
 from django.core.cache import cache
 from django.utils.http import urlencode
 from aristotle_mdr import constants as CONSTANTS
+from aristotle_mdr.forms.downloads import DownloadOptionsForm
 
 import logging
 from django.http import JsonResponse
@@ -115,7 +116,7 @@ class DownloadView(BaseDownloadView):
 class BulkDownloadView(BaseDownloadView):
 
     def get_item_id_list(self):
-        return request.GET.getlist('items')
+        return self.request.GET.getlist('items')
 
     def get_file_title(self, item_names):
         return 'Bulk Download'
@@ -133,12 +134,13 @@ class DownloadStatusView(View):
     :return: appropriate HTTP response object
     """
 
+    download_key = 'download_result_id'
+
     def get(self, request, *args, **kwargs):
-        download_key = 'download_result_id'
 
         # Check if the job exists
         try:
-            res_id = request.session[download_key]
+            res_id = request.session[self.download_key]
         except KeyError:
             return HttpResponseNotFound()
 
@@ -161,6 +163,7 @@ class DownloadStatusView(View):
         return JsonResponse(context)
 
 
+# Not currently used
 class GetDownloadFileView(View):
     """
     This will return the download if the download is cached in redis.
@@ -172,12 +175,13 @@ class GetDownloadFileView(View):
     :return:
     """
 
+    download_key = 'download_result_id'
+
     def get(self, request, *args, **kwargs):
         items = request.GET.getlist('items', None)
-        download_key = 'download_result_id'
 
         try:
-            res_id = request.session[download_key]
+            res_id = request.session[self.download_key]
         except KeyError:
             logger.exception('There is no key for request')
             raise Http404
@@ -217,4 +221,27 @@ class DownloadOptionsView(FormView):
     """
     Form with options before the download
     """
-    pass
+
+    template_name = 'aristotle_mdr/downloads/download_options.html'
+    form_class = DownloadOptionsForm
+    session_key = 'download_options'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.download_type = self.kwargs['download_type']
+        self.items = request.GET.getlist('items')
+        if not self.items:
+            return HttpResponseNotFound()
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        cleaned_data = form.cleaned_data
+        self.request.session[self.session_key] = cleaned_data
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        if len(self.items) > 1:
+            url = reverse('aristotle:bulk_download', args=[self.download_type])
+            return url + '?' + self.request.GET.urlencode()
+        else:
+            url = reverse('aristotle:download', args=[self.download_type, self.items[0]])
+            return url
