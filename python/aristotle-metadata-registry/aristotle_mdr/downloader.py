@@ -6,6 +6,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
 from django.core.cache import cache
 from django.core.files.storage import get_storage_class
+from django.core.files import File
 
 import io
 import csv
@@ -63,27 +64,7 @@ class DownloaderBase:
         self.options = self.default_options.copy()
         self.options.update(options)
 
-    def get_filename(self):
-        if self.user.is_authenticated:
-            userpart = str(self.user.id)
-        else:
-            userpart = 'anon'
-
-        arghash = sha256()
-        arghash.update(pickle.dumps((self.item_ids)))
-        arghash.update(pickle.dumps(self.options))
-
-        fname = '-'.join([userpart, arghash.hexdigest()])
-        if self.file_extension:
-            return '.'.join([fname, self.file_extension])
-
-        return fname
-
-    @property
-    def bulk(self):
-        return len(self.item_ids) > 1
-
-    def download(self):
+    def create_file(self) -> File:
         """
         This method must be overriden and return the downloadable object of appropriate type
         and mime type for the object
@@ -100,12 +81,50 @@ class DownloaderBase:
         """
         raise NotImplementedError
 
-    def store_file(self, content):
+    @property
+    def bulk(self):
+        return len(self.item_ids) > 1
+
+    def get_filename(self):
+        if self.user.is_authenticated:
+            userpart = str(self.user.id)
+        else:
+            userpart = 'anon'
+
+        arghash = sha256()
+        arghash.update(pickle.dumps(self.item_ids))
+        arghash.update(pickle.dumps(self.options))
+
+        fname = '-'.join([userpart, arghash.hexdigest()])
+        if self.file_extension:
+            return '.'.join([fname, self.file_extension])
+
+        return fname
+
+    def retrieve_file(self, filename: str) -> Optional[str]:
+        """Use defualt storage class to retrieve file if it exists"""
         storage_class = get_storage_class()
         storage = storage_class()
+        if storage.exists(filename):
+            return storage.url(filename)
+
+    def store_file(self, filename: str, content: File) -> str:
+        """Use default storage class to store file"""
+        storage_class = get_storage_class()
+        storage = storage_class()
+        storage.save(filename, content)
+        return storage.url(filename)
+
+    def download(self) -> str:
+        """Get the url for this downloads file, creating it if neccesary"""
         filename = self.get_filename()
-        result = storage.save(filename, content)
-        return result
+
+        url = self.retrieve_file(filename)
+        if url is not None:
+            return url
+
+        fileobj = self.create_file()
+        return self.store_file(filename, fileobj)
 
 
 # Deprecated

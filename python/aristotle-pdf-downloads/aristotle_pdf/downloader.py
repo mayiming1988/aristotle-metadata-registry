@@ -102,7 +102,7 @@ class PDFDownloader(DownloaderBase):
         })
         return context
 
-    def download(self):
+    def create_file(self):
         if self.bulk:
             context = self.get_bulk_download_config()
             template = 'aristotle_mdr/downloads/pdf/bulk_download.html'

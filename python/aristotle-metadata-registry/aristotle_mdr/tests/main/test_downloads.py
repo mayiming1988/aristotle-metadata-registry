@@ -31,7 +31,7 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
     @modify_settings(INSTALLED_APPS={'append': 'aristotle_pdf'})
     def test_download_task(self):
         result = download('pdf', [self.item.id], self.editor.id)
-        self.assertTrue(result)
+        self.assertIsNotNone(result)
 
     def test_dl_options_get_no_items(self):
         url = reverse('aristotle:download_options', args=['txt'])

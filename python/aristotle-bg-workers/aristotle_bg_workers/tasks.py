@@ -1,3 +1,4 @@
+from typing import Optional, List
 import datetime
 from io import StringIO
 
@@ -69,15 +70,13 @@ def update_search_index(action, sender, instance, **kwargs):
 
 
 @shared_task(name='download')
-def download(download_type, item_ids, user_id, options={}):
+def download(download_type: str, item_ids: List[int], user_id: int, options={}) -> Optional[str]:
     dl_classes = fetch_aristotle_downloaders()
     for klass in dl_classes:
         if klass.download_type == download_type:
             # Instanciate downloader class
             downloader = klass(item_ids, user_id, options)
-            # Create and store file
-            result = downloader.download()
-            downloader.store_file(result)
-            return True
+            # Get file url
+            return downloader.download()
 
-    return False
+    return None
