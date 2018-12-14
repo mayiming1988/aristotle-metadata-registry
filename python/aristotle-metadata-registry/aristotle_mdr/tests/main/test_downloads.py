@@ -63,8 +63,5 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
 
         self.assertEqual(
             self.client.session['download_options'],
-            {
-                'include_supporting': True,
-                'email_copy': True
-            }
+            {'include_supporting': True, 'email_copy': True}
         )

@@ -65,7 +65,7 @@ class BaseDownloadView(TemplateView):
             # Default option on the downloader class will be used
             options = {}
 
-        res = download.delay(download_type, item_ids, user_id, {})
+        res = download.delay(download_type, self.item_ids, user_id, options)
 
         downloader_class = None
         dl_classes = fetch_aristotle_downloaders()
@@ -92,7 +92,7 @@ class BaseDownloadView(TemplateView):
     def get_file_details(self) -> Dict[str, Any]:
         item_names = self.get_item_names()
         return {
-            'title': self.get_file_title(),
+            'title': self.get_file_title(item_names),
             'items': ', '.join(item_names),
             'format': CONSTANTS.FILE_FORMAT[self.download_type],
             'is_bulk': len(self.item_ids) > 1,

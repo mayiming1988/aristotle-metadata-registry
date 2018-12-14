@@ -1,3 +1,7 @@
+import initCore from 'src/lib/init.js'
+
+initCore()
+
 let interval = setInterval(getDownloadStatus, 1000);
 let downloadReady = false;
 
@@ -17,9 +21,7 @@ function getDownloadStatus() {
         data: {format: 'json'},
         contentType: 'application/json',
         success: success
-    }).fail(function (error) {
-        console.log("failure", error);
-    });
+    })
 }
 
 function expireDownload() {
@@ -49,6 +51,7 @@ function readyDownload(file_details) {
     initDocumentDownload();
 }
 
+// Should be removed in favour of back button in template (not called atm)
 function goBackDownloadButton() {
     let goBackButton = $('<button></button>');
     goBackButton.append($('<i></i>').attr("class", "fa fa-arrow-left"));
