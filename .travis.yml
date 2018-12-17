@@ -47,16 +47,17 @@ defaults:
     install:
       - pip install codecov coveralls
       - pip install 'tox>=3.0'
-      - nvm install 8.12.0
+      - nvm install 10.13.0
     <<: *main_test_script
 
   - &test_accessibility_py36
     stage: accessibility
+    name: "Accessibility Tests"
     language: python
     install:
       - pip install codecov coveralls
       - pip install 'tox>=3.0'
-      - nvm install 8.12.0
+      - nvm install 10.13.0
     python: 3.6
     before_script:
       - cd assets
@@ -66,30 +67,12 @@ defaults:
     script: ./scripts/tox_if.sh dj1.11-linux-ally-$ALLY-module_amr
 
   - &deploy_stage
-    stage: deploy-it
-    language: python
-    python: 3.6
-    install:
-      - pip install -U pip
-      - pip install pipenv
-      - nvm install 8.12.0
-    script: ./scripts/buildandcopy.sh
-    after_success: true
-    deploy: &deploy_step
-      provider: pypi
-      user: Samuel.Spencer
-      skip_upload_docs: true
-      password:
-        secure: fNL+70u1QPgkC3+6iLSPBBeo/J1VrwVn6Tg9PdKR3n4X/m6MgAboDc93CfccfsxVxGqsIRBtEfUwRCJ6MrajWqgfQhjQ9KodiYzPVS8vPUQyOtn73AB8iPYKgKX1pFn6UVXcnI67RmtPyJJEUFPbqy5saKZfRpjVRH3vjM2mDJ0=
-      on:
-        branch: master
-      distributions: sdist bdist_wheel
-      repo: aristotle-mdr/aristotle-metadata-registry
 
 matrix:
 
   include:
     - stage: stylecheck
+      name: "Python Lint"
       language: python
       install:
         - pip install codecov coveralls
@@ -97,7 +80,26 @@ matrix:
       python: 3.6
       script: tox -e flake8
 
+    - name: "Python Type Checking"
+      language: python
+      install:
+        - pip install mypy
+      python: 3.6
+      script: mypy ./python/*/aristotle_*
+
+    - name: "JS Lint"
+      language: node_js
+      node_js: 10
+      before_install:
+        - cd assets
+      install:
+        - npm install
+      script:
+        - npm run lint
+
+
     - stage: documentation
+      name: "Documentation"
       language: python
       install:
         - pip install codecov coveralls
@@ -106,8 +108,9 @@ matrix:
       script: ./scripts/tox_if.sh docs
 
     - stage: frontend
+      name: "Frontend Tests"
       language: node_js
-      node_js: 8
+      node_js: 10
       before_install:
         - cd assets
       install:
@@ -116,21 +119,32 @@ matrix:
         - npm run test
 
     - stage: testing-aristotle-mdr
+      name: "Aristotle Tests Sqlite/Elasticsearch"
+      if: type = push
       env: DJANGO_VERSION='1.11'  DB=sqlite  SEARCH=elastic MODULE=amr
       <<: *main_test_script_py36
     - stage: testing-aristotle-mdr
+      name: "Aristotle Tests Postgres/Elasticsearch"
       env: DJANGO_VERSION='1.11'  DB=postgres  SEARCH=elastic MODULE=amr
       <<: *main_test_script_py36
     - stage: testing-aristotle-mdr
+      name: "Aristotle Tests Sqlite/Whoosh"
+      if: type = push
       env: DJANGO_VERSION='1.11'  DB=sqlite    SEARCH=whoosh MODULE=amr
       <<: *main_test_script_py36
     - stage: testing-aristotle-mdr
+      name: "Aristotle Tests Postgres/Whoosh"
+      if: type = push
       env: DJANGO_VERSION='1.11'  DB=postgres  SEARCH=whoosh MODULE=amr
       <<: *main_test_script_py36
     - stage: testing-aristotle-mdr
+      name: "Aristotle Tests Mariadb/Whoosh"
+      if: type = push
       env: DJANGO_VERSION='1.11'  DB=mariadb   SEARCH=whoosh MODULE=amr
       <<: *main_test_script_py36
     - stage: testing-aristotle-mdr
+      name: "Aristotle Tests Mariadb/Elasticsearch"
+      if: type = push
       env: DJANGO_VERSION='1.11'  DB=mariadb   SEARCH=elastic MODULE=amr
       <<: *main_test_script_py36
 
@@ -143,22 +157,27 @@ matrix:
     #   <<: *main_test_script_py36
 
     - stage: testing-modules
+      name: "Dataset Extenstions Tests"
       env: DJANGO_VERSION='1.11'  DB=postgres   SEARCH=elastic MODULE=dse
       <<: *main_test_script_py36
 
     - stage: testing-modules
+      name: "Comet Tests"
       env: DJANGO_VERSION='1.11'  DB=postgres   SEARCH=elastic MODULE=cir
       <<: *main_test_script_py36
 
     - stage: testing-modules
+      name: "PDF Downloads Tests"
       env: DJANGO_VERSION='1.11'  DB=postgres   SEARCH=elastic MODULE=apd
       <<: *main_test_script_py36
 
     - stage: testing-modules
+      name: "Graphql Tests"
       env: DJANGO_VERSION='1.11'  DB=postgres   SEARCH=elastic MODULE=gql
       <<: *main_test_script_py36
 
     - stage: testing-modules
+      name: "API Tests"
       env: DJANGO_VERSION='1.11'  DB=postgres   SEARCH=elastic MODULE=api
       <<: *main_test_script_py36
 
@@ -170,12 +189,24 @@ matrix:
     - <<: *test_accessibility_py36
       env: ALLY=static MODULE=aristotle-metadata-registry
 
-    - <<: *deploy_stage
+
+    - stage: deploy-it
+      name: "Deploy"
       if: branch = master
+      install: skip
+      script: ./scripts/buildandcopy.sh
+      after_success: true
       deploy:
-        <<: *deploy_step
+        provider: pypi
+        user: Samuel.Spencer
+        skip_upload_docs: true
+        skip_cleanup: true
+        password:
+          secure: fNL+70u1QPgkC3+6iLSPBBeo/J1VrwVn6Tg9PdKR3n4X/m6MgAboDc93CfccfsxVxGqsIRBtEfUwRCJ6MrajWqgfQhjQ9KodiYzPVS8vPUQyOtn73AB8iPYKgKX1pFn6UVXcnI67RmtPyJJEUFPbqy5saKZfRpjVRH3vjM2mDJ0=
         on:
           branch: master
+        distributions: sdist bdist_wheel
+        repo: aristotle-mdr/aristotle-metadata-registry
 
 after_success:
   - ./scripts/coverage_reporter.sh $MODULE

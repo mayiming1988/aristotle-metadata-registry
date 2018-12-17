@@ -45,7 +45,6 @@ class AristotleResolver(object):
             return None
 
         elif isinstance(retval, Manager):
-
             # Need this for when related manager is returned when querying object.related_set
             # Can safely return restricted queryset
             queryset = retval.get_queryset()
@@ -53,20 +52,19 @@ class AristotleResolver(object):
             if queryset.model == slots_models.Slot:
                 instance = getattr(retval, 'instance', None)
                 if instance:
-                    return get_allowed_slots(instance, info.context.user)
+                    return slots_models.Slot.objects.get_item_allowed(instance, info.context.user)
                 else:
-                    return filter_slot_perms(queryset, info.context.user)
+                    return queryset.visible(info.context.user)
 
             if hasattr(queryset, 'visible'):
                 return queryset.visible(info.context.user)
 
             if issubclass(queryset.model, mdr_models.aristotleComponent):
                 return queryset
-            
-            return None
-            
-        elif isinstance(retval, QuerySet):
 
+            return None
+
+        elif isinstance(retval, QuerySet):
             # In case a queryset is returned
             if hasattr(retval, 'visible'):
                 return retval.visible(info.context.user)

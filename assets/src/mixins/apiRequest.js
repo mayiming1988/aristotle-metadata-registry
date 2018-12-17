@@ -1,23 +1,18 @@
-import axios from 'axios'
-import { getCSRF } from '../lib/cookie.js'
+import request from 'src/lib/request.js'
 
 export default {
     data: () => ({
+        request_error: '',
+        // Wether to put request error in this.errors
+        combine_errors: true,
         errors: {},
         loading: false,
         response: {}
     }),
     methods: {
-        request: function(url, data, method) {
-            let csrf_token = getCSRF()
-
+        request: function(url, data, params, method) {
             this.loading = true
-            let promise = axios({
-                method: method,
-                url: url,
-                data: data,
-                headers: {'X-CSRFToken': csrf_token}
-            })
+            let promise = request(method, url, data, params)
 
             promise.then((response) => {
                 this.response = response
@@ -33,33 +28,42 @@ export default {
                     this.response = error.response
                 } else if (error.request) {
                     // Request was sent, server did not respond
-                    this.errors = {'request': ['Request could not be completed. Please try again soon']}
+                    this.setRequestError('Request could not be completed. Please try again soon')
                 } else {
                     // Request wasnt sent
-                    this.errors = {'request': ['Request could not be completed']}
+                    this.setRequestError('Request could not be completed')
                 }
                 this.loading = false
             })
             // Return the promise so additional handlers can be added
             return promise
         },
-        post: function(url, data) {
-            return this.request(url, data, 'post')
+        setRequestError: function(error_msg) {
+            this.request_error = error_msg
+            if (this.combine_errors) {
+                this.errors = {'request': [error_msg]}
+            }
         },
-        get: function(url) {
-            return this.request(url, {}, 'get')
+        post: function(url, data) {
+            return this.request(url, data, {}, 'post')
+        },
+        get: function(url, params) {
+            return this.request(url, {}, params, 'get')
         },
         patch: function(url, data) {
-            return this.request(url, data, 'patch')
+            return this.request(url, data, {}, 'patch')
         },
         put: function(url, data) {
-            return this.request(url, data, 'put')
+            return this.request(url, data, {}, 'put')
         },
         delete: function(url, data) {
-            return this.request(url, data, 'delete')
+            return this.request(url, data, {}, 'delete')
         },
         isEmpty: function(obj) {
             return (Object.keys(obj).length == 0)
+        },
+        redirect: function(url) {
+            window.location.assign(url)
         }
     },
     computed: {

@@ -65,3 +65,7 @@ docker/data
 # webpack
 assets/node_modules/*
 assets/dist/*
+assets/coverage/*
+
+# mypy
+.mypy_cache/*

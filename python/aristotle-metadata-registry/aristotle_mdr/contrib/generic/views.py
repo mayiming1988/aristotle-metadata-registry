@@ -1,3 +1,4 @@
+from typing import List, Callable, Any, Dict
 from django import forms
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist
 from django.urls import reverse
@@ -9,20 +10,24 @@ from django.shortcuts import redirect, get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import FormView, TemplateView, View
 from django.core.signing import TimestampSigner
+from django.views.generic import ListView, DeleteView
 
 from aristotle_mdr.contrib.autocomplete import widgets
 from aristotle_mdr.models import _concept, ValueDomain, AbstractValue
 from aristotle_mdr.perms import user_can_edit, user_can_view
 from aristotle_mdr.utils import construct_change_message
+from aristotle_mdr.utils.text import capitalize_words
 from aristotle_mdr.contrib.generic.forms import (
     ordered_formset_factory, ordered_formset_save,
     one_to_many_formset_excludes, one_to_many_formset_filters,
     HiddenOrderFormset, HiddenOrderInlineFormset,
     get_aristotle_widgets
 )
+import json
 import reversion
 import inspect
 import re
+from copy import copy
 
 import logging
 logger = logging.getLogger(__name__)
@@ -47,9 +52,9 @@ def generic_foreign_key_factory_view(request, **kwargs):
 
 
 class GenericWithItemURLView(View):
-    user_checks = []
-    permission_checks = [user_can_view]
-    model_base = _concept
+    user_checks: List[Callable] = []
+    permission_checks: List[Callable] = [user_can_view]
+    model_base: object = _concept
     item_kwarg = "iid"
 
     def dispatch(self, request, *args, **kwargs):
@@ -81,11 +86,11 @@ class GenericWithItemURLFormView(GenericWithItemURLView, FormView):
 
 
 class GenericAlterManyToSomethingFormView(GenericWithItemURLFormView):
-    permission_checks = [user_can_edit]
-    model_base = None
-    model_to_add = None
-    model_base_field = None
-    form_title = None
+    permission_checks: List[Callable] = [user_can_edit]
+    model_base: Any = None
+    model_to_add: Any = None
+    model_base_field = ''
+    form_title = ''
     form_submit_text = _('Save')
 
     def get_context_data(self, *args, **kwargs):
@@ -363,7 +368,7 @@ class GenericAlterManyToManyOrderView(GenericAlterManyToManyView):
 class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
     is_ordered = False
     ordering_field = None
-    formset_class = None
+    formset_class: Any = None
     template_name = "aristotle_mdr/generic/actions/alter_one_to_many.html"
     formset_factory = inlineformset_factory
     formset = None
@@ -504,13 +509,12 @@ class UnorderedGenericAlterOneToManyView(GenericAlterOneToManyViewBase):
     `Dataset`s, to alter the `DataElement`s attached to a `Dataset`, `Dataset` is the
     `base_model` and `model_to_add` is `DataElement`.
     """
-    model_to_add_field = None
-    form_add_another_text = None
+    model_to_add_field = ''
+    form_add_another_text = ''
     formset = None
 
 
 class ExtraFormsetMixin:
-
     # Mixin of utils function for adding addtional formsets to a view
     # extra_formsets must contain formset, type, title and saveargs
     # See EditItemView for example usage
@@ -669,6 +673,14 @@ class ExtraFormsetMixin:
 
         return final_formset
 
+    def get_slots_formset(self):
+        from aristotle_mdr.contrib.slots.forms import slot_inlineformset_factory
+        return slot_inlineformset_factory()
+
+    def get_identifier_formset(self):
+        from aristotle_mdr.contrib.identifiers.forms import identifier_inlineformset_factory
+        return identifier_inlineformset_factory()
+
     def get_model_field(self, model, search_model):
         # get the field in the model that we are adding so it can be excluded from form
         model_to_add_field = ''
@@ -767,3 +779,169 @@ class ConfirmDeleteView(GenericWithItemURLView, TemplateView):
     def post(self, *args, **kwargs):
         self.perform_deletion()
         return HttpResponseRedirect(self.get_success_url())
+
+
+class BootTableListView(ListView):
+    """Lists objects in a bootstrap table (with optional pagination)"""
+    template_name='aristotle_mdr/generic/boottablelist.html'
+    # Need to override these
+    headers: List[str]
+    attrs: List[str]
+    model_name=''
+    # Can optionally override these
+    blank_value: Dict[str, str]
+    page_heading=''
+    create_button_text=''
+    create_url_name=''
+    delete_url_name=''
+    update_url_name=''
+
+    def get_heading(self) -> str:
+        if self.page_heading:
+            return self.page_heading
+        else:
+            return 'List of {}s'.format(self.model_name)
+
+    def get_create_text(self) -> str:
+        if self.create_button_text:
+            return self.create_button_text
+        else:
+            return 'New {}'.format(self.model_name)
+
+    def get_listing(self, iterable) -> List[Dict]:
+        listing = []
+        for item in iterable:
+            itemdict = {'attrs': [], 'pk': item.pk}
+            for attr in self.attrs:
+                val = getattr(item, attr)
+                if not val and attr in self.blank_value:
+                    val = self.blank_value[attr]
+                itemdict['attrs'].append(val)
+            listing.append(itemdict)
+
+        return listing
+
+    def get_context_data(self) -> dict:
+        context = super().get_context_data()
+        headers = copy(self.headers)
+
+        page_heading = self.get_heading()
+        create_button_text = self.get_create_text()
+
+        if self.create_url_name:
+            create_url = reverse(self.create_url_name)
+        else:
+            create_url = ''
+
+        if self.update_url_name:
+            headers.append('Update')
+        if self.delete_url_name:
+            headers.append('Delete')
+
+        if context['page_obj'] is not None:
+            iterable = context['page_obj']
+        else:
+            iterable = context['object_list']
+
+        final_list = self.get_listing(iterable)
+
+        context.update({
+            'list': final_list,
+            'headers': headers,
+            'page_heading': page_heading,
+            'create_button_text': create_button_text,
+            'create_url': create_url,
+            'delete_url_name': self.delete_url_name,
+            'update_url_name': self.update_url_name
+        })
+        return context
+
+
+class CancelUrlMixin:
+    cancel_url_name=''
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        if self.cancel_url_name:
+            context['cancel_url'] = reverse(self.cancel_url_name)
+        return context
+
+
+class VueFormView(FormView):
+    """
+    A view for returning a serialized json representation of a django form
+    for use with vue components. Does not permit the POST method as that
+    should be handled by the api
+    """
+
+    # Mapping of widgets to extra fields data
+    widget_mapping: Dict[str, Dict] = {
+        'Textarea': {'tag': 'textarea'},
+        'Select': {'tag': 'select'},
+    }
+
+    # Attributes to pull from field as rules
+    rules_attrs_to_pull: List[str] = ['required', 'max_length', 'min_length']
+
+    # Base field data
+    default_tag = 'input'
+
+    # Fields to strip from initial
+    non_write_fields: List = []
+    # Wether to capitalize option names
+    capitalize_options: bool = True
+
+    def get_vue_initial(self):
+        # To be overwritten
+        return {}
+
+    def strip_fields(self, data: List[Dict]):
+        for fname in self.non_write_fields:
+            if fname in data:
+                del data[fname]
+
+    def get_vue_form_fields(self, form: forms.Form) -> Dict[str, Dict]:
+        vuefields = {}
+        for fname, field in form.fields.items():
+            widget_name = type(field.widget).__name__
+
+            field_data = {
+                'rules': {},
+                'tag': self.default_tag,
+                'label': field.label,
+                'options': [],
+                'default': field.initial
+            }
+
+            if widget_name in self.widget_mapping:
+                field_data.update(self.widget_mapping[widget_name])
+
+            if widget_name == 'Select':
+                # field.choices can be an iterator hence the need for this
+                field_data['options'] = [[c[0], c[1]] for c in field.choices]
+
+                if self.capitalize_options:
+                    for item in field_data['options']:
+                        item[1] = capitalize_words(item[1])
+
+            for attr in self.rules_attrs_to_pull:
+                if hasattr(field, attr):
+                    attrdata = getattr(field, attr)
+                    if attrdata:
+                        field_data['rules'][attr] = attrdata
+
+            vuefields[fname] = field_data
+        return vuefields
+
+    def post(self, request, *args, **kwargs):
+        return self.http_method_not_allowed(request, *args, **kwargs)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data()
+        context['vue_fields'] = json.dumps(
+            self.get_vue_form_fields(context['form'])
+        )
+        initial = self.get_vue_initial()
+        self.strip_fields(initial)
+        context['vue_initial'] = json.dumps(initial)
+        return context

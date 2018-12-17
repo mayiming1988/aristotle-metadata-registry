@@ -22,6 +22,6 @@
   <issue-modal 
     v-model="issueModalOpen" 
     iid="{{ item.id }}"
-    url="{% url 'api_v4:issues_create' %}">
+    url="{% url 'api_v4:issues:create' %}">
   </issue-modal>
 {% endblock %}

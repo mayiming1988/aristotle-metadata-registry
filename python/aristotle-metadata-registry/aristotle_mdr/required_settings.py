@@ -78,24 +78,27 @@ SILENCED_SYSTEM_CHECKS = [
     'models.E023',  # This gets called because we named a model with an underscore
 ]
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS: list = []
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
-ARISTOTLE_ASYNC_SIGNALS = True
+ARISTOTLE_ASYNC_SIGNALS = os.getenv('ARISTOTLE_ASYNC_SIGNALS', False) == "True"
 
 INSTALLED_APPS = (
+    'aristotle_bg_workers',
+    'aristotle_mdr.contrib.reviews',
     'aristotle_mdr',
-    'aristotle_mdr.contrib.view_history',
     'aristotle_mdr.contrib.generic',
     'aristotle_mdr.contrib.help',
     'aristotle_mdr.contrib.slots',
     'aristotle_mdr.contrib.identifiers',
     'aristotle_mdr.contrib.browse',
     'aristotle_mdr.contrib.autocomplete',
-    'aristotle_mdr.contrib.user_management',
     'aristotle_mdr.contrib.favourites',
+    'aristotle_mdr.contrib.view_history',
+    'aristotle_mdr.contrib.user_management',
     'aristotle_mdr.contrib.issues',
     'aristotle_mdr.contrib.publishing',
+    'aristotle_mdr.contrib.custom_fields',
     'aristotle_mdr.contrib.stewards',
     'aristotle_mdr.contrib.groups',
 
@@ -125,6 +128,7 @@ INSTALLED_APPS = (
     'organizations',
 
     'constrainedfilefield',
+    'django_celery_results',
 
     'webpack_loader',
 
@@ -134,10 +138,9 @@ INSTALLED_APPS = (
     'rest_framework_swagger',
     'django_filters',
 
-    'django_jsonforms'
+    'django_jsonforms',
+    'missing'
 
-    # 'aristotle_bg_workers',
-    # 'django_celery_results',
 )
 
 USE_L10N = True
@@ -206,8 +209,9 @@ ARISTOTLE_SETTINGS = {
         'aristotle_mdr.forms.bulk_actions.RemoveFavouriteForm',
         'aristotle_mdr.forms.bulk_actions.ChangeStateForm',
         'aristotle_mdr.forms.bulk_actions.ChangeWorkgroupForm',
-        'aristotle_mdr.forms.bulk_actions.RequestReviewForm',
+        # 'aristotle_mdr.forms.bulk_actions.RequestReviewForm',
         'aristotle_mdr.forms.bulk_actions.BulkDownloadForm',
+        'aristotle_mdr.contrib.reviews.forms.RequestReviewBulkActionForm',
     ],
     'DASHBOARD_ADDONS': [],
     'METADATA_CREATION_WIZARDS': [
@@ -304,19 +308,23 @@ CACHE_ITEM_PAGE = False
 BLEACH_ALLOWED_TAGS = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'em',
                        'i', 'li', 'ol', 'strong', 'ul', 'table', 'tbody', 'thead',
                        'tr', 'th', 'td', 'img', 'p', 'h1', 'h2', 'h3', 'h4',
-                       'h5', 'h6', 'sub', 'sup', 'br']
+                       'h5', 'h6', 'sub', 'sup', 'br', 'u']
 
 BLEACH_ALLOWED_ATTRIBUTES = {
-    'a': ['href', 'title'],
+    'a': ['href', 'title', 'class', 'data-aristotle-concept-id'],
     'abbr': ['title'],
     'acronym': ['title'],
     'img': ['src', 'height', 'width', 'alt']
 }
 
 # Validators
+ARISTOTLE_VALIDATION_RUNNER = 'aristotle_mdr.contrib.validators.runner'
+ARISTOTLE_VALIDATION_FILERUNNER_PATH = os.getenv('aristotlemdr__FILE_VALIDATION_RUNNER_PATH', None)
+
 ARISTOTLE_VALIDATORS = {
-    'RegexValidator': 'aristotle_mdr.validators.RegexValidator',
-    'StatusValidator': 'aristotle_mdr.validators.StatusValidator'
+    'RegexValidator': 'aristotle_mdr.contrib.validators.RegexValidator',
+    'StatusValidator': 'aristotle_mdr.contrib.validators.StatusValidator',
+    'RelationValidator': 'aristotle_mdr.contrib.validators.RelationValidator',
 }
 
 # Serialization

@@ -40,11 +40,14 @@
           {% endif %}
       </div>
       {% endif %}
+      {% if custom_values %}
+        {% include 'aristotle_mdr/custom_fields/custom_fields_display.html' %}
+      {% endif %}
       {% if 'aristotle_mdr.contrib.slots'|is_active_module %}
           {% include "aristotle_mdr/slots/slots_display.html" %}
       {% endif %}
-      {% if 'aristotle_mdr.contrib.links'|is_active_module %}
-          {% include "aristotle_mdr/links/links_display.html" %}
+      {% if 'aristotle_mdr_links'|is_active_extension and links %}
+          {% include "aristotle_mdr/links/links_display.html" with links=links %}
       {% endif %}
       <h2>Related content</h2>
       {% block relationships %}{% endblock %}
@@ -58,7 +61,7 @@
     :open="tagsModalOpen" 
     item-tags="{{ item_tags }}" 
     user-tags="{{ user_tags }}" 
-    submit-url="{% url 'aristotle_favourites:edit_tags' item.id %}"
+    submit-url="{% url 'api_v4:item_tags' item.id %}"
     @saved-tags="updateTags"
     @hide="closeTagsModal">
   </tags-modal>
@@ -66,6 +69,6 @@
   <issue-modal 
     v-model="issueModalOpen" 
     iid="{{ item.id }}"
-    url="{% url 'api_v4:issues_create' %}">
+    url="{% url 'api_v4:issues:create' %}">
   </issue-modal>
 {% endblock %}

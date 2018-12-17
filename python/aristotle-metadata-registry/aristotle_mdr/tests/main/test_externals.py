@@ -18,7 +18,7 @@ This test suite houses tests to third-party modules to ensure they are being run
 we need them.
 """
 
-class AristotleAutocompletes(utils.LoggedInViewPages, TestCase):
+class AristotleAutocompletes(utils.AristotleTestUtils, TestCase):
     def setUp(self):
         super().setUp()
 
@@ -69,12 +69,7 @@ class AristotleAutocompletes(utils.LoggedInViewPages, TestCase):
 
         self.item1.save()
 
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            state=self.ra.public_state,
-            registration_date=datetime.date(2010,1,1)
-        )
-        review.concepts.add(self.item1)
+        self.make_review_request(self.item1, self.registrar)
 
         self.ra.register(self.item1,models.STATES.standard,self.registrar,
             registrationDate=timezone.now()+datetime.timedelta(days=-1)
@@ -116,12 +111,7 @@ class AristotleAutocompletes(utils.LoggedInViewPages, TestCase):
                 definition="not really an xman, no matter how much he tries",
                 workgroup=self.wg1)
 
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            state=self.ra.public_state,
-            registration_date=datetime.date(2010,1,1)
-        )
-        review.concepts.add(dp)
+        self.make_review_request(dp, self.registrar)
 
         dp = models.ObjectClass.objects.get(pk=dp.pk) # Un-cache
         self.assertTrue(perms.user_can_view(self.registrar,dp))

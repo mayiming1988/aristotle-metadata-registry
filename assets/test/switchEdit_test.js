@@ -1,18 +1,18 @@
 import chai from 'chai'
+import sinon from 'sinon'
 import VueTestUtils from '@vue/test-utils'
+import { clickElementIfExists, fakePromiseMethod } from './utils.js'
 
 import switchEditComponent from '../src/components/switchEdit.vue'
+import switchEditApi from '../src/components/switchEditApi.vue'
 
 var assert = chai.assert
-var mount = VueTestUtils.mount
 var shallowMount = VueTestUtils.shallowMount
 
 describe('switchEditComponent', function() {
 
-    var wrapper
-
     beforeEach(function() {
-        wrapper = mount(switchEditComponent, {
+        this.wrapper = shallowMount(switchEditComponent, {
             propsData: {
                 name: 'description',
                 initial: 'yay',
@@ -22,25 +22,95 @@ describe('switchEditComponent', function() {
     })
 
     it('displays correctly when not editing', function() {
-        assert.include(wrapper.html(), '<p class="small-p">yay</p>')
-        assert.include(wrapper.html(), 'Edit <i')
-        assert.notInclude(wrapper.html(), '<textarea')
+        assert.equal(this.wrapper.find('para-stub').props('text'), 'yay')
+        assert.equal(this.wrapper.find('a.inline-action').text(), 'Edit')
+        assert.isFalse(this.wrapper.find('textarea').exists())
     })
 
     it('displays correctly when editing', function() {
-        wrapper.setData({editing: true})
-        assert.include(wrapper.html(), '<textarea')
-        assert.include(wrapper.html(), 'Save Changes</button>')
-        assert.include(wrapper.html(), 'Cancel</button>')
-        assert.notInclude(wrapper.html(), 'Edit <i')
+        this.wrapper.setData({editing: true})
+        assert.isTrue(this.wrapper.find('textarea').exists())
+        assert.equal(this.wrapper.find('button.btn-primary').text(), 'Save Changes')
+        assert.equal(this.wrapper.find('button.btn-default').text(), 'Cancel')
+        assert.isFalse(this.wrapper.find('a.inline-action').exists())
     })
 
     it('computes capital name', function() {
-        assert.equal(wrapper.vm.capitalName, 'Description')
+        assert.equal(this.wrapper.vm.capitalName, 'Description')
     })
 
     it('sets div id', function() {
-        assert.equal(wrapper.vm.divId, 'switch-description')
-        assert.include(wrapper.html(), '<div id="switch-description">')
+        assert.equal(this.wrapper.vm.divId, 'switch-description')
+        assert.equal(this.wrapper.attributes('id'), 'switch-description')
+    })
+})
+
+
+describe('switchEditApi', function() {
+
+    beforeEach(function() {
+        this.wrapper = shallowMount(switchEditApi, {
+            propsData: {
+                name: 'description',
+                initial: 'yay',
+                submitUrl: '/test/'
+            }
+        })
+    })
+
+    it('makes patch request on submit', function() {
+        let fake = fakePromiseMethod(this.wrapper, 'patch', {})
+
+        this.wrapper.setData({
+            value: 'Nice description',
+            editing: true
+        })
+        clickElementIfExists(this.wrapper, 'button.btn-primary')
+
+        assert.isTrue(fake.calledOnce)
+        assert.isTrue(
+            fake.calledWithExactly('/test/', {description: 'Nice description'})
+        )
+    })
+
+    it('sets editing false on success', function() {
+        // setup fake patch method
+        let fake = sinon.fake.resolves({status: 200})
+        this.wrapper.setMethods({
+            patch: fake
+        })
+
+        // Set data
+        this.wrapper.setData({
+            editing: true
+        })
+
+        clickElementIfExists(this.wrapper, 'button.btn-primary')
+
+        assert.isTrue(fake.calledOnce)
+        let call = fake.firstCall
+        return this.wrapper.vm.$nextTick().then(() => {
+            assert.isFalse(this.wrapper.vm.editing)
+        })
+    })
+
+    it('keeps editing true on fail', function() {
+        // setup fake patch method
+        let fake = sinon.fake.rejects()
+        this.wrapper.setMethods({
+            patch: fake
+        })
+
+        // Set data
+        this.wrapper.setData({
+            editing: true
+        })
+
+        clickElementIfExists(this.wrapper, 'button.btn-primary')
+
+        assert.isTrue(fake.calledOnce)
+        return this.wrapper.vm.$nextTick().then(() => {
+            assert.isTrue(this.wrapper.vm.editing)
+        })
     })
 })

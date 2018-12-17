@@ -1,6 +1,6 @@
 GRAPHENE_DEBUG = False
 
-GRAPHENE = {
+GRAPHENE: dict = {
     'SCHEMA': 'aristotle_mdr_graphql.schema.schema',
 }
 

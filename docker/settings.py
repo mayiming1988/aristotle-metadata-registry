@@ -16,9 +16,11 @@ INSTALLED_APPS = [
 ALLOWED_HOSTS = ["*"]
 DEBUG = os.environ.get('DJANGO_DEBUG', False) == "True"
 ARISTOTLE_SETTINGS['SITE_NAME'] = 'Aristotle Development Server'
+ARISTOTLE_SETTINGS['DOWNLOADERS'] = ['aristotle_mdr.downloader.CSVDownloader', 'aristotle_pdf.downloader.PDFDownloader']
+
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-ARISTOTLE_ASYNC_SIGNALS = False
+
 ROOT_URLCONF = 'urls'
 
 ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] += [
@@ -33,10 +35,12 @@ INSTALLED_APPS = list(INSTALLED_APPS) + [
     "aristotle_dse",
     "aristotle_pdf",
     "aristotle_glossary",
-    "comet",
-    "mallard_qr",
+    # "comet",
+    # "mallard_qr",
     "aristotle_mdr_graphql",
 ]
+
+from aristotle_glossary.settings import CKEDITOR_CONFIGS
 
 MIDDLEWARE.append('impersonate.middleware.ImpersonateMiddleware')
 

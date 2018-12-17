@@ -49,12 +49,6 @@ class UtilsTests(TestCase):
         ra = models.RegistrationAuthority.objects.create(name="tname",definition="my definition")
         org = models.Organization.objects.create(name="tname",definition="my definition")
         wg = models.Workgroup.objects.create(name="tname",definition="my definition")
-        rr = models.ReviewRequest.objects.create(
-            requester=user,
-            registration_authority=ra,
-            state=ra.public_state,
-            registration_date=datetime.date(2010,1,1)
-        )
 
         url = utils.get_aristotle_url(item._meta.label_lower, item.pk, item.name)
         self.assertEqual(url, reverse('aristotle:item', args=[item.pk]))
@@ -68,21 +62,40 @@ class UtilsTests(TestCase):
         url = utils.get_aristotle_url(wg._meta.label_lower, wg.pk, wg.name)
         self.assertEqual(url, reverse('aristotle:workgroup', args=[wg.pk, wg.name]))
 
-        url = utils.get_aristotle_url(rr._meta.label_lower, rr.pk)
-        self.assertEqual(url, reverse('aristotle:userReviewDetails', args=[rr.pk]))
-
         url = utils.get_aristotle_url('aristotle_mdr.fake_model', 7, 'fake_name')
         self.assertTrue(url is None)
 
     def test_pretify_camel_case(self):
-        pcc = utils.utils.pretify_camel_case
+        pcc = utils.text.pretify_camel_case
         self.assertEqual(pcc('ScopedIdentifier'), 'Scoped Identifier')
         self.assertEqual(pcc('Namespace'), 'Namespace')
         self.assertEqual(pcc('LongerCamelCase'), 'Longer Camel Case')
 
+    def test_strip_tags_link_text(self):
+        stripped = utils.utils.strip_tags('My <a href="/url/">Linked</a> Text')
+        self.assertEqual(stripped, 'My Linked Text')
+
+    def test_strip_tags_normal_text(self):
+        stripped = utils.utils.strip_tags('Some Normal Text')
+        self.assertEqual(stripped, 'Some Normal Text')
+
+    def test_truncate_words_required(self):
+        text = 'A whole bunch of words'
+        trunced = utils.text.truncate_words(text, 3)
+        self.assertEqual(trunced, 'A whole bunch...')
+
+    def test_truncate_words_not_required(self):
+        text = 'Only some words'
+        trunced = utils.text.truncate_words(text, 3)
+        self.assertEqual(trunced, text)
+
+    def test_capitalize_words(self):
+        cw = utils.text.capitalize_words
+        self.assertEqual(cw('some lower case words'), 'Some Lower Case Words')
+        self.assertEqual(cw('Mixed case Words'), 'Mixed Case Words')
+
     @tag('version')
     def test_version_field_value_only(self):
-
         field = VersionField(
             value='My Value',
             help_text='Help Me'
@@ -96,7 +109,6 @@ class UtilsTests(TestCase):
 
     @tag('version')
     def test_version_field_reference(self):
-
         field = VersionField(
             obj=[self.oc1.id, self.oc2.id],
             reference_label='aristotle_mdr._concept',
@@ -124,7 +136,6 @@ class UtilsTests(TestCase):
 
     @tag('version')
     def test_version_field_list_handling(self):
-
         field = VersionField(
             obj=[self.oc1],
         )
@@ -149,7 +160,6 @@ class UtilsTests(TestCase):
 
     @tag('version')
     def test_version_field_obj_display(self):
-
         field = VersionField(
             obj=self.oc1,
         )
@@ -162,7 +172,6 @@ class UtilsTests(TestCase):
 
     @tag('version')
     def test_version_field_component_display(self):
-
         vd = models.ValueDomain.objects.create(
             name='Test Value Domain',
             definition='Test Definition'
@@ -186,7 +195,6 @@ class UtilsTests(TestCase):
 
     @tag('version')
     def test_version_field_invalid_lookup(self):
-
         field = VersionField(
             obj=[2],
             reference_label='aristotle_mdr._concept'
@@ -200,3 +208,12 @@ class UtilsTests(TestCase):
         self.assertFalse(field.is_link)
         self.assertFalse(field.is_reference)
         self.assertEqual(str(field), field.perm_message)
+
+    def test_get_concept_models(self):
+        cm = utils.utils.get_concept_models()
+        self.assertTrue(models.DataElement in cm)
+        self.assertFalse(models.PermissibleValue in cm)
+
+    def test_get_concept_models_doesnt_return_concept(self):
+        cm = utils.utils.get_concept_models()
+        self.assertFalse(models._concept in cm)

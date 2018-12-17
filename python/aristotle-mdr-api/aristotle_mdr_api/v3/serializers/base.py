@@ -19,7 +19,7 @@ from django.core.serializers.python import Serializer as PySerializer
 from aristotle_mdr import models as MDR
 from django.core.serializers.json import Serializer as JSONSerializer
 
-from aristotle_mdr.contrib.slots.utils import get_allowed_slots
+from aristotle_mdr.contrib.slots.models import Slot
 
 import uuid
 import datetime
@@ -87,7 +87,7 @@ class Serializer(PySerializer):
                 user = None
 
             if user:
-                allowed_slots = get_allowed_slots(obj, user)
+                allowed_slots = Slot.objects.get_item_allowed(obj, user)
             else:
                 allowed_slots = []
 
@@ -353,8 +353,8 @@ def Deserializer(manifest, **options):
                             else:
                                 return force_text(model._meta.pk.to_python(value), strings_only=True)
                     else:
-                        def m2m_convert(v):
-                            return force_text(model._meta.pk.to_python(v), strings_only=True)
+                        def m2m_convert(value):
+                            return force_text(model._meta.pk.to_python(value), strings_only=True)
 
                     try:
                         m2m_data[field.name] = []

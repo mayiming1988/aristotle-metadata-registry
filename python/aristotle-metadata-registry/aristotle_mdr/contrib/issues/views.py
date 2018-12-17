@@ -1,7 +1,7 @@
 from django.http import HttpResponseNotFound
 from django.views.generic import TemplateView, DetailView
 
-from aristotle_mdr.views.utils import SimpleItemGet, TagsMixin
+from aristotle_mdr.views.utils import SimpleItemGet
 from aristotle_mdr.contrib.issues.models import Issue
 from aristotle_mdr import perms
 
@@ -50,9 +50,7 @@ class IssueDisplay(IssueBase, TemplateView):
         return issue
 
     def get(self, request, *args, **kwargs):
-        item, code = self.get_item(request.user)
-        if not item:
-            return HttpResponse(status_code=code)
+        item = self.get_item(request.user)
 
         self.item = item
         self.issue = self.get_issue()

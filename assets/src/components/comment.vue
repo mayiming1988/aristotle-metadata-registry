@@ -9,7 +9,6 @@
 
     <template>
       <para :text="body"></para>
-      <p v-for="line in bodyLines" class="small-p">{{ line }}</p>
     </template>
   </user-panel>
 </template>

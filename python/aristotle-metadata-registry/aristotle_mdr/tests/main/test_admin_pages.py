@@ -148,7 +148,7 @@ class AdminPage(utils.LoggedInViewPages,TestCase):
         response = self.client.get(reverse("admin:index"))
         self.assertResponseStatusCodeEqual(response,200)
 
-class AdminPageForConcept(utils.LoggedInViewPages):
+class AdminPageForConcept(utils.AristotleTestUtils):
     form_defaults = {}
     create_defaults = {}
     def setUp(self,instant_create=True):
@@ -243,12 +243,8 @@ class AdminPageForConcept(utils.LoggedInViewPages):
         self.assertEqual(self.wg1.items.count(),1)
         before_count = self.wg1.items.count()
 
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            state=self.ra.public_state,
-            registration_date=datetime.date(2010,1,1)
-        )
-        review.concepts.add(self.item1)
+        self.make_review_request(self.item1, self.registrar)
+
         old_count = self.item1.statuses.count()
         self.ra.register(self.item1,models.STATES.standard,self.registrar)
         self.assertTrue(self.item1.statuses.count() == old_count + 1)
@@ -385,12 +381,9 @@ class AdminPageForConcept(utils.LoggedInViewPages):
             self.item1.save()
 
         old_count = self.item1.statuses.count()
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            state=self.ra.public_state,
-            registration_date=datetime.date(2010,1,1)
-        )
-        review.concepts.add(self.item1)
+
+        self.make_review_request(self.item1, self.registrar)
+
         with reversion.create_revision():
             self.item1.name = "change 2"
             reversion.set_comment("change 2")

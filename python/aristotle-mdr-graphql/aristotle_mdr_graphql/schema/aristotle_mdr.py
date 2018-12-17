@@ -17,13 +17,6 @@ from aristotle_mdr_graphql import resolvers
 from aristotle_mdr_graphql.filterset import ConceptFilterSet
 
 
-class StatusNode(DjangoObjectType):
-    state_name = graphene.String()
-    class Meta:
-        model = mdr_models.Status
-        default_resolver = resolvers.aristotle_resolver
-
-
 WorkgroupNode = type_from_model(mdr_models.Workgroup)
 # OrganizationNode = type_from_model(mdr_models.Organization)
 
@@ -49,7 +42,7 @@ UnitOfMeasureNode = type_from_concept_model(mdr_models.UnitOfMeasure)
 DataTypeNode = type_from_concept_model(mdr_models.DataType)
 ConceptualDomainNode = type_from_concept_model(mdr_models.ConceptualDomain)
 
-ValueMeaningNode = inline_type_from_model(mdr_models.ValueMeaning)
+# ValueMeaningNode = inline_type_from_model(mdr_models.ValueMeaning)
 PermissibleValueNode = inline_type_from_model(mdr_models.PermissibleValue)
 SupplementaryValueNode = inline_type_from_model(mdr_models.SupplementaryValue)
 
@@ -73,7 +66,7 @@ DataElementNode = type_from_concept_model(
     extra_filter_fields=['dataElementConcept','valueDomain','dataElementConcept__objectClass'],
 )
 
-DataElementConceptNode = type_from_model(mdr_models.DataElementConcept)
+DataElementConceptNode = type_from_concept_model(mdr_models.DataElementConcept)
 DataElementDerivationNode = type_from_concept_model(mdr_models.DataElementDerivation)
 
 

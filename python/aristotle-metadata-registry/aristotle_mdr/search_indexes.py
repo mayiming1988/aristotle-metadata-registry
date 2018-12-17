@@ -6,6 +6,8 @@ from django.template import TemplateDoesNotExist, loader
 from django.utils import timezone
 from django.template import loader
 
+from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
+
 import logging
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
@@ -15,13 +17,13 @@ BASE_RESTRICTION = {
     1: 'Locked',
     2: 'Unlocked',
 }
-RESTRICTION = {}
+RESTRICTION: dict = {}
 # reverse the dictionary to make two-way look ups easier
 RESTRICTION.update([(k, v) for k, v in BASE_RESTRICTION.items()])
 RESTRICTION.update([(str(k), v) for k, v in BASE_RESTRICTION.items()])
 RESTRICTION.update([(v, k) for k, v in BASE_RESTRICTION.items()])
 
-registered_indexes = []
+registered_indexes: list = []
 
 
 class ConceptFallbackCharField(indexes.CharField):
@@ -111,7 +113,7 @@ class conceptIndex(baseObjectIndex):
 
     def prepare_registrationAuthorities(self, obj):
         ras_stats = [str(s.registrationAuthority.id) for s in obj.current_statuses().all()]
-        ras_reqs = [str(rr.registration_authority.id) for rr in obj.review_requests.filter(~Q(status=models.REVIEW_STATES.cancelled)).all()]
+        ras_reqs = [str(rr.registration_authority.id) for rr in obj.rr_review_requests.filter(~Q(status=REVIEW_STATES.revoked)).all()]
 
         return list(set(ras_stats + ras_reqs))
 

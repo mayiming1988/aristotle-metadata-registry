@@ -1,0 +1,98 @@
+{% extends "aristotle_mdr/reviews/review/base.html" %}
+{% load i18n humanize %}
+{% load aristotle_tags %}
+{% load render_bundle from webpack_loader %}
+
+
+{% block webpack_css_bundle %}
+  {% render_bundle 'reviews' 'css' %}
+{% endblock %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'reviews' 'js' %}
+{% endblock %}
+
+
+{% block title %}Review details{{ item.name }}{% endblock %}
+{% block tabpanel %}
+          <div role="tabpanel" class="tab-pane active">
+            
+            <div class="container" style="padding-top:10px">
+              {% if review.message %}
+                <comment
+                  pic="{{ review.requester.profile.profile_picture_url }}"
+                  name="{{ review.requester.get_short_name }}"
+                  created="{{ review.created|date:"c" }}"
+                  body="{{ review.message }}">
+                </comment>
+              {% endif %}
+  
+              {% for item in review.timeline %}
+                {% if item.timeline_type == "comment" %}
+                  <comment
+                    pic="{{ item.author.profile.profile_picture_url }}"
+                    name="{{ item.author.get_short_name }}"
+                    created="{{ item.created|date:"c" }}"
+                    body="{{ item.body }}">
+                  </comment>
+                {% elif item.timeline_type == "status_change" %}
+                  <status-change-timeline
+                    name="{{ item.actor.get_short_name }}"
+                    status="{{ item.status_code }}"
+                    created="{{ item.created|date:"c" }}"
+                    >
+                  </status-change-timeline>
+                {% elif item.timeline_type == "endorsement" %}
+                  <endorsement-timeline
+                    name="{{ item.actor.get_short_name }}"
+                    registration-state="{{ item.get_registration_state_display }}"
+                    created="{{ item.created|date:"c" }}"
+                    >
+                  </endorsement-timeline>
+                {% endif %}
+                
+              {% endfor %}
+
+              <timeline :items="timeline_items"></timeline>
+
+              <comment 
+                v-for="comment in new_comments" 
+                :key="comment.id"
+                :pic="comment.pic"
+                :name="comment.name"
+                :created="comment.created"
+                :body="comment.body">
+              </comment>
+
+              {% if can_accept_review %}
+                <register-pane
+                  :review-status="status"
+                  initial-status="{{review.status_code}}"
+                  registration-authority="{{review.registration_authority.name }}"
+                  registration-authority-url="{{review.registration_authority.get_absolute_url }}"
+                  target-registration-state="{{review.get_target_registration_state_display}}"
+                  approval-url="{% url 'aristotle_reviews:accept_review' review.id %}"
+                  endorse-url="{% url 'aristotle_reviews:endorse_review' review.id %}"
+                >
+                </register-pane>
+              {% endif %}
+
+              <hr id="accept_review">
+
+              <review-comment
+                pic="{{ user.profile.profile_picture_url }}"
+                user-id="{{ user.id }}"
+                user-name="{{ user.get_short_name }}"
+                review-id="{{ review.id }}"
+                initial-review-state="{{ review.status_code }}"
+                comment-url="{% url 'api_v4:reviews:comment' %}"
+                open-close-url="{% url 'api_v4:reviews:update_and_comment' object.id %}"
+                can-approve-review="{{ can_approve_review }}"
+                can-open-close-review="{{ can_open_close_review }}"
+                @set_status="setStatus"
+                @created="addComment">
+              </review-comment>
+
+            </div>
+          </div>
+{% endblock %}
