@@ -6,7 +6,6 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class User(AbstractUser):
-
     email = LowerEmailField(_('email address'), max_length=254, unique=True)
 
     @property
