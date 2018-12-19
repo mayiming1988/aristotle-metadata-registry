@@ -460,8 +460,10 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
 
         if 'display_share' in self.request.GET:
             context['display_share'] = True
+            context['number_of_accounts_user_is_sharing_with'] = len(self.get_initial().get('emails'))
         else:
             context['display_share'] = False
+
         return context
 
     def post(self, *args, **kwargs):
