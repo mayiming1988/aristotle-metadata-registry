@@ -10,8 +10,6 @@ import aristotle_glossary.models as gmodels
 from aristotle_mdr import perms
 from aristotle_mdr.tests.main.test_admin_pages import AdminPageForConcept
 from aristotle_mdr.tests.main.test_html_pages import LoggedInViewConceptPages
-from django.test.utils import setup_test_environment
-setup_test_environment()
 
 
 def setUpModule():
@@ -68,23 +66,6 @@ class GlossaryItemAdminPage(AdminPageForConcept,TestCase):
         'alternate_definitions-INITIAL_FORMS':0,
         'alternate_definitions-MAX_NUM_FORMS':1,
         }
-
-class CustomGlossaryDialogTests(utils.LoggedInViewPages,TestCase):
-    """
-    There isn't much we can do to test these yet, but we can verify they at least load.
-    They are in the wizard section as they are used in the editing pages.
-    """
-    def test_glossary_search_dialog(self):
-        self.logout()
-        response = self.client.get(reverse('aristotle_glossary:search_dialog'))
-        self.assertEqual(response.status_code,302) # redirect to login
-
-        self.login_editor()
-        response = self.client.get(reverse('aristotle_glossary:search_dialog'))
-        self.assertEqual(response.status_code,200)
-
-        response = self.client.post(reverse('aristotle_glossary:search_dialog'),{})
-        self.assertEqual(response.status_code,200)
 
 
 class GlossaryViewPage(LoggedInViewConceptPages,TestCase):

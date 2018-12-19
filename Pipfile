@@ -13,6 +13,7 @@ redis = ">2.10,<3.0"
 "django-haystack-elasticsearch" = "*"
 
 aristotle-metadata-registry = {path = "./python/aristotle-metadata-registry", editable = true}
+aristotle-bg-workers = {path = "./python/aristotle-bg-workers", editable = true}
 aristotle-dataset-extensions = {path = "./python/aristotle-dataset-extensions", editable = true}
 aristotle-glossary = {path = "./python/aristotle-glossary/", editable = true}
 aristotle-mdr-api = {path = "./python/aristotle-mdr-api", editable = true}
@@ -20,7 +21,6 @@ aristotle-mdr-graphql = {path = "./python/aristotle-mdr-graphql", editable = tru
 aristotle-pdf-downloads = {path = "./python/aristotle-pdf-downloads", editable = true}
 comet-indicator-registry = {path = "./python/comet-indicator-registry", editable = true}
 mallard-questionnaire-registry = {path = "./python/mallard-questionnaire-registry", editable = true}
-aristotle-bg-workers = {path = "./python/aristotle-bg-workers", editable = true}
 
 
 [dev-packages]
@@ -42,5 +42,6 @@ python_version = "3.6"
 
 [scripts]
 test = "django-admin test --settings=aristotle_mdr.tests.settings.settings"
+djshell = "django-admin shell --settings=aristotle_mdr.tests.settings.settings"
 lint = "flake8"
 type = "/bin/sh -c 'mypy ./python/*/aristotle_*'"

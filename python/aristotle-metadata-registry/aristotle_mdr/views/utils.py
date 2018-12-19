@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List, Any
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 
 from django.conf import settings
@@ -10,6 +10,8 @@ from django.db.models import Count, Q, Model
 from django.db.models.functions import Lower
 from django.db.models.query import QuerySet
 from django.forms.models import model_to_dict
+from django.views.generic import FormView
+from django import forms
 from django.http import (
     Http404,
     JsonResponse,
@@ -436,6 +438,14 @@ class AlertFieldsMixin:
         context = super().get_context_data(*args, **kwargs)
         context.update({'alert_fields': self.alert_fields})
         return context
+
+
+class UserFormViewMixin:
+    def get_form_kwargs(self, *args, **kwargs):
+        kwargs = super().get_form_kwargs(*args, **kwargs)
+        if getattr(self, 'user_form', False):
+            kwargs['user'] = self.request.user
+        return kwargs
 
 
 class AjaxFormMixin:

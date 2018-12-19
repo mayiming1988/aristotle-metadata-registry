@@ -72,7 +72,6 @@ export function initDALWidget(element) {
                     q: params.term, // search term
                     page: params.page,
                     create: element.attr('data-autocomplete-light-create') && !element.attr('data-tags'),
-                    // forward: null
                 };
                 return data;
             },

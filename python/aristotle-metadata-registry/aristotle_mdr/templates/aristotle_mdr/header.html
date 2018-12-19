@@ -58,7 +58,7 @@
             {% with notecount=user.notifications.count %}
               <li class="dropdown">
                   <a id="header_menu_button_user" href="{% url 'aristotle:userHome' %}" accesskey="u" class="dropdown-toggle" role="menu" data-toggle="dropdown" title="{% trans 'Open user menu' %}">
-                      <img style="" src="{{ request.user.profile.profile_picture_url }}" width="20px" alt="Profile Picture"></img>
+                      <img class="small-profile-picture" src="{{ request.user.profile.profile_picture_url }}" width="20px" alt="Profile Picture"></img>
                       {% firstof user.get_short_name user.email %}
                       {% if user.is_superuser %}
                           <em>(Admin)</em>
@@ -69,8 +69,7 @@
                           <i class="fa fa-home fa-fw"></i> {% trans 'My Dashboard'%}
                       </a></li>
                       <li><a href="{% url 'aristotle:userProfile' %}">
-                          <img style="" src="{{ request.user.profile.profile_picture_url }}" width="18px"
-                               alt="Profile Picture"/>
+                          <img class="small-profile-picture" src="{{ request.user.profile.profile_picture_url }}" width="18px" alt="Profile Picture"></img>
                           {% trans 'My Profile'%}
                       </a></li>
                       <li><a href="{% url 'aristotle_favourites:favs_and_tags' %}">
@@ -81,11 +80,14 @@
                           <i class="fa fa-envelope fa-fw"></i> {% trans 'Notifications'%}
                           <span class="badge" title="{{ notecount }} unread notifications">{{ notecount }}</span>
                       </a></li>
+                      <li><a href="{% url 'aristotle:userWorkgroups' %}">
+                          <i class="fa fa-users fa-fw"></i> {% trans 'Workgroups'%}
+                      </a></li>
                       <li><a href="{% url 'aristotle:discussions' %}">
                           <i class="fa fa-comments fa-fw"></i> {% trans 'Discussions'%}
                       </a></li>
-                      <li><a href="{% url 'aristotle:userWorkgroups' %}">
-                          <i class="fa fa-users fa-fw"></i> {% trans 'Workgroups'%}
+                      <li><a href="{% url 'aristotle:userSandbox' %}">
+                          <i class="fa fa-pencil-square-o fa-fw"></i> {% trans 'My Sandbox'%}
                       </a></li>
                       <li><a href="{% url 'aristotle:userRecentItems' %}">
                           <i class="fa fa-history fa-fw"></i> {% trans 'Recent actions'%}

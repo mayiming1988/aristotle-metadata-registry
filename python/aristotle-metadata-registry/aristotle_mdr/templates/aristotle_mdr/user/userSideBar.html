@@ -8,7 +8,7 @@
     </li>
     <li class="dashboard_link {% ifequal activeTab "profile" %}active{% endifequal %}">
         <a href="{% url 'aristotle:userProfile' %}">
-        <img style="margin-left:-25px; margin-right:3px" src="{{ request.user.profile.profile_picture_url }}" width="20px" alt="Profile Picture"></img>
+        <img class="small-profile-picture" style="margin-left:-25px; margin-right:3px" src="{{ request.user.profile.profile_picture_url }}" width="20px" alt="Profile Picture"></img>
         {% trans "My Profile" %}
         </a>
     </li>
@@ -63,7 +63,7 @@
         <i class="fa fa-pencil-square-o fa-fw"></i> {% trans "My Sandbox" %}</a>
     </li>
     <li {% ifequal activeTab "myreviewrequests" %}class="active"{% endifequal %}>
-        <a href="{% url 'aristotle:userMyReviewRequests' %}">
+        <a href="{% url 'aristotle_reviews:userMyReviewRequests' %}">
         <i class="fa fa-flag-o fa-fw"></i> {% trans "My Review Requests" %}</a>
     </li>
     <li role="presentation" class="nav-divider"></li>
@@ -75,7 +75,7 @@
         {% if request.user.profile.is_registrar %}
           {% ifequal activeTab "registrarTools" %}
           <ul class="nav nav-pills nav-stacked nav-collapse dashSubMenu">
-              <li><a href="{% url 'aristotle:userReadyForReview' %}">
+              <li><a href="{% url 'aristotle_reviews:userReadyForReview' %}">
                   {% comment %}Translators: A link to the list of things to be reviewed.{% endcomment %}
                   <i class="fa fa-flag fa-fw"></i> {% trans 'Review list' %}
               </a></li>

@@ -5,6 +5,8 @@ from django.utils.module_loading import import_string
 from aristotle_mdr.utils import fetch_aristotle_settings
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
+from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
+
 
 class UUIDManager(models.Manager):
     def create_uuid(self, instance):
@@ -57,7 +59,6 @@ class ConceptQuerySet(MetadataItemQuerySet):
             ObjectClass.objects.filter(name__contains="Person").visible()
             ObjectClass.objects.visible().filter(name__contains="Person")
         """
-        from aristotle_mdr.models import REVIEW_STATES
         if user is None or user.is_anonymous():
             return self.public()
         if user.is_superuser:
@@ -74,7 +75,8 @@ class ConceptQuerySet(MetadataItemQuerySet):
             if user.profile.is_registrar:
                 # Registars can see items they have been asked to review
                 q |= Q(
-                    Q(review_requests__registration_authority__registrars__profile__user=user) & ~Q(review_requests__status=REVIEW_STATES.cancelled)
+                    Q(rr_review_requests__registration_authority__registrars__profile__user=user) &
+                    ~Q(review_requests__status=REVIEW_STATES.revoked)
                 )
                 # Registars can see items that have been registered in their registration authority
                 q |= Q(
@@ -172,7 +174,6 @@ class ReviewRequestQuerySet(models.QuerySet):
 
         It is **chainable** with other querysets.
         """
-        from aristotle_mdr.models import REVIEW_STATES
         if user.is_superuser:
             return self.all()
         if user.is_anonymous():
@@ -181,7 +182,8 @@ class ReviewRequestQuerySet(models.QuerySet):
         if user.profile.is_registrar:
             # Registars can see reviews for the registration authority
             q |= Q(
-                Q(registration_authority__registrars__profile__user=user) & ~Q(status=REVIEW_STATES.cancelled)
+                Q(registration_authority__registrars__profile__user=user) &
+                ~Q(status=REVIEW_STATES.revoked)
             )
         return self.filter(q)
 

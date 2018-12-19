@@ -1,24 +1,18 @@
-import axios from 'axios'
-import { getCSRF } from 'src/lib/cookie.js'
+import request from 'src/lib/request.js'
 
 export default {
     data: () => ({
+        request_error: '',
+        // Wether to put request error in this.errors
+        combine_errors: true,
         errors: {},
         loading: false,
         response: {}
     }),
     methods: {
         request: function(url, data, params, method) {
-            let csrf_token = getCSRF()
-
             this.loading = true
-            let promise = axios({
-                method: method,
-                url: url,
-                data: data,
-                params: params,
-                headers: {'X-CSRFToken': csrf_token}
-            })
+            let promise = request(method, url, data, params)
 
             promise.then((response) => {
                 this.response = response
@@ -34,15 +28,21 @@ export default {
                     this.response = error.response
                 } else if (error.request) {
                     // Request was sent, server did not respond
-                    this.errors = {'request': ['Request could not be completed. Please try again soon']}
+                    this.setRequestError('Request could not be completed. Please try again soon')
                 } else {
                     // Request wasnt sent
-                    this.errors = {'request': ['Request could not be completed']}
+                    this.setRequestError('Request could not be completed')
                 }
                 this.loading = false
             })
             // Return the promise so additional handlers can be added
             return promise
+        },
+        setRequestError: function(error_msg) {
+            this.request_error = error_msg
+            if (this.combine_errors) {
+                this.errors = {'request': [error_msg]}
+            }
         },
         post: function(url, data) {
             return this.request(url, data, {}, 'post')

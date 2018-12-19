@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "Aristotle Validation Setup",
+  "description": "Setup defining rules used to validate metadata",
+
+  "definitions": {
+    "check": {
+      "type": "object",
+      "properties": {
+        "validator": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["warning", "error"]
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": ["validator"]
+    }
+  },
+
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string"
+      },
+      "object": {
+        "type": "string"
+      },
+      "checks": {
+        "type": "array",
+        "items": {
+          "allOf": [
+            { "$ref": "#definitions/check" },
+            { 
+              "oneOf": [
+                {
+                  "properties": {
+                    "validator": {
+                      "type": "string",
+                      "enum": ["RegexValidator"]
+                    },
+                    "field": {
+                      "type": "string"
+                    },
+                    "regex": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["validator", "regex", "field"]
+                },
+                {
+                  "properties": {
+                    "validator": {
+                      "type": "string",
+                      "enum": ["StatusValidator"]
+                    },
+                    "status": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": ["validator", "status"]
+                },
+                {
+                  "properties": {
+                    "validator": {
+                      "type": "string",
+                      "enum": ["RelationValidator"]
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["validator", "field"]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "required": ["status", "checks"],
+    "additionalProperties": false
+  }
+}

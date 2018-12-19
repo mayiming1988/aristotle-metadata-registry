@@ -169,22 +169,11 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
 
         steve_rogers = models.ObjectClass.objects.get(name="captainAmerica")
         self.assertFalse(perms.user_can_view(self.registrar,steve_rogers))
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            state=self.ra.public_state,
-            registration_date=datetime.date(2010,1,1)
-        )
-        review.concepts.add(steve_rogers)
 
         with reversion.create_revision():
             steve_rogers.save()
 
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            state=self.ra.public_state,
-            registration_date=datetime.date(2010,1,1)
-        )
-        review.concepts.add(steve_rogers)
+        self.make_review_request(steve_rogers, self.registrar)
 
         self.assertTrue(perms.user_can_view(self.registrar,steve_rogers))
 
@@ -309,12 +298,7 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
                     definition="not really an xman, no matter how much he tries",
                     workgroup=self.xmen_wg)
 
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            state=self.ra.public_state,
-            registration_date=datetime.date(2010,1,1)
-        )
-        review.concepts.add(dp)
+        self.make_review_request(dp, self.registrar)
 
         dp = models.ObjectClass.objects.get(pk=dp.pk) # Un-cache
         self.assertTrue(perms.user_can_view(self.registrar,dp))
@@ -354,12 +338,7 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
                     definition="not really an xman, no matter how much he tries",
                     workgroup=self.xmen_wg)
 
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            state=self.ra.public_state,
-            registration_date=datetime.date(2010,1,1)
-        )
-        review.concepts.add(dp)
+        self.make_review_request(dp, self.registrar)
 
         dp = models.ObjectClass.objects.get(pk=dp.pk) # Un-cache
         self.assertTrue(perms.user_can_view(self.registrar,dp))
@@ -394,23 +373,12 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code,200)
         self.assertEqual(len(response.context['page'].object_list),0)
 
-        url = reverse('aristotle:createItem', args=['aristotle_mdr', 'objectclass'])
-
-        step_1_data = {
-            'dynamic_aristotle_wizard-current_step': 'initial',
-            'initial-name':"pokemon",
-        }
-
-        response = self.client.post(url, step_1_data)
-        response = self.client.post(url, {
-            'dynamic_aristotle_wizard-current_step': 'results',
-            'results-name':"pokemon",
-            'results-definition':"Test Definition",
-            'results-workgroup':""
-            }
+        # Create object class
+        models.ObjectClass.objects.create(
+            name='pokemon',
+            definition='Pocket Monsters',
+            submitter=self.regular
         )
-        self.assertEqual(response.status_code, 302)
-        self.assertTrue(models.ObjectClass.objects.filter(name="pokemon").exists())
 
         response = self.client.get(reverse('aristotle:search')+"?q=pokemon")
         self.assertEqual(response.status_code,200)
@@ -430,23 +398,12 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code,200)
         self.assertEqual(len(response.context['page'].object_list),0)
 
-        url = reverse('aristotle:createItem', args=['aristotle_mdr', 'objectclass'])
-
-        step_1_data = {
-            'dynamic_aristotle_wizard-current_step': 'initial',
-            'initial-name':"pokemon",
-        }
-
-        response = self.client.post(url, step_1_data)
-        response = self.client.post(url, {
-            'dynamic_aristotle_wizard-current_step': 'results',
-            'results-name':"pokemon",
-            'results-definition':"Test Definition",
-            'results-workgroup':""
-            }
+        # Create object class
+        models.ObjectClass.objects.create(
+            name='pokemon',
+            definition='Pocket Monsters',
+            submitter=self.regular
         )
-        self.assertEqual(response.status_code, 302)
-        self.assertTrue(models.ObjectClass.objects.filter(name="pokemon").exists())
 
         response = self.client.get(reverse('aristotle:search')+"?q=pokemon")
         self.assertEqual(response.status_code,200)
