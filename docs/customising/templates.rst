@@ -1,7 +1,7 @@
 Customising templates
 =====================
 
-Aristotle-MDR builds pages using Django tempaltes.
+Aristotle-MDR builds pages using Django templates.
 
 Which means almost every part of the website can be customised using the
 `django template overriding order <https://docs.djangoproject.com/en/1.8/ref/templates/api/#loading-templates>`_.
