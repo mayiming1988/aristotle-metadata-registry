@@ -157,15 +157,6 @@ def user_is_registation_authority_manager(user, ra=None):
         return user in ra.managers.all()
 
 
-def user_is_workgroup_manager(user, workgroup=None):
-    if user.is_superuser:
-        return True
-    elif workgroup is None:
-        return user.workgroup_manager_in.count() > 0
-    else:
-        return user in workgroup.managers.all()
-
-
 def user_can_change_status(user, item):
     """Can the user change the status of the item?"""
 
@@ -287,6 +278,21 @@ def user_can_approve_review(user, review):
     return user.registrar_in.filter(pk=review.registration_authority.pk).exists()
 
 
+def user_can_view_workgroup(user, wg):
+    return wg.can_view(user)
+
+
+def user_is_workgroup_manager(user, workgroup):
+    if user.is_superuser:
+        return True
+    elif workgroup is None:
+        return user.workgroup_manager_in.count() > 0
+    elif workgroup.stewardship_organisation.user_has_permission(user, "manage_workgroups"):
+        return True
+    else:
+        return user in workgroup.managers.all()
+
+
 def user_in_workgroup(user, wg):
     if user.is_anonymous:
         return False
@@ -348,18 +354,19 @@ def user_can_query_user_list(user):
     user_visbility = fetch_aristotle_settings().get('USER_VISIBILITY', 'owner')
     return (
         user.has_perm("aristotle_mdr.is_registry_administrator") or
+        user.profile.is_stewardship_organisation_admin() or
         ('workgroup_manager' in user_visbility and user.profile.is_workgroup_manager()) or
         ('registation_authority_manager' in user_visbility and user.profile.is_registrar)
     )
 
 
-def user_can_create_workgroup(user):
+def user_can_create_workgroup(user, steward_org=None):
     from aristotle_mdr.models import OrganisationAccountMembership
     if user.is_superuser:
         return True
     allowed_roles = [
         OrganisationAccountMembership.roles.admin,
     ]
-    if OrganisationAccountMembership.filter(user=user, role__in=allowed_roles).exists():
+    if OrganisationAccountMembership.filter(user=user, group=steward_org, role__in=allowed_roles).exists():
         return True
     return False

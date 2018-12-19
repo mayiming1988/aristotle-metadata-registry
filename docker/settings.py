@@ -7,12 +7,6 @@ import socket
 import os
 from aristotle_mdr.required_settings import *
 
-INSTALLED_APPS = [
-    "aristotle_dse",
-    "comet",
-    "mallard_qr",
-] + list(INSTALLED_APPS)
-
 ALLOWED_HOSTS = ["*"]
 DEBUG = os.environ.get('DJANGO_DEBUG', False) == "True"
 ARISTOTLE_SETTINGS['SITE_NAME'] = 'Aristotle Development Server'
@@ -99,6 +93,8 @@ LOGGING = {
         },
     }
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Debug toolbar
 DEBUG_TOOLBAR = os.environ.get('DJANGO_DEBUG_TOOLBAR', False) == "True"

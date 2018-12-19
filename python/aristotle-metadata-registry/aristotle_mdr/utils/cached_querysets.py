@@ -3,6 +3,10 @@ from django.core.cache import cache
 from django.db import models
 from django.db.models.fields import Field, _load_field, _empty
 
+import logging
+logger = logging.getLogger(__name__)
+logger.debug("Logging started for " + __name__)
+
 
 def _load_field_for_abstract(model, field_name):
     return model._meta.get_field(field_name)
@@ -54,6 +58,7 @@ def register_queryset(qs):
         import copyreg
 
     from django.db.models.query import QuerySet
+    logger.critical([type(qs), qs])
     assert(issubclass(type(qs), QuerySet))
 
     copyreg.pickle(Field, pickle_abstract_field)

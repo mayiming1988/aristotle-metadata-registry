@@ -65,8 +65,8 @@ class StewardMigration(migrations.Migration):
 
     @classmethod
     def add_stewardship_org(cls, apps, schema_editor):
-        StewardOrganisation = apps.get_model('aristotle_mdr', 'OrganisationAccount')
-        StewardMembership = apps.get_model('aristotle_mdr', 'OrganisationAccountMembership')
+        StewardOrganisation = apps.get_model('aristotle_mdr', 'StewardOrganisation')
+        StewardMembership = apps.get_model('aristotle_mdr', 'StewardOrganisationMembership')
         from django.conf import settings
         name = cls.steward_pattern.format(name=settings.ARISTOTLE_SETTINGS['SITE_NAME'])
         so, _ = StewardOrganisation.objects.get_or_create(name=name)
@@ -102,6 +102,14 @@ class StewardMigration(migrations.Migration):
         name = cls.steward_pattern.format(name=settings.ARISTOTLE_SETTINGS['SITE_NAME'])
         so = StewardOrganisation.objects.get(name=name)
         cls.so_uuid = so.uuid
+
+    @classmethod
+    def assign_orgs_to_metadata(cls, apps, schema_editor):
+        _concept = apps.get_model('aristotle_mdr', '_concept')
+        for item in _concept.objects.all():
+            if item.workgroup is not None:
+                item.steward_organisation
+                
 
 
 def create_uuid_objects(app_label, model_name, migrate_self=True):

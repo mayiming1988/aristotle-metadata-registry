@@ -29,7 +29,7 @@ class UserAwareForm(forms.Form):
 class UserAwareModelForm(UserAwareForm, forms.ModelForm):
     class Meta:
         model = MDR._concept
-        exclude = ['superseded_by_items', '_is_public', '_is_locked', 'originURI', 'submitter']
+        exclude = ['superseded_by_items', '_is_public', '_is_locked', 'originURI', 'submitter', 'stewardship_organisation']
 
 
 class WorkgroupVerificationMixin(forms.ModelForm):

@@ -38,6 +38,7 @@ class WorkgroupQuerySet(MetadataItemQuerySet):
             return self.none()
         if user.is_superuser:
             return self.all()
+        # TODO: Figure out how to make generic owners of the steward org able to view using this queryset
         return user.profile.workgroups
 
 

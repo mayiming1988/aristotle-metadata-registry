@@ -206,7 +206,7 @@ class LeaveView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermission
 class CreateWorkgroup(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = MDR.Workgroup
     template_name = "aristotle_mdr/user/workgroups/add.html"
-    fields = ['name', 'definition']
+    fields = ['name', 'definition', 'stewardship_organisation']
     permission_required = "aristotle_mdr.add_workgroup"
     raise_exception = True
     redirect_unauthenticated_users = True

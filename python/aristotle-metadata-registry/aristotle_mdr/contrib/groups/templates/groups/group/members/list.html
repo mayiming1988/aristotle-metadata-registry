@@ -1,25 +1,26 @@
 {% extends "groups/base.html" %}
 {% load group_tags i18n %}
 
-{% block content %}
+{% block group_content %}
 <h1>
-    Editing members {{object.name}}
+    Editing members {{group.name}}
 </h1>
 
 <div>
-{% if object.allows_multiple_roles %}
+{% if group.allows_multiple_roles %}
     {% trans "This group allows members to have multiple roles" %}
 {% else %}
     {% trans "This group allows members to a single roles" %}
 {% endif %}
 </div>
+<a href="{%url view.manager.namespace|add:":member_add" group.slug %}">Add member</a>
 
 <table>
     <thead>
         <tr>
             <th>Member</th>
             <th>
-                {% if object.allows_multiple_roles %}
+                {% if group.allows_multiple_roles %}
                     {% trans "Current Roles" %}
                 {% else %}
                     {% trans "Current Role" %}
@@ -42,7 +43,7 @@
                 {% endif %}
             </td>
             <td>
-                {% if object.allows_multiple_roles %}
+                {% if group.allows_multiple_roles %}
                     <ul>
                     {% for membership in member.list %}
                         <li>{{membership.role}}</li>
@@ -55,7 +56,10 @@
                 {% endif %}
             </td>
             <td>
-                <a href="{%url view.manager.namespace|add:":membership_update" object.slug member.grouper.pk %}">Change role</a>
+                <a href="{%url view.manager.namespace|add:":membership_update" group.slug member.grouper.pk %}">Change role</a>
+            </td>
+            <td>
+                <a href="{%url view.manager.namespace|add:":membership_remove" group.slug member.grouper.pk %}">Remove</a>
             </td>
         </tr>
         {% endwith %}

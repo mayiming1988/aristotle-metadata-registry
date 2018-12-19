@@ -31,7 +31,6 @@ class SuperuserPermissions(TestCase):
         ra = models.RegistrationAuthority.objects.create(name="Test RA")
         self.assertTrue(perms.user_is_registrar(self.su,ra))
     def test_is_workgroup_manager(self):
-        self.assertTrue(perms.user_is_workgroup_manager(self.su,None))
         wg = models.Workgroup.objects.create(name="Test WG")
         self.assertTrue(perms.user_is_workgroup_manager(self.su,wg))
     def test_can_change_status(self):

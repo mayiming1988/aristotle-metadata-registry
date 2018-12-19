@@ -2,6 +2,12 @@
 {% load aristotle_tags %}
 
 <h1 id="objectTitle"  class="pull-left">
+  {% if item.stewardship_organisation %}
+    <a href="{{item.stewardship_organisation.get_absolute_url}}">
+      {{item.stewardship_organisation}}
+    </a>
+    /
+  {% endif %}
     <a href="{{ item.get_absolute_url }}">{{ item.name }}</a>
     {% if item.version %}
     <em class="version" title="{% trans 'Version'%} {{ item.version }}">

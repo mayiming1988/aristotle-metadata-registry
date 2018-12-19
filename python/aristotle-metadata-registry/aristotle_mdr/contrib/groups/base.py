@@ -10,6 +10,9 @@ from model_utils import Choices
 from autoslug import AutoSlugField
 from aristotle_mdr.utils import classproperty
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class AbstractMembershipBase(ModelBase):
     group_class = None
@@ -74,6 +77,9 @@ class AbstractGroupQuerySet(models.QuerySet):
 class AbstractGroup(models.Model):
     objects = AbstractGroupQuerySet.as_manager()
 
+    class Meta:
+        abstract = True
+    
     roles = Choices(
         ('owner', _('Owner')),
     )
@@ -89,9 +95,6 @@ class AbstractGroup(models.Model):
         "invite_member": [roles.owner, Permissions.is_superuser],
     }
 
-    class Meta:
-        abstract = True
-    
     slug = AutoSlugField(populate_from='name', editable=True, always_update=False)
     name = models.TextField(
         help_text=_("The primary name used for human identification purposes.")
@@ -104,11 +107,14 @@ class AbstractGroup(models.Model):
     def __str__(self):
         return self.name
 
-    @classmethod
-    def user_has_permission(self, *args, **kwargs):
+    # @classmethod
+    def user_has_permission(self, user, permission): #, *args, **kwargs):
         # if permission not in self.role_permissions.keys()
         #     raise PermissionNotDefined
-        print(self, *args, **kwargs)
+        # print(self, *args, **kwargs)
+
+        if user.is_superuser:
+            return True
 
         def allowed():
             for perm_or_role in self.role_permissions[permission]:
@@ -122,7 +128,8 @@ class AbstractGroup(models.Model):
 
     @property
     def member_list(self):
-        user_to_membership_relation = self.members.rel.related_model.user.field.related_query_name()
+        # user_to_membership_relation = self.members.rel.related_model.user.field.related_query_name()
+        user_to_membership_relation = self.members.model.user.field.related_query_name()
         return get_user_model().objects.filter(**{
             user_to_membership_relation+"__group": self
         })
@@ -134,7 +141,8 @@ class AbstractGroup(models.Model):
         """
         if type(role) is list:
             return self.members.filter(user=user, role__in=role).exists()
-        return self.members.filter(user=user, role=role).exists()
+        logger.debug(self.members)
+        return self.members.all().filter(user=user, role=role).exists()
 
     def grant_role(self, role, user):
         """
@@ -177,3 +185,8 @@ class AbstractGroup(models.Model):
         """
         return list(self.members.filter(user=user).values_list('role', flat=True))
 
+    def has_member(self, user):
+        """
+        Returns true if the user is a member and has any role
+        """
+        return self.members.all().filter(user=user).exists()

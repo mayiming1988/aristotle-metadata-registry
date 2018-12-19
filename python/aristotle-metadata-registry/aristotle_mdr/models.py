@@ -87,9 +87,9 @@ from aristotle_mdr.contrib.groups.base import (
 )
 
 
-class OrganisationAccount(AbstractGroup):
+class StewardOrganisation(AbstractGroup):
     class Meta:
-        verbose_name = "Organisation"
+        verbose_name = "Steward Organisation"
 
     roles = Choices(
         ('admin', _('Admin')),
@@ -98,6 +98,7 @@ class OrganisationAccount(AbstractGroup):
     )
 
     role_permissions = {
+        "manage_workgroups": [roles.admin, AbstractGroup.Permissions.is_superuser],
         "edit_group_details": [roles.admin, AbstractGroup.Permissions.is_superuser],
         "edit_members": [roles.admin, AbstractGroup.Permissions.is_superuser],
         "invite_member": [roles.admin, AbstractGroup.Permissions.is_superuser],
@@ -111,10 +112,16 @@ class OrganisationAccount(AbstractGroup):
         help_text=_("Representation of a concept by a descriptive statement "
                     "which serves to differentiate it from related concepts. (3.2.39)")
     )
+    
+    def get_absolute_url(self):
+        return reverse(
+            "aristotle_mdr:stewards:group:detail",
+            args=[self.slug]
+        )
 
 
-class OrganisationAccountMembership(AbstractMembership):
-    group_class = OrganisationAccount
+class StewardOrganisationMembership(AbstractMembership):
+    group_class = StewardOrganisation
     group_kwargs = {"to_field": "uuid"}
 
 
@@ -131,7 +138,6 @@ class baseAristotleObject(TimeStampedModel):
         help_text=_("Representation of a concept by a descriptive statement "
                     "which serves to differentiate it from related concepts. (3.2.39)")
     )
-    # steward_organisation = models.ForeignKey(StewardOrganisation, to_field="uuid")
     objects = MetadataItemManager()
 
     class Meta:
@@ -214,6 +220,7 @@ class aristotleComponent(models.Model):
 
 
 class registryGroup(unmanagedObject):
+    stewardship_organisation = models.ForeignKey(StewardOrganisation, to_field="uuid")
     managers = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         blank=True,
@@ -566,6 +573,8 @@ class Workgroup(registryGroup):
         ).distinct().order_by('full_name')
 
     def can_view(self, user):
+        if self.stewardship_organisation.user_has_permission(user, "manage_workgroups"):
+            return True
         return self.members.filter(pk=user.pk).exists()
 
     @property
@@ -681,6 +690,11 @@ class _concept(baseAristotleObject):
     objects = ConceptManager()
     template = "aristotle_mdr/concepts/managedContent.html"
     list_details_template = "aristotle_mdr/helpers/concept_list_details.html"
+    stewardship_organisation = models.ForeignKey(
+        StewardOrganisation, to_field="uuid",
+        null=True,
+        related_name="metadata"
+    )
 
     workgroup = models.ForeignKey(Workgroup, related_name="items", null=True, blank=True)
     submitter = models.ForeignKey(
@@ -1580,6 +1594,12 @@ class PossumProfile(models.Model):
     def is_workgroup_manager(self, wg=None):
         return perms.user_is_workgroup_manager(self.user, wg)
 
+    def is_stewardship_organisation_admin(self, org=None):
+        kwargs = {"user": self.user, "role": "admin"}
+        if org:
+            kwargs["group"] = org
+        return StewardOrganisationMembership.objects.filter(**kwargs).exists()
+
     def is_favourite(self, item):
         from aristotle_mdr.contrib.favourites.models import Favourite
         fav = Favourite.objects.filter(
@@ -1690,6 +1710,15 @@ def check_concept_app_label(sender, instance, **kwargs):
                 instance_name=instance.name
             )
         )
+
+
+@receiver(pre_save)
+def update_org_to_match_workgroup(sender, instance, **kwargs):
+    if not issubclass(sender, _concept):
+        return
+    logger.critical(instance.workgroup)
+    if instance.workgroup is not None:
+        instance.stewardship_organisation = instance.workgroup.stewardship_organisation
 
 
 @receiver(post_save, sender=DiscussionComment)

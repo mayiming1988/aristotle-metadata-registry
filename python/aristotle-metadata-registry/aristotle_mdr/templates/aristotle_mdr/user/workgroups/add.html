@@ -10,6 +10,9 @@
 {% endblock %}
 
 {% block page %}
+{% if stewardship_organisation %}
+{{stewardship_organisation}}
+{% endif %}
 <h1>{% block title %}New Workgroup{% endblock %}</h1>
     <form action="" method="POST">
         {% csrf_token %}
