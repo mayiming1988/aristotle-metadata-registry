@@ -1,0 +1,23 @@
+- status: Standard
+  object: DataElement
+  checks:   
+    - validator: RelationValidator
+      severity: error
+      field: valueDomain
+      name: Value Domain linked to Data Element
+    - validator: RelationValidator
+      severity: error
+      field: dataElementConcept
+      name: DataElementConcept linked to Data Element
+
+- status: Standard
+  object: DataElementConcept
+  checks:   
+    - validator: RelationValidator
+      severity: error
+      field: objectClass
+      name: Object Class linked to Data Element Concept
+    - validator: RelationValidator
+      severity: error
+      field: property
+      name: Property linked to Data Element Concept

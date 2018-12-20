@@ -26,7 +26,9 @@ from aristotle_mdr.utils import (
     url_slugify_workgroup,
     url_slugify_registration_authoritity,
     url_slugify_organization,
+    strip_tags,
 )
+from aristotle_mdr.utils.text import truncate_words
 from aristotle_mdr import comparators
 
 from jsonfield import JSONField
@@ -719,6 +721,11 @@ class _concept(baseAristotleObject):
         If the item type is _concept, return itself.
         """
         return getattr(self, '_concept_ptr', self)
+
+    @property
+    def short_definition(self):
+        stripped = strip_tags(self.definition)
+        return truncate_words(stripped, 20)
 
     @classmethod
     def get_autocomplete_name(self):
@@ -1472,12 +1479,13 @@ class PossumProfile(models.Model):
 
     @property
     def mySandboxContent(self):
+        from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
         return _concept.objects.filter(
             Q(
                 submitter=self.user,
                 statuses__isnull=True
             ) & Q(
-                Q(review_requests__isnull=True) | Q(review_requests__status=REVIEW_STATES.cancelled)
+                Q(rr_review_requests__isnull=True) | Q(rr_review_requests__status=REVIEW_STATES.revoked)
             )
         )
 

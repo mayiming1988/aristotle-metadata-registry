@@ -17,7 +17,6 @@ from .utils import RegistrationAuthorityMixin
 
 
 class RequestReviewForm(ChangeStatusGenericForm):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.set_registration_authority_field(
@@ -27,27 +26,6 @@ class RequestReviewForm(ChangeStatusGenericForm):
     def clean_registrationAuthorities(self):
         value = self.cleaned_data['registrationAuthorities']
         return MDR.RegistrationAuthority.objects.get(id=int(value))
-
-
-class RequestReviewCancelForm(UserAwareModelForm):
-    class Meta:
-        model = MDR.ReviewRequest
-        fields: List[str] = []
-
-
-class RequestReviewRejectForm(UserAwareModelForm):
-    class Meta:
-        model = MDR.ReviewRequest
-        fields = ['response']
-
-
-class RequestReviewAcceptForm(UserAwareForm):
-    response = forms.CharField(
-        max_length=512,
-        required=False,
-        label=_("Reply to the original review request below."),
-        widget=forms.Textarea
-    )
 
 
 class AddRegistrationUserForm(UserAwareForm):

@@ -13,30 +13,48 @@
 <section id="members">
 </section>
 </aside>
-<header>This is a selection of quick links that allow registry administrators to quickly perform actions.</header>
 
-<ul>
-    <li>
-        <a href="{% url 'aristotle:workgroup_create'%}">Add Workgroup</a>
-    </li>
-    <li>
-        <a href="{% url 'aristotle:registrationauthority_create'%}">Add Registration Authority</a>
-    </li>
-    <li>
-        <a href="{% url 'aristotle-user:registry_invitations_create'%}">Add User</a>
-    </li>
-</ul>
-<ul>
-    <li>
-        <a href="{% url 'aristotle:workgroup_list'%}">View all Workgroups</a>
-    </li>
-    <li>
-        <a href="{% url 'aristotle:registrationauthority_list'%}">View all Registration Authorities</a>
-    </li>
-    <li>
-        <a href="{% url 'aristotle-user:registry_user_list'%}">View all Users</a>
-    </li>
-</ul>
+<h2>Quick Links</h2>
+
+<div class="row">
+  <div class="col-md-4">
+    <h3>Create</h3>
+    <ul class="list-group">
+        <a class="list-group-item" href="{% url 'aristotle:workgroup_create'%}">
+          <i class="fa fa-plus-circle" aria-hidden="true"></i>
+          Add Workgroup
+        </a>
+        <a class="list-group-item" href="{% url 'aristotle:registrationauthority_create'%}">
+          <i class="fa fa-plus-circle" aria-hidden="true"></i>
+          Add Registration Authority
+        </a>
+        <a class="list-group-item" href="{% url 'aristotle-user:registry_invitations_create'%}">
+          <i class="fa fa-plus-circle" aria-hidden="true"></i>
+          Add User
+        </a>
+    </ul>
+
+    <h3>Manage</h3>
+    <ul class="list-group">
+        <a class="list-group-item" href="{% url 'aristotle:workgroup_list'%}">
+          <i class="fa fa-users" aria-hidden="true"></i>
+          Manage Workgroups
+        </a>
+        <a class="list-group-item" href="{% url 'aristotle:registrationauthority_list'%}">
+          <i class="fa fa-institution" aria-hidden="true"></i>
+          Manage Registration Authorities
+        </a>
+        <a class="list-group-item" href="{% url 'aristotle-user:registry_user_list'%}">
+          <i class="fa fa-user" aria-hidden="true"></i>
+          Manage Users
+        </a>
+        <a class="list-group-item" href="{% url 'aristotle_custom_fields:list' %}">
+          <i class="fa fa-i-cursor" aria-hidden="true"></i>
+          Manage Custom Fields
+        </a>
+    </ul>
+  </div>
+</div>
 
 <h2>Basic item statistics</h2>
 <p>Below is a table of the various concepts managed within this registry.

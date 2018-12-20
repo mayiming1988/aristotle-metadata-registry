@@ -29,10 +29,12 @@ INSTALLED_APPS = list(INSTALLED_APPS) + [
     "aristotle_dse",
     "aristotle_pdf",
     "aristotle_glossary",
-    "comet",
-    "mallard_qr",
+    # "comet",
+    # "mallard_qr",
     "aristotle_mdr_graphql",
 ]
+
+from aristotle_glossary.settings import CKEDITOR_CONFIGS
 
 MIDDLEWARE.append('impersonate.middleware.ImpersonateMiddleware')
 
@@ -91,9 +93,6 @@ LOGGING = {
         },
     }
 }
-
-if 'NO_LOGGING' in os.environ:
-    LOGGING = None
 
 # Debug toolbar
 DEBUG_TOOLBAR = os.environ.get('DJANGO_DEBUG_TOOLBAR', False) == "True"

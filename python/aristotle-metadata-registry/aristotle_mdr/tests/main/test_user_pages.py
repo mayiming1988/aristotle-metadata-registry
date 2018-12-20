@@ -39,7 +39,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse('aristotle:userRoles',))
         self.assertEqual(response.status_code, 200)
-        response = self.client.get(reverse('aristotle:userMyReviewRequests',))
+        response = self.client.get(reverse('aristotle_reviews:userMyReviewRequests',))
         self.assertEqual(response.status_code, 200)
 
     def create_content_and_share(self, user, emails):
@@ -87,13 +87,8 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
             name="Test Item 2 (not visible in sandbox, review request)",
             definition="my definition",
             submitter=self.viewer)
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,
-            registration_authority=self.ra,
-            state=self.ra.public_state,
-            registration_date=datetime.date(2010,1,1)
-        )
-        review.concepts.add(self.item2)
+
+        self.make_review_request(self.item2, self.registrar)
 
         # Should not see item3 because it has a status
         self.item3 = models._concept.objects.create(
@@ -421,7 +416,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         self.check_generic_pages()
 
         # A viewer, has no registrar permissions:
-        response = self.client.get(reverse('aristotle:userReadyForReview',))
+        response = self.client.get(reverse('aristotle_reviews:userReadyForReview',))
         self.assertEqual(response.status_code,403)
 
         # A view is not a superuser
@@ -506,7 +501,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         self.assertTrue(self.registrar.profile.is_registrar)
         response = self.client.get(reverse('aristotle:userRegistrarTools',))
         self.assertEqual(response.status_code,200)
-        response = self.client.get(reverse('aristotle:userReadyForReview',))
+        response = self.client.get(reverse('aristotle_reviews:userReadyForReview',))
         self.assertEqual(response.status_code,200)
 
     def test_superuser_can_access_tools(self):
@@ -516,7 +511,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         self.assertTrue(self.su.profile.is_registrar)
         response = self.client.get(reverse('aristotle:userRegistrarTools',))
         self.assertEqual(response.status_code,200)
-        response = self.client.get(reverse('aristotle:userReadyForReview',))
+        response = self.client.get(reverse('aristotle_reviews:userReadyForReview',))
         self.assertEqual(response.status_code,200)
 
         self.assertTrue(self.su.is_superuser)
@@ -535,7 +530,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         self.assertRedirects(response, reverse('aristotle:userHome'))
 
 
-class UserDashRecentItems(utils.LoggedInViewPages, TestCase):
+class UserDashRecentItems(utils.AristotleTestUtils, TestCase):
     def setUp(self):
         super().setUp()
         import haystack
@@ -568,6 +563,7 @@ class UserDashRecentItems(utils.LoggedInViewPages, TestCase):
             'results-definition': "Test Definition",
             'results-workgroup': self.wg1.pk
         }
+        step_2_data.update(self.get_formset_postdata([], 'slots'))
         response = self.client.post(wizard_url, step_2_data)
         self.assertTrue(models._concept.objects.filter(name="Test Item").exists())
         self.assertEqual(models._concept.objects.filter(name="Test Item").count(), 1)

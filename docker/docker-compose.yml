@@ -51,6 +51,7 @@ services:
         - ARISTOTLE_ASYNC_SIGNALS=True
         - PYTHONPATH=.
         - DJANGO_DEBUG=True
+        - aristotlemdr__FILE_VALIDATION_RUNNER_PATH=/usr/src/app/docker/examples/validation_rules/base.yaml
       depends_on:
         - db
         - redis

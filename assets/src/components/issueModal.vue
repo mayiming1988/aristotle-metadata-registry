@@ -16,7 +16,7 @@
 
 <script>
 import { Modal } from 'uiv'
-import formField from '@/bsFormField.vue'
+import formField from '@/forms/bsFieldWrapper.vue'
 import apiErrors from '@/apiErrorDisplay.vue'
 import apiRequest from 'src/mixins/apiRequest.js'
 

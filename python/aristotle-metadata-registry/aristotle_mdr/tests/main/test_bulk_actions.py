@@ -63,14 +63,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
     def create_review_request(self, items):
         self.login_registrar()
         # Make a RR so the registrar can change status
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,
-            registration_authority=self.ra,
-            state=self.ra.locked_state,
-            registration_date=datetime.date(2013,4,2)
-        )
-        for item in items:
-            review.concepts.add(item)
+        self.make_review_request_iterable(items)
 
     def review_changes(self, items, new_state):
 
@@ -284,13 +277,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
     # Function used for the 2 tests below
     def bulk_status_change_on_permitted_items(self, review_changes):
         self.login_registrar()
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            state=self.ra.locked_state,
-            registration_date=datetime.date(2013,4,2)
-        )
-        review.concepts.add(self.item1)
-        review.concepts.add(self.item2)
+        self.create_review_request([self.item1, self.item2])
 
         self.assertTrue(perms.user_can_change_status(self.registrar, self.item1))
         self.assertTrue(perms.user_can_change_status(self.registrar, self.item2))
@@ -509,12 +496,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
     @tag('changestatus')
     def test_bulk_status_change_on_forbidden_items(self):
         self.login_registrar()
-        review = models.ReviewRequest.objects.create(
-            requester=self.su,registration_authority=self.ra,
-            registration_date=datetime.date(2010,1,1),
-            state=self.ra.locked_state
-        )
-        review.concepts.add(self.item1)
+        self.make_review_request(self.item1, self.registrar)
 
         self.assertTrue(perms.user_can_change_status(self.registrar, self.item1))
         self.assertFalse(perms.user_can_change_status(self.registrar, self.item4))
@@ -623,61 +605,3 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         self.assertTrue(self.item1.concept in self.wg1.items.all())
         self.assertTrue(self.item2.concept in self.wg1.items.all())
         self.assertTrue(self.item4.concept not in self.wg1.items.all())
-
-    def test_bulk_review_request_on_permitted_items(self):
-        self.login_viewer()
-
-        self.assertTrue(perms.user_can_view(self.viewer, self.item1))
-        self.assertTrue(perms.user_can_view(self.viewer, self.item2))
-
-        self.assertTrue(models.ReviewRequest.objects.count() == 0)
-
-        self.client.post(
-            reverse('aristotle:bulk_action'),
-            {
-                'bulkaction': 'aristotle_mdr.forms.bulk_actions.RequestReviewForm',
-                'state': 1,
-                'items': [self.item1.id, self.item2.id],
-                'registrationAuthorities': self.ra.id,
-                "registrationDate": "2010-01-01",
-                "cascadeRegistration": 0,
-                "changeDetails": "review these plz",
-                'confirmed': 'confirmed',
-            }
-        )
-
-        self.assertTrue(models.ReviewRequest.objects.count() == 1)
-        review = models.ReviewRequest.objects.first()
-
-        self.assertTrue(review.concepts.count() == 2)
-        self.assertTrue(self.item1.concept in review.concepts.all())
-        self.assertTrue(self.item2.concept in review.concepts.all())
-
-    def test_bulk_review_request_on_forbidden_items(self):
-        self.login_viewer()
-
-        self.assertTrue(perms.user_can_view(self.viewer, self.item1))
-        self.assertFalse(perms.user_can_view(self.viewer, self.item4))
-
-        self.assertTrue(models.ReviewRequest.objects.count() == 0)
-
-        self.client.post(
-            reverse('aristotle:bulk_action'),
-            {
-                'bulkaction': 'aristotle_mdr.forms.bulk_actions.RequestReviewForm',
-                'state': 1,
-                'items': [self.item1.id, self.item4.id],
-                'registrationAuthorities': self.ra.id,
-                'registrationDate': datetime.date(2016,1,1),
-                "cascadeRegistration": 0,
-                "changeDetails": "review these plz",
-                'confirmed': 'confirmed',
-            }
-        )
-
-        self.assertTrue(models.ReviewRequest.objects.count() == 1)
-        review = models.ReviewRequest.objects.first()
-
-        self.assertTrue(review.concepts.count() == 1)
-        self.assertTrue(self.item1.concept in review.concepts.all())
-        self.assertFalse(self.item4.concept in review.concepts.all())
