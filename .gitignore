@@ -70,7 +70,5 @@ assets/coverage/*
 # mypy
 .mypy_cache/*
 
-# Ignore .ds_store files for macOS users:
+# ignore DS files for mac users:
 .DS_Store
-python/comet-indicator-registry/comet/templates/comet/extra_content/*
-
