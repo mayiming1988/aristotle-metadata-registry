@@ -20,7 +20,8 @@ from aristotle_mdr.views.utils import (
     ObjectLevelPermissionRequiredMixin,
     RoleChangeView,
     MemberRemoveFromGroupView,
-    GenericListWorkgroup
+    GenericListWorkgroup,
+    UserFormViewMixin
 )
 
 import logging
@@ -203,13 +204,14 @@ class LeaveView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermission
         return HttpResponseRedirect(reverse("aristotle:userHome"))
 
 
-class CreateWorkgroup(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class CreateWorkgroup(LoginRequiredMixin, PermissionRequiredMixin, UserFormViewMixin, CreateView):
     model = MDR.Workgroup
+    form_class = MDRForms.workgroups.CreateWorkgroupForm
+    user_form = True
     template_name = "aristotle_mdr/user/workgroups/add.html"
-    fields = ['name', 'definition', 'stewardship_organisation']
-    permission_required = "aristotle_mdr.add_workgroup"
     raise_exception = True
     redirect_unauthenticated_users = True
+    permission_required = "aristotle_mdr.user_can_create_workgroup"
 
 
 class ListWorkgroup(PermissionRequiredMixin, GenericListWorkgroup):

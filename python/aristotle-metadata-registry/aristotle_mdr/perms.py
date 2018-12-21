@@ -282,15 +282,22 @@ def user_can_view_workgroup(user, wg):
     return wg.can_view(user)
 
 
-def user_is_workgroup_manager(user, workgroup):
+def user_can_manage_workgroup(user, workgroup):
     if user.is_superuser:
         return True
     elif workgroup is None:
         return user.workgroup_manager_in.count() > 0
-    elif workgroup.stewardship_organisation.user_has_permission(user, "manage_workgroups"):
+
+    if not workgroup.stewardship_organisation.is_active():
+        return False
+    if workgroup.stewardship_organisation.user_has_permission(user, "manage_workgroups"):
         return True
     else:
         return user in workgroup.managers.all()
+
+
+def user_is_workgroup_manager(user, workgroup):
+    return user_can_manage_workgroup(user, workgroup)
 
 
 def user_in_workgroup(user, wg):
@@ -361,12 +368,26 @@ def user_can_query_user_list(user):
 
 
 def user_can_create_workgroup(user, steward_org=None):
-    from aristotle_mdr.models import OrganisationAccountMembership
+    from aristotle_mdr.models import StewardOrganisation, StewardOrganisationMembership
     if user.is_superuser:
         return True
     allowed_roles = [
-        OrganisationAccountMembership.roles.admin,
+        StewardOrganisation.roles.admin,
     ]
-    if OrganisationAccountMembership.filter(user=user, group=steward_org, role__in=allowed_roles).exists():
+    kwargs = {"members__user": user, "members__role__in": allowed_roles}
+    if steward_org:
+        kwargs["pk"] = steward_org.pk
+    return StewardOrganisation.objects.filter(**kwargs).active().exists()
+
+
+def user_can_create_registration_authority(user, steward_org=None):
+    from aristotle_mdr.models import StewardOrganisation, StewardOrganisationMembership
+    if user.is_superuser:
         return True
-    return False
+    allowed_roles = [
+        StewardOrganisation.roles.admin,
+    ]
+    kwargs = {"members__user": user, "members__role__in": allowed_roles}
+    if steward_org:
+        kwargs["pk"] = steward_org.pk
+    return StewardOrganisation.objects.filter(**kwargs).active().exists()

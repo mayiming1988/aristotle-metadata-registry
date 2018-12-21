@@ -10,6 +10,8 @@ from model_utils import Choices
 from autoslug import AutoSlugField
 from aristotle_mdr.utils import classproperty
 
+from . import managers
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -64,18 +66,33 @@ class AbstractMultipleMembership(models.Model, metaclass=AbstractMembershipBase)
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
 
-class AbstractGroupQuerySet(models.QuerySet):
-    def group_list_for_user(self, user):
-        return self.filter(members__user=user).distinct()
+class AbstractGroupBase(ModelBase):
+    def __new__(cls, name, bases, attrs):  # noqa
+        clsobj = super().__new__(cls, name, bases, attrs)
 
-    def user_has_role(self, user, role):
-        return self.filter(members__user=user, members__role=role).distinct()
+        try:
+            field = clsobj._meta.get_field("state")
+            field.choices = clsobj.states
+        except FieldDoesNotExist:
+            # pass
+            clsobj.add_to_class(
+                "state",
+                models.CharField(
+                    choices = clsobj.states,
+                    default = clsobj.active_states[0],
+                    max_length=128,
+                    help_text=_('Status of this group')
+                )
+            )
+
+        return clsobj
 
 
+class BaseManager(models.Manager):
+    pass
 
-
-class AbstractGroup(models.Model):
-    objects = AbstractGroupQuerySet.as_manager()
+class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
+    objects = managers.AbstractGroupQuerySet.as_manager()
 
     class Meta:
         abstract = True
@@ -83,6 +100,18 @@ class AbstractGroup(models.Model):
     roles = Choices(
         ('owner', _('Owner')),
     )
+    states = Choices(
+        ('active', _('Active')),
+        ('disabled', _('Disabled')),
+    )
+
+    owner_roles = [roles.owner]
+    active_states = [
+        states.active,
+    ]
+    visible_states = [
+        states.active, states.disabled
+    ]
 
     class Permissions:
         @classmethod
@@ -95,11 +124,17 @@ class AbstractGroup(models.Model):
         "invite_member": [roles.owner, Permissions.is_superuser],
     }
 
-    slug = AutoSlugField(populate_from='name', editable=True, always_update=False)
+    slug = AutoSlugField(populate_from='name', editable=True, always_update=False, unique=True)
     name = models.TextField(
         help_text=_("The primary name used for human identification purposes.")
     )
-    
+
+    def is_active(self):
+        return self.state in self.active_states
+
+    def is_owner(self, user):
+        return self.has_role(user=user, role=self.owner_roles)
+
     @classproperty
     def allows_multiple_roles(self):
         return issubclass(self.members.rel.related_model, AbstractMultipleMembership)
@@ -111,7 +146,6 @@ class AbstractGroup(models.Model):
     def user_has_permission(self, user, permission): #, *args, **kwargs):
         # if permission not in self.role_permissions.keys()
         #     raise PermissionNotDefined
-        # print(self, *args, **kwargs)
 
         if user.is_superuser:
             return True
@@ -122,6 +156,8 @@ class AbstractGroup(models.Model):
                     perm = perm_or_role
                     yield perm(user)
                 else:
+                    if self.is_active():
+                        yield False
                     role = perm_or_role
                     yield self.has_role(role, user)
         return any(allowed())
@@ -141,7 +177,6 @@ class AbstractGroup(models.Model):
         """
         if type(role) is list:
             return self.members.filter(user=user, role__in=role).exists()
-        logger.debug(self.members)
         return self.members.all().filter(user=user, role=role).exists()
 
     def grant_role(self, role, user):

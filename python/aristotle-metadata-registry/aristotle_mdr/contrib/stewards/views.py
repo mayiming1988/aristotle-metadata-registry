@@ -40,19 +40,14 @@ class StewardURLManager(GroupURLManager):
         return ListWorkgroup.as_view(manager=self, group_class=self.group_class)
 
     def workgroup_create_view(self):
-        class AddWorkgroup(LoginRequiredMixin, GroupMixin, HasRolePermissionMixin, CreateView):
-            role_permission = "manage_workgroups"
-            model = MDR.Workgroup
-            template_name = "aristotle_mdr/user/workgroups/add.html"
-            fields = ['name', 'definition']
-            raise_exception = True
-            redirect_unauthenticated_users = True
-        
-            def form_valid(self, form):
-                form.instance.stewardship_organisation = self.get_group()
-                return super().form_valid(form)
-        
-        return AddWorkgroup.as_view(manager=self, group_class=self.group_class)
+        from aristotle_mdr.views.workgroups import CreateWorkgroup as Base
+        class CreateWorkgroup(GroupMixin, Base):
+            def get_initial(self):
+                initial = super().get_initial()
+                initial['stewardship_organisation'] = self.get_group()
+                return initial
+
+        return CreateWorkgroup.as_view(manager=self, group_class=self.group_class)
 
     def browse_view(self):
         from aristotle_mdr.contrib.browse.views import BrowseConcepts

@@ -101,7 +101,6 @@ INSTALLED_APPS = (
     'aristotle_mdr.contrib.custom_fields',
     'aristotle_mdr.contrib.stewards',
     'aristotle_mdr.contrib.groups',
-    'aristotle_mdr.contrib.favourites',
 
     'dal',
     'dal_select2',

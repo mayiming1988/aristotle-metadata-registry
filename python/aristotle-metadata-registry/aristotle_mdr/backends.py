@@ -92,6 +92,9 @@ class AristotleBackend(ModelBackend):
         if perm == "aristotle_mdr.change_registrationauthority_memberships":
             return perms.user_is_registation_authority_manager(user_obj, obj)
 
+        if perm == "user_can_create_workgroup":
+            return perms.user_can_create_workgroup(user_obj)
+
         from aristotle_mdr.contrib.links import perms as link_perms
         if perm == "aristotle_mdr_links.add_link":
             return link_perms.user_can_make_link(user_obj)

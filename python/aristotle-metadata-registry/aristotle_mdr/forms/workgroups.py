@@ -4,7 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 
 import aristotle_mdr.models as MDR
 from aristotle_mdr.contrib.autocomplete import widgets
-from aristotle_mdr.forms.creation_wizards import UserAwareForm
+from aristotle_mdr.forms.creation_wizards import UserAwareForm, UserAwareFormMixin
 
 
 class AddMembers(forms.Form):
@@ -32,3 +32,20 @@ class ChangeWorkgroupUserRolesForm(UserAwareForm):
         widget=forms.CheckboxSelectMultiple,
         required=False
     )
+
+class CreateWorkgroupForm(UserAwareFormMixin, forms.ModelForm):
+    class Meta:
+        model = MDR.Workgroup
+        fields = ['name', 'definition', 'stewardship_organisation']
+        widgets = {
+            "stewardship_organisation": forms.Select(attrs={'class':'form-control'})
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from aristotle_mdr.models import StewardOrganisation, StewardOrganisationMembership
+        self.fields["stewardship_organisation"].queryset = StewardOrganisation.objects.filter(
+            members__user = self.user,
+            members__role = StewardOrganisation.roles.admin,
+            state__in = StewardOrganisation.active_states
+        )

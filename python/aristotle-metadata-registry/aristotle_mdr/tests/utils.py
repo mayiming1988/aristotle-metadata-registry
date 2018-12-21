@@ -496,9 +496,14 @@ class LoggedInViewPages(object):
     This helps us manage testing across different user types.
     """
     def setUp(self):
-        self.wg1 = models.Workgroup.objects.create(name="Test WG 1", definition="My WG")  # Editor is member
-        self.wg2 = models.Workgroup.objects.create(name="Test WG 2", definition="My WG")
-        self.ra = models.RegistrationAuthority.objects.create(name="Test RA", definition="My WG")
+        self.steward_org_1 = models.StewardOrganisation.objects.create(
+            name='Org 1',
+            description="1",
+        )
+        
+        self.wg1 = models.Workgroup.objects.create(name="Test WG 1", definition="My WG", stewardship_organisation=self.steward_org_1)  # Editor is member
+        self.wg2 = models.Workgroup.objects.create(name="Test WG 2", definition="My WG", stewardship_organisation=self.steward_org_1)
+        self.ra = models.RegistrationAuthority.objects.create(name="Test RA", definition="My WG", stewardship_organisation=self.steward_org_1)
         #RAFIX self.wg1.registrationAuthorities.add(self.ra)
         self.wg1.save()
 

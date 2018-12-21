@@ -86,8 +86,10 @@ from aristotle_mdr.contrib.groups.base import (
     AbstractMembership,
 )
 
-
+from aristotle_mdr.contrib.groups import managers
 class StewardOrganisation(AbstractGroup):
+    # objects = managers.AbstractGroupQuerySet.as_manager()
+
     class Meta:
         verbose_name = "Steward Organisation"
 
@@ -96,13 +98,27 @@ class StewardOrganisation(AbstractGroup):
         ('steward', _('Steward')),
         ('member', _('Member')),
     )
+    owner_roles = [roles.admin]
 
     role_permissions = {
-        "manage_workgroups": [roles.admin, AbstractGroup.Permissions.is_superuser],
-        "edit_group_details": [roles.admin, AbstractGroup.Permissions.is_superuser],
-        "edit_members": [roles.admin, AbstractGroup.Permissions.is_superuser],
-        "invite_member": [roles.admin, AbstractGroup.Permissions.is_superuser],
+        "manage_workgroups": [roles.admin],
+        "manage_regstration_authorities": [roles.admin],
+        "edit_group_details": [roles.admin],
+        "edit_members": [roles.admin],
+        "invite_member": [roles.admin],
     }
+    states = Choices(
+        ('active', _('Active')),
+        ('archived', _('Archived')),
+        ('hidden', _('Hidden')),
+    )
+
+    active_states = [
+        states.active,
+    ]
+    visible_states = [
+        states.active, states.archived,
+    ]
 
     uuid = models.UUIDField(
         unique=True, default=uuid.uuid1, editable=False, null=False
