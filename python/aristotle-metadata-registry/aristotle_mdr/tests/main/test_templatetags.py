@@ -1,13 +1,13 @@
 from django.template import Context, Template
 from django.test import TestCase, override_settings
 from django.utils.safestring import SafeString
-
-import aristotle_mdr.models as models
-
 from django.core.exceptions import FieldDoesNotExist
 from django.template.exceptions import TemplateSyntaxError
 
+import aristotle_mdr.models as models
 from aristotle_mdr.templatetags import util_tags
+
+from datetime import datetime
 
 
 preamble = "{% load aristotle_tags %}"
@@ -89,3 +89,8 @@ class UtilTagsTestCase(TestCase):
     def test_bleach_handles_none(self):
         bleached = util_tags.bleach_filter(None)
         self.assertIsNone(bleached)
+
+    def test_iso_time(self):
+        dt = datetime(2000, 10, 10, 1, 1, 1)
+        isotime = util_tags.iso_time(dt)
+        self.assertEqual(isotime, '2000-10-10T01:01:01')
