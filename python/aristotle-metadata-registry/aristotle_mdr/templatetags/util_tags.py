@@ -91,7 +91,7 @@ def bleach_filter(html: str) -> SafeString:
     return mark_safe(clean_html)
 
 
-@register.filter
+@register.filter(name='isotime')
 def iso_time(dt: datetime):
     """Return ISO 8601 string from datetime object"""
     return dt.isoformat()

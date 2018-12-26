@@ -1,4 +1,4 @@
-{% load i18n aristotle_tags humanize %}
+{% load i18n aristotle_tags util_tags humanize %}
 
 {% if page.has_other_pages %}
 Showing {{ page.start_index }} - {{ page.end_index }} of {{ page.paginator.count }} results.
@@ -55,12 +55,12 @@ Showing {{ page.paginator.count }} results.
         <td>{{ item.get_status_display }}
         </td>
         <td>
-            <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|date:'c' }}">
+            <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|isotime }}">
                 {{item.modified|naturaltime}}
             </time>
         </td>
         <td>
-            <time title="{{ item.created|date:'o-m-d H:i e' }}" datetime="{{ item.created|date:'c' }}">
+            <time title="{{ item.created|date:'o-m-d H:i e' }}" datetime="{{ item.created|isotime }}">
                 {{item.created|naturaltime}}
             </time>
         </td>
