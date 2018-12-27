@@ -20,7 +20,7 @@
                   {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item %}
                     </td>
                     <td>
-                      {{item.modified}}
+                      <time datetime="{{ item.modified|isotime }}">{{ item.modified }}</time>
                     </td>
                   </tr>
                 {% endfor %}

@@ -94,7 +94,7 @@ Showing {{ page.paginator.count }} results.
             {% endfor %}</small>
             </ul>
         </td>
-        <td>{{ item.modified }}</td>
+        <td><time datetime="{{ item.modified|isotime }}">{{ item.modified }}</time></td>
         {% if delete %}
           <td>
             <a class="btn btn-default delete-button" href="{% url 'aristotle:sandbox_delete' %}?item={{ item.id }}" data-toggle='modal' data-target='#delete-modal' data-item-id="{{ item.id }}" data-item-name="{{ item.name }}">

@@ -30,10 +30,10 @@
                 </td>
             </tr>
             <tr>
-                <td>Requested: {{ review.created }}</td>
+                <td>Requested: <time datetime="{{ review.created|isotime }}">{{ review.created }}</time></td>
                 <td>Updated: 
                 {% if review.created != review.modified %}
-                    {{ review.modified }}
+                    <time datetime="{{ review.modified|isotime }}">{{ review.modified }}</time>
                 {% endif %}
                 </td>
             </tr>

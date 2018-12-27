@@ -19,6 +19,6 @@
 </div>
 
 <p>
-    Last modified: {{ object.modified }}
+    Last modified: <time datetime="{{ object.modified|isotime }}">{{ object.modified }}</time>
 </p>
 {% endblock %}

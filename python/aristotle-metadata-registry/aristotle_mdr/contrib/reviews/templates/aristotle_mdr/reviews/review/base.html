@@ -50,7 +50,7 @@
                 {{review.requester}}
             <br>
                 <i class="fa fa-fw fa-calendar"></i> Requested on:
-                {{review.created}}
+                <time datetime="{{ review.created|isotime }}">{{ review.created }}</time>
             {% if review.due_date %}
             <br>
                 <i class="fa fa-fw fa-calendar"></i> Due date:
