@@ -358,6 +358,22 @@ def get_concept_content_types() -> Dict[Model, ContentType]:
     return ContentType.objects.get_for_models(*models)
 
 
+def get_managed_item_models() -> List[Model]:
+    """Returns models for any managed item subclass"""
+    from aristotle_mdr.util.model_utils import ManagedItem
+    models = []
+    for app_config in apps.get_app_configs():
+        for model in app_config.get_models():
+            if issubclass(model, ManagedItem) and model != ManagedItem:
+                models.append(model)
+    return models
+
+
+def get_managed_content_types() -> Dict[Model, ContentType]:
+    models = get_managed_item_models()
+    return ContentType.objects.get_for_models(*models)
+
+
 def pretify_camel_case(camelcase):
     return re.sub(r'([a-z0-9])([A-Z])', r'\1 \2', camelcase)
 

@@ -108,7 +108,8 @@ class StewardMigration(migrations.Migration):
         _concept = apps.get_model('aristotle_mdr', '_concept')
         for item in _concept.objects.all():
             if item.workgroup is not None:
-                item.steward_organisation
+                item.steward_organisation = item.workgroup.steward_organisation
+                item.save()
                 
 
 

@@ -281,7 +281,7 @@ class GroupURLManager(object):
     membership_class = attr.ib()
     url_path = "" #attr.ib(default="")
     namespace = attr.ib()
-    update_fields = attr.ib(default=['slug', 'name'])
+    update_fields = attr.ib(default=[])
 
     # form_class = forms.AristotleUserRegistrationForm
 
@@ -344,7 +344,6 @@ class GroupURLManager(object):
         return GroupMemberRemoveView.as_view(
             manager=self,
             group_class=self.group_class,
-            # model=self.membership_class,
             *args, **kwargs
         )
 
@@ -360,7 +359,7 @@ class GroupURLManager(object):
         return GroupUpdateView.as_view(
             manager=self,
             model=self.group_class,
-            fields=self.update_fields,
+            fields=['slug', 'name', 'state'] + self.update_fields,
             *args, **kwargs
         )
 

@@ -41,22 +41,6 @@ class BaseStewardOrgsTestCase(utils.AristotleTestUtils):
         )
 
 class OrgPermissionsTests(BaseStewardOrgsTestCase, TestCase):
-    # ------- utils ------
-
-    # def get_aristotle_item(self, id):
-    #     response = self.client.get(reverse('aristotle:item', args=[id]), follow=True)
-    #     self.assertEqual(response.status_code, 200)
-    #     return response
-
-    # def get_aristotle_edit(self, id, code=200):
-    #     response = self.client.get(reverse('aristotle:edit_item', args=[id]))
-    #     self.assertEqual(response.status_code, code)
-    #     return response
-
-    # def make_newoc_public(self):
-    #     self.make_review_request(self.newoc, self.registrar)
-    #     self.ra.register(self.newoc, self.ra.public_state, self.registrar)
-
     def test_user_is_owner(self):
         self.assertTrue(self.steward_org_1.is_owner(self.org_manager))
         self.assertFalse(self.steward_org_2.is_owner(self.org_manager))
@@ -125,4 +109,3 @@ class OrgPermissionsTests(BaseStewardOrgsTestCase, TestCase):
         self.assertFalse(perms.user_can_create_registration_authority(
             self.org_manager, self.steward_org_2,
         ))
-

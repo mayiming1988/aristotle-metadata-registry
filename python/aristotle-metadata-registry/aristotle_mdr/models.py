@@ -9,9 +9,17 @@ from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
 
-from model_utils.models import TimeStampedModel
 from model_utils import Choices, FieldTracker
+from model_utils.models import TimeStampedModel
 from aristotle_mdr.contrib.async_signals.utils import fire
+from aristotle_mdr.utils.model_utils import (
+    baseAristotleObject,
+    ManagedItem,
+    aristotleComponent,
+    discussionAbstract,
+    AbstractValue,
+    DedBaseThrough,
+)
 import uuid
 
 import reversion  # import revisions
@@ -40,7 +48,7 @@ from .fields import (
 )
 
 from .managers import (
-    MetadataItemManager, ConceptManager,
+    ConceptManager,
     ReviewRequestQuerySet, WorkgroupQuerySet,
     RegistrationAuthorityQuerySet,
     StatusQuerySet
@@ -106,6 +114,7 @@ class StewardOrganisation(AbstractGroup):
         "edit_group_details": [roles.admin],
         "edit_members": [roles.admin],
         "invite_member": [roles.admin],
+        "list_workgroups": [roles.admin, AbstractGroup.Permissions.is_member],
     }
     states = Choices(
         ('active', _('Active')),
@@ -141,72 +150,6 @@ class StewardOrganisationMembership(AbstractMembership):
     group_kwargs = {"to_field": "uuid"}
 
 
-class baseAristotleObject(TimeStampedModel):
-    uuid = models.UUIDField(
-        help_text=_("Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries"),
-        unique=True, default=uuid.uuid1, editable=False, null=False
-    )
-    name = ShortTextField(
-        help_text=_("The primary name used for human identification purposes.")
-    )
-    definition = RichTextField(
-        _('definition'),
-        help_text=_("Representation of a concept by a descriptive statement "
-                    "which serves to differentiate it from related concepts. (3.2.39)")
-    )
-    objects = MetadataItemManager()
-
-    class Meta:
-        # So the url_name works for items we can't determine
-        verbose_name = "item"
-        # Can't be abstract as we need unique app wide IDs.
-        abstract = True
-
-    def was_modified_very_recently(self):
-        return self.modified >= (
-            timezone.now() - datetime.timedelta(seconds=VERY_RECENTLY_SECONDS)
-        )
-
-    def was_modified_recently(self):
-        return self.modified >= timezone.now() - datetime.timedelta(days=1)
-
-    was_modified_recently.admin_order_field = 'modified'  # type: ignore
-    was_modified_recently.boolean = True  # type: ignore
-    was_modified_recently.short_description = 'Modified recently?'  # type: ignore
-
-    def description_stub(self):
-        from django.utils.html import strip_tags
-        d = strip_tags(self.definition)
-        if len(d) > 150:
-            d = d[0:150] + "..."
-        return d
-
-    def __str__(self):
-        return "{name}".format(name=self.name)
-
-    # Defined so we can access it during templates.
-    @classmethod
-    def get_verbose_name(cls):
-        return cls._meta.verbose_name.title()
-
-    @classmethod
-    def get_verbose_name_plural(cls):
-        return cls._meta.verbose_name_plural.title()
-
-    def can_edit(self, user):
-        # This should always be overridden
-        raise NotImplementedError  # pragma: no cover
-
-    def can_view(self, user):
-        # This should always be overridden
-        raise NotImplementedError  # pragma: no cover
-
-    @classmethod
-    def meta(self):
-        # I know what I'm doing, get out the way.
-        return self._meta
-
-
 class unmanagedObject(baseAristotleObject):
     class Meta:
         abstract = True
@@ -220,19 +163,6 @@ class unmanagedObject(baseAristotleObject):
     @property
     def item(self):
         return self
-
-
-class aristotleComponent(models.Model):
-    class Meta:
-        abstract = True
-
-    ordering_field = 'order'
-
-    def can_edit(self, user):
-        return self.parentItem.can_edit(user)
-
-    def can_view(self, user):
-        return self.parentItem.can_view(user)
 
 
 class registryGroup(unmanagedObject):
@@ -637,21 +567,6 @@ class Workgroup(registryGroup):
         self.submitters.remove(user)
         self.stewards.remove(user)
         self.managers.remove(user)
-
-
-class discussionAbstract(TimeStampedModel):
-    body = models.TextField()
-    author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        null=True
-    )
-
-    class Meta:
-        abstract = True
-
-    @property
-    def edited(self):
-        return self.created != self.modified
 
 
 class DiscussionPost(discussionAbstract):
@@ -1091,7 +1006,7 @@ class Property(concept):
         verbose_name_plural = "Properties"
 
 
-class Measure(unmanagedObject):
+class Measure(ManagedItem):
     """
     Measure_Class is a class each instance of which models a measure class (3.2.72),
     a set of equivalent units of measure (3.2.138) that may be shared across multiple
@@ -1100,7 +1015,7 @@ class Measure(unmanagedObject):
 
     NB. A measure is not defined as a concept in ISO 11179 (11.4.2.2)
     """
-    template = "aristotle_mdr/unmanaged/measure.html"
+    template = "aristotle_mdr/manageditems/measure.html"
 
 
 class UnitOfMeasure(concept):
@@ -1267,63 +1182,6 @@ class ValueDomain(concept):
         return self.supplementaryvalue_set.all()
 
 
-class AbstractValue(aristotleComponent):
-    """
-    Implementation note: Not the best name, but there will be times to
-    subclass a "value" when its not just a permissible value.
-    """
-
-    class Meta:
-        abstract = True
-        ordering = ['order']
-    value = ShortTextField(  # 11.3.2.7.2.1 - Renamed from permitted value for abstracts
-        help_text=_("the actual value of the Value")
-    )
-    meaning = ShortTextField(  # 11.3.2.7.1
-        help_text=_("A textual designation of a value, where a relation to a Value meaning doesn't exist")
-    )
-    value_meaning = models.ForeignKey(  # 11.3.2.7.1
-        ValueMeaning,
-        blank=True,
-        null=True,
-        help_text=_('A reference to the value meaning that this designation relates to')
-    )
-    # Below will generate exactly the same related name as django, but reversion-compare
-    # needs an explicit related_name for some actions.
-    valueDomain = ConceptForeignKey(
-        ValueDomain,
-        related_name="%(class)s_set",
-        help_text=_("Enumerated Value Domain that this value meaning relates to"),
-        verbose_name='Value Domain'
-    )
-    order = models.PositiveSmallIntegerField("Position")
-    start_date = models.DateField(
-        blank=True,
-        null=True,
-        help_text=_('Date at which the value became valid')
-    )
-    end_date = models.DateField(
-        blank=True,
-        null=True,
-        help_text=_('Date at which the value ceased to be valid')
-    )
-
-    def __str__(self):
-        return "%s: %s - %s" % (
-            self.valueDomain.name,
-            self.value,
-            self.meaning
-        )
-
-    @property
-    def parentItem(self):
-        return self.valueDomain
-
-    @property
-    def parentItemId(self):
-        return self.valueDomain_id
-
-
 class PermissibleValue(AbstractValue):
     """
     Permissible Value is a class each instance of which models a permissible value (3.2.96),
@@ -1452,20 +1310,6 @@ class DataElementDerivation(concept):
         blank=True,
         help_text=_("text of a specification of a data element Derivation_Rule")
     )
-
-
-class DedBaseThrough(models.Model):
-    """
-    Abstract Class for Data Element Derivation Manay to Many through tables with ordering
-    """
-
-    data_element_derivation = models.ForeignKey(DataElementDerivation, on_delete=models.CASCADE)
-    data_element = models.ForeignKey(DataElement, on_delete=models.CASCADE)
-    order = models.PositiveSmallIntegerField("Position")
-
-    class Meta:
-        abstract = True
-        ordering = ['order']
 
 
 class DedDerivesThrough(DedBaseThrough):

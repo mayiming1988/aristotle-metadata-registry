@@ -27,11 +27,12 @@ class StewardURLManager(GroupURLManager):
             url("browse", view=self.browse_view(), name="browse"),
             url("workgroups/$", view=self.workgroup_list_view(), name="workgroups"),
             url("workgroups/create/$", view=self.workgroup_create_view(), name="workgroups_create"),
-            # url("workgroups/add", view=self.browse_view(), name="workgroups_add"),
+            url("managed_items/create/(?P<model_name>.+)/?$", view=self.managed_item_create_view(), name="create_managed_item"),
         ]
 
     def workgroup_list_view(self):
         class ListWorkgroup(GroupMixin, IsGroupMemberMixin, GenericListWorkgroup):
+            role_permission = "list_workgroups"
             template_name = "aristotle_mdr/user/workgroups/steward_list.html"
             raise_exception = True
         
@@ -41,7 +42,9 @@ class StewardURLManager(GroupURLManager):
 
     def workgroup_create_view(self):
         from aristotle_mdr.views.workgroups import CreateWorkgroup as Base
-        class CreateWorkgroup(GroupMixin, Base):
+        class CreateWorkgroup(HasRolePermissionMixin, GroupMixin, Base):
+            role_permission = "manage_workgroups"
+
             def get_initial(self):
                 initial = super().get_initial()
                 initial['stewardship_organisation'] = self.get_group()
@@ -53,6 +56,7 @@ class StewardURLManager(GroupURLManager):
         from aristotle_mdr.contrib.browse.views import BrowseConcepts
         class Browse(GroupMixin, BrowseConcepts):
             model = MDR._concept
+
             def get_queryset(self, *args, **kwargs):
                 qs = super().get_queryset(*args, **kwargs)
                 return qs.filter(stewardship_organisation=self.get_group())
@@ -69,6 +73,31 @@ class StewardURLManager(GroupURLManager):
                 return ['stewards/metadata/list.html']
         return Browse.as_view(manager=self, group_class=self.group_class)
     
+    def managed_item_create_view(self):
+        from django.contrib.contenttypes.models import ContentType
+        class CreateManagedItemView(GroupMixin, CreateView):
+            template_name = "stewards/managed_item/add.html"
+            fields=["stewardship_organisation", "name", "definition"]
+
+            def dispatch(self, request, *args, **kwargs):
+                model_name = self.kwargs.get("model_name").lower()
+                self.model = ContentType.objects.get(model=model_name).model_class()
+                return super().dispatch(request, *args, **kwargs)
+
+            def get_context_data(self, **kwargs):
+                kwargs.update({
+                    "model": self.model,
+                    "model_name": self.model._meta.verbose_name.title(),
+                })
+                return super().get_context_data(**kwargs)
+
+            def get_initial(self):
+                initial = super().get_initial()
+                initial['stewardship_organisation'] = self.get_group()
+                return initial
+
+        return CreateManagedItemView.as_view(manager=self, group_class=self.group_class)
+
 
 def group_backend_factory(*args, **kwargs):
     kwargs.update(dict(

@@ -115,8 +115,12 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
 
     class Permissions:
         @classmethod
-        def is_superuser(cls, user):
+        def is_superuser(cls, user, group=None):
             return user.is_superuser
+
+        @classmethod
+        def is_member(cls, user, group):
+            return group.has_member(user)
 
     role_permissions = {
         "edit_group_details": [roles.owner, Permissions.is_superuser],
@@ -143,7 +147,7 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
         return self.name
 
     # @classmethod
-    def user_has_permission(self, user, permission): #, *args, **kwargs):
+    def user_has_permission(self, user, permission):
         # if permission not in self.role_permissions.keys()
         #     raise PermissionNotDefined
 
@@ -154,7 +158,7 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
             for perm_or_role in self.role_permissions[permission]:
                 if callable(perm_or_role):
                     perm = perm_or_role
-                    yield perm(user)
+                    yield perm(user, group=self)
                 else:
                     if self.is_active():
                         yield False

@@ -16,7 +16,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView, RedirectView
 from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_string
-from django.contrib.contenttypes.models import ContentType
 from formtools.wizard.views import SessionWizardView
 
 import json
@@ -106,13 +105,17 @@ def concept_by_uuid(request, uuid):
 
 
 def measure(request, iid, model_slug, name_slug):
-    item = get_object_or_404(MDR.Measure, pk=iid).item
+    return managed_item(request, "measure", iid):
+
+
+# TODO: Switch to CBV
+def managed_item(request, model_slug, iid):
+    model_class = get_object_or_404(ContentType, model=model_slug).model_class()
+    item = get_object_or_404(model_class, pk=iid).item
     return render(
         request, [item.template],
         {
             'item': item,
-            # 'view': request.GET.get('view', '').lower(),
-            # 'last_edit': last_edit
         }
     )
 

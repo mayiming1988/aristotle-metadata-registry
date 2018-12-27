@@ -6,6 +6,7 @@ from aristotle_mdr.utils import fetch_aristotle_settings
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
 from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
+from aristotle_mdr.constants import visibility_permission_choices
 
 
 class UUIDManager(models.Manager):
@@ -240,3 +241,42 @@ class StatusQuerySet(models.QuerySet):
             states = states.filter(pk__in=current_ids)
 
         return states.select_related('registrationAuthority')
+
+
+class ManagedItemQuerySet(models.QuerySet):
+    def visible(self, user):
+        """
+        Returns a queryset that returns all managed items that the given user has
+        permission to view.
+
+        It is **chainable** with other querysets.
+        """
+        if user.is_superuser:
+            return self.all()
+        q = Q(publication_details__permission = visibility_permission_choices.public)
+        if user.is_anonymous():
+            return self.filter(q)
+
+        q |= Q(publication_details__permission = visibility_permission_choices.auth)
+        q |= Q(
+            workgroup__in=user.profile.workgroups,
+            publication_details__permission=visibility_permission_choices.workgroup
+        )
+
+        return self.filter(q)
+
+    def editable(self, user):
+        """
+        Returns a queryset that returns all managed items that the given user has
+        permission to edit.
+
+        It is **chainable** with other querysets.
+        """
+        if user.is_superuser:
+            return self.all()
+        if user.is_anonymous():
+            return self.none()
+
+        q = Q(stewardship_organisation = user.profile.workgroups)
+
+        return self.filter(q)

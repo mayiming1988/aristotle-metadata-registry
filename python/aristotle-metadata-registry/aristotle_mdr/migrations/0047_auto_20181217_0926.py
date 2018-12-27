@@ -63,12 +63,6 @@ class Migration(StewardMigration):
             migrations.RunPython(cls.assign_orgs_to_metadata, migrations.RunPython.noop),
 
             migrations.AddField(
-                model_name='measure',
-                name='stewardship_organisation',
-                field=models.ForeignKey(default=cls.get_uuid, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.StewardOrganisation', to_field='uuid'),
-                preserve_default=False,
-            ),
-            migrations.AddField(
                 model_name='organization',
                 name='stewardship_organisation',
                 field=models.ForeignKey(default=cls.get_uuid, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.StewardOrganisation', to_field='uuid'),

@@ -16,6 +16,9 @@ Showing {{ page.paginator.count }} results.
 <table class="table">
 <thead>
     <tr>
+        {% if show_stewardship_organisations %}
+            <th>{% trans 'Stewardship Organisation' %}</th>
+        {% endif %}
         <th>{% trans 'Workgroup' %}
             {% if sort == "name_asc" %}
             <a href="?{% paginator_get request page.number pop='sort' %}&sort=name_desc"><i class="fa fa-sort-asc"></i></a>
@@ -56,6 +59,11 @@ Showing {{ page.paginator.count }} results.
 <tbody>
     {% for item in page %}
     <tr>
+        {% if show_stewardship_organisations %}
+        <td>
+            <a href="{{ item.stewardship_organisation.get_absolute_url }}">{{ item.stewardship_organisation.name }}</a>
+        </td>
+        {% endif %}
         <td>
             <a href="{{ item.get_absolute_url }}">{{ item.name }}</a>
         </td>
