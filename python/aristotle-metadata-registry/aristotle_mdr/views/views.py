@@ -105,7 +105,7 @@ def concept_by_uuid(request, uuid):
 
 
 def measure(request, iid, model_slug, name_slug):
-    return managed_item(request, "measure", iid):
+    return managed_item(request, "measure", iid)
 
 
 # TODO: Switch to CBV

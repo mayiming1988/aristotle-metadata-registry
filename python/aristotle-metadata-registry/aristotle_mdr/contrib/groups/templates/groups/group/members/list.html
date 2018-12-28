@@ -15,7 +15,7 @@
 </div>
 <a href="{%url view.manager.namespace|add:":member_add" group.slug %}">Add member</a>
 
-<table>
+<table class="table">
     <thead>
         <tr>
             <th>Member</th>
@@ -37,10 +37,17 @@
         {% with member_user=member.grouper %}
         <tr>
             <td>
-                {{ member.grouper.display_name }}
                 {% if member.grouper == request.user %}
-                    ({% trans "You" %})
+                    <a href="{% url 'aristotle_mdr:userProfile' %}">
+                        {{ member.grouper.display_name }}
+                        ({% trans "You" %})
+                    </a>                
+                {% else %}
+                    <a title='{% trans "View profile" %}' href="{% url 'aristotle-user:view_another_user' member.grouper.pk %}">
+                        {{ member.grouper.display_name }}
+                    </a>                
                 {% endif %}
+
             </td>
             <td>
                 {% if group.allows_multiple_roles %}

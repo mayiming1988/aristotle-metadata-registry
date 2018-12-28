@@ -277,7 +277,7 @@ def get_status_queryset():
 
 class SortedListView(ListView):
     """
-    Can be used to replace current paginated fucntion views,
+    Can be used to replace current paginated function views,
     while retaining the template
 
     allowed_sorts can be a dict mapping names to sorts or just a list of sorts

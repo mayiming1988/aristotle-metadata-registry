@@ -22,10 +22,11 @@ from aristotle_mdr.views.user_pages import (
 from . import forms
 
 
-class AnotherUserMixin:
+class AnotherUserMixin(LoginRequiredMixin, PermissionRequiredMixin):
     raise_exception = True
     redirect_unauthenticated_users = True
-    permission_required = "aristotle_mdr.list_registry_users"
+    object_level_permissions = True
+    permission_required = "aristotle_mdr.view_other_users_account"
 
     def get_success_url(self):
         return reverse('aristotle-user:view_another_user', args=[self.kwargs['user_pk']])
@@ -40,21 +41,23 @@ class AnotherUserMixin:
         })
         return context
 
-
-class UpdateAnotherUser(LoginRequiredMixin, AnotherUserMixin, PermissionRequiredMixin, EditUserView):
-    template_name = "aristotle_mdr/users_management/users/update_another_user.html"
-
     def get_object(self, querySet=None):
+        # We need this here for object level permissions to work
         return self.get_user()
 
 
-class ViewAnotherUser(LoginRequiredMixin, AnotherUserMixin, PermissionRequiredMixin, ProfileView):
+class UpdateAnotherUser(AnotherUserMixin, EditUserView):
+    template_name = "aristotle_mdr/users_management/users/update_another_user.html"
+
+
+class ViewAnotherUser(AnotherUserMixin, ProfileView):
     template_name = "aristotle_mdr/users_management/users/view_another_user.html"
 
 
-class UpdateAnotherUserSiteWidePerms(LoginRequiredMixin, AnotherUserMixin, PermissionRequiredMixin, FormView):
+class UpdateAnotherUserSiteWidePerms(AnotherUserMixin, FormView):
     template_name = "aristotle_mdr/users_management/users/update_another_user_site_perms.html"
     form_class = forms.UpdateAnotherUserSiteWidePermsForm
+    permission_required = "aristotle_mdr.list_registry_users"
 
     def get_initial(self):
         user = self.get_user()

@@ -28,6 +28,7 @@ class StewardURLManager(GroupURLManager):
             url("workgroups/$", view=self.workgroup_list_view(), name="workgroups"),
             url("workgroups/create/$", view=self.workgroup_create_view(), name="workgroups_create"),
             url("managed_items/create/(?P<model_name>.+)/?$", view=self.managed_item_create_view(), name="create_managed_item"),
+            # url("managed_items/(?P<model_name>.+)/(?P<pk>.+)?$", view=self.managed_item_view(), name="create_managed_item"),
         ]
 
     def workgroup_list_view(self):

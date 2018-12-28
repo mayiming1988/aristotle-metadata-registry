@@ -367,6 +367,34 @@ def user_can_query_user_list(user):
     )
 
 
+def edit_other_users_account(viewing_user, viewed_user):
+    return view_other_users_account(viewing_user, viewed_user)
+
+
+def view_other_users_account(viewing_user, viewed_user):
+    from aristotle_mdr.models import StewardOrganisation, StewardOrganisationMembership
+    user = viewing_user
+    if user.is_anonymous:
+        return False
+
+    if user.is_superuser:
+        return True
+
+    allowed_roles = [
+        StewardOrganisation.roles.admin,
+    ]
+    kwargs = {"members__user": user, "members__role__in": allowed_roles}
+
+    # return True
+    return StewardOrganisation.objects.filter(
+            members__user=viewed_user
+        ).filter(
+            members__user=viewing_user, members__role__in=allowed_roles
+        ).active().exists()
+
+    return False
+
+
 def user_can_create_workgroup(user, steward_org=None):
     from aristotle_mdr.models import StewardOrganisation, StewardOrganisationMembership
     if user.is_superuser:
