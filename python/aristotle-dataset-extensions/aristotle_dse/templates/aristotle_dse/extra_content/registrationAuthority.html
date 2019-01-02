@@ -7,7 +7,7 @@
         {% for dss,s in standardDSS %}
         <li>
             {% include "aristotle_mdr/helpers/itemLink.html" with item=dss %}
-            Standardised on {{ s.registrationDate }}
+            Standardised on <time datetime="{{ s.registrationDate|isotime }}">{{ s.registrationDate }}</time>
         </li>
         {% endfor %}
     </ul>
