@@ -1,4 +1,4 @@
-{% load humanize %}
+{% load util_tags humanize %}
 {% load aristotle_help %}
 <div class="result">
 <a href="{% url 'aristotle_help:concept_help' object.app_label object.concept_type %}">{{ object.title }}</a>

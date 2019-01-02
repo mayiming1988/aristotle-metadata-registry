@@ -1,4 +1,4 @@
-{% load humanize %}
+{% load util_tags humanize %}
 <div class="result">
 {% if object.id %}
 <a href="{% url 'aristotle:item' object.id %}">{{ object.name }}</a>

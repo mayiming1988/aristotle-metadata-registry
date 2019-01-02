@@ -1,6 +1,6 @@
 {% extends request.is_ajax|yesno:"aristotle_mdr/base_ajax.html,aristotle_mdr/base.html" %}
 {% load i18n humanize %}
-{% load aristotle_tags %}
+{% load aristotle_tags util_tags %}
 {% load static from staticfiles %}
 
 {% block title %}Review details{{ item.name }}{% endblock %}
