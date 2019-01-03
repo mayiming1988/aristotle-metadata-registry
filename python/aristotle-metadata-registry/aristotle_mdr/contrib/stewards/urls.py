@@ -7,15 +7,12 @@ from .views import views, manager
 
 urlpatterns = [
     # url(r'^accounts/signup', views.NewUserSignupView.as_view(), name="new_user_signup"),
-    url(r'^steward', #include(group_backend_factory(),
+    # url(r'^all/?$', views.ListStewardOrg.as_view(), name='view_all'),
+    # # url(r'^create/?$', views.ListStewardOrg.as_view(), name='create'),
+    url(r'', #include(group_backend_factory(),
         include(
-            manager.group_backend_factory(
-                # group_class = StewardOrganisation,
-                # membership_class = StewardOrganisationMembership,
-                # namespace="aristotle_mdr:stewards:group",
-            ).get_urls(),
+            manager.group_backend_factory().get_urls(),
             namespace="group"
         ),
     ),
-    url(r'^all?$', views.ListStewardOrg.as_view(), name='view_all'),
 ]

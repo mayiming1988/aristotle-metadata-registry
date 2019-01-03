@@ -2,6 +2,8 @@ from braces.views import (
     LoginRequiredMixin, PermissionRequiredMixin, SuperuserRequiredMixin
 )
 
+import os
+
 from django import forms
 from django.conf.urls import url, include
 from django.contrib.auth import get_user_model
@@ -52,12 +54,18 @@ class GroupTemplateMixin(object):
     def get_template_names(self):
         try:
             templates = super().get_template_names()
+            if self.manager.template_base_directory:
+                templates = [
+                    os.path.join(self.manager.template_base_directory, t)
+                    for t in templates
+                ]
         except:
             templates = []
         if self.fallback_template_name:
             templates += [self.fallback_template_name]
-        print(templates)
+        logger.critical(templates)
         return templates
+
 
 class GroupBase(GroupTemplateMixin):
     manager = None
@@ -283,6 +291,7 @@ class GroupURLManager(object):
     url_path = "" #attr.ib(default="")
     namespace = attr.ib()
     update_fields = attr.ib(default=[])
+    template_base_directory = None
 
     # form_class = forms.AristotleUserRegistrationForm
 

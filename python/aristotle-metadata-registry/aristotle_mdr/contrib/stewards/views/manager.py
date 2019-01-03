@@ -18,10 +18,11 @@ from aristotle_mdr.contrib.groups.backends import (
 # from aristotle_mdr.models import StewardOrganisationMembership, StewardOrganisation, _concept
 from aristotle_mdr import models as MDR
 from aristotle_mdr.views.workgroups import GenericListWorkgroup, CreateWorkgroup
-
+from . import views
 
 class StewardURLManager(GroupURLManager):
     group_context_name = "stewardship_organisation"
+
     def get_extra_group_urls(self):
         return [
             url("browse", view=self.browse_view(), name="browse"),
@@ -30,6 +31,9 @@ class StewardURLManager(GroupURLManager):
             url("managed_items/create/(?P<model_name>.+)/?$", view=self.managed_item_create_view(), name="create_managed_item"),
             # url("managed_items/(?P<model_name>.+)/(?P<pk>.+)?$", view=self.managed_item_view(), name="create_managed_item"),
         ]
+
+    def list_all_view(self, *args, **kwargs):
+        return views.ListStewardOrg.as_view(manager=self, model=self.group_class, *args, **kwargs)
 
     def workgroup_list_view(self):
         class ListWorkgroup(GroupMixin, IsGroupMemberMixin, GenericListWorkgroup):
