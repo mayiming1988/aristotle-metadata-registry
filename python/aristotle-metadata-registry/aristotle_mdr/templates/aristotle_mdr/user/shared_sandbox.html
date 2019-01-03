@@ -2,7 +2,7 @@
 {% load i18n static %}
 
 {% block page %}
-<h1><i class="fa fa-pencil-square-o fa-fw"></i>{% block title %}{% firstof share_user.full_name share_user.short_name share_user.email %}'s Sandbox{% endblock %}</h1>
+    <h1><i class="fa fa-pencil-square-o fa-fw"></i>{% block title %}{% firstof share_user.full_name share_user.short_name share_user.email %}'s Sandbox{% endblock %}</h1>
 
-{% include "aristotle_mdr/helpers/paginated_list.html" with page=page_obj allow_select_all=False hide_checkbox=True hide_favourites=True %}
+    {% include "aristotle_mdr/helpers/paginated_list.html" with page=page_obj allow_select_all=False hide_checkbox=True hide_favourites=True %}
 {% endblock %}

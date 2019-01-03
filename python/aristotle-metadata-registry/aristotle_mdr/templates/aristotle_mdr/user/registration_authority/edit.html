@@ -3,7 +3,7 @@
 {% load bootstrap3 %}
 
 {% block collapse-link %}
-    <i class="fa fa-users fa-fw"></i> All Registration Authorities </a>
+    <i class="fa fa-users fa-fw"></i> All Registration Authorities
 {% endblock %}
 
 {% block sidebar %}
@@ -11,15 +11,15 @@
 {% endblock %}
 
 {% block page %}
-<h1>{% block title %} Editing - {{ item.name }}{% endblock %}</h1>
+    <h1>{% block title %} Editing - {{ item.name }}{% endblock %}</h1>
 
 
-<form action="" method="POST">
-{% csrf_token %}
-{% include 'aristotle_mdr/helpers/fancy_table_form.html' with form=form alert_fields=alert_fields %}
-<a class="btn btn-danger" href="{% url 'aristotle:registrationauthority_details' item.id %}">Cancel</a>
-<button class="btn btn-primary" type="submit">Save changes</button>
-</form>
+    <form action="" method="POST">
+        {% csrf_token %}
+        {% include 'aristotle_mdr/helpers/fancy_table_form.html' with form=form alert_fields=alert_fields %}
+        <a class="btn btn-danger" href="{% url 'aristotle:registrationauthority_details' item.id %}">Cancel</a>
+        <button class="btn btn-primary" type="submit">Save changes</button>
+    </form>
 
-</section>
+    </section>
 {% endblock %}

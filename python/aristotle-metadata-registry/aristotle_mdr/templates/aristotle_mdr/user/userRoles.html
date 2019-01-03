@@ -3,7 +3,7 @@
 {% load aristotle_tags %}
 
 {% block collapse-link %}
-    <i class="fa fa-institution fa-fw"></i> My Roles </a>
+    <i class="fa fa-institution fa-fw"></i> My Roles
 {% endblock %}
 
 {% block sidebar %}
@@ -21,10 +21,12 @@
 
     <table class='table'>
         <thead>
+        <tr>
             <th width="20%">Group</th>
             <th>Type</th>
             <th>Role</th>
             <th>Description</th>
+        </tr>
         </thead>
         <tbody>
         {% if requests.user.is_superuser %}
@@ -74,7 +76,6 @@
                 <a href="{% url 'aristotle:registrationauthority_details' ra.pk %}">
                 {{ ra.name }}
                 </a>
-            </td>
             </td>
             <td>Registration Authority
             </td>
