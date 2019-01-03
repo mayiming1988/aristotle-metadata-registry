@@ -37,7 +37,7 @@
                 <ul>
                 <li>Status: <em>{{review.get_target_registration_state_display}}</em></li>
                 <li>Registered in: <a href="{{review.registration_authority.get_absolute_url }}">{{review.registration_authority.name }}</a></li>
-                <li>Registration date: {{review.registration_date}}</li>
+                <li>Registration date: <time datetime="{{ review.registration_date|isotime }}">{{ review.registration_date }}</time></li>
                 </ul>
                     <i class="fa fa-fw fa-hashtag"></i> Number of items:
                     {{review.concepts.count}}

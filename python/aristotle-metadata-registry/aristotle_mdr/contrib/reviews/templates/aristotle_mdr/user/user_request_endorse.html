@@ -48,7 +48,7 @@
       </div>
       <div class="status_change_description">
           <label for='id_registration_date'>{{ wizard.form.registration_date.label }}:</label> {{ wizard.form.registration_date.help_text }}
-          {{ wizard.form.registration_date }}
+          <time datetime="{{ wizard.form.registration_date|isotime }}">{{ wizard.form.registration_date }}</time>
       </div>
       <div class="status_change_description">
           <label for='id_close_review'>{{ wizard.form.close_review.label }}:</label> {{ wizard.form.close_review.help_text }}
