@@ -1,5 +1,5 @@
 import moment from 'moment'
-const default_format = 'MMMM Do YYYY'
+const default_format = 'Do MMMM YYYY'
 
 export function initTime() {
     $('time').each(function() {
