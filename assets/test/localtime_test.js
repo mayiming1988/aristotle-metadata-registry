@@ -17,8 +17,21 @@ describe('initTime', function() {
 
     it('Converts datetime to default format', function() {
         this.timetag.setAttribute('datetime', '2017-01-01')
-        assert.equal(this.timetag.textContent, '')
         initTime()
         assert.equal(this.timetag.textContent, '1st January 2017')
+    })
+
+    it('Converts datetime to custom format', function() {
+        this.timetag.setAttribute('datetime', '2017-01-01')
+        this.timetag.setAttribute('data-format', 'DD MM YYYY')
+        initTime()
+        assert.equal(this.timetag.textContent, '01 01 2017')
+    })
+
+    it('Converts datetime to from time', function() {
+        this.timetag.setAttribute('datetime', '2001-01-01')
+        this.timetag.setAttribute('data-time-from', 'true')
+        initTime()
+        assert.isTrue(this.timetag.textContent.endsWith('years ago'))
     })
 })
