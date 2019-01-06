@@ -54,7 +54,7 @@
             {% if review.due_date %}
             <br>
                 <i class="fa fa-fw fa-calendar"></i> Due date:
-                {{review.due_date}}
+                <time datetime="{{ review.due_date|isotime }}">{{ review.due_date }}</time>
             {% endif %}
             </div>
             </div>
