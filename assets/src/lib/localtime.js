@@ -6,6 +6,7 @@ export function initTime() {
         let node = $(this)
         let dt = node.attr('datetime')
         let format = node.attr('data-format')
+        let from = (node.attr('data-time-from') === 'true')
 
         if (format === undefined) {
             format = default_format
@@ -15,7 +16,13 @@ export function initTime() {
         // in this case we just set the text and title to -
         let local = '-'
         if (dt != '-') {
-            local = moment(dt).format(format)
+            if (from) {
+                // Display value from this datetime to now
+                local = moment(dt).fromNow()
+            } else {
+                // Display datetime
+                local = moment(dt).format(format)
+            }
         }
 
         node.text(local)
