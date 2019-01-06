@@ -58,7 +58,7 @@
                         {{ view.concept }}
                         <small>({{ view.concept.item.get_verbose_name }})</small>
                         <br>
-                        <small>{{view.view_date|naturaltime}}</small>
+                        <small><time datetime="{{ view.view_date|isotime }}" data-time-from="true">{{ view.view_date }}</time></small>
                       </a>
 
                     {% empty %}
