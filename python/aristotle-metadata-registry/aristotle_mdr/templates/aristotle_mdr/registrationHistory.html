@@ -31,7 +31,7 @@
             {% for status in states %}
                 <tr>
                     <td><time datetime="{{ status.registrationDate|isotime }}">{{ status.registrationDate }}</time></td>
-                    <td>{{ status.until_date }}</td>
+                    <td><time datetime="{{ status.until_date|isotime }}">{{ status.until_date }}</time></td>
                     <td><a title='' href='{% url 'aristotle:registrationAuthority' ra.id %}#state_{{ status.state }}'>{{ status.state|stateToText }}</a></td>
                     <td>{{ status.changeDetails }}</td>
                 </tr>

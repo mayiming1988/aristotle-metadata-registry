@@ -17,7 +17,7 @@ export function initTime() {
         let local = '-'
         if (dt != '-') {
             if (from) {
-                // Display value from this datetime to now
+                // Display value from this datetime to now e.g 4 days ago
                 local = moment(dt).fromNow()
             } else {
                 // Display datetime
