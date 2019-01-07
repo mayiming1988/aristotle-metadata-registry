@@ -224,7 +224,7 @@ class CloneItemView(ConceptEditFormView, SingleObjectMixin, FormView):
         for field_name in fields:
             field = self.model._meta.get_field(field_name)
             remote_field_name = field.remote_field.name
-            components = getattr(original, field_name).all()
+            components = getattr(original, field.get_accessor_name()).all()
             new_components = []
             for component in components:
                 # Set pk to none so we insert instead of update
