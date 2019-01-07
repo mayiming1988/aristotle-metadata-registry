@@ -41,7 +41,7 @@ class PDFDownloader(DownloaderBase):
     icon_class = "fa-file-pdf-o"
     description = "Downloads for various content types in the PDF format"
 
-    def get_base_download_config(self) -> Dict[str, Any]:
+    def get_base_download_context(self) -> Dict[str, Any]:
         # page size for the pdf
         aristotle_settings = fetch_aristotle_settings()
         page_size = aristotle_settings.get('PDF_PAGE_SIZE', 'A4')
@@ -53,14 +53,14 @@ class PDFDownloader(DownloaderBase):
         }
         return context
 
-    def get_download_config(self) -> Dict[str, Any]:
+    def get_download_context(self) -> Dict[str, Any]:
         """
         Create configuration for pdf download method
         :param request: request object
         :param iid: id of the item requested
         :return: properties for item, id of the item
         """
-        context = self.get_base_download_config()
+        context = self.get_base_download_context()
 
         item = self.items[0]
         sub_items = [
@@ -77,14 +77,14 @@ class PDFDownloader(DownloaderBase):
 
         return context
 
-    def get_bulk_download_config(self) -> Dict[str, Any]:
+    def get_bulk_download_context(self) -> Dict[str, Any]:
         """
         generate properties for pdf document
         :param request: API request object
         :param items: items to download
         :return: properties computed, items
         """
-        context = self.get_base_download_config()
+        context = self.get_base_download_context()
 
         _list = "<li>" + "</li><li>".join([item.name for item in self.items if item]) + "</li>"
         subtitle = mark_safe("Generated from the following metadata items:<ul>%s<ul>" % _list)
@@ -104,12 +104,12 @@ class PDFDownloader(DownloaderBase):
 
     def create_file(self):
         if self.bulk:
-            context = self.get_bulk_download_config()
+            context = self.get_bulk_download_context()
             template = 'aristotle_mdr/downloads/pdf/bulk_download.html'
         else:
             item = self.items[0]
             template = get_download_template_path_for_item(item, self.download_type)
-            context = self.get_download_config()
+            context = self.get_download_context()
 
         byte_string = render_to_pdf(template, context)
         return ContentFile(byte_string)

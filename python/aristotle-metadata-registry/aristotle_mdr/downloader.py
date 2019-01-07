@@ -37,6 +37,7 @@ class DownloaderBase:
     metadata_register: Any = {}
     icon_class: str = 'file-text-o'
     description: str = ""
+    filename: str = 'download'
     # A unique identifier for the downloader (used in url and passed to task)
     download_type: str
     file_extension: str = ''
@@ -85,7 +86,7 @@ class DownloaderBase:
     def bulk(self):
         return len(self.item_ids) > 1
 
-    def get_filename(self):
+    def get_filepath(self):
         if self.user.is_authenticated:
             userpart = str(self.user.id)
         else:
@@ -95,7 +96,7 @@ class DownloaderBase:
         arghash.update(pickle.dumps(self.item_ids))
         arghash.update(pickle.dumps(self.options))
 
-        fname = '-'.join([userpart, arghash.hexdigest()])
+        fname = '/'.join([userpart, arghash.hexdigest(), self.filename])
         if self.file_extension:
             return '.'.join([fname, self.file_extension])
 
@@ -117,14 +118,14 @@ class DownloaderBase:
 
     def download(self) -> str:
         """Get the url for this downloads file, creating it if neccesary"""
-        filename = self.get_filename()
+        filepath = self.get_filepath()
 
-        url = self.retrieve_file(filename)
+        url = self.retrieve_file(filepath)
         if url is not None:
             return url
 
         fileobj = self.create_file()
-        return self.store_file(filename, fileobj)
+        return self.store_file(filepath, fileobj)
 
 
 # Deprecated
