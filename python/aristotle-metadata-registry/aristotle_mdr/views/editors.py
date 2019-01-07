@@ -209,8 +209,25 @@ class CloneItemView(ConceptEditFormView, DetailView, CreateView):
                 new_clone = form.save(commit=False)
                 new_clone.submitter = self.request.user
                 new_clone.save()
+                self.clone_components(new_clone)
                 reversion.revisions.set_user(self.request.user)
                 reversion.revisions.set_comment("Cloned from %s (id: %s)" % (self.item.name, str(self.item.pk)))
                 return HttpResponseRedirect(url_slugify_concept(new_clone))
         else:
             return self.form_invalid(form)
+
+    def clone_components(self, clone):
+        original = self.item
+        fields = getattr(self.model, 'clone_fields', [])
+        for field_name in fields:
+            field = self.model._meta.get_field(field_name)
+            remote_field_name = field.remote_field.name
+            components = getattr(original, field_name).all()
+            new_components = []
+            for component in components:
+                # Set pk to none so we insert instead of update
+                component.pk = None
+                # Set the remote field to the clone
+                setattr(component, remote_field_name, clone)
+                new_components.append(component)
+            field.related_model.objects.bulk_create(new_components)
