@@ -2,8 +2,9 @@ from django.db import transaction
 from django.forms.models import inlineformset_factory
 from django.http import HttpResponseRedirect
 from django.views.generic import (
-    CreateView, DetailView, UpdateView
+    CreateView, DetailView, UpdateView, FormView
 )
+from django.views.generic.detail import SingleObjectMixin
 
 import reversion
 
@@ -39,7 +40,8 @@ class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
     pk_url_kwarg = 'iid'
 
     def dispatch(self, request, *args, **kwargs):
-        self.item = super().get_object().item
+        self.object = self.get_object()
+        self.item = self.object.item
         self.model = self.item.__class__
         return super().dispatch(request, *args, **kwargs)
 
@@ -186,7 +188,7 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         return context
 
 
-class CloneItemView(ConceptEditFormView, DetailView, CreateView):
+class CloneItemView(ConceptEditFormView, SingleObjectMixin, FormView):
     template_name = "aristotle_mdr/create/clone_item.html"
     permission_required = "aristotle_mdr.user_can_view"
 

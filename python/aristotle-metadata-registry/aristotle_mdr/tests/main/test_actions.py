@@ -1,39 +1,63 @@
 # Unit tests for action that don't fit in test_html_pages
-from django.test import TestCase
+from django.test import TestCase, tag
 
+from aristotle_mdr.tests.utils import AristotleTestUtils
 from aristotle_mdr import models
 from aristotle_mdr.views.editors import CloneItemView
 
 
-class CloneViewTestCase(TestCase):
+@tag('clone')
+class CloneViewTestCase(AristotleTestUtils, TestCase):
 
     def setUp(self):
+        super().setUp()
         self.view = CloneItemView()
-        vd = models.ValueDomain.objects.create(
+        self.vd = models.ValueDomain.objects.create(
             name='Goodness',
-            definition='A measure of good'
+            definition='A measure of good',
+            workgroup=self.wg1
         )
         models.PermissibleValue.objects.create(
             value='1',
             meaning='Not very good',
-            valueDomain=vd,
+            valueDomain=self.vd,
             order=0
         )
         models.PermissibleValue.objects.create(
             value='10',
             meaning='Very good',
-            valueDomain=vd,
+            valueDomain=self.vd,
             order=1
         )
-        self.view.item = vd
-        self.view.model = type(vd)
+        self.view.item = self.vd
+        self.view.model = type(self.vd)
 
-    def test_component_cloning(self):
+    @tag('unit')
+    def test_clone_components_function(self):
         clone = models.ValueDomain.objects.create(
             name='Goodness clone',
             definition='A measure of good'
         )
         self.view.clone_components(clone)
+        self.assertEqual(clone.permissiblevalue_set.count(), 2)
+        self.assertEqual(clone.permissiblevalue_set.get(order=0).meaning, 'Not very good')
+        self.assertEqual(clone.permissiblevalue_set.get(order=1).meaning, 'Very good')
+
+    def test_clone_with_components(self):
+        self.login_editor()
+        data = {
+            'name': 'Goodness (clone)',
+            'definition': 'A measure of good'
+        }
+
+        response = self.reverse_post(
+            'aristotle:clone_item',
+            data,
+            reverse_args=[self.vd.id],
+            status_code=302
+        )
+
+        clone = models.ValueDomain.objects.get(name='Goodness (clone)')
         self.assertEqual(clone.permissiblevalue_set.count(), 2)
         self.assertEqual(clone.permissiblevalue_set.get(order=0).meaning, 'Not very good')
         self.assertEqual(clone.permissiblevalue_set.get(order=1).meaning, 'Very good')
