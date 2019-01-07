@@ -2,8 +2,9 @@
 from django.test import TestCase, tag
 
 from aristotle_mdr.tests.utils import AristotleTestUtils
-from aristotle_mdr import models
 from aristotle_mdr.views.editors import CloneItemView
+from aristotle_mdr import models
+from aristotle_mdr import models
 
 
 @tag('clone')
@@ -39,25 +40,6 @@ class CloneViewTestCase(AristotleTestUtils, TestCase):
             definition='A measure of good'
         )
         self.view.clone_components(clone)
-        self.assertEqual(clone.permissiblevalue_set.count(), 2)
-        self.assertEqual(clone.permissiblevalue_set.get(order=0).meaning, 'Not very good')
-        self.assertEqual(clone.permissiblevalue_set.get(order=1).meaning, 'Very good')
-
-    def test_clone_with_components(self):
-        self.login_editor()
-        data = {
-            'name': 'Goodness (clone)',
-            'definition': 'A measure of good'
-        }
-
-        response = self.reverse_post(
-            'aristotle:clone_item',
-            data,
-            reverse_args=[self.vd.id],
-            status_code=302
-        )
-
-        clone = models.ValueDomain.objects.get(name='Goodness (clone)')
         self.assertEqual(clone.permissiblevalue_set.count(), 2)
         self.assertEqual(clone.permissiblevalue_set.get(order=0).meaning, 'Not very good')
         self.assertEqual(clone.permissiblevalue_set.get(order=1).meaning, 'Very good')
