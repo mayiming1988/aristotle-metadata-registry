@@ -39,7 +39,7 @@ class DownloaderBase:
     description: str = ""
     filename: str = 'download'
     # A unique identifier for the downloader (used in url and passed to task)
-    download_type: str
+    download_type: str = ''
     file_extension: str = ''
 
     default_options = {

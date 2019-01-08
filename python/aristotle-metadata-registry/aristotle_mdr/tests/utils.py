@@ -18,6 +18,7 @@ from django_celery_results.models import TaskResult
 from django_tools.unittest_utils.BrowserDebug import debug_response
 
 from aristotle_mdr.contrib.reviews.models import ReviewRequest
+from aristotle_mdr.downloader import DownloaderBase
 
 from time import sleep
 import random
@@ -912,6 +913,11 @@ class MockManagementForm(object):
         return base
 
 
+class FakeDownloader(DownloaderBase):
+    download_type = 'fake'
+    file_extension = 'fak'
+
+
 class AsyncResultMock:
     """
     This mock AsyncResult class will replace celery's AsyncResult class to facilitate ready and status features
@@ -968,6 +974,7 @@ def store_taskresult(status='SUCCESS'):
     )
     tr.save()
     return tr
+
 
 def get_download_result(iid):
     """
