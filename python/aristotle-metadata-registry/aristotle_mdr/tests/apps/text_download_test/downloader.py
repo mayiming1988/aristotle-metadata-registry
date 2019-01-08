@@ -9,7 +9,6 @@ from django.core.cache import cache
 
 from celery import shared_task
 
-from aristotle_mdr.utils import get_download_template_path_for_item, downloads as download_utils
 from aristotle_mdr.downloader import items_for_bulk_download, DownloaderBase
 from aristotle_mdr.views import get_if_user_can_view
 
