@@ -16,7 +16,6 @@ import pickle
 from aristotle_mdr.contrib.help.models import ConceptHelp
 from aristotle_mdr import models as MDR
 from aristotle_mdr.views import get_if_user_can_view
-from aristotle_mdr.utils import downloads as download_utils
 from celery import shared_task
 
 
@@ -37,6 +36,7 @@ class DownloaderBase:
     icon_class: str = 'file-text-o'
     description: str = ""
     filename: str = 'download'
+    allow_wrapper_pages: bool = False  # Whether to allow a front and back page
     # A unique identifier for the downloader (used in url and passed to task)
     download_type: str = ''
     file_extension: str = ''

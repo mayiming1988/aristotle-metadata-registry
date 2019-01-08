@@ -9,6 +9,7 @@ from celery import shared_task, Task
 from celery.utils.log import get_task_logger
 
 from aristotle_mdr.utils.utils import fetch_aristotle_downloaders
+from aristotle_mdr.utils.download import get_download_class
 
 logger = get_task_logger(__name__)
 
@@ -71,12 +72,12 @@ def update_search_index(action, sender, instance, **kwargs):
 
 @shared_task(name='download')
 def download(download_type: str, item_ids: List[int], user_id: int, options={}) -> Optional[str]:
-    dl_classes = fetch_aristotle_downloaders()
-    for klass in dl_classes:
-        if klass.download_type == download_type:
-            # Instanciate downloader class
-            downloader = klass(item_ids, user_id, options)
-            # Get file url
-            return downloader.download()
+    dl_class = get_download_class(download_type)
+
+    if dl_class is not None:
+        # Instanciate downloader class
+        downloader = dl_class(item_ids, user_id, options)
+        # Get file url
+        return downloader.download()
 
     return None

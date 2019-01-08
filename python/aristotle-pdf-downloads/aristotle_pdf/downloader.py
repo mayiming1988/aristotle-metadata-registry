@@ -1,5 +1,4 @@
 from typing import Dict, Any
-from aristotle_mdr.utils import get_download_template_path_for_item, downloads as download_utils
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth import get_user_model
 from aristotle_mdr.views import get_if_user_can_view
@@ -40,6 +39,7 @@ class PDFDownloader(DownloaderBase):
     label = "PDF"
     icon_class = "fa-file-pdf-o"
     description = "Downloads for various content types in the PDF format"
+    allow_wrapper_pages = True
 
     def get_base_download_context(self) -> Dict[str, Any]:
         # page size for the pdf

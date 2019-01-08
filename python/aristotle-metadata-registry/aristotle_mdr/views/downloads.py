@@ -15,7 +15,7 @@ from django.views.generic import TemplateView, View, FormView
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.views import get_if_user_can_view
-from aristotle_mdr.utils import fetch_aristotle_downloaders, downloads as download_utils
+from aristotle_mdr.utils.download import get_download_class
 from aristotle_bg_workers.tasks import download
 from celery.result import AsyncResult as async_result
 from celery import states
@@ -61,11 +61,7 @@ class BaseDownloadView(TemplateView):
             # Default option on the downloader class will be used
             options = {}
 
-        downloader_class = None
-        dl_classes = fetch_aristotle_downloaders()
-        for klass in dl_classes:
-            if klass.download_type == download_type:
-                downloader_class = klass
+        downloader_class = get_download_class(download_type)
 
         if not downloader_class:
             raise Http404
@@ -183,8 +179,18 @@ class DownloadOptionsView(FormView):
         self.download_type = self.kwargs['download_type']
         self.items = request.GET.getlist('items')
         if not self.items:
-            return HttpResponseNotFound()
+            raise Http404
+
+        self.download_class = get_download_class(self.download_type)
+        if self.download_class is None:
+            raise Http404
+
         return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['wrap_pages'] = self.download_class.allow_wrapper_pages
+        return kwargs
 
     def form_valid(self, form):
         cleaned_data = form.cleaned_data
