@@ -21,7 +21,6 @@ from celery.result import AsyncResult as async_result
 from celery import states
 from django.core.cache import cache
 from django.utils.http import urlencode
-from aristotle_mdr import constants as CONSTANTS
 from aristotle_mdr.forms.downloads import DownloadOptionsForm
 
 import logging

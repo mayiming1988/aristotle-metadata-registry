@@ -18,7 +18,6 @@ from aristotle_mdr import models as MDR
 from aristotle_mdr.views import get_if_user_can_view
 from aristotle_mdr.utils import downloads as download_utils
 from celery import shared_task
-from aristotle_mdr import constants as CONSTANTS
 
 
 class DownloaderBase:
