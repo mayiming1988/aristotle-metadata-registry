@@ -38,7 +38,6 @@ class BaseDownloadView(TemplateView):
     Base class inherited by single and bulk download views below
     """
 
-    title = 'Auto Generated Content'
     template_name = 'aristotle_mdr/downloads/creating_download.html'
     bulk = False
 
@@ -52,8 +51,6 @@ class BaseDownloadView(TemplateView):
         download_type = self.kwargs['download_type']
         self.item_ids = self.get_item_id_list()
 
-        get_params = request.GET.copy()
-
         if request.user.is_authenticated:
             user_id = request.user.id
         else:
@@ -65,8 +62,6 @@ class BaseDownloadView(TemplateView):
             # Default option on the downloader class will be used
             options = {}
 
-        res = download.delay(download_type, self.item_ids, user_id, options)
-
         downloader_class = None
         dl_classes = fetch_aristotle_downloaders()
         for klass in dl_classes:
@@ -74,12 +69,14 @@ class BaseDownloadView(TemplateView):
                 downloader_class = klass
 
         if not downloader_class:
-            return HttpResponseNotFound()
+            raise Http404
+
+        res = download.delay(download_type, self.item_ids, user_id, options)
 
         request.session['download_result_id'] = res.id
         # res.forget()
         self.download_type = download_type
-        kwargs.update(downloader_class.get_class_info())
+        self.download_class = downloader_class
         return super().get(request, *args, **kwargs)
 
     def get_item_names(self) -> Iterable[str]:
@@ -94,14 +91,13 @@ class BaseDownloadView(TemplateView):
         return {
             'title': self.get_file_title(item_names),
             'items': ', '.join(item_names),
-            'format': CONSTANTS.FILE_FORMAT[self.download_type],
             'is_bulk': len(self.item_ids) > 1,
-            'isReady': False
         }
 
     def get_context_data(self, *args, **kwargs) -> Dict[str, Any]:
         context = super().get_context_data(*args, **kwargs)
 
+        context.update(self.download_class.get_class_info())
         context.update({
             'items': self.item_ids,
             'file_details': self.get_file_details()
@@ -123,7 +119,13 @@ class DownloadView(BaseDownloadView):
 class BulkDownloadView(BaseDownloadView):
 
     def get_item_id_list(self):
-        return self.request.GET.getlist('items')
+        id_strings = self.request.GET.getlist('items')
+        try:
+            ids = [int(id) for id in id_strings]
+        except ValueError:
+            raise Http404
+
+        return ids
 
     def get_file_title(self, item_names):
         return 'Bulk Download'
