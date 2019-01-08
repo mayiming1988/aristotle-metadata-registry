@@ -127,6 +127,12 @@ class DownloaderBase:
         fileobj = self.create_file()
         return self.store_file(filepath, fileobj)
 
+    @classmethod
+    def get_class_info(cls) -> Dict[str, Any]:
+        return {
+            'icon_class': cls.icon_class
+        }
+
 
 # Deprecated
 class CSVDownloader(DownloaderBase):

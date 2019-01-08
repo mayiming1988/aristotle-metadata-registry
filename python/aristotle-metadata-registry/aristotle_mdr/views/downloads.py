@@ -79,6 +79,7 @@ class BaseDownloadView(TemplateView):
         request.session['download_result_id'] = res.id
         # res.forget()
         self.download_type = download_type
+        kwargs.update(downloader_class.get_class_info())
         return super().get(request, *args, **kwargs)
 
     def get_item_names(self) -> Iterable[str]:
@@ -86,7 +87,6 @@ class BaseDownloadView(TemplateView):
         return name_list
 
     def get_file_title(self, item_names: Iterable[str]) -> str:
-        """Should be overwritten"""
         return 'Item Download'
 
     def get_file_details(self) -> Dict[str, Any]:
@@ -161,67 +161,12 @@ class DownloadStatusView(View):
         }
 
         if job.ready():
-            if type(job.result) == bool:
-                context['file_details']['result'] = job.result
+            context['result'] = job.result
             context['is_ready'] = True
             context['is_expired'] = False
 
         # job.forget()
         return JsonResponse(context)
-
-
-# Not currently used
-class GetDownloadFileView(View):
-    """
-    This will return the download if the download is cached in redis.
-    Checks:
-    1. check if the download has expired
-    2. check if there is no key to download. If there is not
-    :param request:
-    :param download_type: type of download
-    :return:
-    """
-
-    download_key = 'download_result_id'
-
-    def get(self, request, *args, **kwargs):
-        items = request.GET.getlist('items', None)
-
-        try:
-            res_id = request.session[self.download_key]
-        except KeyError:
-            logger.exception('There is no key for request')
-            raise Http404
-
-        job = async_result(res_id)
-
-        if not job.successful():
-            if job.status == 'PENDING':
-                logger.exception('There is no task or you shouldn\'t be on this page yet')
-                raise Http404
-            else:
-                exc = job.get(propagate=False)
-                logger.exception('Task {0} raised exception: {1!r}\n{2!r}'.format(res_id, exc, job.traceback))
-                return HttpResponseServerError('cant produce document, Try again')
-
-        # job.forget()
-        try:
-            doc, mime_type, properties = cache.get(
-                download_utils.get_download_cache_key(items, request=request, download_type=download_type),
-                (None, '', '')
-            )
-        except ValueError:
-            logger.exception('Should unpack 3 values from the cache', ValueError)
-            return HttpResponseServerError('Cant unpack values')
-        if not doc:
-            # TODO: Need a design to avoid loop and refactor this to redirect to preparing-download
-            return HttpResponseServerError('No document in cache')
-        response = HttpResponse(doc, content_type=mime_type)
-        response['Content-Disposition'] = 'attachment; filename="{}.{}"'.format(request.GET.get('title'), download_type)
-        for key, val in properties.items():
-                response[key] = val
-        del request.session[download_key]
-        return response
 
 
 class DownloadOptionsView(FormView):
