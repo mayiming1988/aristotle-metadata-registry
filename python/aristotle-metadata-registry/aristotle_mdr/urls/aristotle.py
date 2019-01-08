@@ -134,10 +134,6 @@ urlpatterns=[
         views.downloads.DownloadStatusView.as_view(),
         name='download_status',
         ),
-    url(r'^downloading/?$',
-        views.downloads.GetDownloadFileView.as_view(),
-        name='start_download',
-        ),
 
     url(r'^action/supersede/(?P<iid>\d+)$', views.actions.SupersedeItemView.as_view(), name='supersede'),
 
