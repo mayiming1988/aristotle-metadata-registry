@@ -49,8 +49,13 @@ class PDFDownloader(DownloaderBase):
         context = {
             'user': self.user,
             'page_size': page_size,
-            'view': 'simple'
         }
+
+        if self.options['include_supporting']:
+            context['view'] = 'technical'
+        else:
+            context['view'] = 'simple'
+
         return context
 
     def get_download_context(self) -> Dict[str, Any]:

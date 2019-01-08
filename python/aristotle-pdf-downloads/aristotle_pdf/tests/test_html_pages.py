@@ -12,10 +12,9 @@ from aristotle_mdr.forms.creation_wizards import (
 )
 
 from aristotle_mdr.utils import setup_aristotle_test_environment
-setup_aristotle_test_environment()
 
 from aristotle_mdr.tests import utils
-from aristotle_pdf.downloader import  PDFDownloader
+from aristotle_pdf.downloader import PDFDownloader
 from aristotle_mdr.tests.utils import store_taskresult, get_download_result
 
 from mock import patch
