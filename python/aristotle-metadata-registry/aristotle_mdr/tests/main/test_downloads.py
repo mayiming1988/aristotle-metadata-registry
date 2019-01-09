@@ -6,7 +6,7 @@ from aristotle_bg_workers.tasks import download
 from aristotle_mdr import models
 from aristotle_mdr.tests.utils import AristotleTestUtils, AsyncResultMock
 
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 
 @override_settings(ARISTOTLE_SETTINGS={'DOWNLOADERS': ['aristotle_mdr.tests.utils.FakeDownloader']})
@@ -44,11 +44,17 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
         response = self.client.post(url, postdata)
         return response
 
-    @override_settings(ARISTOTLE_SETTINGS={'DOWNLOADERS': ['aristotle_pdf.downloader.PDFDownloader']})
-    @modify_settings(INSTALLED_APPS={'append': 'aristotle_pdf'})
-    def test_download_task(self):
-        result = download('pdf', [self.item.id], self.editor.id)
+    @patch('aristotle_bg_workers.tasks.get_download_class')
+    def test_download_task(self, fake_get_dl_class):
+        # Setup mocks
+        fake_dl_class = MagicMock()
+        fake_get_dl_class.return_value = fake_dl_class
+        # Call task
+        result = download('fake', [self.item.id], self.editor.id)
+        # Check mocks
         self.assertIsNotNone(result)
+        fake_dl_class.assert_called_once_with([self.item.id], self.editor.id, {})
+        fake_dl_class().download.assert_called_once()
 
     def test_dl_options_get_no_items(self):
         url = reverse('aristotle:download_options', args=['txt'])
