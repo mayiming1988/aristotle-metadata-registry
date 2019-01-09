@@ -3,12 +3,10 @@ import datetime
 from io import StringIO
 
 from django.core.management import call_command
-from django.core.exceptions import PermissionDenied
 
 from celery import shared_task, Task
 from celery.utils.log import get_task_logger
 
-from aristotle_mdr.utils.utils import fetch_aristotle_downloaders
 from aristotle_mdr.utils.download import get_download_class
 
 logger = get_task_logger(__name__)

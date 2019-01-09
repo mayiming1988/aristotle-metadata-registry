@@ -265,7 +265,7 @@ def is_active_extension(extension_name):
 def fetch_aristotle_downloaders():
     return [
         import_string(dtype)
-        for dtype in fetch_aristotle_settings().get('DOWNLOADERS', [])
+        for dtype in fetch_aristotle_settings().get('DOWNLOADERS', []) + ['aristotle_mdr.downloader.HTMLDownloader']
     ]
 
 

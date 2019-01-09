@@ -1,12 +1,12 @@
 from typing import Any, List, Dict, Optional
-from aristotle_mdr.utils import get_download_template_path_for_item
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
-from django.http import HttpResponse
-from django.core.cache import cache
 from django.core.files.storage import get_storage_class
 from django.core.files import File
+from django.utils.safestring import mark_safe
+from django.template.loader import render_to_string
+from django.core.files.base import ContentFile
 
 import io
 import csv
@@ -16,11 +16,16 @@ import pickle
 from aristotle_mdr.contrib.help.models import ConceptHelp
 from aristotle_mdr import models as MDR
 from aristotle_mdr.views import get_if_user_can_view
+from aristotle_mdr.utils import fetch_aristotle_settings
+from aristotle_mdr.utils.utils import get_download_template_path_for_item
 from celery import shared_task
 
 
-class DownloaderBase:
+class Downloader:
     """
+    Base class used by all downloaders
+    Subclasses must override the create_file method
+
     Required class properties:
 
     * description: a description of the downloader type
@@ -33,7 +38,7 @@ class DownloaderBase:
       * the string "__template__" indicating the downloader supports any metadata type with a matching download template
     """
     metadata_register: Any = {}
-    icon_class: str = 'file-text-o'
+    icon_class: str = 'fa-file-text-o'
     description: str = ""
     filename: str = 'download'
     allow_wrapper_pages: bool = False  # Whether to allow a front and back page
@@ -133,8 +138,126 @@ class DownloaderBase:
         }
 
 
+class HTMLDownloader(Downloader):
+    """
+    Generates a html download
+    This is subclassed for other formats that are generated from html
+    such as the pdf downloader
+    """
+
+    download_type = 'html'
+    file_extension = 'html'
+    label = 'HTML'
+    metadata_register = '__all__'
+    description = 'Download as html (used for debugging)'
+
+    bulk_download_template = 'aristotle_mdr/downloads/pdf/bulk_download.html'
+
+    def get_base_download_context(self) -> Dict[str, Any]:
+        # page size for the pdf
+        aristotle_settings = fetch_aristotle_settings()
+        page_size = aristotle_settings.get('PDF_PAGE_SIZE', 'A4')
+
+        context = {
+            'user': self.user,
+            'page_size': page_size,
+        }
+
+        if self.options['include_supporting']:
+            context['view'] = 'technical'
+        else:
+            context['view'] = 'simple'
+
+        return context
+
+    def get_download_context(self) -> Dict[str, Any]:
+        """
+        Create configuration for pdf download method
+        :param request: request object
+        :param iid: id of the item requested
+        :return: properties for item, id of the item
+        """
+        context = self.get_base_download_context()
+
+        item = self.items[0]
+        sub_items = [
+            (obj_type, qs.visible(self.user).order_by('name').distinct())
+            for obj_type, qs in item.get_download_items()
+        ]
+
+        context.update({
+            'title': item.name,
+            'item': item,
+            'subitems': sub_items,
+            'tableOfContents': len(sub_items) > 0,
+        })
+
+        return context
+
+    def get_bulk_download_context(self) -> Dict[str, Any]:
+        """
+        generate properties for pdf document
+        :param request: API request object
+        :param items: items to download
+        :return: properties computed, items
+        """
+        context = self.get_base_download_context()
+
+        _list = "<li>" + "</li><li>".join([item.name for item in self.items if item]) + "</li>"
+        subtitle = mark_safe("Generated from the following metadata items:<ul>%s<ul>" % _list)
+
+        item_querysets = items_for_bulk_download(self.items, self.user)
+
+        context.update({
+            'title': 'Auto-generated document',
+            'subtitle': subtitle,
+            'items': self.items,
+            'included_items': sorted(
+                [(k, v) for k, v in item_querysets.items()],
+                key=lambda k_v: k_v[0]._meta.model_name
+            ),
+        })
+        return context
+
+    def get_context(self) -> Dict[str, Any]:
+        """
+        Gets the template context
+        Can be used by subclasses
+        """
+        if self.bulk:
+            return self.get_bulk_context()
+        else:
+            return self.get_download_context()
+
+    def get_template(self) -> str:
+        """
+        Gets the template context
+        Can be used by subclasses
+        """
+        if self.bulk:
+            return self.bulk_download_template
+        else:
+            item = self.items[0]
+            # Template folder should be renamed to html
+            return get_download_template_path_for_item(item, 'pdf')
+
+    def get_html(self) -> bytes:
+        """
+        Gets the rendered html string
+        Can be used by subclasses
+        """
+        template = self.get_template()
+        context = self.get_context()
+        safestring = render_to_string(template, context=context)
+        return str(safestring).encode()
+
+    def create_file(self):
+        html = self.get_html()
+        return ContentFile(html)
+
+
 # Deprecated
-class CSVDownloader(DownloaderBase):
+class CSVDownloader(Downloader):
     download_type = "csv-vd"
     file_extension = 'csv'
     metadata_register = {'aristotle_mdr': ['valuedomain']}

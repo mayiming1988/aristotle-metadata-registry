@@ -18,7 +18,7 @@ from django_celery_results.models import TaskResult
 from django_tools.unittest_utils.BrowserDebug import debug_response
 
 from aristotle_mdr.contrib.reviews.models import ReviewRequest
-from aristotle_mdr.downloader import DownloaderBase
+from aristotle_mdr.downloader import Downloader
 
 from time import sleep
 import random
@@ -913,7 +913,7 @@ class MockManagementForm(object):
         return base
 
 
-class FakeDownloader(DownloaderBase):
+class FakeDownloader(Downloader):
     download_type = 'fake'
     file_extension = 'fak'
 

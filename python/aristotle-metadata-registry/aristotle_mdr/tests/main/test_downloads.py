@@ -1,4 +1,4 @@
-from django.test import TestCase, tag, override_settings, modify_settings
+from django.test import TestCase, tag, override_settings
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
