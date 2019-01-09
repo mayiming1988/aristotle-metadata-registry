@@ -1,7 +1,6 @@
 from django.views.generic import ListView
 
 from aristotle_mdr.models import _concept
-from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.slots.utils import concepts_with_similar_slots
 
 

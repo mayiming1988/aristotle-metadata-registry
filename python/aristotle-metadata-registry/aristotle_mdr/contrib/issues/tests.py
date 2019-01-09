@@ -1,4 +1,4 @@
-from django.test import TestCase, tag
+from django.test import TestCase
 from aristotle_mdr.tests.utils import AristotleTestUtils
 from aristotle_mdr import models as mdr_models
 from aristotle_mdr.contrib.issues import models
@@ -30,7 +30,7 @@ class IssueTests(AristotleTestUtils, TestCase):
         self.assertIsNotNone(issue.created)
 
     def test_issue_displays(self):
-        issue = self.create_test_issue()
+        self.create_test_issue()
         self.login_viewer()
         response = self.reverse_get(
             'aristotle_issues:item_issues',

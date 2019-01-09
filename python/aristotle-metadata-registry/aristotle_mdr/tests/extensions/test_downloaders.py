@@ -3,17 +3,11 @@ from django.test import TestCase
 import aristotle_mdr.models as models
 import aristotle_mdr.tests.utils as utils
 from django.urls import reverse
-from django.template.loader import select_template
-from django.template import TemplateSyntaxError, Context
-from django.core.cache import cache
+from django.template import TemplateSyntaxError
 
-from aristotle_mdr.utils import setup_aristotle_test_environment, downloads as download_utils, get_download_template_path_for_item
-from aristotle_mdr.views import get_if_user_can_view
-from aristotle_mdr import models as MDR
-from django.contrib.auth import get_user_model
+from aristotle_mdr.utils import setup_aristotle_test_environment
 from aristotle_mdr.tests.utils import store_taskresult, get_download_result
 from aristotle_mdr.tests.apps.text_download_test.downloader import TestTextDownloader
-from unittest import skip
 
 from mock import patch
 

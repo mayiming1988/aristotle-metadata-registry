@@ -1,11 +1,9 @@
 from django.conf.urls import include, url
-from rest_framework.documentation import include_docs_urls
 from rest_framework_swagger.views import get_swagger_view
 from django.utils.module_loading import import_string
 from .views import APIRootView
 # from rest_framework.authtoken import views as tokenviews
 
-import re
 
 API_TITLE = 'Aristotle MDR API'
 API_DESCRIPTION = """

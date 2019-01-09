@@ -1,20 +1,13 @@
-import graphene
 from graphene import relay
 from graphene_django.types import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
-from graphene_django.fields import DjangoConnectionField, DjangoListField
-from graphene import Field
-from django.db import models
 
 from aristotle_mdr import models as mdr_models
-from aristotle_mdr.contrib.identifiers import models as ident_models
 from aristotle_mdr.contrib.slots import models as slot_models
 from aristotle_mdr_graphql.fields import AristotleFilterConnectionField, AristotleConceptFilterConnectionField
-from aristotle_mdr_graphql.types import AristotleObjectType
 from aristotle_mdr_graphql.utils import type_from_model, type_from_concept_model, inline_type_from_model
 
 from aristotle_mdr_graphql import resolvers
-from aristotle_mdr_graphql.filterset import ConceptFilterSet
 
 
 WorkgroupNode = type_from_model(mdr_models.Workgroup)
@@ -48,7 +41,6 @@ SupplementaryValueNode = inline_type_from_model(mdr_models.SupplementaryValue)
 
 # Slots and Identifiers
 
-from ..types import ScopedIdentifierNode
 
 SlotNode = type_from_model(slot_models.Slot)
 

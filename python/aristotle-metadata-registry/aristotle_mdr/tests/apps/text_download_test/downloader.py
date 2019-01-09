@@ -1,15 +1,11 @@
-from django.template.loader import render_to_string
-from django.http import HttpResponse
 from django.template.loader import select_template
-from django.template import Context
 from django.contrib.auth.models import AnonymousUser
 from aristotle_mdr import models as MDR
 from django.contrib.auth import get_user_model
-from django.core.cache import cache
 
 from celery import shared_task
 
-from aristotle_mdr.utils import get_download_template_path_for_item, downloads as download_utils
+from aristotle_mdr.utils import get_download_template_path_for_item
 from aristotle_mdr.downloader import items_for_bulk_download, DownloaderBase
 from aristotle_mdr.views import get_if_user_can_view
 

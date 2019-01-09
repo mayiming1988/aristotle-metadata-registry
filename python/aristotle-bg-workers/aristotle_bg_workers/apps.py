@@ -7,4 +7,4 @@ class AristotleBackgroundWorkersConfig(AristotleExtensionBaseConfig):
 
     def ready(self):
         # Load worker signals
-        from aristotle_bg_workers import signals
+        pass

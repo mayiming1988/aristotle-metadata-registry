@@ -6,7 +6,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
-from django.db.models import Q, Count
+from django.db.models import Q
 from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator

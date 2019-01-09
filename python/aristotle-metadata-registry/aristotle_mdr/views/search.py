@@ -1,7 +1,6 @@
 from datetime import timedelta
 from django.conf import settings
 from django.utils.timezone import now
-from django.utils.translation import ugettext_lazy as _
 from haystack.views import FacetedSearchView
 
 

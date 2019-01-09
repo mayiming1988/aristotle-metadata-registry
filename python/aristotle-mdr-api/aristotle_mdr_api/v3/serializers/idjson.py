@@ -5,20 +5,14 @@ Serialize data to/from JSON
 # Avoid shadowing the standard library json module
 from __future__ import absolute_import, unicode_literals
 
-import datetime
-import decimal
 import json
-import sys
-import uuid
 
 from django.core.serializers.base import DeserializationError
 from django.core.serializers.python import (
     Deserializer as PythonDeserializer, Serializer as PythonSerializer,
 )
-from django.utils import six
-from django.utils.timezone import is_aware
 
-from django.core.serializers.json import Serializer as JSONSerializer, DjangoJSONEncoder
+from django.core.serializers.json import DjangoJSONEncoder
 from aristotle_mdr_api.serializers.base import Serializer as Safe, Deserializer as DeSafe
 
 class Serializer(Safe):

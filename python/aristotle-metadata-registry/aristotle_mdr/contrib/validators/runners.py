@@ -37,7 +37,7 @@ class BaseValidationRunner:
 
             # Slow query
             item = concept.item
-            itemtype = type(item).__name__
+            type(item).__name__
 
             results = []
             for rulesets in self.rulesets:

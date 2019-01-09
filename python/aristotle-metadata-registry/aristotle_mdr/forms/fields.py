@@ -2,11 +2,8 @@ from django.forms import Field
 from django.forms.models import ModelMultipleChoiceField
 from django.core.validators import EmailValidator
 from django.core.exceptions import ValidationError
-import aristotle_mdr.models as MDR
-from aristotle_mdr.models import STATES, Status
 from django.forms.widgets import EmailInput
 from aristotle_mdr.widgets.widgets import TableCheckboxSelect, MultiTextWidget
-from django.urls import reverse
 from aristotle_mdr import perms
 from aristotle_mdr.utils import get_status_change_details
 

@@ -1,5 +1,4 @@
 from django.db import transaction
-from django.forms.models import inlineformset_factory
 from django.http import HttpResponseRedirect
 from django.views.generic import (
     CreateView, DetailView, UpdateView
@@ -25,7 +24,6 @@ import logging
 from aristotle_mdr.contrib.generic.views import ExtraFormsetMixin
 
 
-import re
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)

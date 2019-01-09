@@ -2,7 +2,6 @@ from typing import List, Dict
 from django.apps import apps
 from django.conf import settings
 from django.urls import reverse
-from django.core.cache import cache
 from django.core.exceptions import ImproperlyConfigured
 from django.forms import model_to_dict
 from django.template.defaultfilters import slugify
@@ -10,14 +9,11 @@ from django.utils.encoding import force_text
 from django.utils.module_loading import import_string
 from django.utils.text import get_text_list
 from django.utils.translation import ugettext as _
-from django.utils import timezone
-from django.db.models import Q, Model
+from django.db.models import Model
 from django.contrib.contenttypes.models import ContentType
 
 import bleach
 import logging
-import inspect
-import datetime
 import re
 
 logger = logging.getLogger(__name__)
@@ -373,8 +369,7 @@ def cascade_items_queryset(items=[]):
 
 
 def get_status_change_details(queryset, ra, new_state):
-    from aristotle_mdr.models import _concept, STATES, Status
-    from aristotle_mdr import perms
+    from aristotle_mdr.models import STATES, Status
     extra_info = {}
     subclassed_queryset = queryset.select_subclasses()
     statuses = Status.objects.filter(concept__in=queryset, registrationAuthority=ra).select_related('concept')

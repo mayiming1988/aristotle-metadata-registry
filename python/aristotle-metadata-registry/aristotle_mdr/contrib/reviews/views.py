@@ -1,18 +1,15 @@
-from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.db.models import Q, Count
-from django.http import Http404, HttpResponseRedirect, HttpResponse, HttpResponseNotFound
+from django.db.models import Q
+from django.http import HttpResponseNotFound, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_string
-from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext_lazy as _
 # from django.views.generic import ListView, TemplateView, DeleteView
 from django.views.generic import (DetailView,
                                   ListView,
@@ -31,7 +28,6 @@ from aristotle_mdr import perms
 from aristotle_mdr.forms.forms import ReviewChangesForm
 from aristotle_mdr.utils import cascade_items_queryset, get_status_change_details
 from aristotle_mdr.views import ReviewChangesView, display_review
-from aristotle_mdr.views.actions import ItemSubpageFormView
 from aristotle_mdr.views.utils import (
     generate_visibility_matrix,
     paginated_list,

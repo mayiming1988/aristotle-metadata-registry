@@ -1,7 +1,5 @@
 from typing import Any
-from aristotle_mdr.utils import get_download_template_path_for_item
 
-from django.http import HttpResponse
 
 import io
 import csv

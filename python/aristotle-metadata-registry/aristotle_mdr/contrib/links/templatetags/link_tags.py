@@ -1,6 +1,5 @@
 from django import template
 
-from aristotle_mdr.contrib.links.models import Link
 from aristotle_mdr.contrib.links import perms
 
 register = template.Library()

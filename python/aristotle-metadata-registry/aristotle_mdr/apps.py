@@ -10,4 +10,4 @@ class AristotleMDRConfig(AristotleExtensionBaseConfig):
     verbose_name = "Aristotle Metadata Registry"
 
     def ready(self):
-        from aristotle_mdr import checks
+        pass

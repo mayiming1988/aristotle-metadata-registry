@@ -16,7 +16,6 @@ from organizations.backends.tokens import RegistrationTokenGenerator
 from . import forms
 
 from django.conf import settings
-from django.contrib.auth import authenticate, login
 from django.core.mail import EmailMessage
 from django.utils.translation import ugettext_lazy as _
 

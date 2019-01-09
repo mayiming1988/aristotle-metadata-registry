@@ -28,7 +28,6 @@ import json
 
 from aristotle_mdr.utils import setup_aristotle_test_environment
 from aristotle_mdr.tests.utils import store_taskresult, get_download_result
-from aristotle_mdr.contrib.reviews.models import ReviewRequest
 
 from mock import patch
 
@@ -640,7 +639,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         concept_versions = reversion.models.Version.objects.get_for_object(item1_concept)
         self.assertEqual(concept_versions.count(), 2)
 
-        item_versions = reversion.models.Version.objects.get_for_object(self.item1)
+        reversion.models.Version.objects.get_for_object(self.item1)
         self.assertEqual(concept_versions.count(), 2)
 
     # ---- tests ----

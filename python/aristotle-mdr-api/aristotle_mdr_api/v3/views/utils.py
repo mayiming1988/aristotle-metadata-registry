@@ -1,4 +1,3 @@
-from django.conf import settings
 from rest_framework import serializers, pagination, viewsets
 from aristotle_mdr.utils.utils import fetch_aristotle_settings
 
@@ -41,7 +40,7 @@ api_excluded_fields = [
 ]
 
 def get_api_fields(cls):
-    fields = cls._meta.get_fields()
+    cls._meta.get_fields()
     for field in cls._meta.get_fields():
         if field.name not in api_excluded_fields:
             f = field

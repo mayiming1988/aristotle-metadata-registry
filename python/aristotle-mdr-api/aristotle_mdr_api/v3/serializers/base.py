@@ -7,17 +7,14 @@ from __future__ import unicode_literals
 
 from collections import OrderedDict
 
-from django.apps import apps
 from django.conf import settings
 from django.core.serializers import base
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import DEFAULT_DB_ALIAS, models, transaction
+from django.db import DEFAULT_DB_ALIAS, models
 from django.utils import six
 from django.utils.encoding import force_text, is_protected_type
-from django.core.serializers.python import _get_model
 from django.core.serializers.python import Serializer as PySerializer
 from aristotle_mdr import models as MDR
-from django.core.serializers.json import Serializer as JSONSerializer
 
 from aristotle_mdr.contrib.slots.models import Slot
 
@@ -424,7 +421,7 @@ def Deserializer(manifest, **options):
                     other_side = rel.rel.remote_field.name
                     for weak_entity in field_value:
                         # Boy this would be easier if uuids were primary keys :/
-                        extra = {}
+                        pass
                         # Check if any fields are concepts
                         for sub_field_name, sub_value in weak_entity.items():
                             sub_field = RelModel._meta.get_field(sub_field_name)
@@ -469,7 +466,6 @@ def Deserializer(manifest, **options):
                         logger.warning(e)
                         raise
                         #TODO: Better error logging
-                        pass
 
             for status in d.get("statuses", []):
                 ra, created = MDR.RegistrationAuthority.objects.get_or_create(

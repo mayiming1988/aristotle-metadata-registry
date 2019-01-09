@@ -1,4 +1,4 @@
-from aristotle_mdr.utils import get_download_template_path_for_item, downloads as download_utils
+from aristotle_mdr.utils import get_download_template_path_for_item
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth import get_user_model
 from aristotle_mdr.views import get_if_user_can_view
@@ -7,11 +7,9 @@ from aristotle_mdr import models as MDR
 import os
 
 from django.conf import settings
-from django.http import HttpResponse, Http404
 from django.template.loader import select_template, get_template
 from django.template import Context
 from django.utils.safestring import mark_safe
-from django.core.cache import cache
 from celery import shared_task
 
 from aristotle_mdr.contrib.help.models import ConceptHelp
@@ -153,7 +151,6 @@ class PDFDownloader(DownloaderBase):
                 _list = "<li>" + "</li><li>".join([item.name for item in items if item]) + "</li>"
                 subtitle = mark_safe("Generated from the following metadata items:<ul>%s<ul>" % _list)
 
-        subItems = []
 
         debug_as_html = bool(properties.get('debug_as_html'))
         mime_type = 'application/pdf'
@@ -188,7 +185,6 @@ def generate_outline_str(bookmarks, indent=0):
 
 
 def generate_outline_tree(bookmarks, depth=1):
-    outline_str = []
     return [
         {'label': label, "depth": depth, "page": page + 1, "children": generate_outline_tree(children, depth + 1)}
         for i, (label, (page, _, _), children) in enumerate(bookmarks, 1)
@@ -204,7 +200,7 @@ def render_to_pdf(template_src, context_dict,
         'aristotle_mdr/downloads/pdf/managedContent.html'
     ])
 
-    context = Context(context_dict)
+    Context(context_dict)
     html = template.render(context_dict)
 
     if debug_as_html:
@@ -218,7 +214,7 @@ def render_to_pdf(template_src, context_dict,
     if not context_dict.get('tableOfContents', False):
         return document.write_pdf()
 
-    table_of_contents_string = generate_outline_str(document.make_bookmark_tree())
+    generate_outline_str(document.make_bookmark_tree())
     toc = get_template('aristotle_mdr/downloads/pdf/toc.html').render(
         # Context(
         {

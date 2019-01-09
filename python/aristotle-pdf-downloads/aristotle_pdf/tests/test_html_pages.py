@@ -1,11 +1,7 @@
-from django.conf import settings
 from django.core.urlresolvers import reverse
-from django.test import TestCase, override_settings
-from django.utils import timezone
+from django.test import TestCase
 
 import aristotle_mdr.models as models
-import aristotle_mdr.perms as perms
-from aristotle_mdr.utils import url_slugify_concept
 from aristotle_mdr.forms.creation_wizards import (
     WorkgroupVerificationMixin,
     CheckIfModifiedMixin
@@ -19,7 +15,6 @@ from aristotle_pdf.downloader import  PDFDownloader
 from aristotle_mdr.tests.utils import store_taskresult, get_download_result
 
 from mock import patch
-from unittest import skip
 
 
 def setUpModule():

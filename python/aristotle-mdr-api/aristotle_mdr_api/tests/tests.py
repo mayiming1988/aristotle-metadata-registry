@@ -1,4 +1,4 @@
-from django.test import TestCase, Client, override_settings, tag
+from django.test import Client, TestCase, tag
 from django.urls import reverse
 
 from aristotle_mdr.tests import utils
@@ -9,7 +9,6 @@ from aristotle_mdr.contrib.slots.tests import BaseSlotsTestCase
 from rest_framework.test import APIClient
 
 import json
-from unittest.mock import patch
 
 
 class TokenTestCase(utils.LoggedInViewPages, TestCase):
@@ -219,12 +218,12 @@ class TokenTestCase(utils.LoggedInViewPages, TestCase):
 
     def test_list_tokens(self):
 
-        editor_token = self.get_editor_a_token()
+        self.get_editor_a_token()
 
         self.login_viewer()
 
-        token_key_1 = self.get_token('My First Token', self.all_true_perms)
-        token_key_2 = self.get_token('My Second Token', self.all_true_perms)
+        self.get_token('My First Token', self.all_true_perms)
+        self.get_token('My Second Token', self.all_true_perms)
 
         self.assertEqual(AristotleToken.objects.count(), 3)
 

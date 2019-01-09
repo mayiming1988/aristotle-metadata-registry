@@ -1,5 +1,4 @@
 import os
-from aristotle_mdr.tests.settings.settings import *
 
 DATABASES = {
     'default': {

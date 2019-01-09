@@ -1,4 +1,3 @@
-from aristotle_mdr.tests.settings.settings import *
 
 import os
 

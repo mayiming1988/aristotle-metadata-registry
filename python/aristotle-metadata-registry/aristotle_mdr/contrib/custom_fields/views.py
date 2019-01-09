@@ -1,9 +1,8 @@
 from typing import Iterable, List, Dict
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from django.views.generic import ListView, FormView
+from django.views.generic import FormView
 from django.views.generic.detail import SingleObjectMixin
-from django.contrib.auth.mixins import LoginRequiredMixin
 
 from aristotle_mdr.mixins import IsSuperUserMixin
 from aristotle_mdr.contrib.generic.views import VueFormView
@@ -13,7 +12,6 @@ from aristotle_mdr.contrib.custom_fields.forms import CustomFieldForm, CustomFie
 from aristotle_mdr_api.v4.custom_fields.serializers import CustomFieldSerializer
 from aristotle_mdr.contrib.slots.models import Slot
 
-import json
 
 
 class CustomFieldListView(IsSuperUserMixin, BootTableListView):
