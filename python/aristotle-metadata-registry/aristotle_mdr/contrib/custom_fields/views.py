@@ -13,7 +13,6 @@ from aristotle_mdr_api.v4.custom_fields.serializers import CustomFieldSerializer
 from aristotle_mdr.contrib.slots.models import Slot
 
 
-
 class CustomFieldListView(IsSuperUserMixin, BootTableListView):
     template_name='aristotle_mdr/custom_fields/list.html'
     model=models.CustomField

@@ -20,7 +20,6 @@ from aristotle_mdr.contrib.autocomplete import widgets
 from aristotle_mdr.utils import fetch_aristotle_downloaders
 
 
-
 class ForbiddenAllowedModelMultipleChoiceField(forms.ModelMultipleChoiceField):
     def __init__(self, *args, **kwargs):
         self.validate_queryset = kwargs.pop('validate_queryset')

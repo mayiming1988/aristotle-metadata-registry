@@ -23,8 +23,6 @@ import logging
 
 from aristotle_mdr.contrib.generic.views import ExtraFormsetMixin
 
-
-
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
