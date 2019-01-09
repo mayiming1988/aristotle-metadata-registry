@@ -12,6 +12,7 @@ import io
 import csv
 from hashlib import sha256
 import pickle
+import pypandoc
 
 from aristotle_mdr.contrib.help.models import ConceptHelp
 from aristotle_mdr import models as MDR
@@ -254,6 +255,38 @@ class HTMLDownloader(Downloader):
     def create_file(self):
         html = self.get_html()
         return ContentFile(html)
+
+
+class DocxDownloader(HTMLDownloader):
+
+    download_type = 'docx'
+    file_extension = 'docx'
+    label = 'Word'
+    metadata_register = '__all__'
+    icon_class = 'fa-file-word-o'
+    description = 'Download as word document'
+
+    def create_file(self):
+        html = self.get_html()
+        pypandoc.convert_text(html, 'docx', outputfile='/tmp/tmp.docx', format='html')
+        # Can not keep this in production, just for testing
+        with open('/tmp/tmp.docx', 'rb') as docxfile:
+            docx = docxfile.read()
+            return ContentFile(docx)
+
+
+class MarkdownDownloader(HTMLDownloader):
+
+    download_type = 'md'
+    file_extension = 'md'
+    label = 'Markdown'
+    metadata_register = '__all__'
+    description = 'Download as markdown'
+
+    def create_file(self):
+        html = self.get_html()
+        md = pypandoc.convert_text(html, 'md', format='html')
+        return ContentFile(md)
 
 
 # Deprecated

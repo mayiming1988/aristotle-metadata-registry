@@ -110,10 +110,10 @@ setup(
         'django-storages',
 
         # Sanitization
-        'bleach'
+        'bleach',
 
         # File conversion
-        'pypandoc'
+        'pypandoc',
     ],
 
 )
