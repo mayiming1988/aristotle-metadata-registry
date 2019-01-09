@@ -268,11 +268,8 @@ class DocxDownloader(HTMLDownloader):
 
     def create_file(self):
         html = self.get_html()
-        pypandoc.convert_text(html, 'docx', outputfile='/tmp/tmp.docx', format='html')
-        # Can not keep this in production, just for testing
-        with open('/tmp/tmp.docx', 'rb') as docxfile:
-            docx = docxfile.read()
-            return ContentFile(docx)
+        docx_bytes = pypandoc.convert_text(html, 'docx', outputfile='/tmp/tmp.docx', format='html', return_bytes=True)
+        return ContentFile(docx_bytes)
 
 
 class MarkdownDownloader(HTMLDownloader):
