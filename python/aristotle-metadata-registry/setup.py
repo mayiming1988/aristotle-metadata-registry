@@ -111,6 +111,9 @@ setup(
 
         # Sanitization
         'bleach'
+
+        # File conversion
+        'pypandoc'
     ],
 
 )
