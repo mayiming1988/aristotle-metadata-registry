@@ -158,7 +158,8 @@ class DownloadStatusView(View):
         }
 
         if job.ready():
-            context['result'] = job.result
+            if job.state == 'SUCCESS':
+                context['result'] = job.result
             context['is_ready'] = True
             context['is_expired'] = False
 

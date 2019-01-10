@@ -180,6 +180,7 @@ class HTMLDownloader(Downloader):
         """
         context = self.get_base_download_context()
 
+        # This will raise an exception if the list is empty, but thats ok
         item = self.items[0]
         sub_items = [
             (obj_type, qs.visible(self.user).order_by('name').distinct())
@@ -238,6 +239,7 @@ class HTMLDownloader(Downloader):
         if self.bulk:
             return self.bulk_download_template
         else:
+            # This will raise an exception if the list is empty, but thats ok
             item = self.items[0]
             # Template folder should be renamed to html
             return get_download_template_path_for_item(item, 'pdf')

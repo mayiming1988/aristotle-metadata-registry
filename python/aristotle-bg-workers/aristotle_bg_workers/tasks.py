@@ -78,4 +78,4 @@ def download(download_type: str, item_ids: List[int], user_id: int, options={}) 
         # Get file url
         return downloader.download()
 
-    return None
+    raise LookupError('Requested Donwloader class could not be found')
