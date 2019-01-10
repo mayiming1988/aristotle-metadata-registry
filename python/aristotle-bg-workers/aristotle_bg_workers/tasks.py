@@ -16,18 +16,18 @@ def run_django_command(cmd, *args, **kwargs):
     err.seek(0)
     out.seek(0)
     message = (
-"""Result:
-
-{out}
-
-Errors:
-
-{err}
-"""
-).format(
-    err=str(err.read()) or "None",
-    out=str(out.read())
-)
+        """Result:
+        
+        {out}
+        
+        Errors:
+        
+        {err}
+        """
+    ).format(
+        err=str(err.read()) or "None",
+        out=str(out.read())
+    )
     logger.debug(message)
     return message
 
@@ -77,3 +77,14 @@ def update_search_index(action, sender, instance, **kwargs):
         processor.handle_save(sender, instance, **kwargs)
     elif action == "delete":
         processor.handle_delete(sender, instance, **kwargs)
+
+@shared_task(name='send_notification_emails')
+def send_notification_emails(emails_list, user_email, sandbox_access_url):
+    from django.core.mail import send_mail
+
+    send_mail(
+        'Sandbox Access',
+        'Hello there, to access my Sandbox please use the following URL: ' + sandbox_access_url,
+        user_email,
+        emails_list
+    )
