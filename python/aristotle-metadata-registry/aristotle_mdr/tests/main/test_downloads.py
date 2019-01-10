@@ -1,6 +1,7 @@
 from django.test import TestCase, tag, override_settings
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from django.core.exceptions import PermissionDenied
 
 from aristotle_bg_workers.tasks import download
 from aristotle_mdr import models
@@ -161,6 +162,11 @@ class DownloderTestCase(AristotleTestUtils, TestCase):
             definition='A pokemons defense',
             submitter=self.editor
         )
+        self.item4 = models.Property.objects.create(
+            name='Attack',
+            definition='Attack',
+            submitter=self.viewer
+        )
 
     def test_file_path_auth_user(self):
         downloader = FakeDownloader([self.item.id], self.editor.id, {'include_supporting': True})
@@ -181,3 +187,12 @@ class DownloderTestCase(AristotleTestUtils, TestCase):
             downloader = FakeDownloader([self.item.id], self.editor.id, {'include_supporting': True})
             url = downloader.download()
             self.assertEqual(url, fake_url)
+
+    def test_items_restricted_to_visible_only(self):
+        downloader = FakeDownloader([self.item.id, self.item4.id], self.viewer.id, {})
+        self.assertEqual(downloader.numitems, 1)
+        self.assertEqual(downloader.items[0].id, self.item4.id)
+
+    def test_exception_raised_if_no_items_visible(self):
+        with self.assertRaises(PermissionDenied):
+            downloader = FakeDownloader([self.item.id], self.viewer.id, {})
