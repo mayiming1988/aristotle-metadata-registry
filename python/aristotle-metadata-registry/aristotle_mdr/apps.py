@@ -2,7 +2,7 @@ from django.apps import AppConfig
 
 
 class AristotleExtensionBaseConfig(AppConfig):
-    pass
+    from aristotle_mdr import checks
 
 
 class AristotleMDRConfig(AristotleExtensionBaseConfig):

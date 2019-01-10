@@ -16,8 +16,6 @@ setup_aristotle_test_environment()
 
 class TestExtensionListVisibility(TestCase):
     def test_extension_list_page(self):
-        pass
-
         response = self.client.get(reverse('aristotle_mdr:extensions'))
         self.assertEqual(response.status_code, 200)
 
@@ -34,6 +32,7 @@ class QuestionVisibility(utils.ManagedObjectVisibility, TestCase):
             name="Test Question",
             workgroup=self.wg,
         )
+
 
 class QuestionAdmin(AdminPageForConcept, TestCase):
     itemType=Question

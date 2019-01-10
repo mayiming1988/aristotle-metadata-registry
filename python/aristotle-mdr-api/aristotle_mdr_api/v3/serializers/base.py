@@ -28,12 +28,14 @@ logger.debug("Logging started for " + __name__)
 
 
 excluded_fields = [
-        "workgroup",
-        "submitter",
-    ]
+    "workgroup",
+    "submitter",
+]
 
-def exclude_fields(obj,excludes):
+
+def exclude_fields(obj, excludes):
     return [n.name for n in obj._meta.get_fields() if n.name not in excludes]
+
 
 class Serializer(PySerializer):
     """
@@ -89,7 +91,7 @@ class Serializer(PySerializer):
                 allowed_slots = []
 
             data['slots'] = [
-                {'name': slot.name, 'type': slot.type, 'value': slot.value }
+                {'name': slot.name, 'type': slot.type, 'value': slot.value}
                 for slot in allowed_slots
             ]
 
@@ -421,7 +423,6 @@ def Deserializer(manifest, **options):
                     other_side = rel.rel.remote_field.name
                     for weak_entity in field_value:
                         # Boy this would be easier if uuids were primary keys :/
-                        pass
                         # Check if any fields are concepts
                         for sub_field_name, sub_value in weak_entity.items():
                             sub_field = RelModel._meta.get_field(sub_field_name)

@@ -1,5 +1,6 @@
 from aristotle_mdr.apps import AristotleExtensionBaseConfig
 
+
 class AristotleBackgroundWorkersConfig(AristotleExtensionBaseConfig):
     name = 'aristotle_bg_workers'
     verbose_name = "Aristotle Background Workers"
@@ -7,4 +8,4 @@ class AristotleBackgroundWorkersConfig(AristotleExtensionBaseConfig):
 
     def ready(self):
         # Load worker signals
-        pass
+        from aristotle_bg_workers import signals
