@@ -8,6 +8,7 @@ import string
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.core.files.base import ContentFile
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
@@ -22,6 +23,7 @@ from aristotle_mdr.downloader import Downloader
 
 from time import sleep
 import random
+
 
 def wait_for_signal_to_fire(seconds=1):
     sleep(seconds)
@@ -916,6 +918,9 @@ class MockManagementForm(object):
 class FakeDownloader(Downloader):
     download_type = 'fake'
     file_extension = 'fak'
+
+    def create_file(self):
+        return ContentFile('')
 
 
 class AsyncResultMock:

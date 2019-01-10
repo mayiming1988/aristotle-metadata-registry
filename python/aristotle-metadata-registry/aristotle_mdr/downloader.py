@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.storage import get_storage_class
 from django.core.files import File
+from django.core.exceptions import PermissionDenied
 from django.utils.safestring import mark_safe
 from django.template.loader import render_to_string
 from django.core.files.base import ContentFile
@@ -38,9 +39,9 @@ class Downloader:
       * the string "__all__" indicating the downloader supports all metadata types
       * the string "__template__" indicating the downloader supports any metadata type with a matching download template
     """
-    metadata_register: Union[Dict[str, List], str] = {}
+    metadata_register: Union[Dict[str, List], str] = '__all__'
     icon_class: str = 'fa-file-text-o'
-    description: str = ""
+    description: str = ''
     filename: str = 'download'
     allow_wrapper_pages: bool = False  # Whether to allow a front and back page
     # A unique identifier for the downloader (used in url and passed to task)
@@ -66,6 +67,12 @@ class Downloader:
 
         self.items = MDR._concept.objects.filter(id__in=item_ids).visible(self.user).select_subclasses()
 
+        self.numitems = len(self.items)
+        self.bulk = (self.numitems > 1)
+
+        if self.numitems == 0:
+            raise PermissionDenied('User does not have permission to view any items')
+
         # Shallow copy of options
         self.options = self.default_options.copy()
         self.options.update(options)
@@ -87,10 +94,6 @@ class Downloader:
         """
         raise NotImplementedError
 
-    @property
-    def bulk(self):
-        return len(self.item_ids) > 1
-
     def get_filepath(self):
         if self.user.is_authenticated:
             userpart = str(self.user.id)
@@ -108,7 +111,7 @@ class Downloader:
         return fname
 
     def retrieve_file(self, filename: str) -> Optional[str]:
-        """Use defualt storage class to retrieve file if it exists"""
+        """Use default storage class to retrieve file if it exists"""
         storage_class = get_storage_class()
         storage = storage_class()
         if storage.exists(filename):

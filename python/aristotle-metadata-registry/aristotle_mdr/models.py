@@ -1311,7 +1311,8 @@ class DataElementConcept(concept):
 # to "concept".
 class DataElement(concept):
     """
-    Unit of data that is considered in context to be indivisible (3.2.28)"""
+    Unit of data that is considered in context to be indivisible (3.2.28)
+    """
 
     template = "aristotle_mdr/concepts/dataElement.html"
     list_details_template = "aristotle_mdr/concepts/list_details/data_element.html"

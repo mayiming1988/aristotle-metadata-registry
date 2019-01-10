@@ -4,7 +4,7 @@ from django.urls import reverse
 
 from aristotle_bg_workers.tasks import download
 from aristotle_mdr import models
-from aristotle_mdr.tests.utils import AristotleTestUtils, AsyncResultMock
+from aristotle_mdr.tests.utils import AristotleTestUtils, AsyncResultMock, FakeDownloader
 
 from unittest.mock import patch, MagicMock
 
@@ -137,3 +137,47 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
         )
 
         mock_task_creator.assert_called_once_with('fake', [self.item.id], None, options)
+
+
+class DownloderTestCase(AristotleTestUtils, TestCase):
+    """
+    Testing functionality defined in the base downloader
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.item = models.ObjectClass.objects.create(
+            name='Pokemon',
+            definition='Pocket Monsters',
+            submitter=self.editor
+        )
+        self.item2 = models.Property.objects.create(
+            name='Defense',
+            definition='Defense',
+            submitter=self.editor
+        )
+        self.item3 = models.DataElementConcept.objects.create(
+            name='Pokemon - Defense',
+            definition='A pokemons defense',
+            submitter=self.editor
+        )
+
+    def test_file_path_auth_user(self):
+        downloader = FakeDownloader([self.item.id], self.editor.id, {'include_supporting': True})
+        path = downloader.get_filepath()
+        self.assertRegex(path, '[0-9]+/[0-9a-f]+/download.fak')
+
+    def test_file_path_anon_user(self):
+        # Make public so we dont get a permission denied
+        self.make_item_public(self.item, self.ra)
+        # Setup downloader get path
+        downloader = FakeDownloader([self.item.id], None, {'include_supporting': True})
+        path = downloader.get_filepath()
+        self.assertRegex(path, 'anon/[0-9a-f]+/download.fak')
+
+    def test_file_not_created_if_can_be_retrieved(self):
+        fake_url = 'http://www.example.com/existing/file.fak'
+        with patch.object(FakeDownloader, 'retrieve_file', return_value=fake_url):
+            downloader = FakeDownloader([self.item.id], self.editor.id, {'include_supporting': True})
+            url = downloader.download()
+            self.assertEqual(url, fake_url)
