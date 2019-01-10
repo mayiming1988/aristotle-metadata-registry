@@ -113,7 +113,7 @@ setup(
         'bleach',
 
         # File conversion
-        'pypandoc@https://github.com/harrywhite4/pypandoc/archive/master.zip#sha256=e887f6c8017231ebb96398bd1cc1f58830e092f1056b22aee5fab3f5d8dc5d7d',
+        'pypandoc',
     ],
 
 )
