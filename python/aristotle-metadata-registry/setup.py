@@ -115,6 +115,9 @@ setup(
 
         # File conversion
         'pypandoc',
+
+        # Pdf toolkit
+        'pypdf2'
     ],
 
 )
