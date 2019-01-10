@@ -9,11 +9,11 @@ from django.core.cache import cache
 
 from celery import shared_task
 
-from aristotle_mdr.downloader import items_for_bulk_download, DownloaderBase
+from aristotle_mdr.downloader import items_for_bulk_download, Downloader
 from aristotle_mdr.views import get_if_user_can_view
 
 
-class TestTextDownloader(DownloaderBase):
+class TestTextDownloader(Downloader):
     download_type = "txt"
     metadata_register = '__all__'
     label = "Text"

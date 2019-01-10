@@ -15,6 +15,7 @@ from mock import patch
 from unittest import skip
 
 
+@skip('Quick pdf action disabled temporarily')
 class QuickPDFDownloadTests(BulkActionsTest, TestCase):
 
     def setUp(self):
@@ -95,93 +96,3 @@ class BulkDownloadTests(BulkActionsTest, TestCase):
         expected_get_params = '?items={}&items={}'.format(self.item1.id, self.item2.id)
         expected_url = reverse('aristotle:download_options', args=['pdf']) + expected_get_params
         self.assertEqual(response.url, expected_url)
-
-    @skip('Html debugging is currently disabled')
-    def test_content_exists_in_bulk_pdf_download_on_permitted_items(self):
-        self.login_editor()
-        self.celery_result = None
-
-        self.item5 = models.DataElementConcept.objects.create(name="DEC1", definition="DEC5 definition", objectClass=self.item2, workgroup=self.wg1)
-
-        response = self.client.get(
-            reverse(
-                'aristotle:bulk_download',
-                kwargs={
-                    "download_type": self.download_type,
-                }
-            ),
-            {
-                "items": [self.item1.id, self.item5.id],
-                "title": "The title".encode('utf-8'),
-                "html": True  # Force HTML to debug content
-            }
-        ,follow=True)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.redirect_chain), 1)
-        self.assertEqual(response.redirect_chain[0][0],
-                         reverse('aristotle:preparing_download', args=['pdf']) +
-                         "?items=%s&items=%s" % (self.item1.id, self.item5.id) + '&html=True&bulk=True&title=The+title'
-                         )
-        self.assertTrue(self.async_result.called)
-        self.assertTrue(self.downloader_download.called)
-        self.assertEqual(len(self.downloader_download.mock_calls), 1)
-        self.assertEqual(len(self.async_result.mock_calls), 1)
-
-        response = self.client.get(reverse('aristotle:start_download', args=['pdf']) + '?' +response.request['QUERY_STRING'])
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(self.downloader_download.called)
-        self.assertEqual(len(self.downloader_download.mock_calls), 1)
-        self.assertEqual(len(self.async_result.mock_calls), 2)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, self.item1.name)
-        self.assertContains(response, self.item2.name)  # Will be in as its a component of DEC5
-        self.assertContains(response, self.item5.name)
-
-        self.assertContains(response, self.item1.definition)
-        self.assertContains(response, self.item2.definition)  # Will be in as its a component of DEC5
-        self.assertContains(response, self.item5.definition)
-
-
-    @skip('Html debugging is currently disabled')
-    def test_content_not_exists_in_bulk_pdf_download_on_forbidden_items(self):
-        self.logout()
-        self.celery_result = None
-
-        self.item5 = models.DataElementConcept.objects.create(name="DEC1", definition="DEC5 definition", objectClass=self.item2, workgroup=self.wg1)
-
-        response = self.client.get(
-            reverse(
-                'aristotle:bulk_download',
-                kwargs={
-                    "download_type": self.download_type,
-                }
-            ),
-            {
-                "items": [self.item1.id, self.item4.id],
-                "title": "The title",
-                "html": True  # Force HTML to debug content
-            }
-            , follow=True
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.redirect_chain), 1)
-        self.assertEqual(response.redirect_chain[0][0],
-                         reverse('aristotle:preparing_download', args=["pdf"]) +
-                         "?items=%s&items=%s" % (self.item1.id, self.item4.id) + '&html=True&bulk=True&title=The+title')
-        self.assertTrue(self.async_result.called)
-        self.assertTrue(self.downloader_download.called)
-        self.assertEqual(len(self.downloader_download.mock_calls), 1)
-        self.assertEqual(len(self.async_result.mock_calls), 1)
-
-        response = self.client.get(reverse('aristotle:start_download', args=['pdf']) + '?' +response.request['QUERY_STRING'])
-        self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, self.item1.name)
-        self.assertNotContains(response, self.item2.name)  # Will be in as its a component of DEC5
-        self.assertNotContains(response, self.item5.name)
-
-        self.assertNotContains(response, self.item1.definition)
-        self.assertNotContains(response, self.item2.definition)  # Will be in as its a component of DEC5
-        self.assertNotContains(response, self.item5.definition)
