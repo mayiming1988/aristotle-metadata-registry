@@ -1,4 +1,4 @@
-from typing import Any, List, Dict, Optional, Union
+from typing import Any, List, Dict, Optional, Union, Tuple
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
@@ -79,20 +79,36 @@ class Downloader:
 
     def create_file(self) -> File:
         """
-        This method must be overriden and return the downloadable object of appropriate type
-        and mime type for the object
-        This is a static method because it is a celery task
-        This method should return 2 objects and an optional third
-        first object is item
-        second item is the mime type
-        third object a list of tuple(key, value) which specifies the response object properties
-        Example implementation is in CSVDownloader.download method
-
+        This method must be overriden and return the downloadable object of appropriate type and mime type for the object This is a static method because it is a celery task This method should return 2 objects and an optional third first object is item second item is the mime type third object a list of tuple(key, value) which specifies the response object properties Example implementation is in CSVDownloader.download method
         User this in a celery task to get the item from iid
         item = MDR._concept.objects.get_subclass(pk=iid)
         item = get_if_user_can_view(item.__class__, user, iid)
         """
         raise NotImplementedError
+
+    def get_storage(self):
+        storage_class = get_storage_class()
+        return storage_class()
+
+    @property
+    def has_wrap_pages(self):
+        return (self.options['front_page'] is not None or self.options['back_page'] is not None)
+
+    def get_wrap_pages(self) -> List:
+        if not self.allow_wrapper_pages:
+            return [None, None]
+
+        storage = self.get_storage()
+        pages = []
+        for page_name in ['front_page', 'back_page']:
+            page_path = self.options[page_name]
+            if page_path is not None:
+                with storage.open(page_path) as page_file:
+                    pages.append(page_file.read())
+            else:
+                pages.append(None)
+
+        return pages
 
     def get_filepath(self):
         if self.user.is_authenticated:
@@ -112,16 +128,14 @@ class Downloader:
 
     def retrieve_file(self, filename: str) -> Optional[str]:
         """Use default storage class to retrieve file if it exists"""
-        storage_class = get_storage_class()
-        storage = storage_class()
+        storage = self.get_storage()
         if storage.exists(filename):
             return storage.url(filename)
         return None
 
     def store_file(self, filename: str, content: File) -> str:
         """Use default storage class to store file"""
-        storage_class = get_storage_class()
-        storage = storage_class()
+        storage = self.get_storage()
         storage.save(filename, content)
         return storage.url(filename)
 

@@ -12,6 +12,7 @@ from django.http import (
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template import TemplateDoesNotExist
 from django.views.generic import TemplateView, View, FormView
+from django.core.files.storage import get_storage_class
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.views import get_if_user_can_view
@@ -146,7 +147,7 @@ class DownloadStatusView(View):
         try:
             res_id = request.session[self.download_key]
         except KeyError:
-            return HttpResponseNotFound()
+            raise Http404
 
         job = async_result(res_id)
 
@@ -195,6 +196,24 @@ class DownloadOptionsView(FormView):
 
     def form_valid(self, form):
         cleaned_data = form.cleaned_data
+        logger.debug('Cleaned data: {}'.format(cleaned_data))
+
+        if form.wrap_pages:
+            storage_class = get_storage_class()
+            storage = storage_class()
+
+            if self.request.user.is_authenticated:
+                prefix = str(self.request.user.id)
+            else:
+                prefix = 'anon'
+
+            for file_field in ['front_page', 'back_page']:
+                uploaded_file = cleaned_data[file_field]
+                if uploaded_file:
+                    path = '{uid}/{fname}'.format(uid=prefix, fname=uploaded_file.name)
+                    saved_fname = storage.save(path, uploaded_file)
+                    cleaned_data[file_field] = saved_fname
+
         self.request.session[self.session_key] = cleaned_data
         return super().form_valid(form)
 

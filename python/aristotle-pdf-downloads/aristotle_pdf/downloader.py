@@ -1,13 +1,15 @@
 import os
+from io import BytesIO
 
 from django.template.loader import select_template, get_template
-from django.core.files.base import ContentFile
+from django.core.files.base import File
 
 from aristotle_mdr.contrib.help.models import ConceptHelp
 from aristotle_mdr.downloader import HTMLDownloader
 
 import logging
 import weasyprint
+from PyPDF2 import PdfFileMerger
 
 item_register = {
     'pdf': '__template__'
@@ -28,12 +30,28 @@ class PDFDownloader(HTMLDownloader):
     description = "Downloads for various content types in the PDF format"
     allow_wrapper_pages = True
 
+    def wrap_file(self, generated_bytes) -> BytesIO:
+        if self.has_wrap_pages:
+            merger = PdfFileMerger()
+            pages = self.get_wrap_pages()
+            pages.insert(1, generated_bytes)
+            for page_bytes in pages:
+                if page_bytes is not None:
+                    merger.append(BytesIO(page_bytes))
+            final_file = BytesIO()
+            merger.write(final_file)
+            merger.close()
+            return final_file
+        else:
+            return BytesIO(generated_bytes)
+
     def create_file(self):
         template = self.get_template()
         context = self.get_context()
 
         byte_string = render_to_pdf(template, context)
-        return ContentFile(byte_string)
+        final_file = self.wrap_file(byte_string)
+        return File(final_file)
 
 
 def generate_outline_str(bookmarks, indent=0):
@@ -54,7 +72,7 @@ def generate_outline_tree(bookmarks, depth=1):
 
 def render_to_pdf(template_src, context_dict,
                   preamble_template='aristotle_mdr/downloads/pdf/title.html',
-                  debug_as_html=False):
+                  debug_as_html=False) -> bytes:
     # If the request template doesnt exist, we will give a default one.
     template = select_template([
         template_src,
