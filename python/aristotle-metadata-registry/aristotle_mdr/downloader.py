@@ -1,4 +1,4 @@
-from typing import Any, List, Dict, Optional
+from typing import Any, List, Dict, Optional, Union
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
@@ -38,7 +38,7 @@ class Downloader:
       * the string "__all__" indicating the downloader supports all metadata types
       * the string "__template__" indicating the downloader supports any metadata type with a matching download template
     """
-    metadata_register: Any = {}
+    metadata_register: Union[Dict[str, List], str] = {}
     icon_class: str = 'fa-file-text-o'
     description: str = ""
     filename: str = 'download'
@@ -113,6 +113,7 @@ class Downloader:
         storage = storage_class()
         if storage.exists(filename):
             return storage.url(filename)
+        return None
 
     def store_file(self, filename: str, content: File) -> str:
         """Use default storage class to store file"""
@@ -227,7 +228,7 @@ class HTMLDownloader(Downloader):
         Can be used by subclasses
         """
         if self.bulk:
-            return self.get_bulk_context()
+            return self.get_bulk_download_context()
         else:
             return self.get_download_context()
 
