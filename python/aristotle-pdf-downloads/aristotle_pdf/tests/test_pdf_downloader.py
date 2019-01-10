@@ -3,6 +3,7 @@ from django.test import TestCase
 from aristotle_mdr.tests.utils import AristotleTestUtils
 from aristotle_mdr import models
 from aristotle_mdr.downloader import HTMLDownloader
+from aristotle_pdf.downloader import PDFDownloader
 
 
 class TestHTMLDownloader(AristotleTestUtils, TestCase):
@@ -34,7 +35,7 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
     def test_creates_file(self):
         downloader = HTMLDownloader([self.animal.id], self.editor.id, {})
         fileobj = downloader.create_file()
-        self.assertIsNotNone(fileobj)
+        self.assertTrue(fileobj.size > 0)
 
     def test_content_exists_in_bulk_html_download_on_permitted_items(self):
         downloader = HTMLDownloader([self.animal.id, self.aspeed.id], self.editor.id, {})
@@ -50,7 +51,7 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
         self.assertFalse(self.speed.definition in html)
 
 
-class PDFDownloaderTestCase(TestCase):
+class PDFDownloaderTestCase(AristotleTestUtils, TestCase):
 
     def setUp(self):
         super().setUp()
@@ -59,3 +60,8 @@ class PDFDownloaderTestCase(TestCase):
             definition='Pocket Monsters',
             submitter=self.editor
         )
+
+    def test_pdf_download_generates_file(self):
+        downloader = PDFDownloader([self.item.id], self.editor.id, {})
+        fileobj = downloader.create_file()
+        self.assertTrue(fileobj.size > 0)
