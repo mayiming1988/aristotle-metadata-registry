@@ -7,18 +7,20 @@
 <tt>
     {{ item.derivation_rule }}
 </tt>
-<dl>
-    <dt>Derived Data Element</dt>
-    <dd>
-        {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item.derives %}
-    </dd>
-    <dt>Input Data Elements</dt>
-    {% for de in item.inputs.all %}
-        <dd>
-            {% include "aristotle_mdr/helpers/inlineDetails.html" with item=de %}
-        </dd>
-    {% empty %}
-        <dd><em>None</em></dd>
-    {% endfor %}
-</dl>
+{% if include_supporting %}
+  <dl>
+      <dt>Derived Data Element</dt>
+      <dd>
+          {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item.derives %}
+      </dd>
+      <dt>Input Data Elements</dt>
+      {% for de in item.inputs.all %}
+          <dd>
+              {% include "aristotle_mdr/helpers/inlineDetails.html" with item=de %}
+          </dd>
+      {% empty %}
+          <dd><em>None</em></dd>
+      {% endfor %}
+  </dl>
+{% endif %}
 {% endblock %}

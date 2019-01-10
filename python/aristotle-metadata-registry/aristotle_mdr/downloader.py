@@ -180,12 +180,8 @@ class HTMLDownloader(Downloader):
         context = {
             'user': self.user,
             'page_size': page_size,
+            'include_supporting': self.options['include_supporting']
         }
-
-        if self.options['include_supporting']:
-            context['view'] = 'technical'
-        else:
-            context['view'] = 'simple'
 
         return context
 
