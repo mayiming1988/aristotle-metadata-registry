@@ -26,57 +26,60 @@ function remove_field(button) {
     $("#update-alert-id").slideDown()
 }
 
-function paste_handler(e) {
-    // Prevent the default pasting event and stop bubbling
-    e.preventDefault();
-    e.stopPropagation();
+// function paste_handler(e) {
+//     // Prevent the default pasting event and stop bubbling
+//     e.preventDefault();
+//     e.stopPropagation();
+//
+//     // Get the clipboard data
+//     let paste = e.originalEvent.clipboardData.getData('text')
+//
+//     // Get this widgets button
+//     let widget = $(e.target).closest('.multi-widget')
+//     let button = widget.find('.add-field')
+//
+//     let emails = paste.split(',')
+//     for (let i=0; i < emails.length; i++) {
+//         let email = emails[i]
+//         if (i == 0) {
+//             $(e.target).val(email)
+//         } else {
+//             add_field(button, email)
+//         }
+//     }
+// }
 
-    // Get the clipboard data
-    let paste = e.originalEvent.clipboardData.getData('text')
+// function add_field(button, added_value='') {
+//     let widget = $(button).closest('.multi-widget')
+//     //let count = widget.find('.form-group').length
+//     let fields = widget.find('.multi-fields').first()
+//     let firstgroup = widget.find('.form-group').first()
+//
+//     if (firstgroup.is(':visible')) {
+//         let clone = fields.find('.form-group').first().clone()
+//         let button = clone.find('.remove-field').first()
+//         button.prop('disabled', false)
+//         button.click(function() {
+//             remove_field(this)
+//         })
+//
+//         let inputbox = clone.find('input')
+//         inputbox.val(added_value)
+//         inputbox.on('paste', paste_handler)
+//
+//         clone.appendTo(fields)
+//         reorder(widget)
+//     } else {
+//         // If first group was disabled, show it enable input
+//         firstgroup.show()
+//         firstgroup.find('input').prop('disabled', false)
+//     }
+// }
 
-    // Get this widgets button
-    let widget = $(e.target).closest('.multi-widget')
-    let button = widget.find('.add-field')
+function add_field(button) {
 
-    let emails = paste.split(',')
-    for (let i=0; i < emails.length; i++) {
-        let email = emails[i]
-        if (i == 0) {
-            $(e.target).val(email)
-        } else {
-            add_field(button, email)
-        }
-    }
-}
-
-function add_field(button, added_value='') {
     let widget = $(button).closest('.multi-widget')
-    // //let count = widget.find('.form-group').length
-    // let fields = widget.find('.multi-fields').first()
-    // let firstgroup = widget.find('.form-group').first()
-    //
-    // if (firstgroup.is(':visible')) {
-    //     let clone = fields.find('.form-group').first().clone()
-    //     let button = clone.find('.remove-field').first()
-    //     button.prop('disabled', false)
-    //     button.click(function() {
-    //         remove_field(this)
-    //     })
-    //
-    //     let inputbox = clone.find('input')
-    //     inputbox.val(added_value)
-    //     inputbox.on('paste', paste_handler)
-    //
-    //     clone.appendTo(fields)
-    //     reorder(widget)
-    // } else {
-    //     // If first group was disabled, show it enable input
-    //     firstgroup.show()
-    //     firstgroup.find('input').prop('disabled', false)
-    // }
-
     let email = widget.find('#email-input-id').val()
-
     let nextElementIndex = widget.find('.multi-fields').children().length + 1;
 
     if (isEmailValid(email)) {
@@ -114,7 +117,7 @@ function add_field(button, added_value='') {
 }
 
 function isEmailValid(email) {
-    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    var re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(String(email).toLowerCase());
 }
 
@@ -136,7 +139,7 @@ function remove_all(button) {
     })
 }
 
-function update_fields(button) {
+function update_fields() {
     $('.form-group').removeClass('text-success')
     $("#update-alert-id").slideUp()
     setTimeout(function () {

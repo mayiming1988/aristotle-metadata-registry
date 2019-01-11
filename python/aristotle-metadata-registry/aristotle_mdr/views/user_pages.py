@@ -35,7 +35,9 @@ from aristotle_mdr.utils import fetch_metadata_apps
 from aristotle_mdr.utils import get_aristotle_url
 from aristotle_bg_workers.tasks import send_notification_emails
 
-import json, random, ast
+import json
+import random
+import ast
 
 
 class FriendlyLoginView(LoginView):
