@@ -188,7 +188,7 @@ class HTMLDownloader(Downloader):
         context = {
             'user': self.user,
             'page_size': page_size,
-            'include_supporting': self.options['include_supporting']
+            'options': self.options
         }
 
         return context

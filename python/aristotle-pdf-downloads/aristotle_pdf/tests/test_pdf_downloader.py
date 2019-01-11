@@ -37,6 +37,16 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
         fileobj = downloader.create_file()
         self.assertTrue(fileobj.size > 0)
 
+    def test_title_added(self):
+        test_title = 'The single greatest piece of metadata content of the modern era'
+        downloader = HTMLDownloader([self.animal.id], self.editor.id, {'title': test_title})
+        context = downloader.get_context()
+        self.assertTrue('title' in context['options'])
+        self.assertEqual(context['options']['title'], test_title)
+
+        html = downloader.get_html().decode()
+        self.assertTrue(test_title in html)
+
     def test_content_exists_in_bulk_html_download_on_permitted_items(self):
         downloader = HTMLDownloader([self.animal.id, self.aspeed.id], self.editor.id, {})
         html = downloader.get_html().decode()

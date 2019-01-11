@@ -1,13 +1,12 @@
 {% extends "aristotle_mdr/downloads/pdf/managedContent.html" %}
 
-{% block title %}{{ item.name }} ({{item.status}}){% endblock %}
 {% block objSpecific %}
 
 <h2>Derivation</h2>
 <tt>
     {{ item.derivation_rule }}
 </tt>
-{% if include_supporting %}
+{% if options.include_supporting %}
   <dl>
       <dt>Derived Data Element</dt>
       <dd>

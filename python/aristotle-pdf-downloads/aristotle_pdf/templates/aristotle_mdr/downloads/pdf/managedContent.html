@@ -1,7 +1,14 @@
 {% extends 'aristotle_mdr/downloads/pdf/pdf.html' %}
 {% load aristotle_tags aristotle_help util_tags %}
 
-{% block title %}{{ item.name }}{% endblock %}
+{% block title %}
+{% if options.title %}
+  {{ options.title }}
+{% else %}
+  {{ item.name }} {% if item.status %}({{item.status}}){% endif %}
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <section>
     <header>

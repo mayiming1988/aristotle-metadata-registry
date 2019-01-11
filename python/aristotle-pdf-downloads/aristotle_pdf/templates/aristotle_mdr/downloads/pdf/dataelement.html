@@ -1,6 +1,5 @@
 {% extends "aristotle_mdr/downloads/pdf/managedContent.html" %}
 
-{% block title %}{{ item.name }} ({{item.status}}){% endblock %}
 {% block objSpecific %}
 
 <h2>Components</h2>
@@ -10,7 +9,7 @@
     </dt>
     <dd>
         {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item.dataElementConcept %}
-        {% if include_supporting %}
+        {% if options.include_supporting %}
         <dl class="additionaldetails">
             <dt>Object Class</dt>
             <dd>

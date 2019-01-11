@@ -10,5 +10,6 @@ class DownloadOptionsForm(forms.Form):
             self.fields['back_page'] = forms.FileField(required=False)
         self.wrap_pages = wrap_pages
 
+    title = forms.CharField(required=False)
     include_supporting = forms.BooleanField(required=False)
     email_copy = forms.BooleanField(required=False)

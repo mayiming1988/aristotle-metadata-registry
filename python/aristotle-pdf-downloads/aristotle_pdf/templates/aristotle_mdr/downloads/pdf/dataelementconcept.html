@@ -1,10 +1,9 @@
 {% extends "aristotle_mdr/downloads/pdf/managedContent.html" %}
 
 
-{% block title %}{{ item.name }} ({{item.status}}){% endblock %}
 {% block objSpecific %}
 
-    {% if include_supporting %}
+    {% if options.include_supporting %}
       <h2>Components</h2>
       <dl>
           <dt>Object Class:</dt>
