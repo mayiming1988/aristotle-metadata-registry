@@ -1,4 +1,4 @@
-from typing import Any, List, Dict, Optional, Union, Tuple
+from typing import Any, List, Dict, Optional, Union, Tuple, AnyStr
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
@@ -273,7 +273,24 @@ class HTMLDownloader(Downloader):
         return ContentFile(html)
 
 
-class DocxDownloader(HTMLDownloader):
+class PandocDownloader(HTMLDownloader):
+    """
+    Used as base class for downloader converting html to other
+    formats via pandoc
+    """
+
+    requires_pandoc = True
+
+    def convert_html(self, html) -> AnyStr:
+        raise NotImplementedError
+
+    def create_file(self):
+        html = self.get_html()
+        string = self.convert_html(html)
+        return ContentFile(string)
+
+
+class DocxDownloader(PandocDownloader):
 
     download_type = 'docx'
     file_extension = 'docx'
@@ -282,13 +299,11 @@ class DocxDownloader(HTMLDownloader):
     icon_class = 'fa-file-word-o'
     description = 'Download as word document'
 
-    def create_file(self):
-        html = self.get_html()
-        docx_bytes = pypandoc.convert_text(html, 'docx', outputfile='/tmp/tmp.docx', format='html', return_bytes=True)
-        return ContentFile(docx_bytes)
+    def convert_html(self, html):
+        return pypandoc.convert_text(html, 'docx', outputfile='/tmp/tmp.docx', format='html', return_bytes=True)
 
 
-class MarkdownDownloader(HTMLDownloader):
+class MarkdownDownloader(PandocDownloader):
 
     download_type = 'md'
     file_extension = 'md'
@@ -296,10 +311,8 @@ class MarkdownDownloader(HTMLDownloader):
     metadata_register = '__all__'
     description = 'Download as markdown'
 
-    def create_file(self):
-        html = self.get_html()
-        md = pypandoc.convert_text(html, 'md', format='html')
-        return ContentFile(md)
+    def convert_html(self, html):
+        return pypandoc.convert_text(html, 'md', format='html')
 
 
 # Deprecated
@@ -311,7 +324,6 @@ class CSVDownloader(Downloader):
     icon_class = "fa-file-excel-o"
     description = "CSV downloads for value domain codelists"
 
-    @classmethod
     def get_download_config(cls, request, iid):
         user = getattr(request, 'user', None)
         properties = {
@@ -322,12 +334,9 @@ class CSVDownloader(Downloader):
             properties['user'] = str(user)
         return properties
 
-    @classmethod
     def bulk_download(cls, request, item):
         raise NotImplementedError
 
-    @staticmethod
-    @shared_task(name='aristotle_mdr.downloader.CSVDownloader.download')
     def download(properties, iid):
         """Built in download method"""
         User = get_user_model()
