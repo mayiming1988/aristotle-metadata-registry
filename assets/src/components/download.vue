@@ -17,6 +17,7 @@
 
 <script>
 import { Alert } from 'uiv'
+import apiRequest from 'src/mixins/apiRequest.js'
 
 export default {
     data: () => ({
@@ -25,6 +26,7 @@ export default {
         pollTime: 1000, // period to call checkStatus in ms
         url: '#'
     }),
+    mixins: [apiRequest],
     components: {
         'alert': Alert
     },
@@ -39,7 +41,8 @@ export default {
     },
     methods: {
         checkStatus: function() {
-            $.getJSON(this.status_url, (data) => {
+            this.get(this.status_url).then((response) => {
+                let data = response.data
                 if (data.is_ready) {
                     this.ready = true
                     if (data.state != 'SUCCESS') {
