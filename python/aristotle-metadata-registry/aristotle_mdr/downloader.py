@@ -8,6 +8,7 @@ from django.core.exceptions import PermissionDenied
 from django.utils.safestring import mark_safe
 from django.template.loader import render_to_string
 from django.core.files.base import ContentFile
+from django.conf import settings
 
 import io
 import csv
@@ -144,16 +145,19 @@ class Downloader:
     def store_file(self, filename: str, content: File) -> str:
         """Use default storage class to store file"""
         storage = self.get_storage()
-        storage.save(filename, content)
-        return storage.url(filename)
+        # Filename can change if a file already exists
+        # (wont happen unless caching is off)
+        final_fname = storage.save(filename, content)
+        return storage.url(final_fname)
 
     def download(self) -> str:
         """Get the url for this downloads file, creating it if neccesary"""
         filepath = self.get_filepath()
 
-        url = self.retrieve_file(filepath)
-        if url is not None:
-            return url
+        if settings.DOWNLOAD_CACHING:
+            url = self.retrieve_file(filepath)
+            if url is not None:
+                return url
 
         fileobj = self.create_file()
         return self.store_file(filepath, fileobj)

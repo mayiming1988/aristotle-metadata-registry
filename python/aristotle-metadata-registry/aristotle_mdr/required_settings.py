@@ -342,4 +342,9 @@ REST_FRAMEWORK = {
 }
 
 # Caching
+
+# Key used to store value in fetch_aristotle_downloaders
 DOWNLOADERS_CACHE_KEY = 'aristotle_downloaders'
+
+# Whether to serve an existing file if possible
+DOWNLOAD_CACHING = True
