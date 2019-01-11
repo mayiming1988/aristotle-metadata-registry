@@ -169,7 +169,7 @@ class HTMLDownloader(Downloader):
     """
     Generates a html download
     This is subclassed for other formats that are generated from html
-    such as the pdf downloader
+    such as the pdf downloader. But can be enabled for testing purposes
     """
 
     download_type = 'html'

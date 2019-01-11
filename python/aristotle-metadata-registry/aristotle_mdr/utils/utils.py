@@ -19,6 +19,7 @@ import logging
 import inspect
 import datetime
 import re
+from pypandoc import get_pandoc_path
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
@@ -262,11 +263,38 @@ def is_active_extension(extension_name):
     return active
 
 
-def fetch_aristotle_downloaders():
-    return [
-        import_string(dtype)
-        for dtype in fetch_aristotle_settings().get('DOWNLOADERS', [])
-    ]
+def pandoc_installed() -> bool:
+    installed = True
+    try:
+        get_pandoc_path()
+    except OSError:
+        installed = False
+
+    return installed
+
+
+def fetch_aristotle_downloaders() -> List[object]:
+    downloaders = []
+    imports = cache.get(settings.DOWNLOADERS_CACHE_KEY)
+    if imports is None:
+        installed = pandoc_installed()
+        enabled_downloaders = fetch_aristotle_settings().get('DOWNLOADERS', [])
+        unusable_imports = []
+        for imp in enabled_downloaders:
+            downloader = import_string(imp)
+            if (downloader.requires_pandoc and not installed):
+                unusable_imports.append(imp)
+            else:
+                downloaders.append(downloader)
+        for unusable in unusable_imports:
+            enabled_downloaders.remove(unusable)
+        cache.set(settings.DOWNLOADERS_CACHE_KEY, enabled_downloaders)
+        return downloaders
+    else:
+        return [
+            import_string(imp)
+            for imp in imports
+        ]
 
 
 def setup_aristotle_test_environment():
@@ -307,23 +335,14 @@ def get_aristotle_url(label, obj_id, obj_name=None):
         ]
 
         if cname in concepts:
-
             return reverse('aristotle:item', args=[obj_id])
-
         elif cname == 'organization':
-
             return reverse('aristotle:organization', args=[obj_id, name_slug])
-
         elif cname == 'workgroup':
-
             return reverse('aristotle:workgroup', args=[obj_id, name_slug])
-
         elif cname == 'registrationauthority':
-
             return reverse('aristotle:registrationAuthority', args=[obj_id, name_slug])
-
         elif cname == 'reviewrequest':
-
             return reverse('aristotle:userReviewDetails', args=[obj_id])
 
     return None

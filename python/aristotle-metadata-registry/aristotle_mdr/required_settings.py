@@ -340,3 +340,6 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     )
 }
+
+# Caching
+DOWNLOADERS_CACHE_KEY = 'aristotle_downloaders'
