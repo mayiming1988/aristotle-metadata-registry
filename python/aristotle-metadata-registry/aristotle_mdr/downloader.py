@@ -323,60 +323,6 @@ class MarkdownDownloader(PandocDownloader):
         return pypandoc.convert_text(html, 'md', format='html')
 
 
-# Deprecated
-class CSVDownloader(Downloader):
-    download_type = "csv-vd"
-    file_extension = 'csv'
-    metadata_register = {'aristotle_mdr': ['valuedomain']}
-    label = "CSV list of values"
-    icon_class = "fa-file-excel-o"
-    description = "CSV downloads for value domain codelists"
-
-    def get_download_config(cls, request, iid):
-        user = getattr(request, 'user', None)
-        properties = {
-            'user': None,
-            'title': cls.item.name
-        }
-        if user:
-            properties['user'] = str(user)
-        return properties
-
-    def bulk_download(cls, request, item):
-        raise NotImplementedError
-
-    def download(properties, iid):
-        """Built in download method"""
-        User = get_user_model()
-        user = properties.get('user')
-        if user and user != str(AnonymousUser()):
-            user = User.objects.get(email=user)
-        else:
-            user = AnonymousUser()
-
-        item = MDR._concept.objects.get_subclass(pk=iid)
-        item = get_if_user_can_view(item.__class__, user, iid)
-
-        mem_file = io.StringIO()
-        writer = csv.writer(mem_file)
-        writer.writerow(['value', 'meaning', 'start date', 'end date', 'role'])
-        for v in item.permissibleValues.all():
-            writer.writerow(
-                [v.value, v.meaning, v.start_date, v.end_date, "permissible"]
-            )
-        for v in item.supplementaryValues.all():
-            writer.writerow(
-                [v.value, v.meaning, v.start_date, v.end_date, "supplementary"]
-            )
-        CSVDownloader.cache_file(CSVDownloader.get_cache_key(user, iid),
-                                 (mem_file.getvalue(),
-                                  'txt/csv',
-                                  {'Content-Disposition': 'attachment; filename="{}.csv"'.format(item.name)}
-                                  )
-                                 )
-        return iid
-
-
 def items_for_bulk_download(items, user):
     iids = {}
     item_querysets = {}  # {PythonClass:{help:ConceptHelp,qs:Queryset}}
