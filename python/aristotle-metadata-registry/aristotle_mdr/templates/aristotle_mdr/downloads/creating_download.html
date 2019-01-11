@@ -28,7 +28,8 @@
                 <div class="row">
                     <div class="col-md-12">
                       <div id="vue-container">
-                        <download></download>
+                        <download status_url="{% url 'aristotle:download_status' task_id %}">
+                        </download>
                       </div>
                     </div>
                 </div>

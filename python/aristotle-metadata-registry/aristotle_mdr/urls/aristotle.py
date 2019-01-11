@@ -130,7 +130,7 @@ urlpatterns=[
     url(r'^download/options/(?P<download_type>\w+)/?$', views.downloads.DownloadOptionsView.as_view(), name='download_options'),
     url(r'^download/bulk/(?P<download_type>\w+)/?$', views.downloads.BulkDownloadView.as_view(), name='bulk_download'),
     url(r'^download/(?P<download_type>\w+)/(?P<iid>\d+)/?$', views.downloads.DownloadView.as_view(), name='download'),
-    url(r'^dlstatus/?$',
+    url(r'^dlstatus/(?P<taskid>[a-z0-9\-]+)/?$',
         views.downloads.DownloadStatusView.as_view(),
         name='download_status',
         ),

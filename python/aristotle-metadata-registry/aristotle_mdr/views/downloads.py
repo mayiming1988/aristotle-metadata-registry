@@ -73,6 +73,7 @@ class BaseDownloadView(TemplateView):
         # res.forget()
         self.download_type = download_type
         self.download_class = downloader_class
+        self.taskid = res.id
         return super().get(request, *args, **kwargs)
 
     def get_item_names(self) -> Iterable[str]:
@@ -96,7 +97,8 @@ class BaseDownloadView(TemplateView):
         context.update(self.download_class.get_class_info())
         context.update({
             'items': self.item_ids,
-            'file_details': self.get_file_details()
+            'file_details': self.get_file_details(),
+            'task_id': self.taskid
         })
         return context
 
@@ -143,13 +145,13 @@ class DownloadStatusView(View):
 
     def get(self, request, *args, **kwargs):
 
-        # Check if the job exists
-        try:
-            res_id = request.session[self.download_key]
-        except KeyError:
+        if 'taskid' not in self.kwargs:
             raise Http404
 
-        job = async_result(res_id)
+        task_id = self.kwargs['taskid']
+
+        # Check if the job exists
+        job = async_result(task_id)
 
         context = {
             'is_ready': False,

@@ -28,6 +28,9 @@ export default {
     components: {
         'alert': Alert
     },
+    props: {
+        status_url: String
+    },
     created: function() {
         this.interval = setInterval(this.checkStatus, this.pollTime)
     },
@@ -36,7 +39,7 @@ export default {
     },
     methods: {
         checkStatus: function() {
-            $.getJSON('/dlstatus', (data) => {
+            $.getJSON(this.status_url, (data) => {
                 if (data.is_ready) {
                     this.ready = true
                     if (data.state != 'SUCCESS') {
