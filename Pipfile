@@ -11,6 +11,7 @@ django-haystack = ">=2.7.dev1,<2.8.0"
 redis = ">2.10,<3.0"
 "elasticsearch" = ">=5.0.0,<6.0.0"
 "django-haystack-elasticsearch" = "*"
+pypandoc = {ref = "master", git = "https://github.com/harrywhite4/pypandoc", editable=true}
 
 aristotle-metadata-registry = {path = "./python/aristotle-metadata-registry", editable = true}
 aristotle-bg-workers = {path = "./python/aristotle-bg-workers", editable = true}

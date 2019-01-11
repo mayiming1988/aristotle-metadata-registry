@@ -273,7 +273,7 @@ def pandoc_installed() -> bool:
     return installed
 
 
-def fetch_aristotle_downloaders() -> List[object]:
+def fetch_aristotle_downloaders() -> List:
     downloaders = []
     imports = cache.get(settings.DOWNLOADERS_CACHE_KEY)
     if imports is None:

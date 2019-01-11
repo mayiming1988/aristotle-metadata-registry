@@ -117,7 +117,7 @@ setup(
         'pypandoc',
 
         # Pdf toolkit
-        'pypdf2'
+        'PyPDF2'
     ],
 
 )

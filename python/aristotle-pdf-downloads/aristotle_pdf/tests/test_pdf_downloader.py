@@ -1,8 +1,8 @@
-from django.test import TestCase
+from django.test import TestCase, tag
 
 from aristotle_mdr.tests.utils import AristotleTestUtils
 from aristotle_mdr import models
-from aristotle_mdr.downloader import HTMLDownloader
+from aristotle_mdr.downloader import HTMLDownloader, DocxDownloader
 from aristotle_pdf.downloader import PDFDownloader
 
 
@@ -22,8 +22,8 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
         self.aspeed = models.DataElementConcept.objects.create(
             name='Animal - Speed',
             definition='An animals speed',
-            objectClass=self.animal,
-            property=self.speed,
+            # objectClass=self.animal,
+            # property=self.speed,
             submitter=self.editor
         )
 
@@ -63,5 +63,22 @@ class PDFDownloaderTestCase(AristotleTestUtils, TestCase):
 
     def test_pdf_download_generates_file(self):
         downloader = PDFDownloader([self.item.id], self.editor.id, {})
+        fileobj = downloader.create_file()
+        self.assertTrue(fileobj.size > 0)
+
+
+class DocxDownloaderTestCase(AristotleTestUtils, TestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.item = models.DataElement.objects.create(
+            name='Onix',
+            definition='Big rock boi',
+            submitter=self.editor
+        )
+
+    @tag('docx')
+    def test_docx_downloader_generates_file(self):
+        downloader = DocxDownloader([self.item.id], self.editor.id, {})
         fileobj = downloader.create_file()
         self.assertTrue(fileobj.size > 0)

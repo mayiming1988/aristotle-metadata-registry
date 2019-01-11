@@ -284,7 +284,7 @@ class HTMLDownloader(Downloader):
 class PandocDownloader(HTMLDownloader):
     """
     Used as base class for downloader converting html to other
-    formats via pandoc
+    formats via pandoc. Does not work as a downloader itself
     """
 
     requires_pandoc = True
@@ -308,7 +308,7 @@ class DocxDownloader(PandocDownloader):
     description = 'Download as word document'
 
     def convert_html(self, html):
-        return pypandoc.convert_text(html, 'docx', outputfile='/tmp/tmp.docx', format='html', return_bytes=True)
+        return pypandoc.convert_text(html, 'docx', format='html', return_bytes=True)
 
 
 class MarkdownDownloader(PandocDownloader):
