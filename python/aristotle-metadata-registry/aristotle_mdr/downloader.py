@@ -47,6 +47,7 @@ class Downloader:
     # A unique identifier for the downloader (used in url and passed to task)
     download_type: str = ''
     file_extension: str = ''
+    requires_pandoc: bool = True
 
     default_options = {
         'include_supporting': False,
@@ -130,6 +131,13 @@ class Downloader:
         """Use default storage class to retrieve file if it exists"""
         storage = self.get_storage()
         if storage.exists(filename):
+            file_modified = storage.get_modified_time(filename)
+            for item in self.items:
+                # If one of the items has been modified after the file
+                if item.modified > file_modified:
+                    storage.delete(filename)
+                    return None
+            # If the file was modified after the items
             return storage.url(filename)
         return None
 
