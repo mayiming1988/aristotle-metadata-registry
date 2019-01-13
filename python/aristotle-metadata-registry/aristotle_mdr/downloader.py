@@ -319,6 +319,19 @@ class DocxDownloader(PandocDownloader):
         return pypandoc.convert_text(html, 'docx', format='html', return_bytes=True)
 
 
+class ODTDownloader(PandocDownloader):
+
+    download_type = 'odt'
+    file_extension = 'odt'
+    label = 'ODT'
+    metadata_register = '__all__'
+    icon_class = 'fa-file-word-o'
+    description = 'Download as odt document'
+
+    def convert_html(self, html):
+        return pypandoc.convert_text(html, 'odt', format='html', return_bytes=True)
+
+
 class MarkdownDownloader(PandocDownloader):
 
     download_type = 'md'
