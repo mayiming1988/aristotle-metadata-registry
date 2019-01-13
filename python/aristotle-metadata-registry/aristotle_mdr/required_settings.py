@@ -348,3 +348,6 @@ DOWNLOADERS_CACHE_KEY = 'aristotle_downloaders'
 
 # Whether to serve an existing file if possible
 DOWNLOAD_CACHING = True
+
+# Optional downloads storage (otherwise default file storage is used)
+DOWNLOADS_STORAGE = None

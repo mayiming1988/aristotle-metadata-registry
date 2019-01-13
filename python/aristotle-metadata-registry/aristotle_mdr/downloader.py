@@ -9,6 +9,7 @@ from django.utils.safestring import mark_safe
 from django.template.loader import render_to_string
 from django.core.files.base import ContentFile
 from django.conf import settings
+from django.utils.module_loading import import_string
 
 import io
 import csv
@@ -89,7 +90,10 @@ class Downloader:
         raise NotImplementedError
 
     def get_storage(self):
-        storage_class = get_storage_class()
+        if settings.DOWNLOADS_STORAGE is not None:
+            storage_class = import_string(settings.DOWNLOADS_STORAGE)
+        else:
+            storage_class = get_storage_class()
         return storage_class()
 
     @property
