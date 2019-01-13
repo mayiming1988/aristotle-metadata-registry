@@ -347,7 +347,10 @@ REST_FRAMEWORK = {
 DOWNLOADERS_CACHE_KEY = 'aristotle_downloaders'
 
 # Whether to serve an existing file if possible
-DOWNLOAD_CACHING = True
+DOWNLOAD_CACHING = False
 
 # Optional downloads storage (otherwise default file storage is used)
 DOWNLOADS_STORAGE = None
+
+# Used to override aristotle settings. Should not be used in production
+OVERRIDE_ARISTOTLE_SETTINGS = None

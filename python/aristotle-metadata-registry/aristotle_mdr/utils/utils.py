@@ -197,8 +197,10 @@ def fetch_aristotle_settings():
         aristotle_settings = getattr(settings, 'ARISTOTLE_SETTINGS', {})
 
     strict_mode = getattr(settings, "ARISTOTLE_SETTINGS_STRICT_MODE", True) is not False
-
     aristotle_settings = validate_aristotle_settings(aristotle_settings, strict_mode)
+
+    if settings.OVERRIDE_ARISTOTLE_SETTINGS:
+        aristotle_settings.update(settings.OVERRIDE_ARISTOTLE_SETTINGS)
     return aristotle_settings
 
 
