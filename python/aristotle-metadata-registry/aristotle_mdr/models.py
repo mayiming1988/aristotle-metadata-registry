@@ -1028,7 +1028,7 @@ class Property(concept):
     @property
     def relational_attributes(self):
         return [
-            self.dataelement_set.all(),
+            self.dataelementconcept_set.all(),
         ]
 
 

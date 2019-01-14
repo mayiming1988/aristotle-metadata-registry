@@ -8,16 +8,16 @@
         {% include "aristotle_mdr/helpers/itemLink.html" with item=item.dataElementConcept %}
     </dt>
     <dd>
-        {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item.dataElementConcept %}
+        {% include "aristotle_mdr/downloads/pdf/helpers/inlineDetails.html" with item=item.dataElementConcept %}
         {% if options.include_supporting %}
         <dl class="additionaldetails">
             <dt>Object Class</dt>
             <dd>
-                {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item.dataElementConcept.objectClass %}
+                {% include "aristotle_mdr/downloads/pdf/helpers/inlineDetails.html" with item=item.dataElementConcept.objectClass %}
             </dd>
             <dt>Property</dt>
             <dd>
-                {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item.dataElementConcept.property %}
+                {% include "aristotle_mdr/downloads/pdf/helpers/inlineDetails.html" with item=item.dataElementConcept.property %}
             </dd>
         </dl>
         {% endif %}
@@ -26,7 +26,7 @@
         {% include "aristotle_mdr/helpers/itemLink.html" with item=item.valueDomain %}
     </dt>
     <dd>
-        {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item.valueDomain %}
+        {% include "aristotle_mdr/downloads/pdf/helpers/inlineDetails.html" with item=item.valueDomain %}
         {% include "aristotle_mdr/downloads/pdf/inline/valueDomainRepresentation.html" with item=item.valueDomain %}
     </dd>
 </dl>
