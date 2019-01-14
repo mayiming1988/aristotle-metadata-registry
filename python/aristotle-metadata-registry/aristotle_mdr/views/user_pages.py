@@ -162,7 +162,40 @@ def home(request):
 
 @login_required
 def roles(request):
-    page = render(request, "aristotle_mdr/user/userRoles.html", {"item": request.user})
+
+    user = request.user
+    workgroups = []
+    registration_authorities = []
+
+    for wg in user.workgroup_manager_in.all():
+        wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Manager'}
+        workgroups.append(wg_object)
+
+    for wg in user.steward_in.all():
+        wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Steward'}
+        workgroups.append(wg_object)
+
+    for wg in user.submitter_in.all():
+        wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Submitter'}
+        workgroups.append(wg_object)
+
+    for wg in user.viewer_in.all():
+        wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Viewer'}
+        workgroups.append(wg_object)
+
+    for ra in user.organization_manager_in.all():
+        ra_object = {'name': ra.name, 'pk': ra.pk, 'role': 'Manager'}
+        registration_authorities.append(ra_object)
+
+    for ra in user.registrar_in.all():
+        ra_object = {'name': ra.name, 'pk': ra.pk, 'role': 'Registrar'}
+        registration_authorities.append(ra_object)
+
+    # ORDER THE LIST OF OBJECTS BY NAME IN DESCENDING ORDER:
+
+    sorted_workgroups_list = sorted(workgroups, key=lambda k: k['name'])
+    sorted_registration_authorities_list = sorted(registration_authorities, key=lambda k: k['name'])
+    page = render(request, "aristotle_mdr/user/userRoles.html", {"user": user, "workgroups": sorted_workgroups_list, "registration_authorities": sorted_registration_authorities_list})
     return page
 
 
