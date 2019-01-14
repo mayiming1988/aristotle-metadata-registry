@@ -497,10 +497,9 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
             self.share.save()
             self.ajax_success_message = 'Share permissions updated'
 
-            if self.request.POST['notify_new_users_checkbox']:
+            if 'notify_new_users_checkbox' in self.request.POST and self.request.POST['notify_new_users_checkbox']:
                 recently_added_emails = self.get_recently_added_emails(ast.literal_eval(self.state_of_emails_before_updating),
                                                                        ast.literal_eval(self.share.emails))
-
                 if len(recently_added_emails) > 0:
                     send_notification_emails.delay(recently_added_emails,
                                                    self.request.user.email,
