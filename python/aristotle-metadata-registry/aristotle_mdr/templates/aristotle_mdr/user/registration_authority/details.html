@@ -10,7 +10,10 @@
 {% endblock %}
 
 {% block page %}
-<h1>{% block title %}{{ item.name }}{% endblock %}</h1>
+<h1>
+    {{ item.stewardship_organisation.name }} /
+    {% block title %}{{ item.name }}{% endblock %}
+</h1>
 
     <section id="workgroups">
         <div class="btn-group pull-right" role="group" aria-label="...">

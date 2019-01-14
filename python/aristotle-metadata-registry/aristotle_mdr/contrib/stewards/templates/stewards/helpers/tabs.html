@@ -1,0 +1,15 @@
+<ul class="nav nav-tabs">
+  <li role="presentation" {% if active_tab == "home" %}class="active"{% endif %}>
+      <a href="{% url 'aristotle_mdr:stewards:group:detail' group.slug %}"><i class="fa fa-fw fa-sitemap"></i> Home</a></li>
+  <li role="presentation" {% if active_tab == "ras" %}class="active"{% endif %}>
+      <a href="{% url 'aristotle_mdr:stewards:group:registrationauthorities' group.slug %}"><i class="fa fa-fw fa-university"></i> Registration Authorities</a></li>
+  <li role="presentation" {% if active_tab == "workgroups" %}class="active"{% endif %}>
+      <a href="{% url 'aristotle_mdr:stewards:group:workgroups' group.slug %}"><i class="fa fa-fw fa-users"></i> Workgroups</a></li>
+  <li role="presentation" {% if active_tab == "metadata" %}class="active"{% endif %}>
+      <a href="{% url 'aristotle_mdr:stewards:group:browse' group.slug %}"><i class="fa fa-fw fa-file-o"></i> Metadata</a></li>
+  <li role="presentation" {% if active_tab == "members" %}class="active"{% endif %}>
+      <a href="{% url 'aristotle_mdr:stewards:group:member_list' group.slug %}"><i class="fa fa-fw fa-user"></i> Members</a></li>
+  <li role="presentation" {% if active_tab == "managed" %}class="active"{% endif %}>
+      <a href="{% url 'aristotle_mdr:stewards:group:member_list' group.slug %}"><i class="fa fa-fw fa-asterisk"></i> Managed Items</a></li>
+</ul>
+

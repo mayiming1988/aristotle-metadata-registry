@@ -99,7 +99,7 @@ class ManagedItem(baseAristotleObject):
         null=False,
         related_name="managed_items"
     )
-    workgroup = models.ForeignKey('aristotle_mdr.Workgroup', related_name="managed_items", null=True, blank=True)
+    # workgroup = models.ForeignKey('aristotle_mdr.Workgroup', related_name="managed_items", null=True, blank=True)
 
     def can_edit(self, user):
         return user.is_superuser

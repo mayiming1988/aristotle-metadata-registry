@@ -21,31 +21,19 @@ class Migration(StewardMigration):
     @classproperty
     def operations(cls):
         return [
+            migrations.RunPython(cls.add_stewardship_org, migrations.RunPython.noop),
             migrations.RunPython(cls.fetch_stewardship_org_uuid, migrations.RunPython.noop),
-            migrations.AddField(
-                model_name='measure',
-                name='stewardship_organisation',
-                field=models.ForeignKey(default=cls.get_uuid, null=False, on_delete=django.db.models.deletion.CASCADE, related_name='managed_items', to='aristotle_mdr.StewardOrganisation', to_field='uuid'),
-                preserve_default=False,
+            migrations.RunPython(
+                lambda a, s: cls.assign_orgs_to_model(a,s, "registrationauthority"),
+                migrations.RunPython.noop
             ),
-            migrations.AddField(
-                model_name='measure',
-                name='workgroup',
-                field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='managed_items', to='aristotle_mdr.Workgroup'),
+            migrations.RunPython(
+                lambda a, s: cls.assign_orgs_to_model(a,s, "workgroup"),
+                migrations.RunPython.noop
             ),
-            migrations.AddField(
-                model_name='stewardorganisation',
-                name='state',
-                field=models.CharField(choices=[('active', 'Active'), ('archived', 'Archived'), ('hidden', 'Hidden')], default='active', help_text='Status of this group', max_length=128),
+            migrations.RunPython(
+                lambda a, s: cls.assign_orgs_to_model(a,s, "measure"),
+                migrations.RunPython.noop
             ),
-            migrations.AlterField(
-                model_name='_concept',
-                name='stewardship_organisation',
-                field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='metadata', to='aristotle_mdr.StewardOrganisation', to_field='uuid'),
-            ),
-            migrations.AlterField(
-                model_name='stewardorganisation',
-                name='slug',
-                field=autoslug.fields.AutoSlugField(editable=True, populate_from='name', unique=True),
-            ),
+            migrations.RunPython(cls.assign_orgs_to_metadata, migrations.RunPython.noop),
         ]

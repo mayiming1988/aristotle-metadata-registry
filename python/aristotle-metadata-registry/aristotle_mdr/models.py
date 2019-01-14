@@ -166,7 +166,6 @@ class unmanagedObject(baseAristotleObject):
 
 
 class registryGroup(unmanagedObject):
-    stewardship_organisation = models.ForeignKey(StewardOrganisation, to_field="uuid")
     managers = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         blank=True,
@@ -216,7 +215,6 @@ RA_ACTIVE_CHOICES = Choices(
     (2, 'hidden', _('Inactive & Hidden'))
 )
 
-
 class RegistrationAuthority(Organization):
     """
     8.1.2.5 - Registration_Authority class
@@ -229,6 +227,7 @@ class RegistrationAuthority(Organization):
     """
     objects = RegistrationAuthorityQuerySet.as_manager()
     template = "aristotle_mdr/organization/registrationAuthority.html"
+    stewardship_organisation = models.ForeignKey(StewardOrganisation, to_field="uuid")
     active = models.IntegerField(
         choices=RA_ACTIVE_CHOICES,
         default=RA_ACTIVE_CHOICES.active,
@@ -467,18 +466,13 @@ class Workgroup(registryGroup):
     """
     template = "aristotle_mdr/workgroup.html"
     objects = WorkgroupQuerySet.as_manager()
+    stewardship_organisation = models.ForeignKey(StewardOrganisation, to_field="uuid")
     archived = models.BooleanField(
         default=False,
         help_text=_("Archived workgroups can no longer have new items or "
                     "discussions created within them."),
         verbose_name=_('Archived'),
     )
-
-    # organisation_account = models.ForeignKey(
-    #     OrganisationAccount,
-    #     null=True,
-    #     related_name="workgroups"
-    # )
 
     viewers = models.ManyToManyField(
         settings.AUTH_USER_MODEL,

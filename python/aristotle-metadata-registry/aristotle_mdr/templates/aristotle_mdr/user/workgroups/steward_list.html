@@ -5,16 +5,17 @@
 {% endblock %}
 
 {% block sidebar %}
-    {% include "aristotle_mdr/user/userSideBar.html" with activeTab='adminTools' %}
+    {% include "aristotle_mdr/user/userSideBar.html" with activeTab='steward_orgs' %}
 {% endblock %}
+
+{% block title %}Workgroups | {{ stewardship_organisation }}{% endblock %}
 
 {% block page %}
 <h1>
-    <ul class="breadcrumb">
-    <li>{{ stewardship_organisation }}</li>
-    <li>{% block title %}All Workgroups{% endblock %}</li>
-    </ul>
+    {{ stewardship_organisation }}
 </h1>
+
+{% include "stewards/helpers/tabs.html" with active_tab="workgroups" %}
 
 <section id="workgroups">
     <a class="btn btn-default" href="{% url 'aristotle:workgroup_create'%}">Add New Workgroup</a>

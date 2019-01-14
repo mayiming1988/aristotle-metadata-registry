@@ -110,15 +110,19 @@ class ListRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, Lis
     raise_exception = True
     redirect_unauthenticated_users = True
 
+    def get_queryset():
+        return super().get_queryset().filter(active__in=[0, 1])
+
     def dispatch(self, request, *args, **kwargs):
         super().dispatch(request, *args, **kwargs)
         # All visible ras
-        ras = MDR.RegistrationAuthority.objects.filter(active__in=[0, 1])
+        ras = self.get_queryset()
 
         text_filter = request.GET.get('filter', "")
         if text_filter:
             ras = ras.filter(Q(name__icontains=text_filter) | Q(definition__icontains=text_filter))
-        context = {'filter': text_filter}
+        context = self.get_context_data()
+        context.update({'filter': text_filter})
         return paginated_registration_authority_list(request, ras, self.template_name, context)
 
 

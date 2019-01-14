@@ -15,7 +15,7 @@ from aristotle_mdr.utils.migrations import (
 )
 
 
-class Migration(StewardMigration):
+class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
@@ -25,14 +25,18 @@ class Migration(StewardMigration):
     @classproperty
     def operations(cls):
         return [
+            # https://stackoverflow.com/questions/28429933/django-migrations-using-runpython-to-commit-changes
+            migrations.RunSQL('SET CONSTRAINTS ALL IMMEDIATE',
+                      reverse_sql=migrations.RunSQL.noop),
             migrations.CreateModel(
                 name='StewardOrganisation',
                 fields=[
                     ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                    ('slug', autoslug.fields.AutoSlugField(editable=True, populate_from='name')),
+                    ('slug', autoslug.fields.AutoSlugField(editable=True, populate_from='name', unique=True)),
                     ('name', models.TextField(help_text='The primary name used for human identification purposes.')),
                     ('uuid', models.UUIDField(default=uuid.uuid1, editable=False, unique=True)),
                     ('description', ckeditor_uploader.fields.RichTextUploadingField(help_text='Representation of a concept by a descriptive statement which serves to differentiate it from related concepts. (3.2.39)', verbose_name='definition')),
+                    ('state', models.CharField(choices=[('active', 'Active'), ('archived', 'Archived'), ('hidden', 'Hidden')], default='active', help_text='Status of this group', max_length=128)),
                 ],
                 options={
                     'verbose_name': 'Steward Organisation',
@@ -51,31 +55,35 @@ class Migration(StewardMigration):
                 },
             ),
 
-            migrations.RunPython(cls.add_stewardship_org, migrations.RunPython.noop),
-            migrations.RunPython(cls.fetch_stewardship_org_uuid, migrations.RunPython.noop),
-
             migrations.AddField(
                 model_name='_concept',
                 name='stewardship_organisation',
-                field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.StewardOrganisation', to_field='uuid'),
+                field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='metadata', to='aristotle_mdr.StewardOrganisation', to_field='uuid'),
                 preserve_default=False,
             ),
-            migrations.RunPython(cls.assign_orgs_to_metadata, migrations.RunPython.noop),
 
             migrations.AddField(
-                model_name='organization',
+                model_name='registrationauthority',
                 name='stewardship_organisation',
-                field=models.ForeignKey(default=cls.get_uuid, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.StewardOrganisation', to_field='uuid'),
+                field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.StewardOrganisation', to_field='uuid'),
                 preserve_default=False,
             ),
             migrations.AddField(
                 model_name='workgroup',
                 name='stewardship_organisation',
-                field=models.ForeignKey(default=cls.get_uuid, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.StewardOrganisation', to_field='uuid'),
+                field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.StewardOrganisation', to_field='uuid'),
                 preserve_default=False,
             ),
             migrations.AlterUniqueTogether(
                 name='stewardorganisationmembership',
                 unique_together=set([('user', 'group')]),
             ),
+            migrations.AddField(
+                model_name='measure',
+                name='stewardship_organisation',
+                field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='managed_items', to='aristotle_mdr.StewardOrganisation', to_field='uuid'),
+                preserve_default=False,
+            ),
+            migrations.RunSQL(migrations.RunSQL.noop,
+                      reverse_sql='SET CONSTRAINTS ALL IMMEDIATE'),
         ]

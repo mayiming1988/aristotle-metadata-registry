@@ -5,7 +5,14 @@
 <li>{{ group }}</li>
 {% endblock %}
 
+{% block title %}
+Metadata | {{ group }}
+{% endblock %}
+
 {% block object_list %}
+
+{% include "stewards/helpers/tabs.html" with active_tab="metadata" %}
+
 
     <p>
         <em>{{ model.get_verbose_name }} - </em>
