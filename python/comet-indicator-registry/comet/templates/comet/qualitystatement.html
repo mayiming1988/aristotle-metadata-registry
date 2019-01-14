@@ -5,11 +5,11 @@
     <dl>
         {% if item.implementationStartDate %}
         <dt>Start Date</dt>
-        <dd>{{ item.implementationStartDate }}</dd>
+        <dd><time datetime="{{ item.implementationStartDate|isotime }}">{{ item.implementationStartDate }}</time></dd>
         {% endif %}
         {% if item.implementationEndDate %}
         <dt>End Date</dt>
-        <dd>{{ item.implementationEndDate }}</dd>
+        <dd><time datetime="{{ item.implementationEndDate|isotime }}">{{ item.implementationEndDate }}</time></dd>
         {% endif %}
     </dl>
 {% endblock %}

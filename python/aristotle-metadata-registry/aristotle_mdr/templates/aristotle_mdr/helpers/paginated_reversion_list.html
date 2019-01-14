@@ -1,4 +1,4 @@
-{% load aristotle_tags %}
+{% load aristotle_tags util_tags %}
 {% load i18n %}
 
 {% if page.has_other_pages %}
@@ -32,7 +32,7 @@ Showing {{ page.paginator.count }} results.
         {% with versions=revision.version_set.all|unique_recent %}
             {% if versions|length > 0 %}
                 <td>{% firstof revision.comment _('No version comment made') %}</td>
-                <td>{{ revision.date_created }}</td>
+                <td><time datetime="{{ revision.date_created|isotime }}">{{ revision.date_created }}</time></td>
                 <td>
                     {% if versions|length == 1 %}
                         {% with item=revision.version_set.first %}

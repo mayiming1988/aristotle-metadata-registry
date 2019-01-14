@@ -1,4 +1,4 @@
-{% load aristotle_tags %}
+{% load aristotle_tags util_tags %}
 {% load humanize i18n %}
 {% load url_tags %}
 
@@ -57,16 +57,14 @@
             <dd>
                 {% if request.user.is_authenticated %}
                     {% if request.user.is_superuser or request.user.is_staff and item.workgroup in request.user.workgroups %}
-                        <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|date:'c' }}">
-                            <a href="{% url 'aristotle:item_history' iid=item.id %}">{{item.modified|naturaltime}}</a>
+                        <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|isotime }}" data-time-from="true">
                         </time>
                     {% elif item.workgroup in request.user.workgroups or item.submitter == request.user %}
-                        <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|date:'c' }}">
-                            <a href="{% url 'aristotle:item_history' iid=item.id %}">{{item.modified|naturaltime}}</a>
+                        <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|isotime }}" data-time-from="true">
                         </time>
                     {% endif %}
                 {% else %}
-                    <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|date:'c' }}">
+                    <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|isotime }}">
                         {{ item.modified|naturaltime }}
                     </time>
                 {% endif %}
@@ -82,7 +80,7 @@
                 {% endif %}
             </dd>
             <dt>{% trans 'Created'%}</dt>
-            <dd><time title="{{ item.created|date:'o-m-d' }}" datetime="{{ item.created|date:'c' }}">{{ item.created|date:'o-m-d' }}</time></dd>
+            <dd><time title="{{ item.created|date:'o-m-d' }}" datetime="{{ item.created|isotime }}">{{ item.created|date:'o-m-d' }}</time></dd>
 
         {% block asideContent %}{% endblock %}
 
@@ -103,7 +101,7 @@
                               <span title="{% trans 'The registration authority that applied this relationship' %}">
                                 {{ rel.registration_authority.name }}
                               </span>,
-                            {{ rel.date_effective }} -
+                            <time datetime="{{ rel.date_effective|isotime }}">{{ rel.date_effective }}</time> -
                             {{ rel.message }}
                             </li>
                           {% endfor %}
@@ -129,7 +127,7 @@
                               <span title="{% trans 'The registration authority that applied this relationship' %}">
                                 {{ rel.registration_authority.name }}
                               </span>,
-                            {{ rel.date_effective }}
+                            <time datetime="{{ rel.date_effective|isotime }}">{{ rel.date_effective }}</time>
                             {% if rel.message %} - {{ rel.message }} {% endif %}
                             </li>
                           {% endfor %}

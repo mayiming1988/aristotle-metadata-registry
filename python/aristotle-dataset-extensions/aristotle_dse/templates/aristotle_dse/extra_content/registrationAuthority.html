@@ -1,4 +1,4 @@
-{% load aristotle_tags %}
+{% load aristotle_tags util_tags %}
 
 {% with standardDSS=item|public_standards:"aristotle_dse.DataSetSpecification" %}
 {% if standardDSS %}
@@ -7,7 +7,7 @@
         {% for dss,s in standardDSS %}
         <li>
             {% include "aristotle_mdr/helpers/itemLink.html" with item=dss %}
-            Standardised on {{ s.registrationDate }}
+            Standardised on <time datetime="{{ s.registrationDate|isotime }}">{{ s.registrationDate }}</time>
         </li>
         {% endfor %}
     </ul>

@@ -70,10 +70,10 @@ history by clicking the "Clear history" button below.
         </td>
         <td>
         {% ifchanged recent.view_date.date recent.view_date.date %}
-            {{ recent.view_date.date|naturalday|title}}
+            <time datetime="{{ recent.view_date|isotime }}">{{ recent.view_date }}</time>
         {% endifchanged %}
         </td><td>
-        {{recent.view_date.time}}
+        <time datetime="{{ recent.view_date|isotime }}" data-format="h:mm a">{{ recent.view_date }}</time>
         </td>
         <td>
         {% include "aristotle_mdr/helpers/itemLink.html" with item=item shared_items=shared_items %}
