@@ -12,7 +12,7 @@ So we've split this out into its own template.
 {% if item.dataType %}
 <tr>
   <th>Data Type</th>
-  <td><a href="{% url 'aristotle:dataType' item.dataType.id %}">{{ item.dataType }}</a></dd>
+  <td><a href="{% url 'aristotle:dataType' item.dataType.id %}">{{ item.dataType }}</a></td>
 </tr>
 {% endif %}
 {% if item.unitOfMeasure %}
@@ -38,40 +38,43 @@ So we've split this out into its own template.
 {% endif %}
 </table>
 
+<h3>Permissible Values</h3>
 {% if item.permissibleValues.count > 0 %}
     <table class="codeList table table-striped">
         <thead>
             <tr>
-                <td ></td>
-                <th >Value</th>
+                <th>Value</th>
                 <th>Meaning</th>
             </tr>
         </thead>
-        {% if item.permissibleValues.count > 0 %}
-            <tr>
-            <th colspan="2">Permissible Values
-            </th></tr>
-            {% for perm in item.permissibleValues.all %}
-                <tr>
-                    <td>{{ perm.value }}</td>
-                    <td>{{ perm.meaning }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-        {% endif %}
-        {% if item.supplementaryValues.count > 0 %}
         <tbody>
-            <tr>
-            <th colspan="2">Supplementary Values
-            </th></tr>
-            {% for perm in item.supplementaryValues.all %}
-                <tr>
-                    <td>{{ perm.value }}</td>
-                    <td>{{ perm.meaning }}</td>
-                </tr>
-            {% endfor %}
+          {% for perm in item.permissibleValues.all %}
+              <tr>
+                  <td>{{ perm.value }}</td>
+                  <td>{{ perm.meaning }}</td>
+              </tr>
+          {% endfor %}
         </tbody>
-        {% endif %}
+    </table>
+{% endif %}
+
+<h3>Supplementary Values</h3>
+{% if item.supplementaryValues.count > 0 %}
+    <table class="codeList table table-striped">
+        <thead>
+            <tr>
+                <th>Value</th>
+                <th>Meaning</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for perm in item.supplementaryValues.all %}
+            <tr>
+                <td>{{ perm.value }}</td>
+                <td>{{ perm.meaning }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
     </table>
 {% endif %}
 
