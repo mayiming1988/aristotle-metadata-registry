@@ -2122,7 +2122,6 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
 
     @tag('version')
     def test_version_display_of_values(self):
-
         self.update_defn_with_versions()
 
         latest = reversion.models.Version.objects.get_for_object(self.item1).last()
@@ -2194,6 +2193,25 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         self.assertTrue(perm_values[0]['Value Meaning'].is_link)
         self.assertEqual(perm_values[0]['Value Meaning'].obj, vm)
         self.assertEqual(perm_values[0]['Value Meaning'].link_id, self.item3.conceptual_domain.id)
+
+    @tag('clone')
+    def test_clone_vd_with_components(self):
+        self.login_editor()
+        data = {
+            'name': 'Goodness (clone)',
+            'definition': 'A measure of good'
+        }
+
+        response = self.reverse_post(
+            'aristotle:clone_item',
+            data,
+            reverse_args=[self.item1.id],
+            status_code=302
+        )
+
+        clone = models.ValueDomain.objects.get(name='Goodness (clone)')
+        self.assertEqual(clone.permissiblevalue_set.count(), 4)
+        self.assertEqual(clone.supplementaryvalue_set.count(), 4)
 
 
 class ConceptualDomainViewPage(LoggedInViewConceptPages, TestCase):
