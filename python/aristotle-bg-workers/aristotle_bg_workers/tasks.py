@@ -82,9 +82,11 @@ def update_search_index(action, sender, instance, **kwargs):
 def send_notification_emails(emails_list, user_email, sandbox_access_url):
     from django.core.mail import send_mail
 
-    send_mail(
-        'Sandbox Access',
-        'Hello there, to access my Sandbox please use the following URL: ' + sandbox_access_url,
-        user_email,
-        emails_list
-    )
+    # Send a separate email to each email address:
+    for email in emails_list:
+        send_mail(
+            'Sandbox Access',
+            'Hello there, to access my Sandbox please use the following URL: ' + sandbox_access_url,
+            user_email,
+            [email]
+        )

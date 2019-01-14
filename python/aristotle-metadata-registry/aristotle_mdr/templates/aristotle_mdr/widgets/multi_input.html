@@ -8,7 +8,7 @@
                         <div class="hidden">
                             {% include subwidget.template_name with widget=subwidget %}
                         </div>
-                        <button type="button" class="btn btn-sm btn-danger remove-field widget-button pull-right"><i class="fa fa-times fa-fw"></i></button>
+                        <button type="button" class="btn btn-sm btn-danger remove-field widget-button pull-right" title="Remove {{ subwidget.value }}"><i class="fa fa-times fa-fw"></i></button>
                     </div>
                 {% endif %}
             {% endfor %}
@@ -28,11 +28,7 @@
             <input id="email-input-id" name="email" type="email" class="form-control" style="margin-bottom: 5px">
             <button type="button" class="btn btn-primary add-field widget-button">Add</button>
             <button type="button" class="btn btn-danger remove-all widget-button margin-left">Remove All</button>
-{#            <div class="pull-right">#}
-{#                <input type="checkbox" name="">#}
-                {{ form.notify_new_users_checkbox }}
-{#                Notify new users#}
-{#            </div>#}
+            {{ form.notify_new_users_checkbox }}
         </div>
     </div>
 {% endspaceless %}

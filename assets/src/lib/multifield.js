@@ -26,56 +26,6 @@ function remove_field(button) {
     $("#update-alert-id").slideDown()
 }
 
-// function paste_handler(e) {
-//     // Prevent the default pasting event and stop bubbling
-//     e.preventDefault();
-//     e.stopPropagation();
-//
-//     // Get the clipboard data
-//     let paste = e.originalEvent.clipboardData.getData('text')
-//
-//     // Get this widgets button
-//     let widget = $(e.target).closest('.multi-widget')
-//     let button = widget.find('.add-field')
-//
-//     let emails = paste.split(',')
-//     for (let i=0; i < emails.length; i++) {
-//         let email = emails[i]
-//         if (i == 0) {
-//             $(e.target).val(email)
-//         } else {
-//             add_field(button, email)
-//         }
-//     }
-// }
-
-// function add_field(button, added_value='') {
-//     let widget = $(button).closest('.multi-widget')
-//     //let count = widget.find('.form-group').length
-//     let fields = widget.find('.multi-fields').first()
-//     let firstgroup = widget.find('.form-group').first()
-//
-//     if (firstgroup.is(':visible')) {
-//         let clone = fields.find('.form-group').first().clone()
-//         let button = clone.find('.remove-field').first()
-//         button.prop('disabled', false)
-//         button.click(function() {
-//             remove_field(this)
-//         })
-//
-//         let inputbox = clone.find('input')
-//         inputbox.val(added_value)
-//         inputbox.on('paste', paste_handler)
-//
-//         clone.appendTo(fields)
-//         reorder(widget)
-//     } else {
-//         // If first group was disabled, show it enable input
-//         firstgroup.show()
-//         firstgroup.find('input').prop('disabled', false)
-//     }
-// }
-
 function add_field(button) {
 
     let widget = $(button).closest('.multi-widget')
@@ -97,7 +47,7 @@ function add_field(button) {
             '<input type="email" name="emails-'+ nextElementIndex +'" value="' + email + '" class="form-control"' +
             'id="id_emails-' + nextElementIndex + '">' +
             '</div>' +
-            '<button type="button" class="btn btn-sm btn-danger remove-field widget-button pull-right">' +
+            '<button type="button" class="btn btn-sm btn-danger remove-field widget-button pull-right" title="Remove ' + email +'">' +
             '<i class="fa fa-times fa-fw"></i>' +
             '</button>' +
             '</div>'
