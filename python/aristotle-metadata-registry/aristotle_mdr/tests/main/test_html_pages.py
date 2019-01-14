@@ -644,8 +644,8 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         concept_versions = reversion.models.Version.objects.get_for_object(item1_concept)
         self.assertEqual(concept_versions.count(), 2)
 
-        reversion.models.Version.objects.get_for_object(self.item1)
-        self.assertEqual(concept_versions.count(), 2)
+        item_versions = reversion.models.Version.objects.get_for_object(self.item1)
+        self.assertEqual(item_versions.count(), 2)
 
     # ---- tests ----
 

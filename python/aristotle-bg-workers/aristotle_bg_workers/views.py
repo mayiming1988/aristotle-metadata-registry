@@ -18,14 +18,11 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
-
-
 class GenericTaskView(IsSuperUserMixin, View):
 
     def get(self, request, task_name):
 
         task_promise = app.send_task(task_name, kwargs={"requester": self.request.user.email})
-        get_pretty_name(task_name)
 
         return HttpResponse(task_promise.id)
 
@@ -79,7 +76,7 @@ class TaskListView(IsSuperUserMixin, ListView):
             except Exception as e:
                 logger.warning(e)
                 return None
-        
+
         for task in qs:
             task.safe_result = json.loads(task.result)
             task.requester = get_user(task)

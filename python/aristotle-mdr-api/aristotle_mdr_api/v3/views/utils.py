@@ -1,9 +1,11 @@
 from rest_framework import serializers, pagination, viewsets
 from aristotle_mdr.utils.utils import fetch_aristotle_settings
 
+
 class DescriptionStubSerializerMixin(object):
     definition = serializers.SerializerMethodField()
-    def get_definition(self,instance):
+
+    def get_definition(self, instance):
         from django.utils.html import strip_tags
         import re
         d = strip_tags(instance.definition)
@@ -39,8 +41,8 @@ api_excluded_fields = [
     'submitter',
 ]
 
+
 def get_api_fields(cls):
-    cls._meta.get_fields()
     for field in cls._meta.get_fields():
         if field.name not in api_excluded_fields:
             f = field

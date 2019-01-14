@@ -360,7 +360,8 @@ class ObjectLevelPermissionRequiredMixin(PermissionRequiredMixin):
         """
         Returns whether or not the user has permissions
         """
-        self.get_permission_required(request)
+        perms = self.get_permission_required(request)
+        # TODO handle permission not required
         has_permission = False
         if hasattr(self, 'object') and self.object is not None:
             has_permission = request.user.has_perm(self.get_permission_required(request), self.object)

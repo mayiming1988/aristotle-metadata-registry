@@ -200,7 +200,7 @@ def render_to_pdf(template_src, context_dict,
         'aristotle_mdr/downloads/pdf/managedContent.html'
     ])
 
-    Context(context_dict)
+    context = Context(context_dict)
     html = template.render(context_dict)
 
     if debug_as_html:
@@ -214,7 +214,7 @@ def render_to_pdf(template_src, context_dict,
     if not context_dict.get('tableOfContents', False):
         return document.write_pdf()
 
-    generate_outline_str(document.make_bookmark_tree())
+    table_of_contents_string = generate_outline_str(document.make_bookmark_tree())
     toc = get_template('aristotle_mdr/downloads/pdf/toc.html').render(
         # Context(
         {

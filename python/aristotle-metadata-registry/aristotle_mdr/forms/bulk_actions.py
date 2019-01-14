@@ -104,7 +104,6 @@ class BulkActionForm(UserAwareForm):
 
     def __init__(self, form, *args, **kwargs):
         self.initial_items = kwargs.pop('items', [])
-        kwargs.pop('all_in_queryset', [])
 
         self.request = kwargs.pop('request')
         if 'user' in kwargs.keys():
@@ -348,5 +347,4 @@ class BulkDownloadForm(DownloadActionForm):
     def make_changes(self):
         self.download_type = self.cleaned_data['download_type']
         self.title = self.cleaned_data['title']
-        self.cleaned_data['items']
         super().make_changes()

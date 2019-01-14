@@ -125,7 +125,6 @@ class ConceptViewSet(
 
         queryset = super(ConceptViewSet,self).get_queryset()
         if self.request:
-            self.request.query_params.get('type', None)
             locked = self.request.query_params.get('is_locked', None)
             public = self.request.query_params.get('is_public', None)
             queryset = queryset.visible(self.request.user)

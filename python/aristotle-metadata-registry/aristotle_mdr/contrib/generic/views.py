@@ -256,8 +256,6 @@ class GenericAlterManyToManyOrderView(GenericAlterManyToManyView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        getattr(self.item, self.model_base_field).count()
-
         context['form_add_another_text'] = _('Add Another')
 
         if 'formset' in kwargs:
@@ -373,7 +371,6 @@ class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['form_add_another_text'] = self.form_add_another_text or _('Add another')
-        getattr(self.item, self.model_base_field).count()
 
         formset = self.formset or self.get_formset()
 

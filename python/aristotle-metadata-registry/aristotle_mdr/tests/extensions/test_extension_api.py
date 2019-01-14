@@ -108,7 +108,6 @@ class QuestionnaireViewPage(LoggedInViewExtensionConceptPages, TestCase):
         self.login_editor()
         response = self.client.get(reverse('extension_test:questionnaire_add_question', args=[self.item1.id]))
         self.assertEqual(response.status_code, 200)
-        response.context['form']
 
 
     def loggedin_user_can_use_value_page(self,value_url,current_item,http_code):
@@ -155,5 +154,4 @@ class QuestionnaireViewPage(LoggedInViewExtensionConceptPages, TestCase):
         self.login_editor()
         response = self.client.get(reverse('aristotle:edit_item', args=[self.item1.id]))
         self.assertEqual(response.status_code, 200)
-        response.context['form']
         self.assertContains(response, 'glyphicon-calendar')  # While we use bootstrap-datewidget, this should be there.

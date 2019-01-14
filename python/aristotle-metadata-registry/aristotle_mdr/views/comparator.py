@@ -55,8 +55,6 @@ def compare_concepts(request, obj_type=None):
             compare_data_a, has_unfollowed_fields_a = comparator_a_to_b.compare(item_a, version2, version1)
             compare_data_b, has_unfollowed_fields_b = comparator_b_to_a.compare(item_a, version1, version2)
 
-            has_unfollowed_fields_a or has_unfollowed_fields_b
-
             context.update({'debug': {'cmp_a': compare_data_a}})
             comparison = {}
             for field_diff_a in compare_data_a:

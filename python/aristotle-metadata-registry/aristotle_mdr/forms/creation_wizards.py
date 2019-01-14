@@ -103,7 +103,6 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
 
     def __init__(self, *args, **kwargs):
         # TODO: Have tis throw a 'no user' error
-        kwargs.pop('first_load', None)
         super().__init__(*args, **kwargs)
 
         for f in self.fields:
