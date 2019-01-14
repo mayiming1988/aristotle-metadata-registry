@@ -126,6 +126,34 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages,TestCase):
         # TODO: Add test for #939
         pass
 
+    @tag('clone')
+    def test_cloning_with_components(self):
+        de1 = MDR.DataElement.objects.create(
+            name='de1',
+            definition='de1'
+        )
+        de2 = MDR.DataElement.objects.create(
+            name='de2',
+            definition='de2'
+        )
+        self.item1.addDataElement(de1)
+        self.item1.addDataElement(de2)
+
+        self.login_editor()
+        data = {
+            'name': 'My dataset (clone)',
+            'definition': 'My very own dataset'
+        }
+
+        response = self.reverse_post(
+            'aristotle:clone_item',
+            data,
+            reverse_args=[self.item1.id],
+            status_code=302
+        )
+
+        clone = models.DataSetSpecification.objects.get(name='My dataset (clone)')
+        self.assertEqual(clone.dssdeinclusion_set.count(), 2)
 
 class DataCatalogViewPage(LoggedInViewConceptPages,TestCase):
     url_name='datacatalog'

@@ -2,7 +2,7 @@ from django import forms
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-from django.forms import ModelForm
+from django.forms import ModelForm, BooleanField
 
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 import aristotle_mdr.models as MDR
@@ -140,3 +140,4 @@ class EditUserForm(ModelForm):
 class ShareLinkForm(forms.Form):
 
     emails = MultipleEmailField(required=False)
+    notify_new_users_checkbox = BooleanField(label="Notify new people", initial=True, required=False)

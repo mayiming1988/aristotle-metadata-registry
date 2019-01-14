@@ -1,4 +1,4 @@
-{% load humanize %}
+{% load util_tags humanize %}
 {% load aristotle_help %}
 <div class="result">
 <a href="{% url 'aristotle_help:concept_help' object.app_label object.concept_type %}">{{ object.title }}</a>
@@ -8,9 +8,9 @@
 </p>
 <div class="attrs">
     <span class="attr">
-        {# <span class="time">Created: {{ object.created }}</span> #}
+        {# <span class="time">Created: <time datetime="{{ object.created|isotime }}">{{ object.created }}</time></span> #}
         <header class="time">Last modified:</header>
-        {{ object.modified }}
+        <time datetime="{{ object.modified|isotime }}">{{ object.modified }}</time>
     </span>
 </div>
 </div>
