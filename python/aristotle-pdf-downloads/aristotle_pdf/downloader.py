@@ -40,7 +40,7 @@ class PDFDownloader(HTMLDownloader):
                     merger.append(BytesIO(page_bytes))
             final_file = BytesIO()
             merger.write(final_file)
-            merger.close()
+            merger.close()  # Close all files given to the merger
             return final_file
         else:
             return BytesIO(generated_bytes)

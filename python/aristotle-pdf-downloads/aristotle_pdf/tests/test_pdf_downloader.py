@@ -71,6 +71,7 @@ class PDFDownloaderTestCase(AristotleTestUtils, TestCase):
             submitter=self.editor
         )
 
+    @tag('pdf')
     def test_pdf_download_generates_file(self):
         downloader = PDFDownloader([self.item.id], self.editor.id, {})
         fileobj = downloader.create_file()
