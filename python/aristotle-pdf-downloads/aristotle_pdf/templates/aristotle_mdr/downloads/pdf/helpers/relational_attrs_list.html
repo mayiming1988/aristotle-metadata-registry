@@ -1,0 +1,8 @@
+{% load aristotle_tags %}
+<ul>
+  {% for sub_item in qs|can_view_iter:user %}
+    <li>{% include 'aristotle_mdr/helpers/inlineDetails.html' with item=sub_item %}</li>
+  {% empty %}
+    <li><em>None</em></li>
+  {% endfor %}
+</ul>

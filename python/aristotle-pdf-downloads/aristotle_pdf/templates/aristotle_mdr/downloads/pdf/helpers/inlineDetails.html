@@ -1,0 +1,4 @@
+{% include 'aristotle_mdr/helpers/inlineDetails' with item=item %}
+{% if options.include_related %}
+  {% include 'aristotle_mdr/downloads/pdf/inline/relational_attrs.html' with item=item %}
+{% endif %}

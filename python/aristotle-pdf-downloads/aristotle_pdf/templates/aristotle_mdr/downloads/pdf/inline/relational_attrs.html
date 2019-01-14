@@ -1,6 +1,5 @@
 {% load util_tags %}
-<h2>Relational Attributes</h2>
 {% for qs in item.relational_attributes %}
-  <h3>{{ qs.model|class_name }}s implementing this {{ item|class_name }}</h3>
+  <p>{{ qs.model|class_name }}s implementing this {{ item|class_name }}</p>
   {% include 'aristotle_mdr/downloads/pdf/helpers/relational_attrs_list.html' with qs=qs %}
 {% endfor %}
