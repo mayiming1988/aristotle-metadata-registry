@@ -1,6 +1,6 @@
 {% extends "aristotle_mdr/concepts/managedContent.html" %}
 
-{% load aristotle_tags %}
+{% load aristotle_tags util_tags %}
 
 {% block type %}conceptualdomain{% endblock %}
 {% block includes %}
@@ -42,8 +42,8 @@
                 <tr>
                     <td>{{ perm.name }}</td>
                     <td>{{ perm.definition }}</td>
-                    <td>{{ perm.start_date|default_if_none:"-" }}</td>
-                    <td>{{ perm.end_date|default_if_none:"-" }}</td>
+                    <td><time datetime="{{ perm.start_date|isotime }}">{{ perm.start_date }}</time></td>
+                    <td><time datetime="{{ perm.end_date|isotime }}">{{ perm.end_date }}</time></td>
                 </tr>
             {% empty %}
                 {% if item|can_edit:request.user %}

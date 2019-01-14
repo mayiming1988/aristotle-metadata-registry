@@ -159,6 +159,7 @@ class AbstractValue(aristotleComponent):
     class Meta:
         abstract = True
         ordering = ['order']
+
     value = ShortTextField(  # 11.3.2.7.2.1 - Renamed from permitted value for abstracts
         help_text=_("the actual value of the Value")
     )
@@ -166,7 +167,7 @@ class AbstractValue(aristotleComponent):
         help_text=_("A textual designation of a value, where a relation to a Value meaning doesn't exist")
     )
     value_meaning = models.ForeignKey(  # 11.3.2.7.1
-        'ValueMeaning',
+        ValueMeaning,
         blank=True,
         null=True,
         help_text=_('A reference to the value meaning that this designation relates to')
@@ -174,7 +175,7 @@ class AbstractValue(aristotleComponent):
     # Below will generate exactly the same related name as django, but reversion-compare
     # needs an explicit related_name for some actions.
     valueDomain = ConceptForeignKey(
-        'ValueDomain',
+        ValueDomain,
         related_name="%(class)s_set",
         help_text=_("Enumerated Value Domain that this value meaning relates to"),
         verbose_name='Value Domain'

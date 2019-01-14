@@ -10,11 +10,13 @@ import { initMessages } from './messages.js'
 import { initDAL } from './dal_simple_init.js'
 import { initCKEditor } from './ckeditor_simple_init.js'
 import { initMoveable } from './moveable.js'
+import { initTime } from './localtime.js'
 
 // Always on styles
 import 'src/styles/bootstrap.less'
 import 'font-awesome/css/font-awesome.css'
 import 'src/styles/aristotle.less'
+import 'src/styles/aristotle.print.less'
 import 'src/styles/aristotle.visuals.less'
 import 'src/styles/bootstrap.wcag.css'
 import 'src/styles/pink.wcag.css'
@@ -98,14 +100,13 @@ export function initModalScrap() {
 export function initCore() {
     initNotifications()
     initMessages()
+    initTime()
 }
 
 // Init all function, only use if the page actually needs all this
 export default function init() {
-
     initCore()
     initWidgets()
     initSpinners()
     initModalScrap()
-
 }
