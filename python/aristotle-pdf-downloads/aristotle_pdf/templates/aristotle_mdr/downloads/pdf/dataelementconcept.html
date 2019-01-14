@@ -15,7 +15,9 @@
               {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item.property %}
           </dd>
       </dl>
+    {% endif %}
 
+    {% if options.include_related %}
       <h2>Relational attributes</h2>
       {% if item.dataelement_set.all %}
           <h3>Data Elements implementing this Data Element Concept</h3>

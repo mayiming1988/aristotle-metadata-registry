@@ -12,4 +12,5 @@ class DownloadOptionsForm(forms.Form):
 
     title = forms.CharField(required=False)
     include_supporting = forms.BooleanField(required=False)
+    include_related = forms.BooleanField(required=False)
     email_copy = forms.BooleanField(required=False)

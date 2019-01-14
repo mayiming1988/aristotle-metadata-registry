@@ -53,6 +53,7 @@ class Downloader:
 
     default_options = {
         'include_supporting': False,
+        'include_related': False,
         'subclasses': None,
         'front_page': None,
         'back_page': None,
@@ -241,7 +242,6 @@ class HTMLDownloader(Downloader):
         item_querysets = items_for_bulk_download(self.items, self.user)
 
         context.update({
-            'title': 'Auto-generated document',
             'subtitle': subtitle,
             'items': self.items,
             'included_items': sorted(
