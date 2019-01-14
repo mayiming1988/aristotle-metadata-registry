@@ -1,8 +1,10 @@
+from typing import List, Tuple
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse
 from django.db import models, transaction
 from django.db.models import Q
+from django.db.models.query import QuerySet
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver, Signal
 from django.utils import timezone
@@ -678,9 +680,10 @@ class _concept(baseAristotleObject):
     tracker = FieldTracker()
 
     comparator = comparators.Comparator
-    edit_page_excludes: list = []
-    admin_page_excludes: list = []
+    edit_page_excludes: List[str] = []
+    admin_page_excludes: List[str] = []
     registerable = True
+    relational_attributes: List[QuerySet]
 
     class Meta:
         # So the url_name works for items we can't determine.
@@ -1005,6 +1008,12 @@ class ObjectClass(concept):
     class Meta:
         verbose_name_plural = "Object Classes"
 
+    @property
+    def relational_attributes(self):
+        return [
+            self.dataelementconcept_set.all(),
+        ]
+
 
 class Property(concept):
     """
@@ -1015,6 +1024,12 @@ class Property(concept):
 
     class Meta:
         verbose_name_plural = "Properties"
+
+    @property
+    def relational_attributes(self):
+        return [
+            self.dataelement_set.all(),
+        ]
 
 
 class Measure(unmanagedObject):
@@ -1073,6 +1088,13 @@ class ConceptualDomain(concept):
     serialize_weak_entities = [
         ('value_meaning', 'valuemeaning_set'),
     ]
+
+    @property
+    def relational_attributes(self):
+        return [
+            self.dataelementconcept_set.all(),
+            self.valuedomain_set.all()
+        ]
 
 
 class ValueMeaning(aristotleComponent):
@@ -1192,6 +1214,12 @@ class ValueDomain(concept):
     def supplementaryValues(self):
         return self.supplementaryvalue_set.all()
 
+    @property
+    def relational_attributes(self):
+        return [
+            self.dataelement_set.all(),
+        ]
+
 
 class AbstractValue(aristotleComponent):
     """
@@ -1304,6 +1332,12 @@ class DataElementConcept(concept):
         return [
             (ObjectClass, ObjectClass.objects.filter(dataelementconcept=self)),
             (Property, Property.objects.filter(dataelementconcept=self)),
+        ]
+
+    @property_
+    def relational_attributes(self):
+        return [
+            self.dataelement_set.all(),
         ]
 
 

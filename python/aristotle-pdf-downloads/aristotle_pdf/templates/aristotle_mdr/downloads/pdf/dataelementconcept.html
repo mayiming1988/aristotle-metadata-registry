@@ -18,17 +18,7 @@
     {% endif %}
 
     {% if options.include_related %}
-      <h2>Relational attributes</h2>
-      {% if item.dataelement_set.all %}
-          <h3>Data Elements implementing this Data Element Concept</h3>
-          <ul>
-          {% for de in item.dataelement_set.all %}
-              <li>
-                  {% include "aristotle_mdr/helpers/inlineDetails.html" with item=de %}
-              </li>
-          {% endfor %}
-          </ul>
-      {% endif %}
+      {% include "aristotle_mdr/downloads/pdf/helpers/relational_attrs.html" with item=item %}
     {% endif %}
 
 {% endblock %}
