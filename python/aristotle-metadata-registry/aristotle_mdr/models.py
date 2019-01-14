@@ -1603,6 +1603,13 @@ class SandboxShare(models.Model):
     )
     emails = JSONField()
 
+    def __str__(self):
+        return str({'uuid': self.uuid,
+                    'profile': self.profile,
+                    'created': self.created,
+                    'emails: ': self.emails
+                    })
+
 
 def create_user_profile(sender, instance, created, **kwargs):
     if created:

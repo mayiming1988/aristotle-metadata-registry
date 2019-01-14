@@ -33,7 +33,6 @@
                     {% for item in user.notifications.unread|slice:':5' %}
                       <li class="list-group-item">
                         {{ item }}
-                      </a>
                       </li>
                     {% empty %}
                         <li class="list-group-item"> No unread notifications </li>

@@ -3,7 +3,7 @@
 {% load aristotle_tags %}
 
 {% block extra_head_scripts %}
-{{ block.super }}
+    {{ block.super }}
     <style>
         .admin-wrap .col-sm-12 {
             padding-left:0px;
@@ -15,10 +15,10 @@
         }
     </style>
     <script>
-      function resizeIframe(obj) {
-        obj.style.height = obj.contentWindow.document.body.scrollHeight + 'px';
-        document.title = obj.contentWindow.document.title
-      }
+        function resizeIframe(obj) {
+            obj.style.height = obj.contentWindow.document.body.scrollHeight + 'px';
+            document.title = obj.contentWindow.document.title
+        }
     </script>
 {% endblock %}
 
@@ -27,7 +27,7 @@
 {% endblock %}
 
 {% block page %}
-<iframe id='django_admin' frameborder="0"    marginheight="0"
-   marginwidth="0"
-    src="/django/admin/{{page_url}}" onload="resizeIframe(this)" ></iframe>
+    <iframe id='django_admin' frameborder="0"    marginheight="0"
+            marginwidth="0"
+            src="/django/admin/{{page_url}}" onload="resizeIframe(this)" ></iframe>
 {% endblock %}

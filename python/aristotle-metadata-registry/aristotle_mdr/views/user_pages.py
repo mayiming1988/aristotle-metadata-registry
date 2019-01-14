@@ -33,9 +33,11 @@ from aristotle_mdr.views.utils import (paginated_list,
 from aristotle_mdr.views.views import ConceptRenderView
 from aristotle_mdr.utils import fetch_metadata_apps
 from aristotle_mdr.utils import get_aristotle_url
+from aristotle_bg_workers.tasks import send_notification_emails
 
 import json
 import random
+import ast
 
 
 class FriendlyLoginView(LoginView):
@@ -454,6 +456,7 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
     paginate_by = 25
     template_name = "aristotle_mdr/user/sandbox.html"
     form_class = MDRForms.ShareLinkForm
+    state_of_emails_before_updating = ""
 
     def dispatch(self, *args, **kwargs):
         self.share = self.get_share()
@@ -474,6 +477,7 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
         if share is not None:
             emails = json.loads(share.emails)
             initial['emails'] = emails
+            self.state_of_emails_before_updating = share.emails
 
         return initial
 
@@ -505,7 +509,7 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
             return self.form_valid(form)
         else:
             if not self.request.is_ajax():
-                # If request is not ajax and there is an invlaid form we need
+                # If request is not ajax and there is an invalid form we need
                 # to load the listview content (usually done in get())
                 # This should only run if a user has disabled js
                 self.object_list = self.get_queryset()
@@ -526,6 +530,17 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
             self.share.save()
             self.ajax_success_message = 'Share permissions updated'
 
+            if self.request.POST['notify_new_users_checkbox']:
+                recently_added_emails = self.get_recently_added_emails(ast.literal_eval(self.state_of_emails_before_updating),
+                                                                       ast.literal_eval(self.share.emails))
+
+                if len(recently_added_emails) > 0:
+                    send_notification_emails.delay(recently_added_emails,
+                                                   self.request.user.email,
+                                                   self.request.get_host() + reverse('aristotle_mdr:sharedSandbox',
+                                                                                     args=[self.share.uuid])
+                                                   )
+
         return super().form_valid(form)
 
     def get_ordering(self):
@@ -535,6 +550,11 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
 
     def get_success_url(self):
         return reverse('aristotle_mdr:userSandbox') + '?display_share=1'
+
+    def get_recently_added_emails(self, old_list, new_list):
+        old_list_set = set(old_list)
+        new_list_set = set(new_list)
+        return list(new_list_set - old_list_set)
 
 
 class GetShareMixin:
