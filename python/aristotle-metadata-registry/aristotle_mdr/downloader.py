@@ -201,7 +201,6 @@ class HTMLDownloader(Downloader):
             'page_size': page_size,
             'options': self.options
         }
-
         return context
 
     def get_download_context(self) -> Dict[str, Any]:

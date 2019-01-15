@@ -184,6 +184,7 @@ class DownloderTestCase(AristotleTestUtils, TestCase):
         path = downloader.get_filepath()
         self.assertRegex(path, 'anon/[0-9a-f]+/download.fak')
 
+    @override_settings(DOWNLOAD_CACHING=True)
     def test_file_not_created_if_can_be_retrieved(self):
         fake_url = 'http://www.example.com/existing/file.fak'
         with patch.object(FakeDownloader, 'retrieve_file', return_value=fake_url):
