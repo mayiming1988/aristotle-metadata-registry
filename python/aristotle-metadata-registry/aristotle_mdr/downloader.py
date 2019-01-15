@@ -211,7 +211,7 @@ class HTMLDownloader(Downloader):
 
         # This will raise an exception if the list is empty, but thats ok
         item = self.items[0]
-        sub_items = self.get_sub_items_dict(ignore_root=True)
+        sub_items = self.get_sub_items_dict()
 
         context.update({
             'title': item.name,
@@ -238,13 +238,13 @@ class HTMLDownloader(Downloader):
             }
         items_dict[label]['items'].append(item)
 
-    def get_sub_items_dict(self, ignore_root=False) -> Dict[str, Dict[str, Any]]:
+    def get_sub_items_dict(self, include_root=False) -> Dict[str, Dict[str, Any]]:
         items = {}
 
         # Get all items using above method to create dict
         for item in self.items:
-            # ignore_root doesnt include the selected items in the dict
-            if not ignore_root:
+            # include_root includes the selected items in the dict
+            if include_root:
                 self._add_to_sub_items(items, item)
 
             for dl_item in item.get_download_items():
@@ -255,6 +255,10 @@ class HTMLDownloader(Downloader):
 
                 for sub_item in sub_list:
                     self._add_to_sub_items(items, sub_item)
+
+        # Sort the items lists by name
+        for label, data in items.items():
+            data['items'].sort(key=lambda item: item.name)
 
         return items
 
