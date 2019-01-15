@@ -12,6 +12,9 @@ from unittest.mock import patch, MagicMock
 
 @override_settings(ARISTOTLE_SETTINGS={'DOWNLOADERS': ['aristotle_mdr.tests.utils.FakeDownloader']})
 class DownloadsTestCase(AristotleTestUtils, TestCase):
+    """
+    Testing downloads views and task
+    """
 
     def setUp(self):
         super().setUp()

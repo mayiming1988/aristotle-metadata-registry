@@ -170,10 +170,16 @@ class ConceptRenderView(TagsMixin, TemplateView):
         related_fields = []
         prefetch_fields = ['statuses']
         for field in model._meta.get_fields():
-            if field.is_relation and field.many_to_one and issubclass(field.related_model, MDR._concept):
-                # If a field is a foreign key that links to a concept
-                related_fields.append(field.name)
-            elif field.is_relation and field.one_to_many and issubclass(field.related_model, MDR.AbstractValue):
+            # Get select related fields
+            if model.related_objects:
+                related_fields = related_objects
+            else:
+                if field.is_relation and field.many_to_one and issubclass(field.related_model, MDR._concept):
+                    # If a field is a foreign key that links to a concept
+                    related_fields.append(field.name)
+
+            # Get prefetch related fields
+            if field.is_relation and field.one_to_many and issubclass(field.related_model, MDR.AbstractValue):
                 # If field is a reverse foreign key that links to an
                 # abstract value
                 prefetch_fields.append(field.name)

@@ -66,7 +66,7 @@ class Downloader:
         self.error = False
 
         if user_id is not None:
-            self.user = get_user_model().objects.get(id=user_id)
+            self.user = get_user_model().objects.get(id=user_id).prefetch_related('profile')
         else:
             self.user = AnonymousUser()
 
