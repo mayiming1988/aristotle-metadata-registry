@@ -172,7 +172,7 @@ class ConceptRenderView(TagsMixin, TemplateView):
         for field in model._meta.get_fields():
             # Get select related fields
             if model.related_objects:
-                related_fields = related_objects
+                related_fields = model.related_objects
             else:
                 if field.is_relation and field.many_to_one and issubclass(field.related_model, MDR._concept):
                     # If a field is a foreign key that links to a concept
