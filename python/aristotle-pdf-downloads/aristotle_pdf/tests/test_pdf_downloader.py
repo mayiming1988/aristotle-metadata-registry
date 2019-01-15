@@ -76,6 +76,10 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
             [self.speed]
         )
 
+    def test_downloader_init_queries(self):
+        with self.assertNumQueries(5):
+            downloader = HTMLDownloader([self.aspeed.id], self.editor.id, {})
+
 
 class PDFDownloaderTestCase(AristotleTestUtils, TestCase):
 
