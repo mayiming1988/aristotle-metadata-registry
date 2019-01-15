@@ -1,6 +1,7 @@
 from typing import List, Dict
 from django.apps import apps
 from django.conf import settings
+from django.core.cache import cache
 from django.urls import reverse
 from django.core.exceptions import ImproperlyConfigured
 from django.forms import model_to_dict

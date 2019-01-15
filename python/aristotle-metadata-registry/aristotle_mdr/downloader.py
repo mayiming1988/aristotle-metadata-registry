@@ -61,7 +61,7 @@ class Downloader:
         'email_to_user': False
     }
 
-    def __init__(self, item_ids: List[int], user_id: Optional[int], options: Dict[str, Any]={}):
+    def __init__(self, item_ids: List[int], user_id: Optional[int], options: Dict[str, Any] = {}):
         self.item_ids = item_ids
         self.error = False
 
@@ -239,7 +239,7 @@ class HTMLDownloader(Downloader):
         items_dict[label]['items'].append(item)
 
     def get_sub_items_dict(self, include_root=False) -> Dict[str, Dict[str, Any]]:
-        items = {}
+        items: Dict[str, Dict[str, Any]] = {}
 
         # Get all items using above method to create dict
         for item in self.items:
