@@ -1,5 +1,6 @@
 from aristotle_mdr.apps import AristotleExtensionBaseConfig
 
+
 class AristotleBackgroundWorkersConfig(AristotleExtensionBaseConfig):
     name = 'aristotle_bg_workers'
     verbose_name = "Aristotle Background Workers"

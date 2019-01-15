@@ -69,3 +69,6 @@ assets/coverage/*
 
 # mypy
 .mypy_cache/*
+
+# ignore DS files for mac users:
+.DS_Store

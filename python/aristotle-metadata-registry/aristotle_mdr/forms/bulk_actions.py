@@ -4,11 +4,8 @@ from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.forms import HiddenInput
 from django.urls import reverse
-from django.utils import timezone
-from django.utils.html import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 
 import aristotle_mdr.models as MDR
 import aristotle_mdr.contrib.favourites.models as fav_models
@@ -21,8 +18,6 @@ from aristotle_mdr.perms import (
 from aristotle_mdr.forms.creation_wizards import UserAwareForm
 from aristotle_mdr.contrib.autocomplete import widgets
 from aristotle_mdr.utils import fetch_aristotle_downloaders
-
-from .utils import RegistrationAuthorityMixin
 
 
 class ForbiddenAllowedModelMultipleChoiceField(forms.ModelMultipleChoiceField):
@@ -109,7 +104,6 @@ class BulkActionForm(UserAwareForm):
 
     def __init__(self, form, *args, **kwargs):
         self.initial_items = kwargs.pop('items', [])
-        all_in_queryset = kwargs.pop('all_in_queryset', [])
 
         self.request = kwargs.pop('request')
         if 'user' in kwargs.keys():

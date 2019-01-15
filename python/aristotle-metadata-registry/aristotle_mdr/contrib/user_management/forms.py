@@ -5,7 +5,6 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 
 from aristotle_mdr.forms.utils import FormRequestMixin
-from aristotle_mdr.utils import fetch_aristotle_settings
 from aristotle_mdr.fields import LowerEmailFormField
 
 

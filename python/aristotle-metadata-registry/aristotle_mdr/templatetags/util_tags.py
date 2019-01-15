@@ -1,5 +1,4 @@
 from django import template
-import json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe, SafeString
@@ -8,6 +7,8 @@ from django.conf import settings
 from aristotle_mdr.utils.text import pretify_camel_case
 
 import bleach
+import json
+from datetime import datetime
 
 register = template.Library()
 
@@ -99,3 +100,12 @@ def class_name(obj) -> str:
         obj = type(obj)
     name = obj.__name__
     return pretify_camel_case(name)
+
+
+@register.filter(name='isotime')
+def iso_time(dt: datetime):
+    """Return ISO 8601 string from datetime object"""
+    if dt is None:
+        return '-'
+
+    return dt.isoformat()

@@ -50,7 +50,7 @@ def loadhelp_task(*args, **kwargs):
 
 
 @shared_task(name='fire_async_signal')
-def fire_async_signal(namespace, signal_name, message = {}):
+def fire_async_signal(namespace, signal_name, message={}):
     from django.utils.module_loading import import_string
     import_string("%s.%s" % (namespace, signal_name))(message)
 
@@ -79,3 +79,17 @@ def download(download_type: str, item_ids: List[int], user_id: int, options={}) 
         return downloader.download()
 
     raise LookupError('Requested Donwloader class could not be found')
+
+
+@shared_task(name='send_notification_emails')
+def send_notification_emails(emails_list, user_email, sandbox_access_url):
+    from django.core.mail import send_mail
+
+    # Send a separate email to each email address:
+    for email in emails_list:
+        send_mail(
+            'Sandbox Access',
+            'Hello there, to access my Sandbox please use the following URL: ' + sandbox_access_url,
+            user_email,
+            [email]
+        )

@@ -217,6 +217,7 @@ class DataSetSpecification(aristotle.models.concept):
         ('clusters', 'dssclusterinclusion_set'),
         ('data_elements', 'dssdeinclusion_set'),
     ]
+    clone_fields = ['dssclusterinclusion', 'dssdeinclusion']
 
     template = "aristotle_dse/concepts/dataSetSpecification.html"
     ordered = models.BooleanField(

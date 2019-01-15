@@ -2,7 +2,6 @@ from django.conf.urls import include, url
 from django.views.generic import TemplateView
 from django.utils.translation import ugettext_lazy as _
 
-from aristotle_mdr import models as MDR
 
 from aristotle_dse import views, models
 from aristotle_dse.views import DatasetSpecificationView

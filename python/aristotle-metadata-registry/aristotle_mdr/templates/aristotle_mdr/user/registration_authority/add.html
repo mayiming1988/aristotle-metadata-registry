@@ -2,7 +2,7 @@
 {% load i18n %}
 
 {% block collapse-link %}
-    <i class="fa fa-users fa-fw"></i> My Workgroups </a>
+    <i class="fa fa-users fa-fw"></i> My Workgroups
 {% endblock %}
 
 {% block sidebar %}
@@ -10,33 +10,35 @@
 {% endblock %}
 
 {% block page %}
-<h1>{% block title %}New Registration Authority{% endblock %}</h1>
+    <h1>{% block title %}New Registration Authority{% endblock %}</h1>
     <form action="" method="POST">
         {% csrf_token %}
         <div class="form-group {% if form.name.errors %}has-error{% endif %}">
-            {{ form.name.label_tag }}
+
+            <label for="{{ form.name.id_for_label }}">{{ form.name.label_tag }}</label>
             {% if form.name.errors %}
-            <div class="alert alert-danger">
-                {{ form.name.errors }}
+                <div class="alert alert-danger">
+                    {{ form.name.errors }}
                 </div>
             {% endif %}
-                <p class="help-block">
-                 {{ form.name.help_text }}
-                </p>
-                <input class="form-control" id="{{ form.name.id_for_label }}" value="{{ form.name.value|default:"" }}" name="name">
+            <p class="help-block">
+                {{ form.name.help_text }}
+            </p>
+
+            <input type="text" class="form-control" id="{{ form.name.id_for_label }}" value="{{ form.name.value|default:"" }}" name="name">
         </div>
 
         <div class="form-group {% if form.definition.errors %}has-error{% endif %}">
             {{ form.definition.label_tag }}
             {% if form.definition.errors %}
                 <div class="alert alert-danger">
-                {{ form.definition.errors }}
+                    {{ form.definition.errors }}
                 </div>
             {% endif %}
-                <p class="help-block">
-                 {{ form.definition.help_text }}
-                </p>
-                {{ form.definition }}
+            <p class="help-block">
+                {{ form.definition.help_text }}
+            </p>
+            {{ form.definition }}
         </div>
 
         <button type="Submit" class="btn btn-primary">Create new Registration Authority</button>

@@ -782,6 +782,14 @@ class _concept(baseAristotleObject):
             profile__tags__favourites__item=self
         ).distinct()
 
+    @property
+    def component_fields(self):
+        return [
+            field
+            for field in type(self)._meta.get_fields()
+            if field.is_relation and field.one_to_many and issubclass(field.related_model, MDR.aristotleComponent)
+        ]
+
     def check_is_public(self, when=timezone.now()):
         """
             A concept is public if any registration authority
@@ -1162,6 +1170,7 @@ class ValueDomain(concept):
         ('permissible_values', 'permissiblevalue_set'),
         ('supplementary_values', 'supplementaryvalue_set'),
     ]
+    clone_fields = ('permissiblevalue_set', 'supplementaryvalue_set')
 
     data_type = ConceptForeignKey(  # 11.3.2.5.2.1
         DataType,
@@ -1230,6 +1239,7 @@ class AbstractValue(aristotleComponent):
     class Meta:
         abstract = True
         ordering = ['order']
+
     value = ShortTextField(  # 11.3.2.7.2.1 - Renamed from permitted value for abstracts
         help_text=_("the actual value of the Value")
     )
@@ -1283,7 +1293,6 @@ class PermissibleValue(AbstractValue):
     Permissible Value is a class each instance of which models a permissible value (3.2.96),
     the designation (3.2.51) of a value meaning (3.2.141).
     """
-    pass
 
 
 class SupplementaryValue(AbstractValue):
@@ -1648,6 +1657,13 @@ class SandboxShare(models.Model):
         auto_now=True
     )
     emails = JSONField()
+
+    def __str__(self):
+        return str({'uuid': self.uuid,
+                    'profile': self.profile,
+                    'created': self.created,
+                    'emails: ': self.emails
+                    })
 
 
 def create_user_profile(sender, instance, created, **kwargs):

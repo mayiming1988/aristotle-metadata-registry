@@ -1,4 +1,4 @@
-from django.forms import ModelForm, Form
+from django.forms import Form
 from django.forms.fields import CharField
 from django_jsonforms.forms import JSONSchemaField
 

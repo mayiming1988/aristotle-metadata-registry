@@ -1,6 +1,6 @@
 {% extends "aristotle_mdr/reviews/review/base.html" %}
 {% load i18n humanize %}
-{% load aristotle_tags %}
+{% load aristotle_tags util_tags %}
 {% load static from staticfiles %}
 
 {% block title %}Review details - items {{ item.name }}{% endblock %}
@@ -20,7 +20,7 @@
                   {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item %}
                     </td>
                     <td>
-                      {{item.modified}}
+                      <time datetime="{{ item.modified|isotime }}">{{ item.modified }}</time>
                     </td>
                   </tr>
                 {% endfor %}

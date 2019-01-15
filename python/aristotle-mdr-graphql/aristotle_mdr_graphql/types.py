@@ -2,10 +2,8 @@ import graphene
 import logging
 
 from aristotle_mdr import models as mdr_models
-from aristotle_mdr import perms
 from aristotle_mdr.contrib.identifiers import models as ident_models
 from graphene import relay
-from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.types import DjangoObjectType
 
 logger = logging.getLogger(__name__)

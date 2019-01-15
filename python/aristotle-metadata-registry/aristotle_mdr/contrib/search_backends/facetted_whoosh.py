@@ -77,7 +77,6 @@ class CustomWhooshBackend(original_backend.WhooshSearchBackend):
     """
 
     def update_spelling(self):
-        pass
         """
         import pdb; pdb.set_trace()
         sp = self.get_spell_checker()

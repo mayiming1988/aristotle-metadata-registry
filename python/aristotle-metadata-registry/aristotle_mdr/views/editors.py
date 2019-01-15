@@ -1,9 +1,9 @@
 from django.db import transaction
-from django.forms.models import inlineformset_factory
 from django.http import HttpResponseRedirect
 from django.views.generic import (
-    CreateView, DetailView, UpdateView
+    CreateView, DetailView, UpdateView, FormView
 )
+from django.views.generic.detail import SingleObjectMixin
 
 import reversion
 
@@ -24,9 +24,6 @@ import logging
 
 from aristotle_mdr.contrib.generic.views import ExtraFormsetMixin
 
-
-import re
-
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
@@ -39,7 +36,8 @@ class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
     pk_url_kwarg = 'iid'
 
     def dispatch(self, request, *args, **kwargs):
-        self.item = super().get_object().item
+        self.object = self.get_object()
+        self.item = self.object.item
         self.model = self.item.__class__
         return super().dispatch(request, *args, **kwargs)
 
@@ -186,7 +184,7 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         return context
 
 
-class CloneItemView(ConceptEditFormView, DetailView, CreateView):
+class CloneItemView(ConceptEditFormView, SingleObjectMixin, FormView):
     template_name = "aristotle_mdr/create/clone_item.html"
     permission_required = "aristotle_mdr.user_can_view"
 
@@ -209,8 +207,30 @@ class CloneItemView(ConceptEditFormView, DetailView, CreateView):
                 new_clone = form.save(commit=False)
                 new_clone.submitter = self.request.user
                 new_clone.save()
+                self.clone_components(new_clone)
                 reversion.revisions.set_user(self.request.user)
                 reversion.revisions.set_comment("Cloned from %s (id: %s)" % (self.item.name, str(self.item.pk)))
                 return HttpResponseRedirect(url_slugify_concept(new_clone))
         else:
             return self.form_invalid(form)
+
+    def clone_components(self, clone):
+        original = self.item
+        fields = getattr(self.model, 'clone_fields', [])
+        for field_name in fields:
+            field = self.model._meta.get_field(field_name)
+            remote_field_name = field.remote_field.name
+            manager = getattr(original, field.get_accessor_name(), None)
+            if manager is None:
+                components = []
+            else:
+                components = manager.all()
+
+            new_components = []
+            for component in components:
+                # Set pk to none so we insert instead of update
+                component.pk = None
+                # Set the remote field to the clone
+                setattr(component, remote_field_name, clone)
+                new_components.append(component)
+            field.related_model.objects.bulk_create(new_components)

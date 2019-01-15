@@ -2,14 +2,12 @@ from django.test import TestCase
 
 from aristotle_mdr.models import ObjectClass
 from django.urls import reverse
-from django.contrib.auth.models import AnonymousUser
 
 from aristotle_mdr.tests.main.test_bulk_actions import BulkActionsTest
 from aristotle_mdr import models
 from aristotle_mdr.utils import setup_aristotle_test_environment
 from aristotle_mdr.tests.apps.text_download_test.downloader import TestTextDownloader
 from aristotle_mdr.tests.utils import store_taskresult, get_download_result
-from django.contrib.auth import get_user_model
 
 from mock import patch
 

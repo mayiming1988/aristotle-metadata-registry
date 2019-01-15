@@ -1,20 +1,15 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.mixins import UserPassesTestMixin
 from django.core.cache import cache
-from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.http.response import HttpResponse, JsonResponse
 from django.views.generic import View, ListView, TemplateView
 
 from aristotle_mdr.mixins import IsSuperUserMixin
-from aristotle_mdr.utils import fetch_aristotle_settings
 
 from django_celery_results.models import TaskResult
 
-from aristotle_bg_workers.models import ExtraTaskInfo
-from aristotle_bg_workers.celery import debug_task, app
+from aristotle_bg_workers.celery import app
 from aristotle_bg_workers.helpers import date_convert, get_pretty_name
-from aristotle_bg_workers.tasks import reindex_task, loadhelp_task
 
 import json
 import logging
@@ -28,7 +23,6 @@ class GenericTaskView(IsSuperUserMixin, View):
     def get(self, request, task_name):
 
         task_promise = app.send_task(task_name, kwargs={"requester": self.request.user.email})
-        display_name = get_pretty_name(task_name)
 
         return HttpResponse(task_promise.id)
 
@@ -36,7 +30,6 @@ class GenericTaskView(IsSuperUserMixin, View):
 class GenericTaskStopView(IsSuperUserMixin, View):
 
     def get(self, request):
-        from celery.result import AsyncResult
         task_id = request.GET.get("uuid")
         if task_id is not None:
             meta = {"requester": self.request.user.email}

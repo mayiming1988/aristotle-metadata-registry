@@ -1,29 +1,19 @@
 from typing import Any
 from django.apps import apps
-from django.contrib import messages
-from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist, ObjectDoesNotExist
 from django.urls import reverse
 from django.db import transaction
-from django.db.models import Q, Prefetch
 from django.http import HttpResponseRedirect, HttpResponseNotFound, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
-from django.template.defaultfilters import slugify
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView, RedirectView
-from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_string
 from django.contrib.contenttypes.models import ContentType
 from formtools.wizard.views import SessionWizardView
 
 import json
-import copy
-import yaml
-import jsonschema
-from os import path
 
 import reversion
 
@@ -49,13 +39,9 @@ from aristotle_mdr.views.utils import (
     TagsMixin
 )
 from aristotle_mdr.contrib.slots.models import Slot
-from aristotle_mdr.contrib.links.models import Link, LinkEnd
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
-from aristotle_mdr.contrib.favourites.models import Favourite, Tag
-from aristotle_mdr.contrib.validators import validators
 
-from haystack.views import FacetedSearchView
 from reversion.models import Version
 
 

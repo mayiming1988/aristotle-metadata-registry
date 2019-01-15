@@ -1,6 +1,3 @@
-from django.core.cache import cache
-from aristotle_bg_workers.models import ExtraTaskInfo
-from django_celery_results.models import TaskResult
 
 # Helper functions
 import logging

@@ -2,13 +2,12 @@ from django.test import TestCase, tag, Client
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.urls import reverse
-from django.conf import settings
+from django.core import mail
 
 import aristotle_mdr.tests.utils as utils
+from aristotle_bg_workers.tasks import send_notification_emails
 from aristotle_mdr import models
-import datetime
-import json
-import os
+import datetime, json, os, ast
 
 from aristotle_mdr.utils import setup_aristotle_test_environment
 
@@ -529,6 +528,15 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         response = self.client.get("/login")
         self.assertRedirects(response, reverse('aristotle:userHome'))
 
+    @tag('share_link')
+    def test_send_emails_for_new_email_addresses(self):
+        share = self.create_content_and_share(self.editor, ['vicky@example.com'])
+        send_notification_emails(ast.literal_eval(share.emails), self.editor.email, str(share.uuid))
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, 'Sandbox Access')
+        self.assertEqual(mail.outbox[0].from_email, self.editor.email)
+        self.assertEqual(mail.outbox[0].body, 'Hello there, to access my Sandbox please use the following URL: ' + str(share.uuid))
+
 
 class UserDashRecentItems(utils.AristotleTestUtils, TestCase):
     def setUp(self):
@@ -666,7 +674,7 @@ class UserProfileTests(TestCase):
         self.login_newuser()
 
         initial = self.get_initial()
-        response = self.post_with_profile_picture(initial)
+        self.post_with_profile_picture(initial)
 
         user = get_user_model().objects.get(email='newuser@example.com')
 

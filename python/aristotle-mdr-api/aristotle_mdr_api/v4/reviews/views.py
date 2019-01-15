@@ -1,14 +1,10 @@
 from rest_framework import generics
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.serializers import ValidationError
-from rest_framework.views import APIView
 
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
 
-from aristotle_mdr.contrib.reviews.models import ReviewRequest, ReviewComment, REVIEW_STATES
-from aristotle_mdr_api.v4.permissions import AuthCanViewEdit, AuthFinePerms
+from aristotle_mdr.contrib.reviews.models import ReviewComment, ReviewRequest
+from aristotle_mdr_api.v4.permissions import AuthCanViewEdit
 from aristotle_mdr import perms
 
 from . import serializers

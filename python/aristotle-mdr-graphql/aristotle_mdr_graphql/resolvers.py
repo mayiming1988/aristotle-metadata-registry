@@ -1,16 +1,12 @@
-import graphene
 import logging
 
 from aristotle_mdr import perms
 from aristotle_mdr import models as mdr_models
 from aristotle_mdr.contrib.slots import models as slots_models
-from aristotle_mdr.contrib.slots.utils import filter_slot_perms, get_allowed_slots
 from aristotle_dse import models as dse_models
 from django.db.models import Model
 from django.db.models.manager import Manager
 from django.db.models.query import QuerySet
-from graphene import relay
-from graphene_django.types import DjangoObjectType
 
 logger = logging.getLogger(__name__)
 

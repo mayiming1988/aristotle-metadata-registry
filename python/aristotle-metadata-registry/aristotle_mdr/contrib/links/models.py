@@ -8,7 +8,6 @@ These are based on the Link and Relation definitions in ISO/IEC 11179 Part 3 - 9
 from django.db import models
 from django.db.models.signals import pre_save
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
 from django.utils.translation import ugettext_lazy as _
 
 from model_utils.models import TimeStampedModel

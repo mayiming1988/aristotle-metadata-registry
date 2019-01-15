@@ -1,5 +1,4 @@
 from typing import List, Dict
-from django import VERSION as django_version
 import attr
 import datetime
 import random

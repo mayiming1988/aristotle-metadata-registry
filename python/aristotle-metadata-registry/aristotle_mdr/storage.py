@@ -1,11 +1,10 @@
-from django.contrib.staticfiles.storage import ManifestFilesMixin, StaticFilesStorage
+from django.contrib.staticfiles.storage import ManifestFilesMixin
 from django.conf import settings
-from urllib.parse import unquote, urldefrag, urlsplit, urlunsplit
+from urllib.parse import unquote, urlsplit
 import hashlib
 import re
 import os
 import json
-import logging
 
 from storages.backends.s3boto3 import S3Boto3Storage, SpooledTemporaryFile
 

@@ -1,7 +1,4 @@
-from typing import Iterable, Dict
-from django.db.models import Model
 from django.urls import reverse
-from django.db.models.query import QuerySet
 from rest_framework import serializers
 from aristotle_mdr.contrib.issues.models import Issue, IssueComment
 from aristotle_mdr.perms import user_can_view

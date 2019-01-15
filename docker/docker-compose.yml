@@ -9,7 +9,7 @@ services:
   db:
     image: postgres
     volumes:
-      - ../../../data/db/:/var/lib/postgresql/data
+      - ../../data/db/:/var/lib/postgresql/data
 
   elasticsearch:
     # If elasticsearch won't boot, you need to run `sudo sysctl -w vm.max_map_count=262144`
