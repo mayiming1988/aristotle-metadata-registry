@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Union
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse
@@ -834,16 +834,14 @@ class _concept(baseAristotleObject):
 
         return qs.current(when)
 
-    def get_download_items(self):
+    def get_download_items(self) -> List[Union[models.Model, QuerySet]]:
         """
         When downloading a concept, extra items can be included for download by
         overriding the ``get_download_items`` method on your item. By default
         this returns an empty list, but can be modified to include any number of
         items that inherit from ``_concept``.
 
-        When overriding, each entry in the list must be a two item tuple, with
-        the first entry being the python class of the item or items being
-        included, and the second being the queryset of items to include.
+        When overriding, each entry in the list can be either an item or a queryset
         """
         return []
 
@@ -1330,8 +1328,8 @@ class DataElementConcept(concept):
 
     def get_download_items(self):
         return [
-            (ObjectClass, ObjectClass.objects.filter(dataelementconcept=self)),
-            (Property, Property.objects.filter(dataelementconcept=self)),
+            self.objectClass,
+            self.property,
         ]
 
     @property_
@@ -1378,10 +1376,10 @@ class DataElement(concept):
 
     def get_download_items(self):
         return [
-            (ObjectClass, ObjectClass.objects.filter(dataelementconcept=self.dataElementConcept)),
-            (Property, Property.objects.filter(dataelementconcept=self.dataElementConcept)),
-            (DataElementConcept, DataElementConcept.objects.filter(dataelement=self)),
-            (ValueDomain, ValueDomain.objects.filter(dataelement=self)),
+            self.dataElementConcept.objectClass,
+            self.dataElementConcept.property,
+            self.dataElementConcept,
+            self.valueDomain
         ]
 
 

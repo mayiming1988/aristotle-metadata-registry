@@ -1,5 +1,6 @@
-from typing import Any, List, Dict, Optional, Union, Tuple, AnyStr
+from typing import Any, List, Dict, Optional, Union, Tuple, AnyStr, Iterable
 
+from django.db.models.query import QuerySet
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.storage import get_storage_class
@@ -20,7 +21,7 @@ import pypandoc
 from aristotle_mdr.contrib.help.models import ConceptHelp
 from aristotle_mdr import models as MDR
 from aristotle_mdr.views import get_if_user_can_view
-from aristotle_mdr.utils import fetch_aristotle_settings
+from aristotle_mdr.utils import fetch_aristotle_settings, get_model_label
 from aristotle_mdr.utils.utils import get_download_template_path_for_item
 from celery import shared_task
 
@@ -49,7 +50,7 @@ class Downloader:
     # A unique identifier for the downloader (used in url and passed to task)
     download_type: str = ''
     file_extension: str = ''
-    requires_pandoc: bool = True
+    requires_pandoc: bool = False
 
     default_options = {
         'include_supporting': False,
@@ -204,19 +205,13 @@ class HTMLDownloader(Downloader):
 
     def get_download_context(self) -> Dict[str, Any]:
         """
-        Create configuration for pdf download method
-        :param request: request object
-        :param iid: id of the item requested
-        :return: properties for item, id of the item
+        Return context for single item download
         """
         context = self.get_base_download_context()
 
         # This will raise an exception if the list is empty, but thats ok
         item = self.items[0]
-        sub_items = [
-            (obj_type, qs.visible(self.user).order_by('name').distinct())
-            for obj_type, qs in item.get_download_items()
-        ]
+        sub_items = self.get_sub_items_dict(ignore_root=True)
 
         context.update({
             'title': item.name,
@@ -227,27 +222,57 @@ class HTMLDownloader(Downloader):
 
         return context
 
+    def _add_to_sub_items(self, items_dict, item):
+        item_class = type(item)
+        label = get_model_label(item_class)
+        if label not in items_dict:
+            model_help = ConceptHelp.objects.filter(
+                app_label=item_class._meta.app_label,
+                concept_type=item_class._meta.model_name
+            ).first()
+            items_dict[label] = {
+                'items': [],
+                'verbose_name': item_class.get_verbose_name(),
+                'verbose_name_plural': item_class.get_verbose_name_plural(),
+                'help': model_help
+            }
+        items_dict[label]['items'].append(item)
+
+    def get_sub_items_dict(self, ignore_root=False) -> Dict[str, Dict[str, Any]]:
+        items = {}
+
+        # Get all items using above method to create dict
+        for item in self.items:
+            # ignore_root doesnt include the selected items in the dict
+            if not ignore_root:
+                self._add_to_sub_items(items, item)
+
+            for dl_item in item.get_download_items():
+                if isinstance(dl_item, QuerySet):
+                    sub_list = list(dl_item.visible(self.user))
+                else:
+                    sub_list = [dl_item]
+
+                for sub_item in sub_list:
+                    self._add_to_sub_items(items, sub_item)
+
+        return items
+
     def get_bulk_download_context(self) -> Dict[str, Any]:
         """
-        generate properties for pdf document
-        :param request: API request object
-        :param items: items to download
-        :return: properties computed, items
+        Return context for bulk download
         """
         context = self.get_base_download_context()
 
         _list = "<li>" + "</li><li>".join([item.name for item in self.items if item]) + "</li>"
         subtitle = mark_safe("Generated from the following metadata items:<ul>%s<ul>" % _list)
 
-        item_querysets = items_for_bulk_download(self.items, self.user)
+        sub_items = self.get_sub_items_dict()
 
         context.update({
             'subtitle': subtitle,
             'items': self.items,
-            'included_items': sorted(
-                [(k, v) for k, v in item_querysets.items()],
-                key=lambda k_v: k_v[0]._meta.model_name
-            ),
+            'included_items': sub_items
         })
         return context
 
@@ -342,36 +367,3 @@ class MarkdownDownloader(PandocDownloader):
 
     def convert_html(self, html):
         return pypandoc.convert_text(html, 'md', format='html')
-
-
-def items_for_bulk_download(items, user):
-    iids = {}
-    item_querysets = {}  # {PythonClass:{help:ConceptHelp,qs:Queryset}}
-
-    for item in items:
-        if item and item.can_view(user):
-            if item.__class__ not in iids.keys():
-                iids[item.__class__] = []
-            iids[item.__class__].append(item.pk)
-
-            for metadata_type, qs in item.get_download_items():
-                if metadata_type not in item_querysets.keys():
-                    item_querysets[metadata_type] = {'help': None, 'qs': qs}
-                else:
-                    item_querysets[metadata_type]['qs'] |= qs
-
-    for metadata_type, ids_set in iids.items():
-        query = metadata_type.objects.filter(pk__in=ids_set)
-        if metadata_type not in item_querysets.keys():
-            item_querysets[metadata_type] = {'help': None, 'qs': query}
-        else:
-            item_querysets[metadata_type]['qs'] |= query
-
-    for metadata_type in item_querysets.keys():
-        item_querysets[metadata_type]['qs'] = item_querysets[metadata_type]['qs'].distinct().visible(user)
-        item_querysets[metadata_type]['help'] = ConceptHelp.objects.filter(
-            app_label=metadata_type._meta.app_label,
-            concept_type=metadata_type._meta.model_name
-        ).first()
-
-    return item_querysets

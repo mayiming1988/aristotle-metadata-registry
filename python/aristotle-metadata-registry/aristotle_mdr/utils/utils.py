@@ -448,3 +448,7 @@ def get_status_change_details(queryset, ra, new_state):
         extra_info[concept.id] = innerdict
 
     return extra_info, any_have_higher_status
+
+
+def get_model_label(model) -> str:
+    return '.'.join([model._meta.app_label, model._meta.model_name])

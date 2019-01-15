@@ -60,6 +60,22 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
         self.assertTrue(self.aspeed.definition in html)
         self.assertFalse(self.speed.definition in html)
 
+    def test_sub_item_list_single_download(self):
+        self.aspeed.objectClass = self.animal
+        self.aspeed.property = self.speed
+        self.aspeed.save()
+
+        downloader = HTMLDownloader([self.aspeed.id], self.editor.id, {})
+        context = downloader.get_context()
+        self.assertCountEqual(
+            context['subitems']['aristotle_mdr.objectclass']['items'],
+            [self.animal]
+        )
+        self.assertCountEqual(
+            context['subitems']['aristotle_mdr.property']['items'],
+            [self.speed]
+        )
+
 
 class PDFDownloaderTestCase(AristotleTestUtils, TestCase):
 

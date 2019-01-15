@@ -11,8 +11,8 @@
    <body>
    <div id="main">
        <div id='content'>
-            {% for t,dict in included_items %}
-            <h1>{{t.get_verbose_name_plural}}</h1>
+            {% for l,dict in included_items.items %}
+            <h1>{{ dict.verbose_name_plural }}</h1>
                 {% with object=dict.help %}
                     {% if object %}
                     <p>
@@ -24,15 +24,15 @@
                     </p>
                     {% endif %}
                 {% endwith %}
-                {% for item in dict.qs.all|order_by:'name' %}
+                {% for item in dict.items %}
                     <div style="page-break-after:always;">
-                        {% include item|template_path:'pdf,inline' with item=item.item header="h2" %}
+                        {% include item|template_path:'pdf,inline' with item=item header="h2" %}
                     </div>
                 {% endfor %}
             {% endfor %}
             <div>
                 <h1>Glossary of included metadata types</h1>
-                {% for t,dict in included_items %}
+                {% for l,dict in included_items.items %}
                 {% with object=dict.help %}
                     {% if object %}
                     <h2>{{t.get_verbose_name}}</h2>
