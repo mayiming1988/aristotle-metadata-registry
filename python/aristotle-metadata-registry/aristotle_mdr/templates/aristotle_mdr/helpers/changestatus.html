@@ -1,3 +1,5 @@
+{% load util_tags %}
+
 <section>
 <div class="changeStatusDiv container">
     <div class="col-sm-4 col-md-2">
@@ -5,7 +7,7 @@
         <span class="text-danger">{{ form.registrationDate.errors }}</span>
     </div>
     <div class="col-sm-7 col-md-4">
-        {{ form.registrationDate }}
+        <time datetime="{{ form.registrationDate|isotime }}">{{ form.registrationDate }}</time>
         <div>
             Date the registration state will be active from.
         </div>

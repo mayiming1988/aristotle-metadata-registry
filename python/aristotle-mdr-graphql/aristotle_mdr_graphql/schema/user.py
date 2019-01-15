@@ -1,8 +1,6 @@
 import graphene
-from graphene_django.debug import DjangoDebug
 from graphene_django.types import DjangoObjectType
 from django.contrib.auth import get_user_model
-from aristotle_mdr.models import PossumProfile
 
 
 User = get_user_model()

@@ -1,6 +1,6 @@
 {% extends "aristotle_mdr/reviews/review/base.html" %}
 {% load i18n humanize %}
-{% load aristotle_tags %}
+{% load aristotle_tags util_tags %}
 {% load static from staticfiles %}
 
 {% block title %}Review details{{ item.name }}{% endblock %}
@@ -37,7 +37,7 @@
         <td>{{ concept.info.old.text }}</td>
         <td>{{ concept.info.old.old_reg_date }}</td>
         <td>{{ concept.info.new_state.text }}</td>
-        <td>{{ review.registration_date }}</td>
+        <td><time datetime="{{ review.registration_date|isotime }}">{{ review.registration_date }}</time></td>
       </tr>
       {% endfor %}
     </tbody>

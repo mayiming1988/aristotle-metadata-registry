@@ -4,7 +4,7 @@ from django.db.models.query import QuerySet
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.forms.creation_wizards import UserAwareForm
-from aristotle_mdr.contrib.links.models import Relation, RelationRole
+from aristotle_mdr.contrib.links.models import Relation
 from aristotle_mdr.contrib.autocomplete import widgets
 
 

@@ -1,11 +1,12 @@
 from django import template
-import json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe, SafeString
 from django.conf import settings
 
 import bleach
+import json
+from datetime import datetime
 
 register = template.Library()
 
@@ -88,3 +89,12 @@ def bleach_filter(html: str) -> SafeString:
         attributes=settings.BLEACH_ALLOWED_ATTRIBUTES
     )
     return mark_safe(clean_html)
+
+
+@register.filter(name='isotime')
+def iso_time(dt: datetime):
+    """Return ISO 8601 string from datetime object"""
+    if dt is None:
+        return '-'
+
+    return dt.isoformat()

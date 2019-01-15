@@ -1,4 +1,3 @@
-from django.contrib import admin
 import mallard_qr
 from aristotle_mdr.register import register_concept
 

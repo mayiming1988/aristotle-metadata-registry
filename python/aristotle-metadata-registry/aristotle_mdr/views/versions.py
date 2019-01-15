@@ -1,9 +1,6 @@
 from django.apps import apps
-from django.views.generic import TemplateView
 from django.http import HttpResponseNotFound
-from django.utils.decorators import method_decorator
-from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied, FieldDoesNotExist, ObjectDoesNotExist
+from django.core.exceptions import PermissionDenied
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.utils.dateparse import parse_datetime

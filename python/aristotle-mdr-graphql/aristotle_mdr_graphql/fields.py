@@ -1,11 +1,7 @@
 from graphene_django.filter import DjangoFilterConnectionField
-from graphene_django.fields import DjangoConnectionField
 from graphene_django.utils import maybe_queryset
-from django.db import models
-import django_filters
 
 from graphene import Field, List
-from graphene_django.fields import DjangoListField
 from graphene_django.filter.utils import (
     get_filtering_args_from_filterset,
     get_filterset_class

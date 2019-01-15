@@ -1,5 +1,5 @@
 {% extends 'aristotle_mdr/base.html' %}
-{% load aristotle_tags i18n %}
+{% load aristotle_tags util_tags i18n %}
 {% block title %}Version history of {{ item.name }}{% endblock %}
 
 {% block content %}
@@ -35,7 +35,7 @@
 <tbody>
     {% for version in versions %}
     <tr>
-        <td>{{ version.revision.date_created }}</td>
+        <td><time datetime="{{ version.revision.date_created|isotime }}">{{ version.revision.date_created }}</time></td>
         <td>{% firstof version.revision.comment _('No version comment made') %}</td>
         <td>{{ version.revision.user }}</td>
         {# <td><a href='' title="{% trans 'Compare to previous' %}"><i class="fa fa-copy"></i></a></td> #}

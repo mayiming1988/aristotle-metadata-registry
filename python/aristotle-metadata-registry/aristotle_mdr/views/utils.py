@@ -1,17 +1,15 @@
-from typing import Dict, List, Any
+from typing import Dict
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db import connection
 from django.db.models import Count, Q, Model
 from django.db.models.functions import Lower
 from django.db.models.query import QuerySet
 from django.forms.models import model_to_dict
 from django.views.generic import FormView
-from django import forms
 from django.http import (
     Http404,
     JsonResponse,
@@ -363,6 +361,7 @@ class ObjectLevelPermissionRequiredMixin(PermissionRequiredMixin):
         Returns whether or not the user has permissions
         """
         perms = self.get_permission_required(request)
+        # TODO handle permission not required
         has_permission = False
         if hasattr(self, 'object') and self.object is not None:
             has_permission = request.user.has_perm(self.get_permission_required(request), self.object)

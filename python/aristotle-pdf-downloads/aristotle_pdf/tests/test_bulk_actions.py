@@ -1,12 +1,8 @@
 # coding: utf8
-from django.conf import settings
 from django.core.urlresolvers import reverse
-from django.test import TestCase, override_settings
+from django.test import TestCase
 import aristotle_mdr.models as models
-import aristotle_mdr.perms as perms
-import aristotle_mdr.tests.utils as utils
 
-import datetime
 
 from aristotle_mdr.utils import setup_aristotle_test_environment
 

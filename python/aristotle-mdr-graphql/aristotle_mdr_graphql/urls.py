@@ -1,5 +1,4 @@
 from django.conf.urls import url
-from graphene_django.views import GraphQLView
 from aristotle_mdr_graphql.schema.schema import schema
 from aristotle_mdr_graphql.views import FancyGraphQLView
 from django.views.generic import TemplateView

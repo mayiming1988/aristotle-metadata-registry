@@ -4,7 +4,7 @@ amount of information around the Value Domain
 So we've split this out into its own template.
 {% endcomment %}
 
-{% load aristotle_tags %}
+{% load aristotle_tags util_tags %}
 
 
 <div>
@@ -76,8 +76,8 @@ So we've split this out into its own template.
                     {% else %}
                         <td>{{ perm.meaning }}</td>
                     {% endif %}
-                    <td>{{ perm.start_date|default_if_none:"-" }}</td>
-                    <td>{{ perm.end_date|default_if_none:"-" }}</td>
+                    <td><time datetime="{{ perm.start_date|isotime }}">{{ perm.start_date }}</time></td>
+                    <td><time datetime="{{ perm.end_date|isotime }}">{{ perm.end_date }}</time></td>
                 </tr>
             {% empty %}
                 {% if item|can_edit:request.user %}
@@ -113,8 +113,8 @@ So we've split this out into its own template.
                     {% else %}
                         <td>{{ perm.meaning }}</td>
                     {% endif %}
-                    <td>{{ perm.start_date|default_if_none:"-" }}</td>
-                    <td>{{ perm.end_date|default_if_none:"-" }}</td>
+                    <td><time datetime="{{ perm.start_date|isotime }}">{{ perm.start_date }}</time></td>
+                    <td><time datetime="{{ perm.end_date|isotime }}">{{ perm.end_date }}</time></td>
                 </tr>
             {% empty %}
                 {% if item|can_edit:request.user %}

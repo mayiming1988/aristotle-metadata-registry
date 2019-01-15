@@ -1,18 +1,14 @@
 from django.conf import settings
 from django.db import models
-from django.db.models import Q
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.urls import reverse
-from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
-from model_utils import Choices
 from model_utils.models import TimeStampedModel
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr import perms
-from aristotle_mdr.fields import ConceptForeignKey, ShortTextField
 from aristotle_mdr.contrib.async_signals.utils import fire
 
 
@@ -112,7 +108,6 @@ class ReviewRequest(StatusMixin, TimeStampedModel):
         return perms.user_can_edit_review(user, self)
 
     def timeline(self):
-        keep_going = True
         comments = self.comments.all()
         endorsements = self.endorsements.all()
         state_changes = self.state_changes.all()
