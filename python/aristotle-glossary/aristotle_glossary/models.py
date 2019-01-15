@@ -4,7 +4,6 @@ from __future__ import absolute_import
 
 from django.db import models
 from django.db.models.signals import post_save
-from django.utils.translation import ugettext_lazy as _
 from django.dispatch import receiver
 
 from aristotle_mdr import models as MDR

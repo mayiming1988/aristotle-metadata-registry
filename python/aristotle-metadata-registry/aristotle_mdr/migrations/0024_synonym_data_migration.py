@@ -1,5 +1,5 @@
 # Custom migration for synonym data
-from django.db import migrations, connection
+from django.db import migrations
 
 def add_slots(apps, schema_editor):
 

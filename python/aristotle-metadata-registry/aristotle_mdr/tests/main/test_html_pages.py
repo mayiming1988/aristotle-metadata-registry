@@ -28,7 +28,6 @@ import json
 
 from aristotle_mdr.utils import setup_aristotle_test_environment
 from aristotle_mdr.tests.utils import store_taskresult, get_download_result
-from aristotle_mdr.contrib.reviews.models import ReviewRequest
 
 from mock import patch
 
@@ -237,6 +236,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     @tag('cache')
     @override_settings(CACHE_ITEM_PAGE=True)
+    @skip('Cache mixin not currently used')
     def test_itempage_not_loaded_from_cache_if_modified(self):
 
         # Load response into cache
@@ -254,6 +254,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     @tag('cache')
     @override_settings(CACHE_ITEM_PAGE=True)
+    @skip('Cache mixin not currently used')
     def test_itempage_not_loaded_from_cache_if_nocache_set(self):
         cache.set(self.cache_key, HttpResponse('wow'))
 
@@ -272,6 +273,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     @tag('cache')
     @override_settings(CACHE_ITEM_PAGE=True)
+    @skip('Cache mixin not currently used')
     def test_itempage_cached_per_user(self):
         # Load response into cache
         cache.set(self.cache_key, HttpResponse('wow'))
@@ -292,6 +294,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     @tag('cache')
     @override_settings(CACHE_ITEM_PAGE=False)
+    @skip('Cache mixin not currently used')
     def test_itempage_not_loaded_from_cache_if_setting_false(self):
         # Load response into cache
         cache.set(self.cache_key, HttpResponse('wow'))
@@ -312,6 +315,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     @tag('cache')
     @override_settings(CACHE_ITEM_PAGE=False)
+    @skip('Cache mixin not currently used')
     def test_response_not_put_into_cache_if_setting_false(self):
         # View in the future to avoid modified recently check
         with mock.patch('aristotle_mdr.utils.utils.timezone.now') as mock_now:
@@ -641,7 +645,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertEqual(concept_versions.count(), 2)
 
         item_versions = reversion.models.Version.objects.get_for_object(self.item1)
-        self.assertEqual(concept_versions.count(), 2)
+        self.assertEqual(item_versions.count(), 2)
 
     # ---- tests ----
 

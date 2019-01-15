@@ -2,19 +2,15 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.forms import model_to_dict
 from django.utils.translation import ugettext_lazy as _
 
-from rest_framework import serializers, status, mixins, viewsets, generics
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework.decorators import detail_route
+from rest_framework import mixins, serializers, viewsets
 from rest_framework.response import Response
-from rest_framework.reverse import reverse
 
 from reversion import revisions as reversion
 
 from aristotle_mdr import models, perms
-from ..serializers.base import Serializer, Deserializer, exclude_fields
+from ..serializers.base import Deserializer, Serializer
 from ..filters import concept_backend
 from aristotle_mdr_api.v3.permissions import AuthAndTokenOrRO
 
@@ -129,12 +125,10 @@ class ConceptViewSet(
 
         queryset = super(ConceptViewSet,self).get_queryset()
         if self.request:
-            concepttype = self.request.query_params.get('type', None)
             locked = self.request.query_params.get('is_locked', None)
             public = self.request.query_params.get('is_public', None)
             queryset = queryset.visible(self.request.user)
         else:
-            concepttype = None
             locked = None
             public = None
             queryset = queryset.public()
@@ -273,7 +267,7 @@ class SupersededRelationshipViewSet(viewsets.ReadOnlyModelViewSet):
         # self.request.user = AnonymousUser
         queryset = super().get_queryset()
 
-        from django.db.models import OuterRef, Subquery
+        from django.db.models import Subquery
 
         visible_metadata = models._concept.objects.visible(self.request.user).values("pk")
         # newer_visible = MDR._concepts.visible(self.request.user)

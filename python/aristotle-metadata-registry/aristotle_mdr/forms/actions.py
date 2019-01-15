@@ -1,19 +1,15 @@
-from typing import List
 from django import forms
-from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 import aristotle_mdr.models as MDR
-from aristotle_mdr.forms.creation_wizards import UserAwareModelForm, UserAwareForm
+from aristotle_mdr.forms.creation_wizards import UserAwareForm
 from aristotle_mdr.forms.forms import ChangeStatusGenericForm
-from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 
 from aristotle_mdr.contrib.autocomplete import widgets
 from aristotle_mdr.perms import can_delete_metadata
 from aristotle_mdr.models import _concept
-from .utils import RegistrationAuthorityMixin
 
 
 class RequestReviewForm(ChangeStatusGenericForm):

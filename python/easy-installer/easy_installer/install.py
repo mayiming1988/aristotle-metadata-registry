@@ -8,7 +8,6 @@ Run install --help for help text
 
 import os
 import re
-import sys
 from subprocess import call
 from random import getrandbits
 import hashlib
@@ -104,7 +103,7 @@ def setup_mdr(args):
         exit()
 
     print("Running django management commands")
-    result = manage_commands(name, directory)
+    manage_commands(name, directory)
     print("You can now locally test your installed registry by running the command './manage.py runserver'")
 
     print('Done! Your registry was installed in %s' % directory)

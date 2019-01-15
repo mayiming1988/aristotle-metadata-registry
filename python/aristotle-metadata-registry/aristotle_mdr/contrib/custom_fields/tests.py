@@ -161,6 +161,6 @@ class CustomFieldManagerTestCase(AristotleTestUtils, TestCase):
         self.assertCountEqual(mf, [self.authfield, self.allfield, self.wgfield, rf])
 
     def test_get_fields_for_model_different_model(self):
-        rf = self.make_restricted_field(mdr_models.ObjectClass)
+        self.make_restricted_field(mdr_models.ObjectClass)
         mf = CustomField.objects.get_for_model(mdr_models.DataElement)
         self.assertCountEqual(mf, [self.authfield, self.allfield, self.wgfield])

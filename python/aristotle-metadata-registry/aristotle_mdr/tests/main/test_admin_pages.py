@@ -4,7 +4,6 @@ from django.urls import reverse
 from django.forms import model_to_dict
 from django.test import TestCase
 
-import datetime
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms

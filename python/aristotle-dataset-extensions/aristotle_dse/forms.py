@@ -1,5 +1,5 @@
 from django import forms
-from aristotle_mdr.perms import user_can_view, user_can_edit
+from aristotle_mdr.perms import user_can_view
 from aristotle_dse import models
 from aristotle_mdr.contrib.autocomplete import widgets
 

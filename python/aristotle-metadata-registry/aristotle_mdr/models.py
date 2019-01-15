@@ -1265,7 +1265,6 @@ class PermissibleValue(AbstractValue):
     Permissible Value is a class each instance of which models a permissible value (3.2.96),
     the designation (3.2.51) of a value meaning (3.2.141).
     """
-    pass
 
 
 class SupplementaryValue(AbstractValue):

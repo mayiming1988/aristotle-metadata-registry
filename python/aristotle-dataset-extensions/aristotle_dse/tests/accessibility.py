@@ -1,23 +1,16 @@
 from __future__ import print_function
 import os
-import sys
 import tempfile
 from django.test import TestCase, override_settings
-from django.core.management import call_command
 from django.core.urlresolvers import reverse
 
 import aristotle_dse.models as models
-import aristotle_mdr.perms as perms
-import aristotle_mdr.tests.utils as utils
-from wcag_zoo.validators import parade
 
-import subprocess
-import pprint
 
 from aristotle_mdr.utils import setup_aristotle_test_environment
 setup_aristotle_test_environment()
 
-from aristotle_mdr.tests.accessibility import MEDIA_TYPES, TestWebPageAccessibilityBase
+from aristotle_mdr.tests.accessibility import TestWebPageAccessibilityBase
 
 
 TMP_STATICPATH = tempfile.mkdtemp(suffix='static')

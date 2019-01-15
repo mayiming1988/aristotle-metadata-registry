@@ -27,7 +27,6 @@ from aristotle_mdr.contrib.generic.views import ExtraFormsetMixin
 from formtools.wizard.views import SessionWizardView
 from reversion import revisions as reversion
 
-import re
 import logging
 logger = logging.getLogger(__name__)
 

@@ -62,25 +62,19 @@ if os.environ.get('SEARCH') == 'whoosh':
     print("Running %s test-suite with whoosh" % ci_runner)
     if os.environ.get('VARIANT') == 'haystack':
         print("Vanilla haystack variant")
-        from aristotle_mdr.tests.settings.templates.search.haystack_whoosh import HAYSTACK_CONNECTIONS
     else:
         print("Aristotle specific variant")
-        from aristotle_mdr.tests.settings.templates.search.whoosh import HAYSTACK_CONNECTIONS
 elif os.environ.get('SEARCH') == 'elastic':
     print("Running %s test-suite with elasticsearch" % ci_runner)
     if os.environ.get('VARIANT') == 'haystack':
         print("Vanilla haystack variant")
-        from aristotle_mdr.tests.settings.templates.search.haystack_elasticsearch import HAYSTACK_CONNECTIONS
     else:
         print("Aristotle specific variant")
-        from aristotle_mdr.tests.settings.templates.search.elasticsearch import HAYSTACK_CONNECTIONS
 elif os.environ.get('TOXDIR'):
     print("Running  %s test-suite with whoosh" % ci_runner)
-    from aristotle_mdr.tests.settings.tox import HAYSTACK_CONNECTIONS
 else:
     print("Running %s test-suite with whoosh" % ci_runner)
     print("Aristotle specific variant")
-    from aristotle_mdr.tests.settings.templates.search.whoosh import HAYSTACK_CONNECTIONS
 
 
 INSTALLED_APPS = (

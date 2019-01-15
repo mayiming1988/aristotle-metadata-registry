@@ -1,7 +1,5 @@
 from django.test import TestCase
 
-import aristotle_mdr.models as MDR
-from django.core.urlresolvers import reverse
 from aristotle_mdr.tests.utils import ManagedObjectVisibility
 from aristotle_mdr.tests.main.test_html_pages import LoggedInViewConceptPages
 from aristotle_mdr.tests.main.test_admin_pages import AdminPageForConcept

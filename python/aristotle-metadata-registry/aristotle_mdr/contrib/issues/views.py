@@ -1,5 +1,5 @@
 from django.http import HttpResponseNotFound
-from django.views.generic import TemplateView, DetailView
+from django.views.generic import TemplateView
 
 from aristotle_mdr.views.utils import SimpleItemGet
 from aristotle_mdr.contrib.issues.models import Issue

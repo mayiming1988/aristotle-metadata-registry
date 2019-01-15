@@ -1,12 +1,7 @@
-from django.conf import settings
-from django.core.management import call_command
-from django.urls import reverse
-from django.test import TestCase, override_settings
+from django.test import TestCase
 
-from django.utils.timezone import now
 import datetime
 
-from aristotle_mdr.tests import utils
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.contrib.validators import validators
