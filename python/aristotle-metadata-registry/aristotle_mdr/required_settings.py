@@ -229,9 +229,6 @@ ARISTOTLE_SETTINGS = {
         }
     ],
     "DOWNLOADERS": [
-        # (fileType, menu, font-awesome-icon, module)
-        # ('csv-vd', 'CSV list of values', 'fa-file-excel-o', 'aristotle_mdr', 'CSV downloads for value domain codelists'),
-        'aristotle_mdr.downloader.CSVDownloader'
     ],
 
     # These settings aren't active yet.
