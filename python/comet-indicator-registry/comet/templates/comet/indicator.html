@@ -15,7 +15,9 @@
     {% endif %}
 <ul>
 {% for outcome in item.outcome_areas.all %}
-    <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=outcome showType=False %}</li>
+  {% if outcome.id in viewable_ids %}
+    <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=outcome showType=False skip_can_view=True %}</li>
+  {% endif %}
 {% endfor %}
 </ul>
 {% endif %}
