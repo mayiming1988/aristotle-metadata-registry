@@ -39,7 +39,7 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
         mock_task_creator.return_value = fakeResult
 
     def post_dl_options(self, querystring):
-        url = reverse('aristotle:download_options', args=['txt']) + querystring
+        url = reverse('aristotle:download_options', args=['fake']) + querystring
         postdata = {
             'include_supporting': True,
             'email_copy': True
@@ -61,12 +61,13 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
         fake_dl_class().download.assert_called_once()
 
     def test_dl_options_get_no_items(self):
-        url = reverse('aristotle:download_options', args=['txt'])
+        url = reverse('aristotle:download_options', args=['fake'])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
 
+    @tag('failed')
     def test_dl_options_get_with_items(self):
-        url = reverse('aristotle:download_options', args=['txt']) + '?items=9'
+        url = reverse('aristotle:download_options', args=['fake']) + '?items=9'
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
@@ -74,14 +75,14 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
         response = self.post_dl_options('?items=1')
         self.assertEqual(response.status_code, 302)
 
-        expected_url = reverse('aristotle:download', args=['txt', '1'])
+        expected_url = reverse('aristotle:download', args=['fak', '1'])
         self.assertEqual(response.url, expected_url)
 
     def test_dl_options_redirect(self):
         response = self.post_dl_options('?items=1&items=2')
         self.assertEqual(response.status_code, 302)
 
-        expected_url = reverse('aristotle:bulk_download', args=['txt']) + '?items=1&items=2'
+        expected_url = reverse('aristotle:bulk_download', args=['fake']) + '?items=1&items=2'
         self.assertEqual(response.url, expected_url)
 
     def test_dl_options_stores_options(self):
