@@ -11,6 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView, RedirectView
 from django.utils.module_loading import import_string
 from django.contrib.contenttypes.models import ContentType
+from django.utils.functional import SimpleLazyObject
 from formtools.wizard.views import SessionWizardView
 
 import json
@@ -112,10 +113,10 @@ class ConceptRenderView(TagsMixin, TemplateView):
     """
 
     objtype: Any = None
-    itemid_arg = 'iid'
-    modelslug_arg = 'model_slug'
-    nameslug_arg = 'name_slug'
-    slug_redirect = False
+    itemid_arg: str = 'iid'
+    modelslug_arg: str = 'model_slug'
+    nameslug_arg: str = 'name_slug'
+    slug_redirect: bool = False
 
     def get_queryset(self):
         itemid = self.kwargs[self.itemid_arg]
@@ -252,8 +253,16 @@ class ConceptRenderView(TagsMixin, TemplateView):
         context['discussions'] = self.item.relatedDiscussions.all()
         context['activetab'] = 'item'
         context['links'] = self.get_links()
-
         context['custom_values'] = self.get_custom_values()
+
+        # Add a list of viewable concept ids for fast visibility checks in
+        # templates
+        # Since its lazy we can do this everytime :)
+        lazy_viewable_ids = SimpleLazyObject(
+            lambda: list(MDR._concept.objects.visible(self.user).values_list('id', flat=True))
+        )
+        context['viewable_ids'] = lazy_viewable_ids
+
         return context
 
     def get_template_names(self):

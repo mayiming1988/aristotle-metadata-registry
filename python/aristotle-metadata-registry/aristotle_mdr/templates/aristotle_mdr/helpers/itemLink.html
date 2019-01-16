@@ -17,6 +17,8 @@
         {% endif %}
         </a>
         {% if showType %}({{ item.get_verbose_name }}){% endif %}
+      {% else %}
+        <em>You dont have permission to view this item</em>
       {% endif %}
     {% endif %}
 {% else %}

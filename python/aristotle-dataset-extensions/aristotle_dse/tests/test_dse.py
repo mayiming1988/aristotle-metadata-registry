@@ -155,6 +155,27 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages,TestCase):
         clone = models.DataSetSpecification.objects.get(name='My dataset (clone)')
         self.assertEqual(clone.dssdeinclusion_set.count(), 2)
 
+    @tag('perms')
+    def test_component_permsission_checks(self):
+        viewable = MDR.DataElement.objects.create(
+            name='viewable data element', definition='Viewable', submitter=self.editor
+        )
+        invis = MDR.DataElement.objects.create(
+            name='invisible data element', definition='Invisible'
+        )
+        self.item1.addDataElement(viewable)
+        self.item1.addDataElement(invis)
+
+        self.login_editor()
+        response = self.client.get(
+            self.item1.get_absolute_url()
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, viewable.name)
+        self.assertNotContains(response, invis.name)
+        self.assertContains(response, 'You don\'t have permission')
+
+
 class DataCatalogViewPage(LoggedInViewConceptPages,TestCase):
     url_name='datacatalog'
     itemType=models.DataCatalog
