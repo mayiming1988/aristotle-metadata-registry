@@ -1,6 +1,7 @@
 {% extends "aristotle_mdr/downloads/pdf/managedContent.html" %}
 
 {% block objSpecific %}
+{% load aristotle_tags %}
 
 <h2>Components</h2>
 <dl>
@@ -26,8 +27,10 @@
         {% include "aristotle_mdr/helpers/itemLink.html" with item=item.valueDomain %}
     </dt>
     <dd>
-        {% include "aristotle_mdr/downloads/pdf/helpers/inlineDetails.html" with item=item.valueDomain %}
-        {% include "aristotle_mdr/downloads/pdf/inline/valueDomainRepresentation.html" with item=item.valueDomain %}
+        {% if item.valueDomain|can_view:user %}
+          {% include "aristotle_mdr/downloads/pdf/helpers/inlineDetails.html" with item=item.valueDomain skip_can_view=True %}
+          {% include "aristotle_mdr/downloads/pdf/inline/valueDomainRepresentation.html" with item=item.valueDomain %}
+        {% endif %}
     </dd>
 </dl>
 {% endblock %}
