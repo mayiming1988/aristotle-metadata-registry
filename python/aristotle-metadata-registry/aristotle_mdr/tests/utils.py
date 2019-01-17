@@ -917,6 +917,7 @@ class MockManagementForm(object):
 class FakeDownloader(Downloader):
     download_type = 'fake'
     file_extension = 'fak'
+    label = 'FAKE'
 
     def create_file(self):
         return ContentFile('')

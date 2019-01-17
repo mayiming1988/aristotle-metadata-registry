@@ -72,25 +72,3 @@ class QuickPDFDownloadTests(BulkActionsTest, TestCase):
         )
         self.assertEqual(len(response.redirect_chain), 2)
         self.assertEqual(response.redirect_chain[0][1], 302)
-
-
-class BulkDownloadTests(BulkActionsTest, TestCase):
-    download_type="pdf"
-
-    def test_bulk_pdf_download_redirects(self):
-        self.login_editor()
-        self.assertEqual(self.editor.profile.favourites.count(), 0)
-        response = self.client.post(
-            reverse('aristotle:bulk_action'),
-            {
-                'bulkaction': 'aristotle_mdr.forms.bulk_actions.BulkDownloadForm',
-                'items': [self.item1.id, self.item2.id],
-                "download_type": self.download_type,
-                'confirmed': 'confirmed',
-            }
-        )
-
-        self.assertEqual(response.status_code, 302)
-        expected_get_params = '?items={}&items={}'.format(self.item1.id, self.item2.id)
-        expected_url = reverse('aristotle:download_options', args=['pdf']) + expected_get_params
-        self.assertEqual(response.url, expected_url)

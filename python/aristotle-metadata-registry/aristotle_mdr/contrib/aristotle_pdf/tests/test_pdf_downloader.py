@@ -1,4 +1,4 @@
-from django.test import TestCase, tag
+from django.test import TestCase, tag, override_settings
 
 from aristotle_mdr.tests.utils import AristotleTestUtils
 from aristotle_mdr import models

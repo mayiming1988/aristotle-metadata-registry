@@ -13,8 +13,11 @@ from unittest.mock import patch, MagicMock
 from unittest import skip
 
 
-@override_settings(ARISTOTLE_SETTINGS={
-    'DOWNLOADERS': ['aristotle_mdr.tests.utils.FakeDownloader']}
+@override_settings(
+    ARISTOTLE_SETTINGS={
+        'DOWNLOADERS': ['aristotle_mdr.tests.utils.FakeDownloader'],
+        'BULK_ACTIONS': ['aristotle_mdr.forms.bulk_actions.BulkDownloadForm']
+    }
 )
 class DownloadsTestCase(AristotleTestUtils, TestCase):
     """
@@ -151,6 +154,24 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
         )
 
         mock_task_creator.assert_called_once_with('fake', [self.item.id], None, options)
+
+    @tag('bulk_download')
+    def test_bulk_download_redirects(self):
+        self.login_editor()
+        response = self.client.post(
+            reverse('aristotle:bulk_action'),
+            {
+                'bulkaction': 'aristotle_mdr.forms.bulk_actions.BulkDownloadForm',
+                'items': [self.item.id, self.item2.id],
+                "download_type": 'fake',
+                'confirmed': 'confirmed',
+            }
+        )
+
+        self.assertEqual(response.status_code, 302)
+        expected_get_params = '?items={}&items={}'.format(self.item.id, self.item2.id)
+        expected_url = reverse('aristotle:download_options', args=['fake']) + expected_get_params
+        self.assertEqual(response.url, expected_url)
 
 
 class DownloderTestCase(AristotleTestUtils, TestCase):
