@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist, ObjectDoesNotExist
 from django.urls import reverse
 from django.db import transaction
-from django.http import HttpResponseRedirect, HttpResponseNotFound, HttpResponseForbidden
+from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView, RedirectView
@@ -200,7 +200,7 @@ class ConceptRenderView(TagsMixin, TemplateView):
 
         if self.item is None:
             # If item was not found and no redirect was needed
-            return HttpResponseNotFound()
+            raise Http404
 
         if self.slug_redirect:
             redirect, url = self.get_redirect()
@@ -211,7 +211,7 @@ class ConceptRenderView(TagsMixin, TemplateView):
 
         app_enabled = self.check_app(self.item)
         if not app_enabled:
-            return HttpResponseNotFound()
+            raise Http404
 
         result = self.check_item(self.item)
         if not result:
