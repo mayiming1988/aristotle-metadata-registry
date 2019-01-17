@@ -8,6 +8,7 @@ from aristotle_mdr import models
 from aristotle_mdr.downloader import HTMLDownloader, DocxDownloader
 from aristotle_mdr.tests.utils import AristotleTestUtils, AsyncResultMock, FakeDownloader
 
+import datetime
 from unittest.mock import patch, MagicMock
 
 
@@ -68,7 +69,6 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
 
-    @tag('failed')
     def test_dl_options_get_with_items(self):
         url = reverse('aristotle:download_options', args=['fake']) + '?items=9'
         response = self.client.get(url)
@@ -200,6 +200,30 @@ class DownloderTestCase(AristotleTestUtils, TestCase):
             downloader = FakeDownloader([self.item.id], self.editor.id, {'include_supporting': True})
             url = downloader.download()
             self.assertEqual(url, fake_url)
+
+    @override_settings(DOWNLOAD_CACHING=True)
+    def test_dont_retrieve_file_if_item_modified(self):
+        item_created = self.item.created
+        with patch.object(FakeDownloader, 'get_storage') as fake_storage:
+            # File modified after item
+            fake_storage().get_modified_time.return_value = item_created + datetime.timedelta(seconds=1000)
+            fake_storage().url.return_value = 'http://www.example.com/file.txt'
+            downloader = FakeDownloader([self.item.id], self.editor.id, {'include_supporting': True})
+            url = downloader.retrieve_file('file.txt')
+
+        self.assertEqual(url, 'http://www.example.com/file.txt')
+
+    @override_settings(DOWNLOAD_CACHING=True)
+    def test_retrieve_file_if_item_not_modified(self):
+        item_created = self.item.created
+        with patch.object(FakeDownloader, 'get_storage') as fake_storage:
+            # File modified before item
+            fake_storage().get_modified_time.return_value = item_created - datetime.timedelta(seconds=1000)
+            fake_storage().url.return_value = 'http://www.example.com/file.txt'
+            downloader = FakeDownloader([self.item.id], self.editor.id, {'include_supporting': True})
+            url = downloader.retrieve_file('file.txt')
+
+        self.assertEqual(url, None)
 
     def test_items_restricted_to_visible_only(self):
         downloader = FakeDownloader([self.item.id, self.item4.id], self.viewer.id, {})
