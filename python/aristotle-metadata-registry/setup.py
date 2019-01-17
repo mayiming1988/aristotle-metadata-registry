@@ -116,6 +116,9 @@ setup(
         # File conversion
         'pypandoc',
 
+        # Html to pdf
+        'weasyprint',
+
         # Pdf toolkit
         'PyPDF2'
     ],

@@ -10,6 +10,7 @@ from aristotle_mdr.tests.utils import AristotleTestUtils, AsyncResultMock, FakeD
 
 import datetime
 from unittest.mock import patch, MagicMock
+from unittest import skip
 
 
 @override_settings(ARISTOTLE_SETTINGS={
@@ -323,6 +324,7 @@ class DocxDownloaderTestCase(AristotleTestUtils, TestCase):
         )
 
     @tag('docx')
+    @skip('pandoc isnt installed on all test environments')
     def test_docx_downloader_generates_file(self):
         downloader = DocxDownloader([self.item.id], self.editor.id, {})
         fileobj = downloader.create_file()
