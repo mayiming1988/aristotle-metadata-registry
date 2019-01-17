@@ -222,7 +222,6 @@ class HTMLDownloader(Downloader):
             'subitems': sub_items,
             'tableOfContents': len(sub_items) > 0,
         })
-
         return context
 
     def _add_to_sub_items(self, items_dict, item):
@@ -257,7 +256,9 @@ class HTMLDownloader(Downloader):
                     sub_list = [dl_item]
 
                 for sub_item in sub_list:
-                    self._add_to_sub_items(items, sub_item)
+                    # Can be none for components
+                    if sub_item is not None:
+                        self._add_to_sub_items(items, sub_item)
 
         # Sort the items lists by name
         for label, data in items.items():
@@ -274,7 +275,7 @@ class HTMLDownloader(Downloader):
         _list = "<li>" + "</li><li>".join([item.name for item in self.items if item]) + "</li>"
         subtitle = mark_safe("Generated from the following metadata items:<ul>%s<ul>" % _list)
 
-        sub_items = self.get_sub_items_dict()
+        sub_items = self.get_sub_items_dict(include_root=True)
 
         context.update({
             'subtitle': subtitle,

@@ -5,12 +5,15 @@ from django.core.exceptions import PermissionDenied
 
 from aristotle_bg_workers.tasks import download
 from aristotle_mdr import models
+from aristotle_mdr.downloader import HTMLDownloader, DocxDownloader
 from aristotle_mdr.tests.utils import AristotleTestUtils, AsyncResultMock, FakeDownloader
 
 from unittest.mock import patch, MagicMock
 
 
-@override_settings(ARISTOTLE_SETTINGS={'DOWNLOADERS': ['aristotle_mdr.tests.utils.FakeDownloader']})
+@override_settings(ARISTOTLE_SETTINGS={
+    'DOWNLOADERS': ['aristotle_mdr.tests.utils.FakeDownloader']}
+)
 class DownloadsTestCase(AristotleTestUtils, TestCase):
     """
     Testing downloads views and task
@@ -206,3 +209,97 @@ class DownloderTestCase(AristotleTestUtils, TestCase):
     def test_exception_raised_if_no_items_visible(self):
         with self.assertRaises(PermissionDenied):
             downloader = FakeDownloader([self.item.id], self.viewer.id, {})
+
+
+@override_settings(ARISTOTLE_SETTINGS={'DOWNLOADERS': ['aristotle_mdr.downloaders.HTMLDownloader']})
+class TestHTMLDownloader(AristotleTestUtils, TestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.animal = models.ObjectClass.objects.create(
+            name='Animal',
+            definition='An animal or animal like object',
+            submitter=self.editor
+        )
+        self.speed = models.Property.objects.create(
+            name='Speed',
+            definition='Quickness',
+        )
+        self.aspeed = models.DataElementConcept.objects.create(
+            name='Animal - Speed',
+            definition='An animals speed',
+            # objectClass=self.animal,
+            # property=self.speed,
+            submitter=self.editor
+        )
+
+    def test_generates_html_bytes(self):
+        downloader = HTMLDownloader([self.animal.id], self.editor.id, {})
+        html = downloader.get_html()
+        self.assertEqual(type(html), bytes)
+
+    def test_creates_file(self):
+        downloader = HTMLDownloader([self.animal.id], self.editor.id, {})
+        fileobj = downloader.create_file()
+        self.assertTrue(fileobj.size > 0)
+
+    def test_title_added(self):
+        test_title = 'The single greatest piece of metadata content of the modern era'
+        downloader = HTMLDownloader([self.animal.id], self.editor.id, {'title': test_title})
+        context = downloader.get_context()
+        self.assertTrue('title' in context['options'])
+        self.assertEqual(context['options']['title'], test_title)
+
+        html = downloader.get_html().decode()
+        self.assertTrue(test_title in html)
+
+    def test_content_exists_in_bulk_html_download_on_permitted_items(self):
+        downloader = HTMLDownloader([self.animal.id, self.aspeed.id], self.editor.id, {})
+        html = downloader.get_html().decode()
+        self.assertTrue(self.animal.definition in html)
+        self.assertTrue(self.aspeed.definition in html)
+
+    def test_content_not_exists_in_bulk_html_download_on_forbidden_items(self):
+        downloader = HTMLDownloader([self.animal.id, self.aspeed.id, self.speed.id], self.editor.id, {})
+        html = downloader.get_html().decode()
+        self.assertTrue(self.animal.definition in html)
+        self.assertTrue(self.aspeed.definition in html)
+        self.assertFalse(self.speed.definition in html)
+
+    def test_sub_item_list_single_download(self):
+        self.aspeed.objectClass = self.animal
+        self.aspeed.property = self.speed
+        self.aspeed.save()
+
+        downloader = HTMLDownloader([self.aspeed.id], self.editor.id, {})
+        context = downloader.get_context()
+        self.assertCountEqual(
+            context['subitems']['aristotle_mdr.objectclass']['items'],
+            [self.animal]
+        )
+        self.assertCountEqual(
+            context['subitems']['aristotle_mdr.property']['items'],
+            [self.speed]
+        )
+
+    def test_downloader_init_queries(self):
+        with self.assertNumQueries(5):
+            downloader = HTMLDownloader([self.aspeed.id], self.editor.id, {})
+
+
+@override_settings(ARISTOTLE_SETTINGS={'DOWNLOADERS': ['aristotle_mdr.downloaders.DocxDownloader']})
+class DocxDownloaderTestCase(AristotleTestUtils, TestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.item = models.DataElement.objects.create(
+            name='Onix',
+            definition='Big rock boi',
+            submitter=self.editor
+        )
+
+    @tag('docx')
+    def test_docx_downloader_generates_file(self):
+        downloader = DocxDownloader([self.item.id], self.editor.id, {})
+        fileobj = downloader.create_file()
+        self.assertTrue(fileobj.size > 0)

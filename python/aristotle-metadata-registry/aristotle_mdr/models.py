@@ -1397,12 +1397,16 @@ class DataElement(concept):
         return out
 
     def get_download_items(self):
-        return [
-            self.dataElementConcept.objectClass,
-            self.dataElementConcept.property,
+        items = [
             self.dataElementConcept,
             self.valueDomain
         ]
+        if self.dataElementConcept:
+            items += [
+                self.dataElementConcept.objectClass,
+                self.dataElementConcept.property,
+            ]
+        return items
 
 
 class DataElementDerivation(concept):

@@ -20,6 +20,7 @@ from aristotle_mdr.forms.creation_wizards import (
 )
 from aristotle_mdr.tests import utils
 from aristotle_mdr.views import ConceptRenderView
+from aristotle_mdr.downloader import HTMLDownloader
 import datetime
 from unittest import mock, skip
 import reversion
@@ -602,7 +603,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(cvs[2].content, 'Workgroup Value')
 
 
-
+# These are run by all item types
 class LoggedInViewConceptPages(utils.AristotleTestUtils):
     defaults = {}
 
@@ -1763,6 +1764,14 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
         item_context = response.context['item']
         self.assertEqual(item_context['definition'], old_definition)
+
+    @tag('download')
+    @override_settings(ARISTOTLE_SETTINGS={'DOWNLOADERS': ['aristotle_mdr.downloaders.HTMLDownloader']})
+    def test_download_content(self):
+        downloader = HTMLDownloader([self.item1.id], self.editor.id, {})
+        html = downloader.get_html().decode()
+        self.assertTrue(len(html) > 0)
+        self.assertTrue(self.item1.definition in html)
 
 
 class ObjectClassViewPage(LoggedInViewConceptPages, TestCase):
