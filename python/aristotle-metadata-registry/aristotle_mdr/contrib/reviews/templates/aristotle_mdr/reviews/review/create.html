@@ -2,25 +2,23 @@
 {% load i18n %}
 
 {% block breadcrumbs %}
-<ol class="breadcrumb">
-  <!--<li><a href="{{review.registration_authority.get_absolute_url }}">{{review.registration_authority.name }}</a></li>-->
-  <li><a href="{% url 'aristotle_reviews:userReadyForReview' %}">Reviews</a></li>
-  <li class="active">Create review</li>
-</ol>
+    <ol class="breadcrumb">
+        <!--<li><a href="{{review.registration_authority.get_absolute_url }}">{{review.registration_authority.name }}</a></li>-->
+        <li><a href="{% url 'aristotle_reviews:userReadyForReview' %}">Reviews</a></li>
+        <li class="active">Create review</li>
+    </ol>
 {% endblock %}
 
 {% block review_content %}
-<h1>{% block title %} Create new review{% endblock %}</h1>
+    <h1>{% block title %} Create new review{% endblock %}</h1>
 
+    <form action="" method="POST">
+        {% csrf_token %}
+        <table class="table">
+            {{ form.as_table }}
+        </table>
+        <a class="btn btn-danger" href="{% url 'aristotle:userHome' %}">Cancel</a>
+        <button class="btn btn-primary" type="submit">Create New Review</button>
+    </form>
 
-<form action="" method="POST">
-    {% csrf_token %}
-<table class="table">
-{{ form.as_table }}
-</table>
-<a class="btn btn-danger" href="{% url 'aristotle:userHome' %}">Cancel</a>
-<button class="btn btn-primary" type="submit">Create New Review</button>
-</form>
-
-</section>
 {% endblock %}

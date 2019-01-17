@@ -179,8 +179,8 @@ def recent(request):
 def inbox(request, folder=None):
     if folder is None:
         # By default show only unread
-        folder='unread'
-    folder=folder.lower()
+        folder = 'unread'
+    folder = folder.lower()
     if folder == 'unread':
         notices = request.user.notifications.unread().all()
     elif folder == "all":
@@ -376,6 +376,27 @@ class EditView(LoginRequiredMixin, UpdateView):
                 return self.form_invalid(form)
 
         return HttpResponseRedirect(self.get_success_url())
+
+
+class NotificationPermissions(LoginRequiredMixin, FormView):
+    form_class = MDRForms.NotificationPermissionsForm
+    template_name = 'aristotle_mdr/user/notificationPermissions.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.profile = request.user.profile
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+
+        initial = {
+            'notifications_json': json.dumps(self.profile.notificationPermissions)
+        }
+        return initial
+
+    def form_valid(self, form):
+        self.profile.notificationPermissions = form.cleaned_data['notifications_json']
+        self.profile.save()
+        return HttpResponseRedirect(reverse('aristotle:userProfile'))
 
 
 class RegistrarTools(LoginRequiredMixin, View):

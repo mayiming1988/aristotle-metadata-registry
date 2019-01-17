@@ -10,6 +10,7 @@ from aristotle_mdr.perms import user_can_edit
 from aristotle_mdr.forms.creation_wizards import UserAwareForm
 from aristotle_mdr.forms.fields import ReviewChangesChoiceField, MultipleEmailField
 from aristotle_mdr.contrib.autocomplete import widgets
+from django_jsonforms.forms import JSONSchemaField
 
 from django.forms.models import modelformset_factory
 
@@ -137,6 +138,101 @@ class EditUserForm(ModelForm):
         labels = {
             'short_name': 'Display Name'
         }
+
+
+class NotificationPermissionsForm(forms.Form):
+
+    notifications_json = JSONSchemaField(
+        schema={
+            "type": "object",
+            "title": "Notification Permissions",
+            "properties": {
+                "metadata changes": {
+                    "type": "object",
+                    "title": "Metadata Changes",
+                    "properties": {
+                        "general changes": {
+                            "type": "object",
+                            "title": "",
+                            "description": "notify me of changes to:",
+                            "properties": {
+                                "items in my workgroups": {
+                                    "title": "items in my workgroups",
+                                    "type": "boolean",
+                                    "format": "checkbox",
+                                    "default": True
+                                },
+                                "items I have tagged / favourited": {
+                                    "title": "items I have tagged / favourited",
+                                    "type": "boolean",
+                                    "format": "checkbox",
+                                    "default": True
+                                },
+                                "any items I can edit": {
+                                    "title": "any items I can edit",
+                                    "type": "boolean",
+                                    "format": "checkbox",
+                                    "default": True
+                                }
+                            }
+                        },
+                        "superseded": {
+                            "type": "object",
+                            "title": "",
+                            "description": "Notify me when the following metadata is superseded:",
+                            "properties": {
+                                "items in my workgroups": {
+                                    "title": "items in my workgroups",
+                                    "type": "boolean",
+                                    "format": "checkbox",
+                                    "default": True
+                                },
+                                "items I have tagged / favourited": {
+                                    "title": "items I have tagged / favourited",
+                                    "type": "boolean",
+                                    "format": "checkbox",
+                                    "default": True
+                                },
+                                "any items I can edit": {
+                                    "title": "any items I can edit",
+                                    "type": "boolean",
+                                    "format": "checkbox",
+                                    "default": True
+                                }
+                            }
+                        }
+                    }
+                },
+                "notification methods": {
+                    "type": "object",
+                    "title": "Notification Methods",
+                    "description": "Notify me using the following methods:",
+                    "properties": {
+                        "email": {
+                            "title": "Email",
+                            "type": "boolean",
+                            "format": "checkbox",
+                            "default": False
+                        },
+                        "within aristotle": {
+                            "title": "Within Aristotle",
+                            "type": "boolean",
+                            "format": "checkbox",
+                            "default": True
+                        }
+                    }
+                }
+            }
+        },
+        options={
+            'theme': 'bootstrap3',
+            'disable_properties': True,
+            'disable_collapse': True,
+            'disable_edit_json': True,
+            'no_additional_properties': True
+        },
+        label=''
+    )
 
 
 class ShareLinkForm(forms.Form):

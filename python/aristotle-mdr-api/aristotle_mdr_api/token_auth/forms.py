@@ -2,11 +2,12 @@ from django.forms import ModelForm, Form
 from django.forms.fields import CharField
 from django_jsonforms.forms import JSONSchemaField
 
+
 class TokenCreateForm(Form):
 
     name = CharField(max_length=100)
     perm_json = JSONSchemaField(
-        schema = {
+        schema={
             'type': 'object',
             'title': 'Permissions',
             'properties': {

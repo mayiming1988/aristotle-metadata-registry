@@ -1,0 +1,37 @@
+{% extends "aristotle_mdr/user/base.html" %}
+{% load bootstrap3 static %}
+
+{% load render_bundle from webpack_loader %}
+
+{% block webpack_bundle %}
+    {% render_bundle 'notificationPermissions' 'js' %}
+{% endblock %}
+
+{% block title %}Edit details{% endblock %}
+{% block collapse-link%}<i class="fa fa-user fa-fw"></i> Edit my account details{% endblock %}
+{% block sidebar %}
+    {% include "aristotle_mdr/user/userSideBar.html" with activeTab='edit' %}
+{% endblock %}
+
+{% block outerpage %}
+    <div class="col-md-6">
+        {% if form %}
+            <form method="post">
+                {% csrf_token %}
+                {% for field in form %}
+                    {{ field.errors }}
+                    <h3>{{ field.label }}</h3>
+                    {{ field }}
+                {% endfor %}
+                    <a class="btn btn-default" href="{% url 'aristotle:userHome' %}">
+                        <i class="fa fa-times fa-fw"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-check  fa-fw"></i>Save Changes
+                    </button>
+            </form>
+        {% else %}
+        {% endif %}
+        <br>
+    </div>
+{% endblock %}

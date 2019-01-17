@@ -8,6 +8,7 @@ from django.dispatch import receiver, Signal
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
+from django_jsonforms.forms import JSONSchemaField
 
 from model_utils.models import TimeStampedModel
 from model_utils import Choices, FieldTracker
@@ -1415,6 +1416,9 @@ class DedInputsThrough(DedBaseThrough):
 # Create a 1-1 user profile so we don't need to extend user
 # Thanks to http://stackoverflow.com/a/965883/764357
 class PossumProfile(models.Model):
+    """
+    Extension "one-to-one" class of the existing user model
+    """
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         related_name='profile'
@@ -1440,6 +1444,26 @@ class PossumProfile(models.Model):
         max_upload_size=((1024**2) * 10),  # 10 MB
         content_types=['image/jpg', 'image/png', 'image/bmp', 'image/jpeg'],
         js_checker=True
+    )
+    notificationPermissions = JSONField(
+        default={
+            "metadata changes": {
+                "general changes": {
+                    "items in my workgroups": True,
+                    "items I have tagged / favourited": True,
+                    "any items I can edit": True
+                },
+                "superseded": {
+                    "items in my workgroups": True,
+                    "items I have tagged / favourited": True,
+                    "any items I can edit": True,
+                },
+            },
+            "notification methods": {
+                "email": False,
+                "within aristotle": True
+            }
+        }
     )
 
     # Override save for inline creation of objects.
