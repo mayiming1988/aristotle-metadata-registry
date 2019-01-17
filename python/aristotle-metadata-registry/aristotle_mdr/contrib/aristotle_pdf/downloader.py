@@ -72,7 +72,7 @@ def render_to_pdf(template_src, context_dict,
     # If the request template doesnt exist, we will give a default one.
     template = select_template([
         template_src,
-        'aristotle_mdr/downloads/pdf/managedContent.html'
+        'aristotle_mdr/downloads/html/managedContent.html'
     ])
 
     html = template.render(context_dict)
@@ -88,7 +88,7 @@ def render_to_pdf(template_src, context_dict,
     if not context_dict.get('tableOfContents', False):
         return document.write_pdf()
 
-    toc = get_template('aristotle_mdr/downloads/pdf/toc.html').render(
+    toc = get_template('aristotle_mdr/downloads/html/toc.html').render(
         # Context(
         {
             "toc_tree": generate_outline_tree(document.make_bookmark_tree())

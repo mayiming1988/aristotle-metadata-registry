@@ -1,4 +1,4 @@
-{% extends "aristotle_mdr/downloads/pdf/managedContent.html" %}
+{% extends "aristotle_mdr/downloads/html/managedContent.html" %}
 {% load aristotle_tags %}
 
 {% block objSpecific %}
@@ -11,12 +11,12 @@
   <dl>
       <dt>Derived Data Element</dt>
       <dd>
-          {% include "aristotle_mdr/downloads/pdf/helpers/inlineDetails.html" with item=item.derives %}
+          {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=item.derives %}
       </dd>
       <dt>Input Data Elements</dt>
       {% for de in item.inputs.all|can_view_iter:user %}
           <dd>
-              {% include "aristotle_mdr/downloads/pdf/helpers/inlineDetails.html" with item=de skip_can_view=True %}
+              {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=de skip_can_view=True %}
           </dd>
       {% empty %}
           <dd><em>None</em></dd>

@@ -1,4 +1,4 @@
-{% extends "aristotle_mdr/downloads/pdf/managedContent.html" %}
+{% extends "aristotle_mdr/downloads/html/managedContent.html" %}
 
 {% block objSpecific %}
 {% load aristotle_tags %}
@@ -9,16 +9,16 @@
         {% include "aristotle_mdr/helpers/itemLink.html" with item=item.dataElementConcept %}
     </dt>
     <dd>
-        {% include "aristotle_mdr/downloads/pdf/helpers/inlineDetails.html" with item=item.dataElementConcept %}
+        {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=item.dataElementConcept %}
         {% if options.include_supporting %}
         <dl class="additionaldetails">
             <dt>Object Class</dt>
             <dd>
-                {% include "aristotle_mdr/downloads/pdf/helpers/inlineDetails.html" with item=item.dataElementConcept.objectClass %}
+                {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=item.dataElementConcept.objectClass %}
             </dd>
             <dt>Property</dt>
             <dd>
-                {% include "aristotle_mdr/downloads/pdf/helpers/inlineDetails.html" with item=item.dataElementConcept.property %}
+                {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=item.dataElementConcept.property %}
             </dd>
         </dl>
         {% endif %}
@@ -28,8 +28,8 @@
     </dt>
     <dd>
         {% if item.valueDomain|can_view:user %}
-          {% include "aristotle_mdr/downloads/pdf/helpers/inlineDetails.html" with item=item.valueDomain skip_can_view=True %}
-          {% include "aristotle_mdr/downloads/pdf/inline/valueDomainRepresentation.html" with item=item.valueDomain %}
+          {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=item.valueDomain skip_can_view=True %}
+          {% include "aristotle_mdr/downloads/html/inline/valueDomainRepresentation.html" with item=item.valueDomain %}
         {% endif %}
     </dd>
 </dl>

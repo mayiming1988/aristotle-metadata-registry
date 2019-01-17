@@ -1,4 +1,4 @@
-{% extends "aristotle_mdr/downloads/pdf/inline/managedContent.html" %}
+{% extends "aristotle_mdr/downloads/html/inline/managedContent.html" %}
 {% load aristotle_tags %}
 
 {% block objSpecific %}
@@ -11,7 +11,7 @@
         </p>
         <ul>
         <small><strong>Note:</strong> The final column below is the maximum number of times the data element may be repeated </small>
-        {% include "aristotle_dse/downloads/pdf/helpers/inclusions.html" with item=item %}
+        {% include "aristotle_dse/downloads/html/helpers/inclusions.html" with item=item %}
     {% endif %}
     </div>
 {% endblock %}

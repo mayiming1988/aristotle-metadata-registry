@@ -26,7 +26,7 @@
                 {% endwith %}
                 {% for item in dict.items %}
                     <div style="page-break-after:always;">
-                        {% include item|template_path:'pdf,inline' with item=item header="h2" %}
+                        {% include item|template_path:'html,inline' with item=item header="h2" %}
                     </div>
                 {% endfor %}
             {% endfor %}

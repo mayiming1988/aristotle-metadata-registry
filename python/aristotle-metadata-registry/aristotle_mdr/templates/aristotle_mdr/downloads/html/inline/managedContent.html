@@ -13,7 +13,7 @@
     {{ item.definition|bleach }}
 </div>
 <div class="status">
-    {% include "aristotle_mdr/downloads/pdf/component/statuses.html" with statuses=item.current_statuses only %}
+    {% include "aristotle_mdr/downloads/html/component/statuses.html" with statuses=item.current_statuses only %}
 </div>
 <div class="objectSpecific">
     {% block objSpecific %}

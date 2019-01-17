@@ -13,7 +13,7 @@
     </thead>
     <tbody>
       {% for dssinc in item.dssclusterinclusion_set.all %}
-          {% include "aristotle_dse/downloads/pdf/helpers/inclusion_row.html" with inc=dssinc %}
+          {% include "aristotle_dse/downloads/html/helpers/inclusion_row.html" with inc=dssinc %}
       {% endfor %}
     </tbody>
 </table>
@@ -32,7 +32,7 @@
     </thead>
     <tbody>
       {% for deinc in item.dssdeinclusion_set.all %}
-          {% include "aristotle_dse/downloads/pdf/helpers/inclusion_row.html" with inc=deinc %}
+          {% include "aristotle_dse/downloads/html/helpers/inclusion_row.html" with inc=deinc %}
       {% endfor %}
     </tbody>
 </table>

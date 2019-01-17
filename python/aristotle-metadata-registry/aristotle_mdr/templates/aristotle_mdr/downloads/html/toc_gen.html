@@ -5,6 +5,6 @@
       <td class="page_number">{{level.page}}</td>
    </tr>
    {% if level.children %}
-      {% include "aristotle_mdr/downloads/pdf/toc_gen.html" with toc_tree=level.children only %}
+      {% include "aristotle_mdr/downloads/html/toc_gen.html" with toc_tree=level.children only %}
    {% endif %}
 {% endfor %}

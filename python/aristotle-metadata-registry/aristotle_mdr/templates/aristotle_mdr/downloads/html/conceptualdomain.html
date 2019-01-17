@@ -1,10 +1,10 @@
-{% extends "aristotle_mdr/downloads/pdf/managedContent.html" %}
+{% extends "aristotle_mdr/downloads/html/managedContent.html" %}
 {% load aristotle_tags %}
 
 {% block objSpecific %}
 
     {% if options.include_related %}
-      {% include "aristotle_mdr/downloads/pdf/helpers/relational_attrs.html" with item=item %}
+      {% include "aristotle_mdr/downloads/html/helpers/relational_attrs.html" with item=item %}
     {% endif %}
 
 {% endblock %}

@@ -1,4 +1,4 @@
-{% extends "aristotle_mdr/downloads/pdf/managedContent.html" %}
+{% extends "aristotle_mdr/downloads/html/managedContent.html" %}
 
 
 {% block objSpecific %}
@@ -8,17 +8,17 @@
       <dl>
           <dt>Object Class:</dt>
           <dd>
-              {% include "aristotle_mdr/downloads/pdf/helpers/inlineDetails.html" with item=item.objectClass %}
+              {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=item.objectClass %}
           </dd>
           <dt>Property:</dt>
           <dd>
-              {% include "aristotle_mdr/downloads/pdf/helpers/inlineDetails.html" with item=item.property %}
+              {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=item.property %}
           </dd>
       </dl>
     {% endif %}
 
     {% if options.include_related %}
-      {% include "aristotle_mdr/downloads/pdf/helpers/relational_attrs.html" with item=item %}
+      {% include "aristotle_mdr/downloads/html/helpers/relational_attrs.html" with item=item %}
     {% endif %}
 
 {% endblock %}
