@@ -24,6 +24,7 @@ export default {
         ready: false,
         error: false,
         pollTime: 1000, // period to call checkStatus in ms
+        timeout: 30000, // peroid after which failure assumed if still pending
         url: '#'
     }),
     mixins: [apiRequest],
@@ -35,6 +36,8 @@ export default {
     },
     created: function() {
         this.interval = setInterval(this.checkStatus, this.pollTime)
+        this.pending = true
+        this.started = Date.now()
     },
     beforeDestroy: function() {
         clearInterval(this.interval)
@@ -43,6 +46,9 @@ export default {
         checkStatus: function() {
             this.get(this.status_url).then((response) => {
                 let data = response.data
+                if (data.state != 'PENDING') {
+                    this.pending = false
+                }
                 if (data.is_ready) {
                     this.ready = true
                     if (data.state != 'SUCCESS') {
@@ -53,6 +59,15 @@ export default {
                     clearInterval(this.interval)
                 }
             })
+            // Check for timeout if we are still pending
+            if (this.pending) {
+                let time = Date.now()
+                if ((time - this.started) > this.timeout) {
+                    this.ready = true
+                    this.error = true
+                    clearInterval(this.interval)
+                }
+            }
         }
     }
 }
