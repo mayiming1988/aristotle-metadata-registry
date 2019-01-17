@@ -176,7 +176,7 @@
                 </tr>
             {% endif %}
             {% for deinc in item.dssdeinclusion_set.all %}
-              {% if deinc.data_element in viewable_ids %}
+              {% if deinc.data_element.id in viewable_ids %}
                 <tr>
                     <td>{{ deinc.order|default_if_none:" " }}
                     </td><td>

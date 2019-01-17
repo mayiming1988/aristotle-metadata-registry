@@ -170,10 +170,11 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages,TestCase):
         response = self.client.get(
             self.item1.get_absolute_url()
         )
+        self.assertTrue(viewable.id in response.context['viewable_ids'])
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, viewable.name)
         self.assertNotContains(response, invis.name)
-        self.assertContains(response, 'You don\'t have permission')
+        self.assertContains(response, 'You don\'t have permission', count=1)
 
 
 class DataCatalogViewPage(LoggedInViewConceptPages,TestCase):
