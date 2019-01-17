@@ -144,7 +144,6 @@ class DownloadStatusView(View):
     download_key = 'download_result_id'
 
     def get(self, request, *args, **kwargs):
-
         if 'taskid' not in self.kwargs:
             raise Http404
 
@@ -152,14 +151,12 @@ class DownloadStatusView(View):
 
         # Check if the job exists
         job = async_result(task_id)
-
         context = {
             'is_ready': False,
             'is_expired': False,
             'state': job.state,
             'file_details': {}
         }
-
         if job.ready():
             if job.state == 'SUCCESS':
                 context['result'] = job.result
