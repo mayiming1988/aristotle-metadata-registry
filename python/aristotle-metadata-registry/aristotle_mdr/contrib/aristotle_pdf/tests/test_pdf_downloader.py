@@ -3,7 +3,7 @@ from django.test import TestCase, tag
 from aristotle_mdr.tests.utils import AristotleTestUtils
 from aristotle_mdr import models
 from aristotle_mdr.downloader import HTMLDownloader, DocxDownloader
-from aristotle_pdf.downloader import PDFDownloader
+from aristotle_mdr.contrib.aristotle_pdf.downloader import PDFDownloader
 
 
 class TestHTMLDownloader(AristotleTestUtils, TestCase):

@@ -396,7 +396,7 @@ def downloadMenu(item):
     app_label = item._meta.app_label
     model_name = item._meta.model_name
     for d in downloadOpts:
-        download_type = d.download_type
+        template_type = d.template_type
         item_register = d.metadata_register
 
         if type(item_register) is not str:
@@ -409,7 +409,7 @@ def downloadMenu(item):
                 downloadsForItem.append(d)
             elif item_register == '__template__':
                 try:
-                    get_template(get_download_template_path_for_item(item, download_type))
+                    get_template(get_download_template_path_for_item(item, template_type))
                     downloadsForItem.append(d)
                 except template.TemplateDoesNotExist:
                     pass  # This is ok.

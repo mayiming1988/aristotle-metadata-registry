@@ -11,10 +11,6 @@ import logging
 import weasyprint
 from PyPDF2 import PdfFileMerger
 
-item_register = {
-    'pdf': '__template__'
-}
-
 PDF_STATIC_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'pdf_static')
 
 logger = logging.getLogger(__name__)
@@ -116,35 +112,3 @@ def render_to_pdf(template_src, context_dict,
         document.pages.insert(i + 1, table_of_contents_page)
 
     return document.write_pdf()
-
-
-# TODO this needs some optimisation
-def items_for_bulk_download(items, user):
-    iids = {}
-    item_querysets = {}  # {PythonClass:{help:ConceptHelp,qs:Queryset}}
-    for item in items:
-        if item.__class__ not in iids.keys():
-            iids[item.__class__] = []
-        iids[item.__class__].append(item.pk)
-
-        for metadata_type, qs in item.get_download_items():
-            if metadata_type not in item_querysets.keys():
-                item_querysets[metadata_type] = {'help': None, 'qs': qs}
-            else:
-                item_querysets[metadata_type]['qs'] |= qs
-
-    for metadata_type, ids_set in iids.items():
-        query = metadata_type.objects.filter(pk__in=ids_set)
-        if metadata_type not in item_querysets.keys():
-            item_querysets[metadata_type] = {'help': None, 'qs': query}
-        else:
-            item_querysets[metadata_type]['qs'] |= query
-
-    for metadata_type in item_querysets.keys():
-        item_querysets[metadata_type]['qs'] = item_querysets[metadata_type]['qs'].distinct().visible(user)
-        item_querysets[metadata_type]['help'] = ConceptHelp.objects.filter(
-            app_label=metadata_type._meta.app_label,
-            concept_type=metadata_type._meta.model_name
-        ).first()
-
-    return item_querysets

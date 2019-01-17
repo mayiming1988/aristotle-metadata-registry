@@ -49,6 +49,8 @@ class Downloader:
     allow_wrapper_pages: bool = False  # Whether to allow a front and back page
     # A unique identifier for the downloader (used in url and passed to task)
     download_type: str = ''
+    # Used to discover templates
+    template_type: str = ''
     file_extension: str = ''
     requires_pandoc: bool = False
 
@@ -184,12 +186,13 @@ class HTMLDownloader(Downloader):
     """
 
     download_type = 'html'
+    template_type = 'html'
     file_extension = 'html'
     label = 'HTML'
     metadata_register = '__all__'
     description = 'Download as html (used for debugging)'
 
-    bulk_download_template = 'aristotle_mdr/downloads/pdf/bulk_download.html'
+    bulk_download_template = 'aristotle_mdr/downloads/html/bulk_download.html'
 
     def get_base_download_context(self) -> Dict[str, Any]:
         # page size for the pdf
@@ -301,7 +304,7 @@ class HTMLDownloader(Downloader):
             # This will raise an exception if the list is empty, but thats ok
             item = self.items[0]
             # Template folder should be renamed to html
-            return get_download_template_path_for_item(item, 'pdf')
+            return get_download_template_path_for_item(item, self.template_type)
 
     def get_html(self) -> bytes:
         """

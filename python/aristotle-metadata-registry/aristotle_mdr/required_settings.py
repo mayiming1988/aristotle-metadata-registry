@@ -101,6 +101,7 @@ INSTALLED_APPS = (
     'aristotle_mdr.contrib.issues',
     'aristotle_mdr.contrib.publishing',
     'aristotle_mdr.contrib.custom_fields',
+    'aristotle_mdr.contrib.aristotle_pdf',
 
     'dal',
     'dal_select2',
@@ -229,6 +230,7 @@ ARISTOTLE_SETTINGS = {
         }
     ],
     "DOWNLOADERS": [
+        'aristotle_mdr.contrib.aristotle_pdf.downloader.PDFDownloader'
     ],
 
     # These settings aren't active yet.
