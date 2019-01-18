@@ -43,6 +43,7 @@ class Downloader:
       * the string "__template__" indicating the downloader supports any metadata type with a matching download template
     """
     metadata_register: Union[Dict[str, List], str] = '__all__'
+    # Font awsome icon to use
     icon_class: str = 'fa-file-text-o'
     description: str = ''
     filename: str = 'download'
@@ -53,6 +54,8 @@ class Downloader:
     template_type: str = ''
     file_extension: str = ''
     requires_pandoc: bool = False
+    # Download label (displayed to user)
+    label: str = ''
 
     default_options = {
         'include_supporting': False,
