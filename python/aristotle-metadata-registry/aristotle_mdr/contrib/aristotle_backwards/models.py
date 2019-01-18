@@ -1,5 +1,5 @@
 from django.db import models
-from aristotle_mdr import concept
+from aristotle_mdr.models import concept
 
 
 class ClassificationScheme(concept):

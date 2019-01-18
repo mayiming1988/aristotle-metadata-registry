@@ -13,7 +13,6 @@ from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
 from model_utils import Choices, FieldTracker
 from aristotle_mdr.contrib.async_signals.utils import fire
-from aristotle_mdr.contrib.aristotle_backwards.models import ClassificationScheme
 import uuid
 
 import reversion  # import revisions
@@ -1189,7 +1188,7 @@ class ValueDomain(concept):
         verbose_name='Conceptual Domain'
     )
     classification_scheme = ConceptForeignKey(
-        ClassificationScheme,
+        'aristotle_mdr_backwards.ClassificationScheme',
         blank=True,
         null=True,
         related_name='valueDomains',
