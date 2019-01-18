@@ -287,9 +287,9 @@ class DataSetSpecification(aristotle.models.concept):
         return [
             self.clusters.all(),
             self.data_elements.all(),
-            aristotle.models.ObjectClass.objects.filter(dataelementconcept__dataelement__datasetspecification=self),
-            aristotle.models.Property.objects.filter(dataelementconcept__dataelement__datasetspecification=self),
-            aristotle.models.ValueDomain.objects.filter(dataelement__datasetspecification=self),
+            aristotle.models.ObjectClass.objects.filter(dataelementconcept__dataelement__dssInclusions__dss=self),
+            aristotle.models.Property.objects.filter(dataelementconcept__dataelement__dssInclusions__dss=self),
+            aristotle.models.ValueDomain.objects.filter(dataelement__dssInclusions__dss=self),
         ]
 
 
