@@ -1,5 +1,5 @@
-from django.db import models
 from aristotle_mdr.models import concept
+from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
 
 
 class ClassificationScheme(concept):
@@ -8,6 +8,6 @@ class ClassificationScheme(concept):
     based on characteristics, which the objects have in common
     """
 
-    classificationStructure = models.TextField(
+    classificationStructure = RichTextField(
         blank=True
     )
