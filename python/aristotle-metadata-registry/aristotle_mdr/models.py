@@ -1,3 +1,4 @@
+from typing import List
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse
@@ -12,6 +13,7 @@ from django.utils.translation import ugettext_lazy as _
 from model_utils.models import TimeStampedModel
 from model_utils import Choices, FieldTracker
 from aristotle_mdr.contrib.async_signals.utils import fire
+from aristotle_mdr.contrib.aristotle_backwards.models import ClassificationScheme
 import uuid
 
 import reversion  # import revisions
@@ -680,6 +682,9 @@ class _concept(baseAristotleObject):
     comparator = comparators.Comparator
     edit_page_excludes: list = []
     admin_page_excludes: list = []
+    # List of fields that will only be displayed if 'aristotle_backwards' is
+    # enabled
+    backwards_compatible_fields: List[str] = []
     registerable = True
 
     class Meta:
@@ -1149,6 +1154,7 @@ class ValueDomain(concept):
         ('supplementary_values', 'supplementaryvalue_set'),
     ]
     clone_fields = ('permissiblevalue_set', 'supplementaryvalue_set')
+    backwards_compatible_fields = ['classification_scheme']
 
     data_type = ConceptForeignKey(  # 11.3.2.5.2.1
         DataType,
@@ -1181,6 +1187,13 @@ class ValueDomain(concept):
         null=True,
         help_text=_('The Conceptual Domain that this Value Domain which provides representation.'),
         verbose_name='Conceptual Domain'
+    )
+    classification_scheme = ConceptForeignKey(
+        ClassificationScheme,
+        blank=True,
+        null=True,
+        related_name='valueDomains',
+        verbose_name='Classification Scheme',
     )
     description = models.TextField(
         _('description'),
