@@ -7,7 +7,7 @@ from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 from django.db.models import Q
-from django.http import HttpResponseRedirect, HttpResponseNotFound
+from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
@@ -562,7 +562,7 @@ class GetShareMixin:
         self.share = self.get_share()
         emails = json.loads(self.share.emails)
         if request.user.email not in emails:
-            return HttpResponseNotFound()
+            raise Http404
         return super().dispatch(request, *args, **kwargs)
 
     def get_share(self):

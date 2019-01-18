@@ -68,7 +68,7 @@
     <ul>
     {% for de in item.dataelement_set.all|can_view_iter:request.user %}
         <li>
-            {% include "aristotle_mdr/helpers/inlineDetails.html" with item=de %}
+            {% include "aristotle_mdr/helpers/inlineDetails.html" with item=de skip_can_view=True %}
         </li>
     {% endfor %}
     </ul>

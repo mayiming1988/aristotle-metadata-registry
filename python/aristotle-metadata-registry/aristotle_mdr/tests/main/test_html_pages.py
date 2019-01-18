@@ -2268,6 +2268,20 @@ class DataElementConceptViewPage(LoggedInViewConceptPages, TestCase):
         self.assertContains(response, self.item1.property.name)
         self.assertContains(response, 'fa-times') # The property has a different status
 
+    def test_user_can_not_see_sub_components_without_permission(self):
+        self.prop.workgroup = self.wg2
+        self.prop.save()
+        self.assertTrue(perms.user_can_view(self.viewer, self.item1))
+        self.assertFalse(perms.user_can_view(self.viewer, self.prop))
+
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.item1.id, 'dataelementconcept', 'name'],
+            status_code=200
+        )
+        self.assertNotContains(response, self.prop.name)
+
 
 class DataElementViewPage(LoggedInViewConceptPages, TestCase):
     url_name='dataElement'

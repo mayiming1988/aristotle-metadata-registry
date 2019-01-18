@@ -12,19 +12,21 @@ class IndicatorType(aristotle.models.concept):
 
 
 # Subclassing from DataElement causes indicators to present as DataElements, which isn't quite right.
+
+
 class Indicator(aristotle.models.concept):
     """
     An indicator is a single measure that is reported on regularly
     and that provides relevant and actionable information about population or system performance.
     """
     template = "comet/indicator.html"
-    dataElementConcept = ConceptForeignKey(
+    dataElementConcept=ConceptForeignKey(
         aristotle.models.DataElementConcept,
         verbose_name="Data Element Concept",
         blank=True,
         null=True
     )
-    valueDomain = ConceptForeignKey(
+    valueDomain=ConceptForeignKey(
         aristotle.models.ValueDomain,
         verbose_name="Value Domain",
         blank=True,
@@ -61,7 +63,6 @@ class Indicator(aristotle.models.concept):
         'dataElementConcept',
         'valueDomain'
     ]
-
 
 class IndicatorSetType(aristotle.models.unmanagedObject):
     pass

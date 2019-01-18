@@ -36,10 +36,10 @@ The following data sets are included in this catalog:
 {% for d in item.dataset_set.all|order_by:"name"|can_view_iter:request.user %}
 <tr>
     <td>
-    {% include "aristotle_mdr/helpers/itemLink.html" with item=d %}
+    {% include "aristotle_mdr/helpers/itemLink.html" with item=d skip_can_view=True %}
     </td>
     <td>
-    {% include "aristotle_mdr/helpers/inlineDetails.html" with item=d name=False %}
+    {% include "aristotle_mdr/helpers/inlineDetails.html" with item=d name=False skip_can_view=True %}
     </td>
     <td>{{d.distribution_set.count}}</td>
     <td></td>

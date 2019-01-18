@@ -792,8 +792,8 @@ class _concept(baseAristotleObject):
 
     def check_is_public(self, when=timezone.now()):
         """
-            A concept is public if any registration authority
-            has advanced it to a public state in that RA.
+        A concept is public if any registration authority
+        has advanced it to a public state in that RA.
         """
         statuses = self.statuses.all()
         statuses = self.current_statuses(qs=statuses, when=when)

@@ -1,5 +1,5 @@
 from django.apps import apps
-from django.http import HttpResponseNotFound
+from django.http import Http404
 from django.core.exceptions import PermissionDenied
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -349,7 +349,7 @@ class ConceptVersionView(ConceptRenderView):
 
         exists = self.get_version()
         if not exists:
-            return HttpResponseNotFound()
+            raise Http404
 
         return super().dispatch(request, *args, **kwargs)
 
