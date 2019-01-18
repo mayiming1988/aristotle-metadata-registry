@@ -10,6 +10,10 @@ class Migration(migrations.Migration):
 
     initial = True
 
+    dependencies = [
+        ('aristotle_mdr', '0045__concept_superseded_by_items'),
+    ]
+
     operations = [
         migrations.CreateModel(
             name='ClassificationScheme',
