@@ -419,11 +419,7 @@ def downloadMenu(item):
 
     dlOptionsForItem = []
     for dl_class in downloadsForItem:
-        dlOptionsForItem.append({
-            'label': dl_class.label,
-            'download_type': dl_class.download_type,
-            'icon_class': dl_class.icon_class
-        })
+        dlOptionsForItem.append(dl_class.get_class_info())
     return get_template(
         "aristotle_mdr/helpers/downloadMenu.html").render(
         {'item': item, 'download_options': dlOptionsForItem, }

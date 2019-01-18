@@ -623,14 +623,11 @@ def extensions(request):
             content.append(app)
 
     content = list(set(content))
-    aristotle_downloads = fetch_aristotle_downloaders()
-    downloads=[]
-    if aristotle_downloads:
-        for download in aristotle_downloads:
-            downloads.append(download())
+    aristotle_downloaders = fetch_aristotle_downloaders()
+    download_extensions = [dler.get_class_info() for dler in aristotle_downloaders]
 
     return render(
         request,
         "aristotle_mdr/static/extensions.html",
-        {'content_extensions': content, 'download_extensions': downloads, }
+        {'content_extensions': content, 'download_extensions': download_extensions}
     )

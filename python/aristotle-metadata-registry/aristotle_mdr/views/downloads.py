@@ -85,16 +85,17 @@ class BaseDownloadView(TemplateView):
 
     def get_file_details(self) -> Dict[str, Any]:
         item_names = self.get_item_names()
-        return {
+        details = {
             'title': self.get_file_title(item_names),
             'items': ', '.join(item_names),
             'is_bulk': len(self.item_ids) > 1,
         }
+        details.update(self.download_class.get_class_info())
+        return details
 
     def get_context_data(self, *args, **kwargs) -> Dict[str, Any]:
         context = super().get_context_data(*args, **kwargs)
 
-        context.update(self.download_class.get_class_info())
         context.update({
             'items': self.item_ids,
             'file_details': self.get_file_details(),

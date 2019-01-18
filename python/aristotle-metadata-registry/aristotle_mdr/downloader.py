@@ -173,8 +173,12 @@ class Downloader:
 
     @classmethod
     def get_class_info(cls) -> Dict[str, Any]:
+        """Used as context instead of passing classes to templates"""
         return {
-            'icon_class': cls.icon_class
+            'icon_class': cls.icon_class,
+            'label': cls.label,
+            'download_type': cls.download_type,
+            'description': cls.description
         }
 
 
