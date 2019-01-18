@@ -15,7 +15,9 @@
     {% endif %}
 <ul>
 {% for outcome in item.outcome_areas.all %}
-    <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=outcome showType=False %}</li>
+  {% if outcome.id in viewable_ids %}
+    <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=outcome showType=False skip_can_view=True %}</li>
+  {% endif %}
 {% endfor %}
 </ul>
 {% endif %}
@@ -37,21 +39,34 @@
         {{ item.numerator_description }}
         <ul>
         {% for num in item.numerators.all %}
-            <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=num showType=False %}
+          <li>{{ num.id }}</li>
+          {% if num.id in viewable_ids %}
+            <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=num showType=False skip_can_view=True %}
+          {% else %}
+            <li>You don't have permission to view this item</li>
+          {% endif %}
         {% endfor %}
         </ul>
     <h3>Denominators</h3>
         {{ item.denominator_description }}
         <ul>
         {% for denom in item.denominators.all %}
-            <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=denom showType=False %}
+          {% if denom.id in viewable_ids %}
+            <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=denom showType=False skip_can_view=True %}
+          {% else %}
+            <li>You don't have permission to view this item</li>
+          {% endif %}
         {% endfor %}
         </ul>
 <h2>Disaggregation</h2>
     {{ item.disaggregation_description|bleach }}
         <ul>
         {% for disagg in item.disaggregators.all %}
-            <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=disagg showType=False %}
+          {% if disag.id in viewable_ids %}
+            <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=disagg showType=False skip_can_view=True %}
+          {% else %}
+            <li>You don't have permission to view this item</li>
+          {% endif %}
         {% endfor %}
         </ul>
 {% if item.dataElementConcept or item.valueDomain %}

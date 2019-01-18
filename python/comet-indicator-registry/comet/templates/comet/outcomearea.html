@@ -11,8 +11,8 @@
     </a>
 
     <ul>
-    {% for i in item.indicators.all %}
-        <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=i %}
+    {% for i in item.indicators.all|can_view_iter:user %}
+      <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=i %}</li>
     {% endfor %}
     </ul>
 

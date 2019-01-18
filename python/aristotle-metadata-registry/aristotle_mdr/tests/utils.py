@@ -968,6 +968,7 @@ def store_taskresult(status='SUCCESS'):
     tr.save()
     return tr
 
+
 def get_download_result(iid):
     """
     Using taskResult to manage the celery tasks

@@ -7,7 +7,7 @@ This data element is included in the following Dataset specifications, some data
 <ul>
     {% for inclusion in item.dssInclusions.all %}
         {% if inclusion.dss|can_view:user %}
-            <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=inclusion.dss %} ({{ inclusion.cardinality }})</li>
+            <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=inclusion.dss skip_can_view=True %} ({{ inclusion.cardinality }})</li>
         {% endif %}
     {% endfor %}
 </ul>

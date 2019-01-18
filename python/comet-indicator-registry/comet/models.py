@@ -11,25 +11,27 @@ class IndicatorType(aristotle.models.concept):
     pass
 
 # Subclassing from DataElement causes indicators to present as DataElements, which isn't quite right.
+
+
 class Indicator(aristotle.models.concept):
     """
     An indicator is a single measure that is reported on regularly
     and that provides relevant and actionable information about population or system performance.
     """
     template = "comet/indicator.html"
-    dataElementConcept = ConceptForeignKey(
+    dataElementConcept=ConceptForeignKey(
         aristotle.models.DataElementConcept,
-        verbose_name = "Data Element Concept",
+        verbose_name="Data Element Concept",
         blank=True,
         null=True
     )
-    valueDomain = ConceptForeignKey(
+    valueDomain=ConceptForeignKey(
         aristotle.models.ValueDomain,
-        verbose_name = "Value Domain",
+        verbose_name="Value Domain",
         blank=True,
         null=True
     )
-    outcome_areas = ConceptManyToManyField('OutcomeArea',related_name="indicators",blank=True)
+    outcome_areas = ConceptManyToManyField('OutcomeArea', related_name="indicators", blank=True)
 
     indicatorType = ConceptForeignKey(IndicatorType, blank=True, null=True)
     numerators = ConceptManyToManyField(
@@ -56,32 +58,37 @@ class Indicator(aristotle.models.concept):
     rationale = RichTextField(blank=True)
     disaggregation_description = RichTextField(blank=True)
 
+
 class IndicatorSetType(aristotle.models.unmanagedObject):
     pass
 
+
 class IndicatorSet(aristotle.models.concept):
     template = "comet/indicatorset.html"
-    indicators = ConceptManyToManyField(Indicator,related_name="indicatorSets",blank=True,null=True)
-    indicatorSetType = models.ForeignKey(IndicatorSetType,blank=True,null=True)
+    indicators = ConceptManyToManyField(Indicator, related_name="indicatorSets", blank=True, null=True)
+    indicatorSetType = models.ForeignKey(IndicatorSetType, blank=True, null=True)
+
 
 class OutcomeArea(aristotle.models.concept):
     template = "comet/outcomearea.html"
 
+
 class QualityStatement(aristotle.models.concept):
     template = "comet/qualitystatement.html"
-    timeliness  = RichTextField(blank=True)
-    accessibility  = RichTextField(blank=True)
-    interpretability  = RichTextField(blank=True)
-    relevance  = RichTextField(blank=True)
-    accuracy  = RichTextField(blank=True)
-    coherence  = RichTextField(blank=True)
-    implementationStartDate = models.DateField(blank=True,null=True)
-    implementationEndDate = models.DateField(blank=True,null=True)
+    timeliness = RichTextField(blank=True)
+    accessibility = RichTextField(blank=True)
+    interpretability = RichTextField(blank=True)
+    relevance = RichTextField(blank=True)
+    accuracy = RichTextField(blank=True)
+    coherence = RichTextField(blank=True)
+    implementationStartDate = models.DateField(blank=True, null=True)
+    implementationEndDate = models.DateField(blank=True, null=True)
+
 
 class Framework(aristotle.models.concept):
     template = "comet/framework.html"
-    parentFramework = ConceptForeignKey('Framework',blank=True,null=True,related_name="childFrameworks")
-    indicators = ConceptManyToManyField(Indicator,related_name="frameworks",blank=True)
+    parentFramework = ConceptForeignKey('Framework', blank=True, null=True, related_name="childFrameworks")
+    indicators = ConceptManyToManyField(Indicator, related_name="frameworks", blank=True)
 
 # def defaultData():
 #     print("Add aristotle defaults")

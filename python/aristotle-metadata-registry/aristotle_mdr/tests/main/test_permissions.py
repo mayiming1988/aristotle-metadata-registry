@@ -306,3 +306,24 @@ class RegistryCascadeTest(TestCase):
         self.assertEqual(self.vd.current_statuses()[0].state,state)
         self.assertEqual(self.dec.current_statuses()[0].state,state)
         self.assertEqual(self.de.current_statuses()[0].state,state)
+
+
+class PermsEfficiencyTestCase(utils.AristotleTestUtils, TestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.oc = models.ObjectClass.objects.create(
+            name='Things',
+            definition='A class of thing',
+            submitter=self.editor
+        )
+
+    def test_visible_efficiency(self):
+        # Currently 2 because of is_registrar check
+        with self.assertNumQueries(2):
+            models.ObjectClass.objects.visible(self.editor).first()
+
+    def test_user_can_view_efficiency(self):
+        # Currently 2 because of is_registrar check
+        with self.assertNumQueries(2):
+            perms.user_can_view(self.editor, self.oc)
