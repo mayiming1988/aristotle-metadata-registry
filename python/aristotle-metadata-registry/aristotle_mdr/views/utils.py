@@ -162,7 +162,6 @@ paginate_registration_authority_sort_opts = {
 }
 
 
-@login_required
 def paginated_registration_authority_list(request, ras, template, extra_context={}):
     sort_by=request.GET.get('sort', "name_desc")
     try:

@@ -18,7 +18,7 @@ from aristotle_mdr.contrib.groups.backends import (
 # from aristotle_mdr.models import StewardOrganisationMembership, StewardOrganisation, _concept
 from aristotle_mdr import models as MDR
 from aristotle_mdr.views.workgroups import GenericListWorkgroup, CreateWorkgroup
-from aristotle_mdr.views.registrationauthority import ListRegistrationAuthority
+from aristotle_mdr.views.registrationauthority import ListRegistrationAuthorityBase
 from . import views
 
 class StewardURLManager(GroupURLManager):
@@ -60,13 +60,14 @@ class StewardURLManager(GroupURLManager):
         return CreateWorkgroup.as_view(manager=self, group_class=self.group_class)
 
     def registration_authority_list_view(self):
-        class ListRegistrationAuthorities(GroupMixin, IsGroupMemberMixin, ListRegistrationAuthority):
-            role_permission = "list_registrationauthorities"
+        class ListRegistrationAuthorities(GroupMixin, HasRolePermissionMixin, ListRegistrationAuthorityBase):
+            role_permission = "view_group"
             template_name = "aristotle_mdr/user/registration_authority/steward_list.html"
             raise_exception = True
         
             def get_queryset(self):
                 return self.get_group().registrationauthority_set.all()
+
         return ListRegistrationAuthorities.as_view(manager=self, group_class=self.group_class)
 
     def browse_view(self):

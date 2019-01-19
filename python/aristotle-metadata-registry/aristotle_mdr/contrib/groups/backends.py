@@ -80,8 +80,11 @@ class GroupBase(GroupTemplateMixin):
             qs = super().get_queryset()
         else:
             qs = self.group_class.objects.all()
-        if self.superuser_override and self.request.user.is_superuser:
-            return qs.prefetch_related('members')
+        qs = qs.prefetch_related('members')
+        if self.request.user.is_anonymous():
+            return qs
+        # if self.superuser_override and self.request.user.is_superuser:
+        #     return qs.prefetch_related('members')
         return qs.group_list_for_user(self.request.user).prefetch_related('members')
 
 
@@ -142,7 +145,9 @@ class HasRolePermissionMixin(PermissionRequiredMixin):
     def check_permissions(self, request):
         assert self.role_permission != None
         self.group = self.get_group()
-        return self.group.user_has_permission(user=request.user, permission=self.role_permission)
+        can_access = self.group.user_has_permission(user=request.user, permission=self.role_permission)
+        logger.critical(["user can access", can_access])
+        return can_access
 
 
 class GroupListView(LoginRequiredMixin, GroupBase, ListView):
@@ -201,8 +206,9 @@ class GroupMemberRemoveView(LoginRequiredMixin, HasRolePermissionMixin, GroupMem
         )
         
 
-class GroupDetailView(LoginRequiredMixin, GroupMixin, DetailView):
+class GroupDetailView(HasRolePermissionMixin, GroupMixin, DetailView):
     fallback_template_name = "groups/group/detail.html"
+    role_permission = "view_group"
 
 
 class GroupCreateView(LoginRequiredMixin, PermissionRequiredMixin, GroupBase, CreateView):

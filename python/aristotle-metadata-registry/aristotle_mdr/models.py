@@ -108,7 +108,13 @@ class StewardOrganisation(AbstractGroup):
     )
     owner_roles = [roles.admin]
 
+    class Permissions:
+        @classmethod
+        def can_view_group(cls, user, group=None):
+            return group.state in group.active_states
+
     role_permissions = {
+        "view_group": [Permissions.can_view_group],
         "manage_workgroups": [roles.admin],
         "manage_regstration_authorities": [roles.admin],
         "edit_group_details": [roles.admin],

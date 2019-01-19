@@ -103,27 +103,28 @@ class AddUser(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, UpdateView
         return redirect(reverse('aristotle:registrationauthority_members', args=[self.item.id]))
 
 
-class ListRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class ListRegistrationAuthorityBase(ListView):
     model = MDR.RegistrationAuthority
-    template_name = "aristotle_mdr/user/registration_authority/list_all.html"
-    permission_required = "aristotle_mdr.is_registry_administrator"
-    raise_exception = True
-    redirect_unauthenticated_users = True
 
     def get_queryset():
         return super().get_queryset().filter(active__in=[0, 1])
 
-    def dispatch(self, request, *args, **kwargs):
-        super().dispatch(request, *args, **kwargs)
-        # All visible ras
+    def render_to_response(self, context, **response_kwargs):
         ras = self.get_queryset()
 
-        text_filter = request.GET.get('filter', "")
+        text_filter = self.request.GET.get('filter', "")
         if text_filter:
             ras = ras.filter(Q(name__icontains=text_filter) | Q(definition__icontains=text_filter))
         context = self.get_context_data()
         context.update({'filter': text_filter})
-        return paginated_registration_authority_list(request, ras, self.template_name, context)
+        return paginated_registration_authority_list(self.request, ras, self.template_name, context)
+
+
+class ListRegistrationAuthorityAll(LoginRequiredMixin, PermissionRequiredMixin, ListRegistrationAuthorityBase):
+    template_name = "aristotle_mdr/user/registration_authority/list_all.html"
+    permission_required = "aristotle_mdr.is_registry_administrator"
+    raise_exception = True
+    redirect_unauthenticated_users = True
 
 
 class DetailsRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, DetailView):

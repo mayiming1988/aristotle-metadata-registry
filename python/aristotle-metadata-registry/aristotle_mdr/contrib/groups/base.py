@@ -120,12 +120,15 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
 
         @classmethod
         def is_member(cls, user, group):
+            if user.is_anonymous():
+                return False
             return group.has_member(user)
 
     role_permissions = {
         "edit_group_details": [roles.owner, Permissions.is_superuser],
         "edit_members": [roles.owner, Permissions.is_superuser],
         "invite_member": [roles.owner, Permissions.is_superuser],
+        "view_group": [Permissions.is_member],
     }
 
     slug = AutoSlugField(populate_from='name', editable=True, always_update=False, unique=True)
@@ -164,6 +167,7 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
                         yield False
                     role = perm_or_role
                     yield self.has_role(role, user)
+
         return any(allowed())
 
     @property

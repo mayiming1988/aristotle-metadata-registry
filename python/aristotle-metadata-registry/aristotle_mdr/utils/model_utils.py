@@ -2,9 +2,11 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 import uuid
+import datetime
 
 from model_utils.models import TimeStampedModel
 from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
@@ -18,6 +20,9 @@ from aristotle_mdr.managers import (
     MetadataItemManager,
     ManagedItemQuerySet,
 )
+
+
+VERY_RECENTLY_SECONDS = 15
 
 
 class baseAristotleObject(TimeStampedModel):
@@ -167,7 +172,7 @@ class AbstractValue(aristotleComponent):
         help_text=_("A textual designation of a value, where a relation to a Value meaning doesn't exist")
     )
     value_meaning = models.ForeignKey(  # 11.3.2.7.1
-        ValueMeaning,
+        'ValueMeaning',
         blank=True,
         null=True,
         help_text=_('A reference to the value meaning that this designation relates to')
@@ -175,7 +180,7 @@ class AbstractValue(aristotleComponent):
     # Below will generate exactly the same related name as django, but reversion-compare
     # needs an explicit related_name for some actions.
     valueDomain = ConceptForeignKey(
-        ValueDomain,
+        'ValueDomain',
         related_name="%(class)s_set",
         help_text=_("Enumerated Value Domain that this value meaning relates to"),
         verbose_name='Value Domain'
