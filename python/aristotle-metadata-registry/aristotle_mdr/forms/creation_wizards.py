@@ -109,7 +109,8 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
         if 'aristotle_mdr_backwards' not in fetch_aristotle_settings().get('CONTENT_EXTENSIONS', []):
             bc_fields = self._meta.model.backwards_compatible_fields
             for fname in bc_fields:
-                del self.fields[fname]
+                if fname in self.fields:
+                    del self.fields[fname]
 
         for f in self.fields:
             if f == "workgroup":

@@ -1,6 +1,10 @@
 from django.test import TestCase, tag, override_settings
+from django.core.cache import cache
 from aristotle_mdr.tests.utils import AristotleTestUtils
+from aristotle_mdr.contrib.aristotle_backwards import models
 from aristotle_mdr import models as mdr_models
+from aristotle_mdr.tests.main.test_html_pages import LoggedInViewConceptPages
+from aristotle_mdr.tests.main.test_admin_pages import AdminPageForConcept
 
 
 @tag('backwards')
@@ -22,13 +26,30 @@ class AristotleBackwardsTestCase(AristotleTestUtils, TestCase):
         )
         return response.context['form']
 
-    @override_settings(ARISTOTLE_SETTINGS={
-        'CONTENT_EXTENSIONS': ['aristotle_mdr_backwards']
-    })
     def test_field_avaliable_when_backwards_enabled(self):
         form = self.get_vd_edit_form()
         self.assertTrue('classification_scheme' in form.fields)
 
+    @override_settings(ARISTOTLE_SETTINGS={
+        'CONTENT_EXTENSIONS': []
+    })
     def test_field_hidden_when_backwards_not_enabled(self):
         form = self.get_vd_edit_form()
         self.assertFalse('classification_scheme' in form.fields)
+
+
+class ClassificationSchemeViewPage(LoggedInViewConceptPages, TestCase):
+    url_name='classificationScheme'
+    itemType=models.ClassificationScheme
+
+    def setUp(self):
+        super().setUp()
+        cache.clear()
+
+
+class ClassificationSchemeAdminPage(AdminPageForConcept, TestCase):
+    itemType=models.ClassificationScheme
+
+    def setUp(self):
+        super().setUp()
+        cache.clear()

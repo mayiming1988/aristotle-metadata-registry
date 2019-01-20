@@ -1172,7 +1172,7 @@ class ValueDomain(concept):
         blank=True,
         null=True,
         help_text=_('maximum number of characters available to represent the Data Element value')
-        )
+    )
     unit_of_measure = ConceptForeignKey(  # 11.3.2.5.2.3
         UnitOfMeasure,
         blank=True,
