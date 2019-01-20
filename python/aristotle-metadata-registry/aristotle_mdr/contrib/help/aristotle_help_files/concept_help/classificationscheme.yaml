@@ -1,0 +1,10 @@
+- model: aristotle_mdr_help.concepthelp
+  fields:
+    app_label: aristotle_mdr_backwards
+    concept_type: classificationscheme
+    language: en
+    brief: The descriptive information for an arrangement or division of objects into groups based on characteristics, which the objects have in common
+    offical_definition: The descriptive information for an arrangement or division of objects into groups based on characteristics, which the objects have in common
+    official_reference: ISO/IEC 11179 (Edition 2) - Clause 3.3.9
+    official_link: ''
+    body: ''
