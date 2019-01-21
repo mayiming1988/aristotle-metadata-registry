@@ -46,6 +46,17 @@
       </ul>
     </p>
   </li>
+  {% if graphql_enabled %}
+  <li class="list-group-item">
+    <strong><a href='{% url 'aristotle_graphql:graphql_explorer' %}'>Graphql</a></strong>
+    <p>
+      About Graphql:
+      <ul>
+        <li>Provides a dynamic way of querying data</li>
+        <li>See <a href="https://graphql.org/">Graphql.org</a> for more information</li>
+      </ul>
+    </p>
+  {% endif %}
 </ul>
 
 
@@ -61,9 +72,6 @@
     <p>Login to an account for session authentication</p>
   </li>
 </ul>
-
-To see a full list of endpoints review the
-<a href='{% url "aristotle_api_root" %}schemas'>Aristotle API Swagger documentation</a>
 
 {% endblock %}
 
