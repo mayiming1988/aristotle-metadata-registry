@@ -6,6 +6,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 import logging
 logger = logging.getLogger(__name__)
 
+
 class FancyGraphQLView(GraphQLView):
     default_query = ""
 
