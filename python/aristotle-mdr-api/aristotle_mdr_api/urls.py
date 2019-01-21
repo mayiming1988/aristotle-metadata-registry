@@ -19,8 +19,6 @@ urlpatterns = [
     url(r'^auth/', include('rest_framework.urls', namespace='rest_framework')),
     # url(r'^api-token-auth/', tokenviews.obtain_auth_token),
     url(r'^token/', include('aristotle_mdr_api.token_auth.urls', namespace='token_auth')),
-    url(r'^v3/schemas/', get_swagger_view(title='Aristotle v3 API', urlconf='aristotle_mdr_api.v3.urls'), name='schema_v3'),
-    url(r'^v4/schemas/', get_swagger_view(title='Aristotle v4 API', urlconf='aristotle_mdr_api.v4.urls'), name='schema_v4'),
     url(r'^$', APIRootView.as_view(), name="aristotle_api_root"),
 
     url(r'^v3/', include('aristotle_mdr_api.v3.urls', namespace='aristotle_mdr_api.v3')),
