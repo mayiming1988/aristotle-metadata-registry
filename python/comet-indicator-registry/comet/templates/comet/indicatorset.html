@@ -5,8 +5,8 @@
     {% if item.indicators %}
     <h3>Indicators:</h3>
         <ul>
-        {% for ind in item.indicators.all %}
-            <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=ind showType=False %}
+        {% for ind in item.indicators.all|can_view_iter:user %}
+            <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=ind showType=False skip_can_view=True %}
         {% endfor %}
         </ul>
     {% endif %}

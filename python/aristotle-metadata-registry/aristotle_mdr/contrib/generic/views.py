@@ -3,17 +3,16 @@ from django import forms
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist
 from django.urls import reverse
 from django.db import transaction
-from django.forms.models import modelformset_factory, inlineformset_factory
+from django.forms.models import inlineformset_factory
 from django.forms import formset_factory
-from django.http import Http404, HttpResponseRedirect, HttpResponse
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import FormView, TemplateView, View
-from django.core.signing import TimestampSigner
-from django.views.generic import ListView, DeleteView
+from django.views.generic import ListView
 
 from aristotle_mdr.contrib.autocomplete import widgets
-from aristotle_mdr.models import _concept, ValueDomain, AbstractValue
+from aristotle_mdr.models import AbstractValue, _concept
 from aristotle_mdr.perms import user_can_edit, user_can_view
 from aristotle_mdr.utils import construct_change_message
 from aristotle_mdr.utils.text import capitalize_words
@@ -257,8 +256,6 @@ class GenericAlterManyToManyOrderView(GenericAlterManyToManyView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        num_items = getattr(self.item, self.model_base_field).count()
-
         context['form_add_another_text'] = _('Add Another')
 
         if 'formset' in kwargs:
@@ -329,8 +326,6 @@ class GenericAlterManyToManyOrderView(GenericAlterManyToManyView):
             with transaction.atomic(), reversion.revisions.create_revision():
 
                 model_arglist = []
-                model_arglist_update = []
-                model_arglist_delete = []
                 change_message = []
 
                 for form in filled_formset.ordered_forms:
@@ -376,7 +371,6 @@ class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['form_add_another_text'] = self.form_add_another_text or _('Add another')
-        num_items = getattr(self.item, self.model_base_field).count()
 
         formset = self.formset or self.get_formset()
 

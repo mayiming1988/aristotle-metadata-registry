@@ -1,28 +1,19 @@
 from typing import Any
 from django.apps import apps
-from django.contrib import messages
-from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist, ObjectDoesNotExist
 from django.urls import reverse
 from django.db import transaction
-from django.db.models import Q, Prefetch
-from django.http import HttpResponseRedirect, HttpResponseNotFound, HttpResponseForbidden
+from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404
 from django.shortcuts import render, redirect, get_object_or_404
-from django.template.defaultfilters import slugify
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView, RedirectView
-from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_string
+from django.utils.functional import SimpleLazyObject
 from formtools.wizard.views import SessionWizardView
 
 import json
-import copy
-import yaml
-import jsonschema
-from os import path
 
 import reversion
 
@@ -48,13 +39,9 @@ from aristotle_mdr.views.utils import (
     TagsMixin
 )
 from aristotle_mdr.contrib.slots.models import Slot
-from aristotle_mdr.contrib.links.models import Link, LinkEnd
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
-from aristotle_mdr.contrib.favourites.models import Favourite, Tag
-from aristotle_mdr.contrib.validators import validators
 
-from haystack.views import FacetedSearchView
 from reversion.models import Version
 
 
@@ -130,10 +117,10 @@ class ConceptRenderView(TagsMixin, TemplateView):
     """
 
     objtype: Any = None
-    itemid_arg = 'iid'
-    modelslug_arg = 'model_slug'
-    nameslug_arg = 'name_slug'
-    slug_redirect = False
+    itemid_arg: str = 'iid'
+    modelslug_arg: str = 'model_slug'
+    nameslug_arg: str = 'name_slug'
+    slug_redirect: bool = False
 
     def get_queryset(self):
         itemid = self.kwargs[self.itemid_arg]
@@ -218,7 +205,7 @@ class ConceptRenderView(TagsMixin, TemplateView):
 
         if self.item is None:
             # If item was not found and no redirect was needed
-            return HttpResponseNotFound()
+            raise Http404
 
         if self.slug_redirect:
             redirect, url = self.get_redirect()
@@ -229,7 +216,7 @@ class ConceptRenderView(TagsMixin, TemplateView):
 
         app_enabled = self.check_app(self.item)
         if not app_enabled:
-            return HttpResponseNotFound()
+            raise Http404
 
         result = self.check_item(self.item)
         if not result:
@@ -270,8 +257,16 @@ class ConceptRenderView(TagsMixin, TemplateView):
         context['discussions'] = self.item.relatedDiscussions.all()
         context['activetab'] = 'item'
         context['links'] = self.get_links()
-
         context['custom_values'] = self.get_custom_values()
+
+        # Add a list of viewable concept ids for fast visibility checks in
+        # templates
+        # Since its lazy we can do this everytime :)
+        lazy_viewable_ids = SimpleLazyObject(
+            lambda: list(MDR._concept.objects.visible(self.user).values_list('id', flat=True))
+        )
+        context['viewable_ids'] = lazy_viewable_ids
+
         return context
 
     def get_template_names(self):

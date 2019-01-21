@@ -5,7 +5,6 @@ from django.db import migrations, models
 import ckeditor_uploader.fields
 import django.utils.timezone
 from django.conf import settings
-import autoslug.fields
 import model_utils.fields
 
 

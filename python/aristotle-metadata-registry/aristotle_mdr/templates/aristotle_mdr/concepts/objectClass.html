@@ -22,7 +22,7 @@
             <ul>
             {% for dec in item.dataelementconcept_set.all|can_view_iter:request.user %}
                 <li>
-                    {% include "aristotle_mdr/helpers/inlineDetails.html" with item=dec %}
+                    {% include "aristotle_mdr/helpers/inlineDetails.html" with item=dec skip_can_view=True %}
                 </li>
             {% endfor %}
             </ul>

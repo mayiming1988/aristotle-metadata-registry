@@ -1,10 +1,5 @@
-import os, sys
-import django
 import requests
 import json
-import sys
-import csv
-import StringIO
 import re
 from django.db.models import Q
 import datetime

@@ -1,16 +1,14 @@
 from django.urls import reverse
-from django.test import TestCase, tag
+from django.test import TestCase
 import aristotle_mdr.models as MDR
 import aristotle_mdr.tests.utils as utils
 from aristotle_mdr import perms
-from aristotle_mdr.utils import url_slugify_concept
 from aristotle_mdr.contrib.reviews import models
 from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
 
-import datetime
 from aristotle_mdr.utils import setup_aristotle_test_environment
 
 

@@ -1,5 +1,5 @@
-from django.http import HttpResponseNotFound
-from django.views.generic import TemplateView, DetailView
+from django.http import Http404
+from django.views.generic import TemplateView
 
 from aristotle_mdr.views.utils import SimpleItemGet
 from aristotle_mdr.contrib.issues.models import Issue
@@ -55,7 +55,7 @@ class IssueDisplay(IssueBase, TemplateView):
         self.item = item
         self.issue = self.get_issue()
         if not self.issue:
-            return HttpResponseNotFound()
+            raise Http404
 
         return super(IssueBase, self).get(request, *args, **kwargs)
 

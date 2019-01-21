@@ -2,7 +2,6 @@ from django.test import TestCase, tag, Client
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.urls import reverse
-from django.conf import settings
 from django.core import mail
 
 import aristotle_mdr.tests.utils as utils
@@ -675,7 +674,7 @@ class UserProfileTests(TestCase):
         self.login_newuser()
 
         initial = self.get_initial()
-        response = self.post_with_profile_picture(initial)
+        self.post_with_profile_picture(initial)
 
         user = get_user_model().objects.get(email='newuser@example.com')
 

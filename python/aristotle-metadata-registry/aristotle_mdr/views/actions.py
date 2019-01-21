@@ -1,27 +1,17 @@
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
-from django.db import transaction
-from django.http import Http404, HttpResponseRedirect, HttpResponse, HttpResponseNotFound
+from django.http import Http404
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import FormView, DetailView, View
-from django.utils import timezone
-from django.utils.decorators import method_decorator
-from django.utils.safestring import mark_safe
-import json
+from django.views.generic import DetailView, FormView
 
-import reversion
-from braces.views import LoginRequiredMixin, PermissionRequiredMixin
+from braces.views import PermissionRequiredMixin
 
 from aristotle_mdr import perms
 from aristotle_mdr import models as MDR
 from aristotle_mdr.contrib.generic.views import UnorderedGenericAlterOneToManyView
 from aristotle_mdr.forms import actions
-from aristotle_mdr.forms.forms import ChangeStatusGenericForm, ReviewChangesForm
-from aristotle_mdr.views import ReviewChangesView, display_review
 from aristotle_mdr.views.utils import (
     generate_visibility_matrix,
     ObjectLevelPermissionRequiredMixin,

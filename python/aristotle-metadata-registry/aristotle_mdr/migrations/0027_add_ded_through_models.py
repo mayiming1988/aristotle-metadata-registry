@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 
 from django.db import migrations, models
 import django.db.models.deletion
-import aristotle_mdr.fields
 
 def add_through(apps, schema_editor):
 

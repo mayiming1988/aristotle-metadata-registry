@@ -1,8 +1,6 @@
-from graphene import relay
-from aristotle_mdr_graphql.fields import AristotleFilterConnectionField, AristotleConceptFilterConnectionField
-from aristotle_mdr_graphql.types import AristotleObjectType
+from aristotle_mdr_graphql.fields import AristotleConceptFilterConnectionField
 from comet import models as comet_models
-from aristotle_mdr_graphql.utils import type_from_model, type_from_concept_model
+from aristotle_mdr_graphql.utils import type_from_concept_model
 
 # IndicatorTypeNode = type_from_concept_model(comet_models.IndicatorType)
 IndicatorNode = type_from_concept_model(comet_models.Indicator)

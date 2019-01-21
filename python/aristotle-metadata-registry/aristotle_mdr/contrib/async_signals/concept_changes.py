@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from aristotle_mdr import messages
 from aristotle_mdr.contrib.async_signals.utils import safe_object
 

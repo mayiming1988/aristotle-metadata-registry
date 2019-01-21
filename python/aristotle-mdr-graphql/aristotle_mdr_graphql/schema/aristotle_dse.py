@@ -1,9 +1,7 @@
-from graphene import relay
 from graphene_django.types import DjangoObjectType
-from aristotle_mdr_graphql.fields import AristotleFilterConnectionField, AristotleConceptFilterConnectionField
-from aristotle_mdr_graphql.types import AristotleObjectType
+from aristotle_mdr_graphql.fields import AristotleConceptFilterConnectionField
 from aristotle_dse import models as dse_models
-from aristotle_mdr_graphql.utils import type_from_model, type_from_concept_model
+from aristotle_mdr_graphql.utils import type_from_concept_model
 from aristotle_mdr_graphql import resolvers
 
 # DataCatalogNode = type_from_concept_model(dse_models.DataCatalog)

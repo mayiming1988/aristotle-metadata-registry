@@ -776,8 +776,8 @@ class _concept(baseAristotleObject):
 
     def check_is_public(self, when=timezone.now()):
         """
-            A concept is public if any registration authority
-            has advanced it to a public state in that RA.
+        A concept is public if any registration authority
+        has advanced it to a public state in that RA.
         """
         statuses = self.statuses.all()
         statuses = self.current_statuses(qs=statuses, when=when)
@@ -1196,7 +1196,6 @@ class PermissibleValue(AbstractValue):
     Permissible Value is a class each instance of which models a permissible value (3.2.96),
     the designation (3.2.51) of a value meaning (3.2.141).
     """
-    pass
 
 
 class SupplementaryValue(AbstractValue):

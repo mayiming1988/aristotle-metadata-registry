@@ -5,11 +5,9 @@ from aristotle_mdr.utils import setup_aristotle_test_environment
 from aristotle_mdr import utils
 from aristotle_mdr.views.versions import VersionField
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-import datetime
 
 setup_aristotle_test_environment()
 

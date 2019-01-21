@@ -1,5 +1,4 @@
 from django.contrib import admin
-from reversion_compare.admin import CompareVersionAdmin
 import aristotle_mdr.contrib.help.models as HelpModels
 
 

@@ -1,6 +1,3 @@
-from django.contrib.auth.decorators import permission_required
-from django.http import JsonResponse
-from django.shortcuts import render
 from django.views.generic import TemplateView, FormView, ListView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse

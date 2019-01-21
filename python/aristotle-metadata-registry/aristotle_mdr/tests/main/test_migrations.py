@@ -4,8 +4,6 @@ from aristotle_mdr.models import STATES
 from aristotle_mdr.tests.migrations import MigrationsTestCase
 from aristotle_mdr.utils import migrations as migration_utils
 
-from django.core.exceptions import FieldDoesNotExist
-from django.conf import settings
 from django.test import TestCase, tag
 from django.apps import apps as current_apps
 from django.contrib.auth import get_user_model

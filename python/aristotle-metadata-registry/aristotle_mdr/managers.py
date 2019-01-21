@@ -70,10 +70,9 @@ class ConceptQuerySet(MetadataItemQuerySet):
         if user.is_active:
             # User can see everything they've made.
             q |= Q(submitter=user)
-            if user.profile.workgroups:
-                # User can see everything in their workgroups.
-                q |= Q(workgroup__in=user.profile.workgroups)
-                # q |= Q(workgroup__user__profile=user)
+            # User can see everything in their workgroups.
+            q |= Q(workgroup__in=user.profile.workgroups)
+            # q |= Q(workgroup__user__profile=user)
             if user.profile.is_registrar:
                 # Registars can see items they have been asked to review
                 q |= Q(

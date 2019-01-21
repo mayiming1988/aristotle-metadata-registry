@@ -22,7 +22,7 @@
             <ul>
                 {% for item in review.concepts.all %}
                     <li>
-        {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item %}
+                        {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item %}
                     </li>
                 {% endfor %}
             </ul>

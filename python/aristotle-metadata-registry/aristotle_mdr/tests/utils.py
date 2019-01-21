@@ -1,5 +1,4 @@
 from typing import List, Dict
-from django import VERSION as django_version
 import attr
 import datetime
 import random
@@ -973,6 +972,7 @@ def store_taskresult(status='SUCCESS'):
     )
     tr.save()
     return tr
+
 
 def get_download_result(iid):
     """

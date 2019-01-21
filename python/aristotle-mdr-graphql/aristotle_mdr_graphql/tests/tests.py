@@ -1,4 +1,4 @@
-from django.test import TestCase, Client, override_settings, tag
+from django.test import Client, TestCase
 from django.urls import reverse
 from aristotle_mdr.tests import utils
 from aristotle_mdr import models as mdr_models
@@ -7,10 +7,8 @@ from aristotle_mdr.contrib.slots import models as slots_models
 from aristotle_mdr.contrib.identifiers import models as ident_models
 from aristotle_mdr.contrib.slots.tests import BaseSlotsTestCase
 from comet import models as comet_models
-from graphene.test import Client as QLClient
 
 import json
-import datetime
 
 class BaseGraphqlTestCase(utils.LoggedInViewPages):
 

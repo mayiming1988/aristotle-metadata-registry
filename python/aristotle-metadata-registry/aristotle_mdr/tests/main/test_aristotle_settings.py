@@ -21,7 +21,7 @@ class TestAristotleSettings(TestCase):
             ARISTOTLE_SETTINGS_STRICT_MODE=True
         ):
             with self.assertRaisesRegexp(ImproperlyConfigured, error_messages['bulk_action_failed']):
-                my_settings = fetch_aristotle_settings()
+                fetch_aristotle_settings()
 
 
     @patch('aristotle_mdr.utils.utils.logger')
@@ -31,7 +31,7 @@ class TestAristotleSettings(TestCase):
             ARISTOTLE_SETTINGS_STRICT_MODE=True
         ):
             with self.assertRaisesRegexp(ImproperlyConfigured, error_messages['content_extensions_failed']):
-                my_settings = fetch_aristotle_settings()
+                fetch_aristotle_settings()
 
     @patch('aristotle_mdr.utils.utils.logger')
     def test_downloader_settings_log_correctly(self, mock_logger):
@@ -40,7 +40,7 @@ class TestAristotleSettings(TestCase):
             ARISTOTLE_SETTINGS_STRICT_MODE=True
         ):
             with self.assertRaisesRegexp(ImproperlyConfigured, error_messages['downloaders_failed']):
-                my_settings = fetch_aristotle_settings()
+                fetch_aristotle_settings()
 
     @patch('aristotle_mdr.utils.utils.logger')
     def test_management_command_logs_correctly(self, mock_logger):
