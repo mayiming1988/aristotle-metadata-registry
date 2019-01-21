@@ -116,6 +116,7 @@ def managed_item(request, model_slug, iid):
         request, [item.template],
         {
             'item': item,
+            "activetab": "item",
         }
     )
 

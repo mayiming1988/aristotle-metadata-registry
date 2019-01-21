@@ -10,13 +10,11 @@
     </a>
   </li>
   <li>
-    <a href="{{item.stewardship_organisation.get_absolute_url}}">Metadata</a>
+    <a href="{% url 'aristotle_mdr:stewards:group:managed_item_list_types' item.stewardship_organisation.slug %}">Managed Items</a>
   </li>
   <li>
-          <a href="{% url 'aristotle_help:concept_help' item.meta.app_label item.meta.model_name %}"
-              title="{% trans 'Learn about this metadata type' %}"
-              data-toggle="modal" data-target="#infobox_modal"
-          >{{ item.get_verbose_name_plural }}</a>
+    <a href="{% url 'aristotle_mdr:stewards:group:managed_item_list_items' item.stewardship_organisation.slug item.meta.model_name %}"
+    >{{ item.get_verbose_name_plural }}</a>
   </li>
   {% else %}
     <li>
@@ -39,16 +37,6 @@
         {{ item.version }}
     </em>
     {% endif %}
-    {% comment %}
-    {% if not hide_help %}
-      <small>
-          (<a href="{% url 'aristotle_help:concept_help' item.meta.app_label item.meta.model_name %}"
-              title="{% trans 'Learn about this metadata type' %}"
-              data-toggle="modal" data-target="#infobox_modal"
-          >{{ item.get_verbose_name }}</a>)
-      </small>
-    {% endif %}
-    {% endcomment %}
 
     {% if not hide_item_actions %}
       {# Screen reader quick links #}

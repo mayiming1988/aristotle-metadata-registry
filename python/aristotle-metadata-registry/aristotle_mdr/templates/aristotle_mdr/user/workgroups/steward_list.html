@@ -1,21 +1,10 @@
-{% extends "aristotle_mdr/user/userHome.html" %}
+{% extends "aristotle_mdr/stewards/base.html" %}
 {% load i18n %}
 
-{% block collapse-link %}
-{% endblock %}
-
-{% block sidebar %}
-    {% include "aristotle_mdr/user/userSideBar.html" with activeTab='steward_orgs' %}
-{% endblock %}
-
 {% block title %}Workgroups | {{ stewardship_organisation }}{% endblock %}
+{% block page_title %}{{ stewardship_organisation }} | Workgroups{% endblock %}
 
-{% block page %}
-<h1>
-    {{ stewardship_organisation }}
-</h1>
-
-{% include "stewards/helpers/tabs.html" with active_tab="workgroups" %}
+{% block steward_content %}
 
 <section id="workgroups">
     <a class="btn btn-default" href="{% url 'aristotle:workgroup_create'%}">Add New Workgroup</a>

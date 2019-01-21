@@ -1,12 +1,12 @@
-{% extends "aristotle_mdr/unmanagedContent.html" %}
+{% extends "aristotle_mdr/manageditems/base.html" %}
 {% load aristotle_tags util_tags %}
 
-{% block title %}{{ item.name }} {% endblock %}
 
 {% block objSpecific %}
     <div>
         {{ item.measure.definition|bleach }}
     </div>
+
     <div><strong>Note:</strong> Due to their fundamental nature, measures are unmanaged and do not need to be registered. Instead they are controlled by the registry administrators.
     For more information, see ISO/IEC 11179-3:2013, section 11.4 "Measurement metamodel region".
     </div>

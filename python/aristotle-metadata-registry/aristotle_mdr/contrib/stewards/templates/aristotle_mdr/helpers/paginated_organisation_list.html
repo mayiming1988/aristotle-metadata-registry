@@ -35,7 +35,7 @@ Showing {{ page.paginator.count }} results.
         {% else %}
         <a href="?{% paginator_get request page.number pop='sort' %}&sort=users_desc"><i class="fa fa-sort"></i></a>
         {% endif %}
-            <i class="fa fa-users" title="{% trans 'Number of members' %}"></i>
+            <i class="fa fa-user" title="{% trans 'Number of members' %}"></i>
         </th>
         <th>
         {% if sort == "items_asc" %}
@@ -49,6 +49,9 @@ Showing {{ page.paginator.count }} results.
         </th>
         <th>
             <i class="fa fa-users" title="{% trans 'Number of workgroups' %}"></i>
+        </th>
+        <th>
+            <i class="fa fa-university" title="{% trans 'Number of registration authorities' %}"></i>
         </th>
         {% if show_all %}
         <th>{% trans "Status" %}</th>
@@ -66,6 +69,7 @@ Showing {{ page.paginator.count }} results.
         <td>{{ item.num_members }}</td>
         <td>{{ item.num_items }}</td>
         <td>{{ item.num_workgroups }}</td>
+        <td>{{ item.num_ras }}</td>
         {% if show_all %}
         <td>
             {{ item.state }}

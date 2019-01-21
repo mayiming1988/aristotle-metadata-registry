@@ -1,10 +1,13 @@
 {% extends "groups/base.html" %}
 {% load group_tags i18n %}
 
+{% block title %}Membership list | {{ stewardship_organisation }}{% endblock %}
+{% block page_title %}
+{{ group.name }} | Editing members
+{% endblock %}
+
+
 {% block group_content %}
-<h1>
-    Editing members {{group.name}}
-</h1>
 
 <div>
 {% if group.allows_multiple_roles %}

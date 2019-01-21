@@ -1,4 +1,4 @@
-{% extends "aristotle_mdr_browse/base.html" %}
+{% extends "aristotle_mdr/stewards/base.html" %}
 {% load i18n aristotle_tags aristotle_help %}
 
 {% block breadcumbs %}
@@ -9,14 +9,17 @@
 Metadata | {{ group }}
 {% endblock %}
 
-{% block object_list %}
+{% block page_title %}
+{{ group }} | Metadata
+{% endblock %}
 
-{% include "stewards/helpers/tabs.html" with active_tab="metadata" %}
+{% block steward_content %}
 
-
+{% comment %}
     <p>
         <em>{{ model.get_verbose_name }} - </em>
     </p>
+{% endcomment %}
 
 {% include "aristotle_mdr/helpers/bulk_action_paginated_list.html" with page=page_obj allow_select_all=True %}
 

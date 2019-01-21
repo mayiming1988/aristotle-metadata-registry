@@ -105,6 +105,7 @@ class ManagedItem(baseAristotleObject):
         related_name="managed_items"
     )
     # workgroup = models.ForeignKey('aristotle_mdr.Workgroup', related_name="managed_items", null=True, blank=True)
+    list_details_template = "aristotle_mdr/manageditems/helpers/list_details.html"
 
     def can_edit(self, user):
         return user.is_superuser

@@ -13,46 +13,21 @@
 
 {% block title %}
     {{ item.name }}
-    {% if item.version %}
-        - v{{ item.version }}
-    {% endif %}
     ({{ item.get_verbose_name }})
 {% endblock %}
 
 {% block content %}
 <div id="vue-container">
   <header class="row">
-      {% if breadcrumbs %}
-        <ol class="breadcrumb">
-          {% for crumb in breadcrumbs %}
-            <li {% if crumb.active %}class="active"{% endif %}>
-              {% if crumb.url %}
-                <a href="{{ crumb.url }}">{{ crumb.name }}</a>
-              {% else %}
-                {{ crumb.name }}
-              {% endif %}
-            </li>
-          {% endfor %}
-        </ol>
-      {% endif %}
-      {% block concept_title %}
-        {% include "aristotle_mdr/concepts/titles/display_title.html" %}
-      {% endblock %}
+      {% include "aristotle_mdr/manageditems/titles/display_title.html" %}
   </header>
-  {% if not hide_item_actions %}
-    {% include "aristotle_mdr/concepts/actionbar.html" %}
-  {% endif %}
-  
+  {% include "aristotle_mdr/manageditems/helpers/actionbar.html" %}
+
   <!-- Nav tabs -->
   <ul class="nav nav-tabs" role="tablist">
     <li role="presentation" {% if activetab == "item" %}class="active"{% endif %}>
       <a href="{% url 'aristotle:item' item.id item.meta.model_name item.name %}" aria-controls="item">Item</a>
     </li>
-    {% if user.is_authenticated %}
-    <li role="presentation" {% if activetab == "issues" %}class="active"{% endif %}>
-      <a href="{% url 'aristotle_issues:item_issues' item.id %}" aria-controls="issues" role="tab">Issues</a>
-    </li>
-    {% endif %}
     <li role="presentation" {% if activetab == "history" %}class="active"{% endif %}>
       <a href="{% url 'aristotle:item_history' item.id %}" aria-controls="history" role="tab">History</a>
     </li>

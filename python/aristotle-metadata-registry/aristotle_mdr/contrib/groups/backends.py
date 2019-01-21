@@ -76,7 +76,7 @@ class GroupBase(GroupTemplateMixin):
     group_context_name = None
 
     def get_group_queryset(self):
-        if hasattr(self, 'model') and issubclass(self.model, AbstractGroup):
+        if getattr(self, 'model', None) and issubclass(self.model, AbstractGroup):
             qs = super().get_queryset()
         else:
             qs = self.group_class.objects.all()
@@ -85,10 +85,13 @@ class GroupBase(GroupTemplateMixin):
             return qs
         # if self.superuser_override and self.request.user.is_superuser:
         #     return qs.prefetch_related('members')
-        return qs.group_list_for_user(self.request.user).prefetch_related('members')
+        # qs = qs.group_list_for_user(self.request.user).prefetch_related('members')
+        return qs
 
 
 class GroupMixin(GroupBase):
+    current_group_context = ""
+
     def get_group_context_name(self):
         for obj in [self, self.manager]:
             name = getattr(obj, "group_context_name")
@@ -97,7 +100,7 @@ class GroupMixin(GroupBase):
         return "group"
 
     def get_group(self):
-        if hasattr(self, 'model') and issubclass(self.model, AbstractGroup):
+        if getattr(self, 'model', None) is not None and issubclass(self.model, AbstractGroup):
             slug = self.slug_url_kwarg
         else:
             slug = self.group_slug_url_kwarg
@@ -109,6 +112,7 @@ class GroupMixin(GroupBase):
         context =  super().get_context_data(**kwargs)
         context.update({self.get_group_context_name(): self.get_group()})
         context.update({"group": self.get_group()})
+        context.update({"active_group_page": self.current_group_context})
         return context
 
 
@@ -143,10 +147,11 @@ class HasRolePermissionMixin(PermissionRequiredMixin):
     redirect_unauthenticated_users = True
 
     def check_permissions(self, request):
+        logger.debug(["GROUPS:>>> user can access"])
         assert self.role_permission != None
         self.group = self.get_group()
         can_access = self.group.user_has_permission(user=request.user, permission=self.role_permission)
-        logger.critical(["user can access", can_access])
+        logger.debug(["GROUPS:>>> user can access", can_access])
         return can_access
 
 
@@ -155,7 +160,7 @@ class GroupListView(LoginRequiredMixin, GroupBase, ListView):
     superuser_override = False
 
     def get_queryset(self):
-        return super().get_group_queryset()
+        return super().get_group_queryset().group_list_for_user(self.request.user)
 
 
 class GroupListAllView(SuperuserRequiredMixin, GroupListView):
@@ -166,6 +171,7 @@ class GroupListAllView(SuperuserRequiredMixin, GroupListView):
 class GroupMemberListView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin, ListView): #, ListForObjectMixin):
     fallback_template_name = "groups/group/members/list.html"
     role_permission = "edit_members"
+    current_group_context = "members"
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -209,6 +215,7 @@ class GroupMemberRemoveView(LoginRequiredMixin, HasRolePermissionMixin, GroupMem
 class GroupDetailView(HasRolePermissionMixin, GroupMixin, DetailView):
     fallback_template_name = "groups/group/detail.html"
     role_permission = "view_group"
+    current_group_context = "home"
 
 
 class GroupCreateView(LoginRequiredMixin, PermissionRequiredMixin, GroupBase, CreateView):

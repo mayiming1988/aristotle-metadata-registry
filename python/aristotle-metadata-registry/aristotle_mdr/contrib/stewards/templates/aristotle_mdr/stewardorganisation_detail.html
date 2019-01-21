@@ -1,22 +1,16 @@
-{% extends "aristotle_mdr/user/userHome.html" %}
-{% load i18n %}
-
-{% block collapse-link %}
-    <i class="fa fa-users fa-fw"></i> All Workgroups </a>
-{% endblock %}
-
-
-{% block sidebar %}
-{% include "aristotle_mdr/user/userSideBar.html" with activeTab="steward_orgs" %}
-{% endblock %}
+{% extends "aristotle_mdr/stewards/base.html" %}
+{% load i18n aristotle_tags util_tags %}
 
 {% block title %}{{ stewardship_organisation }}{% endblock %}
 
-{% block page %}
-<h1>
-    {{ stewardship_organisation }}
-</h1>
+{% block steward_content %}
 
-{% include "stewards/helpers/tabs.html" with active_tab="home" %}
+{% if stewardship_organisation.description %}
+{{ stewardship_organisation.description|bleach }}
+{% else %}
+No description for this organisation available.
+
+{% endif %}
+
 
 {% endblock %}

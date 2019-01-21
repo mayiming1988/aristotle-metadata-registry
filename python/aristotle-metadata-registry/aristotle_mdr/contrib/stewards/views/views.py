@@ -26,10 +26,9 @@ class ListStewardOrg(PermissionRequiredMixin, LoginRequiredMixin, GroupBase, Sor
         groups = self.get_initial_queryset().annotate(
             num_items=Count('metadata', distinct=True),
             num_workgroups=Count('workgroup', distinct=True),
-            num_ras=Count('registration_authority', distinct=True),
+            num_ras=Count('registrationauthority', distinct=True),
             num_members=Count('members', distinct=True)
         )
-        # workgroups = workgroups.prefetch_related('viewers', 'managers', 'submitters', 'stewards')
 
         if self.text_filter:
             groups = groups.filter(Q(name__icontains=self.text_filter) | Q(definition__icontains=self.text_filter))
