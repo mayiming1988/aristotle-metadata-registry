@@ -1,6 +1,5 @@
 from django.conf.urls import include, url
 from rest_framework_swagger.views import get_swagger_view
-from rest_framework.schemas import get_schema_view
 from django.utils.module_loading import import_string
 from .views import APIRootView
 # from rest_framework.authtoken import views as tokenviews
