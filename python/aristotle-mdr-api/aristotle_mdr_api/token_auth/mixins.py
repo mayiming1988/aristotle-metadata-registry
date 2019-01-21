@@ -1,4 +1,4 @@
-from django.http import HttpResponse, Http404
+from django.http import Http404, HttpResponseBadRequest, HttpResponseForbidden
 from aristotle_mdr_api.token_auth.models import AristotleToken
 from rest_framework.permissions import SAFE_METHODS
 
@@ -11,6 +11,7 @@ class TokenAuthMixin:
 
     header_prefix: str = 'Token: '
     permission_key: str = 'default'
+    check_read_only: bool = False
 
     def dispatch(self, request, *args, **kwargs):
         if 'AUTHORIZATION' in request.META:
@@ -20,27 +21,30 @@ class TokenAuthMixin:
                 try:
                     token_obj = AristotleToken.objects.get(key=token)
                 except AristotleToken.DoesNotExist:
-                    return HttpResponse(content='Invalid authorization header', status=400)
+                    return HttpResponseBadRequest('Invalid authorization header')
 
                 has_perms = self.check_token_permission(request, token_obj)
                 if not has_perms:
-                    return HttpResponse(content='Token does not have permission to perform this action', status=403)
+                    return HttpResponseForbidden('Token does not have permission to perform this action')
 
-                self.user = token_obj.user
+                self.token_user = token_obj.user
             else:
-                return HttpResponse(content='Invalid authorization header', status=400)
+                return HttpResponseBadRequest('Invalid authorization header')
         else:
-            return self.handle_non_token_request(request, *args, **kwargs)
+            self.token_user = None
 
         return super().dispatch(request, *args, **kwargs)
-
-    def handle_non_token_request(self, request, *args, **kwargs):
-        raise Http404
 
     def check_token_permission(self, request, token):
         permissions = token.permissions
         if self.permission_key in permissions:
             sub_perms = permissions[self.permission_key]
+
+            # If check read only is set dont worry about checking the request
+            # method
+            if self.check_read_only:
+                return sub_perms['read']
+
             # If read method and read perm
             if request.method in SAFE_METHODS and sub_perms['read']:
                 return True

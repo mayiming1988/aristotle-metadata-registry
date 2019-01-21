@@ -36,13 +36,14 @@ class TokenAuthMixinTestCase(TestCase):
 
     def test_404_on_non_token_request(self):
         request = self.factory.get('/some/api')
-        with self.assertRaises(Http404):
-            self.view.dispatch(request)
+        self.view.request = request
+        response = self.view.dispatch(request)
+        self.assertIsNone(self.view.token_user)
 
     def test_user_set_from_token(self):
         response = self.call_with_auth_header('Token: abcdef')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(self.view.user, self.user)
+        self.assertEqual(self.view.token_user, self.user)
 
     def test_non_existant_token(self):
         response = self.call_with_auth_header('Token: www')
