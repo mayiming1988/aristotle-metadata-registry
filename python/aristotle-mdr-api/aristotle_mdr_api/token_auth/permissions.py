@@ -2,6 +2,9 @@ from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 
 class BaseTokenPermissions(BasePermission):
+    """
+    Base Token permission
+    """
 
     permission_key = 'default'
     non_token_read = False
@@ -57,10 +60,19 @@ class IsAuthenticated(BasePermission):
 
 
 class TokenOrReadOnlyPerm(BaseTokenPermissions):
+    """
+    Permission that allows token's
+    But only read non token requests are allowed
+    """
     non_token_read = True
     non_token_write = False
 
 
 class TokenOrAllowedPerm(BaseTokenPermissions):
+    """
+    Permission that allows token's
+    and does not restrict non token requests
+    (Should be used in combination with other permissions)
+    """
     non_token_read = True
     non_token_write = True
