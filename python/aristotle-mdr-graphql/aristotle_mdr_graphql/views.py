@@ -45,20 +45,26 @@ class ExternalGraphqlView(TokenAuthMixin, View):
     permission_key = 'graphql'
     check_read_only = True
 
-    def execute_query(self, request, query, variables):
-        result = schema.execute(query, context=request, variables=variables)
-        if result.errors:
-            return JsonResponse({'errors': [format_error(e) for e in result.errors]})
+    def get(self, request, *args, **kwargs):
+        request.user = self.get_request_user()
+
+        query = request.GET.get('query', '')
+        if not query:
+            return HttpResponseBadRequest('No query was provided')
+
+        variables_string = request.GET.get('variables', '')
+        if variables_string:
+            try:
+                variables = json.loads(variables_string)
+            except json.JSONDecodeError:
+                return HttpResponseBadRequest('Request body was not valid json')
         else:
-            return JsonResponse({'data': result.data})
+            variables = {}
+
+        return self.execute_query(request, query, variables)
 
     def post(self, request, *args, **kwargs):
-        # If a token was submitted set the request user to the user whos token was submitted
-        if self.token_user:
-            request.user = self.token_user
-        else:
-            # Force anon user if token auth was not used
-            request.user = AnonymousUser()
+        request.user = self.get_request_user()
 
         try:
             body = request.body.decode()
@@ -83,3 +89,18 @@ class ExternalGraphqlView(TokenAuthMixin, View):
             return HttpResponse('Invalid Content-Type, must be applicaton/json or application/graphql', status=415)
 
         return self.execute_query(request, query, variables)
+
+    def execute_query(self, request, query, variables):
+        result = schema.execute(query, context=request, variables=variables)
+        if result.errors:
+            return JsonResponse({'errors': [format_error(e) for e in result.errors]})
+        else:
+            return JsonResponse({'data': result.data})
+
+    def get_request_user(self):
+        # If a token was submitted set the request user to the user whos token was submitted
+        if self.token_user:
+            return self.token_user
+        else:
+            # Force anon user if token auth was not used
+            return AnonymousUser()
