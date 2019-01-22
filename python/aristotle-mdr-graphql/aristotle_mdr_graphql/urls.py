@@ -27,5 +27,5 @@ urlpatterns = [
             }
             """)
     ), name='graphql_api'),
-    url('^external', csrf_exempt(ExternalGraphqlView.as_view()), name='external')
+    url('^json', csrf_exempt(ExternalGraphqlView.as_view()), name='external')
 ]
