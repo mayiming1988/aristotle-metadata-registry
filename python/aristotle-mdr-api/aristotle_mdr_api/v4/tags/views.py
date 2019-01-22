@@ -13,6 +13,7 @@ from aristotle_mdr.models import _concept
 class TagView(generics.RetrieveUpdateDestroyAPIView):
     """Retrive and update a tag"""
     permission_classes=(AuthCanViewEdit,)
+    permission_key='metadata'
     serializer_class=serializers.TagSerializer
     queryset=Tag.objects.all()
 
@@ -20,6 +21,7 @@ class TagView(generics.RetrieveUpdateDestroyAPIView):
 class ItemTagUpdateView(generics.UpdateAPIView):
     """Update tags for a specific item"""
     permission_classes=(AuthCanViewEdit,)
+    permission_key='metadata'
     serializer_class=serializers.ItemTagSerializer
     pk_url_kwarg='iid'
     schema = ManualSchema(
