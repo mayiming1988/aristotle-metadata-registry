@@ -422,7 +422,37 @@ class GraphqlExternalViewTestCase(utils.AristotleTestUtils, TestCase):
         )
         self.assertEqual(response.status_code, 403)
 
+    def test_query_invalid_json(self):
+        response = self.reverse_post(
+            'aristotle_graphql:external',
+            '{"query": "data"',
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertTrue('json' in response.content.decode())
 
+    def test_force_anon_if_no_token(self):
+        self.login_editor()
+        response = self.reverse_post(
+            'aristotle_graphql:external',
+            self.default_query,
+            content_type='application/graphql'
+        )
+        self.assertEqual(response.status_code, 200)
+        response_json = self.decode_response(response)
+        self.assertCountEqual(
+            response_json['data']['metadata']['edges'],
+            [{'node': {'uuid': str(self.public.uuid)}}]
+        )
+
+    def test_invalid_unicode_request(self):
+        response = self.reverse_post(
+            'aristotle_graphql:external',
+            b'\x80abc',  # \x80 is not a valid unicode char
+            content_type='application/graphql'
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertTrue('unicode' in response.content.decode())
 
 
 class GraphqlPermissionsTests(BaseGraphqlTestCase, TestCase):
