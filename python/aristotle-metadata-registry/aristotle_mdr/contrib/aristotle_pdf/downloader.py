@@ -22,6 +22,7 @@ class PDFDownloader(HTMLDownloader):
     file_extension = 'pdf'
     metadata_register = '__template__'
     label = "PDF"
+    mime_type = 'application/pdf'
     icon_class = "fa-file-pdf-o"
     description = "Downloads for various content types in the PDF format"
     allow_wrapper_pages = True

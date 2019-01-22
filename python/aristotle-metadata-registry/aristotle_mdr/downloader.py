@@ -11,6 +11,9 @@ from django.template.loader import render_to_string
 from django.core.files.base import ContentFile
 from django.conf import settings
 from django.utils.module_loading import import_string
+from django.http.request import QueryDict
+from django.core.mail.message import EmailMessage
+from django.urls import reverse
 
 import io
 import csv
@@ -56,6 +59,8 @@ class Downloader:
     requires_pandoc: bool = False
     # Download label (displayed to user)
     label: str = ''
+    # Mime type used when sending file in an email
+    mime_type: str = ''
 
     default_options = {
         'include_supporting': False,
@@ -63,7 +68,7 @@ class Downloader:
         'subclasses': None,
         'front_page': None,
         'back_page': None,
-        'email_to_user': False
+        'email_copy': False
     }
 
     def __init__(self, item_ids: List[int], user_id: Optional[int], options: Dict[str, Any] = {}):
@@ -162,6 +167,42 @@ class Downloader:
         final_fname = storage.save(filename, content)
         return storage.url(final_fname)
 
+    def email_file(self, f: File, url: str):
+        max_email_file_size = settings.MAX_EMAIL_FILE_SIZE
+
+        if f.size <= max_email_file_size:
+            # Read bytes from file
+            f.open('rb')
+            content = f.read()
+            f.close()
+
+            # Tuple of filename, file object, mime type
+            attachment = (
+                '.'.join([self.filename, self.file_extension]),
+                content,
+                self.mime_type
+            )
+            # Send the file as an attachment
+            email = EmailMessage(
+                'Aristotle Download',
+                'Please find attached your download',
+                to=[self.user.email],
+                attachments=[attachment]
+            )
+        else:
+            query = QueryDict(mutable=True)
+            query.setlist('items', self.item_ids)
+            regenerate_url = '{url}?{qstring}'.format(
+                url=reverse('aristotle:download_options', args=[self.download_type]),
+                qstring=query.urlencode()
+            )
+            email = EmailMessage(
+                'Aristotle Download',
+                'Your download is available at {}'.format(url),
+                to=[self.user.email]
+            )
+        email.send(fail_silently=True)
+
     def download(self) -> str:
         """Get the url for this downloads file, creating it if neccesary"""
         filepath = self.get_filepath()
@@ -172,7 +213,13 @@ class Downloader:
                 return url
 
         fileobj = self.create_file()
-        return self.store_file(filepath, fileobj)
+
+        url = self.store_file(filepath, fileobj)
+
+        if self.options['email_copy']:
+            self.email_file(fileobj, url)
+
+        return url
 
     @classmethod
     def get_class_info(cls) -> Dict[str, Any]:
@@ -196,6 +243,7 @@ class HTMLDownloader(Downloader):
     template_type = 'html'
     file_extension = 'html'
     label = 'HTML'
+    mime_type = 'text/html'
     metadata_register = '__all__'
     description = 'Download as html (used for debugging)'
 
@@ -351,6 +399,8 @@ class DocxDownloader(PandocDownloader):
     download_type = 'docx'
     file_extension = 'docx'
     label = 'Word'
+    # Yep, the proper mime type for docx really is that long
+    mime_type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.template'
     metadata_register = '__all__'
     icon_class = 'fa-file-word-o'
     description = 'Download as word document'
@@ -364,6 +414,7 @@ class ODTDownloader(PandocDownloader):
     download_type = 'odt'
     file_extension = 'odt'
     label = 'ODT'
+    mime_type = 'application/vnd.oasis.opendocument.text'
     metadata_register = '__all__'
     icon_class = 'fa-file-word-o'
     description = 'Download as odt document'
@@ -377,6 +428,7 @@ class MarkdownDownloader(PandocDownloader):
     download_type = 'md'
     file_extension = 'md'
     label = 'Markdown'
+    mime_type = 'text/markdown'
     metadata_register = '__all__'
     description = 'Download as markdown'
 
