@@ -1,14 +1,15 @@
-from graphene_django.views import GraphQLView
 from django.shortcuts import redirect, render
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.http import Http404, HttpResponseBadRequest, JsonResponse
+from django.http import Http404, HttpResponseBadRequest, JsonResponse, HttpResponse
 from django.contrib.auth.models import AnonymousUser
 
 from aristotle_mdr_api.token_auth.mixins import TokenAuthMixin
 from aristotle_mdr_graphql.schema.schema import schema  # Is that enought schema
 
+from graphene_django.views import GraphQLView
+from graphql.error import format_error
 import json
 
 import logging
@@ -39,6 +40,7 @@ class ExternalGraphqlView(TokenAuthMixin, View):
     """
     View for external applications to query graphql
     Token authentication is required to view private content
+    This view is marked as csrf_exempt
     """
     permission_key = 'graphql'
     check_read_only = True
@@ -46,7 +48,7 @@ class ExternalGraphqlView(TokenAuthMixin, View):
     def execute_query(self, request, query, variables):
         result = schema.execute(query, context=request, variables=variables)
         if result.errors:
-            return JsonResponse({'errors': result.errors})
+            return JsonResponse({'errors': [format_error(e) for e in result.errors]})
         else:
             return JsonResponse({'data': result.data})
 
@@ -58,18 +60,26 @@ class ExternalGraphqlView(TokenAuthMixin, View):
             # Force anon user if token auth was not used
             request.user = AnonymousUser()
 
+        try:
+            body = request.body.decode()
+        except UnicodeError:
+            return HttpResponseBadRequest('Request body was not valid unicode')
+
         variables = {}
-        query = ''
 
         # This is adapted from GraphQLView's parse_body method
         if request.content_type == 'application/json':
-            data = json.loads(request.body.decode())
+            try:
+                data = json.loads(body)
+            except json.JSONDecodeError:
+                return HttpResponseBadRequest('Request body was not valid json')
+
             variables = data.get('variables', {})
             query = data.get('query', '')
         elif request.content_type == 'application/graphql':
-            query = request.body.decode()
+            query = body
         else:
             # 415 is Unsupported Media Type
-            return HttpResponse('Incorrect Content-Type', status_code=415)
+            return HttpResponse('Invalid Content-Type, must be applicaton/json or application/graphql', status=415)
 
         return self.execute_query(request, query, variables)

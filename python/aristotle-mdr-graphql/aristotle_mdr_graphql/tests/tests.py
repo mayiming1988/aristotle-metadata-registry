@@ -6,9 +6,11 @@ from aristotle_dse import models as dse_models
 from aristotle_mdr.contrib.slots import models as slots_models
 from aristotle_mdr.contrib.identifiers import models as ident_models
 from aristotle_mdr.contrib.slots.tests import BaseSlotsTestCase
+from aristotle_mdr_api.token_auth.models import AristotleToken
 from comet import models as comet_models
 
 import json
+
 
 class BaseGraphqlTestCase(utils.LoggedInViewPages):
 
@@ -313,6 +315,115 @@ class GraphqlFunctionalTests(BaseGraphqlTestCase, TestCase):
         )
         edges = json_response['data']['metadata']['edges']
         self.assertEqual(len(edges), 2)
+
+
+class GraphqlExternalViewTestCase(utils.AristotleTestUtils, TestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.public = mdr_models.ObjectClass.objects.create(
+            name='Public',
+            definition='For the public'
+        )
+        self.private = mdr_models.ObjectClass.objects.create(
+            name='Private',
+            definition='Just for me',
+            submitter=self.editor
+        )
+        self.make_item_public(self.public, self.ra)
+        self.default_query = 'query { metadata { edges { node { uuid } } } }'
+
+    def decode_response(self, response):
+        response_json = json.loads(response.content)
+        self.assertFalse('errors' in response_json)
+        self.assertTrue('data' in response_json)
+        return response_json
+
+    def test_query_with_json_content(self):
+        response = self.reverse_post(
+            'aristotle_graphql:external',
+            json.dumps({'query': self.default_query}),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 200)
+        response_json = self.decode_response(response)
+        self.assertCountEqual(
+            response_json['data']['metadata']['edges'],
+            [{'node': {'uuid': str(self.public.uuid)}}]
+        )
+
+    def test_query_with_gql_content(self):
+        response = self.reverse_post(
+            'aristotle_graphql:external',
+            self.default_query,
+            content_type='application/graphql'
+        )
+        self.assertEqual(response.status_code, 200)
+        response_json = self.decode_response(response)
+        self.assertCountEqual(
+            response_json['data']['metadata']['edges'],
+            [{'node': {'uuid': str(self.public.uuid)}}]
+        )
+
+    def test_query_with_bad_content(self):
+        response = self.reverse_post(
+            'aristotle_graphql:external',
+            self.default_query,
+            content_type='text/plain'
+        )
+        self.assertEqual(response.status_code, 415)
+
+    def test_bad_query(self):
+        response = self.reverse_post(
+            'aristotle_graphql:external',
+            'dsadsadsa',
+            content_type='application/graphql'
+        )
+        self.assertEqual(response.status_code, 200)
+        response_json = json.loads(response.content)
+        self.assertTrue('errors' in response_json)
+        self.assertFalse('data' in response_json)
+
+    def test_query_token_correct_perms(self):
+        AristotleToken.objects.create(
+            name='MyToken',
+            key='abcdef',
+            user=self.editor,
+            permissions={'graphql': {'read': True}}
+        )
+        response = self.reverse_post(
+            'aristotle_graphql:external',
+            self.default_query,
+            content_type='application/graphql',
+            AUTHORIZATION='Token: abcdef'
+        )
+        self.assertEqual(response.status_code, 200)
+        response_json = self.decode_response(response)
+        self.assertCountEqual(
+            response_json['data']['metadata']['edges'],
+            [
+                {'node': {'uuid': str(self.public.uuid)}},
+                {'node': {'uuid': str(self.private.uuid)}}
+            ]
+        )
+
+    def test_query_incorrect_perms(self):
+        AristotleToken.objects.create(
+            name='MyToken',
+            key='abcdef',
+            user=self.editor,
+            permissions={'metadata': {'read': True}}
+        )
+        response = self.reverse_post(
+            'aristotle_graphql:external',
+            self.default_query,
+            content_type='application/graphql',
+            AUTHORIZATION='Token: abcdef'
+        )
+        self.assertEqual(response.status_code, 403)
+
+
+
 
 class GraphqlPermissionsTests(BaseGraphqlTestCase, TestCase):
 

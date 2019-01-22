@@ -21,6 +21,7 @@ from aristotle_mdr.contrib.reviews.models import ReviewRequest
 from time import sleep
 import random
 
+
 def wait_for_signal_to_fire(seconds=1):
     sleep(seconds)
 
