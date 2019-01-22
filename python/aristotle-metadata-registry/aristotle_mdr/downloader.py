@@ -14,6 +14,7 @@ from django.utils.module_loading import import_string
 from django.http.request import QueryDict
 from django.core.mail.message import EmailMessage
 from django.urls import reverse
+from django.template.loader import render_to_string
 
 import io
 import csv
@@ -170,37 +171,44 @@ class Downloader:
     def email_file(self, f: File, url: str):
         max_email_file_size = settings.MAX_EMAIL_FILE_SIZE
 
+        template_name = 'aristotle_mdr/email/download.html'
+        context = {
+            'item_names': ', '.join([i.name for i in self.items]),
+            'download_url': url
+        }
+        attachments = []
+
         if f.size <= max_email_file_size:
+            context['attached'] = True
             # Read bytes from file
             f.open('rb')
             content = f.read()
             f.close()
 
             # Tuple of filename, file object, mime type
-            attachment = (
+            attachments.append((
                 '.'.join([self.filename, self.file_extension]),
                 content,
                 self.mime_type
-            )
-            # Send the file as an attachment
-            email = EmailMessage(
-                'Aristotle Download',
-                'Please find attached your download',
-                to=[self.user.email],
-                attachments=[attachment]
-            )
+            ))
         else:
+            # Build url to regenerate download
             query = QueryDict(mutable=True)
             query.setlist('items', self.item_ids)
             regenerate_url = '{url}?{qstring}'.format(
                 url=reverse('aristotle:download_options', args=[self.download_type]),
                 qstring=query.urlencode()
             )
-            email = EmailMessage(
-                'Aristotle Download',
-                'Your download is available at {}'.format(url),
-                to=[self.user.email]
-            )
+            # Update context
+            context.update({'attached': False, 'regenerate_url': regenerate_url})
+
+        email = EmailMessage(
+            'Aristotle Download',
+            render_to_string(template_name, context),
+            to=[self.user.email],
+            attachments=attachments,
+        )
+        email.content_subtype = 'html'  # Sets the mime type of the body to text/html
         email.send(fail_silently=True)
 
     def download(self) -> str:

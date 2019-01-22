@@ -268,6 +268,7 @@ class DownloderTestCase(AristotleTestUtils, TestCase):
         content = message.attachments[0][1]
         self.assertEqual(content, 'MyFile')
 
+    # Set the max size to 1 byte so we can test emailing a too large file
     @override_settings(MAX_EMAIL_FILE_SIZE=1)
     def test_email_too_large_file(self):
         downloader = FakeDownloader([self.item.id], self.editor.id, {})
@@ -277,6 +278,10 @@ class DownloderTestCase(AristotleTestUtils, TestCase):
         message = mail.outbox[0]
         self.assertEqual(len(message.attachments), 0)
         self.assertTrue('https://example.com/file.txt' in message.body)
+
+        expected_regen_url = reverse('aristotle:download_options', args=['fake'])\
+            + '?items=' + str(self.item.id)
+        self.assertTrue(expected_regen_url in message.body)
 
 
 @override_settings(ARISTOTLE_SETTINGS={'DOWNLOADERS': ['aristotle_mdr.downloaders.HTMLDownloader']})
