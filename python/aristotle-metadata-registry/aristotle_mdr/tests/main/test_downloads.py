@@ -1,7 +1,9 @@
 from django.test import TestCase, tag, override_settings
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from django.core.files.base import ContentFile
 from django.core.exceptions import PermissionDenied
+from django.core import mail
 
 from aristotle_bg_workers.tasks import download
 from aristotle_mdr import models
@@ -255,6 +257,26 @@ class DownloderTestCase(AristotleTestUtils, TestCase):
     def test_exception_raised_if_no_items_visible(self):
         with self.assertRaises(PermissionDenied):
             downloader = FakeDownloader([self.item.id], self.viewer.id, {})
+
+    def test_email_file_direct(self):
+        downloader = FakeDownloader([self.item.id], self.editor.id, {})
+        f = ContentFile('MyFile')
+        downloader.email_file(f, 'https://example.com/file.txt')
+        self.assertEqual(len(mail.outbox), 1)
+        message = mail.outbox[0]
+        self.assertEqual(len(message.attachments), 1)
+        content = message.attachments[0][1]
+        self.assertEqual(content, 'MyFile')
+
+    @override_settings(MAX_EMAIL_FILE_SIZE=1)
+    def test_email_too_large_file(self):
+        downloader = FakeDownloader([self.item.id], self.editor.id, {})
+        f = ContentFile('MyFile')
+        downloader.email_file(f, 'https://example.com/file.txt')
+        self.assertEqual(len(mail.outbox), 1)
+        message = mail.outbox[0]
+        self.assertEqual(len(message.attachments), 0)
+        self.assertTrue('https://example.com/file.txt' in message.body)
 
 
 @override_settings(ARISTOTLE_SETTINGS={'DOWNLOADERS': ['aristotle_mdr.downloaders.HTMLDownloader']})
