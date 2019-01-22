@@ -1,4 +1,4 @@
-from django.test import Client, TestCase
+from django.test import Client, TestCase, tag
 from django.urls import reverse
 from aristotle_mdr.tests import utils
 from aristotle_mdr import models as mdr_models
@@ -454,13 +454,57 @@ class GraphqlExternalViewTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertTrue('unicode' in response.content.decode())
 
+    def test_get_request(self):
+        response = self.reverse_get(
+            'aristotle_graphql:external',
+            data={'query': self.default_query},
+        )
+        self.assertEqual(response.status_code, 200)
+        response_json = self.decode_response(response)
+        self.assertCountEqual(
+            response_json['data']['metadata']['edges'],
+            [{'node': {'uuid': str(self.public.uuid)}}]
+        )
+
+    @tag('variables')
+    def test_variables_post(self):
+        response = self.reverse_post(
+            'aristotle_graphql:external',
+            json.dumps({
+                'query': 'query ($search: String) { metadata (name_Icontains: $search) { edges { node { uuid } } } }',
+                'variables': {'search': 'Public'}
+            }),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 200)
+        response_json = self.decode_response(response)
+        self.assertCountEqual(
+            response_json['data']['metadata']['edges'],
+            [{'node': {'uuid': str(self.public.uuid)}}]
+        )
+
+    @tag('variables')
+    def test_variables_get(self):
+        response = self.reverse_get(
+            'aristotle_graphql:external',
+            data={
+                'query': 'query ($search: String) { metadata (name_Icontains: $search) { edges { node { uuid } } } }',
+                'variables': json.dumps({'search': 'Public'})
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        response_json = self.decode_response(response)
+        self.assertCountEqual(
+            response_json['data']['metadata']['edges'],
+            [{'node': {'uuid': str(self.public.uuid)}}]
+        )
+
 
 class GraphqlPermissionsTests(BaseGraphqlTestCase, TestCase):
 
     def test_query_workgroup_items(self):
         # Test querying items in the users workgroup
-
-        self.login_editor() # Editor is in wg1
+        self.login_editor()  # Editor is in wg1
         json_response = self.post_query('{ metadata { edges { node { name } } } }')
         self.assertEqual(len(json_response['data']['metadata']['edges']), 3)
 
