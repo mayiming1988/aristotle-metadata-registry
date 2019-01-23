@@ -12,7 +12,7 @@ class DownloadOptionsForm(forms.Form):
 
     title = forms.CharField(
         required=False,
-        help_text='The title of the document'
+        help_text='Optional title of the document'
     )
     include_supporting = forms.BooleanField(
         required=False,
