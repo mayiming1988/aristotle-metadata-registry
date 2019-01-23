@@ -11,12 +11,10 @@ class BaseTokenPermissions(BasePermission):
     non_token_write = False
 
     def has_permission(self, request, view):
-
         token = request.auth
 
         # request.auth will be None when using any other default authentication class
         if token is not None:
-
             if hasattr(view, 'permission_key'):
                 permission_key = getattr(view, 'permission_key')
             else:
@@ -35,7 +33,6 @@ class BaseTokenPermissions(BasePermission):
 
                 if 'write' in perm:
                     haswrite = perm['write']
-
         else:
             # Default for non token auths
             hasread = self.non_token_read
