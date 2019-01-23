@@ -12,11 +12,16 @@
 {% block content %}
 <section>
     <header>
+    {% if not tableOfContents and options.title %}
+      {# If there was no table of contents the user submitted title should go here #}
+      <h1>{{ options.title }}</h1>
+    {% else %}
     <h1 id="objectTitle">
         {{ item.name }}
         <span>({{ item.get_verbose_name }})
         </span>
     </h1>
+    {% endif %}
 </header>
 <div class="definition">
     {{ item.definition|bleach }}

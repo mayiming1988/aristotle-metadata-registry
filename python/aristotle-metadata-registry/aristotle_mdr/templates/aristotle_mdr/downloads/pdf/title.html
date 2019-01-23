@@ -9,6 +9,7 @@
    </head>
    <body>
    <div id="main">
+        {% if options.title %}<h1>{{ options.title }}</h1>{% endif %}
         {% if tableOfContents %}
            <div style="page-break-after:always;">
                 PDF download for:
