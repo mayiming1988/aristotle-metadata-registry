@@ -1,4 +1,4 @@
-from django.test import Client, TestCase, tag
+from django.test import Client, TestCase, tag, override_settings
 from django.urls import reverse
 from aristotle_mdr.tests import utils
 from aristotle_mdr import models as mdr_models
@@ -10,6 +10,7 @@ from aristotle_mdr_api.token_auth.models import AristotleToken
 from comet import models as comet_models
 
 import json
+from unittest import skip
 
 
 class BaseGraphqlTestCase(utils.LoggedInViewPages):
@@ -581,35 +582,34 @@ class GraphqlPermissionsTests(BaseGraphqlTestCase, TestCase):
         self.assertEqual(edges[0]['node']['name'], 'Test Value Domain')
         self.assertEqual(len(edges[0]['node']['dataelementSet']['edges']), 0)
 
-    # Filtering out RRs for now.
-    # When we can perform actions against RRs, then we'll bring them back
-    # def test_reviewrequest_query_perms(self):
+    @skip('Review requests are not in graphql at the moment')
+    def test_reviewrequest_query_perms(self):
 
-    #     allowed_rr = mdr_models.ReviewRequest.objects.create(
-    #         requester=self.editor,
-    #         registration_authority=self.ra,
-    #         status=0,
-    #         state=1,
-    #         registration_date=datetime.date.today(),
-    #         cascade_registration=0
-    #     )
+        allowed_rr = mdr_models.ReviewRequest.objects.create(
+            requester=self.editor,
+            registration_authority=self.ra,
+            status=0,
+            state=1,
+            registration_date=datetime.date.today(),
+            cascade_registration=0
+        )
 
-    #     disallowed_rr = mdr_models.ReviewRequest.objects.create(
-    #         requester=self.viewer,
-    #         registration_authority=self.ra,
-    #         status=0,
-    #         state=0,
-    #         registration_date=datetime.date.today(),
-    #         cascade_registration=0
-    #     )
+        disallowed_rr = mdr_models.ReviewRequest.objects.create(
+            requester=self.viewer,
+            registration_authority=self.ra,
+            status=0,
+            state=0,
+            registration_date=datetime.date.today(),
+            cascade_registration=0
+        )
 
-    #     self.login_editor()
+        self.login_editor()
 
-    #     json_response = self.post_query('{ reviewRequests { edges { node { id state } } } }')
-    #     edges = json_response['data']['reviewRequests']['edges']
+        json_response = self.post_query('{ reviewRequests { edges { node { id state } } } }')
+        edges = json_response['data']['reviewRequests']['edges']
 
-    #     self.assertEqual(len(edges), 1)
-    #     self.assertEqual(edges[0]['node']['state'], 'A_1')
+        self.assertEqual(len(edges), 1)
+        self.assertEqual(edges[0]['node']['state'], 'A_1')
 
     def test_query_non_registered_item(self):
         # Test requesting an object without a defined node e.g. User
@@ -617,6 +617,16 @@ class GraphqlPermissionsTests(BaseGraphqlTestCase, TestCase):
         json_response = self.post_query('{ metadata { submitter } }', 400)
         self.assertTrue('errors' in json_response.keys())
         self.assertFalse('data' in json_response.keys())
+
+    @override_settings(GRAPHQL_ENABLED=False)
+    def test_graphiql_404_when_not_enabled(self):
+        response = self.client.get('aristotle_graphql:graphql_api')
+        self.assertEqual(response.status_code, 404)
+
+    @override_settings(GRAPHQL_ENABLED=False)
+    def test_external_graphql_404_when_not_enabled(self):
+        response = self.client.get('aristotle_graphql:graphql_api')
+        self.assertEqual(response.status_code, 404)
 
 
 class GraphqlSlotsTests(BaseSlotsTestCase, BaseGraphqlTestCase, TestCase):

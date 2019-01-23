@@ -4,6 +4,7 @@ from django.views.generic import View
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.http import Http404, HttpResponseBadRequest, JsonResponse, HttpResponse
 from django.contrib.auth.models import AnonymousUser
+from django.conf import settings
 
 from aristotle_mdr_api.token_auth.mixins import TokenAuthMixin
 from aristotle_mdr_graphql.schema.schema import schema  # Is that enought schema
@@ -16,7 +17,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class FancyGraphQLView(GraphQLView):
+class GraphqlEnabledMixin:
+
+    def dispatch(self, request, *args, **kwargs):
+        if not settings.GRAPHQL_ENABLED:
+            raise Http404
+        return super().dispatch(request, *args, **kwargs)
+
+
+class FancyGraphQLView(GraphqlEnabledMixin, GraphQLView):
     default_query = ""
 
     def __init__(self, *args, **kwargs):
@@ -36,7 +45,7 @@ class FancyGraphQLView(GraphQLView):
         return render(request, self.graphiql_template, data)
 
 
-class ExternalGraphqlView(TokenAuthMixin, View):
+class ExternalGraphqlView(GraphqlEnabledMixin, TokenAuthMixin, View):
     """
     View for external applications to query graphql
     Token authentication is required to view private content
