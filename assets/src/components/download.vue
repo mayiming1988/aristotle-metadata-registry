@@ -51,7 +51,8 @@ export default {
                 }
                 if (data.is_ready) {
                     this.ready = true
-                    if (data.state != 'SUCCESS') {
+                    // It is possible for the task to be done with state started for some reason
+                    if (data.state != 'SUCCESS' && data.state != 'STARTED') {
                         this.error = true
                     } else if (data.result != undefined) {
                         this.url = data.result
