@@ -448,3 +448,17 @@ def get_status_change_details(queryset, ra, new_state):
 
 def get_model_label(model) -> str:
     return '.'.join([model._meta.app_label, model._meta.model_name])
+
+
+def format_seconds(seconds: int) -> str:
+    """Given a number of seconds format as X hours, X minutes, X seconds"""
+    minutes, rseconds = divmod(seconds, 60)
+    hours, rminutes = divmod(minutes, 60)
+    strings = []
+    if hours > 0:
+        strings.append('{} hours'.format(hours))
+    if rminutes > 0:
+        strings.append('{} minutes'.format(rminutes))
+    if rseconds > 0:
+        strings.append('{} seconds'.format(rseconds))
+    return ', '.join(strings)
