@@ -41,16 +41,16 @@ class TokenAuthMixinTestCase(TestCase):
         self.assertIsNone(self.view.token_user)
 
     def test_user_set_from_token(self):
-        response = self.call_with_auth_header('Token: abcdef')
+        response = self.call_with_auth_header('Token abcdef')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.view.token_user, self.user)
 
     def test_non_existant_token(self):
-        response = self.call_with_auth_header('Token: www')
+        response = self.call_with_auth_header('Token www')
         self.assertEqual(response.status_code, 400)
 
     def test_no_read_perms(self):
         self.token.permissions = {'default': {'read': False}}
         self.token.save()
-        response = self.call_with_auth_header('Token: abcdef')
+        response = self.call_with_auth_header('Token abcdef')
         self.assertEqual(response.status_code, 403)

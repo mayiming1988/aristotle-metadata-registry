@@ -17,4 +17,4 @@ To access private content through the api you need to either be logged in to the
 
 Access tokens can be created from the token management page and must be assigned explicit permissions which determined the endpoints each token is able to access.
 
-To use the token it must be provided in the Authenticate http header in the form ``Token: mytoken``. For example if your token is ``Ykc7ClFLUiQKKG8`` the Authenticate header should be ``Token: Ykc7ClFLUiQKKG8``
+To use the token it must be provided in the Authenticate http header in the form ``Token mytoken``. For example if your token is ``Ykc7ClFLUiQKKG8`` the Authenticate header should be ``Token Ykc7ClFLUiQKKG8``

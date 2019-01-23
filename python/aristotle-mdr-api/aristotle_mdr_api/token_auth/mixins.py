@@ -9,7 +9,7 @@ class TokenAuthMixin:
     Currently used in graphql views
     """
 
-    header_prefix: str = 'Token: '
+    header_prefix: str = 'Token '
     permission_key: str = 'default'
     check_read_only: bool = False
 

@@ -34,5 +34,5 @@ Authentication
 --------------
 
 By default the GraphQL endpoint will provide only public content. 
-To access private content a token must be provided in the Authenticate header in the form ``Token: mytoken``. 
+To access private content a token must be provided in the Authenticate header in the form ``Token mytoken``. 
 These tokens can be created from the token management page accessible from ``/api/``
