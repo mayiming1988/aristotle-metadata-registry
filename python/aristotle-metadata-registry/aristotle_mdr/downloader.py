@@ -25,7 +25,7 @@ import pypandoc
 from aristotle_mdr.contrib.help.models import ConceptHelp
 from aristotle_mdr import models as MDR
 from aristotle_mdr.views import get_if_user_can_view
-from aristotle_mdr.utils import fetch_aristotle_settings, get_model_label
+from aristotle_mdr.utils import fetch_aristotle_settings, get_model_label, format_seconds
 from aristotle_mdr.utils.utils import get_download_template_path_for_item
 from celery import shared_task
 
@@ -192,6 +192,10 @@ class Downloader:
                 self.mime_type
             ))
         else:
+            storage = self.get_storage()
+            if hasattr(storage, 'querystring_expire'):
+                expire_seconds = storage.querystring_expire
+                context['expire_time'] = format_seconds(expire_seconds)
             # Build url to regenerate download
             query = QueryDict(mutable=True)
             query.setlist('items', self.item_ids)
