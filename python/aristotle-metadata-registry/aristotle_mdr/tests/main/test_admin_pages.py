@@ -23,14 +23,15 @@ class AdminPage(utils.LoggedInViewPages,TestCase):
         new_editor.is_staff=True
         new_editor.save()
 
-        wg_nm = models.Workgroup.objects.create(name="normal and is manager")
-        wg_am = models.Workgroup.objects.create(name="archived and is manager",archived=True)
-        wg_nv = models.Workgroup.objects.create(name="normal and is viewer")
-        wg_av = models.Workgroup.objects.create(name="archived and is viewer",archived=True)
-        wg_ns = models.Workgroup.objects.create(name="normal and is submitter")
-        wg_as = models.Workgroup.objects.create(name="archived and is submitter",archived=True)
-        wg_nw = models.Workgroup.objects.create(name="normal and is steward")
-        wg_aw = models.Workgroup.objects.create(name="archived and is steward",archived=True)
+        steward_org = models.StewardOrganisation.objects.create(name="Test SO")
+        wg_nm = models.Workgroup.objects.create(name="normal and is manager", stewardship_organisation=steward_org)
+        wg_am = models.Workgroup.objects.create(name="archived and is manager",archived=True, stewardship_organisation=steward_org)
+        wg_nv = models.Workgroup.objects.create(name="normal and is viewer", stewardship_organisation=steward_org)
+        wg_av = models.Workgroup.objects.create(name="archived and is viewer",archived=True, stewardship_organisation=steward_org)
+        wg_ns = models.Workgroup.objects.create(name="normal and is submitter", stewardship_organisation=steward_org)
+        wg_as = models.Workgroup.objects.create(name="archived and is submitter",archived=True, stewardship_organisation=steward_org)
+        wg_nw = models.Workgroup.objects.create(name="normal and is steward", stewardship_organisation=steward_org)
+        wg_aw = models.Workgroup.objects.create(name="archived and is steward",archived=True, stewardship_organisation=steward_org)
 
         wg_nm.managers.add(new_editor)
         wg_am.managers.add(new_editor)
@@ -503,7 +504,7 @@ class DataElementDerivationAdminPage(AdminPageForConcept,TestCase):
         super().setUp(instant_create=False)
         from reversion import revisions as reversion
         with reversion.create_revision():
-            self.ded_wg = models.Workgroup.objects.create(name="Derived WG")
+            self.ded_wg = models.Workgroup.objects.create(name="Derived WG", stewardship_organisation=steward_org)
             self.derived_de = models.DataElement.objects.create(name='derivedDE',definition="my definition",workgroup=self.ded_wg)
 
         self.ra.register(self.derived_de, models.STATES.standard, self.su)

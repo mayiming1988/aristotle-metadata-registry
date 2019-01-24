@@ -52,9 +52,10 @@ class AnonymousUserViewingThePages(TestCase):
         self.assertEqual(response.status_code,200)
 
     def test_visible_item(self):
-        wg = models.Workgroup.objects.create(name="Setup WG")
-        ra = models.RegistrationAuthority.objects.create(name="Test RA")
-        item = models.ObjectClass.objects.create(name="Test OC",workgroup=wg)
+        steward_org = models.StewardOrganisation.objects.create(name="Test SO")
+        wg = models.Workgroup.objects.create(name="Setup WG", stewardship_organisation=steward_org)
+        ra = models.RegistrationAuthority.objects.create(name="Test RA", stewardship_organisation=steward_org)
+        item = models.ObjectClass.objects.create(name="Test OC", workgroup=wg)
         s = models.Status.objects.create(
                 concept=item,
                 registrationAuthority=ra,
@@ -619,6 +620,8 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
             workgroup=self.wg1,
             **self.defaults
         )
+        self.steward_org = models.StewardOrganisation.objects.create(name="Test SO")
+
 
     # ---- utils ----
 
@@ -954,7 +957,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
     @override_settings(ARISTOTLE_SETTINGS=dict(settings.ARISTOTLE_SETTINGS, WORKGROUP_CHANGES=[]))
     def test_submitter_cannot_change_workgroup_via_edit_page(self):
         # based on the idea that 'submitter' is not set in ARISTOTLE_SETTINGS.WORKGROUP
-        self.wg_other = models.Workgroup.objects.create(name="Test WG to move to")
+        self.wg_other = models.Workgroup.objects.create(name="Test WG to move to", stewardship_organisation=self.steward_org)
         self.wg_other.submitters.add(self.editor)
 
         self.login_editor()
@@ -991,7 +994,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
     @override_settings(ARISTOTLE_SETTINGS=dict(settings.ARISTOTLE_SETTINGS, WORKGROUP_CHANGES=['submitter']))
     def test_submitter_can_change_workgroup_via_edit_page(self):
         # based on the idea that 'submitter' is set in ARISTOTLE_SETTINGS.WORKGROUP
-        self.wg_other = models.Workgroup.objects.create(name="Test WG to move to")
+        self.wg_other = models.Workgroup.objects.create(name="Test WG to move to", stewardship_organisation=self.steward_org)
 
         self.login_editor()
         response = self.client.get(reverse('aristotle:edit_item',args=[self.item1.id]))
@@ -1023,7 +1026,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
     @override_settings(ARISTOTLE_SETTINGS=dict(settings.ARISTOTLE_SETTINGS, WORKGROUP_CHANGES=['admin']))
     def test_admin_can_change_workgroup_via_edit_page(self):
         # based on the idea that 'admin' is set in ARISTOTLE_SETTINGS.WORKGROUP
-        self.wg_other = models.Workgroup.objects.create(name="Test WG to move to")
+        self.wg_other = models.Workgroup.objects.create(name="Test WG to move to", stewardship_organisation=self.steward_org)
 
         self.login_superuser()
         response = self.client.get(reverse('aristotle:edit_item',args=[self.item1.id]))
@@ -1043,7 +1046,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
     @override_settings(ARISTOTLE_SETTINGS=dict(settings.ARISTOTLE_SETTINGS, WORKGROUP_CHANGES=['manager']))
     def test_manager_of_two_workgroups_can_change_workgroup_via_edit_page(self):
         # based on the idea that 'manager' is set in ARISTOTLE_SETTINGS.WORKGROUP
-        self.wg_other = models.Workgroup.objects.create(name="Test WG to move to")
+        self.wg_other = models.Workgroup.objects.create(name="Test WG to move to", stewardship_organisation=self.steward_org)
         self.wg_other.submitters.add(self.editor)
 
         self.login_editor()
@@ -2360,7 +2363,7 @@ class DataElementConceptViewPage(LoggedInViewConceptPages, TestCase):
         self.assertContains(response, self.item1.objectClass.name)
         self.assertContains(response, self.item1.property.name)
 
-        ra = models.RegistrationAuthority.objects.create(name="new RA")
+        ra = models.RegistrationAuthority.objects.create(name="new RA", stewardship_organisation=self.steward_org)
         item = self.item1.property
         s = models.Status.objects.create(
                 concept=item,
