@@ -13,4 +13,3 @@ class Command(BaseCommand):
             if item.workgroup is not None:
                 item.stewardship_organisation = item.workgroup.stewardship_organisation
                 item.save()
-                

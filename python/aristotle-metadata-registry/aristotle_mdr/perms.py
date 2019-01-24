@@ -403,12 +403,11 @@ def view_other_users_account(viewing_user, viewed_user):
     ]
     kwargs = {"members__user": user, "members__role__in": allowed_roles}
 
-    # return True
     return StewardOrganisation.objects.filter(
-            members__user=viewed_user
-        ).filter(
-            members__user=viewing_user, members__role__in=allowed_roles
-        ).active().exists()
+        members__user=viewed_user
+    ).filter(
+        members__user=viewing_user, members__role__in=allowed_roles
+    ).active().exists()
 
     return False
 

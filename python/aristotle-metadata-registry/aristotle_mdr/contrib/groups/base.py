@@ -1,3 +1,4 @@
+from typing import Dict
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import FieldDoesNotExist
@@ -18,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class AbstractMembershipBase(ModelBase):
     group_class = None
-    group_kwargs = {}
+    group_kwargs: Dict[str, str] = {}
 
     def __new__(cls, name, bases, attrs):  # noqa
         clsobj = super().__new__(cls, name, bases, attrs)
@@ -50,6 +51,7 @@ class AbstractMembershipBase(ModelBase):
 
         return clsobj
 
+
 class AbstractMembership(models.Model, metaclass=AbstractMembershipBase):
     class Meta:
         abstract = True
@@ -74,12 +76,11 @@ class AbstractGroupBase(ModelBase):
             field = clsobj._meta.get_field("state")
             field.choices = clsobj.states
         except FieldDoesNotExist:
-            # pass
             clsobj.add_to_class(
                 "state",
                 models.CharField(
-                    choices = clsobj.states,
-                    default = clsobj.active_states[0],
+                    choices=clsobj.states,
+                    default=clsobj.active_states[0],
                     max_length=128,
                     help_text=_('Status of this group')
                 )
@@ -91,12 +92,13 @@ class AbstractGroupBase(ModelBase):
 class BaseManager(models.Manager):
     pass
 
+
 class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
     objects = managers.AbstractGroupQuerySet.as_manager()
 
     class Meta:
         abstract = True
-    
+
     roles = Choices(
         ('owner', _('Owner')),
     )
@@ -145,7 +147,7 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
     @classproperty
     def allows_multiple_roles(self):
         return issubclass(self.members.rel.related_model, AbstractMultipleMembership)
-    
+
     def __str__(self):
         return self.name
 
@@ -175,7 +177,7 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
         # user_to_membership_relation = self.members.rel.related_model.user.field.related_query_name()
         user_to_membership_relation = self.members.model.user.field.related_query_name()
         return get_user_model().objects.filter(**{
-            user_to_membership_relation+"__group": self
+            user_to_membership_relation + "__group": self
         })
 
     def has_role(self, role, user):
@@ -191,7 +193,7 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
         """
         Returns false if the user already had the given role
         """
-        
+
         if self.allows_multiple_roles:
             role, created = self.members.model.objects.get_or_create(
                 group=self, user=user, role=role
@@ -201,8 +203,8 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
                 group=self, user=user,
                 defaults={"role": role}
             )
-        
-        return created 
+
+        return created
 
     def revoke_role(self, role, user):
         """
@@ -220,7 +222,7 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
         Returns number of roles deleted
         """
         deleted = self.members.filter(user=user).delete()
-        return deleted 
+        return deleted
 
     def roles_for_user(self, user):
         """

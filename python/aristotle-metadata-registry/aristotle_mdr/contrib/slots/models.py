@@ -16,6 +16,7 @@ from aristotle_mdr.fields import ConceptForeignKey
 from aristotle_mdr.contrib.slots.manager import SlotsManager
 from aristotle_mdr.constants import visibility_permission_choices as permission_choices
 
+
 class Slot(TimeStampedModel):
     # on save confirm the concept and model are correct, otherwise reject
     # on save confirm the cardinality

@@ -26,8 +26,10 @@ class UserAwareFormMixin:
             raise NoUserGivenForUserForm("The class inheriting from UserAwareForm was not called with a user or request parameter")
         super().__init__(*args, **kwargs)
 
+
 class UserAwareForm(UserAwareFormMixin, forms.Form):
     pass
+
 
 class UserAwareModelForm(UserAwareFormMixin, forms.ModelForm):
     class Meta:

@@ -26,7 +26,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class ManagedItemViewMixin:
+
     def get_model_class(self, request):
         model_name = self.kwargs.get("model_name").lower()
         logger.critical(model_name)
@@ -73,18 +75,21 @@ class StewardURLManager(GroupURLManager):
         return views.ListStewardOrg.as_view(manager=self, model=self.group_class, *args, **kwargs)
 
     def workgroup_list_view(self):
+
         class ListWorkgroup(GroupMixin, HasRolePermissionMixin, GenericListWorkgroup):
             current_group_context = "workgroups"
             role_permission = "list_workgroups"
             template_name = "aristotle_mdr/user/workgroups/steward_list.html"
             raise_exception = True
-        
+
             def get_initial_queryset(self):
                 return self.get_group().workgroup_set.all()
+
         return ListWorkgroup.as_view(manager=self, group_class=self.group_class)
 
     def workgroup_create_view(self):
         from aristotle_mdr.views.workgroups import CreateWorkgroup as Base
+
         class CreateWorkgroup(HasRolePermissionMixin, GroupMixin, Base):
             role_permission = "manage_workgroups"
 
@@ -96,12 +101,13 @@ class StewardURLManager(GroupURLManager):
         return CreateWorkgroup.as_view(manager=self, group_class=self.group_class)
 
     def registration_authority_list_view(self):
+
         class ListRegistrationAuthorities(GroupMixin, HasRolePermissionMixin, ListRegistrationAuthorityBase):
             current_group_context = "registrationauthorities"
             role_permission = "view_group"
             template_name = "aristotle_mdr/user/registration_authority/steward_list.html"
             raise_exception = True
-        
+
             def get_queryset(self):
                 return self.get_group().registrationauthority_set.all()
 
@@ -109,6 +115,7 @@ class StewardURLManager(GroupURLManager):
 
     def browse_view(self):
         from aristotle_mdr.contrib.browse.views import BrowseConcepts
+
         class Browse(GroupMixin, BrowseConcepts):
             current_group_context = "metadata"
             model = MDR._concept
@@ -116,6 +123,7 @@ class StewardURLManager(GroupURLManager):
             def get_queryset(self, *args, **kwargs):
                 qs = super().get_queryset(*args, **kwargs)
                 return qs.filter(stewardship_organisation=self.get_group())
+
             def get_context_data(self, *args, **kwargs):
                 # Call the base implementation first to get a context
                 self.kwargs['app'] = "aristotle_mdr"
@@ -125,11 +133,14 @@ class StewardURLManager(GroupURLManager):
                 # context['app_label'] = self.kwargs['app']
                 # context['app'] = apps.get_app_config(self.kwargs['app'])
                 return context
+
             def get_template_names(self):
                 return ['stewards/metadata/list.html']
+
         return Browse.as_view(manager=self, group_class=self.group_class)
-    
+
     def managed_item_create_view(self):
+
         class CreateManagedItemView(GroupMixin, ManagedItemViewMixin, CreateView):
             template_name = "stewards/managed_item/add.html"
             fields=["stewardship_organisation", "name", "definition"]
@@ -142,12 +153,13 @@ class StewardURLManager(GroupURLManager):
         return CreateManagedItemView.as_view(manager=self, group_class=self.group_class)
 
     def managed_item_list_types(self):
+
         class ListManagedItemTypesList(GroupMixin, HasRolePermissionMixin, ListView):
             current_group_context = "managed"
             role_permission = "view_group"
             template_name = "stewards/managed_item/list_types.html"
             raise_exception = True
-        
+
             def get_queryset(self):
                 types = [
                     x for x in ContentType.objects.all()
@@ -174,12 +186,12 @@ class StewardURLManager(GroupURLManager):
 
 
 def group_backend_factory(*args, **kwargs):
-    kwargs.update(dict(
-                group_class = MDR.StewardOrganisation,
-                membership_class = MDR.StewardOrganisationMembership,
-                namespace="aristotle_mdr:stewards:group",
-    ))
-    
+    kwargs.update({
+        "group_class": MDR.StewardOrganisation,
+        "membership_class": MDR.StewardOrganisationMembership,
+        "namespace": "aristotle_mdr:stewards:group",
+    })
+
     return StewardURLManager(*args, **kwargs)
 
 # class RegistryOwnerUserList(LoginRequiredMixin, PermissionRequiredMixin, ListView):

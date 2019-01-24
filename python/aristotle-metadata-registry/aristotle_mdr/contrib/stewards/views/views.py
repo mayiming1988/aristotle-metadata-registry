@@ -35,4 +35,3 @@ class ListStewardOrg(PermissionRequiredMixin, LoginRequiredMixin, GroupBase, Sor
 
         groups = self.sort_queryset(groups)
         return groups
-

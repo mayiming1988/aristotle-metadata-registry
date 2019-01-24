@@ -33,19 +33,20 @@ class ChangeWorkgroupUserRolesForm(UserAwareForm):
         required=False
     )
 
+
 class CreateWorkgroupForm(UserAwareFormMixin, forms.ModelForm):
     class Meta:
         model = MDR.Workgroup
         fields = ['name', 'definition', 'stewardship_organisation']
         widgets = {
-            "stewardship_organisation": forms.Select(attrs={'class':'form-control'})
+            "stewardship_organisation": forms.Select(attrs={'class': 'form-control'})
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         from aristotle_mdr.models import StewardOrganisation, StewardOrganisationMembership
         self.fields["stewardship_organisation"].queryset = StewardOrganisation.objects.filter(
-            members__user = self.user,
-            members__role = StewardOrganisation.roles.admin,
-            state__in = StewardOrganisation.active_states
+            members__user=self.user,
+            members__role=StewardOrganisation.roles.admin,
+            state__in=StewardOrganisation.active_states
         )

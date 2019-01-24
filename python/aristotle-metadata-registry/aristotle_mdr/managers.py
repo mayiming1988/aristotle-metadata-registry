@@ -253,11 +253,11 @@ class ManagedItemQuerySet(models.QuerySet):
         if user.is_superuser:
             return self.all()
 
-        q = Q(publication_details__permission = visibility_permission_choices.public)
+        q = Q(publication_details__permission=visibility_permission_choices.public)
         if user.is_anonymous():
             return self.filter(q)
 
-        q |= Q(publication_details__permission = visibility_permission_choices.auth)
+        q |= Q(publication_details__permission=visibility_permission_choices.auth)
         # q |= Q(
         #     workgroup__in=user.profile.workgroups,
         #     publication_details__permission=visibility_permission_choices.workgroup
@@ -280,8 +280,8 @@ class ManagedItemQuerySet(models.QuerySet):
         from aristotle_mdr.models import StewardOrganisation
 
         q = Q(
-            stewardship_organisation__members__user = user,
-            stewardship_organisation__members__role__in = [
+            stewardship_organisation__members__user=user,
+            stewardship_organisation__members__role__in=[
                 StewardOrganisation.roles.admin, StewardOrganisation.roles.steward
             ]
         )

@@ -56,6 +56,13 @@ from .managers import (
     StatusQuerySet
 )
 
+from aristotle_mdr.contrib.groups.base import (
+    AbstractGroup,
+    AbstractMembership,
+)
+
+from aristotle_mdr.contrib.groups import managers
+
 import logging
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
@@ -91,12 +98,6 @@ VERY_RECENTLY_SECONDS = 15
 concept_visibility_updated = Signal(providing_args=["concept"])
 
 
-from aristotle_mdr.contrib.groups.base import (
-    AbstractGroup,
-    AbstractMembership,
-)
-
-from aristotle_mdr.contrib.groups import managers
 class StewardOrganisation(AbstractGroup):
     # objects = managers.AbstractGroupQuerySet.as_manager()
 
@@ -147,7 +148,7 @@ class StewardOrganisation(AbstractGroup):
         help_text=_("Representation of a concept by a descriptive statement "
                     "which serves to differentiate it from related concepts. (3.2.39)")
     )
-    
+
     def get_absolute_url(self):
         return reverse(
             "aristotle_mdr:stewards:group:detail",
@@ -224,6 +225,7 @@ RA_ACTIVE_CHOICES = Choices(
     (1, 'inactive', _('Inactive & Visible')),
     (2, 'hidden', _('Inactive & Hidden'))
 )
+
 
 class RegistrationAuthority(Organization):
     """
@@ -1381,7 +1383,6 @@ class PossumProfile(models.Model):
             "aristotle:profile_picture",
             args=[self.user.pk]
         )
-
 
     # Override save for inline creation of objects.
     # http://stackoverflow.com/questions/2813189/django-userprofile-with-unique-foreign-key-in-django-admin

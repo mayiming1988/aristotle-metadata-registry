@@ -106,7 +106,7 @@ class AddUser(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, UpdateView
 class ListRegistrationAuthorityBase(ListView):
     model = MDR.RegistrationAuthority
 
-    def get_queryset():
+    def get_queryset(self):
         return super().get_queryset().filter(active__in=[0, 1])
 
     def render_to_response(self, context, **response_kwargs):

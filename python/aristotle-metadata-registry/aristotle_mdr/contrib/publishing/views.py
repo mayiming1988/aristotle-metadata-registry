@@ -32,8 +32,8 @@ class VersionPublishMetadataFormView(GenericWithItemURLFormView):
 
         VersionPublicationRecord.objects.get_or_create(
             # content_object=self.item,
-            content_type = ContentType.objects.get_for_model(self.item),
-            object_id = self.item.pk
+            content_type=ContentType.objects.get_for_model(self.item),
+            object_id=self.item.pk
         )
         kwargs.update({'instance': self.item.version_publication_details.first()})
         return kwargs
@@ -44,8 +44,8 @@ class VersionPublishMetadataFormView(GenericWithItemURLFormView):
             'authenticated_user_publication_date': form.cleaned_data['authenticated_user_publication_date']
         }
         rec, c = VersionPublicationRecord.objects.update_or_create(
-            content_type = ContentType.objects.get_for_model(self.item),
-            object_id = self.item.pk,
+            content_type=ContentType.objects.get_for_model(self.item),
+            object_id=self.item.pk,
             # user=self.request.user,
             defaults=defaults
         )
@@ -78,7 +78,7 @@ class PublishContentFormView(PermissionRequiredMixin, CreateUpdateView):
         if not self.publishable_object:
             content_type = self.get_content_type()
             model = content_type.model_class()
-    
+
             if not getattr(model, 'publication_details', None):
                 raise Http404
             # Verify the thing we want to publish exists
@@ -100,7 +100,7 @@ class PublishContentFormView(PermissionRequiredMixin, CreateUpdateView):
             "item": self.get_publishable_object()
         })
         return context
-    
+
     def form_valid(self, form):
         """
         If the form is valid, save the associated model.
@@ -126,4 +126,3 @@ class PublishContentFormView(PermissionRequiredMixin, CreateUpdateView):
         messages.add_message(self.request, messages.INFO, message)
 
         return self.get_publishable_object().get_absolute_url()
-    

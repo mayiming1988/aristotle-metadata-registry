@@ -598,12 +598,11 @@ class SimpleItemGet:
 
 
 # Thanks: https://stackoverflow.com/questions/17192737/django-class-based-view-for-both-create-and-update
-class CreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin,
-        ProcessFormView):
+class CreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin, ProcessFormView):
 
     def get_object(self, queryset=None):
         try:
-            return super(CreateUpdateView,self).get_object(queryset)
+            return super(CreateUpdateView, self).get_object(queryset)
         except AttributeError:
             return None
 

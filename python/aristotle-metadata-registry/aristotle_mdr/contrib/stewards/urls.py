@@ -9,8 +9,8 @@ urlpatterns = [
     # url(r'^accounts/signup', views.NewUserSignupView.as_view(), name="new_user_signup"),
     # url(r'^all/?$', views.ListStewardOrg.as_view(), name='view_all'),
     # # url(r'^create/?$', views.ListStewardOrg.as_view(), name='create'),
-    url(r'', #include(group_backend_factory(),
-        include(
+    url(
+        r'', include(
             manager.group_backend_factory().get_urls(),
             namespace="group"
         ),

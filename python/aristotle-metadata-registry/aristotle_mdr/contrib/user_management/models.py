@@ -19,6 +19,6 @@ class User(AbstractUser):
     @property
     def censored_email(self):
         return "{start}...{end}".format(
-            start=self.email[:self.email.index('@')+2],
-            end=self.email[self.email.rindex('.')-1:]
+            start=self.email[:self.email.index('@') + 2],
+            end=self.email[self.email.rindex('.') - 1:]
         )

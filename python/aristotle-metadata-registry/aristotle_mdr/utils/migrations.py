@@ -74,7 +74,7 @@ class StewardMigration(migrations.Migration):
         User = apps.get_model('aristotle_mdr_user_management', 'User')
 
         print("\n=================")
-        print("Autocreating default Stewardship Organization .... \"%s\""%(so.name,))
+        print("Autocreating default Stewardship Organization .... \"%s\"" % (so.name, ))
         print("All registration authorities and workgroups will be assigned to this Organization")
         print("All metadata assigned to a workgroups or registered will also be assigned to this Organization")
         print("Update this name once all migrations are complete.")
@@ -88,13 +88,11 @@ class StewardMigration(migrations.Migration):
                 role = "member"
             print("Granting [{user}] the role [{role}]".format(user=u.email, role=role))
             StewardMembership.objects.get_or_create(group=so, user=u, role=role)
-        
         print("=================")
         return so.uuid
 
     @classmethod
     def get_uuid(cls):
-        # return "4cdcdb06-17b1-11e9-a198-0242ac130006"
         return cls.so_uuid
 
     @classmethod
@@ -102,7 +100,7 @@ class StewardMigration(migrations.Migration):
         StewardOrganisation = apps.get_model('aristotle_mdr', 'StewardOrganisation')
         from django.conf import settings
         name = cls.steward_pattern.format(name=settings.ARISTOTLE_SETTINGS['SITE_NAME'])
-        so = StewardOrganisation.objects.order_by("id").first() #get(name=name)
+        so = StewardOrganisation.objects.order_by("id").first()  # get(name=name)
         cls.so_uuid = so.uuid
         return so.uuid
 
@@ -120,7 +118,6 @@ class StewardMigration(migrations.Migration):
         for item in model.objects.all():
             item.stewardship_organisation_id = cls.so_uuid
             item.save()
-                
 
 
 def create_uuid_objects(app_label, model_name, migrate_self=True):
