@@ -99,6 +99,7 @@ INSTALLED_APPS = (
     'aristotle_mdr.contrib.issues',
     'aristotle_mdr.contrib.publishing',
     'aristotle_mdr.contrib.custom_fields',
+    'aristotle_mdr.contrib.aristotle_backwards',
     'aristotle_mdr.contrib.stewards',
     'aristotle_mdr.contrib.groups',
 
@@ -340,3 +341,5 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     )
 }
+
+GRAPHQL_ENABLED = False

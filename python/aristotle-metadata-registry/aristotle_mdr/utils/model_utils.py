@@ -171,7 +171,8 @@ class AbstractValue(aristotleComponent):
         help_text=_("the actual value of the Value")
     )
     meaning = ShortTextField(  # 11.3.2.7.1
-        help_text=_("A textual designation of a value, where a relation to a Value meaning doesn't exist")
+        help_text=_("A textual designation of a value, where a relation to a Value meaning doesn't exist"),
+        blank=True
     )
     value_meaning = models.ForeignKey(  # 11.3.2.7.1
         'ValueMeaning',

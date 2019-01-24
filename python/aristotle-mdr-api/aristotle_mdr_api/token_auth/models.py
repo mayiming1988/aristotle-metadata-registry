@@ -5,6 +5,7 @@ from jsonfield import JSONField
 
 from django.utils.translation import ugettext_lazy as _
 
+
 class AristotleToken(Token):
 
     name = models.CharField(
