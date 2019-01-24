@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from model_utils.models import TimeStampedModel
@@ -12,10 +13,15 @@ from aristotle_mdr.constants import visibility_permission_choices
 
 
 class VersionPublicationRecord(TimeStampedModel):
-    concept = ConceptOneToOneField(
-        MDR._concept, related_name='versionpublicationrecord',
-        on_delete=models.deletion.CASCADE
-    )
+    class Meta:
+        unique_together = (
+            ("content_type", "object_id"),
+        )
+    
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
     public_user_publication_date = models.DateTimeField(
         default=None,
         blank=True,
@@ -35,7 +41,7 @@ class VersionPublicationRecord(TimeStampedModel):
 class PublicationRecord(TimeStampedModel):
     class Meta:
         unique_together = (
-            ("content_type", "object_id", "permission"),
+            ("content_type", "object_id"),
         )
     
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -50,6 +56,6 @@ class PublicationRecord(TimeStampedModel):
         default=visibility_permission_choices.public
     )
     publication_date = models.DateField(
-        default=now,
+        default=timezone.now,
         help_text=_("Enter a date in the future to specify the date is published from.")
     )

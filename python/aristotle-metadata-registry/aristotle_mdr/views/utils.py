@@ -4,12 +4,13 @@ from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
+from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Count, Q, Model
 from django.db.models.functions import Lower
 from django.db.models.query import QuerySet
 from django.forms.models import model_to_dict
-from django.views.generic import FormView
 from django.http import (
     Http404,
     JsonResponse,
@@ -17,18 +18,16 @@ from django.http import (
     HttpResponseNotFound,
     HttpResponseForbidden
 )
-
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
-from django.core.cache import cache
-from django.core.exceptions import PermissionDenied
-
-from django.views.generic.detail import BaseDetailView
 from django.views.generic import (
     DetailView, FormView, ListView
 )
+from django.views.generic.detail import BaseDetailView, SingleObjectTemplateResponseMixin
+from django.views.generic.edit import ModelFormMixin, ProcessFormView
+
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.perms import user_can_view
@@ -596,3 +595,22 @@ class SimpleItemGet:
         context = super().get_context_data(*args, **kwargs)
         context['item'] = self.item.item
         return context
+
+
+# Thanks: https://stackoverflow.com/questions/17192737/django-class-based-view-for-both-create-and-update
+class CreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin,
+        ProcessFormView):
+
+    def get_object(self, queryset=None):
+        try:
+            return super(CreateUpdateView,self).get_object(queryset)
+        except AttributeError:
+            return None
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(CreateUpdateView, self).get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(CreateUpdateView, self).post(request, *args, **kwargs)

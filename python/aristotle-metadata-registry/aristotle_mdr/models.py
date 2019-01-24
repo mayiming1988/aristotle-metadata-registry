@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse
 from django.db import models, transaction
@@ -120,6 +121,7 @@ class StewardOrganisation(AbstractGroup):
         "edit_group_details": [roles.admin],
         "edit_members": [roles.admin],
         "invite_member": [roles.admin],
+        "manage_managed_items": [roles.admin, roles.steward],
         "list_workgroups": [roles.admin, AbstractGroup.Permissions.is_member],
     }
     states = Choices(
@@ -626,6 +628,9 @@ class _concept(baseAristotleObject):
         null=True,
         related_name="metadata"
     )
+
+    publication_details = GenericRelation('aristotle_mdr_publishing.PublicationRecord')
+    version_publication_details = GenericRelation('aristotle_mdr_publishing.VersionPublicationRecord')
 
     workgroup = models.ForeignKey(Workgroup, related_name="items", null=True, blank=True)
     submitter = models.ForeignKey(

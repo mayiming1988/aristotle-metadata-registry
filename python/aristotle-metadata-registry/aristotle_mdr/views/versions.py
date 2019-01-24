@@ -459,7 +459,7 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         # if not self.request.user.is_superuser
         if not (self.request.user.is_superuser or self.request.user in metadata_item.workgroup.members):
             try:
-                version_publishing = metadata_item.versionpublicationrecord
+                version_publishing = metadata_item.version_publication_details.first()
             except:
                 version_publishing = None
             if version_publishing is None:
@@ -501,7 +501,7 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         context['hide_item_actions'] = True
 
         try:
-            version_publishing = self.get_object().versionpublicationrecord
+            version_publishing = self.get_object().version_publication_details.first()
         except:
             return context
         if version_publishing is None:

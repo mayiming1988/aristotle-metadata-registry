@@ -99,6 +99,10 @@ def measure(request, iid, model_slug, name_slug):
 def managed_item(request, model_slug, iid):
     model_class = get_object_or_404(ContentType, model=model_slug).model_class()
     item = get_object_or_404(model_class, pk=iid).item
+
+    if not user_can_view(request.user, item):
+        raise PermissionDenied
+
     return render(
         request, [item.template],
         {

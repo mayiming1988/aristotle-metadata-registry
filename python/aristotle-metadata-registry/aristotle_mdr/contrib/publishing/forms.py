@@ -6,12 +6,12 @@ from .models import VersionPublicationRecord
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 
 
-class MetadataPublishForm(ModelForm):
+class VersionPublicationForm(ModelForm):
     notes = forms.TextInput()
 
     class Meta:
         model = VersionPublicationRecord
-        exclude = ['concept']
+        exclude = ['content_type', 'object_id']
         widgets = {
             'public_user_publication_date': BootstrapDateTimePicker(
                 options={"format": "YYYY-MM-DD HH:MM"}
@@ -29,3 +29,6 @@ class MetadataPublishForm(ModelForm):
             raise ValidationError(
                 "Authenticated user publication date cannot be after public user publication date."
             )
+
+class PublicationForm(ModelForm):
+    pass

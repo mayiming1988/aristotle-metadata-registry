@@ -178,25 +178,6 @@ class GroupMemberListView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin
         return qs.filter(group=self.get_group())
 
 
-class GroupMemberAddView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin, CreateView):
-    fallback_template_name = "groups/group/members/add.html"
-    role_permission = "edit_members"
-    # queryset = User.objects.all()
-    fields = ["user", "role"]
-
-    def form_valid(self, form):
-        form.instance.group = self.get_group()
-        return super().form_valid(form)
-
-    def get_initial(self):
-        initial = self.initial.copy()
-        initial.update({"group": self.get_group()})
-        return initial
-
-    def get_success_url(self):
-        return reverse("%s:%s"%(self.manager.namespace,"detail"), args=[self.group.slug])
-
-
 class GroupMemberRemoveView(LoginRequiredMixin, HasRolePermissionMixin, GroupMemberMixin, FormView):
     fallback_template_name = "groups/group/members/remove.html"
     role_permission = "edit_members"
@@ -278,6 +259,7 @@ class GroupMembershipFormView(LoginRequiredMixin, HasRolePermissionMixin, GroupM
     membership_class = None
     form_class = MembershipUpdateForm
 
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['group'] = self.get_group()
@@ -291,6 +273,49 @@ class GroupMembershipFormView(LoginRequiredMixin, HasRolePermissionMixin, GroupM
     def form_valid(self, form):
         self.get_group().grant_role(form.cleaned_data['role'], user=self.get_member())
         return super().form_valid(form)
+
+
+class GroupMemberAddView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin, CreateView):
+    fallback_template_name = "groups/group/members/add.html"
+    role_permission = "edit_members"
+    # queryset = User.objects.all()
+    # fields = ["user", "role"]
+    # form_class = MembershipCreateForm
+
+
+    def get_form_class(self):
+        class MembershipCreateForm(forms.ModelForm):
+            class Meta:
+                fields = ["user", "role"]
+                model = self.manager.membership_class
+        
+            def __init__(self, manager, group, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.manager = manager
+                self.group = group
+        
+                self.fields['user'].queryset = get_user_model().objects.all().difference(
+                    self.group.member_list.all()
+                )
+        return MembershipCreateForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['group'] = self.get_group()
+        kwargs['manager'] = self.manager
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.group = self.get_group()
+        return super().form_valid(form)
+
+    def get_initial(self):
+        initial = self.initial.copy()
+        initial.update({"group": self.get_group()})
+        return initial
+
+    def get_success_url(self):
+        return reverse("%s:%s"%(self.manager.namespace,"detail"), args=[self.group.slug])
 
 
 @attr.s

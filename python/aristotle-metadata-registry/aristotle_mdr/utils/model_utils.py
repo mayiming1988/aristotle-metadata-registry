@@ -99,6 +99,7 @@ class ManagedItem(baseAristotleObject):
     objects = ManagedItemQuerySet.as_manager()
 
     publication_details = GenericRelation('aristotle_mdr_publishing.PublicationRecord')
+    version_publication_details = GenericRelation('aristotle_mdr_publishing.VersionPublicationRecord')
     stewardship_organisation = models.ForeignKey(
         'aristotle_mdr.StewardOrganisation', to_field="uuid",
         null=False,
@@ -111,7 +112,7 @@ class ManagedItem(baseAristotleObject):
         return user.is_superuser
 
     def can_view(self, user):
-        return True
+        return self.__class__.objects.filter(pk=self.pk).visible(user).exists()
 
     @property
     def item(self):
