@@ -33,14 +33,15 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
         import haystack
         haystack.connections.reload('default')
 
-        self.ra = models.RegistrationAuthority.objects.create(name="Kelly Act")
-        self.ra1 = models.RegistrationAuthority.objects.create(name="Superhuman Registration Act") # Anti-registration!
+        self.steward_org = models.StewardOrganisation.objects.create(name="Test SO")
+        self.ra = models.RegistrationAuthority.objects.create(name="Kelly Act", stewardship_organisation=self.steward_org)
+        self.ra1 = models.RegistrationAuthority.objects.create(name="Superhuman Registration Act", stewardship_organisation=self.steward_org) # Anti-registration!
         self.registrar = get_user_model().objects.create_user('william.styker@weaponx.mil','mutantsMustDie')
         self.ra.giveRoleToUser('registrar',self.registrar)
         self.assertTrue(perms.user_is_registrar(self.registrar,self.ra))
         xmen = "professorX cyclops iceman angel beast phoenix wolverine storm nightcrawler"
 
-        self.xmen_wg = models.Workgroup.objects.create(name="X Men")
+        self.xmen_wg = models.Workgroup.objects.create(name="X Men", stewardship_organisation=self.steward_org)
         # self.xmen_wg.registrationAuthorities.add(self.ra)
         self.xmen_wg.save()
 
@@ -56,7 +57,7 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
 
         avengers = "thor spiderman ironman hulk captainAmerica"
 
-        self.avengers_wg = models.Workgroup.objects.create(name="Avengers")
+        self.avengers_wg = models.Workgroup.objects.create(name="Avengers", stewardship_organisation=self.steward_org)
         # self.avengers_wg.registrationAuthorities.add(self.ra1)
         self.item_avengers = [
             models.ObjectClass.objects.create(name=t,workgroup=self.avengers_wg)
@@ -185,7 +186,7 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
     def test_workgroup_member_search(self):
         self.logout()
         self.viewer = get_user_model().objects.create_user('charles@schoolforgiftedyoungsters.edu','equalRightsForAll')
-        self.weaponx_wg = models.Workgroup.objects.create(name="WeaponX")
+        self.weaponx_wg = models.Workgroup.objects.create(name="WeaponX", stewardship_organisation=self.steward_org)
 
         response = self.client.post(reverse('friendly_login'),
                     {'username': 'charles@schoolforgiftedyoungsters.edu', 'password': 'equalRightsForAll'})
@@ -255,7 +256,7 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code,302) # logged in
 
         self.xmen_wg.giveRoleToUser('viewer',self.viewer)
-        self.weaponx_wg = models.Workgroup.objects.create(name="WeaponX")
+        self.weaponx_wg = models.Workgroup.objects.create(name="WeaponX", stewardship_organisation=self.steward_org)
 
         response = self.client.post(reverse('friendly_login'),
                     {'username': 'charles@schoolforgiftedyoungsters.edu', 'password': 'equalRightsForAll'})
@@ -586,7 +587,7 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
 
         self.login_regular_user()
 
-        random_wg = models.Workgroup.objects.create(name="random_wg")
+        random_wg = models.Workgroup.objects.create(name="random_wg", stewardship_organisation=self.steward_org)
 
         item_random = [
             models.ObjectClass.objects.create(name=t, definition='random', workgroup=random_wg)
@@ -630,11 +631,11 @@ class TestTokenSearch(TestCase):
         haystack.connections.reload('default')
 
         self.su = get_user_model().objects.create_superuser('super@example.com','user')
-        self.ra = models.RegistrationAuthority.objects.create(name="Kelly Act")
+        self.ra = models.RegistrationAuthority.objects.create(name="Kelly Act", stewardship_organisation=self.steward_org)
         self.registrar = get_user_model().objects.create_user('william.styker@weaponx.mil','mutantsMustDie')
         self.ra.giveRoleToUser('registrar',self.registrar)
         xmen = "wolverine professorX cyclops iceman angel beast phoenix storm nightcrawler"
-        self.xmen_wg = models.Workgroup.objects.create(name="X Men")
+        self.xmen_wg = models.Workgroup.objects.create(name="X Men", stewardship_organisation=self.steward_org)
         self.xmen_wg.save()
 
         self.item_xmen = [
@@ -785,7 +786,7 @@ class TestSearchDescriptions(TestCase):
         from aristotle_mdr.templatetags.aristotle_search_tags import \
             search_describe_filters as gen
 
-        ra = models.RegistrationAuthority.objects.create(name='Filter RA')
+        ra = models.RegistrationAuthority.objects.create(name='Filter RA', stewardship_organisation=self.steward_org)
 
         filters = {'models':['aristotle_mdr.objectclass']}
         form = PSF(filters)
