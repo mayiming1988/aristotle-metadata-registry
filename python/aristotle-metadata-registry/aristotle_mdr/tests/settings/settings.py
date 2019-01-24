@@ -96,7 +96,9 @@ PASSWORD_HASHERS = (
 ARISTOTLE_SETTINGS = ARISTOTLE_SETTINGS.copy()
 
 ARISTOTLE_SETTINGS['SEPARATORS']['DataElementConcept'] = '--'
-ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] = ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] + ['extension_test', 'aristotle_mdr_links']
+ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] = ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] + [
+    'extension_test', 'aristotle_mdr_links', 'aristotle_mdr_backwards'
+]
 ARISTOTLE_SETTINGS['DOWNLOADERS'] = ARISTOTLE_SETTINGS['DOWNLOADERS'] + [
     'text_download_test.downloader.TestTextDownloader'
 ]

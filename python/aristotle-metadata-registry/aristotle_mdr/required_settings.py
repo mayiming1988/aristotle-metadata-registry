@@ -99,6 +99,7 @@ INSTALLED_APPS = (
     'aristotle_mdr.contrib.issues',
     'aristotle_mdr.contrib.publishing',
     'aristotle_mdr.contrib.custom_fields',
+    'aristotle_mdr.contrib.aristotle_backwards',
 
     'dal',
     'dal_select2',

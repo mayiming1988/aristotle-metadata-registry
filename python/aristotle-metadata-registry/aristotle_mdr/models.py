@@ -1,3 +1,4 @@
+from typing import List
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse
@@ -680,6 +681,9 @@ class _concept(baseAristotleObject):
     comparator = comparators.Comparator
     edit_page_excludes: list = []
     admin_page_excludes: list = []
+    # List of fields that will only be displayed if 'aristotle_backwards' is
+    # enabled
+    backwards_compatible_fields: List[str] = []
     registerable = True
 
     class Meta:
@@ -1149,6 +1153,7 @@ class ValueDomain(concept):
         ('supplementary_values', 'supplementaryvalue_set'),
     ]
     clone_fields = ('permissiblevalue_set', 'supplementaryvalue_set')
+    backwards_compatible_fields = ['classification_scheme']
 
     data_type = ConceptForeignKey(  # 11.3.2.5.2.1
         DataType,
@@ -1167,7 +1172,7 @@ class ValueDomain(concept):
         blank=True,
         null=True,
         help_text=_('maximum number of characters available to represent the Data Element value')
-        )
+    )
     unit_of_measure = ConceptForeignKey(  # 11.3.2.5.2.3
         UnitOfMeasure,
         blank=True,
@@ -1181,6 +1186,13 @@ class ValueDomain(concept):
         null=True,
         help_text=_('The Conceptual Domain that this Value Domain which provides representation.'),
         verbose_name='Conceptual Domain'
+    )
+    classification_scheme = ConceptForeignKey(
+        'aristotle_mdr_backwards.ClassificationScheme',
+        blank=True,
+        null=True,
+        related_name='valueDomains',
+        verbose_name='Classification Scheme',
     )
     description = models.TextField(
         _('description'),
@@ -1216,7 +1228,8 @@ class AbstractValue(aristotleComponent):
         help_text=_("the actual value of the Value")
     )
     meaning = ShortTextField(  # 11.3.2.7.1
-        help_text=_("A textual designation of a value, where a relation to a Value meaning doesn't exist")
+        help_text=_("A textual designation of a value, where a relation to a Value meaning doesn't exist"),
+        blank=True
     )
     value_meaning = models.ForeignKey(  # 11.3.2.7.1
         ValueMeaning,
