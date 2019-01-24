@@ -35,6 +35,24 @@ def can_delete_discussion_post(user, post):
     return user_can_alter_post(user, post)
 
 
+def user_can_publish_object(user, obj):
+    if user.is_superuser:
+        return True
+
+    if user.is_anonymous:
+        return False
+
+    stewardship_organisation = obj.stewardship_organisation
+    if not stewardship_organisation:
+        # Can't publish "un-owned" objects
+        return False
+    if not getattr(obj, 'publication_details', None):
+        # There is no reverse relation, don't allow publication
+        return False
+
+    return stewardship_organisation.user_has_permission(user, "publish_objects")
+
+
 def can_delete_metadata(user, item):
     if item.submitter == user and item.workgroup is None:
         if not item.statuses.exists():

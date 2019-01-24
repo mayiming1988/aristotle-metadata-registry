@@ -118,6 +118,7 @@ class StewardOrganisation(AbstractGroup):
     role_permissions = {
         "view_group": [Permissions.can_view_group],
         "manage_workgroups": [roles.admin],
+        "publish_objects": [roles.admin, roles.steward],
         "manage_regstration_authorities": [roles.admin],
         "edit_group_details": [roles.admin],
         "edit_members": [roles.admin],

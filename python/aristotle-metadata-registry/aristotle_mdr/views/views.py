@@ -107,6 +107,8 @@ def managed_item(request, model_slug, iid):
         request, [item.template],
         {
             'item': item,
+            'group': item.stewardship_organisation,
+            'model_name': item.meta().model_name,
             "activetab": "item",
         }
     )

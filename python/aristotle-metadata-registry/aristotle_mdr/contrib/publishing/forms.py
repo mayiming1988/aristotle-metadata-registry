@@ -29,6 +29,3 @@ class VersionPublicationForm(ModelForm):
             raise ValidationError(
                 "Authenticated user publication date cannot be after public user publication date."
             )
-
-class PublicationForm(ModelForm):
-    pass

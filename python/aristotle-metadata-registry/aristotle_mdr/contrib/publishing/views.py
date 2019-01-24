@@ -1,3 +1,5 @@
+from braces.views import LoginRequiredMixin, PermissionRequiredMixin
+
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect, Http404
@@ -6,8 +8,9 @@ from django.utils.translation import gettext as _
 
 from aristotle_mdr.contrib.generic.views import GenericWithItemURLFormView
 from aristotle_mdr.views.utils import CreateUpdateView
+from aristotle_mdr import perms
 
-from .forms import PublicationForm, VersionPublicationForm
+from .forms import VersionPublicationForm
 from .models import VersionPublicationRecord, PublicationRecord
 
 import logging
@@ -21,7 +24,7 @@ def can_publish(user, item):
 class VersionPublishMetadataFormView(GenericWithItemURLFormView):
     permission_checks = [can_publish]
     template_name = "aristotle_mdr/publish/publish_metadata_versions.html"
-    form_class = PublicationForm
+    form_class = VersionPublicationForm
 
     def get_form_kwargs(self):
         """Return the keyword arguments for instantiating the form."""
@@ -49,13 +52,19 @@ class VersionPublishMetadataFormView(GenericWithItemURLFormView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class PublishContentFormView(CreateUpdateView):
+class PublishContentFormView(PermissionRequiredMixin, CreateUpdateView):
     template_name = "aristotle_mdr/publish/publish_object.html"
     model = PublicationRecord
     fields = ['permission', 'publication_date']
+    raise_exception = True
+    redirect_unauthenticated_users = True
 
     content_type = None
     publishable_object = None
+
+    def check_permissions(self, request):
+        publishable_object = self.get_publishable_object()
+        return perms.user_can_publish_object(request.user, publishable_object)
 
     def get_content_type(self):
         if not self.content_type:
