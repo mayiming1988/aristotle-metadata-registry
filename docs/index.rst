@@ -34,6 +34,7 @@ Table of Contents
    mission_statement.rst
    ./installing/index.rst
    features.rst
+   ./api/index.rst
    ./extensions/index.rst
    ./development/index.rst
    ./customising/index.rst

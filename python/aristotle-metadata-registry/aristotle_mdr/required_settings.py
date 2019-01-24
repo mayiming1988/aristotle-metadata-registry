@@ -339,3 +339,5 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     )
 }
+
+GRAPHQL_ENABLED = False

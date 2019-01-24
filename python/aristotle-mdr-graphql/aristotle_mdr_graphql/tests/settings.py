@@ -11,3 +11,5 @@ ROOT_URLCONF = 'aristotle_mdr_graphql.tests.urls'
 
 ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'].append('aristotle_dse')
 ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'].append('comet')
+
+GRAPHQL_ENABLED = True
