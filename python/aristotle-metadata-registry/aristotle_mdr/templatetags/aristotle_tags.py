@@ -560,19 +560,6 @@ def get_item(dictionary, key):
     return dictionary.get(key)
 
 
-@register.simple_tag
-def define(val=None):
-    """
-        Usage:
-            {% define "some thing" as variable_name %}
-            {{variable_name}}
-        Outputs:
-            "some_thing"
-        This saves us from having to wrap whole templates in `with` tags.
-    """
-    return val
-
-
 @register.simple_tag(takes_context=True)
 def has_group_perm(context, group, permission):
     """
