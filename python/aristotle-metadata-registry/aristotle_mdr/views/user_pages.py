@@ -33,7 +33,7 @@ from aristotle_mdr.views.utils import (paginated_list,
 from aristotle_mdr.views.views import ConceptRenderView
 from aristotle_mdr.utils import fetch_metadata_apps
 from aristotle_mdr.utils import get_aristotle_url
-from aristotle_bg_workers.tasks import send_notification_emails
+from aristotle_bg_workers.tasks import send_sandbox_notification_emails
 
 import json
 import random
@@ -523,11 +523,11 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
                                                                        ast.literal_eval(self.share.emails))
 
                 if len(recently_added_emails) > 0:
-                    send_notification_emails.delay(recently_added_emails,
-                                                   self.request.user.email,
-                                                   self.request.get_host() + reverse('aristotle_mdr:sharedSandbox',
+                    send_sandbox_notification_emails.delay(recently_added_emails,
+                                                           self.request.user.email,
+                                                           self.request.get_host() + reverse('aristotle_mdr:sharedSandbox',
                                                                                      args=[self.share.uuid])
-                                                   )
+                                                           )
 
         return super().form_valid(form)
 

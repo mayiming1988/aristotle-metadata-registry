@@ -78,8 +78,9 @@ def update_search_index(action, sender, instance, **kwargs):
     elif action == "delete":
         processor.handle_delete(sender, instance, **kwargs)
 
-@shared_task(name='send_notification_emails')
-def send_notification_emails(emails_list, user_email, sandbox_access_url):
+
+@shared_task(name='send_sandbox_notification_emails')
+def send_sandbox_notification_emails(emails_list, user_email, sandbox_access_url):
     from django.core.mail import send_mail
 
     # Send a separate email to each email address:
@@ -90,3 +91,23 @@ def send_notification_emails(emails_list, user_email, sandbox_access_url):
             user_email,
             [email]
         )
+
+
+@shared_task(name='send_notification_email')
+def send_notification_email(recipient, message):
+    from django.core.mail import send_mail
+    from django.conf import settings
+
+    # TODO: CHECK IF THIS SETTING WORKS IN PRODUCTION ENVIRONMENT:
+
+    from_email = settings.DEFAULT_FROM_EMAIL
+
+    if "." not in from_email:
+        from_email = from_email + ".com"
+
+    send_mail(
+        'Notification',
+        message,
+        from_email,
+        [recipient]
+    )

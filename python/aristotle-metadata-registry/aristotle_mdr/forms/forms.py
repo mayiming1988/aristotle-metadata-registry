@@ -154,7 +154,7 @@ class NotificationPermissionsForm(forms.Form):
                         "general changes": {
                             "type": "object",
                             "title": "",
-                            "description": "notify me of changes to:",
+                            "description": "Notify me of changes to:",
                             "properties": {
                                 "items in my workgroups": {
                                     "title": "items in my workgroups",
@@ -180,6 +180,31 @@ class NotificationPermissionsForm(forms.Form):
                             "type": "object",
                             "title": "",
                             "description": "Notify me when the following metadata is superseded:",
+                            "properties": {
+                                "items in my workgroups": {
+                                    "title": "items in my workgroups",
+                                    "type": "boolean",
+                                    "format": "checkbox",
+                                    "default": True
+                                },
+                                "items I have tagged / favourited": {
+                                    "title": "items I have tagged / favourited",
+                                    "type": "boolean",
+                                    "format": "checkbox",
+                                    "default": True
+                                },
+                                "any items I can edit": {
+                                    "title": "any items I can edit",
+                                    "type": "boolean",
+                                    "format": "checkbox",
+                                    "default": True
+                                }
+                            }
+                        },
+                        "issues": {
+                            "type": "object",
+                            "title": "",
+                            "description": "Notify me of any issues concerning the following items:",
                             "properties": {
                                 "items in my workgroups": {
                                     "title": "items in my workgroups",

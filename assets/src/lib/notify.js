@@ -34,10 +34,15 @@ function fill_aristotle_notification_menu(data) {
     if (menu) {
         menu.empty()
         if (data.unread_list.length > 0) {
-            for (var i=0; i < data.unread_list.length; i++) {
-                var item = data.unread_list[i];
+            for (let i=0; i < data.unread_list.length; i++) {
+                let item = data.unread_list[i];
 
-                let text = item.verb+" - "+item.actor
+                let text = item.actor + " " + item.verb + " " + item.target
+                //TODO: INSTEAD OF CHOPPING THE STRING AND ADDING ELLIPSIS ("...") WE COULD JUST ADD A <br/> TAG:
+                if (text.length > 53) {
+                    text = text.slice(0, 50)
+                    text = text + '\u2026'
+                }
                 let element
                 if (item.target_object_id) {
                     let target = '/notifyredirect/' + item.target_content_type + '/'
@@ -108,7 +113,6 @@ function mark_all_unread() {
             reload_notifications()
         }
     })
-
 }
 
 export function reload_notifications() {
