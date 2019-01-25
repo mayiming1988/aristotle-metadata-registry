@@ -7,6 +7,7 @@ from django.views.generic import CreateView, ListView, DetailView, UpdateView
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.forms import actions
+from aristotle_mdr.forms.registrationauthority import CreateRegistrationAuthorityForm
 from aristotle_mdr.views.utils import (
     paginated_registration_authority_list,
     ObjectLevelPermissionRequiredMixin,
@@ -49,8 +50,6 @@ def all_organizations(request):
     orgs = MDR.Organization.objects.order_by('name')
     return render(request, "aristotle_mdr/organization/all_organizations.html", {'organization': orgs})
 
-
-from aristotle_mdr.forms.registrationauthority import CreateRegistrationAuthorityForm
 
 class CreateRegistrationAuthority(UserFormViewMixin, LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     template_name = "aristotle_mdr/user/registration_authority/add.html"
