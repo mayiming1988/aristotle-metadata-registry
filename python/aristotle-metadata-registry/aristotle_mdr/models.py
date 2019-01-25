@@ -690,6 +690,9 @@ class _concept(baseAristotleObject):
         # So the url_name works for items we can't determine.
         verbose_name = "item"
 
+    class ReportBuilder:
+        exclude = ('_is_public', '_is_locked')
+
     @property
     def non_cached_fields_changed(self):
         changed = self.tracker.changed()
