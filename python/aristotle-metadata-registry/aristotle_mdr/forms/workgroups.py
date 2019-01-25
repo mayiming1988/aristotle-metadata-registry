@@ -45,8 +45,13 @@ class CreateWorkgroupForm(UserAwareFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         from aristotle_mdr.models import StewardOrganisation, StewardOrganisationMembership
-        self.fields["stewardship_organisation"].queryset = StewardOrganisation.objects.filter(
-            members__user=self.user,
-            members__role=StewardOrganisation.roles.admin,
-            state__in=StewardOrganisation.active_states
-        )
+        kwargs = {
+            "state__in": StewardOrganisation.active_states
+        }
+        if not self.user.is_superuser:
+            kwargs.update({
+                "members__user": self.user,
+                "members__role": StewardOrganisation.roles.admin,
+                
+            })
+        self.fields["stewardship_organisation"].queryset = StewardOrganisation.objects.filter(**kwargs)

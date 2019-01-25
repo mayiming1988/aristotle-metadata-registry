@@ -1610,7 +1610,6 @@ def check_concept_app_label(sender, instance, **kwargs):
 def update_org_to_match_workgroup(sender, instance, **kwargs):
     if not issubclass(sender, _concept):
         return
-    logger.critical(instance.workgroup)
     if instance.workgroup is not None:
         instance.stewardship_organisation = instance.workgroup.stewardship_organisation
 

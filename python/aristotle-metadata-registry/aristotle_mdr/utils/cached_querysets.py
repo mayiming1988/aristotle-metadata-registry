@@ -58,12 +58,12 @@ def register_queryset(qs):
         import copyreg
 
     from django.db.models.query import QuerySet
-    logger.critical([type(qs), qs])
     assert(issubclass(type(qs), QuerySet))
 
     copyreg.pickle(Field, pickle_abstract_field)
     # Monkey patching is tragically required here
     # https://github.com/django/django/pull/7280
+    # TODO: Is this still relevant?
     Field.__reduce__ = pickle_abstract_field
 
     qs_uuid = str(uuid.uuid4())

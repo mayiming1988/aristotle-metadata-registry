@@ -440,8 +440,7 @@ class AlertFieldsMixin:
 class UserFormViewMixin:
     def get_form_kwargs(self, *args, **kwargs):
         kwargs = super().get_form_kwargs(*args, **kwargs)
-        if getattr(self, 'user_form', False):
-            kwargs['user'] = self.request.user
+        kwargs['user'] = self.request.user
         return kwargs
 
 

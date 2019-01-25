@@ -1,7 +1,6 @@
 from django.db.models import Manager
 from django.db.models.query import QuerySet
 
-# from aristotle_mdr.contrib.slots.choices import permission_choices
 from aristotle_mdr.constants import visibility_permission_choices as permission_choices
 
 
