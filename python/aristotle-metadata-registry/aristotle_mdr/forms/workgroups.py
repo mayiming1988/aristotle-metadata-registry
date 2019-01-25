@@ -52,6 +52,5 @@ class CreateWorkgroupForm(UserAwareFormMixin, forms.ModelForm):
             kwargs.update({
                 "members__user": self.user,
                 "members__role": StewardOrganisation.roles.admin,
-                
             })
         self.fields["stewardship_organisation"].queryset = StewardOrganisation.objects.filter(**kwargs)
