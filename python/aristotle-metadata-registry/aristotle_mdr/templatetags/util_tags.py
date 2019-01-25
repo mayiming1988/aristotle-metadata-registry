@@ -1,3 +1,4 @@
+from typing import Optional
 from django import template
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import format_html
@@ -92,9 +93,13 @@ def bleach_filter(html: str) -> SafeString:
 
 
 @register.filter(name='isotime')
-def iso_time(dt: datetime):
+def iso_time(dt: Optional[datetime]):
     """Return ISO 8601 string from datetime object"""
     if dt is None:
         return '-'
 
-    return dt.isoformat()
+    if type(dt) == datetime:
+        return dt.isoformat()
+    else:
+        # If we got a non datetime object don't do anything
+        return dt
