@@ -52,10 +52,10 @@ def get_management_forms(item, slots=False, identifiers=False, item_is_model=Fal
     if hasattr(item, 'serialize_weak_entities'):
         weak = item.serialize_weak_entities
         for entity in weak:
-            d['%s-TOTAL_FORMS'%entity[0]] = 0
-            d['%s-INITIAL_FORMS'%entity[0]] = 0
-            d['%s-MIN_NUM_FORMS'%entity[0]] = 0
-            d['%s-MAX_NUM_FORMS'%entity[0]] = 1000
+            d['%s-TOTAL_FORMS' % entity[0]] = 0
+            d['%s-INITIAL_FORMS' % entity[0]] = 0
+            d['%s-MIN_NUM_FORMS' % entity[0]] = 0
+            d['%s-MAX_NUM_FORMS' % entity[0]] = 1000
 
     add_through_forms = False
     if not item_is_model:

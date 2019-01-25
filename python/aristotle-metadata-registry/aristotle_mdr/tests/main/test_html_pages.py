@@ -26,20 +26,11 @@ from unittest import mock, skip
 import reversion
 import json
 
-from aristotle_mdr.utils import setup_aristotle_test_environment
 from aristotle_mdr.tests.utils import store_taskresult, get_download_result
 
 from mock import patch
 
 from aristotle_mdr.templatetags.aristotle_tags import get_dataelements_from_m2m
-
-
-setup_aristotle_test_environment()
-
-
-def setUpModule():
-    from django.core.management import call_command
-    call_command('load_aristotle_help', verbosity=0, interactive=False)
 
 
 class AnonymousUserViewingThePages(TestCase):
@@ -631,6 +622,10 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
     # ---- utils ----
 
+    def loadHelp(self):
+        from django.core.management import call_command
+        call_command('load_aristotle_help', verbosity=0, interactive=False)
+
     def update_defn_with_versions(self, new_defn='brand new definition'):
         with reversion.create_revision():
             self.item1.save()
@@ -1175,6 +1170,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
     def test_help_page_exists(self):
         self.logout()
+        self.loadHelp()
         response = self.client.get(
             reverse('aristotle_help:concept_help',args=[self.itemType._meta.app_label,self.itemType._meta.model_name])
         )

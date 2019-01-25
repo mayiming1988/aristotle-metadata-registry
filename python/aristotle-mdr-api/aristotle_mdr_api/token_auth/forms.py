@@ -2,14 +2,27 @@ from django.forms import Form
 from django.forms.fields import CharField
 from django_jsonforms.forms import JSONSchemaField
 
+
 class TokenCreateForm(Form):
 
     name = CharField(max_length=100)
     perm_json = JSONSchemaField(
-        schema = {
+        schema={
             'type': 'object',
             'title': 'Permissions',
             'properties': {
+                'graphql': {
+                    'type': 'object',
+                    'title': 'Graphql',
+                    'description': 'Gives token access to any graphql query',
+                    'properties': {
+                        'read': {
+                            'title': 'Read',
+                            'type': 'boolean',
+                            'format': 'checkbox'
+                        }
+                    }
+                },
                 'metadata': {
                     'type': 'object',
                     'title': 'Metadata',

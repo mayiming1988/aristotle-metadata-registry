@@ -102,6 +102,7 @@ INSTALLED_APPS = (
     'aristotle_mdr.contrib.publishing',
     'aristotle_mdr.contrib.custom_fields',
     'aristotle_mdr.contrib.aristotle_pdf',
+    'aristotle_mdr.contrib.aristotle_backwards',
 
     'dal',
     'dal_select2',
@@ -341,10 +342,8 @@ REST_FRAMEWORK = {
 }
 
 # Caching
-
 # Key used to store value in fetch_aristotle_downloaders
 DOWNLOADERS_CACHE_KEY = 'aristotle_downloaders'
-
 # Whether to serve an existing file if possible
 DOWNLOAD_CACHING = False
 
@@ -356,3 +355,6 @@ OVERRIDE_ARISTOTLE_SETTINGS = None
 
 # Size after which to only send links to files
 MAX_EMAIL_FILE_SIZE = 1000 * 1000 * 10  # 10MB in bytes
+
+# Graphql
+GRAPHQL_ENABLED = False
