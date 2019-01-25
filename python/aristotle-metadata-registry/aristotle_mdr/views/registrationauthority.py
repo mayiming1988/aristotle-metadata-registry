@@ -12,7 +12,8 @@ from aristotle_mdr.views.utils import (
     ObjectLevelPermissionRequiredMixin,
     RoleChangeView,
     MemberRemoveFromGroupView,
-    AlertFieldsMixin
+    AlertFieldsMixin,
+    UserFormViewMixin
 )
 from aristotle_mdr import perms
 
@@ -49,13 +50,16 @@ def all_organizations(request):
     return render(request, "aristotle_mdr/organization/all_organizations.html", {'organization': orgs})
 
 
-class CreateRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+from aristotle_mdr.forms.registrationauthority import CreateRegistrationAuthorityForm
+
+class CreateRegistrationAuthority(UserFormViewMixin, LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     template_name = "aristotle_mdr/user/registration_authority/add.html"
-    fields = ['name', 'definition']
+    # fields = ['name', 'definition', 'stewardship_organisation']
     permission_required = "aristotle_mdr.add_registration_authority"
     raise_exception = True
     redirect_unauthenticated_users = True
     model = MDR.RegistrationAuthority
+    form_class = CreateRegistrationAuthorityForm
 
     def get_success_url(self):
         return reverse('aristotle:registrationauthority_details', kwargs={'iid': self.object.id})

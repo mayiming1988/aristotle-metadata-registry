@@ -631,6 +631,7 @@ class TestTokenSearch(TestCase):
         haystack.connections.reload('default')
 
         self.su = get_user_model().objects.create_superuser('super@example.com','user')
+        self.steward_org = models.StewardOrganisation.objects.create(name="Test SO")
         self.ra = models.RegistrationAuthority.objects.create(name="Kelly Act", stewardship_organisation=self.steward_org)
         self.registrar = get_user_model().objects.create_user('william.styker@weaponx.mil','mutantsMustDie')
         self.ra.giveRoleToUser('registrar',self.registrar)
@@ -779,7 +780,8 @@ class TestSearchDescriptions(TestCase):
     """
     Test the 'form to plain text' description generator
     """
-    # def setUp(self):
+    def setUp(self):
+        self.steward_org = models.StewardOrganisation.objects.create(name="Test SO")
 
     def test_descriptions(self):
         from aristotle_mdr.forms.search import PermissionSearchForm as PSF

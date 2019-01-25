@@ -15,6 +15,7 @@ setup_aristotle_test_environment()
 class UtilsTests(TestCase):
 
     def setUp(self):
+        self.steward_org_1 = models.StewardOrganisation.objects.create(name="Test SO")
 
         self.oc1 = models.ObjectClass.objects.create(
             name='Test OC',
@@ -27,9 +28,9 @@ class UtilsTests(TestCase):
 
     def test_reverse_slugs(self):
         item = models.ObjectClass.objects.create(name=" ",definition="my definition",submitter=None)
-        ra = models.RegistrationAuthority.objects.create(name=" ",definition="my definition")
+        ra = models.RegistrationAuthority.objects.create(name=" ",definition="my definition", stewardship_organisation=self.steward_org_1)
         org = models.Organization.objects.create(name=" ",definition="my definition")
-        wg = models.Workgroup.objects.create(name=" ",definition="my definition")
+        wg = models.Workgroup.objects.create(name=" ",definition="my definition", stewardship_organisation=self.steward_org_1)
 
         self.assertTrue('--' in utils.url_slugify_concept(item))
         self.assertTrue('--' in utils.url_slugify_workgroup(wg))
@@ -44,9 +45,9 @@ class UtilsTests(TestCase):
         )
 
         item = models.ObjectClass.objects.create(name="tname",definition="my definition",submitter=None)
-        ra = models.RegistrationAuthority.objects.create(name="tname",definition="my definition")
+        ra = models.RegistrationAuthority.objects.create(name="tname",definition="my definition", stewardship_organisation=self.steward_org_1)
         org = models.Organization.objects.create(name="tname",definition="my definition")
-        wg = models.Workgroup.objects.create(name="tname",definition="my definition")
+        wg = models.Workgroup.objects.create(name="tname",definition="my definition", stewardship_organisation=self.steward_org_1)
 
         url = utils.get_aristotle_url(item._meta.label_lower, item.pk, item.name)
         self.assertEqual(url, reverse('aristotle:item', args=[item.pk]))
