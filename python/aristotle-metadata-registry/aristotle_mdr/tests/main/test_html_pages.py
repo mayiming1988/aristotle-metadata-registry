@@ -2921,7 +2921,6 @@ class RegistrationAuthorityViewPage(utils.LoggedInViewPages, TestCase):
         self.item1 = self.itemType.objects.create(
             name="Object 1",
             stewardship_organisation=self.steward_org_1,
-            **self.defaults
         )
 
         self.item2 = models.DataElement.objects.create(name="OC1",workgroup=self.wg1,**self.defaults)
