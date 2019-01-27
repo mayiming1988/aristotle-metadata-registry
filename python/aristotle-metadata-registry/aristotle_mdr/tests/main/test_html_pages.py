@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db.models.fields import CharField, TextField
 from django.http import HttpResponse
@@ -371,7 +372,6 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         # one for the data element concept
         self.assertEqual(revmodels.Version.objects.count(), 2)
 
-        from django.contrib.contenttypes.models import ContentType
         concept_ct = ContentType.objects.get_for_model(models._concept)
         dec_ct = ContentType.objects.get_for_model(models.DataElementConcept)
 
@@ -910,14 +910,14 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertEqual(idents[1].order, 1)
 
     def test_submitter_cannot_save_via_edit_page_if_other_saves_made(self):
-        from datetime import timedelta
+
         self.login_editor()
         modified = self.item1.modified
         response = self.client.get(reverse('aristotle:edit_item',args=[self.item1.id]))
         self.assertEqual(response.status_code,200)
 
         # fake that we fetched the page seconds before modification
-        updated_item = utils.model_to_dict_with_change_time(response.context['item'],fetch_time=modified-timedelta(seconds=5))
+        updated_item = utils.model_to_dict_with_change_time(response.context['item'],fetch_time=modified-datetime.timedelta(seconds=5))
         updated_name = updated_item['name'] + " updated!"
         updated_item['name'] = updated_name
         change_comment = "I changed this because I can"
@@ -1317,7 +1317,6 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertTrue(self.item1.statuses.count() == 2)
         self.assertTrue(self.item1.statuses.last().state == models.STATES.candidate)
 
-        from django.contrib.contenttypes.models import ContentType
         ct = ContentType.objects.get_for_model(self.item1._meta.model)
         versions = list(
             reversion.models.Version.objects.filter(
@@ -2836,7 +2835,7 @@ class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):
         self.assertTrue('inputs' in data[0]['fields'])
 
 
-class LoggedInViewUnmanagedPages(utils.LoggedInViewPages):
+class LoggedInViewManagedItemPages(utils.LoggedInViewPages):
     defaults = {}
     def setUp(self):
         super().setUp()
@@ -2846,10 +2845,13 @@ class LoggedInViewUnmanagedPages(utils.LoggedInViewPages):
             **self.defaults
         )
 
+    # def get_page(self,item):
+    #     url_name = "".join(item._meta.verbose_name.title().split())
+    #     url_name = url_name[0].lower() + url_name[1:]
+    #     return reverse('aristotle:%s'%url_name,args=[item.id])
+
     def get_page(self,item):
-        url_name = "".join(item._meta.verbose_name.title().split())
-        url_name = url_name[0].lower() + url_name[1:]
-        return reverse('aristotle:%s'%url_name,args=[item.id])
+        return item.get_absolute_url()
 
     def test_help_page_exists(self):
         self.logout()
@@ -2858,10 +2860,48 @@ class LoggedInViewUnmanagedPages(utils.LoggedInViewPages):
 
     def test_item_page_exists(self):
         self.logout()
+        self.login_superuser()
         response = self.client.get(self.get_page(self.item1))
         self.assertEqual(response.status_code,200)
 
-class MeasureViewPage(LoggedInViewUnmanagedPages, TestCase):
+    def test_item_page_viewable_when_published(self):
+        self.logout()
+        response = self.client.get(self.get_page(self.item1))
+        self.assertEqual(response.status_code, 403)
+
+        from aristotle_mdr.contrib.publishing import models
+        from aristotle_mdr.constants import visibility_permission_choices
+    
+        publication_details = models.PublicationRecord.objects.create(
+            content_type=ContentType.objects.get_for_model(self.item1),
+            object_id=self.item1.pk,
+            permission=visibility_permission_choices.auth,
+            publication_date=(datetime.datetime.today()-datetime.timedelta(days=2)).date(),
+            publisher=self.su
+        )
+
+        # User is not logged in, can not see page
+        response = self.client.get(self.get_page(self.item1))
+        self.assertEqual(response.status_code, 403)
+        
+        self.login_viewer()
+
+        # Now logged in, can see page
+        response = self.client.get(self.get_page(self.item1))
+        self.assertEqual(response.status_code, 200)
+
+        self.logout()
+
+        publication_details.permission = visibility_permission_choices.public
+        publication_details.save()
+
+        # Publication now public, can see when logged out
+        response = self.client.get(self.get_page(self.item1))
+        self.assertEqual(response.status_code, 200)
+
+
+
+class MeasureViewPage(LoggedInViewManagedItemPages, TestCase):
     url_name='measure'
     itemType=models.Measure
 
@@ -2870,12 +2910,19 @@ class MeasureViewPage(LoggedInViewUnmanagedPages, TestCase):
 
         self.item2 = models.UnitOfMeasure.objects.create(name="OC1",workgroup=self.wg1,measure=self.item1,**self.defaults)
 
-class RegistrationAuthorityViewPage(LoggedInViewUnmanagedPages, TestCase):
+
+class RegistrationAuthorityViewPage(utils.LoggedInViewPages, TestCase):
     url_name='registrationAuthority'
     itemType=models.RegistrationAuthority
 
     def setUp(self):
         super().setUp()
+
+        self.item1 = self.itemType.objects.create(
+            name="Object 1",
+            stewardship_organisation=self.steward_org_1,
+            **self.defaults
+        )
 
         self.item2 = models.DataElement.objects.create(name="OC1",workgroup=self.wg1,**self.defaults)
 

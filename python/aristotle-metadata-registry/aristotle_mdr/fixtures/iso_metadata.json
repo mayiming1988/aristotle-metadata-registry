@@ -3,7 +3,8 @@
     "fields": {
       "description": "ISO\/IEC",
       "name": "ISO\/IEC",
-      "uuid": "e809bf1a-221d-11e9-a30f-0242ac130007"
+      "uuid": "e809bf1a-221d-11e9-a30f-0242ac130007",
+      "slug": "iso"
     },
     "model": "aristotle_mdr.stewardorganisation",
     "pk": 1
