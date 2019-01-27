@@ -89,9 +89,9 @@ class TestSelfPublishing(utils.LoggedInViewPages, TestCase):
         self.login_publisher()
 
         from aristotle_mdr.contrib.self_publish.views import is_submitter_or_super
-        
+
         self.assertTrue(is_submitter_or_super(self.submitting_user, self.item))
-        
+
         response = self.client.get(
             reverse('aristotle_self_publish:publish_metadata', args=[self.item.pk])
         )
