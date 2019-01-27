@@ -150,7 +150,7 @@ class TestRegexValidator(ValidationTester, TestCase):
 class TestStatusValidator(ValidationTester, TestCase):
 
     def setUp(self):
-        self.steward_org_1 = models.StewardOrganisation.objects.create(
+        self.steward_org_1 = MDR.StewardOrganisation.objects.create(
             name='Org 1',
             description="1",
         )
