@@ -17,21 +17,24 @@ setup_aristotle_test_environment()
 class AdminPage(utils.LoggedInViewPages,TestCase):
     def setUp(self):
         super().setUp()
+        self.steward_org_1 = models.StewardOrganisation.objects.create(
+            name='Org 1',
+            description="1",
+        )
 
     def test_workgroup_list(self):
         new_editor = get_user_model().objects.create_user('new_eddie@example.com','editor')
         new_editor.is_staff=True
         new_editor.save()
 
-        steward_org = models.StewardOrganisation.objects.create(name="Test SO")
-        wg_nm = models.Workgroup.objects.create(name="normal and is manager", stewardship_organisation=steward_org)
-        wg_am = models.Workgroup.objects.create(name="archived and is manager",archived=True, stewardship_organisation=steward_org)
-        wg_nv = models.Workgroup.objects.create(name="normal and is viewer", stewardship_organisation=steward_org)
-        wg_av = models.Workgroup.objects.create(name="archived and is viewer",archived=True, stewardship_organisation=steward_org)
-        wg_ns = models.Workgroup.objects.create(name="normal and is submitter", stewardship_organisation=steward_org)
-        wg_as = models.Workgroup.objects.create(name="archived and is submitter",archived=True, stewardship_organisation=steward_org)
-        wg_nw = models.Workgroup.objects.create(name="normal and is steward", stewardship_organisation=steward_org)
-        wg_aw = models.Workgroup.objects.create(name="archived and is steward",archived=True, stewardship_organisation=steward_org)
+        wg_nm = models.Workgroup.objects.create(name="normal and is manager", stewardship_organisation=self.steward_org_1)
+        wg_am = models.Workgroup.objects.create(name="archived and is manager",archived=True, stewardship_organisation=self.steward_org_1)
+        wg_nv = models.Workgroup.objects.create(name="normal and is viewer", stewardship_organisation=self.steward_org_1)
+        wg_av = models.Workgroup.objects.create(name="archived and is viewer",archived=True, stewardship_organisation=self.steward_org_1)
+        wg_ns = models.Workgroup.objects.create(name="normal and is submitter", stewardship_organisation=self.steward_org_1)
+        wg_as = models.Workgroup.objects.create(name="archived and is submitter",archived=True, stewardship_organisation=self.steward_org_1)
+        wg_nw = models.Workgroup.objects.create(name="normal and is steward", stewardship_organisation=self.steward_org_1)
+        wg_aw = models.Workgroup.objects.create(name="archived and is steward",archived=True, stewardship_organisation=self.steward_org_1)
 
         wg_nm.managers.add(new_editor)
         wg_am.managers.add(new_editor)
@@ -504,8 +507,7 @@ class DataElementDerivationAdminPage(AdminPageForConcept,TestCase):
         super().setUp(instant_create=False)
         from reversion import revisions as reversion
         with reversion.create_revision():
-            steward_org = models.StewardOrganisation.objects.create(name="Test SO")
-            self.ded_wg = models.Workgroup.objects.create(name="Derived WG", stewardship_organisation=steward_org)
+            self.ded_wg = models.Workgroup.objects.create(name="Derived WG", stewardship_organisation=self.steward_org_1)
             self.derived_de = models.DataElement.objects.create(name='derivedDE',definition="my definition",workgroup=self.ded_wg)
 
         self.ra.register(self.derived_de, models.STATES.standard, self.su)
@@ -514,56 +516,57 @@ class DataElementDerivationAdminPage(AdminPageForConcept,TestCase):
         self.create_items()
 
 
-class OrganizationAdminPage(utils.LoggedInViewPages, TestCase):
-    def test_registrar_cannot_promote_org_to_ra(self):
-        self.login_registrar()
+# Deprecating old Orgs
+# class OrganizationAdminPage(utils.LoggedInViewPages, TestCase):
+#     def test_registrar_cannot_promote_org_to_ra(self):
+#         self.login_registrar()
 
-        org = models.Organization.objects.create(name="My org", definition="My new org")
-        ra_count = models.RegistrationAuthority.objects.count()
+#         org = models.Organization.objects.create(name="My org", definition="My new org")
+#         ra_count = models.RegistrationAuthority.objects.count()
 
-        response = self.client.post(
-            reverse('admin:%s_%s_changelist' % ('aristotle_mdr','organization')),
-            {
-                'action': "promote_to_ra",
-                helpers.ACTION_CHECKBOX_NAME: [org.pk],
-                "post":"yes"
-            }
-        )
-        self.assertEqual(response.status_code, 302) # Redirects to admin login
-        self.assertTrue(ra_count == models.RegistrationAuthority.objects.count())
+#         response = self.client.post(
+#             reverse('admin:%s_%s_changelist' % ('aristotle_mdr','organization')),
+#             {
+#                 'action': "promote_to_ra",
+#                 helpers.ACTION_CHECKBOX_NAME: [org.pk],
+#                 "post":"yes"
+#             }
+#         )
+#         self.assertEqual(response.status_code, 302) # Redirects to admin login
+#         self.assertTrue(ra_count == models.RegistrationAuthority.objects.count())
 
-    def test_admin_user_can_promote_org_to_ra(self):
-        self.login_superuser()
-        org = models.Organization.objects.create(name="My org", definition="My new org")
-        ra_count = models.RegistrationAuthority.objects.count()
-        org_count = models.Organization.objects.count()
+#     def test_admin_user_can_promote_org_to_ra(self):
+#         self.login_superuser()
+#         org = models.Organization.objects.create(name="My org", definition="My new org")
+#         ra_count = models.RegistrationAuthority.objects.count()
+#         org_count = models.Organization.objects.count()
 
-        response = self.client.post(
-            reverse('admin:%s_%s_changelist' % ('aristotle_mdr','organization')),
-            {
-                'action': "promote_to_ra",
-                helpers.ACTION_CHECKBOX_NAME: [org.pk],
-            }
-        )
-        msg = "Are you sure you want to promote the selected organizations to Registration Authorities"
+#         response = self.client.post(
+#             reverse('admin:%s_%s_changelist' % ('aristotle_mdr','organization')),
+#             {
+#                 'action': "promote_to_ra",
+#                 helpers.ACTION_CHECKBOX_NAME: [org.pk],
+#             }
+#         )
+#         msg = "Are you sure you want to promote the selected organizations to Registration Authorities"
 
-        self.assertContains(response, msg)
-        self.assertTrue(ra_count == models.RegistrationAuthority.objects.count())
-        self.assertTrue(org_count == models.Organization.objects.count())
+#         self.assertContains(response, msg)
+#         self.assertTrue(ra_count == models.RegistrationAuthority.objects.count())
+#         self.assertTrue(org_count == models.Organization.objects.count())
 
-        response = self.client.post(
-            reverse('admin:%s_%s_changelist' % ('aristotle_mdr','organization')),
-            {
-                'action': "promote_to_ra",
-                helpers.ACTION_CHECKBOX_NAME: [org.pk],
-                "post":"yes"
-            }, follow=True
-        )
+#         response = self.client.post(
+#             reverse('admin:%s_%s_changelist' % ('aristotle_mdr','organization')),
+#             {
+#                 'action': "promote_to_ra",
+#                 helpers.ACTION_CHECKBOX_NAME: [org.pk],
+#                 "post":"yes"
+#             }, follow=True
+#         )
 
-        # We should have another registration authority
-        self.assertEqual(ra_count + 1, models.RegistrationAuthority.objects.count())
-        # BUT we should NOT have another organisation
-        self.assertTrue(org_count == models.Organization.objects.count())
+#         # We should have another registration authority
+#         self.assertEqual(ra_count + 1, models.RegistrationAuthority.objects.count())
+#         # BUT we should NOT have another organisation
+#         self.assertTrue(org_count == models.Organization.objects.count())
 
-        msg = "Successfully promoted 1 organization."
-        self.assertContains(response, msg)
+#         msg = "Successfully promoted 1 organization."
+#         self.assertContains(response, msg)

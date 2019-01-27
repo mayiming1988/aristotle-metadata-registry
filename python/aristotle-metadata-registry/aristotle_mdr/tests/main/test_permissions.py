@@ -42,7 +42,7 @@ class SuperuserPermissions(TestCase):
     def test_in_workgroup(self):
         self.assertTrue(perms.user_in_workgroup(self.su,None))
     def test_can_edit_registration_authority(self):
-        ra = models.RegistrationAuthority.objects.create(name="Test RA")
+        ra = models.RegistrationAuthority.objects.create(name="Test RA", stewardship_organisation=self.steward_org_1)
         self.assertTrue(ra.can_edit(self.su))
 
 class UnitOfMeasureVisibility(utils.ManagedObjectVisibility,TestCase):

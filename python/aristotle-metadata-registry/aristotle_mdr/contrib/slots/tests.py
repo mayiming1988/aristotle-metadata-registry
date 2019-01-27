@@ -159,7 +159,7 @@ class TestSlotsPagesLoad(utils.LoggedInViewPages, TestCase):
         slot_type = ''
 
         # Will be glad to not have so many cluttering workgroups everywhere!
-        wg = Workgroup.objects.create(name='test wg')
+        wg = Workgroup.objects.create(name='test wg', stewardship_organisation=self.steward_org_1)
         oc1 = ObjectClass.objects.create(
             name="test obj1",
             definition="test",
