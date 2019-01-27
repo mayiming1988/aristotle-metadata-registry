@@ -504,6 +504,7 @@ class DataElementDerivationAdminPage(AdminPageForConcept,TestCase):
         super().setUp(instant_create=False)
         from reversion import revisions as reversion
         with reversion.create_revision():
+            steward_org = models.StewardOrganisation.objects.create(name="Test SO")
             self.ded_wg = models.Workgroup.objects.create(name="Derived WG", stewardship_organisation=steward_org)
             self.derived_de = models.DataElement.objects.create(name='derivedDE',definition="my definition",workgroup=self.ded_wg)
 
