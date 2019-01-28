@@ -22,8 +22,7 @@ from django.views.generic import (
 from django.template import loader
 from django.contrib import messages
 
-# from organizations.backends.defaults import InvitationBackend
-# from organizations.backends.tokens import RegistrationTokenGenerator
+from organizations.backends.defaults import InvitationBackend
 
 # from . import forms
 import attr
@@ -150,7 +149,7 @@ class HasRoleMixin(PermissionRequiredMixin):
 
 
 class HasRolePermissionMixin(PermissionRequiredMixin):
-    role_permission: Optional[str] = True
+    role_permission: Optional[str] = None
     raise_exception = True
     redirect_unauthenticated_users = True
 
@@ -315,9 +314,6 @@ class GroupMemberAddView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin,
         return reverse("%s:%s" % (self.manager.namespace, "detail"), args=[self.group.slug])
 
 
-from organizations.backends.defaults import InvitationBackend
-
-
 @attr.s
 class GroupURLManager(InvitationBackend):
     """
@@ -361,15 +357,12 @@ class GroupURLManager(InvitationBackend):
                 url(r'^(?P<member_pk>[\d]+)/?$', view=self.membership_update_view(), name="membership_update"),
                 url(r'^(?P<member_pk>[\d]+)/remove', view=self.membership_remove_view(), name="membership_remove"),
                 url(r'^invite$', view=self.invite_view(), name="group_invitation"),
-                url(r'^accept-invitation/(?P<user_id>[\d]+)-(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-                    view=self.activate_view(), name="accept_group_invitation"
+                url(
+                    r'^accept-invitation/(?P<user_id>[\d]+)-(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+                    view=self.activate_view(),
+                    name="accept_group_invitation"
                 ),
             ]))
-
-            #     view=self.activate_view, name="list"),
-            # url(r'^accept/(?P<user_id>[\d]+)-(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-            #     view=self.activate_view, name="list"),
-            # url(r'^$', view=self.invite_view(), name="registry_invitations_create"),
         ]
 
     def create_view(self, *args, **kwargs):
@@ -423,11 +416,6 @@ class GroupURLManager(InvitationBackend):
             *args, **kwargs
         )
 
-        # class kls(GroupListView):
-
-        # print(*args, **kwargs)
-        # return kls.as_view(*args, **kwargs)
-
     def invite_view(self, *args, **kwargs):
         """
         Initiates the organization and user account creation process
@@ -435,25 +423,26 @@ class GroupURLManager(InvitationBackend):
         # if self.can_invite_new_users_via_email:
         #     pass
         from aristotle_mdr.contrib.user_management.org_backends import InviteView as InviteViewBase
-        
+
         class InviteView(HasRolePermissionMixin, InviteViewBase, GroupMixin):
             role_permission = "invite_member"
             success_url = "aristotle-user:registry_user_list"
             template_name = "aristotle_mdr/users_management/invite_user_to_registry.html"
-    
+
             def form_valid(self, form):
                 """
                 If the form is valid, redirect to the supplied URL.
                 """
                 self.invited_users = form.emails
                 self.manager.invite_by_emails(form.emails, request=self.request, group=self.get_group())
-        
+
                 return HttpResponseRedirect(self.get_success_url())
 
             def get_success_url(self):
-                messages.success(self.request,
+                messages.success(
+                    self.request,
                     _(
-                        '%(count)s users invited. Once they have accepted their invitations they will appear in the members list below ' 
+                        '%(count)s users invited. Once they have accepted their invitations they will appear in the members list below.'
                     ) % {
                         "count": len(self.invited_users)
                     }
@@ -465,7 +454,9 @@ class GroupURLManager(InvitationBackend):
                     args=[self.group.slug]
                 )
 
-        return InviteView.as_view(manager=self, group_class=self.group_class) #, *args, **kwargs)
+        return InviteView.as_view(manager=self, group_class=self.group_class)
+
+    # TODO: These will need to be updated
 
     notification_subject = 'aristotle_mdr/users_management/newuser/email/notification_subject.txt'
     notification_body = 'aristotle_mdr/users_management/newuser/email/notification_body.html'
@@ -477,12 +468,13 @@ class GroupURLManager(InvitationBackend):
     registration_form_template = 'aristotle_mdr/users_management/newuser/register_form.html'
     accept_url_name = 'registry_invitations_register'
 
-    def activate_view(self): #, request, *args, **kwargs):
+    def activate_view(self):
         """
         View function that activates the given User by setting `is_active` to
         true if the provided information is verified.
         """
         from aristotle_mdr.contrib.user_management.forms import UserRegistrationForm
+
         class ActivateView(GroupMixin, UpdateView):
             form_class = UserRegistrationForm
             template_name = 'groups/newuser/register_form.html'
@@ -509,21 +501,20 @@ class GroupURLManager(InvitationBackend):
 
             def get_object(self, queryset=None):
                 try:
-                    user = User.objects.get(id=self.kwargs['user_id']) #, is_active=False)
+                    user = User.objects.get(id=self.kwargs['user_id'])  # , is_active=False)
                 except User.DoesNotExist:
                     raise Http404(_("Your URL may have expired."))
                 if not GroupRegistrationTokenGenerator(self.get_group()).check_token(user, self.kwargs['token']):
                     raise Http404(_("Your URL may have expired."))
                 if user.is_active and user.pk != self.request.user.pk:
                     raise Http404(_("Your have someone elses invitation."))
-                
+
                 self.invited_user = user
                 return self.invited_user
-            
+
             def form_valid(self, form):
                 user = self.get_object()
                 if not user.is_active:
-                # if form.is_valid():
                     form.instance.is_active = True
                     user = form.save()
                     user.set_password(form.cleaned_data['password'])
