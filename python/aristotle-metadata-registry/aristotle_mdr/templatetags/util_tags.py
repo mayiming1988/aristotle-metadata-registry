@@ -4,6 +4,8 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe, SafeString
 from django.conf import settings
 
+from aristotle_mdr.utils.text import pretify_camel_case
+
 import bleach
 import json
 from datetime import datetime
@@ -89,6 +91,15 @@ def bleach_filter(html: str) -> SafeString:
         attributes=settings.BLEACH_ALLOWED_ATTRIBUTES
     )
     return mark_safe(clean_html)
+
+
+@register.filter
+def class_name(obj) -> str:
+    # Obj can be a class or and instance
+    if isinstance(obj, object):
+        obj = type(obj)
+    name = obj.__name__
+    return pretify_camel_case(name)
 
 
 @register.filter(name='isotime')

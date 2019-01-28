@@ -1,9 +1,10 @@
-from typing import List
+from typing import List, Tuple, Union
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse
 from django.db import models, transaction
 from django.db.models import Q
+from django.db.models.query import QuerySet
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver, Signal
 from django.utils import timezone
@@ -679,12 +680,15 @@ class _concept(baseAristotleObject):
     tracker = FieldTracker()
 
     comparator = comparators.Comparator
-    edit_page_excludes: list = []
-    admin_page_excludes: list = []
+    edit_page_excludes: List[str] = []
+    admin_page_excludes: List[str] = []
     # List of fields that will only be displayed if 'aristotle_backwards' is
     # enabled
     backwards_compatible_fields: List[str] = []
     registerable = True
+    relational_attributes: List[QuerySet]
+    # Used by concept manager with_related in a select_related
+    related_objects: List[str] = []
 
     class Meta:
         # So the url_name works for items we can't determine.
@@ -843,16 +847,14 @@ class _concept(baseAristotleObject):
 
         return qs.current(when)
 
-    def get_download_items(self):
+    def get_download_items(self) -> List[Union[models.Model, QuerySet]]:
         """
         When downloading a concept, extra items can be included for download by
         overriding the ``get_download_items`` method on your item. By default
         this returns an empty list, but can be modified to include any number of
         items that inherit from ``_concept``.
 
-        When overriding, each entry in the list must be a two item tuple, with
-        the first entry being the python class of the item or items being
-        included, and the second being the queryset of items to include.
+        When overriding, each entry in the list can be either an item or a queryset
         """
         return []
 
@@ -1017,6 +1019,12 @@ class ObjectClass(concept):
     class Meta:
         verbose_name_plural = "Object Classes"
 
+    @property
+    def relational_attributes(self):
+        return [
+            self.dataelementconcept_set.all(),
+        ]
+
 
 class Property(concept):
     """
@@ -1027,6 +1035,12 @@ class Property(concept):
 
     class Meta:
         verbose_name_plural = "Properties"
+
+    @property
+    def relational_attributes(self):
+        return [
+            self.dataelementconcept_set.all(),
+        ]
 
 
 class Measure(unmanagedObject):
@@ -1085,6 +1099,13 @@ class ConceptualDomain(concept):
     serialize_weak_entities = [
         ('value_meaning', 'valuemeaning_set'),
     ]
+
+    @property
+    def relational_attributes(self):
+        return [
+            self.dataelementconcept_set.all(),
+            self.valuedomain_set.all()
+        ]
 
 
 class ValueMeaning(aristotleComponent):
@@ -1213,6 +1234,12 @@ class ValueDomain(concept):
     def supplementaryValues(self):
         return self.supplementaryvalue_set.all()
 
+    @property
+    def relational_attributes(self):
+        return [
+            self.dataelement_set.all(),
+        ]
+
 
 class AbstractValue(aristotleComponent):
     """
@@ -1313,6 +1340,11 @@ class DataElementConcept(concept):
         verbose_name='Conceptual Domain'
     )
 
+    related_objects = [
+        'objectClass',
+        'property'
+    ]
+
     @property_
     def registry_cascade_items(self):
         out = []
@@ -1324,8 +1356,14 @@ class DataElementConcept(concept):
 
     def get_download_items(self):
         return [
-            (ObjectClass, ObjectClass.objects.filter(dataelementconcept=self)),
-            (Property, Property.objects.filter(dataelementconcept=self)),
+            self.objectClass,
+            self.property,
+        ]
+
+    @property_
+    def relational_attributes(self):
+        return [
+            self.dataelement_set.all(),
         ]
 
 
@@ -1333,7 +1371,8 @@ class DataElementConcept(concept):
 # to "concept".
 class DataElement(concept):
     """
-    Unit of data that is considered in context to be indivisible (3.2.28)"""
+    Unit of data that is considered in context to be indivisible (3.2.28)
+    """
 
     template = "aristotle_mdr/concepts/dataElement.html"
     list_details_template = "aristotle_mdr/concepts/list_details/data_element.html"
@@ -1353,6 +1392,12 @@ class DataElement(concept):
         help_text=_("binds with a Data_Element_Concept that provides the meaning for the Data_Element")
     )
 
+    related_objects = [
+        'valueDomain',
+        'dataElementConcept__objectClass',
+        'dataElementConcept__property'
+    ]
+
     @property
     def registry_cascade_items(self):
         out = []
@@ -1364,12 +1409,16 @@ class DataElement(concept):
         return out
 
     def get_download_items(self):
-        return [
-            (ObjectClass, ObjectClass.objects.filter(dataelementconcept=self.dataElementConcept)),
-            (Property, Property.objects.filter(dataelementconcept=self.dataElementConcept)),
-            (DataElementConcept, DataElementConcept.objects.filter(dataelement=self)),
-            (ValueDomain, ValueDomain.objects.filter(dataelement=self)),
+        items = [
+            self.dataElementConcept,
+            self.valueDomain
         ]
+        if self.dataElementConcept:
+            items += [
+                self.dataElementConcept.objectClass,
+                self.dataElementConcept.property,
+            ]
+        return items
 
 
 class DataElementDerivation(concept):

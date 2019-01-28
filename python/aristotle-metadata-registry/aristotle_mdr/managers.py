@@ -131,6 +131,12 @@ class ConceptQuerySet(MetadataItemQuerySet):
         """
         return self.filter(_is_public=True)
 
+    def with_related(self):
+        related = self.model.related_objects
+        if related:
+            return self.select_related(*related)
+        return self
+
     def __contains__(self, item):
         from aristotle_mdr.models import _concept
 

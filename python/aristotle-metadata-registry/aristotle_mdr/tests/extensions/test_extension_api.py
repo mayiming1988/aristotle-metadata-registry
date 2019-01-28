@@ -11,19 +11,6 @@ from extension_test.models import Question, Questionnaire
 
 from aristotle_mdr.utils import setup_aristotle_test_environment
 
-setup_aristotle_test_environment()
-
-
-class TestExtensionListVisibility(TestCase):
-    def test_extension_list_page(self):
-        response = self.client.get(reverse('aristotle_mdr:extensions'))
-        self.assertEqual(response.status_code, 200)
-
-        from django.utils.module_loading import import_string
-        dowloader = import_string('text_download_test.downloader.TestTextDownloader')
-
-        self.assertContains(response, dowloader.description)
-
 
 class QuestionVisibility(utils.ManagedObjectVisibility, TestCase):
     def setUp(self):
