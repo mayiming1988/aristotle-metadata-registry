@@ -1,0 +1,35 @@
+{% extends "aristotle_mdr/users_management/register_base.html" %}
+{% load aristotle_tags %}
+{% load static from staticfiles %}
+
+{% block title %}You've been invited to join {{ group.name }}{% endblock %}
+
+{% block left_side %}
+    <img class="img-responsive" style="margin: 0 auto; height: 80px;" src="{% static config.SITE_BRAND %}">
+
+
+    <h1 class="text-center">You've been invited to join the
+    Stewardship Organisation
+    <br><em>{{ group.name }}</em>
+    <br>on the
+    <br> {{config.SITE_NAME}}!</h1>
+
+{% endblock %}
+
+
+{% block right_side %}
+<form action="." method="post">{% csrf_token %}
+
+	<div class="row">
+    <p>
+        To join this organisation, click accept invitation.
+    </p>
+
+	</div>
+
+    <button type="submit" class="btn btn-lg btn-info">Accept invitation</button>
+    <a href="/" class="btn btn-lg btn-primary">Return to Dashboard</a>
+
+</form>
+
+{% endblock %}

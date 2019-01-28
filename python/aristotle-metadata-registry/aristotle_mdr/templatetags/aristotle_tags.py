@@ -563,4 +563,6 @@ def get_item(dictionary, key):
 @register.simple_tag(takes_context=True)
 def has_group_perm(context, group, permission):
     request = context['request']
+    if not request.user.is_authenticated:
+        return False
     return group.user_has_permission(request.user, permission)

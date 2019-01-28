@@ -20,6 +20,7 @@ from django.views.generic import (
     RedirectView,
 )
 from django.template import loader
+from django.contrib import messages
 
 # from organizations.backends.defaults import InvitationBackend
 # from organizations.backends.tokens import RegistrationTokenGenerator
@@ -31,10 +32,12 @@ from django.conf import settings
 from django.contrib.auth import authenticate, login
 from django.core.mail import EmailMessage
 from django.utils.translation import ugettext_lazy as _
-
+from django import forms
 from django.http import Http404
 
 from .base import AbstractGroup
+from .utils import GroupRegistrationTokenGenerator
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -52,7 +55,7 @@ class ListForObjectMixin(DetailView):
 
 
 class GroupTemplateMixin(object):
-    fallback_template_name = Optional[str]
+    fallback_template_name: Optional[str] = None
 
     def get_template_names(self):
         try:
@@ -97,7 +100,7 @@ class GroupMixin(GroupBase):
 
     def get_group_context_name(self):
         for obj in [self, self.manager]:
-            name = getattr(obj, "group_context_name")
+            name = getattr(obj, "group_context_name", None)
             if name is not None:
                 return name
         return "group"
@@ -147,7 +150,7 @@ class HasRoleMixin(PermissionRequiredMixin):
 
 
 class HasRolePermissionMixin(PermissionRequiredMixin):
-    role_permission = Optional[str]
+    role_permission: Optional[str] = True
     raise_exception = True
     redirect_unauthenticated_users = True
 
@@ -312,8 +315,11 @@ class GroupMemberAddView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin,
         return reverse("%s:%s" % (self.manager.namespace, "detail"), args=[self.group.slug])
 
 
+from organizations.backends.defaults import InvitationBackend
+
+
 @attr.s
-class GroupURLManager(object):
+class GroupURLManager(InvitationBackend):
     """
     A backend for allowing new users to join the site by creating a new user
     associated with a new organization.
@@ -354,6 +360,10 @@ class GroupURLManager(object):
                 url(r'^add$', view=self.membership_add_view(), name="member_add"),
                 url(r'^(?P<member_pk>[\d]+)/?$', view=self.membership_update_view(), name="membership_update"),
                 url(r'^(?P<member_pk>[\d]+)/remove', view=self.membership_remove_view(), name="membership_remove"),
+                url(r'^invite$', view=self.invite_view(), name="group_invitation"),
+                url(r'^accept-invitation/(?P<user_id>[\d]+)-(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+                    view=self.activate_view(), name="accept_group_invitation"
+                ),
             ]))
 
             #     view=self.activate_view, name="list"),
@@ -418,97 +428,191 @@ class GroupURLManager(object):
         # print(*args, **kwargs)
         # return kls.as_view(*args, **kwargs)
 
-    # def invite_view(self):
-    #     """
-    #     Initiates the organization and user account creation process
-    #     """
-    #     return InviteView.as_view(backend=self)
+    def invite_view(self, *args, **kwargs):
+        """
+        Initiates the organization and user account creation process
+        """
+        # if self.can_invite_new_users_via_email:
+        #     pass
+        from aristotle_mdr.contrib.user_management.org_backends import InviteView as InviteViewBase
+        
+        class InviteView(HasRolePermissionMixin, InviteViewBase, GroupMixin):
+            role_permission = "invite_member"
+            success_url = "aristotle-user:registry_user_list"
+            template_name = "aristotle_mdr/users_management/invite_user_to_registry.html"
+    
+            def form_valid(self, form):
+                """
+                If the form is valid, redirect to the supplied URL.
+                """
+                self.invited_users = form.emails
+                self.manager.invite_by_emails(form.emails, request=self.request, group=self.get_group())
+        
+                return HttpResponseRedirect(self.get_success_url())
 
-    # def activate_view(self, request, user_id, token):
-    #     """
-    #     View function that activates the given User by setting `is_active` to
-    #     true if the provided information is verified.
-    #     """
-    #     try:
-    #         user = self.user_model.objects.get(id=user_id, is_active=False)
-    #     except self.user_model.DoesNotExist:
-    #         raise Http404(_("Your URL may have expired."))
-    #     if not RegistrationTokenGenerator().check_token(user, token):
-    #         raise Http404(_("Your URL may have expired."))
+            def get_success_url(self):
+                messages.success(self.request,
+                    _(
+                        '%(count)s users invited. Once they have accepted their invitations they will appear in the members list below ' 
+                    ) % {
+                        "count": len(self.invited_users)
+                    }
+                )
+                # TODO: You will recieve a notification when they have accepted their invitation.
 
-    #     form = self.get_form(data=request.POST or None, instance=user)
-    #     if form.is_valid():
-    #         form.instance.is_active = True
-    #         user = form.save()
-    #         user.set_password(form.cleaned_data['password'])
-    #         user.save()
-    #         self.activate_organizations(user)
-    #         return redirect(self.get_success_url())
-    #     return render(request, self.registration_form_template, {'form': form})
+                return reverse(
+                    "%s:%s" % (self.manager.namespace, "member_list"),
+                    args=[self.group.slug]
+                )
 
-    # def invite_by_emails(self, emails, sender=None, request=None, **kwargs):
-    #     """Creates an inactive user with the information we know and then sends
-    #     an invitation email for that user to complete registration.
-    #     If your project uses email in a different way then you should make to
-    #     extend this method as it only checks the `email` attribute for Users.
-    #     """
-    #     User = get_user_model()
-    #     users = []
-    #     for email in emails:
-    #         try:
-    #             user = User.objects.get(email=email)
-    #         except User.DoesNotExist:
-    #             # TODO break out user creation process
-    #             user = User.objects.create(
-    #                 email=email,
-    #                 password=get_user_model().objects.make_random_password()
-    #             )
-    #             user.is_active = False
-    #             user.save()
-    #         self.send_invitation(user, sender, request=request, **kwargs)
-    #         users.append(user)
-    #     return users
+        return InviteView.as_view(manager=self, group_class=self.group_class) #, *args, **kwargs)
 
-    # def email_message(self, user, subject_template, body_template, request, sender=None, message_class=EmailMessage, **kwargs):
-    #     """
-    #     Returns an email message for a new user. This can be easily overriden.
-    #     For instance, to send an HTML message, use the EmailMultiAlternatives message_class
-    #     and attach the additional conent.
-    #     """
+    notification_subject = 'aristotle_mdr/users_management/newuser/email/notification_subject.txt'
+    notification_body = 'aristotle_mdr/users_management/newuser/email/notification_body.html'
+    invitation_subject = 'aristotle_mdr/users_management/newuser/email/invitation_subject.txt'
+    invitation_body = 'aristotle_mdr/users_management/newuser/email/invitation_body.html'
+    reminder_subject = 'aristotle_mdr/users_management/newuser/email/reminder_subject.txt'
+    reminder_body = 'aristotle_mdr/users_management/newuser/email/reminder_body.html'
 
-    #     if sender:
-    #         import email.utils
-    #         from_email = "%s <%s>" % (
-    #             sender.full_name,
-    #             email.utils.parseaddr(settings.DEFAULT_FROM_EMAIL)[1]
-    #         )
-    #         reply_to = "%s <%s>" % (sender.full_name, sender.email)
-    #     else:
-    #         from_email = settings.DEFAULT_FROM_EMAIL
-    #         reply_to = from_email
+    registration_form_template = 'aristotle_mdr/users_management/newuser/register_form.html'
+    accept_url_name = 'registry_invitations_register'
 
-    #     headers = {'Reply-To': reply_to}
-    #     kwargs.update({'sender': sender, 'user': user})
+    def activate_view(self): #, request, *args, **kwargs):
+        """
+        View function that activates the given User by setting `is_active` to
+        true if the provided information is verified.
+        """
+        from aristotle_mdr.contrib.user_management.forms import UserRegistrationForm
+        class ActivateView(GroupMixin, UpdateView):
+            form_class = UserRegistrationForm
+            template_name = 'groups/newuser/register_form.html'
+            model = User
 
-    #     subject_template = loader.get_template(subject_template)
-    #     body_template = loader.get_template(body_template)
-    #     subject = subject_template.render(kwargs).strip()  # Remove stray newline characters
-    #     body = body_template.render(kwargs)
-    #     return message_class(subject, body, from_email, [user.email], headers=headers)
+            def get_template_names(self):
+                user = self.get_object()
+                if user.is_active:
+                    template_name = 'groups/accept_invite.html'
+                else:
+                    template_name = 'groups/newuser/register_form.html'
+                return template_name
 
-    # def send_invitation(self, user, sender=None, **kwargs):
-    #     """An intermediary function for sending an invitation email that
-    #     selects the templates, generating the token, and ensuring that the user
-    #     has not already joined the site.
-    #     """
-    #     if user.is_active:
-    #         return False
-    #     token = self.get_token(user)
-    #     kwargs.update({'token': token})
-    #     kwargs.update({'sender': sender})
-    #     kwargs.update({'user_id': user.pk})
-    #     self.email_message(user, self.invitation_subject, self.invitation_body, **kwargs).send()
-    #     return True
+            def get_form_class(self):
+                user = self.get_object()
+                if user.is_active:
+                    class ActivateMembershipForm(forms.ModelForm):
+                        class Meta:
+                            fields = []
+                            model = User
+                    return ActivateMembershipForm
+                else:
+                    return UserRegistrationForm
+
+            def get_object(self, queryset=None):
+                try:
+                    user = User.objects.get(id=self.kwargs['user_id']) #, is_active=False)
+                except User.DoesNotExist:
+                    raise Http404(_("Your URL may have expired."))
+                if not GroupRegistrationTokenGenerator(self.get_group()).check_token(user, self.kwargs['token']):
+                    raise Http404(_("Your URL may have expired."))
+                if user.is_active and user.pk != self.request.user.pk:
+                    raise Http404(_("Your have someone elses invitation."))
+                
+                self.invited_user = user
+                return self.invited_user
+            
+            def form_valid(self, form):
+                user = self.get_object()
+                if not user.is_active:
+                # if form.is_valid():
+                    form.instance.is_active = True
+                    user = form.save()
+                    user.set_password(form.cleaned_data['password'])
+                    user.save()
+                self.get_group().grant_role(role=self.get_group().new_member_role, user=user)
+                return redirect(self.get_success_url())
+
+            def get_success_url(self):
+                return reverse(
+                    "%s:%s" % (self.manager.namespace, "member_list"),
+                    args=[self.group.slug]
+                )
+        return ActivateView.as_view(manager=self, group_class=self.group_class)
+
+    def invite_by_emails(self, emails, group, sender=None, request=None, **kwargs):
+        """Creates an inactive user with the information we know and then sends
+        an invitation email for that user to complete registration.
+        If your project uses email in a different way then you should make to
+        extend this method as it only checks the `email` attribute for Users.
+        """
+        users = []
+        for email in emails:
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                # TODO break out user creation process
+                user = User.objects.create(
+                    email=email,
+                    password=get_user_model().objects.make_random_password()
+                )
+                user.is_active = False
+                user.save()
+            self.send_invitation(user, group=group, sender=request.user, request=request, **kwargs)
+            users.append(user)
+        return users
+
+    def email_message(self, user, subject_template, body_template, request, group, sender=None, message_class=EmailMessage, **kwargs):
+        """
+        Returns an email message for a new user. This can be easily overriden.
+        For instance, to send an HTML message, use the EmailMultiAlternatives message_class
+        and attach the additional conent.
+        """
+
+        if sender:
+            import email.utils
+            from_email = "%s <%s>" % (
+                sender.full_name,
+                email.utils.parseaddr(settings.DEFAULT_FROM_EMAIL)[1]
+            )
+            reply_to = "%s <%s>" % (sender.full_name, sender.email)
+        else:
+            from_email = settings.DEFAULT_FROM_EMAIL
+            reply_to = from_email
+
+        headers = {'Reply-To': reply_to}
+        kwargs.update({
+            'sender': sender,
+            'user': user,
+            'accept_url': reverse(
+                "%s:%s" % (self.namespace, "accept_group_invitation"),
+                args=[group.slug, user.pk, self.get_token(user, group)],
+                # kwargs={"user_id": user.pk, "token": self.get_token(user, group)}
+            ),
+            'request': request
+        })
+
+        subject_template = loader.get_template(subject_template)
+        body_template = loader.get_template(body_template)
+        subject = subject_template.render(kwargs).strip()  # Remove stray newline characters
+        body = body_template.render(kwargs)
+        return message_class(subject, body, from_email, [user.email], headers=headers)
+
+    def send_invitation(self, user, group, sender=None, **kwargs):
+        """An intermediary function for sending an invitation email that
+        selects the templates, generating the token, and ensuring that the user
+        has not already joined the site.
+        """
+        if user.is_active:
+            return False
+        token = self.get_token(user, group)
+        kwargs.update({'token': token})
+        kwargs.update({'sender': sender})
+        kwargs.update({'user_id': user.pk})
+        self.email_message(user, self.invitation_subject, self.invitation_body, group=group, **kwargs).send()
+        return True
+
+    def get_token(self, user, group, **kwargs):
+        """Returns a unique token for the given user"""
+        return GroupRegistrationTokenGenerator(group).make_token(user)
 
 
 def group_backend_factory(*args, **kwargs):

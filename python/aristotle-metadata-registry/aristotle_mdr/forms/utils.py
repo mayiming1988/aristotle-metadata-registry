@@ -32,5 +32,5 @@ class StewardOrganisationRestrictedChoicesForm(UserAwareFormMixin, forms.ModelFo
                 "members__user": self.user,
                 "members__role": StewardOrganisation.roles.admin,
             })
-        self.fields["stewardship_organisation"].queryset = StewardOrganisation.objects.filter(**kwargs)
         self.fields["stewardship_organisation"].widget = forms.Select(attrs={'class': 'form-control'})
+        self.fields["stewardship_organisation"].queryset = StewardOrganisation.objects.all().filter(**kwargs)

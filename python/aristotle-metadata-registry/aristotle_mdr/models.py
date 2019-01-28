@@ -110,6 +110,7 @@ class StewardOrganisation(AbstractGroup):
         ('member', _('Member')),
     )
     owner_roles = [roles.admin]
+    new_member_role = roles.member
 
     class Permissions:
         @classmethod

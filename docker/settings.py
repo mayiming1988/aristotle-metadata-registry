@@ -94,7 +94,9 @@ LOGGING = {
     }
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'mailhog')
+EMAIL_PORT = os.environ.get('EMAIL_PORT', '1025')
 
 # Debug toolbar
 DEBUG_TOOLBAR = os.environ.get('DJANGO_DEBUG_TOOLBAR', False) == "True"

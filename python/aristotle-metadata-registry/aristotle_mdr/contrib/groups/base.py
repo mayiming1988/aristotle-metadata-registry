@@ -95,12 +95,14 @@ class BaseManager(models.Manager):
 
 class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
     objects = managers.AbstractGroupQuerySet.as_manager()
+    can_invite_new_users_via_email = True
 
     class Meta:
         abstract = True
 
     roles = Choices(
         ('owner', _('Owner')),
+        ('member', _('Member')),
     )
     states = Choices(
         ('active', _('Active')),
@@ -108,6 +110,8 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
     )
 
     owner_roles = [roles.owner]
+    new_member_role = roles.member
+
     active_states = [
         states.active,
     ]
