@@ -2923,7 +2923,7 @@ class RegistrationAuthorityViewPage(utils.LoggedInViewPages, TestCase):
             stewardship_organisation=self.steward_org_1,
         )
 
-        self.item2 = models.DataElement.objects.create(name="OC1",workgroup=self.wg1,**self.defaults)
+        self.item2 = models.DataElement.objects.create(name="OC1",workgroup=self.wg1)
 
         models.Status.objects.create(
             concept=self.item2,
