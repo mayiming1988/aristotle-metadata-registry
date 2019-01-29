@@ -7,7 +7,7 @@
         <span class="text-danger">{{ form.registrationDate.errors }}</span>
     </div>
     <div class="col-sm-7 col-md-4">
-        <time datetime="{{ form.registrationDate|isotime }}">{{ form.registrationDate }}</time>
+        {{ form.registrationDate }}
         <div>
             Date the registration state will be active from.
         </div>

@@ -13,6 +13,7 @@ sys.path.insert(1, os.path.join(BASE, "tests/apps"))
 TEMPLATES[0]['DIRS'] = [
     os.path.join(BASE, 'tests/apps/bulk_actions_test/templates')
 ]
+TEMPLATES[0]['OPTIONS']['debug'] = True  # This makes sure template exceptions are not squashed
 
 SECRET_KEY = 'inara+oscar+vtkprm7@0(fsc$+grbz9-s+tmo9d)e#k(9uf8m281&$7xhdkjr'
 
