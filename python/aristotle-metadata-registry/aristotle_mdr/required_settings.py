@@ -4,12 +4,14 @@ import os
 BASE_DIR = os.getenv('aristotlemdr__BASE_DIR', os.path.dirname(os.path.dirname(__file__)))
 SECRET_KEY = os.getenv('aristotlemdr__SECRET_KEY', "OVERRIDE_THIS_IN_PRODUCTION")
 STATIC_ROOT = os.getenv('aristotlemdr__STATIC_ROOT', os.path.join(BASE_DIR, "static"))
-MEDIA_ROOT = os.getenv('aristotlemdr__MEDIA_ROOT', os.path.join(BASE_DIR, "media"))
+# MEDIA_ROOT = os.getenv('aristotlemdr__MEDIA_ROOT', os.path.join(BASE_DIR, "media"))
 
 # Non overridable base dirs
 MDR_BASE_DIR = os.path.dirname(__file__)
 # This is only used in development
 REPO_BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(MDR_BASE_DIR)))
+
+MEDIA_ROOT = os.path.join(REPO_BASE_DIR, 'media')
 
 TEMPLATES_DIRS = [os.path.join(BASE_DIR, 'templates')]
 FIXTURES_DIRS = [os.path.join(MDR_BASE_DIR, 'fixtures')]
@@ -99,6 +101,7 @@ INSTALLED_APPS = (
     'aristotle_mdr.contrib.issues',
     'aristotle_mdr.contrib.publishing',
     'aristotle_mdr.contrib.custom_fields',
+    'aristotle_mdr.contrib.aristotle_pdf',
     'aristotle_mdr.contrib.aristotle_backwards',
     'aristotle_mdr.contrib.stewards',
     'aristotle_mdr.contrib.groups',
@@ -230,9 +233,7 @@ ARISTOTLE_SETTINGS = {
         }
     ],
     "DOWNLOADERS": [
-        # (fileType, menu, font-awesome-icon, module)
-        # ('csv-vd', 'CSV list of values', 'fa-file-excel-o', 'aristotle_mdr', 'CSV downloads for value domain codelists'),
-        'aristotle_mdr.downloader.CSVDownloader'
+        'aristotle_mdr.contrib.aristotle_pdf.downloader.PDFDownloader'
     ],
 
     # These settings aren't active yet.
@@ -342,4 +343,20 @@ REST_FRAMEWORK = {
     )
 }
 
+# Caching
+# Key used to store value in fetch_aristotle_downloaders
+DOWNLOADERS_CACHE_KEY = 'aristotle_downloaders'
+# Whether to serve an existing file if possible
+DOWNLOAD_CACHING = False
+
+# Optional downloads storage (otherwise default file storage is used)
+DOWNLOADS_STORAGE = None
+
+# Used to override aristotle settings. Should not be used in production
+OVERRIDE_ARISTOTLE_SETTINGS = None
+
+# Size after which to only send links to files
+MAX_EMAIL_FILE_SIZE = 1000 * 1000 * 10  # 10MB in bytes
+
+# Graphql
 GRAPHQL_ENABLED = False

@@ -1,6 +1,6 @@
 <ul class="dropdown-menu dropdown-menu-right" role="menu">
     {% for opt in download_options %}
-        <li><a href="{% url 'aristotle:download' download_type=opt.download_type iid=item.id %}">
+    <li><a href="{% url 'aristotle:download_options' download_type=opt.download_type %}?items={{  item.id }}">
             <i class="fa {{opt.icon_class}}"></i> {{opt.label}}
         </a></li>
     {% empty %}

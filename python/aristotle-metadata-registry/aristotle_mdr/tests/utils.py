@@ -7,6 +7,7 @@ import string
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.core.files.base import ContentFile
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
@@ -17,6 +18,7 @@ from django_celery_results.models import TaskResult
 from django_tools.unittest_utils.BrowserDebug import debug_response
 
 from aristotle_mdr.contrib.reviews.models import ReviewRequest
+from aristotle_mdr.downloader import Downloader
 
 from time import sleep
 import random
@@ -917,6 +919,15 @@ class MockManagementForm(object):
                 base['{}-{}-{}'.format(self.prefix, i, field)] = value
 
         return base
+
+
+class FakeDownloader(Downloader):
+    download_type = 'fake'
+    file_extension = 'fak'
+    label = 'FAKE'
+
+    def create_file(self):
+        return ContentFile('')
 
 
 class AsyncResultMock:

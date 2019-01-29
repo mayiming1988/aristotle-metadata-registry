@@ -107,7 +107,6 @@ ARISTOTLE_SETTINGS.update({
             #!aristotle_dse! 'aristotle_dse',
             #!aristotle_glossary! 'aristotle_glossary',
         ],
-    'DOWNLOADERS': ['aristotle_mdr.downloader.CSVDownloader', 'aristotle_pdf.downloader.PDFDownloader']
 })
 
 

@@ -78,7 +78,8 @@
                 <ul class="list-group">
                 {% for data in recentdata %}
                     <li class="list-group-item">
-                        <span><time datetime="{{ data.revision.comment }} <small>({{ data.revision.date_created|isotime }}">{{ data.revision.comment }} <small>({{ data.revision.date_created }}</time>)</small></span>
+                      <span>{{ data.revision.comment }}</span>
+                      <span><small><time datetime=" {{ data.revision.date_created|isotime }}">{{ data.revision.date_created }}</time></small></span>
                         <ul>
                             {% for item in data.versions %}
                                   <li><a href="{{ item.url }}">{{ item.text }} ({{ item.id }})</a></li>

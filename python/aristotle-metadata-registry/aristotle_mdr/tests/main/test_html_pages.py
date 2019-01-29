@@ -23,6 +23,7 @@ from aristotle_mdr.forms.creation_wizards import (
 )
 from aristotle_mdr.tests import utils
 from aristotle_mdr.views import ConceptRenderView
+from aristotle_mdr.downloader import HTMLDownloader
 import datetime
 from unittest import mock, skip
 import reversion
@@ -596,7 +597,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(cvs[2].content, 'Workgroup Value')
 
 
-
+# These are run by all item types
 class LoggedInViewConceptPages(utils.AristotleTestUtils):
     defaults = {}
 
@@ -1764,6 +1765,14 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         item_context = response.context['item']
         self.assertEqual(item_context['definition'], old_definition)
 
+    @tag('download')
+    @override_settings(ARISTOTLE_SETTINGS={'DOWNLOADERS': ['aristotle_mdr.downloaders.HTMLDownloader']})
+    def test_download_content(self):
+        downloader = HTMLDownloader([self.item1.id], self.editor.id, {})
+        html = downloader.get_html().decode()
+        self.assertTrue(len(html) > 0)
+        self.assertTrue(self.item1.definition in html)
+
 
 class ObjectClassViewPage(LoggedInViewConceptPages, TestCase):
     url_name='objectClass'
@@ -1955,137 +1964,6 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         self.item1 = models.ValueDomain.objects.get(pk=self.item1.pk)
 
         self.assertTrue(num_vals == getattr(self.item1,value_type+"Values").count())
-
-    def csv_download_cache(self, properties, iid):
-        CSVDownloader.download(properties, iid)
-        return store_taskresult()
-
-    def csv_download_task_retrieve(self, iid):
-        if not self.celery_result:
-            # Creating an instance of fake Celery `AsyncResult` object
-            self.celery_result = get_download_result(iid)
-        return self.celery_result
-
-    @patch('aristotle_mdr.downloader.CSVDownloader.download.delay')
-    @patch('aristotle_mdr.views.downloads.async_result')
-    def test_su_can_download_csv(self, async_result, downloader_download):
-        downloader_download.side_effect = self.csv_download_cache
-        async_result.side_effect = self.csv_download_task_retrieve
-
-        self.login_superuser()
-        self.celery_result = None
-
-        eq = QueryDict('', mutable=True)
-        eq.setdefault('items', self.item1.id)
-        eq.setdefault('title', self.item1.name)
-        response = self.client.get(reverse('aristotle:download',args=['csv-vd',self.item1.id]), follow=True)
-        self.assertEqual(response.status_code,200)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=['csv-vd']) +
-                         '?' + eq.urlencode())
-        self.assertTrue(downloader_download.called)
-        self.assertTrue(async_result.called)
-
-        response = self.client.get(reverse('aristotle:start_download', args=['csv-vd']) + '?' + response.request['QUERY_STRING'])
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(async_result.called)
-
-        self.celery_result = None
-
-        eq = QueryDict('', mutable=True)
-        eq.setdefault('items', self.item2.id)
-        eq.setdefault('title', self.item2.name)
-        response = self.client.get(reverse('aristotle:download',args=['csv-vd',self.item2.id]), follow=True)
-        self.assertEqual(response.status_code,200)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=['csv-vd']) +
-                         '?' + eq.urlencode())
-        self.assertTrue(downloader_download.called)
-        self.assertTrue(async_result.called)
-
-        response = self.client.get(reverse('aristotle:start_download', args=['csv-vd']) + '?' + response.request['QUERY_STRING'])
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(async_result.called)
-
-    @patch('aristotle_mdr.downloader.CSVDownloader.download.delay')
-    @patch('aristotle_mdr.views.downloads.async_result')
-    def test_editor_can_download_csv(self, async_result, downloader_download):
-        downloader_download.side_effect = self.csv_download_cache
-        async_result.side_effect = self.csv_download_task_retrieve
-
-        self.login_editor()
-        self.celery_result = None
-
-        eq = QueryDict('', mutable=True)
-        eq.setdefault('items', self.item1.id)
-        eq.setdefault('title', self.item1.name)
-        response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item1.id]), follow=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=['csv-vd']) +
-                         '?' + eq.urlencode())
-        self.assertTrue(downloader_download.called)
-        self.assertTrue(async_result.called)
-
-        response = self.client.get(reverse('aristotle:start_download', args=['csv-vd']) + '?' + response.request['QUERY_STRING'])
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(async_result.called)
-
-        self.celery_result = None
-        response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item2.id]))
-        self.assertEqual(response.status_code, 403)
-
-    @patch('aristotle_mdr.downloader.CSVDownloader.download.delay')
-    @patch('aristotle_mdr.views.downloads.async_result')
-    def test_viewer_can_download_csv(self, async_result, downloader_download):
-        downloader_download.side_effect = self.csv_download_cache
-        async_result.side_effect = self.csv_download_task_retrieve
-
-        self.login_viewer()
-        self.celery_result = None
-        eq = QueryDict('', mutable=True)
-        eq.setdefault('items', self.item1.id)
-        eq.setdefault('title', self.item1.name)
-        response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item1.id]), follow=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=['csv-vd']) +
-                         '?' + eq.urlencode())
-        self.assertTrue(downloader_download.called)
-        self.assertTrue(async_result.called)
-
-        response = self.client.get(reverse('aristotle:start_download', args=['csv-vd']) + '?' + response.request['QUERY_STRING'])
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(async_result.called)
-
-        self.celery_result = None
-        response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item2.id]))
-        self.assertEqual(response.status_code, 403)
-
-    @patch('aristotle_mdr.downloader.CSVDownloader.download.delay')
-    @patch('aristotle_mdr.views.downloads.async_result')
-    def test_viewer_can_see_content(self, async_result, downloader_download):
-        downloader_download.side_effect = self.csv_download_cache
-        async_result.side_effect = self.csv_download_task_retrieve
-
-        self.login_viewer()
-        self.celery_result = None
-
-        eq = QueryDict('', mutable=True)
-        eq.setdefault('items', self.item1.id)
-        eq.setdefault('title', self.item1.name)
-        response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item1.id]), follow=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=['csv-vd']) +
-                         '?' + eq.urlencode())
-        self.assertTrue(downloader_download.called)
-        self.assertTrue(async_result.called)
-
-        response = self.client.get(
-            reverse('aristotle:start_download', args=['csv-vd']) + '?' + response.request['QUERY_STRING'])
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(async_result.called)
-
-        self.assertContains(response, self.item1.permissibleValues.all()[0].meaning)
-        self.assertContains(response, self.item1.permissibleValues.all()[1].meaning)
-
-
 
     def test_values_shown_on_page(self):
         self.login_viewer()

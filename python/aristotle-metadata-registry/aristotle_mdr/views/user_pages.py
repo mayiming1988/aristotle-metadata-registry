@@ -131,7 +131,6 @@ def home(request):
                     revdata['versions'].append({'id': ver.object_id, 'text': str(ver), 'url': url})
                 else:
                     # Fallback, results in db query
-                    # print(ver)
                     obj = ver.object
                     if hasattr(obj, 'get_absolute_url'):
                         revdata['versions'].append({'id': ver.object_id, 'text': str(ver), 'url': obj.get_absolute_url})

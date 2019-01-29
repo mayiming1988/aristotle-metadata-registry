@@ -285,20 +285,11 @@ class DataSetSpecification(aristotle.models.concept):
 
     def get_download_items(self):
         return [
-            (DataSetSpecification, self.clusters.all()),
-            (aristotle.models.DataElement, self.data_elements.all()),
-            (
-                aristotle.models.ObjectClass,
-                aristotle.models.ObjectClass.objects.filter(dataelementconcept__dataelement__datasetspecification=self)
-            ),
-            (
-                aristotle.models.Property,
-                aristotle.models.Property.objects.filter(dataelementconcept__dataelement__datasetspecification=self)
-            ),
-            (
-                aristotle.models.ValueDomain,
-                aristotle.models.ValueDomain.objects.filter(dataelement__datasetspecification=self)
-            ),
+            self.clusters.all(),
+            self.data_elements.all(),
+            aristotle.models.ObjectClass.objects.filter(dataelementconcept__dataelement__dssInclusions__dss=self),
+            aristotle.models.Property.objects.filter(dataelementconcept__dataelement__dssInclusions__dss=self),
+            aristotle.models.ValueDomain.objects.filter(dataelement__dssInclusions__dss=self),
         ]
 
 

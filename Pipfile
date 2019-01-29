@@ -11,6 +11,7 @@ django-haystack = ">=2.7.dev1,<2.8.0"
 redis = ">2.10,<3.0"
 "elasticsearch" = ">=5.0.0,<6.0.0"
 "django-haystack-elasticsearch" = "*"
+pypandoc = {ref = "master", git = "https://github.com/harrywhite4/pypandoc", editable=true}
 
 aristotle-metadata-registry = {path = "./python/aristotle-metadata-registry", editable = true}
 aristotle-bg-workers = {path = "./python/aristotle-bg-workers", editable = true}
@@ -18,7 +19,6 @@ aristotle-dataset-extensions = {path = "./python/aristotle-dataset-extensions", 
 aristotle-glossary = {path = "./python/aristotle-glossary/", editable = true}
 aristotle-mdr-api = {path = "./python/aristotle-mdr-api", editable = true}
 aristotle-mdr-graphql = {path = "./python/aristotle-mdr-graphql", editable = true}
-aristotle-pdf-downloads = {path = "./python/aristotle-pdf-downloads", editable = true}
 comet-indicator-registry = {path = "./python/comet-indicator-registry", editable = true}
 mallard-questionnaire-registry = {path = "./python/mallard-questionnaire-registry", editable = true}
 
