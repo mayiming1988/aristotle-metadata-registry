@@ -20,7 +20,7 @@ from django_tools.unittest_utils.BrowserDebug import debug_response
 from aristotle_mdr.contrib.reviews.models import ReviewRequest
 from aristotle_mdr.downloader import Downloader
 
-from time import sleep
+from time import sleep, process_time
 import random
 
 
@@ -812,8 +812,22 @@ class WizardTestUtils:
         return self.post_direct_to_wizard(updated_datalist, url, step_names)
 
 
+class TimingTestUtils:
+
+    def start_timer(self):
+        self.start = process_time()
+
+    def end_timer(self):
+        end = process_time()
+        total = end - self.start
+        if total < 1000:
+            print('Took {}ms'.format(total))
+        else:
+            print('Took {}s'.format(total / 1000))
+
+
 class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils,
-                         WizardTestUtils, FormsetTestUtils):
+                         WizardTestUtils, FormsetTestUtils, TimingTestUtils):
     """Combination of the above 3 utils plus some aristotle specific utils"""
 
     def favourite_item(self, user, item):
