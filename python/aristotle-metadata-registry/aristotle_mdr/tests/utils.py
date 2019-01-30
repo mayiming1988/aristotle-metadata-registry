@@ -820,10 +820,7 @@ class TimingTestUtils:
     def end_timer(self):
         end = process_time()
         total = end - self.start
-        if total < 1000:
-            print('Took {}ms'.format(total))
-        else:
-            print('Took {}s'.format(total / 1000))
+        print('Took {}s'.format(total))
 
 
 class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils,
