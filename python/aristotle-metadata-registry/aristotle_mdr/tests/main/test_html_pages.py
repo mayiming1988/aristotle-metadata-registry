@@ -2090,6 +2090,21 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         self.assertEqual(clone.permissiblevalue_set.count(), 4)
         self.assertEqual(clone.supplementaryvalue_set.count(), 4)
 
+    def post_and_time_permissible_values(self, vd, data, datalist, initial):
+        permdata = self.get_formset_postdata(datalist, 'permissible_values', initial)
+        data.update(permdata)
+
+        self.login_editor()
+        self.start_timer()
+        response = self.client.post(
+            reverse('aristotle:edit_item', args=[vd.id]),
+            data
+        )
+        self.end_timer()
+        self.assertEqual(response.status_code, 302)
+        vd = models.ValueDomain.objects.get(id=vd.id)
+        self.assertEqual(vd.permissiblevalue_set.count(), 100)
+
     @tag('bulk_values')
     def test_create_bulk_values(self):
         vd = models.ValueDomain.objects.create(
@@ -2108,19 +2123,36 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
                 'ORDER': i
             })
 
-        permdata = self.get_formset_postdata(datalist, 'permissible_values')
-        data.update(permdata)
+        self.post_and_time_permissible_values(vd, data, datalist, 0)
 
-        self.login_editor()
-        self.start_timer()
-        response = self.client.post(
-            reverse('aristotle:edit_item', args=[vd.id]),
-            data
+    @tag('failer')
+    def test_reorder_bulk_values(self):
+        vd = models.ValueDomain.objects.create(
+            name='Lots of values',
+            definition='Lots',
+            submitter=self.editor
         )
-        self.end_timer()
-        self.assertEqual(response.status_code, 302)
-        vd = models.ValueDomain.objects.get(id=vd.id)
-        self.assertEqual(vd.permissiblevalue_set.count(), 100)
+        data = utils.model_to_dict_with_change_time(vd)
+
+        datalist = []
+        for i in range(100):
+            value='Value {}'.format(i),
+            meaning='Meaning {}'.format(i),
+            pv = models.PermissibleValue.objects.create(
+                valueDomain=vd,
+                value=value,
+                meaning=meaning,
+                order=i
+            )
+            datalist.append({
+                'id': pv.id,
+                'value': value,
+                'meaning': meaning,
+                'valueDomain': vd.id,
+                'ORDER': i + 1
+            })
+
+        self.post_and_time_permissible_values(vd, data, datalist, 100)
 
 
 class ConceptualDomainViewPage(LoggedInViewConceptPages, TestCase):

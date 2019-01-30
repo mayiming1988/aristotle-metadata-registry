@@ -43,8 +43,8 @@ class HiddenOrderModelFormSet(HiddenOrderMixin, BaseModelFormSet):
             inst.save()
         return inst
 
-    def save_existing(self, form, commit=True):
-        self.save_new(self, form, commit)
+    def save_existing(self, form, instance, commit=True):
+        return self.save_new(form, commit)
 
 
 class HiddenOrderInlineFormset(HiddenOrderMixin, BaseInlineFormSet):
@@ -167,7 +167,9 @@ def ordered_formset_save(formset, item, model_to_add_field, ordering_field):
     if new:
         formset.model.objects.bulk_create(new)
 
-    for obj in formset.changed_objects:
+    for record in formset.changed_objects:
+        # record is a tuple with obj and form changed_data
+        obj = record[0]
         setattr(obj, model_to_add_field, item)
         obj.save()
 

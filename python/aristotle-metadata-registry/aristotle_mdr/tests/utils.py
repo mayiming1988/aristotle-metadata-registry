@@ -817,10 +817,10 @@ class TimingTestUtils:
     def start_timer(self):
         self.start = process_time()
 
-    def end_timer(self):
+    def end_timer(self, event: str = 'Event'):
         end = process_time()
         total = end - self.start
-        print('Took {}s'.format(total))
+        print('{} took {}s'.format(event, total))
 
 
 class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils,
