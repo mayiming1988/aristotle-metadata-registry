@@ -35,7 +35,16 @@ class HiddenOrderFormset(HiddenOrderMixin, BaseFormSet):
 
 
 class HiddenOrderModelFormSet(HiddenOrderMixin, BaseModelFormSet):
-    pass
+
+    def save_new(self, form, commit=True):
+        inst = form.save(commit=False)
+        setattr(inst, self.ordering_field, form.cleaned_data['ORDER'])
+        if commit:
+            inst.save()
+        return inst
+
+    def save_existing(self, form, commit=True):
+        self.save_new(self, form, commit)
 
 
 class HiddenOrderInlineFormset(HiddenOrderMixin, BaseInlineFormSet):
@@ -148,12 +157,18 @@ def ordered_formset_save(formset, item, model_to_add_field, ordering_field):
     item.save()  # do this to ensure we are saving reversion records for the item, not just the values
     formset.save(commit=False)  # Save formset so we have access to deleted_objects and save_m2m
 
-    for form in formset.ordered_forms:
+    new = []
+    for obj in formset.new_objects:
         # Loop through the forms so we can add the order value to the ordering field
         # ordered_forms does not contain forms marked for deletion
-        obj = form.save(commit=False)
         setattr(obj, model_to_add_field, item)
-        setattr(obj, ordering_field, form.cleaned_data['ORDER'])
+        new.append(obj)
+
+    if new:
+        formset.model.objects.bulk_create(new)
+
+    for obj in formset.changed_objects:
+        setattr(obj, model_to_add_field, item)
         obj.save()
 
     for obj in formset.deleted_objects:
