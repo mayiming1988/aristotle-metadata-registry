@@ -19,6 +19,17 @@ class UUIDManager(models.Manager):
         )
 
 
+class BulkDeleteManager(models.Manager):
+
+    def bulk_delete(self, objects: Iterable[models.Model]):
+        if isinstance(objects, models.QuerySet):
+            objects.delete()
+        else:
+            ids = [o.id for o in objects]
+            qs = self.get_queryset().filter(id__in=ids)
+            qs.delete()
+
+
 class MetadataItemQuerySet(InheritanceQuerySet):
     pass
 
@@ -31,14 +42,6 @@ class MetadataItemManager(InheritanceManager):
         if hasattr(settings, 'FORCE_METADATAMANAGER_FILTER'):
             qs = qs.filter(*import_string(settings.FORCE_METADATAMANAGER_FILTER)())
         return qs
-
-    def bulk_delete(objects: Iterable[models.Model]):
-        if isinstance(objects, models.QuerySet):
-            objects.delete()
-        else:
-            ids = [o.id for o in objects]
-            qs = self.get_queryset().filter(id__in=ids)
-            qs.delete()
 
 
 class WorkgroupQuerySet(MetadataItemQuerySet):

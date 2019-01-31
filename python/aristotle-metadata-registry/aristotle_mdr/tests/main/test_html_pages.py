@@ -2090,7 +2090,21 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         self.assertEqual(clone.permissiblevalue_set.count(), 4)
         self.assertEqual(clone.supplementaryvalue_set.count(), 4)
 
-    def post_and_time_permissible_values(self, vd, data, datalist, initial):
+    def create_bulk_values(self, n: int, vd):
+        pvs = []
+        for i in range(n):
+            value='Value {}'.format(i),
+            meaning='Meaning {}'.format(i),
+            pv = models.PermissibleValue(
+                valueDomain=vd,
+                value=value,
+                meaning=meaning,
+                order=i
+            )
+            pvs.append(pv)
+        models.PermissibleValue.objects.bulk_create(pvs)
+
+    def post_and_time_permissible_values(self, vd, data, datalist, initial, event_name):
         permdata = self.get_formset_postdata(datalist, 'permissible_values', initial)
         data.update(permdata)
 
@@ -2101,7 +2115,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
             reverse('aristotle:edit_item', args=[vd.id]),
             data
         )
-        self.end_timer('Edit POST')
+        self.end_timer(event_name)
         self.assertEqual(response.status_code, 302)
 
     @tag('bulk_values')
@@ -2122,7 +2136,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
                 'ORDER': i
             })
 
-        self.post_and_time_permissible_values(vd, data, datalist, 0)
+        self.post_and_time_permissible_values(vd, data, datalist, 0, 'CREATE')
         vd = models.ValueDomain.objects.get(id=vd.id)
         self.assertEqual(vd.permissiblevalue_set.count(), 100)
 
@@ -2135,32 +2149,47 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         )
         data = utils.model_to_dict_with_change_time(vd)
 
-        pvs = []
-        for i in range(1000):
-            value='Value {}'.format(i),
-            meaning='Meaning {}'.format(i),
-            pv = models.PermissibleValue(
-                valueDomain=vd,
-                value=value,
-                meaning=meaning,
-                order=i
-            )
-            pvs.append(pv)
-        models.PermissibleValue.objects.bulk_create(pvs)
+        self.create_bulk_values(1000, vd)
 
         datalist = []
         for pv in vd.permissiblevalue_set.all():
             datalist.append({
                 'id': pv.id,
-                'value': value,
-                'meaning': meaning,
+                'value': pv.value,
+                'meaning': pv.meaning,
                 'valueDomain': vd.id,
-                'ORDER': i + 1
+                'ORDER': pv.order + 1
             })
 
-        self.post_and_time_permissible_values(vd, data, datalist, 1000)
+        self.post_and_time_permissible_values(vd, data, datalist, 1000, 'REORDER')
         vd = models.ValueDomain.objects.get(id=vd.id)
         self.assertEqual(vd.permissiblevalue_set.count(), 1000)
+
+    @tag('bulk_values')
+    def test_delete_bulk_values(self):
+        vd = models.ValueDomain.objects.create(
+            name='Lots of values',
+            definition='Lots',
+            submitter=self.editor
+        )
+        data = utils.model_to_dict_with_change_time(vd)
+
+        self.create_bulk_values(100, vd)
+
+        datalist = []
+        for pv in vd.permissiblevalue_set.all():
+            datalist.append({
+                'id': pv.id,
+                'value': pv.value,
+                'meaning': pv.meaning,
+                'valueDomain': vd.id,
+                'ORDER': pv.order,
+                'DELETE': 'checked'
+            })
+
+        self.post_and_time_permissible_values(vd, data, datalist, 100, 'DELETE')
+        vd = models.ValueDomain.objects.get(id=vd.id)
+        self.assertEqual(vd.permissiblevalue_set.count(), 0)
 
 
 class ConceptualDomainViewPage(LoggedInViewConceptPages, TestCase):

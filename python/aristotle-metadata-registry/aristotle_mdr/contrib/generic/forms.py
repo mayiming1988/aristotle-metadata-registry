@@ -180,7 +180,7 @@ def ordered_formset_save(formset, item, model_to_add_field, ordering_field):
         bulk_update(changed, batch_size=500)
 
     if formset.deleted_objects:
-        formset.models.objects.bulk_delete(formset.deleted_objects)
+        formset.model.objects.bulk_delete(formset.deleted_objects)
 
     # Save any m2m relations on the ojects (not actually needed yet)
     formset.save_m2m()
