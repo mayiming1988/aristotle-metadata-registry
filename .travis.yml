@@ -167,11 +167,6 @@ matrix:
       <<: *main_test_script_py36
 
     - stage: testing-modules
-      name: "PDF Downloads Tests"
-      env: DJANGO_VERSION='1.11'  DB=postgres   SEARCH=elastic MODULE=apd
-      <<: *main_test_script_py36
-
-    - stage: testing-modules
       name: "Graphql Tests"
       env: DJANGO_VERSION='1.11'  DB=postgres   SEARCH=elastic MODULE=gql
       <<: *main_test_script_py36

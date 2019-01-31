@@ -28,21 +28,11 @@
     {% if download_extensions %}
         <h2>The following download formats are available in this registry</h2>
         {% for ext in download_extensions %}
-        <i class="fa {{ext.icon_class}}"></i>
+        <i class="fa {{ ext.icon_class }}"></i>
         <strong>
-            {% if ext.about_url %}
-                <a href="{{ ext.about_url }}">{{ ext.app.verbose_name }}</a>
-            {% else %}
-                {{ ext.label }}
-            {% endif %}
+            {{ ext.label }}
         </strong>
-        <p>{{ ext.description|bleach }}</p>
-        <dl>
-        {% for d in ext.downloads %}
-            <dt><i class="fa {{d.2}}"></i> {{ d.1 }}</dt>
-            <dd>{{ d.4|bleach }}</dd>
-        {% endfor %}
-        </dl>
+        <p>{{ ext.description }}</p>
         {% endfor %}
     {% endif %}
 {% else %}

@@ -1,6 +1,5 @@
-from django.test import TestCase, Client, override_settings
+from django.test import TestCase
 from django.urls import reverse
-from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from unittest.mock import patch
@@ -183,7 +182,7 @@ class BackgroundTaskTestCase(LoggedInViewPages, TestCase):
         )
 
         with self.assertRaises(ObjectDoesNotExist):
-            extra = tr.extrainfo
+            tr.extrainfo
 
     def test_updating_result_no_task_cache(self):
 
@@ -196,7 +195,7 @@ class BackgroundTaskTestCase(LoggedInViewPages, TestCase):
         tr.save()
 
         with self.assertRaises(ObjectDoesNotExist):
-            extra = tr.extrainfo
+            tr.extrainfo
 
     @patch('aristotle_bg_workers.messages.task_completed')
     @patch('aristotle_bg_workers.messages.task_failed')

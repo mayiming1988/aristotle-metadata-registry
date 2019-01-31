@@ -6,8 +6,8 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
-from django.db.models import Q, Count
-from django.http import HttpResponseRedirect, HttpResponseNotFound
+from django.db.models import Q
+from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
@@ -132,7 +132,6 @@ def home(request):
                     revdata['versions'].append({'id': ver.object_id, 'text': str(ver), 'url': url})
                 else:
                     # Fallback, results in db query
-                    # print(ver)
                     obj = ver.object
                     if hasattr(obj, 'get_absolute_url'):
                         revdata['versions'].append({'id': ver.object_id, 'text': str(ver), 'url': obj.get_absolute_url})
@@ -162,7 +161,40 @@ def home(request):
 
 @login_required
 def roles(request):
-    page = render(request, "aristotle_mdr/user/userRoles.html", {"item": request.user})
+
+    user = request.user
+    workgroups = []
+    registration_authorities = []
+
+    for wg in user.workgroup_manager_in.all():
+        wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Manager'}
+        workgroups.append(wg_object)
+
+    for wg in user.steward_in.all():
+        wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Steward'}
+        workgroups.append(wg_object)
+
+    for wg in user.submitter_in.all():
+        wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Submitter'}
+        workgroups.append(wg_object)
+
+    for wg in user.viewer_in.all():
+        wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Viewer'}
+        workgroups.append(wg_object)
+
+    for ra in user.organization_manager_in.all():
+        ra_object = {'name': ra.name, 'pk': ra.pk, 'role': 'Manager'}
+        registration_authorities.append(ra_object)
+
+    for ra in user.registrar_in.all():
+        ra_object = {'name': ra.name, 'pk': ra.pk, 'role': 'Registrar'}
+        registration_authorities.append(ra_object)
+
+    # ORDER THE LIST OF OBJECTS BY NAME IN DESCENDING ORDER:
+
+    sorted_workgroups_list = sorted(workgroups, key=lambda k: k['name'])
+    sorted_registration_authorities_list = sorted(registration_authorities, key=lambda k: k['name'])
+    page = render(request, "aristotle_mdr/user/userRoles.html", {"user": user, "workgroups": sorted_workgroups_list, "registration_authorities": sorted_registration_authorities_list})
     return page
 
 
@@ -518,10 +550,9 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
             self.share.save()
             self.ajax_success_message = 'Share permissions updated'
 
-            if self.request.POST['notify_new_users_checkbox']:
+            if 'notify_new_users_checkbox' in self.request.POST and self.request.POST['notify_new_users_checkbox']:
                 recently_added_emails = self.get_recently_added_emails(ast.literal_eval(self.state_of_emails_before_updating),
                                                                        ast.literal_eval(self.share.emails))
-
                 if len(recently_added_emails) > 0:
                     send_sandbox_notification_emails.delay(recently_added_emails,
                                                            self.request.user.email,
@@ -552,7 +583,7 @@ class GetShareMixin:
         self.share = self.get_share()
         emails = json.loads(self.share.emails)
         if request.user.email not in emails:
-            return HttpResponseNotFound()
+            raise Http404
         return super().dispatch(request, *args, **kwargs)
 
     def get_share(self):

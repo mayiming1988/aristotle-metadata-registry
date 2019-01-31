@@ -7,17 +7,14 @@ from __future__ import unicode_literals
 
 from collections import OrderedDict
 
-from django.apps import apps
 from django.conf import settings
 from django.core.serializers import base
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import DEFAULT_DB_ALIAS, models, transaction
+from django.db import DEFAULT_DB_ALIAS, models
 from django.utils import six
 from django.utils.encoding import force_text, is_protected_type
-from django.core.serializers.python import _get_model
 from django.core.serializers.python import Serializer as PySerializer
 from aristotle_mdr import models as MDR
-from django.core.serializers.json import Serializer as JSONSerializer
 
 from aristotle_mdr.contrib.slots.models import Slot
 
@@ -31,12 +28,14 @@ logger.debug("Logging started for " + __name__)
 
 
 excluded_fields = [
-        "workgroup",
-        "submitter",
-    ]
+    "workgroup",
+    "submitter",
+]
 
-def exclude_fields(obj,excludes):
+
+def exclude_fields(obj, excludes):
     return [n.name for n in obj._meta.get_fields() if n.name not in excludes]
+
 
 class Serializer(PySerializer):
     """
@@ -92,7 +91,7 @@ class Serializer(PySerializer):
                 allowed_slots = []
 
             data['slots'] = [
-                {'name': slot.name, 'type': slot.type, 'value': slot.value }
+                {'name': slot.name, 'type': slot.type, 'value': slot.value}
                 for slot in allowed_slots
             ]
 
@@ -424,7 +423,6 @@ def Deserializer(manifest, **options):
                     other_side = rel.rel.remote_field.name
                     for weak_entity in field_value:
                         # Boy this would be easier if uuids were primary keys :/
-                        extra = {}
                         # Check if any fields are concepts
                         for sub_field_name, sub_value in weak_entity.items():
                             sub_field = RelModel._meta.get_field(sub_field_name)
@@ -469,7 +467,6 @@ def Deserializer(manifest, **options):
                         logger.warning(e)
                         raise
                         #TODO: Better error logging
-                        pass
 
             for status in d.get("statuses", []):
                 ra, created = MDR.RegistrationAuthority.objects.get_or_create(

@@ -69,8 +69,9 @@
                     </th>
                 </tr>
             {% for deinc in item.dssclusterinclusion_set.all %}
+              {% if deinc.child.id in viewable_ids %}
                 <tr>
-                    <td><i class="fa fa-fw fa-folder-o"></i>{% include "aristotle_mdr/helpers/itemLink.html" with item=deinc.child %}
+                    <td><i class="fa fa-fw fa-folder-o"></i>{% include "aristotle_mdr/helpers/itemLink.html" with item=deinc.child skip_can_view=True %}
                         {% if deinc.specific_information %}
                         <div>
                             <strong>Specific Information:</strong>
@@ -108,6 +109,9 @@
                     </td>
                     {% endif %}
                 </tr>
+              {% else %}
+                <tr><td colspan="4">You don't have permission to view this item</td></tr>
+              {% endif %}
             {% endfor %}
             </tbody>
             {% endif %}
@@ -172,10 +176,11 @@
                 </tr>
             {% endif %}
             {% for deinc in item.dssdeinclusion_set.all %}
+              {% if deinc.data_element.id in viewable_ids %}
                 <tr>
                     <td>{{ deinc.order|default_if_none:" " }}
                     </td><td>
-                        {% include "aristotle_mdr/helpers/itemLink.html" with item=deinc.data_element %}
+                        {% include "aristotle_mdr/helpers/itemLink.html" with item=deinc.data_element skip_can_view=True %}
                         {% if deinc.specific_information %}
                         <div>
                             <strong>Specific Information:</strong>
@@ -221,6 +226,9 @@
                     </td>
                     {% endif %}
                 </tr>
+              {% else %}
+                <tr><td colspan="4">You don't have permission to view this item</td></tr>
+              {% endif %}
             {% endfor %}
             </tbody>
             {% endif %}
@@ -253,9 +261,9 @@
     <h3>Contained in the following datasets</h3>
     <ul>
         {% for parent in item.parent_dss.all %}
-            {% if parent.dss|can_view:user %}
+            {% if parent.dss.id in viewable_ids %}
                 <li>
-                    {% include "aristotle_mdr/helpers/inlineDetails.html" with item=parent.dss %}
+                    {% include "aristotle_mdr/helpers/inlineDetails.html" with item=parent.dss skip_can_view=True %}
                      ({{ parent.cardinality }})
                 </li>
             {% endif %}

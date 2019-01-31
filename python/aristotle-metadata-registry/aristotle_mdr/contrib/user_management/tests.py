@@ -1,10 +1,8 @@
 from django.urls import reverse
 from django.test import TestCase
 
-from aristotle_mdr.contrib.identifiers import models as ID
-from aristotle_mdr import models as MDR
 from aristotle_mdr.tests import utils
-from aristotle_mdr.utils import url_slugify_concept, setup_aristotle_test_environment
+from aristotle_mdr.utils import setup_aristotle_test_environment
 
 setup_aristotle_test_environment()
 

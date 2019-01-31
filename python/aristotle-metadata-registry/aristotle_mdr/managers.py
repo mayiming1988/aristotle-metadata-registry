@@ -68,10 +68,9 @@ class ConceptQuerySet(MetadataItemQuerySet):
         if user.is_active:
             # User can see everything they've made.
             q |= Q(submitter=user)
-            if user.profile.workgroups:
-                # User can see everything in their workgroups.
-                q |= Q(workgroup__in=user.profile.workgroups)
-                # q |= Q(workgroup__user__profile=user)
+            # User can see everything in their workgroups.
+            q |= Q(workgroup__in=user.profile.workgroups)
+            # q |= Q(workgroup__user__profile=user)
             if user.profile.is_registrar:
                 # Registars can see items they have been asked to review
                 q |= Q(
@@ -131,6 +130,12 @@ class ConceptQuerySet(MetadataItemQuerySet):
             ObjectClass.objects.public().filter(name__contains="Person")
         """
         return self.filter(_is_public=True)
+
+    def with_related(self):
+        related = self.model.related_objects
+        if related:
+            return self.select_related(*related)
+        return self
 
     def __contains__(self, item):
         from aristotle_mdr.models import _concept

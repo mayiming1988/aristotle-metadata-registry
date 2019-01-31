@@ -1,7 +1,6 @@
 from django import template
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
-from django.utils.translation import ugettext_lazy as _
 
 from aristotle_mdr.contrib.help.models import ConceptHelp, HelpPage
 from aristotle_mdr.templatetags.aristotle_tags import doc

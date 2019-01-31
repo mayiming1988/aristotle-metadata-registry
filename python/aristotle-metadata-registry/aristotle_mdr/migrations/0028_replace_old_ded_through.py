@@ -1,4 +1,4 @@
-from django.db import migrations, models
+from django.db import migrations
 import aristotle_mdr.fields
 
 class Migration(migrations.Migration):

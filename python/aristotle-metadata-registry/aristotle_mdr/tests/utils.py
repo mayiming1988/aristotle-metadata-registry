@@ -1,5 +1,4 @@
 from typing import List, Dict
-from django import VERSION as django_version
 import attr
 import datetime
 import random
@@ -8,6 +7,7 @@ import string
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.core.files.base import ContentFile
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
@@ -18,9 +18,11 @@ from django_celery_results.models import TaskResult
 from django_tools.unittest_utils.BrowserDebug import debug_response
 
 from aristotle_mdr.contrib.reviews.models import ReviewRequest
+from aristotle_mdr.downloader import Downloader
 
 from time import sleep
 import random
+
 
 def wait_for_signal_to_fire(seconds=1):
     sleep(seconds)
@@ -50,10 +52,10 @@ def get_management_forms(item, slots=False, identifiers=False, item_is_model=Fal
     if hasattr(item, 'serialize_weak_entities'):
         weak = item.serialize_weak_entities
         for entity in weak:
-            d['%s-TOTAL_FORMS'%entity[0]] = 0
-            d['%s-INITIAL_FORMS'%entity[0]] = 0
-            d['%s-MIN_NUM_FORMS'%entity[0]] = 0
-            d['%s-MAX_NUM_FORMS'%entity[0]] = 1000
+            d['%s-TOTAL_FORMS' % entity[0]] = 0
+            d['%s-INITIAL_FORMS' % entity[0]] = 0
+            d['%s-MIN_NUM_FORMS' % entity[0]] = 0
+            d['%s-MAX_NUM_FORMS' % entity[0]] = 1000
 
     add_through_forms = False
     if not item_is_model:
@@ -912,6 +914,15 @@ class MockManagementForm(object):
         return base
 
 
+class FakeDownloader(Downloader):
+    download_type = 'fake'
+    file_extension = 'fak'
+    label = 'FAKE'
+
+    def create_file(self):
+        return ContentFile('')
+
+
 class AsyncResultMock:
     """
     This mock AsyncResult class will replace celery's AsyncResult class to facilitate ready and status features
@@ -968,6 +979,7 @@ def store_taskresult(status='SUCCESS'):
     )
     tr.save()
     return tr
+
 
 def get_download_result(iid):
     """

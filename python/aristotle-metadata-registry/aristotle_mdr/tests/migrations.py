@@ -1,8 +1,6 @@
 from django.apps import apps as nowapps
 from django.db.migrations.executor import MigrationExecutor
 from django.db import connection
-from django.test import TestCase
-from django.test.testcases import TransactionTestCase
 import unittest
 
 # This is an object so it is not run as a test itself. See usage in main.test_migrations

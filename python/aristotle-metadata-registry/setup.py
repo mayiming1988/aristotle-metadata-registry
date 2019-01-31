@@ -37,23 +37,24 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
-    install_requires = [
-        "Django>=1.11.16,<2.0",
-        'six', # Setuptools > 36 doesn't install this by default
+    install_requires=[
+        "Django>=1.11.18,<2.0",
+        'six',  # Setuptools > 36 doesn't install this by default
         'pytz',
         'pyyaml',
-        'lesscpy',
 
         'django-model-utils>=2.3.1',
         'django-notifications-hq==1.4',
         'django-braces',
         'docutils',
 
-        #Search requirements
+        # Search requirements
         'django-haystack>=2.7.dev1,<2.8.0',
 
-        #Rich text editors
+        # Rich text editors
         'django-ckeditor>=5.3.0',
+
+        # Image manipulation
         'pillow',
 
         # Revision control
@@ -110,7 +111,16 @@ setup(
         'django-storages',
 
         # Sanitization
-        'bleach'
+        'bleach',
+
+        # File conversion
+        'pypandoc',
+
+        # Html to pdf
+        'weasyprint',
+
+        # Pdf toolkit
+        'PyPDF2'
     ],
 
 )

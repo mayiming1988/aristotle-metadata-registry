@@ -1,14 +1,10 @@
 from rest_framework import generics
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.serializers import ValidationError
-from rest_framework.views import APIView
 
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
 
-from aristotle_mdr.contrib.reviews.models import ReviewRequest, ReviewComment, REVIEW_STATES
-from aristotle_mdr_api.v4.permissions import AuthCanViewEdit, AuthFinePerms
+from aristotle_mdr.contrib.reviews.models import ReviewComment, ReviewRequest
+from aristotle_mdr_api.v4.permissions import AuthCanViewEdit
 from aristotle_mdr import perms
 
 from . import serializers
@@ -30,11 +26,13 @@ from . import serializers
 class ReviewCommentCreateView(generics.CreateAPIView):
     """Create a comment against a review"""
     permission_classes=(AuthCanViewEdit,)
+    permission_key='metadata'
     serializer_class=serializers.ReviewCommentSerializer
 
 
 class ReviewCommentRetrieveView(generics.RetrieveAPIView):
     permission_classes=(AuthCanViewEdit,)
+    permission_key='metadata'
     serializer_class=serializers.ReviewCommentSerializer
     queryset=ReviewComment.objects.all()
 
@@ -42,6 +40,7 @@ class ReviewCommentRetrieveView(generics.RetrieveAPIView):
 class ReviewUpdateAndCommentView(generics.UpdateAPIView):
     """Open or close a review, with optional comment"""
     permission_classes=(AuthCanViewEdit,)
+    permission_key='metadata'
     serializer_class=serializers.ReviewUpdateAndCommentSerializer
     pk_url_kwarg='pk'
 

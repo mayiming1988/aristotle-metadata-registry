@@ -10,7 +10,6 @@ import aristotle_mdr.tests.utils as utils
 from aristotle_mdr.utils import url_slugify_concept
 
 from aristotle_mdr.utils import setup_aristotle_test_environment
-from aristotle_mdr.tests.utils import FormsetTestUtils
 
 
 setup_aristotle_test_environment()

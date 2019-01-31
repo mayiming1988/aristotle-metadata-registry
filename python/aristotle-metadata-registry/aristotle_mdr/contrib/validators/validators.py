@@ -1,4 +1,4 @@
-from typing import List, Callable, Any
+from typing import List
 import re
 from aristotle_mdr import models
 from django.conf import settings

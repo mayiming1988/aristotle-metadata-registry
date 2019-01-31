@@ -19,7 +19,7 @@
                 <ul>
                 {% for input in item|get_dataelements_from_m2m:"inputs" %}
                     {% if input|can_view:request.user %}
-                      <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=input %}</li>
+                      <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=input skip_can_view=True %}</li>
                     {% endif %}
                 {% endfor %}
                 </ul>
@@ -45,7 +45,7 @@
                 <ul>
                 {% for output in item|get_dataelements_from_m2m:"derives" %}
                     {% if output|can_view:request.user %}
-                      <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=output %}</li>
+                      <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=output skip_can_view=True %}</li>
                     {% endif %}
                 {% endfor %}
                 </ul>

@@ -7,7 +7,7 @@
         <h4>As a numerator</h4>
         <ul>
             {% for num in item.as_numerator.all|can_view_iter:user %}
-                <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=num %}</li>
+                <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=num skip_can_view=True %}</li>
             {% endfor %}
         </ul>
     {% endif %}
@@ -15,7 +15,7 @@
         <h4>As a denominator</h4>
         <ul>
             {% for denom in item.as_denominator.all|can_view_iter:user %}
-                <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=denom %}</li>
+                <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=denom skip_can_view=True %}</li>
             {% endfor %}
         </ul>
     {% endif %}
@@ -23,7 +23,7 @@
         <h4>As a disaggregation</h4>
         <ul>
             {% for dis in item.as_disaggregator.all|can_view_iter:user %}
-                <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=dis %}</li>
+                <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=dis skip_can_view=True %}</li>
             {% endfor %}
         </ul>
     {% endif %}
