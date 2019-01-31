@@ -71,7 +71,7 @@ class VersionField:
 
     @property
     def is_reference(self):
-        return self.reference_label is not ''
+        return self.reference_label != ''
 
     @property
     def is_link(self):
