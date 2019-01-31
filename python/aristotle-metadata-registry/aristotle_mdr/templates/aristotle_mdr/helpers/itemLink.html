@@ -10,16 +10,16 @@
     {% else %}
         {% if skip_can_view or item|can_view:user %}
             <a class="itemLink" href="{{ item.get_absolute_url }}">
-            {% if space %}
-                {% zws item.name %}
-            {% else %}
-                {% item.name %}
-             {% endif %}
-             </a>
-             {% if showType %}({{ item.get_verbose_name }}){% endif %}
-         {% else %}
+                {% if space %}
+                    {% zws item.name %}
+                {% else %}
+                    {% item.name %}
+                {% endif %}
+            </a>
+            {% if showType %}({{ item.get_verbose_name }}){% endif %}
+        {% else %}
             <em>You dont have permission to view this item</em>
-         {% endif %}
+        {% endif %}
     {% endif %}
 
 {% else %}
