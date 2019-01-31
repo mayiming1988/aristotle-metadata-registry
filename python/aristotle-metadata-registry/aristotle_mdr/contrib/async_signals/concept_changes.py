@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def concept_saved(message):
+def concept_saved(message, **kwargs):
     instance = safe_object(message)
 
     if not instance:
@@ -41,22 +41,20 @@ def new_comment_created(message, **kwargs):
     comment = safe_object(message)
     if comment:
         post = comment.post
-        messages.new_comment_created(post.author, comment)
+        messages.new_comment_created(recipient=post.author, comment=comment)
 
 
 def new_post_created(message, **kwargs):
     post = safe_object(message)
-
     if post:
         for user in post.workgroup.members.all():
             if user != post.author:
-                messages.new_post_created(user, post)
+                messages.new_post_created(recipient=user, post=post)
 
 
 def status_changed(message, **kwargs):
     new_status = safe_object(message)
     concept = new_status.concept
-
     for status in concept.current_statuses().all():
         for registrar in status.registrationAuthority.registrars.all():
             if concept.statuses.filter(registrationAuthority=new_status.registrationAuthority).count() <= 1:
@@ -85,4 +83,39 @@ def item_superseded(message, **kwargs):
     for status in concept.current_statuses().all():
         for registrar in status.registrationAuthority.registrars.all():
             if concept.can_view(registrar) and new_super_rel.newer_item.can_view(registrar):
-                messages.registrar_item_superseded(recipient=registrar, obj=concept)
+                messages.registrar_item_superseded(recipient=registrar, obj=concept, )
+
+
+def issue_created(issue, **kwargs):
+    safe_issue = safe_object(issue)
+    if safe_issue:
+        if safe_issue.item.workgroup:
+            for user in safe_issue.item.workgroup.members:
+                if user != safe_issue.submitter:
+                    messages.issue_created_workgroup(recipient=user, obj=safe_issue)
+
+        for user in safe_issue.item.favourited_by:
+            if user != safe_issue.submitter:
+                messages.issue_created_favourite(recipient=user, obj=safe_issue)
+
+        for user in safe_issue.item.editable_by:
+            if user != safe_issue.submitter:
+                messages.issue_created_items_i_can_edit(recipient=user, obj=safe_issue)
+
+
+def issue_commented(issue_comment, **kwargs):
+    safe_issue_comment = safe_object(issue_comment)
+    if safe_issue_comment:
+        if safe_issue_comment.issue.item.workgroup:
+            for user in safe_issue_comment.issue.item.workgroup.members:
+                if user != safe_issue_comment.author:
+                    messages.issue_comment_created_workgroup(recipient=user, obj=safe_issue_comment)
+
+        for user in safe_issue_comment.issue.item.favourited_by:
+            if user != safe_issue_comment.author:
+                messages.issue_comment_created_favourite(recipient=user, obj=safe_issue_comment)
+
+        for user in safe_issue_comment.issue.item.editable_by:
+            if user != safe_issue_comment.author:
+                messages.issue_comment_created_items_i_can_edit(recipient=user, obj=safe_issue_comment)
+

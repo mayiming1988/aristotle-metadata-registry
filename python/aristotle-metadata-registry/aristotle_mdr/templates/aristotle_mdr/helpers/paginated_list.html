@@ -91,7 +91,7 @@ Showing {{ page.paginator.count }} results.
                 <li>{{ s.registrationAuthority }}: {{ s.state_name }}</li>
             {% empty %}
             <li><em>Unregistered</em></li>
-            {% endfor %}</small>
+            {% endfor %}
             </ul>
         </td>
         <td><time datetime="{{ item.modified|isotime }}">{{ item.modified }}</time></td>

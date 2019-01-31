@@ -24,6 +24,9 @@ from aristotle_mdr.managers import (
 
 from .const import REVIEW_STATES
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class StatusMixin:
     @property
@@ -194,7 +197,11 @@ class ReviewEndorsementTimeline(TimeStampedModel):
 
 @receiver(post_save, sender=ReviewRequest)
 def review_request_changed(sender, instance, *args, **kwargs):
+    logger.critical("THESE ARE THE KWARGS:")
+    logger.critical(kwargs)
     if kwargs.get('created'):
         fire("action_signals.review_request_created", obj=instance, **kwargs)
+        logger.critical("1")
     else:
+        logger.critical("2")
         fire("action_signals.review_request_updated", obj=instance, **kwargs)

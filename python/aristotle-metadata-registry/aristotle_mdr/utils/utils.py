@@ -112,6 +112,13 @@ def url_slugify_organization(org):
     )
 
 
+def url_slugify_issue(issue):
+    return reverse(
+        "aristotle_issues:issue",
+        kwargs={'iid': issue.item.pk, 'pk': issue.pk}
+    )
+
+
 def construct_change_message_for_form(request, form):
     change_message = []
     if form and form.changed_data:

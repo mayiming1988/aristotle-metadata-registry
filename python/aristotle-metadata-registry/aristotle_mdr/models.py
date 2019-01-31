@@ -8,7 +8,6 @@ from django.dispatch import receiver, Signal
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
-from django_jsonforms.forms import JSONSchemaField
 
 from model_utils.models import TimeStampedModel
 from model_utils import Choices, FieldTracker
@@ -606,6 +605,9 @@ class DiscussionPost(discussionAbstract):
             "aristotle:discussionsPost",
             args=[self.pk]
         )
+
+    def __str__(self):
+        return self.title
 
 
 class DiscussionComment(discussionAbstract):
@@ -1471,11 +1473,25 @@ class PossumProfile(models.Model):
                     "items I have tagged / favourited": True,
                     "any items I can edit": True
                 },
-                "issues": {
-                    "items in my workgroups": True,
-                    "items I have tagged / favourited": True,
-                    "any items I can edit": True
-                }
+                "new items": {
+                    "new items in my workgroups": True
+                },
+            },
+            "registrar": {
+                "item superseded": True,
+                "item registered": True,
+                "item changed status": True,
+                "review request created": True,
+                "review request updated": True
+            },
+            "issues": {
+                "items in my workgroups": True,
+                "items I have tagged / favourited": True,
+                "any items I can edit": True
+            },
+            "discussions": {
+                "new posts": True,
+                "new comments": True
             },
             "notification methods": {
                 "email": False,
@@ -1714,7 +1730,7 @@ def new_comment_created(sender, **kwargs):
         return  # We don't need to notify a topic poster of an edit.
     if comment.author == post.author:
         return  # We don't need to tell someone they replied to themselves
-    fire("concept_changes.new_comment_created", obj=comment)
+    fire("concept_changes.new_comment_created", obj=comment, **kwargs)
 
 
 @receiver(post_save, sender=DiscussionPost)

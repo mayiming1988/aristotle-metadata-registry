@@ -37,15 +37,17 @@ function fill_aristotle_notification_menu(data) {
             for (let i=0; i < data.unread_list.length; i++) {
                 let item = data.unread_list[i];
 
+                console.log(item)
+
                 let text = item.actor + " " + item.verb + " " + item.target
                 //TODO: INSTEAD OF CHOPPING THE STRING AND ADDING ELLIPSIS ("...") WE COULD JUST ADD A <br/> TAG:
-                if (text.length > 53) {
-                    text = text.slice(0, 50)
-                    text = text + '\u2026'
-                }
+                // if (text.length > 73) {
+                //     text = text.slice(0, 70)
+                //     text = text + '\u2026'
+                // }
                 let element
                 if (item.target_object_id) {
-                    let target = '/notifyredirect/' + item.target_content_type + '/'
+                    let target = '/notifyredirect/' + item.actor_content_type + '/' +item.actor_object_id
                     element = make_dropdown_item(text, target)
                 } else {
                     element = make_dropdown_item(text)
@@ -57,14 +59,17 @@ function fill_aristotle_notification_menu(data) {
             divider.className = 'divider'
             menu.append(divider)
 
-            var all_read_item = make_dropdown_item('Mark all as read', '#', 'fa fa-envelope fa-fw')
-            all_read_item.id = 'notify_all_read'
-            menu.append(all_read_item)
+
             $('#notify_all_read a').click(mark_all_unread)
 
-            menu.append(make_dropdown_item('View all unread notifications', notify_unread_url, 'fa fa-inbox fa-fw'))
+            var all_read_item = make_dropdown_item('Mark all as read', '#', 'fa fa-bell-slash-o fa-fw')
+            all_read_item.id = 'notify_all_read'
+
+
+            menu.append(make_dropdown_item('View all unread notifications', notify_unread_url, 'fa fa-bell fa-fw'))
+            menu.append(all_read_item)
         } else {
-            menu.append(make_dropdown_item('No unread notifications', notify_unread_url, 'fa fa-inbox fa-fw'))
+            menu.append(make_dropdown_item('No unread notifications', notify_unread_url, 'fa fa-bell fa-fw'))
         }
     }
 }
@@ -80,6 +85,7 @@ function make_dropdown_item(text, href='#', icon=null) {
     var textelement = document.createElement('li')
     var linkelement = document.createElement('a')
     var textnode = document.createTextNode(text)
+    var smalltag = document.createElement("small")
     linkelement.href = href
 
     if (icon != null) {
@@ -87,8 +93,8 @@ function make_dropdown_item(text, href='#', icon=null) {
         iconelement.className = icon
         linkelement.appendChild(iconelement)
     }
-
-    linkelement.appendChild(textnode)
+    smalltag.appendChild(textnode)
+    linkelement.appendChild(smalltag)
     textelement.appendChild(linkelement)
 
     return textelement

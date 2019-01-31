@@ -76,7 +76,7 @@
                                 <span class="badge">{{ user.profile.favs_and_tags_count }}</span>
                             </a></li>
                             <li><a href="{% url 'aristotle:userInbox' %}">
-                                <i class="fa fa-envelope fa-fw"></i> {% trans 'Notifications'%}
+                                <i class="fa fa-bell fa-fw"></i> {% trans 'Notifications'%}
                                 <span class="badge" title="{{ notecount }} unread notifications">{{ notecount }}</span>
                             </a></li>
                             <li><a href="{% url 'aristotle:userWorkgroups' %}">
