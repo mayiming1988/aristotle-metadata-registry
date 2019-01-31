@@ -6,13 +6,11 @@ from django.forms import ModelForm, BooleanField
 
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 import aristotle_mdr.models as MDR
-from aristotle_mdr.perms import user_can_edit
 from aristotle_mdr.forms.creation_wizards import UserAwareForm
 from aristotle_mdr.forms.fields import ReviewChangesChoiceField, MultipleEmailField
 from aristotle_mdr.contrib.autocomplete import widgets
 from django_jsonforms.forms import JSONSchemaField
 
-from django.forms.models import modelformset_factory
 
 from .utils import RegistrationAuthorityMixin
 

@@ -1,17 +1,13 @@
 from django import forms
-from django.db import transaction
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.html import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 import aristotle_mdr.models as MDR
 from aristotle_mdr.forms.creation_wizards import UserAwareModelForm, UserAwareForm
 from aristotle_mdr.forms.forms import ChangeStatusGenericForm
-from django.core.exceptions import ValidationError
 
 from aristotle_mdr.forms.bulk_actions import LoggedInBulkActionForm, RedirectBulkActionMixin
-from aristotle_mdr.models import _concept
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 from aristotle_mdr.contrib.autocomplete.widgets import ConceptAutocompleteSelectMultiple
 

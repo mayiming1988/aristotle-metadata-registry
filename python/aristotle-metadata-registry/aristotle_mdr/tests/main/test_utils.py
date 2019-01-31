@@ -5,11 +5,9 @@ from aristotle_mdr.utils import setup_aristotle_test_environment
 from aristotle_mdr import utils
 from aristotle_mdr.views.versions import VersionField
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-import datetime
 
 setup_aristotle_test_environment()
 
@@ -217,3 +215,40 @@ class UtilsTests(TestCase):
     def test_get_concept_models_doesnt_return_concept(self):
         cm = utils.utils.get_concept_models()
         self.assertFalse(models._concept in cm)
+
+    def test_format_seconds_under_60(self):
+        self.assertEqual(utils.utils.format_seconds(45), '45 seconds')
+
+    def test_format_seconds_above_60(self):
+        self.assertEqual(utils.utils.format_seconds(130), '2 minutes, 10 seconds')
+
+    def test_format_seconds_above_3600(self):
+        self.assertEqual(utils.utils.format_seconds(3730), '1 hours, 2 minutes, 10 seconds')
+
+    def test_format_seconds_hours_only(self):
+        self.assertEqual(utils.utils.format_seconds(7200), '2 hours')
+
+
+class ManagersTestCase(TestCase):
+
+    def setUp(self):
+        oc = models.ObjectClass.objects.create(
+            name='Test OC',
+            definition='Just a test'
+        )
+        dec = models.DataElementConcept.objects.create(
+            name='Test DEC',
+            definition='Just a test',
+            objectClass=oc
+        )
+
+    def test_with_related(self):
+        with self.assertNumQueries(2):
+            dec = models.DataElementConcept.objects.filter(name='Test DEC').first()
+            dec.objectClass.name
+
+        with self.assertNumQueries(1):
+            dec = models.DataElementConcept.objects.filter(
+                name='Test DEC'
+            ).with_related().first()
+            dec.objectClass.name

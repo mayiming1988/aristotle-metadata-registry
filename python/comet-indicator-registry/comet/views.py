@@ -1,4 +1,3 @@
-import aristotle_mdr as aristotle
 from aristotle_mdr.contrib.generic.views import GenericAlterManyToManyView
 import comet
 from django.views.generic import TemplateView

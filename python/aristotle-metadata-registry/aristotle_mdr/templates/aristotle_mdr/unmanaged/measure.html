@@ -16,7 +16,7 @@
         <ul>
         {% for uom in item.unitofmeasure_set.all|can_view_iter:request.user %}
             <li>
-                {% include "aristotle_mdr/helpers/inlineDetails.html" with item=uom %}
+                {% include "aristotle_mdr/helpers/inlineDetails.html" with item=uom skip_can_view=True %}
             </li>
         {% endfor %}
         </ul>

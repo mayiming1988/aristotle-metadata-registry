@@ -45,9 +45,9 @@
         <div>The items in this request are listed below:
             <ul>
                 {% for item in review.concepts.all %}
-                    <li>
-        {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item %}
-                    </li>
+                  <li>
+                    {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item %}
+                  </li>
                 {% endfor %}
             </ul>
         </div>

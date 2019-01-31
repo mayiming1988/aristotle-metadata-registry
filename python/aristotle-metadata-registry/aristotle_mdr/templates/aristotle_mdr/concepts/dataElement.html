@@ -77,17 +77,17 @@
         <h2>Derivations</h2>
         <dl>
             <dt>Input to</dt>
-                {% for ded in item.input_to_derivation.all %}
+                {% for ded in item.input_to_derivation.all|can_view_iter:user %}
                 <dd>
-                    {% include "aristotle_mdr/helpers/inlineDetails.html" with item=ded %}
+                    {% include "aristotle_mdr/helpers/inlineDetails.html" with item=ded skip_can_view=True %}
                 </dd>
                 {% empty %}
                     <dd><em>None</em></dd>
                 {% endfor %}
             <dt>Derived from</dt>
-            {% for ded in item.derived_from.all %}
+            {% for ded in item.derived_from.all|can_view_iter:user %}
                 <dd>
-                    {% include "aristotle_mdr/helpers/inlineDetails.html" with item=ded %}
+                    {% include "aristotle_mdr/helpers/inlineDetails.html" with item=ded skip_can_view=True %}
                 </dd>
                 {% empty %}
                     <dd><em>None</em></dd>

@@ -9,6 +9,7 @@ from aristotle_mdr.exceptions import NoUserGivenForUserForm
 from aristotle_mdr.managers import ConceptQuerySet
 from aristotle_mdr.perms import user_can_move_between_workgroups, user_can_move_any_workgroup, user_can_remove_from_workgroup
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
+from aristotle_mdr.utils.utils import fetch_aristotle_settings
 
 from aristotle_mdr.contrib.custom_fields.forms import CustomValueFormMixin
 
@@ -103,8 +104,13 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
 
     def __init__(self, *args, **kwargs):
         # TODO: Have tis throw a 'no user' error
-        first_load = kwargs.pop('first_load', None)
         super().__init__(*args, **kwargs)
+
+        if 'aristotle_mdr_backwards' not in fetch_aristotle_settings().get('CONTENT_EXTENSIONS', []):
+            bc_fields = self._meta.model.backwards_compatible_fields
+            for fname in bc_fields:
+                if fname in self.fields:
+                    del self.fields[fname]
 
         for f in self.fields:
             if f == "workgroup":
@@ -142,7 +148,7 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
         obj_field_names = [
             field.name for field in self._meta.model._meta.get_fields()
             if field not in MDR.concept._meta.fields
-            ]
+        ]
         fields = []
         for name in self.fields:
             if name in obj_field_names:

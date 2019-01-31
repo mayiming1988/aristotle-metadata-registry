@@ -5,7 +5,7 @@
 This data element is collected by the following questions, some question objects may be hidden based on your current permissions.
 <ul>
     {% for q in item.questions|can_view_iter:user %}
-            <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=q %}</li>
+            <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=q skip_can_view=True %}</li>
     {% endfor %}
 </ul>
 {% else %}

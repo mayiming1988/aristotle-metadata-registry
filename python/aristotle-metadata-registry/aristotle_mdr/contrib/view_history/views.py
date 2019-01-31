@@ -1,4 +1,4 @@
-from braces.views import LoginRequiredMixin, PermissionRequiredMixin
+from braces.views import LoginRequiredMixin
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.views.generic import ListView, TemplateView, DeleteView

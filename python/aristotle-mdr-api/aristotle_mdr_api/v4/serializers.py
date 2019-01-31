@@ -1,6 +1,5 @@
 from typing import Iterable, Dict
 from django.db.models import Model
-from django.urls import reverse
 from django.db.models.query import QuerySet
 from rest_framework import serializers
 

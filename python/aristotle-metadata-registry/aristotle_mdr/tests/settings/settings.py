@@ -13,6 +13,7 @@ sys.path.insert(1, os.path.join(BASE, "tests/apps"))
 TEMPLATES[0]['DIRS'] = [
     os.path.join(BASE, 'tests/apps/bulk_actions_test/templates')
 ]
+TEMPLATES[0]['OPTIONS']['debug'] = True  # This makes sure template exceptions are not squashed
 
 SECRET_KEY = 'inara+oscar+vtkprm7@0(fsc$+grbz9-s+tmo9d)e#k(9uf8m281&$7xhdkjr'
 
@@ -62,25 +63,19 @@ if os.environ.get('SEARCH') == 'whoosh':
     print("Running %s test-suite with whoosh" % ci_runner)
     if os.environ.get('VARIANT') == 'haystack':
         print("Vanilla haystack variant")
-        from aristotle_mdr.tests.settings.templates.search.haystack_whoosh import HAYSTACK_CONNECTIONS
     else:
         print("Aristotle specific variant")
-        from aristotle_mdr.tests.settings.templates.search.whoosh import HAYSTACK_CONNECTIONS
 elif os.environ.get('SEARCH') == 'elastic':
     print("Running %s test-suite with elasticsearch" % ci_runner)
     if os.environ.get('VARIANT') == 'haystack':
         print("Vanilla haystack variant")
-        from aristotle_mdr.tests.settings.templates.search.haystack_elasticsearch import HAYSTACK_CONNECTIONS
     else:
         print("Aristotle specific variant")
-        from aristotle_mdr.tests.settings.templates.search.elasticsearch import HAYSTACK_CONNECTIONS
 elif os.environ.get('TOXDIR'):
     print("Running  %s test-suite with whoosh" % ci_runner)
-    from aristotle_mdr.tests.settings.tox import HAYSTACK_CONNECTIONS
 else:
     print("Running %s test-suite with whoosh" % ci_runner)
     print("Aristotle specific variant")
-    from aristotle_mdr.tests.settings.templates.search.whoosh import HAYSTACK_CONNECTIONS
 
 
 INSTALLED_APPS = (
@@ -89,7 +84,6 @@ INSTALLED_APPS = (
     'aristotle_mdr.contrib.links',
     'templatetags',
     'extension_test',
-    'text_download_test',
 ) + INSTALLED_APPS
 
 
@@ -102,9 +96,8 @@ PASSWORD_HASHERS = (
 ARISTOTLE_SETTINGS = ARISTOTLE_SETTINGS.copy()
 
 ARISTOTLE_SETTINGS['SEPARATORS']['DataElementConcept'] = '--'
-ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] = ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] + ['extension_test', 'aristotle_mdr_links']
-ARISTOTLE_SETTINGS['DOWNLOADERS'] = ARISTOTLE_SETTINGS['DOWNLOADERS'] + [
-    'text_download_test.downloader.TestTextDownloader'
+ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] = ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] + [
+    'extension_test', 'aristotle_mdr_links', 'aristotle_mdr_backwards'
 ]
 ARISTOTLE_SETTINGS['BULK_ACTIONS'] = ARISTOTLE_SETTINGS['BULK_ACTIONS'] + [
     'bulk_actions_test.actions.StaffDeleteActionForm',

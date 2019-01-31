@@ -1,9 +1,8 @@
 from django import forms
 from django.db.models import DateField
 from django.forms.models import BaseModelFormSet, BaseInlineFormSet
-from django.forms import ModelChoiceField, CharField
 from django.forms.formsets import BaseFormSet
-from django.forms.models import modelformset_factory, inlineformset_factory
+from django.forms.models import modelformset_factory
 
 from aristotle_mdr.models import _concept, AbstractValue, ValueDomain, ValueMeaning
 from aristotle_mdr.contrib.autocomplete import widgets

@@ -34,6 +34,7 @@ setup(
         'django-rest-swagger',
         'django_filter',
         'django-jsonforms',
+        'coreapi',
     ]
 
 )

@@ -10,7 +10,6 @@ from django.contrib.auth.models import AnonymousUser
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
-from aristotle_mdr.downloader import CSVDownloader
 import aristotle_mdr.contrib.identifiers.models as ident_models
 from aristotle_mdr.contrib.slots.choices import permission_choices
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
@@ -21,26 +20,17 @@ from aristotle_mdr.forms.creation_wizards import (
 )
 from aristotle_mdr.tests import utils
 from aristotle_mdr.views import ConceptRenderView
+from aristotle_mdr.downloader import HTMLDownloader
 import datetime
 from unittest import mock, skip
 import reversion
 import json
 
-from aristotle_mdr.utils import setup_aristotle_test_environment
 from aristotle_mdr.tests.utils import store_taskresult, get_download_result
-from aristotle_mdr.contrib.reviews.models import ReviewRequest
 
 from mock import patch
 
 from aristotle_mdr.templatetags.aristotle_tags import get_dataelements_from_m2m
-
-
-setup_aristotle_test_environment()
-
-
-def setUpModule():
-    from django.core.management import call_command
-    call_command('load_aristotle_help', verbosity=0, interactive=False)
 
 
 class AnonymousUserViewingThePages(TestCase):
@@ -237,6 +227,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     @tag('cache')
     @override_settings(CACHE_ITEM_PAGE=True)
+    @skip('Cache mixin not currently used')
     def test_itempage_not_loaded_from_cache_if_modified(self):
 
         # Load response into cache
@@ -254,6 +245,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     @tag('cache')
     @override_settings(CACHE_ITEM_PAGE=True)
+    @skip('Cache mixin not currently used')
     def test_itempage_not_loaded_from_cache_if_nocache_set(self):
         cache.set(self.cache_key, HttpResponse('wow'))
 
@@ -272,6 +264,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     @tag('cache')
     @override_settings(CACHE_ITEM_PAGE=True)
+    @skip('Cache mixin not currently used')
     def test_itempage_cached_per_user(self):
         # Load response into cache
         cache.set(self.cache_key, HttpResponse('wow'))
@@ -292,6 +285,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     @tag('cache')
     @override_settings(CACHE_ITEM_PAGE=False)
+    @skip('Cache mixin not currently used')
     def test_itempage_not_loaded_from_cache_if_setting_false(self):
         # Load response into cache
         cache.set(self.cache_key, HttpResponse('wow'))
@@ -312,6 +306,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     @tag('cache')
     @override_settings(CACHE_ITEM_PAGE=False)
+    @skip('Cache mixin not currently used')
     def test_response_not_put_into_cache_if_setting_false(self):
         # View in the future to avoid modified recently check
         with mock.patch('aristotle_mdr.utils.utils.timezone.now') as mock_now:
@@ -599,7 +594,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(cvs[2].content, 'Workgroup Value')
 
 
-
+# These are run by all item types
 class LoggedInViewConceptPages(utils.AristotleTestUtils):
     defaults = {}
 
@@ -627,6 +622,10 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
     # ---- utils ----
 
+    def loadHelp(self):
+        from django.core.management import call_command
+        call_command('load_aristotle_help', verbosity=0, interactive=False)
+
     def update_defn_with_versions(self, new_defn='brand new definition'):
         with reversion.create_revision():
             self.item1.save()
@@ -641,7 +640,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertEqual(concept_versions.count(), 2)
 
         item_versions = reversion.models.Version.objects.get_for_object(self.item1)
-        self.assertEqual(concept_versions.count(), 2)
+        self.assertEqual(item_versions.count(), 2)
 
     # ---- tests ----
 
@@ -1171,6 +1170,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
     def test_help_page_exists(self):
         self.logout()
+        self.loadHelp()
         response = self.client.get(
             reverse('aristotle_help:concept_help',args=[self.itemType._meta.app_label,self.itemType._meta.model_name])
         )
@@ -1761,6 +1761,14 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         item_context = response.context['item']
         self.assertEqual(item_context['definition'], old_definition)
 
+    @tag('download')
+    @override_settings(ARISTOTLE_SETTINGS={'DOWNLOADERS': ['aristotle_mdr.downloaders.HTMLDownloader']})
+    def test_download_content(self):
+        downloader = HTMLDownloader([self.item1.id], self.editor.id, {})
+        html = downloader.get_html().decode()
+        self.assertTrue(len(html) > 0)
+        self.assertTrue(self.item1.definition in html)
+
 
 class ObjectClassViewPage(LoggedInViewConceptPages, TestCase):
     url_name='objectClass'
@@ -1952,137 +1960,6 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         self.item1 = models.ValueDomain.objects.get(pk=self.item1.pk)
 
         self.assertTrue(num_vals == getattr(self.item1,value_type+"Values").count())
-
-    def csv_download_cache(self, properties, iid):
-        CSVDownloader.download(properties, iid)
-        return store_taskresult()
-
-    def csv_download_task_retrieve(self, iid):
-        if not self.celery_result:
-            # Creating an instance of fake Celery `AsyncResult` object
-            self.celery_result = get_download_result(iid)
-        return self.celery_result
-
-    @patch('aristotle_mdr.downloader.CSVDownloader.download.delay')
-    @patch('aristotle_mdr.views.downloads.async_result')
-    def test_su_can_download_csv(self, async_result, downloader_download):
-        downloader_download.side_effect = self.csv_download_cache
-        async_result.side_effect = self.csv_download_task_retrieve
-
-        self.login_superuser()
-        self.celery_result = None
-
-        eq = QueryDict('', mutable=True)
-        eq.setdefault('items', self.item1.id)
-        eq.setdefault('title', self.item1.name)
-        response = self.client.get(reverse('aristotle:download',args=['csv-vd',self.item1.id]), follow=True)
-        self.assertEqual(response.status_code,200)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=['csv-vd']) +
-                         '?' + eq.urlencode())
-        self.assertTrue(downloader_download.called)
-        self.assertTrue(async_result.called)
-
-        response = self.client.get(reverse('aristotle:start_download', args=['csv-vd']) + '?' + response.request['QUERY_STRING'])
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(async_result.called)
-
-        self.celery_result = None
-
-        eq = QueryDict('', mutable=True)
-        eq.setdefault('items', self.item2.id)
-        eq.setdefault('title', self.item2.name)
-        response = self.client.get(reverse('aristotle:download',args=['csv-vd',self.item2.id]), follow=True)
-        self.assertEqual(response.status_code,200)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=['csv-vd']) +
-                         '?' + eq.urlencode())
-        self.assertTrue(downloader_download.called)
-        self.assertTrue(async_result.called)
-
-        response = self.client.get(reverse('aristotle:start_download', args=['csv-vd']) + '?' + response.request['QUERY_STRING'])
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(async_result.called)
-
-    @patch('aristotle_mdr.downloader.CSVDownloader.download.delay')
-    @patch('aristotle_mdr.views.downloads.async_result')
-    def test_editor_can_download_csv(self, async_result, downloader_download):
-        downloader_download.side_effect = self.csv_download_cache
-        async_result.side_effect = self.csv_download_task_retrieve
-
-        self.login_editor()
-        self.celery_result = None
-
-        eq = QueryDict('', mutable=True)
-        eq.setdefault('items', self.item1.id)
-        eq.setdefault('title', self.item1.name)
-        response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item1.id]), follow=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=['csv-vd']) +
-                         '?' + eq.urlencode())
-        self.assertTrue(downloader_download.called)
-        self.assertTrue(async_result.called)
-
-        response = self.client.get(reverse('aristotle:start_download', args=['csv-vd']) + '?' + response.request['QUERY_STRING'])
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(async_result.called)
-
-        self.celery_result = None
-        response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item2.id]))
-        self.assertEqual(response.status_code, 403)
-
-    @patch('aristotle_mdr.downloader.CSVDownloader.download.delay')
-    @patch('aristotle_mdr.views.downloads.async_result')
-    def test_viewer_can_download_csv(self, async_result, downloader_download):
-        downloader_download.side_effect = self.csv_download_cache
-        async_result.side_effect = self.csv_download_task_retrieve
-
-        self.login_viewer()
-        self.celery_result = None
-        eq = QueryDict('', mutable=True)
-        eq.setdefault('items', self.item1.id)
-        eq.setdefault('title', self.item1.name)
-        response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item1.id]), follow=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=['csv-vd']) +
-                         '?' + eq.urlencode())
-        self.assertTrue(downloader_download.called)
-        self.assertTrue(async_result.called)
-
-        response = self.client.get(reverse('aristotle:start_download', args=['csv-vd']) + '?' + response.request['QUERY_STRING'])
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(async_result.called)
-
-        self.celery_result = None
-        response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item2.id]))
-        self.assertEqual(response.status_code, 403)
-
-    @patch('aristotle_mdr.downloader.CSVDownloader.download.delay')
-    @patch('aristotle_mdr.views.downloads.async_result')
-    def test_viewer_can_see_content(self, async_result, downloader_download):
-        downloader_download.side_effect = self.csv_download_cache
-        async_result.side_effect = self.csv_download_task_retrieve
-
-        self.login_viewer()
-        self.celery_result = None
-
-        eq = QueryDict('', mutable=True)
-        eq.setdefault('items', self.item1.id)
-        eq.setdefault('title', self.item1.name)
-        response = self.client.get(reverse('aristotle:download', args=['csv-vd', self.item1.id]), follow=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.redirect_chain[0][0], reverse('aristotle:preparing_download', args=['csv-vd']) +
-                         '?' + eq.urlencode())
-        self.assertTrue(downloader_download.called)
-        self.assertTrue(async_result.called)
-
-        response = self.client.get(
-            reverse('aristotle:start_download', args=['csv-vd']) + '?' + response.request['QUERY_STRING'])
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(async_result.called)
-
-        self.assertContains(response, self.item1.permissibleValues.all()[0].meaning)
-        self.assertContains(response, self.item1.permissibleValues.all()[1].meaning)
-
-
 
     def test_values_shown_on_page(self):
         self.login_viewer()
@@ -2386,6 +2263,20 @@ class DataElementConceptViewPage(LoggedInViewConceptPages, TestCase):
         self.assertContains(response, self.item1.objectClass.name)
         self.assertContains(response, self.item1.property.name)
         self.assertContains(response, 'fa-times') # The property has a different status
+
+    def test_user_can_not_see_sub_components_without_permission(self):
+        self.prop.workgroup = self.wg2
+        self.prop.save()
+        self.assertTrue(perms.user_can_view(self.viewer, self.item1))
+        self.assertFalse(perms.user_can_view(self.viewer, self.prop))
+
+        self.login_viewer()
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.item1.id, 'dataelementconcept', 'name'],
+            status_code=200
+        )
+        self.assertNotContains(response, self.prop.name)
 
 
 class DataElementViewPage(LoggedInViewConceptPages, TestCase):

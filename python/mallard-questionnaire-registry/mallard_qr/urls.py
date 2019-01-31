@@ -1,10 +1,8 @@
-from django.conf.urls import include, url
+from django.conf.urls import url
 
 #from mallard_qr import views#,forms
-from django.views.generic import TemplateView
 from aristotle_mdr.contrib.generic.views import GenericAlterOneToManyView
 
-from aristotle_mdr.models import ValueDomain
 
 from . import models
 urlpatterns = [

@@ -4,11 +4,8 @@ from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.forms import HiddenInput
 from django.urls import reverse
-from django.utils import timezone
-from django.utils.html import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 
 import aristotle_mdr.models as MDR
 import aristotle_mdr.contrib.favourites.models as fav_models
@@ -21,8 +18,6 @@ from aristotle_mdr.perms import (
 from aristotle_mdr.forms.creation_wizards import UserAwareForm
 from aristotle_mdr.contrib.autocomplete import widgets
 from aristotle_mdr.utils import fetch_aristotle_downloaders
-
-from .utils import RegistrationAuthorityMixin
 
 
 class ForbiddenAllowedModelMultipleChoiceField(forms.ModelMultipleChoiceField):
@@ -109,7 +104,6 @@ class BulkActionForm(UserAwareForm):
 
     def __init__(self, form, *args, **kwargs):
         self.initial_items = kwargs.pop('items', [])
-        all_in_queryset = kwargs.pop('all_in_queryset', [])
 
         self.request = kwargs.pop('request')
         if 'user' in kwargs.keys():
@@ -310,9 +304,11 @@ class ChangeWorkgroupForm(BulkActionForm):
 
 class DownloadActionForm(BulkActionForm):
     def make_changes(self):
-        items = self.items_to_change
         from aristotle_mdr.contrib.redirect.exceptions import Redirect
-        raise Redirect(url=reverse('aristotle:bulk_download', kwargs={'download_type': self.download_type}) + ('?title=%s&' % self.title) + "&".join(['items=%s' % i.id for i in items]))
+        items = self.items_to_change
+        get_params = '?' + '&'.join(['items=%s' % i.id for i in items])
+        url=reverse('aristotle:download_options', kwargs={'download_type': self.download_type}) + get_params
+        raise Redirect(url=url)
 
 
 class QuickPDFDownloadForm(DownloadActionForm):
@@ -329,11 +325,6 @@ class BulkDownloadForm(DownloadActionForm):
     action_text = _('Bulk download')
     items_label="These are the items that will be downloaded"
 
-    title = forms.CharField(
-        required=False,
-        label=_("Title for the document"),
-        # widget=forms.Textarea
-    )
     download_type = forms.ChoiceField(
         choices=[],
         widget=forms.RadioSelect
@@ -352,6 +343,4 @@ class BulkDownloadForm(DownloadActionForm):
 
     def make_changes(self):
         self.download_type = self.cleaned_data['download_type']
-        self.title = self.cleaned_data['title']
-        items = self.cleaned_data['items']
         super().make_changes()
