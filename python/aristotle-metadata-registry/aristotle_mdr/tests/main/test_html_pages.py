@@ -2095,15 +2095,14 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         data.update(permdata)
 
         self.login_editor()
+
         self.start_timer()
         response = self.client.post(
             reverse('aristotle:edit_item', args=[vd.id]),
             data
         )
-        self.end_timer()
+        self.end_timer('Edit POST')
         self.assertEqual(response.status_code, 302)
-        vd = models.ValueDomain.objects.get(id=vd.id)
-        self.assertEqual(vd.permissiblevalue_set.count(), 100)
 
     @tag('bulk_values')
     def test_create_bulk_values(self):
@@ -2124,6 +2123,8 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
             })
 
         self.post_and_time_permissible_values(vd, data, datalist, 0)
+        vd = models.ValueDomain.objects.get(id=vd.id)
+        self.assertEqual(vd.permissiblevalue_set.count(), 100)
 
     @tag('bulk_values')
     def test_reorder_bulk_values(self):
@@ -2134,16 +2135,21 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         )
         data = utils.model_to_dict_with_change_time(vd)
 
-        datalist = []
-        for i in range(100):
+        pvs = []
+        for i in range(1000):
             value='Value {}'.format(i),
             meaning='Meaning {}'.format(i),
-            pv = models.PermissibleValue.objects.create(
+            pv = models.PermissibleValue(
                 valueDomain=vd,
                 value=value,
                 meaning=meaning,
                 order=i
             )
+            pvs.append(pv)
+        models.PermissibleValue.objects.bulk_create(pvs)
+
+        datalist = []
+        for pv in vd.permissiblevalue_set.all():
             datalist.append({
                 'id': pv.id,
                 'value': value,
@@ -2152,7 +2158,9 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
                 'ORDER': i + 1
             })
 
-        self.post_and_time_permissible_values(vd, data, datalist, 100)
+        self.post_and_time_permissible_values(vd, data, datalist, 1000)
+        vd = models.ValueDomain.objects.get(id=vd.id)
+        self.assertEqual(vd.permissiblevalue_set.count(), 1000)
 
 
 class ConceptualDomainViewPage(LoggedInViewConceptPages, TestCase):

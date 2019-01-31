@@ -8,6 +8,8 @@ from aristotle_mdr.models import _concept, AbstractValue, ValueDomain, ValueMean
 from aristotle_mdr.contrib.autocomplete import widgets
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 
+from django_bulk_update.helper import bulk_update
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -167,11 +169,15 @@ def ordered_formset_save(formset, item, model_to_add_field, ordering_field):
     if new:
         formset.model.objects.bulk_create(new)
 
+    changed = []
     for record in formset.changed_objects:
         # record is a tuple with obj and form changed_data
         obj = record[0]
         setattr(obj, model_to_add_field, item)
-        obj.save()
+        changed.append(obj)
+
+    if changed:
+        bulk_update(changed, batch_size=500)
 
     if formset.deleted_objects:
         formset.models.objects.bulk_delete(formset.deleted_objects)

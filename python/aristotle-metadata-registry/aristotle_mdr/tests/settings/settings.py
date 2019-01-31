@@ -153,3 +153,5 @@ LOGGING = {
 # Webpack Loading
 WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = os.path.join(REPO_BASE_DIR, 'assets/dist/webpack-stats.json')
 WEBPACK_LOADER['DEFAULT']['CACHE'] = False
+
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 20000
