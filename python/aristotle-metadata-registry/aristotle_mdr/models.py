@@ -369,7 +369,7 @@ class RegistrationAuthority(Organization):
         revision_message = _(
             "Cascade registration of item '%(name)s' (id:%(iid)s)\n"
         ) % {'name': item.name,
-            'iid': item.id}
+             'iid': item.id}
 
         revision_message = revision_message + kwargs.get('changeDetails', "")
         seen_items = {'success': [], 'failed': []}
