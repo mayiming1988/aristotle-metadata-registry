@@ -557,7 +557,7 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
                     send_sandbox_notification_emails.delay(recently_added_emails,
                                                            self.request.user.email,
                                                            self.request.get_host() + reverse('aristotle_mdr:sharedSandbox',
-                                                                                     args=[self.share.uuid])
+                                                                                             args=[self.share.uuid])
                                                            )
 
         return super().form_valid(form)

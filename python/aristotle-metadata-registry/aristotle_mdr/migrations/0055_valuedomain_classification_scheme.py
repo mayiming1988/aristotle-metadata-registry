@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('aristotle_mdr_backwards', '__first__'),
-        ('aristotle_mdr', '0046_auto_20181107_0433'),
+        ('aristotle_mdr', '0047_possumprofile_notificationpermissions'),
     ]
 
     operations = [

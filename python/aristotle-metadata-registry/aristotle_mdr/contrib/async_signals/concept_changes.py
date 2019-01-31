@@ -118,4 +118,3 @@ def issue_commented(issue_comment, **kwargs):
         for user in safe_issue_comment.issue.item.editable_by:
             if user != safe_issue_comment.author:
                 messages.issue_comment_created_items_i_can_edit(recipient=user, obj=safe_issue_comment)
-

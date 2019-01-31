@@ -104,7 +104,7 @@ class baseAristotleObject(TimeStampedModel):
 
     def was_modified_very_recently(self):
         return self.modified >= (
-                timezone.now() - datetime.timedelta(seconds=VERY_RECENTLY_SECONDS)
+            timezone.now() - datetime.timedelta(seconds=VERY_RECENTLY_SECONDS)
         )
 
     def was_modified_recently(self):
@@ -368,10 +368,9 @@ class RegistrationAuthority(Organization):
 
         revision_message = _(
             "Cascade registration of item '%(name)s' (id:%(iid)s)\n"
-        ) % {
-                               'name': item.name,
-                               'iid': item.id
-                           }
+        ) % {'name': item.name,
+            'iid': item.id}
+
         revision_message = revision_message + kwargs.get('changeDetails', "")
         seen_items = {'success': [], 'failed': []}
 
@@ -404,8 +403,7 @@ class RegistrationAuthority(Organization):
             changeDetails = kwargs.get('changeDetails', "")
             # If registrationDate is None (like from a form), override it with
             # todays date.
-            registrationDate = kwargs.get('registrationDate', None) \
-                               or timezone.now().date()
+            registrationDate = kwargs.get('registrationDate', None) or timezone.now().date()
             until_date = kwargs.get('until_date', None)
 
             Status.objects.create(
@@ -516,10 +514,9 @@ class Workgroup(registryGroup):
 
     @property
     def members(self):
-        return (
-                self.viewers.all() | self.submitters.all() |
+        return (self.viewers.all() | self.submitters.all() |
                 self.stewards.all() | self.managers.all()
-        ).distinct().order_by('full_name')
+                ).distinct().order_by('full_name')
 
     def can_view(self, user):
         return self.members.filter(pk=user.pk).exists()
@@ -1581,21 +1578,19 @@ class PossumProfile(models.Model):
         if self.user.is_superuser:
             return Workgroup.objects.all()
         else:
-            return (
-                    self.user.viewer_in.all() |
+            return (self.user.viewer_in.all() |
                     self.user.submitter_in.all() |
                     self.user.steward_in.all() |
                     self.user.workgroup_manager_in.all()
-            ).distinct()
+                    ).distinct()
 
     @property
     def myWorkgroups(self):
-        return (
-                self.user.viewer_in.all() |
+        return (self.user.viewer_in.all() |
                 self.user.submitter_in.all() |
                 self.user.steward_in.all() |
                 self.user.workgroup_manager_in.all()
-        ).filter(archived=False).distinct()
+                ).filter(archived=False).distinct()
 
     @property
     def myWorkgroupCount(self):
@@ -1610,12 +1605,11 @@ class PossumProfile(models.Model):
     def mySandboxContent(self):
         from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
         return _concept.objects.filter(
-            Q(
-                submitter=self.user,
-                statuses__isnull=True
-            ) & Q(
-                Q(rr_review_requests__isnull=True) | Q(rr_review_requests__status=REVIEW_STATES.revoked)
-            )
+            Q(submitter=self.user,
+              statuses__isnull=True
+              ) & Q(Q(rr_review_requests__isnull=True) |
+                    Q(rr_review_requests__status=REVIEW_STATES.revoked)
+                    )
         )
 
     @property
@@ -1623,10 +1617,9 @@ class PossumProfile(models.Model):
         if self.user.is_superuser:
             return Workgroup.objects.all()
         else:
-            return (
-                    self.user.submitter_in.all() |
+            return (self.user.submitter_in.all() |
                     self.user.steward_in.all()
-            ).distinct().filter(archived=False)
+                    ).distinct().filter(archived=False)
 
     @property
     def is_registrar(self):
