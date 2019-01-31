@@ -16,7 +16,8 @@ def concept_saved(message, **kwargs):
         messages.favourite_updated(recipient=user, obj=instance)
 
     for user in instance.editable_by:
-        messages.items_i_can_edit_updated(recipient=user, obj=instance)
+        if not message['created']:
+            messages.items_i_can_edit_updated(recipient=user, obj=instance)
 
     if instance.workgroup:
         for user in instance.workgroup.viewers.all():
