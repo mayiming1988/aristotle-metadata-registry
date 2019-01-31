@@ -1,4 +1,4 @@
-/* globals JSONEditor */
+// /* globals JSONEditor */
 import JSONEditor from '@json-editor/json-editor/dist/jsoneditor.min.js'
 
 // Get value from either a json string or url pointing to a json file

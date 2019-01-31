@@ -37,7 +37,7 @@ function fill_aristotle_notification_menu(data) {
             for (let i=0; i < data.unread_list.length; i++) {
                 let item = data.unread_list[i];
 
-                console.log(item)
+                // console.log(item)
 
                 let text = item.actor + " " + item.verb + " " + item.target
                 //TODO: INSTEAD OF CHOPPING THE STRING AND ADDING ELLIPSIS ("...") WE COULD JUST ADD A <br/> TAG:
