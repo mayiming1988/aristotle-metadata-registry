@@ -13,7 +13,7 @@
                 {% if space %}
                     {% zws item.name %}
                 {% else %}
-                    {% item.name %}
+                    {{ item.name }}
                 {% endif %}
             </a>
             {% if showType %}({{ item.get_verbose_name }}){% endif %}
