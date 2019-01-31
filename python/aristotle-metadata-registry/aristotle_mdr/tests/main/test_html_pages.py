@@ -2125,7 +2125,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
 
         self.post_and_time_permissible_values(vd, data, datalist, 0)
 
-    @tag('failer')
+    @tag('bulk_values')
     def test_reorder_bulk_values(self):
         vd = models.ValueDomain.objects.create(
             name='Lots of values',

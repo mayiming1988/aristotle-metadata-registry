@@ -1,3 +1,4 @@
+from typing import Iterable
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -30,6 +31,14 @@ class MetadataItemManager(InheritanceManager):
         if hasattr(settings, 'FORCE_METADATAMANAGER_FILTER'):
             qs = qs.filter(*import_string(settings.FORCE_METADATAMANAGER_FILTER)())
         return qs
+
+    def bulk_delete(objects: Iterable[models.Model]):
+        if isinstance(objects, models.QuerySet):
+            objects.delete()
+        else:
+            ids = [o.id for o in objects]
+            qs = self.get_queryset().filter(id__in=ids)
+            qs.delete()
 
 
 class WorkgroupQuerySet(MetadataItemQuerySet):
