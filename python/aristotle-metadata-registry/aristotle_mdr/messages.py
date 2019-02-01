@@ -288,7 +288,7 @@ def workgroup_item_new(recipient, obj):
 @notif_accepted_email
 @notif_accepted_within_aristotle
 def registrar_item_superseded(recipient, obj):
-    notify.send(obj, recipient=recipient, verb="(item registered by your Registration Authority) has been superseded:", target=obj)
+    notify.send(obj, recipient=recipient, verb="(item registered by your registration authority) has been superseded:", target=obj)
 
 
 @notif_registrar_item_registered

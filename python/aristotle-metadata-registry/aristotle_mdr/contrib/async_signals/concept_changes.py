@@ -78,7 +78,8 @@ def item_superseded(message, **kwargs):
 
     if concept.workgroup:
         for user in concept.workgroup.viewers.all():
-            messages.workgroup_item_superseded(recipient=user, obj=concept)
+            if concept.can_view(user) and new_super_rel.newer_item.can_view(user):
+                messages.workgroup_item_superseded(recipient=user, obj=concept)
 
     for status in concept.current_statuses().all():
         for registrar in status.registrationAuthority.registrars.all():
