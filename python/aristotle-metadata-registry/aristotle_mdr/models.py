@@ -131,8 +131,8 @@ class StewardOrganisation(AbstractGroup):
     }
     states = Choices(
         ('active', _('Active')),
-        ('archived', _('Archived')),
-        ('hidden', _('Hidden')),
+        ('archived', _('Deactivated & Visible')),
+        ('hidden', _('Deactivated & Hidden')),
     )
 
     active_states = [

@@ -26,7 +26,7 @@
   {% has_group_perm group "edit_group_details" as can_edit_group_details %}
   {% if can_edit_group_details %}
   <li role="presentation" {% if active_tab == "settings" %}class="active"{% endif %}>
-      <a href="{% url 'aristotle_mdr:stewards:group:member_list' group.slug %}"><i class="fa fa-fw fa-cogs"></i> Settings</a></li>
+      <a href="{% url 'aristotle_mdr:stewards:group:settings' group.slug %}"><i class="fa fa-fw fa-cogs"></i> Settings</a></li>
   {% endif %}
 
 </ul>

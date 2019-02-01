@@ -190,6 +190,7 @@ def group_backend_factory(*args, **kwargs):
         "group_class": MDR.StewardOrganisation,
         "membership_class": MDR.StewardOrganisationMembership,
         "namespace": "aristotle_mdr:stewards:group",
+        "update_fields": ['description']
     })
 
     return StewardURLManager(*args, **kwargs)

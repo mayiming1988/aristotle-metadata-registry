@@ -37,6 +37,10 @@ from aristotle_mdr.contrib.favourites.models import Favourite, Tag
 import datetime
 import json
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 paginate_sort_opts = {
     "mod_asc": ["modified"],
     "mod_desc": ["-modified"],
@@ -160,7 +164,7 @@ paginate_registration_authority_sort_opts = {
 
 
 def paginated_registration_authority_list(request, ras, template, extra_context={}):
-    sort_by=request.GET.get('sort', "name_desc")
+    sort_by=request.GET.get('sort', "name_asc")
     try:
         sorter, direction = sort_by.split('_')
         if sorter not in paginate_registration_authority_sort_opts.keys():

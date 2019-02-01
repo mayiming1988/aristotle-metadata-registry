@@ -7,7 +7,7 @@ services:
       - "6379"
 
   db:
-    image: postgres
+    image: postgres:10.6
     volumes:
       - ../../data/db/:/var/lib/postgresql/data
 

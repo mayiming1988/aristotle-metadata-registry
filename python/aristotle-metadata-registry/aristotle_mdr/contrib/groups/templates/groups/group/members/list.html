@@ -16,7 +16,8 @@
     {% trans "This group allows members to a single roles" %}
 {% endif %}
 </div>
-<a href="{%url view.manager.namespace|add:":member_add" group.slug %}">Add member</a>
+{# <a href="{%url view.manager.namespace|add:":member_add" group.slug %}">Add member</a> #}
+<a href="{%url view.manager.namespace|add:":invite" group.slug %}">Invite member</a>
 
 <table class="table">
     <thead>

@@ -5,12 +5,18 @@
 
 {% block steward_content %}
 
+<div class="well">
+    <div class="container">
+        <div class="row">
+<div class="col-md-9 col-md-offset-1">
 {% if stewardship_organisation.description %}
 {{ stewardship_organisation.description|bleach }}
 {% else %}
 No description for this organisation available.
 
 {% endif %}
-
-
+</div>
+</div>
+</div>
+</div>
 {% endblock %}

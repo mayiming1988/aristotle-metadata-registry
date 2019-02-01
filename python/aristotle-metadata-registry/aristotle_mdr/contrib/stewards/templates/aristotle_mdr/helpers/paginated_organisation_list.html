@@ -75,7 +75,7 @@ Showing {{ page.paginator.count }} results.
             {{ item.state }}
         </td>
         {% endif %}
-        <td><a class="btn btn-primary btn-small" href="{% url 'aristotle:stewards:group:update' item.slug %}">Edit</a></td>
+        <td><a class="btn btn-primary btn-small" href="{% url 'aristotle:stewards:group:settings' item.slug %}">Edit</a></td>
     </tr>
     {% endfor %}
 

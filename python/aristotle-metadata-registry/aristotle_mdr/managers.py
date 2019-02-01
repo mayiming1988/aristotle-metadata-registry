@@ -61,6 +61,7 @@ class ConceptQuerySet(MetadataItemQuerySet):
             ObjectClass.objects.filter(name__contains="Person").visible()
             ObjectClass.objects.visible().filter(name__contains="Person")
         """
+        from aristotle_mdr.models import StewardOrganisation
         if user is None or user.is_anonymous():
             return self.public()
         if user.is_superuser:
@@ -87,7 +88,10 @@ class ConceptQuerySet(MetadataItemQuerySet):
         if extra_q:
             for func in extra_q:
                 q |= import_string(func)(user)
-        return self.filter(q)
+        return self.filter(
+            q &
+            ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
+        )
 
     def editable(self, user):
         """
@@ -100,6 +104,7 @@ class ConceptQuerySet(MetadataItemQuerySet):
             ObjectClass.objects.filter(name__contains="Person").editable()
             ObjectClass.objects.editable().filter(name__contains="Person")
         """
+        from aristotle_mdr.models import StewardOrganisation
         if user.is_superuser:
             return self.all()
         if user.is_anonymous():
@@ -117,7 +122,10 @@ class ConceptQuerySet(MetadataItemQuerySet):
                 q |= Q(_is_locked=False, workgroup__submitters__profile__user=user)
             if is_steward:
                 q |= Q(workgroup__stewards__profile__user=user)
-        return self.filter(q)
+        return self.filter(
+            q &
+            ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
+        )
 
     def public(self):
         """
@@ -131,7 +139,11 @@ class ConceptQuerySet(MetadataItemQuerySet):
             ObjectClass.objects.filter(name__contains="Person").public()
             ObjectClass.objects.public().filter(name__contains="Person")
         """
-        return self.filter(_is_public=True)
+        from aristotle_mdr.models import StewardOrganisation
+        return self.filter(
+            Q(_is_public=True) &
+            ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
+        )
 
     def with_related(self):
         related = self.model.related_objects

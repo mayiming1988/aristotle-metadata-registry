@@ -128,6 +128,8 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
         def is_member(cls, user, group):
             if user.is_anonymous():
                 return False
+            if not group.is_active():
+                return False
             return group.has_member(user)
 
     role_permissions = {
@@ -169,10 +171,11 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
                     perm = perm_or_role
                     yield perm(user, group=self)
                 else:
-                    if self.is_active():
+                    if not self.is_active():
                         yield False
-                    role = perm_or_role
-                    yield self.has_role(role, user)
+                    else:
+                        role = perm_or_role
+                        yield self.has_role(role, user)
 
         return any(allowed())
 

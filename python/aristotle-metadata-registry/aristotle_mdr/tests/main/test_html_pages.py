@@ -15,7 +15,6 @@ import aristotle_mdr.contrib.identifiers.models as ident_models
 
 from aristotle_mdr.constants import visibility_permission_choices as permission_choices
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
-from aristotle_mdr.downloader import CSVDownloader
 from aristotle_mdr.utils import url_slugify_concept
 from aristotle_mdr.forms.creation_wizards import (
     WorkgroupVerificationMixin,

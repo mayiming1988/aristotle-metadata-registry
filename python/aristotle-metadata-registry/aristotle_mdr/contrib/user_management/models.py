@@ -14,11 +14,12 @@ class User(AbstractUser):
     @property
     def last_name(self):
         return self.full_name
+
     def display_name(self):
         if self.short_name:
             return self.short_name
         if self.full_name:
-            return self.short_name
+            return self.full_name
 
         return self.censored_email
 

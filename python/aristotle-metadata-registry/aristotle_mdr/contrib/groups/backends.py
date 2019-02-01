@@ -68,7 +68,6 @@ class GroupTemplateMixin(object):
             templates = []
         if self.fallback_template_name:
             templates += [self.fallback_template_name]
-        logger.critical(templates)
         return templates
 
 
@@ -213,7 +212,6 @@ class GroupCreateView(LoginRequiredMixin, PermissionRequiredMixin, GroupBase, Cr
             self.manager.group_class._meta.app_label,
             self.manager.group_class._meta.model_name,
         )
-        logger.critical(perm)
         return perm
 
     def get_success_url(self):
@@ -223,6 +221,7 @@ class GroupCreateView(LoginRequiredMixin, PermissionRequiredMixin, GroupBase, Cr
 class GroupUpdateView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin, UpdateView):
     fallback_template_name = "groups/group/update.html"
     role_permission = "edit_group_details"
+    current_group_context = "settings"
 
     def get_success_url(self):
         return reverse("%s:%s" % (self.manager.namespace, "detail"), args=[self.object.slug])
@@ -348,7 +347,7 @@ class GroupURLManager(InvitationBackend):
 
             url("^/(?P<group_slug>[-\w]+)/", include([
                 url("^$", view=self.detail_view(), name="detail"),
-                url("edit", view=self.update_view(), name="update"),
+                url("settings", view=self.update_view(), name="settings"),
                 url("", include(self.get_extra_group_urls()))
             ])),
             url("^/(?P<group_slug>[-\w]+)/members/", include([
@@ -356,11 +355,11 @@ class GroupURLManager(InvitationBackend):
                 url(r'^add$', view=self.membership_add_view(), name="member_add"),
                 url(r'^(?P<member_pk>[\d]+)/?$', view=self.membership_update_view(), name="membership_update"),
                 url(r'^(?P<member_pk>[\d]+)/remove', view=self.membership_remove_view(), name="membership_remove"),
-                url(r'^invite$', view=self.invite_view(), name="group_invitation"),
+                url(r'^invite$', view=self.invite_view(), name="invite"),
                 url(
                     r'^accept-invitation/(?P<user_id>[\d]+)-(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
                     view=self.activate_view(),
-                    name="accept_group_invitation"
+                    name="accept_invitation"
                 ),
             ]))
         ]
@@ -574,9 +573,8 @@ class GroupURLManager(InvitationBackend):
             'sender': sender,
             'user': user,
             'accept_url': reverse(
-                "%s:%s" % (self.namespace, "accept_group_invitation"),
+                "%s:%s" % (self.namespace, "accept_invitation"),
                 args=[group.slug, user.pk, self.get_token(user, group)],
-                # kwargs={"user_id": user.pk, "token": self.get_token(user, group)}
             ),
             'request': request
         })

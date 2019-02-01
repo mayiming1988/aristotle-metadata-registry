@@ -6,7 +6,7 @@
     Edit {{object.name}}
 </h1>
 
-<form action="{%url view.manager.namespace|add:":update" object.slug %}" method="POST">
+<form action="{%url view.manager.namespace|add:":settings" object.slug %}" method="POST">
     {% csrf_token %}
     <table>
     {{form.as_table}}
