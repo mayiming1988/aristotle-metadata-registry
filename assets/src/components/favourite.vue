@@ -25,7 +25,7 @@ export default {
     computed: {
         linkTitle: function() {
             if (this.favourited) {
-                return 'Remove from my favourites '
+                return 'Remove from my favourites'
             } else {
                 return 'Add to my favourites'
             }
