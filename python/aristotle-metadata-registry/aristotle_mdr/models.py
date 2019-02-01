@@ -45,7 +45,7 @@ from .managers import (
     MetadataItemManager, ConceptManager,
     ReviewRequestQuerySet, WorkgroupQuerySet,
     RegistrationAuthorityQuerySet,
-    StatusQuerySet, BulkDeleteManager
+    StatusQuerySet, UtilsManager
 )
 
 import logging
@@ -168,7 +168,7 @@ class aristotleComponent(models.Model):
     class Meta:
         abstract = True
 
-    objects = BulkDeleteManager()
+    objects = UtilsManager()
     ordering_field = 'order'
 
     def can_edit(self, user):

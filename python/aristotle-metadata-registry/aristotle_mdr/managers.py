@@ -19,7 +19,8 @@ class UUIDManager(models.Manager):
         )
 
 
-class BulkDeleteManager(models.Manager):
+class UtilsManager(models.Manager):
+    """Manager with extra util functions"""
 
     def bulk_delete(self, objects: Iterable[models.Model]):
         if isinstance(objects, models.QuerySet):
@@ -34,7 +35,7 @@ class MetadataItemQuerySet(InheritanceQuerySet):
     pass
 
 
-class MetadataItemManager(InheritanceManager):
+class MetadataItemManager(InheritanceManager, UtilsManager):
     def get_queryset(self):
         from django.conf import settings
 
