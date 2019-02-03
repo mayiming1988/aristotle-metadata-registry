@@ -104,9 +104,6 @@ def send_notification_email(recipient, message):
 
     from_email = settings.DEFAULT_FROM_EMAIL
 
-    if "." not in from_email:
-        from_email = from_email + ".com"
-
     send_mail(
         'Notification',
         message,

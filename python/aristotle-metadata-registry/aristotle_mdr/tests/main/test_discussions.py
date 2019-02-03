@@ -459,7 +459,7 @@ class WorkgroupMembersCanMakePostsAndComments(utils.LoggedInViewPages,TestCase):
         )
         notify_redirect_url = reverse(
             'aristotle:notify_redirect',
-            args=[noti.target_content_type.id, noti.target_object_id]
+            args=[noti.actor_content_type, noti.actor_object_id]
         )
 
         response = self.client.get(notify_redirect_url)
@@ -467,17 +467,17 @@ class WorkgroupMembersCanMakePostsAndComments(utils.LoggedInViewPages,TestCase):
         self.assertEqual(response.url, post_page_url)
 
 
-class ViewDiscussionPostPage(utils.LoggedInViewPages,TestCase):
+class ViewDiscussionPostPage(utils.LoggedInViewPages, TestCase):
     def setUp(self):
         super().setUp()
-        self.viewer2 = get_user_model().objects.create_user('viewer2@example.com','viewer') # not in any workgroup
-        self.viewer3 = get_user_model().objects.create_user('viewer3@example.com','viewer') # not in our "primary testing workgroup" (self.wg1)
-        self.wg2.giveRoleToUser('viewer',self.viewer3)
+        self.viewer2 = get_user_model().objects.create_user('viewer2@example.com', 'viewer')  # not in any workgroup
+        self.viewer3 = get_user_model().objects.create_user('viewer3@example.com', 'viewer')  # not in our "primary testing workgroup" (self.wg1)
+        self.wg2.giveRoleToUser('viewer', self.viewer3)
 
     def test_member_can_see_posts(self):
         self.login_viewer()
         self.wg3 = models.Workgroup.objects.create(name="Test WG 3")
-        self.wg3.giveRoleToUser('viewer',self.viewer)
+        self.wg3.giveRoleToUser('viewer', self.viewer)
 
         p1 = models.DiscussionPost.objects.create(author=self.su,workgroup=self.wg1,title="test",body="test")
         p2 = models.DiscussionPost.objects.create(author=self.su,workgroup=self.wg1,title="test",body="test")
