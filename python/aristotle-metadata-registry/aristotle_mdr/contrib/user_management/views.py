@@ -243,6 +243,34 @@ class SignupView(SignupMixin, FormView):
 
         return valid
 
+    def post(self, request, *args, **kwargs):
+        """
+        Handles POST requests, instantiating a form instance with the passed
+        POST variables and then checked for validity.
+        """
+        form = self.get_form()
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def form_invalid(self, form):
+        email = form.data['email']
+        existing_user = self.user_model.objects.filter(email=email).first()
+
+        if existing_user:
+            if existing_user.is_active:
+                self.send_password_reset(existing_user.email, self.request)
+            else:
+                self.send_activation(existing_user)
+
+            # Show message
+            return self.render_to_response(
+                context={'message': 'Success, an activation link has been sent to your email. Follow the link to continue'}
+            )
+
+        return super().form_invalid(form)
+
     def form_valid(self, form):
         success = True
 
@@ -259,14 +287,15 @@ class SignupView(SignupMixin, FormView):
             user = form.save(commit=False)
             user.email = form.cleaned_data['email']
 
-            # Validate unique
-            unique = True
-            try:
-                user.validate_unique()
-            except ValidationError:
-                unique = False
+            # # Validate unique
+            # unique = True
+            # try:
+            #     user.validate_unique()
+            # except ValidationError:
+            #     unique = False
 
-            if unique:
+            # if unique:
+            if True:
                 # Save inactive user
                 user.set_password(form.cleaned_data['password'])
                 user.is_active = False
@@ -274,18 +303,18 @@ class SignupView(SignupMixin, FormView):
 
                 # Send Activation Email
                 self.send_activation(user)
-            else:
-                # Send password reset email
-                existing = self.user_model.objects.get(email=user.email)
+            # else:
+            #     # Send password reset email
+            #     existing = self.user_model.objects.get(email=user.email)
 
-                if existing.is_active:
-                    self.send_password_reset(user.email, self.request)
-                else:
-                    self.send_activation(existing)
+            #     if existing.is_active:
+            #         self.send_password_reset(user.email, self.request)
+            #     else:
+            #         self.send_activation(existing)
 
             # Show message
             return self.render_to_response(
-                {'message': 'Success, an activation link has been sent to your email. Follow the link to continue'}
+                context={'message': 'Success, an activation link has been sent to your email. Follow the link to continue'}
             )
         else:
             return self.form_invalid(form)
