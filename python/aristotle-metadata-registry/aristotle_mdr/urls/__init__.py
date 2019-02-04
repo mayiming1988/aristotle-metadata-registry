@@ -18,6 +18,7 @@ urlpatterns = [
     url(r'^', include('aristotle_mdr.contrib.view_history.urls')),
     url(r'^', include('aristotle_mdr.contrib.reviews.urls', app_name="aristotle_mdr_review_requests", namespace="aristotle_reviews")),
     url(r'^', include('aristotle_mdr.contrib.custom_fields.urls', namespace='aristotle_custom_fields')),
+    url(r'^', include('aristotle_mdr.contrib.validators.urls', namespace='aristotle_validations')),
     url(r'^api/', include('aristotle_mdr_api.urls'))
 ]
 
