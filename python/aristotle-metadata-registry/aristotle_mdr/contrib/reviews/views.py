@@ -10,14 +10,15 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_string
 # from django.views.generic import ListView, TemplateView, DeleteView
-from django.views.generic import (DetailView,
-                                  ListView,
-                                  UpdateView,
-                                  FormView,
-                                  TemplateView,
-                                  CreateView,
-                                  UpdateView
-                                  )
+from django.views.generic import (
+    DetailView,
+    ListView,
+    UpdateView,
+    FormView,
+    TemplateView,
+    CreateView,
+    UpdateView
+)
 
 import reversion
 import json

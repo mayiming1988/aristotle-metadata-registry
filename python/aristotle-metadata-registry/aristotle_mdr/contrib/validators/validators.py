@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 import re
 from aristotle_mdr import models
 from django.conf import settings
@@ -63,7 +63,7 @@ class BaseValidator:
         except:
             return False, "Invalid rule"
 
-    def _validate(self, item, **kwargs):
+    def _validate(self, item, **kwargs) -> Tuple[bool, str]:
         # To be overwritten in child
         # Should return status, message
         raise NotImplementedError
