@@ -76,7 +76,7 @@ class MultipleEmailField(Field):
         errors = []
 
         for email in value:
-            if email is not '':
+            if email != '':
                 validator.message = '{} is not a valid email address'.format(email)
                 try:
                     validator(email)
