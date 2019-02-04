@@ -24,8 +24,12 @@ class BaseAPITestCase(TestCase):
             email='anothertestuser@example.com',
             password='1234'
         )
+        self.so = mdr_models.StewardOrganisation.objects.create(
+            name='Best Stewardship Organisation',
+        )
         self.wg = mdr_models.Workgroup.objects.create(
-            name='Best Working Group'
+            name='Best Working Group',
+            stewardship_organisation=self.so
         )
         self.su = self.um.objects.create_user(
             email='super@example.com',

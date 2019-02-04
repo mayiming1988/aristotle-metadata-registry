@@ -6,6 +6,7 @@ from aristotle_mdr.utils import fetch_aristotle_settings
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
 from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
+from aristotle_mdr.constants import visibility_permission_choices
 
 
 class UUIDManager(models.Manager):
@@ -38,6 +39,7 @@ class WorkgroupQuerySet(MetadataItemQuerySet):
             return self.none()
         if user.is_superuser:
             return self.all()
+        # TODO: Figure out how to make admins of the steward org able to view using this queryset
         return user.profile.workgroups
 
 
@@ -59,6 +61,7 @@ class ConceptQuerySet(MetadataItemQuerySet):
             ObjectClass.objects.filter(name__contains="Person").visible()
             ObjectClass.objects.visible().filter(name__contains="Person")
         """
+        from aristotle_mdr.models import StewardOrganisation
         if user is None or user.is_anonymous():
             return self.public()
         if user.is_superuser:
@@ -85,7 +88,10 @@ class ConceptQuerySet(MetadataItemQuerySet):
         if extra_q:
             for func in extra_q:
                 q |= import_string(func)(user)
-        return self.filter(q)
+        return self.filter(
+            q &
+            ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
+        )
 
     def editable(self, user):
         """
@@ -98,6 +104,7 @@ class ConceptQuerySet(MetadataItemQuerySet):
             ObjectClass.objects.filter(name__contains="Person").editable()
             ObjectClass.objects.editable().filter(name__contains="Person")
         """
+        from aristotle_mdr.models import StewardOrganisation
         if user.is_superuser:
             return self.all()
         if user.is_anonymous():
@@ -115,7 +122,10 @@ class ConceptQuerySet(MetadataItemQuerySet):
                 q |= Q(_is_locked=False, workgroup__submitters__profile__user=user)
             if is_steward:
                 q |= Q(workgroup__stewards__profile__user=user)
-        return self.filter(q)
+        return self.filter(
+            q &
+            ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
+        )
 
     def public(self):
         """
@@ -129,7 +139,11 @@ class ConceptQuerySet(MetadataItemQuerySet):
             ObjectClass.objects.filter(name__contains="Person").public()
             ObjectClass.objects.public().filter(name__contains="Person")
         """
-        return self.filter(_is_public=True)
+        from aristotle_mdr.models import StewardOrganisation
+        return self.filter(
+            Q(_is_public=True) &
+            ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
+        )
 
     def with_related(self):
         related = self.model.related_objects
@@ -244,3 +258,50 @@ class StatusQuerySet(models.QuerySet):
             states = states.filter(pk__in=current_ids)
 
         return states.select_related('registrationAuthority')
+
+
+class ManagedItemQuerySet(models.QuerySet):
+    def visible(self, user):
+        """
+        Returns a queryset that returns all managed items that the given user has
+        permission to view.
+
+        It is **chainable** with other querysets.
+        """
+        if user.is_superuser:
+            return self.all()
+
+        q = Q(publication_details__permission=visibility_permission_choices.public)
+        if user.is_anonymous():
+            return self.filter(q)
+
+        q |= Q(publication_details__permission=visibility_permission_choices.auth)
+        # q |= Q(
+        #     workgroup__in=user.profile.workgroups,
+        #     publication_details__permission=visibility_permission_choices.workgroup
+        # )
+
+        return self.filter(q)
+
+    def editable(self, user):
+        """
+        Returns a queryset that returns all managed items that the given user has
+        permission to edit.
+
+        It is **chainable** with other querysets.
+        """
+        if user.is_superuser:
+            return self.all()
+        if user.is_anonymous():
+            return self.none()
+
+        from aristotle_mdr.models import StewardOrganisation
+
+        q = Q(
+            stewardship_organisation__members__user=user,
+            stewardship_organisation__members__role__in=[
+                StewardOrganisation.roles.admin, StewardOrganisation.roles.steward
+            ]
+        )
+
+        return self.filter(q)

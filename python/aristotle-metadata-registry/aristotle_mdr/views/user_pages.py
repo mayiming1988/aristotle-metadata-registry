@@ -1,15 +1,18 @@
 import datetime
 from django.apps import apps
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.core.cache import cache
-from django.core.exceptions import PermissionDenied
-from django.urls import reverse
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db.models import Q
-from django.http import HttpResponseRedirect, Http404
-from django.shortcuts import render, redirect
+from django.http import HttpResponseRedirect, HttpResponseNotFound, Http404
+from django.http.response import HttpResponse
+from django.shortcuts import get_object_or_404, render, redirect
+from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.cache import never_cache
 from django.views.generic.edit import FormMixin
 from django.views.generic import (DetailView,
@@ -18,10 +21,6 @@ from django.views.generic import (DetailView,
                                   FormView,
                                   TemplateView,
                                   View)
-
-from django.core.exceptions import ValidationError
-from django.contrib import messages
-from django.utils.translation import ugettext_lazy as _
 
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
@@ -658,6 +657,10 @@ class WorkgroupArchiveList(GenericListWorkgroup):
 
 
 def profile_picture(request, uid):
+    from django.contrib.auth import get_user_model
+    user = get_object_or_404(get_user_model(), pk=uid)
+    if user.profile.profilePicture:
+        return HttpResponse(user.profile.profilePicture.read(), content_type="image/png")
 
     template_name = 'aristotle_mdr/user/user-head.svg'
 

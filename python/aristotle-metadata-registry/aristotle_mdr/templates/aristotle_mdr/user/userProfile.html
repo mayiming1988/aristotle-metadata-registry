@@ -13,13 +13,13 @@
     
     <div class="panel panel-default hidden-sm hidden-xs">
       <div class="panel-body">
-        <img class="img-responsive" src="{{ request.user.profile.profile_picture_url }}" alt="Profile Picture">
+        <img class="img-responsive" src="{{ request.user.profile.profile_picture_url }}" alt=""></img>
       </div>
     </div>
 
     <div class="panel panel-default hidden-xl hidden-lg hidden-md">
       <div class="panel-body">
-        <img class="img-responsive" style="margin:auto;max-width:100px;" src="{{ request.user.profile.profile_picture_url }}" alt="Profile Picture">
+        <img class="img-responsive" style="margin:auto;max-width:100px;" src="{{ request.user.profile.profile_picture_url }}" alt=""></img>
       </div>
     </div>
 
@@ -66,6 +66,20 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        Organisations <small>- You belong to the following Stewardship Organisations</small>
+      </div>
+      <div class="list-group">
+        <span class="list-group-item clearfix" >
+          {% for membership in user.stewardorganisationmembership_set.all %}
+            <a href="{{membership.group.get_absolute_url}}">{{membership.group}}</a>
+            <!--<a href="" class="btn btn-xs pull-right btn-default" >Leave</a>-->
+          {% endfor %}
+        </span>
+        </div>
     </div>
 
     <div class="panel panel-default">

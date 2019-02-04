@@ -244,7 +244,10 @@ class GraphqlFunctionalTests(BaseGraphqlTestCase, TestCase):
         )
 
         # Add identifier
-        ra = mdr_models.RegistrationAuthority.objects.create()
+        ra = mdr_models.RegistrationAuthority.objects.create(
+            name="Test RA",
+            stewardship_organisation=self.steward_org_1,
+        )
         namespace = ident_models.Namespace.objects.create(
             naming_authority=ra,
             shorthand_prefix='pre'
@@ -274,7 +277,10 @@ class GraphqlFunctionalTests(BaseGraphqlTestCase, TestCase):
         self.login_editor()
 
         # Add identifier
-        ra = mdr_models.RegistrationAuthority.objects.create()
+        ra = mdr_models.RegistrationAuthority.objects.create(
+            name="Test RA",
+            stewardship_organisation=self.steward_org_1,
+        )
         namespace = ident_models.Namespace.objects.create(
             naming_authority=ra,
             shorthand_prefix='pre'

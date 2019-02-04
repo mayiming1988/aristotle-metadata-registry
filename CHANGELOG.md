@@ -1,5 +1,12 @@
 Changelog
 
+- 3.0.x
+    - Major changes:
+      - Added Steward Organisations to Aristotle - on migration a default organisation will be created.
+        All apps should be migrated across
+      - Workgroups, Registration Authorities and Organisations (now Organisation Records)
+        all exist within Submitting Organisations
+
 - 2.2.0
   - Aristotle MDR core
     - Fixed bug where Workgroups showed incorrectly in dropdowns #901

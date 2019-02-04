@@ -118,14 +118,16 @@ def get_json_from_response(response):
 # This isn't an actual TestCase, we'll just pretend it is
 class ManagedObjectVisibility(object):
     def setUp(self):
+        self.steward_org_1 = models.StewardOrganisation.objects.create(name="Test SO")
         self.ra = models.RegistrationAuthority.objects.create(
             name="Test RA",
             definition="My RA",
             public_state=models.STATES.qualified,
-            locked_state=models.STATES.candidate
+            locked_state=models.STATES.candidate,
+            stewardship_organisation=self.steward_org_1,
         )
 
-        self.wg = models.Workgroup.objects.create(name="Test WG", definition="My WG")
+        self.wg = models.Workgroup.objects.create(name="Test WG", definition="My WG", stewardship_organisation=self.steward_org_1)
         #RAFIX self.wg.registrationAuthorities.add(self.ra)
 
     def test_object_is_public(self):
@@ -403,12 +405,12 @@ class ManagedObjectVisibility(object):
 
     def test_object_submitter_can_view(self):
         # make editor for wg1
-        wg1 = models.Workgroup.objects.create(name="Test WG 1")
+        wg1 = models.Workgroup.objects.create(name="Test WG 1", stewardship_organisation=self.steward_org_1)
         e1 = get_user_model().objects.create_user('editor1@example.com', 'editor1')
         wg1.giveRoleToUser('submitter', e1)
 
         # make editor for wg2
-        wg2 = models.Workgroup.objects.create(name="Test WG 2")
+        wg2 = models.Workgroup.objects.create(name="Test WG 2", stewardship_organisation=self.steward_org_1)
         e2 = get_user_model().objects.create_user('editor2@example.com', 'editor2')
         wg2.giveRoleToUser('submitter', e2)
 
@@ -453,12 +455,12 @@ class ManagedObjectVisibility(object):
         self.ra.registrars.add(registrar)
 
         # make editor for wg1
-        wg1 = models.Workgroup.objects.create(name="Test WG 1")
+        wg1 = models.Workgroup.objects.create(name="Test WG 1", stewardship_organisation=self.steward_org_1)
         e1 = get_user_model().objects.create_user('editor1@example.com', 'editor1')
         wg1.giveRoleToUser('submitter', e1)
 
         # make editor for wg2
-        wg2 = models.Workgroup.objects.create(name="Test WG 2")
+        wg2 = models.Workgroup.objects.create(name="Test WG 2", stewardship_organisation=self.steward_org_1)
         e2 = get_user_model().objects.create_user('editor2@example.com', 'editor2')
         wg2.giveRoleToUser('submitter', e2)
 
@@ -498,9 +500,14 @@ class LoggedInViewPages(object):
     This helps us manage testing across different user types.
     """
     def setUp(self):
-        self.wg1 = models.Workgroup.objects.create(name="Test WG 1", definition="My WG")  # Editor is member
-        self.wg2 = models.Workgroup.objects.create(name="Test WG 2", definition="My WG")
-        self.ra = models.RegistrationAuthority.objects.create(name="Test RA", definition="My WG")
+        self.steward_org_1 = models.StewardOrganisation.objects.create(
+            name='Org 1',
+            description="1",
+        )
+        
+        self.wg1 = models.Workgroup.objects.create(name="Test WG 1", definition="My WG", stewardship_organisation=self.steward_org_1)  # Editor is member
+        self.wg2 = models.Workgroup.objects.create(name="Test WG 2", definition="My WG", stewardship_organisation=self.steward_org_1)
+        self.ra = models.RegistrationAuthority.objects.create(name="Test RA", definition="My WG", stewardship_organisation=self.steward_org_1)
         #RAFIX self.wg1.registrationAuthorities.add(self.ra)
         self.wg1.save()
 

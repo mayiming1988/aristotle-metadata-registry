@@ -119,6 +119,7 @@ class ConvertedConstrainedImageField(ConstrainedImageField):
 
 
 class LowerEmailFormField(EmailFormField):
+    is_hidden = False
 
     def clean(self, value):
         if value is not None:

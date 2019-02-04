@@ -38,10 +38,10 @@
       {% block concept_title %}
         {% include "aristotle_mdr/concepts/titles/display_title.html" %}
       {% endblock %}
-      {% if not hide_item_actions %}
-        {% include "aristotle_mdr/concepts/actionbar.html" %}
-      {% endif %}
   </header>
+  {% if not hide_item_actions %}
+    {% include "aristotle_mdr/concepts/actionbar.html" %}
+  {% endif %}
   
   <!-- Nav tabs -->
   <ul class="nav nav-tabs" role="tablist">

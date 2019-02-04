@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db.models.fields import CharField, TextField
 from django.http import HttpResponse
@@ -11,7 +12,8 @@ from django.contrib.auth.models import AnonymousUser
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
 import aristotle_mdr.contrib.identifiers.models as ident_models
-from aristotle_mdr.contrib.slots.choices import permission_choices
+
+from aristotle_mdr.constants import visibility_permission_choices as permission_choices
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.utils import url_slugify_concept
 from aristotle_mdr.forms.creation_wizards import (
@@ -52,9 +54,10 @@ class AnonymousUserViewingThePages(TestCase):
         self.assertEqual(response.status_code,200)
 
     def test_visible_item(self):
-        wg = models.Workgroup.objects.create(name="Setup WG")
-        ra = models.RegistrationAuthority.objects.create(name="Test RA")
-        item = models.ObjectClass.objects.create(name="Test OC",workgroup=wg)
+        steward_org = models.StewardOrganisation.objects.create(name="Test SO")
+        wg = models.Workgroup.objects.create(name="Setup WG", stewardship_organisation=steward_org)
+        ra = models.RegistrationAuthority.objects.create(name="Test RA", stewardship_organisation=steward_org)
+        item = models.ObjectClass.objects.create(name="Test OC", workgroup=wg)
         s = models.Status.objects.create(
                 concept=item,
                 registrationAuthority=ra,
@@ -369,7 +372,6 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         # one for the data element concept
         self.assertEqual(revmodels.Version.objects.count(), 2)
 
-        from django.contrib.contenttypes.models import ContentType
         concept_ct = ContentType.objects.get_for_model(models._concept)
         dec_ct = ContentType.objects.get_for_model(models.DataElementConcept)
 
@@ -619,6 +621,8 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
             workgroup=self.wg1,
             **self.defaults
         )
+        self.steward_org = models.StewardOrganisation.objects.create(name="Test SO")
+
 
     # ---- utils ----
 
@@ -906,14 +910,14 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertEqual(idents[1].order, 1)
 
     def test_submitter_cannot_save_via_edit_page_if_other_saves_made(self):
-        from datetime import timedelta
+
         self.login_editor()
         modified = self.item1.modified
         response = self.client.get(reverse('aristotle:edit_item',args=[self.item1.id]))
         self.assertEqual(response.status_code,200)
 
         # fake that we fetched the page seconds before modification
-        updated_item = utils.model_to_dict_with_change_time(response.context['item'],fetch_time=modified-timedelta(seconds=5))
+        updated_item = utils.model_to_dict_with_change_time(response.context['item'],fetch_time=modified-datetime.timedelta(seconds=5))
         updated_name = updated_item['name'] + " updated!"
         updated_item['name'] = updated_name
         change_comment = "I changed this because I can"
@@ -954,7 +958,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
     @override_settings(ARISTOTLE_SETTINGS=dict(settings.ARISTOTLE_SETTINGS, WORKGROUP_CHANGES=[]))
     def test_submitter_cannot_change_workgroup_via_edit_page(self):
         # based on the idea that 'submitter' is not set in ARISTOTLE_SETTINGS.WORKGROUP
-        self.wg_other = models.Workgroup.objects.create(name="Test WG to move to")
+        self.wg_other = models.Workgroup.objects.create(name="Test WG to move to", stewardship_organisation=self.steward_org)
         self.wg_other.submitters.add(self.editor)
 
         self.login_editor()
@@ -991,7 +995,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
     @override_settings(ARISTOTLE_SETTINGS=dict(settings.ARISTOTLE_SETTINGS, WORKGROUP_CHANGES=['submitter']))
     def test_submitter_can_change_workgroup_via_edit_page(self):
         # based on the idea that 'submitter' is set in ARISTOTLE_SETTINGS.WORKGROUP
-        self.wg_other = models.Workgroup.objects.create(name="Test WG to move to")
+        self.wg_other = models.Workgroup.objects.create(name="Test WG to move to", stewardship_organisation=self.steward_org)
 
         self.login_editor()
         response = self.client.get(reverse('aristotle:edit_item',args=[self.item1.id]))
@@ -1023,7 +1027,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
     @override_settings(ARISTOTLE_SETTINGS=dict(settings.ARISTOTLE_SETTINGS, WORKGROUP_CHANGES=['admin']))
     def test_admin_can_change_workgroup_via_edit_page(self):
         # based on the idea that 'admin' is set in ARISTOTLE_SETTINGS.WORKGROUP
-        self.wg_other = models.Workgroup.objects.create(name="Test WG to move to")
+        self.wg_other = models.Workgroup.objects.create(name="Test WG to move to", stewardship_organisation=self.steward_org)
 
         self.login_superuser()
         response = self.client.get(reverse('aristotle:edit_item',args=[self.item1.id]))
@@ -1043,7 +1047,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
     @override_settings(ARISTOTLE_SETTINGS=dict(settings.ARISTOTLE_SETTINGS, WORKGROUP_CHANGES=['manager']))
     def test_manager_of_two_workgroups_can_change_workgroup_via_edit_page(self):
         # based on the idea that 'manager' is set in ARISTOTLE_SETTINGS.WORKGROUP
-        self.wg_other = models.Workgroup.objects.create(name="Test WG to move to")
+        self.wg_other = models.Workgroup.objects.create(name="Test WG to move to", stewardship_organisation=self.steward_org)
         self.wg_other.submitters.add(self.editor)
 
         self.login_editor()
@@ -1313,7 +1317,6 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertTrue(self.item1.statuses.count() == 2)
         self.assertTrue(self.item1.statuses.last().state == models.STATES.candidate)
 
-        from django.contrib.contenttypes.models import ContentType
         ct = ContentType.objects.get_for_model(self.item1._meta.model)
         versions = list(
             reversion.models.Version.objects.filter(
@@ -2237,7 +2240,7 @@ class DataElementConceptViewPage(LoggedInViewConceptPages, TestCase):
         self.assertContains(response, self.item1.objectClass.name)
         self.assertContains(response, self.item1.property.name)
 
-        ra = models.RegistrationAuthority.objects.create(name="new RA")
+        ra = models.RegistrationAuthority.objects.create(name="new RA", stewardship_organisation=self.steward_org)
         item = self.item1.property
         s = models.Status.objects.create(
                 concept=item,
@@ -2709,16 +2712,23 @@ class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):
         self.assertTrue('inputs' in data[0]['fields'])
 
 
-class LoggedInViewUnmanagedPages(utils.LoggedInViewPages):
+class LoggedInViewManagedItemPages(utils.LoggedInViewPages):
     defaults = {}
     def setUp(self):
         super().setUp()
-        self.item1 = self.itemType.objects.create(name="OC1",**self.defaults)
+        self.item1 = self.itemType.objects.create(
+            name="Object 1",
+            stewardship_organisation=self.steward_org_1,
+            **self.defaults
+        )
+
+    # def get_page(self,item):
+    #     url_name = "".join(item._meta.verbose_name.title().split())
+    #     url_name = url_name[0].lower() + url_name[1:]
+    #     return reverse('aristotle:%s'%url_name,args=[item.id])
 
     def get_page(self,item):
-        url_name = "".join(item._meta.verbose_name.title().split())
-        url_name = url_name[0].lower() + url_name[1:]
-        return reverse('aristotle:%s'%url_name,args=[item.id])
+        return item.get_absolute_url()
 
     def test_help_page_exists(self):
         self.logout()
@@ -2727,10 +2737,48 @@ class LoggedInViewUnmanagedPages(utils.LoggedInViewPages):
 
     def test_item_page_exists(self):
         self.logout()
+        self.login_superuser()
         response = self.client.get(self.get_page(self.item1))
         self.assertEqual(response.status_code,200)
 
-class MeasureViewPage(LoggedInViewUnmanagedPages, TestCase):
+    def test_item_page_viewable_when_published(self):
+        self.logout()
+        response = self.client.get(self.get_page(self.item1))
+        self.assertEqual(response.status_code, 403)
+
+        from aristotle_mdr.contrib.publishing import models
+        from aristotle_mdr.constants import visibility_permission_choices
+    
+        publication_details = models.PublicationRecord.objects.create(
+            content_type=ContentType.objects.get_for_model(self.item1),
+            object_id=self.item1.pk,
+            permission=visibility_permission_choices.auth,
+            publication_date=(datetime.datetime.today()-datetime.timedelta(days=2)).date(),
+            publisher=self.su
+        )
+
+        # User is not logged in, can not see page
+        response = self.client.get(self.get_page(self.item1))
+        self.assertEqual(response.status_code, 403)
+        
+        self.login_viewer()
+
+        # Now logged in, can see page
+        response = self.client.get(self.get_page(self.item1))
+        self.assertEqual(response.status_code, 200)
+
+        self.logout()
+
+        publication_details.permission = visibility_permission_choices.public
+        publication_details.save()
+
+        # Publication now public, can see when logged out
+        response = self.client.get(self.get_page(self.item1))
+        self.assertEqual(response.status_code, 200)
+
+
+
+class MeasureViewPage(LoggedInViewManagedItemPages, TestCase):
     url_name='measure'
     itemType=models.Measure
 
@@ -2739,14 +2787,20 @@ class MeasureViewPage(LoggedInViewUnmanagedPages, TestCase):
 
         self.item2 = models.UnitOfMeasure.objects.create(name="OC1",workgroup=self.wg1,measure=self.item1,**self.defaults)
 
-class RegistrationAuthorityViewPage(LoggedInViewUnmanagedPages, TestCase):
+
+class RegistrationAuthorityViewPage(utils.LoggedInViewPages, TestCase):
     url_name='registrationAuthority'
     itemType=models.RegistrationAuthority
 
     def setUp(self):
         super().setUp()
 
-        self.item2 = models.DataElement.objects.create(name="OC1",workgroup=self.wg1,**self.defaults)
+        self.item1 = self.itemType.objects.create(
+            name="Object 1",
+            stewardship_organisation=self.steward_org_1,
+        )
+
+        self.item2 = models.DataElement.objects.create(name="OC1",workgroup=self.wg1)
 
         models.Status.objects.create(
             concept=self.item2,
@@ -2763,17 +2817,18 @@ class RegistrationAuthorityViewPage(LoggedInViewUnmanagedPages, TestCase):
         response = self.client.get(reverse('aristotle:all_registration_authorities'))
         self.assertEqual(response.status_code,200)
 
-class OrganizationViewPage(LoggedInViewUnmanagedPages, TestCase):
-    url_name='organization'
-    itemType=models.Organization
+# I hate the old orgs and want them to go away
+# class OrganizationViewPage(LoggedInViewUnmanagedPages, TestCase):
+#     url_name='organization'
+#     itemType=models.Organization
 
-    def setUp(self):
-        super().setUp()
+#     def setUp(self):
+#         super().setUp()
 
-    def get_page(self,item):
-        return item.get_absolute_url()
+#     def get_page(self,item):
+#         return item.get_absolute_url()
 
-    def test_view_all_orgs(self):
-        self.logout()
-        response = self.client.get(reverse('aristotle:all_organizations'))
-        self.assertEqual(response.status_code,200)
+#     def test_view_all_orgs(self):
+#         self.logout()
+#         response = self.client.get(reverse('aristotle:all_organizations'))
+#         self.assertEqual(response.status_code,200)
