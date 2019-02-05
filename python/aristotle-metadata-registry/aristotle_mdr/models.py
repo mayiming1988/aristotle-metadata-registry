@@ -15,6 +15,7 @@ from model_utils.models import TimeStampedModel
 from model_utils import Choices, FieldTracker
 from aristotle_mdr.contrib.async_signals.utils import fire
 import uuid
+import json
 
 import reversion  # import revisions
 
@@ -614,6 +615,9 @@ class DiscussionComment(discussionAbstract):
 
     class Meta:
         ordering = ['created']
+
+    def __str__(self):
+        return self.body
 
 
 # class ReferenceDocument(models.Model):
@@ -1519,7 +1523,7 @@ class PossumProfile(models.Model):
         js_checker=True
     )
     notificationPermissions = JSONField(
-        default={
+        default=json.dumps({
             "metadata changes": {
                 "general changes": {
                     "items in my workgroups": True,
@@ -1555,7 +1559,7 @@ class PossumProfile(models.Model):
                 "email": False,
                 "within aristotle": True
             }
-        }
+        })
     )
 
     # Override save for inline creation of objects.

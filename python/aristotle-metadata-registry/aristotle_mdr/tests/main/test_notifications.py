@@ -1,5 +1,7 @@
 import aristotle_mdr.models as models
-import datetime, ast
+import datetime
+import ast
+import json
 from django.test import TestCase
 from django.utils import timezone
 from django.contrib.auth import get_user_model
@@ -60,8 +62,9 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
         )
 
         self.assertEqual(self.wg1.discussions.all().count(), 2)
-        self.assertTrue('created a new discussion' in user1.notifications.first().verb)
-        self.assertTrue(self.viewer == user1.notifications.first().actor)
+        self.assertTrue('(discussion) has been created' in user1.notifications.first().verb)
+        # THE FOLLOWING TEST IS NO LONGER APPLICABLE:
+        # self.assertTrue(self.viewer == user1.notifications.first().actor)
         self.assertEqual(user1.notifications.count(), 1)
 
     def test_subscriber_is_notified_of_comment(self):
@@ -234,19 +237,20 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
 
     def test_subscriber_is_not_notified_when_the_checkbox_in_notification_permission_settings_is_not_checked(self):
         user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
-        user1.profile.notificationPermissions["notification methods"]["within aristotle"] = False
+        data = json.loads(user1.profile.notificationPermissions)
+        data["notification methods"]["within aristotle"] = False
+        user1.profile.notificationPermissions = json.dumps(data)
         user1.profile.save()
         self.favourite_item(user1, self.item1)
 
         self.item1.name = "This is a new name"
-
         self.item1.save()
 
         self.assertEqual(user1.notifications.count(), 0)
 
     def test_subscriber_is_notified_by_email(self):
         user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
-        user1.profile.notificationPermissions["notification methods"]["email"] = True
+        json.loads(user1.profile.notificationPermissions)["notification methods"]["email"] = True
         user1.profile.save()
 
         send_notification_email(user1.email, "hello world")

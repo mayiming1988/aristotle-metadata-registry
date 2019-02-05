@@ -99,7 +99,34 @@ class AdminPage(utils.LoggedInViewPages,TestCase):
                 'profile-0-viewer_in': [self.wg1.id],
                 'profile-0-organization_manager_in': [self.ra.id],
                 'profile-0-registrar_in': [self.ra.id],
-
+                'profile-0-notificationPermissions': '{"metadata changes": '
+                                                     '{"general changes": '
+                                                     '{"items in my workgroups": true, '
+                                                     '"items I have tagged / favourited": true, '
+                                                     '"any items I can edit": true'
+                                                     '}, '
+                                                     '"superseded": '
+                                                     '{"items in my workgroups": true, '
+                                                     '"items I have tagged / favourited": true, '
+                                                     '"any items I can edit": true'
+                                                     '}, "new items": '
+                                                     '{"new items in my workgroups": true'
+                                                     '}'
+                                                     '}, '
+                                                     '"registrar": '
+                                                     '{"item superseded": true, '
+                                                     '"item registered": true, '
+                                                     '"item changed status": true, '
+                                                     '"review request created": true, '
+                                                     '"review request updated": true}, '
+                                                     '"issues": {"items in my workgroups": true, '
+                                                     '"items I have tagged / favourited": true, '
+                                                     '"any items I can edit": true'
+                                                     '}, "discussions": {'
+                                                     '"new posts": true, '
+                                                     '"new comments": true'
+                                                     '}, "notification methods": '
+                                                     '{"email": false, "within aristotle": true}}'
             }
         )
         self.assertResponseStatusCodeEqual(response, 302)
@@ -124,8 +151,36 @@ class AdminPage(utils.LoggedInViewPages,TestCase):
         response = self.client.post(
             reverse("admin:aristotle_mdr_user_management_user_add"),
             {
-                'email':"newuser_with_none@example.com",'password1':"test",'password2':"test",
+                'email': "newuser_with_none@example.com", 'password1': "test", 'password2':"test",
                 'profile-TOTAL_FORMS': 1, 'profile-INITIAL_FORMS': 0, 'profile-MAX_NUM_FORMS': 1,
+                'profile-0-notificationPermissions': '{"metadata changes": '
+                                                     '{"general changes": '
+                                                     '{"items in my workgroups": true, '
+                                                     '"items I have tagged / favourited": true, '
+                                                     '"any items I can edit": true'
+                                                     '}, '
+                                                     '"superseded": '
+                                                     '{"items in my workgroups": true, '
+                                                     '"items I have tagged / favourited": true, '
+                                                     '"any items I can edit": true'
+                                                     '}, "new items": '
+                                                     '{"new items in my workgroups": true'
+                                                     '}'
+                                                     '}, '
+                                                     '"registrar": '
+                                                     '{"item superseded": true, '
+                                                     '"item registered": true, '
+                                                     '"item changed status": true, '
+                                                     '"review request created": true, '
+                                                     '"review request updated": true}, '
+                                                     '"issues": {"items in my workgroups": true, '
+                                                     '"items I have tagged / favourited": true, '
+                                                     '"any items I can edit": true'
+                                                     '}, "discussions": {'
+                                                     '"new posts": true, '
+                                                     '"new comments": true'
+                                                     '}, "notification methods": '
+                                                     '{"email": false, "within aristotle": true}}'
             }
         )
         self.assertResponseStatusCodeEqual(response, 302)
