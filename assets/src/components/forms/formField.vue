@@ -8,7 +8,7 @@
 export default {
     props: {
         tag: {
-            type: String,
+            type: [String, Object],
             default: 'input'
         },
         name: {
@@ -24,7 +24,9 @@ export default {
         },
         options: {
             type: Array,
-            default: []
+            default: function() {
+                return []
+            }
         }
     },
     methods: {

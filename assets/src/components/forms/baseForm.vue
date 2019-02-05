@@ -6,6 +6,7 @@
                 <formField 
                 :tag="fielddata.tag" 
                 :name="name" 
+                :fieldClass="getFieldClass(fielddata.class)"
                 :placeholder="placeholder(name)"
                 :options="fielddata.options"
                 :value="value[name]" 
@@ -72,6 +73,13 @@ export default {
                 }
             }
             return []
+        },
+        getFieldClass: function(fielddata_class) {
+            if (fielddata_class === undefined) {
+                return 'form-control'
+            } else {
+                return fielddata_class
+            }
         },
         placeholder: function(field_name) {
             if (this.inline) {
