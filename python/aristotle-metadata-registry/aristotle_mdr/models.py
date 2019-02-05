@@ -15,6 +15,7 @@ from model_utils.models import TimeStampedModel
 from model_utils import Choices, FieldTracker
 from aristotle_mdr.contrib.async_signals.utils import fire
 import uuid
+import json
 
 import reversion  # import revisions
 
@@ -49,9 +50,9 @@ from .managers import (
 )
 
 import logging
+
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
-
 
 """
 This is the core modelling for Aristotle mapping ISO/IEC 11179 classes to Python classes/Django models.
@@ -60,7 +61,6 @@ Docstrings are copied directly from the ISO/IEC 11179-3 documentation in their o
 References to the originals is kept where possible using brackets and the dotted section numbers -
 Eg. explanatory_comment (8.1.2.2.3.4)
 """
-
 
 # 11179 States
 # When used these MUST be used as IntegerFields to allow status comparison
@@ -76,16 +76,15 @@ STATES = Choices(
     (8, 'retired', _('Retired')),
 )
 
-
 VERY_RECENTLY_SECONDS = 15
-
 
 concept_visibility_updated = Signal(providing_args=["concept"])
 
 
 class baseAristotleObject(TimeStampedModel):
     uuid = models.UUIDField(
-        help_text=_("Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries"),
+        help_text=_(
+            "Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries"),
         unique=True, default=uuid.uuid1, editable=False, null=False
     )
     name = ShortTextField(
@@ -370,10 +369,9 @@ class RegistrationAuthority(Organization):
 
         revision_message = _(
             "Cascade registration of item '%(name)s' (id:%(iid)s)\n"
-        ) % {
-            'name': item.name,
-            'iid': item.id
-        }
+        ) % {'name': item.name,
+             'iid': item.id}
+
         revision_message = revision_message + kwargs.get('changeDetails', "")
         seen_items = {'success': [], 'failed': []}
 
@@ -406,8 +404,7 @@ class RegistrationAuthority(Organization):
             changeDetails = kwargs.get('changeDetails', "")
             # If registrationDate is None (like from a form), override it with
             # todays date.
-            registrationDate = kwargs.get('registrationDate', None) \
-                or timezone.now().date()
+            registrationDate = kwargs.get('registrationDate', None) or timezone.now().date()
             until_date = kwargs.get('until_date', None)
 
             Status.objects.create(
@@ -456,7 +453,7 @@ class RegistrationAuthority(Organization):
 def update_registration_authority_states(sender, instance, created, **kwargs):
     if not created:
         if instance.tracker.has_changed('public_state') \
-           or instance.tracker.has_changed('locked_state'):
+                or instance.tracker.has_changed('locked_state'):
             message = (
                 "Registration '{ra}' changed its public or locked status "
                 "level, items registered by this authority may have stale "
@@ -518,10 +515,9 @@ class Workgroup(registryGroup):
 
     @property
     def members(self):
-        return (
-            self.viewers.all() | self.submitters.all() |
-            self.stewards.all() | self.managers.all()
-        ).distinct().order_by('full_name')
+        return (self.viewers.all() | self.submitters.all() |
+                self.stewards.all() | self.managers.all()
+                ).distinct().order_by('full_name')
 
     def can_view(self, user):
         return self.members.filter(pk=user.pk).exists()
@@ -610,12 +606,21 @@ class DiscussionPost(discussionAbstract):
             args=[self.pk]
         )
 
+    def __str__(self):
+        return self.title
+
 
 class DiscussionComment(discussionAbstract):
     post = models.ForeignKey(DiscussionPost, related_name='comments')
 
     class Meta:
         ordering = ['created']
+
+    def get_absolute_url(self):
+        return self.post.get_absolute_url() + '/#comment_' + str(self.id)
+
+    def __str__(self):
+        return self.body
 
 
 # class ReferenceDocument(models.Model):
@@ -706,10 +711,10 @@ class _concept(baseAristotleObject):
 
     @property
     def changed_fields(self):
-        changed = self.tracker.changed()
-        changed.pop('_is_public', False)
-        changed.pop('_is_locked', False)
-        return changed.keys()
+        # changed = self.tracker.changed()
+        # changed.pop('_is_public', False)
+        # changed.pop('_is_locked', False)
+        return self.tracker.changed()
 
     def can_edit(self, user):
         return _concept.objects.filter(pk=self.pk).editable(user).exists()
@@ -789,6 +794,13 @@ class _concept(baseAristotleObject):
         ).distinct()
 
     @property
+    def editable_by(self):
+        """Returns a list of the users allowed to edit this concept."""
+        from django.contrib.auth import get_user_model
+        query = Q(submitter_in__id=self.workgroup_id) | Q(steward_in__id=self.workgroup_id) | Q(created_items=self)
+        return get_user_model().objects.filter(query).distinct()
+
+    @property
     def component_fields(self):
         return [
             field
@@ -818,6 +830,7 @@ class _concept(baseAristotleObject):
 
     def is_public(self):
         return self._is_public
+
     is_public.boolean = True  # type: ignore
     is_public.short_description = 'Public'  # type: ignore
 
@@ -920,9 +933,12 @@ class ReviewRequest(TimeStampedModel):
         RegistrationAuthority,
         help_text=_("The registration authority the requester wishes to endorse the metadata item")
     )
-    requester = models.ForeignKey(settings.AUTH_USER_MODEL, help_text=_("The user requesting a review"), related_name='requested_reviews')
-    message = models.TextField(blank=True, null=True, help_text=_("An optional message accompanying a request, this will accompany the approved registration status"))
-    reviewer = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, help_text=_("The user performing a review"), related_name='reviewed_requests')
+    requester = models.ForeignKey(settings.AUTH_USER_MODEL, help_text=_("The user requesting a review"),
+                                  related_name='requested_reviews')
+    message = models.TextField(blank=True, null=True, help_text=_(
+        "An optional message accompanying a request, this will accompany the approved registration status"))
+    reviewer = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, help_text=_("The user performing a review"),
+                                 related_name='reviewed_requests')
     response = models.TextField(blank=True, null=True, help_text=_("An optional message responding to a request"))
     status = models.IntegerField(
         choices=REVIEW_STATES,
@@ -982,7 +998,8 @@ class Status(TimeStampedModel):
         _('Date registration expires'),
         blank=True,
         null=True,
-        help_text=_("date and time the Registration of an Administered_Item by a Registration_Authority in a registry is no longer effective")
+        help_text=_(
+            "date and time the Registration of an Administered_Item by a Registration_Authority in a registry is no longer effective")
     )
     tracker = FieldTracker()
 
@@ -1116,6 +1133,7 @@ class ValueMeaning(aristotleComponent):
     Value_Meaning is a class each instance of which models a value meaning (3.2.141),
     which provides semantic content of a possible value (11.3.2.3.2).
     """
+
     class Meta:
         ordering = ['order']
 
@@ -1385,7 +1403,8 @@ class DataElement(concept):
         verbose_name="Data Element Concept",
         blank=True,
         null=True,
-        help_text=_("binds with a Value_Domain that describes a set of possible values that may be recorded in an instance of the Data_Element")
+        help_text=_(
+            "binds with a Value_Domain that describes a set of possible values that may be recorded in an instance of the Data_Element")
     )
     valueDomain = ConceptForeignKey(  # 11.5.3.1
         ValueDomain,
@@ -1439,7 +1458,8 @@ class DataElementDerivation(concept):
         related_name="derived_from",
         blank=True,
         null=True,
-        help_text=_("binds with one or more output Data_Elements that are the result of the application of the Data_Element_Derivation.")
+        help_text=_(
+            "binds with one or more output Data_Elements that are the result of the application of the Data_Element_Derivation.")
     )
     inputs = ConceptManyToManyField(  # 11.5.3.4
         DataElement,
@@ -1479,6 +1499,9 @@ class DedInputsThrough(DedBaseThrough):
 # Create a 1-1 user profile so we don't need to extend user
 # Thanks to http://stackoverflow.com/a/965883/764357
 class PossumProfile(models.Model):
+    """
+    Extension "one-to-one" class of the existing user model
+    """
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         related_name='profile'
@@ -1501,9 +1524,48 @@ class PossumProfile(models.Model):
         null=True,
         height_field='profilePictureHeight',
         width_field='profilePictureWidth',
-        max_upload_size=((1024**2) * 10),  # 10 MB
+        max_upload_size=((1024 ** 2) * 10),  # 10 MB
         content_types=['image/jpg', 'image/png', 'image/bmp', 'image/jpeg'],
         js_checker=True
+    )
+    notificationPermissions = JSONField(
+        default=json.dumps({
+            "metadata changes": {
+                "general changes": {
+                    "items in my workgroups": True,
+                    "items I have tagged / favourited": True,
+                    "any items I can edit": True
+                },
+                "superseded": {
+                    "items in my workgroups": True,
+                    "items I have tagged / favourited": True,
+                    "any items I can edit": True
+                },
+                "new items": {
+                    "new items in my workgroups": True
+                },
+            },
+            "registrar": {
+                "item superseded": True,
+                "item registered": True,
+                "item changed status": True,
+                "review request created": True,
+                "review request updated": True
+            },
+            "issues": {
+                "items in my workgroups": True,
+                "items I have tagged / favourited": True,
+                "any items I can edit": True
+            },
+            "discussions": {
+                "new posts": True,
+                "new comments": True
+            },
+            "notification methods": {
+                "email": False,
+                "within aristotle": True
+            }
+        })
     )
 
     # Override save for inline creation of objects.
@@ -1526,21 +1588,19 @@ class PossumProfile(models.Model):
         if self.user.is_superuser:
             return Workgroup.objects.all()
         else:
-            return (
-                self.user.viewer_in.all() |
-                self.user.submitter_in.all() |
-                self.user.steward_in.all() |
-                self.user.workgroup_manager_in.all()
-            ).distinct()
+            return (self.user.viewer_in.all() |
+                    self.user.submitter_in.all() |
+                    self.user.steward_in.all() |
+                    self.user.workgroup_manager_in.all()
+                    ).distinct()
 
     @property
     def myWorkgroups(self):
-        return (
-            self.user.viewer_in.all() |
-            self.user.submitter_in.all() |
-            self.user.steward_in.all() |
-            self.user.workgroup_manager_in.all()
-        ).filter(archived=False).distinct()
+        return (self.user.viewer_in.all() |
+                self.user.submitter_in.all() |
+                self.user.steward_in.all() |
+                self.user.workgroup_manager_in.all()
+                ).filter(archived=False).distinct()
 
     @property
     def myWorkgroupCount(self):
@@ -1555,12 +1615,11 @@ class PossumProfile(models.Model):
     def mySandboxContent(self):
         from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
         return _concept.objects.filter(
-            Q(
-                submitter=self.user,
-                statuses__isnull=True
-            ) & Q(
-                Q(rr_review_requests__isnull=True) | Q(rr_review_requests__status=REVIEW_STATES.revoked)
-            )
+            Q(submitter=self.user,
+              statuses__isnull=True
+              ) & Q(Q(rr_review_requests__isnull=True) |
+                    Q(rr_review_requests__status=REVIEW_STATES.revoked)
+                    )
         )
 
     @property
@@ -1568,10 +1627,9 @@ class PossumProfile(models.Model):
         if self.user.is_superuser:
             return Workgroup.objects.all()
         else:
-            return (
-                self.user.submitter_in.all() |
-                self.user.steward_in.all()
-            ).distinct().filter(archived=False)
+            return (self.user.submitter_in.all() |
+                    self.user.steward_in.all()
+                    ).distinct().filter(archived=False)
 
     @property
     def is_registrar(self):
@@ -1665,7 +1723,8 @@ class PossumProfile(models.Model):
 
 class SandboxShare(models.Model):
     uuid = models.UUIDField(
-        help_text=_("Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries"),
+        help_text=_(
+            "Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries"),
         unique=True, default=uuid.uuid1, editable=False, null=False
     )
     profile = models.OneToOneField(
@@ -1706,7 +1765,9 @@ def concept_saved(sender, instance, **kwargs):
         # Don't run during loaddata
         return
     kwargs['changed_fields'] = instance.changed_fields
-    fire("concept_changes.concept_saved", obj=instance, **kwargs)
+    # If the concept saved was not triggered by a superseding action:
+    if not ('modified' in kwargs['changed_fields'] and len(kwargs['changed_fields']) == 1):
+        fire("concept_changes.concept_saved", obj=instance, **kwargs)
 
 
 @receiver(pre_save)
@@ -1733,7 +1794,7 @@ def new_comment_created(sender, **kwargs):
         return  # We don't need to notify a topic poster of an edit.
     if comment.author == post.author:
         return  # We don't need to tell someone they replied to themselves
-    fire("concept_changes.new_comment_created", obj=comment)
+    fire("concept_changes.new_comment_created", obj=comment, **kwargs)
 
 
 @receiver(post_save, sender=DiscussionPost)

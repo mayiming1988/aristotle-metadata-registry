@@ -24,7 +24,7 @@
     </li>
     <li {% ifequal inboxFolder "unread" %}class="active"{% endifequal %}>
         <a href="{% url 'aristotle:userInbox' %}">
-        <i class="fa fa-envelope fa-fw"></i> Notifications
+        <i class="fa fa-bell fa-fw"></i> Notifications
         {% with notecount=user.notifications.unread.count %}
             <span class="badge pull-right" title="{{ notecount }} unread notifications">{{ notecount }}</span>
         {% endwith %}
@@ -33,7 +33,7 @@
         <ul class="nav nav-pills nav-stacked nav-collapse dashSubMenu">
             <li {% if inboxFolder == "all" %}class="active"{% endif %}>
                 <a href="{% url 'aristotle:userInbox' 'all' %}">
-                    <i class="fa fa-envelope-o fa-fw"></i> {% trans 'All messages' %}
+                    <i class="fa fa-bell-o fa-fw"></i> {% trans 'All messages' %}
                 </a>
             </li>
         </ul>

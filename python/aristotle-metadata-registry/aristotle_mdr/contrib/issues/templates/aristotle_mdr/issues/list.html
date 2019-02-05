@@ -3,25 +3,25 @@
 {% block title %}Issues for {{ item.name }}{% endblock %}
 
 {% block infoContent %}
-  <h1>Issues</h1>
-  <button class="btn btn-success pull-right" @click="openIssuesModal">New Issue</button>
-  <ul class="nav nav-tabs" role="tablist">
-      <li role="presentation" class="active"><a href="#open" aria-controls="open" role="tab" data-toggle="tab">Open</a></li>
-      <li role="presentation"><a href="#closed" aria-controls="closed" role="tab" data-toggle="tab">Closed</a></li>
-  </ul>
+    <h1>Issues</h1>
+    <button class="btn btn-success pull-right" @click="openIssuesModal">New Issue</button>
+    <ul class="nav nav-tabs" role="tablist">
+        <li role="presentation" class="active"><a href="#open" aria-controls="open" role="tab" data-toggle="tab">Open</a></li>
+        <li role="presentation"><a href="#closed" aria-controls="closed" role="tab" data-toggle="tab">Closed</a></li>
+    </ul>
 
-  <div class="tab-content">
-    <div role="tabpanel" class="tab-pane active" id="open">
-      {% include 'aristotle_mdr/issues/sublist.html' with issues=open_issues context_class="success" %}
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="open">
+            {% include 'aristotle_mdr/issues/sublist.html' with issues=open_issues context_class="success" %}
+        </div>
+        <div role="tabpanel" class="tab-pane" id="closed">
+            {% include 'aristotle_mdr/issues/sublist.html' with issues=closed_issues context_class="danger" %}
+        </div>
     </div>
-    <div role="tabpanel" class="tab-pane" id="closed">
-      {% include 'aristotle_mdr/issues/sublist.html' with issues=closed_issues context_class="danger" %}
-    </div>
-  </div>
 
-  <issue-modal 
-    v-model="issueModalOpen" 
-    iid="{{ item.id }}"
-    url="{% url 'api_v4:issues:create' %}">
-  </issue-modal>
+    <issue-modal
+            v-model="issueModalOpen"
+            iid="{{ item.id }}"
+            url="{% url 'api_v4:issues:create' %}">
+    </issue-modal>
 {% endblock %}
