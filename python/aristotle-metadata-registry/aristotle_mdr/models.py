@@ -616,6 +616,9 @@ class DiscussionComment(discussionAbstract):
     class Meta:
         ordering = ['created']
 
+    def get_absolute_url(self):
+        return self.post.get_absolute_url() + '/#comment_' + str(self.id)
+
     def __str__(self):
         return self.body
 
