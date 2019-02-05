@@ -1,1 +1,17 @@
-{% include 'aristotle_mdr/user/base.html' %}
+{% extends 'aristotle_mdr/user/base.html' %}
+
+{% load render_bundle from webpack_loader %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'validationEdit' 'js' %}
+{% endblock %}
+
+{% block webpack_css_bundle %}
+  {% render_bundle 'validationEdit' 'css' %}
+{% endblock %}
+
+{% block page %}
+<div id="vue-container">
+  <yaml-editor></yaml-editor>
+</div>
+{% endblock %}

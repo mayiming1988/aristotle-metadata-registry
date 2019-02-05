@@ -10,6 +10,7 @@
     "bootstrap": "^3.3.7",
     "ckeditor": "^4.11.1",
     "clipboard": "^2.0.4",
+    "codemirror": "^5.43.0",
     "eonasdan-bootstrap-datetimepicker": "^4.17.47",
     "font-awesome": "^4.7.0",
     "jquery": "^3.3.1",
