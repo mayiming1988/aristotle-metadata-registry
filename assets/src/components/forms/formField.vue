@@ -32,7 +32,11 @@ export default {
     methods: {
         emitOnInput: function(event) {
             if (this.tag != 'select')  {
-                this.$emit('input', event.target.value)
+                if (typeof event == "string") {
+                    this.$emit('input', event)
+                } else {
+                    this.$emit('input', event.target.value)
+                }
             }
         },
         emitOnChange: function(event) {

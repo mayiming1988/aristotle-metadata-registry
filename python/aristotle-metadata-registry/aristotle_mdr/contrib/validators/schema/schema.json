@@ -37,7 +37,7 @@
         "type": "array",
         "items": {
           "allOf": [
-            { "$ref": "#definitions/check" },
+            { "$ref": "#/definitions/check" },
             { 
               "oneOf": [
                 {

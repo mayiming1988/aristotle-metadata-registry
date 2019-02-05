@@ -1,9 +1,9 @@
 import { initCore } from 'src/lib/init.js'
 import 'src/styles/aristotle.dashboard.less'
 import renderComponents from 'src/lib/renderComponents.js'
-import yamlEditor from '@/yamlEditor.vue'
+import editForm from '@/rules/editForm.vue'
 
 initCore()
 renderComponents({
-    'yaml-editor': yamlEditor
+    'edit-form': editForm
 })
