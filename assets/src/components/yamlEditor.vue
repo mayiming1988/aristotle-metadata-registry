@@ -23,6 +23,11 @@ export default {
                 value: this.value
             }
         )
+        this.codeMirror.addKeyMap({
+            "Tab": function (cm) {
+                cm.execCommand("insertSoftTab");
+            },
+        });
         this.codeMirror.getDoc().on('change', this.editorChange)
     },
     methods: {
@@ -35,4 +40,8 @@ export default {
 
 <style>
 @import '~codemirror/lib/codemirror.css';
+
+.yaml-editor {
+    border: grey solid 1px;
+}
 </style>

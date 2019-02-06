@@ -53,6 +53,7 @@ export default {
             if (!valid) {
                 this.fe_errors['rules'] = [ajv.errorsText()]
             } else {
+                this.fe_errors['rules'] = []
                 console.log('Submitted')
             }
         }
