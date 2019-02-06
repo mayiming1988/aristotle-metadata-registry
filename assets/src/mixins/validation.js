@@ -1,5 +1,6 @@
 import { validationMixin } from 'vuelidate'
 import getValidations from 'src/lib/forms/getValidations.js'
+import getErrorMsg from 'src/lib/forms/getErrorMsg.js'
 
 /*
  * Wrap validation in our own mixin
@@ -30,11 +31,26 @@ export default {
         isDataValid: function(dataPropName) {
             return !this.$v[dataPropName].$invalid
         },
+        getErrorMessages: function(errors) {
+            let error_messages = {}
+            for (let key in errors) {
+                if (key.charAt(0) != '$') {
+                    let error = errors[key]
+                    if (error.$invalid) {
+                        let msg = getErrorMsg(error)
+                        error_messages[key] = [msg]
+                    }
+                }
+            }
+            return error_messages
+        },
         getValidationErrors: function(dataPropName) {
-            return this.$v[dataPropName]
+            let errors = this.$v[dataPropName]
+            return this.getErrorMessages(errors)
         },
         getIndexValidationErrors: function(dataPropName, index) {
-            return this.$v[dataPropName].$each[index]
+            let errors = this.$v[dataPropName].$each[index]
+            return this.getErrorMessages(errors)
         }
     },
 }

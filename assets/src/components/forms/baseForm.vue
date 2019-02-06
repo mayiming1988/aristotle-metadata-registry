@@ -59,20 +59,23 @@ export default {
     },
     methods: {
         hasErrors: function(field_name) {
-            let hasfe = this.fe_errors[field_name].$invalid
+            let hasfe = (this.fe_errors != undefined && this.fe_errors[field_name] != undefined)
             let hasbe = (this.errors != undefined && this.errors[field_name] != undefined)
             return hasbe || hasfe
         },
         getFrontendError: function(field_name) {
-            return this.fe_errors[field_name]
+            if (this.fe_errors) {
+                return this.fe_errors[field_name]
+            } else {
+                return []
+            }
         },
         getBackendErrors: function(field_name) {
             if (this.errors) {
-                if (this.errors[field_name] != undefined) {
-                    return this.errors[field_name]
-                }
+                return this.errors[field_name]
+            } else {
+                return []
             }
-            return []
         },
         getFieldClass: function(fielddata_class) {
             if (fielddata_class === undefined) {
