@@ -1,6 +1,5 @@
 <template>
     <div class="yaml-editor">
-        <textarea>{{ value }}</textarea>
     </div>
 </template>
 
@@ -16,11 +15,12 @@ export default {
         }
     },
     mounted: function() {
-        this.codeMirror = CodeMirror.fromTextArea(
-            document.querySelector('.yaml-editor>textarea'),
+        this.codeMirror = CodeMirror(
+            document.querySelector('.yaml-editor'),
             {
                 mode: 'yaml',
                 lineNumbers: true,
+                value: this.value
             }
         )
         this.codeMirror.getDoc().on('change', this.editorChange)

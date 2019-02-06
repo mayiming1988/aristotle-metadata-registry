@@ -14,12 +14,10 @@
 import yaml from 'js-yaml'
 import Ajv from 'ajv'
 
-import validationMixin from 'src/mixins/validation.js'
 import baseForm from '@/forms/baseForm.vue'
 import yamlEditor from '@/yamlEditor.vue'
 
 export default {
-    mixins: [validationMixin],
     components: {
         baseForm
     },
@@ -33,10 +31,6 @@ export default {
     },
     data: () => ({
         fields: {
-            'ra': {
-                'tag': 'input',
-                'label': 'Registration Authority',
-            },
             'rules': {
                 'tag': yamlEditor,
                 'label': 'Rules',
@@ -44,25 +38,22 @@ export default {
             },
         },
         formData: {
-            'ra': '',
             'rules': '- dsa',
         },
         fe_errors: {
-            'ra': {$invalid: false},
-            'rules': {$invalid: false}
+            'rules': []
         },
         errors: {}
     }),
     methods: {
         submit: function() {
             let data = yaml.safeLoad(this.formData.rules)
-            console.log(data)
             let ajv = new Ajv()
             let valid = ajv.validate(this.schemaObj, data)
             if (!valid) {
-                console.log(ajv.errorsText())
+                this.fe_errors['rules'] = [ajv.errorsText()]
             } else {
-                console.log('Valid!')
+                console.log('Submitted')
             }
         }
     }
