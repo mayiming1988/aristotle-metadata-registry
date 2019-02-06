@@ -27,7 +27,7 @@ class RAValidationRules(ValidationRules):
 class RegistryValidationRules(ValidationRules):
 
     def can_view(self, user):
-        return self.is_superuser
+        return user.is_superuser
 
     def can_edit(self, user):
-        return self.is_superuser
+        return user.is_superuser

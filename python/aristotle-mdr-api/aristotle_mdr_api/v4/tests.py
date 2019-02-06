@@ -29,7 +29,8 @@ class BaseAPITestCase(TestCase):
         )
         self.su = self.um.objects.create_user(
             email='super@example.com',
-            password='1234'
+            password='1234',
+            is_superuser=True
         )
 
     def login_user(self):

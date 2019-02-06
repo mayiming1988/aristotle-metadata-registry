@@ -25,9 +25,11 @@ class RetrieveUpdateRegistryRules(RetrieveUpdateAPIView):
     serializer_class = serializers.RegistryRuleSerializer
 
     def get_object(self):
-        try:
-            obj = models.RegistryValidationRules.objects.first()
-        except models.RegistryValidationRules.DoesNotExist:
+        obj = models.RegistryValidationRules.objects.first()
+        if obj is None:
             obj = models.RegistryValidationRules.objects.create()
+
+        # Check permission
+        self.check_object_permissions(self.request, obj)
 
         return obj
