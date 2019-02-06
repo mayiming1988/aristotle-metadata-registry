@@ -1,23 +1,33 @@
 from aristotle_mdr_api.v4.rules import serializers
 from aristotle_mdr_api.v4.permissions import AuthCanViewEdit
+from aristotle_mdr.contrib.validators import models
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
 
 
 class CreateRARules(CreateAPIView):
+    """Create RA Specific Rules"""
     permission_classes=(AuthCanViewEdit,)
     serializer_class = serializers.RARuleSerializer
 
 
 class RetrieveUpdateRARules(RetrieveUpdateAPIView):
+    """Retrieve and update RA Specific Rules"""
     permission_classes=(AuthCanViewEdit,)
     serializer_class = serializers.RARuleSerializer
 
 
-class CreateRegistryRules(CreateAPIView):
-    permission_classes=(AuthCanViewEdit,)
-    serializer_class = serializers.RegistryRuleSerializer
-
-
 class RetrieveUpdateRegistryRules(RetrieveUpdateAPIView):
+    """
+    Retrieve and Update registry wide rules
+    There is only one registry rules object which is auto created
+    """
     permission_classes=(AuthCanViewEdit,)
     serializer_class = serializers.RegistryRuleSerializer
+
+    def get_object(self):
+        try:
+            obj = models.RegistryValidationRules.objects.first()
+        except models.RegistryValidationRules.DoesNotExist:
+            obj = models.RegistryValidationRules.objects.create()
+
+        return obj

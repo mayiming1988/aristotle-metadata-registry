@@ -6,7 +6,9 @@ class ValidationRules(models.Model):
     class Meta:
         abstract = True
 
-    rules = models.TextField()
+    rules = models.TextField(
+        default=''
+    )
 
 
 class RAValidationRules(ValidationRules):
