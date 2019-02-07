@@ -62,7 +62,7 @@ class CreateRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, C
     model = MDR.RegistrationAuthority
 
     def get_success_url(self):
-        return reverse('aristotle:registrationauthority_details', kwargs={'iid': self.object.id})
+        return reverse('aristotle:registrationAuthority', kwargs={'iid': self.object.id})
 
 
 class AddUser(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, UpdateView):
@@ -121,25 +121,6 @@ class ListRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, Lis
             ras = ras.filter(Q(name__icontains=text_filter) | Q(definition__icontains=text_filter))
         context = {'filter': text_filter}
         return paginated_registration_authority_list(request, ras, self.template_name, context)
-
-
-class DetailsRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
-    model = MDR.RegistrationAuthority
-    template_name = "aristotle_mdr/user/registration_authority/details.html"
-    permission_required = "aristotle_mdr.view_registrationauthority_details"
-    raise_exception = True
-    redirect_unauthenticated_users = True
-
-    pk_url_kwarg = 'iid'
-    context_object_name = "item"
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data()
-
-        is_manager = perms.user_is_registation_authority_manager(self.request.user, self.object)
-        context.update({'is_manager': is_manager})
-
-        return context
 
 
 class MembersRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
