@@ -1,7 +1,16 @@
 {% extends "aristotle_mdr/base.html" %}
 {% load aristotle_tags %}
+{% load webpack_loader %}
 
 {% block title %}{{ item.name }} {% endblock %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'ra' 'js' %}
+{% endblock %}
+
+{% block webpack_css_bundle %}
+  {% render_bundle 'ra' 'css' %}
+{% endblock %}
 
 {% block content %}
 
