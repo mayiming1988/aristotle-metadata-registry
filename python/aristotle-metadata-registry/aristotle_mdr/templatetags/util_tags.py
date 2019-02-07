@@ -20,20 +20,6 @@ def order_by(qs, order):
 
 
 @register.filter
-def sort_by_property(iterable, property_name=None):
-    if property_name is None:
-        return sorted(iterable)
-    def sort_func(x):
-        obj = x
-        props = property_name.split('.')[:-1]
-        final_prop = property_name.split('.')[-1]
-        for subprop in props:
-            obj = getattr(obj, subprop)
-        return str(getattr(obj, final_prop, None))
-    return sorted(iterable, key=sort_func)
-
-
-@register.filter
 def startswith(string, substr):
     return string.startswith(substr)
 
