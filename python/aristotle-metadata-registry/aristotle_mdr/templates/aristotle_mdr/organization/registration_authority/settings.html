@@ -1,0 +1,19 @@
+{% extends 'aristotle_mdr/organization/registration_authority/base.html' %}
+
+{% block racontent %}
+  <div class="row margin-above">
+    <div class="col-md-3">
+      <div class="list-group">
+        <a href="#" class="list-group-item {% if settings_tab == 'general' %}active{% endif %}">
+          General
+        </a>
+        <a href="#" class="list-group-item {% if settings_tab == 'validation' %}active{% endif %}">
+          Validation Rules
+        </a>
+      </div>
+    </div>
+    <div class="col-md-9">
+      {% block formcontent %}{% endblock %}
+    </div>
+  </div>
+{% endblock %}

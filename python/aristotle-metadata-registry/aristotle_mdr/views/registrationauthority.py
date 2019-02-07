@@ -27,7 +27,7 @@ def registrationauthority(request, iid, *args, **kwargs):
         return redirect(reverse("aristotle_mdr:all_registration_authorities"))
     item = get_object_or_404(MDR.RegistrationAuthority, pk=iid).item
 
-    return render(request, item.template, {'item': item.item})
+    return render(request, item.template, {'item': item.item, 'active_tab': 'home'})
 
 
 def organization(request, iid, *args, **kwargs):
@@ -62,9 +62,6 @@ class CreateRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, C
 
 
 class AddUser(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, UpdateView):
-    # TODO: Replace UpdateView with DetailView, FormView
-    # This is required for Django 1.8 only.
-
     template_name = "aristotle_mdr/user/registration_authority/add_user.html"
     permission_required = "aristotle_mdr.change_registrationauthority_memberships"
     raise_exception = True
@@ -143,13 +140,18 @@ class DetailsRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, 
 
 class MembersRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = MDR.RegistrationAuthority
-    template_name = "aristotle_mdr/user/registration_authority/members.html"
+    template_name = "aristotle_mdr/organization/registration_authority/members.html"
     permission_required = "aristotle_mdr.view_registrationauthority_details"
     raise_exception = True
     redirect_unauthenticated_users = True
 
     pk_url_kwarg = 'iid'
     context_object_name = "item"
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['active_tab'] = 'members'
+        return context
 
 
 class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, AlertFieldsMixin, UpdateView):
@@ -183,6 +185,12 @@ class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequire
 
     pk_url_kwarg = 'iid'
     context_object_name = "item"
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['active_tab'] = 'settings'
+        context['settings_tab'] = 'general'
+        return context
 
 
 class ChangeUserRoles(RoleChangeView):

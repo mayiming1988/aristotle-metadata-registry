@@ -239,7 +239,7 @@ class RegistrationAuthority(Organization):
     (8.1.5.1) association class.
     """
     objects = RegistrationAuthorityQuerySet.as_manager()
-    template = "aristotle_mdr/organization/registrationAuthority.html"
+    template = "aristotle_mdr/organization/registration_authority/home.html"
     active = models.IntegerField(
         choices=RA_ACTIVE_CHOICES,
         default=RA_ACTIVE_CHOICES.active,

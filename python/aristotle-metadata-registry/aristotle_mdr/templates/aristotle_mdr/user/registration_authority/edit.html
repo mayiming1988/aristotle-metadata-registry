@@ -1,19 +1,7 @@
-{% extends "aristotle_mdr/user/userHome.html" %}
+{% extends "aristotle_mdr/organization/registration_authority/settings.html" %}
 {% load i18n %}
-{% load bootstrap3 %}
 
-{% block collapse-link %}
-    <i class="fa fa-users fa-fw"></i> All Registration Authorities
-{% endblock %}
-
-{% block sidebar %}
-    {% include "aristotle_mdr/user/userSideBar.html" with activeTab='registrarTools' %}
-{% endblock %}
-
-{% block page %}
-    <h1>{% block title %} Editing - {{ item.name }}{% endblock %}</h1>
-
-
+{% block formcontent %}
     <form action="" method="POST">
         {% csrf_token %}
         {% include 'aristotle_mdr/helpers/fancy_table_form.html' with form=form alert_fields=alert_fields %}
