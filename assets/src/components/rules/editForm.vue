@@ -25,9 +25,19 @@ export default {
         schema: {
             type: String
         },
+        initial: {
+            type: Object,
+            default: () => ({
+                rules: ''
+            })
+        },
+        errors: {
+            type: Object
+        }
     },
     created: function() {
         this.schemaObj = JSON.parse(this.schema)
+        this.formData = this.initial
     },
     data: () => ({
         fields: {
@@ -37,13 +47,10 @@ export default {
                 'class': '',
             },
         },
-        formData: {
-            'rules': '- dsa',
-        },
+        formData: {},
         fe_errors: {
             'rules': []
         },
-        errors: {}
     }),
     methods: {
         submit: function() {
@@ -55,7 +62,7 @@ export default {
                 this.fe_errors['rules'] = errors
             } else {
                 this.fe_errors['rules'] = []
-                console.log('Submitted')
+                this.$emit('submit', this.formData)
             }
         }
     }

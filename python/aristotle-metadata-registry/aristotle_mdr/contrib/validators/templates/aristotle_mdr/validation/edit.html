@@ -12,6 +12,10 @@
 
 {% block page %}
 <div id="vue-container">
-  <edit-form schema="{{ schema }}"></edit-form>
+  <registry-edit-form
+    schema="{{ schema }}"
+    value="{{ rules.rules }}"
+    api_url="{% url 'api_v4:registry_rules' %}">
+  </registry-edit-form>
 </div>
 {% endblock %}
