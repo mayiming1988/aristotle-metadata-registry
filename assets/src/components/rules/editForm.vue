@@ -51,7 +51,8 @@ export default {
             let ajv = new Ajv()
             let valid = ajv.validate(this.schemaObj, data)
             if (!valid) {
-                this.fe_errors['rules'] = [ajv.errorsText()]
+                let errors = ajv.errorsText(ajv.errors, {separator: ','}).split(',')
+                this.fe_errors['rules'] = errors
             } else {
                 this.fe_errors['rules'] = []
                 console.log('Submitted')
