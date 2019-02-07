@@ -34,9 +34,9 @@ describe('favouriteComponent', function() {
     it('sets title correctly', function() {
         var wrapper = mount(favouriteComponent)
         wrapper.setData({favourited: true})
-        assert.equal(wrapper.vm.linkTitle, 'Add to my favourites')
-        wrapper.setData({favourited: false})
         assert.equal(wrapper.vm.linkTitle, 'Remove from my favourites')
+        wrapper.setData({favourited: false})
+        assert.equal(wrapper.vm.linkTitle, 'Add to my favourites')
     })
 
     it('sets icon class correctly', function() {

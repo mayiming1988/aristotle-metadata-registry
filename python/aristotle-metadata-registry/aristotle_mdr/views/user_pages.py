@@ -32,7 +32,7 @@ from aristotle_mdr.views.utils import (paginated_list,
 from aristotle_mdr.views.views import ConceptRenderView
 from aristotle_mdr.utils import fetch_metadata_apps
 from aristotle_mdr.utils import get_aristotle_url
-from aristotle_bg_workers.tasks import send_notification_emails
+from aristotle_bg_workers.tasks import send_sandbox_notification_emails
 
 import json
 import random
@@ -210,8 +210,8 @@ def recent(request):
 def inbox(request, folder=None):
     if folder is None:
         # By default show only unread
-        folder='unread'
-    folder=folder.lower()
+        folder = 'unread'
+    folder = folder.lower()
     if folder == 'unread':
         notices = request.user.notifications.unread().all()
     elif folder == "all":
@@ -409,6 +409,27 @@ class EditView(LoginRequiredMixin, UpdateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
+class NotificationPermissions(LoginRequiredMixin, FormView):
+    form_class = MDRForms.NotificationPermissionsForm
+    template_name = 'aristotle_mdr/user/notificationPermissions.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.profile = request.user.profile
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+
+        initial = {
+            'notifications_json': json.dumps(self.profile.notificationPermissions)
+        }
+        return initial
+
+    def form_valid(self, form):
+        self.profile.notificationPermissions = form.cleaned_data['notifications_json']
+        self.profile.save()
+        return HttpResponseRedirect(reverse('aristotle:userProfile'))
+
+
 class RegistrarTools(LoginRequiredMixin, View):
 
     template_name = "aristotle_mdr/user/registration_authority/list_all.html"
@@ -532,11 +553,11 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
                 recently_added_emails = self.get_recently_added_emails(ast.literal_eval(self.state_of_emails_before_updating),
                                                                        ast.literal_eval(self.share.emails))
                 if len(recently_added_emails) > 0:
-                    send_notification_emails.delay(recently_added_emails,
-                                                   self.request.user.email,
-                                                   self.request.get_host() + reverse('aristotle_mdr:sharedSandbox',
-                                                                                     args=[self.share.uuid])
-                                                   )
+                    send_sandbox_notification_emails.delay(recently_added_emails,
+                                                           self.request.user.email,
+                                                           self.request.get_host() + reverse('aristotle_mdr:sharedSandbox',
+                                                                                             args=[self.share.uuid])
+                                                           )
 
         return super().form_valid(form)
 

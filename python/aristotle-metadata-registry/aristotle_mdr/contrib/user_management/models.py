@@ -29,3 +29,6 @@ class User(AbstractUser):
             start=self.email[:self.email.index('@') + 2],
             end=self.email[self.email.rindex('.') - 1:]
         )
+
+    class ReportBuilder:
+        exclude = ('password',)

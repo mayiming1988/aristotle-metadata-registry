@@ -5,7 +5,7 @@
       <input id="name" class="form-control" v-model="formdata.name" />
     </form-field>
     <form-field name="description">
-      <textarea id="description" class="form-control ta-fixed-width" v-model="formdata.description" />
+      <textarea id="description" class="form-control ta-fixed-width" v-model="formdata.description"></textarea>
     </form-field>
     <div slot="footer">
       <button type="button" class="btn btn-default" @click="emitClose">Close</button>
