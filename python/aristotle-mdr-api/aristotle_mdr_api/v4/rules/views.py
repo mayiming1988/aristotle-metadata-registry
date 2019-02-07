@@ -2,6 +2,7 @@ from aristotle_mdr_api.v4.rules import serializers
 from aristotle_mdr_api.v4.permissions import AuthCanViewEdit
 from aristotle_mdr.contrib.validators import models
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
+from aristotle_mdr.contrib.validators import models
 
 
 class CreateRARules(CreateAPIView):
@@ -14,6 +15,7 @@ class RetrieveUpdateRARules(RetrieveUpdateAPIView):
     """Retrieve and update RA Specific Rules"""
     permission_classes=(AuthCanViewEdit,)
     serializer_class = serializers.RARuleSerializer
+    queryset = models.RAValidationRules.objects.all()
 
 
 class RetrieveUpdateRegistryRules(RetrieveUpdateAPIView):
@@ -31,5 +33,4 @@ class RetrieveUpdateRegistryRules(RetrieveUpdateAPIView):
 
         # Check permission
         self.check_object_permissions(self.request, obj)
-
         return obj
