@@ -4,6 +4,8 @@ import tagsModal from '@/tags/tagsModal.vue'
 import linksDisplay from '@/linksDisplay.vue'
 import issueModal from '@/issueModal.vue'
 
+console.log(linksDisplay)
+
 export default {
     el: '#vue-container',
     components: {

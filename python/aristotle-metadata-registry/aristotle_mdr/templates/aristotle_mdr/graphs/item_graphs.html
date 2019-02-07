@@ -1,0 +1,19 @@
+{% extends 'aristotle_mdr/concepts/contentInfoBase.html' %}
+{% load render_bundle from webpack_loader %}
+
+{% block title %}Graphs for {{ item.name }}{% endblock %}
+
+{% block webpack_css_bundle %}
+    {% render_bundle 'graphsPage' 'css' %}
+{% endblock %}
+
+{% block webpack_bundle %}
+    {% render_bundle 'graphsPage' 'js' %}
+{% endblock %}
+
+{% block infoContent %}
+
+    {{ item }}
+    <links-display url="{% url 'aristotle_mdr:itemGraphs' iid=item.id %}">
+    </links-display>
+{% endblock %}
