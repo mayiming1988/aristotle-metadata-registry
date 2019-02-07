@@ -33,11 +33,12 @@ export default {
         },
         errors: {
             type: Object
-        }
+        },
     },
     created: function() {
         this.schemaObj = JSON.parse(this.schema)
         this.formData = this.initial
+        this.ajv = new Ajv()
     },
     data: () => ({
         fields: {
@@ -51,18 +52,27 @@ export default {
         fe_errors: {
             'rules': []
         },
+        submitted : false,
     }),
     methods: {
         submit: function() {
             let data = yaml.safeLoad(this.formData.rules)
-            let ajv = new Ajv()
-            let valid = ajv.validate(this.schemaObj, data)
+            let valid = this.ajv.validate(this.schemaObj, data)
             if (!valid) {
-                let errors = ajv.errorsText(ajv.errors, {separator: ','}).split(',')
+                let errors = this.ajv.errorsText(this.ajv.errors, {separator: ','}).split(',')
                 this.fe_errors['rules'] = errors
             } else {
                 this.fe_errors['rules'] = []
                 this.$emit('submit', this.formData)
+                this.submitted = true
+            }
+        }
+    },
+    watch: {
+        formData: function() {
+            if (this.submitted) {
+                this.$emit('edit') // Emit edit when a change happens after a submit
+                this.submitted = false
             }
         }
     }
