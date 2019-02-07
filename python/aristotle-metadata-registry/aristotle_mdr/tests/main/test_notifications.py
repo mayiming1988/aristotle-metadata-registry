@@ -1,7 +1,6 @@
 import aristotle_mdr.models as models
 import datetime
 import ast
-import json
 from django.test import TestCase
 from django.utils import timezone
 from django.contrib.auth import get_user_model
@@ -237,9 +236,9 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
 
     def test_subscriber_is_not_notified_when_the_checkbox_in_notification_permission_settings_is_not_checked(self):
         user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
-        data = json.loads(user1.profile.notificationPermissions)
-        data["notification methods"]["within aristotle"] = False
-        user1.profile.notificationPermissions = json.dumps(data)
+        # data = json.loads(user1.profile.notificationPermissions)
+        # data["notification methods"]["within aristotle"] = False
+        user1.profile.notificationPermissions["notification methods"]["within aristotle"] = False
         user1.profile.save()
         self.favourite_item(user1, self.item1)
 
@@ -250,7 +249,7 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
 
     def test_subscriber_is_notified_by_email(self):
         user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
-        json.loads(user1.profile.notificationPermissions)["notification methods"]["email"] = True
+        user1.profile.notificationPermissions["notification methods"]["email"] = True
         user1.profile.save()
 
         send_notification_email(user1.email, "hello world")

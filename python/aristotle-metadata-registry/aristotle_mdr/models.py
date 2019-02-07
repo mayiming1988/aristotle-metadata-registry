@@ -1529,7 +1529,7 @@ class PossumProfile(models.Model):
         js_checker=True
     )
     notificationPermissions = JSONField(
-        default=json.dumps({
+        default={
             "metadata changes": {
                 "general changes": {
                     "items in my workgroups": True,
@@ -1565,7 +1565,7 @@ class PossumProfile(models.Model):
                 "email": False,
                 "within aristotle": True
             }
-        })
+        }
     )
 
     # Override save for inline creation of objects.
