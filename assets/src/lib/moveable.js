@@ -1,5 +1,6 @@
 import 'src/vendor/jquery-ui.min.js'
 import { initDALWidget } from './dal_simple_init.js'
+import { reinitCKEditors } from './ckeditor_simple_init.js'
 
 import 'src/styles/aristotle.moveable.less'
 
@@ -56,6 +57,14 @@ function addCode(id) {
         var element = $(this);
         initDALWidget(element)
     })
+    console.log("before")
+    // $(new_form).find('textarea[data-type=ckeditortype]').each(function() {
+    //     var element = $(this);
+    //     console.log(this)
+    //     reinitCKEditor(this)
+    // })
+    reinitCKEditors(new_form);
+    console.log("after")
 }
 
 function renumberRow(row,num) {
