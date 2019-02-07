@@ -4,6 +4,8 @@ from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 
 from django.views.generic import CreateView, ListView, DetailView, UpdateView
+from django.views.generic.detail import SingleObjectMixin
+from django.core.exceptions import PermissionDenied
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.forms import actions
@@ -15,6 +17,8 @@ from aristotle_mdr.views.utils import (
     AlertFieldsMixin
 )
 from aristotle_mdr import perms
+from aristotle_mdr.contrib.validators.views import ValidationRuleEditView
+from aristotle_mdr.contrib.validators.models import RAValidationRules
 
 import logging
 
@@ -214,3 +218,33 @@ class RemoveUser(MemberRemoveFromGroupView):
 
     def get_success_url(self):
         return redirect(reverse('aristotle:registrationauthority_members', args=[self.get_object().id]))
+
+
+class RAValidationRuleEditView(SingleObjectMixin, ValidationRuleEditView):
+    template_name = 'aristotle_mdr/organization/registration_authority/rules.html'
+    model = MDR.RegistrationAuthority
+    pk_url_kwarg = 'iid'
+    context_object_name = 'item'
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().get(request, *args, **kwargs)
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        if not perms.user_can_edit(self.request.user, obj):
+            raise PermissionDenied
+
+        return obj
+
+    def get_rules(self):
+        try:
+            rules = RAValidationRules.objects.get(registration_authority=self.object)
+        except RAValidationRules.DoesNotExist:
+            return None
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['active_tab'] = 'settings'
+        context['settings_tab'] = 'validation'
+        return context

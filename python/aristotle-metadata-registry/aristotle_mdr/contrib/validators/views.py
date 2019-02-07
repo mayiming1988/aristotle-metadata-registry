@@ -5,17 +5,27 @@ from aristotle_mdr.contrib.validators.schema.load import load_schema
 from aristotle_mdr.contrib.validators import models
 
 
-class RegistryValidationRuleEditView(IsSuperUserMixin, TemplateView):
+class ValidationRuleEditView(TemplateView):
+    """Base view to be used for all validation rule editing"""
+
+    def get_rules(self):
+        raise NotImplementedError
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['schema'] = load_schema()
+        rules = self.get_rules()
+        context['create'] = (rules is None)
+        if rules is not None:
+            context['rules'] = rules
+        return context
+
+
+class RegistryValidationRuleEditView(IsSuperUserMixin, ValidationRuleEditView):
     template_name='aristotle_mdr/validation/edit.html'
 
-    def get_registry_rules(self):
+    def get_rules(self):
         rules = models.RegistryValidationRules.objects.first()
         if rules is None:
             rules = models.RegistryValidationRules.objects.create()
         return rules
-
-    def get_context_data(self):
-        context = super().get_context_data()
-        context['schema'] = load_schema()
-        context['rules'] = self.get_registry_rules()
-        return context
