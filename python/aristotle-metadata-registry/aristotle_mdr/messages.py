@@ -45,9 +45,5 @@ def review_request_created(review_request, requester, registrar):
     notify.send(requester, recipient=registrar, verb="requested concept review", target=review_request)
 
 
-def review_request_updated(review_request, requester, reviewer):
-    if reviewer:
-        notify.send(reviewer, recipient=requester, verb="concept was reviewed", target=review_request)
-    else:
-        # Maybe it was auto reviewed, or updated manually?
-        notify.send(review_request, recipient=requester, verb="concept was reviewed", target=review_request)
+def review_request_updated(review_request, requester):
+    notify.send(review_request, recipient=requester, verb="concept was reviewed", target=review_request)
