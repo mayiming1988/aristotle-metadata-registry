@@ -5,6 +5,7 @@ from django.db import models
 from aristotle_mdr.models import RichTextField
 import aristotle_mdr as aristotle
 from aristotle_mdr.fields import ConceptForeignKey, ConceptManyToManyField
+import aristotle_dse.models as aristotle_dse
 
 
 class IndicatorType(aristotle.models.concept):
@@ -64,14 +65,44 @@ class Indicator(aristotle.models.concept):
         'valueDomain'
     ]
 
+
+class IndicatorDataElementBase(aristotle.models.aristotleComponent):
+    class Meta:
+        abstract=True
+        ordering = ['order']
+
+    indicator = ConceptForeignKey(Indicator)
+    description = RichTextField()
+    data_element = ConceptForeignKey(aristotle.models.DataElement)
+    data_set_specification = ConceptForeignKey(aristotle_dse.DataSetSpecification)
+    data_set = ConceptForeignKey(aristotle_dse.Dataset)
+
+    @property
+    def parentItem(self):
+        return self.indicator_set    
+
+
 class IndicatorSetType(aristotle.models.unmanagedObject):
     pass
 
 
 class IndicatorSet(aristotle.models.concept):
     template = "comet/indicatorset.html"
-    indicators = ConceptManyToManyField(Indicator, related_name="indicatorSets", blank=True, null=True)
+    # indicators = ConceptManyToManyField(Indicator, related_name="indicatorSets", blank=True, null=True)
     indicatorSetType = models.ForeignKey(IndicatorSetType, blank=True, null=True)
+
+
+class IndicatorInclusion(aristotle.models.aristotleComponent):
+    indicator_set = ConceptForeignKey(IndicatorSet)
+    indicator = ConceptForeignKey(Indicator, blank=True, null=True)
+    name = models.CharField(
+        max_length=1024, blank=True,
+        help_text=_("The name identifying this indicator in the set")
+    )
+
+    @property
+    def parentItem(self):
+        return self.indicator_set
 
 
 class OutcomeArea(aristotle.models.concept):
