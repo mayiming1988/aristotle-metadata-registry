@@ -31,6 +31,7 @@ class RegistryRuleSerializer(ValidateRulesSerializer):
     class Meta:
         model = models.RegistryValidationRules
         fields = ('id', 'rules')
+        read_only_fields = ('id',)
 
 
 class RARuleSerializer(ValidateRulesSerializer):
@@ -38,6 +39,7 @@ class RARuleSerializer(ValidateRulesSerializer):
     class Meta:
         model = models.RAValidationRules
         fields = ('id', 'registration_authority', 'rules')
+        read_only_fields = ('id',)
 
     def validate_registration_authority(self, value):
         if self.context['request'].user not in value.managers.all():
