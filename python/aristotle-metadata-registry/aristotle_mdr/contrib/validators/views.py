@@ -1,3 +1,4 @@
+from typing import Iterable
 from django.views.generic import TemplateView
 
 from aristotle_mdr.mixins import IsSuperUserMixin
@@ -8,16 +9,13 @@ from aristotle_mdr.contrib.validators import models
 class ValidationRuleEditView(TemplateView):
     """Base view to be used for all validation rule editing"""
 
-    def get_rules(self):
+    def get_rules(self) -> Iterable[models.ValidationRules]:
         raise NotImplementedError
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['schema'] = load_schema()
-        rules = self.get_rules()
-        context['create'] = (rules is None)
-        if rules is not None:
-            context['rules'] = rules
+        context['rules'] = self.get_rules()
         return context
 
 

@@ -223,9 +223,16 @@ class RAValidationRuleEditView(SingleObjectMixin, ValidationRuleEditView):
             rules = RAValidationRules.objects.get(registration_authority=self.object)
         except RAValidationRules.DoesNotExist:
             return None
+        return rules
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['active_tab'] = 'settings'
         context['settings_tab'] = 'validation'
+        if context['rules'] is None:
+            context['url'] = reverse('api_v4:create_ra_rules')
+            context['method'] = 'post'
+        else:
+            context['url'] = reverse('api_v4:ra_rules', args=[context['rules'].id])
+            context['method'] = 'put'
         return context

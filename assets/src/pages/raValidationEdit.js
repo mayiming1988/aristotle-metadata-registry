@@ -1,9 +1,8 @@
 import { initCore } from 'src/lib/init.js'
-import 'src/styles/aristotle.dashboard.less'
 import renderComponents from 'src/lib/renderComponents.js'
-import rulesEditor from '@/rules/rulesEditor.vue'
+import RARulesEditor from '@/rules/RARulesEditor.vue'
 
 initCore()
 renderComponents({
-    'rules-editor': rulesEditor
+    'rules-editor': RARulesEditor
 })
