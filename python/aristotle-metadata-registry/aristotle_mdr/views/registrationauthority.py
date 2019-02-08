@@ -3,7 +3,13 @@ from django.urls import reverse
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 
-from django.views.generic import CreateView, ListView, DetailView, UpdateView
+from django.views.generic import (
+    CreateView,
+    ListView,
+    DetailView,
+    UpdateView,
+    TemplateView
+)
 from django.views.generic.detail import SingleObjectMixin
 from django.core.exceptions import PermissionDenied
 
@@ -26,12 +32,30 @@ logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
 
-def registrationauthority(request, iid, *args, **kwargs):
-    if iid is None:
-        return redirect(reverse("aristotle_mdr:all_registration_authorities"))
-    item = get_object_or_404(MDR.RegistrationAuthority, pk=iid).item
+class MainPageMixin:
+    """Mixin for views displaying on the main (public) ra page"""
+    active_tab: str = 'home'
 
-    return render(request, item.template, {'item': item.item, 'active_tab': 'home'})
+    def is_manager(self, ra):
+        return perms.user_can_edit(self.request.user, ra)
+
+    def get_tab_context(self):
+        return {
+            'active_tab': self.active_tab
+        }
+
+
+class RegistrationAuthorityView(MainPageMixin, DetailView):
+    pk_url_kwarg = 'iid'
+    queryset = MDR.RegistrationAuthority.objects.all()
+    template_name = 'aristotle_mdr/organization/registration_authority/home.html'
+    context_object_name = 'item'
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update(self.get_tab_context())
+        context['is_manager'] = self.is_manager(self.object)
+        return context
 
 
 def organization(request, iid, *args, **kwargs):
@@ -123,7 +147,7 @@ class ListRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, Lis
         return paginated_registration_authority_list(request, ras, self.template_name, context)
 
 
-class MembersRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+class MembersRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, MainPageMixin, DetailView):
     model = MDR.RegistrationAuthority
     template_name = "aristotle_mdr/organization/registration_authority/members.html"
     permission_required = "aristotle_mdr.view_registrationauthority_details"
@@ -133,13 +157,16 @@ class MembersRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, 
     pk_url_kwarg = 'iid'
     context_object_name = "item"
 
+    active_tab = 'members'
+
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context['active_tab'] = 'members'
+        context.update(self.get_tab_context())
+        context['is_manager'] = self.is_manager(self.object)
         return context
 
 
-class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, AlertFieldsMixin, UpdateView):
+class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, AlertFieldsMixin, MainPageMixin, UpdateView):
     model = MDR.RegistrationAuthority
     template_name = "aristotle_mdr/user/registration_authority/edit.html"
     permission_required = "aristotle_mdr.change_registrationauthority"
@@ -171,9 +198,12 @@ class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequire
     pk_url_kwarg = 'iid'
     context_object_name = "item"
 
+    active_tab = 'settings'
+
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context['active_tab'] = 'settings'
+        context.update(self.get_tab_context())
+        context['is_manager'] = self.is_manager(self.object)
         context['settings_tab'] = 'general'
         return context
 
@@ -201,11 +231,13 @@ class RemoveUser(MemberRemoveFromGroupView):
         return redirect(reverse('aristotle:registrationauthority_members', args=[self.get_object().id]))
 
 
-class RAValidationRuleEditView(SingleObjectMixin, ValidationRuleEditView):
+class RAValidationRuleEditView(SingleObjectMixin, MainPageMixin, ValidationRuleEditView):
     template_name = 'aristotle_mdr/organization/registration_authority/rules.html'
     model = MDR.RegistrationAuthority
     pk_url_kwarg = 'iid'
     context_object_name = 'item'
+
+    active_tab = 'settings'
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -227,7 +259,8 @@ class RAValidationRuleEditView(SingleObjectMixin, ValidationRuleEditView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context['active_tab'] = 'settings'
+        context.update(self.get_tab_context())
+        context['is_manager'] = self.is_manager(self.object)
         context['settings_tab'] = 'validation'
         if context['rules'] is None:
             context['url'] = reverse('api_v4:create_ra_rules')

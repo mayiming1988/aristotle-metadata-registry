@@ -24,12 +24,14 @@
   <li role="presentation" {% if active_tab == 'home' %}class="active"{% endif %}>
     <a href="{% url 'aristotle:registrationAuthority' item.pk %}">Home</a>
   </li>
+  {% if is_manager %} {# This is set to true for superusers aswell #}
   <li role="presentation" {% if active_tab == 'members' %}class="active"{% endif %}>
     <a href="{% url 'aristotle:registrationauthority_members' item.pk %}">Members</a>
   </li>
   <li role="presentation" {% if active_tab == 'settings' %}class="active"{% endif %}>
     <a href="{% url 'aristotle:registrationauthority_edit' item.pk %}">Settings</a>
   </li>
+  {% endif %}
 </ul>
 
 <div>
