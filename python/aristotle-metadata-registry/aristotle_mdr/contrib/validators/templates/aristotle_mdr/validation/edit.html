@@ -13,10 +13,10 @@
 {% block page %}
 <h1>Registry Wide Rules</h1>
 <div id="vue-container">
-  <registry-edit-form
+  <rules-editor
     schema="{{ schema }}"
     value="{{ rules.rules }}"
     api_url="{% url 'api_v4:registry_rules' %}">
-  </registry-edit-form>
+  </rules-editor>
 </div>
 {% endblock %}

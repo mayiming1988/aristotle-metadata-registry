@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Iterable
 
 import attr
 import json
@@ -11,7 +11,9 @@ from django.utils.module_loading import import_string
 from os import path
 
 from aristotle_mdr.contrib.validators.validators import RuleChecker
+from aristotle_mdr.contrib.validators import models
 from aristotle_mdr.contrib.validators.schema.load import load_schema
+from aristotle_mdr.models import _concept
 
 logger = logging.getLogger(__name__)
 
@@ -21,17 +23,16 @@ class ValidationRunner:
     registration_authority = attr.ib()
     state = attr.ib()
 
-    def __attrs_post_init__(self):
-        aristotle_validators = settings.ARISTOTLE_VALIDATORS
-        self.validators = {x: import_string(y) for x, y in aristotle_validators.items()}
-        self.schema = self.load_schema()
-        self.rulesets = self.load_rulesets()
-
-    def load_schema(self):
+    def get_schema(self):
         return load_schema()
 
-    def load_rulesets(self) -> List[RuleChecker]:
+    def get_rulesets(self) -> List:
+        """Need to be overwritten to return a list conforming to schema"""
         raise NotImplementedError
+
+    def get_rulecheckers(self) -> List[RuleChecker]:
+        rulesets = self.get_rulesets()
+        return [RuleChecker(rule) for rule in rulesets]
 
     def validate_rules(self):
         try:
@@ -39,7 +40,11 @@ class ValidationRunner:
         except jsonschema.exceptions.ValidationError as e:
             logger.critical(e)
 
-    def validate_metadata(self, metadata) -> List:
+    def validate_metadata(self, metadata: Iterable[_concept]) -> List:
+
+        checkers = self.get_rulecheckers()
+        schema = self.get_schema()
+
         total_results = []
         for concept in metadata:
             kwargs = {}
@@ -48,7 +53,7 @@ class ValidationRunner:
             item = concept.item
 
             results = []
-            for checker in self.rulesets:
+            for checker in checkers:
                 results += checker.run_rule(item, self.state, self.registration_authority)
 
             kwargs['results'] = results
@@ -60,8 +65,33 @@ class ValidationRunner:
 
 
 class FileValidationRunner(ValidationRunner):
-    def load_rulesets(self):
+
+    def get_rulesets(self):
         with open(settings.ARISTOTLE_VALIDATION_FILERUNNER_PATH) as setupfile:
             ruleset = yaml.safe_load(setupfile)
 
-        return [RuleChecker(rule) for rule in ruleset]
+        return ruleset
+
+
+class DatabaseValidationRunner(ValidationRunner):
+
+    def get_rulesets(self):
+        rules_yaml = []
+        site_rules = models.RegistryValidationRules.objects.first()
+        try:
+            ra_rules = models.RAValidationRules.objects.get(
+                registration_authority=self.registration_authority
+            )
+        except models.RAValidationRules.DoesNotExist:
+            ra_rules = None
+
+        if site_rules:
+            rules_yaml.append(site_rules.rules)
+        if ra_rules:
+            rules_yaml.append(ra_rules.rules)
+
+        rules = []
+        for ryaml in rules_yaml:
+            rules += yaml.safe_load(ryaml)
+
+        return rules

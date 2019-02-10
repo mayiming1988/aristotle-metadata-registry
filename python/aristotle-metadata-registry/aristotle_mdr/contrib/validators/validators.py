@@ -9,6 +9,8 @@ from aristotle_mdr.models import STATES
 
 
 class RuleChecker:
+    """Runs a specified rule, using it's validator"""
+
     def __init__(self, ruleset):
         aristotle_validators = settings.ARISTOTLE_VALIDATORS
         self.validators = {x: import_string(y) for x, y in aristotle_validators.items()}
