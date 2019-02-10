@@ -10,7 +10,7 @@ def notif_accepted_email(func):
     """Check if the 'email' checkbox has been selected in Notification Permissions for this user."""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if json.loads(kwargs['recipient'].profile.notificationPermissions)["notification methods"]["email"]:
+        if kwargs['recipient'].profile.notificationPermissions["notification methods"]["email"]:
             message = ""
             if func.__name__ == "workgroup_item_updated":
                 message = kwargs['obj'].name + " was modified in the workgroup " + kwargs['obj'].workgroup.name
@@ -61,7 +61,7 @@ def notif_accepted_within_aristotle(func):
     """Check if the 'within aristotle' checkbox has been selected in Notification Permissions for this user."""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if json.loads(kwargs['recipient'].profile.notificationPermissions)["notification methods"]["within aristotle"]:
+        if kwargs['recipient'].profile.notificationPermissions["notification methods"]["within aristotle"]:
             return func(*args, **kwargs)
     return wrapper
 
@@ -71,7 +71,7 @@ def notif_general_changes_workgroups(func):
     Notification Permissions for this user."""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if json.loads(kwargs['recipient'].profile.notificationPermissions)["metadata changes"]["general changes"]["items in my workgroups"]:
+        if kwargs['recipient'].profile.notificationPermissions["metadata changes"]["general changes"]["items in my workgroups"]:
             return func(*args, **kwargs)
     return wrapper
 
@@ -81,7 +81,7 @@ def notif_general_changes_favourited(func):
     Notification Permissions for this user."""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if json.loads(kwargs['recipient'].profile.notificationPermissions)["metadata changes"]["general changes"]["items I have tagged / favourited"]:
+        if kwargs['recipient'].profile.notificationPermissions["metadata changes"]["general changes"]["items I have tagged / favourited"]:
             return func(*args, **kwargs)
     return wrapper
 
@@ -91,7 +91,7 @@ def notif_general_changes_items_i_can_edit(func):
     Notification Permissions for this user."""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if json.loads(kwargs['recipient'].profile.notificationPermissions)["metadata changes"]["general changes"]["any items I can edit"]:
+        if kwargs['recipient'].profile.notificationPermissions["metadata changes"]["general changes"]["any items I can edit"]:
             return func(*args, **kwargs)
     return wrapper
 
@@ -101,7 +101,7 @@ def notif_superseded_workgroups(func):
     Notification Permissions for this user."""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if json.loads(kwargs['recipient'].profile.notificationPermissions)["metadata changes"]["superseded"]["items in my workgroups"]:
+        if kwargs['recipient'].profile.notificationPermissions["metadata changes"]["superseded"]["items in my workgroups"]:
             return func(*args, **kwargs)
     return wrapper
 
@@ -111,7 +111,7 @@ def notif_superseded_favourited(func):
     Notification Permissions for this user."""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if json.loads(kwargs['recipient'].profile.notificationPermissions)["metadata changes"]["superseded"]["items I have tagged / favourited"]:
+        if kwargs['recipient'].profile.notificationPermissions["metadata changes"]["superseded"]["items I have tagged / favourited"]:
             return func(*args, **kwargs)
     return wrapper
 
@@ -121,7 +121,10 @@ def notif_superseded_i_can_edit(func):
     Notification Permissions for this user."""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if json.loads(kwargs['recipient'].profile.notificationPermissions)["metadata changes"]["superseded"]["any items I can edit"]:
+        logger.critical("THIS IS THE OUTPUT:")
+        logger.critical((kwargs['recipient'].profile.notificationPermissions))
+        logger.critical(type(kwargs['recipient'].profile.notificationPermissions))
+        if kwargs['recipient'].profile.notificationPermissions["metadata changes"]["superseded"]["any items I can edit"]:
             return func(*args, **kwargs)
     return wrapper
 
@@ -131,7 +134,7 @@ def notif_new_items_in_my_workgroups(func):
     Notification Permissions for this user."""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if json.loads(kwargs['recipient'].profile.notificationPermissions)["metadata changes"]["new items"]["new items in my workgroups"]:
+        if kwargs['recipient'].profile.notificationPermissions["metadata changes"]["new items"]["new items in my workgroups"]:
             return func(*args, **kwargs)
     return wrapper
 
@@ -141,7 +144,7 @@ def notif_registrar_item_superseded(func):
         Notification Permissions for this user."""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if json.loads(kwargs['recipient'].profile.notificationPermissions)['registrar']['item superseded']:
+        if kwargs['recipient'].profile.notificationPermissions['registrar']['item superseded']:
             return func(*args, **kwargs)
     return wrapper
 
@@ -151,7 +154,7 @@ def notif_registrar_item_registered(func):
         Notification Permissions for this user."""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if json.loads(kwargs['recipient'].profile.notificationPermissions)['registrar']['item registered']:
+        if kwargs['recipient'].profile.notificationPermissions['registrar']['item registered']:
             return func(*args, **kwargs)
     return wrapper
 
@@ -161,7 +164,7 @@ def notif_registrar_item_changed_status(func):
         Notification Permissions for this user."""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if json.loads(kwargs['recipient'].profile.notificationPermissions)['registrar']['item changed status']:
+        if kwargs['recipient'].profile.notificationPermissions['registrar']['item changed status']:
             return func(*args, **kwargs)
     return wrapper
 
@@ -171,7 +174,7 @@ def notif_registrar_review_request_created(func):
         Notification Permissions for this user."""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if json.loads(kwargs['recipient'].profile.notificationPermissions)['registrar']['review request created']:
+        if kwargs['recipient'].profile.notificationPermissions['registrar']['review request created']:
             return func(*args, **kwargs)
     return wrapper
 
@@ -181,7 +184,7 @@ def notif_registrar_review_request_updated(func):
         Notification Permissions for this user."""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if json.loads(kwargs['recipient'].profile.notificationPermissions)['registrar']['review request updated']:
+        if kwargs['recipient'].profile.notificationPermissions['registrar']['review request updated']:
             return func(*args, **kwargs)
     return wrapper
 
@@ -191,7 +194,7 @@ def notif_issues_items_in_my_workgroups(func):
         Notification Permissions for this user."""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if json.loads(kwargs['recipient'].profile.notificationPermissions)['issues']['items in my workgroups']:
+        if kwargs['recipient'].profile.notificationPermissions['issues']['items in my workgroups']:
             return func(*args, **kwargs)
     return wrapper
 
@@ -201,7 +204,7 @@ def notif_issues_favourited(func):
         Notification Permissions for this user."""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if json.loads(kwargs['recipient'].profile.notificationPermissions)['issues']['items I have tagged / favourited']:
+        if kwargs['recipient'].profile.notificationPermissions['issues']['items I have tagged / favourited']:
             return func(*args, **kwargs)
     return wrapper
 
@@ -211,7 +214,7 @@ def notif_issues_i_can_edit(func):
         Notification Permissions for this user."""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if json.loads(kwargs['recipient'].profile.notificationPermissions)['issues']['any items I can edit']:
+        if kwargs['recipient'].profile.notificationPermissions['issues']['any items I can edit']:
             return func(*args, **kwargs)
     return wrapper
 
@@ -221,7 +224,7 @@ def notif_discussions_new_posts(func):
         Notification Permissions for this user."""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if json.loads(kwargs['recipient'].profile.notificationPermissions)['discussions']['new posts']:
+        if kwargs['recipient'].profile.notificationPermissions['discussions']['new posts']:
             return func(*args, **kwargs)
     return wrapper
 
@@ -231,7 +234,7 @@ def notif_discussions_new_comments(func):
         Notification Permissions for this user."""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if json.loads(kwargs['recipient'].profile.notificationPermissions)['discussions']['new comments']:
+        if kwargs['recipient'].profile.notificationPermissions['discussions']['new comments']:
             return func(*args, **kwargs)
     return wrapper
 

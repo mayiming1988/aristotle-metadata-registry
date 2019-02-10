@@ -1453,7 +1453,7 @@ class PossumProfile(models.Model):
         js_checker=True
     )
     notificationPermissions = JSONField(
-        default=json.dumps({
+        default={
             "metadata changes": {
                 "general changes": {
                     "items in my workgroups": True,
@@ -1489,7 +1489,7 @@ class PossumProfile(models.Model):
                 "email": False,
                 "within aristotle": True
             }
-        })
+        }
     )
 
     def get_profile_picture_url(self):
