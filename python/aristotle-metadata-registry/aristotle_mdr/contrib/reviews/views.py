@@ -359,17 +359,21 @@ class ReviewValidationView(ReviewActionMixin, TemplateView):
         # Call the base implementation first to get a context
         context = super().get_context_data(*args, **kwargs)
 
-        all_the_concepts = [
-            item.item
-            for main_item in self.get_review().concepts.all()
-            for item in main_item.item.registry_cascade_items
-        ]
+        review = self.get_review()
+        items = review.concepts.all().select_subclasses()
+
+        review_items = items
+        if review.cascade_registration == 1:
+            sub_items = []
+            for item in items:
+                sub_items += item.registry_cascade_items
+            review_items += sub_items
 
         Runner = import_string(settings.ARISTOTLE_VALIDATION_RUNNER)
         self.ra = self.get_review().registration_authority
 
         runner = Runner(registration_authority=self.ra, state=self.get_review().state)
-        total_results = runner.validate_metadata(metadata=all_the_concepts)
+        total_results = runner.validate_metadata(metadata=review_items)
 
         context['total_results'] = total_results
         context['setup_valid'] = True
