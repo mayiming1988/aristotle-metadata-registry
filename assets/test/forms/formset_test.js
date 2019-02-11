@@ -7,7 +7,6 @@ import Formset from '@/djforms/formSet.vue'
 
 describe('FormSet', function() {
 
-
     function getWrapper(initial, fields) {
         let propsData = {fields: fields, initial: initial}
         return VueTestUtils.shallowMount(Formset, {propsData: propsData})
