@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import yaml from 'js-yaml'
+import { safeLoad } from 'js-yaml/lib/js-yaml/loader.js'
 import Ajv from 'ajv'
 
 import baseForm from '@/forms/baseForm.vue'
@@ -56,7 +56,7 @@ export default {
     }),
     methods: {
         submit: function() {
-            let data = yaml.safeLoad(this.formData.rules)
+            let data = safeLoad(this.formData.rules)
             let valid = this.ajv.validate(this.schemaObj, data)
             if (!valid) {
                 let errors = this.ajv.errorsText(this.ajv.errors, {separator: ','}).split(',')
