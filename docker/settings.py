@@ -23,7 +23,8 @@ ROOT_URLCONF = 'urls'
 ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] += [
     'aristotle_mdr_links',
     'aristotle_dse',
-    'aristotle_glossary'
+    'aristotle_glossary',
+    'comet',
 ]
 
 INSTALLED_APPS = list(INSTALLED_APPS) + [

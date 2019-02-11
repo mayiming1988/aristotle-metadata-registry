@@ -12,6 +12,7 @@ urlpatterns = [
 
     url(r'^', include('aristotle_mdr.urls')),
     url(r'^', include('aristotle_mdr.contrib.links.urls', namespace="aristotle_mdr_links")),
+    url(r'^comet/', include('comet.urls', namespace='comet')),
     url(r'^glossary/', include('aristotle_glossary.urls',app_name="aristotle_glossary",namespace="aristotle_glossary")),
 ]
 
