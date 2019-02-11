@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.utils.translation import ugettext as _
 
 from aristotle_mdr.models import RichTextField
 import aristotle_mdr as aristotle
