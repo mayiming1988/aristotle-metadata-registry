@@ -75,7 +75,6 @@ class ValidationRunner:
             logger.critical(e)
 
     def validate_metadata(self, metadata: Iterable[_concept]) -> List:
-
         rulesets = self.get_rulesets()
         schema = self.get_schema()
 
