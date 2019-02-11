@@ -21,18 +21,6 @@ class Indicator(aristotle.models.concept):
     and that provides relevant and actionable information about population or system performance.
     """
     template = "comet/indicator.html"
-    dataElementConcept=ConceptForeignKey(
-        aristotle.models.DataElementConcept,
-        verbose_name="Data Element Concept",
-        blank=True,
-        null=True
-    )
-    valueDomain=ConceptForeignKey(
-        aristotle.models.ValueDomain,
-        verbose_name="Value Domain",
-        blank=True,
-        null=True
-    )
     outcome_areas = ConceptManyToManyField('OutcomeArea', related_name="indicators", blank=True)
 
     indicatorType = ConceptForeignKey(IndicatorType, blank=True, null=True)
@@ -60,11 +48,6 @@ class Indicator(aristotle.models.concept):
     rationale = RichTextField(blank=True)
     disaggregation_description = RichTextField(blank=True)
 
-    related_objects = [
-        'dataElementConcept',
-        'valueDomain'
-    ]
-
 
 class IndicatorDataElementBase(aristotle.models.aristotleComponent):
     class Meta:
@@ -72,17 +55,33 @@ class IndicatorDataElementBase(aristotle.models.aristotleComponent):
         ordering = ['order']
 
     indicator = ConceptForeignKey(Indicator)
+    order = models.PositiveSmallIntegerField(
+        "Order",
+        help_text=_("The position of this data element in the indicator")
+    )
     description = RichTextField()
-    data_element = ConceptForeignKey(aristotle.models.DataElement)
-    data_set_specification = ConceptForeignKey(aristotle_dse.DataSetSpecification)
-    data_set = ConceptForeignKey(aristotle_dse.Dataset)
+    data_element = ConceptForeignKey(aristotle.models.DataElement, null=True)
+    data_set_specification = ConceptForeignKey(aristotle_dse.DataSetSpecification, null=True)
+    data_set = ConceptForeignKey(aristotle_dse.Dataset, null=True)
 
     @property
     def parentItem(self):
-        return self.indicator_set    
+        return self.indicator
 
 
-class IndicatorSetType(aristotle.models.unmanagedObject):
+class IndicatorNumberatorDefinition(IndicatorDataElementBase):
+    pass
+
+
+class IndicatorDenominatorDefinition(IndicatorDataElementBase):
+    pass
+
+
+class IndicatorNumberatorDefinition(IndicatorDataElementBase):
+    pass
+
+
+class IndicatorSetType(ManagedItem):
     pass
 
 
@@ -93,12 +92,19 @@ class IndicatorSet(aristotle.models.concept):
 
 
 class IndicatorInclusion(aristotle.models.aristotleComponent):
+    order = models.PositiveSmallIntegerField(
+        "Order",
+        help_text=_("The position of this indicator in the set")
+    )
     indicator_set = ConceptForeignKey(IndicatorSet)
     indicator = ConceptForeignKey(Indicator, blank=True, null=True)
     name = models.CharField(
         max_length=1024, blank=True,
         help_text=_("The name identifying this indicator in the set")
     )
+
+    class Meta:
+        ordering = ['order']
 
     @property
     def parentItem(self):

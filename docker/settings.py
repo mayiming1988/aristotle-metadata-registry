@@ -31,7 +31,7 @@ INSTALLED_APPS = list(INSTALLED_APPS) + [
     'aristotle_mdr.contrib.self_publish',
     "aristotle_dse",
     "aristotle_glossary",
-    # "comet",
+    "comet",
     # "mallard_qr",
     "aristotle_mdr_graphql",
 ]
