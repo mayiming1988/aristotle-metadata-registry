@@ -1,5 +1,6 @@
 <template>
     <div class="registry-rules-edit">
+        <alert v-if="request_error" type="danger">{{ request_error }}</alert>
         <alert v-if="updated" type="success">
             Registry rules have been updated
         </alert>
