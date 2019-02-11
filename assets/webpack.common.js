@@ -132,6 +132,10 @@ module.exports = {
             }
         }
     },
+    // Uses external variables instead of including packages
+    externals: {
+        esprima: 'esprima' // This is being used to exclude esprima from bundle since we dont need it
+    },
     resolve: {
         alias: {
             // Use compiler version of vue
