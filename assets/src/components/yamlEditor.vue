@@ -1,14 +1,19 @@
 <template>
-    <div class="yaml-editor">
-    </div>
+    <div :id="tagId" class="yaml-editor" />
 </template>
 
 <script>
+// Import codemirror
 import CodeMirror from 'codemirror'
+// Import yaml mode
 import 'codemirror/mode/yaml/yaml.js'
 
 export default {
     props: {
+        id: {
+            type: Number,
+            default: 1
+        },
         value: {
             type: String,
             default: ''
@@ -16,7 +21,7 @@ export default {
     },
     mounted: function() {
         this.codeMirror = CodeMirror(
-            document.querySelector('.yaml-editor'),
+            document.querySelector('#' + this.tagId + '.yaml-editor'),
             {
                 mode: 'yaml',
                 lineNumbers: true,
@@ -29,6 +34,11 @@ export default {
             },
         });
         this.codeMirror.getDoc().on('change', this.editorChange)
+    },
+    computed: {
+        tagId: function() {
+            return 'yaml-editor-' + this.id
+        }
     },
     methods: {
         editorChange: function(doc) {
