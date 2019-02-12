@@ -5,7 +5,9 @@
         :errors="errors"
         v-model="formData">
         <template slot="after">
-            <button class="btn btn-primary" @click="submit">Submit</button>
+            <button class="btn btn-primary" @click="submit">
+                Submit
+            </button>
         </template>
     </baseForm>
 </template>
@@ -23,7 +25,8 @@ export default {
     },
     props: {
         schema: {
-            type: String
+            type: String,
+            required: true
         },
         initial: {
             type: Object,
@@ -32,7 +35,8 @@ export default {
             })
         },
         errors: {
-            type: Object
+            type: Object,
+            required: true
         },
     },
     created: function() {
