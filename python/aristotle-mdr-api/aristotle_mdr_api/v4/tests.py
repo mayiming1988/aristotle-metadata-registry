@@ -273,6 +273,24 @@ class CustomFieldsTestCase(BaseAPITestCase):
         self.assertEqual(cf_models.CustomField.objects.filter(name='Spic').count(), 1)
         self.assertEqual(cf_models.CustomField.objects.filter(name='Bland').count(), 1)
 
+    def test_reorder_fields(self):
+        ids = self.create_test_fields()
+        self.login_superuser()
+
+        postdata = [
+            {'id': ids[0], 'order': 2, 'name': 'Spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
+            {'id': ids[1], 'order': 1, 'name': 'Blandness', 'type': 'int', 'help_text': 'The Blandness'}
+        ]
+        response = self.client.post(
+            reverse('api_v4:custom_field_list'),
+            postdata,
+            format='json'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(cf_models.CustomField.objects.count(), 2)
+        self.assertEqual(cf_models.CustomField.objects.filter(order=1).name, 'Blandness')
+        self.assertEqual(cf_models.CustomField.objects.filter(order=2).name, 'Spiciness')
+
     def test_multiple_delete_does_not_work(self):
         ids = self.create_test_fields()
         self.login_superuser()
