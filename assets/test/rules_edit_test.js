@@ -1,31 +1,34 @@
 import chai from 'chai'
 const assert = chai.assert
 import VueTestUtils from '@vue/test-utils'
+import { fakePromiseMethod } from './utils.js'
 
 import editForm from '@/rules/editForm.vue'
+import RARulesEditor from '@/rules/RARulesEditor.vue'
+
+// Small schema used for testing
+var schema = {
+    title: 'Bad Schema',
+    type: 'object',
+    properties: {
+        name: {
+            type: 'string'
+        },
+        importance: {
+            type: 'string',
+            enum: ['very', 'not much', 'not at all']
+        }
+    },
+    required: ['name', 'importance']
+}
 
 describe('editForm', function() {
 
     beforeEach(function() {
-        // Small schema used for testing
-        this.schema = {
-            title: 'Bad Schema',
-            type: 'object',
-            properties: {
-                name: {
-                    type: 'string'
-                },
-                importance: {
-                    type: 'string',
-                    enum: ['very', 'not much', 'not at all']
-                }
-            },
-            required: ['name', 'importance']
-        }
         // General wrapper
         this.wrapper = VueTestUtils.shallowMount(
             editForm,
-            {propsData: {schema: JSON.stringify(this.schema), errors: {}}}
+            {propsData: {schema: JSON.stringify(schema), errors: {}}}
         )
     })
 
@@ -39,7 +42,7 @@ describe('editForm', function() {
             editForm,
             {
                 propsData: {
-                    schema: JSON.stringify(this.schema), 
+                    schema: JSON.stringify(schema), 
                     errors: {}, 
                     initial: initialData
                 }
@@ -111,6 +114,62 @@ describe('editForm', function() {
                 // make sure still 1 emit
                 assert.equal(this.wrapper.emitted().edit.length, 1)
             })
+        })
+    })
+})
+
+describe('RARulesEditor', function() {
+
+    beforeEach(function() {
+        // General wrapper
+        this.wrapper = VueTestUtils.shallowMount(
+            RARulesEditor,
+            {
+                propsData: {
+                    schema: JSON.stringify(schema), 
+                    value: '',
+                    api_url: '/fake/create',
+                    method: 'post',
+                    update_url_template: '/fake/update/{pk}/',
+                    ra_id: 1
+                }
+            }
+        )
+    })
+    
+    function submitFakeData(wrapper, test_data, return_data) {
+        let fake = fakePromiseMethod(wrapper, 'post', return_data)
+        // Submit data
+        wrapper.vm.submitData(test_data)
+        // Make sure fake method was called
+        assert.isTrue(fake.calledOnceWith('/fake/create', test_data))
+    }
+
+    it('sets submit url', function() {
+        assert.equal(this.wrapper.vm.submit_url, '/fake/create')
+    })
+
+    it('sets submit method', function() {
+        assert.equal(this.wrapper.vm.submit_method, 'post')
+    })
+
+    it('doesnt update url on non 201 status', function() {
+        let test_data = {name: 'thing', importance: 'very'}
+        submitFakeData(this.wrapper, test_data, {status: 500})
+        // Make sure url & method not updated
+        return this.wrapper.vm.$nextTick().then(() => {
+            assert.equal(this.wrapper.vm.submit_url, '/fake/create')
+            assert.equal(this.wrapper.vm.submit_method, 'post')
+        })
+    })
+
+    it('switches to update url after create', function() {
+        let test_data = {name: 'thing', importance: 'very'}
+        submitFakeData(this.wrapper, test_data, {status: 201, data: {id: 5}})
+        return this.wrapper.vm.$nextTick().then(() => {
+            // Make sure url & method were updated
+            assert.equal(this.wrapper.vm.submit_url, '/fake/update/5/')
+            assert.equal(this.wrapper.vm.submit_method, 'put')
         })
     })
 })
