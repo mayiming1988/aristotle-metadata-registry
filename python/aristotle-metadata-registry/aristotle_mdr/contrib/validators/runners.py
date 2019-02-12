@@ -1,4 +1,4 @@
-from typing import List, Iterable
+from typing import List, Iterable, Dict
 
 import attr
 import json
@@ -33,7 +33,7 @@ class ValidationRunner:
             self.validators = {x: import_string(y) for x, y in aristotle_validators.items()}
             return self.validators
 
-    def run_rule(self, rule, item, target_state, ra=None) -> List[str]:
+    def run_rule(self, rule, item, target_state, ra=None) -> List[Dict]:
         validators = self.get_validators()
         rule_state = rule['status']
         object_type = rule.get('object', None)
@@ -74,7 +74,7 @@ class ValidationRunner:
         except jsonschema.exceptions.ValidationError as e:
             logger.critical(e)
 
-    def validate_metadata(self, metadata: Iterable[_concept]) -> List:
+    def validate_metadata(self, metadata: Iterable[_concept]) -> List[Dict]:
         rulesets = self.get_rulesets()
         schema = self.get_schema()
 
@@ -85,7 +85,7 @@ class ValidationRunner:
             # Slow query
             item = concept.item
 
-            results = []
+            results: List[Dict] = []
             for rule in rulesets:
                 results += self.run_rule(rule, item, self.state, self.registration_authority)
 
