@@ -320,11 +320,7 @@ def review_request_created(recipient, obj, target):
 @notif_accepted_email
 @notif_accepted_within_aristotle
 def review_request_updated(recipient, obj, target):
-    if obj:
-        notify.send(obj, recipient=recipient, verb="concept was reviewed", target=target)
-    else:
-        # Maybe it was auto reviewed, or updated manually?
-        notify.send(target, recipient=recipient, verb="concept was reviewed", target=target)
+    notify.send(obj, recipient=recipient, verb="concept was reviewed", target=target)
 
 
 @notif_issues_items_in_my_workgroups
@@ -354,8 +350,6 @@ def issue_created_favourite(recipient, obj):
 def issue_comment_created_favourite(recipient, obj):
     notify.send(obj.issue, recipient=recipient, verb="A new comment has been created on an issue of a favourite item:", target=obj.issue.item)
 
-def review_request_updated(review_request, requester):
-    notify.send(review_request, recipient=requester, verb="concept was reviewed", target=review_request)
 
 @notif_issues_i_can_edit
 @notif_accepted_email
