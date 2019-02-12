@@ -178,17 +178,6 @@ class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequire
         'name',
         'definition',
         'active',
-        'locked_state',
-        'public_state',
-        'notprogressed',
-        'incomplete',
-        'candidate',
-        'recorded',
-        'qualified',
-        'standard',
-        'preferred',
-        'superseded',
-        'retired',
     ]
 
     alert_fields = [
@@ -205,6 +194,41 @@ class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequire
         context.update(self.get_tab_context())
         context['is_manager'] = self.is_manager(self.object)
         context['settings_tab'] = 'general'
+        return context
+
+
+class EditRegistrationAuthorityStates(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, MainPageMixin, UpdateView):
+    model = MDR.RegistrationAuthority
+    template_name = "aristotle_mdr/user/registration_authority/edit.html"
+    permission_required = "aristotle_mdr.change_registrationauthority"
+    raise_exception = True
+    redirect_unauthenticated_users = True
+    object_level_permissions = True
+
+    fields = [
+        'locked_state',
+        'public_state',
+        'notprogressed',
+        'incomplete',
+        'candidate',
+        'recorded',
+        'qualified',
+        'standard',
+        'preferred',
+        'superseded',
+        'retired',
+    ]
+
+    pk_url_kwarg = 'iid'
+    context_object_name = "item"
+
+    active_tab = 'settings'
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update(self.get_tab_context())
+        context['is_manager'] = self.is_manager(self.object)
+        context['settings_tab'] = 'states'
         return context
 
 

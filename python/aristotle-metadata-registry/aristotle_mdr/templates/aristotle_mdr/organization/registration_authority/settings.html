@@ -10,6 +10,11 @@
           General
         </a>
         <a 
+          href="{% url 'aristotle:registrationauthority_edit_states' item.id %}"
+          class="list-group-item {% if settings_tab == 'states' %}active{% endif %}">
+          States
+        </a>
+        <a 
           href="{% url 'aristotle:registrationauthority_rules' item.id %}"
           class="list-group-item {% if settings_tab == 'validation' %}active{% endif %}">
           Validation Rules
