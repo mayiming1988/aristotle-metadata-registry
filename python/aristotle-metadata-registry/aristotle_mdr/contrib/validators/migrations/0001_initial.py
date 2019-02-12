@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('aristotle_mdr', '0056_auto_20190118_0520'),
+        ('aristotle_mdr', '0047_auto_20190206_0600'),
     ]
 
     operations = [
