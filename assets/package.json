@@ -96,6 +96,10 @@
       "parser": "babel-eslint",
       "sourceType": "module"
     },
+    "rules": {
+      "vue/html-indent": "off",
+      "vue/max-attributes-per-line": "off"
+    },
     "globals": {
       "$": true,
       "jQuery": true
