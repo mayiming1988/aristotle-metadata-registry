@@ -167,6 +167,22 @@ class Concept_1_Search(UserAwareForm):
         pass
 
 
+class Concept_2_Results(CustomValueFormMixin, ConceptForm):
+    make_new_item = forms.BooleanField(
+        initial=False,
+        label=_("I've reviewed these items, and none of them meet my needs. Make me a new one."),
+        error_messages={'required': 'You must select this to ackowledge you have reviewed the above items.'}
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.check_similar = kwargs.pop('check_similar', True)
+        super().__init__(*args, **kwargs)
+        self.fields['workgroup'].queryset = self.user.profile.editable_workgroups
+        self.fields['workgroup'].initial = self.user.profile.activeWorkgroup
+        if not self.check_similar:
+            self.fields.pop('make_new_item')
+
+
 def subclassed_modelform(set_model):
     class MyForm(ConceptForm):
         class Meta(ConceptForm.Meta):
@@ -212,22 +228,6 @@ def subclassed_wizard_2_Results(set_model):
             else:
                 fields = '__all__'
     return MyForm
-
-
-class Concept_2_Results(CustomValueFormMixin, ConceptForm):
-    make_new_item = forms.BooleanField(
-        initial=False,
-        label=_("I've reviewed these items, and none of them meet my needs. Make me a new one."),
-        error_messages={'required': 'You must select this to ackowledge you have reviewed the above items.'}
-    )
-
-    def __init__(self, *args, **kwargs):
-        self.check_similar = kwargs.pop('check_similar', True)
-        super().__init__(*args, **kwargs)
-        self.fields['workgroup'].queryset = self.user.profile.editable_workgroups
-        self.fields['workgroup'].initial = self.user.profile.activeWorkgroup
-        if not self.check_similar:
-            self.fields.pop('make_new_item')
 
 
 class DEC_OCP_Search(UserAwareForm):

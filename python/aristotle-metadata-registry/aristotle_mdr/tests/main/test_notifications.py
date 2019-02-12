@@ -1,14 +1,15 @@
+import aristotle_mdr.models as models
+import datetime
+import ast
 from django.test import TestCase
-
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-
-import aristotle_mdr.models as models
-
 from aristotle_mdr.tests import utils
-import datetime
-
 from aristotle_mdr.utils import setup_aristotle_test_environment
+from aristotle_mdr.contrib.issues.models import Issue
+from aristotle_bg_workers.tasks import send_notification_email
+from django.core import mail
+from django.conf import settings
 
 
 setup_aristotle_test_environment()
@@ -16,6 +17,7 @@ setup_aristotle_test_environment()
 
 class TestNotifications(utils.AristotleTestUtils, TestCase):
     defaults = {}
+
     def setUp(self):
         super().setUp()
 
@@ -37,7 +39,7 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
 
     def test_subscriber_is_notified_of_discussion(self):
         self.assertEqual(self.wg1.discussions.all().count(), 0)
-        user1 = get_user_model().objects.create_user('subscriber@example.com','subscriber')
+        user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
 
         self.assertEqual(user1.notifications.count(), 0)
         models.DiscussionPost.objects.create(
@@ -59,14 +61,15 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
         )
 
         self.assertEqual(self.wg1.discussions.all().count(), 2)
-        self.assertTrue('made a new post' in user1.notifications.first().verb )
-        self.assertTrue(self.viewer == user1.notifications.first().actor )
+        self.assertTrue('(discussion) has been created' in user1.notifications.first().verb)
+        # THE FOLLOWING TEST IS NO LONGER APPLICABLE:
+        # self.assertTrue(self.viewer == user1.notifications.first().actor)
         self.assertEqual(user1.notifications.count(), 1)
 
     def test_subscriber_is_notified_of_comment(self):
         self.assertEqual(self.wg1.discussions.all().count(), 0)
-        kenobi = get_user_model().objects.create_user('kenodi@jedi.order','')
-        grievous = get_user_model().objects.create_user('gen.grevious@separatist.mil','')
+        kenobi = get_user_model().objects.create_user('kenodi@jedi.order', '')
+        grievous = get_user_model().objects.create_user('gen.grevious@separatist.mil', '')
         self.wg1.viewers.add(kenobi)
         self.wg1.viewers.add(grievous)
 
@@ -91,7 +94,7 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
         self.assertEqual(grievous.notifications.count(), 1)
 
     def test_subscriber_is_notified_of_supersede(self):
-        user1 = get_user_model().objects.create_user('subscriber@example.com','subscriber')
+        user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
         self.wg1.viewers.add(user1)
         self.favourite_item(user1, self.item1)
         self.assertTrue(user1 in self.item1.favourited_by.all())
@@ -108,11 +111,12 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
         self.assertTrue(self.item3 in self.item1.superseded_by_items.visible(user1))
 
         user1 = get_user_model().objects.get(pk=user1.pk)
-        self.assertEqual(user1.notifications.all().count(), 1)
-        self.assertTrue('favourited item has been superseded' in user1.notifications.first().verb )
+        self.assertEqual(user1.notifications.all().count(), 2)
+        self.assertTrue('has been superseded in the workgroup' in user1.notifications.first().verb)
+        self.assertTrue('(favourite item) has been superseded in the workgroup' in user1.notifications.last().verb)
 
     def test_subscriber_is_not_notified_of_supersedes_on_invisible_items(self):
-        user1 = get_user_model().objects.create_user('subscriber@example.com','subscriber')
+        user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
         self.wg1.viewers.add(user1)
         self.favourite_item(user1, self.item1)
         self.assertTrue(user1 in self.item1.favourited_by.all())
@@ -157,8 +161,7 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
 
         self.assertTrue(self.item2 in self.item1.superseded_by_items.visible(user1))
         self.assertEqual(user1.notifications.all().count(), 1)
-        self.assertTrue('item registered by your registration authority has been superseded' in user1.notifications.first().verb )
-
+        self.assertTrue('(item registered by your registration authority) has been superseded:' in user1.notifications.first().verb)
 
     def test_registrar_is_notified_of_status_change(self):
         user1 = self.registrar
@@ -175,7 +178,7 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
 
         self.assertTrue(self.item1.statuses.count() == 1)
         self.assertEqual(user1.notifications.all().count(), 1)
-        self.assertTrue('item has been registered by your registration authority' in user1.notifications.first().verb )
+        self.assertTrue('has been registered by your registration authority' in user1.notifications.first().verb)
 
         models.Status.objects.create(
             concept=self.item1,
@@ -185,4 +188,76 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
         )
 
         self.assertEqual(user1.notifications.all().count(), 2)
-        self.assertTrue('item registered by your registration authority has changed status' in user1.notifications.first().verb )
+        self.assertTrue('(item registered by your registration authority) has changed status:' in user1.notifications.first().verb)
+
+    def test_subscriber_is_not_notified_when_issue_is_created_by_himself(self):
+
+        user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
+
+        self.wg1.viewers.add(user1)
+
+        Issue.objects.create(
+            name="My huge issue",
+            description="This issue is very important!",
+            item=self.item1,
+            submitter=user1,
+            isopen=True
+        )
+
+        self.assertEqual(user1.notifications.count(), 0)
+
+    def test_subscriber_is_notified_when_issue_is_created(self):
+        user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
+        user2 = get_user_model().objects.create_user('subscriber2@example.com', 'subscriber2')
+
+        self.wg1.viewers.add(user1)
+        self.wg1.viewers.add(user2)
+
+        Issue.objects.create(
+            name="My huge issue",
+            description="This issue is very important!",
+            item=self.item1,
+            submitter=user1,
+            isopen=True
+        )
+
+        self.assertEqual(user2.notifications.count(), 1)
+
+    def test_subscriber_is_notified_when_issue_is_created_on_favourite_item(self):
+        user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
+
+        self.favourite_item(user1, self.item1)
+
+        self.item1.name = "This is a new name"
+
+        self.item1.save()
+
+        self.assertEqual(user1.notifications.count(), 1)
+
+    def test_subscriber_is_not_notified_when_the_checkbox_in_notification_permission_settings_is_not_checked(self):
+        user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
+        # data = json.loads(user1.profile.notificationPermissions)
+        # data["notification methods"]["within aristotle"] = False
+        user1.profile.notificationPermissions["notification methods"]["within aristotle"] = False
+        user1.profile.save()
+        self.favourite_item(user1, self.item1)
+
+        self.item1.name = "This is a new name"
+        self.item1.save()
+
+        self.assertEqual(user1.notifications.count(), 0)
+
+    def test_subscriber_is_notified_by_email(self):
+        user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
+        user1.profile.notificationPermissions["notification methods"]["email"] = True
+        user1.profile.save()
+
+        send_notification_email(user1.email, "hello world")
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to[0], user1.email)
+        self.assertEqual(mail.outbox[0].subject, 'Notification')
+        self.assertEqual(mail.outbox[0].from_email, settings.DEFAULT_FROM_EMAIL)
+        self.assertEqual(mail.outbox[0].body, 'hello world')
+
+

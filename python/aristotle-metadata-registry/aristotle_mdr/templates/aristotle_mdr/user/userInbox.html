@@ -9,82 +9,91 @@
 {% endblock %}
 
 {% block page %}
-<h1>{% block title %}Notifications {% if folder %}- {{ folder }}{% endif %}{% endblock %}</h1>
-<a class="btn btn-default" href="{% url 'notifications:mark_all_as_read' %}"><i class="fa fa-envelope-o"></i> Mark all as read</a>
+    <h1>{% block title %}Notifications {% if folder %}- {{ folder }}{% endif %}{% endblock %}</h1>
+    <a class="btn btn-default" href="{% url 'notifications:mark_all_as_read' %}"><i class="fa fa-bell-slash-o"></i> Mark all as read</a>
 
-<table class="notifications table">
-  <thead>
-      <tr>
-        <th></th>
-        <th>Notice</th>
-        <th>Time since</th>
-        <th>Delete</th>
-      </tr>
-  </thead>
-  <tbody>
-  {% for notice in notifications %}
-    <tr>
-        <td>
-            {% if notice.unread %}
-            <a title="Mark as read" href="{% url 'notifications:mark_as_read' notice.slug %}">
-                <i class="fa fa-envelope"></i>
-                <span class="sr-only">Unread message</span>
-            </a>
-            {% else %}
-            <a title="Mark as unread" href="{% url 'notifications:mark_as_unread' notice.slug %}">
-                <i class="fa fa-envelope-o"></i>
-                <span class="sr-only">Read message</span>
-            </a>
-            {% endif %}
-        </td>
-        <td>
-            {% if notice.actor == notice.target %}
-            {% elif notice.actor.get_absolute_url %}
-                <a href="{{notice.actor.get_absolute_url}}">{{ notice.actor }}</a>
-            {% else %}
-                {{ notice.actor }}
-            {% endif %}
+    <table class="notifications table">
+        <thead>
+        <tr>
+            <th></th>
+            <th>Notice</th>
+            <th>Time since</th>
+            <th>Delete</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for notice in notifications %}
+            <tr>
+                <td>
+                    {% if notice.unread %}
+                        <a title="Mark as read" href="{% url 'notifications:mark_as_read' notice.slug %}">
+                            <i class="fa fa-bell"></i>
+                            <span class="sr-only">Unread message</span>
+                        </a>
+                    {% else %}
+                        <a title="Mark as unread" href="{% url 'notifications:mark_as_unread' notice.slug %}">
+                            <i class="fa fa-bell-o"></i>
+                            <span class="sr-only">Read message</span>
+                        </a>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if notice.actor == notice.target %}
+                    {% elif notice.actor.get_absolute_url %}
+                        {% if notice.actor.full_name %}
+                            <a href="{{notice.actor.get_absolute_url}}">{{ notice.actor.full_name }}</a>
+                        {% else %}
+                            <a href="{{notice.actor.get_absolute_url}}">{{ notice.actor }}</a>
+                        {% endif %}
+                    {% elif notice.actor.full_name %}
 
-            {{ notice.verb }}
+                        {{ notice.actor.full_name }}
+                    {% else %}
+                        {{ notice.actor }}
+                    {% endif %}
 
-            {% if notice.target %}
-                {% if notice.target.get_absolute_url %}
-                    <a href="{{notice.target.get_absolute_url}}">{{ notice.target }}</a>
-                {% else %}
-                    {{ notice.target }}
-                {% endif %}
-            {% endif %}
+                    {{ notice.verb }}
 
-            {% if notice.action_object %}
-                {% trans "in" %}
-                {% if notice.action_object.get_absolute_url %}
-                    <a href="{{notice.target.get_absolute_url}}">{{ notice.action_object }}</a>
-                {% else %}
-                    {{ notice.action_object }}
-                {% endif %}
-            {% endif %}
-            </td>
-        <td>{{ notice.timesince }} ago</td>
-        <td>
-            <a href="{% url 'notifications:delete' slug=notice.slug %}?next={{ request.path }}">
-                <i class="fa fa-trash"></i>
-            </a>
-        </td>
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
-{% if notifications.count == 0 and folder == 'unread' %}
-<div  class="text-center well well-lg">
-    <p><i class="fa fa-inbox fa-3x"></i></p>
-    <p><strong>You have no unread notifications.</strong></p>
-    <p>Good job!</p>
-</div>
-{% elif notifications.count == 0 %}
-<div class="text-center well well-lg">
-    <p><i class="fa fa-inbox fa-3x"></i></p>
-    <p><strong>You have no notifications.</strong></p>
-</div>
-{% endif %}
+                    {% if notice.action_object %}
+                        {% if notice.action_object.get_absolute_url %}
+                            <a href="{{notice.action_object.get_absolute_url}}">{{ notice.action_object }}</a>
+                        {% else %}
+                            {{ notice.action_object }}
+                        {% endif %}
+                    {% endif %}
+
+                    {% if notice.target %}
+{#                        {% trans "in" %}#}
+                        {% if notice.target.get_absolute_url %}
+                            <a href="{{notice.target.get_absolute_url}}">{{ notice.target }}</a>
+                        {% else %}
+                            {{ notice.target }}
+                        {% endif %}
+                    {% endif %}
+
+
+                </td>
+                <td>{{ notice.timesince }} ago</td>
+                <td>
+                    <a href="{% url 'notifications:delete' slug=notice.slug %}?next={{ request.path }}">
+                        <i class="fa fa-trash"></i>
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% if notifications.count == 0 and folder == 'unread' %}
+        <div  class="text-center well well-lg">
+            <p><i class="fa fa-inbox fa-3x"></i></p>
+            <p><strong>You have no unread notifications.</strong></p>
+            <p>Good job!</p>
+        </div>
+    {% elif notifications.count == 0 %}
+        <div class="text-center well well-lg">
+            <p><i class="fa fa-inbox fa-3x"></i></p>
+            <p><strong>You have no notifications.</strong></p>
+        </div>
+    {% endif %}
 
 {% endblock %}

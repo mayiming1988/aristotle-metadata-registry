@@ -67,7 +67,6 @@ def update_search_index(action, sender, instance, **kwargs):
     elif action == "delete":
         processor.handle_delete(sender, instance, **kwargs)
 
-
 @shared_task(name='download')
 def download(download_type: str, item_ids: List[int], user_id: int, options={}) -> Optional[str]:
     dl_class = get_download_class(download_type)
@@ -81,8 +80,9 @@ def download(download_type: str, item_ids: List[int], user_id: int, options={}) 
     raise LookupError('Requested Donwloader class could not be found')
 
 
-@shared_task(name='send_notification_emails')
-def send_notification_emails(emails_list, user_email, sandbox_access_url):
+@shared_task(name='send_sandbox_notification_emails')
+def send_sandbox_notification_emails(emails_list, user_email, sandbox_access_url):
+
     from django.core.mail import send_mail
 
     # Send a separate email to each email address:
@@ -93,3 +93,20 @@ def send_notification_emails(emails_list, user_email, sandbox_access_url):
             user_email,
             [email]
         )
+
+
+@shared_task(name='send_notification_email')
+def send_notification_email(recipient, message):
+    from django.core.mail import send_mail
+    from django.conf import settings
+
+    # TODO: CHECK IF THIS SETTING WORKS IN PRODUCTION ENVIRONMENT:
+
+    from_email = settings.DEFAULT_FROM_EMAIL
+
+    send_mail(
+        'Notification',
+        message,
+        from_email,
+        [recipient]
+    )

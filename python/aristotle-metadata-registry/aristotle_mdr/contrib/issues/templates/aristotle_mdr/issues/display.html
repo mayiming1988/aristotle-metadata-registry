@@ -4,71 +4,71 @@
 {% block title %}Issue{% endblock %}
 
 {% block webpack_css_bundle %}
-  {% render_bundle 'issue' 'css' %}
+    {% render_bundle 'issue' 'css' %}
 {% endblock %}
 
 {% block webpack_bundle %}
-  {% render_bundle 'issue' 'js' %}
+    {% render_bundle 'issue' 'js' %}
 {% endblock %}
 
 {% block infoContent %}
-<div class="row">
-  <div class="col-sm-8 col-xs-offset-1">
-    <a  class="btn btn-default pull-right" href="{% url 'aristotle_issues:item_issues' object.item_id %}">
-      All issues for this item
-    </a>
-    <h1>
-      <open-close :is-open="isOpen"></open-close>
-      {% if own_issue %}
-        <inline-edit
-          initial="{{ object.name }}"
-          submit-url="{% url 'api_v4:issues:issue' object.id %}"
-          field-name="name">
-        </inline-edit>
-      {% else %}
-        {{ object.name }}
-      {% endif %}
-    </h1>
-    <p class="text-muted">Opened {{ object.created|timesince }} ago by {{ object.submitter.full_name }}</p>
-    <p>
-      <switch-edit-api
-        name="description"
-        initial="{{ object.description }}"
-        {% if own_issue %}submit-url="{% url 'api_v4:issues:issue' object.id %}"{% endif %}
-        >
-      </switch-edit-api>
-    </p>
-  </div>
-</div>
+    <div class="row">
+        <div class="col-sm-8 col-xs-offset-1">
+            <a  class="btn btn-default pull-right" href="{% url 'aristotle_issues:item_issues' object.item_id %}">
+                All issues for this item
+            </a>
+            <h1>
+                <open-close :is-open="isOpen"></open-close>
+                {% if own_issue %}
+                    <inline-edit
+                            initial="{{ object.name }}"
+                            submit-url="{% url 'api_v4:issues:issue' object.id %}"
+                            field-name="name">
+                    </inline-edit>
+                {% else %}
+                    {{ object.name }}
+                {% endif %}
+            </h1>
+            <p class="text-muted">Opened {{ object.created|timesince }} ago by {{ object.submitter.full_name }}</p>
+            <p>
+                <switch-edit-api
+                        name="description"
+                        initial="{{ object.description }}"
+                        {% if own_issue %}submit-url="{% url 'api_v4:issues:issue' object.id %}"{% endif %}
+                >
+                </switch-edit-api>
+            </p>
+        </div>
+    </div>
 
-{% for comment in comments %}
-  <comment
-    pic="{{ comment.author.profile.profile_picture_url }}"
-    name="{{ comment.author.get_short_name }}"
-    created="{{ comment.created|date:"c" }}"
-    body="{{ comment.body }}">
-  </comment>
-{% endfor %}
+    {% for comment in comments %}
+        <comment
+                pic="{{ comment.author.profile.profile_picture_url }}"
+                name="{{ comment.author.get_short_name }}"
+                created="{{ comment.created|date:"c" }}"
+                body="{{ comment.body }}">
+        </comment>
+    {% endfor %}
 
-<comment 
-  v-for="comment in new_comments" 
-  :key="comment.id"
-  :pic="comment.pic"
-  :name="comment.name"
-  :created="comment.created"
-  :body="comment.body">
-</comment>
+    <comment
+            v-for="comment in new_comments"
+            :key="comment.id"
+            :pic="comment.pic"
+            :name="comment.name"
+            :created="comment.created"
+            :body="comment.body">
+    </comment>
 
-<issue-comment
-  pic="{{ user.profile.profile_picture_url }}"
-  user-id="{{ user.id }}"
-  user-name="{{ user.get_short_name }}"
-  issue-id="{{ object.id }}"
-  issue-is-open="{{ object.isopen }}"
-  comment-url="{% url 'api_v4:issues:comment' %}"
-  open-close-url="{% url 'api_v4:issues:update_and_comment' object.id %}"
-  open-close-permission="{{ can_open_close }}"
-  @set_open="setIsOpen"
-  @created="addComment">
-</issue-comment>
+    <issue-comment
+            pic="{{ user.profile.profile_picture_url }}"
+            user-id="{{ user.id }}"
+            user-name="{{ user.get_short_name }}"
+            issue-id="{{ object.id }}"
+            issue-is-open="{{ object.isopen }}"
+            comment-url="{% url 'api_v4:issues:comment' %}"
+            open-close-url="{% url 'api_v4:issues:update_and_comment' object.id %}"
+            open-close-permission="{{ can_open_close }}"
+            @set_open="setIsOpen"
+            @created="addComment">
+    </issue-comment>
 {% endblock %}

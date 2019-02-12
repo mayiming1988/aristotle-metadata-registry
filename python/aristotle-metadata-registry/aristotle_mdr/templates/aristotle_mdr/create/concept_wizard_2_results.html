@@ -2,23 +2,23 @@
 {% load aristotle_tags i18n static %}
 
 {% block extra_head_scripts %}
-{{ block.super }}
-{% comment %}
-<script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
-<script src="{% static 'aristotle_mdr/aristotle.moveable.js' %}"></script>
-{% endcomment %}
+    {{ block.super }}
+    {% comment %}
+    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+    <script src="{% static 'aristotle_mdr/aristotle.moveable.js' %}"></script>
+    {% endcomment %}
 {% endblock %}
 
 {% block formarea %}
     {% if wizard.form.errors %}
         <div class="alert alert-danger">
 
-        There were errors saving your {{ model_name }}, please review the errors shown below.
-        {{ wizard.form.errors }}
+            There were errors saving your {{ model_name }}, please review the errors shown below.
+            {{ wizard.form.errors }}
             {% if duplicate_items or similar_items %}
                 {% if wizard.form.fields.make_new_item.errors %}
                     <strong>There were similar items shown on the previous page.
-                    To save this item acknowledge that none of these are suitable or press back to review them again.</strong>
+                        To save this item acknowledge that none of these are suitable or press back to review them again.</strong>
                     <div class="panel-footer">
                         {{ wizard.form.make_new_item }}
                         {{ wizard.form.make_new_item.label }}
@@ -38,10 +38,10 @@
                 <br>Consider reviewing these items to see if an existing piece of content meets your needs.
                 <ol class="searchResults">
                     {% for obj in duplicate_items %}
-                    <li>
-                        {# <input type='checkbox'> #}
-                        {% include "aristotle_mdr/create/wizard_search_result_item.html" with object=obj %}
-                    </li>
+                        <li>
+                            {# <input type='checkbox'> #}
+                            {% include "aristotle_mdr/create/wizard_search_result_item.html" with object=obj %}
+                        </li>
                     {% endfor %}
                 </ol>
             </div>
@@ -61,10 +61,10 @@
                 <br>Consider reviewing these similar items to see if an existing piece of content meets your needs.
                 <ol class="searchResults">
                     {% for obj in similar_items %}
-                    <li>
-                        {# <input type='checkbox'> #}
-                        {% include "aristotle_mdr/create/wizard_search_result_item.html" with object=obj.object %}
-                    </li>
+                        <li>
+                            {# <input type='checkbox'> #}
+                            {% include "aristotle_mdr/create/wizard_search_result_item.html" with object=obj.object %}
+                        </li>
                     {% endfor %}
                 </ol>
             </div>
@@ -87,15 +87,15 @@
 {% endblock %}
 
 {% block underform %}
-{% for formset in weak_formsets %}
-{% include 'aristotle_mdr/generic/actions/alter_one_to_many_formstage.html' with formset=formset.formset %}
-{% endfor %}
-{% for formset in through_formsets %}
-{% include 'aristotle_mdr/generic/actions/alter_one_to_many_formstage.html' with formset=formset.formset %}
-{% endfor %}
-{% if slots_FormSet %}
-  {% include 'aristotle_mdr/generic/actions/alter_one_to_many_formstage.html' with formset=slots_FormSet %}
-{% endif %}
+    {% for formset in weak_formsets %}
+        {% include 'aristotle_mdr/generic/actions/alter_one_to_many_formstage.html' with formset=formset.formset %}
+    {% endfor %}
+    {% for formset in through_formsets %}
+        {% include 'aristotle_mdr/generic/actions/alter_one_to_many_formstage.html' with formset=formset.formset %}
+    {% endfor %}
+    {% if slots_FormSet %}
+        {% include 'aristotle_mdr/generic/actions/alter_one_to_many_formstage.html' with formset=slots_FormSet %}
+    {% endif %}
 {% endblock %}
 
 {% block next_button %}

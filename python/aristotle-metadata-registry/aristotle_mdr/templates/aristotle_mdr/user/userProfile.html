@@ -6,76 +6,71 @@
 {% endblock %}
 
 {% block page %}
-<h1>Profile</h1>
+    <h1>Profile</h1>
+    <div class="row">
+        <div class="col-md-3">
+            <div class="panel panel-default hidden-sm hidden-xs">
+                <div class="panel-body">
+                    <img class="img-responsive" src="{{ request.user.profile.profile_picture_url }}" alt="Profile Picture">
+                </div>
+            </div>
 
-<div class="row">
-  <div class="col-md-3">
-    
-    <div class="panel panel-default hidden-sm hidden-xs">
-      <div class="panel-body">
-        <img class="img-responsive" src="{{ request.user.profile.profile_picture_url }}" alt="Profile Picture">
-      </div>
+            <div class="panel panel-default hidden-xl hidden-lg hidden-md">
+                <div class="panel-body">
+                    <img class="img-responsive" style="margin:auto;max-width:100px;" src="{{ request.user.profile.profile_picture_url }}" alt="Profile Picture">
+                </div>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    Actions
+                </div>
+                <div class="list-group">
+                    <a class="list-group-item" href="{% url 'aristotle_mdr:userEdit' %}">Edit Profile</a>
+                    <a class="list-group-item" href="{% url 'password_change' %}">Change Password</a>
+                    <a class="list-group-item" href="{% url 'recently_viewed_metadata' %}">View History</a>
+                    <a class="list-group-item" href="{% url 'aristotle:userRecentItems' %}">View Recent Actions</a>
+                    <a class="list-group-item" href="{% url 'aristotle:userRoles' %}">View My Roles</a>
+                    <a class="list-group-item" href="{% url 'aristotle:notificationPermissions' %}">Notification Permissions</a>
+                    <!-- a class="list-group-item" href="{% url 'recently_viewed_metadata' %}">View search history</a -->
+                </div>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <h2>{{ user.full_name }}</h2>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    Personal Info
+                    <a class="button button-default pull-right" href="{% url 'aristotle_mdr:userEdit' %}">
+                        Edit
+                        <i class="fa fa-pencil" aria-hidden="true"></i>
+                    </a>
+                </div>
+                <table class="table">
+                    <tbody>
+                    <tr>
+                        <th>Email</th>
+                        <td>{{ user.email }}</td>
+                    </tr>
+                    <tr>
+                        <th>Display Name</th>
+                        <td>{{ user.short_name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Full Name</th>
+                        <td>{{ user.full_name }}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    Sessions
+                </div>
+                {% include 'aristotle_mdr/user/session_list.html' with object_list=sessions %}
+            </div>
+        </div>
     </div>
-
-    <div class="panel panel-default hidden-xl hidden-lg hidden-md">
-      <div class="panel-body">
-        <img class="img-responsive" style="margin:auto;max-width:100px;" src="{{ request.user.profile.profile_picture_url }}" alt="Profile Picture">
-      </div>
-    </div>
-
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        Actions
-      </div>
-      <div class="list-group">
-        <a class="list-group-item" href="{% url 'aristotle_mdr:userEdit' %}">Edit Profile</a>
-        <a class="list-group-item" href="{% url 'password_change' %}">Change Password</a>
-        <a class="list-group-item" href="{% url 'recently_viewed_metadata' %}">View History</a>
-        <a class="list-group-item" href="{% url 'aristotle:userRecentItems' %}">View Recent Actions</a>
-        <a class="list-group-item" href="{% url 'aristotle:userRoles' %}">View My Roles</a>
-        <!-- a class="list-group-item" href="{% url 'recently_viewed_metadata' %}">View search history</a -->
-      </div>
-    </div>
-
-  </div>
-  <div class="col-md-9">
-
-    <h2>{{ user.full_name }}</h2>
-
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        Personal Info
-        <a class="button button-default pull-right" href="{% url 'aristotle_mdr:userEdit' %}">
-          Edit
-          <i class="fa fa-pencil" aria-hidden="true"></i>
-        </a>
-      </div>
-      <table class="table">
-        <tbody>
-          <tr>
-            <th>Email</th>
-            <td>{{ user.email }}</td>
-          </tr>
-          <tr>
-            <th>Display Name</th>
-            <td>{{ user.short_name }}</td>
-          </tr>
-          <tr>
-            <th>Full Name</th>
-            <td>{{ user.full_name }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        Sessions
-      </div>
-      {% include 'aristotle_mdr/user/session_list.html' with object_list=sessions %}
-    </div>
-
-
-  </div>
-</div>
 {% endblock %}

@@ -14,3 +14,6 @@ class User(AbstractUser):
     @property
     def last_name(self):
         return self.full_name
+
+    class ReportBuilder:
+        exclude = ('password',)

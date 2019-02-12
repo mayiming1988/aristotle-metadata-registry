@@ -10,7 +10,6 @@ from aristotle_mdr.utils import fetch_metadata_apps
 # Replace below with this when doing a dataload (shuts off Haystack)
 #    pass
 
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -78,6 +77,12 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
         else:
             from aristotle_mdr.contrib.async_signals.utils import clean_signal
             message = clean_signal(kwargs)
+            # TODO: Find out why the model k-argument is showing up now.
+            message.pop('model', None)
+            # TODO: I JUST FOUND ANOTHER ERROR: THE TYPE OF THE PK ATTRIBUTE IS A SET TYPE AND IT IS NOT SERIALIZABLE.
+            message.pop('pk_set', None)
+
+            logger.critical(message)
             from aristotle_bg_workers.celery import app
             app.send_task(
                 'update_search_index',

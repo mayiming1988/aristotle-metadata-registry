@@ -8,7 +8,7 @@ def review_request_created(message, **kwargs):
 
     for ra in registration_authorities:
         for registrar in ra.registrars.all():
-            messages.review_request_created(review_request, review_request.requester, registrar)
+            messages.review_request_created(recipient=registrar, obj=review_request.requester, target=review_request)
 
 
 def review_request_updated(message, **kwargs):

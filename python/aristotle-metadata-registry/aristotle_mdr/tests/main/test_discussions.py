@@ -8,6 +8,8 @@ from django.urls import reverse
 
 from aristotle_mdr.utils import setup_aristotle_test_environment
 
+import logging
+logger = logging.getLogger(__name__)
 
 setup_aristotle_test_environment()
 
@@ -427,7 +429,7 @@ class WorkgroupMembersCanMakePostsAndComments(utils.LoggedInViewPages,TestCase):
 
         _messages = list(response.context['messages'])
         self.assertEqual(len(_messages),1)
-        self.assertEqual( "This post is closed. Your comment was not added." , _messages[0].message)
+        self.assertEqual("This post is closed. Your comment was not added.", _messages[0].message)
 
     @tag('notify_comment')
     def test_user_is_notified_of_comment_and_is_linked_to_post(self):
@@ -459,39 +461,40 @@ class WorkgroupMembersCanMakePostsAndComments(utils.LoggedInViewPages,TestCase):
         )
         notify_redirect_url = reverse(
             'aristotle:notify_redirect',
-            args=[noti.target_content_type.id, noti.target_object_id]
+            args=[noti.actor_content_type.id, noti.actor_object_id]
         )
 
-        response = self.client.get(notify_redirect_url)
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, post_page_url)
+        # THIS IS NOT APPLICABLE ANYMORE BECAUSE WE HAVE CHANGED THE NOTIFICATION SYSTEM:
+        # response = self.client.get(notify_redirect_url)
+        # self.assertEqual(response.status_code, 302)
+        # self.assertEqual(response.url, post_page_url)
 
 
-class ViewDiscussionPostPage(utils.LoggedInViewPages,TestCase):
+class ViewDiscussionPostPage(utils.LoggedInViewPages, TestCase):
     def setUp(self):
         super().setUp()
-        self.viewer2 = get_user_model().objects.create_user('viewer2@example.com','viewer') # not in any workgroup
-        self.viewer3 = get_user_model().objects.create_user('viewer3@example.com','viewer') # not in our "primary testing workgroup" (self.wg1)
-        self.wg2.giveRoleToUser('viewer',self.viewer3)
+        self.viewer2 = get_user_model().objects.create_user('viewer2@example.com', 'viewer')  # not in any workgroup
+        self.viewer3 = get_user_model().objects.create_user('viewer3@example.com', 'viewer')  # not in our "primary testing workgroup" (self.wg1)
+        self.wg2.giveRoleToUser('viewer', self.viewer3)
 
     def test_member_can_see_posts(self):
         self.login_viewer()
         self.wg3 = models.Workgroup.objects.create(name="Test WG 3")
-        self.wg3.giveRoleToUser('viewer',self.viewer)
+        self.wg3.giveRoleToUser('viewer', self.viewer)
 
         p1 = models.DiscussionPost.objects.create(author=self.su,workgroup=self.wg1,title="test",body="test")
         p2 = models.DiscussionPost.objects.create(author=self.su,workgroup=self.wg1,title="test",body="test")
         p3 = models.DiscussionPost.objects.create(author=self.su,workgroup=self.wg3,title="test",body="test")
 
         response = self.client.get(reverse('aristotle:discussionsWorkgroup',args=[self.wg1.id]))
-        self.assertEqual(len(response.context['discussions']),2)
+        self.assertEqual(len(response.context['discussions']), 2)
 
         self.assertTrue(p1 in response.context['discussions'].all())
         self.assertTrue(p2 in response.context['discussions'].all())
         self.assertTrue(p3 not in response.context['discussions'].all())
 
         response = self.client.get(reverse('aristotle:discussions'))
-        self.assertEqual(len(response.context['discussions']),3)
+        self.assertEqual(len(response.context['discussions']), 3)
 
         self.assertTrue(p1 in response.context['discussions'].all())
         self.assertTrue(p2 in response.context['discussions'].all())
@@ -501,14 +504,14 @@ class ViewDiscussionPostPage(utils.LoggedInViewPages,TestCase):
         self.login_viewer()
         self.wg3 = models.Workgroup.objects.create(name="Test WG 3")
 
-        response = self.client.get(reverse('aristotle:discussionsWorkgroup',args=[self.wg3.id]))
+        response = self.client.get(reverse('aristotle:discussionsWorkgroup', args=[self.wg3.id]))
         self.assertEqual(response.status_code,403)
 
     def test_viewer_can_see_posts_for_a_workgroup(self):
         self.login_viewer()
         post = models.DiscussionPost.objects.create(author=self.su,workgroup=self.wg1,title="test",body="test")
         models.DiscussionPost.objects.create(author=self.su,workgroup=self.wg2,title="test",body="test")
-        response = self.client.get(reverse('aristotle:discussionsWorkgroup',args=[self.wg1.id]))
+        response = self.client.get(reverse('aristotle:discussionsWorkgroup', args=[self.wg1.id]))
         self.assertEqual(len(response.context['discussions']),1)
         self.assertEqual(response.context['discussions'][0],post)
 
@@ -516,8 +519,8 @@ class ViewDiscussionPostPage(utils.LoggedInViewPages,TestCase):
         post = models.DiscussionPost.objects.create(author=self.viewer,workgroup=self.wg1,title="test",body="test")
         models.DiscussionComment.objects.create(author=self.viewer2,post=post,body="test")
         self.login_viewer()
-        response = self.client.get(reverse('aristotle:discussionsPost',args=[post.id]))
+        response = self.client.get(reverse('aristotle:discussionsPost', args=[post.id]))
         self.assertEqual(response.status_code,200)
         self.wg1.removeRoleFromUser('viewer',self.viewer)
-        response = self.client.get(reverse('aristotle:discussionsPost',args=[post.id]))
+        response = self.client.get(reverse('aristotle:discussionsPost', args=[post.id]))
         self.assertEqual(response.status_code,403)

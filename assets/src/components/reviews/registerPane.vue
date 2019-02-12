@@ -9,14 +9,14 @@
         <div class="panel-body">
           <p>
             Approve this review request to endorse the attached metadata as
-            <em>{{targetRegistrationState}}</em> in the registration authority 
+            <em>{{targetRegistrationState}}</em> in the registration authority
             <a :href="registrationAuthorityUrl">{{registrationAuthority }}</a>
           </p>
         </div>
-          <div class="panel-footer clearfix">
-                <a :href="approvalUrl" class="btn btn-success">Approve as <em>{{targetRegistrationState}}</em> and Close</a>
-                <a :href="endorseUrl" class="btn btn-default">Endorse with a different status</a>
-          </div>
+        <div class="panel-footer clearfix">
+          <a v-if="targetRegistrationState !== 'None'" :href="approvalUrl" class="btn btn-success">Approve as <em>{{targetRegistrationState}}</em> and Close</a>
+          <a :href="endorseUrl" class="btn btn-default">Endorse with a different status</a>
+        </div>
       </div>
     </div>
   </div>
