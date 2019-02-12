@@ -1,0 +1,5 @@
+/* Styles for the ra bundle used on public ra page */
+
+.django-ckeditor-widget {
+    display: block !important
+}

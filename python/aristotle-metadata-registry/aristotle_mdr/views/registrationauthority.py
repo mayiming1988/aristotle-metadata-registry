@@ -12,6 +12,7 @@ from django.views.generic import (
 )
 from django.views.generic.detail import SingleObjectMixin
 from django.core.exceptions import PermissionDenied
+from django.forms.models import modelform_factory
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.forms import actions
@@ -26,6 +27,7 @@ from aristotle_mdr import perms
 from aristotle_mdr.contrib.validators.views import ValidationRuleEditView
 from aristotle_mdr.contrib.validators.models import RAValidationRules
 
+from ckeditor.widgets import CKEditorWidget
 import logging
 
 logger = logging.getLogger(__name__)
@@ -174,11 +176,10 @@ class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequire
     redirect_unauthenticated_users = True
     object_level_permissions = True
 
-    fields = [
-        'name',
-        'definition',
-        'active',
-    ]
+    fields = ('name', 'definition', 'active')
+    widgets = {
+        'definition': CKEditorWidget
+    }
 
     alert_fields = [
         'active'
@@ -188,6 +189,9 @@ class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequire
     context_object_name = "item"
 
     active_tab = 'settings'
+
+    def get_form_class(self):
+        return modelform_factory(self.model, fields=self.fields, widgets=self.widgets)
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)

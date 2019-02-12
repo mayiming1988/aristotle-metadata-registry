@@ -1,12 +1,15 @@
 {% extends "aristotle_mdr/organization/registration_authority/settings.html" %}
-{% load i18n %}
+{% load i18n bootstrap3 %}
 
 {% block formcontent %}
     <form action="" method="POST">
         {% csrf_token %}
-        {% include 'aristotle_mdr/helpers/fancy_table_form.html' with form=form alert_fields=alert_fields %}
-        <a class="btn btn-danger" href="{% url 'aristotle:registrationAuthority' item.id %}">Cancel</a>
-        <button class="btn btn-primary" type="submit">Save changes</button>
+        {# {% include 'aristotle_mdr/helpers/fancy_table_form.html' with form=form alert_fields=alert_fields %} #}
+        {% bootstrap_form form %}
+        {% buttons %}
+          <a class="btn btn-danger" href="{% url 'aristotle:registrationAuthority' item.id %}">Cancel</a>
+          <button class="btn btn-primary" type="submit">Save changes</button>
+        {% endbuttons %}
     </form>
 
     </section>
