@@ -23,8 +23,6 @@
 </template>
 
 <script>
-import userPanel from '@/userPanel.vue'
-import apiErrors from '@/apiErrorDisplay.vue'
 import apiRequest from 'src/mixins/apiRequest.js'
 
 export default {

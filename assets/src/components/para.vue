@@ -1,6 +1,6 @@
 <template>
   <div class="para-component">
-    <p v-for="line in lines" class="small-p">{{ line }}</p>
+    <p v-for="line in lines" :key="line" class="small-p">{{ line }}</p>
   </div>
 </template>
 

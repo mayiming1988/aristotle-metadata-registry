@@ -2,7 +2,7 @@
     <div class="inline-edit">
         <template v-if="editing">
             <api-errors class="small" :errors="errors"></api-errors>
-            <input v-model="value"></input>
+            <input v-model="value"/>
             <button class="btn btn-default" @click="toggleEdit">Cancel</button>
             <button class="btn btn-primary" @click="saveValue">Save</button>
         </template>
@@ -40,7 +40,7 @@ export default {
             let data = {}
             data[this.fieldName] = this.value
             this.patch(this.submitUrl, data)
-            .then((response) => {
+            .then(() => {
                 this.editing = false
             })
         }

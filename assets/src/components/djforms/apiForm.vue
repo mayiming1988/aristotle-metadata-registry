@@ -34,7 +34,7 @@ export default {
     },
     methods: {
         submitData: function(data) {
-            this.post(url, data)
+            this.post(this.url, data)
         }
     }
 }

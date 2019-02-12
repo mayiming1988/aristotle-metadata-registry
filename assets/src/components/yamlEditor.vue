@@ -31,7 +31,7 @@ export default {
         this.codeMirror.getDoc().on('change', this.editorChange)
     },
     methods: {
-        editorChange: function(doc, changeObj) {
+        editorChange: function(doc) {
             this.$emit('input', doc.getValue())
         }
     }

@@ -1,7 +1,7 @@
 <template>
     <div class="vue-form" :class="{'row': inline}">
         <slot name="before"></slot>
-        <bsFieldWrapper v-for="(fielddata, name) in fields" :name="name" :label="fielddata.label" :displayLabel="showLabels" :hasErrors="hasErrors(name)" :column="inline">
+        <bsFieldWrapper v-for="(fielddata, name) in fields" :key="name" :name="name" :label="fielddata.label" :displayLabel="showLabels" :hasErrors="hasErrors(name)" :column="inline">
             <singleError :feErrors="getFrontendError(name)" :beErrors="getBackendErrors(name)"></singleError>
                 <formField 
                 :tag="fielddata.tag" 

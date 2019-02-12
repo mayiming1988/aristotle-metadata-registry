@@ -2,7 +2,7 @@
     <div class="vue-formset">
         <div v-if="showLabels" class="row">
             <div class="col-md-1 text-center"><label>Order</label></div>
-            <div v-for="(fielddata, name) in fields" class="col-md-2">
+            <div v-for="(fielddata, name) in fields" :key="name" class="col-md-2">
                 <label v-if="fielddata.label">{{ fielddata.label }}</label>
             </div>
             <div v-if="showDelete" class="col-md-2"><label>Delete</label></div>
