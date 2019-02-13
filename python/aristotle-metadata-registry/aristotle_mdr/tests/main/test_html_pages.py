@@ -604,6 +604,23 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(cvs[1].content, 'Auth Value')
         self.assertEqual(cvs[2].content, 'Workgroup Value')
 
+    @tag('nonwg')
+    def test_add_wg_to_non_wg_item(self):
+        self.item.workgroup = None
+        self.item.save()
+
+        updated_item = utils.model_to_dict_with_change_time(self.item)
+        updated_item['workgroup'] = str(self.wg1.id)
+
+        self.login_editor()
+        response = self.client.post(
+            reverse('aristotle:edit_item', args=[self.item.id]),
+            updated_item
+        )
+        self.assertEqual(response.status_code, 302)
+        updated = models.ObjectClass.objects.get(id=self.item.id)
+        self.assertEqual(updated.workgroup, self.wg1)
+
 
 # These are run by all item types
 class LoggedInViewConceptPages(utils.AristotleTestUtils):
