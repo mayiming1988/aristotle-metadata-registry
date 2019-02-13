@@ -288,8 +288,8 @@ class CustomFieldsTestCase(BaseAPITestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(cf_models.CustomField.objects.count(), 2)
-        self.assertEqual(cf_models.CustomField.objects.filter(order=1).name, 'Blandness')
-        self.assertEqual(cf_models.CustomField.objects.filter(order=2).name, 'Spiciness')
+        self.assertEqual(cf_models.CustomField.objects.get(order=1).name, 'Blandness')
+        self.assertEqual(cf_models.CustomField.objects.get(order=2).name, 'Spiciness')
 
     def test_add_field_with_same_name(self):
         ids = self.create_test_fields()
@@ -304,7 +304,7 @@ class CustomFieldsTestCase(BaseAPITestCase):
             postdata,
             format='json'
         )
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 200)
 
     def test_multiple_delete_does_not_work(self):
         ids = self.create_test_fields()
