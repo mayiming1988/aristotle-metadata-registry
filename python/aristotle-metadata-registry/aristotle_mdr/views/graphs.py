@@ -75,7 +75,6 @@ def link_json_for_item(request, iid):
     #             'title': '<a href="%s">%s</a>' % (link.relation.get_absolute_url(), link.relation.definition),
     #         })
 
-
     seen_items_ids = set()
     process = []
     nodes = []
