@@ -35,7 +35,6 @@ setup(
         'django_filter',
         'django-jsonforms',
         'coreapi',
-        'djangorestframework-recursive'
     ]
 
 )

@@ -1,9 +1,6 @@
 from notifications.signals import notify
 from aristotle_bg_workers.tasks import send_notification_email
 from functools import wraps
-import json
-import logging
-logger = logging.getLogger(__name__)
 
 
 def notif_accepted_email(func):
@@ -121,9 +118,6 @@ def notif_superseded_i_can_edit(func):
     Notification Permissions for this user."""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        logger.critical("THIS IS THE OUTPUT:")
-        logger.critical((kwargs['recipient'].profile.notificationPermissions))
-        logger.critical(type(kwargs['recipient'].profile.notificationPermissions))
         if kwargs['recipient'].profile.notificationPermissions["metadata changes"]["superseded"]["any items I can edit"]:
             return func(*args, **kwargs)
     return wrapper

@@ -10,10 +10,7 @@
 {% block webpack_bundle %}
     {% render_bundle 'graphsPage' 'js' %}
 {% endblock %}
-
 {% block infoContent %}
-
-    {{ item }}
-    <links-display url="{% url 'aristotle_mdr:itemGraphs' iid=item.id %}">
-    </links-display>
+    <graphical-representation url="{% url 'aristotle_mdr:itemGraphs' iid=item.id %}">
+    </graphical-representation>
 {% endblock %}

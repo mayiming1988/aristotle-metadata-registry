@@ -1,4 +1,5 @@
 from rest_framework import generics
+from rest_framework.views import APIView
 from aristotle_mdr_api.v4.permissions import AuthCanViewEdit
 from aristotle_mdr_api.v4.concepts import serializers
 from aristotle_mdr.models import _concept
