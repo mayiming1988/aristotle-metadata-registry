@@ -47,7 +47,7 @@ class CustomValueFormMixin:
 
     def __init__(self, custom_fields: Iterable[CustomField] = [], **kwargs):
         super().__init__(**kwargs)  # type: ignore
-        self.cfields = {'custom_{}_{}'.format(cf.name, cf.id): cf for cf in custom_fields}
+        self.cfields = {cf.form_field_name: cf for cf in custom_fields}
         self.custom_field_names = []
         for custom_fname, custom_field in self.cfields.items():
             field = type_field_mapping[custom_field.type]

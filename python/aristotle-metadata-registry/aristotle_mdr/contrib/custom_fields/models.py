@@ -40,6 +40,11 @@ class CustomField(TimeStampedModel):
         """Human readable visibility"""
         return permission_choices[self.visibility]
 
+    @property
+    def form_field_name(self):
+        """The name used in forms for this field"""
+        return 'custom_{name}_{id}'.format(name=self.name, id=self.id)
+
     def can_view(self, user):
         return user.is_superuser
 

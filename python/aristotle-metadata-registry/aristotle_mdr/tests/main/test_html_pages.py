@@ -518,7 +518,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         )
 
         postdata = utils.model_to_dict_with_change_time(self.item)
-        postdata['custom_MyCustomField'] = 4
+        postdata[cf.form_field_name] = 4
         response = self.reverse_post(
             'aristotle:edit_item',
             postdata,
@@ -556,8 +556,8 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             status_code=200
         )
         initial = response.context['form'].initial
-        self.assertTrue('custom_MyCustomField' in initial)
-        self.assertEqual(initial['custom_MyCustomField'], '4')
+        self.assertTrue(cf.form_field_name in initial)
+        self.assertEqual(initial[cf.form_field_name], '4')
 
     def get_custom_values_for_user(self, user):
         """Util function used for the following 3 tests"""
