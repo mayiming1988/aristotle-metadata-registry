@@ -384,7 +384,6 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     @tag('version')
     def test_display_version_concept_info(self):
-
         self.item.references = '<p>refs</p>'
         self.item.responsible_organisation = 'My org'
 
@@ -408,6 +407,18 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertFalse(names_and_refs['Responsible Organisation'].is_link)
         self.assertFalse(names_and_refs['Responsible Organisation'].is_html)
         self.assertEqual(names_and_refs['Responsible Organisation'].value, 'My org')
+
+    def test_display_item_histroy_without_wg(self):
+        self.item.workgroup = None
+        with reversion.create_revision():
+            self.item.save()
+
+        self.login_superuser()
+        response = self.reverse_get(
+            'aristotle:item_history',
+            reverse_args=[self.item.id],
+        )
+        self.assertEqual(response.status_code, 200)
 
     @tag('item_app_check')
     def test_viewing_item_with_disabled_app(self):

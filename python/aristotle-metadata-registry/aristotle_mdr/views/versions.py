@@ -456,8 +456,9 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         versions = self._order_version_queryset(
             reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
         )
-        # if not self.request.user.is_superuser
-        if not (self.request.user.is_superuser or self.request.user in metadata_item.workgroup.members):
+        # If not a superuser or in workgroup restict versions the user can see
+        in_workgroup = (metadata_item.workgroup and self.request.user in metadata_item.workgroup.members)
+        if not (self.request.user.is_superuser or in_workgroup):
             try:
                 version_publishing = metadata_item.versionpublicationrecord
             except:
@@ -489,10 +490,6 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
                 'url': reverse(self.item_action_url, args=[version.id])
             })
         return action_list
-
-    # # @method_decorator(login_required)
-    # def dispatch(self, *args, **kwargs):
-    #     return super().dispatch(*args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
