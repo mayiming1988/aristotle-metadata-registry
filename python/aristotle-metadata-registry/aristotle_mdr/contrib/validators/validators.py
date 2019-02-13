@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 import re
 from aristotle_mdr import models
 from django.conf import settings
@@ -6,40 +6,6 @@ from django.core.exceptions import FieldDoesNotExist
 from django.utils.module_loading import import_string
 
 from aristotle_mdr.models import STATES
-
-
-class RuleChecker:
-    def __init__(self, ruleset):
-        aristotle_validators = settings.ARISTOTLE_VALIDATORS
-        self.validators = {x: import_string(y) for x, y in aristotle_validators.items()}
-        self.target_state = ruleset.get('status')
-        self.object_type = ruleset.get('object', None)
-        self.rules = [
-            self.validators[check['validator']](check)
-            for check in ruleset['checks']
-            if check['validator'] in self.validators
-        ]
-
-    def run_rule(self, item, target_state, ra=None):
-        item = item.item
-        itemtype = type(item).__name__
-        if self.object_type not in [None, itemtype, "any"]:
-            return []
-        if self.target_state not in [STATES[target_state], "any"]:
-            return []
-        self.ra = ra
-
-        results = []
-        for validator in self.rules:
-            status, message = validator.validate(item, self.ra)
-
-            results.append({
-                'validator': validator,
-                'rule': validator.rule,
-                'status': status,
-                'message': message
-            })
-        return results
 
 
 class BaseValidator:
@@ -63,7 +29,7 @@ class BaseValidator:
         except:
             return False, "Invalid rule"
 
-    def _validate(self, item, **kwargs):
+    def _validate(self, item, **kwargs) -> Tuple[bool, str]:
         # To be overwritten in child
         # Should return status, message
         raise NotImplementedError

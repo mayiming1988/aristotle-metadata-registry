@@ -320,11 +320,7 @@ def review_request_created(recipient, obj, target):
 @notif_accepted_email
 @notif_accepted_within_aristotle
 def review_request_updated(recipient, obj, target):
-    if obj:
-        notify.send(obj, recipient=recipient, verb="concept was reviewed", target=target)
-    else:
-        # Maybe it was auto reviewed, or updated manually?
-        notify.send(target, recipient=recipient, verb="concept was reviewed", target=target)
+    notify.send(obj, recipient=recipient, verb="concept was reviewed", target=target)
 
 
 @notif_issues_items_in_my_workgroups

@@ -23,7 +23,6 @@ export default {
     }),
     mounted: function() {
         $.getJSON(this.url, (data) => {
-            let linkdata = data
             // Import vis async just before we need it. It's a big library
             import('vis').then((vis) => {
                 let nodes = new vis.DataSet(data['nodes']);
