@@ -233,35 +233,35 @@ class RAManageTests(utils.LoggedInViewPages,TestCase):
             name="Test RA", definition="No one is a member of this"
         )
 
-    def test_anon_cannot_view_details(self):
+    def test_anon_cannot_edit(self):
         self.logout()
-        response = self.client.get(reverse('aristotle:registrationauthority_details', args=[self.ra.pk]))
+        response = self.client.get(reverse('aristotle:registrationauthority_edit', args=[self.ra.pk]))
         self.assertRedirects(response,
             reverse("friendly_login",)+"?next="+
-            reverse('aristotle:registrationauthority_details', args=[self.ra.pk])
+            reverse('aristotle:registrationauthority_edit', args=[self.ra.pk])
             )
 
-    def test_viewer_cannot_view_details(self):
+    def test_viewer_cannot_edit(self):
         self.login_viewer()
 
-        response = self.client.get(reverse('aristotle:registrationauthority_details', args=[self.ra.pk]))
+        response = self.client.get(reverse('aristotle:registrationauthority_edit', args=[self.ra.pk]))
         self.assertEqual(response.status_code, 403)
 
-    def test_ramanager_can_view_details(self):
+    def test_ramanager_can_edit(self):
         self.login_ramanager()
 
-        response = self.client.get(reverse('aristotle:registrationauthority_details', args=[self.ra.pk]))
+        response = self.client.get(reverse('aristotle:registrationauthority_edit', args=[self.ra.pk]))
         self.assertEqual(response.status_code, 200)
 
         self.ra.managers.remove(self.ramanager)
         self.ra = models.RegistrationAuthority.objects.get(pk=self.ra.pk)
-        response = self.client.get(reverse('aristotle:registrationauthority_details', args=[self.ra.pk]))
+        response = self.client.get(reverse('aristotle:registrationauthority_edit', args=[self.ra.pk]))
         self.assertEqual(response.status_code, 403)
 
-    def test_registry_owner_can_view_details(self):
+    def test_registry_owner_can_edit(self):
         self.login_superuser()
 
-        response = self.client.get(reverse('aristotle:registrationauthority_details', args=[self.ra.pk]))
+        response = self.client.get(reverse('aristotle:registrationauthority_edit', args=[self.ra.pk]))
         self.assertEqual(response.status_code, 200)
 
     def test_viewer_cannot_view_add_change_or_remove_users(self):
