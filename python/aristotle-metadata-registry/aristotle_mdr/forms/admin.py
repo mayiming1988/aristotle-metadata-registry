@@ -6,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 import aristotle_mdr.models as MDR
 import aristotle_mdr.widgets.widgets as widgets
 from aristotle_mdr.utils import concept_to_clone_dict
-from aristotle_mdr.forms.creation_wizards import WorkgroupVerificationMixin, ConceptForm
+from aristotle_mdr.forms.creation_wizards import ConceptForm
 
 
 def MembershipField(model, name):
@@ -58,7 +58,7 @@ class AristotleProfileForm(forms.ModelForm):
             user.registrar_in = self.cleaned_data['registrar_in']
 
 
-class AdminConceptForm(ConceptForm, WorkgroupVerificationMixin):
+class AdminConceptForm(ConceptForm):
     # Thanks: http://stackoverflow.com/questions/6034047/one-to-many-inline-select-with-django-admin
     # Although concept is an abstract class, we still need this to have a reverse one-to-many edit field.
     class Meta:
