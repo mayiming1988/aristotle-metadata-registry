@@ -348,8 +348,10 @@ def get_aristotle_url(label, obj_id, obj_name=None):
             return reverse('aristotle:workgroup', args=[obj_id, name_slug])
         elif cname == 'registrationauthority':
             return reverse('aristotle:registrationAuthority', args=[obj_id, name_slug])
-        elif cname == 'reviewrequest':
-            return reverse('aristotle:userReviewDetails', args=[obj_id])
+
+    elif app == 'aristotle_mdr_review_requests':
+        if cname == 'reviewrequest':
+            return reverse('aristotle_reviews:review_details', args=[obj_id])
 
     return None
 
