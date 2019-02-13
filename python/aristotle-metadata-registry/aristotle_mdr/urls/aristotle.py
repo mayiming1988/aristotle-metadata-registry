@@ -33,26 +33,6 @@ urlpatterns=[
     # url(r'^itemType/(?P<iid>\d+)?/?
     # Allowing for a blank ItemId (iid) allows aristotle to redirect to /about/itemtype instead of 404ing
 
-    url(r'^valuedomain/(?P<iid>\d+)?/edit/values/permissible/?$',
-        GenericAlterOneToManyView.as_view(
-            model_base=models.ValueDomain,
-            model_to_add=models.PermissibleValue,
-            model_base_field='permissiblevalue_set',
-            model_to_add_field='valueDomain',
-            ordering_field='order',
-            form_add_another_text=_('Add a code'),
-            form_title=_('Change Permissible Values'),
-        ), name='permsissible_values_edit'),
-    url(r'^valuedomain/(?P<iid>\d+)?/edit/values/supplementary/?$',
-        GenericAlterOneToManyView.as_view(
-            model_base=models.ValueDomain,
-            model_to_add=models.SupplementaryValue,
-            model_base_field='supplementaryvalue_set',
-            model_to_add_field='valueDomain',
-            ordering_field='order',
-            form_add_another_text=_('Add a code'),
-            form_title=_('Change Supplementary Values')
-        ), name='supplementary_values_edit'),
     url(r'^conceptualdomain/(?P<iid>\d+)?/edit/values/?$',
         GenericAlterOneToManyView.as_view(
             model_base=models.ConceptualDomain,

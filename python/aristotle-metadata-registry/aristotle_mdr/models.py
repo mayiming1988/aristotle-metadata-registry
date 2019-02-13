@@ -46,7 +46,7 @@ from .managers import (
     MetadataItemManager, ConceptManager,
     ReviewRequestQuerySet, WorkgroupQuerySet,
     RegistrationAuthorityQuerySet,
-    StatusQuerySet
+    StatusQuerySet, UtilsManager
 )
 
 import logging
@@ -167,6 +167,7 @@ class aristotleComponent(models.Model):
     class Meta:
         abstract = True
 
+    objects = UtilsManager()
     ordering_field = 'order'
 
     def can_edit(self, user):
@@ -1482,6 +1483,7 @@ class DedBaseThrough(models.Model):
     data_element_derivation = models.ForeignKey(DataElementDerivation, on_delete=models.CASCADE)
     data_element = models.ForeignKey(DataElement, on_delete=models.CASCADE)
     order = models.PositiveSmallIntegerField("Position")
+    objects = UtilsManager()
 
     class Meta:
         abstract = True
