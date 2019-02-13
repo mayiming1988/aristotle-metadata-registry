@@ -93,3 +93,13 @@ export function addPlugins(editor) {
     )
     addDialog(editor, 'glossaryListDialog', 'Glossary search', html, 'id_glossary')
 }
+
+export function addPluginConfig(config) {
+    // Add to config to enable plugin
+    config.extraPlugins = 'aristotle_glossary'
+    let last_bar = config.toolbar.pop()
+    config.toolbar.push({name: 'aristotletoolbar', items: ['Glossary']})
+    if (last_bar != undefined) {
+        config.toolbar.push(last_bar)
+    }
+}

@@ -1,6 +1,6 @@
 /* globals CKEDITOR */
 import 'ckeditor/ckeditor.js'
-import { addPlugins } from 'src/lib/ckeditor_plugins.js'
+import { addPlugins, addPluginConfig } from 'src/lib/ckeditor_plugins.js'
 addPlugins(CKEDITOR)
 
 export function initCKEditor() {
@@ -9,6 +9,8 @@ export function initCKEditor() {
         var processed = textarea.attr('data-processed')
         if (processed == 0) {
             var config = JSON.parse(textarea.attr('data-config'));
+            addPluginConfig(config)
+            console.log(config)
             CKEDITOR.replace(this.id, config)
             textarea.attr('data-processed', 1)
         }
