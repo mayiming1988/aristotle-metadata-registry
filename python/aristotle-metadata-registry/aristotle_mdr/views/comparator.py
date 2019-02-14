@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
+from django.contrib.contenttypes.models import ContentType
 
-import reversion
+from reversion.models import Version
 
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
@@ -9,35 +10,22 @@ from aristotle_mdr import models as MDR
 
 def compare_concepts(request, obj_type=None):
     comparison = {}
-    item_a_pk = request.GET.get('item_a', None)
-    item_b_pk = request.GET.get('item_b', None)
-
-    item_a = MDR._concept.objects.visible(request.user).get(pk=item_a_pk)
-    item_b = MDR._concept.objects.visible(request.user).get(pk=item_b_pk)
-    context = {"item_a": item_a, "item_b": item_b}
-
-    request.GET = request.GET.copy()
-
-    if item_a:
-        item_a = item_a.item
-    else:
-        request.GET['item_a']="0"
-    if item_b:
-        item_b = item_b.item
-    else:
-        request.GET['item_b']="0"
+    context = {}
 
     qs = MDR._concept.objects.visible(request.user)
     form = MDRForms.CompareConceptsForm(request.GET, user=request.user, qs=qs)  # A form bound to the POST data
+
     if form.is_valid():
-        from django.contrib.contenttypes.models import ContentType
+        # Get items from form
+        item_a = form.cleaned_data['item_a'].item
+        item_b = form.cleaned_data['item_b'].item
+        context.update({'item_a': item_a, 'item_b': item_b})
 
         revs=[]
         for item in [item_a, item_b]:
-            from reversion.models import Version
             Version.objects.get_for_object(item)
             ct = ContentType.objects.get_for_model(item)
-            version = reversion.models.Version.objects.filter(content_type=ct, object_id=item.pk).order_by('-revision__date_created').first()
+            version = Version.objects.filter(content_type=ct, object_id=item.pk).order_by('-revision__date_created').first()
             revs.append(version)
         if revs[0] is None:
             form.add_error('item_a', _('This item has no revisions. A comparison cannot be made'))
