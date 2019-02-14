@@ -621,6 +621,13 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         updated = models.ObjectClass.objects.get(id=self.item.id)
         self.assertEqual(updated.workgroup, self.wg1)
 
+    def test_non_existant_item_404(self):
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[55555]
+        )
+        self.assertEqual(response.status_code, 404)
+
 
 # These are run by all item types
 class LoggedInViewConceptPages(utils.AristotleTestUtils):

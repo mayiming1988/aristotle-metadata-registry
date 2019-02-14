@@ -138,7 +138,10 @@ class ConceptRenderView(TagsMixin, TemplateView):
                     model = rel.related_model
 
         if model is None:
-            model = type(MDR._concept.objects.get_subclass(id=itemid))
+            try:
+                model = type(MDR._concept.objects.get_subclass(id=itemid))
+            except ObjectDoesNotExist:
+                raise Http404
 
         return self.get_related(model)
 
