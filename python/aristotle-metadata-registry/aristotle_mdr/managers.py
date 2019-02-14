@@ -1,3 +1,4 @@
+from typing import Iterable
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -18,11 +19,23 @@ class UUIDManager(models.Manager):
         )
 
 
+class UtilsManager(models.Manager):
+    """Manager with extra util functions"""
+
+    def bulk_delete(self, objects: Iterable[models.Model]):
+        if isinstance(objects, models.QuerySet):
+            objects.delete()
+        else:
+            ids = [o.id for o in objects]
+            qs = self.get_queryset().filter(id__in=ids)
+            qs.delete()
+
+
 class MetadataItemQuerySet(InheritanceQuerySet):
     pass
 
 
-class MetadataItemManager(InheritanceManager):
+class MetadataItemManager(InheritanceManager, UtilsManager):
     def get_queryset(self):
         from django.conf import settings
 

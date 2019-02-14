@@ -46,7 +46,7 @@ from .managers import (
     MetadataItemManager, ConceptManager,
     ReviewRequestQuerySet, WorkgroupQuerySet,
     RegistrationAuthorityQuerySet,
-    StatusQuerySet
+    StatusQuerySet, UtilsManager
 )
 
 import logging
@@ -167,6 +167,7 @@ class aristotleComponent(models.Model):
     class Meta:
         abstract = True
 
+    objects = UtilsManager()
     ordering_field = 'order'
 
     def can_edit(self, user):
@@ -238,7 +239,7 @@ class RegistrationAuthority(Organization):
     (8.1.5.1) association class.
     """
     objects = RegistrationAuthorityQuerySet.as_manager()
-    template = "aristotle_mdr/organization/registrationAuthority.html"
+    template = "aristotle_mdr/organization/registration_authority/home.html"
     active = models.IntegerField(
         choices=RA_ACTIVE_CHOICES,
         default=RA_ACTIVE_CHOICES.active,
@@ -1482,6 +1483,7 @@ class DedBaseThrough(models.Model):
     data_element_derivation = models.ForeignKey(DataElementDerivation, on_delete=models.CASCADE)
     data_element = models.ForeignKey(DataElement, on_delete=models.CASCADE)
     order = models.PositiveSmallIntegerField("Position")
+    objects = UtilsManager()
 
     class Meta:
         abstract = True

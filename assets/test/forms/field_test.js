@@ -23,10 +23,12 @@ describe('formField', function() {
             fieldClass: 'myClass',
         })
 
-        let input = this.wrapper.find('input')
-        assert.equal(input.props('name'), 'description')
-        assert.deepEqual(input.classes(), ['myClass'])
-        assert.equal(input.props('value'), 'the best the best the best the best the best the best')
+        return this.wrapper.vm.$nextTick().then(() => {
+            let input = this.wrapper.find('input')
+            assert.equal(input.props('name'), 'description')
+            assert.deepEqual(input.classes(), ['myClass'])
+            assert.equal(input.props('value'), 'the best the best the best the best the best the best')
+        })
     })
 
     it('set hasOptions false when no options', function() {
@@ -58,9 +60,11 @@ describe('formField', function() {
             options: [['d', 'dog'], ['c', 'cat']],
             value: 'c'
         })
-        // Check 2 options are present
-        assert.equal(this.wrapper.findAll('option').length, 2)
-        assert.isTrue(this.wrapper.find('option[value=c]').exists())
-        assert.isTrue(this.wrapper.find('option[value=d]').exists())
+        return this.wrapper.vm.$nextTick().then(() => {
+            // Check 2 options are present
+            assert.equal(this.wrapper.findAll('option').length, 2)
+            assert.isTrue(this.wrapper.find('option[value=c]').exists())
+            assert.isTrue(this.wrapper.find('option[value=d]').exists())
+        })
     })
 })

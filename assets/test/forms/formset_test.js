@@ -3,10 +3,9 @@ const assert = chai.assert
 import VueTestUtils from '@vue/test-utils'
 
 
-import Formset from '@/forms/formSet.vue'
+import Formset from '@/djforms/formSet.vue'
 
 describe('FormSet', function() {
-
 
     function getWrapper(initial, fields) {
         let propsData = {fields: fields, initial: initial}
@@ -46,8 +45,10 @@ describe('FormSet', function() {
             errors: [{name: ['Required']}, {type: ['That type is bad']}]
         })
 
-        let expectedMap = {0: {name: ['Required']}, 1: {type: ['That type is bad']}}
-        assert.deepEqual(wrapper.vm.error_map, expectedMap)
+        return wrapper.vm.$nextTick().then(() => {
+            let expectedMap = {0: {name: ['Required']}, 1: {type: ['That type is bad']}}
+            assert.deepEqual(wrapper.vm.error_map, expectedMap)
+        })
     })
     
     it('adds rows', function() {

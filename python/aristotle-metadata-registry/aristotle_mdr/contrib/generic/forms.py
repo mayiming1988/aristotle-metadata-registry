@@ -8,6 +8,8 @@ from aristotle_mdr.models import _concept, AbstractValue, ValueDomain, ValueMean
 from aristotle_mdr.contrib.autocomplete import widgets
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 
+from django_bulk_update.helper import bulk_update
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -35,7 +37,16 @@ class HiddenOrderFormset(HiddenOrderMixin, BaseFormSet):
 
 
 class HiddenOrderModelFormSet(HiddenOrderMixin, BaseModelFormSet):
-    pass
+
+    def save_new(self, form, commit=True):
+        inst = form.save(commit=False)
+        setattr(inst, self.ordering_field, form.cleaned_data['ORDER'])
+        if commit:
+            inst.save()
+        return inst
+
+    def save_existing(self, form, instance, commit=True):
+        return self.save_new(form, commit)
 
 
 class HiddenOrderInlineFormset(HiddenOrderMixin, BaseInlineFormSet):
@@ -148,17 +159,32 @@ def ordered_formset_save(formset, item, model_to_add_field, ordering_field):
     item.save()  # do this to ensure we are saving reversion records for the item, not just the values
     formset.save(commit=False)  # Save formset so we have access to deleted_objects and save_m2m
 
-    for form in formset.ordered_forms:
+    new = []
+    for obj in formset.new_objects:
         # Loop through the forms so we can add the order value to the ordering field
         # ordered_forms does not contain forms marked for deletion
-        obj = form.save(commit=False)
         setattr(obj, model_to_add_field, item)
-        setattr(obj, ordering_field, form.cleaned_data['ORDER'])
-        obj.save()
+        new.append(obj)
 
-    for obj in formset.deleted_objects:
-        # Delete objects marked for deletion
-        obj.delete()
+    if new:
+        formset.model.objects.bulk_create(new)
+
+    changed = []
+    for record in formset.changed_objects:
+        # record is a tuple with obj and form changed_data
+        obj = record[0]
+        setattr(obj, model_to_add_field, item)
+        changed.append(obj)
+
+    if changed:
+        bulk_update(changed, batch_size=500)
+
+    if formset.deleted_objects:
+        if hasattr(formset.model.objects, 'bulk_delete'):
+            formset.model.objects.bulk_delete(formset.deleted_objects)
+        else:
+            # Backup just in case wrong manager is being used
+            formset.model.objects.filter(id__in=[i.id for i in formset.deleted_objects]).delete()
 
     # Save any m2m relations on the ojects (not actually needed yet)
     formset.save_m2m()

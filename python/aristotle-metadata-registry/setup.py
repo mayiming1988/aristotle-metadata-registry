@@ -120,7 +120,10 @@ setup(
         'weasyprint',
 
         # Pdf toolkit
-        'PyPDF2'
+        'PyPDF2',
+
+        # Bulk updates
+        'django-bulk-update',
     ],
 
 )

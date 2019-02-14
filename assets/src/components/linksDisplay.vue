@@ -16,21 +16,17 @@
 </template>
 
 <script>
-    export default {
-        props: ['url'],
-        data: () => ({
-            show: false
-        }),
-        mounted: function() {
-
-            $.getJSON(this.url, (data) => {
-                console.log(this.url)
-                console.log(data)
-                let linkdata = data
-                // Import vis async just before we need it. It's a big library
-                import('vis').then((vis) => {
-                    let nodes = new vis.DataSet(data['nodes']);
-                    let edges = new vis.DataSet(data['edges']);
+export default {
+    props: ['url'],
+    data: () => ({
+        show: false
+    }),
+    mounted: function() {
+        $.getJSON(this.url, (data) => {
+            // Import vis async just before we need it. It's a big library
+            import('vis').then((vis) => {
+                let nodes = new vis.DataSet(data['nodes']);
+                let edges = new vis.DataSet(data['edges']);
 
                     // create a network
                     let container = document.getElementById('network');

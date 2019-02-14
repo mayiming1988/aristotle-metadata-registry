@@ -1,4 +1,4 @@
-import { renderComponents } from 'src/lib/renderComponents.js'
+import renderComponents from 'src/lib/renderComponents.js'
 import { initCore } from 'src/lib/init.js'
 
 import switchEditComponent from '@/switchEdit.vue'

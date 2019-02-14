@@ -36,7 +36,9 @@ describe('comment', function() {
             created: this.datestring,
             body: 'Heck yeah'
         })
-        assert.equal(this.wrapper.find('para-stub').props('text'), 'Heck yeah')
+        return this.wrapper.vm.$nextTick().then(() => {
+            assert.equal(this.wrapper.find('para-stub').props('text'), 'Heck yeah')
+        })
     })
 
     it('renders name bold', function() {
@@ -44,8 +46,10 @@ describe('comment', function() {
             created: this.datestring,
             name: 'Big name'
         })
-        let strong = this.wrapper.find('strong')
-        assert.equal(strong.text(), 'Big name')
+        return this.wrapper.vm.$nextTick().then(() => {
+            let strong = this.wrapper.find('strong')
+            assert.equal(strong.text(), 'Big name')
+        })
     })
 
     it('passes pic prop', function() {

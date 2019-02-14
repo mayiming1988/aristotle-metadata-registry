@@ -10,7 +10,7 @@ export default {
             let data = {}
             data[this.name] = this.value
             this.patch(this.submitUrl, data)
-            .then((response) => {
+            .then(() => {
                 this.editing = false
             })
         }

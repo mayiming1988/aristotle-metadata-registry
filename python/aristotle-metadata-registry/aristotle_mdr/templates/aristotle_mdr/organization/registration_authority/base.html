@@ -1,0 +1,40 @@
+{% extends "aristotle_mdr/base.html" %}
+{% load aristotle_tags %}
+{% load webpack_loader %}
+
+{% block title %}{{ item.name }} {% endblock %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'ra' 'js' %}
+{% endblock %}
+
+{% block webpack_css_bundle %}
+  {% render_bundle 'ra' 'css' %}
+{% endblock %}
+
+{% block content %}
+<header class="unmanaged row">
+    <h1 id="objectTitle"  class="pull-left">
+        <a href="#">{{ item.name }}</a>
+        <span>({{ item.get_verbose_name }})</span>
+    </h1>
+</header>
+
+<ul class="nav nav-tabs">
+  <li role="presentation" {% if active_tab == 'home' %}class="active"{% endif %}>
+    <a href="{% url 'aristotle:registrationAuthority' item.pk %}"><i class="fa fa-fw fa-home" aria-hidden="true"></i>Home</a>
+  </li>
+  {% if is_manager %} {# This is set to true for superusers aswell #}
+  <li role="presentation" {% if active_tab == 'members' %}class="active"{% endif %}>
+    <a href="{% url 'aristotle:registrationauthority_members' item.pk %}"><i class="fa fa-fw fa-user" aria-hidden="true"></i>Members</a>
+  </li>
+  <li role="presentation" {% if active_tab == 'settings' %}class="active"{% endif %}>
+    <a href="{% url 'aristotle:registrationauthority_edit' item.pk %}"><i class="fa fa-fw fa-cogs" aria-hidden="true"></i>Settings</a>
+  </li>
+  {% endif %}
+</ul>
+
+<div>
+  {% block racontent %}{% endblock %}
+</div>
+{% endblock %}

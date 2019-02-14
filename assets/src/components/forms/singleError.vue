@@ -1,17 +1,15 @@
 <template>
     <div class="single-error">
         <span v-if="hasBeError" class="text-danger">{{ beErrors[0] }}</span>
-        <span v-if="!hasBeError && hasFeError" class="text-danger">{{ getErrorMsg(feErrors) }}</span>
+        <span v-if="!hasBeError && hasFeError" class="text-danger">{{ feErrors[0] }}</span>
     </div>
 </template>
 
 <script>
-import getErrorMsg from 'src/lib/forms/getErrorMsg.js'
-
 export default {
     props: {
         feErrors: {
-            type: Object
+            type: Array
         },
         beErrors: {
             type: Array
@@ -19,14 +17,11 @@ export default {
     },
     computed: {
         hasFeError: function() {
-            return (this.feErrors.$invalid)
+            return (this.feErrors != undefined && this.feErrors.length > 0)
         },
         hasBeError: function() {
             return (this.beErrors != undefined && this.beErrors.length > 0)
         }
     },
-    methods: {
-        getErrorMsg: getErrorMsg
-    }
 }
 </script>
