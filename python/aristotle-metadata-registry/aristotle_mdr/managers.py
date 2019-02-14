@@ -59,6 +59,7 @@ class ConceptQuerySet(MetadataItemQuerySet):
             ObjectClass.objects.filter(name__contains="Person").visible()
             ObjectClass.objects.visible().filter(name__contains="Person")
         """
+        need_distinct = False  # Wether we need to add a distinct
         if user is None or user.is_anonymous():
             return self.public()
         if user.is_superuser:
@@ -71,7 +72,12 @@ class ConceptQuerySet(MetadataItemQuerySet):
             # User can see everything in their workgroups.
             q |= Q(workgroup__in=user.profile.workgroups)
             # q |= Q(workgroup__user__profile=user)
-            if user.profile.is_registrar:
+            registrar_count = user.profile.registrar_count
+            if registrar_count > 1:
+                # If a user is a registrar in multiple ras it is possible for
+                # the query to return duplicates
+                need_distinct = True
+            if registrar_count > 0:
                 # Registars can see items they have been asked to review
                 q |= Q(
                     Q(rr_review_requests__registration_authority__registrars__profile__user=user) &
@@ -85,7 +91,11 @@ class ConceptQuerySet(MetadataItemQuerySet):
         if extra_q:
             for func in extra_q:
                 q |= import_string(func)(user)
-        return self.filter(q)
+
+        if not need_distinct:
+            return self.filter(q)
+        else:
+            return self.filter(q).distinct()
 
     def editable(self, user):
         """
