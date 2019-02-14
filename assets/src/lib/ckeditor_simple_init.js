@@ -10,7 +10,6 @@ export function initCKEditor() {
         if (processed == 0) {
             var config = JSON.parse(textarea.attr('data-config'));
             addPluginConfig(config)
-            console.log(config)
             CKEDITOR.replace(this.id, config)
             textarea.attr('data-processed', 1)
         }
