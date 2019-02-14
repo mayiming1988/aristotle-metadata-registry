@@ -218,6 +218,10 @@ class ConceptVersionView(ConceptRenderView):
         for label, item_dict in weak_items.items():
             model = apps.get_model(label)
 
+            if 'headers' in item_dict:
+                headers = item_dict['headers']
+            else:
+                headers = []
             template_weak_models.append({
                 'model': pretify_camel_case(model.__name__),
                 'headers': item_dict['headers'],
