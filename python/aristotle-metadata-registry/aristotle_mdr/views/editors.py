@@ -81,7 +81,7 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         initial = super().get_initial()
         cvs = self.get_custom_values()
         for cv in cvs:
-            fname = 'custom_{}'.format(cv.field.name)
+            fname = cv.field.form_field_name
             initial[fname] = cv.content
 
         return initial
