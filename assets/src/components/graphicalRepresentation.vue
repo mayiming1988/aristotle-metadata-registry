@@ -10,48 +10,59 @@
         name: "graphicalRepresentation",
         mounted() {
             $.getJSON(this.url, (data) => {
-                console.log(data.nodes)
-                console.log(data.edges)
 
                 data.nodes.forEach(function (element) {
-                    element.title = "hello world <br> <div>hiiii</div>"
+                    element.title = `<small>Name: ${element.name}</small><br>`
+                    if (element.definition !== "") {
+                        element.title = element.title.concat(`<small>Definition: ${element.short_definition}</small><br>`)
+                    }
+                    if (element.version !== "") {
+                        element.title = element.title.concat(`<small>Version: ${element.version}</small>`)
+                    }
                     element.label = element.name
+                    if (element.node_options) {
+                        element.shape = element.node_options.shape
+                        element.borderWidth = element.node_options.borderWidth
+                        element.margin = element.node_options.margin
+                        element["font"] ={}
+                        element.font.size = element.node_options.font.size
+                        element.color = '#ffc05d'
+                    }
                     delete element.name
-                    console.log(element)
                 })
+
+                let edges = []
 
                 data.edges.forEach(function (element) {
                     element.label = element.registration_authority
                     element.from = element.older_item
                     element.to = element.newer_item
-                    element.smooth = {enabled: true, type: 'curvedCCW', roundness: 0.3}
                     delete element.older_item
                     delete element.newer_item
                     delete element.registration_authority
                     element.font = {align: "top", face: "Helvetica", color: "black"}
                     element.arrows = "to"
+
+                    element.smooth = {"enabled": true, "type": "curvedCCW", "roundness": 0.2}
+
+                    // If the edge is "duplicated"
+                    // (e.g. two or more edges have the same 'from' and 'to' values)
+                    // Change the roundNess of the curvature so they don't overlap:
+                    let roundess = 0.35
+                    for (let i = 0; i < edges.length; i++) {
+                        // Comparing the "stringified" version of two object is the most performance efficient:
+                        if (JSON.stringify(edges[i]) === JSON.stringify({"from": element.from, "to": element.to})) {
+                            element.smooth = {"enabled": true, "type": "curvedCCW", "roundness": roundess}
+                            roundess += 0.15
+                        }
+                    }
+                    edges.push({"from": element.from, "to": element.to})
                 })
 
                 import('vis').then((vis) => {
 
-                    var nodes = data.nodes
-                    var edges = data.edges
-
-                    // var nodes = [
-                    //     {id: 1, label: "Node 1"},
-                    //     {id: 2, label: "Node 2"},
-                    //     {id: 3, label: "Node 3:\nLeft-Aligned", font: {'face': "Monospace", align: 'left'}},
-                    //     {id: 4, label: "Node 4"},
-                    //     {id: 5, label: "Node 5:\nLeft-Aligned box", shape: 'box', font: {'face': "Monospace", align: 'left'}},
-                    // ];
-                    //
-                    // var edges = [
-                    //     {from: 1, to: 2, label: 'middle', font: {align: 'middle'}, arrows: 'to'},
-                    //     {from: 1, to: 3, label: 'top', font: {align: 'top'}, arrows: 'to'},
-                    //     {from: 2, to: 4, label: 'horizontal', font: {align: 'horizontal'}, arrows: 'to'},
-                    //     {from: 2, to: 5, label: 'bottom', font: {align: 'bottom'}, arrows: 'to'},
-                    //     {from: 4, to: 1, label: 'bottom', font: {align: 'bottom'}, arrows: 'to'},
-                    // ];
+                    let nodes = data.nodes
+                    let edges = data.edges
 
                      nodes = new vis.DataSet(nodes);
                      edges = new vis.DataSet(edges);
@@ -65,83 +76,125 @@
                     let options = {
                         "clickToUse": true,
                         "nodes": {
-                            "shape": 'box'
-
+                            "shape": 'box',
+                            "borderWidth": 2,
+                            "margin": 3,
+                            "font": {
+                                "size": 17
+                            }
+                        },
+                        "edges": {
+                            "chosen": false,
                         },
                         "interaction": {
                             "hover": true,
-                            "tooltipDelay": 1
-                        },
-                        "groups": {
-                            "active": {
-                                "color": {border:'black'},
-                                "font": {size:18},
-                                "shape": 'box'
-                            },
-                            "regular": {
-                                "font": {size:15},
-                                "shape": 'box'
-                            },
-                            "relation": {
-                                "font": {size:15},
-                                "shape": 'ellipse'
-                            },
+                            "tooltipDelay": 0,
+                            "selectConnectedEdges": false
                         },
                         'layout': {
                             'hierarchical': {
                                 'enabled': true,
                                 'direction': 'LR',
-                                'sortMethod': 'directed',
+                                // 'sortMethod': 'directed',
+                                'sortMethod': 'hubsize',
                                 'levelSeparation': 300
                             }
                         }
                     };
                     let network = new vis.Network(container, final_data, options);
 
+                    // Make the vis.js canvas "active" as soon as the page is loaded:
+                    let canvas = document.getElementsByClassName('vis-network')[0]
+                    let overlay = document.getElementsByClassName('vis-overlay')[0]
+
+                    // Disable the physics as soon as the vis.js is loaded:
                     network.on("stabilizationIterationsDone", function () {
                         network.setOptions({physics: false})
                     })
+
+                    canvas.onmouseenter = function() {
+                        canvas.classList.add("vis-active")
+                        overlay.style.display = "none"
+                    }
+
+                    canvas.onmouseleave = function() {
+                        canvas.classList.remove("vis-active")
+                        overlay.style.display = "block"
+                    }
+
 
                     // network.on("hoverNode", function (node) {
                     //     console.log(node)
                     // })
 
-                    network.on('hoverNode', function (properties) {
-                        console.log(properties)
-                        var nodeID = properties.node;
-                        if (nodeID) {
+                    // THIS HACKY SOLUTION SOLVES A WEIRD BUG:
+                    // FOR LARGE NETWORKS, SOMETIMES THE LABELS ARE NOT APPEARING IN THE CORRECT POSITIONS
+                    network.on("afterDrawing", function () {
+                        let networkNodes = network
+                        // console.log("THESE ARE THE EDGES:")
+                        // console.log(networkNodes.body.edges)
+                        // Object.values(networkNodes.body.nodes).forEach(function (node) {
+                        //     network.moveNode(node.id, node.x, node.y + 1)
+                        // })
+                    })
 
-                            var sNodeLabel = this.body.nodes[nodeID].options.label
-                            var sToolTip = this.body.nodes[nodeID].options.title;
+                    network.on('hoverNode', function(node) {
+                        // console.log(properties)
+                        // var nodeID = properties.node;
+                        // if (nodeID) {
+                        //
+                        //     var sNodeLabel = this.body.nodes[nodeID].options.label
+                        //     var sToolTip = this.body.nodes[nodeID].options.title;
+                        //
+                        //     //use JQUERY to see where the canvas is on the page.
+                        //     var canvasPosition = $('.vis-network').position();
+                        //
+                        //     //the properties give x & y relative to the edge of the canvas, not to the whole document.
+                        //     var clickX = properties.pointer.DOM.x + canvasPosition.top;
+                        //     var clickY = properties.pointer.DOM.y + canvasPosition.left;
+                        //
+                        //     //make sure we have a valid div, either clear it or generate one.
+                        //     if ($('#cellBatchAttrPopUp').length) {
+                        //         $('div#cellBatchAttrPopUp').empty();
+                        //     }
+                        //     else {
+                        //         $('<div id="cellBatchAttrPopUp"></div>').click(function () {
+                        //             //clicking the popup hides it again.
+                        //             $(this).empty().hide();
+                        //         }).css('position','absolute').appendTo("body");
+                        //     }
+                        //
+                        //     // put the div over the node, display the tooltip and show it.
+                        //     $('div#cellBatchAttrPopUp').append(sNodeLabel)
+                        //         .append('<br/>')
+                        //         .append(sToolTip)
+                        //         .css('top', clickY).css('left', clickX)
+                        //         .show();
+                        // }
+                        document.body.style.cursor = 'pointer'
 
-                            //use JQUERY to see where the canvas is on the page.
-                            var canvasPosition = $('.vis-network').position();
-
-                            //the properties give x & y relative to the edge of the canvas, not to the whole document.
-                            var clickX = properties.pointer.DOM.x + canvasPosition.top;
-                            var clickY = properties.pointer.DOM.y + canvasPosition.left;
-
-                            //make sure we have a valid div, either clear it or generate one.
-                            if ($('#cellBatchAttrPopUp').length) {
-                                $('div#cellBatchAttrPopUp').empty();
-                            }
-                            else {
-                                $('<div id="cellBatchAttrPopUp"></div>').click(function () {
-                                    //clicking the popup hides it again.
-                                    $(this).empty().hide();
-                                }).css('position','absolute').appendTo("body");
-                            }
-
-                            // put the div over the node, display the tooltip and show it.
-                            $('div#cellBatchAttrPopUp').append(sNodeLabel)
-                                .append('<br/>')
-                                .append(sToolTip)
-                                .css('top', clickY).css('left', clickX)
-                                .show();
-
-                        }
                     });
 
+                    network.on('blurNode', function(node) {
+                        document.body.style.cursor = 'default'
+                    })
+
+
+                    network.on('click', function(net) {
+                        if (net.nodes.length > 0) {
+                            let nodesArray = nodes.get(net.nodes)
+                            let myNode = nodesArray[0]
+                            window.location.href = myNode.absolute_url
+                        }
+                    })
+
+                    network.on('showPopup', function () {
+                        document.body.style.cursor = 'pointer'
+                    })
+
+                    network.on('hidePopup', function () {
+                        document.body.style.cursor ='default'
+                    })
                 })
             })
         }
@@ -150,23 +203,23 @@
 
 <style scoped>
     div#cellBatchAttrPopUp {
-    display: none;
-    position: absolute;
-    z-index: 2000;
-    padding: 4px 8px;
-    color: #333;
-    white-space: nowrap;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    border-radius: 5px;
-    -moz-box-shadow: 0px 0px 4px #222;
-    -webkit-box-shadow: 0px 0px 4px #222;
-    box-shadow: 0px 0px 4px #222;
-    background-image: -moz-linear-gradient(top, #eeeeee, #cccccc);
-    background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, #eeeeee),color-stop(1, #cccccc));
-    background-image: -webkit-linear-gradient(top, #eeeeee, #cccccc);
-    background-image: -moz-linear-gradient(top, #eeeeee, #cccccc);
-    background-image: -ms-linear-gradient(top, #eeeeee, #cccccc);
-    background-image: -o-linear-gradient(top, #eeeeee, #cccccc);
-}
+        display: none;
+        position: absolute;
+        z-index: 2000;
+        padding: 4px 8px;
+        color: #333;
+        white-space: nowrap;
+        -moz-border-radius: 5px;
+        -webkit-border-radius: 5px;
+        border-radius: 5px;
+        -moz-box-shadow: 0px 0px 4px #222;
+        -webkit-box-shadow: 0px 0px 4px #222;
+        box-shadow: 0px 0px 4px #222;
+        background-image: -moz-linear-gradient(top, #eeeeee, #cccccc);
+        background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, #eeeeee),color-stop(1, #cccccc));
+        background-image: -webkit-linear-gradient(top, #eeeeee, #cccccc);
+        background-image: -moz-linear-gradient(top, #eeeeee, #cccccc);
+        background-image: -ms-linear-gradient(top, #eeeeee, #cccccc);
+        background-image: -o-linear-gradient(top, #eeeeee, #cccccc);
+    }
 </style>

@@ -9,6 +9,7 @@ from rest_framework.renderers import JSONRenderer
 import logging
 from django.db.models import Q
 from aristotle_mdr.models import SupersedeRelationship
+import collections
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +77,8 @@ def link_json_for_item(request, iid):
     #         })
 
     seen_items_ids = set()
-    process = []
+    # process = []
+    queue = collections.deque([item])
     nodes = []
     edges = []
     q_objects = Q()
@@ -113,21 +115,25 @@ def link_json_for_item(request, iid):
 
     #################
     # OPTION 2 (OPTIMISED):
-    process.append(item)
-    while process:
-        current_item = process.pop()
+    # process.append(item)
+    while queue and len(queue) < 50:
+        current_item = queue.popleft()
         if current_item.id not in seen_items_ids:
-            nodes.append(ConceptSerializer(current_item).data)
-        newer = current_item.superseded_by_items_relation_set.first().newer_item
-        if newer.id not in seen_items_ids:
-            nodes.append(ConceptSerializer(newer).data)
-            process.append(newer)
-            seen_items_ids.add(newer.id)
+            serialised_item = ConceptSerializer(current_item).data
+            serialised_item["node_options"] = {"shape": "ellipse", "borderWidth": 2, "margin": 3, "font": {"size": 18}}
+            nodes.append(serialised_item)
+
+        if current_item.superseded_by_items_relation_set.first():
+            newer = current_item.superseded_by_items_relation_set.first().newer_item
+            if newer.id not in seen_items_ids:
+                nodes.append(ConceptSerializer(newer).data)
+                queue.append(newer)
+                seen_items_ids.add(newer.id)
 
         for sup_rel in current_item.superseded_items_relation_set.all():
             if sup_rel.older_item.id not in seen_items_ids:
                 nodes.append(ConceptSerializer(sup_rel.older_item).data)
-                process.append(sup_rel.older_item)
+                queue.append(sup_rel.older_item)
                 seen_items_ids.add(sup_rel.older_item.id)
         seen_items_ids.add(current_item.id)
 
