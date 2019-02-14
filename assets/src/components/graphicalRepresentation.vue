@@ -129,16 +129,16 @@
 
                     // THIS HACKY SOLUTION SOLVES A WEIRD BUG:
                     // FOR LARGE NETWORKS, SOMETIMES THE LABELS ARE NOT APPEARING IN THE CORRECT POSITIONS
-                    network.on("afterDrawing", function () {
-                        let networkNodes = network
-                        // console.log("THESE ARE THE EDGES:")
-                        // console.log(networkNodes.body.edges)
-                        // Object.values(networkNodes.body.nodes).forEach(function (node) {
-                        //     network.moveNode(node.id, node.x, node.y + 1)
-                        // })
-                    })
+                    // network.on("afterDrawing", function () {
+                    //
+                    //     // console.log("THESE ARE THE EDGES:")
+                    //     // console.log(networkNodes.body.edges)
+                    //     // Object.values(networkNodes.body.nodes).forEach(function (node) {
+                    //     //     network.moveNode(node.id, node.x, node.y + 1)
+                    //     // })
+                    // })
 
-                    network.on('hoverNode', function(node) {
+                    network.on('hoverNode', function() {
                         // console.log(properties)
                         // var nodeID = properties.node;
                         // if (nodeID) {
@@ -175,7 +175,7 @@
 
                     });
 
-                    network.on('blurNode', function(node) {
+                    network.on('blurNode', function() {
                         document.body.style.cursor = 'default'
                     })
 
@@ -202,24 +202,24 @@
 </script>
 
 <style scoped>
-    div#cellBatchAttrPopUp {
-        display: none;
-        position: absolute;
-        z-index: 2000;
-        padding: 4px 8px;
-        color: #333;
-        white-space: nowrap;
-        -moz-border-radius: 5px;
-        -webkit-border-radius: 5px;
-        border-radius: 5px;
-        -moz-box-shadow: 0px 0px 4px #222;
-        -webkit-box-shadow: 0px 0px 4px #222;
-        box-shadow: 0px 0px 4px #222;
-        background-image: -moz-linear-gradient(top, #eeeeee, #cccccc);
-        background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, #eeeeee),color-stop(1, #cccccc));
-        background-image: -webkit-linear-gradient(top, #eeeeee, #cccccc);
-        background-image: -moz-linear-gradient(top, #eeeeee, #cccccc);
-        background-image: -ms-linear-gradient(top, #eeeeee, #cccccc);
-        background-image: -o-linear-gradient(top, #eeeeee, #cccccc);
-    }
+    /*div#cellBatchAttrPopUp {*/
+        /*display: none;*/
+        /*position: absolute;*/
+        /*z-index: 2000;*/
+        /*padding: 4px 8px;*/
+        /*color: #333;*/
+        /*white-space: nowrap;*/
+        /*-moz-border-radius: 5px;*/
+        /*-webkit-border-radius: 5px;*/
+        /*border-radius: 5px;*/
+        /*-moz-box-shadow: 0px 0px 4px #222;*/
+        /*-webkit-box-shadow: 0px 0px 4px #222;*/
+        /*box-shadow: 0px 0px 4px #222;*/
+        /*background-image: -moz-linear-gradient(top, #eeeeee, #cccccc);*/
+        /*background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, #eeeeee),color-stop(1, #cccccc));*/
+        /*background-image: -webkit-linear-gradient(top, #eeeeee, #cccccc);*/
+        /*background-image: -moz-linear-gradient(top, #eeeeee, #cccccc);*/
+        /*background-image: -ms-linear-gradient(top, #eeeeee, #cccccc);*/
+        /*background-image: -o-linear-gradient(top, #eeeeee, #cccccc);*/
+    /*}*/
 </style>
