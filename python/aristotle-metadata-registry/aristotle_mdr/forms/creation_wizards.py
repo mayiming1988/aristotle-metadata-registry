@@ -7,7 +7,7 @@ import aristotle_mdr.models as MDR
 from aristotle_mdr.contrib.autocomplete import widgets
 from aristotle_mdr.exceptions import NoUserGivenForUserForm
 from aristotle_mdr.managers import ConceptQuerySet
-from aristotle_mdr.perms import user_can_move_between_workgroups, user_can_move_any_workgroup, user_can_remove_from_workgroup
+from aristotle_mdr.perms import user_can_remove_from_workgroup, user_can_move_to_workgroup
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 from aristotle_mdr.utils.utils import fetch_aristotle_settings
 
@@ -34,7 +34,6 @@ class UserAwareModelForm(UserAwareForm, forms.ModelForm):
 
 
 class WorkgroupVerificationMixin:
-    cant_move_any_permission_error = _("You do not have permission to move an item between workgroups.")
     cant_move_from_permission_error = _("You do not have permission to remove an item from this workgroup.")
     cant_move_to_permission_error = _("You do not have permission to move an item to that workgroup.")
 
@@ -54,8 +53,12 @@ class WorkgroupVerificationMixin:
         if old_workgroup == new_workgroup:
             return new_workgroup
 
-        # If none of the above, check we can move between wgs
-        if not user_can_move_between_workgroups(self.user, self.instance.workgroup, new_workgroup):
+        # Check user can remove from old wg
+        if not user_can_remove_from_workgroup(self.user, old_workgroup):
+            raise forms.ValidationError(self.cant_move_from_permission_error)
+
+        # Check user can move to new wg
+        if not user_can_move_to_workgroup(self.user, new_workgroup):
             raise forms.ValidationError(self.cant_move_to_permission_error)
 
         return new_workgroup
