@@ -9,13 +9,11 @@ from aristotle_mdr import models as MDR
 
 def compare_concepts(request, obj_type=None):
     comparison = {}
-    item_a = request.GET.get('item_a', None)
-    item_b = request.GET.get('item_b', None)
+    item_a_pk = request.GET.get('item_a', None)
+    item_b_pk = request.GET.get('item_b', None)
 
-    context = {"item_a": item_a, "item_b": item_b}
-
-    item_a = MDR._concept.objects.visible(request.user).filter(pk=item_a).first()  # .item
-    item_b = MDR._concept.objects.visible(request.user).filter(pk=item_b).first()  # .item
+    item_a = MDR._concept.objects.visible(request.user).get(pk=item_a_pk)
+    item_b = MDR._concept.objects.visible(request.user).get(pk=item_b_pk)
     context = {"item_a": item_a, "item_b": item_b}
 
     request.GET = request.GET.copy()
@@ -99,5 +97,4 @@ def compare_concepts(request, obj_type=None):
                 "only_b": only_b,
             })
     context.update({"form": form})
-    # comparison = {'a': compare_data_a, 'b': compare_data_b}
     return render(request, "aristotle_mdr/actions/compare/compare_items.html", context)
