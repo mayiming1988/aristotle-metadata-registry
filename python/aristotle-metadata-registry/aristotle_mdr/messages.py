@@ -250,14 +250,20 @@ def workgroup_item_updated(recipient, obj):
 @notif_accepted_email
 @notif_accepted_within_aristotle
 def favourite_updated(recipient, obj):
-    notify.send(obj, recipient=recipient, verb="(favourite item) has been updated in the workgroup", target=obj.workgroup)
+    if obj.workgroup is not None:
+        notify.send(obj, recipient=recipient, verb="(favourite item) has been updated in the workgroup", target=obj.workgroup)
+    else:
+        notify.send(obj, recipient=recipient, verb="(favourite item) has been updated.")
 
 
 @notif_general_changes_items_i_can_edit
 @notif_accepted_email
 @notif_accepted_within_aristotle
 def items_i_can_edit_updated(recipient, obj):
-    notify.send(obj, recipient=recipient, verb="(editable item) has been updated in the workgroup", target=obj.workgroup)
+    if obj.workgroup is not None:
+        notify.send(obj, recipient=recipient, verb="(editable item) has been updated in the workgroup", target=obj.workgroup)
+    else:
+        notify.send(obj, recipient=recipient, verb="(editable item) has been updated.")
 
 
 @notif_superseded_workgroups
@@ -271,14 +277,21 @@ def workgroup_item_superseded(recipient, obj):
 @notif_accepted_email
 @notif_accepted_within_aristotle
 def favourite_superseded(recipient, obj):
-    notify.send(obj, recipient=recipient, verb="(favourite item) has been superseded in the workgroup", target=obj.workgroup)
+    if obj.workgroup is not None:
+        notify.send(obj, recipient=recipient, verb="(favourite item) has been superseded in the workgroup", target=obj.workgroup)
+    else:
+        notify.send(obj, recipient=recipient, verb="(favourite item) has been superseded.")
 
 
 @notif_superseded_i_can_edit
 @notif_accepted_email
 @notif_accepted_within_aristotle
 def items_i_can_edit_superseded(recipient, obj):
-    notify.send(obj, recipient=recipient, verb="(editable item) has been superseded in the workgroup", target=obj.workgroup)
+    if obj.workgroup is not None:
+        notify.send(obj, recipient=recipient, verb="(editable item) has been superseded in the workgroup",
+                    target=obj.workgroup)
+    else:
+        notify.send(obj, recipient=recipient, verb="(editable item) has been superseded.")
 
 
 @notif_new_items_in_my_workgroups
@@ -370,7 +383,10 @@ def issue_comment_created_items_i_can_edit(recipient, obj):
 @notif_accepted_within_aristotle
 def new_post_created(recipient, post):
     if post.author:
-        notify.send(post, recipient=recipient, verb="(discussion) has been created in the workgroup:", target=post.workgroup)
+        if post.workgroup is not None:
+            notify.send(post, recipient=recipient, verb="(discussion) has been created in the workgroup:", target=post.workgroup)
+        else:
+            notify.send(post, recipient=recipient, verb="(discussion) has been created.")
 
 
 @notif_discussions_new_comments
