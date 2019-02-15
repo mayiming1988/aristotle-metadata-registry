@@ -9,8 +9,12 @@ def forward_add_root_item(apps, schema_editor):
     link_model = apps.get_model('aristotle_mdr_links', 'Link')
     for link in link_model.objects.all():
         first_le = link.linkend_set.order_by('created').select_related('concept').first()
-        link.root_item = first_le.concept
-        link.save()
+        if first_le:
+            link.root_item = first_le.concept
+            link.save()
+        else:
+            # If the link has no ends we can just delete it
+            link.delete()
 
 
 def backward_add_root_item(apps, schema_editor):
