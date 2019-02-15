@@ -17,6 +17,9 @@ from reversion_compare.views import HistoryCompareDetailView
 import reversion
 from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class VersionField:
     """
@@ -496,11 +499,24 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         return action_list
 
     def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context['item'] = context['object'].item
-        context['activetab'] = 'history'
-        context['hide_item_actions'] = True
+        context = {
+            'activetab': 'history',
+            'hide_item_actions': True
+        }
 
+        try:
+            context.update(super().get_context_data(*args, **kwargs))
+        except reversion.errors.RevertError:
+            # There was a deserialization error
+            # Return context so we can show user error message
+            logger.error('Reversion deserialization error')
+            context['object'] = self.get_object()
+            context['item'] = context['object']
+            context['failed'] = True
+            return context
+
+        context['failed'] = False
+        context['item'] = context['object'].item
         try:
             version_publishing = self.get_object().versionpublicationrecord
         except:
