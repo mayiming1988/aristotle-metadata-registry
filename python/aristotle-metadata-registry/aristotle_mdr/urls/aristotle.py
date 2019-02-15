@@ -139,7 +139,7 @@ urlpatterns=[
 
     url(r'^action/bulkaction/?$', views.bulk_actions.BulkAction.as_view(), name='bulk_action'),
     url(r'^action/bulkaction/state/?$', views.bulk_actions.ChangeStatusBulkActionView.as_view(), name='change_state_bulk_action'),
-    url(r'^action/compare/?$', views.comparator.compare_concepts, name='compare_concepts'),
+    url(r'^action/compare/?$', views.comparator.CompareConceptsView.as_view(), name='compare_concepts'),
 
     url(r'^action/changestatus/(?P<iid>\d+)$', views.ChangeStatusView.as_view(), name='changeStatus'),
     # url(r'^remove/WorkgroupUser/(?P<iid>\d+)/(?P<userid>\d+)$', views.removeWorkgroupUser, name='removeWorkgroupUser'),

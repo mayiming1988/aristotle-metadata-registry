@@ -7,6 +7,7 @@ from django.test import TestCase, override_settings, tag, RequestFactory
 from django.urls import reverse
 from django.utils import timezone
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.messages import get_messages
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
@@ -665,10 +666,22 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         last_version.serialized_data = '{"""}{,,}}}}'
         last_version.save()
 
+        self.login_editor()
         response = self.client.get(
             reverse('aristotle:item_version', args=[last_version.id])
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(
+            response,
+            reverse('aristotle:item_history', args=[self.item.id])
+        )
+        messages = get_messages(response.wsgi_request)
+        self.assertEqual(len(messages), 2)
+
+        messages = iter(messages)
+        first_message = next(messages)
+        second_message = next(messages)
+        self.assertEqual(first_message.message, 'You have been logged out')
+        self.assertEqual(second_message.message, 'Version could not be loaded')
 
     def test_comparitor_with_bad_version_data(self):
         versions = self.create_versions()

@@ -1,7 +1,8 @@
 from django.apps import apps
-from django.http import Http404
+from django.http import Http404, HttpResponseRedirect
 from django.core.exceptions import PermissionDenied
 from django.contrib.contenttypes.models import ContentType
+from django.contrib import messages
 from django.db.models import Q
 from django.utils.dateparse import parse_datetime
 from django.urls import reverse
@@ -354,11 +355,34 @@ class ConceptVersionView(ConceptRenderView):
         # Dict mapping model -> id -> object
         self.fetched_objects = {}
 
-        exists = self.get_version()
+        try:
+            exists = self.get_version()
+        except json.JSONDecodeError:
+            # Handle invalid json
+            return self.invalid_version(request, *args, **kwargs)
+
         if not exists:
             raise Http404
 
         return super().dispatch(request, *args, **kwargs)
+
+    def invalid_version(self, request, *args, **kwargs):
+        # What to do when the version could not be deserialized
+        logger.error('Version could not be loaded')
+        try:
+            version = reversion.models.Version.objects.get(id=self.kwargs[self.version_arg])
+        except reversion.models.Version.DoesNotExist:
+            raise Http404
+
+        current = version.object
+        if not self.check_item(current):
+            raise PermissionDenied
+
+        messages.warning(request, 'Version could not be loaded')
+
+        return HttpResponseRedirect(
+            reverse('aristotle:item_history', args=[current.id])
+        )
 
     def get_version_context_data(self):
         # Get the context data for this complete version
