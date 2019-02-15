@@ -407,7 +407,10 @@ def get_status_change_details(queryset, ra, new_state):
     statuses = statuses.valid().order_by("-registrationDate", "-created")
 
     # new_state_num = static_content['new_state']
-    new_state_text = str(STATES[new_state])
+    if new_state:
+        new_state_text = str(STATES[new_state])
+    else:
+        new_state_text = 'Unchanged'
 
     # Build a dict mapping concepts to their status data
     # So that no additional status queries need to be made
@@ -444,7 +447,7 @@ def get_status_change_details(queryset, ra, new_state):
                 'old_reg_date': state_info['reg_date']
             }
             innerdict['old_reg_date'] = state_info['reg_date']
-            if state_info['state'] >= new_state:
+            if new_state and state_info['state'] >= new_state:
                 innerdict['has_higher_status'] = True
                 any_have_higher_status = True
 
