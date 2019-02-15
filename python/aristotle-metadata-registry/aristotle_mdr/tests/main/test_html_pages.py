@@ -138,6 +138,18 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             concept=self.item
         )
 
+    def create_versions(self):
+        with reversion.create_revision():
+            self.item.definition = 'New Definition'
+            self.item.save()
+
+        with reversion.create_revision():
+            self.item.definition = 'Even newer Definition'
+            self.item.save()
+
+        versions = reversion.models.Version.objects.get_for_object(self.item)
+        return versions
+
     def test_itempage_full_url(self):
         self.login_editor()
         full_url = url_slugify_concept(self.item)
@@ -627,6 +639,58 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             reverse_args=[55555]
         )
         self.assertEqual(response.status_code, 404)
+
+    def test_history_compare_with_bad_version_data(self):
+        versions = self.create_versions()
+        # Mangle the last versions serialized data
+        first_version = versions.first()
+        last_version = versions.order_by('-revision__date_created').first()
+        last_version.serialized_data = '{"""}{,,}}}}'
+        last_version.save()
+
+        qparams = '?version_id1={}&version_id2={}'.format(first_version.id, last_version.id)
+
+        self.login_editor()
+        response = self.client.get(
+            reverse('aristotle:item_history', args=[self.item.id]) + qparams
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['failed'])
+        self.assertContains(response, 'Those versions could not be compared')
+
+    def test_view_item_version_with_bad_data(self):
+        versions = self.create_versions()
+        # Mangle the last versions serialized data
+        last_version = versions.order_by('-revision__date_created').first()
+        last_version.serialized_data = '{"""}{,,}}}}'
+        last_version.save()
+
+        response = self.client.get(
+            reverse('aristotle:item_version', args=[last_version.id])
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_comparitor_with_bad_version_data(self):
+        versions = self.create_versions()
+        # Mangle the last versions serialized data
+        last_version = versions.order_by('-revision__date_created').first()
+        last_version.serialized_data = '{"""}{,,}}}}'
+        last_version.save()
+
+        # Create second item for compare
+        with reversion.create_revision():
+            item2 = models.ObjectClass.objects.create(
+                name='Second',
+                definition='Second',
+                submitter=self.editor
+            )
+        qparams = '?item_a={}&item_b={}'.format(self.item.id, item2.id)
+
+        self.login_editor()
+        response = self.client.get(
+            reverse('aristotle:compare_concepts') + qparams
+        )
+        self.assertEqual(response.status_code, 200)
 
 
 # These are run by all item types
