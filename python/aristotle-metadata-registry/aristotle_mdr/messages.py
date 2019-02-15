@@ -1,7 +1,6 @@
 from notifications.signals import notify
 from aristotle_bg_workers.tasks import send_notification_email
 from functools import wraps
-import json
 import logging
 logger = logging.getLogger(__name__)
 
@@ -39,15 +38,15 @@ def notif_accepted_email(func):
             elif func.__name__ == "issue_created_workgroup":
                 message = "A new issue was created on the item " + kwargs['obj'].item.name
             elif func.__name__ == "issue_comment_created_workgroup":
-                message = "A new comment on an issue has been created"  # I HAVE TO REVIEW THIS ONE.
+                message = "A new comment on an issue has been created"
             elif func.__name__ == "issue_created_favourite":
-                message = "An issue has been created on a favourite item"  # CHECK
+                message = "An issue has been created on a favourite item"
             elif func.__name__ == "issue_comment_created_favourite":
-                message = "A new comment has been created for an issue of a favourite item."  # CHECK
+                message = "A new comment has been created for an issue of a favourite item."
             elif func.__name__ == "issue_created_items_i_can_edit":
                 message = "A new issue has been created on an item you can edit."
             elif func.__name__ == "issue_comment_created_items_i_can_edit":
-                message = "A new comment has been created for an issue you can edit"  # CHECK
+                message = "A new comment has been created for an issue you can edit"
             elif func.__name__ == "new_post_created":
                 message = kwargs['post'].author + " made a new post"
             elif func.__name__ == "new_comment_created":
@@ -121,9 +120,6 @@ def notif_superseded_i_can_edit(func):
     Notification Permissions for this user."""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        logger.critical("THIS IS THE OUTPUT:")
-        logger.critical((kwargs['recipient'].profile.notificationPermissions))
-        logger.critical(type(kwargs['recipient'].profile.notificationPermissions))
         if kwargs['recipient'].profile.notificationPermissions["metadata changes"]["superseded"]["any items I can edit"]:
             return func(*args, **kwargs)
     return wrapper
@@ -304,22 +300,24 @@ def workgroup_item_new(recipient, obj):
 @notif_registrar_item_superseded
 @notif_accepted_email
 @notif_accepted_within_aristotle
-def registrar_item_superseded(recipient, obj):
-    notify.send(obj, recipient=recipient, verb="(item registered by your registration authority) has been superseded:", target=obj)
+def registrar_item_superseded(recipient, obj, ra):
+    notify.send(obj, recipient=recipient, verb="(item registered by " + ra.name + ") has been superseded.")
 
 
 @notif_registrar_item_registered
 @notif_accepted_email
 @notif_accepted_within_aristotle
-def registrar_item_registered(recipient, obj):
-    notify.send(obj, recipient=recipient, verb="has been registered by your registration authority:", target=obj)
+def registrar_item_registered(recipient, obj, ra, status):
+    notify.send(obj, recipient=recipient, verb="has been registered by " + ra.name + " with the status '" + status + "'.")
 
 
 @notif_registrar_item_changed_status
 @notif_accepted_email
 @notif_accepted_within_aristotle
-def registrar_item_changed_status(recipient, obj):
-    notify.send(obj, recipient=recipient, verb="(item registered by your registration authority) has changed status:", target=obj)
+def registrar_item_changed_status(recipient, obj, ra, status):
+    logger.critical("THIS IS THE STATUS:")
+    logger.critical(status)
+    notify.send(obj, recipient=recipient, verb="(item registered by " + ra.name + ") has changed its status to '" + status + "'." )
 
 
 @notif_registrar_review_request_created
