@@ -317,7 +317,7 @@ def registrar_item_registered(recipient, obj, ra, status):
 def registrar_item_changed_status(recipient, obj, ra, status):
     logger.critical("THIS IS THE STATUS:")
     logger.critical(status)
-    notify.send(obj, recipient=recipient, verb="(item registered by " + ra.name + ") has changed its status to '" + status + "'." )
+    notify.send(obj, recipient=recipient, verb="(item registered by " + ra.name + ") has changed its status to '" + status + "'.")
 
 
 @notif_registrar_review_request_created
