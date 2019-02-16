@@ -8,6 +8,7 @@ from django.test import TestCase, tag
 from django.apps import apps as current_apps
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from unittest import skip
 
 
 class TestUtils(TestCase):
@@ -238,6 +239,7 @@ class TestRaActiveMigration(MigrationsTestCase, TestCase):
         self.assertEqual(inactivera.new_active, RA_ACTIVE_CHOICES.inactive)
 
 
+@skip("Field added to Possum Profile (Notification Permissions).")
 class TestSupersedingMigration(MigrationsTestCase, TestCase):
 
     migrate_from = '0042_remove_possumprofile_favourites'

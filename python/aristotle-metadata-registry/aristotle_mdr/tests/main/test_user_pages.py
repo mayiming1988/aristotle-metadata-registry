@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.core import mail
 
 import aristotle_mdr.tests.utils as utils
-from aristotle_bg_workers.tasks import send_notification_emails
+from aristotle_bg_workers.tasks import send_sandbox_notification_emails
 from aristotle_mdr import models
 import datetime, json, os, ast
 
@@ -531,7 +531,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
     @tag('share_link')
     def test_send_emails_for_new_email_addresses(self):
         share = self.create_content_and_share(self.editor, ['vicky@example.com'])
-        send_notification_emails(ast.literal_eval(share.emails), self.editor.email, str(share.uuid))
+        send_sandbox_notification_emails(ast.literal_eval(share.emails), self.editor.email, str(share.uuid))
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].subject, 'Sandbox Access')
         self.assertEqual(mail.outbox[0].from_email, self.editor.email)

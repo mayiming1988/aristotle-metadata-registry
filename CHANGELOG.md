@@ -7,6 +7,9 @@ Changelog
       - Workgroups, Registration Authorities and Organisations (now Organisation Records)
         all exist within Submitting Organisations
 
+    - Minor UI Fixes:
+      - Canceling out of editing profile returns to the user profile
+
 - 2.2.0
   - Aristotle MDR core
     - Fixed bug where Workgroups showed incorrectly in dropdowns #901

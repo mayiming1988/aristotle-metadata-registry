@@ -127,7 +127,7 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
                 'files': files,
                 'prefix': self.get_form_prefix(step, self.form_list[step]),
                 'initial': self.get_cleaned_data_for_step('initial'),
-                'check_similar': len(similar)>0 or len(duplicates)>0
+                'check_similar': len(similar) > 0 or len(duplicates) > 0
             })
             return MDRForms.wizards.subclassed_wizard_2_Results(self.model)(**kwargs)
         return super().get_form(step, data, files)

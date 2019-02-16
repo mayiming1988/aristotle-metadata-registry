@@ -1,13 +1,13 @@
 {% load i18n util_tags link_tags %}
 
 <div>
-<h2>Relationships</h2>
-<p>
-    Click on the name of any relationship to learn more about the different roles available for links
-    that implement these relations.
-</p>
-<table class="table">
-    <thead>
+    <h2>Relationships</h2>
+    <p>
+        Click on the name of any relationship to learn more about the different roles available for links
+        that implement these relations.
+    </p>
+    <table class="table">
+        <thead>
         <tr>
             <th>
                 {% trans 'Relationship' %}
@@ -20,46 +20,46 @@
             </th>
             <td><span class='sr-only'>Actions</span></td>
         </tr>
-    </thead>
+        </thead>
         {% for link in links %}
-        <tbody>
+            <tbody>
             {% for e in link.linkend_set.all %}
-            <tr>
-                {% with linkend_count=link.linkend_set|length %}
-                {% if forloop.first %}
-                <td rowspan="{{ linkend_count }}">
-                    <a href="{% url 'aristotle:item' e.link.relation.id %}">{{ e.link.relation.name }}</a>
-                    <div>
-                        {{ e.link.relation.definition|striptags }}
-                    </div>
-                </td>
-                {% endif %}
-                <td title="{{e.role.definition}}">
-                    <a href="{% url 'aristotle:item' e.link.relation.id %}#role_{{e.role.pk}}">{{ e.role.name }}</a>
-                </td>
-                <td>
-                    {% if e.concept.concept == item.concept %}
-                        <strong class="active_link" title="">{{ e.concept.name }}</strong>
-                    {% else %}
-                        <a href="{% url 'aristotle:item' e.concept.id %}">{{ e.concept.name }}</a>
-                    {% endif %}
-                </td>
-                {% if forloop.first %}
-                <td rowspan="{{ linkend_count }}">
-                    {% if request.user|can_edit_link:link %}
-                    <a href="{% url 'aristotle_mdr_links:edit_link' link.pk %}?next={{item.get_absolute_url}}">
-                        <span>Edit link</span>
-                        <i class="fa fa-pencil"></i>
-                    </a>
-                    {% endif %}
-                </td>
-                {% endif %}
-                {% endwith %}
-            </tr>
+                <tr>
+                    {% with linkend_count=link.linkend_set|length %}
+                        {% if forloop.first %}
+                            <td rowspan="{{ linkend_count }}">
+                                <a href="{% url 'aristotle:item' e.link.relation.id %}">{{ e.link.relation.name }}</a>
+                                <div>
+                                    {{ e.link.relation.definition|striptags }}
+                                </div>
+                            </td>
+                        {% endif %}
+                        <td title="{{e.role.definition}}">
+                            <a href="{% url 'aristotle:item' e.link.relation.id %}#role_{{e.role.pk}}">{{ e.role.name }}</a>
+                        </td>
+                        <td>
+                            {% if e.concept.concept == item.concept %}
+                                <strong class="active_link" title="">{{ e.concept.name }}</strong>
+                            {% else %}
+                                <a href="{% url 'aristotle:item' e.concept.id %}">{{ e.concept.name }}</a>
+                            {% endif %}
+                        </td>
+                        {% if forloop.first %}
+                            <td rowspan="{{ linkend_count }}">
+                                {% if request.user|can_edit_link:link %}
+                                    <a href="{% url 'aristotle_mdr_links:edit_link' link.pk %}?next={{item.get_absolute_url}}">
+                                        <span>Edit link</span>
+                                        <i class="fa fa-pencil"></i>
+                                    </a>
+                                {% endif %}
+                            </td>
+                        {% endif %}
+                    {% endwith %}
+                </tr>
             {% endfor %}
-        </tbody>
+            </tbody>
         {% endfor %}
-</table>
+    </table>
 </div>
 
 <links-display url="{% url 'aristotle_mdr_links:link_json_for_item' iid=item.id %}">

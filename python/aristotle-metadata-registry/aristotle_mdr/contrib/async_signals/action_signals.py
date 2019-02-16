@@ -8,9 +8,9 @@ def review_request_created(message, **kwargs):
 
     for ra in registration_authorities:
         for registrar in ra.registrars.all():
-            messages.review_request_created(review_request, review_request.requester, registrar)
+            messages.review_request_created(recipient=registrar, obj=review_request.requester, target=review_request)
 
 
 def review_request_updated(message, **kwargs):
     review_request = safe_object(message)
-    messages.review_request_updated(review_request, review_request.requester, review_request.reviewer)
+    messages.review_request_updated(recipient=review_request.requester, obj=review_request, target=review_request)
