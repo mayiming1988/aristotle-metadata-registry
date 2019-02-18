@@ -474,3 +474,12 @@ def format_seconds(seconds: int) -> str:
     if rseconds > 0:
         strings.append('{} seconds'.format(rseconds))
     return ', '.join(strings)
+
+
+def is_postgres() -> bool:
+    """
+    Checks wether the default database connection is to a postgres
+    Should be used before and postgres specific queries
+    """
+    from django.db import connection
+    return connection.vendor == 'postgresql'

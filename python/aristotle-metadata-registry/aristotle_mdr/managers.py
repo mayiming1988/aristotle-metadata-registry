@@ -6,6 +6,7 @@ from aristotle_mdr.utils import fetch_aristotle_settings
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
 from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
+from aristotle_mdr.utils.utils import is_postgres
 
 
 class UUIDManager(models.Manager):
@@ -95,6 +96,8 @@ class ConceptQuerySet(MetadataItemQuerySet):
         if not need_distinct:
             return self.filter(q)
         else:
+            if is_postgres():
+                return self.filter(q).distinct('id')
             return self.filter(q).distinct()
 
     def editable(self, user):
