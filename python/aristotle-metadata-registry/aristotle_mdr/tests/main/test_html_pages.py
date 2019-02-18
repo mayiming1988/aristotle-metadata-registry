@@ -7,6 +7,7 @@ from django.test import TestCase, override_settings, tag, RequestFactory
 from django.urls import reverse
 from django.utils import timezone
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.messages import get_messages
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
@@ -137,6 +138,18 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             content='Workgroup Value',
             concept=self.item
         )
+
+    def create_versions(self):
+        with reversion.create_revision():
+            self.item.definition = 'New Definition'
+            self.item.save()
+
+        with reversion.create_revision():
+            self.item.definition = 'Even newer Definition'
+            self.item.save()
+
+        versions = reversion.models.Version.objects.get_for_object(self.item)
+        return versions
 
     def test_itempage_full_url(self):
         self.login_editor()
@@ -384,7 +397,6 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     @tag('version')
     def test_display_version_concept_info(self):
-
         self.item.references = '<p>refs</p>'
         self.item.responsible_organisation = 'My org'
 
@@ -408,6 +420,18 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertFalse(names_and_refs['Responsible Organisation'].is_link)
         self.assertFalse(names_and_refs['Responsible Organisation'].is_html)
         self.assertEqual(names_and_refs['Responsible Organisation'].value, 'My org')
+
+    def test_display_item_histroy_without_wg(self):
+        self.item.workgroup = None
+        with reversion.create_revision():
+            self.item.save()
+
+        self.login_superuser()
+        response = self.reverse_get(
+            'aristotle:item_history',
+            reverse_args=[self.item.id],
+        )
+        self.assertEqual(response.status_code, 200)
 
     @tag('item_app_check')
     def test_viewing_item_with_disabled_app(self):
@@ -518,7 +542,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         )
 
         postdata = utils.model_to_dict_with_change_time(self.item)
-        postdata['custom_MyCustomField'] = 4
+        postdata[cf.form_field_name] = 4
         response = self.reverse_post(
             'aristotle:edit_item',
             postdata,
@@ -556,8 +580,8 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             status_code=200
         )
         initial = response.context['form'].initial
-        self.assertTrue('custom_MyCustomField' in initial)
-        self.assertEqual(initial['custom_MyCustomField'], '4')
+        self.assertTrue(cf.form_field_name in initial)
+        self.assertEqual(initial[cf.form_field_name], '4')
 
     def get_custom_values_for_user(self, user):
         """Util function used for the following 3 tests"""
@@ -592,6 +616,94 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(cvs[0].content, 'All Value')
         self.assertEqual(cvs[1].content, 'Auth Value')
         self.assertEqual(cvs[2].content, 'Workgroup Value')
+
+    @tag('nonwg')
+    def test_add_wg_to_non_wg_item(self):
+        self.item.workgroup = None
+        self.item.save()
+
+        updated_item = utils.model_to_dict_with_change_time(self.item)
+        updated_item['workgroup'] = str(self.wg1.id)
+
+        self.login_editor()
+        response = self.client.post(
+            reverse('aristotle:edit_item', args=[self.item.id]),
+            updated_item
+        )
+        self.assertEqual(response.status_code, 302)
+        updated = models.ObjectClass.objects.get(id=self.item.id)
+        self.assertEqual(updated.workgroup, self.wg1)
+
+    def test_non_existant_item_404(self):
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[55555]
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_history_compare_with_bad_version_data(self):
+        versions = self.create_versions()
+        # Mangle the last versions serialized data
+        first_version = versions.first()
+        last_version = versions.order_by('-revision__date_created').first()
+        last_version.serialized_data = '{"""}{,,}}}}'
+        last_version.save()
+
+        qparams = '?version_id1={}&version_id2={}'.format(first_version.id, last_version.id)
+
+        self.login_editor()
+        response = self.client.get(
+            reverse('aristotle:item_history', args=[self.item.id]) + qparams
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['failed'])
+        self.assertContains(response, 'Those versions could not be compared')
+
+    def test_view_item_version_with_bad_data(self):
+        versions = self.create_versions()
+        # Mangle the last versions serialized data
+        last_version = versions.order_by('-revision__date_created').first()
+        last_version.serialized_data = '{"""}{,,}}}}'
+        last_version.save()
+
+        self.login_editor()
+        response = self.client.get(
+            reverse('aristotle:item_version', args=[last_version.id])
+        )
+        self.assertRedirects(
+            response,
+            reverse('aristotle:item_history', args=[self.item.id])
+        )
+        messages = get_messages(response.wsgi_request)
+        self.assertEqual(len(messages), 2)
+
+        messages = iter(messages)
+        first_message = next(messages)
+        second_message = next(messages)
+        self.assertEqual(first_message.message, 'You have been logged out')
+        self.assertEqual(second_message.message, 'Version could not be loaded')
+
+    def test_comparitor_with_bad_version_data(self):
+        versions = self.create_versions()
+        # Mangle the last versions serialized data
+        last_version = versions.order_by('-revision__date_created').first()
+        last_version.serialized_data = '{"""}{,,}}}}'
+        last_version.save()
+
+        # Create second item for compare
+        with reversion.create_revision():
+            item2 = models.ObjectClass.objects.create(
+                name='Second',
+                definition='Second',
+                submitter=self.editor
+            )
+        qparams = '?item_a={}&item_b={}'.format(self.item.id, item2.id)
+
+        self.login_editor()
+        response = self.client.get(
+            reverse('aristotle:compare_concepts') + qparams
+        )
+        self.assertEqual(response.status_code, 200)
 
 
 # These are run by all item types
@@ -975,7 +1087,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
         # Submitter is logged in, tries to move item - fails because
         self.assertFalse(perms.user_can_remove_from_workgroup(self.editor,self.item1.workgroup))
-        self.assertTrue(form.errors['workgroup'][0] == WorkgroupVerificationMixin.cant_move_any_permission_error)
+        self.assertTrue(form.errors['workgroup'][0] == WorkgroupVerificationMixin.cant_move_from_permission_error)
 
         updated_item['workgroup'] = str(self.wg2.pk)
         response = self.client.post(reverse('aristotle:edit_item',args=[self.item1.id]), updated_item)
@@ -1056,7 +1168,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
         form = response.context['form']
         # Submitter can't move because they aren't a manager of any workgroups.
-        self.assertTrue(form.errors['workgroup'][0] == WorkgroupVerificationMixin.cant_move_any_permission_error)
+        self.assertTrue(form.errors['workgroup'][0] == WorkgroupVerificationMixin.cant_move_from_permission_error)
 
         self.wg_other.managers.add(self.editor)
 

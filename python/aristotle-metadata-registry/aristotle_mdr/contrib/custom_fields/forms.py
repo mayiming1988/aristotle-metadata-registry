@@ -47,27 +47,24 @@ class CustomValueFormMixin:
 
     def __init__(self, custom_fields: Iterable[CustomField] = [], **kwargs):
         super().__init__(**kwargs)  # type: ignore
-        self.cfields = {'custom_{}'.format(cf.name): cf for cf in custom_fields}
-        self.custom_field_names = []
-        for custom_field in self.cfields.values():
+        self.cfields = {cf.form_field_name: cf for cf in custom_fields}
+        for custom_fname, custom_field in self.cfields.items():
             field = type_field_mapping[custom_field.type]
             field_class = field['field']
             field_default_args = field.get('args', {})
-            custom_fname = 'custom_{}'.format(custom_field.name)
             self.fields[custom_fname] = field_class(
                 required=False,
                 label=custom_field.name,
                 help_text=custom_field.help_text,
                 **field_default_args
             )
-            self.custom_field_names.append(custom_fname)
 
     @property
     def custom_fields(self) -> List:
-        return [self[fname] for fname in self.custom_field_names]  # type: ignore
+        return [self[fname] for fname in self.cfields.keys()]  # type: ignore
 
     def save_custom_fields(self, concept: _concept) -> _concept:
-        for fname in self.custom_field_names:
+        for fname in self.cfields.keys():
             data = self.cleaned_data[fname]
             if fname in self.cfields:
                 field = self.cfields[fname]

@@ -113,6 +113,7 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.slots_active = is_active_module('aristotle_mdr.contrib.slots')
 
     def get_form(self, step=None, data=None, files=None):
         if step is None:  # pragma: no cover
@@ -135,17 +136,17 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
     def get_extra_formsets(self, item=None, postdata=None):
         extra_formsets = super().get_extra_formsets(item, postdata)
 
-        slots_formset = self.get_slots_formset()(
-            queryset=Slot.objects.none(),
-            data=postdata
-        )
-
-        extra_formsets.append({
-            'formset': slots_formset,
-            'title': 'Slots',
-            'type': 'slot',
-            'saveargs': None
-        })
+        if self.slots_active:
+            slots_formset = self.get_slots_formset()(
+                queryset=Slot.objects.none(),
+                data=postdata
+            )
+            extra_formsets.append({
+                'formset': slots_formset,
+                'title': 'Slots',
+                'type': 'slot',
+                'saveargs': None
+            })
 
         return extra_formsets
 

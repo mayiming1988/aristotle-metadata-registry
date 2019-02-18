@@ -259,39 +259,41 @@ class TokenSearchForm(FacetedSearchForm):
             if ":" in word:
                 opt, arg = word.split(":", 1)
 
-                if opt in self.token_shortnames:
-                    opt = self.token_shortnames[opt]
+                # Make sure arg isnt blank
+                if arg:
+                    if opt in self.token_shortnames:
+                        opt = self.token_shortnames[opt]
 
-                if opt in opts and opt in self.allowed_tokens:
-                    clean_arguments_func = getattr(self, "process_%s" % opt, None)
-                    if not clean_arguments_func:
-                        kwargs[str(opt)]=arg
-                    else:
-                        # if we have a processor, run that.
-                        clean_value = clean_arguments_func(arg)
-                        if type(clean_value) is list:
-                            kwargs["%s__in" % str(opt)] = clean_value
-                        elif clean_value is not None:
-                            kwargs[str(opt)] = clean_value
-                elif opt == "type":
-                    # we'll allow these through and assume they meant content type
+                    if opt in opts and opt in self.allowed_tokens:
+                        clean_arguments_func = getattr(self, "process_%s" % opt, None)
+                        if not clean_arguments_func:
+                            kwargs[str(opt)]=arg
+                        else:
+                            # if we have a processor, run that.
+                            clean_value = clean_arguments_func(arg)
+                            if type(clean_value) is list:
+                                kwargs["%s__in" % str(opt)] = clean_value
+                            elif clean_value is not None:
+                                kwargs[str(opt)] = clean_value
+                    elif opt == "type":
+                        # we'll allow these through and assume they meant content type
 
-                    from django.contrib.contenttypes.models import ContentType
-                    arg = arg.lower().replace('_', '').replace('-', '')
-                    app_labels = fetch_metadata_apps()
-                    app_labels.append('aristotle_mdr_help')
-                    mods = ContentType.objects.filter(app_label__in=app_labels).all()
-                    for i in mods:
-                        if hasattr(i.model_class(), 'get_verbose_name'):
-                            model_short_code = "".join(
-                                map(
-                                    first_letter, i.model_class()._meta.verbose_name.split(" ")
-                                )
-                            ).lower()
-                            if arg == model_short_code:
+                        from django.contrib.contenttypes.models import ContentType
+                        arg = arg.lower().replace('_', '').replace('-', '')
+                        app_labels = fetch_metadata_apps()
+                        app_labels.append('aristotle_mdr_help')
+                        mods = ContentType.objects.filter(app_label__in=app_labels).all()
+                        for i in mods:
+                            if hasattr(i.model_class(), 'get_verbose_name'):
+                                model_short_code = "".join(
+                                    map(
+                                        first_letter, i.model_class()._meta.verbose_name.split(" ")
+                                    )
+                                ).lower()
+                                if arg == model_short_code:
+                                    token_models.append(i.model_class())
+                            if arg == i.model:
                                 token_models.append(i.model_class())
-                        if arg == i.model:
-                            token_models.append(i.model_class())
 
             else:
                 query_text.append(word)

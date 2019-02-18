@@ -138,7 +138,10 @@ class ConceptRenderView(TagsMixin, TemplateView):
                     model = rel.related_model
 
         if model is None:
-            model = type(MDR._concept.objects.get_subclass(id=itemid))
+            try:
+                model = type(MDR._concept.objects.get_subclass(id=itemid))
+            except ObjectDoesNotExist:
+                raise Http404
 
         return self.get_related(model)
 
@@ -175,7 +178,8 @@ class ConceptRenderView(TagsMixin, TemplateView):
 
     def check_item(self, item):
         # To be overwritten
-        return True
+        # Fail safely
+        return False
 
     def check_app(self, item):
         label = type(item)._meta.app_label
@@ -229,7 +233,7 @@ class ConceptRenderView(TagsMixin, TemplateView):
                 )
                 return HttpResponseRedirect(redirect_url)
             else:
-                return HttpResponseForbidden()
+                raise PermissionDenied
 
         from aristotle_mdr.contrib.view_history.signals import metadata_item_viewed
         metadata_item_viewed.send(sender=self.item, user=self.user.pk)
