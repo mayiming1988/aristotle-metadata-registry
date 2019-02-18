@@ -257,3 +257,15 @@ class StatusQuerySet(models.QuerySet):
             states = states.filter(pk__in=current_ids)
 
         return states.select_related('registrationAuthority')
+
+
+class SupersedesManager(models.Manager):
+
+    def get_queryset(self):
+        return super().get_queryset().filter(proposed=False)
+
+
+class ProposedSupersedesManager(models.Manager):
+
+    def get_queryset(self):
+        return super().get_queryset().filter(proposed=True)

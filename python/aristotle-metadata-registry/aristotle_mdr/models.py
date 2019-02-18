@@ -46,7 +46,8 @@ from .managers import (
     MetadataItemManager, ConceptManager,
     ReviewRequestQuerySet, WorkgroupQuerySet,
     RegistrationAuthorityQuerySet,
-    StatusQuerySet, UtilsManager
+    StatusQuerySet, UtilsManager,
+    SupersedesManager, ProposedSupersedesManager
 )
 
 import logging
@@ -902,6 +903,9 @@ class concept(_concept):
 
 
 class SupersedeRelationship(TimeStampedModel):
+    # Whether this relationship is proposed by a review,
+    # or an actual approved relation
+    proposed = models.BooleanField(default=False)
     older_item = ConceptForeignKey(
         _concept,
         related_name='superseded_by_items_relation_set',
@@ -917,6 +921,15 @@ class SupersedeRelationship(TimeStampedModel):
         help_text=_("The date the superseding relationship became effective."),
         blank=True, null=True
     )
+    review = ConceptForeignKey(
+        'aristotle_mdr_review_requests.ReviewRequest',
+        null=True,
+        default=None,
+        related_name='supersedes'
+    )
+
+    objects = SupersedesManager()  # Only non proposed relationships can be retrieved here
+    proposed_objects = ProposedSupersedesManager()  # Only proposed objects can be retrieved here
 
 
 REVIEW_STATES = Choices(
@@ -925,53 +938,6 @@ REVIEW_STATES = Choices(
     (10, 'accepted', _('Accepted')),
     (15, 'rejected', _('Rejected')),
 )
-
-
-class ReviewRequest(TimeStampedModel):
-    objects = ReviewRequestQuerySet.as_manager()
-    concepts = models.ManyToManyField(_concept, related_name="review_requests")
-    registration_authority = models.ForeignKey(
-        RegistrationAuthority,
-        help_text=_("The registration authority the requester wishes to endorse the metadata item")
-    )
-    requester = models.ForeignKey(settings.AUTH_USER_MODEL, help_text=_("The user requesting a review"),
-                                  related_name='requested_reviews')
-    message = models.TextField(blank=True, null=True, help_text=_(
-        "An optional message accompanying a request, this will accompany the approved registration status"))
-    reviewer = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, help_text=_("The user performing a review"),
-                                 related_name='reviewed_requests')
-    response = models.TextField(blank=True, null=True, help_text=_("An optional message responding to a request"))
-    status = models.IntegerField(
-        choices=REVIEW_STATES,
-        default=REVIEW_STATES.submitted,
-        help_text=_('Status of a review')
-    )
-    state = models.IntegerField(
-        choices=STATES,
-        help_text=_("The state at which a user wishes a metadata item to be endorsed")
-    )
-    registration_date = models.DateField(
-        _('Date registration effective'),
-        help_text=_("date and time you want the metadata to be registered from")
-    )
-    cascade_registration = models.IntegerField(
-        choices=[(0, _('No')), (1, _('Yes'))],
-        default=0,
-        help_text=_("Update the registration of associated items")
-    )
-
-    def get_absolute_url(self):
-        return reverse(
-            "aristotle:userReviewDetails",
-            kwargs={'review_id': self.pk}
-        )
-
-    def __str__(self):
-        return "Review of {count} items as {state} in {ra} registraion authority".format(
-            count=self.concepts.count(),
-            state=self.get_state_display(),
-            ra=self.registration_authority,
-        )
 
 
 class Status(TimeStampedModel):
@@ -1813,14 +1779,6 @@ def new_post_created(sender, **kwargs):
 @receiver(post_save, sender=Status)
 def states_changed(sender, instance, *args, **kwargs):
     fire("concept_changes.status_changed", obj=instance, **kwargs)
-
-
-@receiver(post_save, sender=ReviewRequest)
-def review_request_changed(sender, instance, *args, **kwargs):
-    if kwargs.get('created'):
-        fire("action_signals.review_request_created", obj=instance, **kwargs)
-    else:
-        fire("action_signals.review_request_updated", obj=instance, **kwargs)
 
 
 @receiver(post_save, sender=SupersedeRelationship)
