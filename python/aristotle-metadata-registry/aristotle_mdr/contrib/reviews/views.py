@@ -71,23 +71,21 @@ class ReviewActionMixin(UserFormViewMixin):
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
-        review = self.get_review()
-        if not perms.user_can_view_review(self.request.user, review):
+        self.review = self.get_review()
+        if not perms.user_can_view_review(self.request.user, self.review):
             raise PermissionDenied
         # if review.status != models.REVIEW_STATES.open:
         #     return HttpResponseRedirect(reverse('aristotle_reviews:userReviewDetails', args=[review.pk]))
         return super().dispatch(*args, **kwargs)
 
     def get_review(self):
-        self.review = get_object_or_404(models.ReviewRequest, pk=self.kwargs['review_id'])
-        return self.review
+        return get_object_or_404(models.ReviewRequest, pk=self.kwargs['review_id'])
 
     def get_context_data(self, *args, **kwargs):
         kwargs = super().get_context_data(*args, **kwargs)
-        review = self.get_review()
-        kwargs['review'] = review
-        kwargs['can_approve_review'] = perms.user_can_approve_review(self.request.user, review)
-        kwargs['can_open_close_review'] = perms.user_can_close_or_reopen_review(self.request.user, review)
+        kwargs['review'] = self.review
+        kwargs['can_approve_review'] = perms.user_can_approve_review(self.request.user, self.review)
+        kwargs['can_open_close_review'] = perms.user_can_close_or_reopen_review(self.request.user, self.review)
         if hasattr(self, "active_tab_name"):
             kwargs['active_tab'] = self.active_tab_name
         return kwargs
@@ -348,15 +346,22 @@ class ReviewImpactView(ReviewActionMixin, TemplateView):
         return context
 
 
-class ReviewSupersedesView(ReviewActionMixin, TemplateView):
+class ReviewSupersedesView(ReviewActionMixin, FormView):
     pk_url_kwarg = 'review_id'
     template_name = "aristotle_mdr/reviews/review/supersedes.html"
     context_object_name = "review"
     active_tab_name = "supersedes"
+    user_form = True
+    form_class = forms.ReviewRequestSupersedesForm
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         return context
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['review'] = self.review
+        return kwargs
 
 
 class ReviewValidationView(ReviewActionMixin, TemplateView):

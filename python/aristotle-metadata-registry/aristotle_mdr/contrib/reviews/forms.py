@@ -9,7 +9,10 @@ from aristotle_mdr.forms.forms import ChangeStatusGenericForm
 
 from aristotle_mdr.forms.bulk_actions import LoggedInBulkActionForm, RedirectBulkActionMixin
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
-from aristotle_mdr.contrib.autocomplete.widgets import ConceptAutocompleteSelectMultiple
+from aristotle_mdr.contrib.autocomplete.widgets import (
+    ConceptAutocompleteSelectMultiple,
+    ConceptAutocompleteSelect
+)
 
 from . import models
 
@@ -158,3 +161,17 @@ class RequestReviewBulkActionForm(RedirectBulkActionMixin, LoggedInBulkActionFor
             reverse("aristotle_reviews:review_create"),
             urlencode(params, True)
         )
+
+
+class ReviewRequestSupersedesForm(forms.Form):
+
+    def __init__(self, review, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for item in review.concepts.all().select_subclasses():
+            fname = '{id}_supersedes'.format(id=item.id)
+            flabel = '{name} supersedes'.format(name=item.name)
+            self.fields[fname] = forms.ModelChoiceField(
+                queryset=type(item).objects.visible(user),
+                widget=ConceptAutocompleteSelect(),
+                label=flabel
+            )
