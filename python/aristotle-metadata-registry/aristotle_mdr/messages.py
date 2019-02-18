@@ -1,8 +1,7 @@
 from notifications.signals import notify
 from aristotle_bg_workers.tasks import send_notification_email
 from functools import wraps
-import logging
-logger = logging.getLogger(__name__)
+from django.template.defaultfilters import pluralize
 
 
 def notif_accepted_email(func):
@@ -32,9 +31,9 @@ def notif_accepted_email(func):
             elif func.__name__ == "registrar_item_changed_status":
                 message = "An item registered by your registration authority has changed status: " + kwargs['obj'].name
             elif func.__name__ == "review_request_created":
-                message = kwargs['requester'].full_name + " requested concept review"
+                message = kwargs['obj'].requester.full_name + " requested concept review of concept(s) " + format_concepts(kwargs['concepts'])
             elif func.__name__ == "review_request_updated":
-                message = "concept was reviewed by " + kwargs['reviewer'].full_name
+                message = kwargs['obj'].requester.full_name + " updated concept review of concept(s) " + format_concepts(kwargs['concepts'])
             elif func.__name__ == "issue_created_workgroup":
                 message = "A new issue was created on the item " + kwargs['obj'].item.name
             elif func.__name__ == "issue_comment_created_workgroup":
@@ -315,23 +314,21 @@ def registrar_item_registered(recipient, obj, ra, status):
 @notif_accepted_email
 @notif_accepted_within_aristotle
 def registrar_item_changed_status(recipient, obj, ra, status):
-    logger.critical("THIS IS THE STATUS:")
-    logger.critical(status)
     notify.send(obj, recipient=recipient, verb="(item registered by " + ra.name + ") has changed its status to '" + status + "'.")
 
 
 @notif_registrar_review_request_created
 @notif_accepted_email
 @notif_accepted_within_aristotle
-def review_request_created(recipient, obj, target):
-    notify.send(obj, recipient=recipient, verb="requested concept review", target=target)
+def review_request_created(recipient, obj, concepts):
+    notify.send(obj, recipient=recipient, verb=obj.requester.full_name + " requested a review on the concept" + pluralize(concepts) + " " + format_concepts(concepts) + ".")
 
 
 @notif_registrar_review_request_updated
 @notif_accepted_email
 @notif_accepted_within_aristotle
-def review_request_updated(recipient, obj, target):
-    notify.send(obj, recipient=recipient, verb="concept was reviewed", target=target)
+def review_request_updated(recipient, obj, concepts):
+    notify.send(obj, recipient=recipient, verb=obj.requester.full_name + " updated a review request on the concept"+ pluralize(concepts) + " " + format_concepts(concepts) + ".")
 
 
 @notif_issues_items_in_my_workgroups
@@ -393,3 +390,15 @@ def new_post_created(recipient, post):
 def new_comment_created(recipient, comment):
     if comment.author:
         notify.send(comment, recipient=recipient, verb="(comment) has been created in the discussion:", target=comment.post)
+
+
+def rreplace(s, old, new, occurrance):
+    li = s.rsplit(old, occurrance)
+    return new.join(li)
+
+
+def format_concepts(concepts):
+    quoted_concepts = map((lambda x: "'" + x + "'"), concepts)
+    concepts_str = ', '.join(quoted_concepts)
+
+    return rreplace(concepts_str, ', ', ', and ', 1)

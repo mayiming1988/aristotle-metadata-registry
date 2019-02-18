@@ -1,9 +1,10 @@
 from django.conf import settings
 from django.db import models
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
+from django.template.defaultfilters import pluralize
 
 from model_utils.models import TimeStampedModel
 
@@ -19,9 +20,6 @@ from aristotle_mdr.managers import (
 )
 
 from .const import REVIEW_STATES
-
-import logging
-logger = logging.getLogger(__name__)
 
 
 class StatusMixin:
@@ -96,8 +94,9 @@ class ReviewRequest(StatusMixin, TimeStampedModel):
         )
 
     def __str__(self):
-        return "Review of {count} items in {ra} registraion authority".format(
+        return "Review of {count} item{item_pluralise} in {ra} registraion authority".format(
             count=self.concepts.count(),
+            item_pluralise=pluralize(self.concepts.count()),
             ra=self.registration_authority,
         )
 
@@ -190,11 +189,20 @@ class ReviewEndorsementTimeline(TimeStampedModel):
         return False
 
 
-@receiver(post_save, sender=ReviewRequest)
+it_has_been_created = False
+
+
+@receiver(m2m_changed, sender=ReviewRequest.concepts.through)
 def review_request_changed(sender, instance, *args, **kwargs):
-    if kwargs.get('created'):
+    global it_has_been_created
+    if it_has_been_created and instance.concepts.count() > 0:
         fire("action_signals.review_request_created", obj=instance, **kwargs)
-        logger.critical("1")
+
+
+@receiver(post_save, sender=ReviewRequest)
+def review_request_created(sender, instance, *args, **kwargs):
+    if kwargs.get('created'):
+        global it_has_been_created
+        it_has_been_created = True
     else:
-        logger.critical("2")
         fire("action_signals.review_request_updated", obj=instance, **kwargs)

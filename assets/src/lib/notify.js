@@ -50,12 +50,8 @@ function fill_aristotle_notification_menu(data) {
                 //     text = text + '\u2026'
                 // }
                 let element
-                if (item.target_object_id) {
-                    let target = '/notifyredirect/' + item.actor_content_type + '/' +item.actor_object_id
-                    element = make_dropdown_item(text, target)
-                } else {
-                    element = make_dropdown_item(text)
-                }
+                let target = '/notifyredirect/' + item.actor_content_type + '/' +item.actor_object_id
+                element = make_dropdown_item(text, target)
                 menu.append(element)
             }
 
