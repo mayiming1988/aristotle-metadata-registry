@@ -478,8 +478,8 @@ def format_seconds(seconds: int) -> str:
 
 def is_postgres() -> bool:
     """
-    Checks wether the default database connection is to a postgres
-    Should be used before and postgres specific queries
+    Checks whether the default database connection is to a postgres db
+    Should be used before any postgres specific queries
     """
     from django.db import connection
     return connection.vendor == 'postgresql'
