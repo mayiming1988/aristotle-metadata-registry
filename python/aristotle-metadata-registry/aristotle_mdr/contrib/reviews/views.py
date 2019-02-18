@@ -102,8 +102,7 @@ class ReviewDetailsView(ReviewActionMixin, DetailView):
         # Call the base implementation first to get a context
         context = super().get_context_data(*args, **kwargs)
         # context['next'] = self.request.GET.get('next', reverse('aristotle_reviews:userReadyForReview'))
-        review = self.get_review()
-        context['can_accept_review'] = review.status == models.REVIEW_STATES.open and perms.user_can_approve_review(self.request.user, self.get_review())
+        context['can_accept_review'] = self.review.status == models.REVIEW_STATES.open and perms.user_can_approve_review(self.request.user, self.review)
         return context
 
 
@@ -362,6 +361,26 @@ class ReviewSupersedesView(ReviewActionMixin, FormView):
         kwargs = super().get_form_kwargs()
         kwargs['review'] = self.review
         return kwargs
+
+    def form_valid(self, form):
+        # Delete existing proposed supersedes
+        MDR.SupersedeRelationship.proposed_objects.filter(review=self.review).delete()
+
+        supersedes = []
+        for fname, old_item in form.cleaned_data.items():
+            new_item_id = fname.split('_')[0]
+            supersede = SupersedeRelationship(
+                proposed=True,
+                newer_item_id=new_item_id,
+                older_item=old_item,
+                registration_authority=self.review.registration_authority,
+                review=self.review
+            )
+
+        MDR.SupersedeRelationship.objects.bulk_create(supersedes)
+        return HttpResponseRedirect(
+            reverse('aristotle_mdr_review_request:details', args=[self.review.id])
+        )
 
 
 class ReviewValidationView(ReviewActionMixin, TemplateView):
