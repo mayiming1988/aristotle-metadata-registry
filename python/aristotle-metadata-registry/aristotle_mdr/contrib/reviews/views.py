@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_string
+from django.forms import formset_factory
 # from django.views.generic import ListView, TemplateView, DeleteView
 from django.views.generic import (
     DetailView,
@@ -32,6 +33,7 @@ from aristotle_mdr.views.utils import (
     generate_visibility_matrix,
     paginated_list,
     UserFormViewMixin,
+    FormsetView
 )
 
 from . import models, forms
@@ -345,42 +347,24 @@ class ReviewImpactView(ReviewActionMixin, TemplateView):
         return context
 
 
-class ReviewSupersedesView(ReviewActionMixin, FormView):
+class ReviewSupersedesView(ReviewActionMixin, FormsetView):
     pk_url_kwarg = 'review_id'
     template_name = "aristotle_mdr/reviews/review/supersedes.html"
     context_object_name = "review"
     active_tab_name = "supersedes"
     user_form = True
-    form_class = forms.ReviewRequestSupersedesForm
 
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        return context
+    def get_formset_class(self):
+        return formset_factory(forms.ReviewRequestSupersedesForm, extra=0)
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['review'] = self.review
-        return kwargs
-
-    def form_valid(self, form):
-        # Delete existing proposed supersedes
-        MDR.SupersedeRelationship.proposed_objects.filter(review=self.review).delete()
-
-        supersedes = []
-        for fname, old_item in form.cleaned_data.items():
-            new_item_id = fname.split('_')[0]
-            supersede = SupersedeRelationship(
-                proposed=True,
-                newer_item_id=new_item_id,
-                older_item=old_item,
-                registration_authority=self.review.registration_authority,
-                review=self.review
-            )
-
-        MDR.SupersedeRelationship.objects.bulk_create(supersedes)
-        return HttpResponseRedirect(
-            reverse('aristotle_mdr_review_request:details', args=[self.review.id])
-        )
+    def get_formset_initial(self):
+        initial = []
+        for concept in self.review.concepts.all():
+            data = {
+                'older_item': concept.pk,
+            }
+            initial.append(data)
+        return initial
 
 
 class ReviewValidationView(ReviewActionMixin, TemplateView):

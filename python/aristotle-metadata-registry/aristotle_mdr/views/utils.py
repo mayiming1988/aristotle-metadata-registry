@@ -27,7 +27,7 @@ from django.core.exceptions import PermissionDenied
 
 from django.views.generic.detail import BaseDetailView
 from django.views.generic import (
-    DetailView, FormView, ListView
+    DetailView, FormView, ListView, TemplateView
 )
 
 from aristotle_mdr import models as MDR
@@ -596,4 +596,33 @@ class SimpleItemGet:
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['item'] = self.item.item
+        return context
+
+
+class FormsetView(TemplateView):
+    """
+    Generic View for handling formsets
+    Similar in structure to django's FormView
+    """
+
+    def get_formset_class(self):
+        raise NotImplementedError
+
+    def get_formset_initial(self):
+        return []
+
+    def get_formset_kwargs(self):
+        kwargs = {
+            'initial': self.get_formset_initial()
+        }
+        return kwargs
+
+    def get_formset(self):
+        formset_class = self.get_formset_class()
+        return formset_class(**self.get_formset_kwargs())
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        if 'formset' not in context:
+            context['formset'] = self.get_formset()
         return context

@@ -11,7 +11,20 @@
       These supersedes relations are being proposed as part of this request
       <form method="post">
         {% csrf_token %}
-        {% include 'aristotle_mdr/helpers/fancy_table_form.html' with form=form %}
+        {% for form in formset %}
+          <div class="form-inline">
+            {% for field in form.hidden_fields %}
+              {{ field }}
+            {% endfor %}
+            {% for field in form.visible_fields %}
+              <div class="form-group">
+                {{ field.errors }}
+                {{ field.label_tag }}
+                {{ field }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endfor %}
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>
     </div>
