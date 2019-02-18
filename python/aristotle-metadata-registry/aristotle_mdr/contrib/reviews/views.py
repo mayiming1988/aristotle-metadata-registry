@@ -348,6 +348,17 @@ class ReviewImpactView(ReviewActionMixin, TemplateView):
         return context
 
 
+class ReviewSupersedesView(ReviewActionMixin, TemplateView):
+    pk_url_kwarg = 'review_id'
+    template_name = "aristotle_mdr/reviews/review/supersedes.html"
+    context_object_name = "review"
+    active_tab_name = "supersedes"
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        return context
+
+
 class ReviewValidationView(ReviewActionMixin, TemplateView):
     pk_url_kwarg = 'review_id'
     template_name = "aristotle_mdr/reviews/review/validation.html"

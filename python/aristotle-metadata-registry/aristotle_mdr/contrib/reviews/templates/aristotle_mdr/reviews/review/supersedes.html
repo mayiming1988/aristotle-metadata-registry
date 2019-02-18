@@ -1,0 +1,15 @@
+{% extends "aristotle_mdr/reviews/review/base.html" %}
+{% load i18n humanize %}
+{% load aristotle_tags util_tags %}
+{% load static from staticfiles %}
+
+{% block title %}Review details{{ item.name }}{% endblock %}
+{% block tabpanel %}
+<div role="tabpanel" class="tab-pane active" id="review_impact">
+  <div class="panel">
+    <div class="panel-body">
+      These supersedes relations are being proposed as part of this request
+    </div>
+  </div>
+</div>
+{% endblock tabpanel %}

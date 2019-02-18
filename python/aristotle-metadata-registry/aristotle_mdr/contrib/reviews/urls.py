@@ -14,6 +14,7 @@ urlpatterns = [
     url(r'^account/registrartools/review/(?P<review_id>\d+)/details/?$', views.ReviewDetailsView.as_view(), name='review_details'),
     url(r'^account/registrartools/review/(?P<review_id>\d+)/list/?$', views.ReviewListItemsView.as_view(), name='review_list'),
     url(r'^account/registrartools/review/(?P<review_id>\d+)/impact/?$', views.ReviewImpactView.as_view(), name='request_impact'),
+    url(r'^account/registrartools/review/(?P<review_id>\d+)/supersedes/?$', views.ReviewSupersedesView.as_view(), name='request_supersedes'),
     url(r'^account/registrartools/review/(?P<review_id>\d+)/checks/?$', views.ReviewValidationView.as_view(), name='request_checks'),
     url(r'^account/registrartools/review/(?P<review_id>\d+)/update/?$', views.ReviewUpdateView.as_view(), name='request_update'),
     url(r'^account/registrartools/review/(?P<review_id>\d+)/issues/?$', views.ReviewIssuesView.as_view(), name='request_issues'),
