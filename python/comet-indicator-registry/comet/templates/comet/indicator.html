@@ -5,27 +5,26 @@
 <style>
   .indicator_box > * {
     /* */
-    border: 1px solid gray;
+    border: 1px solid lightgray;
     /* */
     padding: 5px 15px;
   }
 
+  .seemore {
+    float:right;
+    font-size:90%;
+  }
+
   .indicator_box {
     display: flex;
+    flex-wrap: wrap;
   }
   .indicator_box > * {
     flex-grow: 1;
+    flex-basis: 15em;
+    word-wrap: break-word;
   }
 
-  .indicator_box .fraction {
-    display: table;
-  }
-  .fraction > * {
-    display: table-row;
-  }
-  .fraction > * > * {
-    display: table-cell;
-  }
   .numerator .text {
     vertical-align: bottom;
   }
@@ -36,53 +35,63 @@
     padding-right:8px;
   }
 
-  .divider {
-    vertical-align: middle;
-    text-align:center;
-    font-size:150%;
+  .fraction hr.vinculum {
+    border-top: 1px solid darkgray;
+    margin:10% 0px;
   }
-  .numerator header {
-    vertical-align: bottom;
-  }
-  .denominator header {
-    vertical-align: top;
-  }
-
+  /* .computation {
+    white-space: pre-wrap;
+  } */
 </style>
 {% endblock %}
 
 {% block objSpecific %}
-<!-- aria-labelledby="myBillingId -->
 
 <div class="indicator_box">
-
   <div class="fraction">
     <div class="dividend numerator">
       <header>Numerator</header>
-      <div class="text">{{ item.numerator_description | bleach }}</div>
-    </div>
-    <div>
-      <header class="divider">&divide;</header>
-      <div>
-        <hr>
+      <div class="text">
+        {% if item.numerator_description %}
+        {{ item.numerator_description | bleach }}
+        {% else %}
+        No description available
+        {% endif %}
       </div>
+      {% if item.numerator_description or item.indicatornumeratordefinition_set.exists %}
+      <a class="seemore" href="#numerators">See more</a>
+      {% endif %}
     </div>
+    <hr class="vinculum">
     <div class="dividend denominator">
       <header>Denominator</header>
-      <div class="text">{{ item.denominator_description | bleach }}</div>
+      <div class="text">
+        {% if item.denominator_description %}
+        {{ item.denominator_description | bleach }}
+        {% else %}
+        No description available
+        {% endif %}
+      </div>
+      {% if item.denominator_description or item.indicatordenominatordefinition_set.exists %}
+      <a class="seemore" href="#denominators">See more</a>
+      {% endif %}
     </div>
   </div>
   <div class="calculation">
     <header>Computation</header>
-      <pre>{{ item.computation | bleach }}</pre>
+      <div class="computation">{{ item.computation| bleach | truncatewords_html:80  }}</div>
+      <a class="seemore" href="#calculation">See more</a>
   </div>
   <div class="disaggregation">
     <header>Disaggregation</header>
-      <div>{{ item.disaggregation_description | bleach }}</div>
+      <div>{{ item.disaggregation_description | bleach | truncatewords_html:80 }}</div>
+      {% if item.disaggregation_description or item.indicatordisaggregationdefinition_set.exists %}
+      <a class="seemore" href="#disaggregation">See more</a>
+      {% endif %}
   </div>
 </div>
 
-{% if item.outcome_areas %}
+{% if item.outcome_areas.all.exists %}
 <h2>Outcome Areas</h2>
 <ul>
 {% for outcome in item.outcome_areas.all %}
@@ -99,76 +108,57 @@
 {% endif %}
 
 <h2>Calculation rules</h2>
-    {{ item.computation_description | bleach }}
-    {% if item.numerator_computation or item.denominator_computation %}
-    <h3>Computation Rule:
-    </h3>
-        <pre>{{ item.numerator_computation | bleach }}</pre>
-        <pre>{{ item.denominator_computation | bleach }}</pre>
-    {% endif %}
-    <h3>Numerators</h3>
-        {{ item.numerator_description | bleach  }}
-        <ul>
-        {% for num in item.indicatornumeratordefinition_set.all %}
-          
-          {% if num.data_element_id in viewable_ids %}
-            <li>
-              {% include "aristotle_mdr/helpers/itemLink.html" with item=num.data_element showType=False skip_can_view=True %}
-              |
-              {% include "aristotle_mdr/helpers/itemLink.html" with item=num.data_set_specification showType=False skip_can_view=True %}
-              |
-
-            </li>
-          {% else %}
-            <li>You don't have permission to view this item</li>
-          {% endif %}
-        {% endfor %}
-        </ul>
-    <h3>Denominators</h3>
-        {{ item.denominator_description }}
-        <ul>
-        {% for denom in item.denominators.all %}
-          {% if denom.id in viewable_ids %}
-            <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=denom showType=False skip_can_view=True %}
-          {% else %}
-            <li>You don't have permission to view this item</li>
-          {% endif %}
-        {% endfor %}
-        </ul>
-<h2>Disaggregation</h2>
-    {{ item.disaggregation_description|bleach }}
-        <ul>
-        {% for disagg in item.disaggregators.all %}
-          {% if disag.id in viewable_ids %}
-            <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=disagg showType=False skip_can_view=True %}
-          {% else %}
-            <li>You don't have permission to view this item</li>
-          {% endif %}
-        {% endfor %}
-        </ul>
-{% if item.dataElementConcept or item.valueDomain %}
-<h2>Components</h2>
-    {% if view == "technical" %}
-    <h3>Data Element Concept -
-        {% include "aristotle_mdr/helpers/itemLink.html" with item=item.dataElementConcept %}</h3>
-        {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item.dataElementConcept name=False %}
-        <dl class="additionaldetails">
-            <dt>Object Class</dt>
-            <dd>
-                {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item.dataElementConcept.objectClass %}
-            </dd>
-            <dt>Property</dt>
-            <dd>
-                {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item.dataElementConcept.property %}
-            </dd>
+<div class="container">
+  <div class="row" id="computation">
+    <div class="col-sm-2">
+      <header class="h4">Computation Rule</header>
+    </div>
+    <div class="col-sm-9">
+        <dl>
+          <dt>Computation</dt>
+          <dd><div class="computation well">{{ item.computation | bleach }}</div></dd>
+          <dt>Description</dt>
+          <dd>
+          {{ item.computation_description | bleach }}
+          </dd>
         </dl>
-    {% endif %}
-    {% if item.valueDomain %}
-    <h3>Value Domain -
-        {% include "aristotle_mdr/helpers/itemLink.html" with item=item.valueDomain %}</h3>
-        {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item.valueDomain name=False %}
-        <h4>Representation</h4>
-        {% include "aristotle_mdr/concepts/valueDomainRepresentation.html" with item=item.valueDomain %}
-    {% endif %}
-{% endif %}
+    </div>
+  </div>
+
+  {% if item.numerator_description or item.indicatornumeratordefinition_set.exists %}
+  <div class="row" id="numerators">
+    <div class="col-sm-2">
+      <header class="h4">Numerators</header>
+    </div>
+    <div class="col-sm-9">
+        {{ item.numerator_description | bleach  }}
+        {% include "comet/helpers/indicator_component_item.html" with queryset=item.indicatornumeratordefinition_set.all %}
+    </div>
+  </div>
+  {% endif %}
+  {% if item.denominator_description or item.indicatordenominatordefinition_set.exists %}
+  <div class="row" id="denominators">
+    <div class="col-sm-2">
+      <header class="h4">Denominators</header>
+    </div>
+    <div class="col-sm-9">
+        {{ item.denominator_description | bleach }}
+        {% include "comet/helpers/indicator_component_item.html" with queryset=item.indicatordenominatordefinition_set.all %}
+    </div>
+  </div>
+  {% endif %}
+  {% if item.disaggregation_description or item.indicatordisaggregationdefinition_set.exists %}
+  <div class="row" id="disaggregation">
+    <div class="col-sm-2">
+      <header class="h4">Disaggregation</header>
+    </div>
+    <div class="col-sm-9">
+        {{ item.disaggregation_description|bleach }}
+        {% include "comet/helpers/indicator_component_item.html" with queryset=item.indicatordisaggregationdefinition_set.all %}
+    </div>
+  </div>
+  {% endif %}
+  
+</div>
+
 {% endblock %}

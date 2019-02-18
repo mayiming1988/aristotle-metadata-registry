@@ -42,16 +42,19 @@ SupplementaryValueNode = inline_type_from_model(mdr_models.SupplementaryValue)
 # Slots and Identifiers
 
 
-SlotNode = type_from_model(slot_models.Slot)
+SlotNode = inline_type_from_model(slot_models.Slot)
+
 
 class ValueMeaningNode(DjangoObjectType):
     class Meta:
         model = mdr_models.ValueMeaning
 
+
 ValueDomainNode = type_from_concept_model(
     mdr_models.ValueDomain,
     resolver = resolvers.ValueDomainResolver()
 )
+
 
 DataElementNode = type_from_concept_model(
     mdr_models.DataElement,

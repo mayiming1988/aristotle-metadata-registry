@@ -14,6 +14,23 @@ from collections import OrderedDict
 from aristotle_mdr_graphql.filterset import (AristotleFilterSet,
                                              ConceptFilterSet)
 
+from graphene.types.scalars import Scalar
+
+
+class ObjectField(Scalar):
+
+    @staticmethod
+    def serialize(dt):
+        return dt
+
+    @staticmethod
+    def parse_literal(node):
+        return node.value
+
+    @staticmethod
+    def parse_value(value):
+        return value
+
 
 class AristotleFilterConnectionField(DjangoFilterConnectionField):
     def __init__(self, type, *args, **kwargs):

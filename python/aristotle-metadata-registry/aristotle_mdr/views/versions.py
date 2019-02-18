@@ -220,7 +220,7 @@ class ConceptVersionView(ConceptRenderView):
 
             template_weak_models.append({
                 'model': pretify_camel_case(model.__name__),
-                'headers': item_dict['headers'],
+                'headers': item_dict.get('headers', []),
                 'items': item_dict['items']
             })
 

@@ -635,7 +635,7 @@ class _concept(baseAristotleObject):
     list_details_template = "aristotle_mdr/helpers/concept_list_details.html"
     stewardship_organisation = models.ForeignKey(
         StewardOrganisation, to_field="uuid",
-        null=True,
+        null=True, blank=True,
         related_name="metadata"
     )
 
@@ -1192,7 +1192,7 @@ class ValueDomain(concept):
         ('supplementary_values', 'supplementaryvalue_set'),
     ]
     clone_fields = ('permissiblevalue_set', 'supplementaryvalue_set')
-    backwards_compatible_fields = ['classification_scheme']
+    backwards_compatible_fields = ['classification_scheme', 'representation_class']
 
     data_type = ConceptForeignKey(  # 11.3.2.5.2.1
         DataType,
@@ -1232,6 +1232,13 @@ class ValueDomain(concept):
         null=True,
         related_name='valueDomains',
         verbose_name='Classification Scheme',
+    )
+    representation_class = ConceptForeignKey(
+        'aristotle_mdr_backwards.RepresentationClass',
+        blank=True,
+        null=True,
+        related_name='value_domains',
+        verbose_name='Representation Class',
     )
     description = models.TextField(
         _('description'),

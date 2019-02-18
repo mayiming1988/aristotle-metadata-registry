@@ -13,9 +13,9 @@ from aristotle_mdr.utils.model_utils import (
 )
 
 
-class IndicatorType(aristotle.models.concept):
-    pass
-
+class IndicatorType(ManagedItem):
+    class Meta:
+        verbose_name = "Indicator Type"
 
 # Subclassing from DataElement causes indicators to present as DataElements, which isn't quite right.
 
@@ -25,10 +25,12 @@ class Indicator(aristotle.models.concept):
     An indicator is a single measure that is reported on regularly
     and that provides relevant and actionable information about population or system performance.
     """
+    backwards_compatible_fields = ['representation_class']
+
     template = "comet/indicator.html"
     outcome_areas = ConceptManyToManyField('OutcomeArea', related_name="indicators", blank=True)
+    indicator_type = models.ForeignKey(IndicatorType, blank=True, null=True)
 
-    indicatorType = ConceptForeignKey(IndicatorType, blank=True, null=True)
 
     computation_description = RichTextField(blank=True)
     computation = RichTextField(blank=True)
@@ -36,35 +38,38 @@ class Indicator(aristotle.models.concept):
     numerator_description = RichTextField(blank=True)
     numerator_computation = models.TextField(blank=True)
 
-    numerators = ConceptManyToManyField(
-        aristotle.models.DataElement,
-        related_name="as_numerator",
-        blank=True
-    )
-
     denominator_description = RichTextField(blank=True)
     denominator_computation = models.TextField(blank=True)
-    denominators = ConceptManyToManyField(
-        aristotle.models.DataElement,
-        related_name="as_denominator",
-        blank=True
-    )
 
     disaggregation_description = RichTextField(blank=True)
-    disaggregators = ConceptManyToManyField(
-        aristotle.models.DataElement,
-        related_name="as_disaggregator",
-        blank=True
-    )
 
     rationale = RichTextField(blank=True)
+    benchmark = RichTextField(blank=True)
 
     serialize_weak_entities = [
         ('numerators', 'indicatornumeratordefinition_set'),
         ('denominators', 'indicatordenominatordefinition_set'),
-        ('disaggregators', 'indicatordissagregationdefinition_set'),
+        ('disaggregators', 'indicatordisaggregationdefinition_set'),
     ]
-    clone_fields = ['indicatornumeratordefinition', 'indicatordenominatordefinition', 'indicatordissagregationdefinition']
+    clone_fields = ['indicatornumeratordefinition', 'indicatordenominatordefinition', 'indicatordisaggregationdefinition']
+
+    @property
+    def numerators(self):
+        return aristotle.models.DataElement.objects.filter(
+            indicatornumeratordefinition__indicator=self
+        )
+
+    @property
+    def denominators(self):
+        return aristotle.models.DataElement.objects.filter(
+            indicatordenominatordefinition__indicator=self
+        )
+
+    @property
+    def disaggregators(self):
+        return aristotle.models.DataElement.objects.filter(
+            indicatordisaggregationdefinition__indicator=self
+        )
 
 
 class IndicatorDataElementBase(aristotleComponent):
@@ -78,6 +83,7 @@ class IndicatorDataElementBase(aristotleComponent):
         help_text=_("The position of this data element in the indicator")
     )
     description = RichTextField(blank=True)
+    guide_for_use = RichTextField(blank=True)
     data_element = ConceptForeignKey(aristotle.models.DataElement, blank=True, null=True)
     data_set_specification = ConceptForeignKey(aristotle_dse.DataSetSpecification, blank=True, null=True)
     data_set = ConceptForeignKey(aristotle_dse.Dataset, blank=True, null=True)
@@ -97,18 +103,17 @@ class IndicatorDenominatorDefinition(IndicatorDataElementBase):
     pass
 
 
-class IndicatorDissagregationDefinition(IndicatorDataElementBase):
+class IndicatorDisaggregationDefinition(IndicatorDataElementBase):
     pass
 
 
-class IndicatorSetType(aristotle.models.unmanagedObject):
+class IndicatorSetType(ManagedItem):
     pass
 
 
 class IndicatorSet(aristotle.models.concept):
     template = "comet/indicatorset.html"
-    indicators = ConceptManyToManyField(Indicator, related_name="indicatorSets", blank=True, null=True)
-    indicatorSetType = models.ForeignKey(IndicatorSetType, blank=True, null=True)
+    indicator_set_type = models.ForeignKey(IndicatorSetType, blank=True, null=True)
 
 
 class IndicatorInclusion(aristotleComponent):
