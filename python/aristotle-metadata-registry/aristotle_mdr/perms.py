@@ -355,10 +355,13 @@ def user_can_add_or_remove_workgroup(user, workgroup):
         return True
     if 'admin' in workgroup_change_access and user.has_perm("aristotle_mdr.is_registry_administrator"):
         return True
-    if 'manager' in workgroup_change_access and user in workgroup.managers.all():
-        return True
-    if 'submitter' in workgroup_change_access and user in workgroup.submitters.all():
-        return True
+
+    if workgroup:
+        if 'manager' in workgroup_change_access and user in workgroup.managers.all():
+            return True
+        if 'submitter' in workgroup_change_access and user in workgroup.submitters.all():
+            return True
+
     return False
 
 

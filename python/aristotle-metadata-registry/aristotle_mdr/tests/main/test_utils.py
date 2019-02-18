@@ -4,6 +4,7 @@ from aristotle_mdr import models
 from aristotle_mdr.utils import setup_aristotle_test_environment
 from aristotle_mdr import utils
 from aristotle_mdr.views.versions import VersionField
+from aristotle_mdr.contrib.reviews.models import ReviewRequest
 
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -37,30 +38,37 @@ class UtilsTests(TestCase):
         self.assertTrue('--' in utils.url_slugify_registration_authoritity(ra))
         self.assertTrue('--' in utils.url_slugify_organization(org))
 
-    def test_get_aristotle_url(self):
+    def test_get_aristotle_url_item(self):
+        item = models.ObjectClass.objects.create(name="tname", definition="my definition", submitter=None)
+        url = utils.get_aristotle_url(item._meta.label_lower, item.pk, item.name)
+        self.assertEqual(url, reverse('aristotle:item', args=[item.pk]))
 
+    def test_get_aristotle_url_ra(self):
+        ra = models.RegistrationAuthority.objects.create(name="tname",definition="my definition", stewardship_organisation=self.steward_org_1)
+        url = utils.get_aristotle_url(ra._meta.label_lower, ra.pk, ra.name)
+        self.assertEqual(url, reverse('aristotle:registrationAuthority', args=[ra.pk, ra.name]))
+
+    def test_get_aristotle_url_org(self):
+        org = models.Organization.objects.create(name="tname", definition="my definition")
+        url = utils.get_aristotle_url(org._meta.label_lower, org.pk, org.name)
+        self.assertEqual(url, reverse('aristotle:organization', args=[org.pk, org.name]))
+
+    def test_get_aristotle_url_wg(self):
+        wg = models.Workgroup.objects.create(name="tname",definition="my definition", stewardship_organisation=self.steward_org_1)
+        url = utils.get_aristotle_url(wg._meta.label_lower, wg.pk, wg.name)
+        self.assertEqual(url, reverse('aristotle:workgroup', args=[wg.pk, wg.name]))
+
+    def test_get_aristotle_url_rr(self):
         user = get_user_model().objects.create(
             email='user@example.com',
             password='verysecure'
         )
-
-        item = models.ObjectClass.objects.create(name="tname",definition="my definition",submitter=None)
         ra = models.RegistrationAuthority.objects.create(name="tname",definition="my definition", stewardship_organisation=self.steward_org_1)
-        org = models.Organization.objects.create(name="tname",definition="my definition")
-        wg = models.Workgroup.objects.create(name="tname",definition="my definition", stewardship_organisation=self.steward_org_1)
+        rr = ReviewRequest.objects.create(registration_authority=ra, requester=user)
+        url = utils.get_aristotle_url(rr._meta.label_lower, rr.pk)
+        self.assertEqual(url, reverse('aristotle_reviews:review_details', args=[rr.pk]))
 
-        url = utils.get_aristotle_url(item._meta.label_lower, item.pk, item.name)
-        self.assertEqual(url, reverse('aristotle:item', args=[item.pk]))
-
-        url = utils.get_aristotle_url(ra._meta.label_lower, ra.pk, ra.name)
-        self.assertEqual(url, reverse('aristotle:registrationAuthority', args=[ra.pk, ra.name]))
-
-        url = utils.get_aristotle_url(org._meta.label_lower, org.pk, org.name)
-        self.assertEqual(url, reverse('aristotle:organization', args=[org.pk, org.name]))
-
-        url = utils.get_aristotle_url(wg._meta.label_lower, wg.pk, wg.name)
-        self.assertEqual(url, reverse('aristotle:workgroup', args=[wg.pk, wg.name]))
-
+    def test_get_aristotle_url_fake(self):
         url = utils.get_aristotle_url('aristotle_mdr.fake_model', 7, 'fake_name')
         self.assertTrue(url is None)
 

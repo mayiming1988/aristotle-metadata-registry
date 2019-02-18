@@ -1,7 +1,8 @@
 from django.test import TestCase, tag
 from django.contrib.auth import get_user_model
 from django.urls import reverse
-import aristotle_mdr.models as models
+from aristotle_mdr import models
+import aristotle_mdr.contrib.validators.models as vmodels
 import aristotle_mdr.tests.utils as utils
 
 from aristotle_mdr.utils import setup_aristotle_test_environment
@@ -238,35 +239,35 @@ class RAManageTests(utils.LoggedInViewPages,TestCase):
             stewardship_organisation=self.steward_org_1
         )
 
-    def test_anon_cannot_view_details(self):
+    def test_anon_cannot_edit(self):
         self.logout()
-        response = self.client.get(reverse('aristotle:registrationauthority_details', args=[self.ra.pk]))
+        response = self.client.get(reverse('aristotle:registrationauthority_edit', args=[self.ra.pk]))
         self.assertRedirects(response,
             reverse("friendly_login",)+"?next="+
-            reverse('aristotle:registrationauthority_details', args=[self.ra.pk])
+            reverse('aristotle:registrationauthority_edit', args=[self.ra.pk])
             )
 
-    def test_viewer_cannot_view_details(self):
+    def test_viewer_cannot_edit(self):
         self.login_viewer()
 
-        response = self.client.get(reverse('aristotle:registrationauthority_details', args=[self.ra.pk]))
+        response = self.client.get(reverse('aristotle:registrationauthority_edit', args=[self.ra.pk]))
         self.assertEqual(response.status_code, 403)
 
-    def test_ramanager_can_view_details(self):
+    def test_ramanager_can_edit(self):
         self.login_ramanager()
 
-        response = self.client.get(reverse('aristotle:registrationauthority_details', args=[self.ra.pk]))
+        response = self.client.get(reverse('aristotle:registrationauthority_edit', args=[self.ra.pk]))
         self.assertEqual(response.status_code, 200)
 
         self.ra.managers.remove(self.ramanager)
         self.ra = models.RegistrationAuthority.objects.get(pk=self.ra.pk)
-        response = self.client.get(reverse('aristotle:registrationauthority_details', args=[self.ra.pk]))
+        response = self.client.get(reverse('aristotle:registrationauthority_edit', args=[self.ra.pk]))
         self.assertEqual(response.status_code, 403)
 
-    def test_registry_owner_can_view_details(self):
+    def test_registry_owner_can_edit(self):
         self.login_superuser()
 
-        response = self.client.get(reverse('aristotle:registrationauthority_details', args=[self.ra.pk]))
+        response = self.client.get(reverse('aristotle:registrationauthority_edit', args=[self.ra.pk]))
         self.assertEqual(response.status_code, 200)
 
     def test_viewer_cannot_view_add_change_or_remove_users(self):
@@ -362,3 +363,15 @@ class RAManageTests(utils.LoggedInViewPages,TestCase):
             reverse('aristotle:registrationauthority_member_remove', args=[self.ra.id,self.newuser.pk]),
         )
         self.assertEqual(response.status_code,404)
+
+
+    def test_get_existing_ra_rules(self):
+        self.login_ramanager()
+        rules = vmodels.RAValidationRules.objects.create(
+            registration_authority=self.ra
+        )
+        response = self.client.get(
+            reverse('aristotle:registrationauthority_rules', args=[self.ra.id])
+        )
+        self.assertEqual(response.context['rules'], rules)
+        self.assertEqual(response.status_code, 200)

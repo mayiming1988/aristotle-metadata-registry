@@ -35,26 +35,6 @@ urlpatterns=[
     # url(r'^itemType/(?P<iid>\d+)?/?
     # Allowing for a blank ItemId (iid) allows aristotle to redirect to /about/itemtype instead of 404ing
 
-    url(r'^valuedomain/(?P<iid>\d+)?/edit/values/permissible/?$',
-        GenericAlterOneToManyView.as_view(
-            model_base=models.ValueDomain,
-            model_to_add=models.PermissibleValue,
-            model_base_field='permissiblevalue_set',
-            model_to_add_field='valueDomain',
-            ordering_field='order',
-            form_add_another_text=_('Add a code'),
-            form_title=_('Change Permissible Values'),
-        ), name='permsissible_values_edit'),
-    url(r'^valuedomain/(?P<iid>\d+)?/edit/values/supplementary/?$',
-        GenericAlterOneToManyView.as_view(
-            model_base=models.ValueDomain,
-            model_to_add=models.SupplementaryValue,
-            model_base_field='supplementaryvalue_set',
-            model_to_add_field='valueDomain',
-            ordering_field='order',
-            form_add_another_text=_('Add a code'),
-            form_title=_('Change Supplementary Values')
-        ), name='supplementary_values_edit'),
     url(r'^conceptualdomain/(?P<iid>\d+)?/edit/values/?$',
         GenericAlterOneToManyView.as_view(
             model_base=models.ConceptualDomain,
@@ -142,7 +122,7 @@ urlpatterns=[
 
     url(r'^action/bulkaction/?$', views.bulk_actions.BulkAction.as_view(), name='bulk_action'),
     url(r'^action/bulkaction/state/?$', views.bulk_actions.ChangeStatusBulkActionView.as_view(), name='change_state_bulk_action'),
-    url(r'^action/compare/?$', views.comparator.compare_concepts, name='compare_concepts'),
+    url(r'^action/compare/?$', views.comparator.CompareConceptsView.as_view(), name='compare_concepts'),
 
     url(r'^action/changestatus/(?P<iid>\d+)$', views.ChangeStatusView.as_view(), name='changeStatus'),
     # url(r'^remove/WorkgroupUser/(?P<iid>\d+)/(?P<userid>\d+)$', views.removeWorkgroupUser, name='removeWorkgroupUser'),
@@ -170,13 +150,14 @@ urlpatterns=[
     url(r'^registrationauthority/create/?$', views.registrationauthority.CreateRegistrationAuthority.as_view(), name='registrationauthority_create'),
     url(r'^account/admin/registrationauthority/all/?$', views.registrationauthority.ListRegistrationAuthorityAll.as_view(), name='registrationauthority_list'),
 
-    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/details/$', views.registrationauthority.DetailsRegistrationAuthority.as_view(), name='registrationauthority_details'),
     url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/members/$', views.registrationauthority.MembersRegistrationAuthority.as_view(), name='registrationauthority_members'),
     url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/edit', views.registrationauthority.EditRegistrationAuthority.as_view(), name='registrationauthority_edit'),
+    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/states', views.registrationauthority.EditRegistrationAuthorityStates.as_view(), name='registrationauthority_edit_states'),
+    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/rules', views.registrationauthority.RAValidationRuleEditView.as_view(), name='registrationauthority_rules'),
     url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/add_user/?$', views.registrationauthority.AddUser.as_view(), name='registrationauthority_add_user'),
     url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/change_roles/(?P<user_pk>.+)?/?$', views.registrationauthority.ChangeUserRoles.as_view(), name='registrationauthority_change_user_roles'),
     url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/remove/(?P<user_pk>\d+)/?$', views.registrationauthority.RemoveUser.as_view(), name='registrationauthority_member_remove'),
-    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/?$', views.registrationauthority.registrationauthority, name='registrationAuthority'),
+    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/?$', views.registrationauthority.RegistrationAuthorityView.as_view(), name='registrationAuthority'),
 
     url(r'^organization/(?P<iid>\d+)?(?:\/(?P<name_slug>.+))?/?$', views.registrationauthority.organization, name='organization'),
     url(r'^organizations/?$', views.registrationauthority.all_organizations, name='all_organizations'),

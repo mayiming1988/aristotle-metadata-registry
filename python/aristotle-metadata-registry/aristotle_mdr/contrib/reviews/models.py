@@ -13,9 +13,7 @@ from aristotle_mdr.contrib.async_signals.utils import fire
 
 
 from aristotle_mdr.managers import (
-    # MetadataItemManager, ConceptManager,
     ReviewRequestQuerySet,
-    # WorkgroupQuerySet
 )
 
 from .const import REVIEW_STATES
@@ -51,10 +49,7 @@ class ReviewRequest(StatusMixin, TimeStampedModel):
         related_name='rr_workgroup_reviews',
         null=True
     )
-    # title = ShortTextField(blank=True, null=True, help_text=_("A title for the review"))
     title = models.TextField(blank=True, null=True, help_text=_("An optional message accompanying a request, this will accompany the approved registration status"))
-    # reviewer = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, help_text=_("The user performing a review"), related_name='reviewed_requests')
-    # response = models.TextField(blank=True, null=True, help_text=_("An optional message responding to a request"))
     status = models.IntegerField(
         choices=REVIEW_STATES,
         default=REVIEW_STATES.open,

@@ -2,7 +2,6 @@
   "$schema": "http://json-schema.org/schema#",
   "title": "Aristotle Validation Setup",
   "description": "Setup defining rules used to validate metadata",
-
   "definitions": {
     "check": {
       "type": "object",
@@ -24,7 +23,6 @@
       "required": ["validator"]
     }
   },
-
   "type": "array",
   "items": {
     "type": "object",
@@ -39,7 +37,7 @@
         "type": "array",
         "items": {
           "allOf": [
-            { "$ref": "#definitions/check" },
+            { "$ref": "#/definitions/check" },
             { 
               "oneOf": [
                 {

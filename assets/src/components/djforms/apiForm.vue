@@ -9,7 +9,7 @@
 
 <script>
 import apiRequest from 'src/mixins/apiRequest.js'
-import Form from '@/forms/form.vue'
+import Form from '@/djforms/form.vue'
 
 export default {
     components: {
@@ -34,7 +34,7 @@ export default {
     },
     methods: {
         submitData: function(data) {
-            this.post(url, data)
+            this.post(this.url, data)
         }
     }
 }

@@ -1,6 +1,6 @@
 <template>
     <component :is="tag" :name="name" :class="fieldClass" :value="value" @input="emitOnInput" @change="emitOnChange">
-        <option v-for="option in options" :value="option[0]" :selected="option[0] == value">{{ option[1] }}</option>
+        <option v-for="option in options" :key="option[0]" :value="option[0]" :selected="option[0] == value">{{ option[1] }}</option>
     </component>
 </template>
 
@@ -8,7 +8,7 @@
 export default {
     props: {
         tag: {
-            type: String,
+            type: [String, Object],
             default: 'input'
         },
         name: {
@@ -24,13 +24,19 @@ export default {
         },
         options: {
             type: Array,
-            default: []
+            default: function() {
+                return []
+            }
         }
     },
     methods: {
         emitOnInput: function(event) {
             if (this.tag != 'select')  {
-                this.$emit('input', event.target.value)
+                if (typeof event == "string") {
+                    this.$emit('input', event)
+                } else {
+                    this.$emit('input', event.target.value)
+                }
             }
         },
         emitOnChange: function(event) {

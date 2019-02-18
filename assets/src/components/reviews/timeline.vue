@@ -1,6 +1,6 @@
 <template>
 <div>
-    <div v-for="item in items">
+    <div v-for="item in items" :key="item.data.id">
         <div v:if="item.data">
         <comment v-if="item.type == 'comment'"
             :key="item.data.id"

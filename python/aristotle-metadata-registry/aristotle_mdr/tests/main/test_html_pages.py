@@ -8,6 +8,7 @@ from django.test import TestCase, override_settings, tag, RequestFactory
 from django.urls import reverse
 from django.utils import timezone
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.messages import get_messages
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
@@ -140,6 +141,18 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             content='Workgroup Value',
             concept=self.item
         )
+
+    def create_versions(self):
+        with reversion.create_revision():
+            self.item.definition = 'New Definition'
+            self.item.save()
+
+        with reversion.create_revision():
+            self.item.definition = 'Even newer Definition'
+            self.item.save()
+
+        versions = reversion.models.Version.objects.get_for_object(self.item)
+        return versions
 
     def test_itempage_full_url(self):
         self.login_editor()
@@ -386,7 +399,6 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     @tag('version')
     def test_display_version_concept_info(self):
-
         self.item.references = '<p>refs</p>'
         self.item.responsible_organisation = 'My org'
 
@@ -410,6 +422,18 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertFalse(names_and_refs['Responsible Organisation'].is_link)
         self.assertFalse(names_and_refs['Responsible Organisation'].is_html)
         self.assertEqual(names_and_refs['Responsible Organisation'].value, 'My org')
+
+    def test_display_item_histroy_without_wg(self):
+        self.item.workgroup = None
+        with reversion.create_revision():
+            self.item.save()
+
+        self.login_superuser()
+        response = self.reverse_get(
+            'aristotle:item_history',
+            reverse_args=[self.item.id],
+        )
+        self.assertEqual(response.status_code, 200)
 
     @tag('item_app_check')
     def test_viewing_item_with_disabled_app(self):
@@ -520,7 +544,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         )
 
         postdata = utils.model_to_dict_with_change_time(self.item)
-        postdata['custom_MyCustomField'] = 4
+        postdata[cf.form_field_name] = 4
         response = self.reverse_post(
             'aristotle:edit_item',
             postdata,
@@ -558,8 +582,8 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             status_code=200
         )
         initial = response.context['form'].initial
-        self.assertTrue('custom_MyCustomField' in initial)
-        self.assertEqual(initial['custom_MyCustomField'], '4')
+        self.assertTrue(cf.form_field_name in initial)
+        self.assertEqual(initial[cf.form_field_name], '4')
 
     def get_custom_values_for_user(self, user):
         """Util function used for the following 3 tests"""
@@ -594,6 +618,94 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(cvs[0].content, 'All Value')
         self.assertEqual(cvs[1].content, 'Auth Value')
         self.assertEqual(cvs[2].content, 'Workgroup Value')
+
+    @tag('nonwg')
+    def test_add_wg_to_non_wg_item(self):
+        self.item.workgroup = None
+        self.item.save()
+
+        updated_item = utils.model_to_dict_with_change_time(self.item)
+        updated_item['workgroup'] = str(self.wg1.id)
+
+        self.login_editor()
+        response = self.client.post(
+            reverse('aristotle:edit_item', args=[self.item.id]),
+            updated_item
+        )
+        self.assertEqual(response.status_code, 302)
+        updated = models.ObjectClass.objects.get(id=self.item.id)
+        self.assertEqual(updated.workgroup, self.wg1)
+
+    def test_non_existant_item_404(self):
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[55555]
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_history_compare_with_bad_version_data(self):
+        versions = self.create_versions()
+        # Mangle the last versions serialized data
+        first_version = versions.first()
+        last_version = versions.order_by('-revision__date_created').first()
+        last_version.serialized_data = '{"""}{,,}}}}'
+        last_version.save()
+
+        qparams = '?version_id1={}&version_id2={}'.format(first_version.id, last_version.id)
+
+        self.login_editor()
+        response = self.client.get(
+            reverse('aristotle:item_history', args=[self.item.id]) + qparams
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['failed'])
+        self.assertContains(response, 'Those versions could not be compared')
+
+    def test_view_item_version_with_bad_data(self):
+        versions = self.create_versions()
+        # Mangle the last versions serialized data
+        last_version = versions.order_by('-revision__date_created').first()
+        last_version.serialized_data = '{"""}{,,}}}}'
+        last_version.save()
+
+        self.login_editor()
+        response = self.client.get(
+            reverse('aristotle:item_version', args=[last_version.id])
+        )
+        self.assertRedirects(
+            response,
+            reverse('aristotle:item_history', args=[self.item.id])
+        )
+        messages = get_messages(response.wsgi_request)
+        self.assertEqual(len(messages), 2)
+
+        messages = iter(messages)
+        first_message = next(messages)
+        second_message = next(messages)
+        self.assertEqual(first_message.message, 'You have been logged out')
+        self.assertEqual(second_message.message, 'Version could not be loaded')
+
+    def test_comparitor_with_bad_version_data(self):
+        versions = self.create_versions()
+        # Mangle the last versions serialized data
+        last_version = versions.order_by('-revision__date_created').first()
+        last_version.serialized_data = '{"""}{,,}}}}'
+        last_version.save()
+
+        # Create second item for compare
+        with reversion.create_revision():
+            item2 = models.ObjectClass.objects.create(
+                name='Second',
+                definition='Second',
+                submitter=self.editor
+            )
+        qparams = '?item_a={}&item_b={}'.format(self.item.id, item2.id)
+
+        self.login_editor()
+        response = self.client.get(
+            reverse('aristotle:compare_concepts') + qparams
+        )
+        self.assertEqual(response.status_code, 200)
 
 
 # These are run by all item types
@@ -979,7 +1091,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
         # Submitter is logged in, tries to move item - fails because
         self.assertFalse(perms.user_can_remove_from_workgroup(self.editor,self.item1.workgroup))
-        self.assertTrue(form.errors['workgroup'][0] == WorkgroupVerificationMixin.cant_move_any_permission_error)
+        self.assertTrue(form.errors['workgroup'][0] == WorkgroupVerificationMixin.cant_move_from_permission_error)
 
         updated_item['workgroup'] = str(self.wg2.pk)
         response = self.client.post(reverse('aristotle:edit_item',args=[self.item1.id]), updated_item)
@@ -1060,7 +1172,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
         form = response.context['form']
         # Submitter can't move because they aren't a manager of any workgroups.
-        self.assertTrue(form.errors['workgroup'][0] == WorkgroupVerificationMixin.cant_move_any_permission_error)
+        self.assertTrue(form.errors['workgroup'][0] == WorkgroupVerificationMixin.cant_move_from_permission_error)
 
         self.wg_other.managers.add(self.editor)
 
@@ -1835,57 +1947,40 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
     def test_weak_editing_in_advanced_editor_dynamic(self):
         super().test_weak_editing_in_advanced_editor_dynamic(updating_field='value')
 
-    def test_anon_cannot_use_value_page(self):
-        self.logout()
-        response = self.client.get(reverse('aristotle:permsissible_values_edit',args=[self.item1.id]))
-        self.assertRedirects(response,reverse('friendly_login')+"?next="+reverse('aristotle:permsissible_values_edit',args=[self.item1.id]))
-        response = self.client.get(reverse('aristotle:supplementary_values_edit',args=[self.item1.id]))
-        self.assertRedirects(response,reverse('friendly_login')+"?next="+reverse('aristotle:supplementary_values_edit',args=[self.item1.id]))
-
-    def loggedin_user_can_use_value_page(self,value_url,current_item,http_code):
-        response = self.client.get(reverse(value_url,args=[current_item.id]))
-        self.assertEqual(response.status_code,http_code)
-
     def submitter_user_can_use_value_edit_page(self,value_type):
-        value_url = {
-            'permissible': 'aristotle:permsissible_values_edit',
-            'supplementary': 'aristotle:supplementary_values_edit'
-        }.get(value_type)
+        value_url = 'aristotle:edit_item'
 
         self.login_editor()
-        self.loggedin_user_can_use_value_page(value_url,self.item1,200)
-        self.loggedin_user_can_use_value_page(value_url,self.item2,403)
-        self.loggedin_user_can_use_value_page(value_url,self.item3,200)
 
-        data = {}
+        data = utils.model_to_dict_with_change_time(self.item1)
         num_vals = getattr(self.item1,value_type+"Values").count()
         i=0
         for i,v in enumerate(getattr(self.item1,value_type+"Values").all()):
             data.update({
-                "%svalue_set-%d-valueDomain"%(value_type, i): self.item1.pk,
-                "%svalue_set-%d-id"%(value_type,i): v.pk,
-                "%svalue_set-%d-ORDER"%(value_type,i) : v.order,
-                "%svalue_set-%d-value"%(value_type,i) : v.value,
-                "%svalue_set-%d-meaning"%(value_type,i) : v.meaning+" -updated"
+                "%s_values-%d-valueDomain"%(value_type, i): self.item1.pk,
+                "%s_values-%d-id"%(value_type,i): v.pk,
+                "%s_values-%d-ORDER"%(value_type,i) : v.order,
+                "%s_values-%d-value"%(value_type,i) : v.value,
+                "%s_values-%d-meaning"%(value_type,i) : v.meaning+" -updated"
             })
         data.update({
-            "%svalue_set-%d-DELETE"%(value_type,i): 'checked',
-            "%svalue_set-%d-meaning"%(value_type,i) : v.meaning+" - deleted",
-            "%svalue_set-%d-valueDomain"%(value_type, i): self.item1.pk,
+            "%s_values-%d-DELETE"%(value_type,i): 'checked',
+            "%s_values-%d-meaning"%(value_type,i) : v.meaning+" - deleted",
+            "%s_values-%d-valueDomain"%(value_type, i): self.item1.pk,
         }) # delete the last one.
         # now add a new one
         i=i+1
         data.update({
-            "%svalue_set-%d-ORDER"%(value_type,i) : i,
-            "%svalue_set-%d-value"%(value_type,i) : 100,
-            "%svalue_set-%d-meaning"%(value_type,i) : "new value (also an updated value)",
-            "%svalue_set-%d-valueDomain"%(value_type, i): self.item1.pk,
+            "%s_values-%d-ORDER"%(value_type,i) : i,
+            "%s_values-%d-value"%(value_type,i) : 100,
+            "%s_values-%d-meaning"%(value_type,i) : "new value (also an updated value)",
+            "%s_values-%d-valueDomain"%(value_type, i): self.item1.pk,
         })
 
         data.update({
-            "%svalue_set-TOTAL_FORMS"%(value_type): i+1,
-            "%svalue_set-INITIAL_FORMS"%(value_type): num_vals,
-            "%svalue_set-MAX_NUM_FORMS"%(value_type):1000,
+            "%s_values-TOTAL_FORMS"%(value_type): i+1,
+            "%s_values-INITIAL_FORMS"%(value_type): num_vals,
+            "%s_values-MAX_NUM_FORMS"%(value_type):1000,
         })
 
         response = self.client.post(reverse(value_url,args=[self.item1.id]),data)
@@ -1903,16 +1998,15 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
 
         # Item is now locked, submitter is no longer able to edit
         models.Status.objects.create(
-                concept=self.item1,
-                registrationAuthority=self.ra,
-                registrationDate=timezone.now(),
-                state=self.ra.locked_state
-                )
+            concept=self.item1,
+            registrationAuthority=self.ra,
+            registrationDate=timezone.now(),
+            state=self.ra.locked_state
+        )
 
         self.item1 = models.ValueDomain.objects.get(pk=self.item1.pk)
         self.assertTrue(self.item1.is_locked())
         self.assertFalse(perms.user_can_edit(self.editor,self.item1))
-        self.loggedin_user_can_use_value_page(value_url,self.item1,403)
 
     def test_submitter_can_use_permissible_value_edit_page(self):
         self.submitter_user_can_use_value_edit_page('permissible')
@@ -1927,37 +2021,33 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         self.submitter_user_doesnt_save_all_blank('supplementary')
 
     def submitter_user_doesnt_save_all_blank(self,value_type):
-        value_url = {
-            'permissible': 'aristotle:permsissible_values_edit',
-            'supplementary': 'aristotle:supplementary_values_edit'
-        }.get(value_type)
+        value_url = 'aristotle:edit_item'
 
         self.login_editor()
-        self.loggedin_user_can_use_value_page(value_url,self.item1,200)
 
-        data = {}
+        data = utils.model_to_dict_with_change_time(self.item1)
         num_vals = getattr(self.item1,value_type+"Values").count()
 
         i=0
         for i,v in enumerate(getattr(self.item1,value_type+"Values").all()):
             data.update({
-                "%svalue_set-%d-valueDomain"%(value_type, i): self.item1.pk,
-                "%svalue_set-%d-id"%(value_type, i): v.pk,
-                "%svalue_set-%d-ORDER"%(value_type, i) : v.order,
-                "%svalue_set-%d-value"%(value_type, i) : v.value,
-                "%svalue_set-%d-meaning"%(value_type, i) : v.meaning+" -updated"
+                "%s_values-%d-valueDomain"%(value_type, i): self.item1.pk,
+                "%s_values-%d-id"%(value_type, i): v.pk,
+                "%s_values-%d-ORDER"%(value_type, i) : v.order,
+                "%s_values-%d-value"%(value_type, i) : v.value,
+                "%s_values-%d-meaning"%(value_type, i) : v.meaning+" -updated"
             })
 
         # now add two new values that are all blank
         i=i+1
-        data.update({"%svalue_set-%d-ORDER"%(value_type, i) : i, "%svalue_set-%d-value"%(value_type, i) : '', "%svalue_set-%d-meaning"%(value_type, i) : ""})
+        data.update({"%s_values-%d-ORDER"%(value_type, i) : i, "%s_values-%d-value"%(value_type, i) : '', "%s_values-%d-meaning"%(value_type, i) : ""})
         i=i+1
-        data.update({"%svalue_set-%d-ORDER"%(value_type, i) : i, "%svalue_set-%d-value"%(value_type, i) : '', "%svalue_set-%d-meaning"%(value_type, i) : ""})
+        data.update({"%s_values-%d-ORDER"%(value_type, i) : i, "%s_values-%d-value"%(value_type, i) : '', "%s_values-%d-meaning"%(value_type, i) : ""})
 
         data.update({
-            "%svalue_set-TOTAL_FORMS"%(value_type): i+1,
-            "%svalue_set-INITIAL_FORMS"%(value_type): num_vals,
-            "%svalue_set-MAX_NUM_FORMS"%(value_type):1000,
+            "%s_values-TOTAL_FORMS"%(value_type): i+1,
+            "%s_values-INITIAL_FORMS"%(value_type): num_vals,
+            "%s_values-MAX_NUM_FORMS"%(value_type):1000,
         })
         self.client.post(reverse(value_url,args=[self.item1.id]),data)
         self.item1 = models.ValueDomain.objects.get(pk=self.item1.pk)
@@ -1976,14 +2066,14 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
 
     def test_conceptual_domain_selection(self):
         self.login_editor()
-        url = 'aristotle:permsissible_values_edit'
-        self.loggedin_user_can_use_value_page(url,self.item3,200)
+        url = 'aristotle:edit_item'
 
         response = self.client.get(reverse(url,args=[self.item3.id]))
         self.assertEqual(response.status_code, 200)
+        # import pdb; pdb.set_trace()
 
         # check queryset correctly filled from conceptual domain for item 2
-        formset = response.context['formset']
+        formset = response.context['weak_formsets'][0]['formset']
         for form in formset:
             self.assertFalse('meaning' in form.fields)
             self.assertTrue('value_meaning' in form.fields)
@@ -1995,7 +2085,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         response = self.client.get(reverse(url,args=[self.item1.id]))
         self.assertEqual(response.status_code, 200)
 
-        formset = response.context['formset']
+        formset = response.context['weak_formsets'][0]['formset']
         for form in formset:
             self.assertFalse('value_meaning' in form.fields)
             self.assertTrue('meaning' in form.fields)
@@ -2092,6 +2182,107 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         clone = models.ValueDomain.objects.get(name='Goodness (clone)')
         self.assertEqual(clone.permissiblevalue_set.count(), 4)
         self.assertEqual(clone.supplementaryvalue_set.count(), 4)
+
+    def create_bulk_values(self, n: int, vd):
+        pvs = []
+        for i in range(n):
+            value='Value {}'.format(i),
+            meaning='Meaning {}'.format(i),
+            pv = models.PermissibleValue(
+                valueDomain=vd,
+                value=value,
+                meaning=meaning,
+                order=i
+            )
+            pvs.append(pv)
+        models.PermissibleValue.objects.bulk_create(pvs)
+
+    def post_and_time_permissible_values(self, vd, data, datalist, initial, event_name):
+        permdata = self.get_formset_postdata(datalist, 'permissible_values', initial)
+        data.update(permdata)
+
+        self.login_editor()
+
+        self.start_timer()
+        response = self.client.post(
+            reverse('aristotle:edit_item', args=[vd.id]),
+            data
+        )
+        self.end_timer(event_name)
+        self.assertEqual(response.status_code, 302)
+
+    @tag('bulk_values', 'slow')
+    def test_create_bulk_values(self):
+        vd = models.ValueDomain.objects.create(
+            name='Lots of values',
+            definition='Lots',
+            submitter=self.editor
+        )
+        data = utils.model_to_dict_with_change_time(vd)
+
+        datalist = []
+        for i in range(100):
+            datalist.append({
+                'value': 'Value {}'.format(i),
+                'meaning': 'Meaning {}'.format(i),
+                'valueDomain': vd.id,
+                'ORDER': i
+            })
+
+        self.post_and_time_permissible_values(vd, data, datalist, 0, 'CREATE')
+        vd = models.ValueDomain.objects.get(id=vd.id)
+        self.assertEqual(vd.permissiblevalue_set.count(), 100)
+
+    @tag('bulk_values', 'slow')
+    def test_reorder_bulk_values(self):
+        vd = models.ValueDomain.objects.create(
+            name='Lots of values',
+            definition='Lots',
+            submitter=self.editor
+        )
+        data = utils.model_to_dict_with_change_time(vd)
+
+        self.create_bulk_values(1000, vd)
+
+        datalist = []
+        for pv in vd.permissiblevalue_set.all():
+            datalist.append({
+                'id': pv.id,
+                'value': pv.value,
+                'meaning': pv.meaning,
+                'valueDomain': vd.id,
+                'ORDER': pv.order + 1
+            })
+
+        self.post_and_time_permissible_values(vd, data, datalist, 1000, 'REORDER')
+        vd = models.ValueDomain.objects.get(id=vd.id)
+        self.assertEqual(vd.permissiblevalue_set.count(), 1000)
+
+    @tag('bulk_values', 'slow')
+    def test_delete_bulk_values(self):
+        vd = models.ValueDomain.objects.create(
+            name='Lots of values',
+            definition='Lots',
+            submitter=self.editor
+        )
+        data = utils.model_to_dict_with_change_time(vd)
+
+        self.create_bulk_values(100, vd)
+
+        datalist = []
+        for pv in vd.permissiblevalue_set.all():
+            datalist.append({
+                'id': pv.id,
+                'value': pv.value,
+                'meaning': pv.meaning,
+                'valueDomain': vd.id,
+                'ORDER': pv.order,
+                'DELETE': 'checked'
+            })
+
+        self.post_and_time_permissible_values(vd, data, datalist, 100, 'DELETE')
+        vd = models.ValueDomain.objects.get(id=vd.id)
+        self.assertEqual(vd.permissiblevalue_set.count(), 0)
 
 
 class ConceptualDomainViewPage(LoggedInViewConceptPages, TestCase):

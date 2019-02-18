@@ -55,7 +55,7 @@ from .managers import (
     ConceptManager,
     ReviewRequestQuerySet, WorkgroupQuerySet,
     RegistrationAuthorityQuerySet,
-    StatusQuerySet
+    StatusQuerySet, UtilsManager
 )
 
 from aristotle_mdr.contrib.groups.base import (
@@ -238,8 +238,9 @@ class RegistrationAuthority(Organization):
     (8.1.5.1) association class.
     """
     objects = RegistrationAuthorityQuerySet.as_manager()
-    template = "aristotle_mdr/organization/registrationAuthority.html"
     stewardship_organisation = models.ForeignKey(StewardOrganisation, to_field="uuid")
+    template = "aristotle_mdr/organization/registration_authority/home.html"
+
     active = models.IntegerField(
         choices=RA_ACTIVE_CHOICES,
         default=RA_ACTIVE_CHOICES.active,
@@ -1571,6 +1572,10 @@ class PossumProfile(models.Model):
     @property
     def is_registrar(self):
         return perms.user_is_registrar(self.user)
+
+    @property
+    def registrar_count(self):
+        return self.user.registrar_in.count()
 
     @property
     def is_ra_manager(self):

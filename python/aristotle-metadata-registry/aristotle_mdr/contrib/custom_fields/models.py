@@ -15,8 +15,8 @@ from aristotle_mdr.constants import visibility_permission_choices as permission_
 
 
 class CustomField(TimeStampedModel):
-    order = models.IntegerField(unique=True)
-    name = models.CharField(max_length=1000, unique=True)
+    order = models.IntegerField()
+    name = models.CharField(max_length=1000)
     type = models.CharField(max_length=10, choices=type_choices)
     # Optional
     help_text = models.CharField(max_length=1000, blank=True)
@@ -40,6 +40,11 @@ class CustomField(TimeStampedModel):
     def hr_visibility(self):
         """Human readable visibility"""
         return permission_choices[self.visibility]
+
+    @property
+    def form_field_name(self):
+        """The name used in forms for this field"""
+        return 'custom_{name}_{id}'.format(name=self.name, id=self.id)
 
     def can_view(self, user):
         return user.is_superuser

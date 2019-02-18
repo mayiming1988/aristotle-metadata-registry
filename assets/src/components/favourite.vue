@@ -39,7 +39,7 @@ export default {
         }
     },
     methods: {
-        submitFavourite: function(e) {
+        submitFavourite: function() {
             var component = this
             $.get(
                 this.submitUrl,

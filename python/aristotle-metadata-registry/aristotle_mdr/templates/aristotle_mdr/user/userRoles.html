@@ -104,7 +104,7 @@
         {% for ra in registration_authorities %}
             <tr>
                 <td>
-                    <a href="{% url 'aristotle:registrationauthority_details' ra.pk %}">
+                    <a href="{% url 'aristotle:registrationAuthority' ra.pk %}">
                         {{ ra.name }}
                     </a>
                 </td>

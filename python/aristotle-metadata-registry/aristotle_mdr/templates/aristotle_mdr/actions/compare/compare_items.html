@@ -21,6 +21,9 @@
         Text in green below is present only in the item in that column, text in red is
         present only in the opposite column and text in white is similar across both items.
     </p>
+    {% if failed %}
+      <div class="alert alert-warning">Those items could not be compared</div>
+    {% endif %}
     <table class="table table-bordered compare">
         <thead>
             <tr>

@@ -1,7 +1,8 @@
 from django.apps import apps
-from django.http import Http404
+from django.http import Http404, HttpResponseRedirect
 from django.core.exceptions import PermissionDenied
 from django.contrib.contenttypes.models import ContentType
+from django.contrib import messages
 from django.db.models import Q
 from django.utils.dateparse import parse_datetime
 from django.urls import reverse
@@ -16,6 +17,9 @@ from collections import defaultdict
 from reversion_compare.views import HistoryCompareDetailView
 import reversion
 from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class VersionField:
@@ -218,6 +222,10 @@ class ConceptVersionView(ConceptRenderView):
         for label, item_dict in weak_items.items():
             model = apps.get_model(label)
 
+            if 'headers' in item_dict:
+                headers = item_dict['headers']
+            else:
+                headers = []
             template_weak_models.append({
                 'model': pretify_camel_case(model.__name__),
                 'headers': item_dict.get('headers', []),
@@ -347,11 +355,34 @@ class ConceptVersionView(ConceptRenderView):
         # Dict mapping model -> id -> object
         self.fetched_objects = {}
 
-        exists = self.get_version()
+        try:
+            exists = self.get_version()
+        except json.JSONDecodeError:
+            # Handle invalid json
+            return self.invalid_version(request, *args, **kwargs)
+
         if not exists:
             raise Http404
 
         return super().dispatch(request, *args, **kwargs)
+
+    def invalid_version(self, request, *args, **kwargs):
+        # What to do when the version could not be deserialized
+        logger.error('Version could not be loaded')
+        try:
+            version = reversion.models.Version.objects.get(id=self.kwargs[self.version_arg])
+        except reversion.models.Version.DoesNotExist:
+            raise Http404
+
+        current = version.object
+        if not self.check_item(current):
+            raise PermissionDenied
+
+        messages.warning(request, 'Version could not be loaded')
+
+        return HttpResponseRedirect(
+            reverse('aristotle:item_history', args=[current.id])
+        )
 
     def get_version_context_data(self):
         # Get the context data for this complete version
@@ -456,8 +487,9 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         versions = self._order_version_queryset(
             reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
         )
-        # if not self.request.user.is_superuser
-        if not (self.request.user.is_superuser or self.request.user in metadata_item.workgroup.members):
+        # If not a superuser or in workgroup restict versions the user can see
+        in_workgroup = (metadata_item.workgroup and self.request.user in metadata_item.workgroup.members)
+        if not (self.request.user.is_superuser or in_workgroup):
             try:
                 version_publishing = metadata_item.version_publication_details.first()
             except:
@@ -490,16 +522,25 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
             })
         return action_list
 
-    # # @method_decorator(login_required)
-    # def dispatch(self, *args, **kwargs):
-    #     return super().dispatch(*args, **kwargs)
-
     def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context['item'] = context['object'].item
-        context['activetab'] = 'history'
-        context['hide_item_actions'] = True
+        context = {
+            'activetab': 'history',
+            'hide_item_actions': True
+        }
 
+        try:
+            context.update(super().get_context_data(*args, **kwargs))
+        except reversion.errors.RevertError:
+            # There was a deserialization error
+            # Return context so we can show user error message
+            logger.error('Reversion deserialization error')
+            context['object'] = self.get_object()
+            context['item'] = context['object']
+            context['failed'] = True
+            return context
+
+        context['failed'] = False
+        context['item'] = context['object'].item
         try:
             version_publishing = self.get_object().version_publication_details.first()
         except:

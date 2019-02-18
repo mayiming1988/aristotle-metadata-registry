@@ -46,7 +46,7 @@ Showing {{ page.paginator.count }} results.
             <a 
               {% if not item.is_active %}class="text-muted"{% endif %} 
               {% if manage %}
-                href="{% url 'aristotle:registrationauthority_details' item.id %}"
+                href="{% url 'aristotle:registrationAuthority' item.id %}"
               {% else %}
                 href="{{ item.get_absolute_url }}"
               {% endif %}>

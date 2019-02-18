@@ -38,7 +38,7 @@ export default {
         }
     },
     watch: {
-        runningTasks: function (newer, older) {
+        runningTasks: function (newer) {
             if (newer.includes(this.taskName)) {
                 this.processing = true
             } else {

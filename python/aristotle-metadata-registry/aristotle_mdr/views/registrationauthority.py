@@ -3,7 +3,16 @@ from django.urls import reverse
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 
-from django.views.generic import CreateView, ListView, DetailView, UpdateView
+from django.views.generic import (
+    CreateView,
+    ListView,
+    DetailView,
+    UpdateView,
+    TemplateView
+)
+from django.views.generic.detail import SingleObjectMixin
+from django.core.exceptions import PermissionDenied
+from django.forms.models import modelform_factory
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.forms import actions
@@ -17,19 +26,40 @@ from aristotle_mdr.views.utils import (
     UserFormViewMixin
 )
 from aristotle_mdr import perms
+from aristotle_mdr.contrib.validators.views import ValidationRuleEditView
+from aristotle_mdr.contrib.validators.models import RAValidationRules
 
+from ckeditor.widgets import CKEditorWidget
 import logging
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
 
-def registrationauthority(request, iid, *args, **kwargs):
-    if iid is None:
-        return redirect(reverse("aristotle_mdr:all_registration_authorities"))
-    item = get_object_or_404(MDR.RegistrationAuthority, pk=iid).item
+class MainPageMixin:
+    """Mixin for views displaying on the main (public) ra page"""
+    active_tab: str = 'home'
 
-    return render(request, item.template, {'item': item.item})
+    def is_manager(self, ra):
+        return perms.user_can_edit(self.request.user, ra)
+
+    def get_tab_context(self):
+        return {
+            'active_tab': self.active_tab
+        }
+
+
+class RegistrationAuthorityView(MainPageMixin, DetailView):
+    pk_url_kwarg = 'iid'
+    queryset = MDR.RegistrationAuthority.objects.all()
+    template_name = 'aristotle_mdr/organization/registration_authority/home.html'
+    context_object_name = 'item'
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update(self.get_tab_context())
+        context['is_manager'] = self.is_manager(self.object)
+        return context
 
 
 def organization(request, iid, *args, **kwargs):
@@ -61,13 +91,10 @@ class CreateRegistrationAuthority(UserFormViewMixin, LoginRequiredMixin, Permiss
     form_class = CreateRegistrationAuthorityForm
 
     def get_success_url(self):
-        return reverse('aristotle:registrationauthority_details', kwargs={'iid': self.object.id})
+        return reverse('aristotle:registrationAuthority', kwargs={'iid': self.object.id})
 
 
 class AddUser(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, UpdateView):
-    # TODO: Replace UpdateView with DetailView, FormView
-    # This is required for Django 1.8 only.
-
     template_name = "aristotle_mdr/user/registration_authority/add_user.html"
     permission_required = "aristotle_mdr.change_registrationauthority_memberships"
     raise_exception = True
@@ -130,9 +157,9 @@ class ListRegistrationAuthorityAll(LoginRequiredMixin, PermissionRequiredMixin, 
     redirect_unauthenticated_users = True
 
 
-class DetailsRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+class MembersRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, MainPageMixin, DetailView):
     model = MDR.RegistrationAuthority
-    template_name = "aristotle_mdr/user/registration_authority/details.html"
+    template_name = "aristotle_mdr/organization/registration_authority/members.html"
     permission_required = "aristotle_mdr.view_registrationauthority_details"
     raise_exception = True
     redirect_unauthenticated_users = True
@@ -140,27 +167,49 @@ class DetailsRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, 
     pk_url_kwarg = 'iid'
     context_object_name = "item"
 
+    active_tab = 'members'
+
     def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data()
-
-        is_manager = perms.user_is_registation_authority_manager(self.request.user, self.object)
-        context.update({'is_manager': is_manager})
-
+        context = super().get_context_data(*args, **kwargs)
+        context.update(self.get_tab_context())
+        context['is_manager'] = self.is_manager(self.object)
         return context
 
 
-class MembersRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, AlertFieldsMixin, MainPageMixin, UpdateView):
     model = MDR.RegistrationAuthority
-    template_name = "aristotle_mdr/user/registration_authority/members.html"
-    permission_required = "aristotle_mdr.view_registrationauthority_details"
+    template_name = "aristotle_mdr/user/registration_authority/edit.html"
+    permission_required = "aristotle_mdr.change_registrationauthority"
     raise_exception = True
     redirect_unauthenticated_users = True
+    object_level_permissions = True
+
+    fields = ('name', 'definition', 'active')
+    widgets = {
+        'definition': CKEditorWidget
+    }
+
+    alert_fields = [
+        'active'
+    ]
 
     pk_url_kwarg = 'iid'
     context_object_name = "item"
 
+    active_tab = 'settings'
 
-class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, AlertFieldsMixin, UpdateView):
+    def get_form_class(self):
+        return modelform_factory(self.model, fields=self.fields, widgets=self.widgets)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update(self.get_tab_context())
+        context['is_manager'] = self.is_manager(self.object)
+        context['settings_tab'] = 'general'
+        return context
+
+
+class EditRegistrationAuthorityStates(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, MainPageMixin, UpdateView):
     model = MDR.RegistrationAuthority
     template_name = "aristotle_mdr/user/registration_authority/edit.html"
     permission_required = "aristotle_mdr.change_registrationauthority"
@@ -169,9 +218,6 @@ class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequire
     object_level_permissions = True
 
     fields = [
-        'name',
-        'definition',
-        'active',
         'locked_state',
         'public_state',
         'notprogressed',
@@ -185,12 +231,17 @@ class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequire
         'retired',
     ]
 
-    alert_fields = [
-        'active'
-    ]
-
     pk_url_kwarg = 'iid'
     context_object_name = "item"
+
+    active_tab = 'settings'
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update(self.get_tab_context())
+        context['is_manager'] = self.is_manager(self.object)
+        context['settings_tab'] = 'states'
+        return context
 
 
 class ChangeUserRoles(RoleChangeView):
@@ -214,3 +265,43 @@ class RemoveUser(MemberRemoveFromGroupView):
 
     def get_success_url(self):
         return redirect(reverse('aristotle:registrationauthority_members', args=[self.get_object().id]))
+
+
+class RAValidationRuleEditView(SingleObjectMixin, MainPageMixin, ValidationRuleEditView):
+    template_name = 'aristotle_mdr/organization/registration_authority/rules.html'
+    model = MDR.RegistrationAuthority
+    pk_url_kwarg = 'iid'
+    context_object_name = 'item'
+
+    active_tab = 'settings'
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().get(request, *args, **kwargs)
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        if not perms.user_can_edit(self.request.user, obj):
+            raise PermissionDenied
+
+        return obj
+
+    def get_rules(self):
+        try:
+            rules = RAValidationRules.objects.get(registration_authority=self.object)
+        except RAValidationRules.DoesNotExist:
+            return None
+        return rules
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update(self.get_tab_context())
+        context['is_manager'] = self.is_manager(self.object)
+        context['settings_tab'] = 'validation'
+        if context['rules'] is None:
+            context['url'] = reverse('api_v4:create_ra_rules')
+            context['method'] = 'post'
+        else:
+            context['url'] = reverse('api_v4:ra_rules', args=[context['rules'].id])
+            context['method'] = 'put'
+        return context
