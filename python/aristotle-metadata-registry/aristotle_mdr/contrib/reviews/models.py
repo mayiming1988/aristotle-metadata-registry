@@ -12,7 +12,6 @@ from aristotle_mdr import models as MDR
 from aristotle_mdr import perms
 from aristotle_mdr.contrib.async_signals.utils import fire
 
-
 from aristotle_mdr.managers import (
     ReviewRequestQuerySet,
 )

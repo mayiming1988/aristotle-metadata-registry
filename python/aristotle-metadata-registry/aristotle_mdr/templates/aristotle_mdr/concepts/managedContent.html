@@ -3,72 +3,84 @@
 {% load aristotle_tags util_tags %}
 
 {% block infoContent %}
-  <section class="managed row">
-    {% include "aristotle_mdr/concepts/infobox.html" %}
-    <div v-pre>
-      {# Pre rendered content #}
-      {% include "aristotle_mdr/concepts/visibilityInfoBar.html" %}
+    <section class="managed row">
+        {% include "aristotle_mdr/concepts/infobox.html" %}
 
-      <h2 title="{% doc item 'definition' %}">{% trans 'Definition'%}</h2>
-      <div id="definition" class="definition">
-          {{ item.definition|bleach }}
-      </div>
+        <div v-pre>
+            {# Pre rendered content #}
+            {% include "aristotle_mdr/concepts/visibilityInfoBar.html" %}
 
-      {% block objSpecific %}{% endblock %}
+            <h2 title="{% doc item 'definition' %}">{% trans 'Definition'%}</h2>
+            <div id="definition" class="definition">
+                {{ item.definition|bleach }}
+            </div>
 
-      {% if item.comments %}
-          <h2>Comments</h2>
-          {{ item.comments|bleach }}
-      {% endif %}
+            {% block objSpecific %}{% endblock %}
 
-      {% if item.origin %}
-          <h2>Origin</h2>
-          {{ item.origin|bleach }}
-      {% endif %}
+            {% if item.comments %}
+                <h2>Comments</h2>
+                {{ item.comments|bleach }}
+            {% endif %}
 
-      {% if item.references %}
-      <div>
-      <h2>References</h2>
-          <p>{{ item.references|bleach }}</p>
-          {% if item.submitting_organisation %}
-          <h3>Submitting Organisation</h3>
-              <p>{{ item.submitting_organisation }}</p>
-          {% endif %}
-          {% if item.responsible_organisation %}
-          <h3>Responsible Organisation</h3>
-              <p>{{ item.responsible_organisation }}</p>
-          {% endif %}
-      </div>
-      {% endif %}
-      {% if custom_values %}
-        {% include 'aristotle_mdr/custom_fields/custom_fields_display.html' %}
-      {% endif %}
-      {% if 'aristotle_mdr.contrib.slots'|is_active_module %}
-          {% include "aristotle_mdr/slots/slots_display.html" %}
-      {% endif %}
-      {% if 'aristotle_mdr_links'|is_active_extension and links %}
-          {% include "aristotle_mdr/links/links_display.html" with links=links %}
-      {% endif %}
-      <h2>Related content</h2>
-      {% block relationships %}{% endblock %}
-      {% for extension in config.CONTENT_EXTENSIONS %}
-          {% extra_content extension item request.user %}
-      {% endfor %}
-    </div>
-  </section>
+            {% if item.origin %}
+                <h2>Origin</h2>
+                {{ item.origin|bleach }}
+            {% endif %}
 
-  <tags-modal 
-    :open="tagsModalOpen" 
-    item-tags="{{ item_tags }}" 
-    user-tags="{{ user_tags }}" 
-    submit-url="{% url 'api_v4:item_tags' item.id %}"
-    @saved-tags="updateTags"
-    @hide="closeTagsModal">
-  </tags-modal>
+            {% if item.references %}
+                <div>
+                    <h2>References</h2>
+                    <p>{{ item.references|bleach }}</p>
+                    {% if item.submitting_organisation %}
+                        <h3>Submitting Organisation</h3>
+                        <p>{{ item.submitting_organisation }}</p>
+                    {% endif %}
+                    {% if item.responsible_organisation %}
+                        <h3>Responsible Organisation</h3>
+                        <p>{{ item.responsible_organisation }}</p>
+                    {% endif %}
+                </div>
+            {% endif %}
 
-  <issue-modal 
-    v-model="issueModalOpen" 
-    iid="{{ item.id }}"
-    url="{% url 'api_v4:issues:create' %}">
-  </issue-modal>
+            {% if custom_values %}
+                {% include 'aristotle_mdr/custom_fields/custom_fields_display.html' %}
+            {% endif %}
+            {% if 'aristotle_mdr.contrib.slots'|is_active_module %}
+                {% include "aristotle_mdr/slots/slots_display.html" %}
+            {% endif %}
+
+        </div>
+        {% if 'aristotle_mdr_links'|is_active_extension and links %}
+            {% include "aristotle_mdr/links/links_display.html" with links=links %}
+
+        {% endif %}
+
+
+        <h2>Related content</h2>
+        {% block relationships %}{% endblock %}
+
+        {% for extension in config.CONTENT_EXTENSIONS %}
+            {% extra_content extension item request.user %}
+        {% endfor %}
+
+    </section>
+
+
+    <tags-modal
+            :open="tagsModalOpen"
+            item-tags="{{ item_tags }}"
+            user-tags="{{ user_tags }}"
+            submit-url="{% url 'api_v4:item_tags' item.id %}"
+            @saved-tags="updateTags"
+            @hide="closeTagsModal">
+    </tags-modal>
+
+    <issue-modal
+            v-model="issueModalOpen"
+            iid="{{ item.id }}"
+            url="{% url 'api_v4:issues:create' %}">
+    </issue-modal>
+
+
+
 {% endblock %}

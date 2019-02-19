@@ -630,6 +630,7 @@ class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['hide_item_actions'] = True
+        context['hide_item_tabs'] = True
         context['custom_visibility_message'] = {
             'alert_level': 'warning',
             'message': 'You are viewing a shared item in read only mode'
