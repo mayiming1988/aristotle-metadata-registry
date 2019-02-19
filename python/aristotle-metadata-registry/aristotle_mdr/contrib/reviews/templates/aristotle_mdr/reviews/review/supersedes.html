@@ -1,7 +1,5 @@
 {% extends "aristotle_mdr/reviews/review/base.html" %}
-{% load i18n humanize %}
-{% load aristotle_tags util_tags %}
-{% load static from staticfiles %}
+{% load util_tags %}
 
 {% block title %}Review details{{ item.name }}{% endblock %}
 {% block tabpanel %}
@@ -16,6 +14,12 @@
             {% for field in form.hidden_fields %}
               {{ field }}
             {% endfor %}
+            {% if form.initial.newer_item %}
+              <div class="form-group">
+                <label>Newer item:</label>
+                <span>{{ names|lookup_string:form.initial.newer_item }}</span>
+              </div>
+            {% endif %}
             {% for field in form.visible_fields %}
               <div class="form-group">
                 {{ field.errors }}
