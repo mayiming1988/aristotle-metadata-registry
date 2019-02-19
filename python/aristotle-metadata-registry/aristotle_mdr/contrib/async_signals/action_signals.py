@@ -27,4 +27,4 @@ def review_request_updated(message, **kwargs):
         for registrar in ra.registrars.all():
             # TODO: WE NEED TO FIND A WAY TO CHECK IF THE SUBMITTER OF THE UPDATE IS THE CURRENT REGISTRAR IN THE LOOP:
             # if registrar != review_request.requester:
-                messages.review_request_updated(recipient=registrar, obj=review_request, concepts=concepts)
+            messages.review_request_updated(recipient=registrar, obj=review_request, concepts=concepts)
