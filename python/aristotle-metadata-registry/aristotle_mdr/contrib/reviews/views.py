@@ -379,13 +379,13 @@ class ReviewSupersedesView(ReviewActionMixin, FormsetView):
     def get_formset_initial(self):
         initial = []
         seen_ids = []
-        supersedes = self.review.supersedes.all()
+        supersedes = self.review.supersedes(manager='proposed_objects').all()
         # Add all data for already propsed supersedes
         for supersede in supersedes:
             data = {
                 'newer_item': supersede.newer_item_id,
                 'older_item': supersede.older_item_id,
-                'message': supersede.message
+                'message': supersede.message or ''
             }
             initial.append(data)
             seen_ids.append(supersede.newer_item_id)
