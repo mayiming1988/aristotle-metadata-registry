@@ -23,6 +23,7 @@ from django.views.generic import (
 
 import reversion
 import json
+from django_bulk_update.helper import bulk_update
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr import perms
@@ -359,12 +360,68 @@ class ReviewSupersedesView(ReviewActionMixin, FormsetView):
 
     def get_formset_initial(self):
         initial = []
-        for concept in self.review.concepts.all():
+        seen_ids = []
+        concepts = self.review.concepts.all()
+        supersedes = self.review.supersedes.all()
+        # Add all data for already propsed supersedes
+        for supersede in supersedes:
             data = {
-                'older_item': concept.pk,
+                'newer_item': supersede.newer_item_id,
+                'older_item': supersede.older_item_id,
+                'message': supersede.message
             }
             initial.append(data)
+            seen_ids.append(supersede.newer_item_id)
+        # Add concepts that haven't had a supersedes proposed
+        for concept in concepts:
+            if concept.id not in seen_ids:
+                data = {
+                    'newer_item': concept.pk,
+                }
+                initial.append(data)
         return initial
+
+    def formset_valid(self, formset):
+        updated = []
+        created = []
+        supersedes = {s.older_item_id: s for s in self.review.supersedes.all()}
+        for form in formset:
+            if form.has_changed():
+                # Ignore forms submitted without an older item
+                if 'older_item' in form.cleaned_data:
+                    older_id = form.cleaned_data['older_item']
+                    # If we are updating an existing proposed supersedes
+                    if older_id in supersedes:
+                        ss = supersedes[older_id]
+                        ss.newer_item = form.cleaned_data['newer_item']
+                        ss.message = form.cleaned_data['message']
+                        updated.append(ss)
+                    # If we are creating a new proposed supersedes
+                    else:
+                        ss = MDR.SupersedeRelationship(
+                            proposed=True,
+                            older_item=form.cleaned_data['older_item'],
+                            newer_item=form.cleaned_data['newer_item'],
+                            message=form.cleaned_data['message'],
+                            registration_authority=self.review.registration_authority,
+                            review=self.review
+                        )
+                        created.append(ss)
+
+        if created:
+            MDR.SupersedeRelationship.objects.bulk_create(created)
+        if updated:
+            bulk_update(updated, batch_size=500)
+
+        return HttpResponseRedirect(
+            reverse('aristotle_reviews:review_details', args=[self.review.id])
+        )
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        names = {c.pk: c.name for c in self.review.concepts.all()}
+        context['names'] = names
+        return context
 
 
 class ReviewValidationView(ReviewActionMixin, TemplateView):

@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 
 from django.conf import settings
@@ -605,6 +605,8 @@ class FormsetView(TemplateView):
     Similar in structure to django's FormView
     """
 
+    save_methods: List[str] = ['POST']
+
     def get_formset_class(self):
         raise NotImplementedError
 
@@ -615,11 +617,29 @@ class FormsetView(TemplateView):
         kwargs = {
             'initial': self.get_formset_initial()
         }
+        if self.request.method in self.save_methods:
+            kwargs.update({
+                'data': self.request.POST,
+                'files': self.request.FILES
+            })
         return kwargs
 
     def get_formset(self):
         formset_class = self.get_formset_class()
         return formset_class(**self.get_formset_kwargs())
+
+    def post(self, request, *args, **kwargs):
+        formset = self.get_formset()
+        if formset.is_valid():
+            return self.formset_valid(formset)
+        else:
+            return formset_invalid(formset)
+
+    def formset_valid(self, formset):
+        raise NotImplementedError
+
+    def formset_invalid(self, formset):
+        return render_to_response(self.get_context_data(formset=formset))
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)

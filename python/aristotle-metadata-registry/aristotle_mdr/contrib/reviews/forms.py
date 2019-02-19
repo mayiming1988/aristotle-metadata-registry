@@ -163,13 +163,16 @@ class RequestReviewBulkActionForm(RedirectBulkActionMixin, LoggedInBulkActionFor
         )
 
 
-class ReviewRequestSupersedesForm(forms.models.ModelForm):
+class ReviewRequestSupersedesForm(forms.Form):
 
-    class Meta:
-        model = MDR.SupersedeRelationship
-        fields = ('older_item', 'newer_item', 'message')
-        widgets = {
-            'older_item': forms.widgets.HiddenInput(),
-            'newer_item': ConceptAutocompleteSelect(),
-            'message': forms.widgets.TextInput()
-        }
+    older_item = forms.ModelChoiceField(
+        required=False,
+        widget=ConceptAutocompleteSelect(),
+        queryset=MDR._concept.objects.all(),
+    )
+    newer_item = forms.ModelChoiceField(
+        required=True,
+        widget=forms.HiddenInput(),
+        queryset=MDR._concept.objects.all(),
+    )
+    message = forms.CharField()
