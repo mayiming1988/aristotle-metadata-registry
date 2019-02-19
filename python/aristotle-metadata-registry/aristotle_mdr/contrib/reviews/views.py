@@ -162,6 +162,7 @@ class ReviewCreateView(UserFormViewMixin, CreateView):
 
 
 class ReviewStatusChangeBase(ReviewActionMixin, ReviewChangesView):
+    """Base view for status changing"""
 
     change_step_name = 'review_accept'
 
@@ -169,6 +170,7 @@ class ReviewStatusChangeBase(ReviewActionMixin, ReviewChangesView):
     display_review = None
     review = None
     user_form = True
+    show_supersedes: bool = True
 
     def dispatch(self, request, *args, **kwargs):
 
@@ -226,7 +228,8 @@ class ReviewStatusChangeBase(ReviewActionMixin, ReviewChangesView):
         kwargs = super().get_context_data(*args, **kwargs)
         kwargs['status_matrix'] = json.dumps(generate_visibility_matrix(self.request.user))
         kwargs['review'] = self.get_review()
-        kwargs['supersedes'] = self.get_supersedes_context()
+        if self.show_supersedes:
+            kwargs['supersedes'] = self.get_supersedes_context()
         return kwargs
 
     def get_form_kwargs(self, step):
@@ -240,6 +243,7 @@ class ReviewStatusChangeBase(ReviewActionMixin, ReviewChangesView):
 
 
 class ReviewAcceptView(ReviewStatusChangeBase):
+    """Accept the review at the proposed status level"""
 
     form_list = [
         ('review_accept', forms.RequestReviewAcceptForm),
@@ -277,6 +281,7 @@ class ReviewAcceptView(ReviewStatusChangeBase):
 
 
 class ReviewEndorseView(ReviewStatusChangeBase):
+    """Accept the review at a new status level"""
 
     form_list = [
         ('review_accept', forms.RequestReviewEndorseForm),
@@ -287,6 +292,8 @@ class ReviewEndorseView(ReviewStatusChangeBase):
         'review_accept': 'aristotle_mdr/user/user_request_endorse.html',
         'review_changes': 'aristotle_mdr/actions/review_state_changes.html'
     }
+
+    show_supersedes = False
 
     def get_change_data(self, register=False):
         change_data = super().get_change_data(register)
