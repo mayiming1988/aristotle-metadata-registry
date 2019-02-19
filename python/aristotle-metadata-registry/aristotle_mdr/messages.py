@@ -31,9 +31,9 @@ def notif_accepted_email(func):
             elif func.__name__ == "registrar_item_changed_status":
                 message = "An item registered by your registration authority has changed status: " + kwargs['obj'].name
             elif func.__name__ == "review_request_created":
-                message = kwargs['obj'].requester.full_name + " requested concept review of concept(s) " + format_concepts(kwargs['concepts'])
+                message = kwargs['obj'].requester.full_name + " created a review request" + ((" '" + kwargs['obj'].title + "'.") if kwargs['obj'].title else ".")
             elif func.__name__ == "review_request_updated":
-                message = kwargs['obj'].requester.full_name + " updated concept review of concept(s) " + format_concepts(kwargs['concepts'])
+                message = "Review request updated" + ((": '" + kwargs['obj'].title + "'.") if kwargs['obj'].title else ".")
             elif func.__name__ == "issue_created_workgroup":
                 message = "A new issue was created on the item " + kwargs['obj'].item.name
             elif func.__name__ == "issue_comment_created_workgroup":
@@ -320,15 +320,17 @@ def registrar_item_changed_status(recipient, obj, ra, status):
 @notif_registrar_review_request_created
 @notif_accepted_email
 @notif_accepted_within_aristotle
-def review_request_created(recipient, obj, concepts):
-    notify.send(obj, recipient=recipient, verb=obj.requester.full_name + " requested a review on the concept" + pluralize(concepts) + " " + format_concepts(concepts) + ".")
+def review_request_created(recipient, obj):
+    notify.send(obj, recipient=recipient, verb=obj.requester.full_name + " created a review request" + ((" '" + obj.title + "'.") if obj.title else "."))
 
 
 @notif_registrar_review_request_updated
 @notif_accepted_email
 @notif_accepted_within_aristotle
-def review_request_updated(recipient, obj, concepts):
-    notify.send(obj, recipient=recipient, verb=obj.requester.full_name + " updated a review request on the concept"+ pluralize(concepts) + " " + format_concepts(concepts) + ".")
+def review_request_updated(recipient, obj):
+    # TODO: HOW CAN WE IDENTIFY REQUESTS IN THE NOTIFICATIONS? THE BEST I CAN DO IS TRY TO GET THE REQUEST
+    #  TITLE, BUT SOMETIMES REVIEW REQUESTS DON'T HAVE TITLES.
+    notify.send(obj, recipient=recipient, verb="Review request updated" + ((": '" + obj.title + "'.") if obj.title else "."))
 
 
 @notif_issues_items_in_my_workgroups
@@ -391,14 +393,3 @@ def new_comment_created(recipient, comment):
     if comment.author:
         notify.send(comment, recipient=recipient, verb="(comment) has been created in the discussion:", target=comment.post)
 
-
-def rreplace(s, old, new, occurrance):
-    li = s.rsplit(old, occurrance)
-    return new.join(li)
-
-
-def format_concepts(concepts):
-    quoted_concepts = map((lambda x: "'" + x + "'"), concepts)
-    concepts_str = ', '.join(quoted_concepts)
-
-    return rreplace(concepts_str, ', ', ', and ', 1)
