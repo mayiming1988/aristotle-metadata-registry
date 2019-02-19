@@ -11,6 +11,6 @@
     {% render_bundle 'graphsPage' 'js' %}
 {% endblock %}
 {% block infoContent %}
-    <graphical-representation url="{% url 'aristotle_mdr:itemGraphs' iid=item.id %}">
+    <graphical-representation url="{% url 'api_v4:item:item_graphical' pk=item.id %}">
     </graphical-representation>
 {% endblock %}

@@ -78,5 +78,5 @@ export default {
 </script>
 
 <style>
-    @import '../../node_modules/vis/dist/vis.css';
+    @import '~vis/dist/vis.css';
 </style>

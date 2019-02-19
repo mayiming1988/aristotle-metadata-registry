@@ -5,13 +5,15 @@
 
 <script>
 
+    import request from 'src/lib/request.js'
+
     export default {
         props: ['url'],
         name: "graphicalRepresentation",
         mounted() {
-            $.getJSON(this.url, (data) => {
+            request("get", this.url).then((data) => {
 
-                data.nodes.forEach(function (element) {
+                for (let element of data.data.nodes) {
                     element.title = `<small>Name: ${element.name}</small><br>`
                     if (element.definition !== "") {
                         element.title = element.title.concat(`<small>Definition: ${element.short_definition}</small><br>`)
@@ -29,11 +31,11 @@
                         element.color = '#ffc05d'
                     }
                     delete element.name
-                })
+                }
 
                 let edges = []
 
-                data.edges.forEach(function (element) {
+                for (let element of data.data.edges) {
                     element.label = element.registration_authority
                     element.from = element.older_item
                     element.to = element.newer_item
@@ -57,12 +59,12 @@
                         }
                     }
                     edges.push({"from": element.from, "to": element.to})
-                })
+                }
 
                 import('vis').then((vis) => {
 
-                    let nodes = data.nodes
-                    let edges = data.edges
+                    let nodes = data.data.nodes
+                    let edges = data.data.edges
 
                      nodes = new vis.DataSet(nodes);
                      edges = new vis.DataSet(edges);
@@ -95,8 +97,8 @@
                             'hierarchical': {
                                 'enabled': true,
                                 'direction': 'LR',
-                                // 'sortMethod': 'directed',
-                                'sortMethod': 'hubsize',
+                                'sortMethod': 'directed',
+                                // 'sortMethod': 'hubsize',
                                 'levelSeparation': 300
                             }
                         }
@@ -121,22 +123,6 @@
                         canvas.classList.remove("vis-active")
                         overlay.style.display = "block"
                     }
-
-
-                    // network.on("hoverNode", function (node) {
-                    //     console.log(node)
-                    // })
-
-                    // THIS HACKY SOLUTION SOLVES A WEIRD BUG:
-                    // FOR LARGE NETWORKS, SOMETIMES THE LABELS ARE NOT APPEARING IN THE CORRECT POSITIONS
-                    // network.on("afterDrawing", function () {
-                    //
-                    //     // console.log("THESE ARE THE EDGES:")
-                    //     // console.log(networkNodes.body.edges)
-                    //     // Object.values(networkNodes.body.nodes).forEach(function (node) {
-                    //     //     network.moveNode(node.id, node.x, node.y + 1)
-                    //     // })
-                    // })
 
                     network.on('hoverNode', function() {
                         document.body.style.cursor = 'pointer'
