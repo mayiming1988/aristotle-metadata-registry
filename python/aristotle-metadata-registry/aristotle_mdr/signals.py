@@ -82,7 +82,6 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
             # TODO: I JUST FOUND ANOTHER ERROR: THE TYPE OF THE PK ATTRIBUTE IS A SET TYPE AND IT IS NOT SERIALIZABLE.
             message.pop('pk_set', None)
 
-            logger.critical(message)
             from aristotle_bg_workers.celery import app
             app.send_task(
                 'update_search_index',
