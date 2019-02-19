@@ -18,7 +18,6 @@ from aristotle_mdr.managers import (
 from .const import REVIEW_STATES
 
 
-
 class StatusMixin:
     @property
     def status_code(self):
