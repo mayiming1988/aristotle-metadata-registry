@@ -1,8 +1,9 @@
+from typing import List, Dict
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
-from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
@@ -67,18 +68,20 @@ def review_list(request):
     return paginated_list(request, reviews, "aristotle_mdr/reviews/reviewers_review_list.html", {'reviews': reviews})
 
 
-class ReviewActionMixin(UserFormViewMixin):
+class ReviewActionMixin(LoginRequiredMixin, UserFormViewMixin):
     pk_url_kwarg = 'review_id'
     context_object_name = "review"
     user_form = True
+    perm_function = 'user_can_view_review'
 
-    @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         self.review = self.get_review()
-        if not perms.user_can_view_review(self.request.user, self.review):
+        self.review_concepts = self.review.concepts.all()
+
+        perm_func = getattr(perms, self.perm_function)
+        if not perm_func(self.request.user, self.review):
             raise PermissionDenied
-        # if review.status != models.REVIEW_STATES.open:
-        #     return HttpResponseRedirect(reverse('aristotle_reviews:userReviewDetails', args=[review.pk]))
+
         return super().dispatch(*args, **kwargs)
 
     def get_review(self):
@@ -126,6 +129,7 @@ class ReviewUpdateView(ReviewActionMixin, UpdateView):
     context_object_name = "item"
     model = models.ReviewRequest
     user_form = True
+    perm_function = 'user_can_edit_review'
 
     def get_success_url(self):
         return self.get_review().get_absolute_url()
@@ -185,7 +189,19 @@ class ReviewStatusChangeBase(ReviewActionMixin, ReviewChangesView):
         return review.registration_authority.is_active
 
     def get_items(self):
-        return self.get_review().concepts.all()
+        return self.review_concepts
+
+    def get_supersedes_context(self) -> List[Dict[str, str]]:
+        supersedes = []
+        qs = self.review.supersedes(
+            manager='proposed_objects'
+        ).select_related('older_item', 'newer_item')
+        for ss in qs:
+            supersedes.append({
+                'older': ss.older_item.name,
+                'newer': ss.newer_item.name
+            })
+        return supersedes
 
     def get_change_data(self, register=False):
         review = self.get_review()
@@ -210,6 +226,7 @@ class ReviewStatusChangeBase(ReviewActionMixin, ReviewChangesView):
         kwargs = super().get_context_data(*args, **kwargs)
         kwargs['status_matrix'] = json.dumps(generate_visibility_matrix(self.request.user))
         kwargs['review'] = self.get_review()
+        kwargs['supersedes'] = self.get_supersedes_context()
         return kwargs
 
     def get_form_kwargs(self, step):
@@ -288,7 +305,7 @@ class ReviewEndorseView(ReviewStatusChangeBase):
     def done(self, form_list, form_dict, **kwargs):
         review = self.get_review()
 
-        with transaction.atomic(), reversion.revisions.create_revision():
+        with reversion.revisions.create_revision():
             message = self.register_changes_with_message(form_dict)
 
             if int(form_dict['review_accept'].cleaned_data['close_review']) == 1:
@@ -354,6 +371,7 @@ class ReviewSupersedesView(ReviewActionMixin, FormsetView):
     context_object_name = "review"
     active_tab_name = "supersedes"
     user_form = True
+    perm_function = 'user_can_edit_review'
 
     def get_formset_class(self):
         return formset_factory(forms.ReviewRequestSupersedesForm, extra=0)
@@ -361,7 +379,6 @@ class ReviewSupersedesView(ReviewActionMixin, FormsetView):
     def get_formset_initial(self):
         initial = []
         seen_ids = []
-        concepts = self.review.concepts.all()
         supersedes = self.review.supersedes.all()
         # Add all data for already propsed supersedes
         for supersede in supersedes:
@@ -373,13 +390,20 @@ class ReviewSupersedesView(ReviewActionMixin, FormsetView):
             initial.append(data)
             seen_ids.append(supersede.newer_item_id)
         # Add concepts that haven't had a supersedes proposed
-        for concept in concepts:
+        for concept in self.review_concepts:
             if concept.id not in seen_ids:
                 data = {
                     'newer_item': concept.pk,
                 }
                 initial.append(data)
         return initial
+
+    def get_formset(self):
+        formset = super().get_formset()
+        # Make only concepts in the review allowed as newer items
+        for form in formset:
+            form.fields['newer_item'].queryset = self.review_concepts
+        return formset
 
     def formset_valid(self, formset):
         updated = []
@@ -432,7 +456,7 @@ class ReviewSupersedesView(ReviewActionMixin, FormsetView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        names = {c.pk: c.name for c in self.review.concepts.all()}
+        names = {c.pk: c.name for c in self.review_concepts.all()}
         context['names'] = names
         return context
 
