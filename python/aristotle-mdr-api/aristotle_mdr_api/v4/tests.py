@@ -638,5 +638,5 @@ class PermsTestCase(BaseAPITestCase):
         # Query on item not visible to user, expect 403
         self.create_token({'metadata': {'read': True}})
         self.client.credentials(HTTP_AUTHORIZATION='Token abc')
-        response = self.client.get(reverse('api_v4:item', args=[self.item.id]))
+        response = self.client.get(reverse('api_v4:item:item', args=[self.item.id]))
         self.assertEqual(response.status_code, 403)
