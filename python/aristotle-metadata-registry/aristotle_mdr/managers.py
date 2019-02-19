@@ -127,7 +127,6 @@ class ConceptQuerySet(MetadataItemQuerySet):
 
         It is **chainable** with other querysets. For example, both of these
         will work and return the same list::
-        
 
             ObjectClass.objects.filter(name__contains="Person").editable()
             ObjectClass.objects.editable().filter(name__contains="Person")
