@@ -8,8 +8,10 @@ from django.shortcuts import redirect, render
 from django.views.generic import FormView
 from django.template import loader
 
-from organizations.backends.defaults import (InvitationBackend,
-                                             RegistrationBackend)
+from organizations.backends.defaults import (
+    InvitationBackend,
+    RegistrationBackend
+)
 
 from organizations.backends.tokens import RegistrationTokenGenerator
 
@@ -151,6 +153,7 @@ class BaseAristotleInvitationBackend(InvitationBackend):
 
 class AristotleInvitationBackend(BaseAristotleInvitationBackend):
 
+    # Notification email currently not used
     notification_subject = 'aristotle_mdr/users_management/newuser/email/notification_subject.txt'
     notification_body = 'aristotle_mdr/users_management/newuser/email/notification_body.html'
     invitation_subject = 'aristotle_mdr/users_management/newuser/email/invitation_subject.txt'

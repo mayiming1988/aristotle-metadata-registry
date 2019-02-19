@@ -43,14 +43,14 @@ class SearchViewSet(viewsets.GenericViewSet):
 
 
     def list(self, request):
-        if not self.request.query_params.keys():
+        if 'q' not in self.request.query_params:
             return Response({'search_options':'q models state ra'.split()})
 
         items = PermissionSearchQuerySet().auto_query(self.request.query_params['q'])
         if self.request.query_params.get('models') is not None:
             search_models = []
             models = self.request.query_params.get('models')
-            if type(models) != type([]):
+            if type(models) != list:
                 models = [models]
             for mod in models:
                 if len(mod.split('.',1)) == 2:

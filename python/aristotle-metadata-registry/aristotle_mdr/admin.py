@@ -298,7 +298,8 @@ admin.site.register(MDR.Measure)
 class AristotleProfileInline(admin.StackedInline):
     model = MDR.PossumProfile
     form = MDRForms.admin.AristotleProfileForm
-    exclude = ('savedActiveWorkgroup', 'favourites')
+    exclude = ('savedActiveWorkgroup', 'favourites', 'profilePictureWidth',
+               'profilePictureHeight', 'notificationPermissions', 'profilePicture')
     can_delete = False
     verbose_name_plural = 'Membership details'
 
