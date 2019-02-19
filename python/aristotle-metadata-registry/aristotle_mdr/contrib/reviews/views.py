@@ -384,6 +384,7 @@ class ReviewSupersedesView(ReviewActionMixin, FormsetView):
     def formset_valid(self, formset):
         updated = []
         created = []
+        deleted = []
         supersedes = {
             s.newer_item_id: s
             for s in self.review.supersedes(manager='proposed_objects').all()
@@ -391,30 +392,39 @@ class ReviewSupersedesView(ReviewActionMixin, FormsetView):
         for form in formset:
             if form.has_changed():
                 # Ignore forms submitted without an older item
-                if 'older_item' in form.cleaned_data:
                     newer_id = form.cleaned_data['newer_item'].id
                     # If we are updating an existing proposed supersedes
                     if newer_id in supersedes:
+                        # If the form has an older item selected
                         ss = supersedes[newer_id]
-                        ss.older_item = form.cleaned_data['older_item']
-                        ss.message = form.cleaned_data['message']
-                        updated.append(ss)
+                        if form.cleaned_data['older_item']:
+                            ss.older_item = form.cleaned_data['older_item']
+                            ss.message = form.cleaned_data['message']
+                            updated.append(ss)
+                        else:
+                            deleted.append(ss)
                     # If we are creating a new proposed supersedes
                     else:
-                        ss = MDR.SupersedeRelationship(
-                            proposed=True,
-                            older_item=form.cleaned_data['older_item'],
-                            newer_item=form.cleaned_data['newer_item'],
-                            message=form.cleaned_data['message'],
-                            registration_authority=self.review.registration_authority,
-                            review=self.review
-                        )
-                        created.append(ss)
+                        # Ignore new entries if older item not set
+                        if 'older_item' in form.cleaned_data:
+                            ss = MDR.SupersedeRelationship(
+                                proposed=True,
+                                older_item=form.cleaned_data['older_item'],
+                                newer_item=form.cleaned_data['newer_item'],
+                                message=form.cleaned_data['message'],
+                                registration_authority=self.review.registration_authority,
+                                review=self.review
+                            )
+                            created.append(ss)
 
+        # import pdb; pdb.set_trace()
         if created:
             MDR.SupersedeRelationship.objects.bulk_create(created)
         if updated:
             bulk_update(updated, batch_size=500)
+        if deleted:
+            ids = [i.id for i in deleted]
+            MDR.SupersedeRelationship.proposed_objects.filter(id__in=ids).delete()
 
         return HttpResponseRedirect(
             reverse('aristotle_reviews:review_details', args=[self.review.id])

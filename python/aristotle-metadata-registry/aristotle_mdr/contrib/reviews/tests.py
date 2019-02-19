@@ -180,6 +180,15 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
             submitter=self.editor
         )
 
+    def create_ss_relation(self, older, newer):
+        MDR.SupersedeRelationship.objects.create(
+            proposed=True,
+            older_item=older,
+            newer_item=newer,
+            registration_authority=self.review.registration_authority,
+            review=self.review,
+        )
+
     def test_rr_supersedes(self):
         self.login_editor()
         response = self.reverse_get(
@@ -235,20 +244,8 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         old3 = self.create_editor_item('Old 3rd Object', 'old')
         old4 = self.create_editor_item('Old 4th Object', 'old')
         # Create supersedes relations
-        MDR.SupersedeRelationship.objects.create(
-            proposed=True,
-            older_item=old1,
-            newer_item=self.item,
-            registration_authority=self.review.registration_authority,
-            review=self.review,
-        )
-        MDR.SupersedeRelationship.objects.create(
-            proposed=True,
-            older_item=old2,
-            newer_item=item2,
-            registration_authority=self.review.registration_authority,
-            review=self.review,
-        )
+        self.create_ss_relation(old1, self.item)
+        self.create_ss_relation(old2, item2)
         # Post data
         data = [
             {'older_item': old3.id, 'newer_item': self.item.id, 'message': 'wow'},
@@ -270,6 +267,33 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(ss1.older_item, old3.concept)
         ss2 = supersedes.get(newer_item=item2)
         self.assertEqual(ss2.older_item, old4.concept)
+
+    @tag('failing')
+    def test_rr_supersedes_delete(self):
+        # Add second item to review
+        item2 = self.create_editor_item('My 2nd Object', 'mine')
+        self.review.concepts.add(item2)
+        # Create items to be used in supersede relation
+        old1 = self.create_editor_item('Old Object', 'old')
+        old2 = self.create_editor_item('Old 2nd Object', 'old')
+        # Create supersedes relations
+        self.create_ss_relation(old1, self.item)
+        self.create_ss_relation(old2, item2)
+        # Post data
+        data = [
+            {'newer_item': self.item.id, 'message': 'wow'},
+            {'newer_item': item2.id, 'message': 'nice'},
+        ]
+        post_data = self.get_formset_postdata(data, initialforms=2)
+        self.login_editor()
+        response = self.reverse_post(
+            'aristotle_mdr_review_requests:request_supersedes',
+            post_data,
+            reverse_args=[self.review.pk],
+            status_code=302
+        )
+        # Check objects deleted
+        self.assertEqual(self.review.supersedes(manager='proposed_objects').count(), 0)
 
 @skip('Needs to be updated for new reviews system')
 class ReviewRequestPermissions(utils.AristotleTestUtils, TestCase):
