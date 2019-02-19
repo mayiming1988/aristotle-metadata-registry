@@ -4,6 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
+from django.template.defaultfilters import pluralize
 
 from model_utils.models import TimeStampedModel
 
@@ -87,8 +88,9 @@ class ReviewRequest(StatusMixin, TimeStampedModel):
         )
 
     def __str__(self):
-        return "Review of {count} items in {ra} registraion authority".format(
+        return "Review of {count} item{item_pluralise} in {ra} registraion authority".format(
             count=self.concepts.count(),
+            item_pluralise=pluralize(self.concepts.count()),
             ra=self.registration_authority,
         )
 
@@ -182,7 +184,7 @@ class ReviewEndorsementTimeline(TimeStampedModel):
 
 
 @receiver(post_save, sender=ReviewRequest)
-def review_request_changed(sender, instance, *args, **kwargs):
+def review_request_created(sender, instance, *args, **kwargs):
     if kwargs.get('created'):
         fire("action_signals.review_request_created", obj=instance, **kwargs)
     else:
