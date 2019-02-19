@@ -9,6 +9,7 @@
       These supersedes relations are being proposed as part of this request
       <form method="post">
         {% csrf_token %}
+        {{ formset.management_form }}
         {% for form in formset %}
           <div class="form-inline">
             {% for field in form.hidden_fields %}
