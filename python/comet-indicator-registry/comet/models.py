@@ -53,11 +53,28 @@ class Indicator(aristotle.models.concept):
     ]
     clone_fields = ['indicatornumeratordefinition', 'indicatordenominatordefinition', 'indicatordisaggregationdefinition']
 
+
+    def add_component(self, model_class, **kwargs):
+        kwargs.pop('indicator', None)
+        from django.db.models import Max
+        max_order = list(
+            model_class.objects.filter(indicator=self)
+            .annotate(latest=Max('order')).values_list('order', flat=True)
+        )
+        if not max_order:
+            order = 1
+        else:
+            order = max_order[0] + 1
+        return model_class.objects.create(indicator=self, order=order, **kwargs)
+
     @property
     def numerators(self):
         return aristotle.models.DataElement.objects.filter(
             indicatornumeratordefinition__indicator=self
         )
+
+    def add_numerator(self, **kwargs):
+        self.add_component(model_class=IndicatorNumeratorDefinition, **kwargs)
 
     @property
     def denominators(self):
@@ -65,11 +82,17 @@ class Indicator(aristotle.models.concept):
             indicatordenominatordefinition__indicator=self
         )
 
+    def add_denominator(self, **kwargs):
+        self.add_component(model_class=IndicatorDenominatorDefinition, **kwargs)
+
     @property
     def disaggregators(self):
         return aristotle.models.DataElement.objects.filter(
             indicatordisaggregationdefinition__indicator=self
         )
+
+    def add_disaggregator(self, **kwargs):
+        self.add_component(model_class=IndicatorDisaggregationDefinition, **kwargs)
 
 
 class IndicatorDataElementBase(aristotleComponent):

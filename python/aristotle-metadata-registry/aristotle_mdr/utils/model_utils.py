@@ -19,6 +19,7 @@ from aristotle_mdr.fields import (
 from aristotle_mdr.managers import (
     MetadataItemManager,
     ManagedItemQuerySet,
+    UtilsManager
 )
 
 
