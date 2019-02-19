@@ -16,25 +16,7 @@
 
     <header>By approving this review, this form will change the status of the listed items in your registration authorities.
     </header>
-    <div>Requested registration status:
-        <em>{{review.get_state_display}}</em> in <a href="{{review.registration_authority.get_absolute_url }}">{{review.registration_authority.name }}</a>
-    </div>
-    <div class="well">
-        {{ wizard.form.errors }}
-        <strong>The original message for this request:</strong>
-        <p>{{ review.message }}</p>
-        <strong>The items in this request are listed below:</strong>
-        <ul>
-            {% for item in review.concepts.all %}
-                <li>
-                    {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item %}
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
-    <div id="visibilty">
-
-    </div>
+    {% include 'aristotle_mdr/helpers/accept_review_info.html' %}
     <section>
         <div class="status_change_description">
             <label for='id_response'>{{ wizard.form.response.label }}:</label> {{ wizard.form.response.help_text }}
