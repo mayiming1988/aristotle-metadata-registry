@@ -59,9 +59,9 @@ def status_changed(message, **kwargs):
         for registrar in status.registrationAuthority.registrars.all():
             if concept.statuses.filter(registrationAuthority=new_status.registrationAuthority).count() <= 1:
                 # 0 or 1 because the transaction may not be complete yet
-                messages.registrar_item_registered(recipient=registrar, obj=concept)
+                messages.registrar_item_registered(recipient=registrar, obj=concept, ra=new_status.registrationAuthority, status=str(new_status.state_name))
             else:
-                messages.registrar_item_changed_status(recipient=registrar, obj=concept)
+                messages.registrar_item_changed_status(recipient=registrar, obj=concept, ra=new_status.registrationAuthority, status=str(new_status.state_name))
 
 
 def item_superseded(message, **kwargs):
@@ -84,7 +84,7 @@ def item_superseded(message, **kwargs):
     for status in concept.current_statuses().all():
         for registrar in status.registrationAuthority.registrars.all():
             if concept.can_view(registrar) and new_super_rel.newer_item.can_view(registrar):
-                messages.registrar_item_superseded(recipient=registrar, obj=concept, )
+                messages.registrar_item_superseded(recipient=registrar, obj=concept, ra=status.registrationAuthority)
 
 
 def issue_created(issue, **kwargs):
