@@ -56,11 +56,12 @@ class GraphicalConceptView(APIView):
                 nodes.append(serialised_item)
 
             if current_item.superseded_by_items_relation_set.first():
-                newer = current_item.superseded_by_items_relation_set.first().newer_item
-                if newer.id not in seen_items_ids:
-                    nodes.append(ConceptSerializer(newer).data)
-                    queue.append(newer)
-                    seen_items_ids.add(newer.id)
+                for sup_by_rel in current_item.superseded_by_items_relation_set.all():
+                    newer = sup_by_rel.newer_item
+                    if newer.id not in seen_items_ids:
+                        nodes.append(ConceptSerializer(newer).data)
+                        queue.append(newer)
+                        seen_items_ids.add(newer.id)
 
             for sup_rel in current_item.superseded_items_relation_set.all():
                 if sup_rel.older_item.id not in seen_items_ids:
