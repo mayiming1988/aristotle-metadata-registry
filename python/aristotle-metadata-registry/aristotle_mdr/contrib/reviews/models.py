@@ -11,15 +11,12 @@ from aristotle_mdr import models as MDR
 from aristotle_mdr import perms
 from aristotle_mdr.contrib.async_signals.utils import fire
 
-
 from aristotle_mdr.managers import (
     ReviewRequestQuerySet,
 )
 
 from .const import REVIEW_STATES
 
-import logging
-logger = logging.getLogger(__name__)
 
 
 class StatusMixin:
@@ -189,7 +186,5 @@ class ReviewEndorsementTimeline(TimeStampedModel):
 def review_request_changed(sender, instance, *args, **kwargs):
     if kwargs.get('created'):
         fire("action_signals.review_request_created", obj=instance, **kwargs)
-        logger.critical("1")
     else:
-        logger.critical("2")
         fire("action_signals.review_request_updated", obj=instance, **kwargs)
