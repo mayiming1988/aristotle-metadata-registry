@@ -262,14 +262,14 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
             reverse_args=[self.review.pk],
             status_code=302
         )
-        # Check objects created
+        # Check objects updated
         self.review.refresh_from_db()
         supersedes = self.review.supersedes(manager='proposed_objects')
         self.assertEqual(supersedes.count(), 2)
         ss1 = supersedes.get(newer_item=self.item)
-        self.assertEqual(ss1.older_item, old3)
+        self.assertEqual(ss1.older_item, old3.concept)
         ss2 = supersedes.get(newer_item=item2)
-        self.assertEqual(ss3.older_item, old4)
+        self.assertEqual(ss2.older_item, old4.concept)
 
 @skip('Needs to be updated for new reviews system')
 class ReviewRequestPermissions(utils.AristotleTestUtils, TestCase):

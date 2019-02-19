@@ -384,16 +384,19 @@ class ReviewSupersedesView(ReviewActionMixin, FormsetView):
     def formset_valid(self, formset):
         updated = []
         created = []
-        supersedes = {s.older_item_id: s for s in self.review.supersedes.all()}
+        supersedes = {
+            s.newer_item_id: s
+            for s in self.review.supersedes(manager='proposed_objects').all()
+        }
         for form in formset:
             if form.has_changed():
                 # Ignore forms submitted without an older item
                 if 'older_item' in form.cleaned_data:
-                    older_id = form.cleaned_data['older_item']
+                    newer_id = form.cleaned_data['newer_item'].id
                     # If we are updating an existing proposed supersedes
-                    if older_id in supersedes:
-                        ss = supersedes[older_id]
-                        ss.newer_item = form.cleaned_data['newer_item']
+                    if newer_id in supersedes:
+                        ss = supersedes[newer_id]
+                        ss.older_item = form.cleaned_data['older_item']
                         ss.message = form.cleaned_data['message']
                         updated.append(ss)
                     # If we are creating a new proposed supersedes
