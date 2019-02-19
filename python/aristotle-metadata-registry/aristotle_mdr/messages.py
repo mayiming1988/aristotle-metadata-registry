@@ -392,4 +392,3 @@ def new_post_created(recipient, post):
 def new_comment_created(recipient, comment):
     if comment.author:
         notify.send(comment, recipient=recipient, verb="(comment) has been created in the discussion:", target=comment.post)
-
