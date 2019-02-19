@@ -1604,6 +1604,10 @@ class PossumProfile(models.Model):
         return perms.user_is_registrar(self.user)
 
     @property
+    def registrar_count(self):
+        return self.user.registrar_in.count()
+
+    @property
     def is_ra_manager(self):
         user = self.user
         if user.is_anonymous():

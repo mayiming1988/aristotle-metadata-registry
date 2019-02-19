@@ -348,8 +348,10 @@ def get_aristotle_url(label, obj_id, obj_name=None):
             return reverse('aristotle:workgroup', args=[obj_id, name_slug])
         elif cname == 'registrationauthority':
             return reverse('aristotle:registrationAuthority', args=[obj_id, name_slug])
-        elif cname == 'reviewrequest':
-            return reverse('aristotle:userReviewDetails', args=[obj_id])
+
+    elif app == 'aristotle_mdr_review_requests':
+        if cname == 'reviewrequest':
+            return reverse('aristotle_reviews:review_details', args=[obj_id])
 
     return None
 
@@ -405,7 +407,10 @@ def get_status_change_details(queryset, ra, new_state):
     statuses = statuses.valid().order_by("-registrationDate", "-created")
 
     # new_state_num = static_content['new_state']
-    new_state_text = str(STATES[new_state])
+    if new_state:
+        new_state_text = str(STATES[new_state])
+    else:
+        new_state_text = 'Unchanged'
 
     # Build a dict mapping concepts to their status data
     # So that no additional status queries need to be made
@@ -442,7 +447,7 @@ def get_status_change_details(queryset, ra, new_state):
                 'old_reg_date': state_info['reg_date']
             }
             innerdict['old_reg_date'] = state_info['reg_date']
-            if state_info['state'] >= new_state:
+            if new_state and state_info['state'] >= new_state:
                 innerdict['has_higher_status'] = True
                 any_have_higher_status = True
 
@@ -469,3 +474,12 @@ def format_seconds(seconds: int) -> str:
     if rseconds > 0:
         strings.append('{} seconds'.format(rseconds))
     return ', '.join(strings)
+
+
+def is_postgres() -> bool:
+    """
+    Checks whether the default database connection is to a postgres db
+    Should be used before any postgres specific queries
+    """
+    from django.db import connection
+    return connection.vendor == 'postgresql'
