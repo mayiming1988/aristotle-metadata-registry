@@ -172,7 +172,6 @@ class ReviewRequestSupersedesForm(forms.Form):
     )
     newer_item = forms.ModelChoiceField(
         required=True,
-        widget=forms.HiddenInput(),
         queryset=MDR._concept.objects.all(),
     )
     message = forms.CharField()
