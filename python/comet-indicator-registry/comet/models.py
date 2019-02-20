@@ -45,6 +45,7 @@ class Indicator(aristotle.models.concept):
 
     rationale = RichTextField(blank=True)
     benchmark = RichTextField(blank=True)
+    reporting_information = RichTextField(blank=True)
 
     serialize_weak_entities = [
         ('numerators', 'indicatornumeratordefinition_set'),

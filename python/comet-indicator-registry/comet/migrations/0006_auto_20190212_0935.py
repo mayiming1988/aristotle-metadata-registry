@@ -94,6 +94,11 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='indicator',
+            name='reporting_information',
+            field=ckeditor_uploader.fields.RichTextUploadingField(blank=True),
+        ),
+        migrations.AddField(
+            model_name='indicator',
             name='computation',
             field=ckeditor_uploader.fields.RichTextUploadingField(blank=True),
         ),
