@@ -385,7 +385,6 @@ class ReviewSupersedesView(ReviewActionMixin, FormsetView):
 
     def get_formset_initial(self):
         initial = []
-        seen_ids = []
         supersedes = self.review.supersedes(manager='proposed_objects').all()
         # Add all data for already propsed supersedes
         for supersede in supersedes:
@@ -395,14 +394,6 @@ class ReviewSupersedesView(ReviewActionMixin, FormsetView):
                 'message': supersede.message or ''
             }
             initial.append(data)
-            seen_ids.append(supersede.newer_item_id)
-        # Add concepts that haven't had a supersedes proposed
-        for concept in self.review_concepts:
-            if concept.id not in seen_ids:
-                data = {
-                    'newer_item': concept.pk,
-                }
-                initial.append(data)
         return initial
 
     def get_formset(self):
