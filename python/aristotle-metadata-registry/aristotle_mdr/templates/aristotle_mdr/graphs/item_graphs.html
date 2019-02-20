@@ -1,5 +1,6 @@
 {% extends 'aristotle_mdr/concepts/contentInfoBase.html' %}
 {% load render_bundle from webpack_loader %}
+{% load humanize i18n %}
 
 {% block title %}Graphs for {{ item.name }}{% endblock %}
 
@@ -11,6 +12,13 @@
     {% render_bundle 'graphsPage' 'js' %}
 {% endblock %}
 {% block infoContent %}
-    <graphical-representation url="{% url 'api_v4:item:item_graphical' pk=item.id %}">
-    </graphical-representation>
+
+    <h2>{% trans 'Superseding relationships' %}</h2>
+    <supersedes-graphical-representation url="{% url 'api_v4:item:item_supersedes_graphical' pk=item.id %}">
+    </supersedes-graphical-representation>
+
+    <h2>{% trans 'General relationships' %}</h2>
+    <general-graphical-representation url="{% url 'api_v4:item:item_general_graphical' pk=item.id %}">
+    </general-graphical-representation>
+
 {% endblock %}

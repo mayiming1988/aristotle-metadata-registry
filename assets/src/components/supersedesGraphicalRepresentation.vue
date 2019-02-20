@@ -9,7 +9,7 @@
 
     export default {
         props: ['url'],
-        name: "graphicalRepresentation",
+        name: "supersedesGraphicalRepresentation",
         mounted() {
             request("get", this.url).then((data) => {
 
