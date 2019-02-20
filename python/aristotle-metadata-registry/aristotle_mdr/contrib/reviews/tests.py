@@ -333,6 +333,36 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         self.review.refresh_from_db()
         self.assertEqual(self.review.proposed_supersedes.count(), 0)
 
+    @tag('perms')
+    def test_rr_supersedes_not_viewable_item(self):
+        # Add second item to review
+        item2 = MDR.DataElement.objects.create(
+            name='My DE',
+            definition='mine',
+            submitter=self.viewer
+        )
+        self.review.concepts.add(item2)
+        # Create items to be used in supersede relation (both are object
+        # classes)
+        old1 = self.create_editor_item('Old Object', 'old')
+        old2 = self.create_editor_item('Old 2nd Object', 'old')
+        # Post data
+        data = [
+            {'older_item': old1.id, 'newer_item': self.item.id, 'message': 'wow'},
+            {'older_item': old2.id, 'newer_item': item2.id, 'message': 'nice'},
+        ]
+        post_data = self.get_formset_postdata(data, initialforms=0)
+        self.login_editor()
+        response = self.reverse_post(
+            'aristotle_mdr_review_requests:request_supersedes',
+            post_data,
+            reverse_args=[self.review.pk],
+        )
+        self.assertEqual(response.status_code, 200)
+        # Check objects created
+        self.review.refresh_from_db()
+        self.assertEqual(self.review.proposed_supersedes.count(), 0)
+
 
 @skip('Needs to be updated for new reviews system')
 class ReviewRequestPermissions(utils.AristotleTestUtils, TestCase):

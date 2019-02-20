@@ -403,6 +403,7 @@ class ReviewSupersedesView(ReviewActionMixin, FormsetView):
         formset = super().get_formset()
         # Pass review concepts through to form
         formset.form_kwargs['review_concepts'] = self.review_concepts
+        formset.form_kwargs['user'] = self.request.user
         return formset
 
     def formset_valid(self, formset):

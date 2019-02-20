@@ -167,12 +167,13 @@ class ReviewRequestSupersedesForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         # Make only concepts in the review allowed as newer items
-        if 'review_concepts' in kwargs:
-            review_concepts = kwargs.pop('review_concepts')
-            super().__init__(*args, **kwargs)
+        review_concepts = kwargs.pop('review_concepts', None)
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        if review_concepts:
             self.fields['newer_item'].queryset = review_concepts
-        else:
-            super().__init__(*args, **kwargs)
+        if user:
+            self.fields['older_item'].queryset = MDR._concept.objects.visible(user)
 
     class Meta:
         fields = ('older_item', 'newer_item', 'message')
@@ -186,20 +187,30 @@ class ReviewRequestSupersedesFormset(forms.BaseModelFormSet):
 
     def clean(self):
         super().clean()
+        # Map older items to newer items
         supersedes_map = {}
         ids = []
         for form in self.forms:
-            older = form.cleaned_data['older_item']
-            newer = form.cleaned_data['newer_item']
-            supersedes_map[older.id] = newer.id
-            ids.append(older.id)
-            ids.append(newer.id)
+            # No need to check deleted forms
+            if not form.cleaned_data['DELETE']:
+                older = form.cleaned_data['older_item']
+                newer = form.cleaned_data['newer_item']
+                supersedes_map[older.id] = newer.id
+                ids.append(older.id)
+                ids.append(newer.id)
 
+        # Get all items as their subclasses
         items = MDR._concept.objects.filter(id__in=ids).select_subclasses()
         item_map = {i.id: i for i in items}
+
+        # Make sure items superseding each other are of the same type
         for older, newer in supersedes_map.items():
             if older in item_map and newer in item_map:
                 older_class = type(item_map[older])
                 newer_class = type(item_map[newer])
                 if older_class != newer_class:
-                    raise forms.ValidationError('Items superseding each other must be of the same type')
+                    message = 'Items superseding each other must be of the same type {older} and {newer} are not'.format(
+                        older=item_map[older].name,
+                        newer=item_map[newer].name
+                    )
+                    raise forms.ValidationError(message)
