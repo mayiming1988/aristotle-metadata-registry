@@ -44,6 +44,7 @@
   {% endif %}
   
   <!-- Nav tabs -->
+  <div class="row full-width-tabs">
   <ul class="nav nav-tabs" role="tablist">
     <li role="presentation" {% if activetab == "item" %}class="active"{% endif %}>
       <a href="{% url 'aristotle:item' item.id item.meta.model_name item.name %}" aria-controls="item">Item</a>
@@ -59,6 +60,7 @@
       </li>
     {% endif %}
   </ul>
+  </div>
 
   {% block infoContent %}
   {% endblock %}
