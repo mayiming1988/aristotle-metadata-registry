@@ -246,10 +246,20 @@ class ValidationRunnerTestCase(TestCase):
             '      field: name\n'
             '      regex: "[abc]+"'
         )
-        self.ra = MDR.RegistrationAuthority.objects.create(name='RA', definition='RA')
+        self.steward_org_1 = MDR.StewardOrganisation.objects.create(
+            name='Org 1',
+            description="1",
+        )
+        self.ra = MDR.RegistrationAuthority.objects.create(
+            name='RA', definition='RA',
+            stewardship_organisation=self.steward_org_1
+        )
         self.manager = get_user_model().objects.create_user(email='manager@example.com', password='1234')
         self.ra.managers.add(self.manager)
-        self.wg = MDR.Workgroup.objects.create(name='WG', definition='WG')
+        self.wg = MDR.Workgroup.objects.create(
+            name='WG', definition='WG',
+            stewardship_organisation=self.steward_org_1
+        )
         self.dbrunner = runners.DatabaseValidationRunner(
             registration_authority=self.ra,
             state=4
