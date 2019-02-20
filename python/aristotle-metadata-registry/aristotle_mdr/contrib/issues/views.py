@@ -4,9 +4,10 @@ from django.views.generic import TemplateView
 from aristotle_mdr.views.utils import SimpleItemGet
 from aristotle_mdr.contrib.issues.models import Issue
 from aristotle_mdr import perms
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 
-class IssueBase(SimpleItemGet):
+class IssueBase(LoginRequiredMixin, SimpleItemGet):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)

@@ -24,7 +24,6 @@ from aristotle_mdr.utils.model_utils import (
     DedBaseThrough,
 )
 import uuid
-import json
 
 import reversion  # import revisions
 
@@ -461,7 +460,6 @@ def update_registration_authority_states(sender, instance, created, **kwargs):
                 "level, items registered by this authority may have stale "
                 "visiblity states and need to be manually updated."
             ).format(ra=instance.name)
-            logger.critical(message)
 
 
 class Workgroup(registryGroup):
