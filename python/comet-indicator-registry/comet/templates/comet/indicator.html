@@ -25,14 +25,8 @@
     vertical-align: bottom;
   }
 
-  .indicator_box header {
-    font-weight:bold;
-    text-align:center;
-    padding-right:8px;
-  }
-
   .fraction .vinculum {
-    border-top: 1px solid darkgray;
+    border-top: 1px solid #ddd;
     margin: 0px 5px 15px;
     overflow: visible;
   }
@@ -42,6 +36,7 @@
     display: block;
     background: white;
     margin: -0.75em 48%;
+    color: #888;
   }
 
 </style>
@@ -50,7 +45,7 @@
 {% block objSpecific %}
 
 <div class="indicator_box">
-  <div class="fraction panel panel-info">
+  <div class="fraction panel panel-info aristotle-display-panel">
     <header class="panel-heading">Numerator</header>
     <div class="panel-body">
       <div class="dividend numerator">
@@ -83,7 +78,7 @@
       </div>
     </div>
   </div>
-  <div class="computation panel panel-info">
+  <div class="computation panel panel-info aristotle-display-panel">
     <header class="panel-heading">Computation</header>
     <div class="panel-body">
       <div class="computation">
@@ -100,7 +95,7 @@
       {% endif %}
     </div>
   </div>
-  <div class="disaggregation panel panel-info">
+  <div class="disaggregation panel panel-info aristotle-display-panel">
     <header class="panel-heading">Disaggregation</header>
     <div class="panel-body">
       <div>{{ item.disaggregation_description | bleach | truncatewords_html:80 }}</div>
