@@ -389,6 +389,7 @@ class ReviewSupersedesView(ReviewActionMixin, FormsetView):
         return modelformset_factory(
             MDR.SupersedeRelationship,
             form=forms.ReviewRequestSupersedesForm,
+            formset=forms.ReviewRequestSupersedesFormset,
             extra=0,
             can_delete=True,
         )

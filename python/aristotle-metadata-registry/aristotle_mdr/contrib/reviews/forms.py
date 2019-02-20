@@ -180,3 +180,26 @@ class ReviewRequestSupersedesForm(forms.ModelForm):
             'older_item': ConceptAutocompleteSelect,
             'message': forms.widgets.TextInput
         }
+
+
+class ReviewRequestSupersedesFormset(forms.BaseModelFormSet):
+
+    def clean(self):
+        super().clean()
+        supersedes_map = {}
+        ids = []
+        for form in self.forms:
+            older = form.cleaned_data['older_item']
+            newer = form.cleaned_data['newer_item']
+            supersedes_map[older.id] = newer.id
+            ids.append(older.id)
+            ids.append(newer.id)
+
+        items = MDR._concept.objects.filter(id__in=ids).select_subclasses()
+        item_map = {i.id: i for i in items}
+        for older, newer in supersedes_map.items():
+            if older in item_map and newer in item_map:
+                older_class = type(item_map[older])
+                newer_class = type(item_map[newer])
+                if older_class != newer_class:
+                    raise forms.ValidationError('Items superseding each other must be of the same type')

@@ -19,6 +19,7 @@
       <form id="{{ formset.prefix }}" method="post">
         {% csrf_token %}
         {{ formset.management_form }}
+        {{ formset.non_form_errors }}
         {% for form in formset %}
           <div class="form-inline">
             {% for field in form.hidden_fields %}
