@@ -199,29 +199,14 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-    @skip
-    def test_formset_initial(self):
-        self.login_editor()
-        response = self.reverse_get(
-            'aristotle_mdr_review_requests:request_supersedes',
-            reverse_args=[self.review.pk],
-            status_code=200
-        )
-        initial = response.context['formset'].initial
-        self.assertCountEqual(
-            initial,
-            [{'newer_item': self.item.id}]
-        )
-
-    @skip
-    def test_formest_initial_existing_rel(self):
+    def test_formest_queryset_existing_rel(self):
         # Add second item to review
         item2 = self.create_editor_item('My 2nd Object', 'mine')
         self.review.concepts.add(item2)
         # Create items to be used in supersede relation
         old1 = self.create_editor_item('Old Object', 'old')
         # Create supersedes relations
-        self.create_ss_relation(old1, self.item)
+        ss = self.create_ss_relation(old1, self.item)
         # Get formset
         self.login_editor()
         response = self.reverse_get(
@@ -230,14 +215,9 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
             status_code=200
         )
         # Check initial
-        initial = response.context['formset'].initial
-        self.assertCountEqual(
-            initial,
-            [
-                {'newer_item': self.item.id, 'older_item': old1.id, 'message': ''},
-                {'newer_item': item2.id}
-            ]
-        )
+        qs = response.context['formset'].queryset
+        self.assertEqual(qs.count(), 1)
+        self.assertTrue(ss in qs)
 
     def test_rr_supersedes_create(self):
         # Add second item to review
@@ -263,7 +243,6 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         self.review.refresh_from_db()
         self.assertEqual(self.review.supersedes(manager='proposed_objects').count(), 2)
 
-    @tag('update')
     def test_rr_supersedes_update(self):
         # Add second item to review
         item2 = self.create_editor_item('My 2nd Object', 'mine')
