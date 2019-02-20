@@ -927,7 +927,8 @@ class SupersedeRelationship(TimeStampedModel):
         related_name='supersedes'
     )
 
-    objects = SupersedesManager()  # Only non proposed relationships can be retrieved here
+    objects = models.Manager()
+    approved = SupersedesManager()  # Only non proposed relationships can be retrieved here
     proposed_objects = ProposedSupersedesManager()  # Only proposed objects can be retrieved here
 
 

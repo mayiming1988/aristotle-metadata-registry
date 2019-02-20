@@ -402,8 +402,8 @@ class ReviewSupersedesView(ReviewActionMixin, FormsetView):
 
     def formset_valid(self, formset):
         formset.save(commit=False)
-        updated = formset.updated_objects
-        created = formset.created_objects
+        updated = [n[0] for n in formset.changed_objects]
+        created = formset.new_objects
         deleted = formset.deleted_objects
 
         for ss in created:
