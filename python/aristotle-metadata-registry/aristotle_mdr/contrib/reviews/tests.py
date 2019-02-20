@@ -241,7 +241,7 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         )
         # Check objects created
         self.review.refresh_from_db()
-        self.assertEqual(self.review.supersedes(manager='proposed_objects').count(), 2)
+        self.assertEqual(self.review.proposed_supersedes.count(), 2)
 
     def test_rr_supersedes_update(self):
         # Add second item to review
@@ -270,7 +270,7 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         )
         # Check objects updated
         self.review.refresh_from_db()
-        supersedes = self.review.supersedes(manager='proposed_objects')
+        supersedes = self.review.proposed_supersedes
         self.assertEqual(supersedes.count(), 2)
         ss1.refresh_from_db()
         self.assertEqual(ss1.older_item, old3.concept)
@@ -301,7 +301,7 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
             status_code=302
         )
         # Check objects deleted
-        self.assertEqual(self.review.supersedes(manager='proposed_objects').count(), 0)
+        self.assertEqual(self.review.proposed_supersedes.count(), 0)
 
 
 @skip('Needs to be updated for new reviews system')

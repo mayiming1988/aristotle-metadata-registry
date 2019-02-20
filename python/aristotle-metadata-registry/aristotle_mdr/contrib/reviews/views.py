@@ -265,15 +265,19 @@ class ReviewAcceptView(ReviewStatusChangeBase):
                 review.status = models.REVIEW_STATES.approved
                 review.save()
 
-            update = models.ReviewStatusChangeTimeline.objects.create(
+            # Add to status change timeline
+            models.ReviewStatusChangeTimeline.objects.create(
                 request=review, status=models.REVIEW_STATES.approved,
                 actor=self.request.user
             )
-            update = models.ReviewEndorsementTimeline.objects.create(
+            # add to review endorsement timeline
+            models.ReviewEndorsementTimeline.objects.create(
                 request=review,
                 registration_state=review.target_registration_state,
                 actor=self.request.user
             )
+            # approve all proposed supersedes
+            review.proposed_supersedes.update(proposed=False)
 
             messages.add_message(self.request, messages.INFO, message)
 
@@ -391,7 +395,7 @@ class ReviewSupersedesView(ReviewActionMixin, FormsetView):
 
     def get_formset_kwargs(self):
         kwargs = super().get_formset_kwargs()
-        kwargs['queryset'] = self.review.supersedes(manager='proposed_objects').all()
+        kwargs['queryset'] = self.review.proposed_supersedes
         return kwargs
 
     def get_formset(self):
