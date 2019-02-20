@@ -50,7 +50,7 @@
             <li role="presentation" {% if activetab == "item" %}class="active"{% endif %}>
               <a href="{% url 'aristotle:item' item.id item.meta.model_name item.name %}" aria-controls="item">Item</a>
             </li>
-                    {% if not hide_tabs %}
+            {% if not hide_tabs %}
               {% if user.is_authenticated %}
               <li role="presentation" {% if activetab == "issues" %}class="active"{% endif %}>
                 <a href="{% url 'aristotle_issues:item_issues' item.id %}" aria-controls="issues" role="tab">Issues</a>
@@ -60,6 +60,9 @@
                 <a href="{% url 'aristotle:item_history' item.id %}" aria-controls="history" role="tab">History</a>
               </li>
             {% endif %}
+              <li role="presentation" {% if activetab == "graphs" %}class="active"{% endif %}>
+                 <a href="{% url 'aristotle:item_graphs' item.id %}" aria-controls="graphs" role="tab">Graphs</a>
+              </li>
           </ul>
         </div>
 
