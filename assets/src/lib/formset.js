@@ -20,36 +20,34 @@ export function replacePrefix(element, num_forms) {
 export function addRow(formid, row_selector) {
     let panelList = $('#' + formid);
     let formstage = $('.formstage#' + formid + ' ' + row_selector)
-    console.log(panelList)
-    console.log(formstage)
-    let new_form = $(formstage).clone();
+    let new_form = formstage.clone();
 
     //Recreate the date time pickers
     //Get options from the formstage
-    if ($(formstage).find('.date').data('DateTimePicker')) {
-        var options = $(formstage).find('.date').data('DateTimePicker').options()
+    if (formstage.find('.date').data('DateTimePicker')) {
+        var options = formstage.find('.date').data('DateTimePicker').options()
         //Initialize all date time objects
-        $(new_form).find('.date').each(function() {
+        new_form.find('.date').each(function() {
             $(this).datetimepicker(options);
         })
     }
 
     // Remove redundant select2s (they'll be remade when reinserted into the node)
-    $(new_form).find('span.select2.select2-container').remove();
+    new_form.find('span.select2.select2-container').remove();
 
     var all_rows = panelList.find(row_selector)
     var num_forms = $(all_rows).length
     new_form.insertAfter(all_rows.last());
 
-    $(new_form).find(':input').each(function() {
+    new_form.find(':input').each(function() {
         replacePrefix(this, num_forms)
     });
 
     // rename the form entries
     let total_forms_identifier = 'input[name=' + formid + '-TOTAL_FORMS]'
-    $(total_forms_identifier).val(num_forms);
+    $(total_forms_identifier).val(num_forms+1);
 
-    $(new_form).find('[data-autocomplete-light-function=select2]').each(function() {
+    new_form.find('[data-autocomplete-light-function=select2]').each(function() {
         var element = $(this);
         initDALWidget(element)
     })

@@ -633,13 +633,13 @@ class FormsetView(TemplateView):
         if formset.is_valid():
             return self.formset_valid(formset)
         else:
-            return formset_invalid(formset)
+            return self.formset_invalid(formset)
 
     def formset_valid(self, formset):
         raise NotImplementedError
 
     def formset_invalid(self, formset):
-        return render_to_response(self.get_context_data(formset=formset))
+        return self.render_to_response(self.get_context_data(formset=formset))
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)

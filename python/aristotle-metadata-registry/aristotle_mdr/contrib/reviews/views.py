@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_string
-from django.forms import formset_factory
+from django.forms import modelformset_factory
 # from django.views.generic import ListView, TemplateView, DeleteView
 from django.views.generic import (
     DetailView,
@@ -381,65 +381,36 @@ class ReviewSupersedesView(ReviewActionMixin, FormsetView):
     perm_function = 'user_can_edit_review'
 
     def get_formset_class(self):
-        return formset_factory(forms.ReviewRequestSupersedesForm, extra=0)
+        # return formset_factory(forms.ReviewRequestSupersedesForm, extra=0, can_delete=True)
+        return modelformset_factory(
+            MDR.SupersedeRelationship,
+            form=forms.ReviewRequestSupersedesForm,
+            extra=0,
+            can_delete=True,
+        )
 
-    def get_formset_initial(self):
-        initial = []
-        supersedes = self.review.supersedes(manager='proposed_objects').all()
-        # Add all data for already propsed supersedes
-        for supersede in supersedes:
-            data = {
-                'newer_item': supersede.newer_item_id,
-                'older_item': supersede.older_item_id,
-                'message': supersede.message or ''
-            }
-            initial.append(data)
-        return initial
+    def get_formset_kwargs(self):
+        kwargs = super().get_formset_kwargs()
+        kwargs['queryset'] = self.review.supersedes(manager='proposed_objects').all()
+        return kwargs
 
     def get_formset(self):
         formset = super().get_formset()
-        # Make only concepts in the review allowed as newer items
-        for form in formset:
-            form.fields['newer_item'].queryset = self.review_concepts
+        # Pass review concepts through to form
+        formset.form_kwargs['review_concepts'] = self.review_concepts
         return formset
 
     def formset_valid(self, formset):
-        updated = []
-        created = []
-        deleted = []
-        supersedes = {
-            s.newer_item_id: s
-            for s in self.review.supersedes(manager='proposed_objects').all()
-        }
-        for form in formset:
-            if form.has_changed():
-                # Ignore forms submitted without an older item
-                    newer_id = form.cleaned_data['newer_item'].id
-                    # If we are updating an existing proposed supersedes
-                    if newer_id in supersedes:
-                        # If the form has an older item selected
-                        ss = supersedes[newer_id]
-                        if form.cleaned_data['older_item']:
-                            ss.older_item = form.cleaned_data['older_item']
-                            ss.message = form.cleaned_data['message']
-                            updated.append(ss)
-                        else:
-                            deleted.append(ss)
-                    # If we are creating a new proposed supersedes
-                    else:
-                        # Ignore new entries if older item not set
-                        if 'older_item' in form.cleaned_data:
-                            ss = MDR.SupersedeRelationship(
-                                proposed=True,
-                                older_item=form.cleaned_data['older_item'],
-                                newer_item=form.cleaned_data['newer_item'],
-                                message=form.cleaned_data['message'],
-                                registration_authority=self.review.registration_authority,
-                                review=self.review
-                            )
-                            created.append(ss)
+        formset.save(commit=False)
+        updated = formset.updated_objects
+        created = formset.created_objects
+        deleted = formset.deleted_objects
 
-        # import pdb; pdb.set_trace()
+        for ss in created:
+            ss.proposed = True
+            ss.registration_authority = self.review.registration_authority
+            ss.review = self.review
+
         if created:
             MDR.SupersedeRelationship.objects.bulk_create(created)
         if updated:

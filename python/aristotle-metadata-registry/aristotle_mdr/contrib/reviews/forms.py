@@ -163,15 +163,20 @@ class RequestReviewBulkActionForm(RedirectBulkActionMixin, LoggedInBulkActionFor
         )
 
 
-class ReviewRequestSupersedesForm(forms.Form):
+class ReviewRequestSupersedesForm(forms.ModelForm):
 
-    older_item = forms.ModelChoiceField(
-        required=False,
-        widget=ConceptAutocompleteSelect(),
-        queryset=MDR._concept.objects.all(),
-    )
-    newer_item = forms.ModelChoiceField(
-        required=True,
-        queryset=MDR._concept.objects.all(),
-    )
-    message = forms.CharField()
+    def __init__(self, *args, **kwargs):
+        # Make only concepts in the review allowed as newer items
+        if 'review_concepts' in kwargs:
+            review_concepts = kwargs.pop('review_concepts')
+            super().__init__(*args, **kwargs)
+            self.fields['newer_item'].queryset = review_concepts
+        else:
+            super().__init__(*args, **kwargs)
+
+    class Meta:
+        fields = ('older_item', 'newer_item', 'message')
+        widgets = {
+            'older_item': ConceptAutocompleteSelect,
+            'message': forms.widgets.TextInput
+        }
