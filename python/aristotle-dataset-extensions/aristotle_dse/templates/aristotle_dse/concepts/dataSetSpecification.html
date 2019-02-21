@@ -16,7 +16,7 @@
 <div>
     <h3>Statistical Unit</h3>
     <div>
-          {% include "aristotle_mdr/helpers/itemLink.html" with item.statistical_unit showType=False %}
+          {% include "aristotle_mdr/helpers/itemLink.html" with item=item.statistical_unit showType=False %}
     </div>
     <h3>Collection Method</h3>
     <div>{{ item.collection_method | bleach }}</div>
