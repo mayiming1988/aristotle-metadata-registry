@@ -70,11 +70,7 @@
           <li role="presentation" class="{% if active_tab == 'checks'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_checks' review.id %}" role="tab"><i class="fa fa-check-square-o"></i> Validation</a></li>
           <li role="presentation" class="{% if active_tab == 'impact'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_impact' review.id %}" role="tab"><i class="fa fa-flash"></i> Impact</a></li>
           <li role="presentation" class="{% if active_tab == 'issues'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_issues' review.id %}" role="tab"><i class="fa fa-exclamation-circle"></i> Issues</a></li>
-          {% if can_edit_review %}
-            <li role="presentation" class="{% if active_tab == 'supersedes'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_supersedes_edit' review.id %}" role="tab"><i class="fa fa-clone"></i> Supersedes</a></li>
-          {% else %}
-            <li role="presentation" class="{% if active_tab == 'supersedes'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_supersedes' review.id %}" role="tab"><i class="fa fa-clone"></i> Supersedes</a></li>
-          {% endif %}
+          <li role="presentation" class="{% if active_tab == 'supersedes'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_supersedes' review.id %}" role="tab"><i class="fa fa-clone"></i> Supersedes</a></li>
         </ul>
 
         <div class="tab-content">

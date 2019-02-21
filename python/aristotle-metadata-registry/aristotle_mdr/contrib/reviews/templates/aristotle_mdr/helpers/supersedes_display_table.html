@@ -1,0 +1,16 @@
+<table class="table">
+  <thead>
+    <tr>
+      <th>Older</th>
+      <th>Newer</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for rel in supersedes %}
+    <tr>
+      <td>{{ rel.older }}</td>
+      <td>{{ rel.newer }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
