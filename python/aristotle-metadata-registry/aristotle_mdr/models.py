@@ -15,7 +15,6 @@ from model_utils.models import TimeStampedModel
 from model_utils import Choices, FieldTracker
 from aristotle_mdr.contrib.async_signals.utils import fire
 import uuid
-import json
 
 import reversion  # import revisions
 

@@ -1,0 +1,16 @@
+{% extends 'aristotle_mdr/concepts/contentInfoBase.html' %}
+{% load render_bundle from webpack_loader %}
+
+{% block title %}Graphs for {{ item.name }}{% endblock %}
+
+{% block webpack_css_bundle %}
+    {% render_bundle 'graphsPage' 'css' %}
+{% endblock %}
+
+{% block webpack_bundle %}
+    {% render_bundle 'graphsPage' 'js' %}
+{% endblock %}
+{% block infoContent %}
+    <graphical-representation url="{% url 'api_v4:item:item_graphical' pk=item.id %}">
+    </graphical-representation>
+{% endblock %}
