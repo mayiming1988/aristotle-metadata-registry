@@ -12,6 +12,16 @@
 {% endblock %}
 
 {% block objSpecific %}
+<h2>Collection and usage information</h2>
+<div>
+    <h3>Statistical Unit</h3>
+    <div>
+          {% include "aristotle_mdr/helpers/itemLink.html" with item.statistical_unit showType=False %}
+    </div>
+    <h3>Collection Method</h3>
+    <div>{{ item.collection_method | bleach }}</div>
+    
+</div>
 
 <h2>Metadata items in this Data Set Specification</h2>
     <p> Below is a list of all the components within this Dataset Specification.
