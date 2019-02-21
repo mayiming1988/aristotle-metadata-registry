@@ -263,13 +263,13 @@ class GraphqlFunctionalTests(BaseGraphqlTestCase, TestCase):
         self.assertEqual(self.oc.slots.count(), 1)
 
         querytext = (
-            '{ metadata (name: "Test Object Class") { edges { node { name slots { edges { node { name } } }'
+            '{ metadata (name: "Test Object Class") { edges { node { name slots { name }'
             ' identifiers { identifier } } } } }'
         )
 
         json_response = self.post_query(querytext)
         edges = json_response['data']['metadata']['edges']
-        self.assertEqual(edges[0]['node']['slots']['edges'][0]['node']['name'], 'Test slot')
+        self.assertEqual(edges[0]['node']['slots'][0]['name'], 'Test slot')
         self.assertEqual(edges[0]['node']['identifiers'][0]['identifier'], 'Test Identifier')
 
     def test_identifier_filters(self):
@@ -638,10 +638,10 @@ class GraphqlPermissionsTests(BaseGraphqlTestCase, TestCase):
 class GraphqlSlotsTests(BaseSlotsTestCase, BaseGraphqlTestCase, TestCase):
 
     def check_slots(self, gql_response, slots):
-        slots_edges = gql_response['data']['metadata']['edges'][0]['node']['slots']['edges']
-        self.assertEqual(len(slots_edges), len(slots))
+        slots_list = gql_response['data']['metadata']['edges'][0]['node']['slots']
+        self.assertEqual(len(slots_list), len(slots))
 
-        returned_slots = [edge['node']['name'] for edge in slots_edges]
+        returned_slots = [edge['name'] for edge in slots_list]
 
         for slot in slots:
             self.assertTrue(slot in returned_slots)
@@ -652,7 +652,7 @@ class GraphqlSlotsTests(BaseSlotsTestCase, BaseGraphqlTestCase, TestCase):
 
         # Test query anon
         self.client.logout()
-        query = '{ metadata (name: "testoc") { edges { node { slots { edges { node { name } } } } } } }'
+        query = '{ metadata (name: "testoc") { edges { node { slots { name } } } } }'
         json_response = self.post_query(query, 200)
         self.check_slots(json_response, ['public'])
 
