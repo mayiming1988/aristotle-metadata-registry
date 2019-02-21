@@ -21,6 +21,8 @@
                 <li>{{ rel.older }}<i class="fa fa-fw fa-arrow-right"></i>{{ rel.newer }}</li>
             {% endfor %}
             </ul>
+        {% else %}
+            <strong>Proposed supersedes will not be approved due to registration at a different status</strong>
         {% endif %}
     </div>
 </div>

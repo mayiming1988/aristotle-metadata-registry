@@ -258,7 +258,7 @@ class ReviewAcceptView(ReviewStatusChangeBase):
     def done(self, form_list, form_dict, **kwargs):
         review = self.get_review()
 
-        with transaction.atomic(), reversion.revisions.create_revision():
+        with reversion.revisions.create_revision():
             message = self.register_changes_with_message(form_dict)
 
             if form_dict['review_accept'].cleaned_data['close_review'] == "1":
@@ -407,33 +407,34 @@ class ReviewSupersedesView(ReviewActionMixin, FormsetView):
         return formset
 
     def formset_valid(self, formset):
+        # Save but dont commit so _objects properties are set
         formset.save(commit=False)
+        # Get lists of objects
         updated = [n[0] for n in formset.changed_objects]
         created = formset.new_objects
         deleted = formset.deleted_objects
 
         for ss in created:
+            # Set data not avaliable through form
             ss.proposed = True
             ss.registration_authority = self.review.registration_authority
             ss.review = self.review
 
         if created:
+            # Bulk save created
             MDR.SupersedeRelationship.objects.bulk_create(created)
         if updated:
+            # Bulk save updated
             bulk_update(updated, batch_size=500)
         if deleted:
+            # Bulk delete
             ids = [i.id for i in deleted]
             MDR.SupersedeRelationship.proposed_objects.filter(id__in=ids).delete()
 
+        # Redirect to details page
         return HttpResponseRedirect(
             reverse('aristotle_reviews:review_details', args=[self.review.id])
         )
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        names = {c.pk: c.name for c in self.review_concepts.all()}
-        context['names'] = names
-        return context
 
 
 class ReviewValidationView(ReviewActionMixin, TemplateView):

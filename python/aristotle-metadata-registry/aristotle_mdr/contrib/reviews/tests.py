@@ -2,6 +2,7 @@ from django.urls import reverse
 from django.test import TestCase, tag
 from django.core.cache import cache
 from unittest import skip
+from urllib.parse import urlencode
 import aristotle_mdr.models as MDR
 import aristotle_mdr.tests.utils as utils
 from aristotle_mdr import perms
@@ -60,7 +61,6 @@ class ReviewRequestBulkActions(utils.AristotleTestUtils, TestCase):
             follow=True
         )
 
-        from urllib.parse import urlencode
         params = {'items': [self.item1.id]} #, self.item2.id]}
         url = "{}?{}".format(
             reverse("aristotle_reviews:review_create"),
@@ -90,7 +90,6 @@ class ReviewRequestBulkActions(utils.AristotleTestUtils, TestCase):
             follow=True
         )
 
-        from urllib.parse import urlencode
         params = {'items': [self.item1.id, self.item4.id]}
         url = "{}?{}".format(
             reverse("aristotle_reviews:review_create"),
@@ -191,6 +190,16 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         )
         return rel
 
+    def post_formset(self, data, initialforms):
+        post_data = self.get_formset_postdata(data, initialforms=initialforms)
+        self.login_editor()
+        response = self.reverse_post(
+            'aristotle_mdr_review_requests:request_supersedes',
+            post_data,
+            reverse_args=[self.review.pk],
+        )
+        return reponse
+
     def test_rr_supersedes(self):
         self.login_editor()
         response = self.reverse_get(
@@ -231,14 +240,8 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
             {'older_item': old1.id, 'newer_item': self.item.id, 'message': 'wow'},
             {'older_item': old2.id, 'newer_item': item2.id, 'message': 'nice'},
         ]
-        post_data = self.get_formset_postdata(data, initialforms=0)
-        self.login_editor()
-        response = self.reverse_post(
-            'aristotle_mdr_review_requests:request_supersedes',
-            post_data,
-            reverse_args=[self.review.pk],
-            status_code=302
-        )
+        response = self.post_formset(data, 0)
+        self.assertEqual(response.status_code, 302)
         # Check objects created
         self.review.refresh_from_db()
         self.assertEqual(self.review.proposed_supersedes.count(), 2)
@@ -260,14 +263,8 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
             {'id': ss1.id, 'older_item': old3.id, 'newer_item': self.item.id, 'message': 'wow'},
             {'id': ss2.id, 'older_item': old4.id, 'newer_item': item2.id, 'message': 'nice'},
         ]
-        post_data = self.get_formset_postdata(data, initialforms=2)
-        self.login_editor()
-        response = self.reverse_post(
-            'aristotle_mdr_review_requests:request_supersedes',
-            post_data,
-            reverse_args=[self.review.pk],
-            status_code=302
-        )
+        response = self.post_formset(data, 2)
+        self.assertEqual(response.status_code, 302)
         # Check objects updated
         self.review.refresh_from_db()
         supersedes = self.review.proposed_supersedes
@@ -292,18 +289,11 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
             {'id': ss1.id, 'newer_item': self.item.id, 'message': 'wow', 'DELETE': 'on'},
             {'id': ss2.id, 'newer_item': item2.id, 'message': 'nice', 'DELETE': 'on'},
         ]
-        post_data = self.get_formset_postdata(data, initialforms=2)
-        self.login_editor()
-        response = self.reverse_post(
-            'aristotle_mdr_review_requests:request_supersedes',
-            post_data,
-            reverse_args=[self.review.pk],
-            status_code=302
-        )
+        response = self.post_formset(data, 2)
+        self.assertEqual(response.status_code, 302)
         # Check objects deleted
         self.assertEqual(self.review.proposed_supersedes.count(), 0)
 
-    @tag('badtypes')
     def test_rr_supersedes_incompatible_types(self):
         # Add second item to review
         item2 = MDR.DataElement.objects.create(
@@ -321,19 +311,12 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
             {'older_item': old1.id, 'newer_item': self.item.id, 'message': 'wow'},
             {'older_item': old2.id, 'newer_item': item2.id, 'message': 'nice'},
         ]
-        post_data = self.get_formset_postdata(data, initialforms=0)
-        self.login_editor()
-        response = self.reverse_post(
-            'aristotle_mdr_review_requests:request_supersedes',
-            post_data,
-            reverse_args=[self.review.pk],
-        )
+        response = self.post_formset(data, 0)
         self.assertEqual(response.status_code, 200)
-        # Check objects created
+        # Check no objects created
         self.review.refresh_from_db()
         self.assertEqual(self.review.proposed_supersedes.count(), 0)
 
-    @tag('perms')
     def test_rr_supersedes_not_viewable_item(self):
         # Add second item to review
         item2 = MDR.DataElement.objects.create(
@@ -351,17 +334,35 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
             {'older_item': old1.id, 'newer_item': self.item.id, 'message': 'wow'},
             {'older_item': old2.id, 'newer_item': item2.id, 'message': 'nice'},
         ]
-        post_data = self.get_formset_postdata(data, initialforms=0)
-        self.login_editor()
-        response = self.reverse_post(
-            'aristotle_mdr_review_requests:request_supersedes',
-            post_data,
-            reverse_args=[self.review.pk],
-        )
+        response = self.post_formset(data, 0)
         self.assertEqual(response.status_code, 200)
-        # Check objects created
+        # Check no objects created
         self.review.refresh_from_db()
         self.assertEqual(self.review.proposed_supersedes.count(), 0)
+
+    def test_accept_review_supersedes_approved(self):
+        older = MDR.ObjectClass.objects.create(name='2nd', definition='Second')
+        ss = self.create_ss_relation(older, self.item)
+        self.assertEqual(self.review.proposed_supersedes.count(), 1)
+
+        wizard_data = [
+            {'status_message': 'We changing', 'close_review': '1'},
+            {'selected_list': [str(self.item.id)]}
+        ]
+
+        self.login_registrar()
+        response = self.post_to_wizard(
+            wizard_data,
+            reverse('aristotle_mdr_review_requests:accept_review', args=[self.review.id]),
+            'review_accept_view',
+            ['review_accept', 'review_changes']
+        )
+        self.assertEqual(response.status_code, 302)
+
+        self.review.refresh_from_db()
+        self.assertEqual(self.review.status, REVIEW_STATES.approved)
+        ss.refresh_from_db()
+        self.assertFalse(ss.proposed)
 
 
 @skip('Needs to be updated for new reviews system')
@@ -372,7 +373,8 @@ class ReviewRequestPermissions(utils.AristotleTestUtils, TestCase):
         self.other_registrar = User.objects.create(email="otto@other-register.com")
         self.other_ra.registrars.add(self.other_registrar)
 
-        review = self.make_review_request_iterable([],
+        review = self.make_review_request_iterable(
+            [],
             request_kwargs={
                 "requester": self.viewer,
                 "title": "My Review",
