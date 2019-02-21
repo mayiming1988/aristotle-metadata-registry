@@ -87,11 +87,22 @@ class ReviewActionMixin(LoginRequiredMixin, UserFormViewMixin):
     def get_review(self):
         return get_object_or_404(models.ReviewRequest, pk=self.kwargs['review_id'])
 
+    def get_supersedes_context(self) -> List[Dict[str, str]]:
+        supersedes = []
+        qs = self.review.proposed_supersedes.select_related('older_item', 'newer_item')
+        for ss in qs:
+            supersedes.append({
+                'older': ss.older_item.name,
+                'newer': ss.newer_item.name
+            })
+        return supersedes
+
     def get_context_data(self, *args, **kwargs):
         kwargs = super().get_context_data(*args, **kwargs)
         kwargs['review'] = self.review
         kwargs['can_approve_review'] = perms.user_can_approve_review(self.request.user, self.review)
         kwargs['can_open_close_review'] = perms.user_can_close_or_reopen_review(self.request.user, self.review)
+        kwargs['can_edit_review'] = perms.user_can_edit_review(self.request.user, self.review)
         if hasattr(self, "active_tab_name"):
             kwargs['active_tab'] = self.active_tab_name
         return kwargs
@@ -192,18 +203,6 @@ class ReviewStatusChangeBase(ReviewActionMixin, ReviewChangesView):
 
     def get_items(self):
         return self.review_concepts
-
-    def get_supersedes_context(self) -> List[Dict[str, str]]:
-        supersedes = []
-        qs = self.review.supersedes(
-            manager='proposed_objects'
-        ).select_related('older_item', 'newer_item')
-        for ss in qs:
-            supersedes.append({
-                'older': ss.older_item.name,
-                'newer': ss.newer_item.name
-            })
-        return supersedes
 
     def get_change_data(self, register=False):
         review = self.get_review()
@@ -376,7 +375,7 @@ class ReviewImpactView(ReviewActionMixin, TemplateView):
         return context
 
 
-class ReviewSupersedesView(ReviewActionMixin, FormsetView):
+class ReviewSupersedesEditView(ReviewActionMixin, FormsetView):
     pk_url_kwarg = 'review_id'
     template_name = "aristotle_mdr/reviews/review/supersedes.html"
     context_object_name = "review"
@@ -435,6 +434,18 @@ class ReviewSupersedesView(ReviewActionMixin, FormsetView):
         return HttpResponseRedirect(
             reverse('aristotle_reviews:review_details', args=[self.review.id])
         )
+
+
+class ReviewSupersedesInfoView(ReviewActionMixin, TemplateView):
+    pk_url_kwarg = 'review_id'
+    template_name = "aristotle_mdr/reviews/review/supersedes_info.html"
+    context_object_name = "review"
+    active_tab_name = "supersedes"
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['supersedes'] = self.get_supersedes_context()
+        return context
 
 
 class ReviewValidationView(ReviewActionMixin, TemplateView):
