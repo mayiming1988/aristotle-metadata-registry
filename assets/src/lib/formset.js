@@ -20,7 +20,6 @@ export function replacePrefix(element, num_forms) {
 export function addRow(formid, row_selector) {
     let panelList = $('#' + formid);
     let formstage = $('.formstage#' + formid + ' ' + row_selector)
-    let new_form = formstage.clone();
 
     //Recreate the date time pickers
     //Get options from the formstage
@@ -33,7 +32,9 @@ export function addRow(formid, row_selector) {
     }
 
     // Remove redundant select2s (they'll be remade when reinserted into the node)
-    new_form.find('span.select2.select2-container').remove();
+    formstage.find('span.select2.select2-container').remove();
+
+    let new_form = formstage.clone();
 
     var all_rows = panelList.find(row_selector)
     var num_forms = $(all_rows).length
