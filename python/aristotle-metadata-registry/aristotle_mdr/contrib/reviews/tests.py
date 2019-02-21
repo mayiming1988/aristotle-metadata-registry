@@ -198,7 +198,7 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
             post_data,
             reverse_args=[self.review.pk],
         )
-        return reponse
+        return response
 
     def test_rr_supersedes(self):
         self.login_editor()
@@ -340,6 +340,22 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         self.review.refresh_from_db()
         self.assertEqual(self.review.proposed_supersedes.count(), 0)
 
+    def test_rr_supersedes_blank_form(self):
+        """Submit a blank form along with valid data, should be ignored"""
+        # Create items to be used in supersede relation
+        old1 = self.create_editor_item('Old Object', 'old')
+        old2 = self.create_editor_item('Old 2nd Object', 'old')
+        # Post data
+        data = [
+            {'older_item': old1.id, 'newer_item': self.item.id, 'message': 'wow'},
+            {'older_item': '', 'newer_item': '', 'message': ''},
+        ]
+        response = self.post_formset(data, 0)
+        self.assertEqual(response.status_code, 302)
+        # Check objects created
+        self.review.refresh_from_db()
+        self.assertEqual(self.review.proposed_supersedes.count(), 1)
+
     def test_accept_review_supersedes_approved(self):
         older = MDR.ObjectClass.objects.create(name='2nd', definition='Second')
         ss = self.create_ss_relation(older, self.item)
@@ -363,6 +379,25 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(self.review.status, REVIEW_STATES.approved)
         ss.refresh_from_db()
         self.assertFalse(ss.proposed)
+
+    def check_proposed_ss_not_shown_item_page(self):
+        self.item.submitter = self.editor
+        self.item.save()
+        older = MDR.ObjectClass.objects.create(
+            name='TheOldestItem',
+            definition='Very old',
+            submitter=self.editor
+        )
+        ss = self.create_ss_relation(older, self.item)
+        self.assertTrue(ss.proposed)
+
+        self.login_editor()
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.item.id],
+            status_code=200
+        )
+        self.assertNotContains(response, 'TheOldestItem')
 
 
 @skip('Needs to be updated for new reviews system')

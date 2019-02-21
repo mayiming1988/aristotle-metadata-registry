@@ -192,7 +192,7 @@ class ReviewRequestSupersedesFormset(forms.BaseModelFormSet):
         ids = []
         for form in self.forms:
             # No need to check deleted forms
-            if not form.cleaned_data['DELETE']:
+            if 'DELETE' in form.cleaned_data and not form.cleaned_data['DELETE']:
                 older = form.cleaned_data['older_item']
                 newer = form.cleaned_data['newer_item']
                 supersedes_map[older.id] = newer.id
