@@ -176,8 +176,6 @@ def user_can_change_status(user, item):
         return True
 
     # If this item has any requested reviews for a registration authority this user is a registrar of:
-    if item.review_requests.visible(user):
-        return True
     if item.rr_review_requests.visible(user):
         return True
     if user.profile.is_registrar and item.is_public():

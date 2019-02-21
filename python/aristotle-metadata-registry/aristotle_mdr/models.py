@@ -808,6 +808,10 @@ class _concept(baseAristotleObject):
             if field.is_relation and field.one_to_many and issubclass(field.related_model, MDR.aristotleComponent)
         ]
 
+    @property
+    def approved_supersedes(self):
+        return self.supersedes.filter(proposed=False)
+
     def check_is_public(self, when=timezone.now()):
         """
         A concept is public if any registration authority

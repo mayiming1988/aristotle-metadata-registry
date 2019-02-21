@@ -183,10 +183,8 @@ def visible_supersedes_items(item, user):
     """
     Fetch older items for a newer item
     """
-    # TODO: Add to view
-    objects = item.__class__.objects.prefetch_related(
+    objects = type(item).objects.prefetch_related(
         'superseded_by_items_relation_set__older_item',
-        # 'superseded_by_items_relation_set__newer_item',
         'superseded_by_items_relation_set__registration_authority',
     ).visible(user).filter(
         superseded_by_items_relation_set__newer_item_id=item.pk
@@ -203,7 +201,7 @@ def visible_supersedes_items(item, user):
                     "registration_authority": sup.registration_authority,
                 }
                 for sup in obj.superseded_by_items_relation_set.all()
-                if sup.newer_item_id == item.pk
+                if sup.newer_item_id == item.pk and sup.proposed is False
             ]
         }
         for obj in objects
@@ -217,9 +215,7 @@ def visible_superseded_by_items(item, user):
     """
     Fetch newer items for an older item
     """
-    # TODO: Add to view
     objects = item.__class__.objects.prefetch_related(
-        # 'superseded_items_relation_set__older_item',
         'superseded_items_relation_set__newer_item',
         'superseded_items_relation_set__registration_authority',
     ).visible(user).filter(
@@ -237,7 +233,7 @@ def visible_superseded_by_items(item, user):
                     "registration_authority": sup.registration_authority,
                 }
                 for sup in obj.superseded_items_relation_set.all()
-                if sup.older_item_id == item.pk
+                if sup.older_item_id == item.pk and sup.proposed is False
             ]
         }
         for obj in objects
