@@ -7,7 +7,7 @@ import aristotle_mdr.models as MDR
 from aristotle_mdr.contrib.autocomplete import widgets
 from aristotle_mdr.exceptions import NoUserGivenForUserForm
 from aristotle_mdr.managers import ConceptQuerySet
-from aristotle_mdr.perms import user_can_move_between_workgroups, user_can_move_any_workgroup, user_can_remove_from_workgroup
+from aristotle_mdr.perms import user_can_remove_from_workgroup, user_can_move_to_workgroup
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 from aristotle_mdr.utils.utils import fetch_aristotle_settings
 
@@ -37,32 +37,34 @@ class UserAwareModelForm(UserAwareFormMixin, forms.ModelForm):
         exclude = ['superseded_by_items', '_is_public', '_is_locked', 'originURI', 'submitter', 'stewardship_organisation']
 
 
-class WorkgroupVerificationMixin(forms.ModelForm):
-    cant_move_any_permission_error = _("You do not have permission to move an item between workgroups.")
+class WorkgroupVerificationMixin:
     cant_move_from_permission_error = _("You do not have permission to remove an item from this workgroup.")
     cant_move_to_permission_error = _("You do not have permission to move an item to that workgroup.")
 
     def clean_workgroup(self):
-        # raise a permission denied before cleaning if possible.
-        # This gives us a 'clearer' error
-        # cleaning before checking gives a "invalid selection" even if a user isn't allowed to change workgroups.
-        if self.instance.pk is not None:
-            if 'workgroup' in self.data.keys() and str(self.data['workgroup']) is not None:
-                old_wg_pk = None
-                if self.instance.workgroup:
-                    old_wg_pk = str(self.instance.workgroup.pk)
-                if str(self.data['workgroup']) != str(old_wg_pk) and not (str(self.data['workgroup']) == "" and old_wg_pk is None):
-                    if not user_can_move_any_workgroup(self.user):
-                        raise forms.ValidationError(WorkgroupVerificationMixin.cant_move_any_permission_error)
-                    if not user_can_remove_from_workgroup(self.user, self.instance.workgroup):
-                        raise forms.ValidationError(WorkgroupVerificationMixin.cant_move_from_permission_error)
         new_workgroup = self.cleaned_data['workgroup']
-        if self.instance.pk is not None:
-            if 'workgroup' in self.cleaned_data.keys() and self.instance.workgroup != new_workgroup:
-                if not user_can_move_between_workgroups(self.user, self.instance.workgroup, new_workgroup):
-                    self.data = self.data.copy()  # need to make a mutable version of the POST querydict.
-                    self.data['workgroup'] = self.instance.workgroup.pk
-                    raise forms.ValidationError(WorkgroupVerificationMixin.cant_move_to_permission_error)
+        old_workgroup = self.instance.workgroup
+
+        # If new item return
+        if self.instance.pk is None:
+            return new_workgroup
+
+        # If old workgroup is None return
+        if old_workgroup is None:
+            return new_workgroup
+
+        # If workgroup didnt change return
+        if old_workgroup == new_workgroup:
+            return new_workgroup
+
+        # Check user can remove from old wg
+        if not user_can_remove_from_workgroup(self.user, old_workgroup):
+            raise forms.ValidationError(self.cant_move_from_permission_error)
+
+        # Check user can move to new wg
+        if not user_can_move_to_workgroup(self.user, new_workgroup):
+            raise forms.ValidationError(self.cant_move_to_permission_error)
+
         return new_workgroup
 
 

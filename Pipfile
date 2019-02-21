@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = "==1.11.18"
+django = "==1.11.20"
 django-haystack = ">=2.7.dev1,<2.8.0"
 "psycopg2" = "~=2.7.0"
 "django-redis" = "*"
@@ -45,3 +45,4 @@ test = "django-admin test --settings=aristotle_mdr.tests.settings.settings"
 djshell = "django-admin shell --settings=aristotle_mdr.tests.settings.settings"
 lint = "flake8"
 type = "/bin/sh -c 'mypy ./python/*/aristotle_*'"
+clean = "/bin/sh -c 'rm -r ./python/*/*.egg-info'"

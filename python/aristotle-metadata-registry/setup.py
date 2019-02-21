@@ -38,7 +38,7 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
     install_requires=[
-        "Django>=1.11.18,<2.0",
+        "Django<2.0",
         'six',  # Setuptools > 36 doesn't install this by default
         'pytz',
         'pyyaml',
@@ -120,7 +120,10 @@ setup(
         'weasyprint',
 
         # Pdf toolkit
-        'PyPDF2'
+        'PyPDF2',
+
+        # Bulk updates
+        'django-bulk-update',
     ],
 
 )

@@ -25,8 +25,10 @@ describe('inlineEdit', function() {
 
     it('updates value from input', function() {
         this.wrapper.setData({editing: true})
-        this.wrapper.find('input').setValue('My Desc')
-        assert.equal(this.wrapper.vm.value, 'My Desc')
+        return this.wrapper.vm.$nextTick().then(() => {
+            this.wrapper.find('input').setValue('My Desc')
+            assert.equal(this.wrapper.vm.value, 'My Desc')
+        })
     })
 
     it('submits value on save', function() {
@@ -40,7 +42,9 @@ describe('inlineEdit', function() {
 
     it('displays errors', function() {
         this.wrapper.setData({editing: true, errors: {field: ['Big error']}})
-        let errorstub = this.wrapper.find('api-errors-stub')
-        assert.deepEqual(errorstub.props('errors'), {field: ['Big error']})
+        return this.wrapper.vm.$nextTick().then(() => {
+            let errorstub = this.wrapper.find('api-errors-stub')
+            assert.deepEqual(errorstub.props('errors'), {field: ['Big error']})
+        })
     })
 })

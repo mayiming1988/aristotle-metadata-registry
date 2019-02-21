@@ -19,6 +19,7 @@ from aristotle_mdr.fields import (
 from aristotle_mdr.managers import (
     MetadataItemManager,
     ManagedItemQuerySet,
+    UtilsManager
 )
 
 
@@ -103,9 +104,8 @@ class ManagedItem(baseAristotleObject):
     stewardship_organisation = models.ForeignKey(
         'aristotle_mdr.StewardOrganisation', to_field="uuid",
         null=False,
-        related_name="managed_items"
     )
-    # workgroup = models.ForeignKey('aristotle_mdr.Workgroup', related_name="managed_items", null=True, blank=True)
+    # workgroup = models.ForeignKey('aristotle_mdr.Workgroup', null=True, blank=True)
     list_details_template = "aristotle_mdr/manageditems/helpers/list_details.html"
 
     def can_edit(self, user):
@@ -133,6 +133,7 @@ class aristotleComponent(models.Model):
     class Meta:
         abstract = True
 
+    objects = UtilsManager()
     ordering_field = 'order'
 
     def can_edit(self, user):
@@ -224,6 +225,7 @@ class DedBaseThrough(models.Model):
     data_element_derivation = models.ForeignKey('DataElementDerivation', on_delete=models.CASCADE)
     data_element = models.ForeignKey('DataElement', on_delete=models.CASCADE)
     order = models.PositiveSmallIntegerField("Position")
+    objects = UtilsManager()
 
     class Meta:
         abstract = True

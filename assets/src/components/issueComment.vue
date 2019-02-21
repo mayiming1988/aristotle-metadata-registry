@@ -119,6 +119,6 @@ export default {
 
 <style>
 .text-right {
-    text-align: "right"
+    text-align: right;
 }
 </style>

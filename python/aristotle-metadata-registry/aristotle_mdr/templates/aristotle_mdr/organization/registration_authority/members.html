@@ -1,18 +1,9 @@
-{% extends "aristotle_mdr/user/userHome.html" %}
+{% extends "aristotle_mdr/organization/registration_authority/base.html" %}
 {% load i18n aristotle_tags %}
 
-{% block collapse-link %}
-    <i class="fa fa-university fa-fw"></i> {{ item.name }} - Members
-{% endblock %}
 
-{% block sidebar %}
-    {% include "aristotle_mdr/user/userSideBar.html" with activeTab='registrarTools' %}
-{% endblock %}
-
-{% block page %}
-    <h1>{% block title %}{{ item.name }}{% endblock %} - Members</h1>
-
-    <div class="panel panel-default">
+{% block racontent %}
+    <div class="panel panel-default margin-above">
         <div class="panel-heading">
             <div class="row">
                 <div class="col-md-1 col-md-offset-11 col-xs-4 col-xs-offset-8 ">
@@ -42,9 +33,9 @@
                     </td>
                     <td>
                         {% comment %}
-            TODO: THIS IS SUPER INEFFICIENT AND USES 4 DATABASE CALLS BUT WORKS.
-            PROFILE AND FIX IN THE FUTURE.
-            {% endcomment %}
+                        TODO: THIS IS SUPER INEFFICIENT AND USES 4 DATABASE CALLS BUT WORKS.
+                        PROFILE AND FIX IN THE FUTURE.
+                        {% endcomment %}
                         {{ item|user_roles_for_group:member|join:", " }}
                     </td>
                     <td>

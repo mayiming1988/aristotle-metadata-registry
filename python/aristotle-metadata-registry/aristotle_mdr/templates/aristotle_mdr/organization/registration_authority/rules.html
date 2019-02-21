@@ -1,0 +1,25 @@
+{% extends 'aristotle_mdr/organization/registration_authority/settings.html' %}
+{% load webpack_loader url_tags %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'raValidationEdit' 'js' %}
+{% endblock %}
+
+{% block webpack_css_bundle %}
+  {% render_bundle 'raValidationEdit' 'css' %}
+{% endblock %}
+
+{% block formcontent %}
+<h3>Validation Rules for {{ item.name }}</h3>
+<p>These rules apply for review requests in this registration authority only</p>
+<div id="vue-container">
+  <rules-editor
+    value="{{ rules.rules }}"
+    ra_id="{{ item.id }}"
+    schema="{{ schema }}"
+    api_url="{{ url }}"
+    update_url_template="{% urltemplate 'api_v4:ra_rules' %}"
+    method="{{ method }}">
+  </rules-editor>
+</div>
+{% endblock %}

@@ -33,7 +33,8 @@ class BaseAPITestCase(TestCase):
         )
         self.su = self.um.objects.create_user(
             email='super@example.com',
-            password='1234'
+            password='1234',
+            is_superuser=True
         )
 
     def login_user(self):
@@ -78,7 +79,7 @@ class ConceptAPITestCase(BaseAPITestCase):
     def test_get_concept(self):
         self.login_user()
         response = self.client.get(
-            reverse('api_v4:item', args=[self.concept.id]),
+            reverse('api_v4:item:item', args=[self.concept.id]),
         )
         self.assertEqual(response.status_code, 200)
 
@@ -276,6 +277,39 @@ class CustomFieldsTestCase(BaseAPITestCase):
         self.assertEqual(cf_models.CustomField.objects.count(), 2)
         self.assertEqual(cf_models.CustomField.objects.filter(name='Spic').count(), 1)
         self.assertEqual(cf_models.CustomField.objects.filter(name='Bland').count(), 1)
+
+    def test_reorder_fields(self):
+        ids = self.create_test_fields()
+        self.login_superuser()
+
+        postdata = [
+            {'id': ids[0], 'order': 2, 'name': 'Spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
+            {'id': ids[1], 'order': 1, 'name': 'Blandness', 'type': 'int', 'help_text': 'The Blandness'}
+        ]
+        response = self.client.post(
+            reverse('api_v4:custom_field_list'),
+            postdata,
+            format='json'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(cf_models.CustomField.objects.count(), 2)
+        self.assertEqual(cf_models.CustomField.objects.get(order=1).name, 'Blandness')
+        self.assertEqual(cf_models.CustomField.objects.get(order=2).name, 'Spiciness')
+
+    def test_add_field_with_same_name(self):
+        ids = self.create_test_fields()
+        self.login_superuser()
+
+        postdata = [
+            {'id': ids[0], 'order': 1, 'name': 'Blandness', 'type': 'int', 'help_text': 'The Spiciness'},
+            {'id': ids[1], 'order': 2, 'name': 'Blandness_old', 'type': 'int', 'help_text': 'The Blandness'}
+        ]
+        response = self.client.post(
+            reverse('api_v4:custom_field_list'),
+            postdata,
+            format='json'
+        )
+        self.assertEqual(response.status_code, 200)
 
     def test_multiple_delete_does_not_work(self):
         ids = self.create_test_fields()
@@ -593,7 +627,7 @@ class PermsTestCase(BaseAPITestCase):
         self.item.save()
         self.create_token(permissions)
         self.client.credentials(HTTP_AUTHORIZATION='Token abc')
-        response = self.client.get(reverse('api_v4:item', args=[self.item.id]))
+        response = self.client.get(reverse('api_v4:item:item', args=[self.item.id]))
         self.assertEqual(response.status_code, status_code)
 
     def test_query_item_with_token_correct_perms(self):
@@ -608,5 +642,5 @@ class PermsTestCase(BaseAPITestCase):
         # Query on item not visible to user, expect 403
         self.create_token({'metadata': {'read': True}})
         self.client.credentials(HTTP_AUTHORIZATION='Token abc')
-        response = self.client.get(reverse('api_v4:item', args=[self.item.id]))
+        response = self.client.get(reverse('api_v4:item:item', args=[self.item.id]))
         self.assertEqual(response.status_code, 403)

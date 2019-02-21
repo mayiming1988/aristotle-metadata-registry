@@ -28,7 +28,7 @@
         {% endblock %}
     </div>
         {% for extension in config.CONTENT_EXTENSIONS %}
-            {% extra_content extension item request.user %}
+            {% extra_content extension item %}
         {% endfor %}
 </div>
 </section>

@@ -17,7 +17,7 @@
       </tr>
     </thead>
     <tbody>
-    <tr v-for="task in tasks">
+    <tr v-for="task in tasks" :key="task.id">
         <td>{{ task.display_name }}
         <br>
         <small>{{ task.id }}</small>
@@ -61,7 +61,7 @@ export default {
         stop_task: function(task) {
             task.status = "STOPPING"
             let promise = this.get(this.taskStopUrl, {pk: task.pk})
-            promise.then((response) => {
+            promise.then(() => {
                 this.statusUpdate()
             })
         },
@@ -99,7 +99,7 @@ export default {
         }
     },
     watch: {
-        refreshList: function (newer, older) {
+        refreshList: function (newer) {
             if (newer) {
                 this.statusUpdate()
             }

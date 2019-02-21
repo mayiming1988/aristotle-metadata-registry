@@ -1,11 +1,12 @@
 <template>
     <div class="vue-form" :class="{'row': inline}">
         <slot name="before"></slot>
-        <bsFieldWrapper v-for="(fielddata, name) in fields" :name="name" :label="fielddata.label" :displayLabel="showLabels" :hasErrors="hasErrors(name)" :column="inline">
+        <bsFieldWrapper v-for="(fielddata, name) in fields" :key="name" :name="name" :label="fielddata.label" :displayLabel="showLabels" :hasErrors="hasErrors(name)" :column="inline">
             <singleError :feErrors="getFrontendError(name)" :beErrors="getBackendErrors(name)"></singleError>
                 <formField 
                 :tag="fielddata.tag" 
                 :name="name" 
+                :fieldClass="getFieldClass(fielddata.class)"
                 :placeholder="placeholder(name)"
                 :options="fielddata.options"
                 :value="value[name]" 
@@ -58,20 +59,30 @@ export default {
     },
     methods: {
         hasErrors: function(field_name) {
-            let hasfe = this.fe_errors[field_name].$invalid
+            let hasfe = (this.fe_errors != undefined && this.fe_errors[field_name] != undefined)
             let hasbe = (this.errors != undefined && this.errors[field_name] != undefined)
             return hasbe || hasfe
         },
         getFrontendError: function(field_name) {
-            return this.fe_errors[field_name]
+            if (this.fe_errors) {
+                return this.fe_errors[field_name]
+            } else {
+                return []
+            }
         },
         getBackendErrors: function(field_name) {
             if (this.errors) {
-                if (this.errors[field_name] != undefined) {
-                    return this.errors[field_name]
-                }
+                return this.errors[field_name]
+            } else {
+                return []
             }
-            return []
+        },
+        getFieldClass: function(fielddata_class) {
+            if (fielddata_class === undefined) {
+                return 'form-control'
+            } else {
+                return fielddata_class
+            }
         },
         placeholder: function(field_name) {
             if (this.inline) {

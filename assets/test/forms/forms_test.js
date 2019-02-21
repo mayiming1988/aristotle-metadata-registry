@@ -16,29 +16,33 @@ describe('baseForm', function() {
     })
 
     it('reports hasErrors true when there is a frontend error', function() {
-        this.wrapper.setProps({fe_errors: {fieldname: {$invalid: true}}})
-        assert.isTrue(this.wrapper.vm.hasErrors('fieldname'))
+        this.wrapper.setProps({fe_errors: {fieldname: ['Error!']}})
+        return this.wrapper.vm.$nextTick().then(() => {
+            assert.isTrue(this.wrapper.vm.hasErrors('fieldname'))
+        })
     })
 
     it('reports hasErrors true when there is a backend error', function() {
         this.wrapper.setProps({
             errors: {fieldname: ['Some errors']}, 
-            fe_errors: {fieldname: {$invalid: false}}
+            fe_errors: {}
         })
         assert.isTrue(this.wrapper.vm.hasErrors('fieldname'))
     })
 
     it('reports hasErrors false when no errors', function() {
         this.wrapper.setProps({
-            fe_errors: {fieldname: {$invalid: false}},
+            fe_errors: {},
             errors: {}
         })
-        assert.isFalse(this.wrapper.vm.hasErrors('fieldname'))
+        return this.wrapper.vm.$nextTick().then(() => {
+            assert.isFalse(this.wrapper.vm.hasErrors('fieldname'))
+        })
     })
 
     it('returns labels as placeholders', function() {
         this.wrapper.setProps({
-            fe_errors: {name: {$invalid: false}},
+            fe_errors: {},
             inline: true,
             value: {},
             fields: {name: {label: 'TheName'}},
@@ -48,7 +52,7 @@ describe('baseForm', function() {
 
     it('returns capitalized names when no labels', function() {
         this.wrapper.setProps({
-            fe_errors: {name: {$invalid: false}},
+            fe_errors: {},
             inline: true,
             value: {},
             fields: {name: {}},
@@ -58,7 +62,7 @@ describe('baseForm', function() {
 
     it('doesnt return placeholders if inline false', function() {
         this.wrapper.setProps({
-            fe_errors: {name: {$invalid: false}},
+            fe_errors: {},
             inline: false,
             value: {},
             fields: {name: {}},
@@ -72,17 +76,23 @@ describe('baseForm', function() {
 
     it('doesnt pass backend errors if blank', function() {
         this.wrapper.setProps({errors: {otherfields: ['Bad']}})
-        assert.deepEqual(this.wrapper.vm.getBackendErrors('somefield'), [])
+        return this.wrapper.vm.$nextTick().then(() => {
+            assert.deepEqual(this.wrapper.vm.getBackendErrors('somefield'), undefined)
+        })
     })
 
     it('passes backend errors when avaliable', function() {
         this.wrapper.setProps({errors: {somefield: ['Bad']}})
-        assert.deepEqual(this.wrapper.vm.getBackendErrors('somefield'), ['Bad'])
+        return this.wrapper.vm.$nextTick().then(() => {
+            assert.deepEqual(this.wrapper.vm.getBackendErrors('somefield'), ['Bad'])
+        })
     })
 
     it('sets row class when inline', function() {
         this.wrapper.setProps({inline: true})
-        assert.deepEqual(this.wrapper.classes(), ['vue-form', 'row'])
+        return this.wrapper.vm.$nextTick().then(() => {
+            assert.deepEqual(this.wrapper.classes(), ['vue-form', 'row'])
+        })
     })
 
     it('doesnt set row class when non inline', function() {
@@ -91,42 +101,47 @@ describe('baseForm', function() {
 
     it('passes data to formfield', function() {
         this.wrapper.setProps({
-            fe_errors: {name: {$invlaid: false}},
+            fe_errors: {},
             value: {name: 'mydata'},
             fields: {name: {label: 'TheName', options: [], tag: 'input'}}
         })
-        let ff = this.wrapper.find('formfield-stub')
-        assert.equal(ff.props('tag'), 'input')
-        assert.equal(ff.props('name'), 'name')
-        assert.deepEqual(ff.props('options'), [])
-        assert.equal(ff.props('value'), 'mydata')
+        return this.wrapper.vm.$nextTick().then(() => {
+            let ff = this.wrapper.find('formfield-stub')
+            assert.equal(ff.props('tag'), 'input')
+            assert.equal(ff.props('name'), 'name')
+            assert.deepEqual(ff.props('options'), [])
+            assert.equal(ff.props('value'), 'mydata')
+        })
     })
 
     it('passes data to field wrapper', function() {
         this.wrapper.setProps({
-            fe_errors: {name: {$invlaid: false}},
+            fe_errors: {},
             showLabels: false,
             inline: false,
             value: {name: 'mydata'},
             fields: {name: {label: 'TheName', options: [], tag: 'input'}},
         })
-        let bfr = this.wrapper.find('bsfieldwrapper-stub')
-        assert.equal(bfr.props('name'), 'name')
-        assert.equal(bfr.props('label'), 'TheName')
-        assert.equal(bfr.props('displayLabel'), false)
-        assert.equal(bfr.props('column'), false)
-        assert.equal(bfr.props('hasErrors'), false)
+        return this.wrapper.vm.$nextTick().then(() => {
+            let bfr = this.wrapper.find('bsfieldwrapper-stub')
+            assert.equal(bfr.props('name'), 'name')
+            assert.equal(bfr.props('label'), 'TheName')
+            assert.equal(bfr.props('displayLabel'), false)
+            assert.equal(bfr.props('column'), false)
+            assert.equal(bfr.props('hasErrors'), false)
+        })
     })
 
     it('emits data on input', function() {
         this.wrapper.setProps({
-            fe_errors: {name: {$invalid: false}, desc: {$invalid: false}},
+            fe_errors: {},
             value: {name: 'wow', desc: 'yeah'},
             fields: {name: {}, desc: {}}
         })
-
-        this.wrapper.vm.fieldInput('name', 'wowee')
-        assert.deepEqual(this.wrapper.emitted('input')[0][0], {name: 'wowee', desc: 'yeah'})
+        return this.wrapper.vm.$nextTick().then(() => {
+            this.wrapper.vm.fieldInput('name', 'wowee')
+            assert.deepEqual(this.wrapper.emitted('input')[0][0], {name: 'wowee', desc: 'yeah'})
+        })
     })
 
 

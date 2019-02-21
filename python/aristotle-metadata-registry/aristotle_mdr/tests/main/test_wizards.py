@@ -225,6 +225,7 @@ class ConceptWizardPage(HaystackReindexMixin, utils.AristotleTestUtils):
             type='str',
         )
 
+        cf_field_name = 'results-{}'.format(cf.form_field_name)
         wizard_data = [
             {
                 'dynamic_aristotle_wizard-current_step': 'initial',
@@ -234,7 +235,7 @@ class ConceptWizardPage(HaystackReindexMixin, utils.AristotleTestUtils):
                 'dynamic_aristotle_wizard-current_step': 'results',
                 'results-name': 'My new object',
                 'results-definition': 'Brand new',
-                'results-custom_ExtraInfo': 'SomeExtraInformation'
+                cf_field_name: 'SomeExtraInformation'
             }
         ]
         formsets = utils.get_management_forms(self.model, item_is_model=True, slots=True)

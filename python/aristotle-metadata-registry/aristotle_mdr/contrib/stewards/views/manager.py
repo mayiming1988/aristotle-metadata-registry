@@ -163,7 +163,7 @@ class StewardURLManager(GroupURLManager):
             def get_queryset(self):
                 types = [
                     x for x in ContentType.objects.all()
-                    if issubclass(x.model_class(), ManagedItem)
+                    if x.model_class() and issubclass(x.model_class(), ManagedItem)
                 ]
                 for t in types:
                     t.item_count = t.model_class().objects.filter(

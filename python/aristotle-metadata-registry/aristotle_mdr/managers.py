@@ -1,3 +1,4 @@
+from typing import Iterable
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -6,6 +7,7 @@ from aristotle_mdr.utils import fetch_aristotle_settings
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
 from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
+from aristotle_mdr.utils.utils import is_postgres
 from aristotle_mdr.constants import visibility_permission_choices
 
 
@@ -19,11 +21,23 @@ class UUIDManager(models.Manager):
         )
 
 
+class UtilsManager(models.Manager):
+    """Manager with extra util functions"""
+
+    def bulk_delete(self, objects: Iterable[models.Model]):
+        if isinstance(objects, models.QuerySet):
+            objects.delete()
+        else:
+            ids = [o.id for o in objects]
+            qs = self.get_queryset().filter(id__in=ids)
+            qs.delete()
+
+
 class MetadataItemQuerySet(InheritanceQuerySet):
     pass
 
 
-class MetadataItemManager(InheritanceManager):
+class MetadataItemManager(InheritanceManager, UtilsManager):
     def get_queryset(self):
         from django.conf import settings
 
@@ -61,7 +75,9 @@ class ConceptQuerySet(MetadataItemQuerySet):
             ObjectClass.objects.filter(name__contains="Person").visible()
             ObjectClass.objects.visible().filter(name__contains="Person")
         """
+        need_distinct = False  # Wether we need to add a distinct
         from aristotle_mdr.models import StewardOrganisation
+
         if user is None or user.is_anonymous():
             return self.public()
         if user.is_superuser:
@@ -74,7 +90,12 @@ class ConceptQuerySet(MetadataItemQuerySet):
             # User can see everything in their workgroups.
             q |= Q(workgroup__in=user.profile.workgroups)
             # q |= Q(workgroup__user__profile=user)
-            if user.profile.is_registrar:
+            registrar_count = user.profile.registrar_count
+            if registrar_count > 1:
+                # If a user is a registrar in multiple ras it is possible for
+                # the query to return duplicates
+                need_distinct = True
+            if registrar_count > 0:
                 # Registars can see items they have been asked to review
                 q |= Q(
                     Q(rr_review_requests__registration_authority__registrars__profile__user=user) &
@@ -84,14 +105,20 @@ class ConceptQuerySet(MetadataItemQuerySet):
                 q |= Q(
                     Q(statuses__registrationAuthority__registrars__profile__user=user)
                 )
+
         extra_q = fetch_aristotle_settings().get('EXTRA_CONCEPT_QUERYSETS', {}).get('visible', None)
         if extra_q:
             for func in extra_q:
                 q |= import_string(func)(user)
-        return self.filter(
-            q &
-            ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
-        )
+
+        q = q & ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
+
+        if not need_distinct:
+            return self.filter(q)
+        else:
+            if is_postgres():
+                return self.filter(q).distinct('id')
+            return self.filter(q).distinct()
 
     def editable(self, user):
         """

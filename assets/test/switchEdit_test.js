@@ -29,10 +29,12 @@ describe('switchEditComponent', function() {
 
     it('displays correctly when editing', function() {
         this.wrapper.setData({editing: true})
-        assert.isTrue(this.wrapper.find('textarea').exists())
-        assert.equal(this.wrapper.find('button.btn-primary').text(), 'Save Changes')
-        assert.equal(this.wrapper.find('button.btn-default').text(), 'Cancel')
-        assert.isFalse(this.wrapper.find('a.inline-action').exists())
+        return this.wrapper.vm.$nextTick().then(() => {
+            assert.isTrue(this.wrapper.find('textarea').exists())
+            assert.equal(this.wrapper.find('button.btn-primary').text(), 'Save Changes')
+            assert.equal(this.wrapper.find('button.btn-default').text(), 'Cancel')
+            assert.isFalse(this.wrapper.find('a.inline-action').exists())
+        })
     })
 
     it('computes capital name', function() {
@@ -65,12 +67,15 @@ describe('switchEditApi', function() {
             value: 'Nice description',
             editing: true
         })
-        clickElementIfExists(this.wrapper, 'button.btn-primary')
 
-        assert.isTrue(fake.calledOnce)
-        assert.isTrue(
-            fake.calledWithExactly('/test/', {description: 'Nice description'})
-        )
+        return this.wrapper.vm.$nextTick().then(() => {
+            clickElementIfExists(this.wrapper, 'button.btn-primary')
+
+            assert.isTrue(fake.calledOnce)
+            assert.isTrue(
+                fake.calledWithExactly('/test/', {description: 'Nice description'})
+            )
+        })
     })
 
     it('sets editing false on success', function() {
@@ -85,12 +90,13 @@ describe('switchEditApi', function() {
             editing: true
         })
 
-        clickElementIfExists(this.wrapper, 'button.btn-primary')
-
-        assert.isTrue(fake.calledOnce)
-        let call = fake.firstCall
         return this.wrapper.vm.$nextTick().then(() => {
-            assert.isFalse(this.wrapper.vm.editing)
+            clickElementIfExists(this.wrapper, 'button.btn-primary')
+
+            assert.isTrue(fake.calledOnce)
+            return this.wrapper.vm.$nextTick().then(() => {
+                assert.isFalse(this.wrapper.vm.editing)
+            })
         })
     })
 
@@ -106,11 +112,13 @@ describe('switchEditApi', function() {
             editing: true
         })
 
-        clickElementIfExists(this.wrapper, 'button.btn-primary')
-
-        assert.isTrue(fake.calledOnce)
         return this.wrapper.vm.$nextTick().then(() => {
-            assert.isTrue(this.wrapper.vm.editing)
+            clickElementIfExists(this.wrapper, 'button.btn-primary')
+
+            assert.isTrue(fake.calledOnce)
+            return this.wrapper.vm.$nextTick().then(() => {
+                assert.isTrue(this.wrapper.vm.editing)
+            })
         })
     })
 })

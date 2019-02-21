@@ -115,6 +115,8 @@ class ConvertedConstrainedImageField(ConstrainedImageField):
             charset=None
         )
 
+        im.close()
+
         return imagefile
 
 

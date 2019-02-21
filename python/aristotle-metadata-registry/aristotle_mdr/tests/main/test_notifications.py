@@ -1,7 +1,6 @@
 import aristotle_mdr.models as models
 import datetime
 import ast
-import json
 from django.test import TestCase
 from django.utils import timezone
 from django.contrib.auth import get_user_model
@@ -11,7 +10,8 @@ from aristotle_mdr.contrib.issues.models import Issue
 from aristotle_bg_workers.tasks import send_notification_email
 from django.core import mail
 from django.conf import settings
-
+import logging
+logger = logging.getLogger(__name__)
 
 setup_aristotle_test_environment()
 
@@ -162,7 +162,7 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
 
         self.assertTrue(self.item2 in self.item1.superseded_by_items.visible(user1))
         self.assertEqual(user1.notifications.all().count(), 1)
-        self.assertTrue('(item registered by your registration authority) has been superseded:' in user1.notifications.first().verb)
+        self.assertTrue('(item registered by ' + self.ra.name + ') has been superseded.' in user1.notifications.first().verb)
 
     def test_registrar_is_notified_of_status_change(self):
         user1 = self.registrar
@@ -179,7 +179,7 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
 
         self.assertTrue(self.item1.statuses.count() == 1)
         self.assertEqual(user1.notifications.all().count(), 1)
-        self.assertTrue('has been registered by your registration authority' in user1.notifications.first().verb)
+        self.assertTrue("has been registered by Test RA with the status 'Candidate'." in user1.notifications.first().verb)
 
         models.Status.objects.create(
             concept=self.item1,
@@ -189,7 +189,7 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
         )
 
         self.assertEqual(user1.notifications.all().count(), 2)
-        self.assertTrue('(item registered by your registration authority) has changed status:' in user1.notifications.first().verb)
+        self.assertTrue('(item registered by ' + self.ra.name + ") has changed its status to " in user1.notifications.first().verb)
 
     def test_subscriber_is_not_notified_when_issue_is_created_by_himself(self):
 
@@ -237,9 +237,9 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
 
     def test_subscriber_is_not_notified_when_the_checkbox_in_notification_permission_settings_is_not_checked(self):
         user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
-        data = json.loads(user1.profile.notificationPermissions)
-        data["notification methods"]["within aristotle"] = False
-        user1.profile.notificationPermissions = json.dumps(data)
+        # data = json.loads(user1.profile.notificationPermissions)
+        # data["notification methods"]["within aristotle"] = False
+        user1.profile.notificationPermissions["notification methods"]["within aristotle"] = False
         user1.profile.save()
         self.favourite_item(user1, self.item1)
 
@@ -250,7 +250,7 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
 
     def test_subscriber_is_notified_by_email(self):
         user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
-        json.loads(user1.profile.notificationPermissions)["notification methods"]["email"] = True
+        user1.profile.notificationPermissions["notification methods"]["email"] = True
         user1.profile.save()
 
         send_notification_email(user1.email, "hello world")

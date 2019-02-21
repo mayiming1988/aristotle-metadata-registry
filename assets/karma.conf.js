@@ -30,9 +30,7 @@ module.exports = (config) => {
             }
         },
         files: [
-            // all files ending in "_test"
-            { pattern: 'test/*_test.js', watched: false },
-            { pattern: 'test/**/*_test.js', watched: false }
+            'test/index_test.js'
             // each file acts as entry point for the webpack configuration
         ],
         preprocessors: {
@@ -48,6 +46,7 @@ module.exports = (config) => {
             // webpack configuration
             devtool: 'inline-source-map',
             optimization: {
+                // Don't minimize so that error lines are correct
                 minimize: false
             },
             module: {

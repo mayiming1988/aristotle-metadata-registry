@@ -37,21 +37,21 @@ function fill_aristotle_notification_menu(data) {
             for (let i=0; i < data.unread_list.length; i++) {
                 let item = data.unread_list[i];
 
-                // console.log(item)
+                let text
+                if (item.target) {
+                   text = item.actor + " " + item.verb + " " + item.target
+                } else {
+                    text = item.actor + " " + item.verb
+                }
 
-                let text = item.actor + " " + item.verb + " " + item.target
                 //TODO: INSTEAD OF CHOPPING THE STRING AND ADDING ELLIPSIS ("...") WE COULD JUST ADD A <br/> TAG:
                 // if (text.length > 73) {
                 //     text = text.slice(0, 70)
                 //     text = text + '\u2026'
                 // }
                 let element
-                if (item.target_object_id) {
-                    let target = '/notifyredirect/' + item.actor_content_type + '/' +item.actor_object_id
-                    element = make_dropdown_item(text, target)
-                } else {
-                    element = make_dropdown_item(text)
-                }
+                let target = '/notifyredirect/' + item.actor_content_type + '/' +item.actor_object_id
+                element = make_dropdown_item(text, target)
                 menu.append(element)
             }
 

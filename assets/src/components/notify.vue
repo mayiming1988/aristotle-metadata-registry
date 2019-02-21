@@ -15,7 +15,7 @@
 export default {
     props: ['unreadListUrl', 'markAllReadUrl', 'initialCount'],
     data: () => ({
-        loading: false
+        loading: false,
         count: 0
     }),
     created: function() {

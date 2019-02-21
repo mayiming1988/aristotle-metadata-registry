@@ -14,7 +14,10 @@ class AppHelpViewer(DetailView):
         context = super().get_context_data(**kwargs)
         if self.object.app_label:
             self.app = self.object.app_label
-            context['app'] = apps.get_app_config(self.app)
+            try:
+                context['app'] = apps.get_app_config(self.app)
+            except LookupError:
+                raise Http404
         return context
 
 

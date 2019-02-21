@@ -24,7 +24,6 @@ from aristotle_mdr.utils.model_utils import (
     DedBaseThrough,
 )
 import uuid
-import json
 
 import reversion  # import revisions
 
@@ -55,7 +54,7 @@ from .managers import (
     ConceptManager,
     ReviewRequestQuerySet, WorkgroupQuerySet,
     RegistrationAuthorityQuerySet,
-    StatusQuerySet
+    StatusQuerySet, UtilsManager
 )
 
 from aristotle_mdr.contrib.groups.base import (
@@ -238,8 +237,9 @@ class RegistrationAuthority(Organization):
     (8.1.5.1) association class.
     """
     objects = RegistrationAuthorityQuerySet.as_manager()
-    template = "aristotle_mdr/organization/registrationAuthority.html"
     stewardship_organisation = models.ForeignKey(StewardOrganisation, to_field="uuid")
+    template = "aristotle_mdr/organization/registration_authority/home.html"
+
     active = models.IntegerField(
         choices=RA_ACTIVE_CHOICES,
         default=RA_ACTIVE_CHOICES.active,
@@ -460,7 +460,6 @@ def update_registration_authority_states(sender, instance, created, **kwargs):
                 "level, items registered by this authority may have stale "
                 "visiblity states and need to be manually updated."
             ).format(ra=instance.name)
-            logger.critical(message)
 
 
 class Workgroup(registryGroup):
@@ -635,7 +634,7 @@ class _concept(baseAristotleObject):
     list_details_template = "aristotle_mdr/helpers/concept_list_details.html"
     stewardship_organisation = models.ForeignKey(
         StewardOrganisation, to_field="uuid",
-        null=True,
+        null=True, blank=True,
         related_name="metadata"
     )
 
@@ -1192,7 +1191,7 @@ class ValueDomain(concept):
         ('supplementary_values', 'supplementaryvalue_set'),
     ]
     clone_fields = ('permissiblevalue_set', 'supplementaryvalue_set')
-    backwards_compatible_fields = ['classification_scheme']
+    backwards_compatible_fields = ['classification_scheme', 'representation_class']
 
     data_type = ConceptForeignKey(  # 11.3.2.5.2.1
         DataType,
@@ -1232,6 +1231,13 @@ class ValueDomain(concept):
         null=True,
         related_name='valueDomains',
         verbose_name='Classification Scheme',
+    )
+    representation_class = ConceptForeignKey(
+        'aristotle_mdr_backwards.RepresentationClass',
+        blank=True,
+        null=True,
+        related_name='value_domains',
+        verbose_name='Representation Class',
     )
     description = models.TextField(
         _('description'),
@@ -1453,7 +1459,7 @@ class PossumProfile(models.Model):
         js_checker=True
     )
     notificationPermissions = JSONField(
-        default=json.dumps({
+        default={
             "metadata changes": {
                 "general changes": {
                     "items in my workgroups": True,
@@ -1489,7 +1495,7 @@ class PossumProfile(models.Model):
                 "email": False,
                 "within aristotle": True
             }
-        })
+        }
     )
 
     def get_profile_picture_url(self):
@@ -1564,6 +1570,10 @@ class PossumProfile(models.Model):
     @property
     def is_registrar(self):
         return perms.user_is_registrar(self.user)
+
+    @property
+    def registrar_count(self):
+        return self.user.registrar_in.count()
 
     @property
     def is_ra_manager(self):
