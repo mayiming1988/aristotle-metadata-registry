@@ -13,36 +13,19 @@
     <h1>{% block title %}New Registration Authority{% endblock %}</h1>
     <form action="" method="POST">
         {% csrf_token %}
+        <div class="form-group {% if form.name.errors %}has-error{% endif %}">
 
-        <div class="row">
-            <div class="col-sm-5">
-                <div class="form-group {% if form.stewardship_organisation.errors %}has-error{% endif %}">
-                    {{ form.stewardship_organisation.label_tag }}<br>
-                    {{ form.stewardship_organisation }}
-                    {% if form.stewardship_organisation.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.stewardship_organisation.errors }}
-                    </div>
-                    {% endif %}
-                    <p class="help-block">
-                         The organisation will this workgroup belong to
-                    </p>
+            <label for="{{ form.name.id_for_label }}">{{ form.name.label_tag }}</label>
+            {% if form.name.errors %}
+                <div class="alert alert-danger">
+                    {{ form.name.errors }}
                 </div>
-            </div>
-            <div class="col-sm-6">
-                <div class="form-group {% if form.name.errors %}has-error{% endif %}">
-                    {{ form.name.label_tag }}<br>
-                    <input class="form-control" id="{{form.name.id_for_label}}" value="{{ form.name.value|default:"" }}" name="name">
-                    {% if form.name.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.name.errors }}
-                        </div>
-                    {% endif %}
-                    <p class="help-block">
-                         {{ form.name.help_text }}
-                    </p>
-                </div>
-            </div>
+            {% endif %}
+            <p class="help-block">
+                {{ form.name.help_text }}
+            </p>
+
+            <input type="text" class="form-control" id="{{ form.name.id_for_label }}" value="{{ form.name.value|default:"" }}" name="name">
         </div>
 
         <div class="form-group {% if form.definition.errors %}has-error{% endif %}">

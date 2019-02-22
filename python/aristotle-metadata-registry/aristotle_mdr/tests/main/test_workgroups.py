@@ -13,21 +13,14 @@ setup_aristotle_test_environment()
 # This is for testing permissions around workgroup mangement.
 
 class WorkgroupMembership(TestCase):
-
-    def setUp(self):
-        self.steward_org_1 = models.StewardOrganisation.objects.create(
-            name='Org 1',
-            description="1",
-        )
-        
     def test_userInWorkgroup(self):
-        wg = models.Workgroup.objects.create(name="Test WG 1", stewardship_organisation=self.steward_org_1)
+        wg = models.Workgroup.objects.create(name="Test WG 1")
         user = get_user_model().objects.create_user('editor1@example.com','editor1')
         wg.viewers.add(user)
         self.assertTrue(perms.user_in_workgroup(user,wg))
     def test_RemoveUserFromWorkgroup(self):
         # Does removing a user from a workgroup remove their permissions? It should!
-        wg = models.Workgroup.objects.create(name="Test WG 1", stewardship_organisation=self.steward_org_1)
+        wg = models.Workgroup.objects.create(name="Test WG 1")
         user = get_user_model().objects.create_user('editor1@example.com','editor1')
         wg.managers.add(user)
         # Caching issue, refresh from DB with correct permissions
@@ -39,7 +32,7 @@ class WorkgroupMembership(TestCase):
         user = get_user_model().objects.get(pk=user.pk)
         self.assertFalse(perms.user_is_workgroup_manager(user,wg))
     def test_managersCanEditWorkgroups(self):
-        wg = models.Workgroup.objects.create(name="Test WG 1", stewardship_organisation=self.steward_org_1)
+        wg = models.Workgroup.objects.create(name="Test WG 1")
         user1 = get_user_model().objects.create_user('manager@example.com','manager')
         user2 = get_user_model().objects.create_user('viewer@example.com','viewer')
         wg.managers.add(user1)
@@ -65,9 +58,9 @@ class WorkgroupMembership(TestCase):
     def test_editable_workgroups_are_unique(self):
         # Tests against bug #333
         # https://github.com/aristotle-mdr/aristotle-metadata-registry/issues/333
-        wg1 = models.Workgroup.objects.create(name="Test WG 1", stewardship_organisation=self.steward_org_1)
-        wg2 = models.Workgroup.objects.create(name="Test WG 2", stewardship_organisation=self.steward_org_1)
-        wg3 = models.Workgroup.objects.create(name="Test WG 3", stewardship_organisation=self.steward_org_1)
+        wg1 = models.Workgroup.objects.create(name="Test WG 1")
+        wg2 = models.Workgroup.objects.create(name="Test WG 2")
+        wg3 = models.Workgroup.objects.create(name="Test WG 3")
         editor = get_user_model().objects.create_user('editor@example.com','editor')
         wg1.stewards.add(editor)
         wg1.submitters.add(editor)
@@ -86,7 +79,7 @@ class WorkgroupMembership(TestCase):
         self.assertTrue(wg2 in editable.all())
         self.assertTrue(wg3 not in editable.all())
 
-class WorkgroupAnonTests(utils.LoggedInViewPages, TestCase):
+class WorkgroupAnonTests(utils.LoggedInViewPages,TestCase):
     def test_anon_cannot_add(self):
         self.logout()
         response = self.client.get(reverse('aristotle:addWorkgroupMembers',args=[self.wg1.id]))
@@ -116,7 +109,7 @@ class WorkgroupAnonTests(utils.LoggedInViewPages, TestCase):
         self.assertListEqual(list(self.newuser.profile.workgroups.all()),[])
 
 
-class WorkgroupCreationTests(utils.LoggedInViewPages, TestCase):
+class WorkgroupCreationTests(utils.LoggedInViewPages,TestCase):
     def test_anon_cannot_create(self):
         self.logout()
         response = self.client.get(reverse('aristotle:workgroup_create'))
@@ -172,12 +165,10 @@ class WorkgroupCreationTests(utils.LoggedInViewPages, TestCase):
             reverse('aristotle:workgroup_create'),
             {
                 'name':"My cool team",
-                'definition':"This team rocks!",
-                'stewardship_organisation':self.steward_org_1.uuid,
+                'definition':"This team rocks!"
             },
             follow=True
         )
-
         self.assertTrue(response.redirect_chain[0][1] == 302)
 
         self.assertEqual(response.status_code, 200)
@@ -191,7 +182,7 @@ class WorkgroupCreationTests(utils.LoggedInViewPages, TestCase):
         self.assertEqual(new_wg.definition, "This team rocks!")
 
 
-class WorkgroupUpdateTests(utils.LoggedInViewPages, TestCase):
+class WorkgroupUpdateTests(utils.LoggedInViewPages,TestCase):
     def test_anon_cannot_update(self):
         self.logout()
         response = self.client.get(reverse('aristotle:workgroup_create'))
@@ -203,7 +194,7 @@ class WorkgroupUpdateTests(utils.LoggedInViewPages, TestCase):
     def test_viewer_cannot_update(self):
         self.login_viewer()
 
-        my_wg = models.Workgroup.objects.create(name="My new Workgroup", definition="", stewardship_organisation=self.steward_org_1)
+        my_wg = models.Workgroup.objects.create(name="My new Workgroup", definition="")
 
         response = self.client.get(reverse('aristotle:workgroup_edit', args=[my_wg.pk]))
         self.assertEqual(response.status_code, 403)
@@ -226,7 +217,7 @@ class WorkgroupUpdateTests(utils.LoggedInViewPages, TestCase):
     def test_registry_owner_can_edit(self):
         self.login_superuser()
 
-        my_wg = models.Workgroup.objects.create(name="My new Workgroup", definition="", stewardship_organisation=self.steward_org_1)
+        my_wg = models.Workgroup.objects.create(name="My new Workgroup", definition="")
 
         response = self.client.get(reverse('aristotle:workgroup_edit', args=[my_wg.pk]))
         self.assertEqual(response.status_code, 200)
@@ -250,7 +241,7 @@ class WorkgroupUpdateTests(utils.LoggedInViewPages, TestCase):
     def test_manager_can_edit(self):
         self.login_manager()
 
-        my_wg = models.Workgroup.objects.create(name="My new Workgroup", definition="", stewardship_organisation=self.steward_org_1)
+        my_wg = models.Workgroup.objects.create(name="My new Workgroup", definition="")
 
         response = self.client.get(reverse('aristotle:workgroup_edit', args=[my_wg.pk]))
         self.assertEqual(response.status_code, 403)

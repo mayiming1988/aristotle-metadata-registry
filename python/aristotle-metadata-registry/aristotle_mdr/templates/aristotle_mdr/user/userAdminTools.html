@@ -17,46 +17,40 @@
 <h2>Quick Links</h2>
 
 <div class="row">
-  <div class="col-lg-4 col-md-6">
-    {% comment %}
+  <div class="col-md-4">
     <h3>Create</h3>
     <ul class="list-group">
         <a class="list-group-item" href="{% url 'aristotle:workgroup_create'%}">
-          <i class="fa fa-fw fa-plus-circle" aria-hidden="true"></i>
+          <i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i>
           Add Workgroup
         </a>
         <a class="list-group-item" href="{% url 'aristotle:registrationauthority_create'%}">
-          <i class="fa fa-fw fa-plus-circle" aria-hidden="true"></i>
+          <i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i>
           Add Registration Authority
         </a>
         <a class="list-group-item" href="{% url 'aristotle-user:registry_invitations_create'%}">
-          <i class="fa fa-fw fa-plus-circle" aria-hidden="true"></i>
+          <i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i>
           Add User
         </a>
     </ul>
-    {% endcomment %}
 
-    <h3>Manage Registry</h3>
+    <h3>Manage</h3>
     <ul class="list-group">
-        <a class="list-group-item" href="{% url 'aristotle_custom_fields:list' %}">
-          <i class="fa fa-fw fa-i-cursor" aria-hidden="true"></i>
-          Manage Custom Fields
+        <a class="list-group-item" href="{% url 'aristotle:workgroup_list'%}">
+          <i class="fa fa-users fa-fw" aria-hidden="true"></i>
+          Manage Workgroups
         </a>
         <a class="list-group-item" href="{% url 'aristotle:registrationauthority_list'%}">
-          <i class="fa fa-fw fa-institution" aria-hidden="true"></i>
+          <i class="fa fa-institution fa-fw" aria-hidden="true"></i>
           Manage Registration Authorities
         </a>
-        <a class="list-group-item" href="{% url 'aristotle_mdr:stewards:group:list_all' %}">
-          <i class="fa fa-fw fa-sitemap" aria-hidden="true"></i>
-          Manage Stewardship Organisations
-        </a>
         <a class="list-group-item" href="{% url 'aristotle-user:registry_user_list'%}">
-          <i class="fa fa-fw fa-user" aria-hidden="true"></i>
+          <i class="fa fa-user fa-fw" aria-hidden="true"></i>
           Manage Users
         </a>
-        <a class="list-group-item" href="{% url 'aristotle:workgroup_list'%}">
-          <i class="fa fa-fw fa-users" aria-hidden="true"></i>
-          Manage Workgroups
+        <a class="list-group-item" href="{% url 'aristotle_custom_fields:list' %}">
+          <i class="fa fa-i-cursor fa-fw" aria-hidden="true"></i>
+          Manage Custom Fields
         </a>
         <a class="list-group-item" href="{% url 'aristotle_validations:validation_edit' %}">
           <i class="fa fa-check fa-fw" aria-hidden="true"></i>

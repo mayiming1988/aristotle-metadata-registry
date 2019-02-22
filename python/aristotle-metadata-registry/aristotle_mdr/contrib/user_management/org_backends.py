@@ -122,10 +122,7 @@ class BaseAristotleInvitationBackend(InvitationBackend):
         kwargs.update({
             'sender': sender,
             'user': user,
-            'accept_url': reverse(
-                'aristotle-user:' + self.accept_url_name,
-                args=[user.pk, self.get_token(user)]
-            ),
+            'accept_url_name': 'aristotle-user:' + self.accept_url_name,
             'request': request
         })
 

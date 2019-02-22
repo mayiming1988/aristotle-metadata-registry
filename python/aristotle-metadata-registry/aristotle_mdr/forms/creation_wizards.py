@@ -14,7 +14,7 @@ from aristotle_mdr.utils.utils import fetch_aristotle_settings
 from aristotle_mdr.contrib.custom_fields.forms import CustomValueFormMixin
 
 
-class UserAwareFormMixin:
+class UserAwareForm(forms.Form):
     def __init__(self, *args, **kwargs):
         if 'user' in kwargs.keys():
             self.user = kwargs.pop('user')
@@ -27,14 +27,10 @@ class UserAwareFormMixin:
         super().__init__(*args, **kwargs)
 
 
-class UserAwareForm(UserAwareFormMixin, forms.Form):
-    pass
-
-
-class UserAwareModelForm(UserAwareFormMixin, forms.ModelForm):
+class UserAwareModelForm(UserAwareForm, forms.ModelForm):
     class Meta:
         model = MDR._concept
-        exclude = ['superseded_by_items', '_is_public', '_is_locked', 'originURI', 'submitter', 'stewardship_organisation']
+        exclude = ['superseded_by_items', '_is_public', '_is_locked', 'originURI', 'submitter']
 
 
 class WorkgroupVerificationMixin:

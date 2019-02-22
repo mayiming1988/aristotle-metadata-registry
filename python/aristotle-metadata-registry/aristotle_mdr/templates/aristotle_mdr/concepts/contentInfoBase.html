@@ -32,39 +32,36 @@
                                 {{ crumb.name }}
                             {% endif %}
                         </li>
-                      {% endfor %}
+                    {% endfor %}
                 </ol>
             {% endif %}
             {% block concept_title %}
                 {% include "aristotle_mdr/concepts/titles/display_title.html" %}
             {% endblock %}
+            {% if not hide_item_actions %}
+                {% include "aristotle_mdr/concepts/actionbar.html" %}
+            {% endif %}
         </header>
 
-        {% if not hide_item_actions %}
-            {% include "aristotle_mdr/concepts/actionbar.html" %}
-        {% endif %}
-  
         <!-- Nav tabs -->
-        <div class="row full-width-tabs">
-          <ul class="nav nav-tabs" role="tablist">
+        <ul class="nav nav-tabs" role="tablist">
             <li role="presentation" {% if activetab == "item" %}class="active"{% endif %}>
-              <a href="{% url 'aristotle:item' item.id item.meta.model_name item.name %}" aria-controls="item">Item</a>
+                <a href="{% url 'aristotle:item' item.id item.meta.model_name item.name %}" aria-controls="item">Item</a>
             </li>
             {% if not hide_tabs %}
-              {% if user.is_authenticated %}
-              <li role="presentation" {% if activetab == "issues" %}class="active"{% endif %}>
-                <a href="{% url 'aristotle_issues:item_issues' item.id %}" aria-controls="issues" role="tab">Issues</a>
-              </li>
-              {% endif %}
-              <li role="presentation" {% if activetab == "history" %}class="active"{% endif %}>
-                <a href="{% url 'aristotle:item_history' item.id %}" aria-controls="history" role="tab">History</a>
-              </li>
+                {% if user.is_authenticated %}
+                    <li role="presentation" {% if activetab == "issues" %}class="active"{% endif %}>
+                        <a href="{% url 'aristotle_issues:item_issues' item.id %}" aria-controls="issues" role="tab">Issues</a>
+                    </li>
+                {% endif %}
+                <li role="presentation" {% if activetab == "history" %}class="active"{% endif %}>
+                    <a href="{% url 'aristotle:item_history' item.id %}" aria-controls="history" role="tab">History</a>
+                </li>
+                <li role="presentation" {% if activetab == "graphs" %}class="active"{% endif %}>
+                    <a href="{% url 'aristotle:item_graphs' item.id %}" aria-controls="graphs" role="tab">Graphs</a>
+                </li>
             {% endif %}
-              <li role="presentation" {% if activetab == "graphs" %}class="active"{% endif %}>
-                 <a href="{% url 'aristotle:item_graphs' item.id %}" aria-controls="graphs" role="tab">Graphs</a>
-              </li>
-          </ul>
-        </div>
+        </ul>
 
         {% block infoContent %}
         {% endblock %}

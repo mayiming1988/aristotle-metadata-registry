@@ -12,16 +12,6 @@
 {% endblock %}
 
 {% block objSpecific %}
-<h2>Collection and usage information</h2>
-<div>
-    <h3>Statistical Unit</h3>
-    <div>
-          {% include "aristotle_mdr/helpers/itemLink.html" with item=item.statistical_unit showType=False %}
-    </div>
-    <h3>Collection Method</h3>
-    <div>{{ item.collection_method | bleach }}</div>
-    
-</div>
 
 <h2>Metadata items in this Data Set Specification</h2>
     <p> Below is a list of all the components within this Dataset Specification.
@@ -29,7 +19,6 @@
         <br> If the items must occur in a particular order in the dataset, the sequence number is included before the item name.
     </p>
 
-        {% if item.dssclusterinclusion_set.exists %}
         <table class="dssInclusions table table-striped table-condensed">
             <thead>
                 <tr>
@@ -48,10 +37,37 @@
                             title="Maximum Occurances" data-content="The maximum number of times a data element may be repeated in a data set.">
                             #</a>
                     </th>
+                    {% if item|can_edit:request.user %}
+                    <th title="Use the links in this column to edit or remove data elements from this Dataset specification">
+                        <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left"
+                            title="Edit or delete" data-content="Use the links in this column to edit or remove data elements from this Dataset specification.">
+                            Edit</a>
+                    </th>
+                    {% endif %}
                 </tr>
             </thead>
-            {% if item.dssclusterinclusion_set.exists %}
+            {% if item.dssclusterinclusion_set.exists or item|can_edit:request.user %}
             <tbody>
+                <tr>
+                    <th colspan=5>Clusters
+                    {% if item|can_edit:request.user %}
+                        <div class="btn-group pull-right" role="group" aria-label="Cluster actions">
+                        <a href="{% url 'aristotle_dse:addClustersToDSS' dss_id=item.id %}"
+                            data-toggle="modal" data-target="#addClusterstoDSS"
+                            class="btn btn-default btn-sm">
+                            <i class="fa fa-plus"></i>
+                            Add a cluster to this data set specification
+                        </a>
+                        <a href="{% url 'aristotle_dse:editInclusionOrder' dss_id=item.id inc_type='cluster' %}"
+                            data-toggle="modal" data-target="#addDEtoDSS"
+                            class="btn btn-default btn-sm">
+                            <i class="fa fa-refresh fa-rotate-90"></i>
+                            Reorder
+                        </a>
+                        </div>
+                    {% endif %}
+                    </th>
+                </tr>
             {% for deinc in item.dssclusterinclusion_set.all %}
               {% if deinc.child.id in viewable_ids %}
                 <tr>
@@ -78,31 +94,28 @@
                     </td>
                     <td>{{ deinc.cardinality }}</td>
                     <td>{{ deinc.maximum_occurances }}</td>
+                    {% if item|can_edit:request.user %}
+                    <td>
+                        <a href="{% url 'aristotle_dse:editDSSInclusion' item.id deinc.child.id %}"
+                        data-toggle="modal" data-target="#reorderPane"
+                        class="close" title="Edit inclusion in this Dataset specification">
+                            <i class="fa fa-fw fa-pencil"></i>
+                        </a>
+                        <a href="{% url 'aristotle_dse:removeClusterFromDSS' deinc.child.id item.id %}"
+                        data-toggle="modal" data-target="#deleteConfirm"
+                        class="close" title="Remove from Dataset specification">
+                            <i class="fa fa-fw fa-times"></i>
+                        </a>
+                    </td>
+                    {% endif %}
                 </tr>
               {% else %}
-                <tr><td colspan="7">You don't have permission to view this item</td></tr>
+                <tr><td colspan="4">You don't have permission to view this item</td></tr>
               {% endif %}
             {% endfor %}
             </tbody>
             {% endif %}
         </table>
-        {% endif %}
-
-<hr>
-
-    {% for data_element_set in groups_with_data_elements %}
-        <div class="panel panel-default">
-        <div class="panel-heading">
-            {% if data_element_set.ungrouped %}
-                <em>{{data_element_set.name}}</em>
-            {% else %}
-                {{ data_element_set.name }}
-            {% endif %}
-        </div>
-        <div class="panel-body">
-            <p>{{ data_element_set.definition | bleach }}</p>
-        </div>
-        
         <table class="dssInclusions table table-striped table-condensed">
             <thead>
                 <tr>
@@ -117,6 +130,10 @@
                     <th>
                         Format
                     </th>
+                    {% comment %}
+                    <th>Statuses
+                    </th>
+                    {% endcomment %}
                     <th>
                         <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left" data-html="true"
                             title="Data Element Inclusion" data-content="The rules for inclusion for a data element within a data set.<br>May be optional, mandatory or conditional">
@@ -127,10 +144,38 @@
                             title="Maximum Occurances" data-content="The maximum number of times a data element may be repeated in a data set.">
                             #</a>
                     </th>
+                    {% if item|can_edit:request.user %}
+                    <th title="Use the links in this column to edit or remove data elements from this Dataset specification">
+                        <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left"
+                            title="Edit or delete" data-content="Use the links in this column to edit or remove data elements from this Dataset specification.">
+                            Edit</a>
+                    </th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
-            {% for deinc in data_element_set.dssdeinclusion_set.all %}
+            {% if item.dssdeinclusion_set.exists or item|can_edit:request.user %}
+                <tr>
+                    <th colspan=5>Data Elements
+                    {% if item|can_edit:request.user %}
+                        <div class="btn-group pull-right" role="group" aria-label="Data element actions">
+                        <a href="{% url 'aristotle_dse:addDataElementsToDSS' dss_id=item.id %}"
+                            data-toggle="modal" data-target="#addDEtoDSS"
+                            class="btn btn-default btn-sm">
+                            <i class="fa fa-plus"></i>
+                            Add a data element to this data set specification
+                        </a>
+                        <a href="{% url 'aristotle_dse:editInclusionOrder' dss_id=item.id inc_type='data_element' %}"
+                            data-toggle="modal" data-target="#reorderPane"
+                            class="btn btn-default btn-sm">
+                            <i class="fa fa-refresh fa-rotate-90"></i>
+                            Reorder
+                        </a>
+                        </div>
+                    </th>
+                </tr>
+            {% endif %}
+            {% for deinc in item.dssdeinclusion_set.all %}
               {% if deinc.data_element.id in viewable_ids %}
                 <tr>
                     <td>{{ deinc.order|default_if_none:" " }}
@@ -166,33 +211,48 @@
                     {% endcomment %}
                     <td>{{ deinc.cardinality }}</td>
                     <td>{{ deinc.maximum_occurances }}</td>
+                    {% if item|can_edit:request.user %}
+                    <td>
+                        <a href="{% url 'aristotle_dse:editDEInclusion' item.id deinc.data_element.id %}"
+                        data-toggle="modal" data-target="#reorderPane"
+                        class="close" title="Edit inclusion in this Dataset specification">
+                            <i class="fa fa-fw fa-pencil"></i>
+                        </a>
+                        <a href="{% url 'aristotle_dse:removeDataElementFromDSS' deinc.data_element.id item.id %}"
+                        data-toggle="modal" data-target="#deleteConfirm"
+                        class="close" title="Remove from Dataset specification">
+                            <i class="fa fa-fw fa-times"></i>
+                        </a>
+                    </td>
+                    {% endif %}
                 </tr>
               {% else %}
-                <tr><td colspan="7">You don't have permission to view this item</td></tr>
+                <tr><td colspan="4">You don't have permission to view this item</td></tr>
               {% endif %}
-            {% empty %}
-                <tr><td colspan="7">No data elements have been assigned to this grouping</td></tr>
             {% endfor %}
             </tbody>
-            {% comment %}
+            {% endif %}
             <tfoot>
                 <tr>
                     <th></th>
                     <th>Data Element</th>
-                    <th>
-                        Data&nbsp;Type
-                    </th>
-                    <th>
-                        Format
-                    </th>
                     <th>Inclusion</th>
                     <th title="Maximum Occurances">#</th>
+                    {% if item|can_edit:request.user %}
+                    <th>
+                        Edit
+                    </th>
+                    {% endif %}
                 </tr>
             </tfoot>
-            {% endcomment %}
         </table>
-        </div>
-    {% endfor %}
+
+    {% if item|can_edit:request.user %}
+        {% bootstrap_modal 'addDEtoDSS' %}
+        {% bootstrap_modal 'addClusterstoDSS' %}
+        {% bootstrap_modal 'reorderPane' size='lg' %}
+        {% bootstrap_modal 'deleteConfirm' %}
+    {% endif %}
 
 {% endblock %}
 

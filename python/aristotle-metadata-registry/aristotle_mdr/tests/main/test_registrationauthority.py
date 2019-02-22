@@ -13,7 +13,7 @@ setup_aristotle_test_environment()
 
 class RACreationTests(utils.LoggedInViewPages,TestCase):
     def test_anon_cannot_create(self):
-        self.logout() 
+        self.logout()
         response = self.client.get(reverse('aristotle:registrationauthority_create'))
         self.assertRedirects(response,
             reverse("friendly_login",)+"?next="+
@@ -31,8 +31,7 @@ class RACreationTests(utils.LoggedInViewPages,TestCase):
             reverse('aristotle:registrationauthority_create'),
             {
                 'name':"My cool team",
-                'definition':"This team rocks!",
-                "stewardship_organisation": self.steward_org_1.uuid
+                'definition':"This team rocks!"
             }
         )
         self.assertEqual(response.status_code, 403)
@@ -50,8 +49,7 @@ class RACreationTests(utils.LoggedInViewPages,TestCase):
             reverse('aristotle:registrationauthority_create'),
             {
                 'name':"My cool team",
-                'definition':"This team rocks!",
-                "stewardship_organisation": self.steward_org_1.uuid
+                'definition':"This team rocks!"
             }
         )
         self.assertEqual(response.status_code, 403)
@@ -69,12 +67,10 @@ class RACreationTests(utils.LoggedInViewPages,TestCase):
             reverse('aristotle:registrationauthority_create'),
             {
                 'name':"My cool registrar",
-                'definition':"This RA rocks!",
-                "stewardship_organisation": self.steward_org_1.uuid
+                'definition':"This RA rocks!"
             },
             follow=True
         )
-
         self.assertTrue(response.redirect_chain[0][1] == 302)
 
         self.assertEqual(response.status_code, 200)
@@ -100,15 +96,14 @@ class RAUpdateTests(utils.LoggedInViewPages,TestCase):
     def test_viewer_cannot_update(self):
         self.login_viewer()
 
-        my_ra = models.RegistrationAuthority.objects.create(name="My new RA", definition="", stewardship_organisation=self.steward_org_1)
+        my_ra = models.RegistrationAuthority.objects.create(name="My new RA", definition="")
 
         response = self.client.get(reverse('aristotle:registrationauthority_edit', args=[my_ra.pk]))
         self.assertEqual(response.status_code, 403)
 
         data = {
             'name':"My cool registrar",
-            'definition':"This RA rocks!",
-            "stewardship_organisation": self.steward_org_1.uuid
+            'definition':"This RA rocks!"
         }
 
         response = self.client.post(
@@ -124,7 +119,7 @@ class RAUpdateTests(utils.LoggedInViewPages,TestCase):
     def test_registry_owner_can_edit(self):
         self.login_superuser()
 
-        my_ra = models.RegistrationAuthority.objects.create(name="My new RA", definition="", stewardship_organisation=self.steward_org_1)
+        my_ra = models.RegistrationAuthority.objects.create(name="My new RA", definition="")
 
         response = self.client.get(reverse('aristotle:registrationauthority_edit', args=[my_ra.pk]))
         self.assertEqual(response.status_code, 200)
@@ -148,7 +143,7 @@ class RAUpdateTests(utils.LoggedInViewPages,TestCase):
     def test_ramanager_can_edit(self):
         self.login_ramanager()
 
-        my_ra = models.RegistrationAuthority.objects.create(name="My new RA", definition="", stewardship_organisation=self.steward_org_1)
+        my_ra = models.RegistrationAuthority.objects.create(name="My new RA", definition="")
 
         response = self.client.get(reverse('aristotle:registrationauthority_edit', args=[my_ra.pk]))
         self.assertEqual(response.status_code, 403)
@@ -235,8 +230,7 @@ class RAManageTests(utils.LoggedInViewPages,TestCase):
     def setUp(self):
         super().setUp()
         self.empty_ra = models.RegistrationAuthority.objects.create(
-            name="Test RA", definition="No one is a member of this",
-            stewardship_organisation=self.steward_org_1
+            name="Test RA", definition="No one is a member of this"
         )
 
     def test_anon_cannot_edit(self):
@@ -290,7 +284,8 @@ class RAManageTests(utils.LoggedInViewPages,TestCase):
 
         response = self.client.get(reverse('aristotle:registrationauthority_add_user',args=[self.ra.id]))
         self.assertEqual(response.status_code,200)
-
+        import pprint
+        pprint.pprint(response.context.keys())
         self.assertTrue(self.newuser.id in [u[0] for u in response.context['form'].fields['user'].choices])
 
         self.assertListEqual(list(self.newuser.profile.workgroups.all()),[])

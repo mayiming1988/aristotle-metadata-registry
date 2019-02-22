@@ -80,7 +80,7 @@ class ConceptWizardPage(HaystackReindexMixin, utils.AristotleTestUtils):
 
         # Tests against bug #333
         # https://github.com/aristotle-mdr/aristotle-metadata-registry/issues/333
-        self.extra_wg = models.Workgroup.objects.create(name="Extra WG for issue 333", stewardship_organisation=self.steward_org_1)
+        self.extra_wg = models.Workgroup.objects.create(name="Extra WG for issue 333")
         self.extra_wg.stewards.add(self.editor)
         self.extra_wg.submitters.add(self.editor)
         self.extra_wg.viewers.add(self.editor)
@@ -279,7 +279,7 @@ class ConceptWizardPage(HaystackReindexMixin, utils.AristotleTestUtils):
 
         response = self.client.post(self.wizard_url, form_data)
         wizard = response.context['wizard']
-
+        print(wizard['form'].errors)
         self.assertTrue(len(wizard['form'].errors.keys()) == 0)
         self.assertTrue(self.item_existing in response.context['duplicate_items'])
 

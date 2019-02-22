@@ -15,9 +15,8 @@ preamble = "{% load aristotle_tags %}"
 
 class TestTemplateTags_aristotle_tags_py(TestCase):
     def setUp(self):
-        self.steward_org_1 = models.StewardOrganisation.objects.create(name="Test SO")
-        self.ra = models.RegistrationAuthority.objects.create(name="Test RA", stewardship_organisation=self.steward_org_1)
-        self.wg = models.Workgroup.objects.create(name="Test WG 1", stewardship_organisation=self.steward_org_1)
+        self.ra = models.RegistrationAuthority.objects.create(name="Test RA")
+        self.wg = models.Workgroup.objects.create(name="Test WG 1")
         self.wg.registrationAuthorities=[self.ra]
         self.wg.save()
         self.item = models.ObjectClass.objects.create(name="Test OC1", workgroup=self.wg)

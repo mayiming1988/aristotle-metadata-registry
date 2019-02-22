@@ -10,10 +10,7 @@ from aristotle_mdr.required_settings import *
 ALLOWED_HOSTS = ["*"]
 DEBUG = os.environ.get('DJANGO_DEBUG', False) == "True"
 ARISTOTLE_SETTINGS['SITE_NAME'] = 'Aristotle Development Server'
-ARISTOTLE_SETTINGS['DOWNLOADERS'] = [
-    # TODO: Why isn't this working?
-    # 'aristotle_pdf.downloader.PDFDownloader'
-]
+ARISTOTLE_SETTINGS['DOWNLOADERS'] = ['aristotle_mdr.downloader.CSVDownloader', 'aristotle_pdf.downloader.PDFDownloader']
 
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -23,16 +20,16 @@ ROOT_URLCONF = 'urls'
 ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] += [
     'aristotle_mdr_links',
     'aristotle_dse',
-    'aristotle_glossary',
-    'comet',
+    'aristotle_glossary'
 ]
 
 INSTALLED_APPS = list(INSTALLED_APPS) + [
     'aristotle_mdr.contrib.links',
     'aristotle_mdr.contrib.self_publish',
     "aristotle_dse",
+    "aristotle_pdf",
     "aristotle_glossary",
-    "comet",
+    # "comet",
     # "mallard_qr",
     "aristotle_mdr_graphql",
 ]
@@ -96,10 +93,6 @@ LOGGING = {
         },
     }
 }
-
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_HOST = os.environ.get('EMAIL_HOST', 'mailhog')
-EMAIL_PORT = os.environ.get('EMAIL_PORT', '1025')
 
 # Debug toolbar
 DEBUG_TOOLBAR = os.environ.get('DJANGO_DEBUG_TOOLBAR', False) == "True"

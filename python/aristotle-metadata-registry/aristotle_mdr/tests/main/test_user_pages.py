@@ -431,12 +431,12 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
 
         # make some workgroups
         for i in range(1,4):
-            wg1 = models.Workgroup.objects.create(name="Test WG match_this_name %s"%i, stewardship_organisation=self.steward_org_1)
+            wg1 = models.Workgroup.objects.create(name="Test WG match_this_name %s"%i)
             wg1.giveRoleToUser('viewer',self.viewer)
             for j in range(i):
                 models.ObjectClass.objects.create(name="Test item",workgroup=wg1)
         for i in range(4,7):
-            wg1 = models.Workgroup.objects.create(name="Test WG %s"%i,definition="match_this_definition", stewardship_organisation=self.steward_org_1)
+            wg1 = models.Workgroup.objects.create(name="Test WG %s"%i,definition="match_this_definition")
             wg1.giveRoleToUser('viewer',self.viewer)
             for j in range(i):
                 models.ObjectClass.objects.create(name="Test item",workgroup=wg1)
@@ -473,12 +473,12 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
 
         # make some workgroups
         for i in range(1,4):
-            wg1 = models.Workgroup.objects.create(name="Test WG match_this_name %s"%i, stewardship_organisation=self.steward_org_1)
+            wg1 = models.Workgroup.objects.create(name="Test WG match_this_name %s"%i)
             wg1.giveRoleToUser('viewer',self.viewer)
             for j in range(i):
                 models.ObjectClass.objects.create(name="Test item",workgroup=wg1)
         for i in range(4,7):
-            wg1 = models.Workgroup.objects.create(name="Test WG %s"%i,definition="match_this_definition", stewardship_organisation=self.steward_org_1)
+            wg1 = models.Workgroup.objects.create(name="Test WG %s"%i,definition="match_this_definition")
             wg1.giveRoleToUser('viewer',self.viewer)
             for j in range(i):
                 models.ObjectClass.objects.create(name="Test item",workgroup=wg1)
@@ -706,35 +706,23 @@ class UserProfileTests(TestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_default_profile_picture(self):
-        user_a = get_user_model().objects.create_user(
-            email='newuser_a@example.com',
-            password='verysecure',
-            short_name='new',
-            full_name='new user'
-        )
-        user_b = get_user_model().objects.create_user(
-            email='newuser_b@example.com',
-            password='verysecure',
-            short_name='new',
-            full_name='new user'
-        )
 
         # check page load
-        response = self.client.get(reverse('aristotle_mdr:dynamic_profile_picture', args=[user_a.pk]))
+        response = self.client.get(reverse('aristotle_mdr:dynamic_profile_picture', args=[3]))
         self.assertEqual(response.status_code, 200)
 
         three_toga_color = response.context['toga_color']
         three_headshot_color = response.context['headshot_color']
 
         # check diffent args returns new colors
-        response = self.client.get(reverse('aristotle_mdr:dynamic_profile_picture', args=[user_b.pk]))
+        response = self.client.get(reverse('aristotle_mdr:dynamic_profile_picture', args=[4]))
         self.assertEqual(response.status_code, 200)
 
         self.assertNotEqual(three_toga_color, response.context['toga_color'])
         self.assertNotEqual(three_headshot_color, response.context['headshot_color'])
 
         # check second request with same args returns same colors
-        response = self.client.get(reverse('aristotle_mdr:dynamic_profile_picture', args=[user_a.pk]))
+        response = self.client.get(reverse('aristotle_mdr:dynamic_profile_picture', args=[3]))
         self.assertEqual(response.status_code, 200)
 
         self.assertEqual(three_toga_color, response.context['toga_color'])

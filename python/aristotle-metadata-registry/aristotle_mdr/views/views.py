@@ -10,6 +10,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView, RedirectView
 from django.utils.module_loading import import_string
+from django.contrib.contenttypes.models import ContentType
 from django.utils.functional import SimpleLazyObject
 from formtools.wizard.views import SessionWizardView
 
@@ -92,24 +93,13 @@ def concept_by_uuid(request, uuid):
 
 
 def measure(request, iid, model_slug, name_slug):
-    return managed_item(request, "measure", iid)
-
-
-# TODO: Switch to CBV
-def managed_item(request, model_slug, iid):
-    model_class = get_object_or_404(ContentType, model=model_slug).model_class()
-    item = get_object_or_404(model_class, pk=iid).item
-
-    if not user_can_view(request.user, item):
-        raise PermissionDenied
-
+    item = get_object_or_404(MDR.Measure, pk=iid).item
     return render(
         request, [item.template],
         {
             'item': item,
-            'group': item.stewardship_organisation,
-            'model_name': item.meta().model_name,
-            "activetab": "item",
+            # 'view': request.GET.get('view', '').lower(),
+            # 'last_edit': last_edit
         }
     )
 
