@@ -194,7 +194,7 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         post_data = self.get_formset_postdata(data, initialforms=initialforms)
         self.login_editor()
         response = self.reverse_post(
-            'aristotle_mdr_review_requests:request_supersedes',
+            'aristotle_mdr_review_requests:request_supersedes_edit',
             post_data,
             reverse_args=[self.review.pk],
         )
@@ -203,7 +203,7 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
     def test_rr_supersedes(self):
         self.login_editor()
         response = self.reverse_get(
-            'aristotle_mdr_review_requests:request_supersedes',
+            'aristotle_mdr_review_requests:request_supersedes_edit',
             reverse_args=[self.review.pk]
         )
         self.assertEqual(response.status_code, 200)
@@ -219,7 +219,7 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         # Get formset
         self.login_editor()
         response = self.reverse_get(
-            'aristotle_mdr_review_requests:request_supersedes',
+            'aristotle_mdr_review_requests:request_supersedes_edit',
             reverse_args=[self.review.pk],
             status_code=200
         )
@@ -380,7 +380,8 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         ss.refresh_from_db()
         self.assertFalse(ss.proposed)
 
-    def check_proposed_ss_not_shown_item_page(self):
+    @tag('proposed')
+    def test_proposed_ss_not_shown_item_page(self):
         self.item.submitter = self.editor
         self.item.save()
         older = MDR.ObjectClass.objects.create(
@@ -395,9 +396,52 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         response = self.reverse_get(
             'aristotle:item',
             reverse_args=[self.item.id],
+            follow=True,
             status_code=200
         )
         self.assertNotContains(response, 'TheOldestItem')
+
+    def test_supersedes_edit_page_registrar(self):
+        """Make sure a registrar can't edit supersedes (need to be manager)"""
+        self.login_registrar()
+        response = self.reverse_get(
+            'aristotle_mdr_review_requests:request_supersedes_edit',
+            reverse_args=[self.review.id]
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_supersedes_edit_page_manager(self):
+        """Make sure a manager can edit supersedes"""
+        self.login_ramanager()
+        response = self.reverse_get(
+            'aristotle_mdr_review_requests:request_supersedes_edit',
+            reverse_args=[self.review.id]
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_supersedes_view_page_registrar(self):
+        """Make sure a registrar can view supersedes page, but has no edit button"""
+        self.login_registrar()
+        response = self.reverse_get(
+            'aristotle_mdr_review_requests:request_supersedes',
+            reverse_args=[self.review.id]
+        )
+        self.assertEqual(response.status_code, 200)
+        can_edit = response.context['can_edit_review']
+        self.assertEqual(can_edit, False)
+
+    @skip('Currently user needs to be a registrar as well as manager for this')
+    def test_supersedes_view_page_manager(self):
+        """Make sure a manager can view supersedes page and has an edit button"""
+        self.login_ramanager()
+        response = self.reverse_get(
+            'aristotle_mdr_review_requests:request_supersedes',
+            reverse_args=[self.review.id]
+        )
+        self.assertEqual(response.status_code, 200)
+        can_edit = response.context['can_edit_review']
+        self.assertEqual(can_edit, True)
+
 
 
 @skip('Needs to be updated for new reviews system')
