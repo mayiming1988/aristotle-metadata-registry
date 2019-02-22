@@ -1,0 +1,79 @@
+{% extends "aristotle_mdr/stewards/base.html" %}
+{% load i18n aristotle_tags util_tags %}
+
+{% block title %}{{model.get_verbose_name}} | {{ stewardship_organisation }}{% endblock %}
+{% block page_title %}{{ stewardship_organisation }} | Managed Items{% endblock %}
+
+{% block steward_content %}
+
+
+<div class="row"><div class="col-xs-12">
+    
+<span class="h4">
+Showing
+{% if page_obj.has_other_pages %}
+    {{ page_obj.start_index }} - {{ page_obj.end_index }} of
+{% endif %}
+{{ page_obj.paginator.count }} {{model.get_verbose_name_plural}}.
+
+
+</span>
+
+  {% has_group_perm group "manage_managed_items" as can_manage_managed_items %}
+  {% if can_manage_managed_items %}
+  <a class=" btn btn-default pull-right" href="{% url 'aristotle_mdr:stewards:group:create_managed_item' group.slug model.meta.model_name %}">
+      <i class="fa fa-plus-circle fa-user"></i> Create {{model.get_verbose_name}}</a>
+
+  {% endif %}
+
+</div>
+</div>
+
+
+<table class="table">
+<thead>
+    <tr>
+        <th>
+            {% if sort == "name_asc" %}
+            <a href="?{% paginator_get request page_obj.number pop='sort' %}&sort=name_desc"><i class="fa fa-sort-asc"></i></a>
+            {% elif sort == "name_desc" %}
+            <a href="?{% paginator_get request page_obj.number pop='sort' %}&sort=name_asc"><i class="fa fa-sort-desc"></i></a>
+            {% else %}
+            <a href="?{% paginator_get request page_obj.number pop='sort' %}&sort=name_desc"><i class="fa fa-sort"></i></a>
+            {% endif %}
+            {% trans 'Name' %}
+        </th>
+        <th>{% trans 'Details' %}</th>
+        <th>
+        {% if sort == "mod_asc" %}
+        <a href="?{% paginator_get request page_obj.number pop='sort' %}&sort=mod_desc"><i class="fa fa-sort-asc"></i></a>
+        {% elif sort == "mod_desc" %}
+        <a href="?{% paginator_get request page_obj.number pop='sort' %}&sort=mod_asc"><i class="fa fa-sort-desc"></i></a>
+        {% else %}
+        <a href="?{% paginator_get request page_obj.number pop='sort' %}&sort=mod_desc"><i class="fa fa-sort"></i></a>
+        {% endif %}
+        {% trans 'Last modified' %}</th>
+
+    </tr>
+</thead>
+<tbody>
+{% with favourites=request.user.profile.favourite_item_pks %}
+    {% for item in page_obj %}
+    <tr>
+        <td>
+        {% include "aristotle_mdr/helpers/itemLink.html" with item=item shared_items=shared_items %}
+        </td>
+        <td>
+        {% include item.item.list_details_template with item=item %}
+        </td>
+        <td><time datetime="{{ item.modified|isotime }}">{{ item.modified }}</time></td>
+    </tr>
+    {% endfor %}
+{% endwith %}
+</tbody>
+</table>
+
+{% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
+
+
+{% endblock %}

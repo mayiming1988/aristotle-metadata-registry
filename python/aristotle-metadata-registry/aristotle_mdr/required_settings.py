@@ -104,6 +104,8 @@ INSTALLED_APPS = (
     'aristotle_mdr.contrib.aristotle_pdf',
     'aristotle_mdr.contrib.aristotle_backwards',
     'aristotle_mdr.contrib.validators',
+    'aristotle_mdr.contrib.stewards',
+    'aristotle_mdr.contrib.groups',
 
     'dal',
     'dal_select2',

@@ -14,14 +14,14 @@
             request("get", this.url).then((data) => {
 
                 for (let element of data.data.nodes) {
-                    element.title = `<small>Name: ${element.name}</small><br>`
+                    element.title = `<small>Name: ${element.name}</small><br><small>Id: ${element.id}</small><br>`
                     if (element.definition !== "") {
                         element.title = element.title.concat(`<small>Definition: ${element.short_definition}</small><br>`)
                     }
                     if (element.version !== "") {
                         element.title = element.title.concat(`<small>Version: ${element.version}</small>`)
                     }
-                    element.label = element.name
+                    element.label = `${element.name}\n id: ${element.id}`
                     if (element.node_options) {
                         element.shape = element.node_options.shape
                         element.borderWidth = element.node_options.borderWidth

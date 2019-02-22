@@ -1,22 +1,17 @@
+{% with formset.empty_form as form %}
 <table id="{{ formset.prefix }}" class="formstage" style="display:none">
-    {% with formset.empty_form as form %}
-      <tr class="moveablerow">
-          {% if formset.is_ordered %}
-          <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
-          {% else %}
-          <td title=""><i class="fa"></i>
-          {% endif %}
-              {% for hidden in form.hidden_fields %}
-              {{ hidden }}
-              {% endfor %}
-          </td>
-          {% for field in form.visible_fields %}
-            <td>
-            {# Include the hidden fields in the form #}
-              {{ field.errors.as_ul }}
-              {{ field }}
-            </td>
-          {% endfor %}
-      </tr>
-    {% endwith %}
+  <tr class="moveablerow">
+
+{% if form.Meta.model.inline_field_layout == "table" %}
+    {% include 'aristotle_mdr/generic/actions/alter_one_to_many_formstage_table.html' %}
+{% elif form.Meta.model.inline_field_layout == "list" %}
+    {% include 'aristotle_mdr/generic/actions/alter_one_to_many_formstage_list.html' %}
+{% elif form.fields|length > 8 %}
+    {% include 'aristotle_mdr/generic/actions/alter_one_to_many_formstage_list.html' %}
+{% else %}
+    {% include 'aristotle_mdr/generic/actions/alter_one_to_many_formstage_table.html' %}
+{% endif %}
+
+  </tr>
 </table>
+{% endwith %}

@@ -15,6 +15,7 @@ from aristotle_mdr.forms import actions
 from aristotle_mdr.views.utils import (
     generate_visibility_matrix,
     ObjectLevelPermissionRequiredMixin,
+    UserFormViewMixin
 )
 from aristotle_mdr.utils import url_slugify_concept
 
@@ -83,19 +84,13 @@ class CheckCascadedStates(ItemSubpageView, DetailView):
         return kwargs
 
 
-class DeleteSandboxView(FormView):
+class DeleteSandboxView(UserFormViewMixin, FormView):
 
     form_class = actions.DeleteSandboxForm
     template_name = "aristotle_mdr/actions/delete_sandbox.html"
 
     def get_success_url(self):
         return reverse('aristotle:userSandbox')
-
-    def get_form_kwargs(self):
-
-        kwargs = super().get_form_kwargs()
-        kwargs.update({'user': self.request.user})
-        return kwargs
 
     def get_initial(self):
         initial = super().get_initial()

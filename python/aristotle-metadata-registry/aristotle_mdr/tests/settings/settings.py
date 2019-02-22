@@ -121,7 +121,7 @@ LOGGING = {
             'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
         },
         'simple': {
-            'format': '%(levelname)s %(message)s'
+            'format': '%(name)s: %(levelname)s %(message)s'
         }
     },
     'handlers': {
@@ -141,6 +141,10 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['console-simple'],
+            'level': 'CRITICAL'
         },
         'django': {
             'handlers': ['console-simple'],

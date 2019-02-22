@@ -19,7 +19,6 @@ class AristotleBackend(ModelBackend):
         return super().has_module_perms(user_obj, app_label)
 
     def has_perm(self, user_obj, perm, obj=None):
-
         if not user_obj.is_active:
             return False
         if user_obj.is_superuser:
@@ -65,7 +64,7 @@ class AristotleBackend(ModelBackend):
             return perms.user_is_editor(user_obj)
 
         if perm == "aristotle_mdr.view_workgroup":
-            return perms.user_in_workgroup(user_obj, obj)
+            return perms.user_can_view_workgroup(user_obj, obj)
         if perm == "aristotle_mdr.can_leave_workgroup":
             return perms.user_in_workgroup(user_obj, obj)
         if perm == "aristotle_mdr.change_workgroup_memberships":
@@ -91,6 +90,9 @@ class AristotleBackend(ModelBackend):
             return perms.user_is_registation_authority_manager(user_obj, obj)
         if perm == "aristotle_mdr.change_registrationauthority_memberships":
             return perms.user_is_registation_authority_manager(user_obj, obj)
+
+        if perm == "user_can_create_workgroup":
+            return perms.user_can_create_workgroup(user_obj)
 
         from aristotle_mdr.contrib.links import perms as link_perms
         if perm == "aristotle_mdr_links.add_link":

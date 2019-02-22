@@ -7,7 +7,14 @@ class CustomFieldQueryset(SimplePermsQueryset):
     perm_field_name = 'visibility'
 
 
+class CustomValueQueryset(SimplePermsQueryset):
+    perm_field_name = 'field__visibility'
+
+
 class CustomValueManager(Manager):
+
+    def get_queryset(self):
+        return CustomValueQueryset(self.model, using=self._db)
 
     def get_for_item(self, concept):
         qs = self.get_queryset().filter(
@@ -25,6 +32,9 @@ class CustomValueManager(Manager):
             field__in=fields
         ).select_related('field')
         return qs
+
+    def get_item_allowed(self, concept, user):
+        return self.get_queryset().filter(concept=concept).visible(user, concept.workgroup)
 
 
 class CustomFieldManager(Manager):

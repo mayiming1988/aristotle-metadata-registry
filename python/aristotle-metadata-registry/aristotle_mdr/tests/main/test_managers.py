@@ -10,9 +10,16 @@ class ConceptManagerTestCase(TestCase):
 
     def setUp(self):
         self.um = get_user_model()
+        self.steward_org_1 = models.StewardOrganisation.objects.create(name="Test SO")
         self.user = self.um.objects.create_user(email='testuser@example.com', password='1234')
-        self.ra = models.RegistrationAuthority.objects.create(name='MyRA', definition='mine')
-        self.ra2 = models.RegistrationAuthority.objects.create(name='My2ndRA', definition='mine')
+        self.ra = models.RegistrationAuthority.objects.create(
+            name='MyRA', definition='mine',
+            stewardship_organisation=self.steward_org_1
+        )
+        self.ra2 = models.RegistrationAuthority.objects.create(
+            name='My2ndRA', definition='mine',
+            stewardship_organisation=self.steward_org_1
+        )
         # Test item
         self.item = models.ObjectClass.objects.create(
             name='Thingys',
@@ -76,7 +83,10 @@ class ConceptManagerTestCase(TestCase):
         Test an item doesnt appear twice if in users wg and ra
         """
         # Make user wg manager
-        wg = models.Workgroup.objects.create(name='MyWG', definition='mine')
+        wg = models.Workgroup.objects.create(
+            name='MyWG', definition='mine',
+            stewardship_organisation=self.steward_org_1
+        )
         wg.managers.add(self.user)
         # Add test item to wg
         self.item.workgroup = wg
