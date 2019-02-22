@@ -187,7 +187,8 @@ def visible_supersedes_items(item, user):
         'superseded_by_items_relation_set__older_item',
         'superseded_by_items_relation_set__registration_authority',
     ).visible(user).filter(
-        superseded_by_items_relation_set__newer_item_id=item.pk
+        superseded_by_items_relation_set__newer_item_id=item.pk,
+        superseded_by_items_relation_set__proposed=False
     ).distinct()
     sup_rels = [
         {
@@ -219,7 +220,8 @@ def visible_superseded_by_items(item, user):
         'superseded_items_relation_set__newer_item',
         'superseded_items_relation_set__registration_authority',
     ).visible(user).filter(
-        superseded_items_relation_set__older_item_id=item.pk
+        superseded_items_relation_set__older_item_id=item.pk,
+        superseded_items_relation_set__proposed=False,
     ).distinct()
     sup_rels = [
         {
