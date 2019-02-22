@@ -1,0 +1,24 @@
+{% extends "groups/base.html" %}
+{% load group_tags %}
+
+{% block group_content %}
+<h1>
+    Edit roles for <em>{{member.display_name}}</em> in group {{object.name}}
+</h1>
+
+{% if request.user == member %}
+    <strong>Be careful this is <em>you</em>!</strong>
+    If you change your role, you may not be able to change it back.
+{% endif %}
+
+<form action="{%url view.manager.namespace|add:":membership_update" object.slug member.pk %}" method="POST">
+    {% csrf_token %}
+    <table>
+    {{form.as_table}}
+    </table>
+
+    <a href="{%url view.manager.namespace|add:":member_list" object.slug %}">Cancel</a>
+    <button type="submit">Submit</button>
+</form>
+
+{% endblock %}

@@ -1,29 +1,35 @@
 {% load aristotle_tags %}
 
 <h3>Use in indicators</h3>
-{% if item.as_numerator.exists  or item.denominators.exists or item.disaggregators.exists %}
+{% if item.indicatornumeratordefinition_set.exists or item.indicatordenominatordefinition_set.exists or item.indicatordisaggregationdefinition_set.exists %}
     This data element is included in the following Indicators, some indicators may be hidden based on your current permissions.
-    {% if item.as_numerator.exists %}
+    {% if item.indicatornumeratordefinition_set.exists %}
         <h4>As a numerator</h4>
         <ul>
-            {% for num in item.as_numerator.all|can_view_iter:user %}
-                <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=num skip_can_view=True %}</li>
+            {% for num in item.indicatornumeratordefinition_set.all %}
+                {% if num.indicator_id in viewable_ids %}
+                    <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=num.indicator skip_can_view=True %}</li>
+                {% endif %}
             {% endfor %}
         </ul>
     {% endif %}
-    {% if item.as_denominator.exists %}
+    {% if item.indicatordenominatordefinition_set.exists %}
         <h4>As a denominator</h4>
         <ul>
-            {% for denom in item.as_denominator.all|can_view_iter:user %}
-                <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=denom skip_can_view=True %}</li>
+            {% for denom in item.indicatordenominatordefinition_set.all %}
+                {% if denom.indicator_id in viewable_ids %}
+                    <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=denom skip_can_view=True %}</li>
+                {% endif %}
             {% endfor %}
         </ul>
     {% endif %}
-    {% if item.as_disaggregator.exists %}
+    {% if item.indicatordisaggregationdefinition_set.exists %}
         <h4>As a disaggregation</h4>
         <ul>
-            {% for dis in item.as_disaggregator.all|can_view_iter:user %}
-                <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=dis skip_can_view=True %}</li>
+            {% for dis in item.indicatordisaggregationdefinition_set.all %}
+                {% if dis.indicator_id in viewable_ids %}
+                    <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=dis skip_can_view=True %}</li>
+                {% endif %}
             {% endfor %}
         </ul>
     {% endif %}

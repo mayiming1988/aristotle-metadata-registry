@@ -228,7 +228,7 @@ class ConceptVersionView(ConceptRenderView):
                 headers = []
             template_weak_models.append({
                 'model': pretify_camel_case(model.__name__),
-                'headers': item_dict['headers'],
+                'headers': item_dict.get('headers', []),
                 'items': item_dict['items']
             })
 
@@ -491,7 +491,7 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         in_workgroup = (metadata_item.workgroup and self.request.user in metadata_item.workgroup.members)
         if not (self.request.user.is_superuser or in_workgroup):
             try:
-                version_publishing = metadata_item.versionpublicationrecord
+                version_publishing = metadata_item.version_publication_details.first()
             except:
                 version_publishing = None
             if version_publishing is None:
@@ -542,7 +542,7 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         context['failed'] = False
         context['item'] = context['object'].item
         try:
-            version_publishing = self.get_object().versionpublicationrecord
+            version_publishing = self.get_object().version_publication_details.first()
         except:
             return context
         if version_publishing is None:

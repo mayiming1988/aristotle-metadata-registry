@@ -1,0 +1,19 @@
+{% extends "groups/base.html" %}
+{% load group_tags %}
+
+{% block group_content %}
+<h1>
+    Create {{view.manager.group_meta.verbose_name.title}}
+</h1>
+
+<form action="{%url view.manager.namespace|add:":member_add" group.slug %}" method="POST">
+    {% csrf_token %}
+    <table>
+    {{form.as_table}}
+    </table>
+
+    <a href="{%url view.manager.namespace|add:":detail" group.slug %}">Cancel</a>
+    <button type="submit">Submit</button>
+</form>
+
+{% endblock %}

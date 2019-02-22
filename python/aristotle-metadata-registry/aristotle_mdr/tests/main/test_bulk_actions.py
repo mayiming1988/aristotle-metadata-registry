@@ -133,7 +133,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         self.assertEqual(response.redirect_chain[0][1], 302)
 
     def test_bulk_change_workgroup_for_superuser(self):
-        self.new_workgroup = models.Workgroup.objects.create(name="new workgroup")
+        self.new_workgroup = models.Workgroup.objects.create(name="new workgroup", stewardship_organisation=self.steward_org_1)
         self.new_workgroup.submitters.add(self.editor)
         self.login_superuser()
 
@@ -171,7 +171,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
 
     @override_settings(ARISTOTLE_SETTINGS=dict(settings.ARISTOTLE_SETTINGS, WORKGROUP_CHANGES=['submitter']))
     def test_bulk_change_workgroup_for_editor__for_some_items(self):
-        self.new_workgroup = models.Workgroup.objects.create(name="new workgroup")
+        self.new_workgroup = models.Workgroup.objects.create(name="new workgroup", stewardship_organisation=self.steward_org_1)
         self.new_workgroup.submitters.add(self.editor)
         self.login_editor()
 
@@ -223,7 +223,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
 
     @override_settings(ARISTOTLE_SETTINGS=dict(settings.ARISTOTLE_SETTINGS, WORKGROUP_CHANGES=['submitter']))
     def test_bulk_change_workgroup_for_editor__where_no_workgroup(self):
-        self.new_workgroup = models.Workgroup.objects.create(name="new workgroup")
+        self.new_workgroup = models.Workgroup.objects.create(name="new workgroup", stewardship_organisation=self.steward_org_1)
         self.new_workgroup.submitters.add(self.editor)
         self.login_editor()
 
@@ -556,7 +556,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         #phew thats one hell of a test name
         from aristotle_mdr.utils.cached_querysets import register_queryset
 
-        self.new_workgroup = models.Workgroup.objects.create(name="new workgroup")
+        self.new_workgroup = models.Workgroup.objects.create(name="new workgroup", stewardship_organisation=self.steward_org_1)
         self.new_workgroup.submitters.add(self.editor)
         self.login_editor()
 

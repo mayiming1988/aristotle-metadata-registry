@@ -35,6 +35,24 @@ def can_delete_discussion_post(user, post):
     return user_can_alter_post(user, post)
 
 
+def user_can_publish_object(user, obj):
+    if user.is_superuser:
+        return True
+
+    if user.is_anonymous:
+        return False
+
+    stewardship_organisation = obj.stewardship_organisation
+    if not stewardship_organisation:
+        # Can't publish "un-owned" objects
+        return False
+    if not getattr(obj, 'publication_details', None):
+        # There is no reverse relation, don't allow publication
+        return False
+
+    return stewardship_organisation.user_has_permission(user, "publish_objects")
+
+
 def can_delete_metadata(user, item):
     if item.submitter == user and item.workgroup is None:
         if not item.statuses.exists():
@@ -155,15 +173,6 @@ def user_is_registation_authority_manager(user, ra=None):
         return user.organization_manager_in.count() > 0
     else:
         return user in ra.managers.all()
-
-
-def user_is_workgroup_manager(user, workgroup=None):
-    if user.is_superuser:
-        return True
-    elif workgroup is None:
-        return user.workgroup_manager_in.count() > 0
-    else:
-        return user in workgroup.managers.all()
 
 
 def user_can_change_status(user, item):
@@ -287,6 +296,28 @@ def user_can_approve_review(user, review):
     return user.registrar_in.filter(pk=review.registration_authority.pk).exists()
 
 
+def user_can_view_workgroup(user, wg):
+    return wg.can_view(user)
+
+
+def user_can_manage_workgroup(user, workgroup):
+    if user.is_superuser:
+        return True
+    elif workgroup is None:
+        return user.workgroup_manager_in.count() > 0
+
+    if not workgroup.stewardship_organisation.is_active():
+        return False
+    if workgroup.stewardship_organisation.user_has_permission(user, "manage_workgroups"):
+        return True
+    else:
+        return user in workgroup.managers.all()
+
+
+def user_is_workgroup_manager(user, workgroup):
+    return user_can_manage_workgroup(user, workgroup)
+
+
 def user_in_workgroup(user, wg):
     if user.is_anonymous:
         return False
@@ -351,6 +382,60 @@ def user_can_query_user_list(user):
     user_visbility = fetch_aristotle_settings().get('USER_VISIBILITY', 'owner')
     return (
         user.has_perm("aristotle_mdr.is_registry_administrator") or
+        user.profile.is_stewardship_organisation_admin() or
         ('workgroup_manager' in user_visbility and user.profile.is_workgroup_manager()) or
         ('registation_authority_manager' in user_visbility and user.profile.is_registrar)
     )
+
+
+def edit_other_users_account(viewing_user, viewed_user):
+    return view_other_users_account(viewing_user, viewed_user)
+
+
+def view_other_users_account(viewing_user, viewed_user):
+    from aristotle_mdr.models import StewardOrganisation, StewardOrganisationMembership
+    user = viewing_user
+    if user.is_anonymous:
+        return False
+
+    if user.is_superuser:
+        return True
+
+    allowed_roles = [
+        StewardOrganisation.roles.admin,
+    ]
+    kwargs = {"members__user": user, "members__role__in": allowed_roles}
+
+    return StewardOrganisation.objects.filter(
+        members__user=viewed_user
+    ).filter(
+        members__user=viewing_user, members__role__in=allowed_roles
+    ).active().exists()
+
+    return False
+
+
+def user_can_create_workgroup(user, steward_org=None):
+    from aristotle_mdr.models import StewardOrganisation, StewardOrganisationMembership
+    if user.is_superuser:
+        return True
+    allowed_roles = [
+        StewardOrganisation.roles.admin,
+    ]
+    kwargs = {"members__user": user, "members__role__in": allowed_roles}
+    if steward_org:
+        kwargs["pk"] = steward_org.pk
+    return StewardOrganisation.objects.filter(**kwargs).active().exists()
+
+
+def user_can_create_registration_authority(user, steward_org=None):
+    from aristotle_mdr.models import StewardOrganisation, StewardOrganisationMembership
+    if user.is_superuser:
+        return True
+    allowed_roles = [
+        StewardOrganisation.roles.admin,
+    ]
+    kwargs = {"members__user": user, "members__role__in": allowed_roles}
+    if steward_org:
+        kwargs["pk"] = steward_org.pk
+    return StewardOrganisation.objects.filter(**kwargs).active().exists()

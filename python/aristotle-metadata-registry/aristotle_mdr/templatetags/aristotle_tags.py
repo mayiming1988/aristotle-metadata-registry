@@ -426,15 +426,15 @@ def downloadMenu(item):
     )
 
 
-@register.simple_tag
-def extra_content(extension, item, user):
+@register.simple_tag(takes_context=True)
+def extra_content(context, extension, item):
     try:
         from django.template.loader import get_template
         s = item._meta.object_name
         s = s[0].lower() + s[1:]
 
         return get_template(extension + "/extra_content/" + s + ".html").render(
-            {'item': item, 'user': user}
+            {'item': item, 'user': context['request'].user, 'viewable_ids': context.get('viewable_ids', [])}
         )
     except template.TemplateDoesNotExist:
         # there is no extra content for this item, and thats ok.
@@ -562,3 +562,11 @@ def distinct_members_count(workgroup):
 @register.filter
 def get_item(dictionary, key):
     return dictionary.get(key)
+
+
+@register.simple_tag(takes_context=True)
+def has_group_perm(context, group, permission):
+    request = context['request']
+    if not request.user.is_authenticated:
+        return False
+    return group.user_has_permission(request.user, permission)
