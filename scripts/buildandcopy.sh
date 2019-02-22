@@ -37,9 +37,9 @@ pip install awscli
 echo "Collecting bundle static..."
 
 if [[ "$1" == "--dry" ]]; then
-    aws s3 cp ./assets/dist s3://$STORAGE_BUCKET_NAME/bundles --recursive --dryrun
+    aws s3 cp ./assets/dist/bundles s3://$STORAGE_BUCKET_NAME/bundles --recursive --dryrun
 else
-    aws s3 cp ./assets/dist s3://$STORAGE_BUCKET_NAME/bundles --recursive
+    aws s3 cp ./assets/dist/bundles s3://$STORAGE_BUCKET_NAME/bundles --recursive
 fi
 
 cp ./assets/dist/webpack-stats.json ./python/aristotle-metadata-registry/aristotle_mdr/manifests
