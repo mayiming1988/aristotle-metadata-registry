@@ -3,7 +3,7 @@ Concept model relations
 -----------------------
 
 These are direct reimplementations of Django model relations,
-at the moment they onyl exist to make permissions-based filtering easier for
+at the moment they only exist to make permissions-based filtering easier for
 the GraphQL codebase. However, in future these may add additional functionality
 such as automatically applying certain permissions to ensure users only
 retrieve the right objects.

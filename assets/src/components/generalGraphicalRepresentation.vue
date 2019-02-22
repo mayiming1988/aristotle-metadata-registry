@@ -20,7 +20,7 @@
                     if (element.version !== "") {
                         element.title = element.title.concat(`<small>Version: ${element.version}</small>`)
                     }
-                    element.label = element.name
+                    element.label = element.name + " \n(" + element.type + ")"
                     if (element.node_options) {
                         element.shape = element.node_options.shape
                         element.borderWidth = element.node_options.borderWidth
@@ -35,13 +35,8 @@
                 let edges = []
 
                 for (let element of data.data.edges) {
-                    element.label = element.registration_authority
-                    element.from = element.older_item
-                    element.to = element.newer_item
-                    delete element.older_item
-                    delete element.newer_item
-                    delete element.registration_authority
-                    element.font = {align: "top", face: "Helvetica", color: "black"}
+                    element.from = element.from
+                    element.to = element.to
                     element.arrows = "to"
 
                     element.smooth = {"enabled": true, "type": "curvedCCW", "roundness": 0.2}
@@ -95,7 +90,7 @@
                         'layout': {
                             'hierarchical': {
                                 'enabled': true,
-                                'direction': 'LR',
+                                'direction': 'UD',
                                 'sortMethod': 'directed',
                                 // 'sortMethod': 'hubsize',
                                 'levelSeparation': 300
@@ -104,24 +99,24 @@
                     };
                     let network = new vis.Network(container, final_data, options);
 
-                    // Make the vis.js canvas "active" as soon as the page is loaded:
-                    let canvas = document.getElementsByClassName('vis-network')[0]
-                    let overlay = document.getElementsByClassName('vis-overlay')[0]
+                    // // Make the vis.js canvas "active" as soon as the page is loaded:
+                    // let canvas = document.getElementsByClassName('vis-network')[0]
+                    // let overlay = document.getElementsByClassName('vis-overlay')[0]
+                    //
+                    // canvas.onmouseenter = function() {
+                    //     canvas.classList.add("vis-active")
+                    //     overlay.style.display = "none"
+                    // }
+                    //
+                    // canvas.onmouseleave = function() {
+                    //     canvas.classList.remove("vis-active")
+                    //     overlay.style.display = "block"
+                    // }
 
                     // Disable the physics as soon as the vis.js is loaded:
                     network.on("stabilizationIterationsDone", function () {
                         network.setOptions({physics: false})
                     })
-
-                    canvas.onmouseenter = function() {
-                        canvas.classList.add("vis-active")
-                        overlay.style.display = "none"
-                    }
-
-                    canvas.onmouseleave = function() {
-                        canvas.classList.remove("vis-active")
-                        overlay.style.display = "block"
-                    }
 
                     network.on('hoverNode', function() {
                         document.body.style.cursor = 'pointer'

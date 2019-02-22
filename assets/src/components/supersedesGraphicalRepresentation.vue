@@ -105,24 +105,24 @@
                     };
                     let network = new vis.Network(container, final_data, options);
 
-                    // Make the vis.js canvas "active" as soon as the page is loaded:
-                    let canvas = document.getElementsByClassName('vis-network')[0]
-                    let overlay = document.getElementsByClassName('vis-overlay')[0]
+                    // // Make the vis.js canvas "active" as soon as the page is loaded:
+                    // let canvas = document.getElementsByClassName('vis-network')[0]
+                    // let overlay = document.getElementsByClassName('vis-overlay')[0]
+                    //
+                    // canvas.onmouseenter = function() {
+                    //     canvas.classList.add("vis-active")
+                    //     overlay.style.display = "none"
+                    // }
+                    //
+                    // canvas.onmouseleave = function() {
+                    //     canvas.classList.remove("vis-active")
+                    //     overlay.style.display = "block"
+                    // }
 
                     // Disable the physics as soon as the vis.js is loaded:
                     network.on("stabilizationIterationsDone", function () {
                         network.setOptions({physics: false})
                     })
-
-                    canvas.onmouseenter = function() {
-                        canvas.classList.add("vis-active")
-                        overlay.style.display = "none"
-                    }
-
-                    canvas.onmouseleave = function() {
-                        canvas.classList.remove("vis-active")
-                        overlay.style.display = "block"
-                    }
 
                     network.on('hoverNode', function() {
                         document.body.style.cursor = 'pointer'
