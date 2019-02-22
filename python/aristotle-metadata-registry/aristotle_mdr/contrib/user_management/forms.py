@@ -73,7 +73,7 @@ class UserRegistrationForm(forms.ModelForm):
 
     class Meta:
         model = get_user_model()
-        fields = ['short_name', 'full_name']
+        fields = ['short_name', 'full_name', 'email']
 
 
 class UpdateAnotherUserSiteWidePermsForm(forms.Form):

@@ -20,8 +20,10 @@ class MigrationsTestCase(object):
     def setUp(self):
         assert self.migrate_from and self.migrate_to, \
             "TestCase '{}' must define migrate_from and migrate_to properties".format(type(self).__name__)
-        self.migrate_from = [(self.app, self.migrate_from)]
-        self.migrate_to = [(self.app, self.migrate_to)]
+        if type(self.migrate_from) is not list:
+            self.migrate_from = [(self.app, self.migrate_from)]
+        if type(self.migrate_to) is not list:
+            self.migrate_to = [(self.app, self.migrate_to)]
         executor = MigrationExecutor(connection)
         #print('unmigrated: %s'%executor.loader.unmigrated_apps)
         #print('migrated: %s'%executor.loader.migrated_apps)

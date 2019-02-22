@@ -1,0 +1,59 @@
+{% extends "aristotle_mdr/user/userHome.html" %}
+{% load i18n %}
+
+{% block sidebar %}
+    {% include "aristotle_mdr/user/userSideBar.html" with activeTab='adminTools' %}
+{% endblock %}
+
+{% block page %}
+<h1>{% block title %}New {{model_name}}{% endblock %}</h1>
+    <form action="" method="POST">
+        {% csrf_token %}
+
+        <div class="row">
+            <div class="col-sm-5">
+                <div class="form-group {% if form.stewardship_organisation.errors %}has-error{% endif %}">
+                    {{ form.stewardship_organisation.label_tag }}<br>
+                    {{ form.stewardship_organisation }}
+                    {% if form.stewardship_organisation.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.stewardship_organisation.errors }}
+                    </div>
+                    {% endif %}
+                    <p class="help-block">
+                         The organisation will this item belong to
+                    </p>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group {% if form.name.errors %}has-error{% endif %}">
+                    {{ form.name.label_tag }}<br>
+                    <input class="form-control" id="{{form.name.id_for_label}}" value="{{ form.name.value|default:"" }}" name="name">
+                    {% if form.name.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.name.errors }}
+                        </div>
+                    {% endif %}
+                    <p class="help-block">
+                         {{ form.name.help_text }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group {% if form.definition.errors %}has-error{% endif %}">
+            {{ form.definition.label_tag }}
+            {% if form.definition.errors %}
+                <div class="alert alert-danger">
+                {{ form.definition.errors }}
+                </div>
+            {% endif %}
+                <p class="help-block">
+                 {{ form.definition.help_text }}
+                </p>
+                {{ form.definition }}
+        </div>
+
+        <button type="Submit" class="btn btn-primary">Create new  {{model_name}}</button>
+    </form>
+{% endblock %}

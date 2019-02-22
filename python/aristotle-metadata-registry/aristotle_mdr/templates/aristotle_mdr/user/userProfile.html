@@ -64,6 +64,20 @@
                     </tbody>
                 </table>
             </div>
+        
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                Organisations <small>- You belong to the following Stewardship Organisations</small>
+              </div>
+              <div class="list-group">
+                <span class="list-group-item clearfix" >
+                  {% for membership in user.stewardorganisationmembership_set.all %}
+                    <a href="{{membership.group.get_absolute_url}}">{{membership.group}}</a>
+                    <!--<a href="" class="btn btn-xs pull-right btn-default" >Leave</a>-->
+                  {% endfor %}
+                </span>
+                </div>
+            </div>
 
             <div class="panel panel-default">
                 <div class="panel-heading">
@@ -73,4 +87,5 @@
             </div>
         </div>
     </div>
+
 {% endblock %}

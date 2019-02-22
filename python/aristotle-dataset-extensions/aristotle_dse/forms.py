@@ -30,7 +30,7 @@ class AddDataElementsToDSSForm(forms.Form):
 class EditDataElementInclusionForm(forms.ModelForm):
     class Meta:
         model = models.DSSDEInclusion
-        fields = ['maximum_occurances', 'cardinality', 'specific_information', 'conditional_obligation']
+        fields = ['maximum_occurances', 'group', 'cardinality', 'specific_information', 'conditional_obligation']
 
 
 class EditClusterInclusionForm(forms.ModelForm):

@@ -1,4 +1,5 @@
 from django.test import TestCase, tag
+from unittest import skip
 
 from aristotle_mdr.tests.utils import ManagedObjectVisibility
 from aristotle_mdr.tests.main.test_html_pages import LoggedInViewConceptPages
@@ -39,8 +40,9 @@ class IndicatorViewPage(LoggedInViewConceptPages, TestCase):
         invis = MDR.DataElement.objects.create(
             name='invisible data element', definition='Invisible'
         )
-        self.item1.numerators.add(viewable)
-        self.item1.denominators.add(invis)
+        self.item1.add_numerator(data_element=viewable)
+        self.item1.add_numerator(data_element=viewable)
+        self.item1.add_denominator(data_element=invis)
 
         self.login_editor()
         response = self.client.get(
@@ -53,3 +55,26 @@ class IndicatorViewPage(LoggedInViewConceptPages, TestCase):
         self.assertContains(response, viewable.name)
         self.assertNotContains(response, invis.name)
         self.assertContains(response, 'You don\'t have permission', count=1)
+
+
+    def test_weak_editing_in_advanced_editor_dynamic(self):
+        de = MDR.DataElement.objects.create(
+            name="test name",
+            definition="test definition",
+        )
+        de.save()
+
+        for i in range(4):
+            self.item1.add_numerator(data_element=de)
+
+        for i in range(3):
+            self.item1.add_denominator(data_element=de)
+
+        for i in range(2):
+            self.item1.add_disaggregator(data_element=de)
+
+        default_fields = {
+            'data_element': de.id,
+        }
+
+        super().test_weak_editing_in_advanced_editor_dynamic(updating_field='description', default_fields=default_fields)

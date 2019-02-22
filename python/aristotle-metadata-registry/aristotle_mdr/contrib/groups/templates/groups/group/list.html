@@ -1,0 +1,23 @@
+{% extends "groups/base.html" %}
+{% load group_tags %}
+
+{% block group_content %}
+<h1>
+    {{view.manager.group_meta.verbose_name.title}}
+</h1>
+
+<ul>
+    {% for group in object_list %}
+    <li>
+        <a href="{%url view.manager.namespace|add:":detail" group.slug %}">{{ group }}</a>
+
+        {% user_has_role group=group user=user role="owner" as is_owner %}
+        
+        {% if is_owner %}
+        <small>Owner</small>
+        {% endif %}
+        
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}
