@@ -18,9 +18,8 @@ class ComparatorTester(utils.LoggedInViewPages):
 
     def setUp(self):
         super().setUp()
-        self.steward_org_1 = models.StewardOrganisation.objects.create(name="Test SO")
-        self.ra = models.RegistrationAuthority.objects.create(name="Test RA", stewardship_organisation=self.steward_org_1)
-        self.wg = models.Workgroup.objects.create(name="Setup WG", stewardship_organisation=self.steward_org_1)
+        self.ra = models.RegistrationAuthority.objects.create(name="Test RA")
+        self.wg = models.Workgroup.objects.create(name="Setup WG")
         self.item1 = self.itemType.objects.create(name="Item with a name", workgroup=self.wg)
         self.item2 = self.itemType.objects.create(name="Item wit a different name", workgroup=self.wg)
 

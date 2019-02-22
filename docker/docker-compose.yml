@@ -7,15 +7,9 @@ services:
       - "6379"
 
   db:
-    image: postgres:10.6
+    image: postgres
     volumes:
       - ../../data/db/:/var/lib/postgresql/data
-
-  mailhog:
-    image: mailhog/mailhog:v1.0.0
-    ports:
-      - "8082:8025"
-      - "1025:1025"
 
   elasticsearch:
     # If elasticsearch won't boot, you need to run `sudo sysctl -w vm.max_map_count=262144`

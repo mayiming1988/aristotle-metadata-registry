@@ -31,9 +31,8 @@ class TestWebPageAccessibilityBase(utils.LoggedInViewPages):
     @classmethod
     def setUpClass(self):
         super().setUpClass()
-        self.so = models.StewardOrganisation.objects.create(name="Test SO")
-        self.ra = models.RegistrationAuthority.objects.create(name="Test RA", stewardship_organisation=self.so)
-        self.wg = models.Workgroup.objects.create(name="Test WG 1", stewardship_organisation=self.so)
+        self.ra = models.RegistrationAuthority.objects.create(name="Test RA")
+        self.wg = models.Workgroup.objects.create(name="Test WG 1")
         self.oc = models.ObjectClass.objects.create(name="Test OC 1")
         self.pr = models.Property.objects.create(name="Test Property 1")
         self.dec = models.DataElementConcept.objects.create(name="Test DEC 1", objectClass=self.oc, property=self.pr)

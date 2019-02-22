@@ -6,12 +6,12 @@ from .models import VersionPublicationRecord
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 
 
-class VersionPublicationForm(ModelForm):
+class MetadataPublishForm(ModelForm):
     notes = forms.TextInput()
 
     class Meta:
         model = VersionPublicationRecord
-        exclude = ['content_type', 'object_id']
+        exclude = ['concept']
         widgets = {
             'public_user_publication_date': BootstrapDateTimePicker(
                 options={"format": "YYYY-MM-DD HH:MM"}

@@ -8,18 +8,10 @@ register_concept(comet.models.OutcomeArea)
 
 register_concept(comet.models.Indicator,
     extra_fieldsets = [
-        ('Metadata', {'fields': ['outcome_areas','indicator_type']}),
-        # ('Components', {'fields': ['dataElementConcept','valueDomain']}),
-        # ('Computation', {'fields': ['numerators','denominators','disaggregators']}),
-    ],
-    reversion={
-        'follow': ['indicatornumeratordefinition_set', 'indicatordenominatordefinition_set', 'indicatordisaggregationdefinition_set'],
-        'follow_classes': [
-            comet.models.IndicatorNumeratorDefinition,
-            comet.models.IndicatorDenominatorDefinition,
-            comet.models.IndicatorDisaggregationDefinition,
-        ]
-    },
+        ('Metadata', {'fields': ['outcome_areas','indicatorType']}),
+        ('Components', {'fields': ['dataElementConcept','valueDomain']}),
+        ('Computation', {'fields': ['numerators','denominators','disaggregators']}),
+    ]
 )
 
 
@@ -41,8 +33,8 @@ register_concept(comet.models.Framework,
     ]
 )
 
-# admin.site.register(comet.models.IndicatorSetType)
-# admin.site.register(comet.models.IndicatorType)
+admin.site.register(comet.models.IndicatorSetType)
+admin.site.register(comet.models.IndicatorType)
 
-# reversion.revisions.register(comet.models.IndicatorSetType)
-# reversion.revisions.register(comet.models.IndicatorType)
+reversion.revisions.register(comet.models.IndicatorSetType)
+reversion.revisions.register(comet.models.IndicatorType)

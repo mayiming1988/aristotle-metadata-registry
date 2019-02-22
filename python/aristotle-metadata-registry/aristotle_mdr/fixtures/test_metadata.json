@@ -1,16 +1,6 @@
 [
   {
     "fields": {
-      "description": "Demo Steward Organisation",
-      "name": "Demo",
-      "uuid": "679478a6-221e-11e9-bc03-0242ac130007",
-      "slug": "demo"
-    },
-    "model": "aristotle_mdr.stewardorganisation",
-    "pk": 2
-  },
-  {
-    "fields": {
       "email": "possum@example.com",
       "short_name": "",
       "full_name": "",
@@ -171,7 +161,6 @@
       "preferred": "",
       "standard": "",
       "qualified": "",
-      "stewardship_organisation": "e809bf1a-221d-11e9-a30f-0242ac130007",
       "registrars": [
 
       ],
@@ -193,7 +182,6 @@
       "preferred": "",
       "standard": "",
       "qualified": "",
-      "stewardship_organisation": "e809bf1a-221d-11e9-a30f-0242ac130007",
       "registrars": [
 
       ],
@@ -207,7 +195,6 @@
     "fields": {
       "definition": "",
       "archived": false,
-      "stewardship_organisation": "e809bf1a-221d-11e9-a30f-0242ac130007",
       "stewards": [
         4
       ],

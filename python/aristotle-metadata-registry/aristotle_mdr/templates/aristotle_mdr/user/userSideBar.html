@@ -8,7 +8,7 @@
     </li>
     <li class="dashboard_link {% ifequal activeTab "profile" %}active{% endifequal %}">
         <a href="{% url 'aristotle:userProfile' %}">
-        <img class="small-profile-picture" style="margin-left:-25px; margin-right:3px" src="{{ request.user.profile.profile_picture_url }}" width="20px" alt="">
+        <img class="small-profile-picture" style="margin-left:-25px; margin-right:3px" src="{{ request.user.profile.profile_picture_url }}" width="20px" alt="Profile Picture">
         {% trans "My Profile" %}
         </a>
     </li>
@@ -39,10 +39,6 @@
         </ul>
         {% endif %}
     </li>
-    <li class="{% ifequal activeTab "steward_orgs" %}active{% endifequal %}">
-        <a href="{% url 'aristotle_mdr:stewards:group:list' %}">
-        <i class="fa fa-sitemap fa-fw"></i> {% trans 'Organisations'%}
-    </a></li>
     <li {% ifequal activeTab "workgroups" %}class="active"{% endifequal %}>
         <a href="{% url 'aristotle:userWorkgroups' %}">
         <i class="fa fa-users fa-fw"></i> {% trans "Workgroups" %}

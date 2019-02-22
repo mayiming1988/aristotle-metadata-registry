@@ -1,3 +1,0 @@
-drop table aristotle_mdr_publishing_publicationrecord;
-drop table aristotle_mdr_publishing_versionpublicationrecord;
-delete from django_migrations where app='aristotle_mdr_publishing';

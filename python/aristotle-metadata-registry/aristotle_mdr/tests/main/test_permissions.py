@@ -16,9 +16,7 @@ setup_aristotle_test_environment()
 class SuperuserPermissions(TestCase):
     # All of the below are called with None as a Superuser, by definition *must* be able to edit, view and managed everything. Since a is_superuser chcek is cheap is should be called first, so calling with None checks that there is no other database calls going on.
     def setUp(self):
-        super().setUp()
         self.su=get_user_model().objects.create_superuser('super@example.com','user')
-        self.steward_org_1 = models.StewardOrganisation.objects.create(name="Test SO")
 
     def test_user_can_alter_comment(self):
         self.assertTrue(perms.user_can_alter_comment(self.su,None))
@@ -30,10 +28,11 @@ class SuperuserPermissions(TestCase):
         self.assertTrue(perms.user_is_editor(self.su))
     def test_is_registrar(self):
         self.assertTrue(perms.user_is_registrar(self.su))
-        ra = models.RegistrationAuthority.objects.create(name="Test RA", stewardship_organisation=self.steward_org_1)
+        ra = models.RegistrationAuthority.objects.create(name="Test RA")
         self.assertTrue(perms.user_is_registrar(self.su,ra))
     def test_is_workgroup_manager(self):
-        wg = models.Workgroup.objects.create(name="Test WG", stewardship_organisation=self.steward_org_1)
+        self.assertTrue(perms.user_is_workgroup_manager(self.su,None))
+        wg = models.Workgroup.objects.create(name="Test WG")
         self.assertTrue(perms.user_is_workgroup_manager(self.su,wg))
     def test_can_change_status(self):
         self.assertTrue(perms.user_can_change_status(self.su,None))
@@ -42,7 +41,7 @@ class SuperuserPermissions(TestCase):
     def test_in_workgroup(self):
         self.assertTrue(perms.user_in_workgroup(self.su,None))
     def test_can_edit_registration_authority(self):
-        ra = models.RegistrationAuthority.objects.create(name="Test RA", stewardship_organisation=self.steward_org_1)
+        ra = models.RegistrationAuthority.objects.create(name="Test RA")
         self.assertTrue(ra.can_edit(self.su))
 
 class UnitOfMeasureVisibility(utils.ManagedObjectVisibility,TestCase):
@@ -91,12 +90,8 @@ class DataTypeVisibility(utils.ManagedObjectVisibility,TestCase):
         )
 
 class WorkgroupPermissions(TestCase):
-    def setUp(self):
-        super().setUp()
-        self.steward_org_1 = models.StewardOrganisation.objects.create(name="Test SO")
-
     def test_workgroup_add_members(self):
-        wg = models.Workgroup.objects.create(name="Test WG", stewardship_organisation=self.steward_org_1)
+        wg = models.Workgroup.objects.create(name="Test WG")
         user = get_user_model().objects.create_user('user@example.com','user')
 
         wg.giveRoleToUser('manager',user)
@@ -120,12 +115,8 @@ class WorkgroupPermissions(TestCase):
         self.assertFalse(user in wg.stewards.all())
 
 class RegistryGroupPermissions(TestCase):
-    def setUp(self):
-        super().setUp()
-        self.steward_org_1 = models.StewardOrganisation.objects.create(name="Test SO")
-
     def test_registration_add_members(self):
-        ra = models.RegistrationAuthority.objects.create(name="Test RA", stewardship_organisation=self.steward_org_1)
+        ra = models.RegistrationAuthority.objects.create(name="Test RA")
         user = get_user_model().objects.create_user('user@example.com','user')
 
         ra.giveRoleToUser('registrar',user)
@@ -139,7 +130,7 @@ class RegistryGroupPermissions(TestCase):
         self.assertFalse(user in ra.managers.all())
 
     def test_RegistrationAuthority_name_change(self):
-        ra = models.RegistrationAuthority.objects.create(name="Test RA", stewardship_organisation=self.steward_org_1)
+        ra = models.RegistrationAuthority.objects.create(name="Test RA")
         user = get_user_model().objects.create_user('registrar@example.com','registrar')
 
         # User isn't in RA... yet
@@ -158,7 +149,7 @@ class RegistryGroupPermissions(TestCase):
         self.assertTrue(perms.user_is_registrar(user,ra))
 
         # Add new RA with old RA's name, assert user is not in the new RA
-        newRA = models.RegistrationAuthority.objects.create(name="Test RA", stewardship_organisation=self.steward_org_1)
+        newRA = models.RegistrationAuthority.objects.create(name="Test RA")
         user = get_user_model().objects.get(pk=user.pk)
         self.assertFalse(perms.user_is_registrar(user,newRA))
 
@@ -186,14 +177,10 @@ class UserEditTesting(TestCase):
 
 
 class CustomConceptQuerySetTest(TestCase):
-    def setUp(self):
-        super().setUp()
-        self.steward_org_1 = models.StewardOrganisation.objects.create(name="Test SO")
-
     def test_is_public_as_changes_happen(self):
         # Uses ValueDomain so the querysets don't return things created in `setUpClass`.
-        ra = models.RegistrationAuthority.objects.create(name="Test RA", public_state=models.STATES.standard, stewardship_organisation=self.steward_org_1)
-        wg = models.Workgroup.objects.create(name="Setup WG", stewardship_organisation=self.steward_org_1)
+        ra = models.RegistrationAuthority.objects.create(name="Test RA",public_state=models.STATES.standard)
+        wg = models.Workgroup.objects.create(name="Setup WG")
         wg.save()
         oc1 = models.ValueDomain.objects.create(name="Test OC1",workgroup=wg)
         oc2 = models.ValueDomain.objects.create(name="Test OC2",workgroup=wg)
@@ -231,14 +218,10 @@ class CustomConceptQuerySetTest(TestCase):
         self.assertEqual(len(models.ValueDomain.objects.all().public()),0)
 
 class RegistryCascadeTest(TestCase):
-    def setUp(self):
-        super().setUp()
-        self.steward_org_1 = models.StewardOrganisation.objects.create(name="Test SO")
-
     def test_superuser_DataElementConceptCascade(self):
         user = get_user_model().objects.create_superuser('super@example.com','user')
-        self.ra = models.RegistrationAuthority.objects.create(name="Test RA - cascading", stewardship_organisation=self.steward_org_1)
-        self.wg = models.Workgroup.objects.create(name="Setup WG", stewardship_organisation=self.steward_org_1)
+        self.ra = models.RegistrationAuthority.objects.create(name="Test RA - cascading")
+        self.wg = models.Workgroup.objects.create(name="Setup WG")
         self.wg.save()
         self.oc = models.ObjectClass.objects.create(name="Test OC",workgroup=self.wg)
         self.pr = models.Property.objects.create(name="Test P",workgroup=self.wg)
@@ -271,8 +254,8 @@ class RegistryCascadeTest(TestCase):
 
     def test_superuser_DataElementCascade(self):
         user = get_user_model().objects.create_superuser('super@example.com','user')
-        self.ra = models.RegistrationAuthority.objects.create(name="Test RA", stewardship_organisation=self.steward_org_1)
-        self.wg = models.Workgroup.objects.create(name="Setup WG", stewardship_organisation=self.steward_org_1)
+        self.ra = models.RegistrationAuthority.objects.create(name="Test RA")
+        self.wg = models.Workgroup.objects.create(name="Setup WG")
         self.wg.save()
         self.oc = models.ObjectClass.objects.create(name="Test OC",workgroup=self.wg)
         self.pr = models.Property.objects.create(name="Test P",workgroup=self.wg)

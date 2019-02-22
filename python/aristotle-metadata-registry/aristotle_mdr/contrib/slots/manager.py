@@ -1,7 +1,6 @@
 from django.db.models import Manager
 from django.db.models.query import QuerySet
-
-from aristotle_mdr.constants import visibility_permission_choices as permission_choices
+from aristotle_mdr.contrib.slots.choices import permission_choices as perms
 
 
 class SimplePermsQueryset(QuerySet):
@@ -20,13 +19,13 @@ class SimplePermsQueryset(QuerySet):
             else:
                 # Return public and auth only slots
                 kwargs = {
-                    self.perm_field_in: [permission_choices.public, permission_choices.auth]
+                    self.perm_field_in: [perms.public, perms.auth]
                 }
                 return self.filter(**kwargs)
         else:
             # Only return public slots
             kwargs = {
-                self.perm_field_name: permission_choices.public
+                self.perm_field_name: perms.public
             }
             return self.filter(**kwargs)
 

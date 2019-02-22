@@ -9,7 +9,7 @@ class Comparator(CompareMixin, CompareMethodsMixin):
         'user_view_history',
         'submitter',
         'issues',
-        'owned_links',
+        'owned_links'
     ]
 
 

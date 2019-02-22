@@ -64,34 +64,13 @@
     }
 }
 
-/* For Data Element Derivation display */
 .derivation_table {
-    display: flex;
-    flex-wrap: wrap;
-}
-.derivation_table > * {
-    flex-grow: 1;
-    flex-basis: 25em;
-    word-wrap: break-word;
-}
-.derivation_rule pre {
-    white-space:pre-wrap;
-}
-.derivation_table .panel {
-    margin-bottom: 2px;
-}
-
-// .full-width-tabs {
-//     margin: 0px -300px;
-//     padding: 0px 300px;
-//     border-bottom: 1px solid #ddd;
-// }
-
-// .full-width-tabs .nav-tabs {
-//     margin-bottom: -1px;
-// }
-
-.panel.aristotle-display-panel .panel-heading {
-    font-weight:bold;
-    text-align:center;
+    display: table-row;
+    &>div {
+        display:table-cell;
+        width:33%;
+    }
+    .panel-heading {
+        line-height: 2em;
+    }
 }

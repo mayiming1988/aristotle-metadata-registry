@@ -17,9 +17,8 @@ setup_aristotle_test_environment()
 class PostingAndCommentingAtObjectLevel(TestCase):
 
     def setUp(self):
-        self.steward_org = models.StewardOrganisation.objects.create(name="Test SO")
-        self.wg1 = models.Workgroup.objects.create(name="Test WG 1", stewardship_organisation=self.steward_org)
-        self.wg2 = models.Workgroup.objects.create(name="Test WG 2", stewardship_organisation=self.steward_org)
+        self.wg1 = models.Workgroup.objects.create(name="Test WG 1")
+        self.wg2 = models.Workgroup.objects.create(name="Test WG 2")
         self.viewer1 = get_user_model().objects.create_user('vicky@example.com','viewer') # viewer 1 always posts
         self.viewer2 = get_user_model().objects.create_user('viewer2@example.com','viewer')
         self.manager = get_user_model().objects.create_user('mandy@example.com','manger')
@@ -80,7 +79,7 @@ class WorkgroupMembersCanMakePostsAndComments(utils.LoggedInViewPages,TestCase):
         self.viewer2 = get_user_model().objects.create_user('viewer2@example.com','viewer') # not in any workgroup
         self.viewer3 = get_user_model().objects.create_user('viewer3@example.com','viewer') # not in our "primary testing workgroup" (self.wg1)
         self.wg1.giveRoleToUser('viewer',self.viewer3)
-        self.wg2 = models.Workgroup.objects.create(name="Test WG 2", stewardship_organisation=self.steward_org_1)
+        self.wg2 = models.Workgroup.objects.create(name="Test WG 2")
 
     def can_the_current_logged_in_user_toggle_post(self):
         post = models.DiscussionPost.objects.create(author=self.viewer,workgroup=self.wg1,title="test",body="test")
@@ -480,8 +479,8 @@ class ViewDiscussionPostPage(utils.LoggedInViewPages, TestCase):
 
     def test_member_can_see_posts(self):
         self.login_viewer()
-        self.wg3 = models.Workgroup.objects.create(name="Test WG 3", stewardship_organisation=self.steward_org_1)
-        self.wg3.giveRoleToUser('viewer',self.viewer)
+        self.wg3 = models.Workgroup.objects.create(name="Test WG 3")
+        self.wg3.giveRoleToUser('viewer', self.viewer)
 
         p1 = models.DiscussionPost.objects.create(author=self.su,workgroup=self.wg1,title="test",body="test")
         p2 = models.DiscussionPost.objects.create(author=self.su,workgroup=self.wg1,title="test",body="test")
@@ -503,7 +502,7 @@ class ViewDiscussionPostPage(utils.LoggedInViewPages, TestCase):
 
     def test_nonmember_cannot_see_posts(self):
         self.login_viewer()
-        self.wg3 = models.Workgroup.objects.create(name="Test WG 3", stewardship_organisation=self.steward_org_1)
+        self.wg3 = models.Workgroup.objects.create(name="Test WG 3")
 
         response = self.client.get(reverse('aristotle:discussionsWorkgroup', args=[self.wg3.id]))
         self.assertEqual(response.status_code,403)

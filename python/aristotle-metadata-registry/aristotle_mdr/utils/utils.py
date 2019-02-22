@@ -22,15 +22,6 @@ logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
 
-class classproperty(object):
-
-    def __init__(self, fget):
-        self.fget = fget
-
-    def __get__(self, owner_self, owner_cls):
-        return self.fget(owner_cls)
-
-
 def concept_to_dict(obj):
     """
     A replacement for the ```django.form.model_to_dict`` that includes additional
@@ -382,22 +373,6 @@ def get_concept_models() -> List[Model]:
 
 def get_concept_content_types() -> Dict[Model, ContentType]:
     models = get_concept_models()
-    return ContentType.objects.get_for_models(*models)
-
-
-def get_managed_item_models() -> List[Model]:
-    """Returns models for any managed item subclass"""
-    from aristotle_mdr.util.model_utils import ManagedItem
-    models = []
-    for app_config in apps.get_app_configs():
-        for model in app_config.get_models():
-            if issubclass(model, ManagedItem) and model != ManagedItem:
-                models.append(model)
-    return models
-
-
-def get_managed_content_types() -> Dict[Model, ContentType]:
-    models = get_managed_item_models()
     return ContentType.objects.get_for_models(*models)
 
 

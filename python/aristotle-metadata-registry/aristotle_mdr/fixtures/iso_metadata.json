@@ -1,16 +1,6 @@
 [
   {
     "fields": {
-      "description": "ISO\/IEC",
-      "name": "ISO\/IEC",
-      "uuid": "e809bf1a-221d-11e9-a30f-0242ac130007",
-      "slug": "iso"
-    },
-    "model": "aristotle_mdr.stewardorganisation",
-    "pk": 1
-  },
-  {
-    "fields": {
       "definition": "ISO\/IEC",
       "name": "ISO\/IEC",
       "created": "2016-05-02T22:23:10.181Z",
@@ -35,7 +25,6 @@
       "preferred": "",
       "standard": "",
       "qualified": "",
-      "stewardship_organisation": "e809bf1a-221d-11e9-a30f-0242ac130007",
       "registrars": [
       ],
       "retired": "",
@@ -409,8 +398,7 @@
       "definition": "",
       "modified": "2016-05-02T22:23:10.344Z",
       "name": "Length",
-      "created": "2016-05-02T22:23:10.344Z",
-      "stewardship_organisation": "e809bf1a-221d-11e9-a30f-0242ac130007"
+      "created": "2016-05-02T22:23:10.344Z"
     },
     "model": "aristotle_mdr.measure",
     "pk": 1
@@ -420,8 +408,7 @@
       "definition": "",
       "modified": "2016-05-02T22:23:10.398Z",
       "name": "Temperature",
-      "created": "2016-05-02T22:23:10.398Z",
-      "stewardship_organisation": "e809bf1a-221d-11e9-a30f-0242ac130007"
+      "created": "2016-05-02T22:23:10.398Z"
     },
     "model": "aristotle_mdr.measure",
     "pk": 2
@@ -431,8 +418,7 @@
       "definition": "",
       "modified": "2016-05-02T22:23:10.430Z",
       "name": "Time",
-      "created": "2016-05-02T22:23:10.430Z",
-      "stewardship_organisation": "e809bf1a-221d-11e9-a30f-0242ac130007"
+      "created": "2016-05-02T22:23:10.430Z"
     },
     "model": "aristotle_mdr.measure",
     "pk": 3
@@ -442,8 +428,7 @@
       "definition": "",
       "modified": "2016-05-02T22:23:10.538Z",
       "name": "Weight",
-      "created": "2016-05-02T22:23:10.538Z",
-      "stewardship_organisation": "e809bf1a-221d-11e9-a30f-0242ac130007"
+      "created": "2016-05-02T22:23:10.538Z"
     },
     "model": "aristotle_mdr.measure",
     "pk": 4
