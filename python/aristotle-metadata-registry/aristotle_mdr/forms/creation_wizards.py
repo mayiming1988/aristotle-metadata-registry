@@ -220,8 +220,8 @@ def subclassed_edit_modelform(set_model, extra_mixins=[]):
     return subclassed_mixin_modelform(set_model, extra_mixins=extra_mixins)
 
 
-def subclassed_clone_modelform(set_model):
-    return subclassed_mixin_modelform(set_model)
+def subclassed_clone_modelform(set_model, extra_mixins=[]):
+    return subclassed_mixin_modelform(set_model, extra_mixins=extra_mixins)
 
 
 def subclassed_wizard_2_Results(set_model):
