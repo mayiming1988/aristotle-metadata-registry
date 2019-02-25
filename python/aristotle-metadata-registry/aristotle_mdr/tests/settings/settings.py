@@ -159,3 +159,6 @@ WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = os.path.join(REPO_BASE_DIR, 'assets/di
 WEBPACK_LOADER['DEFAULT']['CACHE'] = False
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 20000
+
+# Allows migrations to print text on success (disabled during testing)
+MIGRATION_PRINT = False
