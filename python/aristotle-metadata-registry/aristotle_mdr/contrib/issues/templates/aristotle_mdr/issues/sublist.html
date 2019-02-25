@@ -7,7 +7,7 @@
                     {{ issue.name }}
                 </div>
                 <div class="list-group-item-text">
-                    Opened {{ issue.created|timesince }} ago by {{ issue.submitter.full_name }}
+                    Opened {{ issue.created|timesince }} ago by {{ issue.submitter.display_name }}
                 </div>
             </a>
         {% endfor %}

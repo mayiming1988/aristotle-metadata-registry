@@ -29,7 +29,7 @@
                     {{ object.name }}
                 {% endif %}
             </h1>
-            <p class="text-muted">Opened {{ object.created|timesince }} ago by {{ object.submitter.full_name }}</p>
+            <p class="text-muted">Opened {{ object.created|timesince }} ago by {{ object.submitter.display_name }}</p>
             <p>
                 <switch-edit-api
                         name="description"
@@ -44,7 +44,7 @@
     {% for comment in comments %}
         <comment
                 pic="{{ comment.author.profile.profile_picture_url }}"
-                name="{{ comment.author.get_short_name }}"
+                name="{{ comment.author.display_name }}"
                 created="{{ comment.created|date:"c" }}"
                 body="{{ comment.body }}">
         </comment>
