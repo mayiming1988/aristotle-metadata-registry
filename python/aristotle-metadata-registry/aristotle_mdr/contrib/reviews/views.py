@@ -429,9 +429,9 @@ class ReviewSupersedesEditView(ReviewActionMixin, FormsetView):
             ids = [i.id for i in deleted]
             MDR.SupersedeRelationship.proposed_objects.filter(id__in=ids).delete()
 
-        # Redirect to details page
+        # Redirect to supersedes info page
         return HttpResponseRedirect(
-            reverse('aristotle_reviews:review_details', args=[self.review.id])
+            reverse('aristotle_reviews:request_supersedes', args=[self.review.id])
         )
 
 

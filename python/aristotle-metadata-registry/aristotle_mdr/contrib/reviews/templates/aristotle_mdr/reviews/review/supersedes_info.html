@@ -17,12 +17,12 @@
     <div class="panel-body">
       <p>
         These supersedes relations are being proposed as part of this request
-        {% if can_edit_review %}
-        <a class="btn btn-primary" href="{% url 'aristotle_mdr_review_requests:request_supersedes_edit' review.id %}">
-          Edit Supersedes
-        </a>
-        {% endif %}
       </p>
+      {% if can_edit_review %}
+      <a class="btn btn-primary" href="{% url 'aristotle_mdr_review_requests:request_supersedes_edit' review.id %}">
+        Edit Supersedes
+      </a>
+      {% endif %}
       {% include 'aristotle_mdr/helpers/supersedes_display_table.html' with supersedes=supersedes only %}
     </div>
   </div>
