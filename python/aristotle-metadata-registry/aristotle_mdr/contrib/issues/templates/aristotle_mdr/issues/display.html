@@ -1,7 +1,7 @@
 {% extends 'aristotle_mdr/concepts/contentInfoBase.html' %}
 {% load render_bundle from webpack_loader %}
 
-{% block title %}Issue{% endblock %}
+{% block title %}Issue #{{object.id}} - {{ object.name }} {% endblock %}
 
 {% block webpack_css_bundle %}
     {% render_bundle 'issue' 'css' %}
