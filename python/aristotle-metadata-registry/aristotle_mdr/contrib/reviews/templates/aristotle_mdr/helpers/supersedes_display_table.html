@@ -8,8 +8,12 @@
   <tbody>
     {% for rel in supersedes %}
     <tr>
-      <td>{{ rel.older }}</td>
-      <td>{{ rel.newer }}</td>
+      <td>
+        <a href="{% url 'aristotle:item' rel.older.id %}" target="_blank">{{ rel.older.name }}</a>
+      </td>
+      <td>
+        <a href="{% url 'aristotle:item' rel.newer.id %}" target="_blank">{{ rel.newer.name }}</a>
+      </td>
     </tr>
     {% endfor %}
   </tbody>

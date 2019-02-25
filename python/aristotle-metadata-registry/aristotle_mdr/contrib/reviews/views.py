@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Any
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -87,13 +87,13 @@ class ReviewActionMixin(LoginRequiredMixin, UserFormViewMixin):
     def get_review(self):
         return get_object_or_404(models.ReviewRequest, pk=self.kwargs['review_id'])
 
-    def get_supersedes_context(self) -> List[Dict[str, str]]:
+    def get_supersedes_context(self) -> List[Dict[str, Dict[str, Any]]]:
         supersedes = []
         qs = self.review.proposed_supersedes.select_related('older_item', 'newer_item')
         for ss in qs:
             supersedes.append({
-                'older': ss.older_item.name,
-                'newer': ss.newer_item.name
+                'older': {'id': ss.older_item.id, 'name': ss.older_item.name},
+                'newer': {'id': ss.newer_item.id, 'name': ss.newer_item.name}
             })
         return supersedes
 

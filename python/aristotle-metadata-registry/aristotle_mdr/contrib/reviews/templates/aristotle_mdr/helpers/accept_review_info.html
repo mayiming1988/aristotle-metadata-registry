@@ -18,7 +18,11 @@
             <strong>The proposed supersedes for this request:</strong>
             <ul>
             {% for rel in supersedes %}
-                <li>{{ rel.older }}<i class="fa fa-fw fa-arrow-right"></i>{{ rel.newer }}</li>
+                <li>
+                  <a href="{% url 'aristotle:item' rel.older.id %}" target="_blank">{{ rel.older.name }}</a>
+                  <i class="fa fa-fw fa-arrow-right"></i>
+                  <a href="{% url 'aristotle:item' rel.newer.id %}" target="_blank">{{ rel.newer.name }}</a>
+                </li>
             {% endfor %}
             </ul>
         {% else %}
