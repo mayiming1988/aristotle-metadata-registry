@@ -116,7 +116,7 @@ class ReviewRequestDetailTestCase(utils.AristotleTestUtils, TestCase):
         rr = models.ReviewRequest.objects.create(
             registration_authority=self.ra,
             requester=self.editor,
-            target_registration_state=state
+            target_registration_state=state,
         )
         rr.concepts.add(self.item)
         return rr
@@ -153,6 +153,30 @@ class ReviewRequestDetailTestCase(utils.AristotleTestUtils, TestCase):
         self.login_editor()
         response = self.reverse_get(
             'aristotle_reviews:request_impact',
+            reverse_args=[rr.id]
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_rr_validations_with_cascade(self):
+        oc = MDR.ObjectClass.objects.create(
+            name='Pokemon',
+            definition='Pocket monster'
+        )
+        dec = MDR.DataElementConcept.objects.create(
+            name='Pokemon - Attack',
+            definition='A pokemon\'s attack'
+        )
+        rr = models.ReviewRequest.objects.create(
+            registration_authority=self.ra,
+            requester=self.editor,
+            target_registration_state=state,
+            cascade=1
+        )
+        rr.concepts.add(oc)
+
+        self.login_editor()
+        reponse = self.reverse_get(
+            'aristotle_reviews:request_checks',
             reverse_args=[rr.id]
         )
         self.assertEqual(response.status_code, 200)

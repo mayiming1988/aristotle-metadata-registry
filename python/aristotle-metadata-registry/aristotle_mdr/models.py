@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Iterable
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ImproperlyConfigured
@@ -754,7 +754,7 @@ class _concept(baseAristotleObject):
         return url_slugify_concept(self)
 
     @property
-    def registry_cascade_items(self):
+    def registry_cascade_items(self) -> Iterable:
         """
         This returns the items that can be registered along with the this item.
         If a subclass of _concept defines this method, then when an instance

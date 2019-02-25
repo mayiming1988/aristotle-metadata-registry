@@ -11,7 +11,8 @@ import uuid
 
 from aristotle_mdr.utils.migrations import (
     classproperty,
-    StewardMigration
+    StewardMigration,
+    DBOnlySQL
 )
 
 
@@ -26,8 +27,7 @@ class Migration(migrations.Migration):
     def operations(cls):
         return [
             # https://stackoverflow.com/questions/28429933/django-migrations-using-runpython-to-commit-changes
-            migrations.RunSQL('SET CONSTRAINTS ALL IMMEDIATE',
-                      reverse_sql=migrations.RunSQL.noop),
+            DBOnlySQL('SET CONSTRAINTS ALL IMMEDIATE', reverse_sql=migrations.RunSQL.noop, vendor='postgresql'),
             migrations.CreateModel(
                 name='StewardOrganisation',
                 fields=[
@@ -84,6 +84,5 @@ class Migration(migrations.Migration):
                 field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='managed_items', to='aristotle_mdr.StewardOrganisation', to_field='uuid'),
                 preserve_default=False,
             ),
-            migrations.RunSQL(migrations.RunSQL.noop,
-                      reverse_sql='SET CONSTRAINTS ALL IMMEDIATE'),
+            DBOnlySQL('SET CONSTRAINTS ALL IMMEDIATE', reverse_sql=migrations.RunSQL.noop, vendor='postgresql'),
         ]
