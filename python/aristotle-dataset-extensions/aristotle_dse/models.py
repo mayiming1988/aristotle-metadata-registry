@@ -6,7 +6,11 @@ from model_utils import Choices
 
 import aristotle_mdr as aristotle
 from aristotle_mdr.models import RichTextField
-from aristotle_mdr.fields import ConceptForeignKey, ConceptManyToManyField
+from aristotle_mdr.fields import (
+    ConceptForeignKey,
+    ConceptManyToManyField,
+    ShortTextField,
+)
 
 
 class DataCatalog(aristotle.models.concept):
@@ -212,12 +216,13 @@ class DataSetSpecification(aristotle.models.concept):
     specifying the order and fields required for a standardised
     :model:`aristotle_dse.DataSource`.
     """
-    edit_page_excludes = ['clusters', 'data_elements']
+    # edit_page_excludes = ['clusters', 'data_elements']
     serialize_weak_entities = [
         ('clusters', 'dssclusterinclusion_set'),
         ('data_elements', 'dssdeinclusion_set'),
+        ('groups', 'groups'),
     ]
-    clone_fields = ['dssclusterinclusion', 'dssdeinclusion']
+    clone_fields = ['dssclusterinclusion', 'dssdeinclusion', 'groups']
 
     template = "aristotle_dse/concepts/dataSetSpecification.html"
     ordered = models.BooleanField(
@@ -270,6 +275,9 @@ class DataSetSpecification(aristotle.models.concept):
     def data_elements(self):
         ids = self.dssdeinclusion_set.all().values_list('data_element', flat=True)
         return aristotle.models.DataElement.objects.filter(id__in=ids)
+
+    def ungrouped_data_element_inclusions(self):
+        return self.dssdeinclusion_set.filter(group=None)
 
     @property
     def registry_cascade_items(self):
@@ -333,12 +341,38 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         return self.dss_id
 
 
+class DSSGrouping(aristotle.models.aristotleComponent):
+    class Meta:
+        ordering = ['order']
+
+    dss = ConceptForeignKey(DataSetSpecification, related_name="groups")
+    name = ShortTextField(
+        help_text=_("The name applied to the grouping.")
+    )
+    definition = RichTextField(
+        _('definition'),
+        blank=True,
+    )
+    order = models.PositiveSmallIntegerField(
+        "Position",
+        null=True,
+        blank=True,
+    )
+    def __str__(self):
+        return self.name
+
+
 # Holds the link between a DSS and a Data Element with the DSS Specific details.
 class DSSDEInclusion(DSSInclusion):
     data_element = ConceptForeignKey(aristotle.models.DataElement, related_name="dssInclusions")
+    group = models.ForeignKey(
+        DSSGrouping,
+        blank=True, null=True,
+    )
     specialisation_classes = ConceptManyToManyField(
         aristotle.models.ObjectClass,
-        help_text=_("")
+        help_text=_(""),
+        blank=True,
     )
 
     class Meta(DSSInclusion.Meta):
@@ -347,6 +381,13 @@ class DSSDEInclusion(DSSInclusion):
     @property
     def include(self):
         return self.data_element
+
+    def inline_editor_description(self):
+        if self.group:
+            msg = "Data element '%s' in group '%s' at position %s" % (self.data_element, self.group.name, self.order)
+        else:
+            msg = "Data element '%s' at position %s" % (self.data_element, self.order)
+        return msg
 
 
 # Holds the link between a DSS and a cluster with the DSS Specific details.
@@ -362,3 +403,7 @@ class DSSClusterInclusion(DSSInclusion):
     @property
     def include(self):
         return self.child
+
+    def inline_editor_description(self):
+        return "Cluster '%s' at position %s" % (self.data_element, self.order)
+

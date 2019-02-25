@@ -1,0 +1,50 @@
+{% with formset.empty_form as form %}
+      {# TODO #}
+      <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
+      {% comment %}
+      {% if formset.is_ordered or True %}
+      <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
+      {% else %}
+      <td title=""><i class="fa"></i>
+      {% endif %}
+      {% endcomment %}
+          {% for hidden in form.hidden_fields %}
+          {{ hidden }}
+          {% endfor %}
+      </td>
+      <td>
+        <div>
+          <header class="h5">
+          New instance
+          </header>
+        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#{{ formset.prefix }}_collapse___prefix__" aria-expanded="false" aria-controls="{{ formset.prefix }}_collapse___prefix__">
+          Toggle fields
+        </button>
+        </div>
+        <div class="collapse in" id="{{ formset.prefix }}_collapse___prefix__">
+          <ul>
+          {% for field in form.visible_fields %}
+            {% if not forloop.last %}
+            <li style="display:table-row">
+              
+              <label style="display:table-cell;vertical-align:top;padding-bottom:15px">{{ field.label }}</label>
+              <div style="display:table-cell">
+                {% if field.errors %}
+                    <div class="alert alert-danger">
+                {% endif %}
+                {{ field }}
+                {% if field.errors %}
+                    {{ field.errors.as_ul }}
+                    </div>
+                {% endif %}
+              </div>
+            </li>
+            {% endif %}
+          {% endfor %}
+          </ul>
+        </div>
+      </td>
+      <td>
+      {{ form.visible_fields|last }}
+      </td>
+{% endwith %}

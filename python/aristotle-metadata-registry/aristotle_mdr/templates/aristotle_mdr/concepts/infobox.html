@@ -40,10 +40,14 @@
                     <dt title="{{ item.origin_URI.help_text }}">{% trans 'Origin URI'%}</dt><dd><a title="This link will exit this site" href="{{ item.origin_URI }}">Jump to original <i class="fa fa-external-link"></i></a></dd>
                 {% endif %}
                 {% comment %}
-            {# These may yet be removed, I don't like it #}
-            <dt>Included in</dt>
-            {% block includes %}{% endblock %}
-            {% endcomment %}
+
+                {# These may yet be removed, I don't like it #}
+                <dt>Included in</dt>
+                {% block includes %}{% endblock %}
+                {% endcomment %}
+
+                <dt class="large">{% trans 'Stewardship Organisation'%}</dt>
+                <dd class="">{{ item.stewardship_organisation }}</dd>
 
                 {% if item.registerable %}
                     {% include "aristotle_mdr/infobox_statuses.html" with statuses=statuses %}

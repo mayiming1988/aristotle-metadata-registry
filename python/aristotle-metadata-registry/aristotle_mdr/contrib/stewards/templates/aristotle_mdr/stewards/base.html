@@ -1,0 +1,19 @@
+{% extends "aristotle_mdr/base.html" %}
+{% load aristotle_tags util_tags humanize %}
+{% load static from staticfiles %}
+
+{% block title %}{{ stewardship_organisation }}{% endblock %}
+
+{% block content %}
+
+<h1>
+    {{ stewardship_organisation }}
+</h1>
+
+
+{% include "stewards/helpers/tabs.html" with active_tab=active_group_page|default:"home" %}
+
+{% block steward_content %}
+{% endblock %}
+
+{% endblock %}
