@@ -12,8 +12,8 @@ from model_utils.models import TimeStampedModel
 from aristotle_mdr import models as MDR
 from aristotle_mdr.fields import ConceptForeignKey
 
-from aristotle_mdr.contrib.slots.choices import permission_choices
 from aristotle_mdr.contrib.slots.manager import SlotsManager
+from aristotle_mdr.constants import visibility_permission_choices as permission_choices
 
 
 class Slot(TimeStampedModel):

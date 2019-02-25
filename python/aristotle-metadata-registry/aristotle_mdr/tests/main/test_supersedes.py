@@ -13,10 +13,11 @@ setup_aristotle_test_environment()
 
 class SupersededProperty(TestCase):
     def setUp(self):
-        self.wg = models.Workgroup.objects.create(name="Test WG")
+        self.steward_org_1 = models.StewardOrganisation.objects.create(name="Test SO")
+        self.wg = models.Workgroup.objects.create(name="Test WG", stewardship_organisation=self.steward_org_1)
         self.item1 = models.ObjectClass.objects.create(name="OC1", workgroup=self.wg)
         self.item2 = models.ObjectClass.objects.create(name="OC2", workgroup=self.wg)
-        self.ra = models.RegistrationAuthority.objects.create(name="Test RA")
+        self.ra = models.RegistrationAuthority.objects.create(name="Test RA", stewardship_organisation=self.steward_org_1)
 
     def test_is_supersede_property(self):
         self.assertFalse(self.item1.is_superseded)
@@ -95,7 +96,7 @@ class SupersedePage(utils.LoggedInViewPages, TestCase):
         form = SupersedeForm(data=form_data, item=self.item1, user=self.editor)
         self.assertFalse(form.is_valid())
 
-        ra2 = models.RegistrationAuthority.objects.create(name="Test RA", definition="My WG")
+        ra2 = models.RegistrationAuthority.objects.create(name="Test RA", definition="My WG", stewardship_organisation=self.steward_org_1)
         new_registrar = get_user_model().objects.create_user('newbie@example.com', 'new registrar')
         ra2.registrars.add(self.registrar)
 

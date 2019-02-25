@@ -4,8 +4,8 @@ from django.contrib.contenttypes.models import ContentType
 from aristotle_mdr.tests.utils import AristotleTestUtils
 
 from aristotle_mdr import models as mdr_models
+from aristotle_mdr.constants import visibility_permission_choices as permission_choices
 from aristotle_mdr.contrib.slots.models import Slot
-from aristotle_mdr.contrib.slots.choices import permission_choices
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 
 

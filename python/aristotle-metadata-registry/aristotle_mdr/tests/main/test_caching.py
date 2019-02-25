@@ -16,8 +16,9 @@ setup_aristotle_test_environment()
 class CachingForRawPermissions(TestCase):
 
     def setUp(self):
-        self.ra = models.RegistrationAuthority.objects.create(name="Test RA")
-        self.wg = models.Workgroup.objects.create(name="Test WG 1")
+        self.steward_org_1 = models.StewardOrganisation.objects.create(name="Test SO")
+        self.ra = models.RegistrationAuthority.objects.create(name="Test RA", stewardship_organisation=self.steward_org_1)
+        self.wg = models.Workgroup.objects.create(name="Test WG 1", stewardship_organisation=self.steward_org_1)
         self.wg.registrationAuthorities=[self.ra]
         self.wg.save()
         self.submitter = get_user_model().objects.create_user('suzie@example.com', 'submitter')

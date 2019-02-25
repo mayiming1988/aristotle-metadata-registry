@@ -3,6 +3,7 @@
 {% load aristotle_tags util_tags %}
 
 {% block infoContent %}
+
     <section class="managed row">
         {% include "aristotle_mdr/concepts/infobox.html" %}
 
@@ -50,11 +51,10 @@
             {% endif %}
 
         </div>
+
         {% if 'aristotle_mdr_links'|is_active_extension and links %}
             {% include "aristotle_mdr/links/links_display.html" with links=links %}
-
         {% endif %}
-
 
         <h2>Related content</h2>
     
@@ -62,27 +62,24 @@
         {% endblock %}
 
         {% for extension in config.CONTENT_EXTENSIONS %}
-            {% extra_content extension item request.user %}
+            {% extra_content extension item %}
         {% endfor %}
 
     </section>
 
-
-    <tags-modal
-            :open="tagsModalOpen"
-            item-tags="{{ item_tags }}"
-            user-tags="{{ user_tags }}"
+    <tags-modal 
+            :open="tagsModalOpen" 
+            item-tags="{{ item_tags }}" 
+            user-tags="{{ user_tags }}" 
             submit-url="{% url 'api_v4:item_tags' item.id %}"
             @saved-tags="updateTags"
             @hide="closeTagsModal">
     </tags-modal>
-
-    <issue-modal
-            v-model="issueModalOpen"
+  
+    <issue-modal 
+            v-model="issueModalOpen" 
             iid="{{ item.id }}"
             url="{% url 'api_v4:issues:create' %}">
     </issue-modal>
-
-
 
 {% endblock %}
