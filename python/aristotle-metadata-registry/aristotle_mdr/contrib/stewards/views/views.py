@@ -9,6 +9,9 @@ from aristotle_mdr.views.utils import (
     SortedListView
 )
 from aristotle_mdr.contrib.groups.backends import GroupBase
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class ListStewardOrg(PermissionRequiredMixin, LoginRequiredMixin, GroupBase, SortedListView):
@@ -23,15 +26,31 @@ class ListStewardOrg(PermissionRequiredMixin, LoginRequiredMixin, GroupBase, Sor
         return StewardOrganisation.objects.all()
 
     def get_queryset(self):
-        groups = self.get_initial_queryset().annotate(
+        metadata_counts = dict(self.get_initial_queryset().all().values_list('pk').annotate(
             num_items=Count('metadata', distinct=True),
-            num_workgroups=Count('workgroup', distinct=True),
+        ))
+        member_counts = dict(self.get_initial_queryset().all().values_list('pk').annotate(
+            num_members=Count('members', distinct=True),
+        ))
+        workgroup_counts = dict(self.get_initial_queryset().all().values_list('pk').annotate(
+            num_members=Count('workgroup', distinct=True),
+        ))
+
+        groups = self.get_initial_queryset().annotate(
+            # This is very inefficient when member, workgroup and metadata counts grow
+            # num_items=Count('metadata', distinct=True)
+            # num_members=Count('members', distinct=True)
+            # num_workgroups=Count('workgroup', distinct=True),
             num_ras=Count('registrationauthority', distinct=True),
-            num_members=Count('members', distinct=True)
         )
 
         if self.text_filter:
             groups = groups.filter(Q(name__icontains=self.text_filter) | Q(definition__icontains=self.text_filter))
 
         groups = self.sort_queryset(groups)
+        for group in groups:
+            group.num_items = metadata_counts[group.pk]
+            group.num_members = member_counts[group.pk]
+            group.num_workgroups = workgroup_counts[group.pk]
+
         return groups
