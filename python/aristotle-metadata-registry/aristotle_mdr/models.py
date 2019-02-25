@@ -754,7 +754,7 @@ class _concept(baseAristotleObject):
         return url_slugify_concept(self)
 
     @property
-    def registry_cascade_items(self) -> Iterable:
+    def registry_cascade_items(self) -> List:
         """
         This returns the items that can be registered along with the this item.
         If a subclass of _concept defines this method, then when an instance
@@ -762,7 +762,7 @@ class _concept(baseAristotleObject):
         instance, all instances returned by this method will all recieve the
         same registration status.
 
-        Reimplementations of this MUST return iterables.
+        Reimplementations of this MUST return lists of concept subclasses.
         """
         return []
 

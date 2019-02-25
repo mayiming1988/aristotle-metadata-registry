@@ -461,17 +461,17 @@ class ReviewValidationView(ReviewActionMixin, TemplateView):
         review = self.get_review()
         items = review.concepts.all().select_subclasses()
 
-        review_items = items
+        review_items: List = list(items)
         if review.cascade_registration == 1:
             sub_items = []
             for item in items:
                 sub_items += item.registry_cascade_items
             review_items += sub_items
 
-        Runner = import_string(settings.ARISTOTLE_VALIDATION_RUNNER)
+        runner_class = import_string(settings.ARISTOTLE_VALIDATION_RUNNER)
         self.ra = self.get_review().registration_authority
 
-        runner = Runner(registration_authority=self.ra, state=self.get_review().state)
+        runner = runner_class(registration_authority=self.ra, state=self.get_review().state)
         total_results = runner.validate_metadata(metadata=review_items)
 
         context['total_results'] = total_results

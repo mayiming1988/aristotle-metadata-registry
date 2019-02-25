@@ -175,7 +175,7 @@ class ReviewRequestDetailTestCase(utils.AristotleTestUtils, TestCase):
         rr.concepts.add(oc)
 
         self.login_editor()
-        reponse = self.reverse_get(
+        response = self.reverse_get(
             'aristotle_reviews:request_checks',
             reverse_args=[rr.id]
         )
