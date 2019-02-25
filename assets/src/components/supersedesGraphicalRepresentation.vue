@@ -1,5 +1,11 @@
 <template>
-    <div id="network-id" style="height: 400px; width: 100%">
+    <div>
+        <template v-if="!ready">
+            <i class="fa fa-spinner fa-pulse"></i> Please wait, we are preparing the visual representation.
+        </template>
+        <alert v-if="error" type="danger">There was an error with your download. Please try again later</alert>
+        <div id="network-id" style="height: 400px; width: 100%">
+        </div>
     </div>
 </template>
 
@@ -8,6 +14,12 @@
     import apiRequest from 'src/mixins/apiRequest.js'
 
     export default {
+        data: () => ({
+            ready: false,
+            error: false,
+            pollTime: 1000, // period to call checkStatus in ms
+            timeout: 30000, // peroid after which failure assumed if still pending
+        }),
         mixins: [apiRequest],
         props: {
             url: String
@@ -22,6 +34,20 @@
         methods: {
             buildGraph: function () {
                 this.get(this.url).then((response) => {
+                    let data = response.data
+                    if (data.state != 'PENDING') {
+                        this.pending = false
+                    }
+                    if (data.is_ready) {
+                        this.ready = true
+                        // It is possible for the task to be done with state started for some reason
+                        if (data.state !== 'SUCCESS' && data.state !== 'STARTED') {
+                            this.error = true
+                        } else if (data.result !== undefined) {
+                            this.url = data.result
+                        }
+                        clearInterval(this.interval)
+                    }
                     for (let element of response.data.nodes) {
                         element.title = `<small>Name: ${element.name}</small><br>`
                         if (element.definition !== "") {
@@ -158,8 +184,18 @@
                         network.on('hidePopup', function () {
                             document.body.style.cursor = 'default'
                         })
+                        this.ready = true
                     })
                 })
+                // Check for timeout if we are still pending
+                if (this.pending) {
+                    let time = Date.now()
+                    if ((time - this.started) > this.timeout) {
+                        this.ready = true
+                        this.error = true
+                        clearInterval(this.interval)
+                    }
+                }
             }
         }
     }
