@@ -169,8 +169,8 @@ class ReviewRequestDetailTestCase(utils.AristotleTestUtils, TestCase):
         rr = models.ReviewRequest.objects.create(
             registration_authority=self.ra,
             requester=self.editor,
-            target_registration_state=state,
-            cascade=1
+            target_registration_state=MDR.STATES.standard,
+            cascade_registration=1
         )
         rr.concepts.add(oc)
 
