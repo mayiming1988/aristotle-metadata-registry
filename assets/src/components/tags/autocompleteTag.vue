@@ -13,7 +13,16 @@ export default {
         'taggle-tags': tagComponent,
         'vue-simple-suggest': VueSimpleSuggest
     },
-    props: ['current_tags', 'user_tags'],
+    props: {
+        'current_tags': {
+            type: Array,
+            required: true
+        },
+        'user_tags': {
+            type: Array,
+            required: true
+        }
+    },
     computed: {
         newTags: function() {
             var newTags = []

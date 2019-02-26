@@ -28,7 +28,7 @@ export default {
         'modal': Modal,
         'autocomplete-tags': autocompleteTag,
         'submit-tags': submitTags,
-        'api-errors': apiErrors
+        'api-errors': apiErrors,
     },
     data: () => ({
         current_tags: [],
@@ -36,7 +36,24 @@ export default {
         errors: {},
         selected: '',
     }),
-    props: ['itemTags', 'userTags', 'submitUrl', 'open'],
+    props: {
+        'itemTags': {
+            type: String,
+            required: true
+        },
+        'userTags': {
+            type: String,
+            required: true
+        },
+        'submitUrl': {
+            type: String,
+            required: true
+        },
+        'open': {
+            type: Boolean,
+            default: false
+        }
+    },
     created: function() {
         let saved_tags = JSON.parse(this.itemTags)
         for (let tag of saved_tags) {

@@ -6,7 +6,16 @@
 import Taggle from 'taggle'
 
 export default {
-    props: ['tags', 'newtags'],
+    props: {
+        'tags': {
+            type: Array,
+            required: true
+        },
+        'newtags': {
+            type: Array,
+            required: true
+        }
+    },
     mounted: function() {
         this.tag_editor = new Taggle('taggle-editor', {
             preserveCase: true,
