@@ -807,7 +807,13 @@ class _concept(baseAristotleObject):
 
     @property
     def approved_supersedes(self):
-        return self.supersedes.filter(proposed=False)
+        supersedes = self.superseded_items_relation_set.filter(proposed=False).select_related('older_item')
+        return [ss.older_item for ss in supersedes]
+
+    @property
+    def approved_superseded_by(self):
+        supersedes = self.superseded_by_items_relation_set.filter(proposed=False).select_related('newer_item')
+        return [ss.newer_item for ss in supersedes]
 
     def check_is_public(self, when=timezone.now()):
         """
