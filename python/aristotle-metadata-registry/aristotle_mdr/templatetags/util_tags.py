@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Union
 from django import template
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import format_html
@@ -9,7 +9,7 @@ from aristotle_mdr.utils.text import pretify_camel_case
 
 import bleach
 import json
-from datetime import datetime
+from datetime import datetime, date
 
 register = template.Library()
 
@@ -109,15 +109,18 @@ def class_name(obj) -> str:
 
 
 @register.filter(name='isotime')
-def iso_time(dt: Optional[datetime]):
+def iso_time(dt: Union[datetime, date, None]):
     """Return ISO 8601 string from datetime object"""
     if dt is None:
         return '-'
 
-    if type(dt) == datetime:
+    dtype = type(dt)
+    if dtype == datetime:
+        return dt.isoformat()
+    elif dtype == date:
         return dt.isoformat()
     else:
-        # If we got a non datetime object don't do anything
+        # If we got a non datetime or date object don't do anything
         return dt
 
 

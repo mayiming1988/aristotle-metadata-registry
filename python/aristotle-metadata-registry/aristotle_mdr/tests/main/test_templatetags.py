@@ -7,7 +7,7 @@ from django.template.exceptions import TemplateSyntaxError
 import aristotle_mdr.models as models
 from aristotle_mdr.templatetags import util_tags
 
-from datetime import datetime
+from datetime import datetime, date
 
 
 preamble = "{% load aristotle_tags %}"
@@ -91,7 +91,22 @@ class UtilTagsTestCase(TestCase):
         bleached = util_tags.bleach_filter(None)
         self.assertIsNone(bleached)
 
-    def test_iso_time(self):
+    def test_iso_time_datetime(self):
         dt = datetime(2000, 10, 10, 1, 1, 1)
         isotime = util_tags.iso_time(dt)
         self.assertEqual(isotime, '2000-10-10T01:01:01')
+
+    def test_iso_time_date(self):
+        dt = date(2000, 10, 10)
+        isotime = util_tags.iso_time(dt)
+        self.assertEqual(isotime, '2000-10-10')
+
+    def test_iso_time_none(self):
+        dt = None
+        isotime = util_tags.iso_time(dt)
+        self.assertEqual(isotime, '-')
+
+    def test_iso_time_bad_type(self):
+        dt = 55
+        isotime = util_tags.iso_time(dt)
+        self.assertEqual(isotime, 55)
