@@ -14,7 +14,6 @@ export default {
     data: {
         saved_tags: [],
         tagsModalOpen: false,
-        issueModalOpen: false,
     },
     methods: {
         openTagsModal: function() {
