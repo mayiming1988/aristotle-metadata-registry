@@ -40,7 +40,7 @@ module.exports = {
                 use: 'vue-loader'
             },
             {
-                // Load .js files with babel
+                // Load .js and .mjs files with babel
                 test: /\.m?js$/,
                 exclude: /node_modules\/(?!vue-simple-suggest)/,
                 use: [{
@@ -57,11 +57,6 @@ module.exports = {
                         plugins: ["@babel/plugin-syntax-dynamic-import"]
                     }
                 }]
-                //loader: 'eslint-loader',
-                //options: {
-                //  failOnError: false,
-                //  failOnWarning: false
-                //}
             },
             {
                 test: /\.woff2?$|\.ttf$|\.eot$|\.svg$|\.png$|\.jpg$/,
@@ -88,10 +83,6 @@ module.exports = {
                     MiniCssExtractPlugin.loader,
                     "css-loader"
                 ]
-            },
-            {
-                test: /\.json$/,
-                loader: 'json-loader'
             }
         ]
     },
