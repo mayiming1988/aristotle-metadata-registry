@@ -1400,19 +1400,11 @@ class DataElementDerivation(concept):
         ('derives', 'dedderivesthrough_set'),
     ]
 
-    # derives = ConceptManyToManyField(  # 11.5.3.5
-    #     DataElement,
-    #     through='DedDerivesThrough',
-    #     related_name="derived_from",
-    #     blank=True,
-    #     null=True,
-    #     help_text=_(
-    #         "binds with one or more output Data_Elements that are the result of the application of the Data_Element_Derivation.")
-    # )
-
     @property
     def input_data_elements(self):
         return DataElement.objects.filter(dedinputsthrough__data_element_derivation=self)
+
+    @property
     def derived_data_elements(self):
         return DataElement.objects.filter(dedderivesthrough__data_element_derivation=self)
 
@@ -1424,13 +1416,6 @@ class DataElementDerivation(concept):
     def derives(self):
         return self.dedderivesthrough_set.all()
 
-    # inputs = ConceptManyToManyField(  # 11.5.3.4
-    #     DataElement,
-    #     through='DedInputsThrough',
-    #     related_name="input_to_derivation",
-    #     blank=True,
-    #     help_text=_("binds one or more input Data_Element(s) with a Data_Element_Derivation.")
-    # )
     derivation_rule = models.TextField(
         blank=True,
         help_text=_("text of a specification of a data element Derivation_Rule")
