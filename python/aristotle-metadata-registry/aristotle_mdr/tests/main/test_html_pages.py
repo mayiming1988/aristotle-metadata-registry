@@ -1212,6 +1212,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
         self.assertTrue('Select a valid choice.' in form.errors['workgroup'][0])
 
+    @tag('clone_item')
     def test_anon_cannot_view_clone_page(self):
         self.logout()
         response = self.client.get(reverse('aristotle:clone_item',args=[self.item1.id]))
@@ -1219,6 +1220,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         response = self.client.get(reverse('aristotle:clone_item',args=[self.item2.id]))
         self.assertEqual(response.status_code,302)
 
+    @tag('clone_item')
     def test_viewer_can_view_clone_page(self):
         self.login_viewer()
         # Viewer can clone an item they can see
@@ -1231,6 +1233,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         response = self.client.get(reverse('aristotle:clone_item',args=[self.item2.id]))
         self.assertEqual(response.status_code,403)
 
+    @tag('clone_item')
     def test_submitter_can_view_clone_page(self):
         self.login_editor()
         response = self.client.get(reverse('aristotle:clone_item',args=[self.item1.id]))
@@ -1238,17 +1241,19 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         response = self.client.get(reverse('aristotle:clone_item',args=[self.item2.id]))
         self.assertEqual(response.status_code,403)
 
+    @tag('clone_item')
     def test_submitter_can_save_via_clone_page(self):
         self.login_editor()
         import time
         time.sleep(2) # delays so there is a definite time difference between the first item and the clone on very fast test machines
         response = self.client.get(reverse('aristotle:clone_item',args=[self.item1.id]))
         self.assertEqual(response.status_code,200)
-        updated_item = utils.model_to_dict(response.context['item'])
+        updated_item = self.get_updated_data_for_clone(response) 
         updated_name = updated_item['name'] + " cloned!"
         updated_item['name'] = updated_name
         response = self.client.post(reverse('aristotle:clone_item',args=[self.item1.id]), updated_item)
-        most_recent = self.itemType.objects.order_by('-created').first()
+        # most_recent = self.itemType.objects.order_by('-created').first()
+        most_recent = response.context[-1]['object']  # Get the item back to check
         self.assertTrue(perms.user_can_view(self.editor, most_recent))
 
         self.assertRedirects(response,url_slugify_concept(most_recent))
@@ -1258,20 +1263,22 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.item1 = self.itemType.objects.get(id=self.item1.id) # Stupid cache
         self.assertTrue('cloned' not in self.item1.name)
 
+    @tag('clone_item')
     def test_submitter_can_save_via_clone_page_with_no_workgroup(self):
         self.login_editor()
-        import time
-        time.sleep(2) # delays so there is a definite time difference between the first item and the clone on very fast test machines
+        # import time
+        # time.sleep(2) # delays so there is a definite time difference between the first item and the clone on very fast test machines
         response = self.client.get(reverse('aristotle:clone_item',args=[self.item1.id]))
         self.assertEqual(response.status_code,200)
-        updated_item = utils.model_to_dict(response.context['item'])
-        updated_name = updated_item['name'] + " cloned with no WG!"
+        # updated_item = utils.model_to_dict(response.context['item'])
+        updated_item = self.get_updated_data_for_clone(response) 
+        updated_name = "CLONE" + updated_item['name'] + " cloned with no WG!"
         updated_item['name'] = updated_name
         updated_item['workgroup'] = '' # no workgroup this time
         response = self.client.post(reverse('aristotle:clone_item',args=[self.item1.id]), updated_item)
 
         self.assertTrue(response.status_code == 302) # make sure its saved ok
-        most_recent = self.itemType.objects.order_by('-created').first()
+        most_recent = response.context[-1]['object']  # Get the item back to check
 
         self.assertTrue('cloned with no WG' in most_recent.name)
         self.assertTrue(most_recent.workgroup == None)
@@ -1280,9 +1287,88 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertRedirects(response,url_slugify_concept(most_recent))
         self.assertEqual(most_recent.name,updated_name)
 
-        # Make sure the right item was save and our original hasn't been altered.
+        # Make sure the right item was saved and our original hasn't been altered.
         self.item1 = self.itemType.objects.get(id=self.item1.id) # Stupid cache
         self.assertTrue('cloned with no WG' not in self.item1.name)
+
+    def get_updated_data_for_clone(self, response):
+        self.assertEqual(response.status_code, 200)
+        item = response.context['item']
+        updating_field = None
+        default_fields = {}
+        if not hasattr(item, 'serialize_weak_entities'):
+            return utils.model_to_dict(item)
+        else:
+            weak_formsets = response.context['weak_formsets']
+
+            weak = item.serialize_weak_entities
+            data = utils.model_to_dict_with_change_time(item)
+
+            for entity in weak:
+
+                value_type = entity[1]
+                pre = entity[0]
+
+                # find associated formset
+                current_formset = None
+                for formset in weak_formsets:
+                    if formset['formset'].prefix == pre:
+                        current_formset = formset['formset']
+
+                # check that a formset with the correct prefix was rendered
+                self.assertIsNotNone(current_formset)
+
+                num_vals = getattr(self.item1,value_type).all().count()
+                ordering_field = getattr(self.item1,value_type).model.ordering_field
+
+                # check to make sure the classes with weak entities added them on setUp below
+                # self.assertGreater(num_vals, 0)
+
+                skipped_fields = ['id', 'ORDER', 'start_date', 'end_date', 'DELETE']
+                for i,v in enumerate(getattr(self.item1,value_type).all()):
+                    data.update({"%s-%d-id"%(pre,i): v.pk, "%s-%d-ORDER"%(pre,i) : getattr(v, ordering_field)})
+                    for field in current_formset[0].fields:
+                        if hasattr(v, field) and field not in skipped_fields:
+                            value = getattr(v, field)
+                            if value is not None:
+
+                                if (updating_field is None):
+                                    # see if this is the field to update
+                                    model_field = current_formset[0]._meta.model._meta.get_field(field)
+
+                                    if isinstance(model_field, CharField) or isinstance(model_field, TextField):
+                                        updating_field = field
+
+                                if field == updating_field:
+                                    data.update({"%s-%d-%s"%(pre,i,field) : value + ' -updated'})
+                                else:
+                                    added_value = value
+                                    if field in default_fields:
+                                        data.update({"%s-%d-%s"%(pre,i,field) : default_fields[field]})
+                                        added_value = default_fields[field]
+                                    else:
+                                        data.update({"%s-%d-%s"%(pre,i,field) : value})
+                                    if (i == num_vals - 1):
+                                        # add a copy
+                                        data.update({"%s-%d-%s"%(pre,i+1,field) : added_value})
+
+                # self.assertIsNotNone(updating_field)
+                # # no string was found to update
+                # # if this happends the test needs to be passed an updating_field or changed to support more than text updates
+
+                # i=0
+                # data.update({"%s-%d-DELETE"%(pre,i): 'checked', "%s-%d-%s"%(pre,i,updating_field) : getattr(v, updating_field)+" - deleted"}) # delete the last one.
+
+                # # add order and updating_value to newly added data
+                # i=num_vals
+                # data.update({"%s-%d-ORDER"%(pre,i) : i, "%s-%d-%s"%(pre,i,updating_field) : "new value -updated"})
+
+                # # add management form
+                # data.update({
+                #     "%s-TOTAL_FORMS"%pre:num_vals+1, "%s-INITIAL_FORMS"%pre: num_vals, "%s-MAX_NUM_FORMS"%pre:1000,
+                #     })
+            return data
+
 
     def test_help_page_exists(self):
         self.logout()

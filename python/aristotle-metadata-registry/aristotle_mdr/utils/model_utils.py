@@ -217,7 +217,7 @@ class AbstractValue(aristotleComponent):
         return self.valueDomain_id
 
 
-class DedBaseThrough(models.Model):
+class DedBaseThrough(aristotleComponent):
     """
     Abstract Class for Data Element Derivation Manay to Many through tables with ordering
     """
@@ -230,3 +230,11 @@ class DedBaseThrough(models.Model):
     class Meta:
         abstract = True
         ordering = ['order']
+
+    @property
+    def parentItem(self):
+        return self.data_element_derivation
+
+    @property
+    def parentItemId(self):
+        return self.data_element_derivation_id

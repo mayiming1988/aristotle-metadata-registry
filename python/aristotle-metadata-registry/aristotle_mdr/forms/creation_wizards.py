@@ -202,7 +202,7 @@ def subclassed_mixin_modelform(set_model, extra_mixins=[]):
     if set_model.edit_page_excludes:
         meta_attrs['exclude'] = set(list(UserAwareModelForm._meta.exclude) + list(set_model.edit_page_excludes))
     else:
-        meta_attrs['fields'] = '__all__'
+        meta_attrs['exclude'] =  UserAwareModelForm._meta.exclude #'__all__'
 
     meta_class = type('Meta', (ConceptForm.Meta,), meta_attrs)
 

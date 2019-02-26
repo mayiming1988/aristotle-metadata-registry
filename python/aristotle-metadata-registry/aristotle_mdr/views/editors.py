@@ -194,6 +194,11 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
     template_name = "aristotle_mdr/create/clone_item.html"
     permission_required = "aristotle_mdr.user_can_view"
 
+    def get_form(self, *args, **kwargs):
+        f = super().get_form(*args, **kwargs)
+        logger.critical(f.fields)
+        return f
+
     def get_form_class(self):
         return MDRForms.wizards.subclassed_clone_modelform(
             self.model,
@@ -202,8 +207,14 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
+        initial = concept_to_clone_dict(self.item)
+
+        from aristotle_mdr.contrib.custom_fields.models import CustomValue
+        for custom_val in CustomValue.objects.get_item_allowed(self.item, self.request.user):
+            initial[custom_val.field.form_field_name] = custom_val.content
+
         kwargs.update({
-            'initial': concept_to_clone_dict(self.item)
+            'initial': initial
         })
         return kwargs
 
@@ -215,6 +226,7 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
 
         if form.is_valid():
             item = form.save(commit=False)
+            item.submitter = request.user
             change_comments = form.data.get('change_comments', None)
             form_invalid = False
         else:
@@ -237,9 +249,9 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
                 reversion.revisions.set_comment(change_comments)
 
                 # Save item
-                form.save_m2m()
                 item.save()
                 form.save_custom_fields(item)
+                form.save_m2m()
 
             # Copied from wizards.py - maybe refactor
             final_formsets = []
@@ -288,7 +300,8 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
         fscontext = self.get_formset_context(extra_formsets)
         context.update(fscontext)
 
-        context['show_slots_tab'] = self.slots_active or context['form'].custom_fields
+        # context['show_slots_tab'] = self.slots_active or
+        context['show_slots_tab'] = context['form'].custom_fields
         context['show_id_tab'] = self.identifiers_active
 
         return context
