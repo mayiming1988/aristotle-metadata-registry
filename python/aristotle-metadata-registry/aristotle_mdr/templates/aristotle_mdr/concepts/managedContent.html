@@ -73,11 +73,5 @@
             @saved-tags="updateTags"
             @hide="closeTagsModal">
     </tags-modal>
-  
-    <issue-modal 
-            v-model="issueModalOpen" 
-            iid="{{ item.id }}"
-            url="{% url 'api_v4:issues:create' %}">
-    </issue-modal>
 
 {% endblock %}
