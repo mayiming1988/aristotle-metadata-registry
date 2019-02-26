@@ -16,11 +16,12 @@ export default {
             },
             onTagRemove: () => {
                 this.updateTags()
-            }
+            },
+            saveOnBlur: true
         })
 
         // Attach events, used by autocomplete
-        var input = this.tag_editor.getInput()
+        let input = this.tag_editor.getInput()
         input.addEventListener('input', (e) => {
             this.$emit('input', e)
         })
@@ -45,9 +46,9 @@ export default {
     },
     watch: {
         tags: function() {
-            var current_tags = this.tag_editor.getTagValues()
-            for (var i=0; i < this.tags.length; i++) {
-                var tag = this.tags[i]
+            let current_tags = this.tag_editor.getTagValues()
+            for (let i=0; i < this.tags.length; i++) {
+                let tag = this.tags[i]
                 // Add tag if not already present
                 if (current_tags.indexOf(tag == -1)) {
                     this.tag_editor.add(tag)
@@ -55,10 +56,10 @@ export default {
             }
         },
         newtags: function() {
-            var elements = this.tag_editor.getTagElements()
-            for (var i=0; i < elements.length; i++) {
-                var element = $(elements[i])
-                var text = element.find('.taggle_text').text()
+            let elements = this.tag_editor.getTagElements()
+            for (let i=0; i < elements.length; i++) {
+                let element = $(elements[i])
+                let text = element.find('.taggle_text').text()
                 if (this.newtags.indexOf(text) != -1) {
                     element.addClass('taggle_newtag')
                 } else {
