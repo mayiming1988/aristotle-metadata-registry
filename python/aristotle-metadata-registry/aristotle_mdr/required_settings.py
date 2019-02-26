@@ -308,16 +308,20 @@ MANIFEST_DIR = os.path.join(MDR_BASE_DIR, 'manifests')
 CACHE_ITEM_PAGE = False
 
 # Sanitization
-BLEACH_ALLOWED_TAGS = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'em',
-                       'i', 'li', 'ol', 'strong', 'ul', 'table', 'tbody', 'thead',
-                       'tr', 'th', 'td', 'img', 'p', 'h1', 'h2', 'h3', 'h4',
-                       'h5', 'h6', 'sub', 'sup', 'br', 'u']
+BLEACH_ALLOWED_TAGS = [
+    'a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'em',
+    'i', 'li', 'ol', 'strong', 'ul', 'table', 'tbody', 'thead',
+    'tr', 'th', 'td', 'img', 'p', 'h1', 'h2', 'h3', 'h4',
+    'h5', 'h6', 'sub', 'sup', 'br', 'u', 'colgroup'
+]
 
 BLEACH_ALLOWED_ATTRIBUTES = {
     'a': ['href', 'title', 'class', 'data-aristotle-concept-id'],
     'abbr': ['title'],
     'acronym': ['title'],
-    'img': ['src', 'height', 'width', 'alt']
+    'img': ['src', 'height', 'width', 'alt'],
+    'td': ['colspan', 'rowspan'],
+    'tr': ['colspan', 'rowspan'],
 }
 
 # Validators

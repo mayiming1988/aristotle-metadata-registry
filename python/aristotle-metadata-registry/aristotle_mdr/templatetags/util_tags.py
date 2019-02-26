@@ -94,7 +94,9 @@ def bleach_filter(html: str) -> SafeString:
     clean_html = bleach.clean(
         html,
         tags=settings.BLEACH_ALLOWED_TAGS,
-        attributes=settings.BLEACH_ALLOWED_ATTRIBUTES
+        attributes=settings.BLEACH_ALLOWED_ATTRIBUTES,
+        strip=True,  # Remove disallowed tags instead of escaping them
+        strip_comments=True,
     )
     return mark_safe(clean_html)
 
