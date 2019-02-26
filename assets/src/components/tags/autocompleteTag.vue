@@ -1,6 +1,6 @@
 <template>
   <vue-simple-suggest :list="getSuggestions" :filter-by-query="true" @select="makeSuggestion">
-    <taggle-tags :tags="current_tags" :newtags="newTags" @tag-update="update_tags"></taggle-tags>
+      <taggle-tags :tags="current_tags" :newtags="newTags" @tag-update="update_tags" />
   </vue-simple-suggest>
 </template>
 

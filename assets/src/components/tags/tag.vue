@@ -26,8 +26,9 @@ export default {
             onTagRemove: () => {
                 this.updateTags()
             },
-            saveOnBlur: true
+            clearOnBlur: false
         })
+
 
         // Attach events, used by autocomplete
         let input = this.tag_editor.getInput()
@@ -37,12 +38,18 @@ export default {
 
         input.addEventListener('focus', (e) => {
             this.$emit('focus', e)
-            this.$emit('input', '')
+            this.$emit('input', input.value)
         })
 
         input.addEventListener('blur', (e) => {
+            let rt = e.relatedTarget
+            // If being blurred by tag submit button
+            // This is a quick fix, should be changed
+            if (rt != null && rt.id == 'tag-editor-submit') {
+                this.tag_editor.add(input.value)
+            }
             // If related target not set or clicking on non button element
-            if (e.relatedTarget == null || e.relatedTarget.tagName != 'BUTTON') {
+            if (rt == null || rt.tagName != 'BUTTON') {
                 this.$emit('blur', e)
             }
         })
@@ -56,23 +63,21 @@ export default {
     watch: {
         tags: function() {
             let current_tags = this.tag_editor.getTagValues()
-            for (let i=0; i < this.tags.length; i++) {
-                let tag = this.tags[i]
+            for (let tag of this.tags) {
                 // Add tag if not already present
-                if (current_tags.indexOf(tag == -1)) {
+                if (!current_tags.includes(tag)) {
                     this.tag_editor.add(tag)
                 }
             }
         },
         newtags: function() {
             let elements = this.tag_editor.getTagElements()
-            for (let i=0; i < elements.length; i++) {
-                let element = $(elements[i])
-                let text = element.find('.taggle_text').text()
-                if (this.newtags.indexOf(text) != -1) {
-                    element.addClass('taggle_newtag')
+            for (let element of elements) {
+                let text = element.querySelector('.taggle_text').innerText
+                if (this.newtags.includes(text)) {
+                    element.classList.add('taggle_newtag')
                 } else {
-                    element.removeClass('taggle_newtag')
+                    element.classList.remove('taggle_newtag')
                 }
             }
         }
