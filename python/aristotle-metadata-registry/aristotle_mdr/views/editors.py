@@ -74,7 +74,6 @@ class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
 
         return initial
 
-
     def form_invalid(self, form, formsets=None):
         """
         If the form is invalid, re-render the context data with the

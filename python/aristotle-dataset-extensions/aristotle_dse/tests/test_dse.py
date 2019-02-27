@@ -128,7 +128,7 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages,TestCase):
 
     # TODO: Not skip this test :/
     # The error is due to foreignkeys in the get_updated_data_for_clone function.
-    @skip('it works, but formsets suck'
+    @skip('it works, but formsets suck')
     @tag('clone_item')
     def test_cloning_with_components(self):
         de1 = MDR.DataElement.objects.create(
