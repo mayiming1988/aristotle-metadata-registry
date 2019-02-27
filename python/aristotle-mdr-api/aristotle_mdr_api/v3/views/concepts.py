@@ -249,7 +249,7 @@ class SupersededRelationshipViewSet(viewsets.ReadOnlyModelViewSet):
     Provides access to a paginated list of metadata items.
     """
 
-    queryset = models.SupersedeRelationship.objects.all()
+    queryset = models.SupersedeRelationship.approved.all()
     filter_backends = (concept_backend.SupersedeRelationshipBackend,)
     filter_class = concept_backend.SupersedeRelationshipFilter
 

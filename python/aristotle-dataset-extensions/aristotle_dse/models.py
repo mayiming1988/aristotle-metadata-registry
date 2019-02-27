@@ -281,7 +281,6 @@ class DataSetSpecification(aristotle.models.concept):
 
     @property
     def registry_cascade_items(self):
-        # return list(self.clusters.all()) + list(self.data_elements.all())
         return (
             list(self.clusters.all()) +
             list(self.data_elements.all()) +

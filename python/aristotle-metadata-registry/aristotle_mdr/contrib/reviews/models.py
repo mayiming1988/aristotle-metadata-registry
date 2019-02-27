@@ -81,6 +81,10 @@ class ReviewRequest(StatusMixin, TimeStampedModel):
     def state(self):
         return self.target_registration_state
 
+    @property
+    def proposed_supersedes(self):
+        return self.supersedes.filter(proposed=True)
+
     def get_absolute_url(self):
         return reverse(
             "aristotle_reviews:review_details",

@@ -551,8 +551,6 @@ class ReviewChangesView(SessionWizardView):
             reversion.revisions.set_user(self.request.user)
 
             success, failed = self.register_changes(form_dict, change_form)
-            logger.critical(success)
-            logger.critical(failed)
 
             bad_items = sorted([str(i.id) for i in failed])
             count = self.get_items().count()

@@ -1,4 +1,5 @@
 import init, { initWidgets } from 'src/lib/init.js'
+import { initMoveable } from './moveable.js'
 import { initChangeStatus } from 'src/lib/changeStatus.js'
 import { initConceptLinks } from 'src/lib/concept_links.js'
 
@@ -11,12 +12,14 @@ import 'src/styles/conceptlink.css'
 
 export function initItemPage() {
     init()
+    initMoveable()
     initConceptLinks()
 
     $(document).ready(function() {
         $('.modal').on('loaded.bs.modal', function() {
             initChangeStatus()
             initWidgets()
+            initMoveable()
         })
     })
 

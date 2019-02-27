@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 
 from django.conf import settings
@@ -23,7 +23,7 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (
-    DetailView, FormView, ListView
+    DetailView, FormView, ListView, TemplateView
 )
 from django.views.generic.detail import BaseDetailView, SingleObjectTemplateResponseMixin
 from django.views.generic.edit import ModelFormMixin, ProcessFormView
@@ -597,6 +597,55 @@ class SimpleItemGet:
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['item'] = self.item.item
+        return context
+
+
+class FormsetView(TemplateView):
+    """
+    Generic View for handling formsets
+    Similar in structure to django's FormView
+    """
+
+    save_methods: List[str] = ['POST']
+
+    def get_formset_class(self):
+        raise NotImplementedError
+
+    def get_formset_initial(self):
+        return []
+
+    def get_formset_kwargs(self):
+        kwargs = {
+            'initial': self.get_formset_initial()
+        }
+        if self.request.method in self.save_methods:
+            kwargs.update({
+                'data': self.request.POST,
+                'files': self.request.FILES
+            })
+        return kwargs
+
+    def get_formset(self):
+        formset_class = self.get_formset_class()
+        return formset_class(**self.get_formset_kwargs())
+
+    def post(self, request, *args, **kwargs):
+        formset = self.get_formset()
+        if formset.is_valid():
+            return self.formset_valid(formset)
+        else:
+            return self.formset_invalid(formset)
+
+    def formset_valid(self, formset):
+        raise NotImplementedError
+
+    def formset_invalid(self, formset):
+        return self.render_to_response(self.get_context_data(formset=formset))
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        if 'formset' not in context:
+            context['formset'] = self.get_formset()
         return context
 
 

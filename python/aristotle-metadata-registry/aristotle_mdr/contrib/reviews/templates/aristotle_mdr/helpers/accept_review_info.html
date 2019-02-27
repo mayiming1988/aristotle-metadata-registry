@@ -1,0 +1,32 @@
+<div>
+    <div>Requested registration status:
+        <em>{{review.get_state_display}}</em> in <a href="{{review.registration_authority.get_absolute_url }}">{{review.registration_authority.name }}</a>
+    </div>
+    <div class="well">
+        {{ wizard.form.errors }}
+        <strong>The original message for this request:</strong>
+        <p>{{ review.message }}</p>
+        <strong>The items in this request are listed below:</strong>
+        <ul>
+            {% for item in review.concepts.all %}
+                <li>
+                    {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item %}
+                </li>
+            {% endfor %}
+        </ul>
+        {% if supersedes %}
+            <strong>The proposed supersedes for this request:</strong>
+            <ul>
+            {% for rel in supersedes %}
+                <li>
+                  <a href="{% url 'aristotle:item' rel.older.id %}" target="_blank">{{ rel.older.name }}</a>
+                  <i class="fa fa-fw fa-arrow-right"></i>
+                  <a href="{% url 'aristotle:item' rel.newer.id %}" target="_blank">{{ rel.newer.name }}</a>
+                </li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <strong>Proposed supersedes will not be approved due to registration at a different status</strong>
+        {% endif %}
+    </div>
+</div>

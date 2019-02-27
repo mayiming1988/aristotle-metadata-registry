@@ -361,3 +361,6 @@ MAX_EMAIL_FILE_SIZE = 1000 * 1000 * 10  # 10MB in bytes
 
 # Graphql
 GRAPHQL_ENABLED = False
+
+# Allows migrations to print text on success (disabled during testing)
+MIGRATION_PRINT = True

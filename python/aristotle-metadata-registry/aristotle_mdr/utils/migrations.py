@@ -4,11 +4,10 @@ At some point, we will squash the entire migration path for <1.4 and remove this
 running this code.
 """
 from django.db import migrations, models
-
 from django.db.migrations.operations.base import Operation
+from django.conf import settings
 
 import ckeditor_uploader.fields
-
 from .utils import classproperty
 
 
@@ -73,12 +72,14 @@ class StewardMigration(migrations.Migration):
         from django.contrib.auth import get_user_model
         User = apps.get_model('aristotle_mdr_user_management', 'User')
 
-        print("\n=================")
-        print("Autocreating default Stewardship Organization .... \"%s\"" % (so.name, ))
-        print("All registration authorities and workgroups will be assigned to this Organization")
-        print("All metadata assigned to a workgroups or registered will also be assigned to this Organization")
-        print("Update this name once all migrations are complete.")
-        print("-----------------")
+        if settings.MIGRATION_PRINT:
+            print("\n=================")
+            print("Autocreating default Stewardship Organization .... \"%s\"" % (so.name, ))
+            print("All registration authorities and workgroups will be assigned to this Organization")
+            print("All metadata assigned to a workgroups or registered will also be assigned to this Organization")
+            print("Update this name once all migrations are complete.")
+            print("-----------------")
+
         for u in User.objects.all().order_by("-is_superuser"):
             # We can't access methods during migrations so we manually create memberships
             # Also migrations don't work well with the proxy "AUTH_USER", so we just add in the primary key
@@ -88,7 +89,9 @@ class StewardMigration(migrations.Migration):
                 role = "member"
             print("Granting [{user}] the role [{role}]".format(user=u.email, role=role))
             StewardMembership.objects.get_or_create(group=so, user=u, role=role)
-        print("=================")
+
+        if settings.MIGRATION_PRINT:
+            print("=================")
         return so.uuid
 
     @classmethod
