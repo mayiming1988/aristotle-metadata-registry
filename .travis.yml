@@ -24,7 +24,7 @@ defaults:
         esac
         echo "Running script with DATABASE_URL="$DATABASE_URL
         echo "Running script with DB="$DB
-        ./scripts/tox_if.sh dj$DJANGO_VERSION-test-linux-db-$DB-search-$SEARCH-module_$MODULE
+        tox -e dj$DJANGO_VERSION-test-linux-db-$DB-search-$SEARCH-module_$MODULE
     services:
       - postgresql
       - redis-server
@@ -64,7 +64,7 @@ defaults:
       - npm install
       - npm run devbuild
       - cd .. 
-    script: ./scripts/tox_if.sh dj1.11-linux-ally-$ALLY-module_amr
+    script: tox -e dj1.11-linux-ally-$ALLY-module_amr
 
   - &deploy_stage
 
@@ -105,7 +105,7 @@ matrix:
         - pip install codecov coveralls
         - pip install 'tox>=3.0'
       python: 3.6
-      script: ./scripts/tox_if.sh docs
+      script: tox -e docs
 
     - stage: frontend
       name: "Frontend Tests"
@@ -147,30 +147,18 @@ matrix:
       if: type = push
       env: DJANGO_VERSION='1.11'  DB=mariadb   SEARCH=elastic MODULE=amr
       <<: *main_test_script_py36
-
-      # Possible failures:
-    # - stage: testing
-    #   env: DJANGO_VERSION='1.11'  DB=sqlite    SEARCH=whoosh   VARIANT=haystack
-    #   <<: *main_test_script_py36
-    # - stage: testing
-    #   env: DJANGO_VERSION='1.11'  DB=sqlite    SEARCH=elastic  VARIANT=haystack
-    #   <<: *main_test_script_py36
-
     - stage: testing-modules
       name: "Dataset Extenstions Tests"
       env: DJANGO_VERSION='1.11'  DB=postgres   SEARCH=elastic MODULE=dse
       <<: *main_test_script_py36
-
     - stage: testing-modules
       name: "Comet Tests"
       env: DJANGO_VERSION='1.11'  DB=postgres   SEARCH=elastic MODULE=cir
       <<: *main_test_script_py36
-
     - stage: testing-modules
       name: "Graphql Tests"
       env: DJANGO_VERSION='1.11'  DB=postgres   SEARCH=elastic MODULE=gql
       <<: *main_test_script_py36
-
     - stage: testing-modules
       name: "API Tests"
       env: DJANGO_VERSION='1.11'  DB=postgres   SEARCH=elastic MODULE=api

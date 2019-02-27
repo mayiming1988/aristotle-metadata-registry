@@ -1,6 +1,14 @@
 {% extends 'aristotle_mdr/concepts/contentInfoBase.html' %}
-
+{% load render_bundle from webpack_loader %}
 {% block title %}Issues for {{ item.name }}{% endblock %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'item_issues' 'js' %}
+{% endblock %}
+
+{% block webpack_css_bundle %}
+  {% render_bundle 'item_issues' 'css' %}
+{% endblock %}
 
 {% block infoContent %}
     <h1>Issues</h1>
@@ -11,10 +19,10 @@
     </ul>
 
     <div class="tab-content">
-        <div role="tabpanel" class="tab-pane active" id="open">
+        <div role="tabpanel" class="tab-pane active margin-above" id="open">
             {% include 'aristotle_mdr/issues/sublist.html' with issues=open_issues context_class="success" %}
         </div>
-        <div role="tabpanel" class="tab-pane" id="closed">
+        <div role="tabpanel" class="tab-pane margin-above" id="closed">
             {% include 'aristotle_mdr/issues/sublist.html' with issues=closed_issues context_class="danger" %}
         </div>
     </div>
