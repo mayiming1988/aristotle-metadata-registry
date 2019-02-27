@@ -312,7 +312,7 @@ BLEACH_ALLOWED_TAGS = [
     'a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'em',
     'i', 'li', 'ol', 'strong', 'ul', 'table', 'tbody', 'thead',
     'tr', 'th', 'td', 'img', 'p', 'h1', 'h2', 'h3', 'h4',
-    'h5', 'h6', 'sub', 'sup', 'br', 'u', 'colgroup'
+    'h5', 'h6', 'sub', 'sup', 'br', 'u', 'col', 'colgroup'
 ]
 
 BLEACH_ALLOWED_ATTRIBUTES = {
@@ -322,6 +322,9 @@ BLEACH_ALLOWED_ATTRIBUTES = {
     'img': ['src', 'height', 'width', 'alt'],
     'td': ['colspan', 'rowspan'],
     'tr': ['colspan', 'rowspan'],
+    'th': ['colspan', 'rowspan'],
+    'colgroup': ['span'],
+    'col': ['span']
 }
 
 # Validators
