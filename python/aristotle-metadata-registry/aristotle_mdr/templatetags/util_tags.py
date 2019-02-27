@@ -119,3 +119,8 @@ def iso_time(dt: Optional[datetime]):
     else:
         # If we got a non datetime object don't do anything
         return dt
+
+
+@register.filter
+def lookup_string(mapping, key):
+    return mapping.get(key, '')
