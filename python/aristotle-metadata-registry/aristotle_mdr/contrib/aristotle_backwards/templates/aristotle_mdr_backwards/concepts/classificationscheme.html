@@ -1,6 +1,15 @@
 {% extends "aristotle_mdr/concepts/managedContent.html" %}
 
-{% load aristotle_tags %}
+{% load aristotle_tags util_tags %}
+
+{% block objSpecific %}
+  <div class="">
+    {% if item.classificationStructure %}
+    <h3>Classification Structure</h3>
+    {{ item.classificationStructure | bleach }}
+    {% endif %}
+  </div>
+{% endblock %}
 
 {% block relationships %}
   {% with vds=item.valueDomains.all %}
