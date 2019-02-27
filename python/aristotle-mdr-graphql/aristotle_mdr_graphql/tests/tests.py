@@ -221,7 +221,7 @@ class GraphqlFunctionalTests(BaseGraphqlTestCase, TestCase):
         # self.assertEqual(input_data_elements[0]['dataElement'], None)
 
         # This isn't right, but its close enough.
-        self.assertEqual(input_data_element, None)
+        self.assertEqual(input_data_elements[0], None)
 
     def test_query_table_inheritance(self):
         # Test a query of a table inheritance property (from metadata to dataelement)
