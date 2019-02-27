@@ -41,10 +41,10 @@ QUICK_DATES = Choices(
 
 SORT_OPTIONS = Choices(
     ('n', 'natural', _('Relevance')),
-    ('ma', 'modified_ascending', _('Modified ascending')),
-    ('md', 'modified_descending', _('Modified descending')),
-    ('ma', 'created_ascending', _('Created ascending')),
-    ('md', 'created_descending', _('Created descending')),
+    ('ma', 'modified_ascending', _('First Modified')),
+    ('md', 'modified_descending', _('Last Modified')),
+    ('ma', 'created_ascending', _('First Created')),
+    ('md', 'created_descending', _('Last Created')),
     ('aa', 'alphabetical', _('Alphabetical')),
     ('s', 'state', _('Registration state')),
 )
