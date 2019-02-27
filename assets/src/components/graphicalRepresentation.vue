@@ -202,11 +202,7 @@
                                 if (net.nodes.length > 0) {
                                     let nodesArray = nodes.get(net.nodes)
                                     let myNode = nodesArray[0]
-                                    console.log("THIS IS THE URL:")
-                                    console.log(myNode.expand_node_get_url)
                                     this.get(myNode.expand_node_get_url).then((response) => {
-                                        console.log(response.data.nodes)
-                                        console.log(response.data.edges)
                                     })
                                 }
                             })
