@@ -65,27 +65,36 @@ class TestTemplateTags_aristotle_tags_py(TestCase):
 
 class UtilTagsTestCase(TestCase):
 
+    def test_blech_strings_safe(self):
+        """Make sure strings returned by bleach are marked safe"""
+        html = '<b>Bold</b> <u>Underline</u>'
+        bleached = util_tags.bleach_filter(html)
+        self.assertEqual(type(bleached), SafeString)
+
     @override_settings(BLEACH_ALLOWED_TAGS=['a'])
     def test_bleach_non_allowed_tags(self):
         html = '<b>Bold</b> <u>Underline</u>'
         bleached = util_tags.bleach_filter(html)
-        self.assertEqual(type(bleached), SafeString)
-        self.assertEqual(bleached, '&lt;b&gt;Bold&lt;/b&gt; &lt;u&gt;Underline&lt;/u&gt;')
+        self.assertEqual(bleached, 'Bold Underline')
 
     @override_settings(BLEACH_ALLOWED_TAGS=['a'])
     def test_bleach_mixed_tags(self):
         html = '<a>Link</a> <u>Underline</u>'
         bleached = util_tags.bleach_filter(html)
-        self.assertEqual(type(bleached), SafeString)
-        self.assertEqual(bleached, '<a>Link</a> &lt;u&gt;Underline&lt;/u&gt;')
+        self.assertEqual(bleached, '<a>Link</a> Underline')
 
     @override_settings(BLEACH_ALLOWED_TAGS=['a'])
     @override_settings(BLEACH_ALLOWED_ATTRIBUTES={'a': 'href'})
     def test_bleach_removes_not_allowed_attrs(self):
         html = '<a href="/url" title="Wow">Link</a>'
         bleached = util_tags.bleach_filter(html)
-        self.assertEqual(type(bleached), SafeString)
         self.assertEqual(bleached, '<a href="/url">Link</a>')
+
+    def test_bleach_tag_case(self):
+        """Test that bleach handles tags being uppercase"""
+        html = '<B>Bold</B>'
+        bleached = util_tags.bleach_filter(html)
+        self.assertEqual(bleached, '<b>Bold</b>')
 
     def test_bleach_handles_none(self):
         bleached = util_tags.bleach_filter(None)
