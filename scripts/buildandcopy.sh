@@ -21,6 +21,11 @@ if [[ -z "$STORAGE_BUCKET_NAME" ]]; then
     exit 1
 fi
 
+if [[ -z "$ASSET_PATH" ]];then 
+    echo "ASSET_PATH environment variable must be set"
+    exit 1
+fi
+
 mkdir -p ./python/aristotle-metadata-registry/aristotle_mdr/manifests
 
 cd assets
@@ -32,8 +37,12 @@ npm run build
 echo "Webpack build complete!"
 cd ..
 
-echo "Installing dependancies..."
-pip install awscli
+# If aws command not avaliable
+if ! [[ $(command -v aws) ]]; then
+    echo "Installing dependancies..."
+    pip install awscli
+fi
+
 echo "Collecting bundle static..."
 
 if [[ "$1" == "--dry" ]]; then
@@ -43,5 +52,13 @@ else
 fi
 
 cp ./assets/dist/webpack-stats.json ./python/aristotle-metadata-registry/aristotle_mdr/manifests
+
+if [[ "$1" == "--manual" ]]; then
+    echo "Doing a manual deploy to s3..."
+    rm -r ./dist
+    python setup.py bdist_wheel
+    aws s3 cp ./dist s3://aristotle-pypi-bucket-1kyswb3cn1pa1 --recursive 
+fi
+
 echo "Done!"
 exit 0
