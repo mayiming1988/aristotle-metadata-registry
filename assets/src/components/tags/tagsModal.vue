@@ -1,17 +1,20 @@
 <template>
   <modal :value="open" @input="emitClose" title="Tag Editor" @hide="emitClose">
     <p>Update your tags for this item, new tags (shown darker) will be created for you</p>
+    <p>Press enter to create and separate your tags</p>
 
-    <api-errors :errors="errors"></api-errors>
+    <api-errors :errors="errors" />
     <autocomplete-tags :current_tags="current_tags" :user_tags="userTagsFlat" @tag-update="update_tags" />
     <div slot="footer">
-      <button type="button" class="btn btn-default" @click="emitClose">Close</button>
+      <button type="button" class="btn btn-default" @click="emitClose">
+          Close
+      </button>
       <submit-tags 
         :submit-url="submitUrl"
         :tags="current_tags"
         @error="setErrors"
-        @tags-saved="update_saved_tags">
-      </submit-tags>
+        @tags-saved="update_saved_tags" 
+      />
     </div>
   </modal>
 </template>

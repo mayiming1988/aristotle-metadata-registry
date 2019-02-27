@@ -3,7 +3,6 @@
 {% load aristotle_tags util_tags %}
 
 {% block infoContent %}
-
     <section class="managed row">
         {% include "aristotle_mdr/concepts/infobox.html" %}
 
@@ -66,12 +65,12 @@
     </section>
 
     <tags-modal 
-            :open="tagsModalOpen" 
-            item-tags="{{ item_tags }}" 
-            user-tags="{{ user_tags }}" 
-            submit-url="{% url 'api_v4:item_tags' item.id %}"
-            @saved-tags="updateTags"
-            @hide="closeTagsModal">
+        :open="tagsModalOpen" 
+        item-tags="{{ item_tags }}" 
+        user-tags="{{ user_tags }}" 
+        submit-url="{% url 'api_v4:item_tags' item.id %}"
+        @saved-tags="updateTags"
+        @hide="closeTagsModal">
     </tags-modal>
 
 {% endblock %}
