@@ -40,7 +40,7 @@ class baseObjectIndex(indexes.SearchIndex):
     text = ConceptFallbackCharField(document=True, use_template=True)
     modified = indexes.DateTimeField(model_attr='modified')
     created = indexes.DateTimeField(model_attr='created')
-    name = indexes.CharField(model_attr='name', boost=1)
+    name = indexes.CharField(model_attr='name', boost=1.2)
     uuid = indexes.CharField(model_attr='uuid')
     # Thanks ElasticSearch - https://github.com/django-haystack/django-haystack/issues/569
     name_sortable = indexes.CharField(model_attr='name', indexed=False, stored=True)

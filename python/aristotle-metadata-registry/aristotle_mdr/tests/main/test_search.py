@@ -805,6 +805,7 @@ class TestTokenSearch(TestCase):
             definition='Pokemon are so good. Pokemon. Pokemon',
         )
         objs = self.query_search('pokemon')
+        self.assertEqual(len(objs), 2)
         self.assertEqual(objs[0].object, in_title_item)
 
 
