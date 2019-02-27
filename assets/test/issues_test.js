@@ -12,7 +12,7 @@ import rootComponent from '../src/components/root/issues.js'
 describe('issueComment', function() {
 
     beforeEach(function() {
-        this.wrapper = VueTestUtils.shallowMount(issueComment)
+        this.wrapper = VueTestUtils.mount(issueComment)
     })
 
     afterEach(function() {

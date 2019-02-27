@@ -52,7 +52,7 @@ class SupersedesGraphicalConceptView(APIView):
                 if perms.user_can_view(self.request.user, current_item):
                     serialised_item = ConceptSerializer(current_item).data
                     serialised_item["node_options"] = {"shape": "ellipse", "borderWidth": 2, "margin": 3,
-                                                       "font": {"size": 18}}
+                                                       "font": {"size": 15}}
                     nodes.append(serialised_item)
 
             if current_item.superseded_by_items_relation_set.first():
@@ -115,7 +115,7 @@ class GeneralGraphicalConceptView(APIView):
         source_item = ConceptSerializer(item).data
         source_item["type"] = self.camel_case_split(item.__class__.__name__)
         source_item["node_options"] = {"shape": "ellipse", "borderWidth": 2, "margin": 3,
-                                                   "font": {"size": 18}}
+                                                   "font": {"size": 15}}
         nodes.append(source_item)
 
         if hasattr(item, 'relational_attributes'):

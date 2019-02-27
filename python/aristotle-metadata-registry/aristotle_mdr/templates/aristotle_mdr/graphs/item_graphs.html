@@ -14,11 +14,21 @@
 {% block infoContent %}
 
     <h2>{% trans 'Superseding relationships' %}</h2>
-    <supersedes-graphical-representation url="{% url 'api_v4:item:item_supersedes_graphical' pk=item.id %}">
-    </supersedes-graphical-representation>
+    <graphical-representation
+            url="{% url 'api_v4:item:item_supersedes_graphical' pk=item.id %}"
+            type-of-graph="supersedes"
+            direction="LR"
+            level-separation="400"
+    >
+    </graphical-representation>
 
     <h2>{% trans 'General relationships' %}</h2>
-    <general-graphical-representation url="{% url 'api_v4:item:item_general_graphical' pk=item.id %}">
-    </general-graphical-representation>
+    <graphical-representation
+            url="{% url 'api_v4:item:item_general_graphical' pk=item.id %}"
+            type-of-graph="general"
+            direction="UD"
+            level-separation="100"
+    >
+    </graphical-representation>
 
 {% endblock %}
