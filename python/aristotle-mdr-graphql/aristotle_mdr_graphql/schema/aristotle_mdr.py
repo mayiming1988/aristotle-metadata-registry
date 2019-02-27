@@ -62,6 +62,9 @@ DataElementNode = type_from_concept_model(
 )
 
 DataElementConceptNode = type_from_concept_model(mdr_models.DataElementConcept)
+
+dedinputs = inline_type_from_model(mdr_models.DedInputsThrough)
+dedderives = inline_type_from_model(mdr_models.DedDerivesThrough)
 DataElementDerivationNode = type_from_concept_model(mdr_models.DataElementDerivation)
 
 
