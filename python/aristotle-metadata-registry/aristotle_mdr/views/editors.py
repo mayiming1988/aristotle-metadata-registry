@@ -194,11 +194,6 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
     template_name = "aristotle_mdr/create/clone_item.html"
     permission_required = "aristotle_mdr.user_can_view"
 
-    def get_form(self, *args, **kwargs):
-        f = super().get_form(*args, **kwargs)
-        logger.critical(f.fields)
-        return f
-
     def get_form_class(self):
         return MDRForms.wizards.subclassed_clone_modelform(
             self.model,
