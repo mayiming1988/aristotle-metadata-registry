@@ -2265,8 +2265,6 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
             'name': 'Goodness (clone)',
             'definition': 'A measure of good'
         })
-        data.pop("id", None)
-
 
         response = self.client.post(reverse('aristotle:clone_item',args=[self.item1.id]), data)
 
@@ -2276,8 +2274,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         self.assertTrue(clone.pk != self.item1.id)
 
         # clone = models.ValueDomain.objects.get(name='Goodness (clone)')
-        print(clone.permissiblevalue_set.all())
-    
+
         self.assertEqual(clone.name, 'Goodness (clone)')
         self.assertEqual(self.item1.name, old_name)
         self.assertEqual(clone.permissiblevalue_set.count(), 4)

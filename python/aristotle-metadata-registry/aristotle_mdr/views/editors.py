@@ -75,6 +75,15 @@ class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
         return initial
 
 
+    def form_invalid(self, form, formsets=None):
+        """
+        If the form is invalid, re-render the context data with the
+        data-filled form and errors.
+        """
+
+        return self.render_to_response(self.get_context_data(form=form, formsets=formsets))
+
+
 class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
     template_name = "aristotle_mdr/actions/advanced_editor.html"
     permission_required = "aristotle_mdr.user_can_edit"
@@ -163,14 +172,6 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
                 form.save_custom_fields(item)
 
             return HttpResponseRedirect(url_slugify_concept(self.item))
-
-    def form_invalid(self, form, formsets=None):
-        """
-        If the form is invalid, re-render the context data with the
-        data-filled form and errors.
-        """
-
-        return self.render_to_response(self.get_context_data(form=form, formsets=formsets))
 
     def get_context_data(self, *args, **kwargs):
 
