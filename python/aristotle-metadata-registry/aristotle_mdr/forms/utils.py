@@ -20,7 +20,14 @@ class RegistrationAuthorityMixin(object):
         self.fields[field_name].choices = ras
 
 
-class StewardOrganisationRestrictedChoicesForm(UserAwareFormMixin, forms.ModelForm):
+class BootstrapableMixin(object):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for visible in self.visible_fields():
+            visible.field.widget.attrs['class'] = 'form-control'
+
+
+class StewardOrganisationRestrictedChoicesForm(BootstrapableMixin, UserAwareFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         from aristotle_mdr.models import StewardOrganisation, StewardOrganisationMembership
