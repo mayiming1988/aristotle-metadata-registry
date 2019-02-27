@@ -2,20 +2,14 @@
 {% load aristotle_tags %}
 
 {% block objSpecific %}
+{% if item.indicators.all.exists %}
 <h2>Associated Indicators</h2>
-    <a href="{% url 'comet:outcomearea_alter_indicators' item.id %}"
-        data-toggle="modal" data-target="#editIndicatorsPopover"
-        class="pull-right btn btn-default btn-sm">
-        <i class="fa fa-plus"></i>
-        Add Indicator
-    </a>
-
     <ul>
     {% for i in item.indicators.all|can_view_iter:user %}
       <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=i %}</li>
+    {% empty %}
+      <li><em>No indicators visible for this Outcome Area.</em></li>
     {% endfor %}
     </ul>
-
-    {% bootstrap_modal 'editIndicatorsPopover' %}
-
+{% endif %}
 {% endblock %}

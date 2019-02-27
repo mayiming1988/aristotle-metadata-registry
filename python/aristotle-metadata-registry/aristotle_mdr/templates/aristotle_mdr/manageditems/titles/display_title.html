@@ -40,10 +40,8 @@
 
     {% if not hide_item_actions %}
       {# Screen reader quick links #}
-      {% if item|can_edit:request.user and request.user.is_staff and not hide_admin_edit %}
-          <a class="sr-only" accesskey="p" href="{% adminEdit item %}">{% trans 'Edit in admin'%}</a>
-      {% elif item|can_edit:request.user %}
-          <a class="sr-only" accesskey="e" href="{% url 'aristotle:edit_item' item.id %}">{% trans 'Open item editor'%}</a>
+      {% if item|can_edit:request.user %}
+          <a class="sr-only" accesskey="e" href="{% url 'aristotle_mdr:stewards:group:edit_managed_item' item.stewardship_organisation.slug item.meta.model_name item.pk %}">{% trans 'Open item editor'%}</a>
       {% endif %}
     {% endif %}
 </h1>
