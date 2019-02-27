@@ -526,8 +526,8 @@ class DataElementDerivationWizardPage(ConceptWizardPage,TestCase):
         item = self.model.objects.filter(name=item_name).first()
         self.assertRedirects(response,url_slugify_concept(item))
 
-        inputs = item.inputs.all()
-        derives = item.derives.all()
+        inputs = item.input_data_elements.all()
+        derives = item.derived_data_elements.all()
 
         self.assertEqual(len(inputs), 2)
         self.assertTrue(self.de3 in inputs)
