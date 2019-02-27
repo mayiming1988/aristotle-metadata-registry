@@ -206,6 +206,7 @@
                                     console.log(myNode.expand_node_get_url)
                                     this.get(myNode.expand_node_get_url).then((response) => {
                                         console.log(response.data.nodes)
+                                        console.log(response.data.edges)
                                     })
                                 }
                             })
