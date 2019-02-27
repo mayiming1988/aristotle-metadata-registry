@@ -28,9 +28,11 @@
     <li role="presentation" {% if activetab == "item" %}class="active"{% endif %}>
       <a href="{% url 'aristotle:item' item.id item.meta.model_name item.name %}" aria-controls="item">Item</a>
     </li>
+    {% comment %}
     <li role="presentation" {% if activetab == "history" %}class="active"{% endif %}>
       <a href="{% url 'aristotle:item_history' item.id %}" aria-controls="history" role="tab">History</a>
     </li>
+    {% endcomment %}
   </ul>
 
   {% block infoContent %}

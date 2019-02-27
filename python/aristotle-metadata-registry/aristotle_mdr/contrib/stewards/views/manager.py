@@ -6,7 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
-from django.views.generic import ListView, TemplateView, CreateView
+from django.views.generic import ListView, TemplateView, CreateView, UpdateView
 from django.urls import reverse
 from aristotle_mdr.utils.model_utils import ManagedItem
 
@@ -66,6 +66,7 @@ class StewardURLManager(GroupURLManager):
             url("managed_items/?$", view=self.managed_item_list_types(), name="managed_item_list_types"),
             url("managed_items/(?P<model_name>[^\/]+)/?$", view=self.managed_item_list_items(), name="managed_item_list_items"),
             url("managed_items/(?P<model_name>.+)/create/?$", view=self.managed_item_create_view(), name="create_managed_item"),
+            url("managed_items/(?P<model_name>.+)/(?P<mi_pk>.+)/edit/?$", view=self.managed_item_edit_view(), name="edit_managed_item"),
 
             # url("managed_items/(?P<model_name>.+)/(?P<pk>.+)?$", view=self.managed_item_view(), name="create_managed_item"),
             url("ras/$", view=self.registration_authority_list_view(), name="registrationauthorities"),
@@ -143,6 +144,7 @@ class StewardURLManager(GroupURLManager):
 
         class CreateManagedItemView(GroupMixin, ManagedItemViewMixin, CreateView):
             template_name = "stewards/managed_item/add.html"
+            role_permission = "manage_managed_items"
             fields=["stewardship_organisation", "name", "definition"]
 
             def get_initial(self):
@@ -151,6 +153,16 @@ class StewardURLManager(GroupURLManager):
                 return initial
 
         return CreateManagedItemView.as_view(manager=self, group_class=self.group_class)
+
+    def managed_item_edit_view(self):
+
+        class UpdateManagedItemView(GroupMixin, ManagedItemViewMixin, UpdateView):
+            template_name = "stewards/managed_item/edit.html"
+            role_permission = "manage_managed_items"
+            fields=["name", "definition"]
+            pk_url_kwarg = "mi_pk"
+
+        return UpdateManagedItemView.as_view(manager=self, group_class=self.group_class)
 
     def managed_item_list_types(self):
 

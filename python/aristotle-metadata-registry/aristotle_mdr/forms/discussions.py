@@ -2,9 +2,10 @@ from django import forms
 import aristotle_mdr.models as MDR
 from aristotle_mdr.perms import user_can_view
 from aristotle_mdr.contrib.autocomplete import widgets
+from aristotle_mdr.forms.utils import BootstrapableMixin
 
 
-class NewPostForm(forms.ModelForm):
+class NewPostForm(BootstrapableMixin, forms.ModelForm):
     relatedItems = forms.ModelMultipleChoiceField(
         queryset=MDR._concept.objects.all(),
         label="Related items", required=False,
@@ -30,7 +31,7 @@ class NewPostForm(forms.ModelForm):
         return relatedItems
 
 
-class EditPostForm(forms.ModelForm):
+class EditPostForm(BootstrapableMixin, forms.ModelForm):
     relatedItems = forms.ModelMultipleChoiceField(
         queryset=MDR._concept.objects.all(),
         label="Related items", required=False,
@@ -42,7 +43,7 @@ class EditPostForm(forms.ModelForm):
         exclude = ['author', 'workgroup', 'closed']
 
 
-class CommentForm(forms.ModelForm):
+class CommentForm(BootstrapableMixin, forms.ModelForm):
     class Meta:
         model = MDR.DiscussionComment
         exclude = ['author', 'post']

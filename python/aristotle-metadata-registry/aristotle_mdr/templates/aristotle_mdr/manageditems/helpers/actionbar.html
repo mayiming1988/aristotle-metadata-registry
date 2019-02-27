@@ -9,14 +9,17 @@
       </button>
       <ul class="dropdown-menu dropdown-menu-right" role="menu">
         {% if item|can_edit:request.user %}
-        <li><a class="" href="{% url 'aristotle:edit_item' item.id %}"
+
+        <li><a class="" href="{% url 'aristotle_mdr:stewards:group:edit_managed_item' item.stewardship_organisation.slug item.meta.model_name item.pk %}"
                         data-toggle="modal" data-target="#infobox_adv_edit">
             <i class="fa fa-fw fa-pencil-square-o"></i> {% trans 'Open item editor'%}
         </a></li>
         {% endif %}
+        {% comment %}
         <li><a class="" href="{% url 'aristotle:item_history' item.id %}">
             <i class="fa fa-fw fa-history"></i> {% trans 'View changes'%}
         </a></li>
+        {% endcomment %}
         <li class="divider"></li>
 
       {% has_group_perm group "publish_objects" as can_publish_objects %}
@@ -31,12 +34,14 @@
       </ul>
     </div>
     {% endif %}
+    {% comment %}
     <div class="btn-group">
         <button id="metadata_action_menu_download" accesskey="d" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
         <i class="fa fa-download"></i> {% trans 'Download'%} <span class="caret"></span>
         </button>
         {% downloadMenu item %}
     </div>
+    {% endcomment %}
 </div>
 
 {% bootstrap_modal "infobox_adv_edit" size='lg' %}
