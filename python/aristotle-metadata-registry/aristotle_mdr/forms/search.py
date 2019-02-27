@@ -40,7 +40,7 @@ QUICK_DATES = Choices(
 
 
 SORT_OPTIONS = Choices(
-    ('n', 'natural', _('Ranking')),
+    ('n', 'natural', _('Relevance')),
     ('ma', 'modified_ascending', _('Modified ascending')),
     ('md', 'modified_descending', _('Modified descending')),
     ('ma', 'created_ascending', _('Created ascending')),
