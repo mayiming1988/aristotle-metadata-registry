@@ -9,7 +9,6 @@ import { initNotifications } from './notify.js'
 import { initMessages } from './messages.js'
 import { initDAL } from './dal_simple_init.js'
 import { initCKEditor } from './ckeditor_simple_init.js'
-import { initMoveable } from './moveable.js'
 import { initTime } from './localtime.js'
 
 // Always on styles
@@ -59,9 +58,6 @@ export function initWidgets() {
 
     // Initialize ckeditor
     initCKEditor()
-
-    // Initialize moveable
-    initMoveable()
 }
 
 export function initSpinners() {

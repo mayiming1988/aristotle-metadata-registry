@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Iterable
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ImproperlyConfigured
@@ -54,7 +54,8 @@ from .managers import (
     ConceptManager,
     ReviewRequestQuerySet, WorkgroupQuerySet,
     RegistrationAuthorityQuerySet,
-    StatusQuerySet, UtilsManager
+    StatusQuerySet, UtilsManager,
+    SupersedesManager, ProposedSupersedesManager
 )
 
 from aristotle_mdr.contrib.groups.base import (
@@ -753,7 +754,7 @@ class _concept(baseAristotleObject):
         return url_slugify_concept(self)
 
     @property
-    def registry_cascade_items(self):
+    def registry_cascade_items(self) -> List:
         """
         This returns the items that can be registered along with the this item.
         If a subclass of _concept defines this method, then when an instance
@@ -761,7 +762,7 @@ class _concept(baseAristotleObject):
         instance, all instances returned by this method will all recieve the
         same registration status.
 
-        Reimplementations of this MUST return iterables.
+        Reimplementations of this MUST return lists of concept subclasses.
         """
         return []
 
@@ -803,6 +804,16 @@ class _concept(baseAristotleObject):
             for field in type(self)._meta.get_fields()
             if field.is_relation and field.one_to_many and issubclass(field.related_model, MDR.aristotleComponent)
         ]
+
+    @property
+    def approved_supersedes(self):
+        supersedes = self.superseded_items_relation_set.filter(proposed=False).select_related('older_item')
+        return [ss.older_item for ss in supersedes]
+
+    @property
+    def approved_superseded_by(self):
+        supersedes = self.superseded_by_items_relation_set.filter(proposed=False).select_related('newer_item')
+        return [ss.newer_item for ss in supersedes]
 
     def check_is_public(self, when=timezone.now()):
         """
@@ -897,6 +908,9 @@ class concept(_concept):
 
 
 class SupersedeRelationship(TimeStampedModel):
+    # Whether this relationship is proposed by a review,
+    # or an actual approved relation
+    proposed = models.BooleanField(default=False)
     older_item = ConceptForeignKey(
         _concept,
         related_name='superseded_by_items_relation_set',
@@ -912,6 +926,16 @@ class SupersedeRelationship(TimeStampedModel):
         help_text=_("The date the superseding relationship became effective."),
         blank=True, null=True
     )
+    review = ConceptForeignKey(
+        'aristotle_mdr_review_requests.ReviewRequest',
+        null=True,
+        default=None,
+        related_name='supersedes'
+    )
+
+    objects = models.Manager()
+    approved = SupersedesManager()  # Only non proposed relationships can be retrieved here
+    proposed_objects = ProposedSupersedesManager()  # Only proposed objects can be retrieved here
 
 
 REVIEW_STATES = Choices(
@@ -920,53 +944,6 @@ REVIEW_STATES = Choices(
     (10, 'accepted', _('Accepted')),
     (15, 'rejected', _('Rejected')),
 )
-
-
-class ReviewRequest(TimeStampedModel):
-    objects = ReviewRequestQuerySet.as_manager()
-    concepts = models.ManyToManyField(_concept, related_name="review_requests")
-    registration_authority = models.ForeignKey(
-        RegistrationAuthority,
-        help_text=_("The registration authority the requester wishes to endorse the metadata item")
-    )
-    requester = models.ForeignKey(settings.AUTH_USER_MODEL, help_text=_("The user requesting a review"),
-                                  related_name='requested_reviews')
-    message = models.TextField(blank=True, null=True, help_text=_(
-        "An optional message accompanying a request, this will accompany the approved registration status"))
-    reviewer = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, help_text=_("The user performing a review"),
-                                 related_name='reviewed_requests')
-    response = models.TextField(blank=True, null=True, help_text=_("An optional message responding to a request"))
-    status = models.IntegerField(
-        choices=REVIEW_STATES,
-        default=REVIEW_STATES.submitted,
-        help_text=_('Status of a review')
-    )
-    state = models.IntegerField(
-        choices=STATES,
-        help_text=_("The state at which a user wishes a metadata item to be endorsed")
-    )
-    registration_date = models.DateField(
-        _('Date registration effective'),
-        help_text=_("date and time you want the metadata to be registered from")
-    )
-    cascade_registration = models.IntegerField(
-        choices=[(0, _('No')), (1, _('Yes'))],
-        default=0,
-        help_text=_("Update the registration of associated items")
-    )
-
-    def get_absolute_url(self):
-        return reverse(
-            "aristotle:userReviewDetails",
-            kwargs={'review_id': self.pk}
-        )
-
-    def __str__(self):
-        return "Review of {count} items as {state} in {ra} registraion authority".format(
-            count=self.concepts.count(),
-            state=self.get_state_display(),
-            ra=self.registration_authority,
-        )
 
 
 class Status(TimeStampedModel):
@@ -1769,14 +1746,6 @@ def new_post_created(sender, **kwargs):
 @receiver(post_save, sender=Status)
 def states_changed(sender, instance, *args, **kwargs):
     fire("concept_changes.status_changed", obj=instance, **kwargs)
-
-
-@receiver(post_save, sender=ReviewRequest)
-def review_request_changed(sender, instance, *args, **kwargs):
-    if kwargs.get('created'):
-        fire("action_signals.review_request_created", obj=instance, **kwargs)
-    else:
-        fire("action_signals.review_request_updated", obj=instance, **kwargs)
 
 
 @receiver(post_save, sender=SupersedeRelationship)

@@ -72,7 +72,7 @@ class ValidationRunner:
         try:
             jsonschema.validate(ruleset, self.schema)
         except jsonschema.exceptions.ValidationError as e:
-            logger.critical(e)
+            logger.error(e)
 
     def validate_metadata(self, metadata: Iterable[_concept]) -> List[Dict]:
         rulesets = self.get_rulesets()
