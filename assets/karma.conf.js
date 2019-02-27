@@ -63,7 +63,7 @@ module.exports = (config) => {
                             loader: 'babel-loader',
                             options: {
                                 presets: ['@babel/preset-env'],
-                                plugins: ['istanbul']
+                                plugins: ['istanbul', "@babel/plugin-syntax-dynamic-import"]
                             }
                         }]
                     },

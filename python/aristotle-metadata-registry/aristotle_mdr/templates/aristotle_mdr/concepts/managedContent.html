@@ -56,7 +56,9 @@
         {% endif %}
 
         <h2>Related content</h2>
-        {% block relationships %}{% endblock %}
+    
+        {% block relationships %}
+        {% endblock %}
 
         {% for extension in config.CONTENT_EXTENSIONS %}
             {% extra_content extension item %}
