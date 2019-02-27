@@ -19,7 +19,9 @@
             error: false,
             pollTime: 1000, // period to call checkStatus in ms
             timeout: 30000, // period after which failure assumed if still pending
-            id: null
+            id: null,
+            nodes: {},
+            edges: {}
         }),
         mixins: [apiRequest],
         props: {
@@ -53,70 +55,19 @@
                         }
                         clearInterval(this.interval)
                     }
-                    for (let element of response.data.nodes) {
-                        element.title = `<small>Name: ${element.name}</small><br>`
-                        if (element.definition !== "") {
-                            element.title = element.title.concat(`<small>Definition: ${element.short_definition}</small><br>`)
-                        }
-                        if (element.version !== "") {
-                            element.title = element.title.concat(`<small>Version: ${element.version}</small>`)
-                        }
-                        if (this.typeOfGraph === "supersedes") {
-                            element.label = this.sentenceTrimmer(element.name)
-                        } else if (this.typeOfGraph === "general") {
-                            element.label = this.sentenceTrimmer(element.name) + " \n(" + element.type + ")"
-                        }
 
-                        if (element.node_options) {
-                            element.shape = element.node_options.shape
-                            element.borderWidth = element.node_options.borderWidth
-                            element.margin = element.node_options.margin
-                            element["font"] = {}
-                            element.font.size = element.node_options.font.size
-                            element.color = '#ffc05d'
-                        }
-                    }
 
-                    let edges = []
+                    this.nodesProcessor(response.data.nodes)
 
-                    for (let element of response.data.edges) {
-
-                        let roundness
-
-                        if (this.typeOfGraph === "supersedes") {
-                            element.label = this.sentenceTrimmerSingleLine(element.registration_authority)
-                            element.title = `<small>Superseding registration authority: ${element.registration_authority}</small>`
-                            element.from = element.older_item
-                            element.to = element.newer_item
-                            element.font = {align: "top", face: "Helvetica", color: "black"}
-                            element.smooth = {"enabled": true, "type": "curvedCCW", "roundness": 0.2}
-                            roundness = 0.35
-                        } else if (this.typeOfGraph === "general") {
-                            element.smooth = {"enabled": true, "type": "curvedCCW", "roundness": 0}
-                            roundness = 0
-                        }
-                        element.arrows = "to"
-
-                        // If the edge is "duplicated"
-                        // (e.g. two or more edges have the same 'from' and 'to' values)
-                        // Change the roundness of the curvature so they don't overlap:
-                        for (let i = 0; i < edges.length; i++) {
-                            // Comparing the "stringified" version of two object is the most performance efficient:
-                            if (JSON.stringify(edges[i]) === JSON.stringify({"from": element.from, "to": element.to})) {
-                                element.smooth = {"enabled": true, "type": "curvedCCW", "roundness": roundness}
-                                roundness += 0.15
-                            }
-                        }
-                        edges.push({"from": element.from, "to": element.to})
-                    }
+                    this.edgesProcessor(response.data.edges)
 
                     import('vis').then((vis) => {
 
-                        let nodes = response.data.nodes
-                        let edges = response.data.edges
+                        this.nodes = response.data.nodes
+                        this.edges = response.data.edges
 
-                        nodes = new vis.DataSet(nodes);
-                        edges = new vis.DataSet(edges);
+                        let nodes = new vis.DataSet(this.nodes);
+                        let edges = new vis.DataSet(this.edges);
 
                         // create a network
                         let container = document.getElementById(String(this._uid));
@@ -197,20 +148,59 @@
                             }
                         })
 
-                        if (this.typeOfGraph === "general") {
-                            network.on('click', (net) => {
-                                if (net.nodes.length > 0) {
-                                    let nodesArray = nodes.get(net.nodes)
-                                    let myNode = nodesArray[0]
-                                    console.log("THIS IS THE URL:")
-                                    console.log(myNode.expand_node_get_url)
-                                    this.get(myNode.expand_node_get_url).then((response) => {
-                                        console.log(response.data.nodes)
-                                        console.log(response.data.edges)
-                                    })
-                                }
-                            })
-                        }
+                        // UNCOMMENT THIS:
+                        // if (this.typeOfGraph === "general") {
+                        //     network.on('click', (net) => {
+                        //         if (net.nodes.length > 0) {
+                        //             let nodesArray = nodes.get(net.nodes)
+                        //             let myNode = nodesArray[0]
+                        //
+                        //             this.get(myNode.expand_node_get_url).then((response) => {
+                        //
+                        //                 this.nodesProcessor(response.data.nodes)
+                        //
+                        //                 this.edgesProcessor(response.data.edges)
+                        //                 // nodes = new vis.DataSet(nodes.getDataSet());
+                        //                 // edges = new vis.DataSet(edges);
+                        //
+                        //                 network.destroy()
+                        //                 network = null
+                        //
+                        //                 console.log("THIS IS THE NODES DATASET:")
+                        //                 console.log(nodes)
+                        //                 console.log("THIS IS THE EDGES DATASET")
+                        //                 console.log(edges)
+                        //
+                        //                 console.log("THESE ARE OUR CURRENT NODES:")
+                        //                 console.log(this.nodes)
+                        //
+                        //                 console.log("THESE ARE OUR CURRENT EDGES:")
+                        //                 console.log(this.edges)
+                        //
+                        //
+                        //
+                        //                 try {
+                        //                     edges.add(response.data.edges)
+                        //                 } catch (e) {
+                        //                     // alert(e)
+                        //                 }
+                        //                 try {
+                        //                     nodes.add(response.data.nodes)
+                        //                 } catch (e) {
+                        //                     // alert(e)
+                        //                 }
+                        //
+                        //                 console.log("THIS IS THE NODES DATASET:")
+                        //                 console.log(nodes)
+                        //                 console.log("THIS IS THE EDGES DATASET")
+                        //                 console.log(edges)
+                        //
+                        //
+                        //
+                        //             })
+                        //         }
+                        //     })
+                        // }
 
                         network.on('showPopup', function () {
                             document.body.style.cursor = 'pointer'
@@ -261,7 +251,68 @@
                 const maximumLength = 20
                 if (sentence.length <= maximumLength) { return sentence; }
                 return sentence.slice(0, maximumLength) + "…"
-            }
+            },
+            nodesProcessor: function (responseNodes) {
+                for (let element of responseNodes) {
+                        element.title = `<small>Name: ${element.name}</small><br>`
+                        if (element.definition !== "") {
+                            element.title = element.title.concat(`<small>Definition: ${element.short_definition}</small><br>`)
+                        }
+                        if (element.version !== "") {
+                            element.title = element.title.concat(`<small>Version: ${element.version}</small>`)
+                        }
+                        if (this.typeOfGraph === "supersedes") {
+                            element.label = this.sentenceTrimmer(element.name)
+                        } else if (this.typeOfGraph === "general") {
+                            element.label = this.sentenceTrimmer(element.name) + " \n(" + element.type + ")"
+                        }
+
+                        if (element.node_options) {
+                            element.shape = element.node_options.shape
+                            element.borderWidth = element.node_options.borderWidth
+                            element.margin = element.node_options.margin
+                            element["font"] = {}
+                            element.font.size = element.node_options.font.size
+                            element.color = '#ffc05d'
+                        }
+                    }
+            },
+            edgesProcessor: function (responseEdges) {
+
+                let edges = []
+
+                    for (let element of responseEdges) {
+
+                        let roundness
+
+                        if (this.typeOfGraph === "supersedes") {
+                            element.label = this.sentenceTrimmerSingleLine(element.registration_authority)
+                            element.title = `<small>Superseding registration authority: ${element.registration_authority}</small>`
+                            element.from = element.older_item
+                            element.to = element.newer_item
+                            element.font = {align: "top", face: "Helvetica", color: "black"}
+                            element.smooth = {"enabled": true, "type": "curvedCCW", "roundness": 0.2}
+                            roundness = 0.35
+                        } else if (this.typeOfGraph === "general") {
+                            element.smooth = {"enabled": true, "type": "curvedCCW", "roundness": 0}
+                            roundness = 0
+                        }
+                        element.arrows = "to"
+
+                        // If the edge is "duplicated"
+                        // (e.g. two or more edges have the same 'from' and 'to' values)
+                        // Change the roundness of the curvature so they don't overlap:
+                        for (let i = 0; i < edges.length; i++) {
+                            // Comparing the "stringified" version of two object is the most performance efficient:
+                            if (JSON.stringify(edges[i]) === JSON.stringify({"from": element.from, "to": element.to})) {
+                                element.smooth = {"enabled": true, "type": "curvedCCW", "roundness": roundness}
+                                roundness += 0.15
+                            }
+                        }
+                        edges.push({"from": element.from, "to": element.to})
+                    }
+
+            },
         }
     }
 </script>
