@@ -214,6 +214,7 @@ class TokenSearchForm(FacetedSearchForm):
         'version',
         'identifier',
         'namespace',
+        'uuid'
     ]
 
     token_shortnames = {

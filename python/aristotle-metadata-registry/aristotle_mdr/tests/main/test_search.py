@@ -775,6 +775,12 @@ class TestTokenSearch(TestCase):
         self.assertEqual(objs[0].object.name,"wolverine")
         self.assertEqual(objs[1].object.name,"Wolverine (animal)")
 
+    def test_uuid_search(self):
+        item = self.item_xmen[0]
+        objs = self.query_search('uuid:{}'.format(item.uuid))
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0].object, item)
+
 
 class TestSearchDescriptions(TestCase):
     """

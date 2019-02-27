@@ -41,6 +41,7 @@ class baseObjectIndex(indexes.SearchIndex):
     modified = indexes.DateTimeField(model_attr='modified')
     created = indexes.DateTimeField(model_attr='created')
     name = indexes.CharField(model_attr='name', boost=1)
+    uuid = indexes.CharField(model_attr='uuid')
     # Thanks ElasticSearch - https://github.com/django-haystack/django-haystack/issues/569
     name_sortable = indexes.CharField(model_attr='name', indexed=False, stored=True)
     django_ct_app_label = indexes.CharField()
