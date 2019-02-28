@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block page %}
-<h1>{% block title %}Editing {{model_name}} "item.name" {% endblock %}</h1>
+<h1>{% block title %}Editing {{model_name}} "{{item.name}}" {% endblock %}</h1>
     <form action="" method="POST">
         {% csrf_token %}
 
