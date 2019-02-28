@@ -326,10 +326,8 @@ class MultiStepAristotleWizard(PermissionWizard):
                     return self._valuedomain
         return None
 
-    """
-        Looks for items of a given item type with the given search terms
-    """
     def find_similar(self, name, definition, model=None):
+        """Looks for items of a given item type with the given search terms"""
         from aristotle_mdr.forms.search import get_permission_sqs as PSQS
         if model is None:
             model = self.model
