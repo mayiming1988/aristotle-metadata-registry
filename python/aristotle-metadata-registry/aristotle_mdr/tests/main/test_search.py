@@ -640,11 +640,22 @@ class TestTokenSearch(TestCase):
         self.xmen_wg.save()
 
         self.item_xmen = [
-            models.ObjectClass.objects.create(name=t,version="0.%d.0"%(v+1),definition="known x-man",workgroup=self.xmen_wg)
-            for v,t in enumerate(xmen.split())]
-        self.item_xmen.append(
-            models.Property.objects.create(name="Power",definition="What power a mutant has?",workgroup=self.xmen_wg)
+            models.ObjectClass.objects.create(
+                name=t,
+                version="0.%d.0"%(v+1),
+                definition="known x-man",
+                workgroup=self.xmen_wg
             )
+            for v,t in enumerate(xmen.split())
+        ]
+
+        self.item_xmen.append(
+            models.Property.objects.create(
+                name="Power",
+                definition="What power a mutant has?",
+                workgroup=self.xmen_wg
+            )
+        )
 
         for item in self.item_xmen:
             self.ra.register(item,models.STATES.standard,self.su)
@@ -774,6 +785,28 @@ class TestTokenSearch(TestCase):
         objs = sorted(objs, key=lambda obj: len(obj.name))
         self.assertEqual(objs[0].object.name,"wolverine")
         self.assertEqual(objs[1].object.name,"Wolverine (animal)")
+
+    def test_uuid_search(self):
+        item = self.item_xmen[0]
+        objs = self.query_search('uuid:{}'.format(item.uuid))
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0].object, item)
+
+    def test_title_prioritisation(self):
+        self.client.login(email='super@example.com', password='user')
+        # Item with pokemon as name
+        in_title_item = models.ObjectClass.objects.create(
+            name='Pokemon',
+            definition='Pocket monsters',
+        )
+        # Item with pokemon in definition multiple times
+        in_definition_item = models.ObjectClass.objects.create(
+            name='Pocket monsters',
+            definition='Pokemon are so good. Pokemon. Pokemon',
+        )
+        objs = self.query_search('pokemon')
+        self.assertEqual(len(objs), 2)
+        self.assertEqual(objs[0].object, in_title_item)
 
 
 class TestSearchDescriptions(TestCase):

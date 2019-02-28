@@ -12,6 +12,7 @@ from haystack import connections
 from haystack.constants import DEFAULT_ALIAS
 from haystack.forms import FacetedSearchForm, model_choices
 from haystack.query import EmptySearchQuerySet, SearchQuerySet, SQ
+from haystack.inputs import AutoQuery
 
 import aristotle_mdr.models as MDR
 from aristotle_mdr.widgets.bootstrap import (
@@ -40,11 +41,11 @@ QUICK_DATES = Choices(
 
 
 SORT_OPTIONS = Choices(
-    ('n', 'natural', _('Ranking')),
-    ('ma', 'modified_ascending', _('Modified ascending')),
-    ('md', 'modified_descending', _('Modified descending')),
-    ('ma', 'created_ascending', _('Created ascending')),
-    ('md', 'created_descending', _('Created descending')),
+    ('n', 'natural', _('Relevance')),
+    ('ma', 'modified_ascending', _('First Modified')),
+    ('md', 'modified_descending', _('Last Modified')),
+    ('ma', 'created_ascending', _('First Created')),
+    ('md', 'created_descending', _('Last Created')),
     ('aa', 'alphabetical', _('Alphabetical')),
     ('s', 'state', _('Registration state')),
 )
@@ -214,6 +215,7 @@ class TokenSearchForm(FacetedSearchForm):
         'version',
         'identifier',
         'namespace',
+        'uuid'
     ]
 
     token_shortnames = {
@@ -313,7 +315,10 @@ class TokenSearchForm(FacetedSearchForm):
             return self.no_query_found()
 
         if self.query_text:
-            sqs = self.searchqueryset.auto_query(self.query_text)
+            # Search on text (which is the document) and name fields (so name can be boosted)
+            sqs = self.searchqueryset.filter(
+                SQ(text=AutoQuery(self.query_text)) | SQ(name=AutoQuery(self.query_text))
+            )
         else:
             sqs = self.searchqueryset
 
@@ -563,7 +568,7 @@ class PermissionSearchForm(TokenSearchForm):
                         extra_facets.append(name)
 
                         x = extra_facets_details.get(name, {})
-                        x.update(**{
+                        x.update({
                             'title': getattr(field, 'title', name),
                             'display': getattr(field, 'display', None),
                             'allow_search': getattr(field, 'allow_search', False),
