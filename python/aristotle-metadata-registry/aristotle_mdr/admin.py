@@ -411,12 +411,12 @@ class aristotle_mdr_DataElementDerivationSearchIndex(conceptIndex, indexes.Index
 
     def prepare_data_element_concept(self, obj):
         return list(MDR.DataElementConcept.objects.filter(
-            Q(dataelement__derived_from=obj) | Q(dataelement__input_to_derivation=obj)
+            Q(dataelement__dedderivesthrough__data_element_derivation=obj) | Q(dataelement__dedinputsthrough__data_element_derivation=obj)
         ).values_list('name', flat=True))
 
     def prepare_object_class(self, obj):
         return list(MDR.ObjectClass.objects.filter(
-            Q(dataelementconcept__dataelement__derived_from=obj) | Q(dataelementconcept__dataelement__input_to_derivation=obj)
+            Q(dataelementconcept__dataelement__dedderivesthrough__data_element_derivation=obj) | Q(dataelementconcept__dataelement__dedinputsthrough__data_element_derivation=obj)
         ).values_list('name', flat=True))
 
 
@@ -440,7 +440,8 @@ register_concept(
     extra_inlines=[DedDerivesInline, DedInputsInline],
     custom_search_index=aristotle_mdr_DataElementDerivationSearchIndex,
     reversion={
-        'follow': ['derives', 'inputs'],
+        'follow': ['dedinputsthrough_set', 'dedderivesthrough_set'],
+        'follow_classes': [MDR.DedInputsThrough, MDR.DedDerivesThrough]
     }
 )
 

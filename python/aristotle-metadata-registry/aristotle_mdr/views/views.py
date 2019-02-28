@@ -104,7 +104,7 @@ def managed_item(request, model_slug, iid):
         raise PermissionDenied
 
     return render(
-        request, [item.template],
+        request, [getattr(item, 'template', "aristotle_mdr/manageditems/fallback.html")],
         {
             'item': item,
             'group': item.stewardship_organisation,

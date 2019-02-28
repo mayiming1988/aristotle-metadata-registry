@@ -6,5 +6,5 @@ import graphicalRepresentation from '@/graphicalRepresentation.vue'
 
 initCore()
 renderComponents({
-    'graphical-representation': graphicalRepresentation
+    'graphical-representation': graphicalRepresentation,
 })

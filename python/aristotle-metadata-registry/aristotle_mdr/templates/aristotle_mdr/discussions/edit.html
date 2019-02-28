@@ -14,15 +14,62 @@
 
 {% block discussion_content %}
 
-<form method='post'>
+<form action="" method="POST">
     {% csrf_token %}
-    {{ form.errors }}
-    <div><label for="id_title">Title: </label> {{ form.title }}</div>
-    <div><label for="id_body" class="sr-only">Post body</label> {{ form.body }}</div>
-    <div><label for="id_relatedItems">Related Items</label></div>
-    <div>{{ form.relatedItems }}</div>
-    <button class="btn btn-primary" type='submit' value='Submit'><i class="fa fa-save  fa-fw"></i>Save changes</button>
-    <a class="btn btn-default" href="{% url 'aristotle:discussionsPost' post.id %}"><i class="fa fa-times fa-fw"></i>Cancel</a>
+
+    <div class="row">
+        <div class="col-sm-8">
+            <div class="form-group {% if form.name.errors %}has-error{% endif %}">
+                {{ form.title.label_tag }}<br>
+                <input class="form-control" id="{{form.title.id_for_label}}" value="{{ form.title.value|default:"" }}" name="title">
+                {% if form.title.errors %}
+                <div class="alert alert-danger">
+                    {{ form.title.errors }}
+                    </div>
+                {% endif %}
+                <p class="help-block">
+                     {{ form.title.help_text }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-8">
+            <div class="form-group {% if form.body.errors %}has-error{% endif %}">
+                {{ form.body.label_tag }}
+                {% if form.body.errors %}
+                    <div class="alert alert-danger">
+                    {{ form.body.errors }}
+                    </div>
+                {% endif %}
+                    <p class="help-block">
+                     {{ form.body.help_text }}
+                    </p>
+                    {{ form.body }}
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-8">
+            <div class="form-group {% if form.relatedItems.errors %}has-error{% endif %}">
+                {{ form.relatedItems.label_tag }}
+                {% if form.relatedItems.errors %}
+                    <div class="alert alert-danger">
+                    {{ form.relatedItems.errors }}
+                    </div>
+                {% endif %}
+                    <p class="help-block">
+                     {{ form.relatedItems.help_text }}
+                    </p>
+                    {{ form.relatedItems }}
+            </div>
+        </div>
+    </div>
+
+
+    <a class="btn btn-default" href="{% url 'aristotle:discussions' %}"><i class="fa fa-times fa-fw"></i>Cancel</a>
+    <button class="btn btn-primary" type='submit' value='Submit'><i class="fa fa-pencil  fa-fw"></i>New post</button>
 </form>
 
 {% endblock %}

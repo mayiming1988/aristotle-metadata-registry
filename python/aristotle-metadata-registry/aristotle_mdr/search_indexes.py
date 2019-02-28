@@ -89,6 +89,7 @@ class baseObjectIndex(indexes.SearchIndex):
 
 
 class conceptIndex(baseObjectIndex):
+    uuid = indexes.CharField(model_attr='uuid')
     statuses = indexes.MultiValueField(faceted=True)
     highest_state = indexes.IntegerField()
     ra_statuses = indexes.MultiValueField()

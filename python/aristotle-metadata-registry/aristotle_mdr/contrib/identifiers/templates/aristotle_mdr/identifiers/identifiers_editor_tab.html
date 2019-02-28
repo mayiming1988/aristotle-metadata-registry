@@ -3,8 +3,25 @@
 {% block content %}
 
 <a class="sr-only" onclick="addIdent()" href="?extra=1" accesskey='r'>Add an identifier (adding an identifier does not save changes)</a>
+
+<div class="alert alert-info">
+  The UUID (Universally Unique Identifier) is automatically generated for all metadata
+  and is guaranteed to be unique even between registries.
+</div>
+
+<table class="table">
+  <tbody>
+    <tr>
+      <th>UUID</th>
+      <td>{{ item.uuid }}</td>
+  </tbody>
+</table>
+
 {% with formset=identifier_FormSet %}
 
+    <div class="alert alert-info">
+      Identifiers can be used to add additional identifying information to a metadata item.
+    </div>
     {{ formset.management_form }}
     <table id="identifierTable" class="form table  table-hover">
       <thead>

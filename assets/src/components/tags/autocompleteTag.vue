@@ -1,6 +1,6 @@
 <template>
   <vue-simple-suggest :list="getSuggestions" :filter-by-query="true" @select="makeSuggestion">
-    <taggle-tags :tags="current_tags" :newtags="newTags" @tag-update="update_tags"></taggle-tags>
+      <taggle-tags :tags="current_tags" :newtags="newTags" @tag-update="update_tags" />
   </vue-simple-suggest>
 </template>
 
@@ -13,7 +13,16 @@ export default {
         'taggle-tags': tagComponent,
         'vue-simple-suggest': VueSimpleSuggest
     },
-    props: ['current_tags', 'user_tags'],
+    props: {
+        'current_tags': {
+            type: Array,
+            required: true
+        },
+        'user_tags': {
+            type: Array,
+            required: true
+        }
+    },
     computed: {
         newTags: function() {
             var newTags = []

@@ -45,18 +45,6 @@ urlpatterns=[
             form_add_another_text=_('Add a value meaning'),
             form_title=_('Change Value Meanings')
         ), name='value_meanings_edit'),
-    url(r'^item/(?P<iid>\d+)/dataelementderivation/change_inputs/?$',
-        GenericAlterManyToManyOrderView.as_view(
-            model_base=models.DataElementDerivation,
-            model_to_add=models.DataElement,
-            model_base_field='inputs'
-        ), name='dataelementderivation_change_inputs'),
-    url(r'^item/(?P<iid>\d+)/dataelementderivation/change_derives/?$',
-        GenericAlterManyToManyOrderView.as_view(
-            model_base=models.DataElementDerivation,
-            model_to_add=models.DataElement,
-            model_base_field='derives'
-        ), name='dataelementderivation_change_derives'),
 
     url(r'^item/(?P<iid>\d+)?/alter_relationship/(?P<fk_field>[A-Za-z\-_]+)/?$',
         generic_foreign_key_factory_view,

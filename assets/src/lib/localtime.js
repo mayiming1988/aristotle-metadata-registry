@@ -1,5 +1,5 @@
 import moment from 'moment'
-const default_format = 'Do MMMM YYYY'
+import settings from 'src/settings.json'
 
 export function initTime() {
     $('time').each(function() {
@@ -9,7 +9,7 @@ export function initTime() {
         let from = (node.attr('data-time-from') === 'true')
 
         if (format === undefined) {
-            format = default_format
+            format = settings.default_time_format
         }
 
         // datetime attribute is - if the date has a None value in the backend

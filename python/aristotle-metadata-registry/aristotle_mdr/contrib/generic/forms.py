@@ -136,7 +136,7 @@ def get_aristotle_widgets(model, ordering_field=None):
     return _widgets
 
 
-def ordered_formset_factory(model, ordering_field, exclude=[]):
+def ordered_formset_factory(model, ordering_field, exclude=[], extra=0):
     # Formset factory for a hidden order model formset with aristotle widgets
     _widgets = get_aristotle_widgets(model)
 
@@ -146,7 +146,7 @@ def ordered_formset_factory(model, ordering_field, exclude=[]):
         can_order=True,  # we assign this back to the ordering field
         can_delete=True,
         exclude=exclude,
-        extra=0,
+        extra=extra,
         widgets=_widgets
     )
     formset.ordering_field = ordering_field

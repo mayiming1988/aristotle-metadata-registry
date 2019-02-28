@@ -1,17 +1,20 @@
 <template>
   <modal :value="open" @input="emitClose" title="Tag Editor" @hide="emitClose">
     <p>Update your tags for this item, new tags (shown darker) will be created for you</p>
+    <p>Press enter to create and separate your tags</p>
 
-    <api-errors :errors="errors"></api-errors>
-    <autocomplete-tags :current_tags="current_tags" :user_tags="userTagsFlat" @tag-update="update_tags"></autocomplete-tags>
+    <api-errors :errors="errors" />
+    <autocomplete-tags :current_tags="current_tags" :user_tags="userTagsFlat" @tag-update="update_tags" />
     <div slot="footer">
-      <button type="button" class="btn btn-default" @click="emitClose">Close</button>
+      <button type="button" class="btn btn-default" @click="emitClose">
+          Close
+      </button>
       <submit-tags 
         :submit-url="submitUrl"
         :tags="current_tags"
         @error="setErrors"
-        @tags-saved="update_saved_tags">
-      </submit-tags>
+        @tags-saved="update_saved_tags" 
+      />
     </div>
   </modal>
 </template>
@@ -28,7 +31,7 @@ export default {
         'modal': Modal,
         'autocomplete-tags': autocompleteTag,
         'submit-tags': submitTags,
-        'api-errors': apiErrors
+        'api-errors': apiErrors,
     },
     data: () => ({
         current_tags: [],
@@ -36,7 +39,24 @@ export default {
         errors: {},
         selected: '',
     }),
-    props: ['itemTags', 'userTags', 'submitUrl', 'open'],
+    props: {
+        'itemTags': {
+            type: String,
+            required: true
+        },
+        'userTags': {
+            type: String,
+            required: true
+        },
+        'submitUrl': {
+            type: String,
+            required: true
+        },
+        'open': {
+            type: Boolean,
+            default: false
+        }
+    },
     created: function() {
         let saved_tags = JSON.parse(this.itemTags)
         for (let tag of saved_tags) {
