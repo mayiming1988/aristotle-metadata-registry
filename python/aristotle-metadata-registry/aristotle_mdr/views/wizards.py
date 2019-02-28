@@ -337,10 +337,10 @@ class MultiStepAristotleWizard(PermissionWizard):
         if cached_items:
             return cached_items
 
-        # limit results to 20, as more than this tends to slow down everything.
-        # If a user is getting more than 20 results they probably haven't named things properly
+        # limit results to 10, as more than this tends to slow down everything.
+        # If a user is getting more than 10 results they probably haven't named things properly
         # So instead holding everything up, lets return some of what we find and then give them an error message on the wizard template.
-        similar = PSQS().models(model).auto_query(name + " " + definition).apply_permission_checks(user=self.request.user)[:20]
+        similar = PSQS().models(model).auto_query(name + " " + definition).apply_permission_checks(user=self.request.user)[:10]
         self.similar_items[model] = similar
         return similar
 
@@ -448,7 +448,7 @@ class DataElementConceptWizard(MultiStepAristotleWizard):
         oc = self.get_object_class()
         pr = self.get_property()
         if oc and pr:
-            self._data_element_concept = MDR.DataElementConcept.objects.filter(objectClass=oc, property=pr).visible(self.request.user)
+            self._data_element_concept = MDR.DataElementConcept.objects.filter(objectClass=oc, property=pr).visible(self.request.user).order_by('-created')[:10]
             return self._data_element_concept
         else:
             return []
@@ -697,7 +697,7 @@ class DataElementWizard(MultiStepAristotleWizard):
             dec = results.get('dec_options', None)
         vd = self.get_value_domain()
         if dec and vd:
-            self._data_elements = MDR.DataElement.objects.filter(dataElementConcept=dec, valueDomain=vd).visible(self.request.user)
+            self._data_elements = MDR.DataElement.objects.filter(dataElementConcept=dec, valueDomain=vd).visible(self.request.user).order_by('-created')[:10]
             return self._data_elements
         else:
             return []
