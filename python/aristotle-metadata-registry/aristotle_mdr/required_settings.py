@@ -309,10 +309,10 @@ CACHE_ITEM_PAGE = False
 
 # Sanitization
 BLEACH_ALLOWED_TAGS = [
-    'a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'em',
+    'a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'del', 'em',
     'i', 'li', 'ol', 'strong', 'ul', 'table', 'tbody', 'thead',
     'tr', 'th', 'td', 'img', 'p', 'h1', 'h2', 'h3', 'h4',
-    'h5', 'h6', 'sub', 'sup', 'br', 'u', 'col', 'colgroup'
+    'h5', 'h6', 'ins', 'sub', 'sup', 'br', 'u', 'col', 'colgroup'
 ]
 
 BLEACH_ALLOWED_ATTRIBUTES = {
