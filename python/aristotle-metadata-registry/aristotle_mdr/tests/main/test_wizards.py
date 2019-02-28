@@ -768,6 +768,37 @@ class DataElementConceptAdvancedWizardPage(HaystackReindexMixin, utils.Aristotle
         item = models.DataElementConcept.objects.filter(name="Animagus--Animal type").first()
         self.assertRedirects(response,url_slugify_concept(item))
 
+    def test_component_initial(self):
+        """Test that components are selected in final step when reusing"""
+
+        # Make an oc and prop to reuse
+        oc = models.ObjectClass.objects.create(
+            name='Computer',
+            definition='a computing device',
+            workgroup=self.wg1
+        )
+        prop = models.Property.objects.create(
+            name='Speediness',
+            definition='vroroormeoroemrem',
+            workgroup=self.wg1
+        )
+
+        steps = [
+            'component_search',
+            'component_results'
+        ]
+        data = [
+            {'oc_name': 'Computer', 'pr_name': 'Speediness'},
+            {'oc_options': str(oc.id), 'pr_options': str(prop.id)}
+        ]
+
+        self.login_editor()
+        response = self.post_to_wizard(data, self.wizard_url, self.wizard_form_name, steps)
+        self.assertWizardStep(response, 'find_dec_results')
+        form = response.context['wizard']['form']
+        self.assertTrue('objectClass' in form.initial)
+        self.assertTrue('property' in form.initial)
+
 
 class DataElementAdvancedWizardPage(HaystackReindexMixin, utils.LoggedInViewPages, TestCase):
     wizard_url_name="createDataElement"
