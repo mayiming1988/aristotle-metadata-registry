@@ -549,13 +549,13 @@ class ExtraFormsetMixin:
 
         return context
 
-    def get_extra_formsets(self, item=None, postdata=None):
+    def get_extra_formsets(self, item=None, postdata=None, clone_item=False):
         # Item can be a class or an object
         # This is so we can reuse this function in creation wizards
 
         extra_formsets = []
 
-        if inspect.isclass(item):
+        if inspect.isclass(item) or clone_item:
             is_class = True
             add_item = None
         else:
@@ -563,6 +563,7 @@ class ExtraFormsetMixin:
             add_item = item
 
         through_list = self.get_m2m_through(item)
+
         for through in through_list:
 
             if not is_class:
@@ -585,7 +586,9 @@ class ExtraFormsetMixin:
         weak_list = self.get_m2m_weak(item)
         for weak in weak_list:
 
-            if not is_class:
+            if clone_item:
+                formset = self.get_weak_formset(weak, item, clone=True)
+            elif not is_class:
                 formset = self.get_weak_formset(weak, item, postdata)
             else:
                 formset = self.get_weak_formset(weak, postdata=postdata)
@@ -636,7 +639,7 @@ class ExtraFormsetMixin:
 
         return formset_instance
 
-    def get_weak_formset(self, weak, item=None, postdata=None):
+    def get_weak_formset(self, weak, item=None, postdata=None, clone=False):
 
         model_to_add_field = weak['item_field']
 
@@ -645,7 +648,7 @@ class ExtraFormsetMixin:
         else:
             fsargs = {'prefix': weak['field_name']}
 
-        if item:
+        if item and not clone:
             extra_excludes = one_to_many_formset_excludes(item, weak['model'])
             fsargs['queryset'] = getattr(item, weak['field_name']).all()
         else:
@@ -655,12 +658,27 @@ class ExtraFormsetMixin:
                 extra_excludes = []
             fsargs['queryset'] = weak['model'].objects.none()
 
+        extra = 0
+        if clone:
+            initial = []
+            from django.forms.models import model_to_dict
+            for index, obj in enumerate(getattr(item, weak['field_name']).all()):
+                o = model_to_dict(obj)
+                o['ORDER'] = o.pop(weak['model'].ordering_field)
+                for k in ['pk', 'id']:  # TODO: do we need to remove the FK field? eg. 'valueDomain'
+                    o.pop(k, None)
+                initial.append(o)
+            fsargs['initial'] = initial
+            extra = len(initial)
+
         if postdata:
             fsargs['data'] = postdata
 
         all_excludes = [model_to_add_field, weak['model'].ordering_field] + extra_excludes
         formset = ordered_formset_factory(
-            weak['model'], exclude=all_excludes, ordering_field=weak['model'].ordering_field
+            weak['model'], exclude=all_excludes,
+            extra=extra,
+            ordering_field=weak['model'].ordering_field
         )
 
         final_formset = formset(**fsargs)
