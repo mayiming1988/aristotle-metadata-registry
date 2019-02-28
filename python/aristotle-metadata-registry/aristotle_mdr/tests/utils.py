@@ -652,14 +652,13 @@ class LoggedInViewPages(object):
         # This is useful when testing async code.
         # If updates aren't done in 1+2+3+4= 10seconds, then there is a problem.
         self.assertEqual(*args)
-        return
-        for i in range(1,5):
+        for i in range(1, 5):
             try:
                 self.assertEqual(*args)
                 break
             except:
-                print('failed, keep trying - %s',i)
-                sleep(i) # sleep for progressively longer, just to give it a fighting chance to finish.
+                print('failed, keep trying - %s', i)
+                sleep(i)  # sleep for progressively longer, just to give it a fighting chance to finish.
         self.assertEqual(*args)
 
 

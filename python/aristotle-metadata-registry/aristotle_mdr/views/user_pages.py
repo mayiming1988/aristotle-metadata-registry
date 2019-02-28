@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.core.cache import cache
+from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db.models import Q
 from django.http import HttpResponseRedirect, HttpResponseNotFound, Http404
@@ -53,6 +54,11 @@ class FriendlyLoginView(LoginView):
             context.update({'welcome': True})
 
         return context
+
+    def get_redirect_url(self):  # WE HAVE TO OVERRIDE THIS METHOD, TO AVOID A ValueError "Redirection loop for auth..."
+        if self.request.GET.get(self.redirect_field_name, '') == reverse("friendly_login"):
+            return settings.LOGIN_REDIRECT_URL
+        return super().get_redirect_url()
 
 
 class FriendlyLogoutView(LogoutView):
