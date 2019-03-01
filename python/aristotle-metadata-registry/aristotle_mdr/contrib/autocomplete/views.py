@@ -161,7 +161,7 @@ class WorkgroupAutocomplete(GenericAutocomplete):
             qs = self.request.user.profile.editable_workgroups.filter(
                 Q(definition__icontains=self.q) |
                 Q(name__icontains=self.q)
-            )
+            ).order_by('name')
         else:
             qs = self.request.user.profile.editable_workgroups
         return qs

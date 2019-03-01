@@ -1542,11 +1542,11 @@ class PossumProfile(models.Model):
     @property
     def editable_workgroups(self):
         if self.user.is_superuser:
-            return Workgroup.objects.all()
+            return Workgroup.objects.all().order_by('name')
         else:
             return (self.user.submitter_in.all() |
                     self.user.steward_in.all()
-                    ).distinct().filter(archived=False)
+                    ).distinct().filter(archived=False).order_by('name')
 
     @property
     def is_registrar(self):
