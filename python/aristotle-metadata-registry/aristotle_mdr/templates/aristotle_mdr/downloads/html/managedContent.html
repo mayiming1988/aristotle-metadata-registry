@@ -33,11 +33,13 @@
     <tr>
     <td>Supersedes:
           <ul>
-          {% for sup in item.approved_supersedes.all|can_view:user %}
-            <li>
-            <a href="/item/{{ sup.id }}/">{{ sup }}</a>
-            <span>(id {{ sup.id }})</span>
-            </li>
+          {% for sup in item.approved_supersedes %}
+            {% if sup|can_view:user %}
+              <li>
+              <a href="/item/{{ sup.id }}/">{{ sup }}</a>
+              <span>(id {{ sup.id }})</span>
+              </li>
+            {% endif %}
           {% empty %}
             <li>-</li>
           {% endfor %}
@@ -45,11 +47,13 @@
     </td>
     <td>Superseded by:
         <ul>
-          {% for sup in item.approved_superseded_by.all|can_view:user %}
-            <li>
-            <a href="/item/{{ sup.id }}/">{{ sup }}</a>
-            <span>(id {{ sup.id }})</span>
-            </li>
+          {% for sup in item.approved_superseded_by %}
+            {% if sup|can_view:user %}
+              <li>
+              <a href="/item/{{ sup.id }}/">{{ sup }}</a>
+              <span>(id {{ sup.id }})</span>
+              </li>
+            {% endif %}
           {% empty %}
             <li>-</li>
           {% endfor %}

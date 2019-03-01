@@ -68,18 +68,12 @@ def generate_outline_tree(bookmarks, depth=1):
 
 
 def render_to_pdf(template_src, context_dict,
-                  preamble_template='aristotle_mdr/downloads/pdf/title.html',
-                  debug_as_html=False) -> bytes:
+                  preamble_template='aristotle_mdr/downloads/pdf/title.html') -> bytes:
     # If the request template doesnt exist, we will give a default one.
     template = select_template([
         template_src,
         'aristotle_mdr/downloads/html/managedContent.html'
     ])
-
-    html = template.render(context_dict)
-
-    if debug_as_html:
-        return html
 
     document = weasyprint.HTML(
         string=template.render(context_dict),

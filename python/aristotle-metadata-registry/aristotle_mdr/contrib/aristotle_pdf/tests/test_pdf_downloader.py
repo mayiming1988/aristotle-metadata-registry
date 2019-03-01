@@ -23,3 +23,9 @@ class PDFDownloaderTestCase(AristotleTestUtils, TestCase):
         downloader = PDFDownloader([self.item.id], self.editor.id, {})
         fileobj = downloader.create_file()
         self.assertTrue(fileobj.size > 0)
+
+    @tag('pdf_su')
+    def test_pdf_download_generates_file_superuser(self):
+        downloader = PDFDownloader([self.item.id], self.su.id, {})
+        fileobj = downloader.create_file()
+        self.assertTrue(fileobj.size > 0)
