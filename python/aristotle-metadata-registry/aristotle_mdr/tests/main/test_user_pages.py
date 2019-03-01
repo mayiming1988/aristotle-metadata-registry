@@ -1,6 +1,7 @@
 from django.test import TestCase, tag, Client
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
+from django.conf import settings
 from django.urls import reverse
 from django.core import mail
 
@@ -527,6 +528,10 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         self.login_superuser()
         response = self.client.get("/login")
         self.assertRedirects(response, reverse('aristotle:userHome'))
+
+    def test_avoid_redirection_loop_value_error(self):
+        response = self.client.post(reverse('friendly_login') + '?next=/login', {'username': 'super@example.com', 'password': 'user'})
+        self.assertRedirects(response, settings.LOGIN_REDIRECT_URL)
 
     @tag('share_link')
     def test_send_emails_for_new_email_addresses(self):
