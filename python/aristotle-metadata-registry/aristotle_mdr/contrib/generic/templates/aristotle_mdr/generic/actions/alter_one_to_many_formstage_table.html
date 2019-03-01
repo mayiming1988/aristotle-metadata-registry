@@ -1,7 +1,7 @@
 {% with formset.empty_form as form %}
-      {# TODO #}
-      <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
-      {% comment %}
+    {# TODO #}
+    <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
+        {% comment %}
       {% if formset.is_ordered or True %}
       <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
       {% else %}
@@ -9,14 +9,14 @@
       {% endif %}
       {% endcomment %}
         {% for hidden in form.hidden_fields %}
-        {{ hidden }}
+            {{ hidden }}
         {% endfor %}
     </td>
     {% for field in form.visible_fields %}
-      <td>
-      {# Include the hidden fields in the form #}
-        {{ field.errors.as_ul }}
-        {{ field }}
-      </td>
+        <td>
+            {# Include the hidden fields in the form #}
+            {{ field.errors.as_ul }}
+            {{ field }}
+        </td>
     {% endfor %}
 {% endwith %}
