@@ -1573,11 +1573,11 @@ class PossumProfile(models.Model):
 
     @property
     def registrarAuthorities(self):
-        "NOTE: This is a list of Authorities the user is a *registrar* in!."
+        # NOTE: This is a list of Authorities the user is a *registrar* in!.
         if self.user.is_superuser:
-            return RegistrationAuthority.objects.all()
+            return RegistrationAuthority.objects.all().order_by('name')
         else:
-            return self.user.registrar_in.all()
+            return self.user.registrar_in.all().order_by('name')
 
     def is_workgroup_manager(self, wg=None):
         return perms.user_is_workgroup_manager(self.user, wg)

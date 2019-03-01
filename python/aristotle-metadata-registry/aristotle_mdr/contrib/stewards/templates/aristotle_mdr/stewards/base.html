@@ -6,14 +6,16 @@
 
 {% block content %}
 
-<h1>
-    {{ stewardship_organisation }}
-</h1>
+    <h1>
+        {{ stewardship_organisation }}
+    </h1>
+
+    {% if  group %}
+        {% include "stewards/helpers/tabs.html" with active_tab=active_group_page|default:"home" %}
+    {% endif %}
 
 
-{% include "stewards/helpers/tabs.html" with active_tab=active_group_page|default:"home" %}
-
-{% block steward_content %}
-{% endblock %}
+    {% block steward_content %}
+    {% endblock %}
 
 {% endblock %}
