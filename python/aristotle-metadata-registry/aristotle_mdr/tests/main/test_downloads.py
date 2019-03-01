@@ -355,6 +355,32 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
             [self.speed]
         )
 
+    def test_item_with_supersedes_download(self):
+        # ra = models.RegistrationAuthority.objects.create(name='RA', definition='RA')
+        old_animal = models.ObjectClass.objects.create(
+            name='Old animal',
+            definition='animal'
+        )
+        new_animal = models.ObjectClass.objects.create(
+            name='New animal',
+            definition='animal'
+        )
+        models.SupersedeRelationship.objects.create(
+            older_item=old_animal,
+            newer_item=self.animal,
+            registration_authority=self.ra
+        )
+        models.SupersedeRelationship.objects.create(
+            older_item=self.animal,
+            newer_item=new_animal,
+            registration_authority=self.ra
+        )
+
+        downloader = HTMLDownloader([self.animal.id], self.su.id, {})
+        html = downloader.get_html().decode()
+        self.assertTrue('Old animal' in html)
+        self.assertTrue('New animal' in html)
+
 
 @override_settings(ARISTOTLE_SETTINGS={'DOWNLOADERS': ['aristotle_mdr.downloaders.DocxDownloader']})
 class DocxDownloaderTestCase(AristotleTestUtils, TestCase):
