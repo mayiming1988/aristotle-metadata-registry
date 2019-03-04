@@ -1289,7 +1289,7 @@ class DataElementConcept(concept):
         'property'
     ]
 
-    name_suggest_fields=['objectClass', 'property'],
+    name_suggest_fields = ['objectClass', 'property']
 
     @property_
     def registry_cascade_items(self):
@@ -1345,7 +1345,7 @@ class DataElement(concept):
         'dataElementConcept__property'
     ]
 
-    name_suggest_fields=['dataElementConcept', 'valueDomain'],
+    name_suggest_fields = ['dataElementConcept', 'valueDomain']
 
     @property
     def registry_cascade_items(self):
