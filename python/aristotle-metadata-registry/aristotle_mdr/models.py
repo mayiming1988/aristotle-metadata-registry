@@ -691,6 +691,8 @@ class _concept(baseAristotleObject):
     relational_attributes: List[QuerySet]
     # Used by concept manager with_related in a select_related
     related_objects: List[str] = []
+    # Fields to build the name from
+    name_suggest_fields: List[str] = []
 
     class Meta:
         # So the url_name works for items we can't determine.
@@ -1287,6 +1289,8 @@ class DataElementConcept(concept):
         'property'
     ]
 
+    name_suggest_fields=['objectClass', 'property'],
+
     @property_
     def registry_cascade_items(self):
         out = []
@@ -1340,6 +1344,8 @@ class DataElement(concept):
         'dataElementConcept__objectClass',
         'dataElementConcept__property'
     ]
+
+    name_suggest_fields=['dataElementConcept', 'valueDomain'],
 
     @property
     def registry_cascade_items(self):
