@@ -114,6 +114,9 @@
                     <th>
                         Data&nbsp;Type
                     </th>
+                    <th title="Maximum Character Length">
+                        Length
+                    </th>
                     <th>
                         Format
                     </th>
@@ -150,6 +153,9 @@
                     </td>
                     <td>
                         {% firstof deinc.data_element.valueDomain.data_type.name "-" %}
+                    </td>
+                    <td>
+                        {% firstof deinc.data_element.valueDomain.maximum_length "-" %}
                     </td>
                     <td>
                         {% firstof deinc.data_element.valueDomain.format "-" %}
