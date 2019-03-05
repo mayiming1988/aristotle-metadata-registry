@@ -1,5 +1,6 @@
+from typing import Dict
 from django import forms
-from django.forms.widgets import TextInput, CheckboxSelectMultiple
+from django.forms.widgets import TextInput, CheckboxSelectMultiple, Select
 
 from django.utils.safestring import mark_safe
 
@@ -151,3 +152,18 @@ class MultiTextWidget(TextInput):
                 values.append(data[key])
 
         return values
+
+
+class DataAttrSelect(Select):
+    def __init__(self, attrs=None, choices=(), data: Dict[str, Dict[str, str]]={}):
+        super().__init__(attrs, choices)
+        self.data = data
+
+    def create_option(self, *args, **kwargs):
+        option: Dict = super().create_option(*args, **kwargs)
+        # import pdb; pdb.set_trace()
+        for data_attr, values in self.data.items():
+            if option['value'] in values:
+                option['attrs'][data_attr] = values[option['value']]
+
+        return option

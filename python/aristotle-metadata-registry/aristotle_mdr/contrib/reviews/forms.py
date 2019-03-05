@@ -13,6 +13,7 @@ from aristotle_mdr.contrib.autocomplete.widgets import (
     ConceptAutocompleteSelectMultiple,
     ConceptAutocompleteSelect
 )
+from aristotle_mdr.widgets.widgets import DataAttrSelect
 
 from . import models
 
@@ -172,6 +173,10 @@ class ReviewRequestSupersedesForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if review_concepts:
             self.fields['newer_item'].queryset = review_concepts
+            review_items = review_concepts.select_subclasses()
+            self.fields['newer_item'].widget.data = {
+                'data-label': {i.pk: type(i)._meta.label_lower for i in review_items}
+            }
         if user:
             self.fields['older_item'].queryset = MDR._concept.objects.visible(user)
 
@@ -179,7 +184,8 @@ class ReviewRequestSupersedesForm(forms.ModelForm):
         fields = ('older_item', 'newer_item', 'message')
         widgets = {
             'older_item': ConceptAutocompleteSelect,
-            'message': forms.widgets.TextInput
+            'message': forms.widgets.TextInput,
+            'newer_item': DataAttrSelect
         }
 
 
