@@ -1,6 +1,9 @@
 // Polyfills
-import '@babel/polyfill'
+import '@babel/polyfill' // This include required core-js modules
+// mdn-polyfils for DOM API polyfills (core-js is only for js language features)
 import 'mdn-polyfills/Element.prototype.closest'
+// NodeList.forEach is used by django-debug-toolbar
+// import 'mdn-polyfills/NodeList.prototype.forEach'
 
 import 'bootstrap'
 import 'eonasdan-bootstrap-datetimepicker'
