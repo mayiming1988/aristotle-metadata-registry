@@ -3,6 +3,7 @@ import 'select2/dist/js/select2.full.js'
 import 'select2/dist/css/select2.css'
 
 
+// Initialize all dal elements (urlfunc is optional)
 export function initDAL(urlfunc) {
     $('[data-autocomplete-light-function=select2]').each(function() {
         var element = $(this);
@@ -12,6 +13,7 @@ export function initDAL(urlfunc) {
     })
 }
 
+// Initialize a single dal element (urlfunc is optional)
 export function initDALWidget(element, urlfunc) {
     // Templating result
     function template_result(item) {
