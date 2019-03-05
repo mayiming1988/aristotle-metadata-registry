@@ -181,7 +181,7 @@ class ReviewRequestSupersedesForm(forms.ModelForm):
             self.fields['older_item'].queryset = MDR._concept.objects.visible(user)
 
     class Meta:
-        fields = ('older_item', 'newer_item', 'message')
+        fields = ('newer_item', 'older_item', 'message')
         widgets = {
             'older_item': ConceptAutocompleteSelect,
             'message': forms.widgets.TextInput,
