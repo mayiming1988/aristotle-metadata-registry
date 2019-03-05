@@ -140,9 +140,10 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
                 self.fields[f].widget = BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"})
 
         # Name suggest button
+        aristotle_settings = fetch_aristotle_settings()
         self.fields['name'].widget = NameSuggestInput(
             name_suggest_fields=self._meta.model.name_suggest_fields,
-            separator='-'
+            separator=aristotle_settings['SEPARATORS'].get(self._meta.model.__name__, '-')
         )
 
     def concept_fields(self):
