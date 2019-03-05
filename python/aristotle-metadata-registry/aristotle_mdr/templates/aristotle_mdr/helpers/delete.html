@@ -1,8 +1,8 @@
 <form action="" method="post">
-  {% csrf_token %}
-  Are you sure you want to delete {{ object_name }}?
-  <a class="btn btn-default" href="{{ cancel_url }}">Cancel</a>
-  <button type="submit" class="btn btn-danger">Delete</button>
+    {% csrf_token %}
+    Are you sure you want to delete {{ object_name }}?
+    <a class="btn btn-default" href="{{ cancel_url }}">Cancel</a>
+    <button type="submit" class="btn btn-danger">Delete</button>
 </form>
 {% if cancel_url %}
 {% endif %}

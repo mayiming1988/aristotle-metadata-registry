@@ -6,28 +6,28 @@
 
 {% block steward_content %}
 
-<table class="table">
-    <thead>
+    <table class="table">
+        <thead>
         <tr>
-        <th>Type</th>
-        <th>Count</th>
+            <th>Type</th>
+            <th>Count</th>
         </tr>
-    </thead>
-    <tbody>
+        </thead>
+        <tbody>
         {% for type in object_list %}
-        <tr>
-            <td>
-                <a href="{% url 'aristotle_mdr:stewards:group:managed_item_list_items' group.slug type.model %}">
-                {{type.model_class.get_verbose_name}}
-                </a>
-            </td>
-            <td>
-                {{type.item_count}}
-            </td>
-        </tr>
+            <tr>
+                <td>
+                    <a href="{% url 'aristotle_mdr:stewards:group:managed_item_list_items' group.slug type.model %}">
+                        {{type.model_class.get_verbose_name}}
+                    </a>
+                </td>
+                <td>
+                    {{type.item_count}}
+                </td>
+            </tr>
         {% endfor %}
-    </tbody>
-</table>
+        </tbody>
+    </table>
 
 
 {% endblock %}

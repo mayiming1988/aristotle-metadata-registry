@@ -1,17 +1,17 @@
 {% if field.is_link %}
-  {% if field.is_list %}
-      <ul>
-        {% for item in field.object_list %}
-          <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}<span class="text-danger">*</span></a></li>
-        {% endfor %}
-      </ul>
-  {% else %}
-    <a href="{% url 'aristotle:item' field.link_id %}">{{ field }}<span class="text-danger">*</span></a>
-  {% endif %}
+    {% if field.is_list %}
+        <ul>
+            {% for item in field.object_list %}
+                <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}<span class="text-danger">*</span></a></li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <a href="{% url 'aristotle:item' field.link_id %}">{{ field }}<span class="text-danger">*</span></a>
+    {% endif %}
 {% else %}
-  {% if field.is_html %}
-    {{ field|striptags }}
-  {% else %}
-    {{ field }}
-  {% endif %}
+    {% if field.is_html %}
+        {{ field|striptags }}
+    {% else %}
+        {{ field }}
+    {% endif %}
 {% endif %}

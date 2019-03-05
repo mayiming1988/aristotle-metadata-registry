@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block page %}
-<h1>{% block title %}Editing {{model_name}} "{{item.name}}" {% endblock %}</h1>
+    <h1>{% block title %}Editing {{model_name}} "{{item.name}}" {% endblock %}</h1>
     <form action="" method="POST">
         {% csrf_token %}
 
@@ -16,12 +16,12 @@
                     {#{ form.stewardship_organisation.label_tag }#}<br>
                     {{ object.stewardship_organisation }}
                     {% if form.stewardship_organisation.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.stewardship_organisation.errors }}
-                    </div>
+                        <div class="alert alert-danger">
+                            {{ form.stewardship_organisation.errors }}
+                        </div>
                     {% endif %}
                     <p class="help-block">
-                         The organisation this item belongs to
+                        The organisation this item belongs to
                     </p>
                 </div>
             </div>
@@ -30,12 +30,12 @@
                     {{ form.name.label_tag }}<br>
                     <input class="form-control" id="{{form.name.id_for_label}}" value="{{ form.name.value|default:"" }}" name="name">
                     {% if form.name.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.name.errors }}
+                        <div class="alert alert-danger">
+                            {{ form.name.errors }}
                         </div>
                     {% endif %}
                     <p class="help-block">
-                         {{ form.name.help_text }}
+                        {{ form.name.help_text }}
                     </p>
                 </div>
             </div>
@@ -45,13 +45,13 @@
             {{ form.definition.label_tag }}
             {% if form.definition.errors %}
                 <div class="alert alert-danger">
-                {{ form.definition.errors }}
+                    {{ form.definition.errors }}
                 </div>
             {% endif %}
-                <p class="help-block">
-                 {{ form.definition.help_text }}
-                </p>
-                {{ form.definition }}
+            <p class="help-block">
+                {{ form.definition.help_text }}
+            </p>
+            {{ form.definition }}
         </div>
 
         {# <a href="{% url 'aristotle_mdr:stewards:group:view_managed_item' object.stewardship_organisation.slug object.meta.model_name object.pk %}" class="btn btn-default">Cancel</button> #}
