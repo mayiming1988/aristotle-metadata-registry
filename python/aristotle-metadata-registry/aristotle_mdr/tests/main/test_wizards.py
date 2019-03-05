@@ -14,6 +14,7 @@ from aristotle_mdr.utils import setup_aristotle_test_environment
 
 setup_aristotle_test_environment()
 
+
 class HaystackReindexMixin(object):
     def tearDown(self):
         call_command('clear_index', interactive=False, verbosity=0)
@@ -768,9 +769,8 @@ class DataElementConceptAdvancedWizardPage(HaystackReindexMixin, utils.Aristotle
         item = models.DataElementConcept.objects.filter(name="Animagus--Animal type").first()
         self.assertRedirects(response,url_slugify_concept(item))
 
-    @skip('Issue yet to be addressed')
     def test_component_initial(self):
-        """Test that components are selected in final step when reusing"""
+        """Test that components tab hidden in final step when reusing"""
 
         # Make an oc and prop to reuse
         oc = models.ObjectClass.objects.create(
@@ -796,9 +796,8 @@ class DataElementConceptAdvancedWizardPage(HaystackReindexMixin, utils.Aristotle
         self.login_editor()
         response = self.post_to_wizard(data, self.wizard_url, self.wizard_form_name, steps)
         self.assertWizardStep(response, 'find_dec_results')
-        form = response.context['wizard']['form']
-        self.assertTrue('objectClass' in form.initial)
-        self.assertTrue('property' in form.initial)
+        self.assertTrue('hide_components_tab' in response.context)
+        self.assertTrue(response.context['hide_components_tab'])
 
 
 class DataElementAdvancedWizardPage(HaystackReindexMixin, utils.LoggedInViewPages, TestCase):

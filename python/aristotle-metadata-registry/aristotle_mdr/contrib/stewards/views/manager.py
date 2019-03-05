@@ -31,7 +31,6 @@ class ManagedItemViewMixin:
 
     def get_model_class(self, request):
         model_name = self.kwargs.get("model_name").lower()
-        logger.critical(model_name)
         self.model = ContentType.objects.get(model=model_name).model_class()
         if not issubclass(self.model, ManagedItem):
             raise Http404
@@ -181,7 +180,6 @@ class StewardURLManager(GroupURLManager):
                     t.item_count = t.model_class().objects.filter(
                         stewardship_organisation=self.get_group()
                     ).count()
-                    logger.critical([dir(t)])
                 return types
 
         return ListManagedItemTypesList.as_view(manager=self, group_class=self.group_class)

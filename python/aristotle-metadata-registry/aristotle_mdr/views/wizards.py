@@ -518,7 +518,8 @@ class DataElementConceptWizard(MultiStepAristotleWizard):
             context.update({
                 'oc_match': self.get_object_class(),
                 'pr_match': self.get_property(),
-                'dec_matches': self.get_data_element_concept()
+                'dec_matches': self.get_data_element_concept(),
+                'hide_components_tab': True
                 })
         if self.steps.current == 'completed':
             context.update({
@@ -805,7 +806,8 @@ class DataElementWizard(MultiStepAristotleWizard):
             context.update({
                 'oc_match': self.get_object_class(),
                 'pr_match': self.get_property(),
-                'dec_matches': self.get_data_element_concepts()
+                'dec_matches': self.get_data_element_concepts(),
+                'hide_components_tab': True
                 })
         if self.steps.current == 'find_de_from_comp':
             context.update({
@@ -818,7 +820,8 @@ class DataElementWizard(MultiStepAristotleWizard):
             context.update({
                 'dec_match': self.get_data_element_concept(),
                 'vd_match': self.get_value_domain(),
-                'de_matches': self.get_data_elements()
+                'de_matches': self.get_data_elements(),
+                'hide_components_tab': True
                 })
         if self.steps.current == 'completed':
             context.update({

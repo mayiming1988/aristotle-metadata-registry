@@ -10,11 +10,11 @@
 {% endblock %}
 
 {% block page %}
-<h1>{% block title %}All Stewardship Organisations{% endblock %}</h1>
+    <h1>{% block title %}All Stewardship Organisations{% endblock %}</h1>
 
     <section id="workgroups">
-        <a class="btn btn-default" href="{% url 'aristotle:workgroup_create'%}">Add Organisation</a>
-        
+        <a class="btn btn-default" href="{% url 'aristotle:stewards:group:create'%}">Add Organisation</a>
+
         {% include "aristotle_mdr/helpers/paginated_organisation_list.html" with page=page show_all=True show_stewardship_organisations=True %}
-</section>
+    </section>
 {% endblock %}

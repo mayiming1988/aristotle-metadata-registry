@@ -2,18 +2,18 @@
 {% load group_tags %}
 
 {% block content %}
-<h1>
-    Create {{view.manager.group_meta.verbose_name.title}}
-</h1>
+    <h1>
+        Create {{view.manager.group_meta.verbose_name.title}}
+    </h1>
 
-<form action="{%url view.manager.namespace|add:":update" object.slug %}" method="POST">
-    {% csrf_token %}
-    <table>
-    {{form.as_table}}
-    </table>
+    <form action="{%url view.manager.namespace|add:":update" object.slug %}" method="POST">
+        {% csrf_token %}
+        <table>
+            {{form.as_table}}
+        </table>
 
-    <a href="{%url view.manager.namespace|add:":detail" object.slug %}">Cancel</a>
-    <button type="submit">Submit</button>
-</form>
+        <a href="{%url view.manager.namespace|add:":detail" object.slug %}">Cancel</a>
+        <button type="submit">Submit</button>
+    </form>
 
 {% endblock %}

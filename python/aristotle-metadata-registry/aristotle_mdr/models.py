@@ -691,6 +691,8 @@ class _concept(baseAristotleObject):
     relational_attributes: List[QuerySet]
     # Used by concept manager with_related in a select_related
     related_objects: List[str] = []
+    # Fields to build the name from
+    name_suggest_fields: List[str] = []
 
     class Meta:
         # So the url_name works for items we can't determine.
@@ -1287,6 +1289,8 @@ class DataElementConcept(concept):
         'property'
     ]
 
+    name_suggest_fields = ['objectClass', 'property']
+
     @property_
     def registry_cascade_items(self):
         out = []
@@ -1340,6 +1344,8 @@ class DataElement(concept):
         'dataElementConcept__objectClass',
         'dataElementConcept__property'
     ]
+
+    name_suggest_fields = ['dataElementConcept', 'valueDomain']
 
     @property
     def registry_cascade_items(self):
@@ -1573,11 +1579,11 @@ class PossumProfile(models.Model):
 
     @property
     def registrarAuthorities(self):
-        "NOTE: This is a list of Authorities the user is a *registrar* in!."
+        # NOTE: This is a list of Authorities the user is a *registrar* in!.
         if self.user.is_superuser:
-            return RegistrationAuthority.objects.all()
+            return RegistrationAuthority.objects.all().order_by('name')
         else:
-            return self.user.registrar_in.all()
+            return self.user.registrar_in.all().order_by('name')
 
     def is_workgroup_manager(self, wg=None):
         return perms.user_is_workgroup_manager(self.user, wg)
