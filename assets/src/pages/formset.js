@@ -22,5 +22,5 @@ function get_url(element) {
 }
 
 initCore()
-initFormset()
 initDAL(get_url)
+initFormset(get_url)
