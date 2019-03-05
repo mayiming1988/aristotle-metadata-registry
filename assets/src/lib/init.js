@@ -13,6 +13,7 @@ import { initMessages } from './messages.js'
 import { initDAL } from './dal_simple_init.js'
 import { initCKEditor } from './ckeditor_simple_init.js'
 import { initTime } from './localtime.js'
+import { initSuggest } from './suggest.js'
 
 // Always on styles
 import 'src/styles/bootstrap.less'
@@ -61,6 +62,9 @@ export function initWidgets() {
 
     // Initialize ckeditor
     initCKEditor()
+
+    // Initialize suggest buttons
+    initSuggest()
 }
 
 export function initSpinners() {
