@@ -162,7 +162,6 @@ class DataAttrSelect(Select):
 
     def create_option(self, *args, **kwargs):
         option: Dict = super().create_option(*args, **kwargs)
-        # import pdb; pdb.set_trace()
         for data_attr, values in self.data.items():
             if option['value'] in values:
                 option['attrs'][data_attr] = values[option['value']]
