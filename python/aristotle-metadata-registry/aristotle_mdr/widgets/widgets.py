@@ -155,6 +155,7 @@ class MultiTextWidget(TextInput):
 
 
 class DataAttrSelect(Select):
+    """Select widget that adds extra data attributes to <option> elements"""
     def __init__(self, attrs=None, choices=(), data: Dict[str, Dict[str, str]]={}):
         super().__init__(attrs, choices)
         self.data = data

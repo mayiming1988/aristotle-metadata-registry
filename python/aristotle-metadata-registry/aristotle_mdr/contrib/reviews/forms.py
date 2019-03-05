@@ -169,14 +169,12 @@ class ReviewRequestSupersedesForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         # Make only concepts in the review allowed as newer items
         review_concepts = kwargs.pop('review_concepts', None)
+        widget_data = kwargs.pop('widget_data', {})
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         if review_concepts:
             self.fields['newer_item'].queryset = review_concepts
-            review_items = review_concepts.select_subclasses()
-            self.fields['newer_item'].widget.data = {
-                'data-label': {i.pk: type(i)._meta.label_lower for i in review_items}
-            }
+            self.fields['newer_item'].widget.data = widget_data
         if user:
             self.fields['older_item'].queryset = MDR._concept.objects.visible(user)
 
