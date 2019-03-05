@@ -1,4 +1,5 @@
-import { initDALWidget, reinitCKEditors } from './dal_simple_init.js'
+import { initDALWidget } from './dal_simple_init.js'
+import { reinitCKEditors } from './ckeditor_simple_init.js'
 
 export function replacePrefix(element, num_forms) {
     let name = $(element).attr('name')
@@ -17,7 +18,8 @@ export function replacePrefix(element, num_forms) {
 }
 
 // Adds a row to a formset given a form element and row css selector
-export function addRow(formid, row_selector) {
+// urlfunc is optional (used for dal init)
+export function addRow(formid, row_selector, urlfunc) {
     let panelList = $('#' + formid);
     let formstage = $('.formstage#' + formid + ' ' + row_selector)
 
@@ -65,14 +67,15 @@ export function addRow(formid, row_selector) {
 
     new_form.find('[data-autocomplete-light-function=select2]').each(function() {
         let element = $(this);
-        initDALWidget(element)
+        initDALWidget(element, urlfunc)
     })
 
     reinitCKEditors(new_form);
 }
 
-export default function initFormset() {
+// initialize a general formset (urlfunc is optional)
+export default function initFormset(urlfunc) {
     $('a.add_code_button').click(function() {
-        addRow($(this).attr('formid'), '.form-inline');
+        addRow($(this).attr('formid'), '.form-inline', urlfunc);
     });
 }
