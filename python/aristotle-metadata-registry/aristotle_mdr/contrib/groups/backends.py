@@ -575,7 +575,7 @@ class GroupURLManager(InvitationBackend):
             'accept_url': reverse(
                 "%s:%s" % (self.namespace, "accept_invitation"),
                 args=[group.slug, user.pk, self.get_token(user, group)],
-            ),
+                ),
             'request': request
         })
 
