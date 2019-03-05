@@ -11,6 +11,11 @@ from aristotle_mdr.utils.utils import is_postgres
 from aristotle_mdr.constants import visibility_permission_choices
 
 
+is_published_public = Q(publication_details__permission=visibility_permission_choices.public)
+
+is_published_auth = Q(publication_details__permission=visibility_permission_choices.auth)
+
+
 class UUIDManager(models.Manager):
     def create_uuid(self, instance):
         if instance.uuid is not None:
@@ -111,6 +116,9 @@ class ConceptQuerySet(MetadataItemQuerySet):
             for func in extra_q:
                 q |= import_string(func)(user)
 
+        q |= is_published_public
+        q |= is_published_auth
+
         q = q & ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
 
         if not need_distinct:
@@ -168,7 +176,7 @@ class ConceptQuerySet(MetadataItemQuerySet):
         """
         from aristotle_mdr.models import StewardOrganisation
         return self.filter(
-            Q(_is_public=True) &
+            Q(is_published_public | Q(_is_public=True)) &
             ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
         )
 
@@ -310,11 +318,11 @@ class ManagedItemQuerySet(models.QuerySet):
         if user.is_superuser:
             return self.all()
 
-        q = Q(publication_details__permission=visibility_permission_choices.public)
+        q = is_published_public
         if user.is_anonymous():
             return self.filter(q)
 
-        q |= Q(publication_details__permission=visibility_permission_choices.auth)
+        q |= is_published_auth
         # q |= Q(
         #     workgroup__in=user.profile.workgroups,
         #     publication_details__permission=visibility_permission_choices.workgroup
