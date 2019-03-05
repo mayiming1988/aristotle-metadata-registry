@@ -9,6 +9,7 @@ from aristotle_mdr.exceptions import NoUserGivenForUserForm
 from aristotle_mdr.managers import ConceptQuerySet
 from aristotle_mdr.perms import user_can_remove_from_workgroup, user_can_move_to_workgroup
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
+from aristotle_mdr.widgets.widgets import NameSuggestInput
 from aristotle_mdr.utils.utils import fetch_aristotle_settings
 
 from aristotle_mdr.contrib.custom_fields.forms import CustomValueFormMixin
@@ -138,6 +139,12 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
             elif type(self.fields[f]) == forms.fields.DateTimeField:
                 self.fields[f].widget = BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"})
 
+        # Name suggest button
+        self.fields['name'].widget = NameSuggestInput(
+            name_suggest_fields=self._meta.model.name_suggest_fields,
+            separator='-'
+        )
+
     def concept_fields(self):
         # version/workgroup are displayed with name/definition
         field_names = [field.name for field in MDR.baseAristotleObject._meta.fields] + ['version', 'workgroup']
@@ -165,7 +172,7 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
 class Concept_1_Search(UserAwareForm):
     template = "aristotle_mdr/create/concept_wizard_1_search.html"
     # Object class fields
-    name = forms.CharField(max_length=256)
+    name = forms.CharField(max_length=256, required=False)
     version = forms.CharField(max_length=256, required=False)
     definition = forms.CharField(widget=forms.Textarea, required=False)
 
@@ -194,6 +201,7 @@ def subclassed_modelform(set_model):
         class Meta(ConceptForm.Meta):
             model = set_model
             fields = '__all__'
+
     return MyForm
 
 
