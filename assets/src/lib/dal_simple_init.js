@@ -62,9 +62,11 @@ export function initDALWidget(element, urlfunc) {
 
     let ajax = null;
     if ($(element).attr('data-autocomplete-light-url')) {
-        let url = urlfunc
+        let url = ''
         if (urlfunc === undefined) {
             url = $(element).attr('data-autocomplete-light-url')
+        } else {
+            url = urlfunc(element)
         }
         ajax = {
             url: url,
