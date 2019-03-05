@@ -13,7 +13,8 @@ export function initSuggest() {
                 let separator = button.getAttribute('data-separator')
                 let names = []
                 for (let field of suggest_fields) {
-                    let select = document.getElementById('id_' + field)
+                    // Get select by replacing name in the id so it will work in formsets aswell
+                    let select = document.getElementById(input.id.replace('name', field))
                     // If select was found and is a select element
                     if (select !== null && select.tagName == 'SELECT') {
                         // Get option element
