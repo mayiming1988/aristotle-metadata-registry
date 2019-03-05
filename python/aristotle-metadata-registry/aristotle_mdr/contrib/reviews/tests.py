@@ -270,7 +270,7 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         self.assertTrue('data-label' in widget_data)
         self.assertCountEqual(
             widget_data['data-label'],
-            {self.item.id: 'aristotle_mdr.objectclass', item2.id: 'aristotle_mdr.objectclass'} 
+            {self.item.id: 'aristotle_mdr.objectclass', item2.id: 'aristotle_mdr.objectclass'}
         )
 
     def test_rr_supersedes_create(self):
