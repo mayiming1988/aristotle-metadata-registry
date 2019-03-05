@@ -254,6 +254,25 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(qs.count(), 1)
         self.assertTrue(ss in qs)
 
+    def test_formset_data_attrs(self):
+        # Add second item to review
+        item2 = self.create_editor_item('My 2nd Object', 'mine')
+        self.review.concepts.add(item2)
+        # Get formset
+        self.login_editor()
+        response = self.reverse_get(
+            'aristotle_mdr_review_requests:request_supersedes_edit',
+            reverse_args=[self.review.pk],
+            status_code=200
+        )
+        form = response.context['formset'].empty_form
+        widget_data = form.fields['newer_item'].widget.data
+        self.assertTrue('data-label' in widget_data)
+        self.assertCountEqual(
+            widget_data['data-label'],
+            {self.item.id: 'aristotle_mdr.objectclass', item2.id: 'aristotle_mdr.objectclass'} 
+        )
+
     def test_rr_supersedes_create(self):
         # Add second item to review
         item2 = self.create_editor_item('My 2nd Object', 'mine')
