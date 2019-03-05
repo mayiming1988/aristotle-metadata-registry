@@ -3,16 +3,16 @@ import 'select2/dist/js/select2.full.js'
 import 'select2/dist/css/select2.css'
 
 
-export function initDAL() {
+export function initDAL(urlfunc) {
     $('[data-autocomplete-light-function=select2]').each(function() {
         var element = $(this);
         if (element.closest(".formstage").length == 0) {
-            initDALWidget(element)
+            initDALWidget(element, urlfunc)
         }
     })
 }
 
-export function initDALWidget(element) {
+export function initDALWidget(element, urlfunc) {
     // Templating result
     function template_result(item) {
         if (!item.body) {
@@ -60,15 +60,19 @@ export function initDALWidget(element) {
         }
     }
 
-    var ajax = null;
+    let ajax = null;
     if ($(element).attr('data-autocomplete-light-url')) {
+        let url = urlfunc
+        if (urlfunc === undefined) {
+            url = $(element).attr('data-autocomplete-light-url')
+        }
         ajax = {
-            url: $(element).attr('data-autocomplete-light-url'),
+            url: url,
             dataType: 'json',
             delay: 250,
 
             data: function (params) {
-                var data = {
+                let data = {
                     q: params.term, // search term
                     page: params.page,
                     create: element.attr('data-autocomplete-light-create') && !element.attr('data-tags'),
