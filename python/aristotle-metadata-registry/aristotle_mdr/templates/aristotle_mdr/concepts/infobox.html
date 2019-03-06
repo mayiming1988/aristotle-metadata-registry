@@ -53,8 +53,8 @@
                     {% include "aristotle_mdr/infobox_statuses.html" with statuses=statuses %}
                 {% endif %}
 
-                {% if item.publicationrecord and not statuses %}
-                    {% include "aristotle_self_publish/concepts/publication_details.html" with item=item %}
+                {% if item.concept.publication_details.exists %}
+                    {% include "aristotle_mdr/publish/concepts/publication_details.html" with item=item.concept %}
                 {% endif %}
 
                 <dt>{% trans 'Last updated'%}</dt>
