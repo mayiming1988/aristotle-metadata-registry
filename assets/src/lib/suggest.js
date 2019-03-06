@@ -1,3 +1,5 @@
+import { capitalize, unCamel } from './utils.js'
+
 // Fuction to initialize suggest name buttons used in item editors
 export function initSuggest() {
     let wrappers = document.querySelectorAll('.suggest_name_wrapper')
@@ -22,6 +24,8 @@ export function initSuggest() {
                         // If options value is not blank
                         if (option.value != "") {
                             names.push(option.innerText)
+                        } else {
+                            names.push(capitalize(unCamel(field)) + ' Name')
                         }
                     }
                 }
