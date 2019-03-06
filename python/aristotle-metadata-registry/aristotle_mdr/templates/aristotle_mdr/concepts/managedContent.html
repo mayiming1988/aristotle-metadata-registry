@@ -27,10 +27,12 @@
                 {{ item.origin|bleach }}
             {% endif %}
 
-            {% if item.references %}
+            {% if item.references or item.submitting_organisation or item.reponsible_organisation %}
                 <div>
                     <h2>References</h2>
-                    <p>{{ item.references|bleach }}</p>
+                    {% if item.references %}
+                      <p>{{ item.references|bleach }}</p>
+                    {% endif %}
                     {% if item.submitting_organisation %}
                         <h3>Submitting Organisation</h3>
                         <p>{{ item.submitting_organisation }}</p>

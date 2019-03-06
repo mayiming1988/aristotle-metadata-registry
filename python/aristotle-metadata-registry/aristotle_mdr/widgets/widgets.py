@@ -14,8 +14,8 @@ class NameSuggestInput(TextInput):
     def render(self, name, value, attrs=None):
         out = super().render(name, value, attrs)
         if self.suggest_fields:
-            button = u"<button type='button' data-separator='{}' data-suggest-fields='{}'>Suggest</button>".format(self.separator, ",".join(self.suggest_fields))
-            out = u"<div class='suggest_name_wrapper'>{}{}</div>".format(out, button)
+            button = "<button class=\"btn btn-default\" type='button' data-separator='{}' data-suggest-fields='{}'>Suggest</button>".format(self.separator, ",".join(self.suggest_fields))
+            out = "<div class='suggest_name_wrapper'>{}{}</div>".format(out, button)
         return mark_safe(out)
 
 

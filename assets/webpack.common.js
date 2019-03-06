@@ -21,6 +21,7 @@ module.exports = {
         hashFunction: 'sha256'
     },
     module: {
+        strictExportPresence: true,  // Missing exports fail the build
         rules: [
             {
                 // Expose jquery outside bundle
@@ -50,7 +51,8 @@ module.exports = {
                             [
                                 '@babel/preset-env',
                                 {
-                                    useBuiltIns: 'entry'
+                                    useBuiltIns: 'entry',
+                                    modules: false
                                 }
                             ]
                         ],

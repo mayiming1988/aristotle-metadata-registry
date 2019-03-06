@@ -52,15 +52,12 @@
             </div>
             <div class="fancy_name_version">
                 <div class="wizard_field name">
-                    <span>{{ form.name.label_tag }}</span>
+                    <span>{{ form.name.label_tag }} {{ form.name.help_text }}</span>
                     {% if form.name.errors %}
                     <span class="alert alert-danger">
                         {{ form.name.errors }}
                     {% endif %}
                         {{ form.name }}
-                        <div>
-                         {{ form.name.help_text }}
-                        </div>
                     {% if form.name.errors %}
                         </span>
                     {% endif %}
