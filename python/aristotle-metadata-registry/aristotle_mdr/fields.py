@@ -27,12 +27,29 @@ from django.db.models.fields import (
 )
 
 from django.forms import EmailField as EmailFormField
+from django.contrib.contenttypes.fields import GenericRelation, ReverseGenericManyToOneDescriptor
+from django.contrib.contenttypes.models import ContentType
 
 from constrainedfilefield.fields import ConstrainedImageField
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from PIL import Image
 import io
 import os
+
+
+class ConceptGenericRelation(GenericRelation):
+    """
+    Force relations on concept and subclasses to ONLY use the concept content type.
+    """
+    def get_content_type(self):
+        """
+        Return the content type associated with this field's model.
+        """
+        from aristotle_mdr.models import _concept
+        return ContentType.objects.get_for_model(
+            _concept,
+            for_concrete_model=self.for_concrete_model
+        )
 
 
 class ConceptOneToOneRel(OneToOneRel):

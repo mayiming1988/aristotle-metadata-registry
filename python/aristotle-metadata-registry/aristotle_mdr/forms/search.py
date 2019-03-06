@@ -3,6 +3,7 @@ import datetime
 from django import forms
 from django.core.exceptions import ImproperlyConfigured
 from django.apps import apps
+from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
 
@@ -162,6 +163,7 @@ class PermissionSearchQuerySet(SearchQuerySet):
     def apply_permission_checks(self, user=None, public_only=False, user_workgroups_only=False):
         sqs = self
         q = SQ(is_public=True)
+        q |= SQ(published_date_public__lte=timezone.now())
         if user is None or user.is_anonymous():
             # Regular users can only see public items, so boot them off now.
             sqs = sqs.filter(q)
