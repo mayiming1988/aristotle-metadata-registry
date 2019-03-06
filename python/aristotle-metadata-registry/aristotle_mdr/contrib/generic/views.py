@@ -142,7 +142,7 @@ class GenericAlterForeignKey(GenericAlterManyToSomethingFormView):
         model_base_field = self.model_base_field
 
         class FKOnlyForm(forms.ModelForm):
-            class Meta():
+            class Meta:
                 model = self.model_base
                 fields = (self.model_base_field,)
                 widgets = {
@@ -509,7 +509,7 @@ class UnorderedGenericAlterOneToManyView(GenericAlterOneToManyViewBase):
 
 
 class ExtraFormsetMixin:
-    # Mixin of utils function for adding addtional formsets to a view
+    # Mixin of utils function for adding additional formsets to a view
     # extra_formsets must contain formset, type, title and saveargs
     # See EditItemView for example usage
 
@@ -571,6 +571,8 @@ class ExtraFormsetMixin:
             else:
                 formset = self.get_order_formset(through, postdata=postdata)
 
+            formset = one_to_many_formset_filters(formset, item)
+
             extra_formsets.append({
                 'formset': formset,
                 'type': 'through',
@@ -592,6 +594,8 @@ class ExtraFormsetMixin:
                 formset = self.get_weak_formset(weak, item, postdata)
             else:
                 formset = self.get_weak_formset(weak, postdata=postdata)
+
+            formset = one_to_many_formset_filters(formset, item)
 
             title = weak['model'].__name__
             # add spaces before capital letters
@@ -687,11 +691,21 @@ class ExtraFormsetMixin:
 
     def get_slots_formset(self):
         from aristotle_mdr.contrib.slots.forms import slot_inlineformset_factory
-        return slot_inlineformset_factory()
+
+        formset = slot_inlineformset_factory()
+
+        formset.filtered_empty_form = formset.empty_form
+
+        return formset
 
     def get_identifier_formset(self):
         from aristotle_mdr.contrib.identifiers.forms import identifier_inlineformset_factory
-        return identifier_inlineformset_factory()
+
+        formset = identifier_inlineformset_factory()
+
+        formset.filtered_empty_form = formset.empty_form
+
+        return formset
 
     def get_model_field(self, model, search_model):
         # get the field in the model that we are adding so it can be excluded from form
