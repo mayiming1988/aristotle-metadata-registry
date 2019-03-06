@@ -9,9 +9,17 @@ export function initSuggest() {
         let input = wrapper.querySelector('input')
         // Make sure the buton and input exist
         if (button !== null && input !== null) {
+            // Get help text
+            let suggest_fields = button.getAttribute('data-suggest-fields').split(',')
+            let field_names = []
+            for (let field of suggest_fields) {
+                field_names.push(capitalize(unCamel(field)))
+            }
+            let help_text = 'Generates a name based on ' + field_names.join(' and ')
+            // Set button title
+            button.setAttribute('title', help_text)
             // Add click listener
             button.addEventListener('click', () => {
-                let suggest_fields = button.getAttribute('data-suggest-fields').split(',')
                 let separator = button.getAttribute('data-separator')
                 let names = []
                 for (let field of suggest_fields) {
