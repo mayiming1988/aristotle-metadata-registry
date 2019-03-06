@@ -125,16 +125,8 @@ class ConceptWizardPage(HaystackReindexMixin, utils.AristotleTestUtils):
         self.login_editor()
         step_1_data = {
             self.wizard_form_name+'-current_step': 'initial',
+            'initial-name': 'Test Item'
         }
-
-        response = self.client.post(self.wizard_url, step_1_data)
-        wizard = response.context['wizard']
-        self.assertEqual(wizard['steps'].current, 'initial')
-        self.assertTrue('name' in wizard['form'].errors.keys())
-
-        # must submit a name
-        step_1_data.update({'initial-name':"Test Item"})
-        # success!
 
         response = self.client.post(self.wizard_url, step_1_data)
         wizard = response.context['wizard']

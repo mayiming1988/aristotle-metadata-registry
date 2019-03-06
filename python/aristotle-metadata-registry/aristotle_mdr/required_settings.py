@@ -200,7 +200,7 @@ AUTHENTICATION_BACKENDS = ('aristotle_mdr.backends.AristotleBackend',)
 ARISTOTLE_SETTINGS = {
     'SEPARATORS': {
         'DataElement': ', ',
-        'DataElementConcept': u'–'
+        'DataElementConcept': '—'  # An em dash (unicode 2014)
     },
     'SITE_NAME': 'Default Site Name',  # 'The main title for the site.'
     'SITE_BRAND': 'aristotle_mdr/images/aristotle_small.png',  # URL for the Site-wide logo

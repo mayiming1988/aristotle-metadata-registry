@@ -32,25 +32,23 @@
     {% if item.dssclusterinclusion_set.exists %}
         <table class="dssInclusions table table-striped table-condensed">
             <thead>
-            <tr>
-                <th>
-                    Clusters
-                </th>
-                <th>Statuses
-                </th>
-                <th>
-                    <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left" data-html="true"
-                       title="Data Element Inclusion" data-content="The rules for inclusion for a data element within a data set.<br>May be optional, mandatory or conditional">
-                        Inclusion
-                    </a>
-                </th>
-                <th class="maxOccurs">
-                    <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left"
-                       title="Maximum Occurances" data-content="The maximum number of times a data element may be repeated in a data set.">
-                        #
-                    </a>
-                </th>
-            </tr>
+                <tr>
+                    <th>
+                        Clusters
+                    </th>
+                    <th>Statuses
+                    </th>
+                    <th>
+                        <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left" data-html="true"
+                            title="Data Element Inclusion" data-content="The rules for inclusion for a data element within a data set.<br>May be optional, mandatory or conditional">
+                            Inclusion</a>
+                    </th>
+                    <th class="maxOccurs">
+                        <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left"
+                            title="Maximum Occurrences" data-content="The maximum number of times a data element may be repeated in a data set.">
+                            #</a>
+                    </th>
+                </tr>
             </thead>
             {% if item.dssclusterinclusion_set.exists %}
                 <tbody>
@@ -130,7 +128,11 @@
                     </th>
                     <th class="maxOccurs">
                         <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left"
+<<<<<<< HEAD
+                            title="Maximum Occurrences" data-content="The maximum number of times a data element may be repeated in a data set.">
+=======
                            title="Maximum Occurances" data-content="The maximum number of times a data element may be repeated in a data set.">
+>>>>>>> upstream/develop
                             #</a>
                     </th>
                 </tr>
