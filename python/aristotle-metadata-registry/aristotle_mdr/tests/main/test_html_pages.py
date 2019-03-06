@@ -2160,16 +2160,17 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
 
         response = self.client.get(reverse(url,args=[self.item3.id]))
         self.assertEqual(response.status_code, 200)
-        # import pdb; pdb.set_trace()
 
         # check queryset correctly filled from conceptual domain for item 2
         formset = response.context['weak_formsets'][0]['formset']
-        for form in formset:
-            self.assertFalse('meaning' in form.fields)
-            self.assertTrue('value_meaning' in form.fields)
-            queryset = form.fields['value_meaning'].queryset
-            for item in queryset:
-                self.assertTrue(item in self.vms)
+        form = formset.empty_form
+        
+        self.assertFalse('meaning' in form.fields.keys())
+        self.assertTrue('value_meaning' in form.fields.keys())
+        queryset = form.fields['value_meaning'].queryset
+        self.assertEqual(queryset.count(), 2)
+        for item in queryset:
+            self.assertTrue(item in self.vms)
 
         # Check empty queryset for item 1 (no cd linked)
         response = self.client.get(reverse(url,args=[self.item1.id]))
@@ -2177,8 +2178,8 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
 
         formset = response.context['weak_formsets'][0]['formset']
         for form in formset:
-            self.assertFalse('value_meaning' in form.fields)
-            self.assertTrue('meaning' in form.fields)
+            self.assertFalse('value_meaning' in form.fields.keys())
+            self.assertTrue('meaning' in form.fields.keys())
 
     @tag('version')
     def test_version_display_of_values(self):
