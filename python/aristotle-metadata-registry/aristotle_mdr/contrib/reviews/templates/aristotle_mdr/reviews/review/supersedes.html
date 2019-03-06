@@ -3,11 +3,11 @@
 {% load render_bundle from webpack_loader %}
 
 {% block webpack_bundle %}
-    {% render_bundle 'formset' 'js' %}
+    {% render_bundle 'rr_supersedes' 'js' %}
 {% endblock %}
 
 {% block webpack_css_bundle %}
-    {% render_bundle 'formset' 'css' %}
+    {% render_bundle 'rr_supersedes' 'css' %}
 {% endblock %}
 
 {% block title %}Review details{{ item.name }}{% endblock %}

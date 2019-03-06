@@ -2,14 +2,6 @@
 {% load util_tags %}
 {% load render_bundle from webpack_loader %}
 
-{% block webpack_bundle %}
-    {% render_bundle 'formset' 'js' %}
-{% endblock %}
-
-{% block webpack_css_bundle %}
-    {% render_bundle 'formset' 'css' %}
-{% endblock %}
-
 {% block title %}Review details{{ item.name }}{% endblock %}
 {% block tabpanel %}
 <div role="tabpanel" class="tab-pane active" id="review_impact">

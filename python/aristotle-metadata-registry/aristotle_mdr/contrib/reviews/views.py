@@ -402,6 +402,13 @@ class ReviewSupersedesEditView(ReviewActionMixin, FormsetView):
         # Pass review concepts through to form
         formset.form_kwargs['review_concepts'] = self.review_concepts
         formset.form_kwargs['user'] = self.request.user
+
+        # Get data attrs
+        review_items = self.review_concepts.select_subclasses()
+        widget_data = {
+            'data-label': {i.pk: type(i)._meta.label_lower for i in review_items}
+        }
+        formset.form_kwargs['widget_data'] = widget_data
         return formset
 
     def formset_valid(self, formset):

@@ -1,5 +1,6 @@
+from typing import Dict
 from django import forms
-from django.forms.widgets import TextInput, CheckboxSelectMultiple
+from django.forms.widgets import TextInput, CheckboxSelectMultiple, Select
 
 from django.utils.safestring import mark_safe
 
@@ -13,8 +14,8 @@ class NameSuggestInput(TextInput):
     def render(self, name, value, attrs=None):
         out = super().render(name, value, attrs)
         if self.suggest_fields:
-            button = u"<button type='button' data-separator='{}' data-suggest-fields='{}'>Suggest</button>".format(self.separator, ",".join(self.suggest_fields))
-            out = u"<div class='suggest_name_wrapper'>{}{}</div>".format(out, button)
+            button = "<button class=\"btn btn-default\" type='button' data-separator='{}' data-suggest-fields='{}'>Suggest</button>".format(self.separator, ",".join(self.suggest_fields))
+            out = "<div class='suggest_name_wrapper'>{}{}</div>".format(out, button)
         return mark_safe(out)
 
 
@@ -151,3 +152,18 @@ class MultiTextWidget(TextInput):
                 values.append(data[key])
 
         return values
+
+
+class DataAttrSelect(Select):
+    """Select widget that adds extra data attributes to <option> elements"""
+    def __init__(self, attrs=None, choices=(), data: Dict[str, Dict[str, str]] = {}):
+        super().__init__(attrs, choices)
+        self.data = data
+
+    def create_option(self, *args, **kwargs):
+        option: Dict = super().create_option(*args, **kwargs)
+        for data_attr, values in self.data.items():
+            if option['value'] in values:
+                option['attrs'][data_attr] = values[option['value']]
+
+        return option

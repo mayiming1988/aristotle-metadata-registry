@@ -13,6 +13,7 @@ from aristotle_mdr.contrib.autocomplete.widgets import (
     ConceptAutocompleteSelectMultiple,
     ConceptAutocompleteSelect
 )
+from aristotle_mdr.widgets.widgets import DataAttrSelect
 
 from . import models
 
@@ -168,18 +169,21 @@ class ReviewRequestSupersedesForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         # Make only concepts in the review allowed as newer items
         review_concepts = kwargs.pop('review_concepts', None)
+        widget_data = kwargs.pop('widget_data', {})
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         if review_concepts:
             self.fields['newer_item'].queryset = review_concepts
+            self.fields['newer_item'].widget.data = widget_data
         if user:
             self.fields['older_item'].queryset = MDR._concept.objects.visible(user)
 
     class Meta:
-        fields = ('older_item', 'newer_item', 'message')
+        fields = ('newer_item', 'older_item', 'message')
         widgets = {
             'older_item': ConceptAutocompleteSelect,
-            'message': forms.widgets.TextInput
+            'message': forms.widgets.TextInput,
+            'newer_item': DataAttrSelect
         }
 
 

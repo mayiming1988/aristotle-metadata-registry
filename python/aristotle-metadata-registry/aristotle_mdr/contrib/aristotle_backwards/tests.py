@@ -31,7 +31,8 @@ class AristotleBackwardsTestCase(AristotleTestUtils, TestCase):
         self.assertTrue('classification_scheme' in form.fields)
 
     @override_settings(ARISTOTLE_SETTINGS={
-        'CONTENT_EXTENSIONS': []
+        'CONTENT_EXTENSIONS': [],
+        'SEPARATORS': {}
     })
     def test_field_hidden_when_backwards_not_enabled(self):
         form = self.get_vd_edit_form()
