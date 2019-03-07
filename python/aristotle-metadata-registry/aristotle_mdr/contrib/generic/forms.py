@@ -1,4 +1,5 @@
 from django import forms
+from django.conf import settings
 from django.db.models import DateField
 from django.forms.models import BaseModelFormSet, BaseInlineFormSet
 from django.forms.formsets import BaseFormSet
@@ -104,13 +105,14 @@ def one_to_many_formset_filters(formset, item):
                 form.fields['value_meaning'].queryset = value_meaning_queryset
 
     # apply different querysets to the forms after they are instantiated
-    if isinstance(item, DataSetSpecification) and len(item.groups.all()) > 0:
-        # Only show the groups related to this Data Set Specification:
-        groups_queryset = DSSGrouping.objects.filter(dss=item)
+    if 'aristotle_dse' in settings.INSTALLED_APPS:
+        if isinstance(item, DataSetSpecification) and len(item.groups.all()) > 0:
+            # Only show the groups related to this Data Set Specification:
+            groups_queryset = DSSGrouping.objects.filter(dss=item)
 
-        for form in my_forms:
-            if issubclass(form._meta.model, DSSDEInclusion):
-                form.fields['group'].queryset = groups_queryset
+            for form in my_forms:
+                if issubclass(form._meta.model, DSSDEInclusion):
+                    form.fields['group'].queryset = groups_queryset
 
     formset.filtered_empty_form = my_forms.pop()
 
