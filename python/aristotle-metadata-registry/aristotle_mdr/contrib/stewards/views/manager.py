@@ -6,7 +6,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
-from django.views.generic import ListView, TemplateView, CreateView, UpdateView
+from django.views.generic import (
+    ListView, TemplateView, CreateView, UpdateView, DetailView
+)
 from django.urls import reverse
 from aristotle_mdr.utils.model_utils import ManagedItem
 
@@ -21,10 +23,15 @@ from aristotle_mdr.utils.model_utils import ManagedItem
 from aristotle_mdr.views.workgroups import GenericListWorkgroup, CreateWorkgroup
 from aristotle_mdr.views.registrationauthority import ListRegistrationAuthorityBase
 from . import views
+from aristotle_mdr.contrib.stewards.models import Collection
 
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+class ListCollectionsBase(ListView):
+    model = Collection
 
 
 class ManagedItemViewMixin:
@@ -69,6 +76,11 @@ class StewardURLManager(GroupURLManager):
 
             # url("managed_items/(?P<model_name>.+)/(?P<pk>.+)?$", view=self.managed_item_view(), name="create_managed_item"),
             url("ras/$", view=self.registration_authority_list_view(), name="registrationauthorities"),
+
+            url("collections/$", view=self.collection_list_view(), name="collections"),
+            url("collections/create$", view=self.collection_create_view(), name="collections_create"),
+            url("collection/(?P<pk>\d+)$", view=self.collection_detail_view(), name="collection_detail_view"),
+            url("collection/(?P<pk>\d+)/edit$", view=self.collection_edit_view(), name="collection_edit_view"),
         ]
 
     def list_all_view(self, *args, **kwargs):
@@ -112,6 +124,73 @@ class StewardURLManager(GroupURLManager):
                 return self.get_group().registrationauthority_set.all()
 
         return ListRegistrationAuthorities.as_view(manager=self, group_class=self.group_class)
+
+    def collection_list_view(self):
+
+        class ListCollectionsView(GroupMixin, HasRolePermissionMixin, ListCollectionsBase):
+            current_group_context = "collections"
+            role_permission = "view_group"
+            template_name = "aristotle_mdr/collections/steward_list.html"
+            raise_exception = True
+
+            def get_queryset(self):
+                return self.get_group().collection_set.filter(parent_collection__isnull=True).all()
+
+        return ListCollectionsView.as_view(manager=self, group_class=self.group_class)
+
+    def collection_create_view(self):
+
+        class CreateCollectionView(GroupMixin, CreateView):
+            model = Collection
+            current_group_context = "collections"
+            template_name = "aristotle_mdr/collections/add.html"
+            role_permission = "manage_managed_items"
+            fields=["name", "description", "metadata"]
+
+            def get_initial(self):
+                initial = super().get_initial()
+                initial['stewardship_organisation'] = self.get_group()
+                return initial
+
+            def form_valid(self, form):
+                form.instance.stewardship_organisation = self.get_group()
+                return super().form_valid(form)
+
+        return CreateCollectionView.as_view(manager=self, group_class=self.group_class)
+
+
+    def collection_detail_view(self):
+
+        class DetailCollectionsView(GroupMixin, HasRolePermissionMixin, DetailView):
+            current_group_context = "collections"
+            role_permission = "view_group"
+            template_name = "aristotle_mdr/collections/details.html"
+            raise_exception = True
+            context_object_name = "item"
+            model = Collection
+
+            def get_queryset(self):
+                return self.get_group().collection_set.all()
+
+        return DetailCollectionsView.as_view(manager=self, group_class=self.group_class)
+
+    def collection_edit_view(self):
+
+        class UpdateManagedItemView(GroupMixin, HasRolePermissionMixin, UpdateView):
+            model = Collection
+            current_group_context = "collections"
+            template_name = "aristotle_mdr/collections/edit.html"
+            role_permission = "manage_managed_items"
+            fields=["name", "description", "metadata"]
+    #         template_name = "stewards/managed_item/edit.html"
+    #         role_permission = "manage_managed_items"
+    #         fields=["name", "definition"]
+            # pk_url_kwarg = "mi_pk"
+
+            def get_queryset(self):
+                return self.get_group().collection_set.all()
+
+        return UpdateManagedItemView.as_view(manager=self, group_class=self.group_class)
 
     def browse_view(self):
         from aristotle_mdr.contrib.browse.views import BrowseConcepts
