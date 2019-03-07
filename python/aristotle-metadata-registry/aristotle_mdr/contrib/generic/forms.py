@@ -5,7 +5,7 @@ from django.forms.formsets import BaseFormSet
 from django.forms.models import modelformset_factory
 
 from aristotle_mdr.models import _concept, AbstractValue, ValueDomain, ValueMeaning
-from aristotle_dse.models import DSSDEInclusion
+from aristotle_dse.models import DSSGrouping, DataSetSpecification, DSSDEInclusion
 from aristotle_mdr.contrib.autocomplete import widgets
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 
@@ -103,8 +103,14 @@ def one_to_many_formset_filters(formset, item):
             if issubclass(form._meta.model, AbstractValue):
                 form.fields['value_meaning'].queryset = value_meaning_queryset
 
-    # if isinstance(item, DSSDEInclusion):
+    # apply different querysets to the forms after they are instantiated
+    if isinstance(item, DataSetSpecification) and len(item.groups.all()) > 0:
+        # Only show the groups related to this Data Set Specification:
+        groups_queryset = DSSGrouping.objects.filter(dss=item)
 
+        for form in my_forms:
+            if issubclass(form._meta.model, DSSDEInclusion):
+                form.fields['group'].queryset = groups_queryset
 
     formset.filtered_empty_form = my_forms.pop()
 
