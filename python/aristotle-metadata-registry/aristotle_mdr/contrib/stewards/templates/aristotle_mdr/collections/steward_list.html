@@ -34,7 +34,7 @@
                     {{ item.name }}
                 </a>
             </td>
-            <td>{{ item.definition|striptags|truncatewords:50 }}</td>
+            <td>{{ item.description|striptags|truncatewords:50 }}</td>
             <td>{{ item.metadata.all.count }}</td>
         </tr>
     {% endfor %}

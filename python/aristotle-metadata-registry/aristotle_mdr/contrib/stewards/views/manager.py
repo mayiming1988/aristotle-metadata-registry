@@ -134,7 +134,7 @@ class StewardURLManager(GroupURLManager):
             raise_exception = True
 
             def get_queryset(self):
-                return self.get_group().collection_set.filter(parent_collection__isnull=True).all()
+                return self.get_group().collection_set.filter(parent_collection__isnull=True).all().order_by('name')
 
         return ListCollectionsView.as_view(manager=self, group_class=self.group_class)
 
@@ -157,7 +157,6 @@ class StewardURLManager(GroupURLManager):
                 return super().form_valid(form)
 
         return CreateCollectionView.as_view(manager=self, group_class=self.group_class)
-
 
     def collection_detail_view(self):
 
