@@ -27,7 +27,7 @@ class Collection(TimeStampedModel):
     )
 
     metadata = ConceptManyToManyField('aristotle_mdr._concept', blank=True)
-    parent_collection = models.ForeignKey('self', null=True)
+    parent_collection = models.ForeignKey('self', blank=True, null=True)
 
     def get_absolute_url(self):
         return reverse(
