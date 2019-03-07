@@ -4,31 +4,31 @@
 
     {% for weak_formset in formsets %}
         <div class="weak_formset">
-        <label>{{ weak_formset.title }}</label>
-        {{ weak_formset.formset.management_form }}
-        {{ weak_formset.formset.non_form_errors.as_ul }}
-        {% for dict in weak_formset.formset.errors %}
-          {% if dict %}
-          <div class="alert alert-danger">
-          <ul>
-          {% for key, value in dict.items %}
-              <li>{{ key }} {{ value }}</li>
-          {% endfor %}
-          </ul>
-          </div>
-          {% endif %}
-        {% endfor %}
-        {% if weak_formset.formset.empty_form.Meta.model.inline_field_layout == "table" %}
-            {% include 'aristotle_mdr/generic/actions/alter_one_to_many_formset.html' with formset=weak_formset.formset %}
-        {% elif weak_formset.formset.empty_form.Meta.model.inline_field_layout == "list" %}
-            {% include 'aristotle_mdr/generic/actions/alter_one_to_many_formset_listed.html' with formset=weak_formset.formset %}
-        {% elif weak_formset.formset.empty_form.fields|length > 8 %}
-            {% include 'aristotle_mdr/generic/actions/alter_one_to_many_formset_listed.html' with formset=weak_formset.formset %}
-        {% else %}
-            {% include 'aristotle_mdr/generic/actions/alter_one_to_many_formset.html' with formset=weak_formset.formset %}
-        {% endif %}
-        <a class="btn btn-primary add_code_button" formid='{{ weak_formset.formset.prefix}}'>
-            <i class="fa fa-plus-circle"></i> Add another</a>
+            <label>{{ weak_formset.title }}</label>
+            {{ weak_formset.formset.management_form }}
+            {{ weak_formset.formset.non_form_errors.as_ul }}
+            {% for dict in weak_formset.formset.errors %}
+                {% if dict %}
+                    <div class="alert alert-danger">
+                        <ul>
+                            {% for key, value in dict.items %}
+                                <li>{{ key }} {{ value }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            {% endfor %}
+            {% if weak_formset.formset.empty_form.Meta.model.inline_field_layout == "table" %}
+                {% include 'aristotle_mdr/generic/actions/alter_one_to_many_formset.html' with formset=weak_formset.formset %}
+            {% elif weak_formset.formset.empty_form.Meta.model.inline_field_layout == "list" %}
+                {% include 'aristotle_mdr/generic/actions/alter_one_to_many_formset_listed.html' with formset=weak_formset.formset %}
+            {% elif weak_formset.formset.empty_form.fields|length > 8 %}
+                {% include 'aristotle_mdr/generic/actions/alter_one_to_many_formset_listed.html' with formset=weak_formset.formset %}
+            {% else %}
+                {% include 'aristotle_mdr/generic/actions/alter_one_to_many_formset.html' with formset=weak_formset.formset %}
+            {% endif %}
+            <a class="btn btn-primary add_code_button" formid='{{ weak_formset.formset.prefix}}'>
+                <i class="fa fa-plus-circle"></i> Add another</a>
         </div>
     {% endfor %}
 

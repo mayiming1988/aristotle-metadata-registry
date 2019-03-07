@@ -29,12 +29,12 @@ class DataSetSpecificationVisibility(ManagedObjectVisibility,TestCase):
 class DataSetSpecificationAdmin(AdminPageForConcept,TestCase):
     itemType=models.DataSetSpecification
     form_defaults={
-        'dssdeinclusion_set-TOTAL_FORMS':0,
-        'dssdeinclusion_set-INITIAL_FORMS':0,
-        'dsscdeinclusion_set-MAX_NUM_FORMS':1,
-        'dssclusterinclusion_set-TOTAL_FORMS':0,
-        'dssclusterinclusion_set-INITIAL_FORMS':0,
-        'dssclusterinclusion_set-MAX_NUM_FORMS':1,
+        'dssdeinclusion_set-TOTAL_FORMS': 0,
+        'dssdeinclusion_set-INITIAL_FORMS': 0,
+        'dsscdeinclusion_set-MAX_NUM_FORMS': 1,
+        'dssclusterinclusion_set-TOTAL_FORMS': 0,
+        'dssclusterinclusion_set-INITIAL_FORMS': 0,
+        'dssclusterinclusion_set-MAX_NUM_FORMS': 1,
         }
 
 class DataSetSpecificationViewPage(LoggedInViewConceptPages,TestCase):
