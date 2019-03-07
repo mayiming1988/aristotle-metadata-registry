@@ -40,4 +40,3 @@ class Collection(TimeStampedModel):
 #     order = models.PositiveSmallIntegerField("Order")
 #     collection = ConceptForeignKey(Collection)
 #     metadata = ConceptForeignKey('aristotle_mdr._concept', blank=True, null=True)
-
