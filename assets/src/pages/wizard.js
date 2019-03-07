@@ -1,6 +1,7 @@
 // You're a wizard harry
 import { initCore, initWidgets } from 'src/lib/init.js'
 import { initMoveable } from 'src/lib/moveable.js'
+
 import settings from 'src/settings.json'
 import 'src/styles/aristotle.wizard.less'
 

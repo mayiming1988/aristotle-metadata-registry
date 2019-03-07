@@ -47,7 +47,8 @@ from .fields import (
     ConceptForeignKey,
     ConceptManyToManyField,
     ShortTextField,
-    ConvertedConstrainedImageField
+    ConvertedConstrainedImageField,
+    ConceptGenericRelation
 )
 
 from .managers import (
@@ -639,7 +640,7 @@ class _concept(baseAristotleObject):
         related_name="metadata"
     )
 
-    publication_details = GenericRelation('aristotle_mdr_publishing.PublicationRecord')
+    publication_details = ConceptGenericRelation('aristotle_mdr_publishing.PublicationRecord')
     version_publication_details = GenericRelation('aristotle_mdr_publishing.VersionPublicationRecord')
 
     workgroup = models.ForeignKey(Workgroup, related_name="items", null=True, blank=True)

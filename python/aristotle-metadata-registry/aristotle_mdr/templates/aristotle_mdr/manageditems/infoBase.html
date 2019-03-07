@@ -26,7 +26,7 @@
   <!-- Nav tabs -->
   <ul class="nav nav-tabs" role="tablist">
     <li role="presentation" {% if activetab == "item" %}class="active"{% endif %}>
-      <a href="{% url 'aristotle:item' item.id item.meta.model_name item.name %}" aria-controls="item">Item</a>
+      <a href="{{ item.get_absolute_url }}" aria-controls="item">Item</a>
     </li>
     {% comment %}
     <li role="presentation" {% if activetab == "history" %}class="active"{% endif %}>

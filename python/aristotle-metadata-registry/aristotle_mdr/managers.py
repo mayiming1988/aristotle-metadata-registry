@@ -10,14 +10,24 @@ from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
 from aristotle_mdr.utils.utils import is_postgres
 from aristotle_mdr.constants import visibility_permission_choices
 
+from django.contrib.contenttypes.models import ContentType
 
-class UUIDManager(models.Manager):
-    def create_uuid(self, instance):
-        if instance.uuid is not None:
-            return
-        instance.uuid = self.create(
-            app_label=instance._meta.app_label,
-            model_name=instance._meta.model_name,
+
+class PublishedMixin(object):
+
+    @property
+    def is_published_public(self):
+        from aristotle_mdr.models import _concept
+        return Q(
+            publication_details__permission=visibility_permission_choices.public,
+            publication_details__publication_date__lte=timezone.now(),
+        )
+
+    @property
+    def is_published_auth(self):
+        return Q(
+            publication_details__permission=visibility_permission_choices.auth,
+            publication_details__publication_date__lte=timezone.now()
         )
 
 
@@ -62,7 +72,7 @@ class RegistrationAuthorityQuerySet(models.QuerySet):
         return self.all()
 
 
-class ConceptQuerySet(MetadataItemQuerySet):
+class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
 
     def visible(self, user):
         """
@@ -78,7 +88,7 @@ class ConceptQuerySet(MetadataItemQuerySet):
         need_distinct = False  # Wether we need to add a distinct
         from aristotle_mdr.models import StewardOrganisation
 
-        if user is None or user.is_anonymous():
+        if user is None or user.is_anonymous:
             return self.public()
         if user.is_superuser:
             return self.all()
@@ -106,12 +116,10 @@ class ConceptQuerySet(MetadataItemQuerySet):
                     Q(statuses__registrationAuthority__registrars__profile__user=user)
                 )
 
-        extra_q = fetch_aristotle_settings().get('EXTRA_CONCEPT_QUERYSETS', {}).get('visible', None)
-        if extra_q:
-            for func in extra_q:
-                q |= import_string(func)(user)
+        q |= self.is_published_public
+        q |= self.is_published_auth
 
-        q = q & ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
+        q &= ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
 
         if not need_distinct:
             return self.filter(q)
@@ -168,7 +176,7 @@ class ConceptQuerySet(MetadataItemQuerySet):
         """
         from aristotle_mdr.models import StewardOrganisation
         return self.filter(
-            Q(_is_public=True) &
+            Q(self.is_published_public | Q(_is_public=True)) &
             ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
         )
 
@@ -299,7 +307,7 @@ class ProposedSupersedesManager(models.Manager):
         return super().get_queryset().filter(proposed=True)
 
 
-class ManagedItemQuerySet(models.QuerySet):
+class ManagedItemQuerySet(PublishedMixin, models.QuerySet):
     def visible(self, user):
         """
         Returns a queryset that returns all managed items that the given user has
@@ -310,11 +318,11 @@ class ManagedItemQuerySet(models.QuerySet):
         if user.is_superuser:
             return self.all()
 
-        q = Q(publication_details__permission=visibility_permission_choices.public)
+        q = self.is_published_public
         if user.is_anonymous():
             return self.filter(q)
 
-        q |= Q(publication_details__permission=visibility_permission_choices.auth)
+        q |= self.is_published_auth
         # q |= Q(
         #     workgroup__in=user.profile.workgroups,
         #     publication_details__permission=visibility_permission_choices.workgroup
