@@ -1,5 +1,5 @@
 import { initDALWidget } from './dal_simple_init.js'
-import { reinitCKEditors } from './ckeditor_simple_init'
+import { reinitCKEditors } from './ckeditor_simple_init.js'
 
 export function replacePrefix(element, num_forms) {
     let name = $(element).attr('name')
