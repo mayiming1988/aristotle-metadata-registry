@@ -2158,21 +2158,22 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         self.login_editor()
         url = 'aristotle:edit_item'
 
-        response = self.client.get(reverse(url,args=[self.item3.id]))
+        response = self.client.get(reverse(url, args=[self.item3.id]))
         self.assertEqual(response.status_code, 200)
-        # import pdb; pdb.set_trace()
 
         # check queryset correctly filled from conceptual domain for item 2
         formset = response.context['weak_formsets'][0]['formset']
-        for form in formset:
-            self.assertFalse('meaning' in form.fields)
-            self.assertTrue('value_meaning' in form.fields)
-            queryset = form.fields['value_meaning'].queryset
-            for item in queryset:
-                self.assertTrue(item in self.vms)
+        form = formset.filtered_empty_form
+
+        self.assertFalse('meaning' in form.fields.keys())
+        self.assertTrue('value_meaning' in form.fields.keys())
+        queryset = form.fields['value_meaning'].queryset
+        self.assertEqual(queryset.count(), 2)
+        for item in queryset:
+            self.assertTrue(item in self.vms)
 
         # Check empty queryset for item 1 (no cd linked)
-        response = self.client.get(reverse(url,args=[self.item1.id]))
+        response = self.client.get(reverse(url, args=[self.item1.id]))
         self.assertEqual(response.status_code, 200)
 
         formset = response.context['weak_formsets'][0]['formset']

@@ -1,4 +1,5 @@
 from django import forms
+from django.conf import settings
 from django.db.models import DateField
 from django.forms.models import BaseModelFormSet, BaseInlineFormSet
 from django.forms.formsets import BaseFormSet
@@ -89,14 +90,31 @@ def one_to_many_formset_excludes(item, model_to_add):
 
 
 def one_to_many_formset_filters(formset, item):
-    # applies different querysets to the forms after they are instanciated
+
+    my_forms = [f for f in formset]
+    my_forms.append(formset.empty_form)
+
+    # applies different querysets to the forms after they are instantiated
     if isinstance(item, ValueDomain) and item.conceptual_domain:
         # Only show value meanings from this items conceptual domain
-        vmqueryset = ValueMeaning.objects.filter(conceptual_domain=item.conceptual_domain)
+        value_meaning_queryset = ValueMeaning.objects.filter(conceptual_domain=item.conceptual_domain)
 
-        for form in formset:
+        for form in my_forms:
             if issubclass(form._meta.model, AbstractValue):
-                form.fields['value_meaning'].queryset = vmqueryset
+                form.fields['value_meaning'].queryset = value_meaning_queryset
+
+    # apply different querysets to the forms after they are instantiated
+    if 'aristotle_dse' in settings.INSTALLED_APPS:
+        from aristotle_dse.models import DSSGrouping, DataSetSpecification, DSSDEInclusion
+        if isinstance(item, DataSetSpecification) and len(item.groups.all()) > 0:
+            # Only show the groups related to this Data Set Specification:
+            groups_queryset = DSSGrouping.objects.filter(dss=item)
+
+            for form in my_forms:
+                if issubclass(form._meta.model, DSSDEInclusion):
+                    form.fields['group'].queryset = groups_queryset
+
+    formset.filtered_empty_form = my_forms.pop()
 
     return formset
 
