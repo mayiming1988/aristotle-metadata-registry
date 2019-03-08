@@ -1,0 +1,34 @@
+{% extends "aristotle_mdr/stewards/base.html" %}
+{% load i18n aristotle_tags util_tags %}
+
+
+{% block title %}{{item.name}} Collections | {{ stewardship_organisation }}{% endblock %}
+
+{% block steward_content %}
+
+    <h2>
+        {% block page_title %}{{ stewardship_organisation }} |  Collection | {{item.name}}{% endblock %}
+    </h2>
+
+    <section>
+
+        <header>Description</header>
+        <div class="well">{{ item.description|bleach }}</div>
+
+    <table class="table">
+        <thead></thead>
+        <tbody>
+            {% for obj in item.metadata.all %}
+            <tr>
+                <td>
+                <a href="{{ obj.get_absolute_url }}">{{obj.name}}</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        
+    </table>
+
+    </section>
+
+{% endblock %}

@@ -16,7 +16,7 @@
       <h3><i class="fa fa-eye fa-fw"></i> Only show public items</h3>
       <p>
           When logged in, selecting this option limits search results 
-          to only those items that are publically visible to all users,
+          to only those items that are publicly visible to all users,
           including those without an account.
           This option is only shown to logged-in users as non-logged in
           users only have right to view to public content.
@@ -39,7 +39,12 @@
           Any time the search is changed, such as spelling correction or filter removal, a notification
           will appear under the search bar to let users know.
       </p>
+
       
+      <h3><i class="fa fa-search fa-fw"></i> Default Search</h3>
+      <p>
+        When searching without selecting any item type. The search is performed against everything except help pages.
+      </p>
       
       <h2>Keyword search shortcuts</h2>
       <p>

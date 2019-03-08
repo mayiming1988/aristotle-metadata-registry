@@ -440,6 +440,8 @@ class PermissionSearchForm(TokenSearchForm):
     # F for facet!
     # searchqueryset = PermissionSearchQuerySet
 
+    filters = "models mq cq cds cde mds mde state ra res".split()
+
     def __init__(self, *args, **kwargs):
         if 'searchqueryset' not in kwargs.keys() or kwargs['searchqueryset'] is None:
             kwargs['searchqueryset'] = get_permission_sqs()
@@ -451,6 +453,12 @@ class PermissionSearchForm(TokenSearchForm):
         # Inactive last
         self.fields['ra'].choices = [(ra.id, ra.name) for ra in MDR.RegistrationAuthority.objects.filter(active__in=[0, 1]).order_by('active', 'name')]
 
+        # List of app lables for default search
+        self.default_models = [
+            m[0] for m in model_choices()
+            if m[0].split('.', 1)[0] in fetch_metadata_apps()
+        ]
+        # Set choices for models
         self.fields['models'].choices = [
             m for m in model_choices()
             if m[0].split('.', 1)[0] in fetch_metadata_apps() + ['aristotle_mdr_help']
@@ -460,13 +468,15 @@ class PermissionSearchForm(TokenSearchForm):
         """Return an alphabetical list of model classes in the index."""
         search_models = []
 
-        if self.is_valid() and self.cleaned_data['models']:
-            for model in self.cleaned_data['models']:
+        if self.is_valid():
+            app_labels = self.default_models
+            if self.cleaned_data['models']:
+                app_labels = self.cleaned_data['models']
+
+            for model in app_labels:
                 search_models.append(apps.get_model(*model.split('.')))
 
         return search_models
-
-    filters = "models mq cq cds cde mds mde state ra res".split()
 
     @property
     def applied_filters(self):
