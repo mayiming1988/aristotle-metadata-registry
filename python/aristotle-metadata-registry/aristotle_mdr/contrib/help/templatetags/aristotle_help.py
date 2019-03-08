@@ -39,7 +39,7 @@ def make_relink(text, app_label=None):
     import re
     text = re.sub(
         r'\{static\}',
-        "%s/aristotle_help/" % settings.STATIC_URL, text
+        "%saristotle_help" % settings.STATIC_URL, text
     )
 
     def make_concept_link(match):
