@@ -1,6 +1,6 @@
+/* eslint-env node */
 const path = require('path')
 const webpack = require('webpack')
-const glob = require('glob')
 const entry = require('webpack-glob-entry')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
