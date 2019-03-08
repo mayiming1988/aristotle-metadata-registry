@@ -573,22 +573,15 @@ background: repeating-linear-gradient(
 div.style-tables table {
     border: 1px solid black;
     padding: 5px;
-}
-
-div.style-tables table tr {
-    width: 100%;
-}
-
-div.style-tables table tr td, div.style-tables table tr th {
-    border-right: 1px solid black;
-    padding: 3px 5px;
-    font-size: small;
-}
-
-div.style-tables table tr:first-child td {
-    border-top: 1px solid black;
-}
-
-div.style-tables table tr:last-child td {
-    border-bottom: 1px solid black;
+    td {
+        border-right: 1px solid black;
+        border-top: 1px solid black;
+        padding: 3px 5px;
+        font-size: small;
+    }
+    th {
+        border-right: 1px solid black;
+        padding: 3px 5px;
+        font-size: small;
+    }
 }
