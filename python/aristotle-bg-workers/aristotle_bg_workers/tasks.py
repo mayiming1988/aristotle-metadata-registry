@@ -37,7 +37,7 @@ class AristotleTask(Task):
 def reindex_task(self, *args, **kwargs):
     meta = {"requester": kwargs['requester'], "start_date": datetime.datetime.now()}
     self.update_state(meta=meta, state="STARTED")
-    meta.update({"result": run_django_command('rebuild_index', interactive=False)})
+    meta.update({"result": run_django_command('update_index', interactive=False)})
     return meta
 
 
@@ -66,6 +66,7 @@ def update_search_index(action, sender, instance, **kwargs):
         processor.handle_save(sender, instance, **kwargs)
     elif action == "delete":
         processor.handle_delete(sender, instance, **kwargs)
+
 
 @shared_task(name='download')
 def download(download_type: str, item_ids: List[int], user_id: int, options={}) -> Optional[str]:
