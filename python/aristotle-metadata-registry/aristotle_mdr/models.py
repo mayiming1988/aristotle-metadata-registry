@@ -442,7 +442,14 @@ class RegistrationAuthority(Organization):
 
     @property
     def members(self):
-        return (self.managers.all() | self.registrars.all()).distinct()
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+
+        reg_pks = list(self.registrars.all().values_list("pk", flat=True))
+        man_pks = list(self.managers.all().values_list("pk", flat=True))
+
+        pks = set(reg_pks + man_pks)
+        return User.objects.filter(pk__in=pks)
 
     @property
     def is_active(self):
@@ -519,9 +526,16 @@ class Workgroup(registryGroup):
 
     @property
     def members(self):
-        return (self.viewers.all() | self.submitters.all() |
-                self.stewards.all() | self.managers.all()
-                ).distinct().order_by('full_name')
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+
+        v_pks = list(self.viewers.all().values_list("pk", flat=True))
+        sub_pks = list(self.submitters.all().values_list("pk", flat=True))
+        stew_pks = list(self.stewards.all().values_list("pk", flat=True))
+        man_pks = list(self.managers.all().values_list("pk", flat=True))
+
+        pks = set(v_pks + sub_pks + stew_pks + man_pks)
+        return User.objects.filter(pk__in=pks)
 
     def can_view(self, user):
         if self.stewardship_organisation.user_has_permission(user, "manage_workgroups"):
@@ -1508,33 +1522,32 @@ class PossumProfile(models.Model):
     def activeWorkgroup(self):
         return self.savedActiveWorkgroup or None
 
+    def workgroups_for_user(self):
+        # All of the workgroups a user is in
+        v_pks = list(self.user.viewer_in.all().values_list("pk", flat=True))
+        sub_pks = list(self.user.submitter_in.all().values_list("pk", flat=True))
+        stew_pks = list(self.user.steward_in.all().values_list("pk", flat=True))
+        man_pks = list(self.user.workgroup_manager_in.all().values_list("pk", flat=True))
+
+        pks = set(v_pks + sub_pks + stew_pks + man_pks)
+        return Workgroup.objects.filter(pk__in=pks)
+
     @property
     def workgroups(self):
+        # All of the workgroups a user can see
         if self.user.is_superuser:
             return Workgroup.objects.all()
         else:
-            return (self.user.viewer_in.all() |
-                    self.user.submitter_in.all() |
-                    self.user.steward_in.all() |
-                    self.user.workgroup_manager_in.all()
-                    ).distinct()
+            return self.workgroups_for_user()
 
     @property
     def myWorkgroups(self):
-        return (self.user.viewer_in.all() |
-                self.user.submitter_in.all() |
-                self.user.steward_in.all() |
-                self.user.workgroup_manager_in.all()
-                ).filter(archived=False).distinct()
+        # All of the workgroups a user can participate in
+        return self.workgroups_for_user().filter(archived=False)
 
     @property
     def myWorkgroupCount(self):
-        # When only a count is required, querying with union is much faster
-        vi = self.user.viewer_in.filter(archived=False)
-        si = self.user.submitter_in.filter(archived=False)
-        sti = self.user.steward_in.filter(archived=False)
-        mi = self.user.workgroup_manager_in.filter(archived=False)
-        return vi.union(si).union(sti).union(mi).count()
+        return self.myWorkgroups.all().count()
 
     @property
     def mySandboxContent(self):
@@ -1552,9 +1565,12 @@ class PossumProfile(models.Model):
         if self.user.is_superuser:
             return Workgroup.objects.all().order_by('name')
         else:
-            return (self.user.submitter_in.all() |
-                    self.user.steward_in.all()
-                    ).distinct().filter(archived=False).order_by('name')
+            sub_pks = list(self.user.submitter_in.all().values_list("pk", flat=True))
+            stew_pks = list(self.user.steward_in.all().values_list("pk", flat=True))
+            man_pks = list(self.user.workgroup_manager_in.all().values_list("pk", flat=True))
+
+            pks = set(sub_pks + stew_pks + man_pks)
+            return Workgroup.objects.filter(pk__in=pks).filter(archived=False).order_by('name')
 
     @property
     def is_registrar(self):
