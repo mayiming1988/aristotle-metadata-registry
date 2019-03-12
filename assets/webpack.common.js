@@ -93,8 +93,8 @@ module.exports = {
         new CleanWebpackPlugin(['dist']),
         // Load .vue files
         new VueLoaderPlugin(),
+        // Provide $ and jQuery to scripts, no need to import
         new webpack.ProvidePlugin({
-            // Provide $ and jQuery to scripts, no need to import
             $: "jquery",
             jQuery: "jquery"
         }),
@@ -104,17 +104,22 @@ module.exports = {
         new MiniCssExtractPlugin({
             filename: '[name]-[contenthash].bundle.css'
         }),
-        // Required for django-webpack-loader
+        /*
+         * Creates json file with bundle information
+         * Required for django-webpack-loader
+         */
         new BundleTracker({
             path: __dirname, 
             filename: './dist/webpack-stats.json'
         }),
         // Create report.html
         new BundleAnalyzerPlugin({
-            analyzerMode: 'static'
+            analyzerMode: 'static',
+            openAnalyzer: false
         })
     ],
     optimization: {
+        // How bundle are split into files
         splitChunks: {
             cacheGroups: {
                 vendors: {
