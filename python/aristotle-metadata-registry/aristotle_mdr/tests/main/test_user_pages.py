@@ -817,3 +817,36 @@ class RegistrationAuthorityPages(utils.AristotleTestUtils, TestCase):
         response = self.client.get(reverse('aristotle_mdr:registrationauthority_edit', args=[self.ra.id]))
         self.assertEqual(response.status_code, 200)
         self.assertTrue('active' in response.context['form'].fields)
+
+    def test_user_roles_ordering(self):
+        self.login_regular_user()
+        wg2 = models.Workgroup.objects.create(
+            name='AAA Great Workgroup',
+            definition='Great',
+            stewardship_organisation=self.steward_org_1
+        )
+        self.ra.managers.add(self.regular)
+        self.wg1.submitters.add(self.regular)
+        self.wg1.managers.add(self.regular)
+        wg2.managers.add(self.regular)
+
+        response = self.reverse_get(
+            'aristotle:userRoles',
+            status_code=200
+        )
+
+        wgs = response.context['workgroups']
+        ras = response.context['registration_authorities']
+
+        self.assertCountEqual(
+            wgs,
+            [
+                {'name': wg2.name, 'pk': wg2.pk, 'role': 'Manager'},
+                {'name': self.wg1.name, 'pk': self.wg1.pk, 'role': 'Manager'},
+                {'name': self.wg1.name, 'pk': self.wg1.pk, 'role': 'Submitter'},
+            ]
+        )
+        self.assertCountEqual(
+            ras,
+            [{'name': self.ra.name, 'pk': self.ra.pk, 'role': 'Manager'}]
+        )
