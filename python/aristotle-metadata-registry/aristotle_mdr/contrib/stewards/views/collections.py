@@ -23,18 +23,13 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class EditCollectionViewBase(UserFormViewMixin, GroupMixin, HasRolePermissionMixin):
     model = Collection
     form_class = CollectionForm
     current_group_context = "collections"
     role_permission = "manage_collections"
 
-    # def get_initial(self):
-    #     initial = super().get_initial()
-    #     initial['stewardship_organisation'] = self.get_group()
-    #     return initial
-
     def form_valid(self, form):
         form.instance.stewardship_organisation = self.get_group()
         return super().form_valid(form)
-

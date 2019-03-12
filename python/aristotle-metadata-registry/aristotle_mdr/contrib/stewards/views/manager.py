@@ -159,31 +159,19 @@ class StewardURLManager(GroupURLManager):
     def collection_create_view(self):
 
         class CreateCollectionView(EditCollectionViewBase, CreateView):
-        #     model = Collection
-        #     form_class = CollectionForm
-        #     current_group_context = "collections"
             template_name = "aristotle_mdr/collections/add.html"
-            # role_permission = "manage_managed_items"
 
-            # def get_initial(self):
-            #     initial = super().get_initial()
-            #     initial['stewardship_organisation'] = self.get_group()
-            #     return initial
-
-            def form_valid(self, form):
-                form.instance.stewardship_organisation = self.get_group()
-                return super().form_valid(form)
+            def get_initial(self):
+                initial = super().get_initial()
+                initial['stewardship_organisation'] = self.get_group()
+                return initial
 
         return CreateCollectionView.as_view(manager=self, group_class=self.group_class)
 
     def collection_edit_view(self):
 
         class UpdateCollectionView(EditCollectionViewBase, UpdateView):
-            # model = Collection
-            # form_class = CollectionForm
-            # current_group_context = "collections"
             template_name = "aristotle_mdr/collections/edit.html"
-            # role_permission = "manage_managed_items"
 
             def get_queryset(self):
                 return self.get_group().collection_set.all()
