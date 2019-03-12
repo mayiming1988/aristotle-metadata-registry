@@ -118,7 +118,6 @@ class DatabaseValidationRunner(ValidationRunner):
         except models.RAValidationRules.DoesNotExist:
             ra_rules = None
 
-
         if site_rules and site_rules != '':
             rules_yaml.append(site_rules.rules)
         if ra_rules and ra_rules != '':
