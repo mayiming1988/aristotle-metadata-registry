@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import { Modal } from 'uiv'
+import Modal from 'uiv/src/components/modal/Modal.vue'
 import formField from '@/forms/bsFieldWrapper.vue'
 import apiErrors from '@/apiErrorDisplay.vue'
 import apiRequest from 'src/mixins/apiRequest.js'

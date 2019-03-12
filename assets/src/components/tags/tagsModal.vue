@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import { Modal } from 'uiv'
+import Modal from 'uiv/src/components/modal/Modal.vue'
 import autocompleteTag from '@/tags/autocompleteTag.vue'
 import submitTags from '@/tags/submitTags.vue'
 import { flatten } from 'src/lib/utils.js'
