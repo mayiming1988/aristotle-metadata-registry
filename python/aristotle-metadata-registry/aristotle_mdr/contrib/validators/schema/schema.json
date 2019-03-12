@@ -74,6 +74,15 @@
                   "properties": {
                     "validator": {
                       "type": "string",
+                      "enum": ["UniqueValuesValidator"]
+                    }
+                  },
+                  "required": ["validator"]
+                },
+                {
+                  "properties": {
+                    "validator": {
+                      "type": "string",
                       "enum": ["RelationValidator"]
                     },
                     "field": {

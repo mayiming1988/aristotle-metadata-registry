@@ -347,6 +347,7 @@ class GenericListWorkgroup(LoginRequiredMixin, SortedListView):
         raise NotImplementedError
 
     def get_queryset(self):
+        # TODO: Fix this query to be faster
         workgroups = self.get_initial_queryset().annotate(num_items=Count('items', distinct=True), num_viewers=Count('viewers', distinct=True))
         workgroups = workgroups.prefetch_related('viewers', 'managers', 'submitters', 'stewards')
 
