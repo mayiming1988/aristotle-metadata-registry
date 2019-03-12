@@ -126,6 +126,7 @@ class StewardOrganisation(AbstractGroup):
         "edit_members": [roles.admin],
         "invite_member": [roles.admin],
         "manage_managed_items": [roles.admin, roles.steward],
+        "manage_collections": [roles.admin, roles.steward],
         "list_workgroups": [roles.admin, AbstractGroup.Permissions.is_member],
     }
     states = Choices(

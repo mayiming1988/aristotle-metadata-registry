@@ -22,8 +22,11 @@ from aristotle_mdr import models as MDR
 from aristotle_mdr.utils.model_utils import ManagedItem
 from aristotle_mdr.views.workgroups import GenericListWorkgroup, CreateWorkgroup
 from aristotle_mdr.views.registrationauthority import ListRegistrationAuthorityBase
+from aristotle_mdr.views.utils import UserFormViewMixin
+
 from . import views
 from aristotle_mdr.contrib.stewards.models import Collection
+from aristotle_mdr.contrib.stewards.views.collections import EditCollectionViewBase
 
 import logging
 
@@ -138,26 +141,6 @@ class StewardURLManager(GroupURLManager):
 
         return ListCollectionsView.as_view(manager=self, group_class=self.group_class)
 
-    def collection_create_view(self):
-
-        class CreateCollectionView(GroupMixin, CreateView):
-            model = Collection
-            current_group_context = "collections"
-            template_name = "aristotle_mdr/collections/add.html"
-            role_permission = "manage_managed_items"
-            fields=["name", "description", "metadata"]
-
-            def get_initial(self):
-                initial = super().get_initial()
-                initial['stewardship_organisation'] = self.get_group()
-                return initial
-
-            def form_valid(self, form):
-                form.instance.stewardship_organisation = self.get_group()
-                return super().form_valid(form)
-
-        return CreateCollectionView.as_view(manager=self, group_class=self.group_class)
-
     def collection_detail_view(self):
 
         class DetailCollectionsView(GroupMixin, HasRolePermissionMixin, DetailView):
@@ -173,23 +156,39 @@ class StewardURLManager(GroupURLManager):
 
         return DetailCollectionsView.as_view(manager=self, group_class=self.group_class)
 
+    def collection_create_view(self):
+
+        class CreateCollectionView(EditCollectionViewBase, CreateView):
+        #     model = Collection
+        #     form_class = CollectionForm
+        #     current_group_context = "collections"
+            template_name = "aristotle_mdr/collections/add.html"
+            # role_permission = "manage_managed_items"
+
+            # def get_initial(self):
+            #     initial = super().get_initial()
+            #     initial['stewardship_organisation'] = self.get_group()
+            #     return initial
+
+            def form_valid(self, form):
+                form.instance.stewardship_organisation = self.get_group()
+                return super().form_valid(form)
+
+        return CreateCollectionView.as_view(manager=self, group_class=self.group_class)
+
     def collection_edit_view(self):
 
-        class UpdateManagedItemView(GroupMixin, HasRolePermissionMixin, UpdateView):
-            model = Collection
-            current_group_context = "collections"
+        class UpdateCollectionView(EditCollectionViewBase, UpdateView):
+            # model = Collection
+            # form_class = CollectionForm
+            # current_group_context = "collections"
             template_name = "aristotle_mdr/collections/edit.html"
-            role_permission = "manage_managed_items"
-            fields=["name", "description", "metadata"]
-    #         template_name = "stewards/managed_item/edit.html"
-    #         role_permission = "manage_managed_items"
-    #         fields=["name", "definition"]
-            # pk_url_kwarg = "mi_pk"
+            # role_permission = "manage_managed_items"
 
             def get_queryset(self):
                 return self.get_group().collection_set.all()
 
-        return UpdateManagedItemView.as_view(manager=self, group_class=self.group_class)
+        return UpdateCollectionView.as_view(manager=self, group_class=self.group_class)
 
     def browse_view(self):
         from aristotle_mdr.contrib.browse.views import BrowseConcepts
