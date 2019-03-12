@@ -46,7 +46,9 @@
     <li {% ifequal activeTab "workgroups" %}class="active"{% endifequal %}>
         <a href="{% url 'aristotle:userWorkgroups' %}">
         <i class="fa fa-users fa-fw"></i> {% trans "Workgroups" %}
-        <span class="badge pull-right">{{ user.profile.myWorkgroupCount }}</span></a>
+        {# TODO: Can we cache the workgroup count? Do we even need it? #}
+        {# <span class="badge pull-right">{{ user.profile.myWorkgroupCount }}</span>  #}
+        </a>
         {% ifequal activeTab "workgroupArchives" %}
         <ul class="nav nav-pills nav-stacked nav-collapse dashSubMenu">
             <li class="active">
