@@ -142,10 +142,11 @@ class GeneralGraphicalConceptView(APIView):
                         queryset = getattr(item, field.get_accessor_name()).all()
                         for component in queryset:
                             component_instance = getattr(component, aris_comp_field.name)
-                            serialised_concept_instance = ConceptSerializer(component_instance).data
-                            serialised_concept_instance["type"] = self.camel_case_split(component_instance.__class__.__name__)
-                            nodes.append(serialised_concept_instance)
-                            edges.append({"from": serialised_concept_instance["id"], "to": item.id})
+                            if component_instance is not None:
+                                serialised_concept_instance = ConceptSerializer(component_instance).data
+                                serialised_concept_instance["type"] = self.camel_case_split(component_instance.__class__.__name__)
+                                nodes.append(serialised_concept_instance)
+                                edges.append({"from": serialised_concept_instance["id"], "to": item.id})
 
         json_response = {'nodes': nodes, 'edges': edges}
 

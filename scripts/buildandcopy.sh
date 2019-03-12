@@ -79,7 +79,9 @@ cp ./assets/dist/webpack-stats.json ./python/aristotle-metadata-registry/aristot
 
 if [[ $MANUAL -eq 1 ]]; then
     echo "Doing a manual deploy to s3..."
-    rm -r ./dist
+    if [[ -e ./dist ]];then
+        rm -r ./dist
+    fi
     $PYTHON_CMD setup.py bdist_wheel
     if [[ $DRY -eq 1 ]]; then
         aws s3 cp ./dist s3://aristotle-pypi-bucket-1kyswb3cn1pa1 --recursive --dry
