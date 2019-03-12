@@ -1569,7 +1569,7 @@ class PossumProfile(models.Model):
             stew_pks = list(self.user.steward_in.all().values_list("pk", flat=True))
             # man_pks = list(self.user.workgroup_manager_in.all().values_list("pk", flat=True))
 
-            pks = set(sub_pks + stew_pks) # + man_pks)
+            pks = set(sub_pks + stew_pks)  # + man_pks)
             return Workgroup.objects.filter(pk__in=pks).filter(archived=False).order_by('name')
 
     @property
