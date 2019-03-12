@@ -287,3 +287,8 @@ class ValidationRunnerTestCase(TestCase):
         response = self.client.get(reverse('aristotle_reviews:request_checks', args=[rr.id]))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['total_results']), 1)
+
+    def test_validation_runner_rulesets_return_an_empty_list_when_default_value_of_validation_rule_is_an_empty_string(self):
+        self.regex_rule = ''
+        results = self.dbrunner.get_rulesets()
+        self.assertEqual(results, [])
