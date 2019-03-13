@@ -1,5 +1,5 @@
 {% extends "aristotle_mdr/stewards/base.html" %}
-{% load i18n %}
+{% load i18n aristotle_tags util_tags %}
 
 {% block title %}Collections | {{ stewardship_organisation }}{% endblock %}
 {% block page_title %}{{ stewardship_organisation }} | Collections{% endblock %}
@@ -10,10 +10,11 @@
 </p>
 
     <section id="ras">
-        {% if not hide_add_button %}
+        {% has_group_perm group "manage_collections" as can_manage_collections %}
+        {% if can_manage_collections %}
         <a class="btn btn-default pull-right" href="{% url 'aristotle:stewards:group:collections_create' group.slug %}">Add New Collection</a>
         {% endif %}
-        
+
 <table class="table">
     <thead>
     <tr>
