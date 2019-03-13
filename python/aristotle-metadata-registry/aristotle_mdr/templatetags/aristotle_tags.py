@@ -175,7 +175,8 @@ def can_view_iter(qs, user):
           {{ item }}
         {% endfor %}
     """
-    return qs.visible(user)
+    if qs is not None:
+        return qs.visible(user)
 
 
 @register.filter

@@ -177,7 +177,8 @@ def user_is_registation_authority_manager(user, ra=None):
 
 def user_can_change_status(user, item):
     """Can the user change the status of the item?"""
-
+    if user.is_anonymous():
+        return False
     can_view = user_can_view(user, item)
     if not can_view:
         return False
@@ -193,6 +194,8 @@ def user_can_change_status(user, item):
 
 
 def user_can_supersede(user, item):
+    if user.is_anonymous():
+        return False
     if user.is_superuser:
         return True
     if not user_can_view(user, item):
@@ -377,6 +380,8 @@ def user_can_move_between_workgroups(user, workgroup_a, workgroup_b):
 
 
 def user_can_query_user_list(user):
+    if user.is_anonymous():
+        return False
     user_visbility = fetch_aristotle_settings().get('USER_VISIBILITY', 'owner')
     return (
         user.has_perm("aristotle_mdr.is_registry_administrator") or
@@ -409,8 +414,6 @@ def view_other_users_account(viewing_user, viewed_user):
     ).filter(
         members__user=viewing_user, members__role__in=allowed_roles
     ).active().exists()
-
-    return False
 
 
 def user_can_create_workgroup(user, steward_org=None):
