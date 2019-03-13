@@ -338,7 +338,7 @@ class GenericListWorkgroup(LoginRequiredMixin, SortedListView):
     allowed_sorts = {
         'items': 'num_items',
         'name': 'name',
-        'users': 'num_viewers'
+        # 'users': 'num_viewers'
     }
 
     default_sort = 'name'
@@ -348,13 +348,13 @@ class GenericListWorkgroup(LoginRequiredMixin, SortedListView):
 
     def get_queryset(self):
         # TODO: Fix this query to be faster
-        workgroups = self.get_initial_queryset().annotate(num_items=Count('items', distinct=True)) # , num_viewers=Count('viewers', distinct=True))
+        workgroups = self.get_initial_queryset().annotate(num_items=Count('items', distinct=True))  # , num_viewers=Count('viewers', distinct=True))
         # workgroups = workgroups.prefetch_related('viewers', 'managers', 'submitters', 'stewards')
 
-        # if self.text_filter:
-        #     workgroups = workgroups.filter(Q(name__icontains=self.text_filter) | Q(definition__icontains=self.text_filter))
+        if self.text_filter:
+            workgroups = workgroups.filter(Q(name__icontains=self.text_filter) | Q(definition__icontains=self.text_filter))
 
-        # workgroups = self.sort_queryset(workgroups)
+        workgroups = self.sort_queryset(workgroups)
         return workgroups
 
 
