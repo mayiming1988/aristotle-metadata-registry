@@ -117,11 +117,14 @@ def user_can_edit(user, item):
     if item.__class__ == get_user_model():  # -- Sometimes duck-typing fails --
         return user == item
 
-    if hasattr(item, "was_modified_very_recently") and item.was_modified_very_recently():
-        # If the item was modified in the last 15 seconds, don't use cache
-        can_use_cache = False
+    if hasattr(item, "was_modified_very_recently"):
+        if item.was_modified_very_recently():
+            # If the item was modified in the last 15 seconds, don't use cache
+            can_use_cache = False
+        else:
+            can_use_cache = True
     else:
-        can_use_cache = True
+        can_use_cache = False
 
     user_key = str(user.id)
     key = 'user_can_edit_%s|%s:%s|%s' % (user_key, item._meta.app_label, item._meta.app_label, str(item.id))
@@ -305,14 +308,15 @@ def user_can_manage_workgroup(user, workgroup):
     if user.is_superuser:
         return True
     elif workgroup is None:
-        return user.workgroup_manager_in.count() > 0
+        from aristotle_mdr.models import WorkgroupMembership
+        return WorkgroupMembership.objects.filter(user=user, role='manager').exists()
 
     if not workgroup.stewardship_organisation.is_active():
         return False
     if workgroup.stewardship_organisation.user_has_permission(user, "manage_workgroups"):
         return True
     else:
-        return user in workgroup.managers.all()
+        return workgroup.has_role('manager', user)
 
 
 def user_is_workgroup_manager(user, workgroup):
@@ -324,7 +328,7 @@ def user_in_workgroup(user, wg):
         return False
     if user.is_superuser:
         return True
-    return user in wg.members
+    return user in wg.member_list.all()
 
 
 def user_can_move_any_workgroup(user):

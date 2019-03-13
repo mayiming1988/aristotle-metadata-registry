@@ -348,13 +348,13 @@ class GenericListWorkgroup(LoginRequiredMixin, SortedListView):
 
     def get_queryset(self):
         # TODO: Fix this query to be faster
-        workgroups = self.get_initial_queryset().annotate(num_items=Count('items', distinct=True)) # , num_viewers=Count('viewers', distinct=True))
+        workgroups = self.get_initial_queryset().annotate(num_items=Count('items', distinct=True))  # , num_viewers=Count('viewers', distinct=True))
         # workgroups = workgroups.prefetch_related('viewers', 'managers', 'submitters', 'stewards')
 
-        # if self.text_filter:
-        #     workgroups = workgroups.filter(Q(name__icontains=self.text_filter) | Q(definition__icontains=self.text_filter))
+        if self.text_filter:
+            workgroups = workgroups.filter(Q(name__icontains=self.text_filter) | Q(definition__icontains=self.text_filter))
 
-        # workgroups = self.sort_queryset(workgroups)
+        workgroups = self.sort_queryset(workgroups)
         return workgroups
 
 
@@ -380,9 +380,16 @@ class GroupMemberMixin(object):
 
     @cached_property
     def user_to_change(self):
+        from aristotle_mdr.contrib.groups.base import AbstractGroup
+
         user = get_object_or_404(get_user_model(), pk=self.kwargs.get(self.user_pk_kwarg))
-        if user not in self.get_object().members.all():
-            raise Http404
+        obj = self.get_object()
+        if issubclass(obj.__class__, AbstractGroup):
+            if not self.get_object().has_member(user):
+                raise Http404
+        else:
+            if user not in self.get_object().members.all():
+                raise Http404
         return user
 
     def get_context_data(self, **kwargs):
@@ -418,6 +425,27 @@ class RoleChangeView(GroupMemberMixin, LoginRequiredMixin, ObjectLevelPermission
         return self.get_success_url()
 
 
+class SingleRoleChangeView(GroupMemberMixin, LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, BaseDetailView, FormView):
+    raise_exception = True
+    redirect_unauthenticated_users = True
+    object_level_permissions = True
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'user': self.request.user})
+        initial = {'role': None}
+        current_role = self.get_object().list_roles_for_user(self.user_to_change)
+        if current_role:
+            initial['role'] = current_role[0]
+
+        kwargs.update({'initial': initial})
+        return kwargs
+
+    def form_valid(self, form):
+        self.get_object().giveRoleToUser(form.cleaned_data['role'], self.user_to_change)
+        return self.get_success_url()
+
+
 class MemberRemoveFromGroupView(GroupMemberMixin, LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, DetailView):
     raise_exception = True
     redirect_unauthenticated_users = True
@@ -426,8 +454,7 @@ class MemberRemoveFromGroupView(GroupMemberMixin, LoginRequiredMixin, ObjectLeve
     http_method_names = ['get', 'post']
 
     def post(self, request, *args, **kwargs):
-        for role in self.get_object().list_roles_for_user(self.user_to_change):
-            self.get_object().removeRoleFromUser(role, self.user_to_change)
+        self.get_object().removeUser(self.user_to_change)
         return self.get_success_url()
 
 

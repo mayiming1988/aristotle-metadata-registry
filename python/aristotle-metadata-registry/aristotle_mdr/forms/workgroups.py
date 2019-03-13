@@ -10,16 +10,16 @@ from aristotle_mdr.forms.utils import StewardOrganisationRestrictedChoicesForm
 
 
 class AddMembers(forms.Form):
-    # roles = forms.MultipleChoiceField(
-    #     label=_("Workgroup roles"),
-    #     choices=sorted(MDR.Workgroup.roles.items()),
-    #     widget=forms.CheckboxSelectMultiple
-    # )
-    # users = forms.ModelMultipleChoiceField(
-    #     label=_("Select users"),
-    #     queryset=get_user_model().objects.filter(is_active=True),
-    #     widget=widgets.UserAutocompleteSelectMultiple()
-    # )
+    role = forms.ChoiceField(
+        label=_("Workgroup roles"),
+        choices=sorted(MDR.Workgroup.roles),
+        widget=forms.Select
+    )
+    user = forms.ModelChoiceField(
+        label=_("Select users"),
+        queryset=get_user_model().objects.filter(is_active=True),
+        widget=widgets.UserAutocompleteSelect()
+    )
 
     def clean_roles(self):
         roles = self.cleaned_data['roles']
@@ -28,13 +28,12 @@ class AddMembers(forms.Form):
 
 
 class ChangeWorkgroupUserRolesForm(UserAwareForm):
-    pass
-    # roles = forms.MultipleChoiceField(
-    #     label=_("Workgroup roles"),
-    #     choices=sorted(MDR.Workgroup.roles.items()),
-    #     widget=forms.CheckboxSelectMultiple,
-    #     required=False
-    # )
+    role = forms.ChoiceField(
+        label=_("Workgroup roles"),
+        choices=sorted(MDR.Workgroup.roles),
+        widget=forms.Select,
+        required=False
+    )
 
 
 class CreateWorkgroupForm(StewardOrganisationRestrictedChoicesForm):

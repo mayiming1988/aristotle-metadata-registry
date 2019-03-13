@@ -86,9 +86,9 @@ class WorkgroupFilter(RelatedFieldListFilter):
 class WorkgroupAdmin(CompareVersionAdmin):
     fieldsets = [
         (None, {'fields': ['name', 'definition']}),
-        ('Members', {'fields': ['managers', 'stewards', 'submitters', 'viewers']}),
+        # ('Members', {'fields': ['managers', 'stewards', 'submitters', 'viewers']}),
     ]
-    filter_horizontal = ['managers', 'stewards', 'submitters', 'viewers']
+    # filter_horizontal = ['managers', 'stewards', 'submitters', 'viewers']
     list_display = ('name', 'definition', 'archived')
     list_filter = ('archived',)
     search_fields = ('name', 'definition')

@@ -440,6 +440,10 @@ class RegistrationAuthority(Organization):
         if role == "manager":
             self.managers.remove(user)
 
+    def removeUser(self, user):
+        self.registrars.remove(user)
+        self.managers.remove(user)
+
     @property
     def members(self):
         from django.contrib.auth import get_user_model
@@ -472,67 +476,6 @@ def update_registration_authority_states(sender, instance, created, **kwargs):
             ).format(ra=instance.name)
 
 
-"""
-class StewardOrganisation(AbstractGroup):
-    # objects = managers.AbstractGroupQuerySet.as_manager()
-
-    class Meta:
-        verbose_name = "Steward Organisation"
-
-    roles = Choices(
-        ('admin', _('Admin')),
-        ('steward', _('Steward')),
-        ('member', _('Member')),
-    )
-    owner_roles = [roles.admin]
-    new_member_role = roles.member
-
-    class Permissions:
-        @classmethod
-        def can_view_group(cls, user, group=None):
-            return group.state in group.active_states
-
-    role_permissions = {
-        "view_group": [Permissions.can_view_group],
-        "manage_workgroups": [roles.admin],
-        "publish_objects": [roles.admin, roles.steward],
-        "manage_regstration_authorities": [roles.admin],
-        "edit_group_details": [roles.admin],
-        "edit_members": [roles.admin],
-        "invite_member": [roles.admin],
-        "manage_managed_items": [roles.admin, roles.steward],
-        "manage_collections": [roles.admin, roles.steward],
-        "list_workgroups": [roles.admin, AbstractGroup.Permissions.is_member],
-    }
-    states = Choices(
-        ('active', _('Active')),
-        ('archived', _('Deactivated & Visible')),
-        ('hidden', _('Deactivated & Hidden')),
-    )
-
-    active_states = [
-        states.active,
-    ]
-    visible_states = [
-        states.active, states.archived,
-    ]
-
-    uuid = models.UUIDField(
-        unique=True, default=uuid.uuid1, editable=False, null=False
-    )
-    description = RichTextField(
-        _('definition'),
-        help_text=_("Representation of a concept by a descriptive statement "
-                    "which serves to differentiate it from related concepts. (3.2.39)")
-    )
-
-    def get_absolute_url(self):
-        return reverse(
-            "aristotle_mdr:stewards:group:detail",
-            args=[self.slug]
-        )
-"""
-
 class Workgroup(AbstractGroup, TimeStampedModel):
     """
     A workgroup is a collection of associated users given control to work on a
@@ -545,6 +488,7 @@ class Workgroup(AbstractGroup, TimeStampedModel):
     created in that workgroup.
     """
     template = "aristotle_mdr/workgroup.html"
+    can_invite_new_users_via_email = False
     objects = WorkgroupQuerySet.as_manager()
     stewardship_organisation = models.ForeignKey(StewardOrganisation, to_field="uuid")
     archived = models.BooleanField(
@@ -565,7 +509,7 @@ class Workgroup(AbstractGroup, TimeStampedModel):
     roles = Choices(
         ('manager', _('Manager')),
         ('steward', _('Steward')),
-        ('submitters', _('Submitter')),
+        ('submitter', _('Submitter')),
         ('viewer', _('Viewer')),
     )
     owner_roles = [roles.manager]
@@ -596,60 +540,15 @@ class Workgroup(AbstractGroup, TimeStampedModel):
                     "which serves to differentiate it from related concepts. (3.2.39)")
     )
 
-    managers = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        blank=True,
-        related_name="%(class)s_manager_in",
-        verbose_name=_('Managers')
-    )
-    viewers = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        blank=True,
-        related_name='viewer_in',
-        verbose_name=_('Viewers')
-    )
-    submitters = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        blank=True,
-        related_name='submitter_in',
-        verbose_name=_('Submitters')
-    )
-    stewards = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
-        blank=True,
-        related_name='steward_in',
-        verbose_name=_('Stewards')
-    )
-
-    # roles = {
-    #     'submitter': _("Submitter"),
-    #     'viewer': _("Viewer"),
-    #     'steward': _("Steward"),
-    #     'manager': _("Manager")
-    # }
-
     tracker = FieldTracker()
 
     def get_absolute_url(self):
         return url_slugify_workgroup(self)
 
-    @property
-    def members(self):
-        from django.contrib.auth import get_user_model
-        User = get_user_model()
-
-        v_pks = list(self.viewers.all().values_list("pk", flat=True))
-        sub_pks = list(self.submitters.all().values_list("pk", flat=True))
-        stew_pks = list(self.stewards.all().values_list("pk", flat=True))
-        man_pks = list(self.managers.all().values_list("pk", flat=True))
-
-        pks = set(v_pks + sub_pks + stew_pks + man_pks)
-        return User.objects.filter(pk__in=pks)
-
     def can_view(self, user):
         if self.stewardship_organisation.user_has_permission(user, "manage_workgroups"):
             return True
-        return self.members.filter(pk=user.pk).exists()
+        return self.member_list.filter(pk=user.pk).exists()
 
     @property
     def classedItems(self):
@@ -657,56 +556,40 @@ class Workgroup(AbstractGroup, TimeStampedModel):
         return self.items.select_subclasses()
 
     def list_roles_for_user(self, user):
-        roles = []
-        if user in self.managers.all():
-            roles.append("manager")
-        if user in self.viewers.all():
-            roles.append("viewer")
-        if user in self.submitters.all():
-            roles.append("submitter")
-        if user in self.stewards.all():
-            roles.append("steward")
-        return roles
+        return self.roles_for_user(user)
 
     def giveRoleToUser(self, role, user):
         if role == "manager":
-            self.managers.add(user)
+            self.grant_role(self.roles.manager, user)
         if role == "viewer":
-            self.viewers.add(user)
+            self.grant_role(self.roles.viewer, user)
         if role == "submitter":
-            self.submitters.add(user)
+            self.grant_role(self.roles.submitter, user)
         if role == "steward":
-            self.stewards.add(user)
+            self.grant_role(self.roles.steward, user)
         self.save()
 
     def removeRoleFromUser(self, role, user):
         if role == "manager":
-            self.managers.remove(user)
+            self.revoke_role(self.roles.manager, user)
         if role == "viewer":
-            self.viewers.remove(user)
+            self.revoke_role(self.roles.viewer, user)
         if role == "submitter":
-            self.submitters.remove(user)
+            self.revoke_role(self.roles.submitter, user)
         if role == "steward":
-            self.stewards.remove(user)
+            self.revoke_role(self.roles.steward, user)
         self.save()
 
     def removeUser(self, user):
-        self.viewers.remove(user)
-        self.submitters.remove(user)
-        self.stewards.remove(user)
-        self.managers.remove(user)
+        self.revoke_membership(user)
 
-    # def get_absolute_url(self):
-    #     return reverse(
-    #         "aristotle_mdr:workgroup",
-    #         args=[self.slug]
-    #     )
+    def can_edit(self, user):
+        return user.is_superuser or self.has_role('manager', user.pk)
 
 
 class WorkgroupMembership(AbstractMembership):
     group_class = Workgroup
     group_kwargs = {"to_field": "uuid"}
-
 
 
 class DiscussionPost(discussionAbstract):
@@ -1644,14 +1527,14 @@ class PossumProfile(models.Model):
         return self.savedActiveWorkgroup or None
 
     def workgroups_for_user(self):
-        # All of the workgroups a user is in
-        v_pks = list(self.user.viewer_in.all().values_list("pk", flat=True))
-        sub_pks = list(self.user.submitter_in.all().values_list("pk", flat=True))
-        stew_pks = list(self.user.steward_in.all().values_list("pk", flat=True))
-        man_pks = list(self.user.workgroup_manager_in.all().values_list("pk", flat=True))
+        # # All of the workgroups a user is in
+        # v_pks = list(self.user.viewer_in.all().values_list("pk", flat=True))
+        # sub_pks = list(self.user.submitter_in.all().values_list("pk", flat=True))
+        # stew_pks = list(self.user.steward_in.all().values_list("pk", flat=True))
+        # man_pks = list(self.user.workgroup_manager_in.all().values_list("pk", flat=True))
 
-        pks = set(v_pks + sub_pks + stew_pks + man_pks)
-        return Workgroup.objects.filter(pk__in=pks)
+        # pks = set(v_pks + sub_pks + stew_pks + man_pks)
+        return Workgroup.objects.filter(members__user=self.user)
 
     @property
     def workgroups(self):
@@ -1683,15 +1566,16 @@ class PossumProfile(models.Model):
 
     @property
     def editable_workgroups(self):
+        # This list of workgroups a user can edit metadata in
         if self.user.is_superuser:
             return Workgroup.objects.all().order_by('name')
         else:
-            sub_pks = list(self.user.submitter_in.all().values_list("pk", flat=True))
-            stew_pks = list(self.user.steward_in.all().values_list("pk", flat=True))
-            # man_pks = list(self.user.workgroup_manager_in.all().values_list("pk", flat=True))
-
-            pks = set(sub_pks + stew_pks)  # + man_pks)
-            return Workgroup.objects.filter(pk__in=pks).filter(archived=False).order_by('name')
+            # TODO: Managers *can* edit things in groups
+            return Workgroup.objects.filter(
+                members__role__in=["steward", "submitter"],
+                members__user=self.user,
+                archived=False
+            )
 
     @property
     def is_registrar(self):

@@ -524,11 +524,11 @@ class LoggedInViewPages(object):
 
         self.regular = get_user_model().objects.create_user('regular@example.com', 'thanks_steve')
 
-        self.wg1.submitters.add(self.editor)
-        self.wg1.managers.add(self.manager)
-        self.wg1.viewers.add(self.viewer)
+        self.wg1.giveRoleToUser('submitter', self.editor)
+        self.wg1.giveRoleToUser('manager', self.manager)
+        self.wg1.giveRoleToUser('viewer', self.viewer)
         self.ra.registrars.add(self.registrar)
-        self.ra.managers.add(self.ramanager)
+        self.ra.giveRoleToUser('manager', self.ramanager)
 
         self.editor = get_user_model().objects.get(pk=self.editor.pk)
         self.manager = get_user_model().objects.get(pk=self.manager.pk)

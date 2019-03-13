@@ -8,13 +8,35 @@ from django.db import migrations
 
 def move_to_new(apps, schema_migration):
     Workgroup = apps.get_model('aristotle_mdr', 'Workgroup')
+    WorkgroupMembership = apps.get_model('aristotle_mdr', 'WorkgroupMembership')
 
     wgs = Workgroup.objects.all() #.prefetch_related('statuses')
     for wg in wgs:
-        print("====================")
-        print(wg.viewers.all())
-        print(wg.managers.all())
-        print("====================")
+        wg.save()  # Force slug creation
+        for viewer in wg.viewers.all():
+            WorkgroupMembership.objects.update_or_create(
+                user=viewer,
+                group=wg,
+                defaults={"role": 'viewer'}
+            )
+        for u in wg.submitters.all():
+            WorkgroupMembership.objects.update_or_create(
+                user=u,
+                group=wg,
+                defaults={"role": 'submitter'}
+            )
+        for u in wg.stewards.all():
+            WorkgroupMembership.objects.update_or_create(
+                user=u,
+                group=wg,
+                defaults={"role": 'steward'}
+            )
+        for u in wg.managers.all():
+            WorkgroupMembership.objects.update_or_create(
+                user=u,
+                group=wg,
+                defaults={"role": 'manager'}
+            )
 
 
 class Migration(migrations.Migration):

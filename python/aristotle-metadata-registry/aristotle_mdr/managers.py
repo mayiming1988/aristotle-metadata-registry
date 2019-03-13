@@ -11,6 +11,7 @@ from aristotle_mdr.utils.utils import is_postgres
 from aristotle_mdr.constants import visibility_permission_choices
 
 from django.contrib.contenttypes.models import ContentType
+from aristotle_mdr.contrib.groups.managers import AbstractGroupQuerySet
 
 
 class PublishedMixin(object):
@@ -57,8 +58,7 @@ class MetadataItemManager(InheritanceManager, UtilsManager):
         return qs
 
 
-from aristotle_mdr.contrib.groups.managers import AbstractGroupQuerySet
-class WorkgroupQuerySet(AbstractGroupQuerySet):  # , MetadataItemQuerySet):
+class WorkgroupQuerySet(AbstractGroupQuerySet):
     def visible(self, user):
         if user.is_anonymous():
             return self.none()
