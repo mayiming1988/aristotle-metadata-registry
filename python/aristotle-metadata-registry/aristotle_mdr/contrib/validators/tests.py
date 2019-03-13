@@ -289,6 +289,6 @@ class ValidationRunnerTestCase(TestCase):
         self.assertEqual(len(response.context['total_results']), 1)
 
     def test_validation_runner_rulesets_return_an_empty_list_when_default_value_of_validation_rule_is_an_empty_string(self):
-        self.regex_rule = ''
+        models.RegistryValidationRules.objects.create(rules='')
         results = self.dbrunner.get_rulesets()
         self.assertEqual(results, [])
