@@ -225,7 +225,7 @@ def inbox(request, folder=None):
     page = render(
         request,
         "aristotle_mdr/user/userInbox.html",
-        {"item": request.user, "notifications": notices, 'folder': folder}
+        {"item": request.user, "notifications": notices[:50], 'folder': folder}
     )
     return page
 
