@@ -11,12 +11,12 @@ from aristotle_mdr.forms.utils import StewardOrganisationRestrictedChoicesForm
 
 class AddMembers(forms.Form):
     role = forms.ChoiceField(
-        label=_("Workgroup roles"),
+        label=_("Workgroup role"),
         choices=sorted(MDR.Workgroup.roles),
         widget=forms.Select
     )
     user = forms.ModelChoiceField(
-        label=_("Select users"),
+        label=_("Select user"),
         queryset=get_user_model().objects.filter(is_active=True),
         widget=widgets.UserAutocompleteSelect()
     )
@@ -29,7 +29,7 @@ class AddMembers(forms.Form):
 
 class ChangeWorkgroupUserRolesForm(UserAwareForm):
     role = forms.ChoiceField(
-        label=_("Workgroup roles"),
+        label=_("Workgroup role"),
         choices=sorted(MDR.Workgroup.roles),
         widget=forms.Select,
         required=False
