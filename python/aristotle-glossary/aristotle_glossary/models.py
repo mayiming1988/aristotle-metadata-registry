@@ -12,6 +12,8 @@ import reversion
 
 class GlossaryItem(MDR.concept):
     template = "aristotle_glossary/concepts/glossaryItem.html"
+    edit_page_excludes = ["index"]
+
     index = models.ManyToManyField(MDR._concept,blank=True,null=True,related_name="related_glossary_items")
 
 

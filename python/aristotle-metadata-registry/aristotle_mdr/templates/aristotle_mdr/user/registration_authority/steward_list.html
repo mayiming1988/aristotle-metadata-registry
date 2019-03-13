@@ -1,5 +1,5 @@
 {% extends "aristotle_mdr/stewards/base.html" %}
-{% load i18n %}
+{% load i18n aristotle_tags util_tags %}
 
 {% block title %}Registration Authorities | {{ stewardship_organisation }}{% endblock %}
 {% block page_title %}{{ stewardship_organisation }} | Registration Authorities{% endblock %}
@@ -10,7 +10,8 @@
 </p>
 
     <section id="ras">
-        {% if not hide_add_button %}
+        {% has_group_perm group "manage_regstration_authorities" as can_manage_regstration_authorities %}
+        {% if can_manage_regstration_authorities %}
         <a class="btn btn-default pull-right" href="{% url 'aristotle:registrationauthority_create'%}">Add New Registration Authority</a>
         {% endif %}
         
