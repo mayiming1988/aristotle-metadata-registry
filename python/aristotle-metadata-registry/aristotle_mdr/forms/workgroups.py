@@ -10,16 +10,16 @@ from aristotle_mdr.forms.utils import StewardOrganisationRestrictedChoicesForm
 
 
 class AddMembers(forms.Form):
-    roles = forms.MultipleChoiceField(
-        label=_("Workgroup roles"),
-        choices=sorted(MDR.Workgroup.roles.items()),
-        widget=forms.CheckboxSelectMultiple
-    )
-    users = forms.ModelMultipleChoiceField(
-        label=_("Select users"),
-        queryset=get_user_model().objects.filter(is_active=True),
-        widget=widgets.UserAutocompleteSelectMultiple()
-    )
+    # roles = forms.MultipleChoiceField(
+    #     label=_("Workgroup roles"),
+    #     choices=sorted(MDR.Workgroup.roles.items()),
+    #     widget=forms.CheckboxSelectMultiple
+    # )
+    # users = forms.ModelMultipleChoiceField(
+    #     label=_("Select users"),
+    #     queryset=get_user_model().objects.filter(is_active=True),
+    #     widget=widgets.UserAutocompleteSelectMultiple()
+    # )
 
     def clean_roles(self):
         roles = self.cleaned_data['roles']
@@ -28,12 +28,13 @@ class AddMembers(forms.Form):
 
 
 class ChangeWorkgroupUserRolesForm(UserAwareForm):
-    roles = forms.MultipleChoiceField(
-        label=_("Workgroup roles"),
-        choices=sorted(MDR.Workgroup.roles.items()),
-        widget=forms.CheckboxSelectMultiple,
-        required=False
-    )
+    pass
+    # roles = forms.MultipleChoiceField(
+    #     label=_("Workgroup roles"),
+    #     choices=sorted(MDR.Workgroup.roles.items()),
+    #     widget=forms.CheckboxSelectMultiple,
+    #     required=False
+    # )
 
 
 class CreateWorkgroupForm(StewardOrganisationRestrictedChoicesForm):

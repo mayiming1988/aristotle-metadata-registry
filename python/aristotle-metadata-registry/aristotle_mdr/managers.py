@@ -57,7 +57,8 @@ class MetadataItemManager(InheritanceManager, UtilsManager):
         return qs
 
 
-class WorkgroupQuerySet(MetadataItemQuerySet):
+from aristotle_mdr.contrib.groups.managers import AbstractGroupQuerySet
+class WorkgroupQuerySet(AbstractGroupQuerySet):  # , MetadataItemQuerySet):
     def visible(self, user):
         if user.is_anonymous():
             return self.none()

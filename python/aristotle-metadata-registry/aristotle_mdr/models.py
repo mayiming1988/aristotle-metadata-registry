@@ -472,7 +472,68 @@ def update_registration_authority_states(sender, instance, created, **kwargs):
             ).format(ra=instance.name)
 
 
-class Workgroup(registryGroup):
+"""
+class StewardOrganisation(AbstractGroup):
+    # objects = managers.AbstractGroupQuerySet.as_manager()
+
+    class Meta:
+        verbose_name = "Steward Organisation"
+
+    roles = Choices(
+        ('admin', _('Admin')),
+        ('steward', _('Steward')),
+        ('member', _('Member')),
+    )
+    owner_roles = [roles.admin]
+    new_member_role = roles.member
+
+    class Permissions:
+        @classmethod
+        def can_view_group(cls, user, group=None):
+            return group.state in group.active_states
+
+    role_permissions = {
+        "view_group": [Permissions.can_view_group],
+        "manage_workgroups": [roles.admin],
+        "publish_objects": [roles.admin, roles.steward],
+        "manage_regstration_authorities": [roles.admin],
+        "edit_group_details": [roles.admin],
+        "edit_members": [roles.admin],
+        "invite_member": [roles.admin],
+        "manage_managed_items": [roles.admin, roles.steward],
+        "manage_collections": [roles.admin, roles.steward],
+        "list_workgroups": [roles.admin, AbstractGroup.Permissions.is_member],
+    }
+    states = Choices(
+        ('active', _('Active')),
+        ('archived', _('Deactivated & Visible')),
+        ('hidden', _('Deactivated & Hidden')),
+    )
+
+    active_states = [
+        states.active,
+    ]
+    visible_states = [
+        states.active, states.archived,
+    ]
+
+    uuid = models.UUIDField(
+        unique=True, default=uuid.uuid1, editable=False, null=False
+    )
+    description = RichTextField(
+        _('definition'),
+        help_text=_("Representation of a concept by a descriptive statement "
+                    "which serves to differentiate it from related concepts. (3.2.39)")
+    )
+
+    def get_absolute_url(self):
+        return reverse(
+            "aristotle_mdr:stewards:group:detail",
+            args=[self.slug]
+        )
+"""
+
+class Workgroup(AbstractGroup, TimeStampedModel):
     """
     A workgroup is a collection of associated users given control to work on a
     specific piece of work. Usually this work will be the creation of a
@@ -492,7 +553,55 @@ class Workgroup(registryGroup):
                     "discussions created within them."),
         verbose_name=_('Archived'),
     )
+    uuid = models.UUIDField(
+        unique=True, default=uuid.uuid1, editable=False, null=False
+    )
 
+    class Permissions:
+        @classmethod
+        def can_view_group(cls, user, group=None):
+            return group.state in group.active_states and cls.is_member(user, group)
+
+    roles = Choices(
+        ('manager', _('Manager')),
+        ('steward', _('Steward')),
+        ('submitters', _('Submitter')),
+        ('viewer', _('Viewer')),
+    )
+    owner_roles = [roles.manager]
+    new_member_role = roles.viewer
+
+    role_permissions = {
+        "view_group": [Permissions.can_view_group],
+        "edit_group_details": [roles.manager],
+        "edit_members": [roles.manager],
+        "invite_member": [roles.manager],
+    }
+    states = Choices(
+        ('active', _('Active')),
+        ('archived', _('Deactivated & Visible')),
+        ('hidden', _('Deactivated & Hidden')),
+    )
+
+    active_states = [
+        states.active,
+    ]
+    visible_states = [
+        states.active, states.archived,
+    ]
+
+    definition = RichTextField(
+        _('definition'),
+        help_text=_("Representation of a concept by a descriptive statement "
+                    "which serves to differentiate it from related concepts. (3.2.39)")
+    )
+
+    managers = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        related_name="%(class)s_manager_in",
+        verbose_name=_('Managers')
+    )
     viewers = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         blank=True,
@@ -512,12 +621,12 @@ class Workgroup(registryGroup):
         verbose_name=_('Stewards')
     )
 
-    roles = {
-        'submitter': _("Submitter"),
-        'viewer': _("Viewer"),
-        'steward': _("Steward"),
-        'manager': _("Manager")
-    }
+    # roles = {
+    #     'submitter': _("Submitter"),
+    #     'viewer': _("Viewer"),
+    #     'steward': _("Steward"),
+    #     'manager': _("Manager")
+    # }
 
     tracker = FieldTracker()
 
@@ -586,6 +695,18 @@ class Workgroup(registryGroup):
         self.submitters.remove(user)
         self.stewards.remove(user)
         self.managers.remove(user)
+
+    # def get_absolute_url(self):
+    #     return reverse(
+    #         "aristotle_mdr:workgroup",
+    #         args=[self.slug]
+    #     )
+
+
+class WorkgroupMembership(AbstractMembership):
+    group_class = Workgroup
+    group_kwargs = {"to_field": "uuid"}
+
 
 
 class DiscussionPost(discussionAbstract):

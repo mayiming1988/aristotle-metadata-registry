@@ -255,3 +255,22 @@ class RemoveUser(MemberRemoveFromGroupView):
 
     def get_success_url(self):
         return redirect(reverse('aristotle:workgroupMembers', args=[self.get_object().id]))
+
+
+from aristotle_mdr.contrib.groups.backends import (
+    GroupURLManager, GroupMixin,
+    HasRoleMixin, HasRolePermissionMixin,
+)
+
+class WorkgroupURLManager(GroupURLManager):
+    group_context_name = "workgroup"
+
+def workgroup_backend_factory(*args, **kwargs):
+    kwargs.update({
+        "group_class": MDR.Workgroup,
+        "membership_class": MDR.WorkgroupMembership,
+        "namespace": "aristotle_mdr:workgroup",
+        "update_fields": ['definition']
+    })
+
+    return WorkgroupURLManager(*args, **kwargs)

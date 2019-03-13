@@ -18,6 +18,8 @@ from aristotle_mdr.contrib.generic.views import (
 
 from django.utils.translation import ugettext_lazy as _
 
+from aristotle_mdr.views.workgroups import workgroup_backend_factory
+
 urlpatterns=[
     url(r'^$', views.SmartRoot.as_view(
         unauthenticated_pattern='aristotle_mdr:home',
@@ -30,6 +32,13 @@ urlpatterns=[
     url(r'^sitemaps/sitemap_(?P<page>[0-9]+).xml$', views.sitemaps.page_range, name='sitemap_range_xml'),
 
     url(r'^steward', include('aristotle_mdr.contrib.stewards.urls', namespace="stewards")),
+
+    url(r'^workthing',
+        include(
+            workgroup_backend_factory().get_urls(),
+            namespace="workgroup"
+        )
+    ),
 
     # all the below take on the same form:
     # url(r'^itemType/(?P<iid>\d+)?/?
