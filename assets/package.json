@@ -83,6 +83,9 @@
     "Firefox ESR",
     "IE 10"
   ],
+  "sideEffects": [
+    "*.css"
+  ],
   "eslintConfig": {
     "extends": [
       "eslint:recommended",

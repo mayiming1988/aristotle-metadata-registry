@@ -1,3 +1,4 @@
+from typing import List
 import datetime
 from django.apps import apps
 from django.contrib import messages
@@ -16,12 +17,14 @@ from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.cache import never_cache
 from django.views.generic.edit import FormMixin
-from django.views.generic import (DetailView,
-                                  ListView,
-                                  UpdateView,
-                                  FormView,
-                                  TemplateView,
-                                  View)
+from django.views.generic import (
+    DetailView,
+    ListView,
+    UpdateView,
+    FormView,
+    TemplateView,
+    View
+)
 
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
@@ -164,43 +167,55 @@ def home(request):
     return page
 
 
-@login_required
-def roles(request):
+class Roles(LoginRequiredMixin, TemplateView):
 
-    user = request.user
-    workgroups = []
-    registration_authorities = []
+    template_name = 'aristotle_mdr/user/userRoles.html'
 
-    for wg in user.workgroup_manager_in.all():
-        wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Manager'}
-        workgroups.append(wg_object)
+    def sort(self, unsorted: List) -> List:
+        """Sorts a list by name with secondaty sort on role"""
+        # Sort by role (secondary sort)
+        sorted_list = sorted(unsorted, key=lambda k: k['role'])
+        # Then sort by name (primary sort)
+        sorted_list = sorted(sorted_list, key=lambda k: k['name'])
+        return sorted_list
 
-    for wg in user.steward_in.all():
-        wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Steward'}
-        workgroups.append(wg_object)
+    def get_context_data(self):
+        user = self.request.user
+        workgroups = []
+        registration_authorities = []
 
-    for wg in user.submitter_in.all():
-        wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Submitter'}
-        workgroups.append(wg_object)
+        for wg in user.workgroup_manager_in.all():
+            wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Manager'}
+            workgroups.append(wg_object)
 
-    for wg in user.viewer_in.all():
-        wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Viewer'}
-        workgroups.append(wg_object)
+        for wg in user.steward_in.all():
+            wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Steward'}
+            workgroups.append(wg_object)
 
-    for ra in user.organization_manager_in.all():
-        ra_object = {'name': ra.name, 'pk': ra.pk, 'role': 'Manager'}
-        registration_authorities.append(ra_object)
+        for wg in user.submitter_in.all():
+            wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Submitter'}
+            workgroups.append(wg_object)
 
-    for ra in user.registrar_in.all():
-        ra_object = {'name': ra.name, 'pk': ra.pk, 'role': 'Registrar'}
-        registration_authorities.append(ra_object)
+        for wg in user.viewer_in.all():
+            wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Viewer'}
+            workgroups.append(wg_object)
 
-    # ORDER THE LIST OF OBJECTS BY NAME IN DESCENDING ORDER:
+        for ra in user.organization_manager_in.all():
+            ra_object = {'name': ra.name, 'pk': ra.pk, 'role': 'Manager'}
+            registration_authorities.append(ra_object)
 
-    sorted_workgroups_list = sorted(workgroups, key=lambda k: k['name'])
-    sorted_registration_authorities_list = sorted(registration_authorities, key=lambda k: k['name'])
-    page = render(request, "aristotle_mdr/user/userRoles.html", {"user": user, "workgroups": sorted_workgroups_list, "registration_authorities": sorted_registration_authorities_list})
-    return page
+        for ra in user.registrar_in.all():
+            ra_object = {'name': ra.name, 'pk': ra.pk, 'role': 'Registrar'}
+            registration_authorities.append(ra_object)
+
+        # Ordering
+        sorted_workgroups_list = self.sort(workgroups)
+        sorted_registration_authorities_list = self.sort(registration_authorities)
+        return {
+            "user": user,
+            "workgroups": sorted_workgroups_list,
+            "registration_authorities": sorted_registration_authorities_list
+        }
 
 
 @login_required

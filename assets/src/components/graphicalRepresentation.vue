@@ -10,7 +10,7 @@
 </template>
 
 <script>
-    import { Alert } from 'uiv'
+    import Alert from 'uiv/src/components/alert/Alert.vue'
     import apiRequest from 'src/mixins/apiRequest.js'
 
     export default {

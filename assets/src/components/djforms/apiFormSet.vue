@@ -15,7 +15,7 @@
 
 <script>
 import apiRequest from 'src/mixins/apiRequest.js'
-import { Alert } from 'uiv'
+import Alert from 'uiv/src/components/alert/Alert.vue'
 import FormSet from '@/djforms/formSet.vue'
 
 export default {
