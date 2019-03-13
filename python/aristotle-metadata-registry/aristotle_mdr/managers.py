@@ -99,7 +99,8 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
             # User can see everything they've made.
             q |= Q(submitter=user)
             # User can see everything in their workgroups.
-            q |= Q(workgroup__in=user.profile.workgroups)
+            # q |= Q(workgroup__in=user.profile.workgroups)
+            q |= Q(workgroup__members__user=user, workgroup__archived=False)
             # q |= Q(workgroup__user__profile=user)
             registrar_count = user.profile.registrar_count
             if registrar_count > 1:
@@ -150,14 +151,23 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
         # User can edit everything they've made thats not locked
         q |= Q(submitter=user, _is_locked=False)
 
-        is_submitter = user.submitter_in.exists()
-        is_steward = user.steward_in.exists()
+        is_submitter = user.workgroupmembership_set.filter(role="submitter").exists()
+        is_steward = user.workgroupmembership_set.filter(role="steward").exists()
 
         if is_submitter or is_steward:
             if is_submitter:
-                q |= Q(_is_locked=False, workgroup__submitters__profile__user=user)
+                q |= Q(
+                    _is_locked=False,
+                    workgroup__members__role='submitter',
+                    workgroup__members__user=user,
+                    workgroup__archived=False
+                )
             if is_steward:
-                q |= Q(workgroup__stewards__profile__user=user)
+                q |= Q(
+                    workgroup__members__role='steward',
+                    workgroup__members__user=user,
+                    workgroup__archived=False
+                )
         return self.filter(
             q &
             ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)

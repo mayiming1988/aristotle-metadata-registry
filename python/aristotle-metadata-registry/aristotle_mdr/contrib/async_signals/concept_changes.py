@@ -19,7 +19,7 @@ def concept_saved(message, **kwargs):
             messages.items_i_can_edit_updated(recipient=user, obj=instance)
 
     if instance.workgroup:
-        for user in instance.workgroup.viewers.all():
+        for user in instance.workgroup.users_for_role('viewer'):
             if message['created']:
                 messages.workgroup_item_new(recipient=user, obj=instance)
             else:
@@ -77,7 +77,7 @@ def item_superseded(message, **kwargs):
             messages.items_i_can_edit_superseded(recipient=user, obj=concept)
 
     if concept.workgroup:
-        for user in concept.workgroup.viewers.all():
+        for user in concept.workgroup.users_for_role('viewer'):
             if concept.can_view(user) and new_super_rel.newer_item.can_view(user):
                 messages.workgroup_item_superseded(recipient=user, obj=concept)
 

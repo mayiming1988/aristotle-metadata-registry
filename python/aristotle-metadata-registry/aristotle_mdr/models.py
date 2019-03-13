@@ -816,7 +816,13 @@ class _concept(baseAristotleObject):
     def editable_by(self):
         """Returns a list of the users allowed to edit this concept."""
         from django.contrib.auth import get_user_model
-        query = Q(submitter_in__id=self.workgroup_id) | Q(steward_in__id=self.workgroup_id) | Q(created_items=self)
+        query = (
+            Q(
+                Q(workgroupmembership__role__in=['submitter', 'steward']) &
+                Q(workgroupmembership__group=self.workgroup)
+            ) |
+            Q(created_items=self)
+        )
         return get_user_model().objects.filter(query).distinct()
 
     @property

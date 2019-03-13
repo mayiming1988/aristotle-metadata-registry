@@ -329,11 +329,30 @@ class SortedListView(ListView):
         return context
 
 
+class AnnotatedPaginator(Paginator):
+    def __init__(self, *args, **kwargs):
+        self.annotations = kwargs.pop('annotations', {})
+        super().__init__(*args, **kwargs)
+
+    def page(self, number):
+        """Return a Page object for the given 1-based page number."""
+        number = self.validate_number(number)
+        bottom = (number - 1) * self.per_page
+        top = bottom + self.per_page
+        if top + self.orphans >= self.count:
+            top = self.count
+        annotated_list = self.object_list
+        if self.annotations:
+            annotated_list = annotated_list.annotate(**self.annotations)
+        return self._get_page(annotated_list[bottom:top], number, self)
+
+
 class GenericListWorkgroup(LoginRequiredMixin, SortedListView):
 
     model = MDR.Workgroup
     redirect_unauthenticated_users = True
     paginate_by = 20
+    paginator_class = AnnotatedPaginator
 
     allowed_sorts = {
         'items': 'num_items',
@@ -346,10 +365,16 @@ class GenericListWorkgroup(LoginRequiredMixin, SortedListView):
     def get_initial_queryset(self):
         raise NotImplementedError
 
+    def get_paginator(self, *args, **kwargs):
+        annotations = {
+            'num_items': Count('items', distinct=True),
+            # 'num_members': Count('members__user__email', distinct=True)
+        }
+        return self.paginator_class(*args, **kwargs, annotations=annotations)
+
     def get_queryset(self):
         # TODO: Fix this query to be faster
-        workgroups = self.get_initial_queryset().annotate(num_items=Count('items', distinct=True))  # , num_viewers=Count('viewers', distinct=True))
-        # workgroups = workgroups.prefetch_related('viewers', 'managers', 'submitters', 'stewards')
+        workgroups = self.get_initial_queryset()
 
         if self.text_filter:
             workgroups = workgroups.filter(Q(name__icontains=self.text_filter) | Q(definition__icontains=self.text_filter))

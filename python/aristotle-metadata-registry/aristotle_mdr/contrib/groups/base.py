@@ -237,6 +237,20 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
         """
         return list(self.members.filter(user=user).values_list('role', flat=True))
 
+    def users_for_role(self, role):
+        """
+        Returns a list of users with the given roles in this group
+        """
+        if type(role) is list:
+            roles = role
+        else:
+            roles = [role]
+        user_to_membership_relation = self.members.model.user.field.related_query_name()
+        return get_user_model().objects.filter(**{
+            user_to_membership_relation + "__group": self,
+            user_to_membership_relation + "__role__in": roles
+        })
+
     def has_member(self, user):
         """
         Returns true if the user is a member and has any role

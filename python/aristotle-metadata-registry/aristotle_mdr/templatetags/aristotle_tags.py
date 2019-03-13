@@ -535,27 +535,12 @@ def get_dataelements_from_m2m(ded, field_name):
 
 @register.filter
 def distinct_workgroups_count(user):
-
-    wgs = set()
-    roles = ['submitter_in', 'viewer_in', 'steward_in', 'workgroup_manager_in']
-    for role in roles:
-        manager = getattr(user, role)
-        for wg in manager.all():
-            wgs.add(wg.id)
-
-    return len(wgs)
+    return user.workgroupmembership_set.all().count()
 
 
 @register.filter
 def distinct_members_count(workgroup):
-    users = set()
-    roles = ['submitters', 'viewers', 'stewards', 'managers']
-    for role in roles:
-        manager = getattr(workgroup, role)
-        for user in manager.all():
-            users.add(user.id)
-
-    return len(users)
+    return workgroup.members.all().count()
 
 
 @register.filter
