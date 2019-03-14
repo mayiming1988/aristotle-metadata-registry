@@ -87,7 +87,7 @@ class ConceptManagerTestCase(TestCase):
             name='MyWG', definition='mine',
             stewardship_organisation=self.steward_org_1
         )
-        wg.managers.add(self.user)
+        wg.giveRoleToUser('manager', self.user)
         # Add test item to wg
         self.item.workgroup = wg
         self.item.save()

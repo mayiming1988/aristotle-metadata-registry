@@ -818,7 +818,7 @@ class _concept(baseAristotleObject):
         from django.contrib.auth import get_user_model
         query = (
             Q(
-                Q(workgroupmembership__role__in=['submitter', 'steward']) &
+                Q(workgroupmembership__role__in=['submitter', 'steward', 'manager']) &
                 Q(workgroupmembership__group=self.workgroup)
             ) |
             Q(created_items=self)
@@ -1533,13 +1533,6 @@ class PossumProfile(models.Model):
         return self.savedActiveWorkgroup or None
 
     def workgroups_for_user(self):
-        # # All of the workgroups a user is in
-        # v_pks = list(self.user.viewer_in.all().values_list("pk", flat=True))
-        # sub_pks = list(self.user.submitter_in.all().values_list("pk", flat=True))
-        # stew_pks = list(self.user.steward_in.all().values_list("pk", flat=True))
-        # man_pks = list(self.user.workgroup_manager_in.all().values_list("pk", flat=True))
-
-        # pks = set(v_pks + sub_pks + stew_pks + man_pks)
         return Workgroup.objects.filter(members__user=self.user)
 
     @property
@@ -1578,7 +1571,7 @@ class PossumProfile(models.Model):
         else:
             # TODO: Managers *can* edit things in groups
             return Workgroup.objects.filter(
-                members__role__in=["steward", "submitter"],
+                members__role__in=["steward", "submitter", "manager"],
                 members__user=self.user,
                 archived=False
             )

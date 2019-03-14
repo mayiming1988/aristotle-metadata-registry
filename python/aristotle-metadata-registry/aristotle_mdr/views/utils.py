@@ -367,14 +367,15 @@ class GenericListWorkgroup(LoginRequiredMixin, SortedListView):
 
     def get_paginator(self, *args, **kwargs):
         annotations = {
-            'num_items': Count('items', distinct=True),
-            # 'num_members': Count('members__user__email', distinct=True)
+            'num_items': Count('items')  # , distinct=True),
+            # 'num_members': Count('members') # , distinct=True)
         }
         return self.paginator_class(*args, **kwargs, annotations=annotations)
 
     def get_queryset(self):
         # TODO: Fix this query to be faster
         workgroups = self.get_initial_queryset()
+        # workgroups = MDR.Workgroup.objects.all()
 
         if self.text_filter:
             workgroups = workgroups.filter(Q(name__icontains=self.text_filter) | Q(definition__icontains=self.text_filter))

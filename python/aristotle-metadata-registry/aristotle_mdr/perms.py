@@ -151,9 +151,7 @@ def user_is_editor(user, workgroup=None):
 
 
 def user_can_submit_to_workgroup(user, workgroup):
-    submitter = workgroup in user.submitter_in.all()
-    steward = workgroup in user.steward_in.all()
-    return submitter or steward
+    return workgroup.has_role(["submitter", "steward"], user)
 
 
 def user_is_registrar(user, ra=None):
@@ -308,8 +306,7 @@ def user_can_manage_workgroup(user, workgroup):
     if user.is_superuser:
         return True
     elif workgroup is None:
-        from aristotle_mdr.models import WorkgroupMembership
-        return WorkgroupMembership.objects.filter(user=user, role='manager').exists()
+        return user.workgroupmembership_set.filter(role='manager').exists()
 
     if not workgroup.stewardship_organisation.is_active():
         return False
@@ -344,7 +341,7 @@ def user_can_move_any_workgroup(user):
         return True
     if 'manager' in workgroup_change_access and user.profile.is_workgroup_manager():
         return True
-    if 'submitter' in workgroup_change_access and user.submitter_in.exists():
+    if 'submitter' in workgroup_change_access and user.workgroupmembership_set.filter(role="submitter").exists():
         return True
 
     return False
@@ -362,9 +359,9 @@ def user_can_add_or_remove_workgroup(user, workgroup):
         return True
 
     if workgroup:
-        if 'manager' in workgroup_change_access and user in workgroup.managers.all():
+        if 'manager' in workgroup_change_access and workgroup.has_role('manager', user):
             return True
-        if 'submitter' in workgroup_change_access and user in workgroup.submitters.all():
+        if 'submitter' in workgroup_change_access and workgroup.has_role('submitter', user):
             return True
 
     return False

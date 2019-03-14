@@ -151,23 +151,20 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
         # User can edit everything they've made thats not locked
         q |= Q(submitter=user, _is_locked=False)
 
-        is_submitter = user.workgroupmembership_set.filter(role="submitter").exists()
-        is_steward = user.workgroupmembership_set.filter(role="steward").exists()
+        q |= Q(
+            workgroup__members__role__in=['submitter', 'steward', 'manager'],
+            workgroup__members__user=user,
+            workgroup__archived=False,
+            _is_locked=False
+        )
 
-        if is_submitter or is_steward:
-            if is_submitter:
-                q |= Q(
-                    _is_locked=False,
-                    workgroup__members__role='submitter',
-                    workgroup__members__user=user,
-                    workgroup__archived=False
-                )
-            if is_steward:
-                q |= Q(
-                    workgroup__members__role='steward',
-                    workgroup__members__user=user,
-                    workgroup__archived=False
-                )
+        q |= Q(
+            workgroup__members__role__in=['steward', 'manager'],
+            workgroup__members__user=user,
+            workgroup__archived=False,
+            _is_locked=True
+        )
+
         return self.filter(
             q &
             ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)

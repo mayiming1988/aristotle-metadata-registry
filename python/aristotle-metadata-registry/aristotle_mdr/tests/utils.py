@@ -537,8 +537,11 @@ class LoggedInViewPages(object):
         self.ramanager = get_user_model().objects.get(pk=self.ramanager.pk)
 
         self.assertEqual(self.viewer.profile.editable_workgroups.count(), 0)
-        self.assertEqual(self.manager.profile.editable_workgroups.count(), 0)
         self.assertEqual(self.registrar.profile.editable_workgroups.count(), 0)
+
+        self.assertEqual(self.manager.profile.editable_workgroups.count(), 1)
+        self.assertTrue(self.wg1 in self.manager.profile.editable_workgroups.all())
+
         self.assertEqual(self.editor.profile.editable_workgroups.count(), 1)
         self.assertTrue(self.wg1 in self.editor.profile.editable_workgroups.all())
 

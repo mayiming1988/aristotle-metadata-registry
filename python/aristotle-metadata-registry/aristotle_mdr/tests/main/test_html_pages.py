@@ -1071,7 +1071,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
     def test_submitter_cannot_change_workgroup_via_edit_page(self):
         # based on the idea that 'submitter' is not set in ARISTOTLE_SETTINGS.WORKGROUP
         self.wg_other = models.Workgroup.objects.create(name="Test WG to move to", stewardship_organisation=self.steward_org)
-        self.wg_other.submitters.add(self.editor)
+        self.wg_other.giveRoleToUser('submitter', self.editor)
 
         self.login_editor()
         response = self.client.get(reverse('aristotle:edit_item',args=[self.item1.id]))
@@ -1122,7 +1122,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
         self.assertTrue('Select a valid choice.' in form.errors['workgroup'][0])
 
-        self.wg_other.submitters.add(self.editor)
+        self.wg_other.giveRoleToUser('submitter', self.editor)
 
         response = self.client.get(reverse('aristotle:edit_item',args=[self.item1.id]))
 
@@ -1160,7 +1160,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
     def test_manager_of_two_workgroups_can_change_workgroup_via_edit_page(self):
         # based on the idea that 'manager' is set in ARISTOTLE_SETTINGS.WORKGROUP
         self.wg_other = models.Workgroup.objects.create(name="Test WG to move to", stewardship_organisation=self.steward_org)
-        self.wg_other.submitters.add(self.editor)
+        self.wg_other.giveRoleToUser('submitter', self.editor)
 
         self.login_editor()
         response = self.client.get(reverse('aristotle:edit_item',args=[self.item1.id]))
@@ -1174,35 +1174,25 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         # Submitter can't move because they aren't a manager of any workgroups.
         self.assertTrue(form.errors['workgroup'][0] == WorkgroupVerificationMixin.cant_move_from_permission_error)
 
-        self.wg_other.managers.add(self.editor)
+        self.wg1.giveRoleToUser('manager', self.editor)
 
         response = self.client.post(reverse('aristotle:edit_item',args=[self.item1.id]), updated_item)
         self.assertEqual(response.status_code,200)
 
         form = response.context['form']
         # Submitter can't move because they aren't a manager of the workgroup the item is in.
-        self.assertTrue(form.errors['workgroup'][0] == WorkgroupVerificationMixin.cant_move_from_permission_error)
-
+        self.assertTrue(form.errors['workgroup'][0] == WorkgroupVerificationMixin.cant_move_to_permission_error)
 
         self.login_manager()
 
-        response = self.client.post(reverse('aristotle:edit_item',args=[self.item1.id]), updated_item)
-        self.assertEqual(response.status_code,403)
-
-        self.wg1.submitters.add(self.manager) # Need to give manager edit permission to allow them to actually edit things
         response = self.client.post(reverse('aristotle:edit_item',args=[self.item1.id]), updated_item)
         self.assertEqual(response.status_code,200)
         form = response.context['form']
 
         self.assertTrue('Select a valid choice.' in form.errors['workgroup'][0])
 
-        self.wg_other.managers.add(self.manager)
+        self.wg_other.giveRoleToUser('manager', self.manager)
 
-        response = self.client.post(reverse('aristotle:edit_item',args=[self.item1.id]), updated_item)
-        self.assertEqual(response.status_code,200)
-        self.assertTrue('Select a valid choice.' in form.errors['workgroup'][0])
-
-        self.wg_other.submitters.add(self.manager) # Need to give manager edit permission to allow them to actually edit things
         response = self.client.post(reverse('aristotle:edit_item',args=[self.item1.id]), updated_item)
         self.assertEqual(response.status_code,302)
 
