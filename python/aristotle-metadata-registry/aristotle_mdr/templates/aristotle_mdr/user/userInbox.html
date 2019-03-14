@@ -1,5 +1,5 @@
 {% extends "aristotle_mdr/user/userHome.html" %}
-{% load notifications_tags i18n %}
+{% load notifications_tags aristotle_tags util_tags i18n %}
 
 {% block collapse-link%}
     <i class="fa fa-envelope fa-fw"></i> Notifications
@@ -12,6 +12,14 @@
     <h1>{% block title %}Notifications {% if folder %}- {{ folder }}{% endif %}{% endblock %}</h1>
     <a class="btn btn-default" href="{% url 'notifications:mark_all_as_read' %}"><i class="fa fa-bell-slash-o"></i> Mark all as read</a>
 
+    <br>
+
+    {% if page_obj.has_other_pages %}
+        Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }} results.
+    {% else %}
+        Showing {{ page_obj.paginator.count }} results.
+    {% endif %}
+
     <table class="notifications table">
         <thead>
         <tr>
@@ -22,7 +30,7 @@
         </tr>
         </thead>
         <tbody>
-        {% for notice in notifications %}
+        {% for notice in page %}
             <tr>
                 <td>
                     {% if notice.unread %}
@@ -83,17 +91,20 @@
         {% endfor %}
         </tbody>
     </table>
-    {% if notifications.count == 0 and folder == 'unread' %}
+
+    {% if page.count == 0 and folder == 'unread' %}
         <div  class="text-center well well-lg">
             <p><i class="fa fa-inbox fa-3x"></i></p>
             <p><strong>You have no unread notifications.</strong></p>
             <p>Good job!</p>
         </div>
-    {% elif notifications.count == 0 %}
+    {% elif page.count == 0 %}
         <div class="text-center well well-lg">
             <p><i class="fa fa-inbox fa-3x"></i></p>
             <p><strong>You have no notifications.</strong></p>
         </div>
     {% endif %}
+
+    {% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
 
 {% endblock %}

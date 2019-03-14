@@ -27,7 +27,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse('aristotle:userInbox',))
         self.assertEqual(response.status_code, 200)
-        response = self.client.get(reverse('aristotle:userInbox', args=['all']))
+        response = self.client.get(reverse('aristotle:userInbox',))
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse('aristotle:userWorkgroups',))
         self.assertEqual(response.status_code, 200)
