@@ -124,8 +124,6 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
         if not need_distinct:
             return self.filter(q)
         else:
-            if is_postgres():
-                return self.filter(q).distinct('id')
             return self.filter(q).distinct()
 
     def editable(self, user):
@@ -244,8 +242,6 @@ class ReviewRequestQuerySet(models.QuerySet):
             )
 
         if needs_distinct:
-            if is_postgres():
-                return self.filter(q).distinct('id')
             return self.filter(q).distinct()
 
         return self.filter(q)
