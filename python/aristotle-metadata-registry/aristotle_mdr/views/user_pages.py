@@ -6,7 +6,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.core.cache import cache
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db.models import Q
@@ -42,8 +41,6 @@ from aristotle_bg_workers.tasks import send_sandbox_notification_emails
 import json
 import random
 import ast
-import logging
-logger = logging.getLogger(__name__)
 
 
 class FriendlyLoginView(LoginView):
