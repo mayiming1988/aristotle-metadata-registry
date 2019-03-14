@@ -689,7 +689,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         versions = self.create_versions()
         # Mangle the last versions serialized data
         last_version = versions.order_by('-revision__date_created').first()
-        last_version.serialized_data = '{"""}{,,}}}}'
+        last_version.serialized_data = '(V)(;,,;)(V)'  # Need an error, why not Zoidberg?
         last_version.save()
 
         # Create second item for compare

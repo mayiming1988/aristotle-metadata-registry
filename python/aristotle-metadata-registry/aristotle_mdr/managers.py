@@ -1,6 +1,6 @@
 from typing import Iterable
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, OuterRef, Subquery
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from aristotle_mdr.utils import fetch_aristotle_settings
@@ -88,6 +88,7 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
         """
         need_distinct = False  # Wether we need to add a distinct
         from aristotle_mdr.models import StewardOrganisation
+        from aristotle_mdr.models import Workgroup
 
         if user is None or user.is_anonymous:
             return self.public()
@@ -100,8 +101,9 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
             q |= Q(submitter=user)
             # User can see everything in their workgroups.
             # q |= Q(workgroup__in=user.profile.workgroups)
-            q |= Q(workgroup__members__user=user, workgroup__archived=False)
-            # q |= Q(workgroup__user__profile=user)
+            workgroups = Workgroup.objects.filter(members__user=user, archived=False)
+            q |= Q(workgroup__in=Subquery(workgroups.values('pk')))
+
             registrar_count = user.profile.registrar_count
             if registrar_count > 1:
                 # If a user is a registrar in multiple ras it is possible for
