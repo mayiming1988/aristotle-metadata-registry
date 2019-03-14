@@ -36,5 +36,3 @@ def profile(request):
     return {
         'profile': lazy_profile
     }
-
-
