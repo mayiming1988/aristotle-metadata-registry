@@ -207,25 +207,50 @@
     "fields": {
       "definition": "",
       "archived": false,
+      "uuid": "0cbb0aa2-d289-49c0-8f6e-eb9f053177e6",
       "stewardship_organisation": "e809bf1a-221d-11e9-a30f-0242ac130007",
-      "stewards": [
-        4
-      ],
-      "managers": [
-        5
-      ],
       "name": "Possum Workgroup",
       "created": "2016-05-02T22:23:10.720Z",
-      "submitters": [
-        6
-      ],
-      "modified": "2016-05-02T22:23:12.039Z",
-      "viewers": [
-        3
-      ]
+      "modified": "2016-05-02T22:23:12.039Z"
     },
     "model": "aristotle_mdr.workgroup",
     "pk": 3
+  },
+  {
+    "fields": {
+      "role": "viewer",
+      "user": 3,
+      "group": "0cbb0aa2-d289-49c0-8f6e-eb9f053177e6"
+    },
+    "model": "aristotle_mdr.workgroupmembership",
+    "pk": 1
+  },
+  {
+    "fields": {
+      "role": "submitter",
+      "user": 6,
+      "group": "0cbb0aa2-d289-49c0-8f6e-eb9f053177e6"
+    },
+    "model": "aristotle_mdr.workgroupmembership",
+    "pk": 2
+  },
+  {
+    "fields": {
+      "role": "steward",
+      "user": 4,
+      "group": "0cbb0aa2-d289-49c0-8f6e-eb9f053177e6"
+    },
+    "model": "aristotle_mdr.workgroupmembership",
+    "pk": 3
+  },
+  {
+    "fields": {
+      "role": "manager",
+      "user": 5,
+      "group": "0cbb0aa2-d289-49c0-8f6e-eb9f053177e6"
+    },
+    "model": "aristotle_mdr.workgroupmembership",
+    "pk": 4
   },
   {
     "fields": {
