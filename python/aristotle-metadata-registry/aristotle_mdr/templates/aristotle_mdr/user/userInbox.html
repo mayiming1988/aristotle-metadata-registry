@@ -34,12 +34,12 @@
             <tr>
                 <td>
                     {% if notice.unread %}
-                        <a title="Mark as read" href="{% url 'notifications:mark_as_read' notice.slug %}">
+                        <a title="Mark as read" href="{% url 'notifications:mark_as_read' notice.slug %}?next={{ request.path }}">
                             <i class="fa fa-bell"></i>
                             <span class="sr-only">Unread message</span>
                         </a>
                     {% else %}
-                        <a title="Mark as unread" href="{% url 'notifications:mark_as_unread' notice.slug %}">
+                        <a title="Mark as unread" href="{% url 'notifications:mark_as_unread' notice.slug %}?next={{ request.path }}">
                             <i class="fa fa-bell-o"></i>
                             <span class="sr-only">Read message</span>
                         </a>

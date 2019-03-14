@@ -76,6 +76,9 @@ function fill_aristotle_notification_menu(data) {
 
 function update_notification_badge(data) {
     var num_notifications = data.unread_count
+    if (num_notifications > 100) {
+        num_notifications = "100 +"
+    }
     $('.notify-badge').each(function() {
         this.innerHTML = num_notifications
     })
@@ -115,7 +118,7 @@ function mark_all_unread() {
     var notify_mark_all_unread_url = '/account/notifications/api/mark-all-as-read/'
 
     $.getJSON(notify_mark_all_unread_url, function (data) {
-        if (data.status == 'success') {
+        if (data.status === 'success') {
             reload_notifications()
         }
     })

@@ -25,10 +25,8 @@
     {% url 'aristotle_mdr:userInbox' as userInboxURL %}
     <li {% if request.path == userInboxURL %}class="active"{% endif %}>
         <a href="{% url 'aristotle:userInbox' %}">
-            <i class="fa fa-bell fa-fw"></i> Notifications
-            {% with notecount=user.notifications.unread.count %}
-                <span class="badge pull-right" title="{{ notecount }} unread notifications">{{ notecount }}</span>
-            {% endwith %}
+            <i class="fa fa-bell fa-fw"></i> Unread Notifications
+            <span class="badge pull-right notify-badge" title="{{ notifcount }} unread notifications">{{ notifcount }}</span>
         </a>
 
         {% url 'aristotle_mdr:userInboxAll' as userInboxAllURL %}
@@ -36,7 +34,7 @@
             <ul class="nav nav-pills nav-stacked nav-collapse dashSubMenu">
                 <li {% if request.path == userInboxAllURL %}class="active"{% endif %}>
                     <a href="{% url 'aristotle:userInboxAll' %}">
-                        <i class="fa fa-bell-o fa-fw"></i> {% trans 'All messages' %}
+                        <i class="fa fa-bell-o fa-fw"></i> {% trans 'All notifications' %}
                     </a>
                 </li>
             </ul>
