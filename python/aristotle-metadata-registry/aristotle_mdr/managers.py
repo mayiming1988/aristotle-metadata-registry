@@ -228,17 +228,26 @@ class ReviewRequestQuerySet(models.QuerySet):
 
         It is **chainable** with other querysets.
         """
+        needs_distinct = False
+
         if user.is_superuser:
             return self.all()
         if user.is_anonymous():
             return self.none()
         q = Q(requester=user)  # Users can always see reviews they requested
         if user.profile.is_registrar:
+            needs_distinct = True
             # Registars can see reviews for the registration authority
             q |= Q(
                 Q(registration_authority__registrars__profile__user=user) &
                 ~Q(status=REVIEW_STATES.revoked)
             )
+
+        if needs_distinct:
+            if is_postgres():
+                return self.filter(q).distinct('id')
+            return self.filter(q).distinct()
+
         return self.filter(q)
 
 
