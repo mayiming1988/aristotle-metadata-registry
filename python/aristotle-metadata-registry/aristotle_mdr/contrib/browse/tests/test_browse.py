@@ -1,12 +1,9 @@
 from django.urls import reverse
-from django.test import TestCase
+from django.test import TestCase, tag
 
-import aristotle_mdr.models as models
-from aristotle_mdr.utils import setup_aristotle_test_environment
+from aristotle_mdr import models
 
 from aristotle_mdr.tests import utils
-
-setup_aristotle_test_environment()
 
 
 class TestBrowsePages(TestCase):
@@ -41,14 +38,30 @@ class LoggedInViewConceptBrowsePages(utils.LoggedInViewPages):
 
         self.ra.register(self.item4,self.ra.public_state,self.su)
 
-    def test_anon_can_view_browse(self):
-        self.logout()
+    def check_user_can_view_browse(self):
         response = self.client.get(
             reverse("browse_concepts",args=[self.itemType._meta.app_label,self.itemType._meta.model_name])
             )
         self.assertEqual(response.status_code,200)
         self.assertContains(response, self.item4.name)
         self.assertNotContains(response, self.item2.name)
+
+    def test_anon_can_view_browse(self):
+        self.logout()
+        self.check_user_can_view_browse()
+
+    @tag('registrar')
+    def test_registrar_can_view_browse(self):
+        # Make registrar a registrar of multiple ra's so that
+        # ConceptQuerySet visible condition active
+        ra2 = models.RegistrationAuthority.objects.create(
+            name='Second RA',
+            definition='Second',
+            stewardship_organisation=self.steward_org_1
+        )
+        ra2.registrars.add(self.registrar)
+        self.login_registrar()
+        self.check_user_can_view_browse()
 
     def test_zero_item_should_not_show(self):
         self.logout()
