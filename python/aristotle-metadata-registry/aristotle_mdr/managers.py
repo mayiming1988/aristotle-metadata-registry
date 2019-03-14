@@ -1,3 +1,4 @@
+from typing import Iterable
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -6,23 +7,47 @@ from aristotle_mdr.utils import fetch_aristotle_settings
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
 from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
+from aristotle_mdr.utils.utils import is_postgres
+from aristotle_mdr.constants import visibility_permission_choices
+
+from django.contrib.contenttypes.models import ContentType
 
 
-class UUIDManager(models.Manager):
-    def create_uuid(self, instance):
-        if instance.uuid is not None:
-            return
-        instance.uuid = self.create(
-            app_label=instance._meta.app_label,
-            model_name=instance._meta.model_name,
+class PublishedMixin(object):
+
+    @property
+    def is_published_public(self):
+        from aristotle_mdr.models import _concept
+        return Q(
+            publication_details__permission=visibility_permission_choices.public,
+            publication_details__publication_date__lte=timezone.now(),
         )
+
+    @property
+    def is_published_auth(self):
+        return Q(
+            publication_details__permission=visibility_permission_choices.auth,
+            publication_details__publication_date__lte=timezone.now()
+        )
+
+
+class UtilsManager(models.Manager):
+    """Manager with extra util functions"""
+
+    def bulk_delete(self, objects: Iterable[models.Model]):
+        if isinstance(objects, models.QuerySet):
+            objects.delete()
+        else:
+            ids = [o.id for o in objects]
+            qs = self.get_queryset().filter(id__in=ids)
+            qs.delete()
 
 
 class MetadataItemQuerySet(InheritanceQuerySet):
     pass
 
 
-class MetadataItemManager(InheritanceManager):
+class MetadataItemManager(InheritanceManager, UtilsManager):
     def get_queryset(self):
         from django.conf import settings
 
@@ -38,6 +63,7 @@ class WorkgroupQuerySet(MetadataItemQuerySet):
             return self.none()
         if user.is_superuser:
             return self.all()
+        # TODO: Figure out how to make admins of the steward org able to view using this queryset
         return user.profile.workgroups
 
 
@@ -46,7 +72,7 @@ class RegistrationAuthorityQuerySet(models.QuerySet):
         return self.all()
 
 
-class ConceptQuerySet(MetadataItemQuerySet):
+class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
 
     def visible(self, user):
         """
@@ -59,7 +85,10 @@ class ConceptQuerySet(MetadataItemQuerySet):
             ObjectClass.objects.filter(name__contains="Person").visible()
             ObjectClass.objects.visible().filter(name__contains="Person")
         """
-        if user is None or user.is_anonymous():
+        need_distinct = False  # Wether we need to add a distinct
+        from aristotle_mdr.models import StewardOrganisation
+
+        if user is None or user.is_anonymous:
             return self.public()
         if user.is_superuser:
             return self.all()
@@ -68,25 +97,36 @@ class ConceptQuerySet(MetadataItemQuerySet):
         if user.is_active:
             # User can see everything they've made.
             q |= Q(submitter=user)
-            if user.profile.workgroups:
-                # User can see everything in their workgroups.
-                q |= Q(workgroup__in=user.profile.workgroups)
-                # q |= Q(workgroup__user__profile=user)
-            if user.profile.is_registrar:
+            # User can see everything in their workgroups.
+            q |= Q(workgroup__in=user.profile.workgroups)
+            # q |= Q(workgroup__user__profile=user)
+            registrar_count = user.profile.registrar_count
+            if registrar_count > 1:
+                # If a user is a registrar in multiple ras it is possible for
+                # the query to return duplicates
+                need_distinct = True
+            if registrar_count > 0:
                 # Registars can see items they have been asked to review
                 q |= Q(
                     Q(rr_review_requests__registration_authority__registrars__profile__user=user) &
-                    ~Q(review_requests__status=REVIEW_STATES.revoked)
+                    ~Q(rr_review_requests__status=REVIEW_STATES.revoked)
                 )
                 # Registars can see items that have been registered in their registration authority
                 q |= Q(
                     Q(statuses__registrationAuthority__registrars__profile__user=user)
                 )
-        extra_q = fetch_aristotle_settings().get('EXTRA_CONCEPT_QUERYSETS', {}).get('visible', None)
-        if extra_q:
-            for func in extra_q:
-                q |= import_string(func)(user)
-        return self.filter(q)
+
+        q |= self.is_published_public
+        q |= self.is_published_auth
+
+        q &= ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
+
+        if not need_distinct:
+            return self.filter(q)
+        else:
+            if is_postgres():
+                return self.filter(q).distinct('id')
+            return self.filter(q).distinct()
 
     def editable(self, user):
         """
@@ -99,6 +139,7 @@ class ConceptQuerySet(MetadataItemQuerySet):
             ObjectClass.objects.filter(name__contains="Person").editable()
             ObjectClass.objects.editable().filter(name__contains="Person")
         """
+        from aristotle_mdr.models import StewardOrganisation
         if user.is_superuser:
             return self.all()
         if user.is_anonymous():
@@ -116,7 +157,10 @@ class ConceptQuerySet(MetadataItemQuerySet):
                 q |= Q(_is_locked=False, workgroup__submitters__profile__user=user)
             if is_steward:
                 q |= Q(workgroup__stewards__profile__user=user)
-        return self.filter(q)
+        return self.filter(
+            q &
+            ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
+        )
 
     def public(self):
         """
@@ -130,7 +174,17 @@ class ConceptQuerySet(MetadataItemQuerySet):
             ObjectClass.objects.filter(name__contains="Person").public()
             ObjectClass.objects.public().filter(name__contains="Person")
         """
-        return self.filter(_is_public=True)
+        from aristotle_mdr.models import StewardOrganisation
+        return self.filter(
+            Q(self.is_published_public | Q(_is_public=True)) &
+            ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
+        )
+
+    def with_related(self):
+        related = self.model.related_objects
+        if related:
+            return self.select_related(*related)
+        return self
 
     def __contains__(self, item):
         from aristotle_mdr.models import _concept
@@ -239,3 +293,62 @@ class StatusQuerySet(models.QuerySet):
             states = states.filter(pk__in=current_ids)
 
         return states.select_related('registrationAuthority')
+
+
+class SupersedesManager(models.Manager):
+
+    def get_queryset(self):
+        return super().get_queryset().filter(proposed=False)
+
+
+class ProposedSupersedesManager(models.Manager):
+
+    def get_queryset(self):
+        return super().get_queryset().filter(proposed=True)
+
+
+class ManagedItemQuerySet(PublishedMixin, models.QuerySet):
+    def visible(self, user):
+        """
+        Returns a queryset that returns all managed items that the given user has
+        permission to view.
+
+        It is **chainable** with other querysets.
+        """
+        if user.is_superuser:
+            return self.all()
+
+        q = self.is_published_public
+        if user.is_anonymous():
+            return self.filter(q)
+
+        q |= self.is_published_auth
+        # q |= Q(
+        #     workgroup__in=user.profile.workgroups,
+        #     publication_details__permission=visibility_permission_choices.workgroup
+        # )
+
+        return self.filter(q)
+
+    def editable(self, user):
+        """
+        Returns a queryset that returns all managed items that the given user has
+        permission to edit.
+
+        It is **chainable** with other querysets.
+        """
+        if user.is_superuser:
+            return self.all()
+        if user.is_anonymous():
+            return self.none()
+
+        from aristotle_mdr.models import StewardOrganisation
+
+        q = Q(
+            stewardship_organisation__members__user=user,
+            stewardship_organisation__members__role__in=[
+                StewardOrganisation.roles.admin, StewardOrganisation.roles.steward
+            ]
+        )
+
+        return self.filter(q)

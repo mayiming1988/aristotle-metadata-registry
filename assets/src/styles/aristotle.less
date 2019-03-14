@@ -137,12 +137,12 @@ dl .definition {
 }
 .no-notify {
     &:before {
-        content: '\f003';
+        content: '\f0a2';
     }
 }
 .notify {
     &:before {
-        content: '\f0e0';
+        content: '\f0f3';
     }
 }
 
@@ -524,16 +524,25 @@ background: repeating-linear-gradient(
     padding: 0px;
 }
 
-.margin-above {
-  margin-top: 10px;
-}
-
 [v-cloak] {
   display: none
 }
 
+.margin-above {
+  margin-top: 10px;
+}
+
 .margin-left {
   margin-left: 10px;
+}
+
+.margin-right {
+  margin-right: 10px;
+}
+
+.row-margin {
+    margin-right: -15px;
+    margin-left: -15px;
 }
 
 .aristotle-select2 {
@@ -544,8 +553,40 @@ background: repeating-linear-gradient(
     resize: vertical
 }
 
+.extended-search-bar {
+
+    @media (min-width: 992px) {
+        min-width: 310px;
+    }
+
+    @media (min-width: 1200px) {
+        min-width: 500px;
+    }
+}
+
 .small-profile-picture {
     /* Required for proper ie11 scaling */
     max-width: 100%;
     max-height: 100%;
+}
+
+div.style-tables table {
+    border: 1px solid black;
+    padding: 5px;
+    td {
+        border-right: 1px solid black;
+        border-top: 1px solid black;
+        padding: 3px 5px;
+        font-size: small;
+    }
+    th {
+        border-right: 1px solid black;
+        padding: 3px 5px;
+        font-size: small;
+    }
+}
+
+
+.select2-selection.form-control {
+    height: auto;
 }

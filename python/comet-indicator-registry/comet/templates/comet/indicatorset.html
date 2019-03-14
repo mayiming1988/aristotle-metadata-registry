@@ -2,12 +2,32 @@
 {% load aristotle_tags %}
 
 {% block objSpecific %}
-    {% if item.indicators %}
+    {% if item.indicatorinclusion_set.exists %}
     <h3>Indicators:</h3>
-        <ul>
-        {% for ind in item.indicators.all %}
-            <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=ind showType=False %}
-        {% endfor %}
-        </ul>
+    <table class="table">
+        <thead>
+            <th>Name</th>
+            <th>ID</th>
+            <th>Indicator</th>
+        </thead>
+        <tbody>
+            {% for inc in item.indicatorinclusion_set.all %}
+                <tr>
+                    <td>{{inc.name}}</td>
+                    <td>{{inc.indicator_id}}</td>
+                    <td>{% include "aristotle_mdr/helpers/itemLink.html" with item=inc.indicator showType=False skip_can_view=True %}</td>
+                    <td>
+                        <ul>
+                            {% for oa in inc.indicator.outcome_areas.all %}
+                                <li>
+                                    {% include "aristotle_mdr/helpers/itemLink.html" with item=oa showType=False skip_can_view=True %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
     {% endif %}
 {% endblock %}

@@ -1,27 +1,30 @@
+from typing import List
 import datetime
 from django.apps import apps
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.core.cache import cache
-from django.core.exceptions import PermissionDenied
+from django.conf import settings
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.db.models import Q
+from django.http import HttpResponseRedirect, HttpResponseNotFound, Http404
+from django.http.response import HttpResponse
+from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
-from django.db.models import Q, Count
-from django.http import HttpResponseRedirect, HttpResponseNotFound
-from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
+from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.cache import never_cache
 from django.views.generic.edit import FormMixin
-from django.views.generic import (DetailView,
-                                  ListView,
-                                  UpdateView,
-                                  FormView,
-                                  TemplateView,
-                                  View)
-
-from django.core.exceptions import ValidationError
-from django.contrib import messages
-from django.utils.translation import ugettext_lazy as _
+from django.views.generic import (
+    DetailView,
+    ListView,
+    UpdateView,
+    FormView,
+    TemplateView,
+    View
+)
 
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
@@ -33,9 +36,11 @@ from aristotle_mdr.views.utils import (paginated_list,
 from aristotle_mdr.views.views import ConceptRenderView
 from aristotle_mdr.utils import fetch_metadata_apps
 from aristotle_mdr.utils import get_aristotle_url
+from aristotle_bg_workers.tasks import send_sandbox_notification_emails
 
 import json
 import random
+import ast
 
 
 class FriendlyLoginView(LoginView):
@@ -52,6 +57,11 @@ class FriendlyLoginView(LoginView):
             context.update({'welcome': True})
 
         return context
+
+    def get_redirect_url(self):  # WE HAVE TO OVERRIDE THIS METHOD, TO AVOID A ValueError "Redirection loop for auth..."
+        if self.request.GET.get(self.redirect_field_name, '') == reverse("friendly_login"):
+            return settings.LOGIN_REDIRECT_URL
+        return super().get_redirect_url()
 
 
 class FriendlyLogoutView(LogoutView):
@@ -130,7 +140,6 @@ def home(request):
                     revdata['versions'].append({'id': ver.object_id, 'text': str(ver), 'url': url})
                 else:
                     # Fallback, results in db query
-                    # print(ver)
                     obj = ver.object
                     if hasattr(obj, 'get_absolute_url'):
                         revdata['versions'].append({'id': ver.object_id, 'text': str(ver), 'url': obj.get_absolute_url})
@@ -158,10 +167,55 @@ def home(request):
     return page
 
 
-@login_required
-def roles(request):
-    page = render(request, "aristotle_mdr/user/userRoles.html", {"item": request.user})
-    return page
+class Roles(LoginRequiredMixin, TemplateView):
+
+    template_name = 'aristotle_mdr/user/userRoles.html'
+
+    def sort(self, unsorted: List) -> List:
+        """Sorts a list by name with secondaty sort on role"""
+        # Sort by role (secondary sort)
+        sorted_list = sorted(unsorted, key=lambda k: k['role'])
+        # Then sort by name (primary sort)
+        sorted_list = sorted(sorted_list, key=lambda k: k['name'])
+        return sorted_list
+
+    def get_context_data(self):
+        user = self.request.user
+        workgroups = []
+        registration_authorities = []
+
+        for wg in user.workgroup_manager_in.all():
+            wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Manager'}
+            workgroups.append(wg_object)
+
+        for wg in user.steward_in.all():
+            wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Steward'}
+            workgroups.append(wg_object)
+
+        for wg in user.submitter_in.all():
+            wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Submitter'}
+            workgroups.append(wg_object)
+
+        for wg in user.viewer_in.all():
+            wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Viewer'}
+            workgroups.append(wg_object)
+
+        for ra in user.organization_manager_in.all():
+            ra_object = {'name': ra.name, 'pk': ra.pk, 'role': 'Manager'}
+            registration_authorities.append(ra_object)
+
+        for ra in user.registrar_in.all():
+            ra_object = {'name': ra.name, 'pk': ra.pk, 'role': 'Registrar'}
+            registration_authorities.append(ra_object)
+
+        # Ordering
+        sorted_workgroups_list = self.sort(workgroups)
+        sorted_registration_authorities_list = self.sort(registration_authorities)
+        return {
+            "user": user,
+            "workgroups": sorted_workgroups_list,
+            "registration_authorities": sorted_registration_authorities_list
+        }
 
 
 @login_required
@@ -177,8 +231,8 @@ def recent(request):
 def inbox(request, folder=None):
     if folder is None:
         # By default show only unread
-        folder='unread'
-    folder=folder.lower()
+        folder = 'unread'
+    folder = folder.lower()
     if folder == 'unread':
         notices = request.user.notifications.unread().all()
     elif folder == "all":
@@ -186,7 +240,7 @@ def inbox(request, folder=None):
     page = render(
         request,
         "aristotle_mdr/user/userInbox.html",
-        {"item": request.user, "notifications": notices, 'folder': folder}
+        {"item": request.user, "notifications": notices[:50], 'folder': folder}
     )
     return page
 
@@ -376,6 +430,27 @@ class EditView(LoginRequiredMixin, UpdateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
+class NotificationPermissions(LoginRequiredMixin, FormView):
+    form_class = MDRForms.NotificationPermissionsForm
+    template_name = 'aristotle_mdr/user/notificationPermissions.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.profile = request.user.profile
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+
+        initial = {
+            'notifications_json': json.dumps(self.profile.notificationPermissions)
+        }
+        return initial
+
+    def form_valid(self, form):
+        self.profile.notificationPermissions = form.cleaned_data['notifications_json']
+        self.profile.save()
+        return HttpResponseRedirect(reverse('aristotle:userProfile'))
+
+
 class RegistrarTools(LoginRequiredMixin, View):
 
     template_name = "aristotle_mdr/user/registration_authority/list_all.html"
@@ -421,6 +496,7 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
     paginate_by = 25
     template_name = "aristotle_mdr/user/sandbox.html"
     form_class = MDRForms.ShareLinkForm
+    state_of_emails_before_updating = ""
 
     def dispatch(self, *args, **kwargs):
         self.share = self.get_share()
@@ -441,6 +517,7 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
         if share is not None:
             emails = json.loads(share.emails)
             initial['emails'] = emails
+            self.state_of_emails_before_updating = share.emails
 
         return initial
 
@@ -460,8 +537,10 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
 
         if 'display_share' in self.request.GET:
             context['display_share'] = True
+            context['number_of_accounts_user_is_sharing_with'] = len(self.get_initial().get('emails'))
         else:
             context['display_share'] = False
+
         return context
 
     def post(self, *args, **kwargs):
@@ -470,7 +549,7 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
             return self.form_valid(form)
         else:
             if not self.request.is_ajax():
-                # If request is not ajax and there is an invlaid form we need
+                # If request is not ajax and there is an invalid form we need
                 # to load the listview content (usually done in get())
                 # This should only run if a user has disabled js
                 self.object_list = self.get_queryset()
@@ -491,6 +570,16 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
             self.share.save()
             self.ajax_success_message = 'Share permissions updated'
 
+            if 'notify_new_users_checkbox' in self.request.POST and self.request.POST['notify_new_users_checkbox']:
+                recently_added_emails = self.get_recently_added_emails(ast.literal_eval(self.state_of_emails_before_updating),
+                                                                       ast.literal_eval(self.share.emails))
+                if len(recently_added_emails) > 0:
+                    send_sandbox_notification_emails.delay(recently_added_emails,
+                                                           self.request.user.email,
+                                                           self.request.get_host() + reverse('aristotle_mdr:sharedSandbox',
+                                                                                             args=[self.share.uuid])
+                                                           )
+
         return super().form_valid(form)
 
     def get_ordering(self):
@@ -501,6 +590,11 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
     def get_success_url(self):
         return reverse('aristotle_mdr:userSandbox') + '?display_share=1'
 
+    def get_recently_added_emails(self, old_list, new_list):
+        old_list_set = set(old_list)
+        new_list_set = set(new_list)
+        return list(new_list_set - old_list_set)
+
 
 class GetShareMixin:
     """Code shared by all share link views"""
@@ -509,7 +603,7 @@ class GetShareMixin:
         self.share = self.get_share()
         emails = json.loads(self.share.emails)
         if request.user.email not in emails:
-            return HttpResponseNotFound()
+            raise Http404
         return super().dispatch(request, *args, **kwargs)
 
     def get_share(self):
@@ -556,6 +650,7 @@ class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['hide_item_actions'] = True
+        context['hide_item_tabs'] = True
         context['custom_visibility_message'] = {
             'alert_level': 'warning',
             'message': 'You are viewing a shared item in read only mode'
@@ -605,6 +700,10 @@ class WorkgroupArchiveList(GenericListWorkgroup):
 
 
 def profile_picture(request, uid):
+    from django.contrib.auth import get_user_model
+    user = get_object_or_404(get_user_model(), pk=uid)
+    if user.profile.profilePicture:
+        return HttpResponse(user.profile.profilePicture.read(), content_type="image/png")
 
     template_name = 'aristotle_mdr/user/user-head.svg'
 

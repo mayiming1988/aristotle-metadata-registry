@@ -4,8 +4,8 @@ from django.contrib.contenttypes.models import ContentType
 from aristotle_mdr.tests.utils import AristotleTestUtils
 
 from aristotle_mdr import models as mdr_models
+from aristotle_mdr.constants import visibility_permission_choices as permission_choices
 from aristotle_mdr.contrib.slots.models import Slot
-from aristotle_mdr.contrib.slots.choices import permission_choices
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 
 
@@ -161,6 +161,6 @@ class CustomFieldManagerTestCase(AristotleTestUtils, TestCase):
         self.assertCountEqual(mf, [self.authfield, self.allfield, self.wgfield, rf])
 
     def test_get_fields_for_model_different_model(self):
-        rf = self.make_restricted_field(mdr_models.ObjectClass)
+        self.make_restricted_field(mdr_models.ObjectClass)
         mf = CustomField.objects.get_for_model(mdr_models.DataElement)
         self.assertCountEqual(mf, [self.authfield, self.allfield, self.wgfield])

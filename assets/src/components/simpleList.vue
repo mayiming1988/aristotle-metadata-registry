@@ -1,6 +1,6 @@
 <template>
   <ul :class="ulClass">
-    <li v-for="item in data" :class="liClass">
+    <li v-for="item in data" :key="item.id" :class="liClass">
         <slot :item="item">
             {{ item }}
         </slot>

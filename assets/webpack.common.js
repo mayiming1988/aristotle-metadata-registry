@@ -1,6 +1,6 @@
+/* eslint-env node */
 const path = require('path')
 const webpack = require('webpack')
-const glob = require('glob')
 const entry = require('webpack-glob-entry')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
@@ -21,6 +21,7 @@ module.exports = {
         hashFunction: 'sha256'
     },
     module: {
+        strictExportPresence: true,  // Missing exports fail the build
         rules: [
             {
                 // Expose jquery outside bundle
@@ -40,7 +41,7 @@ module.exports = {
                 use: 'vue-loader'
             },
             {
-                // Load .js files with babel
+                // Load .js and .mjs files with babel
                 test: /\.m?js$/,
                 exclude: /node_modules\/(?!vue-simple-suggest)/,
                 use: [{
@@ -50,18 +51,14 @@ module.exports = {
                             [
                                 '@babel/preset-env',
                                 {
-                                    useBuiltIns: 'entry'
+                                    useBuiltIns: 'entry',
+                                    modules: false
                                 }
                             ]
                         ],
                         plugins: ["@babel/plugin-syntax-dynamic-import"]
                     }
                 }]
-                //loader: 'eslint-loader',
-                //options: {
-                //  failOnError: false,
-                //  failOnWarning: false
-                //}
             },
             {
                 test: /\.woff2?$|\.ttf$|\.eot$|\.svg$|\.png$|\.jpg$/,
@@ -96,8 +93,8 @@ module.exports = {
         new CleanWebpackPlugin(['dist']),
         // Load .vue files
         new VueLoaderPlugin(),
+        // Provide $ and jQuery to scripts, no need to import
         new webpack.ProvidePlugin({
-            // Provide $ and jQuery to scripts, no need to import
             $: "jquery",
             jQuery: "jquery"
         }),
@@ -107,17 +104,22 @@ module.exports = {
         new MiniCssExtractPlugin({
             filename: '[name]-[contenthash].bundle.css'
         }),
-        // Required for django-webpack-loader
+        /*
+         * Creates json file with bundle information
+         * Required for django-webpack-loader
+         */
         new BundleTracker({
             path: __dirname, 
             filename: './dist/webpack-stats.json'
         }),
         // Create report.html
         new BundleAnalyzerPlugin({
-            analyzerMode: 'static'
+            analyzerMode: 'static',
+            openAnalyzer: false
         })
     ],
     optimization: {
+        // How bundle are split into files
         splitChunks: {
             cacheGroups: {
                 vendors: {
@@ -131,6 +133,10 @@ module.exports = {
                 },
             }
         }
+    },
+    // Uses external variables instead of including packages
+    externals: {
+        esprima: 'esprima' // This is being used to exclude esprima from bundle since we dont need it
     },
     resolve: {
         alias: {

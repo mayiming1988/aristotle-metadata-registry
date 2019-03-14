@@ -4,12 +4,14 @@ import os
 BASE_DIR = os.getenv('aristotlemdr__BASE_DIR', os.path.dirname(os.path.dirname(__file__)))
 SECRET_KEY = os.getenv('aristotlemdr__SECRET_KEY', "OVERRIDE_THIS_IN_PRODUCTION")
 STATIC_ROOT = os.getenv('aristotlemdr__STATIC_ROOT', os.path.join(BASE_DIR, "static"))
-MEDIA_ROOT = os.getenv('aristotlemdr__MEDIA_ROOT', os.path.join(BASE_DIR, "media"))
+# MEDIA_ROOT = os.getenv('aristotlemdr__MEDIA_ROOT', os.path.join(BASE_DIR, "media"))
 
 # Non overridable base dirs
 MDR_BASE_DIR = os.path.dirname(__file__)
 # This is only used in development
 REPO_BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(MDR_BASE_DIR)))
+
+MEDIA_ROOT = os.path.join(REPO_BASE_DIR, 'media')
 
 TEMPLATES_DIRS = [os.path.join(BASE_DIR, 'templates')]
 FIXTURES_DIRS = [os.path.join(MDR_BASE_DIR, 'fixtures')]
@@ -99,6 +101,11 @@ INSTALLED_APPS = (
     'aristotle_mdr.contrib.issues',
     'aristotle_mdr.contrib.publishing',
     'aristotle_mdr.contrib.custom_fields',
+    'aristotle_mdr.contrib.aristotle_pdf',
+    'aristotle_mdr.contrib.aristotle_backwards',
+    'aristotle_mdr.contrib.validators',
+    'aristotle_mdr.contrib.stewards',
+    'aristotle_mdr.contrib.groups',
 
     'dal',
     'dal_select2',
@@ -193,7 +200,7 @@ AUTHENTICATION_BACKENDS = ('aristotle_mdr.backends.AristotleBackend',)
 ARISTOTLE_SETTINGS = {
     'SEPARATORS': {
         'DataElement': ', ',
-        'DataElementConcept': u'–'
+        'DataElementConcept': '—'  # An em dash (unicode 2014)
     },
     'SITE_NAME': 'Default Site Name',  # 'The main title for the site.'
     'SITE_BRAND': 'aristotle_mdr/images/aristotle_small.png',  # URL for the Site-wide logo
@@ -227,9 +234,7 @@ ARISTOTLE_SETTINGS = {
         }
     ],
     "DOWNLOADERS": [
-        # (fileType, menu, font-awesome-icon, module)
-        # ('csv-vd', 'CSV list of values', 'fa-file-excel-o', 'aristotle_mdr', 'CSV downloads for value domain codelists'),
-        'aristotle_mdr.downloader.CSVDownloader'
+        'aristotle_mdr.contrib.aristotle_pdf.downloader.PDFDownloader'
     ],
 
     # These settings aren't active yet.
@@ -303,26 +308,33 @@ MANIFEST_DIR = os.path.join(MDR_BASE_DIR, 'manifests')
 CACHE_ITEM_PAGE = False
 
 # Sanitization
-BLEACH_ALLOWED_TAGS = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'em',
-                       'i', 'li', 'ol', 'strong', 'ul', 'table', 'tbody', 'thead',
-                       'tr', 'th', 'td', 'img', 'p', 'h1', 'h2', 'h3', 'h4',
-                       'h5', 'h6', 'sub', 'sup', 'br', 'u']
+BLEACH_ALLOWED_TAGS = [
+    'a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'del', 'em',
+    'i', 'li', 'ol', 'strong', 'ul', 'table', 'tbody', 'thead',
+    'tr', 'th', 'td', 'img', 'p', 'h1', 'h2', 'h3', 'h4',
+    'h5', 'h6', 'ins', 'sub', 'sup', 'br', 'u', 'col', 'colgroup'
+]
 
 BLEACH_ALLOWED_ATTRIBUTES = {
     'a': ['href', 'title', 'class', 'data-aristotle-concept-id'],
     'abbr': ['title'],
     'acronym': ['title'],
-    'img': ['src', 'height', 'width', 'alt']
+    'img': ['src', 'height', 'width', 'alt'],
+    'td': ['colspan', 'rowspan'],
+    'tr': ['colspan', 'rowspan'],
+    'th': ['colspan', 'rowspan'],
+    'colgroup': ['span'],
+    'col': ['span']
 }
 
 # Validators
-ARISTOTLE_VALIDATION_RUNNER = 'aristotle_mdr.contrib.validators.runner'
+ARISTOTLE_VALIDATION_RUNNER = 'aristotle_mdr.contrib.validators.runners.DatabaseValidationRunner'
 ARISTOTLE_VALIDATION_FILERUNNER_PATH = os.getenv('aristotlemdr__FILE_VALIDATION_RUNNER_PATH', None)
 
 ARISTOTLE_VALIDATORS = {
-    'RegexValidator': 'aristotle_mdr.contrib.validators.RegexValidator',
-    'StatusValidator': 'aristotle_mdr.contrib.validators.StatusValidator',
-    'RelationValidator': 'aristotle_mdr.contrib.validators.RelationValidator',
+    'RegexValidator': 'aristotle_mdr.contrib.validators.validators.RegexValidator',
+    'StatusValidator': 'aristotle_mdr.contrib.validators.validators.StatusValidator',
+    'RelationValidator': 'aristotle_mdr.contrib.validators.validators.RelationValidator',
 }
 
 # Serialization
@@ -338,3 +350,24 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     )
 }
+
+# Caching
+# Key used to store value in fetch_aristotle_downloaders
+DOWNLOADERS_CACHE_KEY = 'aristotle_downloaders'
+# Whether to serve an existing file if possible
+DOWNLOAD_CACHING = False
+
+# Optional downloads storage (otherwise default file storage is used)
+DOWNLOADS_STORAGE = None
+
+# Used to override aristotle settings. Should not be used in production
+OVERRIDE_ARISTOTLE_SETTINGS = None
+
+# Size after which to only send links to files
+MAX_EMAIL_FILE_SIZE = 1000 * 1000 * 10  # 10MB in bytes
+
+# Graphql
+GRAPHQL_ENABLED = False
+
+# Allows migrations to print text on success (disabled during testing)
+MIGRATION_PRINT = True

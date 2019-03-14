@@ -10,7 +10,6 @@ from aristotle_mdr.utils import fetch_metadata_apps
 # Replace below with this when doing a dataload (shuts off Haystack)
 #    pass
 
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -25,6 +24,7 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
         from aristotle_mdr.models import _concept, concept_visibility_updated
         from aristotle_mdr.contrib.reviews.models import ReviewRequest
         from aristotle_mdr.contrib.help.models import HelpPage, ConceptHelp
+        from aristotle_mdr.contrib.publishing.models import PublicationRecord
         post_save.connect(self.handle_concept_save)
         # post_revision_commit.connect(self.handle_concept_revision)
         pre_delete.connect(self.handle_concept_delete, sender=_concept)
@@ -33,6 +33,8 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
         concept_visibility_updated.connect(self.handle_concept_recache)
         post_save.connect(self.async_handle_save, sender=HelpPage)
         post_save.connect(self.async_handle_save, sender=ConceptHelp)
+
+        post_save.connect(self.item_published, sender=PublicationRecord)
         super().setup()
 
     def teardown(self):  # pragma: no cover
@@ -72,12 +74,25 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
             obj = concept.item
             self.async_handle_save(obj.__class__, obj, **kwargs)
 
+    def item_published(self, sender, instance, **kwargs):
+        obj = instance.content_object
+        from aristotle_mdr.models import _concept
+        if not issubclass(obj.__class__, _concept):
+            return
+        obj = obj.item
+        self.async_handle_save(obj.__class__, obj, **kwargs)
+
     def async_handle_save(self, sender, instance, **kwargs):
         if not settings.ARISTOTLE_ASYNC_SIGNALS:
             super().handle_save(sender, instance, **kwargs)
         else:
             from aristotle_mdr.contrib.async_signals.utils import clean_signal
             message = clean_signal(kwargs)
+            # TODO: Find out why the model k-argument is showing up now.
+            message.pop('model', None)
+            # TODO: I JUST FOUND ANOTHER ERROR: THE TYPE OF THE PK ATTRIBUTE IS A SET TYPE AND IT IS NOT SERIALIZABLE.
+            message.pop('pk_set', None)
+
             from aristotle_bg_workers.celery import app
             app.send_task(
                 'update_search_index',

@@ -1,4 +1,3 @@
-import os, sys
 from aristotle_mdr.tests.settings.settings import *
 
 INSTALLED_APPS = (
@@ -6,6 +5,6 @@ INSTALLED_APPS = (
     'aristotle_dse',
 ) + INSTALLED_APPS
 
-ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] = ['aristotle_dse', 'aristotle_mdr_links']
+ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] = ['aristotle_dse']
 
 ROOT_URLCONF = 'aristotle_dse.tests.urls'

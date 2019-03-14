@@ -1,5 +1,4 @@
 from aristotle_mdr.tests.settings.settings import *
-
 import os
 
 ROOT_URLCONF = 'aristotle_mdr_api.tests.urls'

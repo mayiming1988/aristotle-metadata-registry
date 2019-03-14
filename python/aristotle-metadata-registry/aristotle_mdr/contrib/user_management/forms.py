@@ -5,7 +5,6 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 
 from aristotle_mdr.forms.utils import FormRequestMixin
-from aristotle_mdr.utils import fetch_aristotle_settings
 from aristotle_mdr.fields import LowerEmailFormField
 
 
@@ -74,7 +73,7 @@ class UserRegistrationForm(forms.ModelForm):
 
     class Meta:
         model = get_user_model()
-        fields = ['short_name', 'full_name']
+        fields = ['short_name', 'full_name', 'email']
 
 
 class UpdateAnotherUserSiteWidePermsForm(forms.Form):

@@ -2,18 +2,19 @@ from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 
 class BaseTokenPermissions(BasePermission):
+    """
+    Base Token permission
+    """
 
     permission_key = 'default'
     non_token_read = False
     non_token_write = False
 
     def has_permission(self, request, view):
-
         token = request.auth
 
         # request.auth will be None when using any other default authentication class
         if token is not None:
-
             if hasattr(view, 'permission_key'):
                 permission_key = getattr(view, 'permission_key')
             else:
@@ -32,7 +33,6 @@ class BaseTokenPermissions(BasePermission):
 
                 if 'write' in perm:
                     haswrite = perm['write']
-
         else:
             # Default for non token auths
             hasread = self.non_token_read
@@ -57,10 +57,19 @@ class IsAuthenticated(BasePermission):
 
 
 class TokenOrReadOnlyPerm(BaseTokenPermissions):
+    """
+    Permission that allows token's
+    But only read non token requests are allowed
+    """
     non_token_read = True
     non_token_write = False
 
 
 class TokenOrAllowedPerm(BaseTokenPermissions):
+    """
+    Permission that allows token's
+    and does not restrict non token requests
+    (Should be used in combination with other permissions)
+    """
     non_token_read = True
     non_token_write = True

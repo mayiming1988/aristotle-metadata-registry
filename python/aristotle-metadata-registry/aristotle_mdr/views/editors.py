@@ -1,9 +1,9 @@
 from django.db import transaction
-from django.forms.models import inlineformset_factory
 from django.http import HttpResponseRedirect
 from django.views.generic import (
-    CreateView, DetailView, UpdateView
+    CreateView, DetailView, UpdateView, FormView
 )
+from django.views.generic.detail import SingleObjectMixin
 
 import reversion
 
@@ -24,9 +24,6 @@ import logging
 
 from aristotle_mdr.contrib.generic.views import ExtraFormsetMixin
 
-
-import re
-
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
@@ -38,8 +35,14 @@ class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
     model = MDR._concept
     pk_url_kwarg = 'iid'
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.slots_active = is_active_module('aristotle_mdr.contrib.slots')
+        self.identifiers_active = is_active_module('aristotle_mdr.contrib.identifiers')
+
     def dispatch(self, request, *args, **kwargs):
-        self.item = super().get_object().item
+        self.object = self.get_object()
+        self.item = self.object.item
         self.model = self.item.__class__
         return super().dispatch(request, *args, **kwargs)
 
@@ -50,27 +53,10 @@ class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
                         'item': self.item})
         return context
 
-
-class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
-    template_name = "aristotle_mdr/actions/advanced_editor.html"
-    permission_required = "aristotle_mdr.user_can_edit"
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.slots_active = is_active_module('aristotle_mdr.contrib.slots')
-        self.identifiers_active = is_active_module('aristotle_mdr.contrib.identifiers')
-
-    def get_form_class(self):
-        return MDRForms.wizards.subclassed_edit_modelform(
-            self.model,
-            extra_mixins=[CustomValueFormMixin]
-        )
-
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs.update({
             'user': self.request.user,
-            'instance': self.item,
             'custom_fields': CustomField.objects.get_for_model(type(self.item))
         })
         return kwargs
@@ -83,10 +69,36 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         initial = super().get_initial()
         cvs = self.get_custom_values()
         for cv in cvs:
-            fname = 'custom_{}'.format(cv.field.name)
+            fname = cv.field.form_field_name
             initial[fname] = cv.content
 
         return initial
+
+    def form_invalid(self, form, formsets=None):
+        """
+        If the form is invalid, re-render the context data with the
+        data-filled form and errors.
+        """
+
+        return self.render_to_response(self.get_context_data(form=form, formsets=formsets))
+
+
+class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
+    template_name = "aristotle_mdr/actions/advanced_editor.html"
+    permission_required = "aristotle_mdr.user_can_edit"
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({
+            'instance': self.item,
+        })
+        return kwargs
+
+    def get_form_class(self):
+        return MDRForms.wizards.subclassed_edit_modelform(
+            self.model,
+            extra_mixins=[CustomValueFormMixin]
+        )
 
     def get_extra_formsets(self, item=None, postdata=None):
         extra_formsets = super().get_extra_formsets(item, postdata)
@@ -160,14 +172,6 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
 
             return HttpResponseRedirect(url_slugify_concept(self.item))
 
-    def form_invalid(self, form, formsets=None):
-        """
-        If the form is invalid, re-render the context data with the
-        data-filled form and errors.
-        """
-
-        return self.render_to_response(self.get_context_data(form=form, formsets=formsets))
-
     def get_context_data(self, *args, **kwargs):
 
         context = super().get_context_data(*args, **kwargs)
@@ -186,31 +190,113 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         return context
 
 
-class CloneItemView(ConceptEditFormView, DetailView, CreateView):
+class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, FormView):
     template_name = "aristotle_mdr/create/clone_item.html"
     permission_required = "aristotle_mdr.user_can_view"
 
     def get_form_class(self):
-        return MDRForms.wizards.subclassed_clone_modelform(self.model)
+        return MDRForms.wizards.subclassed_clone_modelform(
+            self.model,
+            extra_mixins=[CustomValueFormMixin]
+        )
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
+        initial = concept_to_clone_dict(self.item)
+
+        from aristotle_mdr.contrib.custom_fields.models import CustomValue
+        for custom_val in CustomValue.objects.get_item_allowed(self.item, self.request.user):
+            initial[custom_val.field.form_field_name] = custom_val.content
+
         kwargs.update({
-            'user': self.request.user,
-            'initial': concept_to_clone_dict(self.item)
+            'initial': initial
         })
         return kwargs
 
     def post(self, request, *args, **kwargs):
         form = self.get_form()
+        extra_formsets = self.get_extra_formsets(self.model, request.POST)
+
+        # self.object = self.item
 
         if form.is_valid():
-            with transaction.atomic(), reversion.revisions.create_revision():
-                new_clone = form.save(commit=False)
-                new_clone.submitter = self.request.user
-                new_clone.save()
-                reversion.revisions.set_user(self.request.user)
-                reversion.revisions.set_comment("Cloned from %s (id: %s)" % (self.item.name, str(self.item.pk)))
-                return HttpResponseRedirect(url_slugify_concept(new_clone))
+            item = form.save(commit=False)
+            item.submitter = request.user
+            change_comments = form.data.get('change_comments', None)
+            form_invalid = False
         else:
-            return self.form_invalid(form)
+            form_invalid = True
+
+        formsets_invalid = self.validate_formsets(extra_formsets)
+        invalid = form_invalid or formsets_invalid
+
+        if invalid:
+            return self.form_invalid(form, formsets=extra_formsets)
+        else:
+
+            with reversion.revisions.create_revision():
+
+                # save the change comments
+                if not change_comments:
+                    change_comments = construct_change_message_extra_formsets(request, form, extra_formsets)
+
+                reversion.revisions.set_user(request.user)
+                reversion.revisions.set_comment(change_comments)
+
+                # Save item
+                item.save()
+                form.save_custom_fields(item)
+                form.save_m2m()
+
+            # Copied from wizards.py - maybe refactor
+            final_formsets = []
+            for info in extra_formsets:
+                if info['type'] != 'slot':
+                    info['saveargs']['item'] = item
+                else:
+                    info['formset'].instance = item
+                final_formsets.append(info)
+
+            # This was removed from the revision below due to a bug with saving
+            # long slots, links are still saved due to reversion follows
+            self.save_formsets(final_formsets)
+
+            return HttpResponseRedirect(url_slugify_concept(item))
+
+    def clone_components(self, clone):
+        original = self.item
+        fields = getattr(self.model, 'clone_fields', [])
+        for field_name in fields:
+            field = self.model._meta.get_field(field_name)
+            remote_field_name = field.remote_field.name
+            manager = getattr(original, field.get_accessor_name(), None)
+            if manager is None:
+                components = []
+            else:
+                components = manager.all()
+
+            new_components = []
+            for component in components:
+                # Set pk to none so we insert instead of update
+                component.pk = None
+                # Set the remote field to the clone
+                setattr(component, remote_field_name, clone)
+                new_components.append(component)
+            field.related_model.objects.bulk_create(new_components)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+
+        if 'formsets' in kwargs:
+            extra_formsets = kwargs['formsets']
+        else:
+            extra_formsets = self.get_extra_formsets(self.item, clone_item=True)
+
+        fscontext = self.get_formset_context(extra_formsets)
+        context.update(fscontext)
+
+        # context['show_slots_tab'] = self.slots_active or
+        context['show_slots_tab'] = context['form'].custom_fields
+        context['show_id_tab'] = self.identifiers_active
+
+        return context

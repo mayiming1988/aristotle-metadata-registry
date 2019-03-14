@@ -3,6 +3,7 @@ import datetime
 from django import forms
 from django.core.exceptions import ImproperlyConfigured
 from django.apps import apps
+from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
 
@@ -12,6 +13,7 @@ from haystack import connections
 from haystack.constants import DEFAULT_ALIAS
 from haystack.forms import FacetedSearchForm, model_choices
 from haystack.query import EmptySearchQuerySet, SearchQuerySet, SQ
+from haystack.inputs import AutoQuery
 
 import aristotle_mdr.models as MDR
 from aristotle_mdr.widgets.bootstrap import (
@@ -40,11 +42,11 @@ QUICK_DATES = Choices(
 
 
 SORT_OPTIONS = Choices(
-    ('n', 'natural', _('Ranking')),
-    ('ma', 'modified_ascending', _('Modified ascending')),
-    ('md', 'modified_descending', _('Modified descending')),
-    ('ma', 'created_ascending', _('Created ascending')),
-    ('md', 'created_descending', _('Created descending')),
+    ('n', 'natural', _('Relevance')),
+    ('ma', 'modified_ascending', _('First Modified')),
+    ('md', 'modified_descending', _('Last Modified')),
+    ('ma', 'created_ascending', _('First Created')),
+    ('md', 'created_descending', _('Last Created')),
     ('aa', 'alphabetical', _('Alphabetical')),
     ('s', 'state', _('Registration state')),
 )
@@ -161,6 +163,7 @@ class PermissionSearchQuerySet(SearchQuerySet):
     def apply_permission_checks(self, user=None, public_only=False, user_workgroups_only=False):
         sqs = self
         q = SQ(is_public=True)
+        q |= SQ(published_date_public__lte=timezone.now())
         if user is None or user.is_anonymous():
             # Regular users can only see public items, so boot them off now.
             sqs = sqs.filter(q)
@@ -214,6 +217,7 @@ class TokenSearchForm(FacetedSearchForm):
         'version',
         'identifier',
         'namespace',
+        'uuid'
     ]
 
     token_shortnames = {
@@ -259,39 +263,41 @@ class TokenSearchForm(FacetedSearchForm):
             if ":" in word:
                 opt, arg = word.split(":", 1)
 
-                if opt in self.token_shortnames:
-                    opt = self.token_shortnames[opt]
+                # Make sure arg isnt blank
+                if arg:
+                    if opt in self.token_shortnames:
+                        opt = self.token_shortnames[opt]
 
-                if opt in opts and opt in self.allowed_tokens:
-                    clean_arguments_func = getattr(self, "process_%s" % opt, None)
-                    if not clean_arguments_func:
-                        kwargs[str(opt)]=arg
-                    else:
-                        # if we have a processor, run that.
-                        clean_value = clean_arguments_func(arg)
-                        if type(clean_value) is list:
-                            kwargs["%s__in" % str(opt)] = clean_value
-                        elif clean_value is not None:
-                            kwargs[str(opt)] = clean_value
-                elif opt == "type":
-                    # we'll allow these through and assume they meant content type
+                    if opt in opts and opt in self.allowed_tokens:
+                        clean_arguments_func = getattr(self, "process_%s" % opt, None)
+                        if not clean_arguments_func:
+                            kwargs[str(opt)]=arg
+                        else:
+                            # if we have a processor, run that.
+                            clean_value = clean_arguments_func(arg)
+                            if type(clean_value) is list:
+                                kwargs["%s__in" % str(opt)] = clean_value
+                            elif clean_value is not None:
+                                kwargs[str(opt)] = clean_value
+                    elif opt == "type":
+                        # we'll allow these through and assume they meant content type
 
-                    from django.contrib.contenttypes.models import ContentType
-                    arg = arg.lower().replace('_', '').replace('-', '')
-                    app_labels = fetch_metadata_apps()
-                    app_labels.append('aristotle_mdr_help')
-                    mods = ContentType.objects.filter(app_label__in=app_labels).all()
-                    for i in mods:
-                        if hasattr(i.model_class(), 'get_verbose_name'):
-                            model_short_code = "".join(
-                                map(
-                                    first_letter, i.model_class()._meta.verbose_name.split(" ")
-                                )
-                            ).lower()
-                            if arg == model_short_code:
+                        from django.contrib.contenttypes.models import ContentType
+                        arg = arg.lower().replace('_', '').replace('-', '')
+                        app_labels = fetch_metadata_apps()
+                        app_labels.append('aristotle_mdr_help')
+                        mods = ContentType.objects.filter(app_label__in=app_labels).all()
+                        for i in mods:
+                            if hasattr(i.model_class(), 'get_verbose_name'):
+                                model_short_code = "".join(
+                                    map(
+                                        first_letter, i.model_class()._meta.verbose_name.split(" ")
+                                    )
+                                ).lower()
+                                if arg == model_short_code:
+                                    token_models.append(i.model_class())
+                            if arg == i.model:
                                 token_models.append(i.model_class())
-                        if arg == i.model:
-                            token_models.append(i.model_class())
 
             else:
                 query_text.append(word)
@@ -311,7 +317,10 @@ class TokenSearchForm(FacetedSearchForm):
             return self.no_query_found()
 
         if self.query_text:
-            sqs = self.searchqueryset.auto_query(self.query_text)
+            # Search on text (which is the document) and name fields (so name can be boosted)
+            sqs = self.searchqueryset.filter(
+                SQ(text=AutoQuery(self.query_text)) | SQ(name=AutoQuery(self.query_text))
+            )
         else:
             sqs = self.searchqueryset
 
@@ -431,6 +440,8 @@ class PermissionSearchForm(TokenSearchForm):
     # F for facet!
     # searchqueryset = PermissionSearchQuerySet
 
+    filters = "models mq cq cds cde mds mde state ra res".split()
+
     def __init__(self, *args, **kwargs):
         if 'searchqueryset' not in kwargs.keys() or kwargs['searchqueryset'] is None:
             kwargs['searchqueryset'] = get_permission_sqs()
@@ -442,6 +453,12 @@ class PermissionSearchForm(TokenSearchForm):
         # Inactive last
         self.fields['ra'].choices = [(ra.id, ra.name) for ra in MDR.RegistrationAuthority.objects.filter(active__in=[0, 1]).order_by('active', 'name')]
 
+        # List of app lables for default search
+        self.default_models = [
+            m[0] for m in model_choices()
+            if m[0].split('.', 1)[0] in fetch_metadata_apps()
+        ]
+        # Set choices for models
         self.fields['models'].choices = [
             m for m in model_choices()
             if m[0].split('.', 1)[0] in fetch_metadata_apps() + ['aristotle_mdr_help']
@@ -451,13 +468,15 @@ class PermissionSearchForm(TokenSearchForm):
         """Return an alphabetical list of model classes in the index."""
         search_models = []
 
-        if self.is_valid() and self.cleaned_data['models']:
-            for model in self.cleaned_data['models']:
+        if self.is_valid():
+            app_labels = self.default_models
+            if self.cleaned_data['models']:
+                app_labels = self.cleaned_data['models']
+
+            for model in app_labels:
                 search_models.append(apps.get_model(*model.split('.')))
 
         return search_models
-
-    filters = "models mq cq cds cde mds mde state ra res".split()
 
     @property
     def applied_filters(self):
@@ -561,7 +580,7 @@ class PermissionSearchForm(TokenSearchForm):
                         extra_facets.append(name)
 
                         x = extra_facets_details.get(name, {})
-                        x.update(**{
+                        x.update({
                             'title': getattr(field, 'title', name),
                             'display': getattr(field, 'display', None),
                             'allow_search': getattr(field, 'allow_search', False),

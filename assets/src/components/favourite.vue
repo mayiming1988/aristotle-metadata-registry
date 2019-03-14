@@ -25,9 +25,9 @@ export default {
     computed: {
         linkTitle: function() {
             if (this.favourited) {
-                return 'Add to my favourites'
-            } else {
                 return 'Remove from my favourites'
+            } else {
+                return 'Add to my favourites'
             }
         },
         iconClass: function() {
@@ -39,7 +39,7 @@ export default {
         }
     },
     methods: {
-        submitFavourite: function(e) {
+        submitFavourite: function() {
             var component = this
             $.get(
                 this.submitUrl,

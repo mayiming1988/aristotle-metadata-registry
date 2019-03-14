@@ -1,6 +1,5 @@
 from typing import Iterable, Dict
 from django.db.models import Model
-from django.urls import reverse
 from django.db.models.query import QuerySet
 from rest_framework import serializers
 
@@ -8,7 +7,7 @@ from rest_framework import serializers
 class MultiUpdateListSerializer(serializers.ListSerializer):
     """
     To be used for multple updates on a list serializer
-    Creates new models and deltes missing models
+    Creates new models and deletes missing models
     Needs a non required IntegerField for id
     """
 

@@ -1,9 +1,5 @@
 from django_filters.filterset import FilterSet
-from django_filters.constants import ALL_FIELDS
-from django_filters.utils import get_all_model_fields
 import django_filters
-from django.db import models
-from aristotle_mdr.models import _concept
 
 
 class AristotleFilterSet(FilterSet):

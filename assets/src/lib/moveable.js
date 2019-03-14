@@ -1,61 +1,13 @@
 import 'src/vendor/jquery-ui.min.js'
-import { initDALWidget } from './dal_simple_init.js'
+import { addRow } from 'src/lib/formset.js'
 
 import 'src/styles/aristotle.moveable.less'
 
-function replacePrefix(element, num_forms) {
-    var name = $(element).attr('name')
-    var id = $(element).attr('id')
-
-    if (name && name.includes('__prefix__')) {
-        var new_name = name.replace('__prefix__', num_forms)
-        $(element).attr('name', new_name)
-    }
-
-    if (id && id.includes('__prefix__')) {
-        var new_id = id.replace('__prefix__', num_forms)
-        $(element).attr('id', new_id)
-    }
-
-}
 
 function addCode(id) {
-    var table = '.draggableTable#' + id;
-    var formstage = '.formstage#' + id + ' tr';
-    var panelList = $(table);
-
-    var new_form = $(formstage).clone();
-
-    //Recreate the date time pickers
-    //Get options from the formstage
-    if ($(formstage).find('.date').data('DateTimePicker')) {
-        var options = $(formstage).find('.date').data('DateTimePicker').options()
-        //Initialize all date time objects
-        $(new_form).find('.date').each(function() {
-            $(this).datetimepicker(options);
-        })
-    }
-
-    // Remove redundant select2s (they'll be remade when reinserted into the node)
-    $(new_form).find('span.select2.select2-container').remove();
-
-    new_form.appendTo(panelList);
-    var all_tr = table + ' tr'
-    var num_forms = $(all_tr).length
-
-    $(new_form).find(':input').each(function() {
-        replacePrefix(this, num_forms-1)
-    });
-
-    // rename the form entries
+    addRow(id, 'tr')
+    let table = $('#' + id)
     reorderRows(table);
-    var total_forms_identifier = 'input[name=' + id + '-TOTAL_FORMS]'
-    $(total_forms_identifier).val(num_forms);
-
-    $(new_form).find('[data-autocomplete-light-function=select2]').each(function() {
-        var element = $(this);
-        initDALWidget(element)
-    })
 }
 
 function renumberRow(row,num) {
@@ -68,7 +20,6 @@ function renumberRow(row,num) {
 }
 
 function reorderRows(panelList) {
-
     $('.moveablerow', panelList).each(function(index) {
         renumberRow(this,index);
         $(this).find('input[name$=-DELETE]').attr('title',"Delete item "+index);

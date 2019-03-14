@@ -1,0 +1,34 @@
+{% extends 'aristotle_mdr/concepts/contentInfoBase.html' %}
+{% load render_bundle from webpack_loader %}
+{% load humanize i18n %}
+
+{% block title %}Graphs for {{ item.name }}{% endblock %}
+
+{% block webpack_css_bundle %}
+    {% render_bundle 'graphsPage' 'css' %}
+{% endblock %}
+
+{% block webpack_bundle %}
+    {% render_bundle 'graphsPage' 'js' %}
+{% endblock %}
+{% block infoContent %}
+
+    <h2>{% trans 'Superseding relationships' %}</h2>
+    <graphical-representation
+            url="{% url 'api_v4:item:item_supersedes_graphical' pk=item.id %}"
+            type-of-graph="supersedes"
+            direction="LR"
+            level-separation="400"
+    >
+    </graphical-representation>
+
+    <h2>{% trans 'General relationships' %}</h2>
+    <graphical-representation
+            url="{% url 'api_v4:item:item_general_graphical' pk=item.id %}"
+            type-of-graph="general"
+            direction="UD"
+            level-separation="100"
+    >
+    </graphical-representation>
+
+{% endblock %}

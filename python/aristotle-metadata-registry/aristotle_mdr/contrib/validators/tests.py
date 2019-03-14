@@ -1,15 +1,15 @@
-from django.conf import settings
-from django.core.management import call_command
+from django.test import TestCase, Client
+from django.contrib.auth import get_user_model
 from django.urls import reverse
-from django.test import TestCase, override_settings
 
-from django.utils.timezone import now
 import datetime
 
-from aristotle_mdr.tests import utils
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.contrib.validators import validators
+from aristotle_mdr.contrib.validators import models
+from aristotle_mdr.contrib.validators import runners
+from aristotle_mdr.contrib.reviews.models import ReviewRequest
 
 from aristotle_mdr.utils import setup_aristotle_test_environment
 
@@ -155,13 +155,18 @@ class TestRegexValidator(ValidationTester, TestCase):
 class TestStatusValidator(ValidationTester, TestCase):
 
     def setUp(self):
+        self.steward_org_1 = MDR.StewardOrganisation.objects.create(
+            name='Org 1',
+            description="1",
+        )
         self.item = MDR.ObjectClass.objects.create(
             name='Test Object Class',
             definition='Test Defn'
         )
         self.ra = MDR.RegistrationAuthority.objects.create(
             name='Test Content',
-            definition='Only test content'
+            definition='Only test content',
+            stewardship_organisation=self.steward_org_1
         )
 
     def register_item_standard(self):
@@ -228,3 +233,62 @@ class TestStatusValidator(ValidationTester, TestCase):
             validator.validate(self.item, self.ra),
             expected_message='Invalid State'
         )
+
+
+class ValidationRunnerTestCase(TestCase):
+
+    def setUp(self):
+        self.regex_rule = (
+            '- status: any\n'
+            '  object: any\n'
+            '  checks:\n'
+            '    - validator: RegexValidator\n'
+            '      field: name\n'
+            '      regex: "[abc]+"'
+        )
+        self.steward_org_1 = MDR.StewardOrganisation.objects.create(
+            name='Org 1',
+            description="1",
+        )
+        self.ra = MDR.RegistrationAuthority.objects.create(
+            name='RA', definition='RA',
+            stewardship_organisation=self.steward_org_1
+        )
+        self.manager = get_user_model().objects.create_user(email='manager@example.com', password='1234')
+        self.ra.managers.add(self.manager)
+        self.wg = MDR.Workgroup.objects.create(
+            name='WG', definition='WG',
+            stewardship_organisation=self.steward_org_1
+        )
+        self.dbrunner = runners.DatabaseValidationRunner(
+            registration_authority=self.ra,
+            state=4
+        )
+        self.client = Client()
+
+    def test_database_runner(self):
+        models.RegistryValidationRules.objects.create(rules=self.regex_rule)
+        item = MDR.ObjectClass.objects.create(name='OC', definition='oc')
+        results = self.dbrunner.validate_metadata([item])
+        self.assertEqual(len(results[0]['results']), 1)
+
+    def test_validation_runner_view(self):
+        models.RegistryValidationRules.objects.create(rules=self.regex_rule)
+        item = MDR.ObjectClass.objects.create(name='OC', definition='oc')
+        rr = ReviewRequest.objects.create(
+            registration_authority=self.ra,
+            requester=self.manager,
+            workgroup=self.wg,
+            target_registration_state=MDR.STATES.standard
+        )
+        rr.concepts.add(item)
+
+        self.client.login(email=self.manager.email, password='1234')
+        response = self.client.get(reverse('aristotle_reviews:request_checks', args=[rr.id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['total_results']), 1)
+
+    def test_validation_runner_rulesets_return_an_empty_list_when_default_value_of_validation_rule_is_an_empty_string(self):
+        models.RegistryValidationRules.objects.create(rules='')
+        results = self.dbrunner.get_rulesets()
+        self.assertEqual(results, [])

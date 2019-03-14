@@ -2,7 +2,6 @@ from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 # from django.contrib.auth import get_user_model
 from collections import defaultdict
 from django.urls import reverse
-from django.db.models import Q, Count
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
 from django.template.defaultfilters import slugify
@@ -20,7 +19,8 @@ from aristotle_mdr.views.utils import (
     ObjectLevelPermissionRequiredMixin,
     RoleChangeView,
     MemberRemoveFromGroupView,
-    GenericListWorkgroup
+    GenericListWorkgroup,
+    UserFormViewMixin
 )
 
 import logging
@@ -203,13 +203,14 @@ class LeaveView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermission
         return HttpResponseRedirect(reverse("aristotle:userHome"))
 
 
-class CreateWorkgroup(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class CreateWorkgroup(LoginRequiredMixin, PermissionRequiredMixin, UserFormViewMixin, CreateView):
     model = MDR.Workgroup
+    form_class = MDRForms.workgroups.CreateWorkgroupForm
+    user_form = True
     template_name = "aristotle_mdr/user/workgroups/add.html"
-    fields = ['name', 'definition']
-    permission_required = "aristotle_mdr.add_workgroup"
     raise_exception = True
     redirect_unauthenticated_users = True
+    permission_required = "aristotle_mdr.user_can_create_workgroup"
 
 
 class ListWorkgroup(PermissionRequiredMixin, GenericListWorkgroup):

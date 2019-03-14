@@ -8,7 +8,7 @@
     </li>
     <li class="dashboard_link {% ifequal activeTab "profile" %}active{% endifequal %}">
         <a href="{% url 'aristotle:userProfile' %}">
-        <img class="small-profile-picture" style="margin-left:-25px; margin-right:3px" src="{{ request.user.profile.profile_picture_url }}" width="20px" alt="Profile Picture"></img>
+        <img class="small-profile-picture" style="margin-left:-25px; margin-right:3px" src="{{ request.user.profile.profile_picture_url }}" width="20px" alt="">
         {% trans "My Profile" %}
         </a>
     </li>
@@ -24,7 +24,7 @@
     </li>
     <li {% ifequal inboxFolder "unread" %}class="active"{% endifequal %}>
         <a href="{% url 'aristotle:userInbox' %}">
-        <i class="fa fa-envelope fa-fw"></i> Notifications
+        <i class="fa fa-bell fa-fw"></i> Notifications
         {% with notecount=user.notifications.unread.count %}
             <span class="badge pull-right" title="{{ notecount }} unread notifications">{{ notecount }}</span>
         {% endwith %}
@@ -33,16 +33,22 @@
         <ul class="nav nav-pills nav-stacked nav-collapse dashSubMenu">
             <li {% if inboxFolder == "all" %}class="active"{% endif %}>
                 <a href="{% url 'aristotle:userInbox' 'all' %}">
-                    <i class="fa fa-envelope-o fa-fw"></i> {% trans 'All messages' %}
+                    <i class="fa fa-bell-o fa-fw"></i> {% trans 'All messages' %}
                 </a>
             </li>
         </ul>
         {% endif %}
     </li>
+    <li class="{% ifequal activeTab "steward_orgs" %}active{% endifequal %}">
+        <a href="{% url 'aristotle_mdr:stewards:group:list' %}">
+        <i class="fa fa-sitemap fa-fw"></i> {% trans 'Organisations'%}
+    </a></li>
     <li {% ifequal activeTab "workgroups" %}class="active"{% endifequal %}>
         <a href="{% url 'aristotle:userWorkgroups' %}">
         <i class="fa fa-users fa-fw"></i> {% trans "Workgroups" %}
-        <span class="badge pull-right">{{ user.profile.myWorkgroupCount }}</span></a>
+        {# TODO: Can we cache the workgroup count? Do we even need it? #}
+        {# <span class="badge pull-right">{{ user.profile.myWorkgroupCount }}</span>  #}
+        </a>
         {% ifequal activeTab "workgroupArchives" %}
         <ul class="nav nav-pills nav-stacked nav-collapse dashSubMenu">
             <li class="active">

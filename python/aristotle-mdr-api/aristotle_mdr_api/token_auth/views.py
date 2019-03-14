@@ -1,6 +1,3 @@
-from django.contrib.auth.decorators import permission_required
-from django.http import JsonResponse
-from django.shortcuts import render
 from django.views.generic import TemplateView, FormView, ListView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse
@@ -9,6 +6,7 @@ from aristotle_mdr_api.token_auth.models import AristotleToken
 from aristotle_mdr_api.token_auth.forms import TokenCreateForm
 
 import json
+
 
 class TokenListView(LoginRequiredMixin, ListView):
     template_name = "aristotle_mdr_api/token.html"
@@ -29,10 +27,11 @@ class TokenCreateView(LoginRequiredMixin, FormView):
         )
         return self.render_to_response({'key': token.key})
 
-    def get_context_data(self):
-        context = super().get_context_data()
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
         context['submit_text'] = 'Create Token'
         return context
+
 
 class TokenUpdateView(LoginRequiredMixin, FormView):
     form_class = TokenCreateForm

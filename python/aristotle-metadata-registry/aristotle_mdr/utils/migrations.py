@@ -4,19 +4,11 @@ At some point, we will squash the entire migration path for <1.4 and remove this
 running this code.
 """
 from django.db import migrations, models
-
 from django.db.migrations.operations.base import Operation
+from django.conf import settings
 
 import ckeditor_uploader.fields
-
-
-class classproperty(object):
-
-    def __init__(self, fget):
-        self.fget = fget
-
-    def __get__(self, owner_self, owner_cls):
-        return self.fget(owner_cls)
+from .utils import classproperty
 
 
 def move_field_to_slot(apps, schema_editor, field_name):
@@ -64,6 +56,71 @@ def move_slot_to_field(apps, schema_editor, field_name, maxlen=200):
                     concept.save()
     else:
         print('Reverse data migration could not be completed')
+
+
+class StewardMigration(migrations.Migration):
+    so_uuid = None
+    steward_pattern = "Default Steward for {name}"
+
+    @classmethod
+    def add_stewardship_org(cls, apps, schema_editor):
+        StewardOrganisation = apps.get_model('aristotle_mdr', 'StewardOrganisation')
+        StewardMembership = apps.get_model('aristotle_mdr', 'StewardOrganisationMembership')
+        from django.conf import settings
+        name = cls.steward_pattern.format(name=settings.ARISTOTLE_SETTINGS['SITE_NAME'])
+        so, _ = StewardOrganisation.objects.get_or_create(name=name)
+        from django.contrib.auth import get_user_model
+        User = apps.get_model('aristotle_mdr_user_management', 'User')
+
+        if settings.MIGRATION_PRINT:
+            print("\n=================")
+            print("Autocreating default Stewardship Organization .... \"%s\"" % (so.name, ))
+            print("All registration authorities and workgroups will be assigned to this Organization")
+            print("All metadata assigned to a workgroups or registered will also be assigned to this Organization")
+            print("Update this name once all migrations are complete.")
+            print("-----------------")
+
+        for u in User.objects.all().order_by("-is_superuser"):
+            # We can't access methods during migrations so we manually create memberships
+            # Also migrations don't work well with the proxy "AUTH_USER", so we just add in the primary key
+            if u.is_superuser:
+                role = "admin"
+            else:
+                role = "member"
+            print("Granting [{user}] the role [{role}]".format(user=u.email, role=role))
+            StewardMembership.objects.get_or_create(group=so, user=u, role=role)
+
+        if settings.MIGRATION_PRINT:
+            print("=================")
+        return so.uuid
+
+    @classmethod
+    def get_uuid(cls):
+        return cls.so_uuid
+
+    @classmethod
+    def fetch_stewardship_org_uuid(cls, apps, schema_editor):
+        StewardOrganisation = apps.get_model('aristotle_mdr', 'StewardOrganisation')
+        from django.conf import settings
+        name = cls.steward_pattern.format(name=settings.ARISTOTLE_SETTINGS['SITE_NAME'])
+        so = StewardOrganisation.objects.order_by("id").first()  # get(name=name)
+        cls.so_uuid = so.uuid
+        return so.uuid
+
+    @classmethod
+    def assign_orgs_to_metadata(cls, apps, schema_editor):
+        _concept = apps.get_model('aristotle_mdr', '_concept')
+        for item in _concept.objects.all():
+            if item.workgroup is not None:
+                item.stewardship_organisation = item.workgroup.stewardship_organisation
+                item.save()
+
+    @classmethod
+    def assign_orgs_to_model(cls, apps, schema_editor, model_name):
+        model = apps.get_model('aristotle_mdr', model_name)
+        for item in model.objects.all():
+            item.stewardship_organisation_id = cls.so_uuid
+            item.save()
 
 
 def create_uuid_objects(app_label, model_name, migrate_self=True):
@@ -325,3 +382,52 @@ class ConceptMigrationRenameConceptFields(migrations.Migration):
             new_name='version',
         ),
     ]
+
+
+# def copy_field(apps, schema_editor, field_name):
+#     """
+#     Copy the value of a field from an organisation to the RA.
+#     """
+#     RAClass = apps.get_model('aristotle_mdr', 'RegistrationAuthority')
+#     OrgClass = apps.get_model('aristotle_mdr', 'Organization')
+
+#     # Thanks: https://stackoverflow.com/questions/12518560/django-update-table-using-data-from-another-table
+#     from django.db.models import Subquery, OuterRef
+
+#     org_val = OrgClass.objects.filter(
+#         id=OuterRef('organization_ptr')
+#     ).values_list(
+#         field_name
+#     )[:1]
+
+#     RAClass.objects.all().update(**{
+#         # "new_"+field_name: F(field_name)
+#         ""+field_name: Subquery(org_val)
+#     })
+
+# https://code.djangoproject.com/ticket/23521
+class AlterBaseOperation(Operation):
+    reduce_to_sql = False
+    reversible = True
+
+    def __init__(self, model_name, bases, prev_bases):
+        self.model_name = model_name
+        self.bases = bases
+        self.prev_bases = prev_bases
+
+    def state_forwards(self, app_label, state):
+        state.models[app_label, self.model_name].bases = self.bases
+        state.reload_model(app_label, self.model_name)
+
+    def state_backwards(self, app_label, state):
+        state.models[app_label, self.model_name].bases = self.prev_bases
+        state.reload_model(app_label, self.model_name)
+
+    def database_forwards(self, app_label, schema_editor, from_state, to_state):
+        pass
+
+    def database_backwards(self, app_label, schema_editor, from_state, to_state):
+        pass
+
+    def describe(self):
+        return "Update %s bases to %s" % (self.model_name, self.bases)

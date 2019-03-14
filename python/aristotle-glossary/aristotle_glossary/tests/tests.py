@@ -7,7 +7,6 @@ import aristotle_mdr.models as models
 import aristotle_mdr.tests.utils as utils
 import aristotle_glossary.models as gmodels
 
-from aristotle_mdr import perms
 from aristotle_mdr.tests.main.test_admin_pages import AdminPageForConcept
 from aristotle_mdr.tests.main.test_html_pages import LoggedInViewConceptPages
 

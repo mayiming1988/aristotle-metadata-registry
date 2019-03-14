@@ -175,7 +175,8 @@ def can_view_iter(qs, user):
           {{ item }}
         {% endfor %}
     """
-    return qs.visible(user)
+    if qs is not None:
+        return qs.visible(user)
 
 
 @register.filter
@@ -183,13 +184,12 @@ def visible_supersedes_items(item, user):
     """
     Fetch older items for a newer item
     """
-    # TODO: Add to view
-    objects = item.__class__.objects.prefetch_related(
+    objects = type(item).objects.prefetch_related(
         'superseded_by_items_relation_set__older_item',
-        # 'superseded_by_items_relation_set__newer_item',
         'superseded_by_items_relation_set__registration_authority',
     ).visible(user).filter(
-        superseded_by_items_relation_set__newer_item_id=item.pk
+        superseded_by_items_relation_set__newer_item_id=item.pk,
+        superseded_by_items_relation_set__proposed=False
     ).distinct()
     sup_rels = [
         {
@@ -203,7 +203,7 @@ def visible_supersedes_items(item, user):
                     "registration_authority": sup.registration_authority,
                 }
                 for sup in obj.superseded_by_items_relation_set.all()
-                if sup.newer_item_id == item.pk
+                if sup.newer_item_id == item.pk and sup.proposed is False
             ]
         }
         for obj in objects
@@ -217,13 +217,12 @@ def visible_superseded_by_items(item, user):
     """
     Fetch newer items for an older item
     """
-    # TODO: Add to view
     objects = item.__class__.objects.prefetch_related(
-        # 'superseded_items_relation_set__older_item',
         'superseded_items_relation_set__newer_item',
         'superseded_items_relation_set__registration_authority',
     ).visible(user).filter(
-        superseded_items_relation_set__older_item_id=item.pk
+        superseded_items_relation_set__older_item_id=item.pk,
+        superseded_items_relation_set__proposed=False,
     ).distinct()
     sup_rels = [
         {
@@ -237,7 +236,7 @@ def visible_superseded_by_items(item, user):
                     "registration_authority": sup.registration_authority,
                 }
                 for sup in obj.superseded_items_relation_set.all()
-                if sup.older_item_id == item.pk
+                if sup.older_item_id == item.pk and sup.proposed is False
             ]
         }
         for obj in objects
@@ -396,7 +395,7 @@ def downloadMenu(item):
     app_label = item._meta.app_label
     model_name = item._meta.model_name
     for d in downloadOpts:
-        download_type = d.download_type
+        template_type = d.template_type
         item_register = d.metadata_register
 
         if type(item_register) is not str:
@@ -409,28 +408,32 @@ def downloadMenu(item):
                 downloadsForItem.append(d)
             elif item_register == '__template__':
                 try:
-                    get_template(get_download_template_path_for_item(item, download_type))
+                    get_template(get_download_template_path_for_item(item, template_type))
                     downloadsForItem.append(d)
                 except template.TemplateDoesNotExist:
                     pass  # This is ok.
                 except:
                     # TODO: Should probably do something with this error
                     pass  # Something very bad has happened in the template.
+
+    dlOptionsForItem = []
+    for dl_class in downloadsForItem:
+        dlOptionsForItem.append(dl_class.get_class_info())
     return get_template(
         "aristotle_mdr/helpers/downloadMenu.html").render(
-        {'item': item, 'download_options': downloadsForItem, }
+        {'item': item, 'download_options': dlOptionsForItem, }
     )
 
 
-@register.simple_tag
-def extra_content(extension, item, user):
+@register.simple_tag(takes_context=True)
+def extra_content(context, extension, item):
     try:
         from django.template.loader import get_template
         s = item._meta.object_name
         s = s[0].lower() + s[1:]
 
         return get_template(extension + "/extra_content/" + s + ".html").render(
-            {'item': item, 'user': user}
+            {'item': item, 'user': context['request'].user, 'viewable_ids': context.get('viewable_ids', [])}
         )
     except template.TemplateDoesNotExist:
         # there is no extra content for this item, and thats ok.
@@ -558,3 +561,11 @@ def distinct_members_count(workgroup):
 @register.filter
 def get_item(dictionary, key):
     return dictionary.get(key)
+
+
+@register.simple_tag(takes_context=True)
+def has_group_perm(context, group, permission):
+    request = context['request']
+    if not request.user.is_authenticated:
+        return False
+    return group.user_has_permission(request.user, permission)

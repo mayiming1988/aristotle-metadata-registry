@@ -1,7 +1,7 @@
 import chai from 'chai'
 const assert = chai.assert
 
-import { flatten } from 'src/lib/utils.js'
+import { flatten, unCamel } from 'src/lib/utils.js'
 
 
 describe('flatten', function() {
@@ -16,5 +16,20 @@ describe('flatten', function() {
         let array = [{a: 'Hell', b: 'Yeah'}, {b: 'Yea'}]
         let result = flatten(array, 'a')
         assert.deepEqual(result, ['Hell', undefined])
+    })
+})
+
+describe('uncamel', function() {
+
+    it('Un camel cases single', function() {
+        let camel = 'camelCase'
+        let result = unCamel(camel)
+        assert.equal(result, 'camel Case')
+    })
+
+    it('Un camel cases double', function() {
+        let camel = 'moreCamelCase'
+        let result = unCamel(camel)
+        assert.equal(result, 'more Camel Case')
     })
 })

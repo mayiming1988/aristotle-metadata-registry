@@ -1,5 +1,5 @@
 from django import forms
-from aristotle_mdr.perms import user_can_view, user_can_edit
+from aristotle_mdr.perms import user_can_view
 from aristotle_dse import models
 from aristotle_mdr.contrib.autocomplete import widgets
 
@@ -30,7 +30,7 @@ class AddDataElementsToDSSForm(forms.Form):
 class EditDataElementInclusionForm(forms.ModelForm):
     class Meta:
         model = models.DSSDEInclusion
-        fields = ['maximum_occurances', 'cardinality', 'specific_information', 'conditional_obligation']
+        fields = ['maximum_occurances', 'group', 'cardinality', 'specific_information', 'conditional_obligation']
 
 
 class EditClusterInclusionForm(forms.ModelForm):

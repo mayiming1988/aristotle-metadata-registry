@@ -17,7 +17,7 @@
 <form id="homeSearch" action="{% url 'aristotle:search' %}" method="get" >
         <input type="text" class="form-control" id="searchText" name="q" accesskey="q"></input>
         <div class="text-center" style="margin-top:5px;">
-            <a href="{% url 'aristotle:search' %}" class="btn btn-default">{% trans 'More options' context "Front page search options" %}...</a>
+            <a href="{% url 'aristotle:search' %}" class="btn btn-default">{% trans 'Advanced search' context "Front page search options" %}</a>
             <button class="btn btn-primary" type="submit">
                 {% trans 'Search' %} <i class="fa fa-search"></i>
             </button>
@@ -70,7 +70,7 @@
     <div class="col-xs-12 col-sm-6 col-md-4 ">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h2 class="panel-title"><a href="">How can I add content?</a></h2>
+                <h2 class="panel-title">How can I add content?</h2>
             </div>
             <div class="panel-body">
                 <a href="{% url 'aristotle_help:help_page' 'what-are-workgroups' %}">What is a workgroup?</a>
@@ -82,7 +82,7 @@
     <div class="col-xs-12 col-sm-6 col-md-4 ">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h2 class="panel-title"><a href="{% url 'aristotle:about' 'metadata_standards' %}">About metadata standards</a></h2>
+                <h2 class="panel-title">About metadata standards</h2>
             </div>
             <div class="panel-body">
                 <a href="{% url 'aristotle_help:help_page' 'what-makes-metadata-standard' %}">What makes metadata "standard"?</a>

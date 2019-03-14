@@ -1,6 +1,5 @@
 from django.conf.urls import include, url
 from rest_framework.documentation import include_docs_urls
-from rest_framework_swagger.views import get_swagger_view
 
 API_TITLE = 'Aristotle MDR API v3'
 API_DESCRIPTION = """

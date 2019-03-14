@@ -1,5 +1,5 @@
 {% extends "aristotle_mdr/user/base.html" %}
-{% load aristotle_tags humanize %}
+{% load aristotle_tags util_tags humanize %}
 {% load static from staticfiles %}
 
 
@@ -33,7 +33,6 @@
                     {% for item in user.notifications.unread|slice:':5' %}
                       <li class="list-group-item">
                         {{ item }}
-                      </a>
                       </li>
                     {% empty %}
                         <li class="list-group-item"> No unread notifications </li>
@@ -58,7 +57,7 @@
                         {{ view.concept }}
                         <small>({{ view.concept.item.get_verbose_name }})</small>
                         <br>
-                        <small>{{view.view_date|naturaltime}}</small>
+                        <small><time datetime="{{ view.view_date|isotime }}" data-time-from="true">{{ view.view_date }}</time></small>
                       </a>
 
                     {% empty %}
@@ -79,7 +78,8 @@
                 <ul class="list-group">
                 {% for data in recentdata %}
                     <li class="list-group-item">
-                        <span>{{ data.revision.comment }} <small>({{ data.revision.date_created }})</small></span>
+                      <span>{{ data.revision.comment }}</span>
+                      <span><small><time datetime=" {{ data.revision.date_created|isotime }}">{{ data.revision.date_created }}</time></small></span>
                         <ul>
                             {% for item in data.versions %}
                                   <li><a href="{{ item.url }}">{{ item.text }} ({{ item.id }})</a></li>

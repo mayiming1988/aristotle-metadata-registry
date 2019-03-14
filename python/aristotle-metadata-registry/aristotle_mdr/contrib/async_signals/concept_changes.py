@@ -1,23 +1,22 @@
-from django.contrib.auth import get_user_model
 from aristotle_mdr import messages
 from aristotle_mdr.contrib.async_signals.utils import safe_object
 
+import logging
+logger = logging.getLogger(__name__)
 
-def concept_saved(message):
+
+def concept_saved(message, **kwargs):
     instance = safe_object(message)
+
     if not instance:
         return
 
     for user in instance.favourited_by:
-        if sorted(message['changed_fields']) == ['modified', 'superseded_by_id']:
-            messages.favourite_superseded(recipient=user, obj=instance)
-        else:
-            messages.favourite_updated(recipient=user, obj=instance)
+        messages.favourite_updated(recipient=user, obj=instance)
 
-    # for status in instance.current_statuses().all():
-    #     for registrar in status.registrationAuthority.registrars.all():
-    #         if sorted(message['changed_fields']) == ['modified', 'superseded_by_id']:
-    #             messages.registrar_item_superseded(recipient=registrar, obj=instance)
+    for user in instance.editable_by:
+        if not message['created']:
+            messages.items_i_can_edit_updated(recipient=user, obj=instance)
 
     if instance.workgroup:
         for user in instance.workgroup.viewers.all():
@@ -41,29 +40,28 @@ def concept_saved(message):
 def new_comment_created(message, **kwargs):
     comment = safe_object(message)
     if comment:
-        messages.new_comment_created(comment)
+        post = comment.post
+        messages.new_comment_created(recipient=post.author, comment=comment)
 
 
 def new_post_created(message, **kwargs):
     post = safe_object(message)
-
     if post:
         for user in post.workgroup.members.all():
             if user != post.author:
-                messages.new_post_created(post, user)
+                messages.new_post_created(recipient=user, post=post)
 
 
 def status_changed(message, **kwargs):
     new_status = safe_object(message)
     concept = new_status.concept
-
     for status in concept.current_statuses().all():
         for registrar in status.registrationAuthority.registrars.all():
             if concept.statuses.filter(registrationAuthority=new_status.registrationAuthority).count() <= 1:
                 # 0 or 1 because the transaction may not be complete yet
-                messages.registrar_item_registered(recipient=registrar, obj=concept)
+                messages.registrar_item_registered(recipient=registrar, obj=concept, ra=new_status.registrationAuthority, status=str(new_status.state_name))
             else:
-                messages.registrar_item_changed_status(recipient=registrar, obj=concept)
+                messages.registrar_item_changed_status(recipient=registrar, obj=concept, ra=new_status.registrationAuthority, status=str(new_status.state_name))
 
 
 def item_superseded(message, **kwargs):
@@ -74,7 +72,50 @@ def item_superseded(message, **kwargs):
         if concept.can_view(user) and new_super_rel.newer_item.can_view(user):
             messages.favourite_superseded(recipient=user, obj=concept)
 
+    for user in concept.editable_by:
+        if concept.can_view(user) and new_super_rel.newer_item.can_view(user):
+            messages.items_i_can_edit_superseded(recipient=user, obj=concept)
+
+    if concept.workgroup:
+        for user in concept.workgroup.viewers.all():
+            if concept.can_view(user) and new_super_rel.newer_item.can_view(user):
+                messages.workgroup_item_superseded(recipient=user, obj=concept)
+
     for status in concept.current_statuses().all():
         for registrar in status.registrationAuthority.registrars.all():
             if concept.can_view(registrar) and new_super_rel.newer_item.can_view(registrar):
-                messages.registrar_item_superseded(recipient=registrar, obj=concept)
+                messages.registrar_item_superseded(recipient=registrar, obj=concept, ra=status.registrationAuthority)
+
+
+def issue_created(issue, **kwargs):
+    safe_issue = safe_object(issue)
+    if safe_issue:
+        if safe_issue.item.workgroup:
+            for user in safe_issue.item.workgroup.members:
+                if user != safe_issue.submitter:
+                    messages.issue_created_workgroup(recipient=user, obj=safe_issue)
+
+        for user in safe_issue.item.favourited_by:
+            if user != safe_issue.submitter:
+                messages.issue_created_favourite(recipient=user, obj=safe_issue)
+
+        for user in safe_issue.item.editable_by:
+            if user != safe_issue.submitter:
+                messages.issue_created_items_i_can_edit(recipient=user, obj=safe_issue)
+
+
+def issue_commented(issue_comment, **kwargs):
+    safe_issue_comment = safe_object(issue_comment)
+    if safe_issue_comment:
+        if safe_issue_comment.issue.item.workgroup:
+            for user in safe_issue_comment.issue.item.workgroup.members:
+                if user != safe_issue_comment.author:
+                    messages.issue_comment_created_workgroup(recipient=user, obj=safe_issue_comment)
+
+        for user in safe_issue_comment.issue.item.favourited_by:
+            if user != safe_issue_comment.author:
+                messages.issue_comment_created_favourite(recipient=user, obj=safe_issue_comment)
+
+        for user in safe_issue_comment.issue.item.editable_by:
+            if user != safe_issue_comment.author:
+                messages.issue_comment_created_items_i_can_edit(recipient=user, obj=safe_issue_comment)

@@ -1,29 +1,19 @@
 from typing import Any
 from django.apps import apps
-from django.contrib import messages
-from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist, ObjectDoesNotExist
 from django.urls import reverse
 from django.db import transaction
-from django.db.models import Q, Prefetch
-from django.http import HttpResponseRedirect, HttpResponseNotFound, HttpResponseForbidden
+from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404
 from django.shortcuts import render, redirect, get_object_or_404
-from django.template.defaultfilters import slugify
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView, RedirectView
-from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_string
-from django.contrib.contenttypes.models import ContentType
+from django.utils.functional import SimpleLazyObject
 from formtools.wizard.views import SessionWizardView
 
 import json
-import copy
-import yaml
-import jsonschema
-from os import path
 
 import reversion
 
@@ -49,13 +39,9 @@ from aristotle_mdr.views.utils import (
     TagsMixin
 )
 from aristotle_mdr.contrib.slots.models import Slot
-from aristotle_mdr.contrib.links.models import Link, LinkEnd
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
-from aristotle_mdr.contrib.favourites.models import Favourite, Tag
-from aristotle_mdr.contrib.validators import validators
 
-from haystack.views import FacetedSearchView
 from reversion.models import Version
 
 
@@ -106,13 +92,24 @@ def concept_by_uuid(request, uuid):
 
 
 def measure(request, iid, model_slug, name_slug):
-    item = get_object_or_404(MDR.Measure, pk=iid).item
+    return managed_item(request, "measure", iid)
+
+
+# TODO: Switch to CBV
+def managed_item(request, model_slug, iid):
+    model_class = get_object_or_404(ContentType, model=model_slug).model_class()
+    item = get_object_or_404(model_class, pk=iid).item
+
+    if not user_can_view(request.user, item):
+        raise PermissionDenied
+
     return render(
-        request, [item.template],
+        request, [getattr(item, 'template', "aristotle_mdr/manageditems/fallback.html")],
         {
             'item': item,
-            # 'view': request.GET.get('view', '').lower(),
-            # 'last_edit': last_edit
+            'group': item.stewardship_organisation,
+            'model_name': item.meta().model_name,
+            "activetab": "item",
         }
     )
 
@@ -126,10 +123,10 @@ class ConceptRenderView(TagsMixin, TemplateView):
     """
 
     objtype: Any = None
-    itemid_arg = 'iid'
-    modelslug_arg = 'model_slug'
-    nameslug_arg = 'name_slug'
-    slug_redirect = False
+    itemid_arg: str = 'iid'
+    modelslug_arg: str = 'model_slug'
+    nameslug_arg: str = 'name_slug'
+    slug_redirect: bool = False
 
     def get_queryset(self):
         itemid = self.kwargs[self.itemid_arg]
@@ -151,7 +148,10 @@ class ConceptRenderView(TagsMixin, TemplateView):
                     model = rel.related_model
 
         if model is None:
-            model = type(MDR._concept.objects.get_subclass(id=itemid))
+            try:
+                model = type(MDR._concept.objects.get_subclass(id=itemid))
+            except ObjectDoesNotExist:
+                raise Http404
 
         return self.get_related(model)
 
@@ -170,10 +170,16 @@ class ConceptRenderView(TagsMixin, TemplateView):
         related_fields = []
         prefetch_fields = ['statuses']
         for field in model._meta.get_fields():
-            if field.is_relation and field.many_to_one and issubclass(field.related_model, MDR._concept):
-                # If a field is a foreign key that links to a concept
-                related_fields.append(field.name)
-            elif field.is_relation and field.one_to_many and issubclass(field.related_model, MDR.AbstractValue):
+            # Get select related fields
+            if model.related_objects:
+                related_fields = model.related_objects
+            else:
+                if field.is_relation and field.many_to_one and issubclass(field.related_model, MDR._concept):
+                    # If a field is a foreign key that links to a concept
+                    related_fields.append(field.name)
+
+            # Get prefetch related fields
+            if field.is_relation and field.one_to_many and issubclass(field.related_model, MDR.AbstractValue):
                 # If field is a reverse foreign key that links to an
                 # abstract value
                 prefetch_fields.append(field.name)
@@ -182,7 +188,8 @@ class ConceptRenderView(TagsMixin, TemplateView):
 
     def check_item(self, item):
         # To be overwritten
-        return True
+        # Fail safely
+        return False
 
     def check_app(self, item):
         label = type(item)._meta.app_label
@@ -214,7 +221,7 @@ class ConceptRenderView(TagsMixin, TemplateView):
 
         if self.item is None:
             # If item was not found and no redirect was needed
-            return HttpResponseNotFound()
+            raise Http404
 
         if self.slug_redirect:
             redirect, url = self.get_redirect()
@@ -225,7 +232,7 @@ class ConceptRenderView(TagsMixin, TemplateView):
 
         app_enabled = self.check_app(self.item)
         if not app_enabled:
-            return HttpResponseNotFound()
+            raise Http404
 
         result = self.check_item(self.item)
         if not result:
@@ -236,7 +243,7 @@ class ConceptRenderView(TagsMixin, TemplateView):
                 )
                 return HttpResponseRedirect(redirect_url)
             else:
-                return HttpResponseForbidden()
+                raise PermissionDenied
 
         from aristotle_mdr.contrib.view_history.signals import metadata_item_viewed
         metadata_item_viewed.send(sender=self.item, user=self.user.pk)
@@ -248,7 +255,12 @@ class ConceptRenderView(TagsMixin, TemplateView):
 
     def get_custom_values(self):
         allowed = CustomField.objects.get_allowed_fields(self.item.concept, self.request.user)
-        return CustomValue.objects.get_allowed_for_item(self.item._concept_ptr, allowed)
+        custom_values = CustomValue.objects.get_allowed_for_item(self.item._concept_ptr, allowed)
+        not_empty_custom_values = []
+        for value in custom_values:
+            if value.content != "":
+                not_empty_custom_values.append(value)
+        return not_empty_custom_values
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -266,8 +278,16 @@ class ConceptRenderView(TagsMixin, TemplateView):
         context['discussions'] = self.item.relatedDiscussions.all()
         context['activetab'] = 'item'
         context['links'] = self.get_links()
-
         context['custom_values'] = self.get_custom_values()
+
+        # Add a list of viewable concept ids for fast visibility checks in
+        # templates
+        # Since its lazy we can do this everytime :)
+        lazy_viewable_ids = SimpleLazyObject(
+            lambda: list(MDR._concept.objects.visible(self.user).values_list('id', flat=True))
+        )
+        context['viewable_ids'] = lazy_viewable_ids
+
         return context
 
     def get_template_names(self):
@@ -536,8 +556,6 @@ class ReviewChangesView(SessionWizardView):
             reversion.revisions.set_user(self.request.user)
 
             success, failed = self.register_changes(form_dict, change_form)
-            logger.critical(success)
-            logger.critical(failed)
 
             bad_items = sorted([str(i.id) for i in failed])
             count = self.get_items().count()
@@ -631,14 +649,11 @@ def extensions(request):
             content.append(app)
 
     content = list(set(content))
-    aristotle_downloads = fetch_aristotle_downloaders()
-    downloads=[]
-    if aristotle_downloads:
-        for download in aristotle_downloads:
-            downloads.append(download())
+    aristotle_downloaders = fetch_aristotle_downloaders()
+    download_extensions = [dler.get_class_info() for dler in aristotle_downloaders]
 
     return render(
         request,
         "aristotle_mdr/static/extensions.html",
-        {'content_extensions': content, 'download_extensions': downloads, }
+        {'content_extensions': content, 'download_extensions': download_extensions}
     )

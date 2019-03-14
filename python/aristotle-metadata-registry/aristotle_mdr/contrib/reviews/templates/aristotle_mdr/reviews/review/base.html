@@ -1,6 +1,6 @@
 {% extends "aristotle_mdr/reviews/base.html" %}
 {% load i18n humanize %}
-{% load aristotle_tags %}
+{% load aristotle_tags util_tags %}
 {% load static from staticfiles %}
 
 {% block title %}Review details{{ review.title }}{% endblock %}
@@ -37,7 +37,7 @@
                 <ul>
                 <li>Status: <em>{{review.get_target_registration_state_display}}</em></li>
                 <li>Registered in: <a href="{{review.registration_authority.get_absolute_url }}">{{review.registration_authority.name }}</a></li>
-                <li>Registration date: {{review.registration_date}}</li>
+                <li>Registration date: <time datetime="{{ review.registration_date|isotime }}">{{ review.registration_date }}</time></li>
                 </ul>
                     <i class="fa fa-fw fa-hashtag"></i> Number of items:
                     {{review.concepts.count}}
@@ -50,11 +50,11 @@
                 {{review.requester}}
             <br>
                 <i class="fa fa-fw fa-calendar"></i> Requested on:
-                {{review.created}}
+                <time datetime="{{ review.created|isotime }}">{{ review.created }}</time>
             {% if review.due_date %}
             <br>
                 <i class="fa fa-fw fa-calendar"></i> Due date:
-                {{review.due_date}}
+                <time datetime="{{ review.due_date|isotime }}">{{ review.due_date }}</time>
             {% endif %}
             </div>
             </div>
@@ -70,6 +70,7 @@
           <li role="presentation" class="{% if active_tab == 'checks'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_checks' review.id %}" role="tab"><i class="fa fa-check-square-o"></i> Validation</a></li>
           <li role="presentation" class="{% if active_tab == 'impact'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_impact' review.id %}" role="tab"><i class="fa fa-flash"></i> Impact</a></li>
           <li role="presentation" class="{% if active_tab == 'issues'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_issues' review.id %}" role="tab"><i class="fa fa-exclamation-circle"></i> Issues</a></li>
+          <li role="presentation" class="{% if active_tab == 'supersedes'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_supersedes' review.id %}" role="tab"><i class="fa fa-clone"></i> Supersedes</a></li>
         </ul>
 
         <div class="tab-content">

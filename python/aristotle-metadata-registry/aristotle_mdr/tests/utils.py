@@ -1,5 +1,4 @@
 from typing import List, Dict
-from django import VERSION as django_version
 import attr
 import datetime
 import random
@@ -8,6 +7,7 @@ import string
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.core.files.base import ContentFile
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
@@ -18,9 +18,11 @@ from django_celery_results.models import TaskResult
 from django_tools.unittest_utils.BrowserDebug import debug_response
 
 from aristotle_mdr.contrib.reviews.models import ReviewRequest
+from aristotle_mdr.downloader import Downloader
 
-from time import sleep
+from time import sleep, process_time
 import random
+
 
 def wait_for_signal_to_fire(seconds=1):
     sleep(seconds)
@@ -50,10 +52,10 @@ def get_management_forms(item, slots=False, identifiers=False, item_is_model=Fal
     if hasattr(item, 'serialize_weak_entities'):
         weak = item.serialize_weak_entities
         for entity in weak:
-            d['%s-TOTAL_FORMS'%entity[0]] = 0
-            d['%s-INITIAL_FORMS'%entity[0]] = 0
-            d['%s-MIN_NUM_FORMS'%entity[0]] = 0
-            d['%s-MAX_NUM_FORMS'%entity[0]] = 1000
+            d['%s-TOTAL_FORMS' % entity[0]] = 0
+            d['%s-INITIAL_FORMS' % entity[0]] = 0
+            d['%s-MIN_NUM_FORMS' % entity[0]] = 0
+            d['%s-MAX_NUM_FORMS' % entity[0]] = 1000
 
     add_through_forms = False
     if not item_is_model:
@@ -116,14 +118,16 @@ def get_json_from_response(response):
 # This isn't an actual TestCase, we'll just pretend it is
 class ManagedObjectVisibility(object):
     def setUp(self):
+        self.steward_org_1 = models.StewardOrganisation.objects.create(name="Test SO")
         self.ra = models.RegistrationAuthority.objects.create(
             name="Test RA",
             definition="My RA",
             public_state=models.STATES.qualified,
-            locked_state=models.STATES.candidate
+            locked_state=models.STATES.candidate,
+            stewardship_organisation=self.steward_org_1,
         )
 
-        self.wg = models.Workgroup.objects.create(name="Test WG", definition="My WG")
+        self.wg = models.Workgroup.objects.create(name="Test WG", definition="My WG", stewardship_organisation=self.steward_org_1)
         #RAFIX self.wg.registrationAuthorities.add(self.ra)
 
     def test_object_is_public(self):
@@ -401,12 +405,12 @@ class ManagedObjectVisibility(object):
 
     def test_object_submitter_can_view(self):
         # make editor for wg1
-        wg1 = models.Workgroup.objects.create(name="Test WG 1")
+        wg1 = models.Workgroup.objects.create(name="Test WG 1", stewardship_organisation=self.steward_org_1)
         e1 = get_user_model().objects.create_user('editor1@example.com', 'editor1')
         wg1.giveRoleToUser('submitter', e1)
 
         # make editor for wg2
-        wg2 = models.Workgroup.objects.create(name="Test WG 2")
+        wg2 = models.Workgroup.objects.create(name="Test WG 2", stewardship_organisation=self.steward_org_1)
         e2 = get_user_model().objects.create_user('editor2@example.com', 'editor2')
         wg2.giveRoleToUser('submitter', e2)
 
@@ -451,12 +455,12 @@ class ManagedObjectVisibility(object):
         self.ra.registrars.add(registrar)
 
         # make editor for wg1
-        wg1 = models.Workgroup.objects.create(name="Test WG 1")
+        wg1 = models.Workgroup.objects.create(name="Test WG 1", stewardship_organisation=self.steward_org_1)
         e1 = get_user_model().objects.create_user('editor1@example.com', 'editor1')
         wg1.giveRoleToUser('submitter', e1)
 
         # make editor for wg2
-        wg2 = models.Workgroup.objects.create(name="Test WG 2")
+        wg2 = models.Workgroup.objects.create(name="Test WG 2", stewardship_organisation=self.steward_org_1)
         e2 = get_user_model().objects.create_user('editor2@example.com', 'editor2')
         wg2.giveRoleToUser('submitter', e2)
 
@@ -496,9 +500,14 @@ class LoggedInViewPages(object):
     This helps us manage testing across different user types.
     """
     def setUp(self):
-        self.wg1 = models.Workgroup.objects.create(name="Test WG 1", definition="My WG")  # Editor is member
-        self.wg2 = models.Workgroup.objects.create(name="Test WG 2", definition="My WG")
-        self.ra = models.RegistrationAuthority.objects.create(name="Test RA", definition="My WG")
+        self.steward_org_1 = models.StewardOrganisation.objects.create(
+            name='Org 1',
+            description="1",
+        )
+        
+        self.wg1 = models.Workgroup.objects.create(name="Test WG 1", definition="My WG", stewardship_organisation=self.steward_org_1)  # Editor is member
+        self.wg2 = models.Workgroup.objects.create(name="Test WG 2", definition="My WG", stewardship_organisation=self.steward_org_1)
+        self.ra = models.RegistrationAuthority.objects.create(name="Test RA", definition="My WG", stewardship_organisation=self.steward_org_1)
         #RAFIX self.wg1.registrationAuthorities.add(self.ra)
         self.wg1.save()
 
@@ -643,14 +652,13 @@ class LoggedInViewPages(object):
         # This is useful when testing async code.
         # If updates aren't done in 1+2+3+4= 10seconds, then there is a problem.
         self.assertEqual(*args)
-        return
-        for i in range(1,5):
+        for i in range(1, 5):
             try:
                 self.assertEqual(*args)
                 break
             except:
-                print('failed, keep trying - %s',i)
-                sleep(i) # sleep for progressively longer, just to give it a fighting chance to finish.
+                print('failed, keep trying - %s', i)
+                sleep(i)  # sleep for progressively longer, just to give it a fighting chance to finish.
         self.assertEqual(*args)
 
 
@@ -810,8 +818,19 @@ class WizardTestUtils:
         return self.post_direct_to_wizard(updated_datalist, url, step_names)
 
 
+class TimingTestUtils:
+
+    def start_timer(self):
+        self.start = process_time()
+
+    def end_timer(self, event: str = 'Event'):
+        end = process_time()
+        total = end - self.start
+        print('{} took {}s'.format(event, total))
+
+
 class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils,
-                         WizardTestUtils, FormsetTestUtils):
+                         WizardTestUtils, FormsetTestUtils, TimingTestUtils):
     """Combination of the above 3 utils plus some aristotle specific utils"""
 
     def favourite_item(self, user, item):
@@ -912,6 +931,15 @@ class MockManagementForm(object):
         return base
 
 
+class FakeDownloader(Downloader):
+    download_type = 'fake'
+    file_extension = 'fak'
+    label = 'FAKE'
+
+    def create_file(self):
+        return ContentFile('')
+
+
 class AsyncResultMock:
     """
     This mock AsyncResult class will replace celery's AsyncResult class to facilitate ready and status features
@@ -968,6 +996,7 @@ def store_taskresult(status='SUCCESS'):
     )
     tr.save()
     return tr
+
 
 def get_download_result(iid):
     """

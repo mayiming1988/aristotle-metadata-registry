@@ -1,5 +1,3 @@
-from django.contrib.contenttypes.models import ContentType
-from django.http import HttpResponseForbidden
 from django.core.exceptions import FieldDoesNotExist
 from rest_framework.exceptions import PermissionDenied, ParseError
 

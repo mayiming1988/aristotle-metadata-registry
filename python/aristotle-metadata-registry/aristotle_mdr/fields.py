@@ -3,7 +3,7 @@ Concept model relations
 -----------------------
 
 These are direct reimplementations of Django model relations,
-at the moment they onyl exist to make permissions-based filtering easier for
+at the moment they only exist to make permissions-based filtering easier for
 the GraphQL codebase. However, in future these may add additional functionality
 such as automatically applying certain permissions to ensure users only
 retrieve the right objects.
@@ -27,12 +27,29 @@ from django.db.models.fields import (
 )
 
 from django.forms import EmailField as EmailFormField
+from django.contrib.contenttypes.fields import GenericRelation, ReverseGenericManyToOneDescriptor
+from django.contrib.contenttypes.models import ContentType
 
 from constrainedfilefield.fields import ConstrainedImageField
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from PIL import Image
 import io
 import os
+
+
+class ConceptGenericRelation(GenericRelation):
+    """
+    Force relations on concept and subclasses to ONLY use the concept content type.
+    """
+    def get_content_type(self):
+        """
+        Return the content type associated with this field's model.
+        """
+        from aristotle_mdr.models import _concept
+        return ContentType.objects.get_for_model(
+            _concept,
+            for_concrete_model=self.for_concrete_model
+        )
 
 
 class ConceptOneToOneRel(OneToOneRel):
@@ -115,10 +132,13 @@ class ConvertedConstrainedImageField(ConstrainedImageField):
             charset=None
         )
 
+        im.close()
+
         return imagefile
 
 
 class LowerEmailFormField(EmailFormField):
+    is_hidden = False
 
     def clean(self, value):
         if value is not None:

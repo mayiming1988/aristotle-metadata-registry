@@ -1,3 +1,4 @@
+from typing import Optional, List
 import datetime
 from io import StringIO
 
@@ -5,6 +6,8 @@ from django.core.management import call_command
 
 from celery import shared_task, Task
 from celery.utils.log import get_task_logger
+
+from aristotle_mdr.utils.download import get_download_class
 
 logger = get_task_logger(__name__)
 
@@ -15,19 +18,10 @@ def run_django_command(cmd, *args, **kwargs):
     call_command(cmd, stdout=out, stderr=err, **kwargs)
     err.seek(0)
     out.seek(0)
-    message = (
-"""Result:
-
-{out}
-
-Errors:
-
-{err}
-"""
-).format(
-    err=str(err.read()) or "None",
-    out=str(out.read())
-)
+    message = 'Result:\n\n{out}\n\n{err}'.format(
+        err=str(err.read()) or "None",
+        out=str(out.read())
+    )
     logger.debug(message)
     return message
 
@@ -43,12 +37,7 @@ class AristotleTask(Task):
 def reindex_task(self, *args, **kwargs):
     meta = {"requester": kwargs['requester'], "start_date": datetime.datetime.now()}
     self.update_state(meta=meta, state="STARTED")
-    # from time import sleep
-    # sleep(30)
-    # self.update_state(meta=meta, state="DOING")
-    # from time import sleep
-    # sleep(30)
-    meta.update({"result": run_django_command('rebuild_index', interactive=False)})
+    meta.update({"result": run_django_command('update_index', interactive=False)})
     return meta
 
 
@@ -61,7 +50,7 @@ def loadhelp_task(*args, **kwargs):
 
 
 @shared_task(name='fire_async_signal')
-def fire_async_signal(namespace, signal_name, message = {}):
+def fire_async_signal(namespace, signal_name, message={}):
     from django.utils.module_loading import import_string
     import_string("%s.%s" % (namespace, signal_name))(message)
 
@@ -73,7 +62,52 @@ def update_search_index(action, sender, instance, **kwargs):
     instance = apps.get_model(instance['app_label'], instance['model_name']).objects.filter(pk=instance['pk']).first()
     processor = apps.get_app_config('haystack').signal_processor
     if action == "save":
-        logger.critical("UPDATING INDEX FOR {}".format(instance))
+        logger.debug("UPDATING INDEX FOR {}".format(instance))
         processor.handle_save(sender, instance, **kwargs)
     elif action == "delete":
         processor.handle_delete(sender, instance, **kwargs)
+
+
+@shared_task(name='download')
+def download(download_type: str, item_ids: List[int], user_id: int, options={}) -> Optional[str]:
+    dl_class = get_download_class(download_type)
+
+    if dl_class is not None:
+        # Instanciate downloader class
+        downloader = dl_class(item_ids, user_id, options)
+        # Get file url
+        return downloader.download()
+
+    raise LookupError('Requested Donwloader class could not be found')
+
+
+@shared_task(name='send_sandbox_notification_emails')
+def send_sandbox_notification_emails(emails_list, user_email, sandbox_access_url):
+
+    from django.core.mail import send_mail
+
+    # Send a separate email to each email address:
+    for email in emails_list:
+        send_mail(
+            'Sandbox Access',
+            'Hello there, to access my Sandbox please use the following URL: ' + sandbox_access_url,
+            user_email,
+            [email]
+        )
+
+
+@shared_task(name='send_notification_email')
+def send_notification_email(recipient, message):
+    from django.core.mail import send_mail
+    from django.conf import settings
+
+    # TODO: CHECK IF THIS SETTING WORKS IN PRODUCTION ENVIRONMENT:
+
+    from_email = settings.DEFAULT_FROM_EMAIL
+
+    send_mail(
+        'Notification',
+        message,
+        from_email,
+        [recipient]
+    )

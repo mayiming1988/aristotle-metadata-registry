@@ -1,17 +1,28 @@
+from typing import List, Tuple, Union, Iterable
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse
 from django.db import models, transaction
 from django.db.models import Q
+from django.db.models.query import QuerySet
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver, Signal
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
 
-from model_utils.models import TimeStampedModel
 from model_utils import Choices, FieldTracker
+from model_utils.models import TimeStampedModel
 from aristotle_mdr.contrib.async_signals.utils import fire
+from aristotle_mdr.utils.model_utils import (
+    baseAristotleObject,
+    ManagedItem,
+    aristotleComponent,
+    discussionAbstract,
+    AbstractValue,
+    DedBaseThrough,
+)
 import uuid
 
 import reversion  # import revisions
@@ -36,20 +47,29 @@ from .fields import (
     ConceptForeignKey,
     ConceptManyToManyField,
     ShortTextField,
-    ConvertedConstrainedImageField
+    ConvertedConstrainedImageField,
+    ConceptGenericRelation
 )
 
 from .managers import (
-    MetadataItemManager, ConceptManager,
+    ConceptManager,
     ReviewRequestQuerySet, WorkgroupQuerySet,
     RegistrationAuthorityQuerySet,
-    StatusQuerySet
+    StatusQuerySet, UtilsManager,
+    SupersedesManager, ProposedSupersedesManager
 )
 
+from aristotle_mdr.contrib.groups.base import (
+    AbstractGroup,
+    AbstractMembership,
+)
+
+from aristotle_mdr.contrib.groups import managers
+
 import logging
+
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
-
 
 """
 This is the core modelling for Aristotle mapping ISO/IEC 11179 classes to Python classes/Django models.
@@ -58,7 +78,6 @@ Docstrings are copied directly from the ISO/IEC 11179-3 documentation in their o
 References to the originals is kept where possible using brackets and the dotted section numbers -
 Eg. explanatory_comment (8.1.2.2.3.4)
 """
-
 
 # 11179 States
 # When used these MUST be used as IntegerFields to allow status comparison
@@ -74,77 +93,74 @@ STATES = Choices(
     (8, 'retired', _('Retired')),
 )
 
-
 VERY_RECENTLY_SECONDS = 15
-
 
 concept_visibility_updated = Signal(providing_args=["concept"])
 
 
-class baseAristotleObject(TimeStampedModel):
+class StewardOrganisation(AbstractGroup):
+    # objects = managers.AbstractGroupQuerySet.as_manager()
+
+    class Meta:
+        verbose_name = "Steward Organisation"
+
+    roles = Choices(
+        ('admin', _('Admin')),
+        ('steward', _('Steward')),
+        ('member', _('Member')),
+    )
+    owner_roles = [roles.admin]
+    new_member_role = roles.member
+
+    class Permissions:
+        @classmethod
+        def can_view_group(cls, user, group=None):
+            return group.state in group.active_states
+
+    role_permissions = {
+        "view_group": [Permissions.can_view_group],
+        "manage_workgroups": [roles.admin],
+        "publish_objects": [roles.admin, roles.steward],
+        "manage_regstration_authorities": [roles.admin],
+        "edit_group_details": [roles.admin],
+        "edit_members": [roles.admin],
+        "invite_member": [roles.admin],
+        "manage_managed_items": [roles.admin, roles.steward],
+        "manage_collections": [roles.admin, roles.steward],
+        "list_workgroups": [roles.admin, AbstractGroup.Permissions.is_member],
+    }
+    states = Choices(
+        ('active', _('Active')),
+        ('archived', _('Deactivated & Visible')),
+        ('hidden', _('Deactivated & Hidden')),
+    )
+
+    active_states = [
+        states.active,
+    ]
+    visible_states = [
+        states.active, states.archived,
+    ]
+
     uuid = models.UUIDField(
-        help_text=_("Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries"),
         unique=True, default=uuid.uuid1, editable=False, null=False
     )
-    name = ShortTextField(
-        help_text=_("The primary name used for human identification purposes.")
-    )
-    definition = RichTextField(
+    description = RichTextField(
         _('definition'),
         help_text=_("Representation of a concept by a descriptive statement "
                     "which serves to differentiate it from related concepts. (3.2.39)")
     )
-    objects = MetadataItemManager()
 
-    class Meta:
-        # So the url_name works for items we can't determine
-        verbose_name = "item"
-        # Can't be abstract as we need unique app wide IDs.
-        abstract = True
-
-    def was_modified_very_recently(self):
-        return self.modified >= (
-            timezone.now() - datetime.timedelta(seconds=VERY_RECENTLY_SECONDS)
+    def get_absolute_url(self):
+        return reverse(
+            "aristotle_mdr:stewards:group:detail",
+            args=[self.slug]
         )
 
-    def was_modified_recently(self):
-        return self.modified >= timezone.now() - datetime.timedelta(days=1)
 
-    was_modified_recently.admin_order_field = 'modified'  # type: ignore
-    was_modified_recently.boolean = True  # type: ignore
-    was_modified_recently.short_description = 'Modified recently?'  # type: ignore
-
-    def description_stub(self):
-        from django.utils.html import strip_tags
-        d = strip_tags(self.definition)
-        if len(d) > 150:
-            d = d[0:150] + "..."
-        return d
-
-    def __str__(self):
-        return "{name}".format(name=self.name)
-
-    # Defined so we can access it during templates.
-    @classmethod
-    def get_verbose_name(cls):
-        return cls._meta.verbose_name.title()
-
-    @classmethod
-    def get_verbose_name_plural(cls):
-        return cls._meta.verbose_name_plural.title()
-
-    def can_edit(self, user):
-        # This should always be overridden
-        raise NotImplementedError  # pragma: no cover
-
-    def can_view(self, user):
-        # This should always be overridden
-        raise NotImplementedError  # pragma: no cover
-
-    @classmethod
-    def meta(self):
-        # I know what I'm doing, get out the way.
-        return self._meta
+class StewardOrganisationMembership(AbstractMembership):
+    group_class = StewardOrganisation
+    group_kwargs = {"to_field": "uuid"}
 
 
 class unmanagedObject(baseAristotleObject):
@@ -160,19 +176,6 @@ class unmanagedObject(baseAristotleObject):
     @property
     def item(self):
         return self
-
-
-class aristotleComponent(models.Model):
-    class Meta:
-        abstract = True
-
-    ordering_field = 'order'
-
-    def can_edit(self, user):
-        return self.parentItem.can_edit(user)
-
-    def can_view(self, user):
-        return self.parentItem.can_view(user)
 
 
 class registryGroup(unmanagedObject):
@@ -237,7 +240,9 @@ class RegistrationAuthority(Organization):
     (8.1.5.1) association class.
     """
     objects = RegistrationAuthorityQuerySet.as_manager()
-    template = "aristotle_mdr/organization/registrationAuthority.html"
+    stewardship_organisation = models.ForeignKey(StewardOrganisation, to_field="uuid")
+    template = "aristotle_mdr/organization/registration_authority/home.html"
+
     active = models.IntegerField(
         choices=RA_ACTIVE_CHOICES,
         default=RA_ACTIVE_CHOICES.active,
@@ -368,10 +373,9 @@ class RegistrationAuthority(Organization):
 
         revision_message = _(
             "Cascade registration of item '%(name)s' (id:%(iid)s)\n"
-        ) % {
-            'name': item.name,
-            'iid': item.id
-        }
+        ) % {'name': item.name,
+             'iid': item.id}
+
         revision_message = revision_message + kwargs.get('changeDetails', "")
         seen_items = {'success': [], 'failed': []}
 
@@ -404,8 +408,7 @@ class RegistrationAuthority(Organization):
             changeDetails = kwargs.get('changeDetails', "")
             # If registrationDate is None (like from a form), override it with
             # todays date.
-            registrationDate = kwargs.get('registrationDate', None) \
-                or timezone.now().date()
+            registrationDate = kwargs.get('registrationDate', None) or timezone.now().date()
             until_date = kwargs.get('until_date', None)
 
             Status.objects.create(
@@ -439,7 +442,14 @@ class RegistrationAuthority(Organization):
 
     @property
     def members(self):
-        return (self.managers.all() | self.registrars.all()).distinct()
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+
+        reg_pks = list(self.registrars.all().values_list("pk", flat=True))
+        man_pks = list(self.managers.all().values_list("pk", flat=True))
+
+        pks = set(reg_pks + man_pks)
+        return User.objects.filter(pk__in=pks)
 
     @property
     def is_active(self):
@@ -454,13 +464,12 @@ class RegistrationAuthority(Organization):
 def update_registration_authority_states(sender, instance, created, **kwargs):
     if not created:
         if instance.tracker.has_changed('public_state') \
-           or instance.tracker.has_changed('locked_state'):
+                or instance.tracker.has_changed('locked_state'):
             message = (
                 "Registration '{ra}' changed its public or locked status "
                 "level, items registered by this authority may have stale "
                 "visiblity states and need to be manually updated."
             ).format(ra=instance.name)
-            logger.critical(message)
 
 
 class Workgroup(registryGroup):
@@ -476,6 +485,7 @@ class Workgroup(registryGroup):
     """
     template = "aristotle_mdr/workgroup.html"
     objects = WorkgroupQuerySet.as_manager()
+    stewardship_organisation = models.ForeignKey(StewardOrganisation, to_field="uuid")
     archived = models.BooleanField(
         default=False,
         help_text=_("Archived workgroups can no longer have new items or "
@@ -516,12 +526,20 @@ class Workgroup(registryGroup):
 
     @property
     def members(self):
-        return (
-            self.viewers.all() | self.submitters.all() |
-            self.stewards.all() | self.managers.all()
-        ).distinct().order_by('full_name')
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+
+        v_pks = list(self.viewers.all().values_list("pk", flat=True))
+        sub_pks = list(self.submitters.all().values_list("pk", flat=True))
+        stew_pks = list(self.stewards.all().values_list("pk", flat=True))
+        man_pks = list(self.managers.all().values_list("pk", flat=True))
+
+        pks = set(v_pks + sub_pks + stew_pks + man_pks)
+        return User.objects.filter(pk__in=pks)
 
     def can_view(self, user):
+        if self.stewardship_organisation.user_has_permission(user, "manage_workgroups"):
+            return True
         return self.members.filter(pk=user.pk).exists()
 
     @property
@@ -570,21 +588,6 @@ class Workgroup(registryGroup):
         self.managers.remove(user)
 
 
-class discussionAbstract(TimeStampedModel):
-    body = models.TextField()
-    author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        null=True
-    )
-
-    class Meta:
-        abstract = True
-
-    @property
-    def edited(self):
-        return self.created != self.modified
-
-
 class DiscussionPost(discussionAbstract):
     workgroup = models.ForeignKey(Workgroup, related_name='discussions')
     title = models.CharField(max_length=256)
@@ -608,12 +611,21 @@ class DiscussionPost(discussionAbstract):
             args=[self.pk]
         )
 
+    def __str__(self):
+        return self.title
+
 
 class DiscussionComment(discussionAbstract):
     post = models.ForeignKey(DiscussionPost, related_name='comments')
 
     class Meta:
         ordering = ['created']
+
+    def get_absolute_url(self):
+        return self.post.get_absolute_url() + '/#comment_' + str(self.id)
+
+    def __str__(self):
+        return self.body
 
 
 # class ReferenceDocument(models.Model):
@@ -637,6 +649,14 @@ class _concept(baseAristotleObject):
     objects = ConceptManager()
     template = "aristotle_mdr/concepts/managedContent.html"
     list_details_template = "aristotle_mdr/helpers/concept_list_details.html"
+    stewardship_organisation = models.ForeignKey(
+        StewardOrganisation, to_field="uuid",
+        null=True, blank=True,
+        related_name="metadata"
+    )
+
+    publication_details = ConceptGenericRelation('aristotle_mdr_publishing.PublicationRecord')
+    version_publication_details = GenericRelation('aristotle_mdr_publishing.VersionPublicationRecord')
 
     workgroup = models.ForeignKey(Workgroup, related_name="items", null=True, blank=True)
     submitter = models.ForeignKey(
@@ -678,13 +698,24 @@ class _concept(baseAristotleObject):
     tracker = FieldTracker()
 
     comparator = comparators.Comparator
-    edit_page_excludes: list = []
-    admin_page_excludes: list = []
+    edit_page_excludes: List[str] = []
+    admin_page_excludes: List[str] = []
+    # List of fields that will only be displayed if 'aristotle_backwards' is
+    # enabled
+    backwards_compatible_fields: List[str] = []
     registerable = True
+    relational_attributes: List[QuerySet]
+    # Used by concept manager with_related in a select_related
+    related_objects: List[str] = []
+    # Fields to build the name from
+    name_suggest_fields: List[str] = []
 
     class Meta:
         # So the url_name works for items we can't determine.
         verbose_name = "item"
+
+    class ReportBuilder:
+        exclude = ('_is_public', '_is_locked')
 
     @property
     def non_cached_fields_changed(self):
@@ -695,10 +726,10 @@ class _concept(baseAristotleObject):
 
     @property
     def changed_fields(self):
-        changed = self.tracker.changed()
-        changed.pop('_is_public', False)
-        changed.pop('_is_locked', False)
-        return changed.keys()
+        # changed = self.tracker.changed()
+        # changed.pop('_is_public', False)
+        # changed.pop('_is_locked', False)
+        return self.tracker.changed()
 
     def can_edit(self, user):
         return _concept.objects.filter(pk=self.pk).editable(user).exists()
@@ -741,7 +772,7 @@ class _concept(baseAristotleObject):
         return url_slugify_concept(self)
 
     @property
-    def registry_cascade_items(self):
+    def registry_cascade_items(self) -> List:
         """
         This returns the items that can be registered along with the this item.
         If a subclass of _concept defines this method, then when an instance
@@ -749,7 +780,7 @@ class _concept(baseAristotleObject):
         instance, all instances returned by this method will all recieve the
         same registration status.
 
-        Reimplementations of this MUST return iterables.
+        Reimplementations of this MUST return lists of concept subclasses.
         """
         return []
 
@@ -777,10 +808,35 @@ class _concept(baseAristotleObject):
             profile__tags__favourites__item=self
         ).distinct()
 
+    @property
+    def editable_by(self):
+        """Returns a list of the users allowed to edit this concept."""
+        from django.contrib.auth import get_user_model
+        query = Q(submitter_in__id=self.workgroup_id) | Q(steward_in__id=self.workgroup_id) | Q(created_items=self)
+        return get_user_model().objects.filter(query).distinct()
+
+    @property
+    def component_fields(self):
+        return [
+            field
+            for field in type(self)._meta.get_fields()
+            if field.is_relation and field.one_to_many and issubclass(field.related_model, MDR.aristotleComponent)
+        ]
+
+    @property
+    def approved_supersedes(self):
+        supersedes = self.superseded_items_relation_set.filter(proposed=False).select_related('older_item')
+        return [ss.older_item for ss in supersedes]
+
+    @property
+    def approved_superseded_by(self):
+        supersedes = self.superseded_by_items_relation_set.filter(proposed=False).select_related('newer_item')
+        return [ss.newer_item for ss in supersedes]
+
     def check_is_public(self, when=timezone.now()):
         """
-            A concept is public if any registration authority
-            has advanced it to a public state in that RA.
+        A concept is public if any registration authority
+        has advanced it to a public state in that RA.
         """
         statuses = self.statuses.all()
         statuses = self.current_statuses(qs=statuses, when=when)
@@ -799,6 +855,7 @@ class _concept(baseAristotleObject):
 
     def is_public(self):
         return self._is_public
+
     is_public.boolean = True  # type: ignore
     is_public.short_description = 'Public'  # type: ignore
 
@@ -831,16 +888,14 @@ class _concept(baseAristotleObject):
 
         return qs.current(when)
 
-    def get_download_items(self):
+    def get_download_items(self) -> List[Union[models.Model, QuerySet]]:
         """
         When downloading a concept, extra items can be included for download by
         overriding the ``get_download_items`` method on your item. By default
         this returns an empty list, but can be modified to include any number of
         items that inherit from ``_concept``.
 
-        When overriding, each entry in the list must be a two item tuple, with
-        the first entry being the python class of the item or items being
-        included, and the second being the queryset of items to include.
+        When overriding, each entry in the list can be either an item or a queryset
         """
         return []
 
@@ -871,6 +926,9 @@ class concept(_concept):
 
 
 class SupersedeRelationship(TimeStampedModel):
+    # Whether this relationship is proposed by a review,
+    # or an actual approved relation
+    proposed = models.BooleanField(default=False)
     older_item = ConceptForeignKey(
         _concept,
         related_name='superseded_by_items_relation_set',
@@ -886,6 +944,16 @@ class SupersedeRelationship(TimeStampedModel):
         help_text=_("The date the superseding relationship became effective."),
         blank=True, null=True
     )
+    review = ConceptForeignKey(
+        'aristotle_mdr_review_requests.ReviewRequest',
+        null=True,
+        default=None,
+        related_name='supersedes'
+    )
+
+    objects = models.Manager()
+    approved = SupersedesManager()  # Only non proposed relationships can be retrieved here
+    proposed_objects = ProposedSupersedesManager()  # Only proposed objects can be retrieved here
 
 
 REVIEW_STATES = Choices(
@@ -894,50 +962,6 @@ REVIEW_STATES = Choices(
     (10, 'accepted', _('Accepted')),
     (15, 'rejected', _('Rejected')),
 )
-
-
-class ReviewRequest(TimeStampedModel):
-    objects = ReviewRequestQuerySet.as_manager()
-    concepts = models.ManyToManyField(_concept, related_name="review_requests")
-    registration_authority = models.ForeignKey(
-        RegistrationAuthority,
-        help_text=_("The registration authority the requester wishes to endorse the metadata item")
-    )
-    requester = models.ForeignKey(settings.AUTH_USER_MODEL, help_text=_("The user requesting a review"), related_name='requested_reviews')
-    message = models.TextField(blank=True, null=True, help_text=_("An optional message accompanying a request, this will accompany the approved registration status"))
-    reviewer = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, help_text=_("The user performing a review"), related_name='reviewed_requests')
-    response = models.TextField(blank=True, null=True, help_text=_("An optional message responding to a request"))
-    status = models.IntegerField(
-        choices=REVIEW_STATES,
-        default=REVIEW_STATES.submitted,
-        help_text=_('Status of a review')
-    )
-    state = models.IntegerField(
-        choices=STATES,
-        help_text=_("The state at which a user wishes a metadata item to be endorsed")
-    )
-    registration_date = models.DateField(
-        _('Date registration effective'),
-        help_text=_("date and time you want the metadata to be registered from")
-    )
-    cascade_registration = models.IntegerField(
-        choices=[(0, _('No')), (1, _('Yes'))],
-        default=0,
-        help_text=_("Update the registration of associated items")
-    )
-
-    def get_absolute_url(self):
-        return reverse(
-            "aristotle:userReviewDetails",
-            kwargs={'review_id': self.pk}
-        )
-
-    def __str__(self):
-        return "Review of {count} items as {state} in {ra} registraion authority".format(
-            count=self.concepts.count(),
-            state=self.get_state_display(),
-            ra=self.registration_authority,
-        )
 
 
 class Status(TimeStampedModel):
@@ -965,7 +989,8 @@ class Status(TimeStampedModel):
         _('Date registration expires'),
         blank=True,
         null=True,
-        help_text=_("date and time the Registration of an Administered_Item by a Registration_Authority in a registry is no longer effective")
+        help_text=_(
+            "date and time the Registration of an Administered_Item by a Registration_Authority in a registry is no longer effective")
     )
     tracker = FieldTracker()
 
@@ -1005,6 +1030,12 @@ class ObjectClass(concept):
     class Meta:
         verbose_name_plural = "Object Classes"
 
+    @property
+    def relational_attributes(self):
+        return [
+            self.dataelementconcept_set.all(),
+        ]
+
 
 class Property(concept):
     """
@@ -1016,8 +1047,14 @@ class Property(concept):
     class Meta:
         verbose_name_plural = "Properties"
 
+    @property
+    def relational_attributes(self):
+        return [
+            self.dataelementconcept_set.all(),
+        ]
 
-class Measure(unmanagedObject):
+
+class Measure(ManagedItem):
     """
     Measure_Class is a class each instance of which models a measure class (3.2.72),
     a set of equivalent units of measure (3.2.138) that may be shared across multiple
@@ -1026,7 +1063,7 @@ class Measure(unmanagedObject):
 
     NB. A measure is not defined as a concept in ISO 11179 (11.4.2.2)
     """
-    template = "aristotle_mdr/unmanaged/measure.html"
+    template = "aristotle_mdr/manageditems/measure.html"
 
 
 class UnitOfMeasure(concept):
@@ -1074,12 +1111,20 @@ class ConceptualDomain(concept):
         ('value_meaning', 'valuemeaning_set'),
     ]
 
+    @property
+    def relational_attributes(self):
+        return [
+            self.dataelementconcept_set.all(),
+            self.valuedomain_set.all()
+        ]
+
 
 class ValueMeaning(aristotleComponent):
     """
     Value_Meaning is a class each instance of which models a value meaning (3.2.141),
     which provides semantic content of a possible value (11.3.2.3.2).
     """
+
     class Meta:
         ordering = ['order']
 
@@ -1140,6 +1185,8 @@ class ValueDomain(concept):
         ('permissible_values', 'permissiblevalue_set'),
         ('supplementary_values', 'supplementaryvalue_set'),
     ]
+    clone_fields = ('permissiblevalue_set', 'supplementaryvalue_set')
+    backwards_compatible_fields = ['classification_scheme', 'representation_class']
 
     data_type = ConceptForeignKey(  # 11.3.2.5.2.1
         DataType,
@@ -1158,7 +1205,7 @@ class ValueDomain(concept):
         blank=True,
         null=True,
         help_text=_('maximum number of characters available to represent the Data Element value')
-        )
+    )
     unit_of_measure = ConceptForeignKey(  # 11.3.2.5.2.3
         UnitOfMeasure,
         blank=True,
@@ -1172,6 +1219,20 @@ class ValueDomain(concept):
         null=True,
         help_text=_('The Conceptual Domain that this Value Domain which provides representation.'),
         verbose_name='Conceptual Domain'
+    )
+    classification_scheme = ConceptForeignKey(
+        'aristotle_mdr_backwards.ClassificationScheme',
+        blank=True,
+        null=True,
+        related_name='valueDomains',
+        verbose_name='Classification Scheme',
+    )
+    representation_class = ConceptForeignKey(
+        'aristotle_mdr_backwards.RepresentationClass',
+        blank=True,
+        null=True,
+        related_name='value_domains',
+        verbose_name='Representation Class',
     )
     description = models.TextField(
         _('description'),
@@ -1192,62 +1253,11 @@ class ValueDomain(concept):
     def supplementaryValues(self):
         return self.supplementaryvalue_set.all()
 
-
-class AbstractValue(aristotleComponent):
-    """
-    Implementation note: Not the best name, but there will be times to
-    subclass a "value" when its not just a permissible value.
-    """
-
-    class Meta:
-        abstract = True
-        ordering = ['order']
-    value = ShortTextField(  # 11.3.2.7.2.1 - Renamed from permitted value for abstracts
-        help_text=_("the actual value of the Value")
-    )
-    meaning = ShortTextField(  # 11.3.2.7.1
-        help_text=_("A textual designation of a value, where a relation to a Value meaning doesn't exist")
-    )
-    value_meaning = models.ForeignKey(  # 11.3.2.7.1
-        ValueMeaning,
-        blank=True,
-        null=True,
-        help_text=_('A reference to the value meaning that this designation relates to')
-    )
-    # Below will generate exactly the same related name as django, but reversion-compare
-    # needs an explicit related_name for some actions.
-    valueDomain = ConceptForeignKey(
-        ValueDomain,
-        related_name="%(class)s_set",
-        help_text=_("Enumerated Value Domain that this value meaning relates to"),
-        verbose_name='Value Domain'
-    )
-    order = models.PositiveSmallIntegerField("Position")
-    start_date = models.DateField(
-        blank=True,
-        null=True,
-        help_text=_('Date at which the value became valid')
-    )
-    end_date = models.DateField(
-        blank=True,
-        null=True,
-        help_text=_('Date at which the value ceased to be valid')
-    )
-
-    def __str__(self):
-        return "%s: %s - %s" % (
-            self.valueDomain.name,
-            self.value,
-            self.meaning
-        )
-
     @property
-    def parentItem(self):
-        return self.valueDomain
-
-    @property
-    def parentItemId(self):
-        return self.valueDomain_id
+    def relational_attributes(self):
+        return [
+            self.dataelement_set.all(),
+        ]
 
 
 class PermissibleValue(AbstractValue):
@@ -1255,7 +1265,6 @@ class PermissibleValue(AbstractValue):
     Permissible Value is a class each instance of which models a permissible value (3.2.96),
     the designation (3.2.51) of a value meaning (3.2.141).
     """
-    pass
 
 
 class SupplementaryValue(AbstractValue):
@@ -1291,6 +1300,13 @@ class DataElementConcept(concept):
         verbose_name='Conceptual Domain'
     )
 
+    related_objects = [
+        'objectClass',
+        'property'
+    ]
+
+    name_suggest_fields = ['objectClass', 'property']
+
     @property_
     def registry_cascade_items(self):
         out = []
@@ -1302,8 +1318,14 @@ class DataElementConcept(concept):
 
     def get_download_items(self):
         return [
-            (ObjectClass, ObjectClass.objects.filter(dataelementconcept=self)),
-            (Property, Property.objects.filter(dataelementconcept=self)),
+            self.objectClass,
+            self.property,
+        ]
+
+    @property_
+    def relational_attributes(self):
+        return [
+            self.dataelement_set.all(),
         ]
 
 
@@ -1311,7 +1333,8 @@ class DataElementConcept(concept):
 # to "concept".
 class DataElement(concept):
     """
-    Unit of data that is considered in context to be indivisible (3.2.28)"""
+    Unit of data that is considered in context to be indivisible (3.2.28)
+    """
 
     template = "aristotle_mdr/concepts/dataElement.html"
     list_details_template = "aristotle_mdr/concepts/list_details/data_element.html"
@@ -1321,7 +1344,8 @@ class DataElement(concept):
         verbose_name="Data Element Concept",
         blank=True,
         null=True,
-        help_text=_("binds with a Value_Domain that describes a set of possible values that may be recorded in an instance of the Data_Element")
+        help_text=_(
+            "binds with a Value_Domain that describes a set of possible values that may be recorded in an instance of the Data_Element")
     )
     valueDomain = ConceptForeignKey(  # 11.5.3.1
         ValueDomain,
@@ -1330,6 +1354,14 @@ class DataElement(concept):
         null=True,
         help_text=_("binds with a Data_Element_Concept that provides the meaning for the Data_Element")
     )
+
+    related_objects = [
+        'valueDomain',
+        'dataElementConcept__objectClass',
+        'dataElementConcept__property'
+    ]
+
+    name_suggest_fields = ['dataElementConcept', 'valueDomain']
 
     @property
     def registry_cascade_items(self):
@@ -1342,12 +1374,16 @@ class DataElement(concept):
         return out
 
     def get_download_items(self):
-        return [
-            (ObjectClass, ObjectClass.objects.filter(dataelementconcept=self.dataElementConcept)),
-            (Property, Property.objects.filter(dataelementconcept=self.dataElementConcept)),
-            (DataElementConcept, DataElementConcept.objects.filter(dataelement=self)),
-            (ValueDomain, ValueDomain.objects.filter(dataelement=self)),
+        items = [
+            self.dataElementConcept,
+            self.valueDomain
         ]
+        if self.dataElementConcept:
+            items += [
+                self.dataElementConcept.objectClass,
+                self.dataElementConcept.property,
+            ]
+        return items
 
 
 class DataElementDerivation(concept):
@@ -1357,41 +1393,32 @@ class DataElementDerivation(concept):
     output :model:`aristotle_mdr.DataElement`\s (3.2.33)
     """
 
-    edit_page_excludes = ['inputs', 'derives']
+    # edit_page_excludes = ['inputs', 'derives']
+    serialize_weak_entities = [
+        ('inputs', 'dedinputsthrough_set'),
+        ('derives', 'dedderivesthrough_set'),
+    ]
 
-    derives = ConceptManyToManyField(  # 11.5.3.5
-        DataElement,
-        through='DedDerivesThrough',
-        related_name="derived_from",
-        blank=True,
-        null=True,
-        help_text=_("binds with one or more output Data_Elements that are the result of the application of the Data_Element_Derivation.")
-    )
-    inputs = ConceptManyToManyField(  # 11.5.3.4
-        DataElement,
-        through='DedInputsThrough',
-        related_name="input_to_derivation",
-        blank=True,
-        help_text=_("binds one or more input Data_Element(s) with a Data_Element_Derivation.")
-    )
+    @property
+    def input_data_elements(self):
+        return DataElement.objects.filter(dedinputsthrough__data_element_derivation=self)
+
+    @property
+    def derived_data_elements(self):
+        return DataElement.objects.filter(dedderivesthrough__data_element_derivation=self)
+
+    @property
+    def inputs(self):
+        return self.dedinputsthrough_set.all()
+
+    @property
+    def derives(self):
+        return self.dedderivesthrough_set.all()
+
     derivation_rule = models.TextField(
         blank=True,
         help_text=_("text of a specification of a data element Derivation_Rule")
     )
-
-
-class DedBaseThrough(models.Model):
-    """
-    Abstract Class for Data Element Derivation Manay to Many through tables with ordering
-    """
-
-    data_element_derivation = models.ForeignKey(DataElementDerivation, on_delete=models.CASCADE)
-    data_element = models.ForeignKey(DataElement, on_delete=models.CASCADE)
-    order = models.PositiveSmallIntegerField("Position")
-
-    class Meta:
-        abstract = True
-        ordering = ['order']
 
 
 class DedDerivesThrough(DedBaseThrough):
@@ -1405,6 +1432,9 @@ class DedInputsThrough(DedBaseThrough):
 # Create a 1-1 user profile so we don't need to extend user
 # Thanks to http://stackoverflow.com/a/965883/764357
 class PossumProfile(models.Model):
+    """
+    Extension "one-to-one" class of the existing user model
+    """
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         related_name='profile'
@@ -1427,10 +1457,55 @@ class PossumProfile(models.Model):
         null=True,
         height_field='profilePictureHeight',
         width_field='profilePictureWidth',
-        max_upload_size=((1024**2) * 10),  # 10 MB
+        max_upload_size=((1024 ** 2) * 10),  # 10 MB
         content_types=['image/jpg', 'image/png', 'image/bmp', 'image/jpeg'],
         js_checker=True
     )
+    notificationPermissions = JSONField(
+        default={
+            "metadata changes": {
+                "general changes": {
+                    "items in my workgroups": True,
+                    "items I have tagged / favourited": True,
+                    "any items I can edit": True
+                },
+                "superseded": {
+                    "items in my workgroups": True,
+                    "items I have tagged / favourited": True,
+                    "any items I can edit": True
+                },
+                "new items": {
+                    "new items in my workgroups": True
+                },
+            },
+            "registrar": {
+                "item superseded": True,
+                "item registered": True,
+                "item changed status": True,
+                "review request created": True,
+                "review request updated": True
+            },
+            "issues": {
+                "items in my workgroups": True,
+                "items I have tagged / favourited": True,
+                "any items I can edit": True
+            },
+            "discussions": {
+                "new posts": True,
+                "new comments": True
+            },
+            "notification methods": {
+                "email": False,
+                "within aristotle": True
+            }
+        }
+    )
+
+    def get_profile_picture_url(self):
+        return reverse(
+            "aristotle:profile_picture",
+            args=[self.user.pk]
+        )
 
     # Override save for inline creation of objects.
     # http://stackoverflow.com/questions/2813189/django-userprofile-with-unique-foreign-key-in-django-admin
@@ -1447,61 +1522,63 @@ class PossumProfile(models.Model):
     def activeWorkgroup(self):
         return self.savedActiveWorkgroup or None
 
+    def workgroups_for_user(self):
+        # All of the workgroups a user is in
+        v_pks = list(self.user.viewer_in.all().values_list("pk", flat=True))
+        sub_pks = list(self.user.submitter_in.all().values_list("pk", flat=True))
+        stew_pks = list(self.user.steward_in.all().values_list("pk", flat=True))
+        man_pks = list(self.user.workgroup_manager_in.all().values_list("pk", flat=True))
+
+        pks = set(v_pks + sub_pks + stew_pks + man_pks)
+        return Workgroup.objects.filter(pk__in=pks)
+
     @property
     def workgroups(self):
+        # All of the workgroups a user can see
         if self.user.is_superuser:
             return Workgroup.objects.all()
         else:
-            return (
-                self.user.viewer_in.all() |
-                self.user.submitter_in.all() |
-                self.user.steward_in.all() |
-                self.user.workgroup_manager_in.all()
-            ).distinct()
+            return self.workgroups_for_user()
 
     @property
     def myWorkgroups(self):
-        return (
-            self.user.viewer_in.all() |
-            self.user.submitter_in.all() |
-            self.user.steward_in.all() |
-            self.user.workgroup_manager_in.all()
-        ).filter(archived=False).distinct()
+        # All of the workgroups a user can participate in
+        return self.workgroups_for_user().filter(archived=False)
 
     @property
     def myWorkgroupCount(self):
-        # When only a count is required, querying with union is much faster
-        vi = self.user.viewer_in.filter(archived=False)
-        si = self.user.submitter_in.filter(archived=False)
-        sti = self.user.steward_in.filter(archived=False)
-        mi = self.user.workgroup_manager_in.filter(archived=False)
-        return vi.union(si).union(sti).union(mi).count()
+        return self.myWorkgroups.all().count()
 
     @property
     def mySandboxContent(self):
         from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
         return _concept.objects.filter(
-            Q(
-                submitter=self.user,
-                statuses__isnull=True
-            ) & Q(
-                Q(rr_review_requests__isnull=True) | Q(rr_review_requests__status=REVIEW_STATES.revoked)
-            )
+            Q(submitter=self.user,
+              statuses__isnull=True
+              ) & Q(Q(rr_review_requests__isnull=True) |
+                    Q(rr_review_requests__status=REVIEW_STATES.revoked)
+                    )
         )
 
     @property
     def editable_workgroups(self):
         if self.user.is_superuser:
-            return Workgroup.objects.all()
+            return Workgroup.objects.all().order_by('name')
         else:
-            return (
-                self.user.submitter_in.all() |
-                self.user.steward_in.all()
-            ).distinct().filter(archived=False)
+            sub_pks = list(self.user.submitter_in.all().values_list("pk", flat=True))
+            stew_pks = list(self.user.steward_in.all().values_list("pk", flat=True))
+            # man_pks = list(self.user.workgroup_manager_in.all().values_list("pk", flat=True))
+
+            pks = set(sub_pks + stew_pks)  # + man_pks)
+            return Workgroup.objects.filter(pk__in=pks).filter(archived=False).order_by('name')
 
     @property
     def is_registrar(self):
         return perms.user_is_registrar(self.user)
+
+    @property
+    def registrar_count(self):
+        return self.user.registrar_in.count()
 
     @property
     def is_ra_manager(self):
@@ -1520,14 +1597,20 @@ class PossumProfile(models.Model):
 
     @property
     def registrarAuthorities(self):
-        "NOTE: This is a list of Authorities the user is a *registrar* in!."
+        # NOTE: This is a list of Authorities the user is a *registrar* in!.
         if self.user.is_superuser:
-            return RegistrationAuthority.objects.all()
+            return RegistrationAuthority.objects.all().order_by('name')
         else:
-            return self.user.registrar_in.all()
+            return self.user.registrar_in.all().order_by('name')
 
     def is_workgroup_manager(self, wg=None):
         return perms.user_is_workgroup_manager(self.user, wg)
+
+    def is_stewardship_organisation_admin(self, org=None):
+        kwargs = {"user": self.user, "role": "admin"}
+        if org:
+            kwargs["group"] = org
+        return StewardOrganisationMembership.objects.filter(**kwargs).exists()
 
     def is_favourite(self, item):
         from aristotle_mdr.contrib.favourites.models import Favourite
@@ -1591,7 +1674,8 @@ class PossumProfile(models.Model):
 
 class SandboxShare(models.Model):
     uuid = models.UUIDField(
-        help_text=_("Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries"),
+        help_text=_(
+            "Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries"),
         unique=True, default=uuid.uuid1, editable=False, null=False
     )
     profile = models.OneToOneField(
@@ -1602,6 +1686,13 @@ class SandboxShare(models.Model):
         auto_now=True
     )
     emails = JSONField()
+
+    def __str__(self):
+        return str({'uuid': self.uuid,
+                    'profile': self.profile,
+                    'created': self.created,
+                    'emails: ': self.emails
+                    })
 
 
 def create_user_profile(sender, instance, created, **kwargs):
@@ -1625,7 +1716,9 @@ def concept_saved(sender, instance, **kwargs):
         # Don't run during loaddata
         return
     kwargs['changed_fields'] = instance.changed_fields
-    fire("concept_changes.concept_saved", obj=instance, **kwargs)
+    # If the concept saved was not triggered by a superseding action:
+    if not ('modified' in kwargs['changed_fields'] and len(kwargs['changed_fields']) == 1):
+        fire("concept_changes.concept_saved", obj=instance, **kwargs)
 
 
 @receiver(pre_save)
@@ -1641,6 +1734,14 @@ def check_concept_app_label(sender, instance, **kwargs):
         )
 
 
+@receiver(pre_save)
+def update_org_to_match_workgroup(sender, instance, **kwargs):
+    if not issubclass(sender, _concept):
+        return
+    if instance.workgroup is not None:
+        instance.stewardship_organisation = instance.workgroup.stewardship_organisation
+
+
 @receiver(post_save, sender=DiscussionComment)
 def new_comment_created(sender, **kwargs):
     comment = kwargs['instance']
@@ -1652,7 +1753,7 @@ def new_comment_created(sender, **kwargs):
         return  # We don't need to notify a topic poster of an edit.
     if comment.author == post.author:
         return  # We don't need to tell someone they replied to themselves
-    fire("concept_changes.new_comment_created", obj=comment)
+    fire("concept_changes.new_comment_created", obj=comment, **kwargs)
 
 
 @receiver(post_save, sender=DiscussionPost)
@@ -1669,14 +1770,6 @@ def new_post_created(sender, **kwargs):
 @receiver(post_save, sender=Status)
 def states_changed(sender, instance, *args, **kwargs):
     fire("concept_changes.status_changed", obj=instance, **kwargs)
-
-
-@receiver(post_save, sender=ReviewRequest)
-def review_request_changed(sender, instance, *args, **kwargs):
-    if kwargs.get('created'):
-        fire("action_signals.review_request_created", obj=instance, **kwargs)
-    else:
-        fire("action_signals.review_request_updated", obj=instance, **kwargs)
 
 
 @receiver(post_save, sender=SupersedeRelationship)

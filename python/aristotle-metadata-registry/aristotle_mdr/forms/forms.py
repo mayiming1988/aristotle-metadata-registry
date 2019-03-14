@@ -2,16 +2,15 @@ from django import forms
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-from django.forms import ModelForm
+from django.forms import ModelForm, BooleanField
 
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 import aristotle_mdr.models as MDR
-from aristotle_mdr.perms import user_can_edit
 from aristotle_mdr.forms.creation_wizards import UserAwareForm
 from aristotle_mdr.forms.fields import ReviewChangesChoiceField, MultipleEmailField
 from aristotle_mdr.contrib.autocomplete import widgets
+from django_jsonforms.forms import JSONSchemaField
 
-from django.forms.models import modelformset_factory
 
 from .utils import RegistrationAuthorityMixin
 
@@ -139,6 +138,195 @@ class EditUserForm(ModelForm):
         }
 
 
+class NotificationPermissionsForm(forms.Form):
+
+    notifications_json = JSONSchemaField(
+        schema={
+            "type": "object",
+            "title": "Notification Permissions",
+            "properties": {
+                "metadata changes": {
+                    "type": "object",
+                    "title": "Metadata Changes",
+                    "properties": {
+                        "general changes": {
+                            "type": "object",
+                            "title": "",
+                            "description": "Notify me of changes to:",
+                            "properties": {
+                                "items in my workgroups": {
+                                    "title": "items in my workgroups",
+                                    "type": "boolean",
+                                    "format": "checkbox",
+                                    "default": True
+                                },
+                                "items I have tagged / favourited": {
+                                    "title": "items I have tagged / favourited",
+                                    "type": "boolean",
+                                    "format": "checkbox",
+                                    "default": True
+                                },
+                                "any items I can edit": {
+                                    "title": "any items I can edit",
+                                    "type": "boolean",
+                                    "format": "checkbox",
+                                    "default": True
+                                }
+                            }
+                        },
+                        "superseded": {
+                            "type": "object",
+                            "title": "",
+                            "description": "Notify me when the following metadata is superseded:",
+                            "properties": {
+                                "items in my workgroups": {
+                                    "title": "items in my workgroups",
+                                    "type": "boolean",
+                                    "format": "checkbox",
+                                    "default": True
+                                },
+                                "items I have tagged / favourited": {
+                                    "title": "items I have tagged / favourited",
+                                    "type": "boolean",
+                                    "format": "checkbox",
+                                    "default": True
+                                },
+                                "any items I can edit": {
+                                    "title": "any items I can edit",
+                                    "type": "boolean",
+                                    "format": "checkbox",
+                                    "default": True
+                                }
+                            }
+                        },
+                        "new items": {
+                            "type": "object",
+                            "title": "",
+                            "description": "Notify me of new items in my workgroups:",
+                            "properties": {
+                                "new items in my workgroups": {
+                                    "title": "new items in my workgroups",
+                                    "type": "boolean",
+                                    "format": "checkbox",
+                                    "default": True
+                                }
+                            }
+                        }
+                    }
+                },
+                "registrar": {
+                    "type": "object",
+                    "title": "Registrar",
+                    "properties": {
+                        "item superseded": {
+                            "title": "item superseded",
+                            "type": "boolean",
+                            "format": "checkbox",
+                            "default": True
+                        },
+                        "item registered": {
+                            "title": "item registered",
+                            "type": "boolean",
+                            "format": "checkbox",
+                            "default": True
+                        },
+                        "item changed status": {
+                            "title": "item changed status",
+                            "type": "boolean",
+                            "format": "checkbox",
+                            "default": True
+                        },
+                        "review request created": {
+                            "title": "review request created",
+                            "type": "boolean",
+                            "format": "checkbox",
+                            "default": True
+                        },
+                        "review request updated": {
+                            "title": "review request updated",
+                            "type": "boolean",
+                            "format": "checkbox",
+                            "default": True
+                        }
+                    }
+                },
+                "issues": {
+                    "type": "object",
+                    "title": "Issues",
+                    "description": "Notify me of any updates concerning:",
+                    "properties": {
+                        "items in my workgroups": {
+                            "title": "issues of items in my workgroups",
+                            "type": "boolean",
+                            "format": "checkbox",
+                            "default": True
+                        },
+                        "items I have tagged / favourited": {
+                            "title": "issues of items I have tagged / favourited",
+                            "type": "boolean",
+                            "format": "checkbox",
+                            "default": True
+                        },
+                        "any items I can edit": {
+                            "title": "issues of any items I can edit",
+                            "type": "boolean",
+                            "format": "checkbox",
+                            "default": True
+                        }
+                    }
+                },
+                "discussions": {
+                    "type": "object",
+                    "title": "Discussions",
+                    "description": "Notify me of activity related to discussions:",
+                    "properties": {
+                        "new posts": {
+                            "title": "new posts",
+                            "type": "boolean",
+                            "format": "checkbox",
+                            "default": True
+                        },
+                        "new comments": {
+                            "title": "new comments",
+                            "type": "boolean",
+                            "format": "checkbox",
+                            "default": True
+                        }
+                    }
+                },
+                "notification methods": {
+                    "type": "object",
+                    "title": "Notification Methods",
+                    "description": "Notify me using the following methods:",
+                    "properties": {
+                        "email": {
+                            "title": "Email",
+                            "type": "boolean",
+                            "format": "checkbox",
+                            "default": False
+                        },
+                        "within aristotle": {
+                            "title": "Within Aristotle",
+                            "type": "boolean",
+                            "format": "checkbox",
+                            "default": True
+                        }
+                    }
+                }
+            }
+        },
+        options={
+            'theme': 'bootstrap3',
+            'disable_properties': True,
+            'disable_collapse': True,
+            'disable_edit_json': True,
+            'no_additional_properties': True
+        },
+        label=''
+    )
+
+
 class ShareLinkForm(forms.Form):
 
     emails = MultipleEmailField(required=False)
+    notify_new_users_checkbox = BooleanField(label="Notify new people", initial=True, required=False)

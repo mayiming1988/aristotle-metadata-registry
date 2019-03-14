@@ -1,20 +1,13 @@
-import graphene
 from graphene import relay
 from graphene_django.types import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
-from graphene_django.fields import DjangoConnectionField, DjangoListField
-from graphene import Field
-from django.db import models
 
 from aristotle_mdr import models as mdr_models
-from aristotle_mdr.contrib.identifiers import models as ident_models
 from aristotle_mdr.contrib.slots import models as slot_models
 from aristotle_mdr_graphql.fields import AristotleFilterConnectionField, AristotleConceptFilterConnectionField
-from aristotle_mdr_graphql.types import AristotleObjectType
 from aristotle_mdr_graphql.utils import type_from_model, type_from_concept_model, inline_type_from_model
 
 from aristotle_mdr_graphql import resolvers
-from aristotle_mdr_graphql.filterset import ConceptFilterSet
 
 
 WorkgroupNode = type_from_model(mdr_models.Workgroup)
@@ -48,18 +41,20 @@ SupplementaryValueNode = inline_type_from_model(mdr_models.SupplementaryValue)
 
 # Slots and Identifiers
 
-from ..types import ScopedIdentifierNode
 
-SlotNode = type_from_model(slot_models.Slot)
+SlotNode = inline_type_from_model(slot_models.Slot)
+
 
 class ValueMeaningNode(DjangoObjectType):
     class Meta:
         model = mdr_models.ValueMeaning
 
+
 ValueDomainNode = type_from_concept_model(
     mdr_models.ValueDomain,
     resolver = resolvers.ValueDomainResolver()
 )
+
 
 DataElementNode = type_from_concept_model(
     mdr_models.DataElement,
@@ -67,6 +62,9 @@ DataElementNode = type_from_concept_model(
 )
 
 DataElementConceptNode = type_from_concept_model(mdr_models.DataElementConcept)
+
+dedinputs = inline_type_from_model(mdr_models.DedInputsThrough)
+dedderives = inline_type_from_model(mdr_models.DedDerivesThrough)
 DataElementDerivationNode = type_from_concept_model(mdr_models.DataElementDerivation)
 
 

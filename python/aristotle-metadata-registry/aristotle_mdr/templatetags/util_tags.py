@@ -1,13 +1,22 @@
+from typing import Union
 from django import template
-import json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe, SafeString
 from django.conf import settings
 
+from aristotle_mdr.utils.text import pretify_camel_case
+
 import bleach
+import json
+from datetime import datetime, date
 
 register = template.Library()
+
+
+@register.filter
+def getdir(obj):
+    return dir(obj)
 
 
 @register.filter
@@ -85,6 +94,38 @@ def bleach_filter(html: str) -> SafeString:
     clean_html = bleach.clean(
         html,
         tags=settings.BLEACH_ALLOWED_TAGS,
-        attributes=settings.BLEACH_ALLOWED_ATTRIBUTES
+        attributes=settings.BLEACH_ALLOWED_ATTRIBUTES,
+        strip=True,  # Remove disallowed tags instead of escaping them
+        strip_comments=True,
     )
-    return mark_safe(clean_html)
+    return mark_safe("<div class='style-tables'> " + clean_html + " </div>")
+
+
+@register.filter
+def class_name(obj) -> str:
+    # Obj can be a class or and instance
+    if isinstance(obj, object):
+        obj = type(obj)
+    name = obj.__name__
+    return pretify_camel_case(name)
+
+
+@register.filter(name='isotime')
+def iso_time(dt: Union[datetime, date, None]):
+    """Return ISO 8601 string from datetime object"""
+    if dt is None:
+        return '-'
+
+    dtype = type(dt)
+    if dtype == datetime:
+        return dt.isoformat()
+    elif dtype == date:
+        return dt.isoformat()
+    else:
+        # If we got a non datetime or date object don't do anything
+        return dt
+
+
+@register.filter
+def lookup_string(mapping, key):
+    return mapping.get(key, '')

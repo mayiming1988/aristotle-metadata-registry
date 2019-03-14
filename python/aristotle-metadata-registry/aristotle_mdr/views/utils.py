@@ -1,17 +1,16 @@
-from typing import Dict, List, Any
+from typing import Dict, List
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
+from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db import connection
 from django.db.models import Count, Q, Model
 from django.db.models.functions import Lower
 from django.db.models.query import QuerySet
 from django.forms.models import model_to_dict
-from django.views.generic import FormView
-from django import forms
 from django.http import (
     Http404,
     JsonResponse,
@@ -19,18 +18,16 @@ from django.http import (
     HttpResponseNotFound,
     HttpResponseForbidden
 )
-
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
-from django.core.cache import cache
-from django.core.exceptions import PermissionDenied
-
-from django.views.generic.detail import BaseDetailView
 from django.views.generic import (
-    DetailView, FormView, ListView
+    DetailView, FormView, ListView, TemplateView
 )
+from django.views.generic.detail import BaseDetailView, SingleObjectTemplateResponseMixin
+from django.views.generic.edit import ModelFormMixin, ProcessFormView
+
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.perms import user_can_view
@@ -39,6 +36,10 @@ from aristotle_mdr.contrib.favourites.models import Favourite, Tag
 
 import datetime
 import json
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 paginate_sort_opts = {
     "mod_asc": ["modified"],
@@ -162,9 +163,8 @@ paginate_registration_authority_sort_opts = {
 }
 
 
-@login_required
 def paginated_registration_authority_list(request, ras, template, extra_context={}):
-    sort_by=request.GET.get('sort', "name_desc")
+    sort_by=request.GET.get('sort', "name_asc")
     try:
         sorter, direction = sort_by.split('_')
         if sorter not in paginate_registration_authority_sort_opts.keys():
@@ -277,7 +277,7 @@ def get_status_queryset():
 
 class SortedListView(ListView):
     """
-    Can be used to replace current paginated fucntion views,
+    Can be used to replace current paginated function views,
     while retaining the template
 
     allowed_sorts can be a dict mapping names to sorts or just a list of sorts
@@ -338,7 +338,7 @@ class GenericListWorkgroup(LoginRequiredMixin, SortedListView):
     allowed_sorts = {
         'items': 'num_items',
         'name': 'name',
-        'users': 'num_viewers'
+        # 'users': 'num_viewers'
     }
 
     default_sort = 'name'
@@ -347,8 +347,9 @@ class GenericListWorkgroup(LoginRequiredMixin, SortedListView):
         raise NotImplementedError
 
     def get_queryset(self):
-        workgroups = self.get_initial_queryset().annotate(num_items=Count('items', distinct=True), num_viewers=Count('viewers', distinct=True))
-        workgroups = workgroups.prefetch_related('viewers', 'managers', 'submitters', 'stewards')
+        # TODO: Fix this query to be faster
+        workgroups = self.get_initial_queryset().annotate(num_items=Count('items', distinct=True))  # , num_viewers=Count('viewers', distinct=True))
+        # workgroups = workgroups.prefetch_related('viewers', 'managers', 'submitters', 'stewards')
 
         if self.text_filter:
             workgroups = workgroups.filter(Q(name__icontains=self.text_filter) | Q(definition__icontains=self.text_filter))
@@ -363,6 +364,7 @@ class ObjectLevelPermissionRequiredMixin(PermissionRequiredMixin):
         Returns whether or not the user has permissions
         """
         perms = self.get_permission_required(request)
+        # TODO handle permission not required
         has_permission = False
         if hasattr(self, 'object') and self.object is not None:
             has_permission = request.user.has_perm(self.get_permission_required(request), self.object)
@@ -443,8 +445,7 @@ class AlertFieldsMixin:
 class UserFormViewMixin:
     def get_form_kwargs(self, *args, **kwargs):
         kwargs = super().get_form_kwargs(*args, **kwargs)
-        if getattr(self, 'user_form', False):
-            kwargs['user'] = self.request.user
+        kwargs['user'] = self.request.user
         return kwargs
 
 
@@ -598,3 +599,70 @@ class SimpleItemGet:
         context = super().get_context_data(*args, **kwargs)
         context['item'] = self.item.item
         return context
+
+
+class FormsetView(TemplateView):
+    """
+    Generic View for handling formsets
+    Similar in structure to django's FormView
+    """
+
+    save_methods: List[str] = ['POST']
+
+    def get_formset_class(self):
+        raise NotImplementedError
+
+    def get_formset_initial(self):
+        return []
+
+    def get_formset_kwargs(self):
+        kwargs = {
+            'initial': self.get_formset_initial()
+        }
+        if self.request.method in self.save_methods:
+            kwargs.update({
+                'data': self.request.POST,
+                'files': self.request.FILES
+            })
+        return kwargs
+
+    def get_formset(self):
+        formset_class = self.get_formset_class()
+        return formset_class(**self.get_formset_kwargs())
+
+    def post(self, request, *args, **kwargs):
+        formset = self.get_formset()
+        if formset.is_valid():
+            return self.formset_valid(formset)
+        else:
+            return self.formset_invalid(formset)
+
+    def formset_valid(self, formset):
+        raise NotImplementedError
+
+    def formset_invalid(self, formset):
+        return self.render_to_response(self.get_context_data(formset=formset))
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        if 'formset' not in context:
+            context['formset'] = self.get_formset()
+        return context
+
+
+# Thanks: https://stackoverflow.com/questions/17192737/django-class-based-view-for-both-create-and-update
+class CreateUpdateView(SingleObjectTemplateResponseMixin, ModelFormMixin, ProcessFormView):
+
+    def get_object(self, queryset=None):
+        try:
+            return super(CreateUpdateView, self).get_object(queryset)
+        except AttributeError:
+            return None
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(CreateUpdateView, self).get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(CreateUpdateView, self).post(request, *args, **kwargs)

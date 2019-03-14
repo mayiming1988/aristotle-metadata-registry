@@ -1,0 +1,60 @@
+{% extends "aristotle_mdr/reviews/review/base.html" %}
+{% load util_tags %}
+{% load render_bundle from webpack_loader %}
+
+{% block webpack_bundle %}
+    {% render_bundle 'rr_supersedes' 'js' %}
+{% endblock %}
+
+{% block webpack_css_bundle %}
+    {% render_bundle 'rr_supersedes' 'css' %}
+{% endblock %}
+
+{% block title %}Review details{{ item.name }}{% endblock %}
+{% block tabpanel %}
+<div role="tabpanel" class="tab-pane active" id="review_impact">
+  <div class="panel">
+    <div class="panel-body">
+      These supersedes relations are being proposed as part of this request
+      <form id="{{ formset.prefix }}" method="post">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        {{ formset.non_form_errors }}
+        {% for form in formset %}
+          <div class="form-inline">
+            {% for field in form.hidden_fields %}
+              {{ field }}
+            {% endfor %}
+            {% for field in form.visible_fields %}
+              <div class="form-group margin-right">
+                {{ field.errors }}
+                {{ field.label_tag }}
+                {{ field }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+        <a class="add_code_button btn btn-success" formid="{{ formset.prefix }}" href="#">Add</a>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+
+      <div id="{{ formset.prefix }}" class="formstage" style="display:none">
+        {% with formset.empty_form as form %}
+          <div class="form-inline">
+            {% for field in form.hidden_fields %}
+              {{ field }}
+            {% endfor %}
+            {% for field in form.visible_fields %}
+              <div class="form-group">
+                {{ field.label_tag }}
+                {{ field }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endwith %}
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock tabpanel %}

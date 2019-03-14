@@ -1,5 +1,5 @@
 {% extends "aristotle_mdr_help/base.html" %}
-{% load aristotle_help %}
+{% load aristotle_help util_tags %}
 
 {% block title %}Help - {{ object.title }}{% endblock %}
 
@@ -19,6 +19,6 @@
 </div>
 
 <p>
-    Last modified: {{ object.modified }}
+    Last modified: <time datetime="{{ object.modified|isotime }}">{{ object.modified }}</time>
 </p>
 {% endblock %}

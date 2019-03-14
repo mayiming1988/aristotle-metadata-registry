@@ -1,4 +1,4 @@
-from django.test import TestCase, tag, override_settings, modify_settings
+from django.test import TestCase, modify_settings, tag
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.core import mail
@@ -169,6 +169,7 @@ class UserManagementPages(utils.LoggedInViewPages, TestCase):
 
         accept_response = self.client.get(accept_url)
 
+        print([accept_url,accept_response])
         self.assertEqual(accept_response.status_code, 200)
 
         formfields = accept_response.context['form'].fields.keys()
@@ -246,7 +247,7 @@ class UserManagementPages(utils.LoggedInViewPages, TestCase):
 
             # Post with wrong confirm password
             bad_data = self.signup_data.copy()
-            bad_data.update({'password_confirm': 'extrasecure'})
+            bad_data.update({'email': 'bad-test@example.com', 'password_confirm': 'extrasecure'})
             post_response = self.client.post(reverse('aristotle-user:signup_register'), bad_data)
             self.assertTrue(post_response.status_code, 200)
             self.assertEqual(post_response.context['form'].non_field_errors(), ['Your password entries must match'])
@@ -462,6 +463,7 @@ class UserManagementPages(utils.LoggedInViewPages, TestCase):
             post_response = self.client.post(reverse('aristotle-user:signup_register'), existing_data)
             self.assertEqual(post_response.status_code, 200)
             #import pdb; pdb.set_trace()
+
             self.assertTrue('message' in post_response.context.keys())
             self.assertEqual(len(mail.outbox), 1)
 

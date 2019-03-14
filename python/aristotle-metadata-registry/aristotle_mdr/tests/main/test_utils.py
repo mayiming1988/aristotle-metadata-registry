@@ -4,12 +4,11 @@ from aristotle_mdr import models
 from aristotle_mdr.utils import setup_aristotle_test_environment
 from aristotle_mdr import utils
 from aristotle_mdr.views.versions import VersionField
+from aristotle_mdr.contrib.reviews.models import ReviewRequest
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-import datetime
 
 setup_aristotle_test_environment()
 
@@ -17,6 +16,7 @@ setup_aristotle_test_environment()
 class UtilsTests(TestCase):
 
     def setUp(self):
+        self.steward_org_1 = models.StewardOrganisation.objects.create(name="Test SO")
 
         self.oc1 = models.ObjectClass.objects.create(
             name='Test OC',
@@ -29,39 +29,46 @@ class UtilsTests(TestCase):
 
     def test_reverse_slugs(self):
         item = models.ObjectClass.objects.create(name=" ",definition="my definition",submitter=None)
-        ra = models.RegistrationAuthority.objects.create(name=" ",definition="my definition")
+        ra = models.RegistrationAuthority.objects.create(name=" ",definition="my definition", stewardship_organisation=self.steward_org_1)
         org = models.Organization.objects.create(name=" ",definition="my definition")
-        wg = models.Workgroup.objects.create(name=" ",definition="my definition")
+        wg = models.Workgroup.objects.create(name=" ",definition="my definition", stewardship_organisation=self.steward_org_1)
 
         self.assertTrue('--' in utils.url_slugify_concept(item))
         self.assertTrue('--' in utils.url_slugify_workgroup(wg))
         self.assertTrue('--' in utils.url_slugify_registration_authoritity(ra))
         self.assertTrue('--' in utils.url_slugify_organization(org))
 
-    def test_get_aristotle_url(self):
+    def test_get_aristotle_url_item(self):
+        item = models.ObjectClass.objects.create(name="tname", definition="my definition", submitter=None)
+        url = utils.get_aristotle_url(item._meta.label_lower, item.pk, item.name)
+        self.assertEqual(url, reverse('aristotle:item', args=[item.pk]))
 
+    def test_get_aristotle_url_ra(self):
+        ra = models.RegistrationAuthority.objects.create(name="tname",definition="my definition", stewardship_organisation=self.steward_org_1)
+        url = utils.get_aristotle_url(ra._meta.label_lower, ra.pk, ra.name)
+        self.assertEqual(url, reverse('aristotle:registrationAuthority', args=[ra.pk, ra.name]))
+
+    def test_get_aristotle_url_org(self):
+        org = models.Organization.objects.create(name="tname", definition="my definition")
+        url = utils.get_aristotle_url(org._meta.label_lower, org.pk, org.name)
+        self.assertEqual(url, reverse('aristotle:organization', args=[org.pk, org.name]))
+
+    def test_get_aristotle_url_wg(self):
+        wg = models.Workgroup.objects.create(name="tname",definition="my definition", stewardship_organisation=self.steward_org_1)
+        url = utils.get_aristotle_url(wg._meta.label_lower, wg.pk, wg.name)
+        self.assertEqual(url, reverse('aristotle:workgroup', args=[wg.pk, wg.name]))
+
+    def test_get_aristotle_url_rr(self):
         user = get_user_model().objects.create(
             email='user@example.com',
             password='verysecure'
         )
+        ra = models.RegistrationAuthority.objects.create(name="tname",definition="my definition", stewardship_organisation=self.steward_org_1)
+        rr = ReviewRequest.objects.create(registration_authority=ra, requester=user)
+        url = utils.get_aristotle_url(rr._meta.label_lower, rr.pk)
+        self.assertEqual(url, reverse('aristotle_reviews:review_details', args=[rr.pk]))
 
-        item = models.ObjectClass.objects.create(name="tname",definition="my definition",submitter=None)
-        ra = models.RegistrationAuthority.objects.create(name="tname",definition="my definition")
-        org = models.Organization.objects.create(name="tname",definition="my definition")
-        wg = models.Workgroup.objects.create(name="tname",definition="my definition")
-
-        url = utils.get_aristotle_url(item._meta.label_lower, item.pk, item.name)
-        self.assertEqual(url, reverse('aristotle:item', args=[item.pk]))
-
-        url = utils.get_aristotle_url(ra._meta.label_lower, ra.pk, ra.name)
-        self.assertEqual(url, reverse('aristotle:registrationAuthority', args=[ra.pk, ra.name]))
-
-        url = utils.get_aristotle_url(org._meta.label_lower, org.pk, org.name)
-        self.assertEqual(url, reverse('aristotle:organization', args=[org.pk, org.name]))
-
-        url = utils.get_aristotle_url(wg._meta.label_lower, wg.pk, wg.name)
-        self.assertEqual(url, reverse('aristotle:workgroup', args=[wg.pk, wg.name]))
-
+    def test_get_aristotle_url_fake(self):
         url = utils.get_aristotle_url('aristotle_mdr.fake_model', 7, 'fake_name')
         self.assertTrue(url is None)
 
@@ -217,3 +224,40 @@ class UtilsTests(TestCase):
     def test_get_concept_models_doesnt_return_concept(self):
         cm = utils.utils.get_concept_models()
         self.assertFalse(models._concept in cm)
+
+    def test_format_seconds_under_60(self):
+        self.assertEqual(utils.utils.format_seconds(45), '45 seconds')
+
+    def test_format_seconds_above_60(self):
+        self.assertEqual(utils.utils.format_seconds(130), '2 minutes, 10 seconds')
+
+    def test_format_seconds_above_3600(self):
+        self.assertEqual(utils.utils.format_seconds(3730), '1 hours, 2 minutes, 10 seconds')
+
+    def test_format_seconds_hours_only(self):
+        self.assertEqual(utils.utils.format_seconds(7200), '2 hours')
+
+
+class ManagersTestCase(TestCase):
+
+    def setUp(self):
+        oc = models.ObjectClass.objects.create(
+            name='Test OC',
+            definition='Just a test'
+        )
+        dec = models.DataElementConcept.objects.create(
+            name='Test DEC',
+            definition='Just a test',
+            objectClass=oc
+        )
+
+    def test_with_related(self):
+        with self.assertNumQueries(2):
+            dec = models.DataElementConcept.objects.filter(name='Test DEC').first()
+            dec.objectClass.name
+
+        with self.assertNumQueries(1):
+            dec = models.DataElementConcept.objects.filter(
+                name='Test DEC'
+            ).with_related().first()
+            dec.objectClass.name

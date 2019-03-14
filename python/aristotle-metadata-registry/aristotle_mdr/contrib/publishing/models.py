@@ -1,22 +1,27 @@
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import Q
-from django.db.models.signals import post_save, post_delete
-from django.utils.timezone import now
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-from model_utils import Choices
 from model_utils.models import TimeStampedModel
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.fields import ConceptOneToOneField
+from aristotle_mdr.constants import visibility_permission_choices
 
 
 class VersionPublicationRecord(TimeStampedModel):
-    concept = ConceptOneToOneField(
-        MDR._concept, related_name='versionpublicationrecord',
-        on_delete=models.deletion.CASCADE
-    )
+    class Meta:
+        unique_together = (
+            ("content_type", "object_id"),
+        )
+
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
     public_user_publication_date = models.DateTimeField(
         default=None,
         blank=True,
@@ -30,4 +35,27 @@ class VersionPublicationRecord(TimeStampedModel):
         null=True,
         help_text=_("Date from which logged in users can view version histories for this item."),
         verbose_name=_("Logged-in version history start date")
+    )
+
+
+class PublicationRecord(TimeStampedModel):
+    class Meta:
+        unique_together = (
+            ("content_type", "object_id"),
+        )
+
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id', for_concrete_model=False)
+    publisher = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name="published_content"
+    )
+    permission = models.IntegerField(
+        choices=visibility_permission_choices,
+        default=visibility_permission_choices.public
+    )
+    publication_date = models.DateField(
+        default=timezone.now,
+        help_text=_("Enter a date in the future to specify the date is published from.")
     )

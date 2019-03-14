@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.conf.urls import url, include
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
 from django.urls import reverse_lazy
@@ -29,30 +29,12 @@ urlpatterns=[
     url(r'^sitemap.xml$', views.sitemaps.main, name='sitemap_xml'),
     url(r'^sitemaps/sitemap_(?P<page>[0-9]+).xml$', views.sitemaps.page_range, name='sitemap_range_xml'),
 
+    url(r'^steward', include('aristotle_mdr.contrib.stewards.urls', namespace="stewards")),
+
     # all the below take on the same form:
     # url(r'^itemType/(?P<iid>\d+)?/?
     # Allowing for a blank ItemId (iid) allows aristotle to redirect to /about/itemtype instead of 404ing
 
-    url(r'^valuedomain/(?P<iid>\d+)?/edit/values/permissible/?$',
-        GenericAlterOneToManyView.as_view(
-            model_base=models.ValueDomain,
-            model_to_add=models.PermissibleValue,
-            model_base_field='permissiblevalue_set',
-            model_to_add_field='valueDomain',
-            ordering_field='order',
-            form_add_another_text=_('Add a code'),
-            form_title=_('Change Permissible Values'),
-        ), name='permsissible_values_edit'),
-    url(r'^valuedomain/(?P<iid>\d+)?/edit/values/supplementary/?$',
-        GenericAlterOneToManyView.as_view(
-            model_base=models.ValueDomain,
-            model_to_add=models.SupplementaryValue,
-            model_base_field='supplementaryvalue_set',
-            model_to_add_field='valueDomain',
-            ordering_field='order',
-            form_add_another_text=_('Add a code'),
-            form_title=_('Change Supplementary Values')
-        ), name='supplementary_values_edit'),
     url(r'^conceptualdomain/(?P<iid>\d+)?/edit/values/?$',
         GenericAlterOneToManyView.as_view(
             model_base=models.ConceptualDomain,
@@ -63,18 +45,6 @@ urlpatterns=[
             form_add_another_text=_('Add a value meaning'),
             form_title=_('Change Value Meanings')
         ), name='value_meanings_edit'),
-    url(r'^item/(?P<iid>\d+)/dataelementderivation/change_inputs/?$',
-        GenericAlterManyToManyOrderView.as_view(
-            model_base=models.DataElementDerivation,
-            model_to_add=models.DataElement,
-            model_base_field='inputs'
-        ), name='dataelementderivation_change_inputs'),
-    url(r'^item/(?P<iid>\d+)/dataelementderivation/change_derives/?$',
-        GenericAlterManyToManyOrderView.as_view(
-            model_base=models.DataElementDerivation,
-            model_to_add=models.DataElement,
-            model_base_field='derives'
-        ), name='dataelementderivation_change_derives'),
 
     url(r'^item/(?P<iid>\d+)?/alter_relationship/(?P<fk_field>[A-Za-z\-_]+)/?$',
         generic_foreign_key_factory_view,
@@ -109,6 +79,7 @@ urlpatterns=[
     url(r'^item/(?P<iid>\d+)/edit/?$', views.editors.EditItemView.as_view(), name='edit_item'),
     url(r'^item/(?P<iid>\d+)/clone/?$', views.editors.CloneItemView.as_view(), name='clone_item'),
     url(r'^item/(?P<iid>\d+)/history/?$', views.versions.ConceptHistoryCompareView.as_view(), name='item_history'),
+    url(r'^item/(?P<iid>\d+)/graphs/?$', views.graphs.ItemGraphView.as_view(), name='item_graphs'),
     url(r'^item/(?P<iid>\d+)/registrationHistory/?$', views.registrationHistory, name='registrationHistory'),
     url(r'^item/(?P<iid>\d+)/child_states/?$', views.actions.CheckCascadedStates.as_view(), name='check_cascaded_states'),
 
@@ -119,6 +90,7 @@ urlpatterns=[
     url(r'^item/(?P<uuid>[\w-]+)/?(.*)?$', views.concept_by_uuid, name='item_uuid'),
 
     url(r'^unmanaged/measure/(?P<iid>\d+)(?:\/(?P<model_slug>\w+)\/(?P<name_slug>.+))?/?$', views.measure, name='measure'),
+    url(r"^managed_items/(?P<model_slug>.+)/(?P<iid>.+)?$", view=views.managed_item, name="view_managed_item"),
 
     # url(r'^create/?$', views.item, name='item'),
     url(r'^create/?$', views.create_list, name='create_list'),
@@ -127,22 +99,19 @@ urlpatterns=[
     url(r'^create/(?P<app_label>.+)/(?P<model_name>.+)/?$', views.wizards.create_item, name='createItem'),
     url(r'^create/(?P<model_name>.+)/?$', views.wizards.create_item, name='createItem'),
 
-    url(r'^download/bulk/(?P<download_type>[a-zA-Z0-9\-\.]+)/?$', views.downloads.bulk_download, name='bulk_download'),
-    url(r'^download/(?P<download_type>[a-zA-Z0-9\-\.]+)/(?P<iid>\d+)/?$', views.downloads.download, name='download'),
-    url(r'^preparing-download/(?P<download_type>[\w\-\. ]+)/?$',
-        views.downloads.prepare_async_download,
-        name='preparing_download',
-        ),
-    url(r'^downloading/(?P<download_type>[\w\-\. ]+)/?$',
-        views.downloads.get_async_download,
-        name='start_download',
+    url(r'^download/options/(?P<download_type>\w+)/?$', views.downloads.DownloadOptionsView.as_view(), name='download_options'),
+    url(r'^download/bulk/(?P<download_type>\w+)/?$', views.downloads.BulkDownloadView.as_view(), name='bulk_download'),
+    url(r'^download/(?P<download_type>\w+)/(?P<iid>\d+)/?$', views.downloads.DownloadView.as_view(), name='download'),
+    url(r'^dlstatus/(?P<taskid>[a-z0-9\-]+)/?$',
+        views.downloads.DownloadStatusView.as_view(),
+        name='download_status',
         ),
 
     url(r'^action/supersede/(?P<iid>\d+)$', views.actions.SupersedeItemView.as_view(), name='supersede'),
 
     url(r'^action/bulkaction/?$', views.bulk_actions.BulkAction.as_view(), name='bulk_action'),
     url(r'^action/bulkaction/state/?$', views.bulk_actions.ChangeStatusBulkActionView.as_view(), name='change_state_bulk_action'),
-    url(r'^action/compare/?$', views.comparator.compare_concepts, name='compare_concepts'),
+    url(r'^action/compare/?$', views.comparator.CompareConceptsView.as_view(), name='compare_concepts'),
 
     url(r'^action/changestatus/(?P<iid>\d+)$', views.ChangeStatusView.as_view(), name='changeStatus'),
     # url(r'^remove/WorkgroupUser/(?P<iid>\d+)/(?P<userid>\d+)$', views.removeWorkgroupUser, name='removeWorkgroupUser'),
@@ -151,10 +120,11 @@ urlpatterns=[
     url(r'^account/home/?$', views.user_pages.home, name='userHome'),
     url(r'^account/sandbox/?$', views.user_pages.CreatedItemsListView.as_view(), name='userSandbox'),
     url(r'^account/sandbox/delete/?$', views.actions.DeleteSandboxView.as_view(), name="sandbox_delete"),
-    url(r'^account/roles/?$', views.user_pages.roles, name='userRoles'),
+    url(r'^account/roles/?$', views.user_pages.Roles.as_view(), name='userRoles'),
     url(r'^account/admin/?$', views.user_pages.admin_tools, name='userAdminTools'),
     url(r'^account/admin/statistics/?$', views.user_pages.admin_stats, name='userAdminStats'),
     url(r'^account/edit/?$', views.user_pages.EditView.as_view(), name='userEdit'),
+    url(r'^account/notificationpermissions/?$', views.user_pages.NotificationPermissions.as_view(), name='notificationPermissions'),
     url(r'^account/profile/?$', views.user_pages.ProfileView.as_view(), name='userProfile'),
     url(r'^account/recent/?$', views.user_pages.recent, name='userRecentItems'),
     url(r'^account/workgroups/?$', views.user_pages.MyWorkgroupList.as_view(), name='userWorkgroups'),
@@ -167,15 +137,16 @@ urlpatterns=[
     url(r'^account/registrartools/?$', views.user_pages.RegistrarTools.as_view(), name='userRegistrarTools'),
 
     url(r'^registrationauthority/create/?$', views.registrationauthority.CreateRegistrationAuthority.as_view(), name='registrationauthority_create'),
-    url(r'^account/admin/registrationauthority/all/?$', views.registrationauthority.ListRegistrationAuthority.as_view(), name='registrationauthority_list'),
+    url(r'^account/admin/registrationauthority/all/?$', views.registrationauthority.ListRegistrationAuthorityAll.as_view(), name='registrationauthority_list'),
 
-    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/details/$', views.registrationauthority.DetailsRegistrationAuthority.as_view(), name='registrationauthority_details'),
     url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/members/$', views.registrationauthority.MembersRegistrationAuthority.as_view(), name='registrationauthority_members'),
     url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/edit', views.registrationauthority.EditRegistrationAuthority.as_view(), name='registrationauthority_edit'),
+    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/states', views.registrationauthority.EditRegistrationAuthorityStates.as_view(), name='registrationauthority_edit_states'),
+    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/rules', views.registrationauthority.RAValidationRuleEditView.as_view(), name='registrationauthority_rules'),
     url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/add_user/?$', views.registrationauthority.AddUser.as_view(), name='registrationauthority_add_user'),
     url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/change_roles/(?P<user_pk>.+)?/?$', views.registrationauthority.ChangeUserRoles.as_view(), name='registrationauthority_change_user_roles'),
     url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/remove/(?P<user_pk>\d+)/?$', views.registrationauthority.RemoveUser.as_view(), name='registrationauthority_member_remove'),
-    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/?$', views.registrationauthority.registrationauthority, name='registrationAuthority'),
+    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/?$', views.registrationauthority.RegistrationAuthorityView.as_view(), name='registrationAuthority'),
 
     url(r'^organization/(?P<iid>\d+)?(?:\/(?P<name_slug>.+))?/?$', views.registrationauthority.organization, name='organization'),
     url(r'^organizations/?$', views.registrationauthority.all_organizations, name='all_organizations'),
@@ -190,6 +161,7 @@ urlpatterns=[
 
     url(r'^accessibility/?$', TemplateView.as_view(template_name='aristotle_mdr/static/accessibility.html'), name="accessibility"),
 
+    url(r'user/(?P<uid>\d+)/profilePicture', views.user_pages.profile_picture, name="profile_picture"),
     url(r'user/(?P<uid>\d+)/profilePicture.svg', views.user_pages.profile_picture, name="dynamic_profile_picture"),
 
     url(r'share/(?P<share>[\w-]+)$', views.user_pages.SharedSandboxView.as_view(), name='sharedSandbox'),
@@ -204,7 +176,7 @@ urlpatterns=[
             template='search/search.html',
             searchqueryset=None,
             form_class=forms.search.PermissionSearchForm
-            ),
+        ),
         name='search'
     ),
 ]

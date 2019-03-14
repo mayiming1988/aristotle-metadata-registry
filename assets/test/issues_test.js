@@ -12,7 +12,7 @@ import rootComponent from '../src/components/root/issues.js'
 describe('issueComment', function() {
 
     beforeEach(function() {
-        this.wrapper = VueTestUtils.shallowMount(issueComment)
+        this.wrapper = VueTestUtils.mount(issueComment)
     })
 
     afterEach(function() {
@@ -98,9 +98,11 @@ describe('issueComment', function() {
         this.wrapper.setProps({
             openClosePermission: 'True'
         })
-        assert.isTrue(this.wrapper.vm.canOpenClose)
-        assert.equal(this.wrapper.vm.openCloseText, 'Reopen Issue')
-        assert.equal(this.wrapper.find('button').text(), 'Reopen Issue')
+        return this.wrapper.vm.$nextTick().then(() => {
+            assert.isTrue(this.wrapper.vm.canOpenClose)
+            assert.equal(this.wrapper.vm.openCloseText, 'Reopen Issue')
+            assert.equal(this.wrapper.find('button').text(), 'Reopen Issue')
+        })
     })
 
     it('calls api request on button clicked', function() {
@@ -178,15 +180,17 @@ describe('issueComment', function() {
             isOpen: false
         })
         
-        clickElementIfExists(this.wrapper, 'button.btn-success')
+        return this.wrapper.vm.$nextTick().then(() => {
+            clickElementIfExists(this.wrapper, 'button.btn-success')
 
-        // Check called correctly
-        assert.isTrue(fake.calledOnce)
-        let call = fake.firstCall
-        let expected = {
-            isopen: true
-        }
-        assert.isTrue(call.calledWithExactly('/fake/api/', expected))
+            // Check called correctly
+            assert.isTrue(fake.calledOnce)
+            let call = fake.firstCall
+            let expected = {
+                isopen: true
+            }
+            assert.isTrue(call.calledWithExactly('/fake/api/', expected))
+        })
     })
 
     it('calls post on open close with comment', function() {
@@ -202,18 +206,20 @@ describe('issueComment', function() {
             body: 'Some comment'
         })
         
-        clickElementIfExists(this.wrapper, 'button.btn-success')
+        return this.wrapper.vm.$nextTick().then(() => {
+            clickElementIfExists(this.wrapper, 'button.btn-success')
 
-        // Check called correctly
-        assert.isTrue(fake.calledOnce)
-        let call = fake.firstCall
-        let expected = {
-            isopen: true,
-            comment: {
-                body: 'Some comment'
+            // Check called correctly
+            assert.isTrue(fake.calledOnce)
+            let call = fake.firstCall
+            let expected = {
+                isopen: true,
+                comment: {
+                    body: 'Some comment'
+                }
             }
-        }
-        assert.isTrue(call.calledWithExactly('/fake/api/', expected))
+            assert.isTrue(call.calledWithExactly('/fake/api/', expected))
+        })
     })
 
     it('emits set_open when open changed', function() {
@@ -235,15 +241,17 @@ describe('issueComment', function() {
             isOpen: false,
         })
 
-        clickElementIfExists(this.wrapper, 'button.btn-success')
-
-        assert.isTrue(fake.calledOnce)
         return this.wrapper.vm.$nextTick().then(() => {
-            assert.isTrue(this.wrapper.vm.isOpen)
-            assert.isOk(this.wrapper.emitted('set_open'))
-            assert.equal(this.wrapper.emitted('set_open').length, 2)
-            assert.isTrue(this.wrapper.emitted('set_open')[1][0])
-            assert.isNotOk(this.wrapper.emitted('created'))
+            clickElementIfExists(this.wrapper, 'button.btn-success')
+
+            assert.isTrue(fake.calledOnce)
+            return this.wrapper.vm.$nextTick().then(() => {
+                assert.isTrue(this.wrapper.vm.isOpen)
+                assert.isOk(this.wrapper.emitted('set_open'))
+                assert.equal(this.wrapper.emitted('set_open').length, 2)
+                assert.isTrue(this.wrapper.emitted('set_open')[1][0])
+                assert.isNotOk(this.wrapper.emitted('created'))
+            })
         })
     })
 
@@ -272,17 +280,19 @@ describe('issueComment', function() {
             isOpen: false,
         })
 
-        clickElementIfExists(this.wrapper, 'button.btn-success')
-
-        assert.isTrue(fake.calledOnce)
         return this.wrapper.vm.$nextTick().then(() => {
-            assertSingleEmit(this.wrapper, 'created', {
-                pic: 'example.com/pic.jpg',
-                name: 'John',
-                created: '2018',
-                body: 'Heck'
+            clickElementIfExists(this.wrapper, 'button.btn-success')
+
+            assert.isTrue(fake.calledOnce)
+            return this.wrapper.vm.$nextTick().then(() => {
+                assertSingleEmit(this.wrapper, 'created', {
+                    pic: 'example.com/pic.jpg',
+                    name: 'John',
+                    created: '2018',
+                    body: 'Heck'
+                })
+                assert.equal(this.wrapper.vm.body, '')
             })
-            assert.equal(this.wrapper.vm.body, '')
         })
     })
 

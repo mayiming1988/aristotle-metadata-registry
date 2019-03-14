@@ -1,16 +1,19 @@
-from django.contrib.staticfiles.storage import ManifestFilesMixin, StaticFilesStorage
+from django.contrib.staticfiles.storage import ManifestFilesMixin
 from django.conf import settings
-from urllib.parse import unquote, urldefrag, urlsplit, urlunsplit
+from urllib.parse import unquote, urlsplit
 import hashlib
 import re
 import os
 import json
-import logging
 
 from storages.backends.s3boto3 import S3Boto3Storage, SpooledTemporaryFile
 
 
 class LocalManifestMixin:
+    """
+    Stores the manifest.json file on the local filesystem
+    Currently not being used
+    """
 
     def __init__(self, *args, **kwargs):
         self.manifest_location = os.path.join(settings.MANIFEST_DIR, self.manifest_name)
@@ -41,6 +44,14 @@ class LocalManifestMixin:
 
 
 class SelectiveHashingMixin:
+    """
+    Allows hashing to be skipped for certain files
+    Not currently used
+    """
+
+    # If a file matches this pattern it will not be hashed by django
+    ignore_pattern: str = r'.*[0-9a-f]{16}.bundle.(js|css)$'
+
     # Use a 16 length sha256 hash
     def file_hash(self, name, content=None):
         """
@@ -56,7 +67,7 @@ class SelectiveHashingMixin:
     def hashed_name(self, name, content=None, filename=None):
         parsed_name = urlsplit(unquote(name))
         clean_name = parsed_name.path.strip()
-        regex = re.compile('.*[0-9a-f]{16}.bundle.(js|css)$')
+        regex = re.compile(self.ignore_pattern)
 
         if content is not None:
             # Check if the filename has already been hashed
@@ -100,9 +111,7 @@ class CustomS3Boto3Storage(S3Boto3Storage):
             content_autoclose.close()
 
 
-class CustomManifestStaticFilesStorage(LocalManifestMixin,
-                                       SelectiveHashingMixin,
-                                       ManifestFilesMixin,
+class CustomManifestStaticFilesStorage(ManifestFilesMixin,
                                        CustomS3Boto3Storage):
 
     max_post_process_passes = 1

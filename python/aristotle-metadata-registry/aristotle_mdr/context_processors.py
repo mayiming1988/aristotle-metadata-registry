@@ -1,8 +1,6 @@
 from aristotle_mdr.utils import fetch_aristotle_settings
 from aristotle_mdr.views.bulk_actions import get_bulk_actions
 from aristotle_mdr.models import PossumProfile
-from django.contrib.auth.context_processors import PermWrapper
-from django.contrib.auth import get_user_model
 from django.utils.functional import SimpleLazyObject
 
 

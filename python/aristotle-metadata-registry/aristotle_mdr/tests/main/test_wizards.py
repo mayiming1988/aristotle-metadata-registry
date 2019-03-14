@@ -10,10 +10,10 @@ import aristotle_mdr.tests.utils as utils
 from aristotle_mdr.utils import url_slugify_concept
 
 from aristotle_mdr.utils import setup_aristotle_test_environment
-from aristotle_mdr.tests.utils import FormsetTestUtils
 
 
 setup_aristotle_test_environment()
+
 
 class HaystackReindexMixin(object):
     def tearDown(self):
@@ -81,7 +81,7 @@ class ConceptWizardPage(HaystackReindexMixin, utils.AristotleTestUtils):
 
         # Tests against bug #333
         # https://github.com/aristotle-mdr/aristotle-metadata-registry/issues/333
-        self.extra_wg = models.Workgroup.objects.create(name="Extra WG for issue 333")
+        self.extra_wg = models.Workgroup.objects.create(name="Extra WG for issue 333", stewardship_organisation=self.steward_org_1)
         self.extra_wg.stewards.add(self.editor)
         self.extra_wg.submitters.add(self.editor)
         self.extra_wg.viewers.add(self.editor)
@@ -125,16 +125,8 @@ class ConceptWizardPage(HaystackReindexMixin, utils.AristotleTestUtils):
         self.login_editor()
         step_1_data = {
             self.wizard_form_name+'-current_step': 'initial',
+            'initial-name': 'Test Item'
         }
-
-        response = self.client.post(self.wizard_url, step_1_data)
-        wizard = response.context['wizard']
-        self.assertEqual(wizard['steps'].current, 'initial')
-        self.assertTrue('name' in wizard['form'].errors.keys())
-
-        # must submit a name
-        step_1_data.update({'initial-name':"Test Item"})
-        # success!
 
         response = self.client.post(self.wizard_url, step_1_data)
         wizard = response.context['wizard']
@@ -226,6 +218,7 @@ class ConceptWizardPage(HaystackReindexMixin, utils.AristotleTestUtils):
             type='str',
         )
 
+        cf_field_name = 'results-{}'.format(cf.form_field_name)
         wizard_data = [
             {
                 'dynamic_aristotle_wizard-current_step': 'initial',
@@ -235,7 +228,7 @@ class ConceptWizardPage(HaystackReindexMixin, utils.AristotleTestUtils):
                 'dynamic_aristotle_wizard-current_step': 'results',
                 'results-name': 'My new object',
                 'results-definition': 'Brand new',
-                'results-custom_ExtraInfo': 'SomeExtraInformation'
+                cf_field_name: 'SomeExtraInformation'
             }
         ]
         formsets = utils.get_management_forms(self.model, item_is_model=True, slots=True)
@@ -279,7 +272,7 @@ class ConceptWizardPage(HaystackReindexMixin, utils.AristotleTestUtils):
 
         response = self.client.post(self.wizard_url, form_data)
         wizard = response.context['wizard']
-        print(wizard['form'].errors)
+
         self.assertTrue(len(wizard['form'].errors.keys()) == 0)
         self.assertTrue(self.item_existing in response.context['duplicate_items'])
 
@@ -526,8 +519,8 @@ class DataElementDerivationWizardPage(ConceptWizardPage,TestCase):
         item = self.model.objects.filter(name=item_name).first()
         self.assertRedirects(response,url_slugify_concept(item))
 
-        inputs = item.inputs.all()
-        derives = item.derives.all()
+        inputs = item.input_data_elements.all()
+        derives = item.derived_data_elements.all()
 
         self.assertEqual(len(inputs), 2)
         self.assertTrue(self.de3 in inputs)
@@ -767,6 +760,36 @@ class DataElementConceptAdvancedWizardPage(HaystackReindexMixin, utils.Aristotle
         self.assertTrue(models.DataElementConcept.objects.filter(name="Animagus--Animal type").exists())
         item = models.DataElementConcept.objects.filter(name="Animagus--Animal type").first()
         self.assertRedirects(response,url_slugify_concept(item))
+
+    def test_component_initial(self):
+        """Test that components tab hidden in final step when reusing"""
+
+        # Make an oc and prop to reuse
+        oc = models.ObjectClass.objects.create(
+            name='Computer',
+            definition='a computing device',
+            workgroup=self.wg1
+        )
+        prop = models.Property.objects.create(
+            name='Speediness',
+            definition='vroroormeoroemrem',
+            workgroup=self.wg1
+        )
+
+        steps = [
+            'component_search',
+            'component_results'
+        ]
+        data = [
+            {'oc_name': 'Computer', 'pr_name': 'Speediness'},
+            {'oc_options': str(oc.id), 'pr_options': str(prop.id)}
+        ]
+
+        self.login_editor()
+        response = self.post_to_wizard(data, self.wizard_url, self.wizard_form_name, steps)
+        self.assertWizardStep(response, 'find_dec_results')
+        self.assertTrue('hide_components_tab' in response.context)
+        self.assertTrue(response.context['hide_components_tab'])
 
 
 class DataElementAdvancedWizardPage(HaystackReindexMixin, utils.LoggedInViewPages, TestCase):

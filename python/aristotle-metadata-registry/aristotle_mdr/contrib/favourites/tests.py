@@ -7,7 +7,6 @@ from django.contrib.messages import get_messages
 from django.urls import reverse
 
 import json
-import re
 
 
 class BaseFavouritesTestCase(TestCase):

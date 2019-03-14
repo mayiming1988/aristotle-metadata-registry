@@ -1,0 +1,47 @@
+{% extends "aristotle_mdr/stewards/base.html" %}
+{% load i18n aristotle_tags util_tags %}
+
+{% block title %}Collections | {{ stewardship_organisation }}{% endblock %}
+{% block page_title %}{{ stewardship_organisation }} | Collections{% endblock %}
+
+{% block steward_content %}
+<p>
+    
+</p>
+
+    <section id="ras">
+        {% has_group_perm group "manage_collections" as can_manage_collections %}
+        {% if can_manage_collections %}
+        <a class="btn btn-default pull-right" href="{% url 'aristotle:stewards:group:collections_create' group.slug %}">Add New Collection</a>
+        {% endif %}
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>{% trans 'Colection' %}
+        </th>
+        <th>{% trans 'Description' %}
+        </th>
+        <th>
+            <i class="fa fa-hashtag" title="{% trans 'Number of items' %}"></i>
+        </th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for item in object_list %}
+        <tr>
+            <td>
+                <a href="{{item.get_absolute_url}}">
+                    {{ item.name }}
+                </a>
+            </td>
+            <td>{{ item.description|striptags|truncatewords:50 }}</td>
+            <td>{{ item.metadata.all.count }}</td>
+        </tr>
+    {% endfor %}
+
+    </tbody>
+</table>
+
+    </section>
+{% endblock %}

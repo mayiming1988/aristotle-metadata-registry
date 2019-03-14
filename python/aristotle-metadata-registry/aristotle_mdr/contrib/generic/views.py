@@ -3,17 +3,16 @@ from django import forms
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist
 from django.urls import reverse
 from django.db import transaction
-from django.forms.models import modelformset_factory, inlineformset_factory
+from django.forms.models import inlineformset_factory
 from django.forms import formset_factory
-from django.http import Http404, HttpResponseRedirect, HttpResponse
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import FormView, TemplateView, View
-from django.core.signing import TimestampSigner
-from django.views.generic import ListView, DeleteView
+from django.views.generic import ListView
 
 from aristotle_mdr.contrib.autocomplete import widgets
-from aristotle_mdr.models import _concept, ValueDomain, AbstractValue
+from aristotle_mdr.models import AbstractValue, _concept
 from aristotle_mdr.perms import user_can_edit, user_can_view
 from aristotle_mdr.utils import construct_change_message
 from aristotle_mdr.utils.text import capitalize_words
@@ -143,7 +142,7 @@ class GenericAlterForeignKey(GenericAlterManyToSomethingFormView):
         model_base_field = self.model_base_field
 
         class FKOnlyForm(forms.ModelForm):
-            class Meta():
+            class Meta:
                 model = self.model_base
                 fields = (self.model_base_field,)
                 widgets = {
@@ -257,8 +256,6 @@ class GenericAlterManyToManyOrderView(GenericAlterManyToManyView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        num_items = getattr(self.item, self.model_base_field).count()
-
         context['form_add_another_text'] = _('Add Another')
 
         if 'formset' in kwargs:
@@ -329,8 +326,6 @@ class GenericAlterManyToManyOrderView(GenericAlterManyToManyView):
             with transaction.atomic(), reversion.revisions.create_revision():
 
                 model_arglist = []
-                model_arglist_update = []
-                model_arglist_delete = []
                 change_message = []
 
                 for form in filled_formset.ordered_forms:
@@ -376,7 +371,6 @@ class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['form_add_another_text'] = self.form_add_another_text or _('Add another')
-        num_items = getattr(self.item, self.model_base_field).count()
 
         formset = self.formset or self.get_formset()
 
@@ -515,7 +509,7 @@ class UnorderedGenericAlterOneToManyView(GenericAlterOneToManyViewBase):
 
 
 class ExtraFormsetMixin:
-    # Mixin of utils function for adding addtional formsets to a view
+    # Mixin of utils function for adding additional formsets to a view
     # extra_formsets must contain formset, type, title and saveargs
     # See EditItemView for example usage
 
@@ -555,13 +549,13 @@ class ExtraFormsetMixin:
 
         return context
 
-    def get_extra_formsets(self, item=None, postdata=None):
+    def get_extra_formsets(self, item=None, postdata=None, clone_item=False):
         # Item can be a class or an object
         # This is so we can reuse this function in creation wizards
 
         extra_formsets = []
 
-        if inspect.isclass(item):
+        if inspect.isclass(item) or clone_item:
             is_class = True
             add_item = None
         else:
@@ -569,12 +563,15 @@ class ExtraFormsetMixin:
             add_item = item
 
         through_list = self.get_m2m_through(item)
+
         for through in through_list:
 
             if not is_class:
                 formset = self.get_order_formset(through, item, postdata)
             else:
                 formset = self.get_order_formset(through, postdata=postdata)
+
+            formset = one_to_many_formset_filters(formset, item)
 
             extra_formsets.append({
                 'formset': formset,
@@ -591,10 +588,14 @@ class ExtraFormsetMixin:
         weak_list = self.get_m2m_weak(item)
         for weak in weak_list:
 
-            if not is_class:
+            if clone_item:
+                formset = self.get_weak_formset(weak, item, clone=True)
+            elif not is_class:
                 formset = self.get_weak_formset(weak, item, postdata)
             else:
                 formset = self.get_weak_formset(weak, postdata=postdata)
+
+            formset = one_to_many_formset_filters(formset, item)
 
             title = weak['model'].__name__
             # add spaces before capital letters
@@ -642,7 +643,7 @@ class ExtraFormsetMixin:
 
         return formset_instance
 
-    def get_weak_formset(self, weak, item=None, postdata=None):
+    def get_weak_formset(self, weak, item=None, postdata=None, clone=False):
 
         model_to_add_field = weak['item_field']
 
@@ -651,7 +652,7 @@ class ExtraFormsetMixin:
         else:
             fsargs = {'prefix': weak['field_name']}
 
-        if item:
+        if item and not clone:
             extra_excludes = one_to_many_formset_excludes(item, weak['model'])
             fsargs['queryset'] = getattr(item, weak['field_name']).all()
         else:
@@ -661,12 +662,27 @@ class ExtraFormsetMixin:
                 extra_excludes = []
             fsargs['queryset'] = weak['model'].objects.none()
 
+        extra = 0
+        if clone:
+            initial = []
+            from django.forms.models import model_to_dict
+            for index, obj in enumerate(getattr(item, weak['field_name']).all()):
+                o = model_to_dict(obj)
+                o['ORDER'] = o.pop(weak['model'].ordering_field)
+                for k in ['pk', 'id']:  # TODO: do we need to remove the FK field? eg. 'valueDomain'
+                    o.pop(k, None)
+                initial.append(o)
+            fsargs['initial'] = initial
+            extra = len(initial)
+
         if postdata:
             fsargs['data'] = postdata
 
         all_excludes = [model_to_add_field, weak['model'].ordering_field] + extra_excludes
         formset = ordered_formset_factory(
-            weak['model'], exclude=all_excludes, ordering_field=weak['model'].ordering_field
+            weak['model'], exclude=all_excludes,
+            extra=extra,
+            ordering_field=weak['model'].ordering_field
         )
 
         final_formset = formset(**fsargs)
@@ -675,11 +691,21 @@ class ExtraFormsetMixin:
 
     def get_slots_formset(self):
         from aristotle_mdr.contrib.slots.forms import slot_inlineformset_factory
-        return slot_inlineformset_factory()
+
+        formset = slot_inlineformset_factory()
+
+        formset.filtered_empty_form = formset.empty_form
+
+        return formset
 
     def get_identifier_formset(self):
         from aristotle_mdr.contrib.identifiers.forms import identifier_inlineformset_factory
-        return identifier_inlineformset_factory()
+
+        formset = identifier_inlineformset_factory()
+
+        formset.filtered_empty_form = formset.empty_form
+
+        return formset
 
     def get_model_field(self, model, search_model):
         # get the field in the model that we are adding so it can be excluded from form

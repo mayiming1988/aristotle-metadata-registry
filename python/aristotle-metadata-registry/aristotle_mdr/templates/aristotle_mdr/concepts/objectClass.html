@@ -6,9 +6,13 @@
 {% block includes %}
     <dd>
         {% with total=item.dataelementconcept_set.count %}
-        {% if total > 10 %}<a href="{{ request.path }}/related">{% endif %}
+            {% if total > 10 %}
+                <a href="{{ request.path }}/related">
+            {% endif %}
         {{ total }} Data Element Concept{{ total|pluralize }}
-        {% if total > 10 %}</a>{% endif %}
+        {% if total > 10 %}
+            </a>
+        {% endif %}
         {% endwith %}
     </dd>
 {% endblock %}
@@ -18,13 +22,14 @@
 
 {% block relationships %}
     {% with total=item.dataelementconcept_set.count %}
-            <h3>Data Element Concepts implementing this Object Class</h3>
-            <ul>
+        <h3>Data Element Concepts implementing this Object Class</h3>
+        <ul>
             {% for dec in item.dataelementconcept_set.all|can_view_iter:request.user %}
                 <li>
-                    {% include "aristotle_mdr/helpers/inlineDetails.html" with item=dec %}
+                    {% include "aristotle_mdr/helpers/inlineDetails.html" with item=dec skip_can_view=True %}
                 </li>
             {% endfor %}
-            </ul>
+        </ul>
     {% endwith %}
+
 {% endblock %}

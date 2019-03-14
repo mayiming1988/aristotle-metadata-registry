@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.template import loader
 
 from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
+from aristotle_mdr.constants import visibility_permission_choices
 
 import logging
 logger = logging.getLogger(__name__)
@@ -89,6 +90,7 @@ class baseObjectIndex(indexes.SearchIndex):
 
 
 class conceptIndex(baseObjectIndex):
+    uuid = indexes.CharField(model_attr='uuid')
     statuses = indexes.MultiValueField(faceted=True)
     highest_state = indexes.IntegerField()
     ra_statuses = indexes.MultiValueField()
@@ -101,6 +103,7 @@ class conceptIndex(baseObjectIndex):
     facet_model_ct = indexes.IntegerField(faceted=True)
     identifier = indexes.MultiValueField()
     namespace = indexes.MultiValueField()
+    published_date_public = indexes.DateTimeField(null=True)
 
     template_name = "search/searchItem.html"
 
@@ -181,3 +184,8 @@ class conceptIndex(baseObjectIndex):
 
     def prepare_namespace(self, obj):
         return [ident.namespace.shorthand_prefix for ident in obj.identifiers.all().select_related('namespace')]
+
+    def prepare_published_date_public(self, obj):
+        record = obj.concept.publication_details.filter(permission=visibility_permission_choices.public).first()
+        if record:
+            return record.publication_date

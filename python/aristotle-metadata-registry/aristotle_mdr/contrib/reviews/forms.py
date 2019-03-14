@@ -1,19 +1,19 @@
 from django import forms
-from django.db import transaction
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.html import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 import aristotle_mdr.models as MDR
 from aristotle_mdr.forms.creation_wizards import UserAwareModelForm, UserAwareForm
 from aristotle_mdr.forms.forms import ChangeStatusGenericForm
-from django.core.exceptions import ValidationError
 
 from aristotle_mdr.forms.bulk_actions import LoggedInBulkActionForm, RedirectBulkActionMixin
-from aristotle_mdr.models import _concept
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
-from aristotle_mdr.contrib.autocomplete.widgets import ConceptAutocompleteSelectMultiple
+from aristotle_mdr.contrib.autocomplete.widgets import (
+    ConceptAutocompleteSelectMultiple,
+    ConceptAutocompleteSelect
+)
+from aristotle_mdr.widgets.widgets import DataAttrSelect
 
 from . import models
 
@@ -162,3 +162,59 @@ class RequestReviewBulkActionForm(RedirectBulkActionMixin, LoggedInBulkActionFor
             reverse("aristotle_reviews:review_create"),
             urlencode(params, True)
         )
+
+
+class ReviewRequestSupersedesForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        # Make only concepts in the review allowed as newer items
+        review_concepts = kwargs.pop('review_concepts', None)
+        widget_data = kwargs.pop('widget_data', {})
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        if review_concepts:
+            self.fields['newer_item'].queryset = review_concepts
+            self.fields['newer_item'].widget.data = widget_data
+        if user:
+            self.fields['older_item'].queryset = MDR._concept.objects.visible(user)
+
+    class Meta:
+        fields = ('newer_item', 'older_item', 'message')
+        widgets = {
+            'older_item': ConceptAutocompleteSelect,
+            'message': forms.widgets.TextInput,
+            'newer_item': DataAttrSelect
+        }
+
+
+class ReviewRequestSupersedesFormset(forms.BaseModelFormSet):
+
+    def clean(self):
+        super().clean()
+        # Map older items to newer items
+        supersedes_map = {}
+        ids = []
+        for form in self.forms:
+            # No need to check deleted forms
+            if 'DELETE' in form.cleaned_data and not form.cleaned_data['DELETE']:
+                older = form.cleaned_data['older_item']
+                newer = form.cleaned_data['newer_item']
+                supersedes_map[older.id] = newer.id
+                ids.append(older.id)
+                ids.append(newer.id)
+
+        # Get all items as their subclasses
+        items = MDR._concept.objects.filter(id__in=ids).select_subclasses()
+        item_map = {i.id: i for i in items}
+
+        # Make sure items superseding each other are of the same type
+        for older, newer in supersedes_map.items():
+            if older in item_map and newer in item_map:
+                older_class = type(item_map[older])
+                newer_class = type(item_map[newer])
+                if older_class != newer_class:
+                    message = 'Items superseding each other must be of the same type {older} and {newer} are not'.format(
+                        older=item_map[older].name,
+                        newer=item_map[newer].name
+                    )
+                    raise forms.ValidationError(message)

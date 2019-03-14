@@ -1,5 +1,5 @@
 {% extends 'aristotle_mdr/base.html' %}
-{% load aristotle_tags i18n %}
+{% load aristotle_tags util_tags i18n %}
 {% block title %}Registration History of {{ item.name }}{% endblock %}
 
 {% block content %}
@@ -30,8 +30,8 @@
             <tbody>
             {% for status in states %}
                 <tr>
-                    <td>{{ status.registrationDate }}</td>
-                    <td>{{ status.until_date }}</td>
+                    <td><time datetime="{{ status.registrationDate|isotime }}">{{ status.registrationDate }}</time></td>
+                    <td><time datetime="{{ status.until_date|isotime }}">{{ status.until_date }}</time></td>
                     <td><a title='' href='{% url 'aristotle:registrationAuthority' ra.id %}#state_{{ status.state }}'>{{ status.state|stateToText }}</a></td>
                     <td>{{ status.changeDetails }}</td>
                 </tr>

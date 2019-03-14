@@ -17,11 +17,12 @@
   <h2>Open issues related to items in this review</h2>
 
   <div id="vue-container">
-
       {% regroup open_issues by item as issues %}
       {% for issue_set in issues %}
           <h3>{{ issue_set.grouper.name }}</h1>
             {% include 'aristotle_mdr/issues/sublist.html' with issues=issue_set.list context_class="success" %}
+      {% empty %}
+        <p>No issues to display</p>
       {% endfor %}
 
   </div>

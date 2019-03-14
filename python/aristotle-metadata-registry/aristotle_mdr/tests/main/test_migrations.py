@@ -4,12 +4,11 @@ from aristotle_mdr.models import STATES
 from aristotle_mdr.tests.migrations import MigrationsTestCase
 from aristotle_mdr.utils import migrations as migration_utils
 
-from django.core.exceptions import FieldDoesNotExist
-from django.conf import settings
 from django.test import TestCase, tag
 from django.apps import apps as current_apps
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from unittest import skip
 
 
 class TestUtils(TestCase):
@@ -240,6 +239,7 @@ class TestRaActiveMigration(MigrationsTestCase, TestCase):
         self.assertEqual(inactivera.new_active, RA_ACTIVE_CHOICES.inactive)
 
 
+@skip("Field added to Possum Profile (Notification Permissions).")
 class TestSupersedingMigration(MigrationsTestCase, TestCase):
 
     migrate_from = '0042_remove_possumprofile_favourites'
@@ -402,3 +402,62 @@ class TestLinkRootMigration(MigrationsTestCase, TestCase):
         link_model = self.apps.get_model('aristotle_mdr_links', 'Link')
         link = link_model.objects.get(id=self.link.id)
         self.assertEqual(link.root_item.id, self.item1.id)
+
+
+class TestRAOrganisationRemoval(MigrationsTestCase, TestCase):
+
+    app = 'aristotle_mdr'
+    migrate_from = '0046_auto_20181107_0433'
+    migrate_to = '0049_make_non_nullable_so'
+
+
+    def setUpBeforeMigration(self, apps):
+        User = apps.get_model('aristotle_mdr_user_management', 'User')
+        RAClass = apps.get_model('aristotle_mdr', 'RegistrationAuthority')
+        OrgClass = apps.get_model('aristotle_mdr', 'Organization')
+        # StewardOrgClass = apps.get_model('aristotle_mdr', 'StewardOrganisation')
+
+        # self.so = StewardOrgClass.objects.create(name="New SO")
+
+        self.manager = User.objects.create(
+            email='manager@example.com',
+        )
+        self.registrar = User.objects.create(
+            email='registrar@example.com',
+        )
+        # self.org = OrgClass.objects.create(
+        #     name='My RA',
+        #     definition="",
+        #     stewardship_organisation=self.so,
+        # )
+        self.ra = RAClass.objects.create(
+            name='My RA',
+            definition="",
+            # stewardship_organisation=self.so,
+            # organization_ptr = self.org, # Manually connect, because we fiddled with bases
+            locked_state=3,
+        )
+        # self.org = self.ra.organization
+
+    def test_migration(self):
+        from django.apps import apps
+        # OrgClass = apps.get_model('aristotle_mdr', 'Organization')
+        RAClass = apps.get_model('aristotle_mdr', 'RegistrationAuthority')
+        StewardOrgClass = apps.get_model('aristotle_mdr', 'StewardOrganisation')
+        s_org = StewardOrgClass.objects.all().first()
+        # user = self.apps.get_model('aristotle_mdr_user_management', 'User')
+        # self.assertEqual(user.objects.count(), 2)
+        # self.assertTrue(user.objects.filter(email='first@example.com').exists())
+        # self.org.refresh_from_db()
+        # # self.org = OrgClass.objects.get(pk=self.org.pk)
+        # # self.org.name = "My Org"
+        # # self.org.save()
+        # self.ra.refresh_from_db()
+
+        # self.assertTrue(
+        #     self.ra.created == self.org.created
+        # )
+        self.ra = RAClass.objects.get(pk=self.ra.pk)
+        print(self.ra) #.stewardship_organisation)
+
+        self.assertTrue(self.ra.stewardship_organisation == s_org)

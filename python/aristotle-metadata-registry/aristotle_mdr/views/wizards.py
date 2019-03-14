@@ -27,7 +27,6 @@ from aristotle_mdr.contrib.generic.views import ExtraFormsetMixin
 from formtools.wizard.views import SessionWizardView
 from reversion import revisions as reversion
 
-import re
 import logging
 logger = logging.getLogger(__name__)
 
@@ -114,6 +113,7 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.slots_active = is_active_module('aristotle_mdr.contrib.slots')
 
     def get_form(self, step=None, data=None, files=None):
         if step is None:  # pragma: no cover
@@ -128,7 +128,7 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
                 'files': files,
                 'prefix': self.get_form_prefix(step, self.form_list[step]),
                 'initial': self.get_cleaned_data_for_step('initial'),
-                'check_similar': len(similar)>0 or len(duplicates)>0
+                'check_similar': len(similar) > 0 or len(duplicates) > 0
             })
             return MDRForms.wizards.subclassed_wizard_2_Results(self.model)(**kwargs)
         return super().get_form(step, data, files)
@@ -136,17 +136,17 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
     def get_extra_formsets(self, item=None, postdata=None):
         extra_formsets = super().get_extra_formsets(item, postdata)
 
-        slots_formset = self.get_slots_formset()(
-            queryset=Slot.objects.none(),
-            data=postdata
-        )
-
-        extra_formsets.append({
-            'formset': slots_formset,
-            'title': 'Slots',
-            'type': 'slot',
-            'saveargs': None
-        })
+        if self.slots_active:
+            slots_formset = self.get_slots_formset()(
+                queryset=Slot.objects.none(),
+                data=postdata
+            )
+            extra_formsets.append({
+                'formset': slots_formset,
+                'title': 'Slots',
+                'type': 'slot',
+                'saveargs': None
+            })
 
         return extra_formsets
 
@@ -326,10 +326,8 @@ class MultiStepAristotleWizard(PermissionWizard):
                     return self._valuedomain
         return None
 
-    """
-        Looks for items of a given item type with the given search terms
-    """
     def find_similar(self, name, definition, model=None):
+        """Looks for items of a given item type with the given search terms"""
         from aristotle_mdr.forms.search import get_permission_sqs as PSQS
         if model is None:
             model = self.model
@@ -339,10 +337,10 @@ class MultiStepAristotleWizard(PermissionWizard):
         if cached_items:
             return cached_items
 
-        # limit results to 20, as more than this tends to slow down everything.
-        # If a user is getting more than 20 results they probably haven't named things properly
+        # limit results to 10, as more than this tends to slow down everything.
+        # If a user is getting more than 10 results they probably haven't named things properly
         # So instead holding everything up, lets return some of what we find and then give them an error message on the wizard template.
-        similar = PSQS().models(model).auto_query(name + " " + definition).apply_permission_checks(user=self.request.user)[:20]
+        similar = PSQS().models(model).auto_query(name + " " + definition).apply_permission_checks(user=self.request.user)[:10]
         self.similar_items[model] = similar
         return similar
 
@@ -450,7 +448,7 @@ class DataElementConceptWizard(MultiStepAristotleWizard):
         oc = self.get_object_class()
         pr = self.get_property()
         if oc and pr:
-            self._data_element_concept = MDR.DataElementConcept.objects.filter(objectClass=oc, property=pr).visible(self.request.user)
+            self._data_element_concept = MDR.DataElementConcept.objects.filter(objectClass=oc, property=pr).visible(self.request.user).order_by('-created')[:10]
             return self._data_element_concept
         else:
             return []
@@ -520,7 +518,8 @@ class DataElementConceptWizard(MultiStepAristotleWizard):
             context.update({
                 'oc_match': self.get_object_class(),
                 'pr_match': self.get_property(),
-                'dec_matches': self.get_data_element_concept()
+                'dec_matches': self.get_data_element_concept(),
+                'hide_components_tab': True
                 })
         if self.steps.current == 'completed':
             context.update({
@@ -699,7 +698,7 @@ class DataElementWizard(MultiStepAristotleWizard):
             dec = results.get('dec_options', None)
         vd = self.get_value_domain()
         if dec and vd:
-            self._data_elements = MDR.DataElement.objects.filter(dataElementConcept=dec, valueDomain=vd).visible(self.request.user)
+            self._data_elements = MDR.DataElement.objects.filter(dataElementConcept=dec, valueDomain=vd).visible(self.request.user).order_by('-created')[:10]
             return self._data_elements
         else:
             return []
@@ -807,7 +806,8 @@ class DataElementWizard(MultiStepAristotleWizard):
             context.update({
                 'oc_match': self.get_object_class(),
                 'pr_match': self.get_property(),
-                'dec_matches': self.get_data_element_concepts()
+                'dec_matches': self.get_data_element_concepts(),
+                'hide_components_tab': True
                 })
         if self.steps.current == 'find_de_from_comp':
             context.update({
@@ -820,7 +820,8 @@ class DataElementWizard(MultiStepAristotleWizard):
             context.update({
                 'dec_match': self.get_data_element_concept(),
                 'vd_match': self.get_value_domain(),
-                'de_matches': self.get_data_elements()
+                'de_matches': self.get_data_elements(),
+                'hide_components_tab': True
                 })
         if self.steps.current == 'completed':
             context.update({

@@ -1,23 +1,40 @@
-from typing import Any
-from aristotle_mdr.utils import get_download_template_path_for_item
+from typing import Any, List, Dict, Optional, Union, Tuple, AnyStr, Iterable
 
-from django.http import HttpResponse
+from django.db.models.query import QuerySet
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
+from django.core.files.storage import get_storage_class
+from django.core.files import File
+from django.core.exceptions import PermissionDenied
+from django.utils.safestring import mark_safe
+from django.template.loader import render_to_string
+from django.core.files.base import ContentFile
+from django.conf import settings
+from django.utils.module_loading import import_string
+from django.http.request import QueryDict
+from django.core.mail.message import EmailMessage
+from django.urls import reverse
+from django.template.loader import render_to_string
 
 import io
 import csv
+from hashlib import sha256
+import pickle
+import pypandoc
+
 from aristotle_mdr.contrib.help.models import ConceptHelp
 from aristotle_mdr import models as MDR
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AnonymousUser
 from aristotle_mdr.views import get_if_user_can_view
-from aristotle_mdr.utils import downloads as download_utils
+from aristotle_mdr.utils import fetch_aristotle_settings, get_model_label, format_seconds
+from aristotle_mdr.utils.utils import get_download_template_path_for_item
 from celery import shared_task
-from django.core.cache import cache
-from aristotle_mdr import constants as CONSTANTS
 
 
-class DownloaderBase(object):
+class Downloader:
     """
+    Base class used by all downloaders
+    Subclasses must override the create_file method
+
     Required class properties:
 
     * description: a description of the downloader type
@@ -29,159 +46,403 @@ class DownloaderBase(object):
       * the string "__all__" indicating the downloader supports all metadata types
       * the string "__template__" indicating the downloader supports any metadata type with a matching download template
     """
-    metadata_register: Any = {}
-    icon_class = ""
-    description = ""
+    metadata_register: Union[Dict[str, List], str] = '__all__'
+    # Font awsome icon to use
+    icon_class: str = 'fa-file-text-o'
+    description: str = ''
+    filename: str = 'download'
+    allow_wrapper_pages: bool = False  # Whether to allow a front and back page
+    # A unique identifier for the downloader (used in url and passed to task)
+    download_type: str = ''
+    # Used to discover templates
+    template_type: str = ''
+    file_extension: str = ''
+    requires_pandoc: bool = False
+    # Download label (displayed to user)
+    label: str = ''
+    # Mime type used when sending file in an email
+    mime_type: str = ''
 
-    @classmethod
-    def get_download_config(cls, request, iid):
-        """
-        This method must be overriden. This method takes in a request object and item and
-        creates a download config for the download method.
-        This returns config created and item/iid
-        """
-        raise NotImplementedError
+    default_options = {
+        'include_supporting': False,
+        'include_related': False,
+        'subclasses': None,
+        'front_page': None,
+        'back_page': None,
+        'email_copy': False
+    }
 
-    @classmethod
-    def get_bulk_download_config(cls, request, items):
-        r"""
-        This method must be overriden. This takes request object and returns a computed set of download config
-        creates a dict of properties required to generate bulk_downloads
-        -> properties must contain url_id to identify an unique download url of the format ([\w\-\. ]+)/?$
-        :param request: request object from the client
-        :param items: items to download
-        :return: The set of properties required by bulk_download method
-        """
-        raise NotImplementedError
+    def __init__(self, item_ids: List[int], user_id: Optional[int], options: Dict[str, Any] = {}):
+        self.item_ids = item_ids
+        self.error = False
 
-    @staticmethod
-    def download(properties, iid):
-        """
-        This method must be overriden and return the downloadable object of appropriate type
-        and mime type for the object
-        This is a static method because it is a celery task
-        This method should return 2 objects and an optional third
-        first object is item
-        second item is the mime type
-        third object a list of tuple(key, value) which specifies the response object properties
-        Example implementation is in CSVDownloader.download method
+        if user_id is not None:
+            self.user = get_user_model().objects.prefetch_related('profile').get(id=user_id)
+        else:
+            self.user = AnonymousUser()
 
+        self.items = MDR._concept.objects.filter(id__in=item_ids).visible(self.user).select_subclasses()
+
+        # Do len here since we are going to evaluate it later anyways
+        self.numitems = len(self.items)
+        self.bulk = (self.numitems > 1)
+
+        if self.numitems == 0:
+            raise PermissionDenied('User does not have permission to view any items')
+
+        # Shallow copy of options
+        self.options = self.default_options.copy()
+        self.options.update(options)
+
+    def create_file(self) -> File:
+        """
+        This method must be overriden and return the downloadable object of appropriate type and mime type for the object This is a static method because it is a celery task This method should return 2 objects and an optional third first object is item second item is the mime type third object a list of tuple(key, value) which specifies the response object properties Example implementation is in CSVDownloader.download method
         User this in a celery task to get the item from iid
         item = MDR._concept.objects.get_subclass(pk=iid)
         item = get_if_user_can_view(item.__class__, user, iid)
         """
         raise NotImplementedError
 
-    @staticmethod
-    def bulk_download(properties, item):
-        """
-        This method must be overriden and
-        return a bulk downloaded set of items in an appropriate file format and
-        mime type for the object
-        This is a static method because it is a celery task
-        """
-        raise NotImplementedError
+    def get_storage(self):
+        if settings.DOWNLOADS_STORAGE is not None:
+            storage_class = import_string(settings.DOWNLOADS_STORAGE)
+        else:
+            storage_class = get_storage_class()
+        return storage_class()
 
-    @classmethod
-    def get_cache_key(cls, user, iids=[]):
-        return download_utils.get_download_cache_key(iids, user, download_type=cls.download_type)
+    @property
+    def has_wrap_pages(self):
+        return (self.options['front_page'] is not None or self.options['back_page'] is not None)
 
-    @staticmethod
-    def cache_file(key, value, ttl=CONSTANTS.TIME_TO_DOWNLOAD):
-        """
-        This is the cache interface for all the download types.
-        :param key: Key is the combination of iid(s)
-        :param value: value is the value to be stored in the cache
-        :param ttl: It's the time to live for the cache storage
-        :return: returns None.
-        """
-        cache.set(key, value, ttl)
+    def get_wrap_pages(self) -> List:
+        if not self.allow_wrapper_pages:
+            return [None, None]
 
+        storage = self.get_storage()
+        pages = []
+        for page_name in ['front_page', 'back_page']:
+            page_path = self.options[page_name]
+            if page_path is not None:
+                with storage.open(page_path) as page_file:
+                    pages.append(page_file.read())
+            else:
+                pages.append(None)
 
-class CSVDownloader(DownloaderBase):
-    download_type = "csv-vd"
-    metadata_register = {'aristotle_mdr': ['valuedomain']}
-    label = "CSV list of values"
-    icon_class = "fa-file-excel-o"
-    description = "CSV downloads for value domain codelists"
+        return pages
 
-    @classmethod
-    def get_download_config(cls, request, iid):
-        user = getattr(request, 'user', None)
-        properties = {
-            'user': None,
-            'title': cls.item.name
+    def get_filepath(self):
+        if self.user.is_authenticated:
+            userpart = str(self.user.id)
+        else:
+            userpart = 'anon'
+
+        arghash = sha256()
+        arghash.update(pickle.dumps(self.item_ids))
+        arghash.update(pickle.dumps(self.options))
+
+        fname = '/'.join([userpart, arghash.hexdigest(), self.filename])
+        if self.file_extension:
+            return '.'.join([fname, self.file_extension])
+
+        return fname
+
+    def retrieve_file(self, filename: str) -> Optional[str]:
+        """Use default storage class to retrieve file if it exists"""
+        storage = self.get_storage()
+        if storage.exists(filename):
+            file_modified = storage.get_modified_time(filename)
+            for item in self.items:
+                # If one of the items has been modified after the file
+                if item.modified > file_modified:
+                    storage.delete(filename)
+                    return None
+            # If the file was modified after the items
+            return storage.url(filename)
+        return None
+
+    def store_file(self, filename: str, content: File) -> str:
+        """Use default storage class to store file"""
+        storage = self.get_storage()
+        # Filename can change if a file already exists
+        # (wont happen unless caching is off)
+        final_fname = storage.save(filename, content)
+        return storage.url(final_fname)
+
+    def email_file(self, f: File, url: str):
+        max_email_file_size = settings.MAX_EMAIL_FILE_SIZE
+
+        template_name = 'aristotle_mdr/email/download.html'
+        context: Dict[str, Union[str, bool]] = {
+            'item_names': ', '.join([i.name for i in self.items]),
+            'download_url': url
         }
-        if user:
-            properties['user'] = str(user)
-        return properties
+        attachments = []
+
+        if f.size <= max_email_file_size:
+            context['attached'] = True
+            # Read bytes from file
+            f.open('rb')
+            content = f.read()
+            f.close()
+
+            # Tuple of filename, file object, mime type
+            attachments.append((
+                '.'.join([self.filename, self.file_extension]),
+                content,
+                self.mime_type
+            ))
+        else:
+            storage = self.get_storage()
+            if hasattr(storage, 'querystring_expire'):
+                expire_seconds = storage.querystring_expire
+                context['expire_time'] = format_seconds(expire_seconds)
+            # Build url to regenerate download
+            query = QueryDict(mutable=True)
+            query.setlist('items', self.item_ids)
+            regenerate_url = '{url}?{qstring}'.format(
+                url=reverse('aristotle:download_options', args=[self.download_type]),
+                qstring=query.urlencode()
+            )
+            # Update context
+            context.update({'attached': False, 'regenerate_url': regenerate_url})
+
+        email = EmailMessage(
+            'Aristotle Download',
+            render_to_string(template_name, context),
+            to=[self.user.email],
+            attachments=attachments,
+        )
+        email.content_subtype = 'html'  # Sets the mime type of the body to text/html
+        email.send(fail_silently=True)
+
+    def download(self) -> str:
+        """Get the url for this downloads file, creating it if neccesary"""
+        filepath = self.get_filepath()
+
+        if settings.DOWNLOAD_CACHING:
+            url = self.retrieve_file(filepath)
+            if url is not None:
+                return url
+
+        fileobj = self.create_file()
+
+        url = self.store_file(filepath, fileobj)
+
+        if self.options['email_copy']:
+            self.email_file(fileobj, url)
+
+        return url
 
     @classmethod
-    def bulk_download(cls, request, item):
+    def get_class_info(cls) -> Dict[str, Any]:
+        """Used as context instead of passing classes to templates"""
+        return {
+            'icon_class': cls.icon_class,
+            'label': cls.label,
+            'download_type': cls.download_type,
+            'description': cls.description
+        }
+
+
+class HTMLDownloader(Downloader):
+    """
+    Generates a html download
+    This is subclassed for other formats that are generated from html
+    such as the pdf downloader. But can be enabled for testing purposes
+    """
+
+    download_type = 'html'
+    template_type = 'html'
+    file_extension = 'html'
+    label = 'HTML'
+    mime_type = 'text/html'
+    metadata_register = '__all__'
+    description = 'Download as html (used for debugging)'
+
+    bulk_download_template = 'aristotle_mdr/downloads/html/bulk_download.html'
+
+    def get_base_download_context(self) -> Dict[str, Any]:
+        # page size for the pdf
+        aristotle_settings = fetch_aristotle_settings()
+        page_size = aristotle_settings.get('PDF_PAGE_SIZE', 'A4')
+
+        context = {
+            'user': self.user,
+            'page_size': page_size,
+            'options': self.options
+        }
+        return context
+
+    def get_download_context(self) -> Dict[str, Any]:
+        """
+        Return context for single item download
+        """
+        context = self.get_base_download_context()
+
+        # This will raise an exception if the list is empty, but thats ok
+        item = self.items[0]
+        sub_items = self.get_sub_items_dict()
+
+        context.update({
+            'title': item.name,
+            'item': item,
+            'subitems': sub_items,
+            'tableOfContents': len(sub_items) > 0,
+        })
+        return context
+
+    def _add_to_sub_items(self, items_dict, item):
+        item_class = type(item)
+        label = get_model_label(item_class)
+        if label not in items_dict:
+            model_help = ConceptHelp.objects.filter(
+                app_label=item_class._meta.app_label,
+                concept_type=item_class._meta.model_name
+            ).first()
+            items_dict[label] = {
+                'items': [],
+                'verbose_name': item_class.get_verbose_name(),
+                'verbose_name_plural': item_class.get_verbose_name_plural(),
+                'help': model_help
+            }
+        items_dict[label]['items'].append(item)
+
+    def get_sub_items_dict(self, include_root=False) -> Dict[str, Dict[str, Any]]:
+        items: Dict[str, Dict[str, Any]] = {}
+
+        # Get all items using above method to create dict
+        for item in self.items:
+            # include_root includes the selected items in the dict
+            if include_root:
+                self._add_to_sub_items(items, item)
+
+            for dl_item in item.get_download_items():
+                if isinstance(dl_item, QuerySet):
+                    sub_list = list(dl_item.visible(self.user))
+                else:
+                    sub_list = [dl_item]
+
+                for sub_item in sub_list:
+                    # Can be none for components
+                    if sub_item is not None:
+                        self._add_to_sub_items(items, sub_item)
+
+        # Sort the items lists by name
+        for label, data in items.items():
+            data['items'].sort(key=lambda item: item.name)
+
+        return items
+
+    def get_bulk_download_context(self) -> Dict[str, Any]:
+        """
+        Return context for bulk download
+        """
+        context = self.get_base_download_context()
+
+        _list = "<li>" + "</li><li>".join([item.name for item in self.items if item]) + "</li>"
+        subtitle = mark_safe("Generated from the following metadata items:<ul>%s<ul>" % _list)
+
+        sub_items = self.get_sub_items_dict(include_root=True)
+
+        context.update({
+            'subtitle': subtitle,
+            'items': self.items,
+            'included_items': sub_items
+        })
+        return context
+
+    def get_context(self) -> Dict[str, Any]:
+        """
+        Gets the template context
+        Can be used by subclasses
+        """
+        if self.bulk:
+            return self.get_bulk_download_context()
+        else:
+            return self.get_download_context()
+
+    def get_template(self) -> str:
+        """
+        Gets the template context
+        Can be used by subclasses
+        """
+        if self.bulk:
+            return self.bulk_download_template
+        else:
+            # This will raise an exception if the list is empty, but thats ok
+            item = self.items[0]
+            # Template folder should be renamed to html
+            return get_download_template_path_for_item(item, self.template_type)
+
+    def get_html(self) -> bytes:
+        """
+        Gets the rendered html string
+        Can be used by subclasses
+        """
+        template = self.get_template()
+        context = self.get_context()
+        safestring = render_to_string(template, context=context)
+        return str(safestring).encode()
+
+    def create_file(self):
+        html = self.get_html()
+        return ContentFile(html)
+
+
+class PandocDownloader(HTMLDownloader):
+    """
+    Used as base class for downloader converting html to other
+    formats via pandoc. Does not work as a downloader itself
+    """
+
+    requires_pandoc = True
+
+    def convert_html(self, html) -> AnyStr:
         raise NotImplementedError
 
-    @staticmethod
-    @shared_task(name='aristotle_mdr.downloader.CSVDownloader.download')
-    def download(properties, iid):
-        """Built in download method"""
-        User = get_user_model()
-        user = properties.get('user')
-        if user and user != str(AnonymousUser()):
-            user = User.objects.get(email=user)
-        else:
-            user = AnonymousUser()
-
-        item = MDR._concept.objects.get_subclass(pk=iid)
-        item = get_if_user_can_view(item.__class__, user, iid)
-
-        mem_file = io.StringIO()
-        writer = csv.writer(mem_file)
-        writer.writerow(['value', 'meaning', 'start date', 'end date', 'role'])
-        for v in item.permissibleValues.all():
-            writer.writerow(
-                [v.value, v.meaning, v.start_date, v.end_date, "permissible"]
-            )
-        for v in item.supplementaryValues.all():
-            writer.writerow(
-                [v.value, v.meaning, v.start_date, v.end_date, "supplementary"]
-            )
-        CSVDownloader.cache_file(CSVDownloader.get_cache_key(user, iid),
-                                 (mem_file.getvalue(),
-                                  'txt/csv',
-                                  {'Content-Disposition': 'attachment; filename="{}.csv"'.format(item.name)}
-                                  )
-                                 )
-        return iid
+    def create_file(self):
+        html = self.get_html()
+        string = self.convert_html(html)
+        return ContentFile(string)
 
 
-def items_for_bulk_download(items, user):
-    iids = {}
-    item_querysets = {}  # {PythonClass:{help:ConceptHelp,qs:Queryset}}
+class DocxDownloader(PandocDownloader):
 
-    for item in items:
-        if item and item.can_view(user):
-            if item.__class__ not in iids.keys():
-                iids[item.__class__] = []
-            iids[item.__class__].append(item.pk)
+    download_type = 'docx'
+    file_extension = 'docx'
+    label = 'Word'
+    # Yep, the proper mime type for docx really is that long
+    mime_type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.template'
+    metadata_register = '__all__'
+    icon_class = 'fa-file-word-o'
+    description = 'Download as word document'
 
-            for metadata_type, qs in item.get_download_items():
-                if metadata_type not in item_querysets.keys():
-                    item_querysets[metadata_type] = {'help': None, 'qs': qs}
-                else:
-                    item_querysets[metadata_type]['qs'] |= qs
+    def convert_html(self, html):
+        return pypandoc.convert_text(html, 'docx', format='html', return_bytes=True)
 
-    for metadata_type, ids_set in iids.items():
-        query = metadata_type.objects.filter(pk__in=ids_set)
-        if metadata_type not in item_querysets.keys():
-            item_querysets[metadata_type] = {'help': None, 'qs': query}
-        else:
-            item_querysets[metadata_type]['qs'] |= query
 
-    for metadata_type in item_querysets.keys():
-        item_querysets[metadata_type]['qs'] = item_querysets[metadata_type]['qs'].distinct().visible(user)
-        item_querysets[metadata_type]['help'] = ConceptHelp.objects.filter(
-            app_label=metadata_type._meta.app_label,
-            concept_type=metadata_type._meta.model_name
-        ).first()
+class ODTDownloader(PandocDownloader):
 
-    return item_querysets
+    download_type = 'odt'
+    file_extension = 'odt'
+    label = 'ODT'
+    mime_type = 'application/vnd.oasis.opendocument.text'
+    metadata_register = '__all__'
+    icon_class = 'fa-file-word-o'
+    description = 'Download as odt document'
+
+    def convert_html(self, html):
+        return pypandoc.convert_text(html, 'odt', format='html', return_bytes=True)
+
+
+class MarkdownDownloader(PandocDownloader):
+
+    download_type = 'md'
+    file_extension = 'md'
+    label = 'Markdown'
+    mime_type = 'text/markdown'
+    metadata_register = '__all__'
+    description = 'Download as markdown'
+
+    def convert_html(self, html):
+        return pypandoc.convert_text(html, 'md', format='html')

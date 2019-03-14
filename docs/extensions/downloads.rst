@@ -17,7 +17,7 @@ There are two parts to the downloads module
 Creating a download module
 ---------------------------
 
-A download module is a specialised class, that sub-classes ``aristotle_mdr.downloader.DownloaderBase``
+A download module is a specialised class, that sub-classes ``aristotle_mdr.downloader.Downloader``
 and provides an appropriate ``get_download_config`` and ``download`` or ``get_bulk_download_config`` and ``bulk_download`` methods.
 
 A download module is just a Django app that includes a specific set
@@ -35,19 +35,19 @@ Your downloader class must contain a register of download types and the metadata
 types which this module provides downloads for. This takes one of the following forms
 which define which concepts can be downloaded as in the output format::
 
-    class CSVExample(DownloaderBase):
+    class CSVExample(Downloader):
         download_type = "csv"
         metadata_register = {'aristotle_mdr': ['valuedomain']}
 
-    class XLSExample(DownloaderBase):
+    class XLSExample(Downloader):
         download_type = "xls"
         metadata_register = {'aristotle_mdr': ['__all__']}
 
-    class PDFExample(DownloaderBase):
+    class PDFExample(Downloader):
         download_type = "pdf"
         metadata_register = '__template__'
 
-    class TXTExample(DownloaderBase):
+    class TXTExample(Downloader):
         download_type = "txt"
         metadata_register = '__all__'
 
@@ -99,9 +99,9 @@ have to be checked within the download method.
 
 The ``get_bulk_download_config`` and ``bulk_download`` method works in same fashion as ``get_download_config`` and ``download`` respectively.
 
-For more information see the ``DownloaderBase`` class below:
+For more information see the ``Downloader`` class below:
 
-.. autoclass:: aristotle_mdr.downloader.DownloaderBase
+.. autoclass:: aristotle_mdr.downloader.Downloader
    :members:
 
 

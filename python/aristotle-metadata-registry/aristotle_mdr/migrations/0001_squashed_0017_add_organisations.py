@@ -5,7 +5,6 @@ from django.db import migrations, models
 import ckeditor_uploader.fields
 import django.utils.timezone
 from django.conf import settings
-import autoslug.fields
 import model_utils.fields
 
 
@@ -306,6 +305,8 @@ class Migration(migrations.Migration):
             options={
                 'verbose_name_plural': 'Registration Authorities',
             },
+            # Commented out as this is no longer true
+            # See: https://stackoverflow.com/questions/33205279/django-migrations-refuse-to-acknowledge-a-model-no-longer-inherits-from-old-pare
             bases=('aristotle_mdr.organization',),
         ),
         migrations.CreateModel(

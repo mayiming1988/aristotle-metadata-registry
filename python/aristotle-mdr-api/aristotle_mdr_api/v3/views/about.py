@@ -1,6 +1,5 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import authentication, permissions
 
 from django.utils.module_loading import import_string
 from aristotle_mdr.utils import fetch_aristotle_settings

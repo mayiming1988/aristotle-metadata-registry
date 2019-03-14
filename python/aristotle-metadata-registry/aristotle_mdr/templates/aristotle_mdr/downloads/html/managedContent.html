@@ -1,0 +1,87 @@
+{% extends 'aristotle_mdr/downloads/html/pdf.html' %}
+{% load aristotle_tags aristotle_help util_tags %}
+
+{% block title %}
+{% if options.title %}
+  {{ options.title }}
+{% else %}
+  {{ item.name }} {% if item.status %}({{item.status}}){% endif %}
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<section>
+    <header>
+    {% if not tableOfContents and options.title %}
+      {# If there was no table of contents the user submitted title should go here #}
+      <h1>{{ options.title }}</h1>
+    {% else %}
+    <h1 id="objectTitle">
+        {{ item.name }}
+        <span>({{ item.get_verbose_name }})
+        </span>
+    </h1>
+    {% endif %}
+</header>
+<div class="definition">
+    {{ item.definition|bleach }}
+</div>
+<div class="status">
+    {% include "aristotle_mdr/statuses.html" with statuses=item.current_statuses only %}
+</div>
+<table id="supersedes">
+    <tr>
+    <td>Supersedes:
+          <ul>
+          {% for sup in item.approved_supersedes %}
+            {% if sup|can_view:user %}
+              <li>
+              <a href="/item/{{ sup.id }}/">{{ sup }}</a>
+              <span>(id {{ sup.id }})</span>
+              </li>
+            {% endif %}
+          {% empty %}
+            <li>-</li>
+          {% endfor %}
+          </ul>
+    </td>
+    <td>Superseded by:
+        <ul>
+          {% for sup in item.approved_superseded_by %}
+            {% if sup|can_view:user %}
+              <li>
+              <a href="/item/{{ sup.id }}/">{{ sup }}</a>
+              <span>(id {{ sup.id }})</span>
+              </li>
+            {% endif %}
+          {% empty %}
+            <li>-</li>
+          {% endfor %}
+        </ul>
+    </td>
+    </tr>
+</table>
+<div class="objectSpecific">
+    {% block objSpecific %}
+    {% endblock %}
+</div>
+{% if subitems %}
+<h1>Additional Components</h1>
+    {% for l,dict in subitems.items %}
+    <div style="page-break-after:always;">
+        <h2>{{ dict.verbose_name }}</h2>
+        {% if dict.help %}<p>{% relink dict.help 'brief' %}</p>{% endif %}
+        {% for i in dict.items %} 
+            <div id='{{i.id}}'>
+                {% include i|template_path:'html,inline' with item=i header='h3' only %}
+            </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+{% endif %}
+{% if item.slots.count > 0 %}
+    {% include "aristotle_mdr/slots/html/slots_display.html" %}
+{% endif %}
+</section>
+
+{% endblock %}

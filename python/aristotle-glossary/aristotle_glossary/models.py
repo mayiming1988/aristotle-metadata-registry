@@ -4,7 +4,6 @@ from __future__ import absolute_import
 
 from django.db import models
 from django.db.models.signals import post_save
-from django.utils.translation import ugettext_lazy as _
 from django.dispatch import receiver
 
 from aristotle_mdr import models as MDR
@@ -13,6 +12,8 @@ import reversion
 
 class GlossaryItem(MDR.concept):
     template = "aristotle_glossary/concepts/glossaryItem.html"
+    edit_page_excludes = ["index"]
+
     index = models.ManyToManyField(MDR._concept,blank=True,null=True,related_name="related_glossary_items")
 
 

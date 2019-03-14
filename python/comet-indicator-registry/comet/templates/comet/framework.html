@@ -4,8 +4,8 @@
 {% block objSpecific %}
 <h2>Associated Indicators</h2>
     <ul>
-    {% for i in item.indicator_set.all %}
-        <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=i %}
+    {% for i in item.indicator_set.all|can_view_iter:user %}
+        <li>{% include "aristotle_mdr/helpers/itemLink.html" with item=i skip_can_view=True %}
     {% endfor %}
     </ul>
 {% endblock %}

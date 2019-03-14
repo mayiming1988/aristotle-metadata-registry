@@ -29,7 +29,10 @@
                 <a href="{% url 'aristotle:discussionsWorkgroup' post.workgroup.id %}" title="View discussions for this workgroup only">{{ post.workgroup }}</a>
             </td>
             {% endif %}
-            <td>{{ post.author }}
+            <td>
+                {#TODO: We need to implement how users name is displayed:#}
+                {{ post.author.full_name }}
+                ({{ post.author }})
             </td>
             <td>
                     {{ post.comments.count }}

@@ -1,4 +1,4 @@
-// Util functions used by tests
+// Util functions used BY tests
 import chai from 'chai'
 import sinon from 'sinon'
 

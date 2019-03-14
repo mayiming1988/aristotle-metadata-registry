@@ -1,3 +1,4 @@
+// Individual issue page
 import { initCore } from 'src/lib/init.js'
 
 import Vue from 'vue'

@@ -1,6 +1,5 @@
 import notifications.urls
 
-from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib.auth import views
 from django.contrib import admin

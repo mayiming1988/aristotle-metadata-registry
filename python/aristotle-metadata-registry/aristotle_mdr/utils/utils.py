@@ -1,8 +1,8 @@
 from typing import List, Dict
 from django.apps import apps
 from django.conf import settings
-from django.urls import reverse
 from django.core.cache import cache
+from django.urls import reverse
 from django.core.exceptions import ImproperlyConfigured
 from django.forms import model_to_dict
 from django.template.defaultfilters import slugify
@@ -10,18 +10,25 @@ from django.utils.encoding import force_text
 from django.utils.module_loading import import_string
 from django.utils.text import get_text_list
 from django.utils.translation import ugettext as _
-from django.utils import timezone
-from django.db.models import Q, Model
+from django.db.models import Model
 from django.contrib.contenttypes.models import ContentType
 
 import bleach
 import logging
-import inspect
-import datetime
 import re
+from pypandoc import _ensure_pandoc_path
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
+
+
+class classproperty(object):
+
+    def __init__(self, fget):
+        self.fget = fget
+
+    def __get__(self, owner_self, owner_cls):
+        return self.fget(owner_cls)
 
 
 def concept_to_dict(obj):
@@ -52,13 +59,13 @@ def concept_to_clone_dict(obj):
     return clone_dict
 
 
-def get_download_template_path_for_item(item, download_type, subpath=''):
+def get_download_template_path_for_item(item, template_type, subpath=''):
     app_label = item._meta.app_label
     model_name = item._meta.model_name
     if subpath:
-        template = "%s/downloads/%s/%s/%s.html" % (app_label, download_type, subpath, model_name)
+        template = "%s/downloads/%s/%s/%s.html" % (app_label, template_type, subpath, model_name)
     else:
-        template = "%s/downloads/%s/%s.html" % (app_label, download_type, model_name)
+        template = "%s/downloads/%s/%s.html" % (app_label, template_type, model_name)
 
     from django.template.loader import get_template
     from django.template import TemplateDoesNotExist
@@ -67,7 +74,7 @@ def get_download_template_path_for_item(item, download_type, subpath=''):
     except TemplateDoesNotExist:
         # This is ok. If a template doesn't exists pass a default one
         # Maybe in future log an error?
-        template = "%s/downloads/%s/%s/%s.html" % ("aristotle_mdr", download_type, subpath, "managedContent")
+        template = "%s/downloads/%s/%s/%s.html" % ("aristotle_mdr", template_type, subpath, "managedContent")
     return template
 
 
@@ -109,6 +116,13 @@ def url_slugify_organization(org):
     return reverse(
         "aristotle:organization",
         kwargs={'iid': org.pk, 'name_slug': slug}
+    )
+
+
+def url_slugify_issue(issue):
+    return reverse(
+        "aristotle_issues:issue",
+        kwargs={'iid': issue.item.pk, 'pk': issue.pk}
     )
 
 
@@ -196,8 +210,10 @@ def fetch_aristotle_settings():
         aristotle_settings = getattr(settings, 'ARISTOTLE_SETTINGS', {})
 
     strict_mode = getattr(settings, "ARISTOTLE_SETTINGS_STRICT_MODE", True) is not False
-
     aristotle_settings = validate_aristotle_settings(aristotle_settings, strict_mode)
+
+    if settings.OVERRIDE_ARISTOTLE_SETTINGS:
+        aristotle_settings.update(settings.OVERRIDE_ARISTOTLE_SETTINGS)
     return aristotle_settings
 
 
@@ -221,9 +237,7 @@ def validate_aristotle_settings(aristotle_settings, strict_mode):
             assert(type(check_settings) is list)
             assert(all(type(f) is str for f in check_settings))
         except Exception as e:
-            logger.error(error_messages[err])
             logger.error(e)
-            logger.error(str([sub_setting, check_settings, type(check_settings)]))
             if strict_mode:
                 raise ImproperlyConfigured(error_messages[err])
             else:
@@ -262,11 +276,38 @@ def is_active_extension(extension_name):
     return active
 
 
-def fetch_aristotle_downloaders():
-    return [
-        import_string(dtype)
-        for dtype in fetch_aristotle_settings().get('DOWNLOADERS', [])
-    ]
+def pandoc_installed() -> bool:
+    installed = True
+    try:
+        _ensure_pandoc_path(quiet=True)
+    except OSError:
+        installed = False
+
+    return installed
+
+
+def fetch_aristotle_downloaders() -> List:
+    downloaders = []
+    imports = cache.get(settings.DOWNLOADERS_CACHE_KEY)
+    if imports is None:
+        installed = pandoc_installed()
+        enabled_downloaders = fetch_aristotle_settings().get('DOWNLOADERS', [])
+        unusable_imports = []
+        for imp in enabled_downloaders:
+            downloader = import_string(imp)
+            if (downloader.requires_pandoc and not installed):
+                unusable_imports.append(imp)
+            else:
+                downloaders.append(downloader)
+        for unusable in unusable_imports:
+            enabled_downloaders.remove(unusable)
+        cache.set(settings.DOWNLOADERS_CACHE_KEY, enabled_downloaders)
+        return downloaders
+    else:
+        return [
+            import_string(imp)
+            for imp in imports
+        ]
 
 
 def setup_aristotle_test_environment():
@@ -307,24 +348,17 @@ def get_aristotle_url(label, obj_id, obj_name=None):
         ]
 
         if cname in concepts:
-
             return reverse('aristotle:item', args=[obj_id])
-
         elif cname == 'organization':
-
             return reverse('aristotle:organization', args=[obj_id, name_slug])
-
         elif cname == 'workgroup':
-
             return reverse('aristotle:workgroup', args=[obj_id, name_slug])
-
         elif cname == 'registrationauthority':
-
             return reverse('aristotle:registrationAuthority', args=[obj_id, name_slug])
 
-        elif cname == 'reviewrequest':
-
-            return reverse('aristotle:userReviewDetails', args=[obj_id])
+    elif app == 'aristotle_mdr_review_requests':
+        if cname == 'reviewrequest':
+            return reverse('aristotle_reviews:review_details', args=[obj_id])
 
     return None
 
@@ -346,6 +380,22 @@ def get_concept_models() -> List[Model]:
 
 def get_concept_content_types() -> Dict[Model, ContentType]:
     models = get_concept_models()
+    return ContentType.objects.get_for_models(*models)
+
+
+def get_managed_item_models() -> List[Model]:
+    """Returns models for any managed item subclass"""
+    from aristotle_mdr.util.model_utils import ManagedItem
+    models = []
+    for app_config in apps.get_app_configs():
+        for model in app_config.get_models():
+            if issubclass(model, ManagedItem) and model != ManagedItem:
+                models.append(model)
+    return models
+
+
+def get_managed_content_types() -> Dict[Model, ContentType]:
+    models = get_managed_item_models()
     return ContentType.objects.get_for_models(*models)
 
 
@@ -373,15 +423,17 @@ def cascade_items_queryset(items=[]):
 
 
 def get_status_change_details(queryset, ra, new_state):
-    from aristotle_mdr.models import _concept, STATES, Status
-    from aristotle_mdr import perms
+    from aristotle_mdr.models import STATES, Status
     extra_info = {}
     subclassed_queryset = queryset.select_subclasses()
     statuses = Status.objects.filter(concept__in=queryset, registrationAuthority=ra).select_related('concept')
     statuses = statuses.valid().order_by("-registrationDate", "-created")
 
     # new_state_num = static_content['new_state']
-    new_state_text = str(STATES[new_state])
+    if new_state:
+        new_state_text = str(STATES[new_state])
+    else:
+        new_state_text = 'Unchanged'
 
     # Build a dict mapping concepts to their status data
     # So that no additional status queries need to be made
@@ -418,7 +470,7 @@ def get_status_change_details(queryset, ra, new_state):
                 'old_reg_date': state_info['reg_date']
             }
             innerdict['old_reg_date'] = state_info['reg_date']
-            if state_info['state'] >= new_state:
+            if new_state and state_info['state'] >= new_state:
                 innerdict['has_higher_status'] = True
                 any_have_higher_status = True
 
@@ -427,3 +479,30 @@ def get_status_change_details(queryset, ra, new_state):
         extra_info[concept.id] = innerdict
 
     return extra_info, any_have_higher_status
+
+
+def get_model_label(model) -> str:
+    return '.'.join([model._meta.app_label, model._meta.model_name])
+
+
+def format_seconds(seconds: int) -> str:
+    """Given a number of seconds format as X hours, X minutes, X seconds"""
+    minutes, rseconds = divmod(seconds, 60)
+    hours, rminutes = divmod(minutes, 60)
+    strings = []
+    if hours > 0:
+        strings.append('{} hours'.format(hours))
+    if rminutes > 0:
+        strings.append('{} minutes'.format(rminutes))
+    if rseconds > 0:
+        strings.append('{} seconds'.format(rseconds))
+    return ', '.join(strings)
+
+
+def is_postgres() -> bool:
+    """
+    Checks whether the default database connection is to a postgres db
+    Should be used before any postgres specific queries
+    """
+    from django.db import connection
+    return connection.vendor == 'postgresql'
