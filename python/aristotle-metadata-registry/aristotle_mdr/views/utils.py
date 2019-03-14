@@ -357,7 +357,7 @@ class GenericListWorkgroup(LoginRequiredMixin, SortedListView):
     allowed_sorts = {
         'items': 'num_items',
         'name': 'name',
-        'users': 'num_viewers'
+        # 'users': 'num_viewers'
     }
 
     default_sort = 'name'
@@ -375,7 +375,6 @@ class GenericListWorkgroup(LoginRequiredMixin, SortedListView):
     def get_queryset(self):
         # TODO: Fix this query to be faster
         workgroups = self.get_initial_queryset()
-        # workgroups = MDR.Workgroup.objects.all()
 
         if self.text_filter:
             workgroups = workgroups.filter(Q(name__icontains=self.text_filter) | Q(definition__icontains=self.text_filter))
