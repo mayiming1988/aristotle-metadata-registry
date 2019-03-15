@@ -227,22 +227,27 @@ def recent(request):
     return paginated_reversion_list(request, items, "aristotle_mdr/user/recent.html", context)
 
 
-@login_required
-def inbox(request, folder=None):
-    if folder is None:
-        # By default show only unread
-        folder = 'unread'
-    folder = folder.lower()
-    if folder == 'unread':
-        notices = request.user.notifications.unread().all()
-    elif folder == "all":
-        notices = request.user.notifications.all()
-    page = render(
-        request,
-        "aristotle_mdr/user/userInbox.html",
-        {"item": request.user, "notifications": notices[:50], 'folder': folder}
-    )
-    return page
+class InboxView(LoginRequiredMixin, ListView):
+    template_name = 'aristotle_mdr/user/userInbox.html'
+    context_object_name = 'page'
+    paginate_by = 5
+
+    def get_queryset(self, *args, **kwargs):
+        return self.request.user.notifications.unread().all()
+
+    def get_paginate_by(self, queryset):
+        return self.request.GET.get('pp', 25)
+
+
+class InboxViewAll(LoginRequiredMixin, ListView):
+    template_name = 'aristotle_mdr/user/userInbox.html'
+    context_object_name = 'page'
+
+    def get_queryset(self, *args, **kwargs):
+        return self.request.user.notifications.all()
+
+    def get_paginate_by(self, queryset):
+        return self.request.GET.get('pp', 25)
 
 
 @login_required

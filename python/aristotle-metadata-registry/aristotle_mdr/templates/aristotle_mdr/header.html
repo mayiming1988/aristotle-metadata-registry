@@ -54,10 +54,10 @@
                 <a accesskey="h" href="{% url 'aristotle_help:help_base' %}">{% trans 'Help'%}</a>
             </li>
             {% if user.is_active %}
-                {% with notecount=user.notifications.count %}
+
                     <li class="dropdown">
                         <a id="header_menu_button_user" href="{% url 'aristotle:userHome' %}" accesskey="u" class="dropdown-toggle" role="menu" data-toggle="dropdown" title="{% trans 'Open user menu' %}">
-                            <img class="small-profile-picture" src="{{ request.user.profile.profile_picture_url }}" width="20px" alt="Profile Picture"></img>
+                            <img class="small-profile-picture" src="{{ request.user.profile.profile_picture_url }}" width="20px" alt="Profile Picture">
                             {% firstof user.get_short_name user.email %}
                             {% if user.is_superuser %}
                                 <em>(Admin)</em>
@@ -68,7 +68,7 @@
                                 <i class="fa fa-home fa-fw"></i> {% trans 'My Dashboard'%}
                             </a></li>
                             <li><a href="{% url 'aristotle:userProfile' %}">
-                                <img class="small-profile-picture" src="{{ request.user.profile.profile_picture_url }}" width="18px" alt="Profile Picture"></img>
+                                <img class="small-profile-picture" src="{{ request.user.profile.profile_picture_url }}" width="18px" alt="Profile Picture">
                                 {% trans 'My Profile'%}
                             </a></li>
                             <li><a href="{% url 'aristotle_favourites:favs_and_tags' %}">
@@ -77,7 +77,7 @@
                             </a></li>
                             <li><a href="{% url 'aristotle:userInbox' %}">
                                 <i class="fa fa-bell fa-fw"></i> {% trans 'Notifications'%}
-                                <span class="badge" title="{{ notecount }} unread notifications">{{ notecount }}</span>
+                                <span class="badge" title="{{ notifcount }} unread notifications">{{ notifcount }}</span>
                             </a></li>
                             <li><a href="{% url 'aristotle:userWorkgroups' %}">
                                 <i class="fa fa-users fa-fw"></i> {% trans 'Workgroups'%}
@@ -154,14 +154,15 @@
                     <li class="dropdown">
                         <a id="header_menu_button_notifications" href="{% url 'notifications:all' %}"
                            class="dropdown-toggle" data-toggle="dropdown" title="{% trans 'Show recent notifications' %}">
-                            {% if notecount < 0 %}
+                            {% if notifcount > 0 %}
                                 <span class="notify" title="{% trans 'New notifications' %}"></span>
                                 <span class="visible-xs-inline">{% trans 'New notifications' %}</span>
                             {% else %}
                                 <span class="no-notify" title="{% trans 'No unread notifications' %}"></span>
                                 <span class="visible-xs-inline">{% trans 'No unread notifications' %}</span>
                             {% endif %}
-                            {% live_notify_badge badge_class="badge notify-badge" %}
+                            <span class="badge notify-badge">{{ notifcount }}</span>
+{#                            {% live_notify_badge badge_class="badge notify-badge" %}#}
                         </a>
                         {% live_notify_list list_class="dropdown-menu notify-menu" %}
                     </li>
@@ -174,7 +175,7 @@
                             <span class="visible-xs-inline">{% trans 'Log out' %}</span>
                         </a>
                     </li>
-                {% endwith %}
+
             {% else %}
                 <li>
                     {% url 'aristotle_mdr:home' as home_url %}

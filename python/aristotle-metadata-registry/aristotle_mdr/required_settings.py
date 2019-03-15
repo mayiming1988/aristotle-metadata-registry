@@ -47,7 +47,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.template.context_processors.request',
                 'django.template.context_processors.static',
-                'aristotle_mdr.context_processors.settings',
+                'aristotle_mdr.context_processors.general_context_processor',
                 'django.contrib.messages.context_processors.messages',
             ],
         },
