@@ -162,6 +162,9 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
         # if permission not in self.role_permissions.keys()
         #     raise PermissionNotDefined
 
+        if user.is_anonymous():
+            return False
+
         if user.is_superuser:
             return True
 

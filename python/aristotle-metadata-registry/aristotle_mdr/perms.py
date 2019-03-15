@@ -208,6 +208,8 @@ def user_can_supersede(user, item):
 
 
 def user_can_view_review(user, review):
+    if user.is_anonymous():
+        return False
     # A user can see all their requests
     if review.requester == user:
         return True
@@ -224,6 +226,8 @@ def user_can_view_review(user, review):
 
 
 def user_can_edit_review(user, review):
+    if user.is_anonymous():
+        return False
     # A user can edit all their requests
     if review.requester == user:
         return True
@@ -240,6 +244,8 @@ def user_can_edit_review(user, review):
 
 
 def user_can_edit_review_comment(user, reviewcomment):
+    if user.is_anonymous():
+        return False
     # A user can edit all their requests
     if reviewcomment.author == user:
         return True
@@ -260,6 +266,8 @@ def user_can_view_review_comment(user, reviewcomment):
 
 
 def user_can_revoke_review(user, review):
+    if user.is_anonymous():
+        return False
     # A user can see all their requests
     if review.requester == user:
         return True
@@ -271,6 +279,8 @@ def user_can_revoke_review(user, review):
 
 
 def user_can_close_or_reopen_review(user, review):
+    if user.is_anonymous():
+        return False
     # A user can see all their requests
     if review.requester == user:
         return True
@@ -287,6 +297,8 @@ def user_can_close_or_reopen_review(user, review):
 
 
 def user_can_approve_review(user, review):
+    if user.is_anonymous():
+        return False
     # Can't approve a closed request
     if review.status != REVIEW_STATES.open:
         return False

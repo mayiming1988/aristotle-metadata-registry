@@ -37,6 +37,8 @@ class BrowseApps(TemplateView):
 
 
 class AppBrowser(ListView):
+    """ListView with some extra context (subclassed by following views)"""
+
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
@@ -48,6 +50,7 @@ class AppBrowser(ListView):
 
 
 class BrowseModels(AppBrowser):
+    """Show a list of models"""
     template_name = "aristotle_mdr_browse/model_list.html"
     context_object_name = "model_list"
     paginate_by = 25
@@ -60,6 +63,7 @@ class BrowseModels(AppBrowser):
 
 
 class BrowseConcepts(AppBrowser):
+    """Show a list of items of a particular model"""
     _model = None
     paginate_by = 25
 
@@ -81,49 +85,6 @@ class BrowseConcepts(AppBrowser):
 
     def get_queryset(self, *args, **kwargs):
         queryset = super().get_queryset(*args, **kwargs)
-
-        # Regular queryset filter
-        for f in self.request.GET.getlist('f'):
-            try:
-                k, v = f.split(':', 1)
-                queryset = queryset.filter(**{k: v})
-            except:
-                pass
-
-        # Regular queryset filters
-        filters = {}
-        for f in self.request.GET.getlist('f'):
-            if ':' in f:
-                k, v = f.split(':', 1)
-                filter_vals = filters.get(k, [])
-                filter_vals.append(v)
-                filters[k] = filter_vals
-
-        for query, values in filters.items():
-            try:
-                k = "%s__in" % k
-                queryset = queryset.filter(**{k: values})
-            except FieldError:
-                pass
-
-        # slot filters
-        slots = {}
-        for sf in self.request.GET.getlist('sf'):
-            if ':' in sf:
-                k, v = sf.split(':', 1)
-                slot_vals = slots.get(k, [])
-                slot_vals.append(v)
-                slots[k] = slot_vals
-
-        for slot_name, values in slots.items():
-            try:
-                queryset = queryset.filter(
-                    slots__name=slot_name,
-                    slots__value__in=values,
-                )
-            except FieldError:
-                pass
-
         return queryset.visible(self.request.user).prefetch_related('statuses__registrationAuthority')
 
     def get_context_data(self, **kwargs):
