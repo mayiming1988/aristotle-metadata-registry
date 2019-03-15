@@ -26,29 +26,29 @@
         </thead>
         <tbody>
 
-        {% for listitem in userlist %}
+        {% for member in item.members.all %}
         <tr>
         <td>
-            {% include "aristotle_mdr/users_management/helper/user_table_display.html" with user=listitem.user %}
+            {% include "aristotle_mdr/users_management/helper/user_table_display.html" with user=member.user %}
         </td>
         <td>
-            {{ listitem.roles }}
+            {{ member.role }}
         </td>
         <td>
             <div class="btn-group">
               <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <i class="fa fa-cog"></i>
-                <span class="sr-only">Manage permissions for {{ listitem.user }}</span>
+                <span class="sr-only">Manage permissions for {{ member.user }}</span>
                 <span class="caret"></span>
               </button>
               <ul class="dropdown-menu pull-right">
                 <li>
-                    <a href="{% url 'aristotle:workgroup_member_change_role' item.id  listitem.user.pk %}"
+                    <a href="{% url 'aristotle:workgroup_member_change_role' item.id  member.user.pk %}"
                         data-toggle="modal" data-target="#wg_page_modal">Change roles</a>
                 </li>
                 <li role="separator" class="divider"></li>
                 <li class="alert-danger">
-                    <a href="{% url 'aristotle:workgroup_member_remove' item.id  listitem.user.pk %}"
+                    <a href="{% url 'aristotle:workgroup_member_remove' item.id  member.user.pk %}"
                     data-toggle="modal" data-target="#wg_page_modal">Remove from this group</a>
                 </li>
               </ul>

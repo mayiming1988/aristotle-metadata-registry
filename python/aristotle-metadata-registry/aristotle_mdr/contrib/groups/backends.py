@@ -80,7 +80,7 @@ class GroupBase(GroupTemplateMixin):
     group_context_name = None
 
     def get_group_queryset(self):
-        if getattr(self, 'model', None) and issubclass(self.model, AbstractGroup):
+        if getattr(self, 'model', None) and issubclass(self.model, self.group_class):
             qs = super().get_queryset()
         else:
             qs = self.group_class.objects.all()
@@ -104,7 +104,7 @@ class GroupMixin(GroupBase):
         return "group"
 
     def get_group(self):
-        if getattr(self, 'model', None) is not None and issubclass(self.model, AbstractGroup):
+        if getattr(self, 'model', None) is not None and issubclass(self.model, self.group_class):
             slug = self.slug_url_kwarg
         else:
             slug = self.group_slug_url_kwarg

@@ -63,7 +63,6 @@ class ConceptTypeViewSet(viewsets.ReadOnlyModelViewSet):
         outputs = []
         for m in ContentType.objects.filter(app_label__in=aristotle_apps).all():
             if hasattr(m, 'model_class') and m.model_class():
-                print(m.model_class().__class__, models._concept)
                 if issubclass(m.model_class(), models._concept) and not m.model.startswith("_"):
                     outputs.append(m)
         return outputs

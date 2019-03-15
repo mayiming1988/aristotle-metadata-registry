@@ -538,7 +538,7 @@ class PermsTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_close_issue_as_item_viewer(self):
-        self.wg.viewers.add(self.other_user)
+        self.wg.grant_role(user=self.other_user, role=self.wg.roles.viewer)
         self.item.workgroup = self.wg
         self.item.save()
 
@@ -549,7 +549,7 @@ class PermsTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_close_issue_as_item_editor(self):
-        self.wg.submitters.add(self.other_user)
+        self.wg.grant_role(user=self.other_user, role=self.wg.roles.submitter)
         self.item.workgroup = self.wg
         self.item.save()
 

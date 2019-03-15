@@ -36,20 +36,22 @@ class AdminPage(utils.LoggedInViewPages,TestCase):
         wg_nw = models.Workgroup.objects.create(name="normal and is steward", stewardship_organisation=self.steward_org_1)
         wg_aw = models.Workgroup.objects.create(name="archived and is steward",archived=True, stewardship_organisation=self.steward_org_1)
 
-        wg_nm.managers.add(new_editor)
-        wg_am.managers.add(new_editor)
-        wg_nv.viewers.add(new_editor)
-        wg_av.viewers.add(new_editor)
-        wg_ns.submitters.add(new_editor)
-        wg_as.submitters.add(new_editor)
-        wg_nw.stewards.add(new_editor)
-        wg_aw.stewards.add(new_editor)
+        wg_nm.giveRoleToUser('manager', new_editor)
+        wg_am.giveRoleToUser('manager', new_editor)
+        wg_nv.giveRoleToUser('viewer', new_editor)
+        wg_av.giveRoleToUser('viewer', new_editor)
+        wg_ns.giveRoleToUser('submitter', new_editor)
+        wg_as.giveRoleToUser('submitter', new_editor)
+        wg_nw.giveRoleToUser('steward', new_editor)
+        wg_aw.giveRoleToUser('steward', new_editor)
 
         new_editor = get_user_model().objects.get(pk=new_editor.pk) # decache
 
-        self.assertEqual(new_editor.profile.editable_workgroups.count(),2)
+        self.assertEqual(new_editor.profile.editable_workgroups.count(), 3)
         self.assertTrue(wg_ns in new_editor.profile.editable_workgroups.all())
         self.assertTrue(wg_nw in new_editor.profile.editable_workgroups.all())
+        self.assertTrue(wg_nm in new_editor.profile.editable_workgroups.all())
+        self.assertFalse(wg_nv in new_editor.profile.editable_workgroups.all())
 
         self.logout()
         response = self.client.post(reverse('friendly_login'), {'username': 'new_eddie@example.com', 'password': 'editor'})
@@ -57,9 +59,11 @@ class AdminPage(utils.LoggedInViewPages,TestCase):
 
         t = models.ObjectClass
         response = self.client.get(reverse("admin:%s_%s_add" % (t._meta.app_label, t._meta.model_name)))
-        self.assertEqual(response.context['adminform'].form.fields['workgroup'].queryset.count(), 2)
+        self.assertEqual(response.context['adminform'].form.fields['workgroup'].queryset.count(), 3)
         self.assertTrue(wg_ns in response.context['adminform'].form.fields['workgroup'].queryset.all())
         self.assertTrue(wg_nw in response.context['adminform'].form.fields['workgroup'].queryset.all())
+        self.assertTrue(wg_nm in response.context['adminform'].form.fields['workgroup'].queryset.all())
+        self.assertFalse(wg_nv in response.context['adminform'].form.fields['workgroup'].queryset.all())
 
     def test_clone(self):
         from aristotle_mdr.utils import concept_to_clone_dict
@@ -139,12 +143,7 @@ class AdminPage(utils.LoggedInViewPages,TestCase):
         self.assertEqual(new_user.profile.workgroups.first(), self.wg1)
         self.assertEqual(new_user.profile.registrarAuthorities.count(), 1)
         self.assertEqual(new_user.profile.registrarAuthorities.first(), self.ra)
-        for rel in [new_user.workgroup_manager_in,
-                    new_user.steward_in,
-                    new_user.submitter_in,
-                    new_user.viewer_in]:
-            self.assertEqual(rel.count(), 1)
-            self.assertEqual(rel.first(), self.wg1)
+        self.assertTrue(self.wg1.has_role(self.wg1.roles.manager, new_user))
 
         self.assertEqual(new_user.organization_manager_in.count(), 1)
         self.assertEqual(new_user.organization_manager_in.first(), self.ra.organization_ptr)
@@ -191,11 +190,8 @@ class AdminPage(utils.LoggedInViewPages,TestCase):
         new_user = get_user_model().objects.get(email='newuser_with_none@example.com')
         self.assertEqual(new_user.profile.workgroups.count(),0)
         self.assertEqual(new_user.profile.registrarAuthorities.count(),0)
-        for rel in [new_user.workgroup_manager_in,
-                    new_user.steward_in,
-                    new_user.submitter_in,
-                    new_user.viewer_in]:
-            self.assertEqual(rel.count(),0)
+        self.assertFalse(self.wg1.has_role(self.wg1.roles.manager, new_user))
+
         for rel in [new_user.organization_manager_in,
                     new_user.registrar_in,]:
             self.assertEqual(rel.count(),0)

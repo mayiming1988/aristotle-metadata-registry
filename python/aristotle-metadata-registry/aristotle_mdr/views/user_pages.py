@@ -184,20 +184,8 @@ class Roles(LoginRequiredMixin, TemplateView):
         workgroups = []
         registration_authorities = []
 
-        for wg in user.workgroup_manager_in.all():
-            wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Manager'}
-            workgroups.append(wg_object)
-
-        for wg in user.steward_in.all():
-            wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Steward'}
-            workgroups.append(wg_object)
-
-        for wg in user.submitter_in.all():
-            wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Submitter'}
-            workgroups.append(wg_object)
-
-        for wg in user.viewer_in.all():
-            wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Viewer'}
+        for membership in user.workgroupmembership_set.all():
+            wg_object = {'name': membership.group.name, 'pk': membership.group.pk, 'role': membership.role}
             workgroups.append(wg_object)
 
         for ra in user.organization_manager_in.all():
@@ -696,12 +684,7 @@ class WorkgroupArchiveList(GenericListWorkgroup):
 
     def get_initial_queryset(self):
         user = self.request.user
-        return (
-            user.viewer_in.all() |
-            user.submitter_in.all() |
-            user.steward_in.all() |
-            user.workgroup_manager_in.all()
-        ).filter(archived=True).distinct()
+        return user.profile.workgroups_for_user().filter(archived=True)
 
 
 def profile_picture(request, uid):

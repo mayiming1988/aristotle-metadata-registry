@@ -82,9 +82,7 @@ class ConceptWizardPage(HaystackReindexMixin, utils.AristotleTestUtils):
         # Tests against bug #333
         # https://github.com/aristotle-mdr/aristotle-metadata-registry/issues/333
         self.extra_wg = models.Workgroup.objects.create(name="Extra WG for issue 333", stewardship_organisation=self.steward_org_1)
-        self.extra_wg.stewards.add(self.editor)
-        self.extra_wg.submitters.add(self.editor)
-        self.extra_wg.viewers.add(self.editor)
+        self.extra_wg.giveRoleToUser('steward', self.editor)
         self.extra_wg.save()
 
     @property

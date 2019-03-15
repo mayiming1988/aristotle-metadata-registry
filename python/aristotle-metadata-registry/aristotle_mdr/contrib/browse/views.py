@@ -85,7 +85,7 @@ class BrowseConcepts(AppBrowser):
 
     def get_queryset(self, *args, **kwargs):
         queryset = super().get_queryset(*args, **kwargs)
-        return queryset.visible(self.request.user)
+        return queryset.visible(self.request.user).prefetch_related('statuses__registrationAuthority')
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context

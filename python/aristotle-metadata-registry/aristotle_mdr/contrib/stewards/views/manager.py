@@ -33,6 +33,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class StewardGroupMixin(GroupMixin):
+    group_class = MDR.StewardOrganisation
+
+
 class ListCollectionsBase(ListView):
     model = Collection
 
@@ -91,7 +95,7 @@ class StewardURLManager(GroupURLManager):
 
     def workgroup_list_view(self):
 
-        class ListWorkgroup(GroupMixin, HasRolePermissionMixin, GenericListWorkgroup):
+        class ListWorkgroup(StewardGroupMixin, HasRolePermissionMixin, GenericListWorkgroup):
             current_group_context = "workgroups"
             role_permission = "list_workgroups"
             template_name = "aristotle_mdr/user/workgroups/steward_list.html"
@@ -105,7 +109,7 @@ class StewardURLManager(GroupURLManager):
     def workgroup_create_view(self):
         from aristotle_mdr.views.workgroups import CreateWorkgroup as Base
 
-        class CreateWorkgroup(HasRolePermissionMixin, GroupMixin, Base):
+        class CreateWorkgroup(HasRolePermissionMixin, StewardGroupMixin, Base):
             role_permission = "manage_workgroups"
 
             def get_initial(self):
@@ -117,7 +121,7 @@ class StewardURLManager(GroupURLManager):
 
     def registration_authority_list_view(self):
 
-        class ListRegistrationAuthorities(GroupMixin, HasRolePermissionMixin, ListRegistrationAuthorityBase):
+        class ListRegistrationAuthorities(StewardGroupMixin, HasRolePermissionMixin, ListRegistrationAuthorityBase):
             current_group_context = "registrationauthorities"
             role_permission = "view_group"
             template_name = "aristotle_mdr/user/registration_authority/steward_list.html"
@@ -130,7 +134,7 @@ class StewardURLManager(GroupURLManager):
 
     def collection_list_view(self):
 
-        class ListCollectionsView(GroupMixin, HasRolePermissionMixin, ListCollectionsBase):
+        class ListCollectionsView(StewardGroupMixin, HasRolePermissionMixin, ListCollectionsBase):
             current_group_context = "collections"
             role_permission = "view_group"
             template_name = "aristotle_mdr/collections/steward_list.html"
@@ -143,7 +147,7 @@ class StewardURLManager(GroupURLManager):
 
     def collection_detail_view(self):
 
-        class DetailCollectionsView(GroupMixin, HasRolePermissionMixin, DetailView):
+        class DetailCollectionsView(StewardGroupMixin, HasRolePermissionMixin, DetailView):
             current_group_context = "collections"
             role_permission = "view_group"
             template_name = "aristotle_mdr/collections/details.html"
@@ -181,7 +185,7 @@ class StewardURLManager(GroupURLManager):
     def browse_view(self):
         from aristotle_mdr.contrib.browse.views import BrowseConcepts
 
-        class Browse(GroupMixin, BrowseConcepts):
+        class Browse(StewardGroupMixin, BrowseConcepts):
             current_group_context = "metadata"
             model = MDR._concept
 
@@ -206,7 +210,7 @@ class StewardURLManager(GroupURLManager):
 
     def managed_item_create_view(self):
 
-        class CreateManagedItemView(GroupMixin, ManagedItemViewMixin, CreateView):
+        class CreateManagedItemView(StewardGroupMixin, ManagedItemViewMixin, CreateView):
             template_name = "stewards/managed_item/add.html"
             role_permission = "manage_managed_items"
             fields=["stewardship_organisation", "name", "definition"]
@@ -220,7 +224,7 @@ class StewardURLManager(GroupURLManager):
 
     def managed_item_edit_view(self):
 
-        class UpdateManagedItemView(GroupMixin, ManagedItemViewMixin, UpdateView):
+        class UpdateManagedItemView(StewardGroupMixin, ManagedItemViewMixin, UpdateView):
             template_name = "stewards/managed_item/edit.html"
             role_permission = "manage_managed_items"
             fields=["name", "definition"]
@@ -230,7 +234,7 @@ class StewardURLManager(GroupURLManager):
 
     def managed_item_list_types(self):
 
-        class ListManagedItemTypesList(GroupMixin, HasRolePermissionMixin, ListView):
+        class ListManagedItemTypesList(StewardGroupMixin, HasRolePermissionMixin, ListView):
             current_group_context = "managed"
             role_permission = "view_group"
             template_name = "stewards/managed_item/list_types.html"
@@ -250,7 +254,7 @@ class StewardURLManager(GroupURLManager):
         return ListManagedItemTypesList.as_view(manager=self, group_class=self.group_class)
 
     def managed_item_list_items(self):
-        class ListManagedItems(GroupMixin, HasRolePermissionMixin, ManagedItemViewMixin, ListView):
+        class ListManagedItems(StewardGroupMixin, HasRolePermissionMixin, ManagedItemViewMixin, ListView):
             current_group_context = "managed"
             role_permission = "view_group"
             template_name = "stewards/managed_item/list_items.html"

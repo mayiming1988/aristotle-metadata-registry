@@ -31,10 +31,11 @@ class UtilsTests(TestCase):
         item = models.ObjectClass.objects.create(name=" ",definition="my definition",submitter=None)
         ra = models.RegistrationAuthority.objects.create(name=" ",definition="my definition", stewardship_organisation=self.steward_org_1)
         org = models.Organization.objects.create(name=" ",definition="my definition")
-        wg = models.Workgroup.objects.create(name=" ",definition="my definition", stewardship_organisation=self.steward_org_1)
+        # wg = models.Workgroup.objects.create(name=" Huh",definition="my definition", stewardship_organisation=self.steward_org_1)
 
         self.assertTrue('--' in utils.url_slugify_concept(item))
-        self.assertTrue('--' in utils.url_slugify_workgroup(wg))
+        # Workgroup name cant be space anymore.
+        # self.assertTrue('--' in utils.url_slugify_workgroup(wg))
         self.assertTrue('--' in utils.url_slugify_registration_authoritity(ra))
         self.assertTrue('--' in utils.url_slugify_organization(org))
 

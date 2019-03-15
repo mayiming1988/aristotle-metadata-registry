@@ -18,9 +18,9 @@ def MembershipField(model, name):
 
 
 class AristotleProfileForm(forms.ModelForm):
+    viewer_in = MembershipField(MDR.Workgroup, _('workgroups'))
     steward_in = MembershipField(MDR.Workgroup, _('workgroups'))
     submitter_in = MembershipField(MDR.Workgroup, _('workgroups'))
-    viewer_in = MembershipField(MDR.Workgroup, _('workgroups'))
     workgroup_manager_in = MembershipField(MDR.Workgroup, _('workgroups'))
 
     organization_manager_in = MembershipField(MDR.Organization, 'organizations')
@@ -29,28 +29,47 @@ class AristotleProfileForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+        from aristotle_mdr.models import Workgroup
 
         # if self.instance and self.instance.user.count() == 1: # and self.instance.user.exists():
         try:
             self.fields['registrar_in'].initial = self.instance.user.registrar_in.all()
             self.fields['organization_manager_in'].initial = self.instance.user.organization_manager_in.all()
 
-            self.fields['workgroup_manager_in'].initial = self.instance.user.workgroup_manager_in.all()
-            self.fields['steward_in'].initial = self.instance.user.steward_in.all()
-            self.fields['submitter_in'].initial = self.instance.user.submitter_in.all()
-            self.fields['viewer_in'].initial = self.instance.user.viewer_in.all()
+            self.fields['workgroup_manager_in'].initial = Workgroup.objects.filter(members__user=self.instance.user, members__role="manager").all()
+            self.fields['steward_in'].initial = Workgroup.objects.filter(members__user=self.instance.user, members__role="steward").all()
+            self.fields['submitter_in'].initial = Workgroup.objects.filter(members__user=self.instance.user, members__role="submitter").all()
+            self.fields['viewer_in'].initial = Workgroup.objects.filter(members__user=self.instance.user, members__role="viewer").all()
         except get_user_model().DoesNotExist:
             pass
 
     def save_memberships(self, user, *args, **kwargs):
+        from aristotle_mdr.models import WorkgroupMembership
+        WorkgroupMembership.objects.filter(user=user).delete()
+
+        seen_wgs = set()
+        memberships = []
         if "workgroup_manager_in" in self.cleaned_data.keys():
-            user.workgroup_manager_in = self.cleaned_data['workgroup_manager_in']
-        if "submitter_in" in self.cleaned_data.keys():
-            user.submitter_in = self.cleaned_data['submitter_in']
+            for wg in self.cleaned_data['workgroup_manager_in']:
+                if wg.pk not in seen_wgs:
+                    memberships.append(WorkgroupMembership(user=user, group=wg, role="manager"))
+                seen_wgs.add(wg.pk)
         if "steward_in" in self.cleaned_data.keys():
-            user.steward_in = self.cleaned_data['steward_in']
+            for wg in self.cleaned_data['steward_in']:
+                if wg.pk not in seen_wgs:
+                    memberships.append(WorkgroupMembership(user=user, group=wg, role="steward"))
+                seen_wgs.add(wg.pk)
+        if "submitter_in" in self.cleaned_data.keys():
+            for wg in self.cleaned_data['submitter_in']:
+                if wg.pk not in seen_wgs:
+                    memberships.append(WorkgroupMembership(user=user, group=wg, role="submitter"))
+                seen_wgs.add(wg.pk)
         if "viewer_in" in self.cleaned_data.keys():
-            user.viewer_in = self.cleaned_data['viewer_in']
+            for wg in self.cleaned_data['viewer_in']:
+                if wg.pk not in seen_wgs:
+                    memberships.append(WorkgroupMembership(user=user, group=wg, role="viewer"))
+                seen_wgs.add(wg.pk)
+        WorkgroupMembership.objects.bulk_create(memberships)
 
         if "organization_manager_in" in self.cleaned_data.keys():
             user.organization_manager_in = self.cleaned_data['organization_manager_in']

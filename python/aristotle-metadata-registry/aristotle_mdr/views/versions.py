@@ -488,7 +488,7 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
             reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
         )
         # If not a superuser or in workgroup restict versions the user can see
-        in_workgroup = (metadata_item.workgroup and self.request.user in metadata_item.workgroup.members)
+        in_workgroup = (metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list)
         if not (self.request.user.is_superuser or in_workgroup):
             try:
                 version_publishing = metadata_item.version_publication_details.first()
