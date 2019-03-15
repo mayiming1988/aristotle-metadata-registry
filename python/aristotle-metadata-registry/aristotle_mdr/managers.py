@@ -104,33 +104,40 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
             workgroups = Workgroup.objects.filter(members__user=user, archived=False)
             q |= Q(workgroup__in=Subquery(workgroups.values('pk')))
 
-            registrar_count = user.profile.registrar_count
-            if registrar_count > 1:
-                # If a user is a registrar in multiple ras it is possible for
-                # the query to return duplicates
-                need_distinct = True
-            if registrar_count > 0:
+            # registrar_count = user.profile.registrar_count
+            # if registrar_count > 1:
+            #     # If a user is a registrar in multiple ras it is possible for
+            #     # the query to return duplicates
+            #     need_distinct = True
+            # if registrar_count > 0:
+
+            inner_qs = self
+            inner_qs = inner_qs.filter(
                 # Registars can see items they have been asked to review
-                q |= Q(
+                Q(
                     Q(rr_review_requests__registration_authority__registrars__profile__user=user) &
                     ~Q(rr_review_requests__status=REVIEW_STATES.revoked)
                 )
                 # Registars can see items that have been registered in their registration authority
-                q |= Q(
+                | Q(
                     Q(statuses__registrationAuthority__registrars__profile__user=user)
                 )
+            )
+            q |= Q(id__in=Subquery(inner_qs.values('pk')))
+
 
         q |= self.is_published_public
         q |= self.is_published_auth
 
         q &= ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
 
-        if not need_distinct:
-            return self.filter(q)
-        else:
-            if is_postgres():
-                return self.filter(q).distinct('id')
-            return self.filter(q).distinct()
+        return self.filter(q)
+        # if not need_distinct:
+        #     return self.filter(q)
+        # else:
+        #     # if is_postgres():
+        #     #     return self.filter(q).distinct('id')
+        #     return self.filter(q).distinct()
 
     def editable(self, user):
         """

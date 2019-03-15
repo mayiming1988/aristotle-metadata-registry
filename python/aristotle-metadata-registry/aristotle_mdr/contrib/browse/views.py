@@ -124,7 +124,7 @@ class BrowseConcepts(AppBrowser):
             except FieldError:
                 pass
 
-        return queryset.visible(self.request.user)
+        return queryset.visible(self.request.user).prefetch_related('statuses__registrationAuthority')
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
