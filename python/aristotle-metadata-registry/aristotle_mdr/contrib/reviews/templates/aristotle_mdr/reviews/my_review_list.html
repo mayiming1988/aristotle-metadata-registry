@@ -14,10 +14,9 @@
     <h1>
         {% block title %}{% trans "Review List" %}{% endblock %}
     </h1>
-    <a class="btn btn-primary pull-right" href="{% url 'aristotle_reviews:review_create' %}">
+    <a class="btn btn-primary" href="{% url 'aristotle_reviews:review_create' %}">
         <i class="fa fa-plus-square"></i> Create New Review
     </a>
-    <br>
     <p>
         The following are collections of items that have been requested for review.
         Once reviewed, if accepted, they may become visible.
