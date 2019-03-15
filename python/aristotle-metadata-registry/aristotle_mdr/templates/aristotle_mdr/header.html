@@ -154,7 +154,7 @@
                     <li class="dropdown">
                         <a id="header_menu_button_notifications" href="{% url 'notifications:all' %}"
                            class="dropdown-toggle" data-toggle="dropdown" title="{% trans 'Show recent notifications' %}">
-                            {% if notifcount < 0 %}
+                            {% if notifcount > 0 %}
                                 <span class="notify" title="{% trans 'New notifications' %}"></span>
                                 <span class="visible-xs-inline">{% trans 'New notifications' %}</span>
                             {% else %}
