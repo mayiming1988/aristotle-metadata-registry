@@ -113,6 +113,10 @@ class ReviewRequestDetailTestCase(utils.AristotleTestUtils, TestCase):
             name='Stuff',
             definition='Stuff'
         )
+        self.item2 = MDR.ObjectClass.objects.create(
+            name='Junk',
+            definition='Junk'
+        )
 
     def create_single_item_review_request(self, state):
         rr = models.ReviewRequest.objects.create(
@@ -182,6 +186,39 @@ class ReviewRequestDetailTestCase(utils.AristotleTestUtils, TestCase):
             reverse_args=[rr.id]
         )
         self.assertEqual(response.status_code, 200)
+
+    def test_request_visible_multiple_registrars(self):
+        # create 2 users
+        user = get_user_model().objects.create_user(
+            email='example@example.com',
+            password='1234'
+        )
+        user2 = get_user_model().objects.create_user(
+            email='example2@example.com',
+            password='1234'
+        )
+        # create ra
+        ra1 = MDR.RegistrationAuthority.objects.create(
+            name='First RA',
+            definition='First',
+            stewardship_organisation=self.steward_org_1
+        )
+        # Add both user to ra as registrars
+        ra1.registrars.add(user)
+        ra1.registrars.add(user2)
+        # Make sure user 1 is a registrar
+        self.assertTrue(user.profile.is_registrar)
+
+        # create review request by user 1
+        rr1 = models.ReviewRequest.objects.create(
+            registration_authority=ra1,
+            requester=user,
+            target_registration_state=MDR.STATES.standard,
+        )
+
+        # Check to see how many reviews user 1 can see
+        visible = models.ReviewRequest.objects.visible(user)
+        self.assertEqual(visible.count(), 1)
 
 
 class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
