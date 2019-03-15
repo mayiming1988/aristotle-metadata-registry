@@ -52,7 +52,7 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
         self.assertEqual(self.wg1.discussions.all().count(), 1)
         self.assertEqual(user1.notifications.count(), 0)
 
-        self.wg1.viewers.add(user1)
+        self.wg1.giveRoleToUser('viewer', user1)
 
         models.DiscussionPost.objects.create(
             title="Hello",
@@ -71,8 +71,8 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
         self.assertEqual(self.wg1.discussions.all().count(), 0)
         kenobi = get_user_model().objects.create_user('kenodi@jedi.order', '')
         grievous = get_user_model().objects.create_user('gen.grevious@separatist.mil', '')
-        self.wg1.viewers.add(kenobi)
-        self.wg1.viewers.add(grievous)
+        self.wg1.giveRoleToUser('viewer', kenobi)
+        self.wg1.giveRoleToUser('viewer', grievous)
 
         self.assertEqual(kenobi.notifications.count(), 0)
         self.assertEqual(grievous.notifications.count(), 0)
@@ -96,7 +96,7 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
 
     def test_subscriber_is_notified_of_supersede(self):
         user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
-        self.wg1.viewers.add(user1)
+        self.wg1.giveRoleToUser('viewer', user1)
         self.favourite_item(user1, self.item1)
         self.assertTrue(user1 in self.item1.favourited_by.all())
 
@@ -118,7 +118,7 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
 
     def test_subscriber_is_not_notified_of_supersedes_on_invisible_items(self):
         user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
-        self.wg1.viewers.add(user1)
+        self.wg1.giveRoleToUser('viewer', user1)
         self.favourite_item(user1, self.item1)
         self.assertTrue(user1 in self.item1.favourited_by.all())
 
@@ -195,7 +195,7 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
 
         user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
 
-        self.wg1.viewers.add(user1)
+        self.wg1.giveRoleToUser('viewer', user1)
 
         Issue.objects.create(
             name="My huge issue",
@@ -211,8 +211,8 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
         user1 = get_user_model().objects.create_user('subscriber@example.com', 'subscriber')
         user2 = get_user_model().objects.create_user('subscriber2@example.com', 'subscriber2')
 
-        self.wg1.viewers.add(user1)
-        self.wg1.viewers.add(user2)
+        self.wg1.giveRoleToUser('viewer', user1)
+        self.wg1.giveRoleToUser('viewer', user2)
 
         Issue.objects.create(
             name="My huge issue",

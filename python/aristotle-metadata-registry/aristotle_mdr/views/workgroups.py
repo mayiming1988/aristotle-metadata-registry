@@ -17,11 +17,17 @@ from aristotle_mdr.views.utils import (
     paginated_workgroup_list,
     workgroup_item_statuses,
     ObjectLevelPermissionRequiredMixin,
-    RoleChangeView,
+    SingleRoleChangeView,
     MemberRemoveFromGroupView,
     GenericListWorkgroup,
     UserFormViewMixin
 )
+
+from aristotle_mdr.contrib.groups.backends import (
+    GroupURLManager, GroupMixin,
+    HasRoleMixin, HasRolePermissionMixin,
+)
+
 
 import logging
 
@@ -108,45 +114,6 @@ class MembersView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermissi
     template_name = 'aristotle_mdr/user/workgroups/members.html'
     permission_required = "aristotle_mdr.view_workgroup"
 
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-
-        viewers = self.object.viewers.all()
-        submitters = self.object.submitters.all()
-        stewards = self.object.stewards.all()
-        managers = self.object.managers.all()
-
-        roles = defaultdict(list)
-        users = {}
-
-        for user in viewers:
-            roles[user.id].append('Viewer')
-            users[user.id] = user
-
-        for user in submitters:
-            roles[user.id].append('Submitter')
-            users[user.id] = user
-
-        for user in stewards:
-            roles[user.id].append('Steward')
-            users[user.id] = user
-
-        for user in managers:
-            roles[user.id].append('Manager')
-            users[user.id] = user
-
-        userlist = []
-        for uid, user in users.items():
-            if uid in roles:
-                currentroles = ', '.join(roles[uid])
-            else:
-                currentroles = ''
-            userlist.append({'user': user, 'roles': currentroles})
-
-        userlist.sort(key=lambda x: x['user'].full_name)
-        context.update({'userlist': userlist})
-        return context
-
 
 class ArchiveView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermissionRequiredMixin, DetailView):
     template_name = 'aristotle_mdr/actions/archive_workgroup.html'
@@ -180,11 +147,9 @@ class AddMembersView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermi
         return super().get_context_data(**kwargs)
 
     def form_valid(self, form):
-        users = form.cleaned_data['users']
-        roles = form.cleaned_data['roles']
-        for user in users:
-            for role in roles:
-                self.get_object().giveRoleToUser(role, user)
+        user = form.cleaned_data['user']
+        role = form.cleaned_data['role']
+        self.get_object().giveRoleToUser(role, user)
         return redirect(self.get_success_url())
 
     def get_initial(self):
@@ -234,7 +199,7 @@ class EditWorkgroup(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermis
     context_object_name = "item"
 
 
-class ChangeUserRoles(RoleChangeView):
+class ChangeUserRoles(SingleRoleChangeView):
     model = MDR.Workgroup
     template_name = "aristotle_mdr/user/workgroups/change_role.html"
     permission_required = "aristotle_mdr.change_workgroup"
@@ -255,3 +220,20 @@ class RemoveUser(MemberRemoveFromGroupView):
 
     def get_success_url(self):
         return redirect(reverse('aristotle:workgroupMembers', args=[self.get_object().id]))
+
+
+class WorkgroupURLManager(GroupURLManager):
+    # TODO: Acually use this
+    group_context_name = "workgroup"
+
+
+def workgroup_backend_factory(*args, **kwargs):
+    # TODO: Acually use this
+    kwargs.update({
+        "group_class": MDR.Workgroup,
+        "membership_class": MDR.WorkgroupMembership,
+        "namespace": "aristotle_mdr:workgroup",
+        "update_fields": ['definition']
+    })
+
+    return WorkgroupURLManager(*args, **kwargs)

@@ -22,7 +22,7 @@ class CachingForRawPermissions(TestCase):
         self.wg.registrationAuthorities=[self.ra]
         self.wg.save()
         self.submitter = get_user_model().objects.create_user('suzie@example.com', 'submitter')
-        self.wg.submitters.add(self.submitter)
+        self.wg.giveRoleToUser('submitter', self.submitter)
         self.item = models.ObjectClass.objects.create(name="Test OC1", workgroup=self.wg)
 
     def test_can_edit_cache(self):

@@ -117,11 +117,14 @@ def user_can_edit(user, item):
     if item.__class__ == get_user_model():  # -- Sometimes duck-typing fails --
         return user == item
 
-    if hasattr(item, "was_modified_very_recently") and item.was_modified_very_recently():
-        # If the item was modified in the last 15 seconds, don't use cache
-        can_use_cache = False
+    if hasattr(item, "was_modified_very_recently"):
+        if item.was_modified_very_recently():
+            # If the item was modified in the last 15 seconds, don't use cache
+            can_use_cache = False
+        else:
+            can_use_cache = True
     else:
-        can_use_cache = True
+        can_use_cache = False
 
     user_key = str(user.id)
     key = 'user_can_edit_%s|%s:%s|%s' % (user_key, item._meta.app_label, item._meta.app_label, str(item.id))
@@ -148,9 +151,7 @@ def user_is_editor(user, workgroup=None):
 
 
 def user_can_submit_to_workgroup(user, workgroup):
-    submitter = workgroup in user.submitter_in.all()
-    steward = workgroup in user.steward_in.all()
-    return submitter or steward
+    return workgroup.has_role(["submitter", "steward"], user)
 
 
 def user_is_registrar(user, ra=None):
@@ -207,6 +208,8 @@ def user_can_supersede(user, item):
 
 
 def user_can_view_review(user, review):
+    if user.is_anonymous():
+        return False
     # A user can see all their requests
     if review.requester == user:
         return True
@@ -223,6 +226,8 @@ def user_can_view_review(user, review):
 
 
 def user_can_edit_review(user, review):
+    if user.is_anonymous():
+        return False
     # A user can edit all their requests
     if review.requester == user:
         return True
@@ -239,6 +244,8 @@ def user_can_edit_review(user, review):
 
 
 def user_can_edit_review_comment(user, reviewcomment):
+    if user.is_anonymous():
+        return False
     # A user can edit all their requests
     if reviewcomment.author == user:
         return True
@@ -259,6 +266,8 @@ def user_can_view_review_comment(user, reviewcomment):
 
 
 def user_can_revoke_review(user, review):
+    if user.is_anonymous():
+        return False
     # A user can see all their requests
     if review.requester == user:
         return True
@@ -270,6 +279,8 @@ def user_can_revoke_review(user, review):
 
 
 def user_can_close_or_reopen_review(user, review):
+    if user.is_anonymous():
+        return False
     # A user can see all their requests
     if review.requester == user:
         return True
@@ -286,6 +297,8 @@ def user_can_close_or_reopen_review(user, review):
 
 
 def user_can_approve_review(user, review):
+    if user.is_anonymous():
+        return False
     # Can't approve a closed request
     if review.status != REVIEW_STATES.open:
         return False
@@ -305,14 +318,14 @@ def user_can_manage_workgroup(user, workgroup):
     if user.is_superuser:
         return True
     elif workgroup is None:
-        return user.workgroup_manager_in.count() > 0
+        return user.workgroupmembership_set.filter(role='manager').exists()
 
     if not workgroup.stewardship_organisation.is_active():
         return False
     if workgroup.stewardship_organisation.user_has_permission(user, "manage_workgroups"):
         return True
     else:
-        return user in workgroup.managers.all()
+        return workgroup.has_role('manager', user)
 
 
 def user_is_workgroup_manager(user, workgroup):
@@ -324,7 +337,7 @@ def user_in_workgroup(user, wg):
         return False
     if user.is_superuser:
         return True
-    return user in wg.members
+    return user in wg.member_list.all()
 
 
 def user_can_move_any_workgroup(user):
@@ -340,7 +353,7 @@ def user_can_move_any_workgroup(user):
         return True
     if 'manager' in workgroup_change_access and user.profile.is_workgroup_manager():
         return True
-    if 'submitter' in workgroup_change_access and user.submitter_in.exists():
+    if 'submitter' in workgroup_change_access and user.workgroupmembership_set.filter(role="submitter").exists():
         return True
 
     return False
@@ -358,9 +371,9 @@ def user_can_add_or_remove_workgroup(user, workgroup):
         return True
 
     if workgroup:
-        if 'manager' in workgroup_change_access and user in workgroup.managers.all():
+        if 'manager' in workgroup_change_access and workgroup.has_role('manager', user):
             return True
-        if 'submitter' in workgroup_change_access and user in workgroup.submitters.all():
+        if 'submitter' in workgroup_change_access and workgroup.has_role('submitter', user):
             return True
 
     return False

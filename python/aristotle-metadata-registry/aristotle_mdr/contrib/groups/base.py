@@ -162,6 +162,9 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
         # if permission not in self.role_permissions.keys()
         #     raise PermissionNotDefined
 
+        if user.is_anonymous():
+            return False
+
         if user.is_superuser:
             return True
 
@@ -236,6 +239,20 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
         Returns a list of roles the user has in this group
         """
         return list(self.members.filter(user=user).values_list('role', flat=True))
+
+    def users_for_role(self, role):
+        """
+        Returns a list of users with the given roles in this group
+        """
+        if type(role) is list:
+            roles = role
+        else:
+            roles = [role]
+        user_to_membership_relation = self.members.model.user.field.related_query_name()
+        return get_user_model().objects.filter(**{
+            user_to_membership_relation + "__group": self,
+            user_to_membership_relation + "__role__in": roles
+        })
 
     def has_member(self, user):
         """

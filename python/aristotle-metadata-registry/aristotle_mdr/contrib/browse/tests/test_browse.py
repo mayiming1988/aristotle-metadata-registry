@@ -1,12 +1,9 @@
 from django.urls import reverse
-from django.test import TestCase
+from django.test import TestCase, tag
 
-import aristotle_mdr.models as models
-from aristotle_mdr.utils import setup_aristotle_test_environment
+from aristotle_mdr import models
 
 from aristotle_mdr.tests import utils
-
-setup_aristotle_test_environment()
 
 
 class TestBrowsePages(TestCase):
@@ -41,14 +38,30 @@ class LoggedInViewConceptBrowsePages(utils.LoggedInViewPages):
 
         self.ra.register(self.item4,self.ra.public_state,self.su)
 
-    def test_anon_can_view_browse(self):
-        self.logout()
+    def check_user_can_view_browse(self):
         response = self.client.get(
             reverse("browse_concepts",args=[self.itemType._meta.app_label,self.itemType._meta.model_name])
             )
         self.assertEqual(response.status_code,200)
         self.assertContains(response, self.item4.name)
         self.assertNotContains(response, self.item2.name)
+
+    def test_anon_can_view_browse(self):
+        self.logout()
+        self.check_user_can_view_browse()
+
+    @tag('registrar')
+    def test_registrar_can_view_browse(self):
+        # Make registrar a registrar of multiple ra's so that
+        # ConceptQuerySet visible condition active
+        ra2 = models.RegistrationAuthority.objects.create(
+            name='Second RA',
+            definition='Second',
+            stewardship_organisation=self.steward_org_1
+        )
+        ra2.registrars.add(self.registrar)
+        self.login_registrar()
+        self.check_user_can_view_browse()
 
     def test_zero_item_should_not_show(self):
         self.logout()
@@ -71,126 +84,6 @@ class LoggedInViewConceptBrowsePages(utils.LoggedInViewPages):
         self.assertContains(response, self.item1.name)
         self.assertContains(response, self.item4.name)
         self.assertNotContains(response, self.item2.name)
-
-    def test_editor_can_view_browse_with_filters(self):
-        self.login_editor()
-        response = self.client.get(
-            reverse("browse_concepts",args=[self.itemType._meta.app_label,self.itemType._meta.model_name]),
-            {'f':'name__icontains:3'}
-            )
-        self.assertEqual(response.status_code,200)
-        self.assertNotContains(response, self.item1.name)
-        self.assertNotContains(response, self.item2.name)
-        self.assertContains(response, self.item3.name)
-        self.assertContains(response, self.item4.name)
-
-        response = self.client.get(
-            reverse("browse_concepts",args=[self.itemType._meta.app_label,self.itemType._meta.model_name]),
-            {'f':'a_fake_query_that_fails:3'}
-            )
-        self.assertEqual(response.status_code,200)
-        self.assertContains(response, self.item1.name)
-        self.assertNotContains(response, self.item2.name)
-        self.assertContains(response, self.item3.name)
-        self.assertContains(response, self.item4.name)
-
-        response = self.client.get(
-            reverse("browse_concepts",args=[self.itemType._meta.app_label,self.itemType._meta.model_name]),
-            {'f':'another_fake_query_that_fails'}
-            )
-        self.assertEqual(response.status_code,200)
-        self.assertContains(response, self.item1.name)
-        self.assertNotContains(response, self.item2.name)
-        self.assertContains(response, self.item3.name)
-        self.assertContains(response, self.item4.name)
-
-    def test_editor_can_view_browse_with_slot_filters(self):
-        from aristotle_mdr.contrib.slots.models import Slot
-        slot_name ="test"
-
-        self.login_editor()
-        response = self.client.get(
-            reverse("browse_concepts",args=[self.itemType._meta.app_label,self.itemType._meta.model_name]),
-            {'sf':'%s:hello'%slot_name}
-            )
-        self.assertEqual(response.status_code,200)
-        self.assertNotContains(response, self.item1.name)
-        self.assertNotContains(response, self.item2.name)
-        self.assertNotContains(response, self.item3.name)
-        self.assertNotContains(response, self.item4.name)
-
-        Slot.objects.create(concept=self.item1.concept, name=slot_name, value="hello")
-
-        response = self.client.get(
-            reverse("browse_concepts",args=[self.itemType._meta.app_label,self.itemType._meta.model_name]),
-            {'sf':'%s:hello'%slot_name}
-            )
-        self.assertEqual(response.status_code,200)
-        self.assertContains(response, self.item1.name)
-        self.assertNotContains(response, self.item2.name)
-        self.assertNotContains(response, self.item3.name)
-        self.assertNotContains(response, self.item4.name)
-
-        response = self.client.get(
-            reverse("browse_concepts",args=[self.itemType._meta.app_label,self.itemType._meta.model_name]),
-            {'sf':['%s:hello'%slot_name,'%s:bye'%slot_name]}
-            )
-        self.assertEqual(response.status_code,200)
-        self.assertContains(response, self.item1.name)
-        self.assertNotContains(response, self.item2.name)
-        self.assertNotContains(response, self.item3.name)
-        self.assertNotContains(response, self.item4.name)
-
-        response = self.client.get(
-            reverse("browse_concepts",args=[self.itemType._meta.app_label,self.itemType._meta.model_name]),
-            {'sf':'another_fake_query_that_fails'}
-            )
-        self.assertEqual(response.status_code,200)
-        self.assertContains(response, self.item1.name)
-        self.assertNotContains(response, self.item2.name)
-        self.assertContains(response, self.item3.name)
-        self.assertContains(response, self.item4.name)
-
-    def test_editor_can_view_browse_with_two_slot_filters(self):
-        from aristotle_mdr.contrib.slots.models import Slot
-        slot_name_1 = "test1"
-        slot_name_2 = "test2"
-
-        self.login_editor()
-        response = self.client.get(
-            reverse("browse_concepts",args=[self.itemType._meta.app_label,self.itemType._meta.model_name]),
-            {'sf':'%s:hello'%slot_name_1}
-            )
-        self.assertEqual(response.status_code,200)
-        self.assertNotContains(response, self.item1.name)
-        self.assertNotContains(response, self.item3.name)
-
-        # Make some slots
-        Slot.objects.create(concept=self.item1.concept, name=slot_name_1, value="hello")
-        Slot.objects.create(concept=self.item1.concept, name=slot_name_2, value="other")
-        Slot.objects.create(concept=self.item3.concept, name=slot_name_1, value="hello")
-
-        self.login_editor()
-        response = self.client.get(
-            reverse("browse_concepts",args=[self.itemType._meta.app_label,self.itemType._meta.model_name]),
-            {'sf':'%s:hello'%slot_name_1}
-            )
-        self.assertEqual(response.status_code,200)
-        self.assertContains(response, self.item1.name)
-        self.assertContains(response, self.item3.name)
-
-        response = self.client.get(
-            reverse("browse_concepts",args=[self.itemType._meta.app_label,self.itemType._meta.model_name]),
-            {'sf': [
-                '%s:hello'%slot_name_1,
-                '%s:other'%slot_name_2,
-            ]}
-            )
-        self.assertEqual(response.status_code,200)
-        self.assertContains(response, self.item1.name)
-        self.assertNotContains(response, self.item2.name)
-        self.assertNotContains(response, self.item3.name)
-        self.assertNotContains(response, self.item4.name)
 
     def test_itemtypes_with_no_items_dont_show_up(self):
         self.login_editor()

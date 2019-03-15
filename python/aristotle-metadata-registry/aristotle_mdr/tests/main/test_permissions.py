@@ -101,24 +101,24 @@ class WorkgroupPermissions(TestCase):
         user = get_user_model().objects.create_user('user@example.com','user')
 
         wg.giveRoleToUser('manager',user)
-        self.assertTrue(user in wg.managers.all())
+        self.assertTrue(wg.has_role('manager', user))
         wg.removeRoleFromUser('manager',user)
-        self.assertFalse(user in wg.managers.all())
+        self.assertFalse(wg.has_role('manager', user))
 
         wg.giveRoleToUser('viewer',user)
-        self.assertTrue(user in wg.viewers.all())
+        self.assertTrue(wg.has_role('viewer', user))
         wg.removeRoleFromUser('viewer',user)
-        self.assertFalse(user in wg.viewers.all())
+        self.assertFalse(wg.has_role('viewer', user))
 
         wg.giveRoleToUser('submitter',user)
-        self.assertTrue(user in wg.submitters.all())
+        self.assertTrue(wg.has_role('submitter', user))
         wg.removeRoleFromUser('submitter',user)
-        self.assertFalse(user in wg.submitters.all())
+        self.assertFalse(wg.has_role('submitter', user))
 
         wg.giveRoleToUser('steward',user)
-        self.assertTrue(user in wg.stewards.all())
+        self.assertTrue(wg.has_role('steward', user))
         wg.removeRoleFromUser('steward',user)
-        self.assertFalse(user in wg.stewards.all())
+        self.assertFalse(wg.has_role('steward', user))
 
 class RegistryGroupPermissions(TestCase):
     def setUp(self):

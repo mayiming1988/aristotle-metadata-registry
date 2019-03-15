@@ -184,20 +184,8 @@ class Roles(LoginRequiredMixin, TemplateView):
         workgroups = []
         registration_authorities = []
 
-        for wg in user.workgroup_manager_in.all():
-            wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Manager'}
-            workgroups.append(wg_object)
-
-        for wg in user.steward_in.all():
-            wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Steward'}
-            workgroups.append(wg_object)
-
-        for wg in user.submitter_in.all():
-            wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Submitter'}
-            workgroups.append(wg_object)
-
-        for wg in user.viewer_in.all():
-            wg_object = {'name': wg.name, 'pk': wg.pk, 'role': 'Viewer'}
+        for membership in user.workgroupmembership_set.all():
+            wg_object = {'name': membership.group.name, 'pk': membership.group.pk, 'role': membership.role}
             workgroups.append(wg_object)
 
         for ra in user.organization_manager_in.all():
@@ -227,22 +215,27 @@ def recent(request):
     return paginated_reversion_list(request, items, "aristotle_mdr/user/recent.html", context)
 
 
-@login_required
-def inbox(request, folder=None):
-    if folder is None:
-        # By default show only unread
-        folder = 'unread'
-    folder = folder.lower()
-    if folder == 'unread':
-        notices = request.user.notifications.unread().all()
-    elif folder == "all":
-        notices = request.user.notifications.all()
-    page = render(
-        request,
-        "aristotle_mdr/user/userInbox.html",
-        {"item": request.user, "notifications": notices[:50], 'folder': folder}
-    )
-    return page
+class InboxView(LoginRequiredMixin, ListView):
+    template_name = 'aristotle_mdr/user/userInbox.html'
+    context_object_name = 'page'
+    paginate_by = 5
+
+    def get_queryset(self, *args, **kwargs):
+        return self.request.user.notifications.unread().all()
+
+    def get_paginate_by(self, queryset):
+        return self.request.GET.get('pp', 25)
+
+
+class InboxViewAll(LoginRequiredMixin, ListView):
+    template_name = 'aristotle_mdr/user/userInbox.html'
+    context_object_name = 'page'
+
+    def get_queryset(self, *args, **kwargs):
+        return self.request.user.notifications.all()
+
+    def get_paginate_by(self, queryset):
+        return self.request.GET.get('pp', 25)
 
 
 @login_required
@@ -691,12 +684,7 @@ class WorkgroupArchiveList(GenericListWorkgroup):
 
     def get_initial_queryset(self):
         user = self.request.user
-        return (
-            user.viewer_in.all() |
-            user.submitter_in.all() |
-            user.steward_in.all() |
-            user.workgroup_manager_in.all()
-        ).filter(archived=True).distinct()
+        return user.profile.workgroups_for_user().filter(archived=True)
 
 
 def profile_picture(request, uid):

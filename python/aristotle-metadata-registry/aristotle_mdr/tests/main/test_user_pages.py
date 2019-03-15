@@ -27,7 +27,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse('aristotle:userInbox',))
         self.assertEqual(response.status_code, 200)
-        response = self.client.get(reverse('aristotle:userInbox', args=['all']))
+        response = self.client.get(reverse('aristotle:userInboxAll',))
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse('aristotle:userWorkgroups',))
         self.assertEqual(response.status_code, 200)
@@ -826,9 +826,9 @@ class RegistrationAuthorityPages(utils.AristotleTestUtils, TestCase):
             stewardship_organisation=self.steward_org_1
         )
         self.ra.managers.add(self.regular)
-        self.wg1.submitters.add(self.regular)
-        self.wg1.managers.add(self.regular)
-        wg2.managers.add(self.regular)
+
+        self.wg1.giveRoleToUser('manager', self.regular)
+        wg2.giveRoleToUser('manager', self.regular)
 
         response = self.reverse_get(
             'aristotle:userRoles',
@@ -841,9 +841,8 @@ class RegistrationAuthorityPages(utils.AristotleTestUtils, TestCase):
         self.assertCountEqual(
             wgs,
             [
-                {'name': wg2.name, 'pk': wg2.pk, 'role': 'Manager'},
-                {'name': self.wg1.name, 'pk': self.wg1.pk, 'role': 'Manager'},
-                {'name': self.wg1.name, 'pk': self.wg1.pk, 'role': 'Submitter'},
+                {'name': wg2.name, 'pk': wg2.pk, 'role': 'manager'},
+                {'name': self.wg1.name, 'pk': self.wg1.pk, 'role': 'manager'},
             ]
         )
         self.assertCountEqual(

@@ -29,8 +29,8 @@ function fetch_api_data(callback, num) {
 // Callback for notify menu
 function fill_aristotle_notification_menu(data) {
     update_notification_badge(data)
-    var menu = $('.notify-menu').first()
-    var notify_unread_url = '/account/notifications'
+    let menu = $('.notify-menu').first()
+    let notifyUnreadURL = '/account/notifications'
     if (menu) {
         menu.empty()
         if (data.unread_list.length > 0) {
@@ -60,22 +60,25 @@ function fill_aristotle_notification_menu(data) {
             menu.append(divider)
 
 
-            $('#notify_all_read a').click(mark_all_unread)
-
             var all_read_item = make_dropdown_item('Mark all as read', '#', 'fa fa-bell-slash-o fa-fw')
             all_read_item.id = 'notify_all_read'
 
+            $(all_read_item).find('a').click(mark_all_unread)
 
-            menu.append(make_dropdown_item('View all unread notifications', notify_unread_url, 'fa fa-bell fa-fw'))
+            menu.append(make_dropdown_item('View all unread notifications', notifyUnreadURL, 'fa fa-bell fa-fw'))
             menu.append(all_read_item)
+
         } else {
-            menu.append(make_dropdown_item('No unread notifications', notify_unread_url, 'fa fa-bell fa-fw'))
+            menu.append(make_dropdown_item('No unread notifications', notifyUnreadURL, 'fa fa-bell fa-fw'))
         }
     }
 }
 
 function update_notification_badge(data) {
     var num_notifications = data.unread_count
+    if (num_notifications > 100) {
+        num_notifications = "100 +"
+    }
     $('.notify-badge').each(function() {
         this.innerHTML = num_notifications
     })
@@ -115,7 +118,7 @@ function mark_all_unread() {
     var notify_mark_all_unread_url = '/account/notifications/api/mark-all-as-read/'
 
     $.getJSON(notify_mark_all_unread_url, function (data) {
-        if (data.status == 'success') {
+        if (data.status === 'success') {
             reload_notifications()
         }
     })

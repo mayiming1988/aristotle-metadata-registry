@@ -106,8 +106,8 @@ class ReviewActionMixin(LoginRequiredMixin, UserFormViewMixin):
             kwargs['active_tab'] = self.active_tab_name
         return kwargs
 
-    def get_queryset(self):
-        return models.ReviewRequest.objects.visible(self.request.user)
+    def get_object(self, *args, **kwargs):
+        return self.review
 
 
 class ReviewDetailsView(ReviewActionMixin, DetailView):

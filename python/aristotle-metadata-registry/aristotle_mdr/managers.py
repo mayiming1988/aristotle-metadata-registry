@@ -1,6 +1,6 @@
 from typing import Iterable
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, OuterRef, Subquery
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from aristotle_mdr.utils import fetch_aristotle_settings
@@ -11,6 +11,7 @@ from aristotle_mdr.utils.utils import is_postgres
 from aristotle_mdr.constants import visibility_permission_choices
 
 from django.contrib.contenttypes.models import ContentType
+from aristotle_mdr.contrib.groups.managers import AbstractGroupQuerySet
 
 
 class PublishedMixin(object):
@@ -57,7 +58,7 @@ class MetadataItemManager(InheritanceManager, UtilsManager):
         return qs
 
 
-class WorkgroupQuerySet(MetadataItemQuerySet):
+class WorkgroupQuerySet(AbstractGroupQuerySet):
     def visible(self, user):
         if user.is_anonymous():
             return self.none()
@@ -87,6 +88,7 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
         """
         need_distinct = False  # Wether we need to add a distinct
         from aristotle_mdr.models import StewardOrganisation
+        from aristotle_mdr.models import Workgroup
 
         if user is None or user.is_anonymous:
             return self.public()
@@ -98,35 +100,30 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
             # User can see everything they've made.
             q |= Q(submitter=user)
             # User can see everything in their workgroups.
-            q |= Q(workgroup__in=user.profile.workgroups)
-            # q |= Q(workgroup__user__profile=user)
-            registrar_count = user.profile.registrar_count
-            if registrar_count > 1:
-                # If a user is a registrar in multiple ras it is possible for
-                # the query to return duplicates
-                need_distinct = True
-            if registrar_count > 0:
+            # q |= Q(workgroup__in=user.profile.workgroups)
+            workgroups = Workgroup.objects.filter(members__user=user, archived=False)
+            q |= Q(workgroup__in=Subquery(workgroups.values('pk')))
+
+            inner_qs = self
+            inner_qs = inner_qs.filter(
                 # Registars can see items they have been asked to review
-                q |= Q(
+                Q(
                     Q(rr_review_requests__registration_authority__registrars__profile__user=user) &
                     ~Q(rr_review_requests__status=REVIEW_STATES.revoked)
-                )
+                ) |
                 # Registars can see items that have been registered in their registration authority
-                q |= Q(
+                Q(
                     Q(statuses__registrationAuthority__registrars__profile__user=user)
                 )
+            )
+            q |= Q(id__in=Subquery(inner_qs.values('pk')))
 
         q |= self.is_published_public
         q |= self.is_published_auth
 
         q &= ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
 
-        if not need_distinct:
-            return self.filter(q)
-        else:
-            if is_postgres():
-                return self.filter(q).distinct('id')
-            return self.filter(q).distinct()
+        return self.filter(q)
 
     def editable(self, user):
         """
@@ -149,14 +146,20 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
         # User can edit everything they've made thats not locked
         q |= Q(submitter=user, _is_locked=False)
 
-        is_submitter = user.submitter_in.exists()
-        is_steward = user.steward_in.exists()
+        q |= Q(
+            workgroup__members__role__in=['submitter', 'steward', 'manager'],
+            workgroup__members__user=user,
+            workgroup__archived=False,
+            _is_locked=False
+        )
 
-        if is_submitter or is_steward:
-            if is_submitter:
-                q |= Q(_is_locked=False, workgroup__submitters__profile__user=user)
-            if is_steward:
-                q |= Q(workgroup__stewards__profile__user=user)
+        q |= Q(
+            workgroup__members__role__in=['steward', 'manager'],
+            workgroup__members__user=user,
+            workgroup__archived=False,
+            _is_locked=True
+        )
+
         return self.filter(
             q &
             ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
@@ -228,17 +231,24 @@ class ReviewRequestQuerySet(models.QuerySet):
 
         It is **chainable** with other querysets.
         """
+        needs_distinct = False
+
         if user.is_superuser:
             return self.all()
         if user.is_anonymous():
             return self.none()
         q = Q(requester=user)  # Users can always see reviews they requested
         if user.profile.is_registrar:
+            needs_distinct = True
             # Registars can see reviews for the registration authority
             q |= Q(
                 Q(registration_authority__registrars__profile__user=user) &
                 ~Q(status=REVIEW_STATES.revoked)
             )
+
+        if needs_distinct:
+            return self.filter(q).distinct()
+
         return self.filter(q)
 
 

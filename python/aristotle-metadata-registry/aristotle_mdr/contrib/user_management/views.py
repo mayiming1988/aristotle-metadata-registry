@@ -87,7 +87,7 @@ class RegistryOwnerUserList(LoginRequiredMixin, PermissionRequiredMixin, ListVie
         q = self.request.GET.get('q', None)
         queryset = get_user_model().objects.all().order_by(
             '-is_active', 'full_name', 'short_name', 'email'
-        ).prefetch_related('viewer_in', 'submitter_in', 'steward_in', 'workgroup_manager_in')
+        )
         if q:
             queryset = queryset.filter(
                 Q(short_name__icontains=q) |

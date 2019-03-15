@@ -129,7 +129,8 @@ urlpatterns=[
     url(r'^account/recent/?$', views.user_pages.recent, name='userRecentItems'),
     url(r'^account/workgroups/?$', views.user_pages.MyWorkgroupList.as_view(), name='userWorkgroups'),
     url(r'^account/workgroups/archives/?$', views.user_pages.WorkgroupArchiveList.as_view(), name='user_workgroups_archives'),
-    url(r'^account/notifications(?:/folder/(?P<folder>all))?/?$', views.user_pages.inbox, name='userInbox'),
+    url(r'^account/notifications/?$', views.user_pages.InboxView.as_view(), name='userInbox'),
+    url(r'^account/notifications-all/?$', views.user_pages.InboxViewAll.as_view(), name='userInboxAll'),
     url(r'^account/notifications/api/mark-all-as-read/', views.notify.MarkAllReadApiView.as_view(), name='api_mark_all_read'),
 
     url(r'^account/django/(.*)?$', views.user_pages.django_admin_wrapper, name='django_admin'),
