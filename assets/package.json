@@ -84,7 +84,8 @@
     "IE 10"
   ],
   "sideEffects": [
-    "*.css"
+    "*.css",
+    "*.less"
   ],
   "eslintConfig": {
     "extends": [
