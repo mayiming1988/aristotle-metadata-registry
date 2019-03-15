@@ -110,14 +110,13 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
                 Q(
                     Q(rr_review_requests__registration_authority__registrars__profile__user=user) &
                     ~Q(rr_review_requests__status=REVIEW_STATES.revoked)
-                )
+                ) |
                 # Registars can see items that have been registered in their registration authority
-                | Q(
+                Q(
                     Q(statuses__registrationAuthority__registrars__profile__user=user)
                 )
             )
             q |= Q(id__in=Subquery(inner_qs.values('pk')))
-
 
         q |= self.is_published_public
         q |= self.is_published_auth
