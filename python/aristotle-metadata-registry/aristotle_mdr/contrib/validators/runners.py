@@ -96,15 +96,12 @@ class ValidationRunner:
 
             results: List[Dict] = []
             for rule in rulesets:
-                logger.critical("THIS IS THE RULE")
-                logger.critical(rule)
                 results += self.run_rule(rule, item, self.state, self.registration_authority)
 
             kwargs['results'] = results
             kwargs['item_name'] = item.name
 
             total_results.append(kwargs)
-
         return total_results
 
 
