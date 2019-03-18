@@ -43,7 +43,7 @@ module.exports = {
             {
                 // Load .js and .mjs files with babel
                 test: /\.m?js$/,
-                exclude: /node_modules\/(?!vue-simple-suggest)/,
+                exclude: /node_modules\/(?!(vue-simple-suggest|uiv))/, //Don't run on node modules except these
                 use: [{
                     loader: 'babel-loader',
                     options: {
