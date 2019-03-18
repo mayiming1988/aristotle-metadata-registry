@@ -1371,17 +1371,17 @@ class ReviewsFormsTest(utils.AristotleTestUtils, TestCase):
         self.item1 = MDR.ObjectClass.objects.create(
             name="Test Item 1", definition="my definition")
         self.my_active_ra = MDR.RegistrationAuthority.objects.create(name="My Active RA",
-                                                                 definition="",
-                                                                 stewardship_organisation=self.steward_org_1,
-                                                                 active=0)
+                                                                     definition="",
+                                                                     stewardship_organisation=self.steward_org_1,
+                                                                     active=0)
         self.my_inactive_ra = MDR.RegistrationAuthority.objects.create(name="My Inactive RA",
-                                                                        definition="",
-                                                                        stewardship_organisation=self.steward_org_1,
-                                                                        active=1)
+                                                                       definition="",
+                                                                       stewardship_organisation=self.steward_org_1,
+                                                                       active=1)
         self.my_hidden_ra = MDR.RegistrationAuthority.objects.create(name="My Hidden RA",
-                                                                          definition="",
-                                                                          stewardship_organisation=self.steward_org_1,
-                                                                          active=2)
+                                                                     definition="",
+                                                                     stewardship_organisation=self.steward_org_1,
+                                                                     active=2)
 
         self.review_request = ReviewRequest.objects.create(registration_authority=self.my_active_ra, requester_id=self.newuser.id)
         self.form = RequestReviewCreateForm(
