@@ -34,7 +34,6 @@ class BulkAction(FormView):
 
     def post(self, request, *args, **kwargs):
         url = request.GET.get("next", reverse("aristotle:home"))
-        message = ""
         action = self.get_action()
 
         if action is None:
@@ -123,7 +122,6 @@ class BulkAction(FormView):
                     "bulk_action_title": self.request.POST.get("bulkaction", None)
                 }
             )
-        return HttpResponseRedirect(url)
 
 
 def get_bulk_actions():
