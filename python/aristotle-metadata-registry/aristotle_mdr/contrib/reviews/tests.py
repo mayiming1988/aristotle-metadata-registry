@@ -10,6 +10,7 @@ import aristotle_mdr.tests.utils as utils
 from aristotle_mdr import perms
 from aristotle_mdr.contrib.reviews import models
 from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
+from django.forms import ValidationError
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -439,6 +440,25 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         # Check objects created
         self.review.refresh_from_db()
         self.assertEqual(self.review.proposed_supersedes.count(), 1)
+
+    def test_newer_item_field_and_older_item_field_are_required(self):
+        old1 = self.create_editor_item('Old Object', 'old')
+        new1 = self.item
+
+        data = [{
+            'older_item': old1.id, 'newer_item': '', 'message': 'hello'
+        }]
+
+        response = self.post_formset(data, 0)
+
+        self.assertFalse(response.context['formset'][0].is_valid())
+
+        data2 = [{
+            'older_item': '', 'newer_item': new1.id, 'message': 'hello'
+        }]
+
+        response = self.post_formset(data2, 0)
+        self.assertFalse(response.context['formset'][0].is_valid())
 
     def test_accept_review_supersedes_approved(self):
         older = MDR.ObjectClass.objects.create(name='2nd', definition='Second')
