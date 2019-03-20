@@ -12,9 +12,11 @@ from model_utils.models import TimeStampedModel
 from aristotle_mdr import models as MDR
 from aristotle_mdr.fields import ConceptForeignKey
 
+from aristotle_mdr.utils.model_utils import ManagedItem
 
-class Namespace(TimeStampedModel):
-    naming_authority = models.ForeignKey(MDR.Organization)  # 7.2.2.3.2.1
+
+class Namespace(ManagedItem):
+    # naming_authority = models.ForeignKey(MDR.Organization)  # 7.2.2.3.2.1
     shorthand_prefix = models.CharField(  # 7.2.2.3.2.5
         max_length=512,
         help_text=_('prefix conventionally used as shorthand for a namespace, for greater readability, in text for human consumption.')
