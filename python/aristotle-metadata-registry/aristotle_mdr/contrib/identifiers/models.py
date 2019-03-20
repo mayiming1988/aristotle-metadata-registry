@@ -23,7 +23,7 @@ class Namespace(ManagedItem):
     )
 
     def __str__(self):
-        return u"{0}:{1}".format(self.naming_authority.name, self.shorthand_prefix)
+        return u"{0}:{1}".format(self.stewardship_organisation.name, self.shorthand_prefix)
 
 
 class ScopedIdentifier(TimeStampedModel, MDR.aristotleComponent):
@@ -46,7 +46,7 @@ class ScopedIdentifier(TimeStampedModel, MDR.aristotleComponent):
         ordering = ['order']
 
     def __str__(self):
-        return u"{0}:{1}:{2}".format(self.namespace.naming_authority.name, self.identifier, self.version)
+        return u"{0}:{1}:{2}".format(self.prefix, self.identifier, self.version)
 
     @property
     def prefix(self):
