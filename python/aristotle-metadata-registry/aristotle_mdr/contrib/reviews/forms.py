@@ -71,6 +71,7 @@ class RequestReviewCreateForm(UserAwareModelForm):
         self.fields['target_registration_state'].choices = MDR.STATES
         self.fields['concepts'].queryset = self.fields['concepts'].queryset.all().visible(self.user)
         self.fields['concepts'].widget.choices = self.fields['concepts'].choices
+        self.fields['registration_authority'].queryset = self.fields['registration_authority'].queryset.filter(active=0)  # Exclude "inactive" Registration Authorities.
 
 
 class RequestReviewUpdateForm(UserAwareModelForm):

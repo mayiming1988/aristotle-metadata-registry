@@ -4,6 +4,8 @@ from django.core.cache import cache
 from unittest import skip
 from urllib.parse import urlencode
 import aristotle_mdr.models as MDR
+from aristotle_mdr.contrib.reviews.forms import RequestReviewCreateForm
+from aristotle_mdr.contrib.reviews.models import ReviewRequest
 import aristotle_mdr.tests.utils as utils
 from aristotle_mdr import perms
 from aristotle_mdr.contrib.reviews import models
@@ -1356,3 +1358,37 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
         response = self.client.get(reverse('aristotle_mdr:userReadyForReview'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['reviews']), 0)
+
+
+class ReviewsFormsTest(utils.AristotleTestUtils, TestCase):
+    def setUp(self):
+        super().setUp()
+
+        cache.clear()
+
+    def test_inactive_registration_authoritites_dont_appear_as_options_in_form(self):
+        self.login_regular_user()
+        self.item1 = MDR.ObjectClass.objects.create(
+            name="Test Item 1", definition="my definition")
+        self.my_active_ra = MDR.RegistrationAuthority.objects.create(name="My Active RA",
+                                                                     definition="",
+                                                                     stewardship_organisation=self.steward_org_1,
+                                                                     active=0)
+        self.my_inactive_ra = MDR.RegistrationAuthority.objects.create(name="My Inactive RA",
+                                                                       definition="",
+                                                                       stewardship_organisation=self.steward_org_1,
+                                                                       active=1)
+        self.my_hidden_ra = MDR.RegistrationAuthority.objects.create(name="My Hidden RA",
+                                                                     definition="",
+                                                                     stewardship_organisation=self.steward_org_1,
+                                                                     active=2)
+
+        self.review_request = ReviewRequest.objects.create(registration_authority=self.my_active_ra, requester_id=self.newuser.id)
+        self.form = RequestReviewCreateForm(
+            user=self.newuser
+        )
+        self.form.instance = self.review_request
+
+        self.assertIn(self.my_active_ra, self.form.fields['registration_authority'].queryset)
+        self.assertNotIn(self.my_inactive_ra, self.form.fields['registration_authority'].queryset)
+        self.assertNotIn(self.my_hidden_ra, self.form.fields['registration_authority'].queryset)
