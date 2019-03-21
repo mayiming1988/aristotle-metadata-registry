@@ -199,7 +199,7 @@ class ReviewRequestSupersedesFormset(forms.BaseModelFormSet):
             # No need to check deleted forms
             if 'DELETE' in form.cleaned_data and not form.cleaned_data['DELETE']:
                 if 'newer_item' not in form.cleaned_data.keys():
-                    raise forms.ValidationError([{"newer_item": ["Please provide an newer item."]}])
+                    raise forms.ValidationError([{"newer_item": ["Please provide a newer item."]}])
                 if 'older_item' not in form.cleaned_data.keys():
                     raise forms.ValidationError([{"older_item": ["Please provide an older item."]}])
                 older = form.cleaned_data['older_item']

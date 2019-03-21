@@ -16,6 +16,8 @@ MEDIA_ROOT = os.path.join(REPO_BASE_DIR, 'media')
 TEMPLATES_DIRS = [os.path.join(BASE_DIR, 'templates')]
 FIXTURES_DIRS = [os.path.join(MDR_BASE_DIR, 'fixtures')]
 
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10 Megabytes (used for profile pictures maximum size)
+
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 # This provides for quick easy set up, but should be changed to a production
 DATABASES = {
