@@ -98,7 +98,7 @@ def bleach_filter(html: str) -> SafeString:
         strip=True,  # Remove disallowed tags instead of escaping them
         strip_comments=True,
     )
-    return mark_safe("<div class='style-tables'> " + clean_html + " </div>")
+    return mark_safe("<div class='bleached-content'> " + clean_html + " </div>")
 
 
 @register.filter
