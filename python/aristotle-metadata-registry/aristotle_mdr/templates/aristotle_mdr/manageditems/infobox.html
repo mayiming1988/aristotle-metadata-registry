@@ -38,8 +38,8 @@
             <dt class="large">{% trans 'Stewardship Organisation'%}</dt>
             <dd class="">{{ item.stewardship_organisation }}</dd>
 
-            {% if item.publication_details.exists and not statuses %}
-                {% include "aristotle_mdr/publish/concepts/publication_details.html" with item=item %}
+            {% if item.publication_details.exists %}
+                {% include "aristotle_mdr/publish/infobox/publication_details.html" with item=item %}
             {% endif %}
 
             <dt>{% trans 'Last updated'%}</dt>
