@@ -167,7 +167,7 @@ class Downloader:
         final_fname = storage.save(filename, content)
         return storage.url(final_fname)
 
-    def email_file(self, f: File, url: str):
+    def email_file(self, f: File, size: int, url: str):
         max_email_file_size = settings.MAX_EMAIL_FILE_SIZE
 
         template_name = 'aristotle_mdr/email/download.html'
@@ -177,7 +177,7 @@ class Downloader:
         }
         attachments = []
 
-        if f.size <= max_email_file_size:
+        if size <= max_email_file_size:
             context['attached'] = True
             # Read bytes from file
             f.open('rb')
@@ -224,11 +224,12 @@ class Downloader:
                 return url
 
         fileobj = self.create_file()
+        size = fileobj.size  # Access size here while file is open
 
         url = self.store_file(filepath, fileobj)
 
         if self.options['email_copy']:
-            self.email_file(fileobj, url)
+            self.email_file(fileobj, size, url)
 
         return url
 
