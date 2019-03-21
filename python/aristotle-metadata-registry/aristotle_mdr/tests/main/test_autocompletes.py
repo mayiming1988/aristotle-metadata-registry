@@ -46,9 +46,9 @@ class LoggedInConceptAutocompletes(utils.LoggedInViewPages, TestCase):
         self.logout()
 
         item1 = models.ObjectClass.objects.create(name="Test Item 1 (visible to tested viewers)",definition="my definition",workgroup=self.wg1,**self.defaults)
-        org = models.Organization.objects.create(name='My org', definition="None")
+        steward_org = models.StewardOrganisation.objects.create(name='My org', description="None")
         from aristotle_mdr.contrib.identifiers.models import ScopedIdentifier, Namespace
-        ns = Namespace.objects.create(naming_authority=org, shorthand_prefix='my_org')
+        ns = Namespace.objects.create(stewardship_organisation=steward_org, shorthand_prefix='my_org')
         ScopedIdentifier.objects.create(namespace=ns,concept=item1,identifier="my_ident")
 
         self.login_superuser()
