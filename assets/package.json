@@ -86,7 +86,13 @@
   "sideEffects": [
     "*.css",
     "*.less",
-    "./src/vendor/jquery-ui.min.js"
+    "./src/vendor/jquery-ui.min.js",
+    "./node_modules/bootstrap/*",
+    "./node_modules/ckeditor/*",
+    "./node_modules/select2/*",
+    "./node_modules/mdn-polyfills/*",
+    "./node_modules/code-mirror/*",
+    "./node_modules/eonasdan-bootstrap-datetimepicker/*"
   ],
   "eslintConfig": {
     "extends": [
