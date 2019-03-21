@@ -24,16 +24,10 @@ module.exports = merge(common, {
             new OptimizeCSSAssetsPlugin()
         ],
         noEmitOnErrors: true,
-        usedExports: true,
-        sideEffects: true,
-        concatenateModules: true,
     },
     plugins: [
         new webpack.DefinePlugin({
             'process.env.ASSET_PATH': JSON.stringify(ASSET_PATH)
-        }),
-        new webpack.SourceMapDevToolPlugin({
-              filename: "[file].map"
-        }),
+        })
     ]
 })
