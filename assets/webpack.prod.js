@@ -31,9 +31,6 @@ module.exports = merge(common, {
     plugins: [
         new webpack.DefinePlugin({
             'process.env.ASSET_PATH': JSON.stringify(ASSET_PATH)
-        }),
-        new webpack.SourceMapDevToolPlugin({
-              filename: "[file].map"
-        }),
+        })
     ]
 })

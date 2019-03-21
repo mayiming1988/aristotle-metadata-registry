@@ -85,7 +85,8 @@
   ],
   "sideEffects": [
     "*.css",
-    "*.less"
+    "*.less",
+    "./src/vendor/jquery-ui.min.js"
   ],
   "eslintConfig": {
     "extends": [
