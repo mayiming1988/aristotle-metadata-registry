@@ -24,9 +24,6 @@ module.exports = merge(common, {
             new OptimizeCSSAssetsPlugin()
         ],
         noEmitOnErrors: true,
-        usedExports: true,
-        sideEffects: true,
-        concatenateModules: true,
     },
     plugins: [
         new webpack.DefinePlugin({
