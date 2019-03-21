@@ -54,6 +54,7 @@
             {{ form.definition }}
         </div>
 
+        <a href="{% url 'aristotle_mdr:stewards:group:managed_item_list_items' group.slug model.meta.model_name %}" class="btn btn-default">Cancel</a>
         <button type="Submit" class="btn btn-primary">Create new  {{model_name}}</button>
     </form>
 {% endblock %}

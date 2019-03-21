@@ -1,0 +1,19 @@
+{% extends request.is_ajax|yesno:"aristotle_mdr/base_ajax.html,aristotle_mdr/base.html" %}
+{% load bootstrap3 static %}
+
+{% block title %}Publishing Error{% endblock %}
+
+{% block content %}
+<h1>Unable to publish this item</h1>
+
+<div>
+    <p>
+    The metadata item you have selected (
+    <a href="{{item.get_absolute_url}}">{{item}}</a>
+    ) does not belong to a Stewardship Organisation.
+    </p><p>
+    Please assign this item to a Workgroup or Stewardship Organisation to publish this item.
+    </p>
+    <a class="btn btn-default" href="{{item.get_absolute_url}}">Return to {{item}}</a>
+</div>
+{% endblock %}
