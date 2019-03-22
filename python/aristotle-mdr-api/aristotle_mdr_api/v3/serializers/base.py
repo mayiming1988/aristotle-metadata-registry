@@ -69,7 +69,6 @@ class Serializer(PySerializer):
             data['identifiers'] = [
                 {
                     'namespace': {
-                        'naming_authority': scoped_id.namespace.naming_authority.uuid,
                         'shorthand_prefix': scoped_id.namespace.shorthand_prefix,
                     },
                     'id': scoped_id.identifier,

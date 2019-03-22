@@ -981,7 +981,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         updated_item['name'] = updated_name
 
         namespace = ident_models.Namespace.objects.create(
-            naming_authority=self.ra,
+            stewardship_organisation=self.steward_org,
             shorthand_prefix='pre'
         )
 

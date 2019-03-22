@@ -662,15 +662,15 @@ class TestTokenSearch(TestCase):
 
     def add_identifiers(self):
         namespace = ident_models.Namespace.objects.create(
-            naming_authority=self.ra,
+            stewardship_organisation=self.steward_org,
             shorthand_prefix='pre'
         )
         alt_namespace = ident_models.Namespace.objects.create(
-            naming_authority=self.ra,
+            stewardship_organisation=self.steward_org,
             shorthand_prefix='xmn'
         )
         self.custom_namespace = ident_models.Namespace.objects.create(
-            naming_authority=self.ra,
+            stewardship_organisation=self.steward_org,
             shorthand_prefix='ctm'
         )
 

@@ -68,10 +68,21 @@ class PublishContentFormView(PermissionRequiredMixin, CreateUpdateView):
 
     def get_content_type(self):
         if not self.content_type:
+            from aristotle_mdr.models import _concept
+
             model_name = self.kwargs['model_name']
-            if model_name in ["concept", "metadata"]:
-                model_name = "_concept"
+            # if model_name in ["concept", "metadata"]:
+            #     model_name = "_concept"
             self.content_type = get_object_or_404(ContentType, model=model_name)
+            logger.critical(self.content_type.model_class())
+            logger.critical(self.content_type.model_class())
+            logger.critical(self.content_type.model_class())
+            logger.critical(self.content_type.model_class())
+            logger.critical(self.content_type.model_class())
+            logger.critical(self.content_type.model_class())
+            logger.critical(issubclass(self.content_type.model_class(), _concept))
+            if issubclass(self.content_type.model_class(), _concept):
+                self.content_type = get_object_or_404(ContentType, model="_concept")
         return self.content_type
 
     def get_publishable_object(self):
@@ -81,11 +92,23 @@ class PublishContentFormView(PermissionRequiredMixin, CreateUpdateView):
 
             if not getattr(model, 'publication_details', None):
                 raise Http404
+
             # Verify the thing we want to publish exists
             self.publishable_object = get_object_or_404(model, pk=self.kwargs['iid'])
             self.publishable_object = getattr(self.publishable_object, "item", self.publishable_object)
 
         return self.publishable_object
+
+    def dispatch(self, request, *args, **kwargs):
+        publishable_object = self.get_publishable_object()
+        if not publishable_object.stewardship_organisation:
+            from django.shortcuts import render_to_response
+            return render_to_response(
+                "aristotle_mdr/publish/errors/no_steward.html",
+                {"item": publishable_object},
+                status=404
+            )
+        return super().dispatch(request, *args, **kwargs)
 
     def get_object(self, queryset=None):
 
@@ -97,7 +120,8 @@ class PublishContentFormView(PermissionRequiredMixin, CreateUpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context.update({
-            "item": self.get_publishable_object()
+            "item": self.get_publishable_object(),
+            "submit_url": self.request.get_full_path()
         })
         return context
 

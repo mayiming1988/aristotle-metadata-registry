@@ -7,6 +7,7 @@ from django.db.models.base import ModelBase
 from django.utils.translation import ugettext_lazy as _
 
 from model_utils import Choices
+import uuid
 
 from autoslug import AutoSlugField
 from aristotle_mdr.utils import classproperty
@@ -140,6 +141,9 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
     }
 
     slug = AutoSlugField(populate_from='name', editable=True, always_update=False, unique=True)
+    uuid = models.UUIDField(
+        unique=True, default=uuid.uuid1, editable=False, null=False
+    )
     name = models.TextField(
         help_text=_("The primary name used for human identification purposes.")
     )

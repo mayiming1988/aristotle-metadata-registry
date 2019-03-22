@@ -258,7 +258,7 @@ class GraphqlFunctionalTests(BaseGraphqlTestCase, TestCase):
             stewardship_organisation=self.steward_org_1,
         )
         namespace = ident_models.Namespace.objects.create(
-            naming_authority=ra,
+            stewardship_organisation=self.steward_org_1,
             shorthand_prefix='pre'
         )
         ident = ident_models.ScopedIdentifier.objects.create(
@@ -291,7 +291,7 @@ class GraphqlFunctionalTests(BaseGraphqlTestCase, TestCase):
             stewardship_organisation=self.steward_org_1,
         )
         namespace = ident_models.Namespace.objects.create(
-            naming_authority=ra,
+            stewardship_organisation=self.steward_org_1,
             shorthand_prefix='pre'
         )
         ident = ident_models.ScopedIdentifier.objects.create(

@@ -142,9 +142,6 @@ class StewardOrganisation(AbstractGroup):
         states.active, states.archived,
     ]
 
-    uuid = models.UUIDField(
-        unique=True, default=uuid.uuid1, editable=False, null=False
-    )
     description = RichTextField(
         _('definition'),
         help_text=_("Representation of a concept by a descriptive statement "
@@ -496,9 +493,6 @@ class Workgroup(AbstractGroup, TimeStampedModel):
         help_text=_("Archived workgroups can no longer have new items or "
                     "discussions created within them."),
         verbose_name=_('Archived'),
-    )
-    uuid = models.UUIDField(
-        unique=True, default=uuid.uuid1, editable=False, null=False
     )
 
     class Permissions:

@@ -104,6 +104,7 @@ class StewardMigration(migrations.Migration):
         from django.conf import settings
         name = cls.steward_pattern.format(name=settings.ARISTOTLE_SETTINGS['SITE_NAME'])
         so = StewardOrganisation.objects.order_by("id").first()  # get(name=name)
+        cls.stewardorganisation = so
         cls.so_uuid = so.uuid
         return so.uuid
 
