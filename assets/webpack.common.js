@@ -43,7 +43,7 @@ module.exports = {
             {
                 // Load .js and .mjs files with babel
                 test: /\.m?js$/,
-                exclude: /node_modules\/(?!vue-simple-suggest)/,
+                exclude: /node_modules\/(?!(vue-simple-suggest|uiv))/, //Don't run on node modules except these
                 use: [{
                     loader: 'babel-loader',
                     options: {
@@ -61,6 +61,38 @@ module.exports = {
                 }]
             },
             {
+                // Compile less and process css
+                test: /\.less$/,
+                use: [
+                    {
+                        loader: MiniCssExtractPlugin.loader
+                    },
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            modules: 'global',
+                            importLoaders: 1
+                        }
+                    },
+                    {
+                        loader: 'less-loader'
+                    }
+                ]
+            },
+            {
+                // Process and extract
+                test: /\.css$/,
+                use: [
+                    {
+                        loader: MiniCssExtractPlugin.loader
+                    },
+                    {
+                        loader: 'css-loader',
+                        options: {modules: 'global'}
+                    }
+                ]
+            },
+            {
                 test: /\.woff2?$|\.ttf$|\.eot$|\.svg$|\.png$|\.jpg$/,
                 use: [{
                     loader: 'file-loader',
@@ -69,23 +101,6 @@ module.exports = {
                     }
                 }]
             },
-            {
-                // Compile less and process css
-                test: /\.less$/,
-                use: [
-                    MiniCssExtractPlugin.loader,
-                    'css-loader',
-                    'less-loader'
-                ]
-            },
-            {
-                // Process and extract
-                test: /\.css$/,
-                use: [
-                    MiniCssExtractPlugin.loader,
-                    "css-loader"
-                ]
-            }
         ]
     },
     plugins: [

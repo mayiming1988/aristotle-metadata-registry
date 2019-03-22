@@ -172,8 +172,6 @@ class QualityStatement(aristotle.models.concept):
     relevance = RichTextField(blank=True)
     accuracy = RichTextField(blank=True)
     coherence = RichTextField(blank=True)
-    implementationStartDate = models.DateField(blank=True, null=True)
-    implementationEndDate = models.DateField(blank=True, null=True)
 
 
 class Framework(aristotle.models.concept):

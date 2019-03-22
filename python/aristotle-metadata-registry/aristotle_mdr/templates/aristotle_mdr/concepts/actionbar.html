@@ -30,11 +30,19 @@
             <i class="fa fa-fw fa-flag"></i> {% trans 'Submit for review'%}
         </a></li>
 
-        <li><a class=" " href="{% url 'aristotle_publishing:item_publish_details' item.id %}"
+        {% if item.stewardship_organisation %}
+        {% has_group_perm item.stewardship_organisation "publish_objects" as can_publish_objects %}
+        <li><a class=" " href="{% url 'aristotle_publishing:edit_version_history_visibility' item.id %}"
             data-toggle="modal" data-target="#infobox_adv_edit">
-            <i class="fa fa-fw fa-cogs"></i> {% trans 'Publication details'%}
+            <i class="fa fa-fw fa-history"></i> {% trans 'History visibility'%}
         </a>
         </li>
+        <li><a class=" " href="{% url 'aristotle_publishing:publish_item' item.meta.model_name item.id %}"
+            data-toggle="modal" data-target="#infobox_adv_edit">
+            <i class="fa fa-fw fa-globe"></i> {% trans 'Publication details'%}
+        </a>
+        </li>
+        {% endif %}
 
         {% if item|can_change_status:request.user %}
         <li><a class="" href="{% url 'aristotle:changeStatus' item.id %}" data-toggle="modal" data-target="#infobox_adv_edit">

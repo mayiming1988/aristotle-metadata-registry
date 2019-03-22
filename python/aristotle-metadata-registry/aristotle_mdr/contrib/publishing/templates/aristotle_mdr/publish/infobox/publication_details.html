@@ -6,7 +6,7 @@
 </dt>
 <dd class="large">
     <ul>
-    {% for record in item.publication_details.all %}
+    {% for record in item.concept.publication_details.all %}
     <li>
 
     {{record.get_permission_display}} from
