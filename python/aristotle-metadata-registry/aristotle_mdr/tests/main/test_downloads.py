@@ -261,7 +261,9 @@ class DownloderTestCase(AristotleTestUtils, TestCase):
     def test_email_file_direct(self):
         downloader = FakeDownloader([self.item.id], self.editor.id, {})
         f = ContentFile('MyFile')
-        downloader.email_file(f, 'https://example.com/file.txt')
+        size = f.size
+        f.close()
+        downloader.email_file(f, size, 'https://example.com/file.txt')
         self.assertEqual(len(mail.outbox), 1)
         message = mail.outbox[0]
         self.assertEqual(len(message.attachments), 1)
@@ -273,7 +275,9 @@ class DownloderTestCase(AristotleTestUtils, TestCase):
     def test_email_too_large_file(self):
         downloader = FakeDownloader([self.item.id], self.editor.id, {})
         f = ContentFile('MyFile')
-        downloader.email_file(f, 'https://example.com/file.txt')
+        size = f.size
+        f.close()
+        downloader.email_file(f, size, 'https://example.com/file.txt')
         self.assertEqual(len(mail.outbox), 1)
         message = mail.outbox[0]
         self.assertEqual(len(message.attachments), 0)
