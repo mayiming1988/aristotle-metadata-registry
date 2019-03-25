@@ -11,12 +11,11 @@
             </div>
         {% endif %}
         <div class="modal-body">
-            <p>
-                <strong>
-                    You are about to remove the account of
-                    <em>{% firstof user_to_change.get_full_name user_to_change.email %}</em>
-                    from the registation authority <em>{{item.name}}</em>.
-                </strong>
+            <strong>
+                You are about to remove the account of
+                <em>{% firstof user_to_change.get_full_name user_to_change.email %}</em>
+                from the registation authority <em>{{item.name}}</em>.
+            </strong>
             <ul>
                 <li>
                     This will remove all roles from the user in this registation authority,
@@ -29,7 +28,6 @@
                     You can re-invite this user later to this registation authority.
                 </li>
             </ul>
-            </p>
         </div>
         <div class="modal-footer">
             {% if request.is_ajax %}
