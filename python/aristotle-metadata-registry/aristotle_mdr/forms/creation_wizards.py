@@ -78,7 +78,8 @@ class CheckIfModifiedMixin(forms.ModelForm):
     )
     last_fetched = forms.CharField(
         widget=forms.widgets.HiddenInput(),
-        initial=timezone.now(), required=True,
+        initial=timezone.localtime(timezone.now()),
+        required=True,
         error_messages={'required': modified_since_field_missing}
     )
 
@@ -99,7 +100,7 @@ class CheckIfModifiedMixin(forms.ModelForm):
             self.initial['last_fetched'] = timezone.now()
             raise forms.ValidationError(CheckIfModifiedMixin.modified_since_field_missing)
         if modified_time > self.cleaned_data['last_fetched']:
-            self.initial['last_fetched']= timezone.now()
+            self.initial['last_fetched'] = timezone.now()
             raise forms.ValidationError(CheckIfModifiedMixin.modified_since_form_fetched_error)
 
 

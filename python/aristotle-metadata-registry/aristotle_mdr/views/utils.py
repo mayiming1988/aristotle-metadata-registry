@@ -212,9 +212,9 @@ def workgroup_item_statuses(workgroup):
     from aristotle_mdr.models import STATES
 
     raw_counts = workgroup.items.filter(
-        Q(statuses__until_date__gte=timezone.now()) |
+        Q(statuses__until_date__gte=timezone.localtime(timezone.now())) |
         Q(statuses__until_date__isnull=True)
-    ).values_list('statuses__state').annotate(num=Count('id'))
+    ).values_list('statuses__state').annotate(num=Count('id', distinct=True))
 
     counts = []
     for state, count in raw_counts:

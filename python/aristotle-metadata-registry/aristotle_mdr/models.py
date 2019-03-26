@@ -886,7 +886,7 @@ class _concept(baseAristotleObject):
         self.save()
         concept_visibility_updated.send(sender=self.__class__, concept=self)
 
-    def current_statuses(self, qs=None, when=timezone.now()):
+    def current_statuses(self, qs=None, when=timezone.localtime(timezone.now())):
         if qs is None:
             qs = self.statuses.all()
 
