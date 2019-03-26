@@ -173,7 +173,6 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
             return HttpResponseRedirect(url_slugify_concept(self.item))
 
     def get_context_data(self, *args, **kwargs):
-
         context = super().get_context_data(*args, **kwargs)
 
         invalid_tabs = set()
@@ -182,7 +181,7 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
             extra_formsets = kwargs['formsets']
             for item in extra_formsets:
                 if item['formset'].errors:
-                    if item['type'] in ['weak', 'through']:
+                    if item['type'] in ('weak', 'through'):
                         invalid_tabs.add('Components')
                     else:
                         invalid_tabs.add(item['title'])
