@@ -3,11 +3,13 @@ import datetime
 from io import StringIO
 
 from django.core.management import call_command
+from django.contrib.auth import get_user_model
 
 from celery import shared_task, Task
 from celery.utils.log import get_task_logger
 
 from aristotle_mdr.utils.download import get_download_class
+from aristole_mdr.models import _concept, RegistrationAuthority
 
 logger = get_task_logger(__name__)
 
@@ -111,3 +113,31 @@ def send_notification_email(recipient, message):
         from_email,
         [recipient]
     )
+
+
+@shared_task(name='register_items')
+def register_items(ids: List[int], cascade: bool, state: int, ra_id: int,
+                   user_id: int, change_details: str, regDate: Tuple[int, int, int]):
+
+    # Get objects from serialized representation
+    ra = RegistrationAuthority.objects.get(id=ra_id)
+    items = _concept.objects.filter(id__in=ids)
+    user = get_user_model().objects.get(id=user_id)
+    registration_date = datetime.date(regDate[0], regDate[1], regDate[2])
+
+    # Bulk get subclasses
+    items = items.select_subclasses()
+
+    if cascade:
+        register_method = ra.cascaded_register
+    else:
+        register_method = ra.register
+
+    for item in items:
+        register_method(
+            item,
+            state,
+            user,
+            changeDetails=change_details,
+            registrationDate=registration_date
+        )
