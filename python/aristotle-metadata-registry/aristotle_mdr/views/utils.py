@@ -184,7 +184,7 @@ def paginated_registration_authority_list(request, ras, template, extra_context=
         sort_field = opts
 
     qs = qs.order_by(direction + sort_field)
-    qs = qs.annotate(user_count=Count('registrars') + Count('managers'))
+    qs = qs.annotate(user_count=Count('registrars', distinct=True) + Count('managers', distinct=True))
     paginator = Paginator(
         qs,
         request.GET.get('pp', 20)  # per page
