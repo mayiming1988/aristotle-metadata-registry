@@ -13,6 +13,7 @@ from aristotle_mdr_api.v4.concepts.serializers import ConceptSerializer, Superse
 from aristotle_mdr import perms
 from django.core.exceptions import PermissionDenied
 from re import finditer
+from django.conf import settings
 import logging
 logger = logging.getLogger(__name__)
 
@@ -123,8 +124,10 @@ class GeneralGraphicalConceptView(APIView):
                 if perms.user_can_view(self.request.user, rel_attr):
                     serialised_rel_attr = ConceptSerializer(rel_attr).data
                     serialised_rel_attr["type"] = self.camel_case_split(rel_attr.__class__.__name__)
-                    nodes.append(serialised_rel_attr)
-                    edges.append(({"from": serialised_rel_attr["id"], "to": item.id}))
+                    if serialised_rel_attr["id"] not in seen_items_ids and len(nodes) < settings.MAXIMUM_NUMBER_OF_NODES_IN_GENERAL_GRAPHICAL_REPRESENTATION:
+                        nodes.append(serialised_rel_attr)
+                        edges.append(({"from": serialised_rel_attr["id"], "to": item.id}))
+                        seen_items_ids.add(serialised_rel_attr["id"])
 
         for field in item._meta.get_fields():
             if field.is_relation and field.many_to_one and issubclass(field.related_model, concept):
@@ -133,8 +136,10 @@ class GeneralGraphicalConceptView(APIView):
                     if perms.user_can_view(self.request.user, related_concept_instance):
                         serialised_concept = ConceptSerializer(related_concept_instance).data
                         serialised_concept["type"] = self.camel_case_split(related_concept_instance.__class__.__name__)
-                        nodes.append(serialised_concept)
-                        edges.append({"from": item.id, "to": serialised_concept["id"]})
+                        if serialised_concept["id"] not in seen_items_ids and len(nodes) < settings.MAXIMUM_NUMBER_OF_NODES_IN_GENERAL_GRAPHICAL_REPRESENTATION:
+                            nodes.append(serialised_concept)
+                            edges.append({"from": item.id, "to": serialised_concept["id"]})
+                            seen_items_ids.add(serialised_concept["id"])
             if field.is_relation and field.one_to_many and issubclass(field.related_model, aristotleComponent):
                 for aris_comp_field in field.related_model._meta.get_fields():
                     if aris_comp_field.is_relation and aris_comp_field.many_to_one and\
@@ -145,8 +150,10 @@ class GeneralGraphicalConceptView(APIView):
                             if component_instance is not None:
                                 serialised_concept_instance = ConceptSerializer(component_instance).data
                                 serialised_concept_instance["type"] = self.camel_case_split(component_instance.__class__.__name__)
-                                nodes.append(serialised_concept_instance)
-                                edges.append({"from": serialised_concept_instance["id"], "to": item.id})
+                                if serialised_concept_instance["id"] not in seen_items_ids and len(nodes) < settings.MAXIMUM_NUMBER_OF_NODES_IN_GENERAL_GRAPHICAL_REPRESENTATION:
+                                    nodes.append(serialised_concept_instance)
+                                    edges.append({"from": serialised_concept_instance["id"], "to": item.id})
+                                    seen_items_ids.add(serialised_concept_instance["id"])
 
         json_response = {'nodes': nodes, 'edges': edges}
 

@@ -373,3 +373,5 @@ GRAPHQL_ENABLED = False
 
 # Allows migrations to print text on success (disabled during testing)
 MIGRATION_PRINT = True
+
+MAXIMUM_NUMBER_OF_NODES_IN_GENERAL_GRAPHICAL_REPRESENTATION = 200
