@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Tuple
 import datetime
 from io import StringIO
 
@@ -9,7 +9,9 @@ from celery import shared_task, Task
 from celery.utils.log import get_task_logger
 
 from aristotle_mdr.utils.download import get_download_class
-from aristole_mdr.models import _concept, RegistrationAuthority
+from aristotle_mdr.models import _concept, RegistrationAuthority
+
+import reversion
 
 logger = get_task_logger(__name__)
 
@@ -128,16 +130,43 @@ def register_items(ids: List[int], cascade: bool, state: int, ra_id: int,
     # Bulk get subclasses
     items = items.select_subclasses()
 
+    # Determine register method to use
     if cascade:
         register_method = ra.cascaded_register
     else:
         register_method = ra.register
 
-    for item in items:
-        register_method(
-            item,
-            state,
-            user,
-            changeDetails=change_details,
-            registrationDate=registration_date
-        )
+    # To track results
+    success = []
+    failed = []
+
+    # Register items
+    with reversion.revisions.create_revision():
+        for item in items:
+            status = register_method(
+                item,
+                state,
+                user,
+                changeDetails=change_details,
+                registrationDate=registration_date
+            )
+            success.extend(status['success'])
+            failed.extend(status['failed'])
+
+        # Set reversion user
+        reversion.revisions.set_user(user)
+
+        # Set reversion message
+        if failed:
+            bad_items = [str(i.id) for i in failed]
+            message = '{num_success} items registered \n{num_failed} items failed, they had ids: {bad_ids}'.format(
+                num_success=items.count(),
+                num_failed=len(failed),
+                bad_ids=','.join(bad_items)
+            )
+        else:
+            message = '{num_items} items registered'.format(
+                num_items=items.count()
+            )
+
+        reversion.revisions.set_comment(message)
