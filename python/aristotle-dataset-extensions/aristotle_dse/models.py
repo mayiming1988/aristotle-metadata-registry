@@ -305,6 +305,8 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         abstract=True
         ordering = ['order']
 
+    inline_field_layout = 'list'
+
     dss = ConceptForeignKey(DataSetSpecification)
     maximum_occurances = models.PositiveIntegerField(
         default=1,
@@ -344,6 +346,8 @@ class DSSGrouping(aristotle.models.aristotleComponent):
     class Meta:
         ordering = ['order']
 
+    inline_field_layout = 'list'
+
     dss = ConceptForeignKey(DataSetSpecification, related_name="groups")
     name = ShortTextField(
         help_text=_("The name applied to the grouping.")
@@ -375,6 +379,8 @@ class DSSDEInclusion(DSSInclusion):
         blank=True,
     )
 
+    inline_field_layout = 'list'
+
     class Meta(DSSInclusion.Meta):
         verbose_name = "DSS Data Element Inclusion"
 
@@ -405,5 +411,6 @@ class DSSClusterInclusion(DSSInclusion):
         return self.child
 
     def inline_editor_description(self):
-        return "Cluster '%s' at position %s" % (self.data_element, self.order)
-
+        if self.order:
+            return "Cluster '{cls}' at position {pos}".format(cls=self.child, pos=self.order)
+        return "Cluster '{}'".format(child)
