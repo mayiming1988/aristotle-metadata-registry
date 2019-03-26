@@ -5,9 +5,7 @@ from aristotle_mdr import models
 import aristotle_mdr.contrib.validators.models as vmodels
 import aristotle_mdr.tests.utils as utils
 
-from aristotle_mdr.utils import setup_aristotle_test_environment
-setup_aristotle_test_environment()
-
+from aristotle_bg_workers.tasks import register_items
 
 # This is for testing permissions around RA mangement.
 
@@ -375,3 +373,50 @@ class RAManageTests(utils.LoggedInViewPages,TestCase):
         )
         self.assertEqual(response.context['rules'], rules)
         self.assertEqual(response.status_code, 200)
+
+
+class RegisterTaskTests(utils.AristotleTestUtils, TestCase):
+    """Tests the register_items task"""
+
+    def setUp(self):
+        super().setUp()
+        self.oc = models.ObjectClass.objects.create(
+            name='Animal',
+            definition='An animal',
+            workgroup=self.wg1
+        )
+        self.prop = models.Property.objects.create(
+            name='Speed',
+            definition='Fastness',
+            workgroup=self.wg1
+        )
+        self.dec = models.DataElementConcept.objects.create(
+            name='Animal - Speed',
+            definition='An animals speed',
+            objectClass=self.oc,
+            property=self.prop,
+            workgroup=self.wg1
+        )
+
+    def check_registered_std(self, item):
+        status = item.statuses.order_by('-created').first()
+        self.assertIsNotNone(status)
+        self.assertEqual(status.registrationAuthority, self.ra)
+        self.assertEqual(status.state, models.STATES.standard)
+
+    def test_registration(self):
+        ids = [self.oc.id, self.prop.id, self.dec.id]
+
+        register_items(
+            ids,
+            False,
+            models.STATES.standard,
+            self.ra.id,
+            self.su.id,
+            '',
+            (2001, 1, 1)
+        )
+
+        self.check_registered_std(self.oc)
+        self.check_registered_std(self.prop)
+        self.check_registered_std(self.dec)
