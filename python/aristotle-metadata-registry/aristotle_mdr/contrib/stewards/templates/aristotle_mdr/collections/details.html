@@ -23,7 +23,7 @@
     <table class="table">
         <thead></thead>
         <tbody>
-            {% for obj in item.metadata.all.select_subclasses|order_by:'name'|can_view_iter:request.user %}
+            {% for obj in metadata %}
             <tr>
                 <td>
                 <a href="{{ obj.get_absolute_url }}">{{obj.name}}</a><br>

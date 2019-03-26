@@ -160,6 +160,11 @@ class StewardURLManager(GroupURLManager):
             def get_queryset(self):
                 return self.get_group().collection_set.all()
 
+            def get_context_data(self, *args, **kwargs):
+                context = super().get_context_data(*args, **kwargs)
+                context['metadata'] = self.get_object().metadata.all().select_subclasses().visible(user=self.request.user).order_by('name')
+                return context
+
         return DetailCollectionsView.as_view(manager=self, group_class=self.group_class)
 
     def collection_create_view(self):
