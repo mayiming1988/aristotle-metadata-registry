@@ -345,6 +345,7 @@ class DSSInclusion(aristotle.models.aristotleComponent):
 class DSSGrouping(aristotle.models.aristotleComponent):
     class Meta:
         ordering = ['order']
+        verbose_name = 'DSS Grouping'
 
     inline_field_layout = 'list'
 
@@ -382,7 +383,7 @@ class DSSDEInclusion(DSSInclusion):
     inline_field_layout = 'list'
 
     class Meta(DSSInclusion.Meta):
-        verbose_name = "DSS Data Element Inclusion"
+        verbose_name = "DSS Data Element"
 
     @property
     def include(self):
@@ -404,7 +405,7 @@ class DSSClusterInclusion(DSSInclusion):
     child = ConceptForeignKey(DataSetSpecification, related_name='parent_dss')
 
     class Meta(DSSInclusion.Meta):
-        verbose_name = "DSS Cluster Inclusion"
+        verbose_name = "DSS Cluster"
 
     @property
     def include(self):
