@@ -257,7 +257,7 @@ class ReviewAcceptView(ReviewStatusChangeBase):
         review = self.get_review()
 
         with reversion.revisions.create_revision():
-            message = self.register_changes_with_message(form_dict)
+            message = self.register_changes(form_dict)
 
             if form_dict['review_accept'].cleaned_data['close_review'] == "1":
                 review.status = models.REVIEW_STATES.approved
@@ -315,7 +315,7 @@ class ReviewEndorseView(ReviewStatusChangeBase):
         review = self.get_review()
 
         with reversion.revisions.create_revision():
-            message = self.register_changes_with_message(form_dict)
+            message = self.register_changes(form_dict)
 
             if int(form_dict['review_accept'].cleaned_data['close_review']) == 1:
                 review.status = models.REVIEW_STATES.closed

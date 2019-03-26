@@ -42,6 +42,8 @@ from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
 
+from aristotle_bg_workers.tasks import register_items
+
 from reversion.models import Version
 
 
@@ -414,12 +416,16 @@ def display_review(wizard):
 
 
 class ReviewChangesView(SessionWizardView):
+    """Abstract view used by registration views"""
 
     items: Any = None
     display_review: Any = None
 
     # Override this
     change_step_name = ''
+
+    def get_items(self):
+        raise NotImplementedError
 
     def get_form_kwargs(self, step):
 
@@ -468,9 +474,6 @@ class ReviewChangesView(SessionWizardView):
 
             self.display_review = review
 
-    def get_items(self):
-        return self.items
-
     def get_template_names(self):
         return [self.templates[self.steps.current]]
 
@@ -487,6 +490,7 @@ class ReviewChangesView(SessionWizardView):
     def register_changes(self, form_dict, change_form=None, **kwargs):
 
         items = self.get_items()
+        item_ids = list(items.valus_list('id', flat=True))
 
         try:
             review_data = form_dict['review_changes'].cleaned_data
@@ -511,74 +515,16 @@ class ReviewChangesView(SessionWizardView):
         if changeDetails is None:
             changeDetails = ""
 
-        success = []
-        failed = []
-
-        arguments = {
-            'state': state,
-            'user': self.request.user,
-            'changeDetails': changeDetails,
-            'registrationDate': regDate,
-        }
-
-        if review_data:
-            for ra in ras:
-                arguments['items'] = selected_list
-                status = ra.register_many(**arguments)
-                success.extend(status['success'])
-                failed.extend(status['failed'])
-        else:
-            for item in items:
-                for ra in ras:
-                    # Should only be 1 ra
-                    # Need to check before enforcing
-
-                    # Can't cascade from _concept
-                    if isinstance(item, MDR._concept):
-                        arguments['item'] = item.item
-                    else:
-                        arguments['item'] = item
-
-                    if cascade:
-                        register_method = ra.cascaded_register
-                    else:
-                        register_method = ra.register
-
-                    status = register_method(**arguments)
-                    success.extend(status['success'])
-                    failed.extend(status['failed'])
-
-        return (success, failed)
-
-    def register_changes_with_message(self, form_dict, change_form=None, *args, **kwargs):
-
-        with transaction.atomic(), reversion.revisions.create_revision():
-            reversion.revisions.set_user(self.request.user)
-
-            success, failed = self.register_changes(form_dict, change_form)
-
-            bad_items = sorted([str(i.id) for i in failed])
-            count = self.get_items().count()
-
-            if failed:
-                message = _(
-                    "%(num_items)s items registered \n"
-                    "%(num_faileds)s items failed, they had the id's: %(bad_ids)s"
-                ) % {
-                    'num_items': count,
-                    'num_faileds': len(failed),
-                    'bad_ids': ",".join(bad_items)
-                }
-            else:
-                message = _(
-                    "%(num_items)s items registered\n"
-                ) % {
-                    'num_items': count,
-                }
-
-            reversion.revisions.set_comment(message)
-
-        return message
+        # Call celery task to register items
+        register_items.delay(
+            item_ids,
+            cascade,
+            state,
+            ras[0].id,
+            self.request.user.id,
+            changeDetails,
+            (regDate.year, regDate.month, regDate.day)
+        )
 
 
 class ChangeStatusView(ReviewChangesView):
