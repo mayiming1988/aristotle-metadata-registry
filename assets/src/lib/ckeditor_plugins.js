@@ -89,7 +89,7 @@ export function addPlugins(editor) {
     let html = buildDialogHtml(
         'Glossary Item', 
         'id_glossary',
-        '/ac/concept/aristotle_glossary-glossaryitem'
+        '/ac/concept/aristotle_glossary-glossaryitem?public=1'
     )
     addDialog(editor, 'glossaryListDialog', 'Glossary search', html, 'id_glossary')
 }
