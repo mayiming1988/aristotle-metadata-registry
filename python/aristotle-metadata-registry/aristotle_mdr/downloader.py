@@ -96,15 +96,14 @@ class Downloader:
 
     def create_file(self) -> File:
         """
-        This method must be overriden and return the downloadable object of appropriate type and mime type for the object This is a static method because it is a celery task This method should return 2 objects and an optional third first object is item second item is the mime type third object a list of tuple(key, value) which specifies the response object properties Example implementation is in CSVDownloader.download method
-        User this in a celery task to get the item from iid
-        item = MDR._concept.objects.get_subclass(pk=iid)
-        item = get_if_user_can_view(item.__class__, user, iid)
+        Create the file object, should be overwitten by subclasses
+        See below for examples
         """
         raise NotImplementedError
 
-    def get_storage(self):
-        if settings.DOWNLOADS_STORAGE is not None:
+    def get_storage(self, media=False):
+        """Gets a storage class object (use media to get default media class instead of dl class)"""
+        if settings.DOWNLOADS_STORAGE is not None and not media:
             storage_class = import_string(settings.DOWNLOADS_STORAGE)
         else:
             storage_class = get_storage_class()
@@ -118,7 +117,7 @@ class Downloader:
         if not self.allow_wrapper_pages:
             return [None, None]
 
-        storage = self.get_storage()
+        storage = self.get_storage(media=True)
         pages = []
         for page_name in ['front_page', 'back_page']:
             page_path = self.options[page_name]
@@ -168,7 +167,7 @@ class Downloader:
         final_fname = storage.save(filename, content)
         return storage.url(final_fname)
 
-    def email_file(self, f: File, url: str):
+    def email_file(self, f: File, size: int, url: str):
         max_email_file_size = settings.MAX_EMAIL_FILE_SIZE
 
         template_name = 'aristotle_mdr/email/download.html'
@@ -178,7 +177,7 @@ class Downloader:
         }
         attachments = []
 
-        if f.size <= max_email_file_size:
+        if size <= max_email_file_size:
             context['attached'] = True
             # Read bytes from file
             f.open('rb')
@@ -225,11 +224,12 @@ class Downloader:
                 return url
 
         fileobj = self.create_file()
+        size = fileobj.size  # Access size here while file is open
 
         url = self.store_file(filepath, fileobj)
 
         if self.options['email_copy']:
-            self.email_file(fileobj, url)
+            self.email_file(fileobj, size, url)
 
         return url
 
