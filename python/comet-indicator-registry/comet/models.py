@@ -3,8 +3,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.utils.translation import ugettext as _
 
-from aristotle_mdr.models import RichTextField
-import aristotle_mdr as aristotle
+import aristotle_mdr.models as MDR
 from aristotle_mdr.fields import ConceptForeignKey, ConceptManyToManyField
 import aristotle_dse.models as aristotle_dse
 from aristotle_mdr.utils.model_utils import (
@@ -20,7 +19,7 @@ class IndicatorType(ManagedItem):
 # Subclassing from DataElement causes indicators to present as DataElements, which isn't quite right.
 
 
-class Indicator(aristotle.models.concept):
+class Indicator(MDR.concept):
     """
     An indicator is a single measure that is reported on regularly
     and that provides relevant and actionable information about population or system performance.
@@ -32,20 +31,20 @@ class Indicator(aristotle.models.concept):
     indicator_type = models.ForeignKey(IndicatorType, blank=True, null=True)
 
 
-    computation_description = RichTextField(blank=True)
-    computation = RichTextField(blank=True)
+    computation_description = MDR.RichTextField(blank=True)
+    computation = MDR.RichTextField(blank=True)
 
-    numerator_description = RichTextField(blank=True)
+    numerator_description = MDR.RichTextField(blank=True)
     numerator_computation = models.TextField(blank=True)
 
-    denominator_description = RichTextField(blank=True)
+    denominator_description = MDR.RichTextField(blank=True)
     denominator_computation = models.TextField(blank=True)
 
-    disaggregation_description = RichTextField(blank=True)
+    disaggregation_description = MDR.RichTextField(blank=True)
 
-    rationale = RichTextField(blank=True)
-    benchmark = RichTextField(blank=True)
-    reporting_information = RichTextField(blank=True)
+    rationale = MDR.RichTextField(blank=True)
+    benchmark = MDR.RichTextField(blank=True)
+    reporting_information = MDR.RichTextField(blank=True)
 
     serialize_weak_entities = [
         ('numerators', 'indicatornumeratordefinition_set'),
@@ -70,7 +69,7 @@ class Indicator(aristotle.models.concept):
 
     @property
     def numerators(self):
-        return aristotle.models.DataElement.objects.filter(
+        return MDR.DataElement.objects.filter(
             indicatornumeratordefinition__indicator=self
         )
 
@@ -79,7 +78,7 @@ class Indicator(aristotle.models.concept):
 
     @property
     def denominators(self):
-        return aristotle.models.DataElement.objects.filter(
+        return MDR.DataElement.objects.filter(
             indicatordenominatordefinition__indicator=self
         )
 
@@ -88,7 +87,7 @@ class Indicator(aristotle.models.concept):
 
     @property
     def disaggregators(self):
-        return aristotle.models.DataElement.objects.filter(
+        return MDR.DataElement.objects.filter(
             indicatordisaggregationdefinition__indicator=self
         )
 
@@ -106,9 +105,9 @@ class IndicatorDataElementBase(aristotleComponent):
         "Order",
         help_text=_("The position of this data element in the indicator")
     )
-    description = RichTextField(blank=True)
-    guide_for_use = RichTextField(blank=True)
-    data_element = ConceptForeignKey(aristotle.models.DataElement, blank=True, null=True)
+    description = MDR.RichTextField(blank=True)
+    guide_for_use = MDR.RichTextField(blank=True)
+    data_element = ConceptForeignKey(MDR.DataElement, blank=True, null=True)
     data_set_specification = ConceptForeignKey(aristotle_dse.DataSetSpecification, blank=True, null=True)
     data_set = ConceptForeignKey(aristotle_dse.Dataset, blank=True, null=True)
 
@@ -135,7 +134,7 @@ class IndicatorSetType(ManagedItem):
     pass
 
 
-class IndicatorSet(aristotle.models.concept):
+class IndicatorSet(MDR.concept):
     template = "comet/indicatorset.html"
     indicator_set_type = models.ForeignKey(IndicatorSetType, blank=True, null=True)
 
@@ -160,21 +159,21 @@ class IndicatorInclusion(aristotleComponent):
         return self.indicator_set
 
 
-class OutcomeArea(aristotle.models.concept):
+class OutcomeArea(MDR.concept):
     template = "comet/outcomearea.html"
 
 
-class QualityStatement(aristotle.models.concept):
+class QualityStatement(MDR.concept):
     template = "comet/qualitystatement.html"
-    timeliness = RichTextField(blank=True)
-    accessibility = RichTextField(blank=True)
-    interpretability = RichTextField(blank=True)
-    relevance = RichTextField(blank=True)
-    accuracy = RichTextField(blank=True)
-    coherence = RichTextField(blank=True)
+    timeliness = MDR.RichTextField(blank=True)
+    accessibility = MDR.RichTextField(blank=True)
+    interpretability = MDR.RichTextField(blank=True)
+    relevance = MDR.RichTextField(blank=True)
+    accuracy = MDR.RichTextField(blank=True)
+    coherence = MDR.RichTextField(blank=True)
 
 
-class Framework(aristotle.models.concept):
+class Framework(MDR.concept):
     template = "comet/framework.html"
     parentFramework = ConceptForeignKey('Framework', blank=True, null=True, related_name="childFrameworks")
     indicators = ConceptManyToManyField(Indicator, related_name="frameworks", blank=True)
