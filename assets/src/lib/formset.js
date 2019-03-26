@@ -22,10 +22,17 @@ export function replacePrefix(element, num_forms) {
 export function addRow(formid, row_selector, urlfunc) {
     // Get panel list
     let panelList = document.getElementById(formid)
-    // If it's a table use the body
     if (panelList.tagName === 'TABLE') {
+        // If it's a table use the body
         panelList = panelList.querySelector('tbody')
+    } else if (panelList.tagName === 'FORM') {
+        // If panelList is a form and has a form-list class use that
+        let list = panelList.querySelector('.form-list')
+        if (list !== null) {
+            panelList = list
+        }
     }
+
     // Convert to jquery object
     panelList = $(panelList)
 
