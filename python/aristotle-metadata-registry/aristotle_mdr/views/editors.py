@@ -176,10 +176,20 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
 
         context = super().get_context_data(*args, **kwargs)
 
+        invalid_tabs = set()
+        # We get formset passed on errors
         if 'formsets' in kwargs:
             extra_formsets = kwargs['formsets']
+            for item in extra_formsets:
+                if item['formset'].errors:
+                    if item['type'] in ['weak', 'through']:
+                        invalid_tabs.add('Components')
+                    else:
+                        invalid_tabs.add(item['title'])
         else:
             extra_formsets = self.get_extra_formsets(self.item)
+
+        context['invalid_tabs'] = invalid_tabs
 
         fscontext = self.get_formset_context(extra_formsets)
         context.update(fscontext)

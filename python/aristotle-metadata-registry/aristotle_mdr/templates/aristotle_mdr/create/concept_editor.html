@@ -11,6 +11,10 @@
     </div>
 {% endif %}
 
+{% for tabname in invalid_tabs %}
+  <div class="alert alert-danger">An error occurred on the {{ tabname }} tab</div>
+{% endfor %}
+
 <div role="tabpanel">
     <ul class="nav nav-tabs" role="tablist">
         <li role="presentation" class="active">
