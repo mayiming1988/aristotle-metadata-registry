@@ -390,9 +390,9 @@ class DSSDEInclusion(DSSInclusion):
 
     def inline_editor_description(self):
         if self.group:
-            msg = "Data element '%s' in group '%s' at position %s" % (self.data_element, self.group.name, self.order)
+            msg = "Data element '%s' in group '%s' at position %s" % (self.data_element.name, self.group.name, self.order)
         else:
-            msg = "Data element '%s' at position %s" % (self.data_element, self.order)
+            msg = "Data element '%s' at position %s" % (self.data_element.name, self.order)
         return msg
 
 
@@ -412,5 +412,5 @@ class DSSClusterInclusion(DSSInclusion):
 
     def inline_editor_description(self):
         if self.order:
-            return "Cluster '{cls}' at position {pos}".format(cls=self.child, pos=self.order)
-        return "Cluster '{}'".format(child)
+            return "Cluster '{cls}' at position {pos}".format(cls=self.child.name, pos=self.order)
+        return "Cluster '{}'".format(self.child.name)
