@@ -1629,13 +1629,6 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         response = self.client.get(reverse('aristotle:changeStatus',args=[self.item1.id]))
         self.assertEqual(response.status_code,200)
 
-        self.assertEqual(self.item1.statuses.count(),0)
-        for sub_item in self.item1.registry_cascade_items:
-            if sub_item is not None:
-                self.assertEqual(sub_item.statuses.count(),0)
-            else:
-                pass
-
         response = self.client.post(
             reverse('aristotle:changeStatus',args=[self.item1.id]),
             {
@@ -1654,11 +1647,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertTrue(self.item1.is_registered)
         self.assertTrue(self.item1.is_public())
         for sub_item in self.item1.registry_cascade_items:
-            if sub_item is not None:
-                if not sub_item.is_registered: # pragma: no cover
-                    # This is debug code, and should never happen
-                    print(sub_item)
-                self.assertTrue(sub_item.is_registered)
+            self.assertTrue(sub_item.is_registered)
 
     @tag('changestatus')
     def test_registrar_cannot_use_faulty_statuses(self):
@@ -1703,36 +1692,28 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         )
         self.assertFormError(response, 'form', 'state', 'Select a valid choice. 343434 is not one of the available choices.')
 
-    def registrar_can_change_status_with_review(self, cascade, check_bad_perms=False):
+    def registrar_can_change_status_with_review(self, cascade):
+        # If not running cascade tests return
         if not hasattr(self,"run_cascade_tests") and cascade:
             return
+
         self.login_registrar()
 
-        self.assertFalse(perms.user_can_view(self.registrar,self.item1))
-        self.item1.save()
-        self.item1 = self.itemType.objects.get(pk=self.item1.pk)
-
+        # Make ReviewRequest with item
         review = self.make_review_request(self.item1, self.registrar)
 
+        # Make ReviewRequest with first sub item so we have permission to change status on it
+        self.make_review_request(self.item1.registry_cascade_items[0], self.registrar)
+
+        # Make sure registrar can view and change status of item
         self.assertTrue(perms.user_can_view(self.registrar,self.item1))
         self.assertTrue(perms.user_can_change_status(self.registrar,self.item1))
 
-        response = self.client.get(reverse('aristotle:changeStatus',args=[self.item1.id]))
-        self.assertEqual(response.status_code,200)
-
-        self.assertEqual(self.item1.statuses.count(),0)
-        for sub_item in self.item1.registry_cascade_items:
-            if sub_item is not None:
-                self.assertEqual(sub_item.statuses.count(),0)
-            else:
-                pass
+        # Check item is not registered
+        self.assertFalse(self.item1.is_registered)
 
         if cascade:
             cascade_post = 1
-            if not check_bad_perms:
-                # add all cascade items to review
-                for item in self.item1.registry_cascade_items:
-                    review.concepts.add(item)
         else:
             cascade_post = 0
 
@@ -1750,8 +1731,9 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['wizard']['steps'].step1, 2) # check we are now on second setep
-        selected_for_change = [self.item1.id]
 
+        # On second step, select items we want to change
+        selected_for_change = [self.item1.id]
         if cascade:
             selected_for_change.append(self.item1.registry_cascade_items[0].id)
 
@@ -1766,28 +1748,22 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         )
         self.assertRedirects(review_response,url_slugify_concept(self.item1))
 
-        self.item1 = self.itemType.objects.get(pk=self.item1.pk)
+        self.item1.refresh_from_db()
         self.assertEqual(self.item1.statuses.count(),1)
         self.assertTrue(self.item1.is_registered)
         self.assertTrue(self.item1.is_public())
         if cascade:
             for sub_item in self.item1.registry_cascade_items:
-                if sub_item is not None:
-                    if sub_item.id in selected_for_change:
-                        if not check_bad_perms:
-                            self.assertTrue(sub_item.is_registered)
-                        else:
-                            self.assertFalse(sub_item.is_registered)
-                    else:
-                        self.assertFalse(sub_item.is_registered)
+                # If we selected for change, should be registered otherwise not
+                if sub_item.id in selected_for_change:
+                    import pdb; pdb.set_trace()
+                    self.assertTrue(sub_item.is_registered)
+                else:
+                    self.assertFalse(sub_item.is_registered)
 
     @tag('changestatus')
     def test_registrar_can_change_status_with_review_cascade(self):
         self.registrar_can_change_status_with_review(cascade=True)
-
-    @tag('changestatus')
-    def test_registrar_cant_update_cascaded_items_without_perm(self):
-        self.registrar_can_change_status_with_review(cascade=True, check_bad_perms=True)
 
     @tag('changestatus')
     def test_registrar_can_change_status_with_review_no_cascade(self):

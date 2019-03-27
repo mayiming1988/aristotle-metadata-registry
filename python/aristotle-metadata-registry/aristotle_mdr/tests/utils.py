@@ -857,10 +857,12 @@ class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils,
         )
         return s
 
-    def make_review_request(self, item, user, requester=None):
+    def make_review_request(self, item, user, requester=None, check_perms=True):
         if not requester:
             requester = self.su
-        self.assertFalse(perms.user_can_view(user,item))
+
+        if check_perms:
+            self.assertFalse(perms.user_can_view(user,item))
         item.save()
         item = item.__class__.objects.get(pk=item.pk)
 
@@ -873,8 +875,9 @@ class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils,
 
         review.concepts.add(item)
 
-        self.assertTrue(perms.user_can_view(user,item))
-        self.assertTrue(perms.user_can_change_status(user,item))
+        if check_perms:
+            self.assertTrue(perms.user_can_view(user,item))
+            self.assertTrue(perms.user_can_change_status(user,item))
         return review
 
     def make_review_request_iterable(self, items, user=None, request_kwargs={}):
