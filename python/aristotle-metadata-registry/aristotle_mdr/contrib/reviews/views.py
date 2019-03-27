@@ -105,6 +105,7 @@ class ReviewActionMixin(LoginRequiredMixin, UserFormViewMixin):
         kwargs['review'] = self.review
         kwargs['can_approve_review'] = perms.user_can_approve_review(self.request.user, self.review)
         kwargs['can_open_close_review'] = perms.user_can_close_or_reopen_review(self.request.user, self.review)
+        kwargs['can_edit_review'] = perms.user_can_edit_review(self.request.user, self.review)
         if hasattr(self, "active_tab_name"):
             kwargs['active_tab'] = self.active_tab_name
         return kwargs
