@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist, ObjectDoesNotExist
 from django.urls import reverse
 from django.db import transaction
+from django.db.models.query import QuerySet
 from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.translation import ugettext_lazy as _
@@ -504,7 +505,10 @@ class ReviewChangesView(SessionWizardView):
             items = selected_list
 
         # Get ids of items
-        item_ids = list(items.values_list('id', flat=True))
+        if isinstance(items, QuerySet):
+            item_ids = list(items.values_list('id', flat=True))
+        else:
+            item_ids = [i.id for i in items]
 
         # process the data in form.cleaned_data as required
         if change_form:
