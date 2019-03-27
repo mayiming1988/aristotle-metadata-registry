@@ -165,4 +165,4 @@ MIGRATION_PRINT = False
 # This makes tasks functions be called directly
 # This is not ideal as serialization is not tested
 # More info here http://docs.celeryproject.org/en/latest/userguide/testing.html
-CELERY_ALWAYS_EAGER = True
+CELERY_TASK_ALWAYS_EAGER = True
