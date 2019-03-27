@@ -409,7 +409,7 @@ class RegistrationAuthority(Organization):
             until_date = kwargs.get('until_date', None)
 
             Status.objects.create(
-                concept=item,
+                concept=item.concept,
                 registrationAuthority=self,
                 registrationDate=registrationDate,
                 state=state,
