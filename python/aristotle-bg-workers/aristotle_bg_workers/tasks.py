@@ -118,8 +118,8 @@ def send_notification_email(recipient, message):
 
 
 @shared_task(name='register_items')
-def register_items(ids: List[int], cascade: bool, state: int, ra_id: int,
-                   user_id: int, change_details: str, regDate: Tuple[int, int, int]):
+def register_items(ids: List[int], cascade: bool, state: int, ra_id: int, user_id: int,
+                   change_details: str, regDate: Tuple[int, int, int], set_message: bool=True):
 
     # Get objects from serialized representation
     ra = RegistrationAuthority.objects.get(id=ra_id)
@@ -157,16 +157,17 @@ def register_items(ids: List[int], cascade: bool, state: int, ra_id: int,
         reversion.revisions.set_user(user)
 
         # Set reversion message
-        if failed:
-            bad_items = [str(i.id) for i in failed]
-            message = '{num_success} items registered \n{num_failed} items failed, they had ids: {bad_ids}'.format(
-                num_success=items.count(),
-                num_failed=len(failed),
-                bad_ids=','.join(bad_items)
-            )
-        else:
-            message = '{num_items} items registered'.format(
-                num_items=items.count()
-            )
+        if set_message:
+            if failed:
+                bad_items = [str(i.id) for i in failed]
+                message = '{num_success} items registered \n{num_failed} items failed, they had ids: {bad_ids}'.format(
+                    num_success=items.count(),
+                    num_failed=len(failed),
+                    bad_ids=','.join(bad_items)
+                )
+            else:
+                message = '{num_items} items registered'.format(
+                    num_items=items.count()
+                )
 
-        reversion.revisions.set_comment(message)
+            reversion.revisions.set_comment(message)
