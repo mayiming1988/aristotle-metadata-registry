@@ -1,0 +1,30 @@
+{% extends "aristotle_mdr/stewards/base.html" %}
+{% load i18n %}
+
+
+{% block title %}Edit Collection {{object.name}} | {{ stewardship_organisation }}{% endblock %}
+{% block page_title %}{{ stewardship_organisation }} | Edit Collection {{object.name}}{% endblock %}
+
+{% block steward_content %}
+    <h2>
+    Delete Metadata Collection '{{object.name}}'
+    </h2>
+    <form action="" method="POST">
+        {% csrf_token %}
+        
+        {{ form.errors }}
+        
+        <div class="alert alert-danger">
+            <p>
+            <strong>Are you sure you wish to delete this collection?</strong>
+            </p><p>
+                This action cannot be undone.
+            </p>
+        </div>
+        {{ form }}
+
+
+        <a class="btn btn-default" href="{{object.get_absolute_url}}">Back</a>
+        <button type="Submit" class="btn btn-danger">Delete Collection</button>
+    </form>
+{% endblock %}
