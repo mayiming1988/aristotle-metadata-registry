@@ -499,11 +499,6 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         )
         self.assertEqual(response.status_code, 302)
 
-        self.review.refresh_from_db()
-        self.assertEqual(self.review.status, REVIEW_STATES.approved)
-        ss.refresh_from_db()
-        self.assertFalse(ss.proposed)
-
         older.refresh_from_db()
         status = older.statuses.first()
         self.assertIsNotNone(status)
