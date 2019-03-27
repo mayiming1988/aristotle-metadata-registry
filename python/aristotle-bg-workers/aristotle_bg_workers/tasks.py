@@ -137,8 +137,8 @@ def register_items(ids: List[int], cascade: bool, state: int, ra_id: int,
         register_method = ra.register
 
     # To track results
-    success = []
-    failed = []
+    success: List = []
+    failed: List = []
 
     # Register items
     with reversion.revisions.create_revision():
