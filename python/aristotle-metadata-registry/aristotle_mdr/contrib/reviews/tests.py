@@ -11,6 +11,8 @@ from aristotle_mdr import perms
 from aristotle_mdr.contrib.reviews import models
 from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
 from django.contrib.auth import get_user_model
+
+import datetime
 User = get_user_model()
 
 
@@ -233,7 +235,8 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         self.review = models.ReviewRequest.objects.create(
             registration_authority=self.ra,
             requester=self.editor,
-            target_registration_state=MDR.STATES.standard
+            target_registration_state=MDR.STATES.standard,
+            registration_date=datetime.date(2001, 1, 1)
         )
         self.review.concepts.add(self.item)
 
@@ -476,6 +479,35 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(self.review.status, REVIEW_STATES.approved)
         ss.refresh_from_db()
         self.assertFalse(ss.proposed)
+
+    def test_supersedes_status_applied(self):
+        older = MDR.ObjectClass.objects.create(name='Old', definition='Very old')
+        ss = self.create_ss_relation(older, self.item)
+        self.assertEqual(self.review.proposed_supersedes.count(), 1)
+
+        wizard_data = [
+            {'status_message': 'We changing', 'close_review': '1'},
+            {'selected_list': [str(self.item.id)]}
+        ]
+
+        self.login_registrar()
+        response = self.post_to_wizard(
+            wizard_data,
+            reverse('aristotle_mdr_review_requests:accept_review', args=[self.review.id]),
+            'review_accept_view',
+            ['review_accept', 'review_changes']
+        )
+        self.assertEqual(response.status_code, 302)
+
+        self.review.refresh_from_db()
+        self.assertEqual(self.review.status, REVIEW_STATES.approved)
+        ss.refresh_from_db()
+        self.assertFalse(ss.proposed)
+
+        older.refresh_from_db()
+        status = older.statuses.first()
+        self.assertIsNotNone(status)
+        self.assertEqual(status.state, MDR.STATES.superseded)
 
     @tag('proposed')
     def test_proposed_ss_not_shown_item_page(self):
