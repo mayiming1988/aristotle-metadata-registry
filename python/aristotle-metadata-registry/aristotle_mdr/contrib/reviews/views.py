@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_string
+from django.utils import timezone
 from django.forms import modelformset_factory
 # from django.views.generic import ListView, TemplateView, DeleteView
 from django.views.generic import (
@@ -37,6 +38,8 @@ from aristotle_mdr.views.utils import (
     UserFormViewMixin,
     FormsetView
 )
+
+from aristotle_bg_workers.tasks import register_items
 
 from . import models, forms
 
@@ -254,6 +257,29 @@ class ReviewAcceptView(ReviewStatusChangeBase):
         'review_changes': 'aristotle_mdr/actions/review_state_changes.html'
     }
 
+    def approve_supersedes(self, review, regDate):
+        sups = review.proposed_supersedes
+
+        old_items = [s.older_item.id for s in sups]
+
+        if not regDate:
+            regDate = timezone.localtime(timezone.now()).date()
+
+        # Set all old items to the Superseded status
+        register_items.delay(
+            old_items,
+            False,
+            MDR.STATES.superseded,
+            review.registration_authority_id,
+            self.request.user.id,
+            "",
+            (regDate.year, regDate.month, regDate.day),
+            False
+        )
+
+        # approve all proposed supersedes
+        sups.update(proposed=False)
+
     def done(self, form_list, form_dict, **kwargs):
         review = self.get_review()
 
@@ -275,8 +301,11 @@ class ReviewAcceptView(ReviewStatusChangeBase):
                 registration_state=review.target_registration_state,
                 actor=self.request.user
             )
-            # approve all proposed supersedes
-            review.proposed_supersedes.update(proposed=False)
+
+            # Approve supersedes
+            cleaned_data = self.get_change_data()
+            regDate = cleaned_data['registrationDate']
+            self.approve_supersedes(review, regDate)
 
             messages.add_message(self.request, messages.INFO, self.message)
 

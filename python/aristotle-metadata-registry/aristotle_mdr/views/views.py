@@ -11,6 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView, RedirectView
 from django.utils.module_loading import import_string
 from django.utils.functional import SimpleLazyObject
+from django.utils import timezone
 from formtools.wizard.views import SessionWizardView
 
 import json
@@ -519,6 +520,9 @@ class ReviewChangesView(SessionWizardView):
 
         if changeDetails is None:
             changeDetails = ""
+
+        if not regDate:
+            regDate = timezone.localtime(timezone.now()).date()
 
         # Call celery task to register items
         register_items.delay(
