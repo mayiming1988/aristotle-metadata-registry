@@ -28,7 +28,9 @@
             url: String,
             typeOfGraph: String,
             direction: String,
-            levelSeparation: String
+            levelSeparation: String,
+            sortMethod: String,
+            hierarchical: Boolean,
         },
         components: {
             'alert': Alert
@@ -96,9 +98,10 @@
                             },
                             'layout': {
                                 'hierarchical': {
-                                    'enabled': true,
+                                    'enabled': this.hierarchical,
                                     'direction': this.direction,
-                                    'sortMethod': 'directed',
+                                    'sortMethod': this.sortMethod,
+                                    // 'sortMethod': 'directed',
                                     // 'sortMethod': 'hubsize',
                                     'levelSeparation': Number(this.levelSeparation)
                                 }
