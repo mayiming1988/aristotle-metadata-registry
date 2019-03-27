@@ -181,6 +181,7 @@ class ReviewStatusChangeBase(ReviewActionMixin, ReviewChangesView):
     review = None
     user_form = True
     show_supersedes: bool = True
+    message = 'Items have been registered'
 
     def dispatch(self, request, *args, **kwargs):
 
@@ -257,7 +258,7 @@ class ReviewAcceptView(ReviewStatusChangeBase):
         review = self.get_review()
 
         with reversion.revisions.create_revision():
-            message = self.register_changes(form_dict)
+            self.register_changes(form_dict)
 
             if form_dict['review_accept'].cleaned_data['close_review'] == "1":
                 review.status = models.REVIEW_STATES.approved
@@ -277,7 +278,7 @@ class ReviewAcceptView(ReviewStatusChangeBase):
             # approve all proposed supersedes
             review.proposed_supersedes.update(proposed=False)
 
-            messages.add_message(self.request, messages.INFO, message)
+            messages.add_message(self.request, messages.INFO, self.message)
 
         return HttpResponseRedirect(reverse('aristotle_reviews:review_details', args=[review.pk]))
 
@@ -315,7 +316,7 @@ class ReviewEndorseView(ReviewStatusChangeBase):
         review = self.get_review()
 
         with reversion.revisions.create_revision():
-            message = self.register_changes(form_dict)
+            self.register_changes(form_dict)
 
             if int(form_dict['review_accept'].cleaned_data['close_review']) == 1:
                 review.status = models.REVIEW_STATES.closed
@@ -327,7 +328,7 @@ class ReviewEndorseView(ReviewStatusChangeBase):
                 actor=self.request.user
             )
 
-            messages.add_message(self.request, messages.INFO, message)
+            messages.add_message(self.request, messages.INFO, self.message)
 
         return HttpResponseRedirect(reverse('aristotle_reviews:review_details', args=[review.pk]))
 

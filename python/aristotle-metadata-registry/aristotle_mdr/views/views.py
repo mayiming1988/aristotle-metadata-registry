@@ -490,15 +490,20 @@ class ReviewChangesView(SessionWizardView):
     def register_changes(self, form_dict, change_form=None, **kwargs):
 
         items = self.get_items()
-        item_ids = list(items.valus_list('id', flat=True))
 
         try:
             review_data = form_dict['review_changes'].cleaned_data
         except KeyError:
             review_data = None
 
+        # If user went through to review changes form
         if review_data:
             selected_list = review_data['selected_list']
+            # Set items based on user selected items
+            items = selected_list
+
+        # Get ids of items
+        item_ids = list(items.values_list('id', flat=True))
 
         # process the data in form.cleaned_data as required
         if change_form:
