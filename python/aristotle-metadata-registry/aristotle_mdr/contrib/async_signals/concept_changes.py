@@ -55,13 +55,16 @@ def new_post_created(message, **kwargs):
 def status_changed(message, **kwargs):
     new_status = safe_object(message)
     concept = new_status.concept
+    seen_registrars = set()
     for status in concept.current_statuses().all():
         for registrar in status.registrationAuthority.registrars.all():
-            if concept.statuses.filter(registrationAuthority=new_status.registrationAuthority).count() <= 1:
-                # 0 or 1 because the transaction may not be complete yet
-                messages.registrar_item_registered(recipient=registrar, obj=concept, ra=new_status.registrationAuthority, status=str(new_status.state_name))
-            else:
-                messages.registrar_item_changed_status(recipient=registrar, obj=concept, ra=new_status.registrationAuthority, status=str(new_status.state_name))
+            if registrar not in seen_registrars:
+                if concept.statuses.filter(registrationAuthority=new_status.registrationAuthority).count() <= 1:
+                    # 0 or 1 because the transaction may not be complete yet
+                    messages.registrar_item_registered(recipient=registrar, obj=concept, ra=new_status.registrationAuthority, status=str(new_status.state_name))
+                else:
+                    messages.registrar_item_changed_status(recipient=registrar, obj=concept, ra=new_status.registrationAuthority, status=str(new_status.state_name))
+                seen_registrars.add(registrar)
 
 
 def item_superseded(message, **kwargs):

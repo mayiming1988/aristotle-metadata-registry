@@ -92,7 +92,7 @@ class ReviewRequest(StatusMixin, TimeStampedModel):
         )
 
     def __str__(self):
-        return "Review of {count} item{item_pluralise} in {ra} registraion authority".format(
+        return "Review of {count} item{item_pluralise} in {ra} registration authority".format(
             count=self.concepts.count(),
             item_pluralise=pluralize(self.concepts.count()),
             ra=self.registration_authority,
