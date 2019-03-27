@@ -491,6 +491,7 @@ class ReviewChangesView(SessionWizardView):
 
     def register_changes(self, form_dict, change_form=None, **kwargs):
 
+        can_cascade = True
         items = self.get_items()
 
         try:
@@ -503,6 +504,8 @@ class ReviewChangesView(SessionWizardView):
             selected_list = review_data['selected_list']
             # Set items based on user selected items
             items = selected_list
+            # Make sure we dont cascade when items were specifically selected
+            can_cascade = False
 
         # Get ids of items
         if isinstance(items, QuerySet):
@@ -531,7 +534,7 @@ class ReviewChangesView(SessionWizardView):
         # Call celery task to register items
         register_items.delay(
             item_ids,
-            cascade,
+            (can_cascade and cascade),
             state,
             ras[0].id,
             self.request.user.id,
