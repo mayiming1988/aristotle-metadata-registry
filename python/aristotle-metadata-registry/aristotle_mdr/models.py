@@ -374,7 +374,7 @@ class RegistrationAuthority(Organization):
         """
         Register an item. If the user has permission
         """
-        if not perms.user_can_add_ra_status(user, ra, item):
+        if not perms.user_can_add_ra_status(user, self, item):
             # Return a failure as this item isn't allowed
             return {'success': [], 'failed': [item]}
 
