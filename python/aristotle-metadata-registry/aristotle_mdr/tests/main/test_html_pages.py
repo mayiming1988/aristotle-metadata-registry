@@ -1660,7 +1660,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.make_review_request(self.item1, self.registrar)
 
         self.assertTrue(perms.user_can_view(self.registrar,self.item1))
-        self.assertTrue(perms.user_can_change_status(self.registrar,self.item1))
+        self.assertTrue(perms.user_can_add_status(self.registrar,self.item1))
 
         response = self.client.get(reverse('aristotle:changeStatus',args=[self.item1.id]))
         self.assertEqual(response.status_code,200)
@@ -1707,7 +1707,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
         # Make sure registrar can view and change status of item
         self.assertTrue(perms.user_can_view(self.registrar,self.item1))
-        self.assertTrue(perms.user_can_change_status(self.registrar,self.item1))
+        self.assertTrue(perms.user_can_add_status(self.registrar,self.item1))
 
         # Check item is not registered
         self.assertFalse(self.item1.is_registered)
@@ -1756,7 +1756,6 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
             for sub_item in self.item1.registry_cascade_items:
                 # If we selected for change, should be registered otherwise not
                 if sub_item.id in selected_for_change:
-                    import pdb; pdb.set_trace()
                     self.assertTrue(sub_item.is_registered)
                 else:
                     self.assertFalse(sub_item.is_registered)

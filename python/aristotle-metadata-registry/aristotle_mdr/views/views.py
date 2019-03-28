@@ -21,7 +21,7 @@ import reversion
 
 from aristotle_mdr.perms import (
     user_can_view, user_can_edit,
-    user_can_change_status
+    user_can_add_status
 )
 from aristotle_mdr import perms
 from aristotle_mdr.utils import url_slugify_concept
@@ -565,7 +565,7 @@ class ChangeStatusView(ReviewChangesView):
         # Check for keyError here
         self.item = get_object_or_404(MDR._concept, pk=kwargs['iid']).item
 
-        if not (self.item and user_can_change_status(request.user, self.item)):
+        if not user_can_add_status(request.user, self.item):
             if request.user.is_anonymous():
                 return redirect(reverse('friendly_login') + '?next=%s' % request.path)
             else:

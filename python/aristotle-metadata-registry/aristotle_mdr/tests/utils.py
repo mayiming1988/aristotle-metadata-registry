@@ -877,7 +877,7 @@ class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils,
 
         if check_perms:
             self.assertTrue(perms.user_can_view(user,item))
-            self.assertTrue(perms.user_can_change_status(user,item))
+            self.assertTrue(perms.user_can_add_status(user,item))
         return review
 
     def make_review_request_iterable(self, items, user=None, request_kwargs={}):
