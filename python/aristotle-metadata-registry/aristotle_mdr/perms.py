@@ -177,8 +177,8 @@ def user_is_registation_authority_manager(user, ra=None):
         return user in ra.managers.all()
 
 
-def user_can_change_status(user, item):
-    """Can the user change the status of the item?"""
+def user_can_add_status(user, item):
+    """Can the user add a status to this item in some RA"""
     if user.is_anonymous():
         return False
     if user.is_superuser:
@@ -193,13 +193,42 @@ def user_can_change_status(user, item):
         Q(proposed=True),
         Q(registration_authority__registrars__profile__user=user)
     )
-    # If these exist user can see the item
+    # If these exist user can change status on the item
     if ss_items.exists():
         return True
 
     if user.profile.is_registrar and item.is_public():
         return True
+
     return False
+
+
+def user_can_add_ra_status(user, ra, item):
+    """Can the user add a status to this item in this RA"""
+    if user.is_anonymous():
+        return False
+    if user.is_superuser:
+        return True
+
+    # Must be a registrar in this ra
+    if not ra.has_role('registrar', user):
+        return False
+
+    # If this item has any requested reviews in this ra
+    if item.rr_review_requests.filter(registration_authority=ra).visible(user):
+        return True
+
+    # Get proposed supersedes in this ra involving this item
+    ss_items = item.superseded_by_items_relation_set.filter(
+        Q(proposed=True),
+        Q(registration_authority=ra)
+    )
+    # If these exist user can change status on the item
+    if ss_items.exists():
+        return True
+
+    if user.profile.is_registrar and item.is_public():
+        return True
 
 
 def user_can_supersede(user, item):
