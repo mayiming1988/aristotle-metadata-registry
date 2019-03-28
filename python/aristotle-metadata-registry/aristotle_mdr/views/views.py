@@ -255,10 +255,10 @@ class ConceptRenderView(TagsMixin, TemplateView):
 
     def get_custom_values(self):
         allowed = CustomField.objects.get_allowed_fields(self.item.concept, self.request.user)
-        custom_values = CustomValue.objects.get_allowed_for_item(self.item._concept_ptr, allowed)
+        custom_values = CustomValue.objects.get_allowed_for_item(self.item.concept, allowed)
         not_empty_custom_values = []
         for value in custom_values:
-            if value.content != "":
+            if value.content:
                 not_empty_custom_values.append(value)
         return not_empty_custom_values
 

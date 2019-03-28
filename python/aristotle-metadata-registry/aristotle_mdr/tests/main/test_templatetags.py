@@ -75,26 +75,26 @@ class UtilTagsTestCase(TestCase):
     def test_bleach_non_allowed_tags(self):
         html = '<b>Bold</b> <u>Underline</u>'
         bleached = util_tags.bleach_filter(html)
-        self.assertEqual(bleached, "<div class='style-tables'> Bold Underline </div>")
+        self.assertEqual(bleached, "<div class='bleached-content'> Bold Underline </div>")
 
     @override_settings(BLEACH_ALLOWED_TAGS=['a'])
     def test_bleach_mixed_tags(self):
         html = '<a>Link</a> <u>Underline</u>'
         bleached = util_tags.bleach_filter(html)
-        self.assertEqual(bleached, "<div class='style-tables'> <a>Link</a> Underline </div>")
+        self.assertEqual(bleached, "<div class='bleached-content'> <a>Link</a> Underline </div>")
 
     @override_settings(BLEACH_ALLOWED_TAGS=['a'])
     @override_settings(BLEACH_ALLOWED_ATTRIBUTES={'a': 'href'})
     def test_bleach_removes_not_allowed_attrs(self):
         html = '<a href="/url" title="Wow">Link</a>'
         bleached = util_tags.bleach_filter(html)
-        self.assertEqual(bleached, '<div class=\'style-tables\'> <a href="/url">Link</a> </div>')
+        self.assertEqual(bleached, '<div class=\'bleached-content\'> <a href="/url">Link</a> </div>')
 
     def test_bleach_tag_case(self):
         """Test that bleach handles tags being uppercase"""
         html = '<B>Bold</B>'
         bleached = util_tags.bleach_filter(html)
-        self.assertEqual(bleached, "<div class='style-tables'> <b>Bold</b> </div>")
+        self.assertEqual(bleached, "<div class='bleached-content'> <b>Bold</b> </div>")
 
     def test_bleach_handles_none(self):
         bleached = util_tags.bleach_filter(None)

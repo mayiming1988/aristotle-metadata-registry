@@ -257,7 +257,7 @@ body footer.footer {
     margin-top:10px;
     display:table;
     &>div>ul:first-child, &>div>span:first-child {
-            border-right:1px solid @colors_border;
+        border-right:1px solid @colors_border;
     }
     &>div {
         display:table-row;
@@ -341,9 +341,9 @@ label strong {
 #progress.alert {
     text-indent:15px hanging;
     &:before {
-            font-family: FontAwesome;
-            content: '\f071 ';
-            padding-right:3px;
+        font-family: FontAwesome;
+        content: '\f071 ';
+        padding-right:3px;
     }
 }
 
@@ -487,29 +487,29 @@ dl.treble_defintions {
 }
 
 #loading_indicator.loading {
-  position: absolute;
-  left: 45%;
-  top: 45%;
-  z-index:2000; /* Needs to be greater than 1040 to go over the bootstrap modal-backdrop */
+    position: absolute;
+    left: 45%;
+    top: 45%;
+    z-index:2000; /* Needs to be greater than 1040 to go over the bootstrap modal-backdrop */
 }
 
 .su_action {
-background: repeating-linear-gradient(
-      45deg,
-    transparent,
-    transparent 10px,
-    rgba(250, 54, 54, 0.2) 10px,
-    rgba(250, 54, 54, 0.2) 20px
+    background: repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            rgba(250, 54, 54, 0.2) 10px,
+            rgba(250, 54, 54, 0.2) 20px
     )
 }
 
 .staff_action {
-background: repeating-linear-gradient(
-      -45deg,
-    transparent,
-    transparent 10px,
-    rgba(250, 150, 54, 0.2) 10px,
-    rgba(250, 150, 54, 0.2) 20px
+    background: repeating-linear-gradient(
+            -45deg,
+            transparent,
+            transparent 10px,
+            rgba(250, 150, 54, 0.2) 10px,
+            rgba(250, 150, 54, 0.2) 20px
     )
 }
 
@@ -525,19 +525,19 @@ background: repeating-linear-gradient(
 }
 
 [v-cloak] {
-  display: none
+    display: none
 }
 
 .margin-above {
-  margin-top: 10px;
+    margin-top: 10px;
 }
 
 .margin-left {
-  margin-left: 10px;
+    margin-left: 10px;
 }
 
 .margin-right {
-  margin-right: 10px;
+    margin-right: 10px;
 }
 
 .row-margin {
@@ -546,7 +546,7 @@ background: repeating-linear-gradient(
 }
 
 .aristotle-select2 {
-  min-width: 150px
+    min-width: 150px
 }
 
 .ta-fixed-width {
@@ -570,20 +570,28 @@ background: repeating-linear-gradient(
     max-height: 100%;
 }
 
-div.style-tables table {
-    border: 1px solid black;
-    padding: 5px;
-    td {
-        border-right: 1px solid black;
-        border-top: 1px solid black;
-        padding: 3px 5px;
-        font-size: small;
+div.bleached-content {
+
+    table {
+        border: 1px solid black;
+        padding: 5px;
+        td {
+            border-right: 1px solid black;
+            border-top: 1px solid black;
+            padding: 3px 5px;
+            font-size: small;
+        }
+        th {
+            border-right: 1px solid black;
+            padding: 3px 5px;
+            font-size: small;
+        }
     }
-    th {
-        border-right: 1px solid black;
-        padding: 3px 5px;
-        font-size: small;
+
+    img {
+        max-width: 100%;
     }
+
 }
 
 

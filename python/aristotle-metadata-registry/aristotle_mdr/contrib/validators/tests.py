@@ -16,7 +16,7 @@ from aristotle_mdr.utils import setup_aristotle_test_environment
 setup_aristotle_test_environment()
 
 
-class ValidationTester:
+class ValidationTester(TestCase):
     def assertValid(self, result, expected_message=""):
         is_valid, actual_message = result
         self.assertTrue(is_valid)
@@ -28,7 +28,7 @@ class ValidationTester:
         self.assertEqual(actual_message, expected_message)
 
 
-class TestBaseValidator(ValidationTester, TestCase):
+class TestBaseValidator(ValidationTester):
     def test_validator_name(self):
 
         validator = validators.BaseValidator({
@@ -44,66 +44,7 @@ class TestBaseValidator(ValidationTester, TestCase):
         self.assertEqual(validator.get_name(), 'Unnamed RegexValidator')
 
 
-class TestUniqueValuesValidator(ValidationTester, TestCase):
-
-    def test_validator(self):
-        employ = MDR.ValueDomain.objects.create(name="Employment Statuses", definition=".")
-        a = MDR.PermissibleValue.objects.create(valueDomain=employ, value="e", meaning="Employed", order=1)
-        b = MDR.PermissibleValue.objects.create(valueDomain=employ, value="u", meaning="Unemployed", order=2)
-        c = MDR.PermissibleValue.objects.create(valueDomain=employ, value="u", meaning="Underemployed", order=3)
-
-        self.assertNotValid(
-            validators.UniqueValuesValidator(rule={}).validate(employ),
-            expected_message="Value 'u' is a permissible value more than once - it appeared 2 times"
-        )
-
-        c.value="under"
-        c.save()
-        self.assertValid(
-            validators.UniqueValuesValidator(rule={}).validate(employ),
-        )
-
-
-class TestRelationValidator(ValidationTester, TestCase):
-    def test_invalid_rule(self):
-        person_age = MDR.DataElementConcept.objects.create(name="Person-Age", definition=".")
-        rule = {'field': 'name'}
-
-        self.assertNotValid(
-            validators.RelationValidator(
-                rule=rule
-            ).validate(person_age),
-            expected_message=validators.RelationValidator.errors['NOT_FK'].format('name')
-        )
-        rule = {'field': 'fake_field'}
-
-        self.assertNotValid(
-            validators.RelationValidator(
-                rule=rule
-            ).validate(person_age),
-            expected_message=validators.RelationValidator.errors['NOT_FOUND'].format('fake_field')
-        )
-
-    def test_validator(self):
-        person = MDR.ObjectClass.objects.create(name="Person", definition=".")
-        person_age = MDR.DataElementConcept.objects.create(name="Person-Age", definition=".")
-        rule = {'field': 'property'}
-
-        self.assertNotValid(
-            validators.RelationValidator(
-                rule=rule
-            ).validate(person_age),
-            expected_message=validators.RelationValidator.errors['NOT_LINKED'].format("property")
-        )
-
-        age = MDR.Property.objects.create(name="Age", definition=".")
-        person_age.property = age
-        self.assertValid(
-            validators.RelationValidator(rule=rule).validate(person_age),
-        )
-
-
-class TestRegexValidator(ValidationTester, TestCase):
+class TestRegexValidator(ValidationTester):
     def test_invalid_rule(self):
         self.assertNotValid(
             validators.RegexValidator(
@@ -152,7 +93,66 @@ class TestRegexValidator(ValidationTester, TestCase):
         self.assertFalse(validator.validate(self.item)[0])
 
 
-class TestStatusValidator(ValidationTester, TestCase):
+class TestRelationValidator(ValidationTester):
+    def test_invalid_rule(self):
+        person_age = MDR.DataElementConcept.objects.create(name="Person-Age", definition=".")
+        rule = {'field': 'name'}
+
+        self.assertNotValid(
+            validators.RelationValidator(
+                rule=rule
+            ).validate(person_age),
+            expected_message=validators.RelationValidator.errors['NOT_FK'].format('name')
+        )
+        rule = {'field': 'fake_field'}
+
+        self.assertNotValid(
+            validators.RelationValidator(
+                rule=rule
+            ).validate(person_age),
+            expected_message=validators.RelationValidator.errors['NOT_FOUND'].format('fake_field')
+        )
+
+    def test_validator(self):
+        person = MDR.ObjectClass.objects.create(name="Person", definition=".")
+        person_age = MDR.DataElementConcept.objects.create(name="Person-Age", definition=".")
+        rule = {'field': 'property'}
+
+        self.assertNotValid(
+            validators.RelationValidator(
+                rule=rule
+            ).validate(person_age),
+            expected_message=validators.RelationValidator.errors['NOT_LINKED'].format("property")
+        )
+
+        age = MDR.Property.objects.create(name="Age", definition=".")
+        person_age.property = age
+        self.assertValid(
+            validators.RelationValidator(rule=rule).validate(person_age),
+        )
+
+
+class TestUniqueValuesValidator(ValidationTester):
+
+    def test_validator(self):
+        employ = MDR.ValueDomain.objects.create(name="Employment Statuses", definition=".")
+        a = MDR.PermissibleValue.objects.create(valueDomain=employ, value="e", meaning="Employed", order=1)
+        b = MDR.PermissibleValue.objects.create(valueDomain=employ, value="u", meaning="Unemployed", order=2)
+        c = MDR.PermissibleValue.objects.create(valueDomain=employ, value="u", meaning="Underemployed", order=3)
+
+        self.assertNotValid(
+            validators.UniqueValuesValidator(rule={}).validate(employ),
+            expected_message="Value 'u' is a permissible value more than once - it appeared 2 times"
+        )
+
+        c.value="under"
+        c.save()
+        self.assertValid(
+            validators.UniqueValuesValidator(rule={}).validate(employ),
+        )
+
+
+class TestStatusValidator(ValidationTester):
 
     def setUp(self):
         self.steward_org_1 = MDR.StewardOrganisation.objects.create(

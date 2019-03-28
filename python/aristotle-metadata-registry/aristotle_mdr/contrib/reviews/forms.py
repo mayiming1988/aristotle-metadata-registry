@@ -71,6 +71,7 @@ class RequestReviewCreateForm(UserAwareModelForm):
         self.fields['target_registration_state'].choices = MDR.STATES
         self.fields['concepts'].queryset = self.fields['concepts'].queryset.all().visible(self.user)
         self.fields['concepts'].widget.choices = self.fields['concepts'].choices
+        self.fields['registration_authority'].queryset = self.fields['registration_authority'].queryset.filter(active=0)  # Exclude "inactive" Registration Authorities.
 
 
 class RequestReviewUpdateForm(UserAwareModelForm):
@@ -197,6 +198,10 @@ class ReviewRequestSupersedesFormset(forms.BaseModelFormSet):
         for form in self.forms:
             # No need to check deleted forms
             if 'DELETE' in form.cleaned_data and not form.cleaned_data['DELETE']:
+                if 'newer_item' not in form.cleaned_data.keys():
+                    raise forms.ValidationError([{"newer_item": ["Please provide a newer item."]}])
+                if 'older_item' not in form.cleaned_data.keys():
+                    raise forms.ValidationError([{"older_item": ["Please provide an older item."]}])
                 older = form.cleaned_data['older_item']
                 newer = form.cleaned_data['newer_item']
                 supersedes_map[older.id] = newer.id

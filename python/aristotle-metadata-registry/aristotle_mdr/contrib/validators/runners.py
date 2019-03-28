@@ -37,7 +37,7 @@ class ValidationRunner:
         validators = self.get_validators()
         rule_state = rule['status']
         object_type = rule.get('object', None)
-        # Instanciated validators for this rules checks
+        # Instantiated validators for this rules checks
         rule_validators = [
             validators[check['validator']](check)
             for check in rule['checks']
@@ -49,12 +49,21 @@ class ValidationRunner:
         # Check if the rule needs to be run
         if object_type not in [None, itemtype, "any"]:
             return []
+        # Sometimes target_state can be None, but we still want to check if the rule_state is "any":
+        if target_state is None:
+            if rule_state == 'any':
+                return self.validation_results_creator_and_runner(rule_validators, item, ra)
+            else:
+                return []
         if rule_state not in [STATES[target_state], "any"]:
             return []
-        # Run validators
+
+        return self.validation_results_creator_and_runner(rule_validators, item, ra)
+
+    def validation_results_creator_and_runner(self, rule_validators, item, registration_authority):
         results = []
         for validator in rule_validators:
-            status, message = validator.validate(item, ra)
+            status, message = validator.validate(item, registration_authority)
 
             results.append({
                 'validator': validator,
@@ -93,7 +102,6 @@ class ValidationRunner:
             kwargs['item_name'] = item.name
 
             total_results.append(kwargs)
-
         return total_results
 
 

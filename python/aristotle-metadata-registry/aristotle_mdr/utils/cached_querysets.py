@@ -75,6 +75,10 @@ def register_queryset(qs):
 def get_queryset_from_uuid(qs_uuid, model):
     # return queryset_uuid_map[qs_uuid]
 
+    if not qs_uuid:
+        return model.objects.none()
+    if not cache.get('aristotle_mdr_cache_qs__%s' % qs_uuid):
+        return model.objects.none()
     query = pickle.loads(cache.get('aristotle_mdr_cache_qs__%s' % qs_uuid))
     qs = model.objects.none()
     qs.query = query
