@@ -211,7 +211,7 @@ def user_can_add_ra_status(user, ra, item):
         return True
 
     # Must be a registrar in this ra
-    if not ra.has_role('registrar', user):
+    if user not in ra.registrars.all():
         return False
 
     # If this item has any requested reviews in this ra

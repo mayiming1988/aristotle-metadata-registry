@@ -342,7 +342,7 @@ class RegistrationAuthority(Organization):
         """
         Register an item and all it's sub components. If the user has permission
         """
-        if not perms.user_add_ra_status(user, self, item):
+        if not perms.user_can_add_ra_status(user, self, item):
             # Return a failure as this item isn't allowed
             return {'success': [], 'failed': [item] + item.registry_cascade_items}
 
@@ -361,7 +361,7 @@ class RegistrationAuthority(Organization):
             all_items = [item] + item.registry_cascade_items
 
             for child_item in all_items:
-                if perms.user_can_add_ra_status(user, self, item):
+                if perms.user_can_add_ra_status(user, self, child_item):
                     self._register(
                         child_item, state, user, *args, **kwargs
                     )
