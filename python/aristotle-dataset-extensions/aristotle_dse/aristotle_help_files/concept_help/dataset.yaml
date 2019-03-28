@@ -3,10 +3,13 @@
     app_label: aristotle_dse
     concept_type: dataset
     language: en
-    brief: A representation of a dataset in a catalog.
-    offical_definition: 
-    official_reference: 
-    official_link:
+    brief: A Data Set describes a record of data, including any location or time boundaries
+      for the data, that has been captured and is available for use under a specific licence.
+      A Data Set may be included in a [[Data Catalog]], and can reference multiple [[Distribution|s]]
+      that record different parts or formats of the data that are available to download.
+    offical_definition: A representation of a dataset in a catalog.
+    official_reference: "Data Catalog Vocabulary (DCAT): 5.3 Class: Dataset"
+    official_link: https://www.w3.org/TR/vocab-dcat/
     body: >
         <p>A a dataset in DCAT is defined as a "collection of data, published or 
         curated by a single agent, and available for access or download in one or 

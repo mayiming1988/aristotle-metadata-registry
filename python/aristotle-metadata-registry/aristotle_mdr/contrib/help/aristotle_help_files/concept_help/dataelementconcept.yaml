@@ -3,8 +3,9 @@
     app_label: aristotle_mdr
     concept_type: dataelementconcept
     language: en
-    brief: A valid pairing of an [[object class]] and a [[property]] to define a measurable
-        attribute of the object, idea or event being observed.
+    brief: "A Data Element Concept defines an idea that could be recorded by data, without specifying how it would be stored or measured.
+        Data Element Concepts are composed of an [[Object Class]], which describes the thing of interest, and a [[Property]]that defines which attribute of the thing would be recorded.
+        Data Element Concepts can be referenced by multiple different Data Elements that each specify the Value Domain used to record the data."
     offical_definition: >
         Concept that is an association of a [[Property]] with an [[Object Class]]
     official_reference: ISO/IEC 11179 - Clause 3.2.29
