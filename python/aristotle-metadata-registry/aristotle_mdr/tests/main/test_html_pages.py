@@ -758,6 +758,29 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         item_versions = reversion.models.Version.objects.get_for_object(self.item1)
         self.assertEqual(item_versions.count(), 2)
 
+    def change_status(self, item, user, ra, cascade=False):
+        self.make_review_request(item, user)
+
+        response = self.client.get(reverse('aristotle:changeStatus', args=[item.id]))
+        self.assertEqual(response.status_code, 200)
+
+        cascade_post = 0
+        if cascade:
+            cascade_post = 1
+
+        response = self.client.post(
+            reverse('aristotle:changeStatus', args=[item.id]),
+            {
+                'change_status-registrationAuthorities': [str(ra.id)],
+                'change_status-state': ra.public_state,
+                'change_status-changeDetails': "testing",
+                'change_status-cascadeRegistration': cascade_post,
+                'submit_skip': 'value',
+                'change_status_view-current_step': 'change_status',
+            }
+        )
+        self.assertRedirects(response, url_slugify_concept(item))
+
     # ---- tests ----
 
     def test_su_can_view(self):
@@ -1624,23 +1647,13 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
             return
         self.login_registrar()
 
-        self.make_review_request(self.item1, self.registrar)
-
-        response = self.client.get(reverse('aristotle:changeStatus',args=[self.item1.id]))
-        self.assertEqual(response.status_code,200)
-
-        response = self.client.post(
-            reverse('aristotle:changeStatus',args=[self.item1.id]),
-            {
-                'change_status-registrationAuthorities': [str(self.ra.id)],
-                'change_status-state': self.ra.public_state,
-                'change_status-changeDetails': "testing",
-                'change_status-cascadeRegistration': 1, # yes
-                'submit_skip': 'value',
-                'change_status_view-current_step': 'change_status',
-            }
+        # Add sub items to another review so we have perm
+        self.make_review_request_iterable(
+            self.item1.registry_cascade_items,
+            self.registrar,
         )
-        self.assertRedirects(response,url_slugify_concept(self.item1))
+
+        self.change_status(self.item1, self.registrar, self.ra, cascade=True)
 
         self.item1 = self.itemType.objects.get(pk=self.item1.pk)
         self.assertEqual(self.item1.statuses.count(),1)
@@ -1648,6 +1661,21 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertTrue(self.item1.is_public())
         for sub_item in self.item1.registry_cascade_items:
             self.assertTrue(sub_item.is_registered)
+
+    @tag('changestatus')
+    def test_registrar_can_change_status_with_cascade_bad_perms(self):
+        if not hasattr(self,"run_cascade_tests"):
+            return
+        self.login_registrar()
+
+        self.change_status(self.item1, self.registrar, self.ra, cascade=True)
+
+        self.item1 = self.itemType.objects.get(pk=self.item1.pk)
+        self.assertEqual(self.item1.statuses.count(),1)
+        self.assertTrue(self.item1.is_registered)
+        self.assertTrue(self.item1.is_public())
+        for sub_item in self.item1.registry_cascade_items:
+            self.assertFalse(sub_item.is_registered)
 
     @tag('changestatus')
     def test_registrar_cannot_use_faulty_statuses(self):
