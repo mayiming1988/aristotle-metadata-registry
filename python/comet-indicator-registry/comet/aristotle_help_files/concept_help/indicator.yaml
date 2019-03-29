@@ -3,8 +3,11 @@
     app_label: comet
     concept_type: indicator
     language: en
-    brief: An indicator is a single measure that is reported on regularly
-        and that provides relevant and actionable information about population or system performance.
+    brief: An indicator describes a measure that is regularly reported for tracking performance
+            of a process or policy, and provides relevant and actionable information about system
+            performance. Indicators can reference [[aristotle_mdr.dataelement|s]] when defining 
+            their component parts, such as numerators and denominators, and Indicators may be
+            linked across multiple [[Indicator Set|s]] to track performance over time.
     offical_definition: A particular characteristic or dimension used to measure intended changes 
         defined by an organizational unit’s results framework. Performance indicators 
         are used to observe progress and to measure actual results compared to expected 

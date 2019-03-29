@@ -415,8 +415,8 @@ class MultiStepAristotleWizard(PermissionWizard):
 class DataElementConceptWizard(MultiStepAristotleWizard):
     __doc__ = _(
         "This wizard steps a user through creating a Data Element Concept, "
-        "as well as helping reuse or create the Object Class and Property to "
-        "accurately describe the new Data Element Concept."
+        "by reusing or creating the component parts required "
+        "- an Object Class and a Property."
     )
 
     model = MDR.DataElementConcept
@@ -597,8 +597,9 @@ def has_valid_data_elements_from_components(wizard):
 class DataElementWizard(MultiStepAristotleWizard):
     __doc__ = _(
         "This wizard steps a user through creating a Data Element, "
-        "as well as helping reuse or create the Value Domain and Data Element Concept - "
-        "as well as the Object Class and Property that complete describe the new Data Element."
+        "by reusing or creatng all the components of the Data Element, "
+        "the Value Domain and the Data Element Concept, which is broken down "
+        "further as an Object Class and Property."
     )
 
     model = MDR.DataElement

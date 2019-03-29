@@ -3,10 +3,10 @@
     app_label: aristotle_dse
     concept_type: datacatalog
     language: en
-    brief: A representation of a catalog of data.
-    offical_definition: 
-    official_reference: 
-    official_link:
+    brief: A Data Catalog records a curated collection of data sets.
+    offical_definition: A representation of a catalog of data.
+    official_reference: "Data Catalog Vocabulary (DCAT): 5.1 Class: Catalog"
+    official_link: https://www.w3.org/TR/vocab-dcat/
     body: >
         <p>A data catalog conforms to DCAT if:
         It is organized into datasets and distributions.
