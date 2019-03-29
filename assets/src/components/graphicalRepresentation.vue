@@ -1,11 +1,12 @@
 <template>
     <div>
-        <template v-if="!ready">
-            <i class="fa fa-spinner fa-pulse"></i> Please wait, we are preparing the graph.
-        </template>
-        <alert v-if="error" type="danger">There was an error with the graph. Please try again later</alert>
-        <div :id="id" style="height: 400px; width: 100%; border-color: #d2d2d2; border-style: solid; border-width: thin">
-        </div>
+        <p v-if="!ready">
+            <i class="fa fa-spinner fa-pulse" /> Please wait, we are preparing the graph.
+        </p>
+        <alert v-if="error" type="danger">
+            There was an error with the graph. Please try again later
+        </alert>
+        <div :id="id" class="vis-canvas" />
     </div>
 </template>
 
@@ -17,50 +18,54 @@
         data: () => ({
             ready: false,
             error: false,
-            pollTime: 1000, // period to call checkStatus in ms
-            timeout: 30000, // period after which failure assumed if still pending
             id: null,
             nodes: {},
             edges: {}
         }),
         mixins: [apiRequest],
         props: {
-            url: String,
-            typeOfGraph: String,
-            direction: String,
-            levelSeparation: String,
-            sortMethod: String,
-            hierarchical: Boolean,
+            url: {
+                type: String,
+                required: true
+            },
+            typeOfGraph: {
+                type: String,
+                required: true
+            },
+            direction: {
+                type: String,
+                default: 'general'
+            },
+            levelSeparation: {
+                type: String,
+                required: true
+            },
+            hierarchical: {
+                type: Boolean,
+                default: false
+            },
+            sortMethod: {
+                type: String,
+                required: true
+            },
+            startActive: {
+                type: Boolean,
+                default: true
+            }
         },
         components: {
             'alert': Alert
         },
         name: "graphicalRepresentation",
-        mounted() {
+        mounted: function() {
             this.id = this._uid
             this.buildGraph()
         },
         methods: {
             buildGraph: function () {
                 this.get(this.url).then((response) => {
-                    let data = response.data
-                    if (data.state !== 'PENDING') {
-                        this.pending = false
-                    }
-                    if (data.is_ready) {
-                        this.ready = true
-                        // It is possible for the task to be done with state started for some reason
-                        if (data.state !== 'SUCCESS' && data.state !== 'STARTED') {
-                            this.error = true
-                        } else if (data.result !== undefined) {
-                            this.url = data.result
-                        }
-                        clearInterval(this.interval)
-                    }
-
 
                     this.nodesProcessor(response.data.nodes)
-
                     this.edgesProcessor(response.data.edges)
 
                     import('vis').then((vis) => {
@@ -101,27 +106,27 @@
                                     'enabled': this.hierarchical,
                                     'direction': this.direction,
                                     'sortMethod': this.sortMethod,
-                                    // 'sortMethod': 'directed',
-                                    // 'sortMethod': 'hubsize',
                                     'levelSeparation': Number(this.levelSeparation)
                                 }
                             }
                         };
                         let network = new vis.Network(container, final_data, options);
 
-                        // // Make the vis.js canvas "active" as soon as the page is loaded:
-                        // let canvas = document.getElementsByClassName('vis-network')[0]
-                        // let overlay = document.getElementsByClassName('vis-overlay')[0]
-                        //
-                        // canvas.onmouseenter = function() {
-                        //     canvas.classList.add("vis-active")
-                        //     overlay.style.display = "none"
-                        // }
-                        //
-                        // canvas.onmouseleave = function() {
-                        //     canvas.classList.remove("vis-active")
-                        //     overlay.style.display = "block"
-                        // }
+                        if (this.startActive) {
+                            // Make the vis.js canvas "active" as soon as the page is loaded:
+                            let canvas = document.getElementsByClassName('vis-network')[0]
+                            let overlay = document.getElementsByClassName('vis-overlay')[0]
+                            
+                            canvas.onmouseenter = function() {
+                                canvas.classList.add("vis-active")
+                                overlay.style.display = "none"
+                            }
+                            
+                            canvas.onmouseleave = function() {
+                                canvas.classList.remove("vis-active")
+                                overlay.style.display = "block"
+                            }
+                        }
 
                         // Disable the physics as soon as the vis.js is loaded:
                         network.on("stabilizationIterationsDone", function () {
@@ -151,60 +156,6 @@
                             }
                         })
 
-                        // UNCOMMENT THIS:
-                        // if (this.typeOfGraph === "general") {
-                        //     network.on('click', (net) => {
-                        //         if (net.nodes.length > 0) {
-                        //             let nodesArray = nodes.get(net.nodes)
-                        //             let myNode = nodesArray[0]
-                        //
-                        //             this.get(myNode.expand_node_get_url).then((response) => {
-                        //
-                        //                 this.nodesProcessor(response.data.nodes)
-                        //
-                        //                 this.edgesProcessor(response.data.edges)
-                        //                 // nodes = new vis.DataSet(nodes.getDataSet());
-                        //                 // edges = new vis.DataSet(edges);
-                        //
-                        //                 network.destroy()
-                        //                 network = null
-                        //
-                        //                 console.log("THIS IS THE NODES DATASET:")
-                        //                 console.log(nodes)
-                        //                 console.log("THIS IS THE EDGES DATASET")
-                        //                 console.log(edges)
-                        //
-                        //                 console.log("THESE ARE OUR CURRENT NODES:")
-                        //                 console.log(this.nodes)
-                        //
-                        //                 console.log("THESE ARE OUR CURRENT EDGES:")
-                        //                 console.log(this.edges)
-                        //
-                        //
-                        //
-                        //                 try {
-                        //                     edges.add(response.data.edges)
-                        //                 } catch (e) {
-                        //                     // alert(e)
-                        //                 }
-                        //                 try {
-                        //                     nodes.add(response.data.nodes)
-                        //                 } catch (e) {
-                        //                     // alert(e)
-                        //                 }
-                        //
-                        //                 console.log("THIS IS THE NODES DATASET:")
-                        //                 console.log(nodes)
-                        //                 console.log("THIS IS THE EDGES DATASET")
-                        //                 console.log(edges)
-                        //
-                        //
-                        //
-                        //             })
-                        //         }
-                        //     })
-                        // }
-
                         network.on('showPopup', function () {
                             document.body.style.cursor = 'pointer'
                         })
@@ -215,15 +166,6 @@
                         this.ready = true
                     })
                 })
-                // Check for timeout if we are still pending
-                if (this.pending) {
-                    let time = Date.now()
-                    if ((time - this.started) > this.timeout) {
-                        this.ready = true
-                        this.error = true
-                        clearInterval(this.interval)
-                    }
-                }
             },
             sentenceTrimmer: function (sentence) {
                 const maximumLength = 30
@@ -314,12 +256,17 @@
                         }
                         edges.push({"from": element.from, "to": element.to})
                     }
-
             },
         }
     }
 </script>
 
-<style scoped>
-
+<style>
+.vis-canvas {
+    height: 400px;
+    width: 100%;
+    border-color: #d2d2d2;
+    border-style: solid; 
+    border-width: thin
+}
 </style>
