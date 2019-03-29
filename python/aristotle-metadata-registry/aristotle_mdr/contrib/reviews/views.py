@@ -5,13 +5,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
+from django.forms import modelformset_factory
 from django.http import HttpResponseRedirect, Http404
-from django.shortcuts import get_object_or_404
+from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_string
-from django.forms import modelformset_factory
 # from django.views.generic import ListView, TemplateView, DeleteView
+from django.urls import reverse
 from django.views.generic import (
     DetailView,
     ListView,
@@ -80,7 +81,11 @@ class ReviewActionMixin(LoginRequiredMixin, UserFormViewMixin):
 
         perm_func = getattr(perms, self.perm_function)
         if not perm_func(self.request.user, self.review):
-            raise PermissionDenied
+            # TODO: make this use CBVs
+            if self.request.user.is_anonymous():
+                return redirect(reverse('friendly_login') + '?next=%s' % request.path)
+            else:
+                raise PermissionDenied
 
         return super().dispatch(*args, **kwargs)
 
