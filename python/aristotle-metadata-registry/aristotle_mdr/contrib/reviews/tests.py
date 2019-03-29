@@ -768,7 +768,6 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
         self.check_urls(review_pk, review_accept_urls, 200)
 
 
-
 @skip('All these tests need to be updated for new reviews system')
 class OldReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
     def setUp(self):
