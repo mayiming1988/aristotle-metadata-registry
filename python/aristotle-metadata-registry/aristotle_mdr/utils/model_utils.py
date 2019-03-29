@@ -49,11 +49,11 @@ class baseAristotleObject(TimeStampedModel):
 
     def was_modified_very_recently(self):
         return self.modified >= (
-            timezone.now() - datetime.timedelta(seconds=VERY_RECENTLY_SECONDS)
+            timezone.localtime(timezone.now()) - datetime.timedelta(seconds=VERY_RECENTLY_SECONDS)
         )
 
     def was_modified_recently(self):
-        return self.modified >= timezone.now() - datetime.timedelta(days=1)
+        return self.modified >= timezone.localtime(timezone.now()) - datetime.timedelta(days=1)
 
     was_modified_recently.admin_order_field = 'modified'  # type: ignore
     was_modified_recently.boolean = True  # type: ignore

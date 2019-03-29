@@ -574,7 +574,7 @@ class CachePerItemUserMixin:
         from aristotle_mdr.models import _concept
 
         # If the item was modified within ttl, don't use cache
-        recently = timezone.now() - datetime.timedelta(seconds=self.cache_ttl)
+        recently = timezone.localtime(timezone.now()) - datetime.timedelta(seconds=self.cache_ttl)
         if _concept.objects.filter(id=iid, modified__gte=recently).exists():
             can_use_cache = False
 
