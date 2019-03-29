@@ -1730,8 +1730,9 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         # Make ReviewRequest with item
         review = self.make_review_request(self.item1, self.registrar)
 
-        # Make ReviewRequest with first sub item so we have permission to change status on it
-        self.make_review_request(self.item1.registry_cascade_items[0], self.registrar)
+        if cascade:
+            # Make ReviewRequest with first sub item so we have permission to change status on it
+            self.make_review_request(self.item1.registry_cascade_items[0], self.registrar)
 
         # Make sure registrar can view and change status of item
         self.assertTrue(perms.user_can_view(self.registrar,self.item1))
