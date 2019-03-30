@@ -247,10 +247,12 @@ class RegistrationAuthority(Organization):
     )
     locked_state = models.IntegerField(
         choices=STATES,
+        help_text=_("When metadata is endorsed at  the specified 'locked' level, the metadata item will not longer be able to be altered by standard users. Only Workgroup or Organisation Stewards will be able to edit 'locked' metadata."),
         default=STATES.candidate
     )
     public_state = models.IntegerField(
         choices=STATES,
+        help_text=_("When metadata is endorsed at the specified 'public' level, the metadata item will be visible to all users"),
         default=STATES.recorded
     )
 
@@ -271,15 +273,51 @@ class RegistrationAuthority(Organization):
     #   "Approved by a two-thirds majority of the standing council of metadata
     #    standardisation"
 
-    notprogressed = models.TextField(blank=True)
-    incomplete = models.TextField(blank=True)
-    candidate = models.TextField(blank=True)
-    recorded = models.TextField(blank=True)
-    qualified = models.TextField(blank=True)
-    standard = models.TextField(blank=True)
-    preferred = models.TextField(blank=True)
-    superseded = models.TextField(blank=True)
-    retired = models.TextField(blank=True)
+    notprogressed = models.TextField(
+        _("Not Progressed"),
+        help_text=_("A description of the meaning of the 'Not Progressed' status level for this Registration Authority."),
+        blank=True
+    )
+    incomplete = models.TextField(
+        _("Incomplete"),
+        help_text=_("A description of the meaning of the 'Incomplete' status level for this Registration Authority."),
+        blank=True
+    )
+    candidate = models.TextField(
+        _("Candidate"),
+        help_text=_("A description of the meaning of the 'Candidate' status level for this Registration Authority."),
+        blank=True
+    )
+    recorded = models.TextField(
+        _("Recorded"),
+        help_text=_("A description of the meaning of the 'Recorded' status level for this Registration Authority."),
+        blank=True
+    )
+    qualified = models.TextField(
+        _("Qualified"),
+        help_text=_("A description of the meaning of the 'Qualified' status level for this Registration Authority."),
+        blank=True
+    )
+    standard = models.TextField(
+        _("Standard"),
+        help_text=_("A description of the meaning of the 'Standard' status level for this Registration Authority."),
+        blank=True
+    )
+    preferred = models.TextField(
+        _("Preferred Standard"),
+        help_text=_("A description of the meaning of the 'Preferred Standard' status level for this Registration Authority."),
+        blank=True
+    )
+    superseded = models.TextField(
+        _("Superseded"),
+        help_text=_("A description of the meaning of the 'Superseded' status level for this Registration Authority."),
+        blank=True
+    )
+    retired = models.TextField(
+        _("Retired"),
+        help_text=_("A description of the meaning of the 'Retired' status level for this Registration Authority."),
+        blank=True
+    )
 
     tracker = FieldTracker()
 

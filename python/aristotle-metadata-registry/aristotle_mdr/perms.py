@@ -217,12 +217,19 @@ def user_can_view_review(user, review):
     if user.is_superuser:
         return True
 
-    # None else can see a cancelled request
+    # No-one else can see a cancelled request
     if review.status == REVIEW_STATES.revoked:
         return False
 
     # If a registrar is in the registration authority for the request they can see it.
-    return user.registrar_in.filter(pk=review.registration_authority.pk).exists()
+    if user.registrar_in.filter(pk=review.registration_authority.pk).exists():
+        return True
+
+    # If the user is a manager in the registration authority for the request they can view it.
+    if user in review.registration_authority.managers.all():
+        return True
+
+    return False
 
 
 def user_can_edit_review(user, review):
@@ -239,7 +246,7 @@ def user_can_edit_review(user, review):
     if review.status == REVIEW_STATES.revoked:
         return False
 
-    # If a registrar is in the registration authority for the request they can see it.
+    # If the user is a manager in the registration authority for the request they can edit it.
     return user in review.registration_authority.managers.all()
 
 

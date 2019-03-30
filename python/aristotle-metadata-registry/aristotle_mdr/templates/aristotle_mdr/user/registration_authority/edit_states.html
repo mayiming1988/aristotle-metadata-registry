@@ -1,0 +1,25 @@
+{% extends "aristotle_mdr/organization/registration_authority/settings.html" %}
+{% load i18n bootstrap3 %}
+
+{% block formcontent %}
+    <h3>Edit registration state meanings for {{ item.name }}</h3>
+    <p>
+        This page allows you to specify when endorsed metadata is published or locked for editing.
+        On this page you can also describe the meaning for each registration state for this Registration Authority.
+    </p>
+    <p>
+        When reviewing content, this will help users understand how and why metadata has been endorsed
+        by this Registration Authority at each level.
+    </p>
+
+    <form action="" method="POST">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        {% buttons %}
+          <a class="btn btn-danger" href="{% url 'aristotle:registrationAuthority' item.id %}">Cancel</a>
+          <button class="btn btn-primary" type="submit">Save changes</button>
+        {% endbuttons %}
+    </form>
+
+    </section>
+{% endblock %}
