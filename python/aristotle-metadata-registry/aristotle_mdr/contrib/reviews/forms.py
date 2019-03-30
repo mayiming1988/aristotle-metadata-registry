@@ -27,7 +27,7 @@ class RequestReviewForm(ChangeStatusGenericForm):
         required=False,
         label=_("Due date"),
         widget=BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"}),
-        initial=timezone.now()
+        initial=timezone.localtime(timezone.now())
     )
 
     def __init__(self, *args, **kwargs):

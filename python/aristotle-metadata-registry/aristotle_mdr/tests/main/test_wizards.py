@@ -318,8 +318,11 @@ class ConceptWizardPage(HaystackReindexMixin, utils.AristotleTestUtils):
 
 class ObjectClassWizardPage(ConceptWizardPage,TestCase):
     model=models.ObjectClass
+
+
 class PropertyWizardPage(ConceptWizardPage,TestCase):
     model=models.Property
+
 
 class ConceptualDomainWizardPage(ConceptWizardPage, TestCase):
     model=models.ConceptualDomain

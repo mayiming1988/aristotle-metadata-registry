@@ -39,7 +39,7 @@ class ComparatorTester(utils.LoggedInViewPages):
         s = models.Status.objects.create(
             concept=item1,
             registrationAuthority=self.ra,
-            registrationDate=timezone.now(),
+            registrationDate=timezone.localtime(timezone.now()),
             state=self.ra.public_state
         )
 
@@ -54,7 +54,7 @@ class ComparatorTester(utils.LoggedInViewPages):
         models.Status.objects.create(
             concept=item2,
             registrationAuthority=self.ra,
-            registrationDate=timezone.now(),
+            registrationDate=timezone.localtime(timezone.now()),
             state=self.ra.public_state
         )
         item1 = self.itemType.objects.get(pk=item1.pk)  # decache
