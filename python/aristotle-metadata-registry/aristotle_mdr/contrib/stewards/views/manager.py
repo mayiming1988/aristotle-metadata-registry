@@ -1,13 +1,14 @@
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 
 from django.conf.urls import url
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import (
-    ListView, TemplateView, CreateView, UpdateView, DetailView
+    ListView, TemplateView, CreateView, UpdateView, DetailView, DeleteView
 )
 from django.urls import reverse
 from aristotle_mdr.utils.model_utils import ManagedItem
@@ -88,6 +89,7 @@ class StewardURLManager(GroupURLManager):
             url("collections/create$", view=self.collection_create_view(), name="collections_create"),
             url("collection/(?P<pk>\d+)$", view=self.collection_detail_view(), name="collection_detail_view"),
             url("collection/(?P<pk>\d+)/edit$", view=self.collection_edit_view(), name="collection_edit_view"),
+            url("collection/(?P<pk>\d+)/delete", view=self.collection_delete_view(), name="collection_delete"),
         ]
 
     def list_all_view(self, *args, **kwargs):
@@ -158,6 +160,11 @@ class StewardURLManager(GroupURLManager):
             def get_queryset(self):
                 return self.get_group().collection_set.all()
 
+            def get_context_data(self, *args, **kwargs):
+                context = super().get_context_data(*args, **kwargs)
+                context['metadata'] = self.get_object().metadata.all().select_subclasses().visible(user=self.request.user).order_by('name')
+                return context
+
         return DetailCollectionsView.as_view(manager=self, group_class=self.group_class)
 
     def collection_create_view(self):
@@ -181,6 +188,23 @@ class StewardURLManager(GroupURLManager):
                 return self.get_group().collection_set.all()
 
         return UpdateCollectionView.as_view(manager=self, group_class=self.group_class)
+
+    def collection_delete_view(self):
+
+        class DeleteCollectionView(EditCollectionViewBase, DeleteView):
+            template_name = "aristotle_mdr/collections/delete.html"
+
+            def get_queryset(self):
+                return self.get_group().collection_set.all()
+
+            def get_success_url(self):
+                messages.success(
+                    self.request,
+                    "Collection '{}' delete successfully".format(self.get_object().name)
+                )
+                return reverse('aristotle:stewards:group:collections', args=[self.get_group().slug])
+
+        return DeleteCollectionView.as_view(manager=self, group_class=self.group_class)
 
     def browse_view(self):
         from aristotle_mdr.contrib.browse.views import BrowseConcepts

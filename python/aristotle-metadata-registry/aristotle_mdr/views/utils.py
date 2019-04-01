@@ -184,7 +184,7 @@ def paginated_registration_authority_list(request, ras, template, extra_context=
         sort_field = opts
 
     qs = qs.order_by(direction + sort_field)
-    qs = qs.annotate(user_count=Count('registrars') + Count('managers'))
+    qs = qs.annotate(user_count=Count('registrars', distinct=True) + Count('managers', distinct=True))
     paginator = Paginator(
         qs,
         request.GET.get('pp', 20)  # per page
@@ -212,9 +212,9 @@ def workgroup_item_statuses(workgroup):
     from aristotle_mdr.models import STATES
 
     raw_counts = workgroup.items.filter(
-        Q(statuses__until_date__gte=timezone.now()) |
+        Q(statuses__until_date__gte=timezone.localtime(timezone.now())) |
         Q(statuses__until_date__isnull=True)
-    ).values_list('statuses__state').annotate(num=Count('id'))
+    ).values_list('statuses__state').annotate(num=Count('id', distinct=True))
 
     counts = []
     for state, count in raw_counts:
@@ -574,7 +574,7 @@ class CachePerItemUserMixin:
         from aristotle_mdr.models import _concept
 
         # If the item was modified within ttl, don't use cache
-        recently = timezone.now() - datetime.timedelta(seconds=self.cache_ttl)
+        recently = timezone.localtime(timezone.now()) - datetime.timedelta(seconds=self.cache_ttl)
         if _concept.objects.filter(id=iid, modified__gte=recently).exists():
             can_use_cache = False
 

@@ -3,7 +3,10 @@
     app_label: aristotle_mdr
     concept_type: unitofmeasure
     language: en
-    brief: The actual units in which the associated values are measured
+    brief: A Unit of Measure describes units (eg. metres, litres, seconds) which can be used to
+      record a measurement. A [[Value Domain]] can link to a single Unit of Measure to describe
+      the units used to measure the associated data which can be used when to finding or 
+      comparing similar data.
     offical_definition: >
         Actual units in which the associated values are measured
     official_reference: ISO/IEC 11179 - Clause 3.2.138

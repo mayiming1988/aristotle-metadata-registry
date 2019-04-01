@@ -393,18 +393,26 @@ def create_list(request):
     for m in get_concepts_for_apps(aristotle_apps):
         # Only output subclasses of 11179 concept
         app_models = out.get(m.app_label, {'app': None, 'models': []})
+
         if app_models['app'] is None:
             try:
-                app_models['app'] = getattr(apps.get_app_config(m.app_label), 'verbose_name')
+                app_models['app'] = apps.get_app_config(m.app_label)
             except:
-                app_models['app'] = "No name"  # Where no name is configured in the app_config, set a dummy so we don't keep trying
+                # Where no name is configured in the app_config, set a dummy so we don't keep trying
+                from aristotle_mdr.apps import AristotleExtensionBaseConfig
+                app = AristotleExtensionBaseConfig()
+                app.verbose_name = "No name"
+                app_models['app'] = app
         app_models['models'].append((m, m.model_class()))
         out[m.app_label] = app_models
 
     return render(
         request, "aristotle_mdr/create/create_list.html",
         {
-            'models': sorted(out.values(), key=lambda x: x['app']),
+            'models': sorted(
+                out.values(),
+                key=lambda x: (x['app'].create_page_priority, x['app'].create_page_name, x['app'].verbose_name)
+            ),
             'wizards': wizards
         }
     )

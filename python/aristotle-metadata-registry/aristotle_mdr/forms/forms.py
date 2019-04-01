@@ -21,7 +21,7 @@ class ChangeStatusGenericForm(RegistrationAuthorityMixin, UserAwareForm):
         required=False,
         label=_("Registration date"),
         widget=BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"}),
-        initial=timezone.now()
+        initial=timezone.localtime(timezone.now())
     )
     cascadeRegistration = forms.ChoiceField(
         initial=0,

@@ -3,7 +3,7 @@
     app_label: aristotle_mdr
     concept_type: conceptualdomain
     language: en
-    brief: A concept that expresses its description or valid instance meanings
+    brief: A Conceptual Domain describes a set of ideas that can be recorded using codes when storing data. When linked to multiple [[Value Domain|s]], a Conceptual Domain can be used to find similarities in different code sets.
     offical_definition: >
         A concept that expresses its description or valid instance meanings
     official_reference: ISO/IEC 11179 - Clause 3.2.21

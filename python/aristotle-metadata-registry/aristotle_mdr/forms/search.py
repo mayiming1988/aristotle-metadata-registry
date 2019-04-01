@@ -163,7 +163,7 @@ class PermissionSearchQuerySet(SearchQuerySet):
     def apply_permission_checks(self, user=None, public_only=False, user_workgroups_only=False):
         sqs = self
         q = SQ(is_public=True)
-        q |= SQ(published_date_public__lte=timezone.now())
+        q |= SQ(published_date_public__lte=timezone.localtime(timezone.now()))
         if user is None or user.is_anonymous():
             # Regular users can only see public items, so boot them off now.
             sqs = sqs.filter(q)

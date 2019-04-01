@@ -59,7 +59,7 @@ class TestPublishing(utils.LoggedInViewPages, TestCase):
             content_type=ContentType.objects.get_for_model(_concept),
             object_id=self.item.pk,
             publisher=self.submitting_user,
-            publication_date=timezone.now() - timedelta(days=2),
+            publication_date=timezone.localtime(timezone.now()) - timedelta(days=2),
             permission=visibility_permission_choices.public
         )
 

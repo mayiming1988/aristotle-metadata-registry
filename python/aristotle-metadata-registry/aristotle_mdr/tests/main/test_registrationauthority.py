@@ -85,7 +85,6 @@ class RACreationTests(utils.LoggedInViewPages,TestCase):
         self.assertEqual(new_ra.definition, "This RA rocks!")
 
 
-
 class RAUpdateTests(utils.LoggedInViewPages,TestCase):
     def test_anon_cannot_update(self):
         self.logout()

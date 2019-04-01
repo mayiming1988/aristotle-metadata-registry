@@ -25,6 +25,10 @@
         <th>
             <i class="fa fa-hashtag" title="{% trans 'Number of items' %}"></i>
         </th>
+        {% if can_manage_collections %}
+        <th></th>
+        {% endif %}
+
     </tr>
     </thead>
     <tbody>
@@ -37,6 +41,13 @@
             </td>
             <td>{{ item.description|striptags|truncatewords:50 }}</td>
             <td>{{ item.metadata.all.count }}</td>
+
+            {% if can_manage_collections %}
+            <td>
+            <a class="btn btn-default" href="{% url 'aristotle:stewards:group:collection_delete' group.slug item.pk %}">Delete</a>
+            </td>
+            {% endif %}
+
         </tr>
     {% endfor %}
 

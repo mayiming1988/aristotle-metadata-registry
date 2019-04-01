@@ -25,7 +25,7 @@
     {% url 'aristotle_mdr:userInbox' as userInboxURL %}
     <li {% if request.path == userInboxURL %}class="active"{% endif %}>
         <a href="{% url 'aristotle:userInbox' %}">
-            <i class="fa fa-bell fa-fw"></i> Unread Notifications
+            <i class="fa fa-bell fa-fw"></i> Notifications
             <span class="badge pull-right notify-badge" title="{{ notifcount }} unread notifications">{{ notifcount }}</span>
         </a>
 

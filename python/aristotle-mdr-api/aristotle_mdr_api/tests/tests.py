@@ -18,7 +18,7 @@ class TokenTestCase(utils.LoggedInViewPages, TestCase):
         self.client = Client()
         self.apiclient = APIClient()
 
-        self.all_false_perms =  {
+        self.all_false_perms = {
             'metadata': {
                 'read': False,
                 'write': False
@@ -34,7 +34,7 @@ class TokenTestCase(utils.LoggedInViewPages, TestCase):
             }
         }
 
-        self.all_true_perms =  {
+        self.all_true_perms = {
             'metadata': {
                 'read': True,
                 'write': True

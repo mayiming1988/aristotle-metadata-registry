@@ -247,10 +247,12 @@ class RegistrationAuthority(Organization):
     )
     locked_state = models.IntegerField(
         choices=STATES,
+        help_text=_("When metadata is endorsed at  the specified 'locked' level, the metadata item will not longer be able to be altered by standard users. Only Workgroup or Organisation Stewards will be able to edit 'locked' metadata."),
         default=STATES.candidate
     )
     public_state = models.IntegerField(
         choices=STATES,
+        help_text=_("When metadata is endorsed at the specified 'public' level, the metadata item will be visible to all users"),
         default=STATES.recorded
     )
 
@@ -271,15 +273,51 @@ class RegistrationAuthority(Organization):
     #   "Approved by a two-thirds majority of the standing council of metadata
     #    standardisation"
 
-    notprogressed = models.TextField(blank=True)
-    incomplete = models.TextField(blank=True)
-    candidate = models.TextField(blank=True)
-    recorded = models.TextField(blank=True)
-    qualified = models.TextField(blank=True)
-    standard = models.TextField(blank=True)
-    preferred = models.TextField(blank=True)
-    superseded = models.TextField(blank=True)
-    retired = models.TextField(blank=True)
+    notprogressed = models.TextField(
+        _("Not Progressed"),
+        help_text=_("A description of the meaning of the 'Not Progressed' status level for this Registration Authority."),
+        blank=True
+    )
+    incomplete = models.TextField(
+        _("Incomplete"),
+        help_text=_("A description of the meaning of the 'Incomplete' status level for this Registration Authority."),
+        blank=True
+    )
+    candidate = models.TextField(
+        _("Candidate"),
+        help_text=_("A description of the meaning of the 'Candidate' status level for this Registration Authority."),
+        blank=True
+    )
+    recorded = models.TextField(
+        _("Recorded"),
+        help_text=_("A description of the meaning of the 'Recorded' status level for this Registration Authority."),
+        blank=True
+    )
+    qualified = models.TextField(
+        _("Qualified"),
+        help_text=_("A description of the meaning of the 'Qualified' status level for this Registration Authority."),
+        blank=True
+    )
+    standard = models.TextField(
+        _("Standard"),
+        help_text=_("A description of the meaning of the 'Standard' status level for this Registration Authority."),
+        blank=True
+    )
+    preferred = models.TextField(
+        _("Preferred Standard"),
+        help_text=_("A description of the meaning of the 'Preferred Standard' status level for this Registration Authority."),
+        blank=True
+    )
+    superseded = models.TextField(
+        _("Superseded"),
+        help_text=_("A description of the meaning of the 'Superseded' status level for this Registration Authority."),
+        blank=True
+    )
+    retired = models.TextField(
+        _("Retired"),
+        help_text=_("A description of the meaning of the 'Retired' status level for this Registration Authority."),
+        blank=True
+    )
 
     tracker = FieldTracker()
 
@@ -396,7 +434,7 @@ class RegistrationAuthority(Organization):
             changeDetails = kwargs.get('changeDetails', "")
             # If registrationDate is None (like from a form), override it with
             # todays date.
-            registrationDate = kwargs.get('registrationDate', None) or timezone.now().date()
+            registrationDate = kwargs.get('registrationDate', None) or timezone.localtime(timezone.now()).date()
             until_date = kwargs.get('until_date', None)
 
             Status.objects.create(
@@ -828,7 +866,7 @@ class _concept(baseAristotleObject):
         supersedes = self.superseded_by_items_relation_set.filter(proposed=False).select_related('newer_item')
         return [ss.newer_item for ss in supersedes]
 
-    def check_is_public(self, when=timezone.now()):
+    def check_is_public(self, when=timezone.localtime(timezone.now())):
         """
         A concept is public if any registration authority
         has advanced it to a public state in that RA.
@@ -854,7 +892,7 @@ class _concept(baseAristotleObject):
     is_public.boolean = True  # type: ignore
     is_public.short_description = 'Public'  # type: ignore
 
-    def check_is_locked(self, when=timezone.now()):
+    def check_is_locked(self, when=timezone.localtime(timezone.now())):
         """
         A concept is locked if any registration authority
         has advanced it to a locked state in that RA.
@@ -877,7 +915,7 @@ class _concept(baseAristotleObject):
         self.save()
         concept_visibility_updated.send(sender=self.__class__, concept=self)
 
-    def current_statuses(self, qs=None, when=timezone.now()):
+    def current_statuses(self, qs=None, when=timezone.localtime(timezone.now())):
         if qs is None:
             qs = self.statuses.all()
 
