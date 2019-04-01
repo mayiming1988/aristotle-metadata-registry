@@ -2,7 +2,6 @@
     <div class="list-group">
         <a v-for="(item, index) in items" 
             :key="item" 
-            href="#" 
             @click="clicked(index)" 
             :class="[{active: isActive(index)}, 'list-group-item']"
             >
