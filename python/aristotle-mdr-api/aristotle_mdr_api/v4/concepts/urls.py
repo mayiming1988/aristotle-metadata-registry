@@ -5,5 +5,5 @@ urlpatterns = [
     url(r'(?P<pk>\d+)/$', views.ConceptView.as_view(), name='item'),
     url(r'^(?P<pk>\d+)/supersedes-graphical/$', views.SupersedesGraphicalConceptView.as_view(), name='item_supersedes_graphical'),
     url(r'^(?P<pk>\d+)/general-graphical/$', views.GeneralGraphicalConceptView.as_view(), name='item_general_graphical'),
-    url(r'^(?P<pk>\d+)/links/$', views.ConceptLinks.as_view(), name='api_item_links')
+    url(r'^(?P<pk>\d+)/links-graphical/$', views.ConceptLinks.as_view(), name='api_item_links')
 ]
