@@ -45,7 +45,7 @@
 
 <script>
 import sideMenu from '@/sideMenu.vue'
-import graphicalRepresentation from '@/graphicalRepresentation.vue'
+import graphicalRepresentation from '@/graphs/graphicalRepresentation.vue'
 
 export default {
     props: {

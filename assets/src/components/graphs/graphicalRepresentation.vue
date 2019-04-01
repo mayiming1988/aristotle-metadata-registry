@@ -280,6 +280,8 @@ export default {
 </script>
 
 <style>
+@import '~vis/dist/vis.css';
+
 .vis-canvas {
     height: 400px;
     width: 100%;
