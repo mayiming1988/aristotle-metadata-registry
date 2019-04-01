@@ -3,7 +3,7 @@
         <a v-for="(item, index) in items" 
             :key="item" 
             @click="clicked(index)" 
-            :class="[{active: isActive(index)}, 'list-group-item']"
+            :class="[{active: isActive(index)}, 'list-group-item', 'side-menu-item']"
             >
             {{ item }}
         </a>
@@ -33,3 +33,9 @@ export default {
     }
 }
 </script>
+
+<style>
+.side-menu-item {
+    cursor: pointer
+}
+</style>
