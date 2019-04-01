@@ -19,17 +19,17 @@ export default {
             type: Array,
             required: true
         },
-        selected: {
+        value: {
             type: Number,
             default: 0
         }
     },
     methods: {
         clicked: function(i) {
-            this.$emit('selected', i)
+            this.$emit('input', i)
         },
         isActive: function(i) {
-            return i == this.selected
+            return i == this.value
         }
     }
 }
