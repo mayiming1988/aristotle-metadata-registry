@@ -16,7 +16,8 @@
     <graphs-page
       general-url="{% url 'api_v4:item:item_general_graphical' pk=item.id %}"
       supersedes-url="{% url 'api_v4:item:item_supersedes_graphical' pk=item.id %}"
-      links-url=""
+      links-url="{% url 'api_v4:item:api_item_links' pk=item.id %}"
+      {% if links_active %}links-active{% endif %}
     >
     </graphs-page>
 

@@ -31,19 +31,24 @@ export default {
             type: String,
             required: true
         },
+        // This property needs to be removed and replaced with actual options being varied
         typeOfGraph: {
             type: String,
-            required: true
+            default: 'general'
         },
         direction: {
             type: String,
-            default: 'general'
+            required: true
         },
         levelSeparation: {
             type: String,
             required: true
         },
         hierarchical: {
+            type: Boolean,
+            default: false
+        },
+        showType: {
             type: Boolean,
             default: false
         },
@@ -61,6 +66,7 @@ export default {
     },
     name: "graphicalRepresentation",
     mounted: function() {
+        // Build graph when component is first mounted
         this.buildGraph()
     },
     methods: {
@@ -202,16 +208,20 @@ export default {
         nodesProcessor: function (responseNodes) {
             for (let element of responseNodes) {
                     element.title = `<small>Name: ${element.name}</small><br>`
-                    if (element.definition !== "") {
+                    if (element.short_definition !== "") {
                         element.title = element.title.concat(`<small>Definition: ${element.short_definition}</small><br>`)
                     }
-                    if (element.version !== "") {
+                    if (element.version !== "" && element.version !== undefined) {
                         element.title = element.title.concat(`<small>Version: ${element.version}</small>`)
                     }
                     if (this.typeOfGraph === "supersedes") {
                         element.label = this.sentenceTrimmer(element.name)
                     } else if (this.typeOfGraph === "general") {
-                        element.label = this.sentenceTrimmer(element.name) + " \n(" + element.type + ")"
+                        element.label = this.sentenceTrimmer(element.name)
+                        // If we want to show type add to label
+                        if (this.showType) {
+                            element.label += " \n(" + element.type + ")"
+                        }
                     }
 
                     if (element.node_options) {
@@ -262,7 +272,7 @@ export default {
     },
     watch: {
         url: function() {
-            console.log('rebuilding')
+            // Rebuild the graph if url is changed
             this.buildGraph()
         }
     }
