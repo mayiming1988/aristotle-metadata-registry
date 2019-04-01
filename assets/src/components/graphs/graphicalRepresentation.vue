@@ -71,11 +71,17 @@ export default {
     },
     methods: {
         buildGraph: function () {
+            // Set ready to false since we are rebuilding
+            this.ready = false
+
+            // Get data from url
             this.get(this.url).then((response) => {
 
+                // Process nodes and edges
                 this.nodesProcessor(response.data.nodes)
                 this.edgesProcessor(response.data.edges)
 
+                // Import vis async since it is a large library
                 import('vis').then((vis) => {
 
                     this.nodes = response.data.nodes
