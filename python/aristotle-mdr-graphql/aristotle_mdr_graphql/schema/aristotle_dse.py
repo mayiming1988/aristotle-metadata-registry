@@ -16,10 +16,12 @@ DataSetSpecificationNode = type_from_concept_model(
 # DSSDEInclusionNode = type_from_model(dse_models.DSSDEInclusion)
 # DSSClusterInclusionNode = type_from_model(dse_models.DSSClusterInclusion)
 
+
 class DSSDEInclusionNode(DjangoObjectType):
     class Meta:
         model = dse_models.DSSDEInclusion
         default_resolver = resolvers.DSSInclusionResolver()
+
 
 class DSSClusterInclusionNode(DjangoObjectType):
     class Meta:
