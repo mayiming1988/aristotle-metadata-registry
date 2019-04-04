@@ -1,6 +1,6 @@
-{% if formset.empty_form.Meta.model.inline_field_layout == "table" %}
+{% if formset.model.inline_field_layout == "table" %}
     {% include 'aristotle_mdr/generic/actions/alter_one_to_many_formset_table.html' with formset=formset %}
-{% elif formset.empty_form.Meta.model.inline_field_layout == "list" %}
+{% elif formset.model.inline_field_layout == "list" %}
     {% include 'aristotle_mdr/generic/actions/alter_one_to_many_formset_listed.html' with formset=formset %}
 {% elif formset.empty_form.fields|length > 8 %}
     {% include 'aristotle_mdr/generic/actions/alter_one_to_many_formset_listed.html' with formset=formset %}

@@ -28,9 +28,6 @@ register_concept(comet.models.QualityStatement,
         ('Data Quality Guidelines',
             {'fields': ['timeliness','accessibility','interpretability','relevance','accuracy','coherence']}
         ),
-        ('Implementation dates',
-            {'fields': ['implementationStartDate','implementationEndDate']}
-        ),
     ]
 )
 

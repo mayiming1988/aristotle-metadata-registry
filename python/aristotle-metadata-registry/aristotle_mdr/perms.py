@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
+from django.db.models import Q
 from aristotle_mdr.utils import fetch_aristotle_settings
 
 from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
@@ -176,12 +177,9 @@ def user_is_registation_authority_manager(user, ra=None):
         return user in ra.managers.all()
 
 
-def user_can_change_status(user, item):
-    """Can the user change the status of the item?"""
+def user_can_add_status(user, item):
+    """Can the user add a status to this item in some RA"""
     if user.is_anonymous():
-        return False
-    can_view = user_can_view(user, item)
-    if not can_view:
         return False
     if user.is_superuser:
         return True
@@ -189,9 +187,48 @@ def user_can_change_status(user, item):
     # If this item has any requested reviews for a registration authority this user is a registrar of:
     if item.rr_review_requests.visible(user):
         return True
+
+    # Get proposed supersedes in ra's where the user is a registrar and the older item is this item
+    ss_items = item.superseded_by_items_relation_set.filter(
+        Q(proposed=True),
+        Q(registration_authority__registrars__profile__user=user)
+    )
+    # If these exist user can change status on the item
+    if ss_items.exists():
+        return True
+
     if user.profile.is_registrar and item.is_public():
         return True
+
     return False
+
+
+def user_can_add_ra_status(user, ra, item):
+    """Can the user add a status to this item in this RA"""
+    if user.is_anonymous():
+        return False
+    if user.is_superuser:
+        return True
+
+    # Must be a registrar in this ra
+    if user not in ra.registrars.all():
+        return False
+
+    # If this item has any requested reviews in this ra
+    if item.rr_review_requests.filter(registration_authority=ra).visible(user):
+        return True
+
+    # Get proposed supersedes in this ra involving this item
+    ss_items = item.superseded_by_items_relation_set.filter(
+        Q(proposed=True),
+        Q(registration_authority=ra)
+    )
+    # If these exist user can change status on the item
+    if ss_items.exists():
+        return True
+
+    if user.profile.is_registrar and item.is_public():
+        return True
 
 
 def user_can_supersede(user, item):

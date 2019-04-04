@@ -51,7 +51,7 @@ class ReviewChangesChoiceField(ModelMultipleChoiceField):
         (extra_info, deselections) = get_status_change_details(queryset, ra, static_content['new_state'])
         for key, item in extra_info.items():
             item['checked'] = not item['has_higher_status']
-            item['perm'] = perms.user_can_change_status(user, item['concept'])
+            item['perm'] = perms.user_can_add_status(user, item['concept'])
 
         return (extra_info, deselections)
 

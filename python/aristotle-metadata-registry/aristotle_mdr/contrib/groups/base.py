@@ -161,7 +161,6 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
     def __str__(self):
         return self.name
 
-    # @classmethod
     def user_has_permission(self, user, permission):
         # if permission not in self.role_permissions.keys()
         #     raise PermissionNotDefined

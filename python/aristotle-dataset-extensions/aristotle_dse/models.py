@@ -305,6 +305,8 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         abstract=True
         ordering = ['order']
 
+    inline_field_layout = 'list'
+
     dss = ConceptForeignKey(DataSetSpecification)
     maximum_occurances = models.PositiveIntegerField(
         default=1,
@@ -343,6 +345,9 @@ class DSSInclusion(aristotle.models.aristotleComponent):
 class DSSGrouping(aristotle.models.aristotleComponent):
     class Meta:
         ordering = ['order']
+        verbose_name = 'DSS Grouping'
+
+    inline_field_layout = 'list'
 
     dss = ConceptForeignKey(DataSetSpecification, related_name="groups")
     name = ShortTextField(
@@ -375,8 +380,10 @@ class DSSDEInclusion(DSSInclusion):
         blank=True,
     )
 
+    inline_field_layout = 'list'
+
     class Meta(DSSInclusion.Meta):
-        verbose_name = "DSS Data Element Inclusion"
+        verbose_name = "DSS Data Element"
 
     @property
     def include(self):
@@ -384,9 +391,9 @@ class DSSDEInclusion(DSSInclusion):
 
     def inline_editor_description(self):
         if self.group:
-            msg = "Data element '%s' in group '%s' at position %s" % (self.data_element, self.group.name, self.order)
+            msg = "Data element '%s' in group '%s' at position %s" % (self.data_element.name, self.group.name, self.order)
         else:
-            msg = "Data element '%s' at position %s" % (self.data_element, self.order)
+            msg = "Data element '%s' at position %s" % (self.data_element.name, self.order)
         return msg
 
 
@@ -398,12 +405,13 @@ class DSSClusterInclusion(DSSInclusion):
     child = ConceptForeignKey(DataSetSpecification, related_name='parent_dss')
 
     class Meta(DSSInclusion.Meta):
-        verbose_name = "DSS Cluster Inclusion"
+        verbose_name = "DSS Cluster"
 
     @property
     def include(self):
         return self.child
 
     def inline_editor_description(self):
-        return "Cluster '%s' at position %s" % (self.data_element, self.order)
-
+        if self.order:
+            return "Cluster '{cls}' at position {pos}".format(cls=self.child.name, pos=self.order)
+        return "Cluster '{}'".format(self.child.name)
