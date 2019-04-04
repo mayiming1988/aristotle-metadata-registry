@@ -105,6 +105,10 @@ class conceptIndex(baseObjectIndex):
     namespace = indexes.MultiValueField()
     published_date_public = indexes.DateTimeField(null=True)
 
+    # Needs to be char field because of uuid containing chars
+    stewardship_organisation = indexes.CharField(faceted=True, model_attr="stewardship_organisation_id")
+    stewardship_organisation.title = "Stewardship Organisation"
+
     template_name = "search/searchItem.html"
 
     rendered_badge = indexes.CharField(indexed=False)

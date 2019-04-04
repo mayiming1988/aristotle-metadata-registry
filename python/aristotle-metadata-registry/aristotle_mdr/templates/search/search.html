@@ -316,6 +316,7 @@
                 {% endif %}
 
                 {% for field,details in form.extra_facet_fields %}
+                <!--- If details are relevant -->
                     {% if details.values|length > 1 or details.details.applied %}
                         <dt>{{details.details.title}}</dt>
                         {% if details.values|length > 1 %}
@@ -347,7 +348,9 @@
                         {% if f %}
                         <dd>
                             <a href="{{ request.get_full_path }}&amp;f={{field}}::{{ f|urlencode }}">
-                                {% facet_display details.details f %}</a>
+                                {% facet_display details.details f %}
+
+                            </a>
                             <span>({{ count }})</span>
                         </dd>
                         {% endif %}

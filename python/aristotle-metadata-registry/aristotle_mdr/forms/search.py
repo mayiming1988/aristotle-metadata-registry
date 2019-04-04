@@ -402,7 +402,6 @@ class PermissionSearchForm(TokenSearchForm):
         required=False, label=_("Registration authority"),
         choices=[], widget=BootstrapDropdownSelectMultiple
     )
-
     sort = forms.ChoiceField(
         required=False, initial=SORT_OPTIONS.natural,
         choices=SORT_OPTIONS, widget=BootstrapDropdownSelect
@@ -464,6 +463,7 @@ class PermissionSearchForm(TokenSearchForm):
             if m[0].split('.', 1)[0] in fetch_metadata_apps() + ['aristotle_mdr_help']
         ]
 
+
     def get_models(self):
         """Return an alphabetical list of model classes in the index."""
         search_models = []
@@ -503,6 +503,7 @@ class PermissionSearchForm(TokenSearchForm):
 
         states = self.cleaned_data.get('state', None)
         ras = self.cleaned_data.get('ra', None)
+        stewardship_organisation = self.cleaned_data.get('stewardship_organisation', None)
         restriction = self.cleaned_data['res']
         sqs = sqs.apply_registration_status_filters(states, ras)
 
