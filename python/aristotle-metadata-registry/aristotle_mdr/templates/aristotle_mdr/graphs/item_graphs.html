@@ -12,26 +12,13 @@
     {% render_bundle 'graphsPage' 'js' %}
 {% endblock %}
 {% block infoContent %}
-
-    <h2>{% trans 'Superseding relationships' %}</h2>
-    <graphical-representation
-            url="{% url 'api_v4:item:item_supersedes_graphical' pk=item.id %}"
-            type-of-graph="supersedes"
-            direction="LR"
-            level-separation="400"
-            sort-method="directed"
-            hierarchical
+    
+    <graphs-page
+      general-url="{% url 'api_v4:item:item_general_graphical' pk=item.id %}"
+      supersedes-url="{% url 'api_v4:item:item_supersedes_graphical' pk=item.id %}"
+      links-url="{% url 'api_v4:item:api_item_links' pk=item.id %}"
+      {% if links_active %}links-active{% endif %}
     >
-    </graphical-representation>
-
-    <h2>{% trans 'General relationships' %}</h2>
-    <graphical-representation
-            url="{% url 'api_v4:item:item_general_graphical' pk=item.id %}"
-            type-of-graph="general"
-            direction="UD"
-            level-separation="100"
-            sort-method="hubsize"
-    >
-    </graphical-representation>
+    </graphs-page>
 
 {% endblock %}

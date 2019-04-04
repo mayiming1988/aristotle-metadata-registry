@@ -1,7 +1,6 @@
 import favouriteComponent from '@/favourite.vue'
 import simpleLinkList from '@/simpleLinkList.vue'
 import tagsModal from '@/tags/tagsModal.vue'
-import linksDisplay from '@/linksDisplay.vue'
 
 export default {
     el: '#vue-container',
@@ -9,7 +8,6 @@ export default {
         'simple-linked-list': simpleLinkList,
         'favourite': favouriteComponent,
         'tags-modal': tagsModal,
-        'links-display': linksDisplay,
     },
     data: {
         saved_tags: [],
