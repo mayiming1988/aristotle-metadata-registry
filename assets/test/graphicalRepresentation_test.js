@@ -1,10 +1,8 @@
 import chai from 'chai'
-import sinon from 'sinon'
 import VueTestUtils from '@vue/test-utils'
-import { assertSingleEmit, fakePromiseMethod, clickElementIfExists } from './utils.js'
 var assert = chai.assert
 
-import graphicalRepresentation from '../src/components/graphicalRepresentation.vue'
+import graphicalRepresentation from '../src/components/graphs/graphicalRepresentation.vue'
 
 describe('graphicalRepresentation', function () {
     beforeEach(function () {

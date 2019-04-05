@@ -9,7 +9,7 @@ Permissions in ``perms.py``
 ---------------------------
 
 .. automodule:: aristotle_mdr.perms
-   :members: user_can_change_status, user_can_edit, user_can_view
+   :members: user_can_add_status, user_can_edit, user_can_view
 
 Permissions-based ``ConceptManager``
 ------------------------------------

@@ -23,7 +23,9 @@
                 {{ review.message }}
             </div>
                 <span class="pull-right">
+                {% if can_edit_review %}
                 <a class="btn btn-sm btn-primary" href="{% url 'aristotle_reviews:request_update' review.id %}">Edit review</a>
+                {% endif %}
               {% if can_accept_review %}
             <a href="{% url 'aristotle_reviews:review_details' review.id %}#accept_review" class="btn btn-sm btn-success" >Jump to approval</a>
               {% endif %}

@@ -1,19 +1,22 @@
 from rest_framework import generics
-from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 from aristotle_mdr_api.v4.permissions import AuthCanViewEdit
 from aristotle_mdr_api.v4.concepts import serializers
 from aristotle_mdr.models import _concept, concept, aristotleComponent, SupersedeRelationship
-from django.shortcuts import get_object_or_404
-from aristotle_mdr import models as MDR
-import collections
+from aristotle_mdr.contrib.links.utils import get_links_for_concept
 from django.db.models import Q
-from aristotle_mdr_api.v4.concepts.serializers import ConceptSerializer, SupersedeRelationshipSerialiser
-from aristotle_mdr import perms
-from django.core.exceptions import PermissionDenied
-from re import finditer
 from django.conf import settings
+import collections
+from re import finditer
+
+from aristotle_mdr_api.v4.concepts.serializers import (
+    ConceptSerializer,
+    SupersedeRelationshipSerialiser
+)
+from aristotle_mdr_api.v4.views import ObjectAPIView
+from aristotle_mdr import perms
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -25,18 +28,10 @@ class ConceptView(generics.RetrieveAPIView):
     queryset=_concept.objects.all()
 
 
-class SupersedesGraphicalConceptView(APIView):
+class SupersedesGraphicalConceptView(ObjectAPIView):
     """Retrieve a Graphical Representation of the Supersedes Relationships"""
     permission_classes=(AuthCanViewEdit,)
     permission_key = 'metadata'
-    pk_url_kwarg = 'pk'
-
-    def get_object(self):
-        id = self.kwargs[self.pk_url_kwarg]
-        obj = get_object_or_404(MDR._concept, pk=id).item
-        if not perms.user_can_view(self.request.user, obj):
-            raise PermissionDenied
-        return obj
 
     def get(self, request, pk, format=None):
         item = self.get_object()
@@ -92,31 +87,26 @@ class SupersedesGraphicalConceptView(APIView):
         )
 
 
-class GeneralGraphicalConceptView(APIView):
+class GeneralGraphicalConceptView(ObjectAPIView):
     """Retrieve a Graphical Representation of the General Relationships"""
     permission_classes = (AuthCanViewEdit,)
     permission_key = 'metadata'
-    pk_url_kwarg = 'pk'
-
-    def get_object(self):
-        id = self.kwargs[self.pk_url_kwarg]
-        obj = get_object_or_404(MDR._concept, pk=id).item
-        if not perms.user_can(self.request.user, obj, 'can_view'):
-            raise PermissionDenied
-        return obj
 
     def get(self, request, pk, format=None):
         item = self.get_object()
 
         seen_items_ids = set()
-        queue = collections.deque([item])
+        # queue = collections.deque([item])
         nodes = []
         edges = []
 
         source_item = ConceptSerializer(item).data
         source_item["type"] = self.camel_case_split(item.__class__.__name__)
-        source_item["node_options"] = {"shape": "ellipse", "borderWidth": 2, "margin": 3,
-                                                   "font": {"size": 15}}
+        source_item["node_options"] = {
+            "shape": "ellipse",
+            "borderWidth": 2, "margin": 3,
+            "font": {"size": 15}
+        }
         nodes.append(source_item)
 
         if hasattr(item, 'relational_attributes'):
@@ -166,3 +156,40 @@ class GeneralGraphicalConceptView(APIView):
     def camel_case_split(identifier):
         matches = finditer('.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)', identifier)
         return ' '.join([m.group(0) for m in matches])
+
+
+class ConceptLinks(ObjectAPIView):
+    """Retrieve a graphical representation of the links relations"""
+
+    def get(self, request, *args, **kwargs):
+        concept = self.get_object()
+        links = get_links_for_concept(concept)
+
+        seen_concepts = set()
+        nodes = []
+        edges = []
+        for link in links:
+            # Id to use in output for link (so it doesnt clash with concept ids)
+            link_id = 'link_{id}'.format(id=link.id)
+            # Add link node
+            nodes.append({
+                'id': link_id,
+                'name': link.relation.name,
+                'definition': link.relation.definition,
+                'short_definition': link.relation.short_definition,
+            })
+            for end in link.linkend_set.all():
+                # Add concept node
+                if end.concept_id not in seen_concepts:
+                    nodes.append(ConceptSerializer(end.concept).data)
+                    seen_concepts.add(end.concept_id)
+                # Add edge
+                edges.append({
+                    'from': link_id,
+                    'to': end.concept_id
+                })
+
+        return Response(
+            {'nodes': nodes, 'edges': edges},
+            status.HTTP_200_OK
+        )

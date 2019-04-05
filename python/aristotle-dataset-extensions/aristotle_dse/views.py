@@ -16,7 +16,7 @@ from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
 from aristotle_mdr.contrib.generic.forms import HiddenOrderModelFormSet
 from aristotle_mdr.perms import (
     user_can_view, user_can_edit, user_in_workgroup,
-    user_is_workgroup_manager, user_can_change_status
+    user_is_workgroup_manager, user_can_add_status
 )
 from aristotle_mdr.utils import construct_change_message
 from aristotle_mdr.views.utils import get_status_queryset

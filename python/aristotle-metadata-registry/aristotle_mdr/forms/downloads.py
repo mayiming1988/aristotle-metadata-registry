@@ -5,9 +5,16 @@ class DownloadOptionsForm(forms.Form):
 
     def __init__(self, *args, wrap_pages: bool, **kwargs):
         super().__init__(*args, **kwargs)
+        # Add front page and back page options
         if wrap_pages:
-            self.fields['front_page'] = forms.FileField(required=False)
-            self.fields['back_page'] = forms.FileField(required=False)
+            self.fields['front_page'] = forms.FileField(
+                required=False,
+                help_text='A front page to be added to the document. Must be in the same format as the download'
+            )
+            self.fields['back_page'] = forms.FileField(
+                required=False,
+                help_text='A back page to be added to the document. Must be in the same format as the download'
+            )
         self.wrap_pages = wrap_pages
 
     title = forms.CharField(
