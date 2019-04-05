@@ -356,7 +356,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         models.Status.objects.create(
             concept=self.item1,
             registrationAuthority=self.ra,
-            registrationDate=timezone.localtime(timezone.now()),
+            registrationDate=timezone.now(),
             state=STATES.candidate
         )
 
@@ -364,7 +364,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         models.Status.objects.create(
             concept=self.item2,
             registrationAuthority=self.ra,
-            registrationDate=timezone.localtime(timezone.now()),
+            registrationDate=timezone.now(),
             state=STATES.standard
         )
 
@@ -392,7 +392,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         models.Status.objects.create(
             concept=self.item1,
             registrationAuthority=self.ra,
-            registrationDate=timezone.localtime(timezone.now()),
+            registrationDate=timezone.now(),
             state=STATES.standard
         )
 
@@ -400,7 +400,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         models.Status.objects.create(
             concept=self.item2,
             registrationAuthority=self.ra,
-            registrationDate=timezone.localtime(timezone.now()),
+            registrationDate=timezone.now(),
             state=STATES.preferred
         )
 

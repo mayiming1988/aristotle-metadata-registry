@@ -78,7 +78,7 @@ class CheckIfModifiedMixin(forms.ModelForm):
     )
     last_fetched = forms.CharField(
         widget=forms.widgets.HiddenInput(),
-        initial=timezone.localtime(timezone.now()),
+        initial=timezone.now(),
         required=True,
         error_messages={'required': modified_since_field_missing}
     )
@@ -86,8 +86,8 @@ class CheckIfModifiedMixin(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         # Tricky... http://www.avilpage.com/2015/03/django-form-gotchas-dynamic-initial.html
         super().__init__(*args, **kwargs)
-        self.initial['last_fetched'] = timezone.localtime(timezone.now())
-        self.fields['last_fetched'].initial = timezone.localtime(timezone.now())
+        self.initial['last_fetched'] = timezone.now()
+        self.fields['last_fetched'].initial = timezone.now()
 
     def clean_last_fetched(self):
         # We need a UTC version of the modified time
@@ -97,10 +97,10 @@ class CheckIfModifiedMixin(forms.ModelForm):
         last_fetched = dateparse.parse_datetime(last_fetched)
         self.cleaned_data['last_fetched'] = last_fetched
         if self.cleaned_data['last_fetched'] is None or self.cleaned_data['last_fetched'] == "":
-            self.initial['last_fetched'] = timezone.localtime(timezone.now())
+            self.initial['last_fetched'] = timezone.now()
             raise forms.ValidationError(CheckIfModifiedMixin.modified_since_field_missing)
         if modified_time > self.cleaned_data['last_fetched']:
-            self.initial['last_fetched'] = timezone.localtime(timezone.now())
+            self.initial['last_fetched'] = timezone.now()
             raise forms.ValidationError(CheckIfModifiedMixin.modified_since_form_fetched_error)
 
 

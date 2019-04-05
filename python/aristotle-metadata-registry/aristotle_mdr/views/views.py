@@ -537,7 +537,7 @@ class ReviewChangesView(SessionWizardView):
             changeDetails = ""
 
         if not regDate:
-            regDate = timezone.localtime(timezone.now()).date()
+            regDate = timezone.now().date()
 
         # Call celery task to register items
         register_items.delay(

@@ -434,7 +434,7 @@ class RegistrationAuthority(Organization):
             changeDetails = kwargs.get('changeDetails', "")
             # If registrationDate is None (like from a form), override it with
             # todays date.
-            registrationDate = kwargs.get('registrationDate', None) or timezone.localtime(timezone.now()).date()
+            registrationDate = kwargs.get('registrationDate', None) or timezone.now().date()
             until_date = kwargs.get('until_date', None)
 
             Status.objects.create(
@@ -866,7 +866,7 @@ class _concept(baseAristotleObject):
         supersedes = self.superseded_by_items_relation_set.filter(proposed=False).select_related('newer_item')
         return [ss.newer_item for ss in supersedes]
 
-    def check_is_public(self, when=timezone.localtime(timezone.now())):
+    def check_is_public(self, when=timezone.now()):
         """
         A concept is public if any registration authority
         has advanced it to a public state in that RA.
@@ -892,7 +892,7 @@ class _concept(baseAristotleObject):
     is_public.boolean = True  # type: ignore
     is_public.short_description = 'Public'  # type: ignore
 
-    def check_is_locked(self, when=timezone.localtime(timezone.now())):
+    def check_is_locked(self, when=timezone.now()):
         """
         A concept is locked if any registration authority
         has advanced it to a locked state in that RA.
@@ -915,7 +915,7 @@ class _concept(baseAristotleObject):
         self.save()
         concept_visibility_updated.send(sender=self.__class__, concept=self)
 
-    def current_statuses(self, qs=None, when=timezone.localtime(timezone.now())):
+    def current_statuses(self, qs=None, when=timezone.now()):
         if qs is None:
             qs = self.statuses.all()
 

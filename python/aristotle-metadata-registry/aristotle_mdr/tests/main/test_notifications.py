@@ -173,7 +173,7 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
         models.Status.objects.create(
             concept=self.item1,
             registrationAuthority=self.ra,
-            registrationDate=timezone.localtime(timezone.now()),
+            registrationDate=timezone.now(),
             state=self.ra.locked_state
         )
 
@@ -184,7 +184,7 @@ class TestNotifications(utils.AristotleTestUtils, TestCase):
         models.Status.objects.create(
             concept=self.item1,
             registrationAuthority=self.ra,
-            registrationDate=timezone.localtime(timezone.now()),
+            registrationDate=timezone.now(),
             state=self.ra.public_state
         )
 

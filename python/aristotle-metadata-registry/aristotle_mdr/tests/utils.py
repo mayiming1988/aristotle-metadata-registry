@@ -96,7 +96,7 @@ def model_to_dict_with_change_time(item, fetch_time=None):
     that is needed for checking in edit forms to prevent overrides of other saves.
     """
     if fetch_time is None:
-        fetch_time = timezone.localtime(timezone.now())
+        fetch_time = timezone.now()
     d = model_to_dict(item)
     d['last_fetched'] = str(fetch_time)
 
@@ -135,7 +135,7 @@ class ManagedObjectVisibility(object):
         s = models.Status.objects.create(
             concept=self.item,
             registrationAuthority=self.ra,
-            registrationDate=timezone.localtime(timezone.now()),
+            registrationDate=timezone.now(),
             state=models.STATES.notprogressed
         )
         self.assertEqual(self.item.is_public(), False)
@@ -213,7 +213,7 @@ class ManagedObjectVisibility(object):
         )
 
         # Overlaps s1 and s3
-        the_future = (timezone.localtime(timezone.now()) + datetime.timedelta(days=100)).date()
+        the_future = (timezone.now() + datetime.timedelta(days=100)).date()
         s7 = models.Status.objects.create(
             concept=self.item,
             registrationAuthority=self.ra,
@@ -306,7 +306,7 @@ class ManagedObjectVisibility(object):
         models.Status.objects.create(
             concept=self.item,
             registrationAuthority=self.ra,
-            registrationDate=timezone.localtime(timezone.now()),
+            registrationDate=timezone.now(),
             state=models.STATES.candidate
         )
         self.item = models._concept.objects.get(id=self.item.id)  # Stupid cache
@@ -337,7 +337,7 @@ class ManagedObjectVisibility(object):
         s = models.Status.objects.create(
             concept=self.item,
             registrationAuthority=self.ra,
-            registrationDate=timezone.localtime(timezone.now()),
+            registrationDate=timezone.now(),
             state=models.STATES.notprogressed
         )
         self.assertEqual(self.item.is_locked(), False)
@@ -359,7 +359,7 @@ class ManagedObjectVisibility(object):
         models.Status.objects.create(
             concept=self.item,
             registrationAuthority=self.ra,
-            registrationDate=timezone.localtime(timezone.now()),
+            registrationDate=timezone.now(),
             state=models.STATES.candidate
         )
         self.item = models._concept.objects.get(id=self.item.id)  # Stupid cache
@@ -393,7 +393,7 @@ class ManagedObjectVisibility(object):
         models.Status.objects.create(
             concept=self.item,
             registrationAuthority=self.ra,
-            registrationDate=timezone.localtime(timezone.now()),
+            registrationDate=timezone.now(),
             state=self.ra.locked_state
         )
         self.assertEqual(perms.user_can_view(r1, self.item), False)
@@ -436,7 +436,7 @@ class ManagedObjectVisibility(object):
         s = models.Status.objects.create(
             concept=self.item,
             registrationAuthority=self.ra,
-            registrationDate=timezone.localtime(timezone.now()),
+            registrationDate=timezone.now(),
             state=self.ra.locked_state
         )
         # Editor 2 can view. Editor 1 cannot
@@ -483,11 +483,11 @@ class ManagedObjectVisibility(object):
         self.assertEqual(perms.user_can_edit(e2, self.item), True)
         self.assertEqual(perms.user_can_edit(e1, self.item), False)
 
-        # self.ra.register(self.item,self.ra.locked_state,registrar,timezone.localtime(timezone.now()),)
+        # self.ra.register(self.item,self.ra.locked_state,registrar,timezone.now(),)
         models.Status.objects.create(
             concept=self.item,
             registrationAuthority=self.ra,
-            registrationDate=timezone.localtime(timezone.now()),
+            registrationDate=timezone.now(),
             state=self.ra.locked_state
         )
         # Editor 2 can no longer edit. Neither can Editor 1
@@ -852,7 +852,7 @@ class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils,
         s = models.Status.objects.create(
             concept=item,
             registrationAuthority=ra,
-            registrationDate=timezone.localtime(timezone.now()),
+            registrationDate=timezone.now(),
             state=ra.public_state
         )
         return s

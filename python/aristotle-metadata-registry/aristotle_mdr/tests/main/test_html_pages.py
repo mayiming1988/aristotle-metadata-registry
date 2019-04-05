@@ -62,7 +62,7 @@ class AnonymousUserViewingThePages(TestCase):
         s = models.Status.objects.create(
                 concept=item,
                 registrationAuthority=ra,
-                registrationDate=timezone.localtime(timezone.now()),
+                registrationDate=timezone.now(),
                 state=ra.locked_state
                 )
         response = self.client.get(url_slugify_concept(item))
@@ -96,7 +96,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         )
         self.itemid = self.item.id
 
-        self.future_time = timezone.localtime(timezone.now()) + datetime.timedelta(days=30)
+        self.future_time = timezone.now() + datetime.timedelta(days=30)
 
         self.cache_key = 'view_cache_ConceptView_{}_{}'.format(
             self.editor.id,
@@ -1057,7 +1057,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         updated_item['name'] = updated_name
         change_comment = "I changed this because I can"
         updated_item['change_comments'] = change_comment
-        time_before_response = timezone.localtime(timezone.now())
+        time_before_response = timezone.now()
         response = self.client.post(reverse('aristotle:edit_item',args=[self.item1.id]), updated_item)
 
         self.assertEqual(response.status_code,200)
@@ -1074,7 +1074,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
 
         updated_item.pop('last_fetched')
-        time_before_response = timezone.localtime(timezone.now())
+        time_before_response = timezone.now()
         response = self.client.post(reverse('aristotle:edit_item',args=[self.item1.id]), updated_item)
 
         self.assertEqual(response.status_code,200)
@@ -2084,7 +2084,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         models.Status.objects.create(
             concept=self.item1,
             registrationAuthority=self.ra,
-            registrationDate=timezone.localtime(timezone.now()),
+            registrationDate=timezone.now(),
             state=self.ra.locked_state
         )
 
@@ -2529,19 +2529,19 @@ class DataElementConceptViewPage(LoggedInViewConceptPages, TestCase):
         s = models.Status.objects.create(
                 concept=item,
                 registrationAuthority=ra,
-                registrationDate=timezone.localtime(timezone.now()),
+                registrationDate=timezone.now(),
                 state=ra.locked_state
                 )
         s = models.Status.objects.create(
                 concept=item,
                 registrationAuthority=self.ra,
-                registrationDate=timezone.localtime(timezone.now()),
+                registrationDate=timezone.now(),
                 state=ra.locked_state
                 )
         s = models.Status.objects.create(
                 concept=self.item1,
                 registrationAuthority=self.ra,
-                registrationDate=timezone.localtime(timezone.now()),
+                registrationDate=timezone.now(),
                 state=ra.public_state
                 )
 
@@ -3044,7 +3044,7 @@ class RegistrationAuthorityViewPage(utils.LoggedInViewPages, TestCase):
         models.Status.objects.create(
             concept=self.item2,
             registrationAuthority=self.item1,
-            registrationDate=timezone.localtime(timezone.now()),
+            registrationDate=timezone.now(),
             state=models.STATES.standard
         )
 
