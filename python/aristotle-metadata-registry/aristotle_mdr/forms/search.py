@@ -452,7 +452,7 @@ class PermissionSearchForm(TokenSearchForm):
         # Inactive last
         self.fields['ra'].choices = [(ra.id, ra.name) for ra in MDR.RegistrationAuthority.objects.filter(active__in=[0, 1]).order_by('active', 'name')]
 
-        # List of app lables for default search
+        # List of app labels for default search
         self.default_models = [
             m[0] for m in model_choices()
             if m[0].split('.', 1)[0] in fetch_metadata_apps()
@@ -556,6 +556,8 @@ class PermissionSearchForm(TokenSearchForm):
             'models': 'facet_model_ct',
             'state': 'statuses',
         }
+
+        # Add filters that are also facets to Search Query Set
         for _filter, facet in filters_to_facets.items():
             if _filter not in self.applied_filters:
                 # Don't do this: sqs = sqs.facet(facet, sort='count')
@@ -565,19 +567,33 @@ class PermissionSearchForm(TokenSearchForm):
             'wg': 'workgroup',
             'res': 'restriction'
         }
+
+        # If user is logged in, add permisssioned facets to Search Query Sets
         if self.request.user.is_active:
             for _filter, facet in logged_in_facets.items():
                 if _filter not in self.applied_filters:
                     # Don't do this: sqs = sqs.facet(facet, sort='count')
                     sqs = sqs.facet(facet)
 
+
+
+        additional_hardcoded_facets = ['stewardship_organisation']
+
+        for facet in additional_hardcoded_facets:
+            sqs = sqs.facet(facet)
+
+        """
+        Generate details about facets from ``concepts`` registered (as facetable) with a Haystack search index that conforms
+        to Aristotle permissions. Excludes facets that have been previously been added.
+        """
         extra_facets = []
 
         from aristotle_mdr.search_indexes import registered_indexes
         for model_index in registered_indexes:
             for name, field in model_index.fields.items():
                 if field.faceted:
-                    if name not in (list(filters_to_facets.values()) + list(logged_in_facets.values())):
+                    if name not in (list(filters_to_facets.values()) + list(logged_in_facets.values()) +
+                                    additional_hardcoded_facets):
                         extra_facets.append(name)
 
                         x = extra_facets_details.get(name, {})
@@ -590,6 +606,7 @@ class PermissionSearchForm(TokenSearchForm):
                         # Don't do this: sqs = sqs.facet(facet, sort='count')  # Why Sam, why?
                         sqs = sqs.facet(name)
 
+        # Generate facet content
         self.facets = sqs.facet_counts()
 
         if 'fields' in self.facets:
@@ -612,9 +629,11 @@ class PermissionSearchForm(TokenSearchForm):
                 if k in extra_facets
             ]
 
+            # Cut down to only the top 10 results for each facet in order of number of results
             for facet, counts in self.facets['fields'].items():
-                # Return the 5 top results for each facet in order of number of results.
                 self.facets['fields'][facet] = sorted(counts, key=lambda x: -x[1])[:10]
+
+
 
         return sqs
 

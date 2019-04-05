@@ -282,7 +282,25 @@
                         {% endwith %}
                     </dd>
                 {% endfor %}
+
                 {% endif %}
+
+                {% if form.facets.fields.stewardship_organisation %}
+                <dt>Stewardship Organisation</dt>
+                {% for f in form.facets.fields.stewardship_organisation %}
+                    <dd>
+                        {% with sa='sa'|get_item_from_facet:f.0 %}
+                        {% if sa %}
+                            <a href="?{{ request|remove_query_params:'page' }}&amp;ra={{ f.0|urlencode }}">
+                                {{ sa.name }}</a>
+                            ({{ f.1 }})
+                        {% else %}
+                        {% endif %}
+                        {% endwith %}
+                    </dd>
+                {% endfor %}
+                {% endif %}
+
                 {% if request.user.is_active and form.facets.fields.restriction %}
                 <dt>Restriction</dt>
                 {% for f in form.facets.fields.restriction %}
@@ -316,7 +334,6 @@
                 {% endif %}
 
                 {% for field,details in form.extra_facet_fields %}
-                <!--- If details are relevant -->
                     {% if details.values|length > 1 or details.details.applied %}
                         <dt>{{details.details.title}}</dt>
                         {% if details.values|length > 1 %}

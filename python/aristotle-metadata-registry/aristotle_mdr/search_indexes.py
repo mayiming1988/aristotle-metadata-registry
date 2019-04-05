@@ -104,19 +104,19 @@ class conceptIndex(baseObjectIndex):
     identifier = indexes.MultiValueField()
     namespace = indexes.MultiValueField()
     published_date_public = indexes.DateTimeField(null=True)
-
-    # Needs to be char field because of uuid containing chars
-    stewardship_organisation = indexes.CharField(faceted=True, model_attr="stewardship_organisation_id")
-    stewardship_organisation.title = "Stewardship Organisation"
+    # TODO : rewrite into prepare_function?
+    stewardship_organisation = indexes.IntegerField(faceted=True, model_attr="stewardship_organisation__id")
 
     template_name = "search/searchItem.html"
 
     rendered_badge = indexes.CharField(indexed=False)
 
+
     def prepare_rendered_badge(self, obj):
 
         t = loader.get_template('search/badge.html')
         return t.render({'object': obj})
+
 
     def prepare_registrationAuthorities(self, obj):
         ras_stats = [str(s.registrationAuthority.id) for s in obj.current_statuses().all()]

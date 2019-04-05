@@ -74,6 +74,7 @@ def get_item_from_facet(_type, _id):
     from django.contrib.contenttypes.models import ContentType
 
     model_type = {
+        'sa': MDR.StewardOrganisation,
         'ra': MDR.RegistrationAuthority,
         'wg': MDR.Workgroup,
         'ct': ContentType,
