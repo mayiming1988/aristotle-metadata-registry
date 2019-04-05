@@ -12,10 +12,8 @@
             <div class="col-sm-9">
                 {% if cv.is_html %}
                     {{ cv.content|bleach }}
-                    h
                 {% else %}
                     {{ cv.content }}
-                    n
                 {% endif %}
             </div>
         </div>
