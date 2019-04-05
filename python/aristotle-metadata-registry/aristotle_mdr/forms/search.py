@@ -629,11 +629,9 @@ class PermissionSearchForm(TokenSearchForm):
                 if k in extra_facets
             ]
 
-            # Cut down to only the top 10 results for each facet in order of number of results
+            # Cut down to only the top 10 results for each facet, order by number of results
             for facet, counts in self.facets['fields'].items():
                 self.facets['fields'][facet] = sorted(counts, key=lambda x: -x[1])[:10]
-
-
 
         return sqs
 
