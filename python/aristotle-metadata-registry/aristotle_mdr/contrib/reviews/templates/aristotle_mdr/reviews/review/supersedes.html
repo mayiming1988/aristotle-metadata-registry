@@ -20,6 +20,7 @@
         {% csrf_token %}
         {{ formset.management_form }}
         {{ formset.non_form_errors }}
+        <div class="form-list">
         {% for form in formset %}
           <div class="form-inline">
             {% for field in form.hidden_fields %}
@@ -34,6 +35,7 @@
             {% endfor %}
           </div>
         {% endfor %}
+        </div>
         <a class="add_code_button btn btn-success" formid="{{ formset.prefix }}" href="#">Add</a>
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>

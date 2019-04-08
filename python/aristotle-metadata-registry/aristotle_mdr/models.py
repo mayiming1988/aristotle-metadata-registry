@@ -376,33 +376,11 @@ class RegistrationAuthority(Organization):
             ('public', public)
         )
 
-    def register_many(self, items, state, user, *args, **kwargs):
-        # Change the registration status of many items
-        # the items argument should be a queryset
-
-        revision_message = _("Bulk registration of %i items\n") % (items.count())
-
-        revision_message = revision_message + kwargs.get('changeDetails', "")
-        seen_items = {'success': [], 'failed': []}
-
-        with transaction.atomic(), reversion.revisions.create_revision():
-            reversion.revisions.set_user(user)
-            reversion.revisions.set_comment(revision_message)
-
-            # can use bulk_create here when background reindex is setup
-            for child_item in items:
-                if perms.user_can_change_status(user, child_item):
-                    self._register(
-                        child_item, state, user, *args, **kwargs
-                    )
-                    seen_items['success'].append(child_item.id)
-                else:
-                    seen_items['failed'].append(child_item.id)
-
-        return seen_items
-
     def cascaded_register(self, item, state, user, *args, **kwargs):
-        if not perms.user_can_change_status(user, item):
+        """
+        Register an item and all it's sub components. If the user has permission
+        """
+        if not perms.user_can_add_ra_status(user, self, item):
             # Return a failure as this item isn't allowed
             return {'success': [], 'failed': [item] + item.registry_cascade_items}
 
@@ -418,15 +396,23 @@ class RegistrationAuthority(Organization):
             reversion.revisions.set_user(user)
             reversion.revisions.set_comment(revision_message)
 
-            for child_item in [item] + item.registry_cascade_items:
-                self._register(
-                    child_item, state, user, *args, **kwargs
-                )
-                seen_items['success'] = seen_items['success'] + [child_item]
+            all_items = [item] + item.registry_cascade_items
+
+            for child_item in all_items:
+                if perms.user_can_add_ra_status(user, self, child_item):
+                    self._register(
+                        child_item, state, user, *args, **kwargs
+                    )
+                    seen_items['success'].append(child_item)
+                else:
+                    seen_items['failed'].append(child_item)
         return seen_items
 
     def register(self, item, state, user, *args, **kwargs):
-        if not perms.user_can_change_status(user, item):
+        """
+        Register an item. If the user has permission
+        """
+        if not perms.user_can_add_ra_status(user, self, item):
             # Return a failure as this item isn't allowed
             return {'success': [], 'failed': [item]}
 
@@ -439,11 +425,16 @@ class RegistrationAuthority(Organization):
         return {'success': [item], 'failed': []}
 
     def _register(self, item, state, user, *args, **kwargs):
+        """
+        Internal function that permforms actual registration
+        Does not do any permissions checks
+        Used by register and cascaded_register functions
+        """
         if self.active is RA_ACTIVE_CHOICES.active:
             changeDetails = kwargs.get('changeDetails', "")
             # If registrationDate is None (like from a form), override it with
             # todays date.
-            registrationDate = kwargs.get('registrationDate', None) or timezone.localtime(timezone.now()).date()
+            registrationDate = kwargs.get('registrationDate', None) or timezone.now().date()
             until_date = kwargs.get('until_date', None)
 
             Status.objects.create(
@@ -875,7 +866,7 @@ class _concept(baseAristotleObject):
         supersedes = self.superseded_by_items_relation_set.filter(proposed=False).select_related('newer_item')
         return [ss.newer_item for ss in supersedes]
 
-    def check_is_public(self, when=timezone.localtime(timezone.now())):
+    def check_is_public(self, when=timezone.now()):
         """
         A concept is public if any registration authority
         has advanced it to a public state in that RA.
@@ -901,7 +892,7 @@ class _concept(baseAristotleObject):
     is_public.boolean = True  # type: ignore
     is_public.short_description = 'Public'  # type: ignore
 
-    def check_is_locked(self, when=timezone.localtime(timezone.now())):
+    def check_is_locked(self, when=timezone.now()):
         """
         A concept is locked if any registration authority
         has advanced it to a locked state in that RA.
@@ -924,7 +915,7 @@ class _concept(baseAristotleObject):
         self.save()
         concept_visibility_updated.send(sender=self.__class__, concept=self)
 
-    def current_statuses(self, qs=None, when=timezone.localtime(timezone.now())):
+    def current_statuses(self, qs=None, when=timezone.now()):
         if qs is None:
             qs = self.statuses.all()
 

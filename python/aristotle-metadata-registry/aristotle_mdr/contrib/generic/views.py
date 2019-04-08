@@ -597,9 +597,7 @@ class ExtraFormsetMixin:
 
             formset = one_to_many_formset_filters(formset, item)
 
-            title = weak['model'].__name__
-            # add spaces before capital letters
-            title = re.sub(r"\B([A-Z])", r" \1", title)
+            title = weak['model']._meta.verbose_name
 
             if hasattr(weak['model'], 'ordering_field'):
                 order_field = weak['model'].ordering_field

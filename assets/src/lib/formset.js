@@ -20,7 +20,22 @@ export function replacePrefix(element, num_forms) {
 // Adds a row to a formset given a form element and row css selector
 // urlfunc is optional (used for dal init)
 export function addRow(formid, row_selector, urlfunc) {
-    let panelList = $('#' + formid);
+    // Get panel list
+    let panelList = document.getElementById(formid)
+    if (panelList.tagName === 'TABLE') {
+        // If it's a table use the body
+        panelList = panelList.querySelector('tbody')
+    } else if (panelList.tagName === 'FORM') {
+        // If panelList is a form and has a form-list class use that
+        let list = panelList.querySelector('.form-list')
+        if (list !== null) {
+            panelList = list
+        }
+    }
+
+    // Convert to jquery object
+    panelList = $(panelList)
+
     let formstage = $('.formstage#' + formid + ' ' + row_selector)
 
     // Clone the formstage
@@ -41,21 +56,9 @@ export function addRow(formid, row_selector, urlfunc) {
 
     let all_rows = panelList.find(row_selector)
     let num_forms = all_rows.length
-    if (num_forms > 0) {
-        // If there are existing forms insert after last one
-        new_form.insertAfter(all_rows.last());
-    } else {
-        // If this is the first form
-        let add_buttons = panelList.find('.add_code_button')
-        if (add_buttons.length > 0) {
-            // If an add button is in the panel list insert before that
-            let button = add_buttons.first()
-            new_form.insertBefore(button)
-        } else {
-            // otherwise just append to the panel list
-            panelList.append(new_form)
-        }
-    }
+    
+    // Append form to the panel list
+    panelList.append(new_form)
 
     new_form.find(':input').each(function() {
         replacePrefix(this, num_forms)

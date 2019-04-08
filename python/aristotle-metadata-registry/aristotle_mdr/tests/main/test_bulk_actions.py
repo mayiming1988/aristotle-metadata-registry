@@ -279,8 +279,8 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         self.login_registrar()
         self.create_review_request([self.item1, self.item2])
 
-        self.assertTrue(perms.user_can_change_status(self.registrar, self.item1))
-        self.assertTrue(perms.user_can_change_status(self.registrar, self.item2))
+        self.assertTrue(perms.user_can_add_status(self.registrar, self.item1))
+        self.assertTrue(perms.user_can_add_status(self.registrar, self.item2))
         self.assertFalse(self.item1.is_registered)
         self.assertFalse(self.item2.is_registered)
 
@@ -356,7 +356,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         models.Status.objects.create(
             concept=self.item1,
             registrationAuthority=self.ra,
-            registrationDate=timezone.localtime(timezone.now()),
+            registrationDate=timezone.now(),
             state=STATES.candidate
         )
 
@@ -364,12 +364,12 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         models.Status.objects.create(
             concept=self.item2,
             registrationAuthority=self.ra,
-            registrationDate=timezone.localtime(timezone.now()),
+            registrationDate=timezone.now(),
             state=STATES.standard
         )
 
-        self.assertTrue(perms.user_can_change_status(self.registrar, self.item1))
-        self.assertTrue(perms.user_can_change_status(self.registrar, self.item2))
+        self.assertTrue(perms.user_can_add_status(self.registrar, self.item1))
+        self.assertTrue(perms.user_can_add_status(self.registrar, self.item2))
 
         response = self.review_changes(items, STATES.standard)
         self.assertTrue(response.context['deselections'])
@@ -392,7 +392,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         models.Status.objects.create(
             concept=self.item1,
             registrationAuthority=self.ra,
-            registrationDate=timezone.localtime(timezone.now()),
+            registrationDate=timezone.now(),
             state=STATES.standard
         )
 
@@ -400,12 +400,12 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         models.Status.objects.create(
             concept=self.item2,
             registrationAuthority=self.ra,
-            registrationDate=timezone.localtime(timezone.now()),
+            registrationDate=timezone.now(),
             state=STATES.preferred
         )
 
-        self.assertTrue(perms.user_can_change_status(self.registrar, self.item1))
-        self.assertTrue(perms.user_can_change_status(self.registrar, self.item2))
+        self.assertTrue(perms.user_can_add_status(self.registrar, self.item1))
+        self.assertTrue(perms.user_can_add_status(self.registrar, self.item2))
 
         response = self.review_changes(items, STATES.standard)
         self.assertTrue(response.context['deselections'])
@@ -424,7 +424,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         items = [self.item1.id]
         self.create_review_request(items)
 
-        self.assertTrue(perms.user_can_change_status(self.registrar, self.item1))
+        self.assertTrue(perms.user_can_add_status(self.registrar, self.item1))
 
         response = self.review_changes(items, STATES.standard)
         self.assertFalse(response.context['deselections'])
@@ -498,8 +498,8 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         self.login_registrar()
         self.make_review_request(self.item1, self.registrar)
 
-        self.assertTrue(perms.user_can_change_status(self.registrar, self.item1))
-        self.assertFalse(perms.user_can_change_status(self.registrar, self.item4))
+        self.assertTrue(perms.user_can_add_status(self.registrar, self.item1))
+        self.assertFalse(perms.user_can_add_status(self.registrar, self.item4))
         self.assertFalse(self.item1.is_registered)
         self.assertFalse(self.item2.is_registered)
         self.assertFalse(self.item4.is_registered)

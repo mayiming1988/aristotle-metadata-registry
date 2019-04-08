@@ -1,17 +1,7 @@
 from django.views.generic import TemplateView
 from aristotle_mdr import models as MDR
 from aristotle_mdr.views.utils import SimpleItemGet
-from django.shortcuts import redirect, get_object_or_404
-from django.http import HttpResponseRedirect, JsonResponse
-from aristotle_mdr.contrib.links.utils import get_links_for_concept
-from aristotle_mdr_api.v4.concepts.serializers import ConceptSerializer, SupersedeRelationshipSerialiser
-from rest_framework.renderers import JSONRenderer
-import logging
-from django.db.models import Q
-from aristotle_mdr.models import SupersedeRelationship
-import collections
-
-logger = logging.getLogger(__name__)
+from aristotle_mdr.utils import is_active_extension
 
 
 class ItemGraphView(TemplateView, SimpleItemGet):
@@ -29,4 +19,5 @@ class ItemGraphView(TemplateView, SimpleItemGet):
         context['activetab'] = 'graphs'
         context['hide_item_actions'] = True
         context['item'] = self.item.item
+        context['links_active'] = is_active_extension('aristotle_mdr_links')
         return context

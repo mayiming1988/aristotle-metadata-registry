@@ -73,7 +73,7 @@
         {% if dict.help %}<p>{% relink dict.help 'brief' %}</p>{% endif %}
         {% for i in dict.items %} 
             <div id='{{i.id}}'>
-                {% include i|template_path:'html,inline' with item=i header='h3' only %}
+                {% include i|template_path:'html,inline' with item=i header='h3' user=user only %}
             </div>
         {% endfor %}
     </div>

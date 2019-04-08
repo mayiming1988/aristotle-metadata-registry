@@ -37,7 +37,7 @@ class SuperuserPermissions(TestCase):
         wg = models.Workgroup.objects.create(name="Test WG", stewardship_organisation=self.steward_org_1)
         self.assertTrue(perms.user_is_workgroup_manager(self.su,wg))
     def test_can_change_status(self):
-        self.assertTrue(perms.user_can_change_status(self.su,None))
+        self.assertTrue(perms.user_can_add_status(self.su,None))
     def test_can_edit(self):
         self.assertTrue(perms.user_can_edit(self.su,None))
     def test_in_workgroup(self):
