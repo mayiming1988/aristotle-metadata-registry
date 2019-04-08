@@ -370,6 +370,7 @@ class PermissionSearchForm(TokenSearchForm):
 
         TODO: This might not scale well, so it may need to be looked at in production.
     """
+    # Use short names to reduce URL length
     mq=forms.ChoiceField(
         required=False,
         initial=QUICK_DATES.anytime,
@@ -402,9 +403,6 @@ class PermissionSearchForm(TokenSearchForm):
         label="Created before date",
         widget=BootstrapDateTimePicker(options=datePickerOptions)
     )
-
-    # Use short singular names
-    # ras = [(ra.id, ra.name) for ra in MDR.RegistrationAuthority.objects.all()]
     ra = forms.MultipleChoiceField(
         required=False, label=_("Registration authority"),
         choices=[], widget=BootstrapDropdownSelectMultiple
@@ -413,6 +411,7 @@ class PermissionSearchForm(TokenSearchForm):
         required=False, initial=SORT_OPTIONS.natural,
         choices=SORT_OPTIONS, widget=BootstrapDropdownSelect
     )
+
     from aristotle_mdr.search_indexes import BASE_RESTRICTION
     res = forms.ChoiceField(
         required=False, initial=None,
@@ -443,19 +442,16 @@ class PermissionSearchForm(TokenSearchForm):
         required=False,
         label='Results per page'
     )
-
     # Hidden Workgroup field that is not rendered in the template,
     # label is required for faceting display
     wg = forms.IntegerField(required=False,
                             label="Workgroup")
-
     # Hidden Stewardship Organisation field that is not rendered in the template,
     # label is required for faceting display
-
     sa = forms.IntegerField(required=False,
                             label="Stewardship Organisation")
 
-    # Pull filters from the form fields
+    # Filters that are to be applied
     filters = "models mq cq cds cde mds mde state ra res wg sa".split()
 
     def __init__(self, *args, **kwargs):
@@ -539,16 +535,17 @@ class PermissionSearchForm(TokenSearchForm):
             public_only=self.cleaned_data['public_only'],
             user_workgroups_only=self.cleaned_data['myWorkgroups_only']
         )
+        # TODO: Workgroup None returns all values
 
         if workgroup is not None:
-            # Apply the stewardship organisation filter
+            # Apply the workgroup id filter
             sqs = sqs.filter(workgroup=workgroup)
 
         if stewardship_organisation is not None:
             # Apply the stewardship organisation filter
             sqs = sqs.filter(stewardship_organisation=stewardship_organisation)
 
-        # F for facets
+        # f for facets
         extra_facets_details = {}
         facets_opts = self.request.GET.getlist('f', [])
 
@@ -688,6 +685,7 @@ class PermissionSearchForm(TokenSearchForm):
                             )
                         id_to_item[id] = (name, count)
                     self.facets['fields'][facet] = id_to_item
+
 
         return sqs
 
