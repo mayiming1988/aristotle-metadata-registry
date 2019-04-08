@@ -29,7 +29,7 @@ class UserType(DjangoObjectType):
 
 
 class SingleUserQuery(graphene.ObjectType):
-    "Returns the current authenticated user"
+    """Returns the current authenticated user"""
     user = graphene.Field(UserType)
 
     def resolve_user(self, info, **kwargs):

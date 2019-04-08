@@ -14,8 +14,8 @@ class TokenAuthMixin:
     check_read_only: bool = False
 
     def dispatch(self, request, *args, **kwargs):
-        if 'AUTHORIZATION' in request.META:
-            auth_header = request.META['AUTHORIZATION']
+        if 'HTTP_AUTHORIZATION' in request.META:
+            auth_header = request.META['HTTP_AUTHORIZATION']
             if auth_header.startswith(self.header_prefix):
                 token = auth_header[len(self.header_prefix):]
                 try:

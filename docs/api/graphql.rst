@@ -15,7 +15,7 @@ Usage from external applications
 To query GraphQL from external applications you should use the ``/api/graphql/json`` endpoint. 
 You can use a GET request with the query and optional JSON encoded variables parmaters for example:
 
-/api/graphql/external?query={metadata{edges{node{uuid}}}}&variables=" optional JSON encoded variables "
+/api/graphql/json?query={metadata{edges{node{uuid}}}}&variables=" optional JSON encoded variables "
 
 Or you can make a POST request with either JSON or direct GraphQL. JSON must be submitted with the ``application/json`` content type and be in the following form with variables being optional.
 
@@ -34,5 +34,5 @@ Authentication
 --------------
 
 By default the GraphQL endpoint will provide only public content. 
-To access private content a token must be provided in the Authenticate header in the form ``Token mytoken``. 
+To access private content a token must be provided in the Authorization header in the form ``Token mytoken``.
 These tokens can be created from the token management page accessible from ``/api/``
