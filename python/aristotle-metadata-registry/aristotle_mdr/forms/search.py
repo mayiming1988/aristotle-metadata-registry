@@ -193,7 +193,6 @@ class PermissionSearchQuerySet(SearchQuerySet):
 
     def apply_registration_status_filters(self, states=[], ras=[]):
         """
-
         :param states:
         :param ras:
         :return: SearchQuerySet
@@ -211,6 +210,8 @@ class PermissionSearchQuerySet(SearchQuerySet):
             terms = ["%s___%s" % (str(r), str(s)) for r in ras for s in states]
             sqs = sqs.filter(ra_statuses__in=terms)
         return sqs
+
+
 
 
 class TokenSearchForm(FacetedSearchForm):
@@ -271,6 +272,7 @@ class TokenSearchForm(FacetedSearchForm):
 
                 # Make sure arg isnt blank
                 if arg:
+                    logger.critical("Token arg" + str(arg))
                     if opt in self.token_shortnames:
                         opt = self.token_shortnames[opt]
 
@@ -354,8 +356,6 @@ class TokenSearchForm(FacetedSearchForm):
 
 datePickerOptions = {
     "format": "YYYY-MM-DD",
-    # "pickTime": False,
-    # "pickDate": True,
     "defaultDate": "",
     "useCurrent": False,
 }
@@ -366,6 +366,7 @@ class PermissionSearchForm(TokenSearchForm):
         We need to make a new form as permissions to view objects are a bit finicky.
         This form allows us to perform the base query then restrict it to just those
         of interest.
+
 
         TODO: This might not scale well, so it may need to be looked at in production.
     """
@@ -442,10 +443,20 @@ class PermissionSearchForm(TokenSearchForm):
         required=False,
         label='Results per page'
     )
-    # F for facet!
-    # searchqueryset = PermissionSearchQuerySet
 
-    filters = "models mq cq cds cde mds mde state ra res".split()
+    # Hidden Workgroup field that is not rendered in the template,
+    # label is required for faceting display
+    wg = forms.IntegerField(required=False,
+                            label="Workgroup")
+
+    # Hidden Stewardship Organisation field that is not rendered in the template,
+    # label is required for faceting display
+
+    sa = forms.IntegerField(required=False,
+                            label="Stewardship Organisation")
+
+    # Pull filters from the form fields
+    filters = "models mq cq cds cde mds mde state ra res wg sa".split()
 
     def __init__(self, *args, **kwargs):
         if 'searchqueryset' not in kwargs.keys() or kwargs['searchqueryset'] is None:
@@ -454,7 +465,7 @@ class PermissionSearchForm(TokenSearchForm):
             raise ImproperlyConfigured("Aristotle Search Queryset connection must be a subclass of PermissionSearchQuerySet")
         super().__init__(*args, **kwargs)
 
-        # Show visible workgroups ordered by active state and name
+        # Populate choice of Registration Authorities ordered by active state and name
         # Inactive last
         self.fields['ra'].choices = [(ra.id, ra.name) for ra in MDR.RegistrationAuthority.objects.filter(active__in=[0, 1]).order_by('active', 'name')]
 
@@ -485,8 +496,12 @@ class PermissionSearchForm(TokenSearchForm):
 
     @property
     def applied_filters(self):
+        """
+        :return: The filters appearing in the URL that are applied
+        """
         if not hasattr(self, 'cleaned_data'):
             return []
+        logger.critical("self.filters = " + str([f for f in self.filters if self.cleaned_data.get(f, False)]))
         return [f for f in self.filters if self.cleaned_data.get(f, False)]
 
     def search(self, repeat_search=False):
@@ -496,6 +511,7 @@ class PermissionSearchForm(TokenSearchForm):
             sqs = sqs.models(*self.get_models())
         self.repeat_search = repeat_search
 
+        # Is there no filter and no query -> no search was performed
         has_filter = self.kwargs or self.token_models or self.applied_filters
         if not has_filter and not self.query_text:
             return self.no_query_found()
@@ -509,8 +525,11 @@ class PermissionSearchForm(TokenSearchForm):
         states = self.cleaned_data.get('state', None)
         ras = self.cleaned_data.get('ra', None)
         restriction = self.cleaned_data['res']
-        sqs = sqs.apply_registration_status_filters(states, ras)
+        workgroup = self.cleaned_data.get('wg', None)
+        stewardship_organisation = self.cleaned_data.get('sa', None)
 
+        # Apply the filters
+        sqs = sqs.apply_registration_status_filters(states, ras)
         if restriction:
             sqs = sqs.filter(restriction=restriction)
 
@@ -521,6 +540,15 @@ class PermissionSearchForm(TokenSearchForm):
             user_workgroups_only=self.cleaned_data['myWorkgroups_only']
         )
 
+        if workgroup is not None:
+            # Apply the stewardship organisation filter
+            sqs = sqs.filter(workgroup=workgroup)
+
+        if stewardship_organisation is not None:
+            # Apply the stewardship organisation filter
+            sqs = sqs.filter(stewardship_organisation=stewardship_organisation)
+
+        # F for facets
         extra_facets_details = {}
         facets_opts = self.request.GET.getlist('f', [])
 

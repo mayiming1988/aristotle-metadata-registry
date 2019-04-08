@@ -291,7 +291,8 @@
                 <dt>Stewardship Organisation</dt>
                 {% for id, item in form.facets.fields.stewardship_organisation.items %}
                 <dd>
-                    {{ item.0|title }}
+                    <a href="?{{ request|remove_query_params:'page' }}&amp;ra={{ id|urlencode }}">
+                        {{ item.0 }}</a>
                     ({{ item.1 }})
                 </dd>
                 {% endfor %}

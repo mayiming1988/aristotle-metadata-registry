@@ -104,19 +104,13 @@ class conceptIndex(baseObjectIndex):
     identifier = indexes.MultiValueField()
     namespace = indexes.MultiValueField()
     published_date_public = indexes.DateTimeField(null=True)
-    # TODO : rewrite into prepare_function?
     stewardship_organisation = indexes.IntegerField(faceted=True, model_attr="stewardship_organisation__id")
 
     template_name = "search/searchItem.html"
 
     rendered_badge = indexes.CharField(indexed=False)
 
-
-
-
-
-    """Preperation functions for Haystack"""
-
+    # Preparation functions for Haystack
     def prepare_rendered_badge(self, obj):
 
         t = loader.get_template('search/badge.html')
