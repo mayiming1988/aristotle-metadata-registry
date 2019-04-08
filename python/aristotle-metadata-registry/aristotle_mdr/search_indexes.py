@@ -67,7 +67,7 @@ class baseObjectIndex(indexes.SearchIndex):
     def index_queryset(self, using=None):
         """Used when the entire index for model is updated."""
 
-        return self.get_model().objects.filter(modified__lte=timezone.localtime(timezone.now()))
+        return self.get_model().objects.filter(modified__lte=timezone.now())
 
     # def have_access(self, obj):
     #    for user in obj.viewers.users():

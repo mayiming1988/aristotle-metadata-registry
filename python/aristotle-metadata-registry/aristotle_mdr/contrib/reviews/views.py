@@ -270,7 +270,7 @@ class ReviewAcceptView(ReviewStatusChangeBase):
         old_items = [s.older_item.id for s in sups]
 
         if not regDate:
-            regDate = timezone.localtime(timezone.now()).date()
+            regDate = timezone.now().date()
 
         # Set all old items to the Superseded status
         register_items.delay(
