@@ -451,7 +451,7 @@ class PermissionSearchForm(TokenSearchForm):
                             label="Stewardship Organisation")
 
     # Filters that are to be applied
-    filters = "models mq cq cds cde mds mde state ra res wg sa".split()
+    filters = ["models", "mq", "cq", "cds", "cde", "mds", "mde", "state", "ra", "res", "wg", "sa"]
 
     def __init__(self, *args, **kwargs):
         if 'searchqueryset' not in kwargs.keys() or kwargs['searchqueryset'] is None:
@@ -533,7 +533,6 @@ class PermissionSearchForm(TokenSearchForm):
             public_only=self.cleaned_data['public_only'],
             user_workgroups_only=self.cleaned_data['myWorkgroups_only']
         )
-        # TODO: Workgroup None returns all values
 
         if workgroup is not None:
             # We don't want to filter on a non-existent field
@@ -668,7 +667,6 @@ class PermissionSearchForm(TokenSearchForm):
                     'workgroup': MDR.Workgroup,
                     'facet_model_ct': ContentType,
                 }
-
             for facet in self.facets['fields'].keys():
                 if facet in model_types.keys():
                     # Facet is for a model that must be looked up from the database
@@ -685,7 +683,6 @@ class PermissionSearchForm(TokenSearchForm):
                     self.facets['fields'][facet] = id_to_item
 
         return sqs
-
 
     def check_spelling(self, sqs):
         if self.query_text:

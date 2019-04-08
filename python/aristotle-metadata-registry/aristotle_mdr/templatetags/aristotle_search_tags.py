@@ -31,21 +31,25 @@ def search_describe_filters(search_form):
     Takes a search form and returns a user friendly
     textual description of the filters.
     """
-
     out = ""
     if search_form.applied_filters:
         filter_texts = []
-        for f in search_form.applied_filters:
-            val = search_form.cleaned_data.get(f)
-            field = search_form.fields.get(f)
+        for filter in search_form.applied_filters:
+            # Get the applied filters
+            val = search_form.cleaned_data.get(filter)
+            field = search_form.fields.get(filter)
 
             if field.label is None:
                 continue
             if hasattr(field, 'choices'):
-                preamble = _('%s is') % field.label
+                # If we can map value to choice
+                preamble = _('%s is') % field.label  # Showing only items where label is id
                 try:
                     choices = dict(field.choices)
+                    logger.debug("Choices are " + str(choices))
                     opts = [choices[x] for x in val]
+                    if opts:
+                        logger.debug("Options are" + str(opts))
                 except KeyError:
                     choices = dict([(str(k), v) for k, v in field.choices])
                     opts = [choices[x] for x in val]
@@ -57,9 +61,30 @@ def search_describe_filters(search_form):
                     verbed = str(opts[0])
                 filter_texts.append('%s %s' % (preamble, verbed))
             else:
+                # If we can't map the value to choice
+                # Unfortunately we need to perform the id lookup here because as you click through the facets,
+                # the selected facet disappears
                 preamble = _('%s is') % field.label
-                verbed = str(val)
-                filter_texts.append('%s %s' % (preamble, verbed))
+                id = val
+                from django.contrib.contenttypes.models import ContentType
+                model_type = {
+                    'ra': MDR.RegistrationAuthority,
+                    'wg': MDR.Workgroup,
+                    'ct': ContentType,
+                    'sa': MDR.StewardOrganisation,
+                }.get(filter, None)
+                item = None
+                if model_type and id:
+                    # Related to https://github.com/aristotle-mdr/aristotle-metadata-registry/pull/343
+                    # This fails sometimes on Postgres in *tests only*... so far.
+                    item = model_type.objects.filter(pk=int(id)).first()
+                    if item is None:
+                        logger.warning(
+                            "Warning: Failed to find item type [%s] with id [%s]" % (model_type, id)
+                        )
+
+                filter_texts.append('%s %s' % (preamble, item))
+
         if len(filter_texts) > 1:
             out = "; ".join([str(o) for o in filter_texts][:-1])
             out += _(' and %s') % str(filter_texts[-1])
