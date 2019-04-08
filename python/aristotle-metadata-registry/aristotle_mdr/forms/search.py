@@ -272,7 +272,6 @@ class TokenSearchForm(FacetedSearchForm):
 
                 # Make sure arg isnt blank
                 if arg:
-                    logger.critical("Token arg" + str(arg))
                     if opt in self.token_shortnames:
                         opt = self.token_shortnames[opt]
 
@@ -497,7 +496,6 @@ class PermissionSearchForm(TokenSearchForm):
         """
         if not hasattr(self, 'cleaned_data'):
             return []
-        logger.critical("self.filters = " + str([f for f in self.filters if self.cleaned_data.get(f, False)]))
         return [f for f in self.filters if self.cleaned_data.get(f, False)]
 
     def search(self, repeat_search=False):
@@ -538,8 +536,10 @@ class PermissionSearchForm(TokenSearchForm):
         # TODO: Workgroup None returns all values
 
         if workgroup is not None:
-            # Apply the workgroup id filter
-            sqs = sqs.filter(workgroup=workgroup)
+            # We don't want to filter on a non-existent field
+            # Must filter exactly
+            sqs = sqs.filter(workgroup__exact=workgroup)
+
 
         if stewardship_organisation is not None:
             # Apply the stewardship organisation filter
@@ -589,7 +589,6 @@ class PermissionSearchForm(TokenSearchForm):
         # Add filters that are also facets to Search Query Set
         for _filter, facet in filters_to_facets.items():
             if _filter not in self.applied_filters:
-                # Don't do this: sqs = sqs.facet(facet, sort='count')
                 sqs = sqs.facet(facet)
 
         logged_in_facets = {
@@ -663,7 +662,6 @@ class PermissionSearchForm(TokenSearchForm):
 
             # Perform id to object lookup
             from django.contrib.contenttypes.models import ContentType
-
             model_types = {
                     'stewardship_organisation': MDR.StewardOrganisation,
                     'registrationAuthorities': MDR.RegistrationAuthority,
@@ -685,7 +683,6 @@ class PermissionSearchForm(TokenSearchForm):
                             )
                         id_to_item[id] = (name, count)
                     self.facets['fields'][facet] = id_to_item
-
 
         return sqs
 
