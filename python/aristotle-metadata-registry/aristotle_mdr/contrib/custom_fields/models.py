@@ -32,6 +32,9 @@ class CustomField(TimeStampedModel):
     class Meta:
         ordering = ['order']
 
+    def __str__(self):
+        return self.name
+
     @property
     def hr_type(self):
         """Human readable type"""
