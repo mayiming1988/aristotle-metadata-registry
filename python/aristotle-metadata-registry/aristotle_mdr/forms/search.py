@@ -636,6 +636,7 @@ class PermissionSearchForm(TokenSearchForm):
                 self.facets['fields'][facet] = sorted(counts, key=lambda x: -x[1])[:10]
 
 
+            # Perform id to object lookup
             from django.contrib.contenttypes.models import ContentType
 
             model_types = {
@@ -659,6 +660,7 @@ class PermissionSearchForm(TokenSearchForm):
                             )
                         id_to_item[id] = (name, count)
                     self.facets['fields'][facet] = id_to_item
+
         return sqs
 
 

@@ -128,6 +128,7 @@ class conceptIndex(baseObjectIndex):
 
         return list(set(ras_stats + ras_reqs))
 
+
     def prepare_is_public(self, obj):
         return obj.is_public()
 

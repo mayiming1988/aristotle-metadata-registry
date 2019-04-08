@@ -68,35 +68,6 @@ def search_describe_filters(search_form):
 
     return out
 
-
-@register.filter
-def get_item_from_facet(_type, _id):
-    from django.contrib.contenttypes.models import ContentType
-
-    model_type = {
-        'sa': MDR.StewardOrganisation,
-        'ra': MDR.RegistrationAuthority,
-        'wg': MDR.Workgroup,
-        'ct': ContentType,
-    }.get(_type, None)
-
-    item = None
-
-    if model_type and _id:
-        # Related to https://github.com/aristotle-mdr/aristotle-metadata-registry/pull/343
-        # This fails sometimes on Postgres in *tests only*... so far.
-        item = model_type.objects.filter(pk=int(_id)).first()
-        if item is None:
-            logger.warning(
-                "Warning: Failed to find item type [%s] with id [%s]" % (model_type, _id)
-            )
-            item = {
-                'name': 'None',
-                'id': _id
-            }
-    return item
-
-
 @register.filter
 def search_state_to_text(state):
     try:
