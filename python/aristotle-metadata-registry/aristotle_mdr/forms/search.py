@@ -165,7 +165,7 @@ class PermissionSearchQuerySet(SearchQuerySet):
         q = SQ(is_public=True)
         q |= SQ(published_date_public__lte=timezone.now())
         if user is None or user.is_anonymous():
-            # Regular users can only see public items, so boot them off now.
+            # Regular users can only see public items, so filter only on the public items.
             sqs = sqs.filter(q)
             return sqs
 
@@ -192,6 +192,12 @@ class PermissionSearchQuerySet(SearchQuerySet):
         return sqs
 
     def apply_registration_status_filters(self, states=[], ras=[]):
+        """
+
+        :param states:
+        :param ras:
+        :return: SearchQuerySet
+        """
         sqs = self
         if states and not ras:
             states = [int(s) for s in states]
@@ -463,7 +469,6 @@ class PermissionSearchForm(TokenSearchForm):
             if m[0].split('.', 1)[0] in fetch_metadata_apps() + ['aristotle_mdr_help']
         ]
 
-
     def get_models(self):
         """Return an alphabetical list of model classes in the index."""
         search_models = []
@@ -496,14 +501,13 @@ class PermissionSearchForm(TokenSearchForm):
             return self.no_query_found()
 
         if self.applied_filters and not self.query_text:  # and not self.kwargs:
-            # If there is a filter, but no query then we'll force some results.
+            # If there is a filter, but no query, then we'll force some results.
             sqs = self.searchqueryset.order_by('-modified')
             self.filter_search = True
             self.attempted_filter_search = True
 
         states = self.cleaned_data.get('state', None)
         ras = self.cleaned_data.get('ra', None)
-        stewardship_organisation = self.cleaned_data.get('stewardship_organisation', None)
         restriction = self.cleaned_data['res']
         sqs = sqs.apply_registration_status_filters(states, ras)
 
@@ -568,17 +572,15 @@ class PermissionSearchForm(TokenSearchForm):
             'res': 'restriction'
         }
 
-        # If user is logged in, add permisssioned facets to Search Query Sets
+        # If user is logged in, add permisssioned facets to Search Query Set
         if self.request.user.is_active:
             for _filter, facet in logged_in_facets.items():
                 if _filter not in self.applied_filters:
                     # Don't do this: sqs = sqs.facet(facet, sort='count')
                     sqs = sqs.facet(facet)
 
-
-
+        # For facets that will always appear on the sidebar, but are not part of the previous lists
         additional_hardcoded_facets = ['stewardship_organisation']
-
         for facet in additional_hardcoded_facets:
             sqs = sqs.facet(facet)
 
@@ -587,7 +589,6 @@ class PermissionSearchForm(TokenSearchForm):
         to Aristotle permissions. Excludes facets that have been previously been added.
         """
         extra_facets = []
-
         from aristotle_mdr.search_indexes import registered_indexes
         for model_index in registered_indexes:
             for name, field in model_index.fields.items():
@@ -609,6 +610,7 @@ class PermissionSearchForm(TokenSearchForm):
         # Generate facet content
         self.facets = sqs.facet_counts()
 
+        # Populate the extra facet fields
         if 'fields' in self.facets:
             self.extra_facet_fields = [
                 (k, {'values': sorted(v, key=lambda x: -x[1])[:10], 'details': extra_facets_details[k]})
@@ -633,7 +635,32 @@ class PermissionSearchForm(TokenSearchForm):
             for facet, counts in self.facets['fields'].items():
                 self.facets['fields'][facet] = sorted(counts, key=lambda x: -x[1])[:10]
 
+
+            from django.contrib.contenttypes.models import ContentType
+
+            model_types = {
+                    'stewardship_organisation': MDR.StewardOrganisation,
+                    'registrationAuthorities': MDR.RegistrationAuthority,
+                    'workgroup': MDR.Workgroup,
+                    'facet_model_ct': ContentType,
+                }
+
+            for facet in self.facets['fields'].keys():
+                if facet in model_types.keys():
+                    # Facet is for a model that must be looked up from the database
+                    item_type = model_types.get(facet)
+                    id_to_item = {}
+
+                    for id, count in self.facets['fields'][facet]:
+                        name = item_type.objects.filter(pk=int(id)).first()
+                        if name is None:
+                            logger.warning(
+                                "Warning: Failed to find item type [%s] with id [%s]" % (item_type, id)
+                            )
+                        id_to_item[id] = (name, count)
+                    self.facets['fields'][facet] = id_to_item
         return sqs
+
 
     def check_spelling(self, sqs):
         if self.query_text:
