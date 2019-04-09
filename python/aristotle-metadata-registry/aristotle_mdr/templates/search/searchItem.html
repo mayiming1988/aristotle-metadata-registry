@@ -1,19 +1,19 @@
 {% load util_tags humanize %}
 <div class="result">
-{% if object.id %}
-<a href="{% url 'aristotle:item' object.id %}">{{ object.name }}</a>
-{% endif %}
-<span class="item_type">({{ object.get_verbose_name }})</span>
-<p>
-    {{ object.definition|striptags|truncatewords:20 }}
-</p>
-<div class="attrs">
+    {% if object.id %}
+        <a href="{% url 'aristotle:item' object.id %}">{{ object.name }}</a>
+    {% endif %}
+    <span class="item_type">({{ object.get_verbose_name }})</span>
+    <p>
+        {{ object.definition|striptags|truncatewords:20 }}
+    </p>
+    <div class="attrs">
     <span class="attr">
         {# <span class="time">Created: <time datetime="{{ object.created|isotime }}">{{ object.created }}</time></span> #}
         <header class="time">Last modified:</header>
         <time datetime="{{ object.modified|isotime }}">{{ object.modified }}</time>
     </span>
-    <span class="attr">
+        <span class="attr">
         <header>Statuses:</header>
         {% for s in object.current_statuses.all %}
             [{{ s.registrationAuthority }}: {{ s.state_name }}]
@@ -21,5 +21,5 @@
         <em>Unregistered</em>
         {% endfor %}
     </span>
-</div>
+    </div>
 </div>
