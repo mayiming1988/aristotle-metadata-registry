@@ -8,7 +8,8 @@ type_choices = Choices(
     ('int', 'Integer'),
     ('str', 'Text'),
     ('html', 'Rich Text'),
-    ('date', 'Date')
+    ('date', 'Date'),
+    ('enum', 'Choice')
 )
 
 
@@ -28,5 +29,8 @@ type_field_mapping = {
     },
     'html': {
         'field': RichTextFormField
+    },
+    'enum': {
+        'field': forms.ChoiceField
     }
 }
