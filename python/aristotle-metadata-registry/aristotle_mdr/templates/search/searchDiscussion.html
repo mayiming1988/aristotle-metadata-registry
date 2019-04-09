@@ -1,17 +1,17 @@
 {% load util_tags humanize %}
 <div class="result">
-    {% if post.id %}
-        <a href="{% url 'aristotle:discussionPost' post.id %}">{{ post.title }}</a>
+    {% if obj.id %}
+        <a href="{% url 'aristotle:discussionsPost' obj.id %}">{{ discussion_post.title }}</a>
     {% endif %}
-    <span class="item_type">({{ post.title }})</span>
+    <span class="post_title">({{ discussion_post.title }})</span>
     <p>
-        {{ post.text|striptags|truncatechars:70 }}...
+        {{ discussion_post.body|truncatechars:70 }}...
     </p>
     <div class="attrs">
     <span class="attr">
-        {# <span class="time">Created: <time datetime="{{ post.created|isotime }}">{{ post.created }}</time></span> #}
+        {# <span class="time">Created: <time datetime="{{ discussion_post.created|isotime }}">{{ discussion_post.created }}</time></span> #}
         <header class="time">Last modified:</header>
-        <time datetime="{{ post.modified|isotime }}">{{ post.modified }}</time>
+        <time datetime="{{ discussion_post.modified|isotime }}">{{ discussion_post.modified }}</time>
     </span>
     </div>
 </div>
