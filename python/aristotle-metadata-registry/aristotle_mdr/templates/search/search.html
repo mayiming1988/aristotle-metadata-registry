@@ -424,6 +424,7 @@
         </form>
     </div>
     {# End facet sidebar #}
+    {# Begin main search results #}
     <div class="col-md-9">
         <form action="{% url 'aristotle:bulk_action' %}?next={{ request.get_full_path }}" method="POST">
             {% csrf_token %}

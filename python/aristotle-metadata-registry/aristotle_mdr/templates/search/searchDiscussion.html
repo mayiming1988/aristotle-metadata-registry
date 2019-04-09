@@ -1,26 +1,17 @@
-{# Display the discussion in search #}
 {% load util_tags humanize %}
 <div class="result">
-{% if object.id %}
-<a href="{% url 'aristotle:item' object.id %}">{{ object.name }}</a>
-{% endif %}
-<span class="item_type">({{ object.get_verbose_name }})</span>
-<p>
-    {{ object.definition|striptags|truncatewords:20 }}
-</p>
-<div class="attrs">
+    {% if post.id %}
+        <a href="{% url 'aristotle:discussionPost' post.id %}">{{ post.title }}</a>
+    {% endif %}
+    <span class="item_type">({{ post.title }})</span>
+    <p>
+        {{ post.text|striptags|truncatechars:70 }}...
+    </p>
+    <div class="attrs">
     <span class="attr">
-        {# <span class="time">Created: <time datetime="{{ object.created|isotime }}">{{ object.created }}</time></span> #}
+        {# <span class="time">Created: <time datetime="{{ post.created|isotime }}">{{ post.created }}</time></span> #}
         <header class="time">Last modified:</header>
-        <time datetime="{{ object.modified|isotime }}">{{ object.modified }}</time>
+        <time datetime="{{ post.modified|isotime }}">{{ post.modified }}</time>
     </span>
-    <span class="attr">
-        <header>Statuses:</header>
-        {% for s in object.current_statuses.all %}
-            [{{ s.registrationAuthority }}: {{ s.state_name }}]
-        {% empty %}
-        <em>Unregistered</em>
-        {% endfor %}
-    </span>
-</div>
+    </div>
 </div>
