@@ -200,10 +200,13 @@ class ConceptIndex(BaseObjectIndex):
 class DiscussionIndex(indexes.SearchIndex, indexes.Indexable):
     """ Index of Discussion posts """
     text = indexes.CharField(document=True, use_template=True)
-    title = indexes.CharField(model_attr='title')
-    body = indexes.CharField(model_attr='body')
+    name = indexes.CharField(model_attr='title')
+    discussion_body = indexes.CharField(model_attr='body')
     modified = indexes.DateTimeField(model_attr='modified')
     created = indexes.DateTimeField(model_attr='created')
+    workgroup = indexes.IntegerField(faceted=True)
+    django_ct_app_label = indexes.CharField()
+
 
     rendered_search_result = indexes.CharField(indexed=False)
 
@@ -217,8 +220,14 @@ class DiscussionIndex(indexes.SearchIndex, indexes.Indexable):
         logger.debug("Post render is: " +  t.render({'discussion_post': discussion_post}))
         return t.render({'discussion_post': discussion_post})
 
+    def prepare_workgroup(self, obj):
+        if obj.workgroup:
+            return int(obj.workgroup.id)
+        else:
+            return -99
+
     def get_model(self):
-            return models.DiscussionPost
+             return models.DiscussionPost
 
     def index_queryset(self, using=None):
         # When reindexing occurs

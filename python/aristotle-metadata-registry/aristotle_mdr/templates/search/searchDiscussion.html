@@ -1,7 +1,7 @@
 {% load util_tags humanize %}
 <div class="result">
-    {% if obj.id %}
-        <a href="{% url 'aristotle:discussionsPost' obj.id %}">{{ discussion_post.title }}</a>
+    {% if discussion_post.id %}
+        <a href="{% url 'aristotle:discussionsPost' discussion_post.id %}">{{ discussion_post.title }}</a>
     {% endif %}
     <span class="post_title">({{ discussion_post.title }})</span>
     <p>

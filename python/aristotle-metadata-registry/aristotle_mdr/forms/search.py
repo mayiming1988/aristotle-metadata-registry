@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
 
+
 QUICK_DATES = Choices(
     ('', 'anytime', _('Any time')),
     ('h', 'hour', _('Last hour')),
@@ -161,6 +162,9 @@ class PermissionSearchQuerySet(SearchQuerySet):
         return self.filter(django_ct__in=mods)
 
     def apply_permission_checks(self, user=None, public_only=False, user_workgroups_only=False):
+        """"
+        Apply permission checks by altering the SearchQuery
+        """
         sqs = self
         q = SQ(is_public=True)
         q |= SQ(published_date_public__lte=timezone.now())
@@ -252,13 +256,16 @@ class TokenSearchForm(FacetedSearchForm):
         try:
             query = self.cleaned_data.get('q')
         except:
+            # There was no query
             return {}
         opts = connections[DEFAULT_ALIAS].get_unified_index().fields.keys()
+        logger.debug("Options are " + str(opts))
         kwargs = {}
         query_text = []
         token_models = []
         boost_ups = []
         for word in query.split(" "):
+            # Boost the query words that start with +
             if word.startswith("+"):
                 boost_strength = min(4, len(word) - len(word.lstrip('+')))
                 boost_val = round(0.1 + 1.1 ** (boost_strength ** 1.35), 3)
@@ -272,6 +279,7 @@ class TokenSearchForm(FacetedSearchForm):
 
                 # Make sure arg isnt blank
                 if arg:
+                    logger.debug("Args are" + arg)
                     if opt in self.token_shortnames:
                         opt = self.token_shortnames[opt]
 
@@ -324,11 +332,14 @@ class TokenSearchForm(FacetedSearchForm):
             return self.no_query_found()
 
         if self.query_text:
+            # If there is query text
             # Search on text (which is the document) and name fields (so name can be boosted)
             sqs = self.searchqueryset.filter(
                 SQ(text=AutoQuery(self.query_text)) | SQ(name=AutoQuery(self.query_text))
             )
+
         else:
+            # Don't search
             sqs = self.searchqueryset
 
         if self.token_models:
@@ -342,10 +353,11 @@ class TokenSearchForm(FacetedSearchForm):
         if self.load_all:
             sqs = sqs.load_all()
 
-        # Only show models that are in apps that are enabled
+        # TODO: double check problem code here
+        # Filtering
         app_labels = fetch_metadata_apps()
         app_labels.append('aristotle_mdr_help')
-        sqs = sqs.filter(django_ct_app_label__in=app_labels)
+        # sqs = sqs.filter(django_ct_app_label__in=app_labels)
 
         return sqs
 
@@ -465,6 +477,7 @@ class PermissionSearchForm(TokenSearchForm):
         self.fields['ra'].choices = [(ra.id, ra.name) for ra in MDR.RegistrationAuthority.objects.filter(active__in=[0, 1]).order_by('active', 'name')]
 
         # List of app labels for default search
+        logger.debug("Model choices are " + str(model_choices()))
         self.default_models = [
             m[0] for m in model_choices()
             if m[0].split('.', 1)[0] in fetch_metadata_apps()
@@ -501,6 +514,9 @@ class PermissionSearchForm(TokenSearchForm):
     def search(self, repeat_search=False):
         # First, store the SearchQuerySet received from other processing.
         sqs = super().search()
+        return sqs
+        logger.debug("Tokens models are" + str(self.token_models))
+        logger.debug("Self.get_models" + str(self.get_models()))
         if not self.token_models and self.get_models():
             sqs = sqs.models(*self.get_models())
         self.repeat_search = repeat_search
@@ -516,6 +532,7 @@ class PermissionSearchForm(TokenSearchForm):
             self.filter_search = True
             self.attempted_filter_search = True
 
+        # Get filter data from query
         states = self.cleaned_data.get('state', None)
         ras = self.cleaned_data.get('ra', None)
         restriction = self.cleaned_data['res']
