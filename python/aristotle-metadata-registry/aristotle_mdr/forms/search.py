@@ -714,11 +714,16 @@ class PermissionSearchForm(TokenSearchForm):
                     else:
                         suggested_query.append(token)
                     suggestions.append((token, suggestion))
+
             if optimal_query != original_query:
-                self.spelling_suggestions = suggestions
-                self.has_spelling_suggestions = has_suggestions
-                self.original_query = self.cleaned_data.get('q')
-                self.suggested_query = quote_plus(' '.join(suggested_query), safe="")
+                if optimal_query == original_query.lower():
+                    # If the suggested query is the same query but in lowercase, don't suggest it
+                    self.has_spelling_suggestions = False
+                else:
+                    self.spelling_suggestions = suggestions
+                    self.has_spelling_suggestions = has_suggestions
+                    self.original_query = self.cleaned_data.get('q')
+                    self.suggested_query = quote_plus(' '.join(suggested_query), safe="")
 
     def apply_date_filtering(self, sqs):
         modify_quick_date = self.cleaned_data['mq']

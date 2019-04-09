@@ -37,7 +37,7 @@ class ConceptFallbackCharField(indexes.CharField):
             return t.render({'object': obj})
 
 
-class baseObjectIndex(indexes.SearchIndex):
+class BaseObjectIndex(indexes.SearchIndex):
     text = ConceptFallbackCharField(document=True, use_template=True)
     modified = indexes.DateTimeField(model_attr='modified')
     created = indexes.DateTimeField(model_attr='created')
@@ -63,33 +63,13 @@ class baseObjectIndex(indexes.SearchIndex):
     def get_model(self):
         raise NotImplementedError  # pragma: no cover -- This should always be overridden
 
-    # From http://unfoldthat.com/2011/05/05/search-with-row-level-permissions.html
     def index_queryset(self, using=None):
         """Used when the entire index for model is updated."""
 
         return self.get_model().objects.filter(modified__lte=timezone.now())
 
-    # def have_access(self, obj):
-    #    for user in obj.viewers.users():
-    #        yield user
 
-    #    for group in obj.viewers.groups():
-    #        yield group
-
-    # def prepare_access(self, obj):
-    #    def _access_iter(obj):
-    #        have_access = self.have_access(obj)
-    #
-    #        for obj in have_access:
-    #            if isinstance(obj, User):
-    #                yield 'user_%i' % obj.id
-    #            elif isinstance(obj, Group):
-    #                yield 'group_%i' % obj.id
-    #
-    #    return list(_access_iter(obj))
-
-
-class conceptIndex(baseObjectIndex):
+class ConceptIndex(BaseObjectIndex):
     uuid = indexes.CharField(model_attr='uuid')
     statuses = indexes.MultiValueField(faceted=True)
     highest_state = indexes.IntegerField()
@@ -110,7 +90,7 @@ class conceptIndex(baseObjectIndex):
 
     rendered_badge = indexes.CharField(indexed=False)
 
-    # Preparation functions for Haystack
+    # Preparation functions for conceptIndex
     def prepare_rendered_badge(self, obj):
 
         t = loader.get_template('search/badge.html')
@@ -192,3 +172,33 @@ class conceptIndex(baseObjectIndex):
         record = obj.concept.publication_details.filter(permission=visibility_permission_choices.public).first()
         if record:
             return record.publication_date
+
+
+
+# class BaseCommunicationsIndex(indexes.SearchIndex, indexes.Indexable):
+#     text = indexes.CharField(document=True)
+
+
+class DiscussionIndex(indexes.SearchIndex, indexes.Indexable):
+    text = indexes.CharField(document=True, use_template=True)
+    modified = indexes.DateTimeField(model_attr='modified')
+    created = indexes.DateTimeField(model_attr='created')
+
+    rendered_search_result = indexes.CharField(indexed=False)
+
+
+    template_name = "search/searchDiscussion"
+
+    def prepare_rendered_search_result(self, obj):
+
+        t = loader.get_template(self.template_name)
+        return t.render({'object': obj})
+
+    def get_model(self):
+            return models.DiscussionPost
+
+    def index_queryset(self, using=None):
+        # When reindexing occurs
+        return self.get_model().objects.filter(modified__lte=timezone.now())
+
+

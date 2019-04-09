@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
 
-from aristotle_mdr.search_indexes import conceptIndex
+from aristotle_mdr.search_indexes import ConceptIndex
 
 import aristotle_mdr.search_indexes as search_index
 
@@ -89,7 +89,7 @@ def create(cls):
     if hasattr(settings, 'HAYSTACK_BASE_INDEX_CLASS'):
         base_index_class = import_string(settings.HAYSTACK_BASE_INDEX_CLASS)
     else:
-        base_index_class = conceptIndex
+        base_index_class = ConceptIndex
 
     class SubclassedConceptIndex(base_index_class, indexes.Indexable):
         def get_model(self):
