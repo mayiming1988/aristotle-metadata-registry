@@ -53,7 +53,7 @@ def type_from_concept_model(meta_model, filter_fields=None, extra_filter_fields=
 
     modelname = meta_model.__name__
     new_modelname = modelname + 'Node'
-    description =  dedent(meta_model.__doc__)
+    description = dedent(meta_model.__doc__)
     _filter_fields = {
         'name': ['exact', 'icontains', 'iexact'],
         'uuid': ['exact']
@@ -71,7 +71,7 @@ def type_from_concept_model(meta_model, filter_fields=None, extra_filter_fields=
         model=meta_model,
         description=description,
         filter_fields=_filter_fields,
-        interfaces = (graphene.relay.Node, ),
+        interfaces=(graphene.relay.Node, ),
         default_resolver= resolver,
     ))
 
