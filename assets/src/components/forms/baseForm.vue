@@ -1,19 +1,19 @@
 <template>
     <div class="vue-form" :class="{'row': inline}">
-        <slot name="before"></slot>
-        <bsFieldWrapper v-for="(fielddata, name) in fields" :key="name" :name="name" :label="fielddata.label" :displayLabel="showLabels" :hasErrors="hasErrors(name)" :column="inline">
-            <singleError :feErrors="getFrontendError(name)" :beErrors="getBackendErrors(name)"></singleError>
-                <formField 
+        <slot name="before" />
+        <bsFieldWrapper v-for="(fielddata, name) in fields" :key="name" :name="name" :label="fielddata.label" :display-label="showLabels" :has-errors="hasErrors(name)" :column="inline">
+            <singleError :fe-errors="getFrontendError(name)" :be-errors="getBackendErrors(name)" />
+            <formField 
                 :tag="fielddata.tag" 
                 :name="name" 
-                :fieldClass="getFieldClass(fielddata.class)"
+                :field-class="getFieldClass(fielddata.class)"
                 :placeholder="placeholder(name)"
                 :options="fielddata.options"
                 :value="value[name]" 
-                @input="fieldInput(name, $event)">
-                </formField>
+                @input="fieldInput(name, $event)"
+            />
         </bsFieldWrapper>
-        <slot name="after"></slot>
+        <slot name="after" />
     </div>
 </template>
 
