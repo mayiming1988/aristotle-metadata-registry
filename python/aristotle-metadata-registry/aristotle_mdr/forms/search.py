@@ -353,10 +353,9 @@ class TokenSearchForm(FacetedSearchForm):
         if self.load_all:
             sqs = sqs.load_all()
 
-        # TODO: double check problem code here
-        # Filtering
         app_labels = fetch_metadata_apps()
         app_labels.append('aristotle_mdr_help')
+        # TODO: Do we even need this?
         # sqs = sqs.filter(django_ct_app_label__in=app_labels)
 
         return sqs
@@ -514,9 +513,6 @@ class PermissionSearchForm(TokenSearchForm):
     def search(self, repeat_search=False):
         # First, store the SearchQuerySet received from other processing.
         sqs = super().search()
-        return sqs
-        logger.debug("Tokens models are" + str(self.token_models))
-        logger.debug("Self.get_models" + str(self.get_models()))
         if not self.token_models and self.get_models():
             sqs = sqs.models(*self.get_models())
         self.repeat_search = repeat_search
