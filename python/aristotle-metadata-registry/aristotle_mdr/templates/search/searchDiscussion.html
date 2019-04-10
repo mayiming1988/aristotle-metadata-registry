@@ -1,17 +1,18 @@
 {% load util_tags humanize %}
+{% load aristotle_search_tags %}
 <div class="result">
     {% if discussion_post.id %}
-        <a href="{% url 'aristotle:discussionsPost' discussion_post.id %}">{{ discussion_post.title }}</a>
+        <a href="{% url 'aristotle:discussionsPost' discussion_post.id %}">{{ discussion_post.title}}</a>
     {% endif %}
-    <span class="post_title">({{ discussion_post.title }})</span>
+    <span class="post_title">(Discussion Post)</span>
     <p>
-        {{ discussion_post.body|truncatechars:70 }}...
+        {{ discussion_post.body|add_ellipsis_if_truncated:70}}
     </p>
     <div class="attrs">
     <span class="attr">
-        {# <span class="time">Created: <time datetime="{{ discussion_post.created|isotime }}">{{ discussion_post.created }}</time></span> #}
-        <header class="time">Last modified:</header>
-        <time datetime="{{ discussion_post.modified|isotime }}">{{ discussion_post.modified }}</time>
+        <span class="time">Created: <time datetime="{{ discussion_post.created|isotime }}">{{ discussion_post.created }}
+        </time></span>
+        <header class="time">Last modified:</header><time datetime="{{ discussion_post.modified|isotime }}">{{ discussion_post.modified }}</time>
     </span>
     </div>
 </div>

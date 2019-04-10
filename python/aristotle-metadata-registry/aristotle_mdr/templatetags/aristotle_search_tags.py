@@ -149,3 +149,11 @@ def is_concept(result):
     from django.apps import apps
     kls = apps.get_model(app_label=result.app_label, model_name=result.model_name)
     return issubclass(kls, MDR._concept)
+
+@register.filter
+def add_ellipsis_if_truncated(text, truncate_at):
+    if len(text) > truncate_at:
+        return text[:truncate_at] + "..."
+    else:
+        return text
+

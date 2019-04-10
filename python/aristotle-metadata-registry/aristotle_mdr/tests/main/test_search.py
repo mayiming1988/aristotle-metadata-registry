@@ -23,6 +23,7 @@ import unittest
 setup_aristotle_test_environment()
 
 
+@tag('search')
 class TestSearch(utils.AristotleTestUtils, TestCase):
     def tearDown(self):
         call_command('clear_index', interactive=False, verbosity=0)
@@ -34,8 +35,11 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
         haystack.connections.reload('default')
 
         self.steward_org = models.StewardOrganisation.objects.create(name="Test SO")
-        self.ra = models.RegistrationAuthority.objects.create(name="Kelly Act", stewardship_organisation=self.steward_org)
-        self.ra1 = models.RegistrationAuthority.objects.create(name="Superhuman Registration Act", stewardship_organisation=self.steward_org) # Anti-registration!
+        self.ra = models.RegistrationAuthority.objects.create(name="Kelly Act",
+                                                              stewardship_organisation=self.steward_org)
+        self.ra1 = models.RegistrationAuthority.objects.create(name="Superhuman Registration Act",
+                                                               stewardship_organisation=self.steward_org)
+        # Anti-registration!
         self.registrar = get_user_model().objects.create_user('william.styker@weaponx.mil','mutantsMustDie')
         self.ra.giveRoleToUser('registrar',self.registrar)
         self.assertTrue(perms.user_is_registrar(self.registrar,self.ra))
@@ -44,7 +48,6 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
         self.xmen_wg = models.Workgroup.objects.create(name="X Men", stewardship_organisation=self.steward_org)
         # self.xmen_wg.registrationAuthorities.add(self.ra)
         self.xmen_wg.save()
-
         self.item_xmen = [
             models.ObjectClass.objects.create(name=t,definition="known xman",workgroup=self.xmen_wg)\
             for t in xmen.split()]
@@ -53,7 +56,6 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
             self.assertTrue(item in registered['success'])
             item = models._concept.objects.get(pk=item.pk).item # Stupid cache
             self.assertTrue(item.is_public())
-
 
         avengers = "thor spiderman ironman hulk captainAmerica"
 
