@@ -78,8 +78,8 @@ class Query(object):
     workgroups = AristotleFilterConnectionField(WorkgroupNode)
     # organizations = AristotleFilterConnectionField(OrganizationNode)
     registration_authorities = DjangoFilterConnectionField(RegistrationAuthorityNode)
-    #discussion_posts = AristotleFilterConnectionField(DiscussionPostNode)
-    #discussion_comments = AristotleFilterConnectionField(DiscussionCommentNode)
+    # discussion_posts = AristotleFilterConnectionField(DiscussionPostNode)
+    # discussion_comments = AristotleFilterConnectionField(DiscussionCommentNode)
     # review_requests = AristotleFilterConnectionField(ReviewRequestNode)
 
     object_classes = AristotleConceptFilterConnectionField(ObjectClassNode)
