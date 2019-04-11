@@ -615,6 +615,8 @@ class PermissionSearchForm(TokenSearchForm):
                     # Don't do this: sqs = sqs.facet(facet, sort='count')
                     sqs = sqs.facet(facet)
 
+
+        # TODO: check that we need this
         # For facets that will always appear on the sidebar, but are not part of the previous lists
         additional_hardcoded_facets = ['stewardship_organisation']
         for facet in additional_hardcoded_facets:
@@ -687,7 +689,10 @@ class PermissionSearchForm(TokenSearchForm):
                     id_to_item = {}
 
                     for id, count in self.facets['fields'][facet]:
-                        name = item_type.objects.filter(pk=int(id)).first()
+                        if id is None:
+                            name = None
+                        else:
+                            name = item_type.objects.filter(pk=int(id)).first()
                         if name is None:
                             logger.warning(
                                 "Warning: Failed to find item type [%s] with id [%s]" % (item_type, id)

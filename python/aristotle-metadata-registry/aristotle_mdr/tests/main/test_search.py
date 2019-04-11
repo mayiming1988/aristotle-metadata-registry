@@ -20,6 +20,10 @@ import random
 
 import unittest
 
+import logging # TODO: remove
+logger = logging.getLogger(__name__)
+
+
 setup_aristotle_test_environment()
 
 
@@ -57,6 +61,9 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
             item = models._concept.objects.get(pk=item.pk).item # Stupid cache
             self.assertTrue(item.is_public())
 
+        self.discussionPost = models.DiscussionPost.objects.create(title="Hello World", body="Text text",
+                                                                   workgroup=self.xmen_wg, id=1, pk=1)
+
         avengers = "thor spiderman ironman hulk captainAmerica"
 
         self.avengers_wg = models.Workgroup.objects.create(name="Avengers", stewardship_organisation=self.steward_org)
@@ -64,6 +71,7 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
         self.item_avengers = [
             models.ObjectClass.objects.create(name=t,workgroup=self.avengers_wg)
             for t in avengers.split()]
+
 
     def test_search_factory_fails_with_bad_queryset(self):
         from django.core.exceptions import ImproperlyConfigured
@@ -113,6 +121,18 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
         self.assertEqual(len(response.context['page'].object_list),len(self.item_xmen))
         for i in response.context['page'].object_list:
             self.assertTrue(i.object.is_public())
+
+    def test_public_search_of_discussions(self):
+        # Public searchers should not be able to see discussions
+        self.logout()
+
+        # discussionPost = models.DiscussionPost.objects.create(title="Hello World", workgroup=self.xmen_wg)
+        # discussion_post_1 = models.DiscussionPost.objects.create(title="Test test", workgroup=self.xmen_wg)
+
+        response = self.client.get(reverse('aristotle:search') + "?q=hello")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['page'].object_list), 0)
+
 
     def test_public_search_has_valid_facets(self):
         self.logout()
@@ -248,6 +268,58 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
 
         response = self.client.get(reverse('aristotle:search')+"?q=deadpool")
         self.assertEqual(len(response.context['page'].object_list),0)
+
+    def test_workgroup_member_search_of_discussions(self):
+        self.logout()
+
+        self.viewer = get_user_model().objects.create_user('charles@schoolforgiftedyoungsters.edu', 'equalRightsForAll')
+
+        response = self.client.post(reverse('friendly_login'),
+                                    {'username': 'charles@schoolforgiftedyoungsters.edu',
+                                     'password': 'equalRightsForAll'})
+
+        self.assertEqual(response.status_code, 302)  # logged in
+
+        # Charles is not in the xmen workgroup, which owns the discussions
+        self.assertFalse(perms.user_in_workgroup(self.viewer, self.xmen_wg))
+
+        # Is the discussion in the SearchQuerySet?
+        from haystack.query import SearchQuerySet
+        sqs = SearchQuerySet()
+        self.assertEqual(len(sqs.auto_query('Hello')), 1)
+
+        # Charles isn't in the xmen workgroup yet,so no results
+        from aristotle_mdr.forms.search import get_permission_sqs
+        psqs = get_permission_sqs()
+        psqs = psqs.auto_query('hello').apply_permission_checks(self.viewer)
+        self.assertEqual(len(psqs), 0)
+
+        # Put Charles in the Xmen workgroup
+        self.xmen_wg.giveRoleToUser('viewer',self.viewer)
+        # Is Charles now in the Xmen workgroup?
+        self.assertTrue(perms.user_in_workgroup(self.viewer, self.xmen_wg))
+        # Charles is now in Xmen, so there should be results
+        psqs = get_permission_sqs()
+        psqs = psqs.auto_query('Hello').apply_permission_checks(self.viewer)
+        self.assertEqual(len(psqs), 1)
+        # Check the response
+        response = self.client.get(reverse('aristotle:search')+"?q=Hello")
+        self.assertEqual(len(response.context['page'].object_list), 1)
+
+        #
+        # response = self.client.get(reverse('aristotle:search') + "?q=deadpool")
+        # self.assertTrue(perms.user_can_view(self.viewer, dp))
+        # self.assertEqual(len(response.context['page'].object_list), 1)
+        # self.assertEqual(response.context['page'].object_list[0].object.item, dp)
+        #
+        # # Take away Charles viewing rights and no results again.
+        # self.xmen_wg.removeRoleFromUser('viewer', self.viewer)
+        # psqs = get_permission_sqs()
+        # psqs = psqs.auto_query('deadpool').apply_permission_checks(self.viewer)
+        # self.assertEqual(len(psqs), 0)
+        #
+        # response = self.client.get(reverse('aristotle:search') + "?q=deadpool")
+        # self.assertEqual(len(response.context['page'].object_list), 0)
 
     def test_workgroup_member_search_has_valid_facets(self):
         self.logout()
@@ -619,7 +691,7 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
 
         random_wg.delete()
 
-
+@tag('token_search')
 class TestTokenSearch(TestCase):
     def tearDown(self):
         call_command('clear_index', interactive=False, verbosity=0)

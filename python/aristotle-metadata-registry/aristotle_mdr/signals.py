@@ -25,7 +25,8 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
         from aristotle_mdr.contrib.reviews.models import ReviewRequest
         from aristotle_mdr.contrib.help.models import HelpPage, ConceptHelp
         from aristotle_mdr.contrib.publishing.models import PublicationRecord
-        post_save.connect(self.handle_concept_save)
+        post_save.connect(self.handle_object_save)
+        logger.debug("Aristotle signal processer called")
         # post_revision_commit.connect(self.handle_concept_revision)
         pre_delete.connect(self.handle_concept_delete, sender=_concept)
         post_save.connect(self.update_visibility_review_request, sender=ReviewRequest)
@@ -39,7 +40,7 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
 
     def teardown(self):  # pragma: no cover
         from aristotle_mdr.models import _concept
-        post_save.disconnect(self.handle_concept_save, sender=_concept)
+        post_save.disconnect(self.handle_object_save, sender=_concept)
         # post_revision_commit.disconnect(self.handle_concept_revision)
         pre_delete.disconnect(self.handle_concept_delete, sender=_concept)
         super().teardown()
@@ -48,7 +49,9 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
         instance = concept.item
         self.async_handle_save(instance.__class__, instance)
 
-    def handle_concept_save(self, sender, instance, **kwargs):
+
+    # Called on the saving of all objects
+    def handle_object_save(self, sender, instance, **kwargs):
         from aristotle_mdr.models import _concept, aristotleComponent
         if isinstance(instance, _concept) and type(instance) is not _concept:
             if instance._meta.app_label in fetch_metadata_apps():
@@ -56,6 +59,12 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
                 self.async_handle_save(obj.__class__, obj, **kwargs)
             else:
                 return
+
+        from aristotle_mdr.models import DiscussionPost
+        if isinstance(instance, DiscussionPost):
+            self.async_handle_save(type(instance), instance, **kwargs)
+            logger.debug("Discussion called")
+
 
         # Components should have parents, but lets be kind.
         if issubclass(sender, aristotleComponent) and hasattr(instance, "parentItem"):
@@ -83,8 +92,9 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
         self.async_handle_save(obj.__class__, obj, **kwargs)
 
     def async_handle_save(self, sender, instance, **kwargs):
+        # Dev tests settings
         if not settings.ARISTOTLE_ASYNC_SIGNALS:
-            super().handle_save(sender, instance, **kwargs)
+            super().handle_save(sender, instance, **kwargs) # Call haystack handle save
         else:
             from aristotle_mdr.contrib.async_signals.utils import clean_signal
             message = clean_signal(kwargs)
@@ -110,6 +120,8 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
                 ],
                 kwargs=message
             )
+            logger.debug("Sender of object to search index was:" + sender._meta.app_label +" Model sent to search index"
+                         + "was" + instance._meta.model_name)
 
     def async_handle_delete(self, sender, instance, **kwargs):
         if not settings.ARISTOTLE_ASYNC_SIGNALS:
