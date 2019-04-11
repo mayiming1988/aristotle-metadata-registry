@@ -61,8 +61,6 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
             item = models._concept.objects.get(pk=item.pk).item # Stupid cache
             self.assertTrue(item.is_public())
 
-        self.discussionPost = models.DiscussionPost.objects.create(title="Hello World", body="Text text",
-                                                                   workgroup=self.xmen_wg, id=1, pk=1)
 
         avengers = "thor spiderman ironman hulk captainAmerica"
 
@@ -274,11 +272,15 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
 
         self.viewer = get_user_model().objects.create_user('charles@schoolforgiftedyoungsters.edu', 'equalRightsForAll')
 
+        #TODO: fix to proper standards
         response = self.client.post(reverse('friendly_login'),
                                     {'username': 'charles@schoolforgiftedyoungsters.edu',
                                      'password': 'equalRightsForAll'})
 
         self.assertEqual(response.status_code, 302)  # logged in
+
+        self.discussionPost = models.DiscussionPost.objects.create(title="Hello World", body="Text text",
+                                                                   workgroup=self.xmen_wg, author=self.viewer)
 
         # Charles is not in the xmen workgroup, which owns the discussions
         self.assertFalse(perms.user_in_workgroup(self.viewer, self.xmen_wg))
@@ -304,22 +306,9 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
         self.assertEqual(len(psqs), 1)
         # Check the response
         response = self.client.get(reverse('aristotle:search')+"?q=Hello")
+        logger.debug(response.content)
         self.assertEqual(len(response.context['page'].object_list), 1)
 
-        #
-        # response = self.client.get(reverse('aristotle:search') + "?q=deadpool")
-        # self.assertTrue(perms.user_can_view(self.viewer, dp))
-        # self.assertEqual(len(response.context['page'].object_list), 1)
-        # self.assertEqual(response.context['page'].object_list[0].object.item, dp)
-        #
-        # # Take away Charles viewing rights and no results again.
-        # self.xmen_wg.removeRoleFromUser('viewer', self.viewer)
-        # psqs = get_permission_sqs()
-        # psqs = psqs.auto_query('deadpool').apply_permission_checks(self.viewer)
-        # self.assertEqual(len(psqs), 0)
-        #
-        # response = self.client.get(reverse('aristotle:search') + "?q=deadpool")
-        # self.assertEqual(len(response.context['page'].object_list), 0)
 
     def test_workgroup_member_search_has_valid_facets(self):
         self.logout()

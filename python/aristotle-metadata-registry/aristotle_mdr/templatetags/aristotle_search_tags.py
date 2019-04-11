@@ -105,7 +105,12 @@ def search_state_to_text(state):
 @register.filter
 def restriction_to_text(state):
     from aristotle_mdr.search_indexes import RESTRICTION
+    if not state:
+         # Not a problem with ElasticSearch #TODO: but this is being called by elastic search???
+         logger.debug("Woosh is not capable of generating facets, so an empty string is returned")
+         return ''
     return RESTRICTION[state]
+
 
 
 @register.filter

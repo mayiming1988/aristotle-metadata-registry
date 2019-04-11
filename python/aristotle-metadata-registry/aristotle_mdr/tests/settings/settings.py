@@ -79,10 +79,9 @@ elif os.environ.get('TOXDIR'):
     print("Running  %s test-suite with whoosh" % ci_runner)
     from aristotle_mdr.tests.settings.tox import HAYSTACK_CONNECTIONS
 else:
-    print("Running %s test-suite with whoosh" % ci_runner)
+    print("Running %s test-suite with elastic search" % ci_runner)
     print("Aristotle specific variant")
-    from aristotle_mdr.tests.settings.templates.search.whoosh import HAYSTACK_CONNECTIONS
-
+    from aristotle_mdr.tests.settings.templates.search.haystack_elasticsearch import HAYSTACK_CONNECTIONS
 
 INSTALLED_APPS = (
     # The good stuff

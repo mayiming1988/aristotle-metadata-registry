@@ -699,7 +699,6 @@ class PermissionSearchForm(TokenSearchForm):
                             )
                         id_to_item[id] = (name, count)
                     self.facets['fields'][facet] = id_to_item
-
         return sqs
 
     def check_spelling(self, sqs):
