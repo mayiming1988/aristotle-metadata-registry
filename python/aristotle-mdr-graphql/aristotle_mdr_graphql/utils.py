@@ -8,8 +8,7 @@ from textwrap import dedent
 
 def inline_type_from_model(meta_model, filter_fields=None, description=None):
 
-    modelname = meta_model.__name__
-    new_modelname = modelname + 'Node'
+    new_model_name = meta_model.__name__ + 'Node'
     description = description or dedent(meta_model.__doc__)
 
     _filter_fields = []
@@ -20,16 +19,15 @@ def inline_type_from_model(meta_model, filter_fields=None, description=None):
         model=meta_model,
         description=description,
         filter_fields=_filter_fields,
-        default_resolver= aristotle_resolver,
+        default_resolver=aristotle_resolver,
     ))
-    dynamic_class = type(new_modelname, (DjangoObjectType, ), dict(Meta=meta_class))
+    dynamic_class = type(new_model_name, (DjangoObjectType, ), dict(Meta=meta_class))
     return dynamic_class
 
 
 def type_from_model(meta_model, filter_fields=None, description=None):
 
-    modelname = meta_model.__name__
-    new_modelname = modelname + 'Node'
+    new_model_name = meta_model.__name__ + 'Node'
     description = description or dedent(meta_model.__doc__)
 
     _filter_fields = []
@@ -40,10 +38,10 @@ def type_from_model(meta_model, filter_fields=None, description=None):
         model=meta_model,
         description=description,
         filter_fields=_filter_fields,
-        interfaces = (graphene.relay.Node, ),
-        default_resolver= aristotle_resolver,
+        interfaces=(graphene.relay.Node, ),
+        default_resolver=aristotle_resolver,
     ))
-    dynamic_class = type(new_modelname, (AristotleObjectType, ), dict(Meta=meta_class))
+    dynamic_class = type(new_model_name, (AristotleObjectType, ), dict(Meta=meta_class))
     return dynamic_class
 
 
@@ -51,8 +49,7 @@ def type_from_concept_model(meta_model, filter_fields=None, extra_filter_fields=
     assert issubclass(meta_model, _concept)
     assert type(extra_filter_fields) in [list, dict]
 
-    modelname = meta_model.__name__
-    new_modelname = modelname + 'Node'
+    new_model_name = meta_model.__name__ + 'Node'
     description = dedent(meta_model.__doc__)
     _filter_fields = {
         'name': ['exact', 'icontains', 'iexact'],
@@ -72,10 +69,10 @@ def type_from_concept_model(meta_model, filter_fields=None, extra_filter_fields=
         description=description,
         filter_fields=_filter_fields,
         interfaces=(graphene.relay.Node, ),
-        default_resolver= resolver,
+        default_resolver=resolver,
     ))
 
     meta_class = type('Meta', (object, ), meta_kwargs)
-    dynamic_class = type(new_modelname, (AristotleConceptObjectType, ), dict(Meta=meta_class))
+    dynamic_class = type(new_model_name, (AristotleConceptObjectType, ), dict(Meta=meta_class))
     
     return dynamic_class
