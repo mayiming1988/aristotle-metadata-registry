@@ -375,3 +375,8 @@ GRAPHQL_ENABLED = False
 MIGRATION_PRINT = True
 
 MAXIMUM_NUMBER_OF_NODES_IN_GENERAL_GRAPHICAL_REPRESENTATION = 200
+
+# Add extra GraphQL schema models to the list in the form of a tuple containing
+# the Django app label and the model name.
+# E.g. [("app_label", "model_name"), ...]
+EXTRA_GRAPHQL_SCHEMA_MODELS = []

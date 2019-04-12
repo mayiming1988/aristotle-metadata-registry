@@ -5,6 +5,7 @@ from graphene_django.filter import DjangoFilterConnectionField
 from aristotle_mdr import models as mdr_models
 from aristotle_mdr.contrib.slots import models as slot_models
 from aristotle_mdr.contrib.links import models as link_models
+from aristotle_mdr.contrib.aristotle_backwards import models as aristotle_backwards_models
 from aristotle_mdr_graphql.fields import AristotleFilterConnectionField, AristotleConceptFilterConnectionField
 from aristotle_mdr_graphql.utils import type_from_model, type_from_concept_model, inline_type_from_model
 from aristotle_mdr_graphql import resolvers
@@ -38,6 +39,7 @@ DataElementNode = type_from_concept_model(mdr_models.DataElement, extra_filter_f
                                                                                        ],
                                           )
 ValueDomainNode = type_from_concept_model(mdr_models.ValueDomain, resolver=resolvers.ValueDomainResolver())
+ClassificationSchemeNode = type_from_concept_model(aristotle_backwards_models.ClassificationScheme)
 
 
 class RegistrationAuthorityNode(DjangoObjectType):
@@ -50,18 +52,6 @@ class RegistrationAuthorityNode(DjangoObjectType):
         filter_fields = ['name']
         default_resolver = resolvers.RegistrationAuthorityResolver()
         exclude_fields = ['status_set']
-
-
-# class LinkEndNode(DjangoObjectType):
-#     class Meta:
-#         model = link_models.LinkEnd
-#         default_resolver = resolvers.AristotleResolver
-#
-#
-# class LinkNode(DjangoObjectType):
-#     class Meta:
-#         model = link_models.Link
-#         default_resolver = resolvers.AristotleResolver
 
 
 class ValueMeaningNode(DjangoObjectType):
@@ -95,3 +85,4 @@ class Query(object):
     data_element_concepts = AristotleConceptFilterConnectionField(DataElementConceptNode)
     data_elements = AristotleConceptFilterConnectionField(DataElementNode)
     data_element_derivations = AristotleConceptFilterConnectionField(DataElementDerivationNode)
+    classification_schemes = AristotleConceptFilterConnectionField(ClassificationSchemeNode)
