@@ -8,7 +8,6 @@ from aristotle_mdr.contrib.identifiers import models as ident_models
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
-
 from reversion import revisions as reversion
 from aristotle_mdr.utils import setup_aristotle_test_environment
 
@@ -19,9 +18,6 @@ import string
 import random
 
 import unittest
-
-import logging # TODO: remove
-logger = logging.getLogger(__name__)
 
 
 setup_aristotle_test_environment()
@@ -124,8 +120,8 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
         # Public searchers should not be able to see discussions
         self.logout()
 
-        # discussionPost = models.DiscussionPost.objects.create(title="Hello World", workgroup=self.xmen_wg)
-        # discussion_post_1 = models.DiscussionPost.objects.create(title="Test test", workgroup=self.xmen_wg)
+        discussion_post_1 = models.DiscussionPost.objects.create(title="Hello World", workgroup=self.xmen_wg)
+        discussion_post_2 = models.DiscussionPost.objects.create(title="Test test", workgroup=self.xmen_wg)
 
         response = self.client.get(reverse('aristotle:search') + "?q=hello")
         self.assertEqual(response.status_code, 200)
@@ -146,6 +142,9 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
         for state, count in facets['statuses']:
             self.assertTrue(int(state) >= self.ra.public_state)
 
+
+    @unittest.skipIf('WhooshEngine' in settings.HAYSTACK_CONNECTIONS['default']['ENGINE'],
+                     "Whoosh doesn't support faceting")
     def test_registrar_search_has_valid_facets(self):
         response = self.client.post(reverse('friendly_login'),
                     {'username': 'william.styker@weaponx.mil', 'password': 'mutantsMustDie'})
@@ -205,6 +204,7 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
 
     def test_workgroup_member_search(self):
         self.logout()
+        # Create user model
         self.viewer = get_user_model().objects.create_user('charles@schoolforgiftedyoungsters.edu','equalRightsForAll')
         self.weaponx_wg = models.Workgroup.objects.create(name="WeaponX", stewardship_organisation=self.steward_org)
 
@@ -213,11 +213,11 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
 
         self.assertEqual(response.status_code,302) # logged in
 
-        #Charles is not in any workgroups
+        # Charles is not in any workgroups
         self.assertFalse(perms.user_in_workgroup(self.viewer,self.xmen_wg))
         self.assertFalse(perms.user_in_workgroup(self.viewer,self.weaponx_wg))
 
-        #Create Deadpool in Weapon X workgroup
+        # Create Deadpool in Weapon X workgroup
         with reversion.create_revision():
             dp = models.ObjectClass.objects.create(name="deadpool",
                     definition="not really an xman, no matter how much he tries",
@@ -270,46 +270,42 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
     def test_workgroup_member_search_of_discussions(self):
         self.logout()
 
-        self.viewer = get_user_model().objects.create_user('charles@schoolforgiftedyoungsters.edu', 'equalRightsForAll')
-
-        #TODO: fix to proper standards
-        response = self.client.post(reverse('friendly_login'),
-                                    {'username': 'charles@schoolforgiftedyoungsters.edu',
-                                     'password': 'equalRightsForAll'})
-
-        self.assertEqual(response.status_code, 302)  # logged in
-
+        # Only workgroup members should be able to see discussion posts
         self.discussionPost = models.DiscussionPost.objects.create(title="Hello World", body="Text text",
-                                                                   workgroup=self.xmen_wg, author=self.viewer)
+                                                                   workgroup=self.wg1)
+        # Remove viewer from workgroup
+        self.wg1.removeUser(self.viewer)
 
-        # Charles is not in the xmen workgroup, which owns the discussions
-        self.assertFalse(perms.user_in_workgroup(self.viewer, self.xmen_wg))
+        # Check that the viewer was successfully removed
+        self.assertFalse(perms.user_in_workgroup(self.viewer, self.wg1))
 
-        # Is the discussion in the SearchQuerySet?
+        # Confirm discussion in QuerySet
         from haystack.query import SearchQuerySet
         sqs = SearchQuerySet()
         self.assertEqual(len(sqs.auto_query('Hello')), 1)
 
-        # Charles isn't in the xmen workgroup yet,so no results
+
+        # User is not in workgroup, so there should be no results
         from aristotle_mdr.forms.search import get_permission_sqs
-        psqs = get_permission_sqs()
-        psqs = psqs.auto_query('hello').apply_permission_checks(self.viewer)
+        psqs = get_permission_sqs().auto_query('Hello').apply_permission_checks(self.viewer)
         self.assertEqual(len(psqs), 0)
 
-        # Put Charles in the Xmen workgroup
-        self.xmen_wg.giveRoleToUser('viewer',self.viewer)
-        # Is Charles now in the Xmen workgroup?
-        self.assertTrue(perms.user_in_workgroup(self.viewer, self.xmen_wg))
-        # Charles is now in Xmen, so there should be results
-        psqs = get_permission_sqs()
-        psqs = psqs.auto_query('Hello').apply_permission_checks(self.viewer)
+        # Put the viewer in the correct workgroup
+        self.wg1.giveRoleToUser('manager', self.viewer)
+        self.assertTrue(perms.user_in_workgroup(self.viewer, self.wg1))
+
+        # Viewer is now in workgroup, so there should be results
+        psqs = get_permission_sqs().auto_query('Hello').apply_permission_checks(self.viewer)
         self.assertEqual(len(psqs), 1)
-        # Check the response
+
+        self.login_viewer()
+
         response = self.client.get(reverse('aristotle:search')+"?q=Hello")
-        logger.debug(response.content)
         self.assertEqual(len(response.context['page'].object_list), 1)
 
 
+    @unittest.skipIf('WhooshEngine' in settings.HAYSTACK_CONNECTIONS['default']['ENGINE'],
+                     "Whoosh doesn't support faceting")
     def test_workgroup_member_search_has_valid_facets(self):
         self.logout()
         self.viewer = get_user_model().objects.create_user('charles@schoolforgiftedyoungsters.edu','equalRightsForAll')
