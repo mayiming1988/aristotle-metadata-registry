@@ -63,8 +63,6 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
         from aristotle_mdr.models import DiscussionPost
         if isinstance(instance, DiscussionPost):
             self.async_handle_save(type(instance), instance, **kwargs)
-            logger.debug("Discussion called")
-
 
         # Components should have parents, but lets be kind.
         if issubclass(sender, aristotleComponent) and hasattr(instance, "parentItem"):
