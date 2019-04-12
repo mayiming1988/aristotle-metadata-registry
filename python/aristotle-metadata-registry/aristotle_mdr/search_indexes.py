@@ -48,8 +48,16 @@ class baseObjectIndex(indexes.SearchIndex):
     django_ct_app_label = indexes.CharField()
     # django_ct_model_name = indexes.CharField()
     # access = indexes.MultiValueField()
+    rendered_badge = indexes.CharField(indexed=False)
 
     rendered_search_result = indexes.CharField(indexed=False)
+
+    badge_template_name = "search/badges/base.html"
+
+    def prepare_rendered_badge(self, obj):
+
+        t = loader.get_template(self.badge_template_name)
+        return t.render({'object': obj})
 
     def prepare_rendered_search_result(self, obj):
 
@@ -112,13 +120,7 @@ class conceptIndex(baseObjectIndex):
     published_date_public = indexes.DateTimeField(null=True)
 
     template_name = "search/searchItem.html"
-
-    rendered_badge = indexes.CharField(indexed=False)
-
-    def prepare_rendered_badge(self, obj):
-
-        t = loader.get_template('search/badge.html')
-        return t.render({'object': obj})
+    badge_template_name = "search/badges/metadata.html"
 
     def prepare_registrationAuthorities(self, obj):
         ras_stats = [str(s.registrationAuthority.id) for s in obj.current_statuses().all()]
