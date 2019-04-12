@@ -99,7 +99,6 @@ class ConceptIndex(BaseObjectIndex):
 
         return list(set(ras_stats + ras_reqs))
 
-
     def prepare_is_public(self, obj):
         return obj.is_public()
 
@@ -198,10 +197,8 @@ class DiscussionIndex(BaseObjectIndex, indexes.Indexable):
             return -99
 
     def get_model(self):
-             return models.DiscussionPost
+        return models.DiscussionPost
 
     def index_queryset(self, using=None):
         # When reindexing occurs
         return self.get_model().objects.filter(modified__lte=timezone.now())
-
-

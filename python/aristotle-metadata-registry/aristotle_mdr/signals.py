@@ -49,8 +49,8 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
         instance = concept.item
         self.async_handle_save(instance.__class__, instance)
 
-
     # Called on the saving of all objects
+
     def handle_object_save(self, sender, instance, **kwargs):
         from aristotle_mdr.models import _concept, aristotleComponent
         if isinstance(instance, _concept) and type(instance) is not _concept:
@@ -92,7 +92,7 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
     def async_handle_save(self, sender, instance, **kwargs):
         # Dev tests settings
         if not settings.ARISTOTLE_ASYNC_SIGNALS:
-            super().handle_save(sender, instance, **kwargs) # Call haystack handle save
+            super().handle_save(sender, instance, **kwargs)   # Call haystack handle save
         else:
             from aristotle_mdr.contrib.async_signals.utils import clean_signal
             message = clean_signal(kwargs)
@@ -118,8 +118,9 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
                 ],
                 kwargs=message
             )
-            logger.debug("Sender of object to search index was:" + sender._meta.app_label +" Model sent to search index"
-                         + "was" + instance._meta.model_name)
+            logger.debug("Sender of object to search index was:" + sender._meta.app_label +
+                         " Model sent to search index" +
+                         "was" + instance._meta.model_name)
 
     def async_handle_delete(self, sender, instance, **kwargs):
         if not settings.ARISTOTLE_ASYNC_SIGNALS:

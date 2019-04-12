@@ -93,6 +93,7 @@ def search_describe_filters(search_form):
 
     return out
 
+
 @register.filter
 def search_state_to_text(state):
     try:
@@ -106,7 +107,6 @@ def search_state_to_text(state):
 def restriction_to_text(state):
     from aristotle_mdr.search_indexes import RESTRICTION
     return RESTRICTION[state]
-
 
 
 @register.filter
@@ -151,10 +151,10 @@ def is_concept(result):
     kls = apps.get_model(app_label=result.app_label, model_name=result.model_name)
     return issubclass(kls, MDR._concept)
 
+
 @register.filter
 def add_ellipsis_if_truncated(text, truncate_at):
     if len(text) > truncate_at:
         return text[:truncate_at] + "..."
     else:
         return text
-

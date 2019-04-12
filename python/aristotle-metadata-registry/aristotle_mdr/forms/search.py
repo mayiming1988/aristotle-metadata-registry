@@ -29,8 +29,6 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
-
-
 QUICK_DATES = Choices(
     ('', 'anytime', _('Any time')),
     ('h', 'hour', _('Last hour')),
@@ -40,7 +38,6 @@ QUICK_DATES = Choices(
     ('y', 'year', _('This year')),
     ('X', 'custom', _('Custom period')),
 )
-
 
 SORT_OPTIONS = Choices(
     ('n', 'natural', _('Relevance')),
@@ -214,8 +211,6 @@ class PermissionSearchQuerySet(SearchQuerySet):
             terms = ["%s___%s" % (str(r), str(s)) for r in ras for s in states]
             sqs = sqs.filter(ra_statuses__in=terms)
         return sqs
-
-
 
 
 class TokenSearchForm(FacetedSearchForm):
@@ -552,7 +547,6 @@ class PermissionSearchForm(TokenSearchForm):
             # Must filter exactly
             sqs = sqs.filter(workgroup__exact=workgroup)
 
-
         if stewardship_organisation is not None:
             # Apply the stewardship organisation filter
             sqs = sqs.filter(stewardship_organisation=stewardship_organisation)
@@ -671,15 +665,15 @@ class PermissionSearchForm(TokenSearchForm):
             for facet, counts in self.facets['fields'].items():
                 self.facets['fields'][facet] = sorted(counts, key=lambda x: -x[1])[:10]
 
-
             # Perform id to object lookup
             from django.contrib.contenttypes.models import ContentType
             model_types = {
-                    'stewardship_organisation': MDR.StewardOrganisation,
-                    'registrationAuthorities': MDR.RegistrationAuthority,
-                    'workgroup': MDR.Workgroup,
-                    'facet_model_ct': ContentType,
-                }
+                'stewardship_organisation': MDR.StewardOrganisation,
+                'registrationAuthorities': MDR.RegistrationAuthority,
+                'workgroup': MDR.Workgroup,
+                'facet_model_ct': ContentType,
+            }
+
             for facet in self.facets['fields'].keys():
                 if facet in model_types.keys():
                     # Facet is for a model that must be looked up from the database
