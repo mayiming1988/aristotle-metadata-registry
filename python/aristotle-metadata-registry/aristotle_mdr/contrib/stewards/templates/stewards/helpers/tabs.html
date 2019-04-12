@@ -20,6 +20,12 @@
         <span class="hidden-sm hidden-xs">Managed Items</span>
       </a></li>
 
+  {% if aristotle_cloud_is_active %}
+  <li role="presentation" {% if active_tab == "references" %}class="active"{% endif %}>
+      <a href="{% url 'aristotle_cloud:stewards:group:reference_documents' group.slug %}"><i class="fa fa-fw fa-file"></i>
+        <span class="hidden-sm hidden-xs">Files</span>
+      </a></li>
+  {% endif %}
 
   {% has_group_perm group "list_workgroups" as can_list_workgroups %}
   {% if can_list_workgroups %}
@@ -41,7 +47,7 @@
   {% if can_edit_group_details %}
   <li role="presentation" {% if active_tab == "settings" %}class="active"{% endif %}>
       <a href="{% url 'aristotle_mdr:stewards:group:settings' group.slug %}" title="Settings"><i class="fa fa-fw fa-cogs"></i> 
-        <span class="hidden-md hidden-sm hidden-xs">Settings</span>
+        <span class="sr-only">Settings</span>
       </a></li>
   {% endif %}
 

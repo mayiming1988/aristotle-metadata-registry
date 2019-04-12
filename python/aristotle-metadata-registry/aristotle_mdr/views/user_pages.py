@@ -140,13 +140,20 @@ def home(request):
                     revdata['versions'].append({'id': ver.object_id, 'text': str(ver), 'url': url})
                 else:
                     # Fallback, results in db query
-                    obj = ver.object
-                    if hasattr(obj, 'get_absolute_url'):
-                        revdata['versions'].append({'id': ver.object_id, 'text': str(ver), 'url': obj.get_absolute_url})
+                    try:
+                        # If a version exists, but the item has been removed the next line dies
+                        obj = ver.object
+                        if hasattr(obj, 'get_absolute_url'):
+                            revdata['versions'].append({'id': ver.object_id, 'text': str(ver), 'url': obj.get_absolute_url})
+                    except:
+                        # TODO: Show something properly here
+                        pass
 
             seen_ver_ids.append(ver.object_id)
 
-        recentdata.append(revdata)
+        if revdata['versions']:
+            # Don't append actions where there are no versions to show.
+            recentdata.append(revdata)
 
     recently_viewed = []
     for viewed in (

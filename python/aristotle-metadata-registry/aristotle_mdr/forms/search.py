@@ -67,6 +67,9 @@ SHORT_STATE_MAP = {
     "ret": "retired",
 }
 
+def allowable_search_models():
+    return fetch_metadata_apps() + ['aristotle_mdr_help', 'aristotle_cloud_stewards']
+
 
 # This function is not critical and are mathematically sound, so testing is not required.
 def time_delta(delta):  # pragma: no cover
@@ -284,8 +287,7 @@ class TokenSearchForm(FacetedSearchForm):
 
                         from django.contrib.contenttypes.models import ContentType
                         arg = arg.lower().replace('_', '').replace('-', '')
-                        app_labels = fetch_metadata_apps()
-                        app_labels.append('aristotle_mdr_help')
+                        app_labels = allowable_search_models()
                         mods = ContentType.objects.filter(app_label__in=app_labels).all()
                         for i in mods:
                             if hasattr(i.model_class(), 'get_verbose_name'):
@@ -336,8 +338,7 @@ class TokenSearchForm(FacetedSearchForm):
             sqs = sqs.load_all()
 
         # Only show models that are in apps that are enabled
-        app_labels = fetch_metadata_apps()
-        app_labels.append('aristotle_mdr_help')
+        app_labels = allowable_search_models()
         sqs = sqs.filter(django_ct_app_label__in=app_labels)
 
         return sqs
@@ -456,12 +457,12 @@ class PermissionSearchForm(TokenSearchForm):
         # List of app lables for default search
         self.default_models = [
             m[0] for m in model_choices()
-            if m[0].split('.', 1)[0] in fetch_metadata_apps()
+            if m[0].split('.', 1)[0] in allowable_search_models()
         ]
         # Set choices for models
         self.fields['models'].choices = [
             m for m in model_choices()
-            if m[0].split('.', 1)[0] in fetch_metadata_apps() + ['aristotle_mdr_help']
+            if m[0].split('.', 1)[0] in allowable_search_models()
         ]
 
     def get_models(self):

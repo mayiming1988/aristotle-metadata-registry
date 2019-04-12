@@ -42,6 +42,7 @@ class baseObjectIndex(indexes.SearchIndex):
     modified = indexes.DateTimeField(model_attr='modified')
     created = indexes.DateTimeField(model_attr='created')
     name = indexes.CharField(model_attr='name', boost=1)
+    facet_model_ct = indexes.IntegerField(faceted=True)
     # Thanks ElasticSearch - https://github.com/django-haystack/django-haystack/issues/569
     name_sortable = indexes.CharField(model_attr='name', indexed=False, stored=True)
     django_ct_app_label = indexes.CharField()
@@ -68,6 +69,12 @@ class baseObjectIndex(indexes.SearchIndex):
         """Used when the entire index for model is updated."""
 
         return self.get_model().objects.filter(modified__lte=timezone.localtime(timezone.now()))
+
+    def prepare_facet_model_ct(self, obj):
+        # We need to use the content type, as if we use text it gets stemmed wierdly
+        from django.contrib.contenttypes.models import ContentType
+        ct = ContentType.objects.get_for_model(obj)
+        return ct.pk
 
     # def have_access(self, obj):
     #    for user in obj.viewers.users():
@@ -100,7 +107,6 @@ class conceptIndex(baseObjectIndex):
     restriction = indexes.IntegerField(faceted=True)
     version = indexes.CharField(model_attr="version")
     submitter_id = indexes.IntegerField(model_attr="submitter_id", null=True)
-    facet_model_ct = indexes.IntegerField(faceted=True)
     identifier = indexes.MultiValueField()
     namespace = indexes.MultiValueField()
     published_date_public = indexes.DateTimeField(null=True)
@@ -156,12 +162,6 @@ class conceptIndex(baseObjectIndex):
             "%s___%s" % (str(s.registrationAuthority.id), str(s.state)) for s in obj.current_statuses().all()
         ]
         return states
-
-    def prepare_facet_model_ct(self, obj):
-        # We need to use the content type, as if we use text it gets stemmed wierdly
-        from django.contrib.contenttypes.models import ContentType
-        ct = ContentType.objects.get_for_model(obj)
-        return ct.pk
 
     def prepare_restriction(self, obj):
         if obj._is_public:

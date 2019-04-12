@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from model_utils.models import TimeStampedModel
+import reversion
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.fields import (
@@ -40,3 +41,4 @@ class Collection(TimeStampedModel):
 #     order = models.PositiveSmallIntegerField("Order")
 #     collection = ConceptForeignKey(Collection)
 #     metadata = ConceptForeignKey('aristotle_mdr._concept', blank=True, null=True)
+

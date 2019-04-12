@@ -65,6 +65,10 @@
         {% for extension in config.CONTENT_EXTENSIONS %}
             {% extra_content extension item %}
         {% endfor %}
+        
+        {% if aristotle_cloud_is_active %}
+            {% include "aristotle_cloud/concepts/helpers/reference_links_display.html" with item=item %}
+        {% endif %}
 
     </section>
 

@@ -10,7 +10,6 @@ from aristotle_mdr.search_indexes import baseObjectIndex
 class HelpObjectIndex(baseObjectIndex):
     name = indexes.CharField(model_attr='title')
     name_sortable = indexes.CharField(model_attr='title', indexed=False, stored=True)
-    facet_model_ct = indexes.IntegerField(faceted=True)
     is_public = indexes.BooleanField(model_attr='is_public')
 
     restriction = indexes.IntegerField(faceted=True)
@@ -26,12 +25,6 @@ class HelpObjectIndex(baseObjectIndex):
 
     def prepare_restriction(self, obj):
         return RESTRICTION['Public']
-
-    def prepare_facet_model_ct(self, obj):
-        # We need to use the content type, as if we use text it gets stemmed wierdly
-        from django.contrib.contenttypes.models import ContentType
-        ct = ContentType.objects.get_for_model(obj)
-        return ct.pk
 
     def prepare(self, obj):
         # Slightly down-rank help in search
