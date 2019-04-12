@@ -305,7 +305,7 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
 
 
     @unittest.skipIf('WhooshEngine' in settings.HAYSTACK_CONNECTIONS['default']['ENGINE'],
-                     "Whoosh doesn't support faceting")
+                      "Whoosh doesn't support faceting")
     def test_workgroup_member_search_has_valid_facets(self):
         self.logout()
         self.viewer = get_user_model().objects.create_user('charles@schoolforgiftedyoungsters.edu','equalRightsForAll')
@@ -322,7 +322,7 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
 
         self.assertEqual(response.status_code,302) # logged in
 
-        #Create Deadpool in Weapon X workgroup
+        # Create Deadpool in Weapon X workgroup
         with reversion.create_revision():
             dp = models.ObjectClass.objects.create(name="deadpool",
                     definition="not really an xman, no matter how much he tries",
@@ -340,7 +340,7 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
         self.assertTrue('statuses' in facets.keys())
         self.assertTrue('workgroup' in facets.keys())
 
-        for wg, count in facets['workgroup']:
+        for wg in facets['workgroup']:
             wg = models.Workgroup.objects.get(pk=wg)
             self.assertTrue(perms.user_in_workgroup(self.viewer,wg))
 
