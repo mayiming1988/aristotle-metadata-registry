@@ -3,8 +3,7 @@
     app_label: aristotle_mdr
     concept_type: property
     language: en
-    brief: A definition of an attribute common to all members of a set defined by an
-        [[object class]] 
+    brief: A Property is an attribute common to all members of a set of things defined by an [[Object Class]].
     offical_definition: >
         Quality common to all members of an [[Object Class]]
     official_reference: ISO/IEC 11179 - Clause 3.2.100

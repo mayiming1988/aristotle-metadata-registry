@@ -247,10 +247,12 @@ class RegistrationAuthority(Organization):
     )
     locked_state = models.IntegerField(
         choices=STATES,
+        help_text=_("When metadata is endorsed at  the specified 'locked' level, the metadata item will not longer be able to be altered by standard users. Only Workgroup or Organisation Stewards will be able to edit 'locked' metadata."),
         default=STATES.candidate
     )
     public_state = models.IntegerField(
         choices=STATES,
+        help_text=_("When metadata is endorsed at the specified 'public' level, the metadata item will be visible to all users"),
         default=STATES.recorded
     )
 
@@ -271,15 +273,51 @@ class RegistrationAuthority(Organization):
     #   "Approved by a two-thirds majority of the standing council of metadata
     #    standardisation"
 
-    notprogressed = models.TextField(blank=True)
-    incomplete = models.TextField(blank=True)
-    candidate = models.TextField(blank=True)
-    recorded = models.TextField(blank=True)
-    qualified = models.TextField(blank=True)
-    standard = models.TextField(blank=True)
-    preferred = models.TextField(blank=True)
-    superseded = models.TextField(blank=True)
-    retired = models.TextField(blank=True)
+    notprogressed = models.TextField(
+        _("Not Progressed"),
+        help_text=_("A description of the meaning of the 'Not Progressed' status level for this Registration Authority."),
+        blank=True
+    )
+    incomplete = models.TextField(
+        _("Incomplete"),
+        help_text=_("A description of the meaning of the 'Incomplete' status level for this Registration Authority."),
+        blank=True
+    )
+    candidate = models.TextField(
+        _("Candidate"),
+        help_text=_("A description of the meaning of the 'Candidate' status level for this Registration Authority."),
+        blank=True
+    )
+    recorded = models.TextField(
+        _("Recorded"),
+        help_text=_("A description of the meaning of the 'Recorded' status level for this Registration Authority."),
+        blank=True
+    )
+    qualified = models.TextField(
+        _("Qualified"),
+        help_text=_("A description of the meaning of the 'Qualified' status level for this Registration Authority."),
+        blank=True
+    )
+    standard = models.TextField(
+        _("Standard"),
+        help_text=_("A description of the meaning of the 'Standard' status level for this Registration Authority."),
+        blank=True
+    )
+    preferred = models.TextField(
+        _("Preferred Standard"),
+        help_text=_("A description of the meaning of the 'Preferred Standard' status level for this Registration Authority."),
+        blank=True
+    )
+    superseded = models.TextField(
+        _("Superseded"),
+        help_text=_("A description of the meaning of the 'Superseded' status level for this Registration Authority."),
+        blank=True
+    )
+    retired = models.TextField(
+        _("Retired"),
+        help_text=_("A description of the meaning of the 'Retired' status level for this Registration Authority."),
+        blank=True
+    )
 
     tracker = FieldTracker()
 
@@ -338,33 +376,11 @@ class RegistrationAuthority(Organization):
             ('public', public)
         )
 
-    def register_many(self, items, state, user, *args, **kwargs):
-        # Change the registration status of many items
-        # the items argument should be a queryset
-
-        revision_message = _("Bulk registration of %i items\n") % (items.count())
-
-        revision_message = revision_message + kwargs.get('changeDetails', "")
-        seen_items = {'success': [], 'failed': []}
-
-        with transaction.atomic(), reversion.revisions.create_revision():
-            reversion.revisions.set_user(user)
-            reversion.revisions.set_comment(revision_message)
-
-            # can use bulk_create here when background reindex is setup
-            for child_item in items:
-                if perms.user_can_change_status(user, child_item):
-                    self._register(
-                        child_item, state, user, *args, **kwargs
-                    )
-                    seen_items['success'].append(child_item.id)
-                else:
-                    seen_items['failed'].append(child_item.id)
-
-        return seen_items
-
     def cascaded_register(self, item, state, user, *args, **kwargs):
-        if not perms.user_can_change_status(user, item):
+        """
+        Register an item and all it's sub components. If the user has permission
+        """
+        if not perms.user_can_add_ra_status(user, self, item):
             # Return a failure as this item isn't allowed
             return {'success': [], 'failed': [item] + item.registry_cascade_items}
 
@@ -380,15 +396,23 @@ class RegistrationAuthority(Organization):
             reversion.revisions.set_user(user)
             reversion.revisions.set_comment(revision_message)
 
-            for child_item in [item] + item.registry_cascade_items:
-                self._register(
-                    child_item, state, user, *args, **kwargs
-                )
-                seen_items['success'] = seen_items['success'] + [child_item]
+            all_items = [item] + item.registry_cascade_items
+
+            for child_item in all_items:
+                if perms.user_can_add_ra_status(user, self, child_item):
+                    self._register(
+                        child_item, state, user, *args, **kwargs
+                    )
+                    seen_items['success'].append(child_item)
+                else:
+                    seen_items['failed'].append(child_item)
         return seen_items
 
     def register(self, item, state, user, *args, **kwargs):
-        if not perms.user_can_change_status(user, item):
+        """
+        Register an item. If the user has permission
+        """
+        if not perms.user_can_add_ra_status(user, self, item):
             # Return a failure as this item isn't allowed
             return {'success': [], 'failed': [item]}
 
@@ -401,6 +425,11 @@ class RegistrationAuthority(Organization):
         return {'success': [item], 'failed': []}
 
     def _register(self, item, state, user, *args, **kwargs):
+        """
+        Internal function that permforms actual registration
+        Does not do any permissions checks
+        Used by register and cascaded_register functions
+        """
         if self.active is RA_ACTIVE_CHOICES.active:
             changeDetails = kwargs.get('changeDetails', "")
             # If registrationDate is None (like from a form), override it with

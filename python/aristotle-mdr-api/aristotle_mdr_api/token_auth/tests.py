@@ -29,7 +29,7 @@ class TokenAuthMixinTestCase(TestCase):
 
     def call_with_auth_header(self, auth_header):
         request = self.factory.get('/some/api')
-        request.META['AUTHORIZATION'] = auth_header
+        request.META['HTTP_AUTHORIZATION'] = auth_header
         self.view.request = request
         response = self.view.dispatch(request)
         return response

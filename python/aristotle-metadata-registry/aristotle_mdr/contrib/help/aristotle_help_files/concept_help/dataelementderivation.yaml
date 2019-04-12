@@ -3,8 +3,9 @@
     app_label: aristotle_mdr
     concept_type: dataelementderivation
     language: en
-    brief: application of a derivation rule to one or more input
-        [[data element|s]] to derive one or more output data elements.
+    brief: A Data Element Derivation describes a standardised rule or equation that transforms
+        a set of input Data Elements to produce a set of output [[Data Element|s]].
+        application of a derivation rule to one or more input
     offical_definition: >
         application of a derivation rule to one or more input [[data element|s]]
         to derive one or more output data elements.

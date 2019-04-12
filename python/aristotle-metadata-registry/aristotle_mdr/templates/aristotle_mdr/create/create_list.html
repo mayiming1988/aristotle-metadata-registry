@@ -7,23 +7,12 @@
 
 
 {% block page %}
-<h1>{% block title %}{% trans "Create New Items" %}{% endblock %}</h1>
+<h1>{% block title %}{% trans "Create New Metadata" %}{% endblock %}</h1>
 
 
 {% if wizards %}
 
 <h2><i class="fa fa-fw fa-magic"></i> {% trans "Create metadata using a Wizard" %}</h2>
-<p>
-    Below are a selection of wizards that will step you through creating specific
-    concept types and attaching or creating related components.
-    
-    You can create and propose a new object in your workgroups by clicking the links below.
-    Each item has a basic description, but to get more information on a
-    concept type click the question mark link
-    (<i class="fa fa-question-circle"></i>)
-    next to its name.
-
-</p>
 <ul class="list-group">
     {% for wizard in wizards %}
     <li class="list-group-item">
@@ -47,54 +36,65 @@
 <h2><i class="fa fa-fw fa-plus"></i> {% trans "Just create a single metadata item" %}</h2>
 
 <p>
-    Below is a list of all concepts managed within this registry, as submitter you
-    can create and propose a new object in your workgroups by clicking the links below.
+    Below is a list of all metadata types that can be created within this registry.
+    You can create new metadata to be saved in your Sandbox, or add it to your workgroups. 
+    
     Each item has a basic description, but to get more information on a
-    concept type click the question mark link
-    (<i class="fa fa-question-circle"></i>)
-    next to its name.
-    {% if user.is_staff %}
-        You may be able to make additional items through the
-        <a href="{% url 'admin:index' %}">{% trans 'Management interface' %}</a>.
-    {% endif %}
+    concept type click the question mark (<i class="fa fa-question-circle"></i>) next to its name.
 </p>
 {% for app_models in models %}
-<h3>{{ app_models.app }}</h3>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>{% trans "Create new" %}</th>
-                <th>{% trans "Help" %}</th>
-                <th>{% trans "Basic description" %}</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for m,model in app_models.models %}
-            {% if model.concept %}
-            <tr>
-                <td>
-                    <a href="{% url 'aristotle:createItem' m.app_label m.model %}"
-                    >{{ model.get_verbose_name }}</a>
-                </td>
-                <td>
-                    <a title="{% trans 'Get more help on this item' %}"
-                        href="{% url 'aristotle_help:concept_help' m.app_label m.model %}">
-                        <i class="fa fa-question-circle"></i>
-                    </a>
-                </td>
-                <td>
-                    {% help_doc model %}
-                    <a href="{% url 'aristotle:createItem' m.app_label m.model %}"
-                        class="btn btn-default btn-sm pull-right">
-                        <i class="fa fa-plus"></i> Create <span class="sr-only">{{ model.get_verbose_name }}</span>
-                    </a>
-
-                </td>
-            </tr>
-            {% endif %}
-        {% endfor %}
-        </tbody>
-    </table>
+    <div class="panel panel-default">
+      <!-- Default panel contents -->
+        <div class="panel-heading">
+            <strong>{% firstof app_models.app.create_page_name app_models.app.verbose_name %}
+            </strong>
+        </div>
+        {% if app_models.app.create_page_description %}
+        <div class="panel-body">
+            <p>
+                {{ app_models.app.create_page_description }}
+            </p>
+        </div>
+        {% endif %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th style="width:20%">{% trans "Create new" %}</th>
+                    <th>{% trans "Help" %}</th>
+                    <th>{% trans "Basic description" %}</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for m,model in app_models.models %}
+                {% if model.concept %}
+                <tr>
+                    <th>
+                        <a href="{% url 'aristotle:createItem' m.app_label m.model %}"
+                        >{{ model.get_verbose_name }}</a>
+                    </th>
+                    <td>
+                        <a title="{% trans 'Get more help on this item' %}"
+                            href="{% url 'aristotle_help:concept_help' m.app_label m.model %}">
+                            <i class="fa fa-question-circle"></i>
+                        </a>
+                    </td>
+                    <td>
+                        {% help_doc model %}
+                    </td>
+                    <td>
+                        <a href="{% url 'aristotle:createItem' m.app_label m.model %}"
+                            class="btn btn-default btn-sm pull-right">
+                            <i class="fa fa-plus"></i> Create <span class="sr-only">{{ model.get_verbose_name }}</span>
+                        </a>
+    
+                    </td>
+                </tr>
+                {% endif %}
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% endfor %}
 
 {% endblock %}

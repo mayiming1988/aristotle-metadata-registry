@@ -305,8 +305,6 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
         self.aspeed = models.DataElementConcept.objects.create(
             name='Animal - Speed',
             definition='An animals speed',
-            # objectClass=self.animal,
-            # property=self.speed,
             submitter=self.editor
         )
 
@@ -384,6 +382,34 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
         html = downloader.get_html().decode()
         self.assertTrue('Old animal' in html)
         self.assertTrue('New animal' in html)
+
+    def test_de_download(self):
+        # Link DEC
+        self.aspeed.objectClass = self.animal
+        self.aspeed.property = self.speed
+        self.aspeed.save()
+
+        # Make editor the speed submitter
+        self.speed.submitter = self.editor
+        self.speed.save()
+
+        # Create DE
+        de = models.DataElement.objects.create(
+            name='Animal - Speed, Code',
+            definition='Animal speed code',
+            submitter=self.editor,
+            dataElementConcept=self.aspeed
+        )
+
+        # Download item
+        downloader = HTMLDownloader([de.id], self.editor.id, {})
+        html = downloader.get_html().decode()
+
+        # Make sure there is content
+        self.assertTrue(len(html) > 0)
+
+        # Make sure all items were displayed
+        self.assertFalse('You dont have permission' in html)
 
 
 @override_settings(ARISTOTLE_SETTINGS={'DOWNLOADERS': ['aristotle_mdr.downloaders.DocxDownloader']})

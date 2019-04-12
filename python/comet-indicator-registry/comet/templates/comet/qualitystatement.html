@@ -1,19 +1,6 @@
 {% extends "aristotle_mdr/concepts/managedContent.html" %}
 {% load util_tags %}
 
-{% block asideContent %}
-    <dl>
-        {% if item.implementationStartDate %}
-        <dt>Start Date</dt>
-        <dd><time datetime="{{ item.implementationStartDate|isotime }}">{{ item.implementationStartDate }}</time></dd>
-        {% endif %}
-        {% if item.implementationEndDate %}
-        <dt>End Date</dt>
-        <dd><time datetime="{{ item.implementationEndDate|isotime }}">{{ item.implementationEndDate }}</time></dd>
-        {% endif %}
-    </dl>
-{% endblock %}
-
 {% block objSpecific %}
 <h2>Adherence to quality guidelines</h2>
 <dl class="qualityStatement">

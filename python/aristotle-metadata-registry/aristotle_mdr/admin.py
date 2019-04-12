@@ -67,7 +67,7 @@ class StatusInline(admin.TabularInline):
 
     def has_change_permission(self, request, obj=None):
         if obj is not None:
-            return perms.user_can_change_status(request.user, obj)
+            return perms.user_can_add_status(request.user, obj)
         return super().has_change_permission(request, obj=None)
 
     def has_add_permission(self, request):

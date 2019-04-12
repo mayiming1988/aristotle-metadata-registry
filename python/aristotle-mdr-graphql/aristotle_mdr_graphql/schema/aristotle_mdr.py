@@ -13,6 +13,7 @@ from aristotle_mdr_graphql import resolvers
 WorkgroupNode = type_from_model(mdr_models.Workgroup)
 # OrganizationNode = type_from_model(mdr_models.Organization)
 
+
 class RegistrationAuthorityNode(DjangoObjectType):
     # At the moment, querying backward for a status from a registration authority has
     # permissions issues, and querying problems.
@@ -58,7 +59,7 @@ ValueDomainNode = type_from_concept_model(
 
 DataElementNode = type_from_concept_model(
     mdr_models.DataElement,
-    extra_filter_fields=['dataElementConcept','valueDomain','dataElementConcept__objectClass'],
+    extra_filter_fields=['dataElementConcept', 'valueDomain', 'dataElementConcept__objectClass'],
 )
 
 DataElementConceptNode = type_from_concept_model(mdr_models.DataElementConcept)
@@ -66,7 +67,6 @@ DataElementConceptNode = type_from_concept_model(mdr_models.DataElementConcept)
 dedinputs = inline_type_from_model(mdr_models.DedInputsThrough)
 dedderives = inline_type_from_model(mdr_models.DedDerivesThrough)
 DataElementDerivationNode = type_from_concept_model(mdr_models.DataElementDerivation)
-
 
 
 class Query(object):
@@ -78,8 +78,8 @@ class Query(object):
     workgroups = AristotleFilterConnectionField(WorkgroupNode)
     # organizations = AristotleFilterConnectionField(OrganizationNode)
     registration_authorities = DjangoFilterConnectionField(RegistrationAuthorityNode)
-    #discussion_posts = AristotleFilterConnectionField(DiscussionPostNode)
-    #discussion_comments = AristotleFilterConnectionField(DiscussionCommentNode)
+    # discussion_posts = AristotleFilterConnectionField(DiscussionPostNode)
+    # discussion_comments = AristotleFilterConnectionField(DiscussionCommentNode)
     # review_requests = AristotleFilterConnectionField(ReviewRequestNode)
 
     object_classes = AristotleConceptFilterConnectionField(ObjectClassNode)

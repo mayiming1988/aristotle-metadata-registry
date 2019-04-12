@@ -11,6 +11,10 @@
     </div>
 {% endif %}
 
+{% for tabname in invalid_tabs %}
+  <div class="alert alert-danger">An error occurred on the {{ tabname }} tab</div>
+{% endfor %}
+
 <div role="tabpanel">
     <ul class="nav nav-tabs" role="tablist">
         <li role="presentation" class="active">
@@ -81,6 +85,7 @@
                 <span>{{ form.workgroup.label_tag }}
                 {{ form.workgroup.help_text }}
                 The workgroup responsible for maintaining this metadata item.
+                Leave this blank to save this metadata to your Sandbox.
                 </span>
                 {% if form.workgroup.errors %}
                     <span class="alert alert-danger">

@@ -5,13 +5,16 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
+from django.forms import modelformset_factory
 from django.http import HttpResponseRedirect, Http404
-from django.shortcuts import get_object_or_404
+from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_string
+from django.utils import timezone
 from django.forms import modelformset_factory
 # from django.views.generic import ListView, TemplateView, DeleteView
+from django.urls import reverse
 from django.views.generic import (
     DetailView,
     ListView,
@@ -37,6 +40,8 @@ from aristotle_mdr.views.utils import (
     UserFormViewMixin,
     FormsetView
 )
+
+from aristotle_bg_workers.tasks import register_items
 
 from . import models, forms
 
@@ -80,7 +85,11 @@ class ReviewActionMixin(LoginRequiredMixin, UserFormViewMixin):
 
         perm_func = getattr(perms, self.perm_function)
         if not perm_func(self.request.user, self.review):
-            raise PermissionDenied
+            # TODO: make this use CBVs
+            if self.request.user.is_anonymous():
+                return redirect(reverse('friendly_login') + '?next=%s' % request.path)
+            else:
+                raise PermissionDenied
 
         return super().dispatch(*args, **kwargs)
 
@@ -102,6 +111,7 @@ class ReviewActionMixin(LoginRequiredMixin, UserFormViewMixin):
         kwargs['review'] = self.review
         kwargs['can_approve_review'] = perms.user_can_approve_review(self.request.user, self.review)
         kwargs['can_open_close_review'] = perms.user_can_close_or_reopen_review(self.request.user, self.review)
+        kwargs['can_edit_review'] = perms.user_can_edit_review(self.request.user, self.review)
         if hasattr(self, "active_tab_name"):
             kwargs['active_tab'] = self.active_tab_name
         return kwargs
@@ -181,6 +191,7 @@ class ReviewStatusChangeBase(ReviewActionMixin, ReviewChangesView):
     review = None
     user_form = True
     show_supersedes: bool = True
+    message = 'Items have been registered'
 
     def dispatch(self, request, *args, **kwargs):
 
@@ -253,11 +264,34 @@ class ReviewAcceptView(ReviewStatusChangeBase):
         'review_changes': 'aristotle_mdr/actions/review_state_changes.html'
     }
 
+    def approve_supersedes(self, review, regDate):
+        sups = review.proposed_supersedes
+
+        old_items = [s.older_item.id for s in sups]
+
+        if not regDate:
+            regDate = timezone.now().date()
+
+        # Set all old items to the Superseded status
+        register_items.delay(
+            old_items,
+            False,
+            MDR.STATES.superseded,
+            review.registration_authority_id,
+            self.request.user.id,
+            "",
+            (regDate.year, regDate.month, regDate.day),
+            False
+        )
+
+        # approve all proposed supersedes
+        sups.update(proposed=False)
+
     def done(self, form_list, form_dict, **kwargs):
         review = self.get_review()
 
         with reversion.revisions.create_revision():
-            message = self.register_changes_with_message(form_dict)
+            self.register_changes(form_dict)
 
             if form_dict['review_accept'].cleaned_data['close_review'] == "1":
                 review.status = models.REVIEW_STATES.approved
@@ -274,10 +308,13 @@ class ReviewAcceptView(ReviewStatusChangeBase):
                 registration_state=review.target_registration_state,
                 actor=self.request.user
             )
-            # approve all proposed supersedes
-            review.proposed_supersedes.update(proposed=False)
 
-            messages.add_message(self.request, messages.INFO, message)
+            # Approve supersedes
+            cleaned_data = self.get_change_data()
+            regDate = cleaned_data['registrationDate']
+            self.approve_supersedes(review, regDate)
+
+            messages.add_message(self.request, messages.INFO, self.message)
 
         return HttpResponseRedirect(reverse('aristotle_reviews:review_details', args=[review.pk]))
 
@@ -315,7 +352,7 @@ class ReviewEndorseView(ReviewStatusChangeBase):
         review = self.get_review()
 
         with reversion.revisions.create_revision():
-            message = self.register_changes_with_message(form_dict)
+            self.register_changes(form_dict)
 
             if int(form_dict['review_accept'].cleaned_data['close_review']) == 1:
                 review.status = models.REVIEW_STATES.closed
@@ -327,7 +364,7 @@ class ReviewEndorseView(ReviewStatusChangeBase):
                 actor=self.request.user
             )
 
-            messages.add_message(self.request, messages.INFO, message)
+            messages.add_message(self.request, messages.INFO, self.message)
 
         return HttpResponseRedirect(reverse('aristotle_reviews:review_details', args=[review.pk]))
 

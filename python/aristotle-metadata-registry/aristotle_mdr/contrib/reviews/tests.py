@@ -11,6 +11,9 @@ from aristotle_mdr import perms
 from aristotle_mdr.contrib.reviews import models
 from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
 from django.contrib.auth import get_user_model
+
+import datetime
+
 User = get_user_model()
 
 
@@ -20,8 +23,11 @@ review_urls = [
     'aristotle_reviews:review_list',
     'aristotle_reviews:request_impact',
     # 'aristotle_reviews:request_checks',
-    'aristotle_reviews:request_update',
     'aristotle_reviews:request_issues',
+]
+
+review_edit_urls = [
+    'aristotle_reviews:request_update',
 ]
 
 review_accept_urls = [
@@ -233,7 +239,8 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         self.review = models.ReviewRequest.objects.create(
             registration_authority=self.ra,
             requester=self.editor,
-            target_registration_state=MDR.STATES.standard
+            target_registration_state=MDR.STATES.standard,
+            registration_date=datetime.date(2001, 1, 1)
         )
         self.review.concepts.add(self.item)
 
@@ -477,6 +484,30 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         ss.refresh_from_db()
         self.assertFalse(ss.proposed)
 
+    def test_supersedes_status_applied(self):
+        older = MDR.ObjectClass.objects.create(name='Old', definition='Very old')
+        ss = self.create_ss_relation(older, self.item)
+        self.assertEqual(self.review.proposed_supersedes.count(), 1)
+
+        wizard_data = [
+            {'status_message': 'We changing', 'close_review': '1'},
+            {'selected_list': [str(self.item.id)]}
+        ]
+
+        self.login_registrar()
+        response = self.post_to_wizard(
+            wizard_data,
+            reverse('aristotle_mdr_review_requests:accept_review', args=[self.review.id]),
+            'review_accept_view',
+            ['review_accept', 'review_changes']
+        )
+        self.assertEqual(response.status_code, 302)
+
+        older.refresh_from_db()
+        status = older.statuses.first()
+        self.assertIsNotNone(status)
+        self.assertEqual(status.state, MDR.STATES.superseded)
+
     @tag('proposed')
     def test_proposed_ss_not_shown_item_page(self):
         self.item.submitter = self.editor
@@ -645,8 +676,126 @@ class ReviewRequestPermissions(utils.AristotleTestUtils, TestCase):
         self.assertFalse(perm(self.other_registrar, self.review_request))
 
 
-@skip('Needs to be updated for new reviews system')
 class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
+    def setUp(self):
+        super().setUp()
+
+        # There would be too many tests to test every item type against every other
+        # But they all have identical logic, so one test should suffice
+        self.item1 = MDR.ObjectClass.objects.create(name="Test Item 1 (visible to tested viewers)", definition="my definition", workgroup=self.wg1)
+        self.item2 = MDR.ObjectClass.objects.create(name="Test Item 2 (NOT visible to tested viewers)", definition="my definition", workgroup=self.wg2)
+        self.item3 = MDR.ObjectClass.objects.create(name="Test Item 3 (only visible to the editor)", definition="my definition", workgroup=None, submitter=self.editor)
+
+        self.item4 = MDR.ValueDomain.objects.create(name='Test Value Domain', definition='my definition', workgroup=self.wg1)
+        self.item5 = MDR.DataElement.objects.create(name='Test data element', definition='my definition', workgroup=self.wg1, valueDomain=self.item4)
+
+    def check_item_status(self, item, review, updated):
+
+        self.assertEqual(item.is_public(), updated)
+        self.assertEqual(item.current_statuses().count() == 1, updated)
+
+        if updated:
+            state = item.current_statuses().first()
+
+            self.assertTrue(state.registrationAuthority == review.registration_authority)
+            self.assertTrue(state.state == review.state)
+            self.assertTrue(state.registrationDate == review.registration_date)
+        else:
+            self.assertTrue(item.current_statuses().count() == 0)
+
+    def make_public_rr(self, items, ra=None, user=None):
+        if not user:
+            user = self.editor
+
+        if ra is None:
+            ra = self.ra
+
+        review = models.ReviewRequest.objects.create(
+            requester=user,
+            registration_authority=ra,
+            target_registration_state=ra.public_state,
+            registration_date=datetime.date(2010, 1, 1)
+        )
+        review.concepts = items
+        review.save()
+        return review
+
+    def post_public_rr(self, items, ra=None):
+        if ra is None:
+            ra = self.ra
+        response = self.client.post(
+            reverse('aristotle_reviews:review_create'),
+            {
+                'concepts': [i.pk for i in items],
+                'registration_authority': ra.id,
+                'target_registration_state': self.ra.public_state,
+                'cascade_registration': 0,
+                'title': "Please review this",
+                'registration_date': datetime.date(2010, 1, 1)
+            }
+        )
+        return response
+
+    def check_urls(self, review_pk, urls, status_code):
+        for url in urls:
+            try:
+                response = self.client.get(
+                    reverse(url, args=[review_pk])
+                )
+                self.assertEqual(response.status_code, status_code)
+            except:  # pragma: no cover
+                print(url)
+                print(response)
+                raise
+
+    def test_viewer_can_request_review(self):
+        self.login_editor()
+
+        response = self.client.get(reverse('aristotle_reviews:review_create'))
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(self.item1.rr_review_requests.count(), 0)
+        request = self.make_public_rr([self.item1])
+        self.assertEqual(self.item1.rr_review_requests.count(), 1)
+
+        self.check_urls(request.pk, review_urls, 200)
+        self.check_urls(request.pk, review_edit_urls, 200)
+        self.check_urls(request.pk, review_accept_urls, 403)
+
+        # Can't see, can't review others reviews
+        self.assertEqual(self.item2.rr_review_requests.count(), 0)
+        request = self.make_public_rr([self.item2], user=self.viewer)
+        self.assertEqual(self.item2.rr_review_requests.count(), 1)
+        self.assertEqual(self.item2.rr_review_requests.visible(self.editor).count(), 0)
+        self.check_urls(request.pk, review_urls, 403)
+
+        # Cant post
+        response = self.post_public_rr([self.item2])
+        self.assertEqual(self.item2.rr_review_requests.count(), 1)
+
+        self.assertTrue("concepts" in response.context['form'].errors.keys())
+        self.assertTrue(
+            "{} is not one of the available choices".format(self.item2.pk)
+            in str(response.context['form'].errors['concepts'])
+        )
+        self.assertEqual(self.item2.rr_review_requests.count(), 1)
+
+    def test_registrar_can_view_review(self):
+        self.login_registrar()
+
+        self.assertEqual(self.item1.rr_review_requests.count(), 0)
+        request = self.make_public_rr([self.item1])
+        self.assertEqual(self.item1.rr_review_requests.count(), 1)
+
+        review_pk = request.pk
+
+        self.check_urls(review_pk, review_urls, 200)
+        self.check_urls(review_pk, review_edit_urls, 403)
+        self.check_urls(review_pk, review_accept_urls, 200)
+
+
+@skip('All these tests need to be updated for new reviews system')
+class OldReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
     def setUp(self):
         super().setUp()
 
@@ -718,6 +867,7 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
         #     args=[review_pk]
         # )
         self.check_urls(review_pk, review_urls, 200)
+        self.check_urls(review_pk, review_edit_urls, 403)
         self.check_urls(review_pk, review_accept_urls, 403)
 
         # Can't see, can't reviews
@@ -817,7 +967,7 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
 
     def test_superuser_can_see_review(self):
         self.login_superuser()
-        other_ra = MDR.RegistrationAuthority.objects.create(name="A different ra")
+        other_ra = MDR.RegistrationAuthority.objects.create(name="A different ra", stewardship_organisation=self.steward_org)
 
         review = self.make_review_request_iterable([item2], request_kwargs=dict(
             requester=self.editor,
@@ -843,7 +993,7 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
         response = self.client.get(reverse('aristotle_reviews:review_details', args=[review.pk]))
         self.assertEqual(response.status_code, 200)
 
-        review.status = REVIEW_STATES.cancelled
+        review.status = REVIEW_STATES.revoked
         review.save()
 
         response = self.client.get(reverse('aristotle_reviews:review_details', args=[review.pk]))
@@ -877,7 +1027,7 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
         response = self.client.get(reverse('aristotle_reviews:review_details', args=[review.pk]))
         self.assertEqual(response.status_code, 200)
 
-        review.status = REVIEW_STATES.cancelled
+        review.status = REVIEW_STATES.revoked
         review.save()
 
         response = self.client.get(reverse('aristotle_reviews:review_details', args=[review.pk]))
@@ -941,7 +1091,7 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
         response = self.client.get(reverse('aristotle:userReviewAccept', args=[review.pk]))
         self.assertEqual(response.status_code, 200)
 
-        review.status = REVIEW_STATES.cancelled
+        review.status = REVIEW_STATES.revoked
         review.save()
 
         review = models.ReviewRequest.objects.get(pk=review.pk)  # decache
@@ -951,7 +1101,7 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
         response = self.client.post(
             reverse('aristotle:userReviewAccept', args=[review.pk]),
             {
-                'review_accept-response': "I can't accept this, its cancelled",
+                'review_accept-response': "I can't accept this, its revoked",
                 'review_accept_view-current_step': 'review_accept',
                 'submit_skip': 'value',
             }
@@ -1060,7 +1210,7 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
         response = self.client.get(reverse('aristotle:userReviewReject', args=[review.pk]))
         self.assertEqual(response.status_code, 200)
 
-        review.status = REVIEW_STATES.cancelled
+        review.status = REVIEW_STATES.revoked
         review.save()
 
         review = models.ReviewRequest.objects.get(pk=review.pk)  # decache
@@ -1070,13 +1220,13 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
         response = self.client.post(
             reverse('aristotle:userReviewReject', args=[review.pk]),
             {
-                'response': "I can't reject this, its cancelled"
+                'response': "I can't reject this, its revoked"
             }
         )
 
         review = models.ReviewRequest.objects.get(pk=review.pk)  # decache
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(review.status, REVIEW_STATES.cancelled)
+        self.assertEqual(review.status, REVIEW_STATES.revoked)
         self.assertFalse(bool(review.response))
 
         review.status = REVIEW_STATES.submitted
@@ -1105,7 +1255,7 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
         review = models.ReviewRequest.objects.create(
             requester=self.editor,
             registration_authority=self.ra,
-            state=self.ra.public_state,
+            target_registration_state=self.ra.public_state,
             registration_date=datetime.date(2010, 1, 1),
             cascade_registration=1,
         )
@@ -1173,7 +1323,7 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
         review = models.ReviewRequest.objects.create(
             requester=self.viewer,
             registration_authority=self.ra,
-            state=self.ra.public_state,
+            target_registration_state=self.ra.public_state,
             registration_date=datetime.date(2010, 1, 1)
         )
 
@@ -1185,7 +1335,7 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
         review = models.ReviewRequest.objects.create(
             requester=self.editor,
             registration_authority=self.ra,
-            state=self.ra.public_state,
+            target_registration_state=self.ra.public_state,
             registration_date=datetime.date(2010, 1, 1)
         )
 
@@ -1194,7 +1344,7 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
         response = self.client.get(reverse('aristotle:userReviewCancel', args=[review.pk]))
         self.assertEqual(response.status_code, 200)
 
-        review.status = REVIEW_STATES.cancelled
+        review.status = REVIEW_STATES.revoked
         review.save()
 
         response = self.client.get(reverse('aristotle:userReviewCancel', args=[review.pk]))
@@ -1203,18 +1353,18 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
         review = models.ReviewRequest.objects.create(
             requester=self.editor,
             registration_authority=self.ra,
-            state=self.ra.public_state,
+            target_registration_state=self.ra.public_state,
             registration_date=datetime.date(2010, 1, 1)
         )
 
         review.concepts.add(self.item1)
 
-        self.assertFalse(review.status == REVIEW_STATES.cancelled)
+        self.assertFalse(review.status == REVIEW_STATES.revoked)
         response = self.client.post(reverse('aristotle:userReviewCancel', args=[review.pk]), {})
         self.assertRedirects(response, reverse('aristotle:userMyReviewRequests',))
 
         review = models.ReviewRequest.objects.get(pk=review.pk)  # decache
-        self.assertTrue(review.status == REVIEW_STATES.cancelled)
+        self.assertTrue(review.status == REVIEW_STATES.revoked)
 
     def test_registrar_cant_load_rejected_or_accepted_review(self):
         self.login_registrar()
@@ -1224,7 +1374,7 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
             requester=self.editor,
             registration_authority=self.ra,
             status=REVIEW_STATES.accepted,
-            state=models.STATES.standard,
+            target_registration_state=models.STATES.standard,
             registration_date=datetime.date(2010, 1, 1)
         )
 
@@ -1240,7 +1390,7 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
             requester=self.editor,
             registration_authority=self.ra,
             status=REVIEW_STATES.rejected,
-            state=models.STATES.standard,
+            target_registration_state=models.STATES.standard,
             registration_date=datetime.date(2010, 1, 1)
         )
 
@@ -1269,7 +1419,7 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
         self.assertTrue(user_can_view_review(self.su, review))
         self.assertFalse(user_can_view_review(self.viewer, review))
 
-        review.status = REVIEW_STATES.cancelled
+        review.status = REVIEW_STATES.revoked
         review.save()
 
         review = models.ReviewRequest.objects.get(pk=review.pk)  # decache
@@ -1287,7 +1437,7 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
         review = self.make_review_request_iterable([], request_kwargs=dict(
             requester=self.viewer,
             registration_authority=self.ra,
-            state=self.ra.public_state,
+            target_registration_state=self.ra.public_state,
             registration_date=datetime.date(2010, 1, 1)
         ))
 
@@ -1314,12 +1464,12 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
         self.ra.active = 1
         self.ra.save()
 
-        self.assertEqual(self.item1.review_requests.count(), 0)
+        self.assertEqual(self.item1.rr_review_requests.count(), 0)
 
         response = self.post_public_rr([self.item1])
         self.assertEqual(response.status_code, 200)
         self.assertTrue('registrationAuthorities' in response.context['form'].errors)
-        self.assertEqual(self.item1.review_requests.count(), 0)
+        self.assertEqual(self.item1.rr_review_requests.count(), 0)
 
     @tag('inactive_ra')
     def test_cannot_accept_rr_with_inactive_ra(self):
@@ -1327,8 +1477,8 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
 
         # Create review request
         response = self.post_public_rr([self.item3])
-        self.assertEqual(self.item3.review_requests.count(), 1)
-        review = self.item3.review_requests.all()[0]
+        self.assertEqual(self.item3.rr_review_requests.count(), 1)
+        review = self.item3.rr_review_requests.all()[0]
 
         # Make ra inactive
         self.ra.active = 1
@@ -1347,7 +1497,7 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
         )
 
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(self.item3.review_requests.count(), 1)
+        self.assertEqual(self.item3.rr_review_requests.count(), 1)
 
     @tag('inactive_ra')
     def test_reviews_hidden_from_lists_when_ra_inactive(self):
@@ -1355,7 +1505,7 @@ class ReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
 
         # Create review request
         response = self.post_public_rr([self.item1])
-        self.assertEqual(self.item1.review_requests.count(), 1)
+        self.assertEqual(self.item1.rr_review_requests.count(), 1)
 
         # Make ra inactive
         self.ra.active = 1

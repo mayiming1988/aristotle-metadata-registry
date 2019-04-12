@@ -6,7 +6,8 @@ from .comet import Query as CometQuery
 
 
 class AristotleQuery(AristotleDSEQuery, AristotleMDRQuery, CometQuery, graphene.ObjectType):
-    "The query root of the Aristotle GraphQL API"
+    """The query root of the Aristotle GraphQL API"""
+    pass
 
 
 schema = graphene.Schema(query=AristotleQuery)

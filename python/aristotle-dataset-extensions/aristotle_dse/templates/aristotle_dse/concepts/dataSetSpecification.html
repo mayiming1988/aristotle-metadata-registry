@@ -32,60 +32,88 @@
     {% if item.dssclusterinclusion_set.exists %}
         <table class="dssInclusions table table-striped table-condensed">
             <thead>
-                <tr>
-                    <th>
-                        Clusters
-                    </th>
-                    <th>Statuses
-                    </th>
-                    <th>
-                        <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left" data-html="true"
-                            title="Data Element Inclusion" data-content="The rules for inclusion for a data element within a data set.<br>May be optional, mandatory or conditional">
-                            Inclusion</a>
-                    </th>
-                    <th class="maxOccurs">
-                        <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left"
-                            title="Maximum Occurrences" data-content="The maximum number of times a data element may be repeated in a data set.">
-                            #</a>
-                    </th>
-                </tr>
+            <tr>
+                <th>
+                    Clusters
+                </th>
+                <th>Statuses
+                </th>
+                <th>
+                    <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left" data-html="true"
+                       title="Data Element Inclusion" data-content="The rules for inclusion for a data element within a data set.<br>May be optional, mandatory or conditional">
+                        Inclusion
+                    </a>
+                </th>
+                <th class="maxOccurs">
+                    <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left"
+                       title="Maximum Occurrences" data-content="The maximum number of times a data element may be repeated in a data set.">
+                        #
+                    </a>
+                </th>
+            </tr>
             </thead>
-            {% if item.dssclusterinclusion_set.exists %}
-                <tbody>
-                {% for deinc in item.dssclusterinclusion_set.all %}
-                    {% if deinc.child.id in viewable_ids %}
+            <tbody>
+
+            {% for deinc in item.dssclusterinclusion_set.all %}
+                {% if deinc.child.id in viewable_ids %}
+                    <tr>
+                        <td>
+                            <i class="fa fa-fw fa-folder-o"></i>{% include "aristotle_mdr/helpers/itemLink.html" with item=deinc.child skip_can_view=True %}
+                            {% if deinc.specific_information %}
+                                <div>
+                                    <strong>Specific Information:</strong>
+                                    {{ deinc.specific_information|bleach }}
+                                </div>
+                            {% endif %}
+                            {% if deinc.conditional_obligation %}
+                                <div>
+                                    <strong>Conditional Obligation:</strong>{{ deinc.conditional_obligation|bleach }}
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <ul>
+                                {% for s in deinc.child.valid_statuses|distinct:"registrationAuthority_id" %}
+                                    <li>[{{ s.registrationAuthority }}: {{ s.state_name }}]</li>
+                                {% empty %}
+                                    <li><em>Unregistered</em></li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                        <td>
+                            {{ deinc.cardinality }}
+                        </td>
+                        <td>
+                            {{ deinc.maximum_occurances }}
+                        </td>
+                    </tr>
+                    {% if deinc.child.data_elements %}
                         <tr>
-                            <td><i class="fa fa-fw fa-folder-o"></i>{% include "aristotle_mdr/helpers/itemLink.html" with item=deinc.child skip_can_view=True %}
-                                {% if deinc.specific_information %}
-                                    <div>
-                                        <strong>Specific Information:</strong>
-                                        {{ deinc.specific_information|bleach }}
+                            <td colspan="10">
+                                <div style="padding-left: 5em">
+                                    <button class="collapsible">
+                                        Data Elements <i class="fa fa-caret-down"></i>
+                                    </button>
+                                    <div class="content">
+                                        <ul>
+                                            {% for data_element in deinc.child.data_elements %}
+                                                <li>
+                                                    <a href="{{ data_element.get_absolute_url }}">
+                                                        {{ data_element }}
+                                                    </a>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
                                     </div>
-                                {% endif %}
-                                {% if deinc.conditional_obligation %}
-                                    <div>
-                                        <strong>Conditional Obligation:</strong>{{ deinc.conditional_obligation|bleach }}
-                                    </div>
-                                {% endif %}
+                                </div>
                             </td>
-                            <td>
-                                <ul>
-                                    {% for s in deinc.child.valid_statuses|distinct:"registrationAuthority_id" %}
-                                        <li>[{{ s.registrationAuthority }}: {{ s.state_name }}]</li>
-                                    {% empty %}
-                                        <li><em>Unregistered</em></li>
-                                    {% endfor %}
-                                </ul>
-                            </td>
-                            <td>{{ deinc.cardinality }}</td>
-                            <td>{{ deinc.maximum_occurances }}</td>
                         </tr>
-                    {% else %}
-                        <tr><td colspan="7">You don't have permission to view this item</td></tr>
                     {% endif %}
-                {% endfor %}
-                </tbody>
-            {% endif %}
+                {% else %}
+                    <tr><td colspan="7">You don't have permission to view this item</td></tr>
+                {% endif %}
+            {% endfor %}
+            </tbody>
         </table>
     {% endif %}
 
@@ -128,7 +156,7 @@
                     </th>
                     <th class="maxOccurs">
                         <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left"
-                            title="Maximum Occurrences" data-content="The maximum number of times a data element may be repeated in a data set.">
+                           title="Maximum Occurrences" data-content="The maximum number of times a data element may be repeated in a data set.">
                             #</a>
                     </th>
                 </tr>
