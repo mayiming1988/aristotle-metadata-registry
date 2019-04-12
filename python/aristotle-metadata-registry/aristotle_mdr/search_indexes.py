@@ -38,38 +38,31 @@ class ConceptFallbackCharField(indexes.CharField):
 
 
 class BaseObjectIndex(indexes.SearchIndex):
-    text = ConceptFallbackCharField(document=True, use_template=True)
+    text = indexes.CharField(document=True, use_template=True)
     modified = indexes.DateTimeField(model_attr='modified')
     created = indexes.DateTimeField(model_attr='created')
     name = indexes.CharField(model_attr='name', boost=1)
     # Thanks ElasticSearch - https://github.com/django-haystack/django-haystack/issues/569
-    name_sortable = indexes.CharField(model_attr='name', indexed=False, stored=True)
-    django_ct_app_label = indexes.CharField()
+    # name_sortable = indexes.CharField(model_attr='name', indexed=False, stored=True)
     # django_ct_model_name = indexes.CharField()
     # access = indexes.MultiValueField()
-
     rendered_search_result = indexes.CharField(indexed=False)
 
     def prepare_rendered_search_result(self, obj):
-
         t = loader.get_template(self.template_name)
         return t.render({'object': obj})
-
-    def prepare_django_ct_app_label(self, obj):
-        return obj._meta.app_label
-    # def prepare_django_ct_model_name(self, obj):
-    #     return obj.is_public()
 
     def get_model(self):
         raise NotImplementedError  # pragma: no cover -- This should always be overridden
 
     def index_queryset(self, using=None):
         """Used when the entire index for model is updated."""
-
         return self.get_model().objects.filter(modified__lte=timezone.now())
 
 
 class ConceptIndex(BaseObjectIndex):
+    text = ConceptFallbackCharField(document=True, use_template=True)
+    django_ct_app_label = indexes.CharField()
     uuid = indexes.CharField(model_attr='uuid')
     statuses = indexes.MultiValueField(faceted=True)
     highest_state = indexes.IntegerField()
@@ -91,6 +84,10 @@ class ConceptIndex(BaseObjectIndex):
     rendered_badge = indexes.CharField(indexed=False)
 
     # Preparation functions for conceptIndex
+
+    def prepare_django_ct_app_label(self, obj):
+        return obj._meta.app_label
+
     def prepare_rendered_badge(self, obj):
 
         t = loader.get_template('search/badge.html')
@@ -174,30 +171,7 @@ class ConceptIndex(BaseObjectIndex):
             return record.publication_date
 
 
-# # TODO: move to inheritance
-# class BaseObjectIndex(indexes.SearchIndex, indexes.Indexable):
-#     text = indexes.CharField(document=True, use_template=True)
-#     modified = indexes.DateTimeField(model_attr='modified')
-#     created = indexes.DateTimeField(model_attr='created')
-#
-#     rendered_search_result = indexes.CharField(indexed=False)
-#
-#     def prepare_rendered_search_result(self, posting):
-#
-#         t = loader.get_template(self.template_name)
-#         return t.render({'posting': posting})
-#
-#
-#     def get_model(self):
-#         raise NotImplementedError  # pragma: no cover -- This should always be overridden
-#
-#     def index_queryset(self, using=None):
-#         """Used when the entire index for model is updated."""
-#
-#         return self.get_model().objects.filter(modified__lte=timezone.now())
-
-
-class DiscussionIndex(indexes.SearchIndex, indexes.Indexable):
+class DiscussionIndex(BaseObjectIndex, indexes.Indexable):
     """ Index of Discussion posts """
     text = indexes.CharField(document=True, use_template=True)
     name = indexes.CharField(model_attr='title')
@@ -205,8 +179,6 @@ class DiscussionIndex(indexes.SearchIndex, indexes.Indexable):
     modified = indexes.DateTimeField(model_attr='modified')
     created = indexes.DateTimeField(model_attr='created')
     workgroup = indexes.IntegerField(faceted=True)
-    django_ct_app_label = indexes.CharField()
-
 
     rendered_search_result = indexes.CharField(indexed=False)
 
@@ -217,7 +189,6 @@ class DiscussionIndex(indexes.SearchIndex, indexes.Indexable):
         Pre-renders all the discussion search results to avoid hitting the database every search
         """
         t = loader.get_template(self.template_name)
-        logger.debug("Post render is: " +  t.render({'discussion_post': discussion_post}))
         return t.render({'discussion_post': discussion_post})
 
     def prepare_workgroup(self, obj):

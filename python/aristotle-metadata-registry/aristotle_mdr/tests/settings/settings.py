@@ -1,6 +1,7 @@
 import os
 import sys
 import tempfile
+from enum import Enum
 import dj_database_url
 from aristotle_mdr.required_settings import *
 
@@ -59,6 +60,7 @@ db_from_env = dj_database_url.config(conn_max_age=500, default='sqlite:////tmp/d
 
 DATABASES = {'default': db_from_env}
 
+
 if os.environ.get('SEARCH') == 'whoosh':
     print("Running %s test-suite with whoosh" % ci_runner)
     if os.environ.get('VARIANT') == 'haystack':
@@ -75,13 +77,15 @@ elif os.environ.get('SEARCH') == 'elastic':
     else:
         print("Aristotle specific variant")
         from aristotle_mdr.tests.settings.templates.search.elasticsearch import HAYSTACK_CONNECTIONS
+        ELASTIC_SEARCH_BACKEND = True
 elif os.environ.get('TOXDIR'):
     print("Running  %s test-suite with whoosh" % ci_runner)
     from aristotle_mdr.tests.settings.tox import HAYSTACK_CONNECTIONS
+    WOOSH_SEARCH_BACKEND = True
 else:
-    print("Running %s test-suite with elastic search" % ci_runner)
-    print("Aristotle specific variant")
-    from aristotle_mdr.tests.settings.templates.search.haystack_elasticsearch import HAYSTACK_CONNECTIONS
+    print("Vanilla haystack variant")
+    from aristotle_mdr.tests.settings.templates.search.haystack_whoosh import HAYSTACK_CONNECTIONS
+
 
 INSTALLED_APPS = (
     # The good stuff

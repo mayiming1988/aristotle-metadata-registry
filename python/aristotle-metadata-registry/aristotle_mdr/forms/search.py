@@ -615,8 +615,6 @@ class PermissionSearchForm(TokenSearchForm):
                     # Don't do this: sqs = sqs.facet(facet, sort='count')
                     sqs = sqs.facet(facet)
 
-
-        # TODO: check that we need this
         # For facets that will always appear on the sidebar, but are not part of the previous lists
         additional_hardcoded_facets = ['stewardship_organisation']
         for facet in additional_hardcoded_facets:
@@ -692,6 +690,7 @@ class PermissionSearchForm(TokenSearchForm):
                         if id is None:
                             name = None
                         else:
+                            # TODO: optimize item lookup
                             name = item_type.objects.filter(pk=int(id)).first()
                         if name is None:
                             logger.warning(
