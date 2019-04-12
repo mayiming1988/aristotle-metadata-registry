@@ -254,7 +254,6 @@ class TokenSearchForm(FacetedSearchForm):
             # There was no query
             return {}
         opts = connections[DEFAULT_ALIAS].get_unified_index().fields.keys()
-        logger.debug("Options are " + str(opts))
         kwargs = {}
         query_text = []
         token_models = []
@@ -274,7 +273,6 @@ class TokenSearchForm(FacetedSearchForm):
 
                 # Make sure arg isnt blank
                 if arg:
-                    logger.debug("Args are" + arg)
                     if opt in self.token_shortnames:
                         opt = self.token_shortnames[opt]
 
@@ -471,7 +469,6 @@ class PermissionSearchForm(TokenSearchForm):
         self.fields['ra'].choices = [(ra.id, ra.name) for ra in MDR.RegistrationAuthority.objects.filter(active__in=[0, 1]).order_by('active', 'name')]
 
         # List of app labels for default search
-        logger.debug("Model choices are " + str(model_choices()))
         self.default_models = [
             m[0] for m in model_choices()
             if m[0].split('.', 1)[0] in fetch_metadata_apps()

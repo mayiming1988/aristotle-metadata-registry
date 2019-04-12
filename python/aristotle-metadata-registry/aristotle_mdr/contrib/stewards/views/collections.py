@@ -23,7 +23,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class EditCollectionViewBase(UserFormViewMixin, GroupMixin, HasRolePermissionMixin):
     model = Collection
     form_class = CollectionForm

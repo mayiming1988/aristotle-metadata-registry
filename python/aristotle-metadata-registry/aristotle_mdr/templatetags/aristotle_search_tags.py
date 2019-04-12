@@ -48,8 +48,6 @@ def search_describe_filters(search_form):
                     choices = dict(field.choices)
                     logger.debug("Choices are " + str(choices))
                     opts = [choices[x] for x in val]
-                    if opts:
-                        logger.debug("Options are" + str(opts))
                 except KeyError:
                     choices = dict([(str(k), v) for k, v in field.choices])
                     opts = [choices[x] for x in val]

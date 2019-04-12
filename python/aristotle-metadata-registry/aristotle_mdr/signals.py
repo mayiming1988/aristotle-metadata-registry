@@ -26,7 +26,6 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
         from aristotle_mdr.contrib.help.models import HelpPage, ConceptHelp
         from aristotle_mdr.contrib.publishing.models import PublicationRecord
         post_save.connect(self.handle_object_save)
-        logger.debug("Aristotle signal processer called")
         # post_revision_commit.connect(self.handle_concept_revision)
         pre_delete.connect(self.handle_concept_delete, sender=_concept)
         post_save.connect(self.update_visibility_review_request, sender=ReviewRequest)
@@ -118,9 +117,6 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
                 ],
                 kwargs=message
             )
-            logger.debug("Sender of object to search index was:" + sender._meta.app_label +
-                         " Model sent to search index" +
-                         "was" + instance._meta.model_name)
 
     def async_handle_delete(self, sender, instance, **kwargs):
         if not settings.ARISTOTLE_ASYNC_SIGNALS:
