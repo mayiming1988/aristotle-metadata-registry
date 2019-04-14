@@ -88,10 +88,12 @@ def user_can_view(user, item):
         user_key = str(user.id)
 
     # If the item was modified in the last 15 seconds, don't use cache
-    if hasattr(item, "was_modified_very_recently") and item.was_modified_very_recently():
-        can_use_cache = False
-    else:
-        can_use_cache = True
+    can_use_cache = False
+    if hasattr(item, "was_modified_very_recently"):
+        if item.was_modified_very_recently():
+            can_use_cache = False
+        else:
+            can_use_cache = True
 
     key = 'user_can_view_%s|%s:%s|%s' % (user_key, item._meta.app_label, item._meta.app_label, str(item.id))
     cached_can_view = cache.get(key)

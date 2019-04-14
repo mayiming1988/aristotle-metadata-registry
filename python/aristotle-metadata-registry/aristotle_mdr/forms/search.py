@@ -1,6 +1,7 @@
 from typing import List, Dict
 import datetime
 from django import forms
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.apps import apps
 from django.utils import timezone
@@ -67,8 +68,11 @@ SHORT_STATE_MAP = {
     "ret": "retired",
 }
 
+
 def allowable_search_models():
-    return fetch_metadata_apps() + ['aristotle_mdr_help', 'aristotle_cloud_stewards']
+    return fetch_metadata_apps() + [
+        'aristotle_mdr_help',
+    ] + getattr(settings, 'ARISTOTLE_SEARCH_EXTRA_MODULES', [])
 
 
 # This function is not critical and are mathematically sound, so testing is not required.
@@ -137,7 +141,6 @@ def first_letter(j):
 
 
 def get_permission_sqs(*args, **kwargs):
-    from django.conf import settings
     psqs_kls = getattr(settings, 'ARISTOTLE_PERMISSION_SEARCH_CLASS', None)
     if psqs_kls is None:
         psqs_kls = PermissionSearchQuerySet
