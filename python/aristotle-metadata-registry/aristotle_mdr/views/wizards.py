@@ -165,7 +165,10 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             else:
                 context.update({'similar_items': self.find_similar()})
             context['step_title'] = _('Select or create')
-            context['show_slots_tab'] = is_active_module('aristotle_mdr.contrib.slots') or form.custom_fields
+
+            slots_active = is_active_module('aristotle_mdr.contrib.slots')
+            context['slots_active'] = slots_active
+            context['show_slots_tab'] = slots_active or form.custom_fields
 
             if 'extra_formsets' in kwargs:
                 fslist = kwargs['extra_formsets']
