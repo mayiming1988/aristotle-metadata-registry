@@ -40,6 +40,7 @@ class AristotleFilterSet(FilterSet):
 
 class IdentifierFilterSet(FilterSet):
     namespace = django_filters.CharFilter(name='namespace__shorthand_prefix', lookup_expr='iexact', distinct=True)
+
     class Meta:
         fields = ['namespace']
 
@@ -47,6 +48,7 @@ class IdentifierFilterSet(FilterSet):
 class StatusFilterSet(FilterSet):
     is_current = django_filters.BooleanFilter(method='filter_is_current')
     ra = django_filters.CharFilter(name='registrationAuthority__uuid', lookup_expr='iexact', distinct=True)
+
     class Meta:
         fields = ['is_current', 'ra']
 

@@ -8,11 +8,11 @@ from aristotle_mdr.contrib.slots import models as slots_models
 from graphene import relay
 from graphene_django.types import DjangoObjectType
 
-logger = logging.getLogger(__name__)
-
 from aristotle_mdr_graphql import resolvers
 from .filterset import IdentifierFilterSet, StatusFilterSet
 from .fields import DjangoListFilterField, ObjectField
+
+logger = logging.getLogger(__name__)
 
 
 class AristotleObjectType(DjangoObjectType):
@@ -36,6 +36,7 @@ class AristotleObjectType(DjangoObjectType):
 
 class ScopedIdentifierNode(DjangoObjectType):
     namespace_prefix = graphene.String()
+
     class Meta:
         model = ident_models.ScopedIdentifier
         default_resolver = resolvers.aristotle_resolver
@@ -47,6 +48,7 @@ class ScopedIdentifierNode(DjangoObjectType):
 
 class CustomValueNode(DjangoObjectType):
     field_name = graphene.String()
+
     class Meta:
         model = cf_models.CustomValue
         default_resolver = resolvers.aristotle_resolver
@@ -58,6 +60,7 @@ class CustomValueNode(DjangoObjectType):
 
 class StatusNode(DjangoObjectType):
     state_name = graphene.String()
+
     class Meta:
         model = mdr_models.Status
         default_resolver = resolvers.aristotle_resolver
