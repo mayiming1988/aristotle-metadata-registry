@@ -1,6 +1,5 @@
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.utils import maybe_queryset
-
 from graphene import Field, List
 from graphene_django.filter.utils import (
     get_filtering_args_from_filterset,
@@ -10,10 +9,8 @@ from functools import partial
 from graphene_django.utils import maybe_queryset
 from graphene.types.argument import to_arguments
 from collections import OrderedDict
-
 from aristotle_mdr_graphql.filterset import (AristotleFilterSet,
                                              ConceptFilterSet)
-
 from graphene.types.scalars import Scalar
 
 
@@ -33,12 +30,11 @@ class ObjectField(Scalar):
 
 
 class AristotleFilterConnectionField(DjangoFilterConnectionField):
-    def __init__(self, type, *args, **kwargs):
 
+    def __init__(self, type, *args, **kwargs):
         extrameta = {
             'filterset_base_class': AristotleFilterSet
         }
-
         kwargs.update({'extra_filter_meta': extrameta})
         super().__init__(type, *args, **kwargs)
 
@@ -83,9 +79,9 @@ class AristotleConceptFilterConnectionField(AristotleFilterConnectionField):
 
 
 class DjangoListFilterField(Field):
-    '''
+    """
     Custom field to use django-filter with graphene object types (without relay).
-    '''
+    """
 
     def __init__(self, _type, fields=None, extra_filter_meta=None,
                  filterset_class=None, *args, **kwargs):

@@ -44,7 +44,6 @@ module.exports = (config) => {
             // webpack watches dependencies
 
             // webpack configuration
-            devtool: 'inline-source-map',
             optimization: {
                 // Don't minimize so that error lines are correct
                 minimize: false
@@ -73,7 +72,11 @@ module.exports = (config) => {
                             'style-loader',
                             'css-loader'
                         ]
-                    }
+                    },
+                    {
+                        test: /\.(woff2?|ttf|eot|svg|png|jpg)$/,
+                        use: 'file-loader'
+                    },
                 ]
             },
             plugins: [

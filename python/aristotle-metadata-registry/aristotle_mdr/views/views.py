@@ -5,12 +5,14 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist, ObjectDoesNotExist
 from django.urls import reverse
 from django.db import transaction
+from django.db.models.query import QuerySet
 from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import TemplateView, RedirectView
 from django.utils.module_loading import import_string
 from django.utils.functional import SimpleLazyObject
+from django.utils import timezone
 from formtools.wizard.views import SessionWizardView
 
 import json
@@ -19,7 +21,7 @@ import reversion
 
 from aristotle_mdr.perms import (
     user_can_view, user_can_edit,
-    user_can_change_status
+    user_can_add_status
 )
 from aristotle_mdr import perms
 from aristotle_mdr.utils import url_slugify_concept
@@ -41,6 +43,8 @@ from aristotle_mdr.views.utils import (
 from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
+
+from aristotle_bg_workers.tasks import register_items
 
 from reversion.models import Version
 
@@ -422,12 +426,16 @@ def display_review(wizard):
 
 
 class ReviewChangesView(SessionWizardView):
+    """Abstract view used by registration views"""
 
     items: Any = None
     display_review: Any = None
 
     # Override this
     change_step_name = ''
+
+    def get_items(self):
+        raise NotImplementedError
 
     def get_form_kwargs(self, step):
 
@@ -476,9 +484,6 @@ class ReviewChangesView(SessionWizardView):
 
             self.display_review = review
 
-    def get_items(self):
-        return self.items
-
     def get_template_names(self):
         return [self.templates[self.steps.current]]
 
@@ -494,6 +499,7 @@ class ReviewChangesView(SessionWizardView):
 
     def register_changes(self, form_dict, change_form=None, **kwargs):
 
+        can_cascade = True
         items = self.get_items()
 
         try:
@@ -501,8 +507,19 @@ class ReviewChangesView(SessionWizardView):
         except KeyError:
             review_data = None
 
+        # If user went through to review changes form
         if review_data:
             selected_list = review_data['selected_list']
+            # Set items based on user selected items
+            items = selected_list
+            # Make sure we dont cascade when items were specifically selected
+            can_cascade = False
+
+        # Get ids of items
+        if isinstance(items, QuerySet):
+            item_ids = list(items.values_list('id', flat=True))
+        else:
+            item_ids = [i.id for i in items]
 
         # process the data in form.cleaned_data as required
         if change_form:
@@ -519,74 +536,19 @@ class ReviewChangesView(SessionWizardView):
         if changeDetails is None:
             changeDetails = ""
 
-        success = []
-        failed = []
+        if not regDate:
+            regDate = timezone.now().date()
 
-        arguments = {
-            'state': state,
-            'user': self.request.user,
-            'changeDetails': changeDetails,
-            'registrationDate': regDate,
-        }
-
-        if review_data:
-            for ra in ras:
-                arguments['items'] = selected_list
-                status = ra.register_many(**arguments)
-                success.extend(status['success'])
-                failed.extend(status['failed'])
-        else:
-            for item in items:
-                for ra in ras:
-                    # Should only be 1 ra
-                    # Need to check before enforcing
-
-                    # Can't cascade from _concept
-                    if isinstance(item, MDR._concept):
-                        arguments['item'] = item.item
-                    else:
-                        arguments['item'] = item
-
-                    if cascade:
-                        register_method = ra.cascaded_register
-                    else:
-                        register_method = ra.register
-
-                    status = register_method(**arguments)
-                    success.extend(status['success'])
-                    failed.extend(status['failed'])
-
-        return (success, failed)
-
-    def register_changes_with_message(self, form_dict, change_form=None, *args, **kwargs):
-
-        with transaction.atomic(), reversion.revisions.create_revision():
-            reversion.revisions.set_user(self.request.user)
-
-            success, failed = self.register_changes(form_dict, change_form)
-
-            bad_items = sorted([str(i.id) for i in failed])
-            count = self.get_items().count()
-
-            if failed:
-                message = _(
-                    "%(num_items)s items registered \n"
-                    "%(num_faileds)s items failed, they had the id's: %(bad_ids)s"
-                ) % {
-                    'num_items': count,
-                    'num_faileds': len(failed),
-                    'bad_ids': ",".join(bad_items)
-                }
-            else:
-                message = _(
-                    "%(num_items)s items registered\n"
-                ) % {
-                    'num_items': count,
-                }
-
-            reversion.revisions.set_comment(message)
-
-        return message
+        # Call celery task to register items
+        register_items.delay(
+            item_ids,
+            (can_cascade and cascade),
+            state,
+            ras[0].id,
+            self.request.user.id,
+            changeDetails,
+            (regDate.year, regDate.month, regDate.day)
+        )
 
 
 class ChangeStatusView(ReviewChangesView):
@@ -611,7 +573,7 @@ class ChangeStatusView(ReviewChangesView):
         # Check for keyError here
         self.item = get_object_or_404(MDR._concept, pk=kwargs['iid']).item
 
-        if not (self.item and user_can_change_status(request.user, self.item)):
+        if not user_can_add_status(request.user, self.item):
             if request.user.is_anonymous():
                 return redirect(reverse('friendly_login') + '?next=%s' % request.path)
             else:

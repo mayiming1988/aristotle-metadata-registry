@@ -51,14 +51,14 @@ class PublishedMixin(object):
     def is_published_public(self):
         return Q(
             publication_details__permission=visibility_permission_choices.public,
-            publication_details__publication_date__lte=timezone.localtime(timezone.now()),
+            publication_details__publication_date__lte=timezone.now(),
         )
 
     @property
     def is_published_auth(self):
         return Q(
             publication_details__permission=visibility_permission_choices.auth,
-            publication_details__publication_date__lte=timezone.localtime(timezone.now())
+            publication_details__publication_date__lte=timezone.now()
         )
 
 
@@ -293,9 +293,9 @@ class StatusQuerySet(models.QuerySet):
         return self.all()
 
     def valid(self):
-        return self.valid_at_date(timezone.localtime(timezone.now()).date())
+        return self.valid_at_date(timezone.now().date())
 
-    def valid_at_date(self, when=timezone.localtime(timezone.now()).date()):
+    def valid_at_date(self, when=timezone.now().date()):
         registered_before_now = Q(registrationDate__lte=when)
         registration_still_valid = (
             Q(until_date__gte=when) |
@@ -306,7 +306,7 @@ class StatusQuerySet(models.QuerySet):
             registered_before_now & registration_still_valid
         )
 
-    def current(self, when=timezone.localtime(timezone.now())):
+    def current(self, when=timezone.now()):
         """
         Returns a queryset that returns the most up to date statuses
 

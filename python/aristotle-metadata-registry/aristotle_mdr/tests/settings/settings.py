@@ -161,3 +161,8 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 20000
 
 # Allows migrations to print text on success (disabled during testing)
 MIGRATION_PRINT = False
+
+# This makes tasks functions be called directly
+# This is not ideal as serialization is not tested
+# More info here http://docs.celeryproject.org/en/latest/userguide/testing.html
+CELERY_TASK_ALWAYS_EAGER = True

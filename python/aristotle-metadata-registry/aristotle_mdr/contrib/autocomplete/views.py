@@ -14,6 +14,10 @@ from dal import autocomplete
 
 
 class GenericAutocomplete(autocomplete.Select2QuerySetView):
+    """
+    Generic autocomplete view subclassed below
+    Is not used as a view itself
+    """
     model: Any = None
     template_name = "autocomplete_light/item.html"
 
@@ -63,7 +67,11 @@ class GenericConceptAutocomplete(GenericAutocomplete):
     template_name = "autocomplete_light/concept.html"
 
     def get_queryset(self):
-        if not self.request.user.is_authenticated():
+
+        # Get public query parameter
+        public = self.request.GET.get('public', '')
+        # If we requested public objects, or are not authenticated
+        if public or not self.request.user.is_authenticated():
             qs = self.model.objects.public()
         else:
             qs = self.model.objects.visible(self.request.user)

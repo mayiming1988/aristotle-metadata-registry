@@ -411,7 +411,7 @@ class GraphqlExternalViewTestCase(utils.AristotleTestUtils, TestCase):
             'aristotle_graphql:external',
             self.default_query,
             content_type='application/graphql',
-            AUTHORIZATION='Token abcdef'
+            HTTP_AUTHORIZATION='Token abcdef'
         )
         self.assertEqual(response.status_code, 200)
         response_json = self.decode_response(response)
@@ -434,7 +434,7 @@ class GraphqlExternalViewTestCase(utils.AristotleTestUtils, TestCase):
             'aristotle_graphql:external',
             self.default_query,
             content_type='application/graphql',
-            AUTHORIZATION='Token abcdef'
+            HTTP_AUTHORIZATION='Token abcdef'
         )
         self.assertEqual(response.status_code, 403)
 
