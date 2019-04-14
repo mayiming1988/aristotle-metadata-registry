@@ -1,6 +1,7 @@
 import haystack.indexes as indexes
 
 import aristotle_mdr.models as models
+import aristotle_mdr.contrib.stewards.models as contrib_models
 from django.db.models import Q
 from django.template import TemplateDoesNotExist, loader
 from django.utils import timezone
@@ -202,3 +203,20 @@ class DiscussionIndex(BaseObjectIndex, indexes.Indexable):
     def index_queryset(self, using=None):
         # When reindexing occurs
         return self.get_model().objects.filter(modified__lte=timezone.now())
+
+# class CollectionsIndex(BaseObjectIndex, indexes.Indexable):
+#     """ Index of collections """
+#     text = indexes.CharField(document=True, use_template=True)
+#     stewardship_organisation = indexes.IntegerField(faceted=True, model_attr="stewardship_organisation__id")
+#     description = indexes.CharField(model_attr="description")
+#
+#     modified = indexes.DateTimeField(model_attr="modified")
+#     created = indexes.DateTimeField(model_attr="created")
+#
+#     rendered_search_result = indexes.CharField(indexed=False)
+#
+#
+#     def get_model(self):
+#         return
+#
+#
