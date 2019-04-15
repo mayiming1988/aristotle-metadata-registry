@@ -20,7 +20,7 @@
         <th scope="col">{% trans 'Date/time' %}</th>
         <th scope="col">{% trans 'User' %}</th>
         <th scope="col">{% trans 'Comment' %}</th>
-        <th scope="col">{% trans 'Visiblity' %}</th>
+        <th scope="col">{% trans 'Visibility' %}</th>
     </tr>
     </thead>
     <tbody>
@@ -50,7 +50,7 @@
             </td>
             <td>{{action.revision.comment|linebreaks|default:"-"}}</td>
             <td>
-                {# first_public_version #}
+                {# Visibility, move to dropdown #}
                 {% if action.revision.date_created > public_date %}
                     <i class="fa fa-fw fa-globe"></i> Public
                 {% elif action.revision.date_created > authenticated_date %}
