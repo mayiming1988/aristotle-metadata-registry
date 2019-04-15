@@ -84,8 +84,7 @@ elif os.environ.get('TOXDIR'):
     WOOSH_SEARCH_BACKEND = True
 else:
     print("Vanilla haystack variant")
-    # from aristotle_mdr.tests.settings.templates.search.haystack_whoosh import HAYSTACK_CONNECTIONS
-    from aristotle_mdr.tests.settings.templates.search.haystack_elasticsearch import HAYSTACK_CONNECTIONS
+    from aristotle_mdr.tests.settings.templates.search.haystack_whoosh import HAYSTACK_CONNECTIONS
 
 INSTALLED_APPS = (
     # The good stuff
