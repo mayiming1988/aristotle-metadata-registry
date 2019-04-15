@@ -1,5 +1,3 @@
-import logging
-
 from aristotle_mdr import perms
 from aristotle_mdr import models as mdr_models
 from aristotle_mdr.contrib.custom_fields import models as cf_models
@@ -8,6 +6,8 @@ from aristotle_dse import models as dse_models
 from django.db.models import Model
 from django.db.models.manager import Manager
 from django.db.models.query import QuerySet
+
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -118,6 +118,7 @@ class DataSetSpecificationResolver(AristotleResolver):
             if isinstance(retval, QuerySet) and issubclass(retval.model, dse_models.DSSInclusion):
                 return retval
         return super().resolver(attname, default_value, root, info, **args)
+
 
 class DSSInclusionResolver(AristotleResolver):
     pass

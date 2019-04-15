@@ -9,9 +9,7 @@ from django.db import models
 from django.db.models.signals import pre_save
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
-
 from model_utils.models import TimeStampedModel
-
 from aristotle_mdr import models as MDR
 from aristotle_mdr.signals import pre_save_clean
 from aristotle_mdr.fields import ConceptForeignKey

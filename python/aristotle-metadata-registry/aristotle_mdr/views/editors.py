@@ -194,6 +194,7 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         context.update(fscontext)
 
         context['show_slots_tab'] = self.slots_active or context['form'].custom_fields
+        context['slots_active'] = self.slots_active
         context['show_id_tab'] = self.identifiers_active
 
         return context
