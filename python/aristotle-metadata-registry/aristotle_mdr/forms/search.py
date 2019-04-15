@@ -696,6 +696,7 @@ class PermissionSearchForm(TokenSearchForm):
                         # TODO: eradicate -99 from code
                         elif (id == -99):
                             id_to_item[id] = (None, count)
+
                         else:
                             id_to_item[id] = (id_to_instance[int(id)], count)
                     self.facets['fields'][facet] = id_to_item

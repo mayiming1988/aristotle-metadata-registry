@@ -46,7 +46,6 @@ def search_describe_filters(search_form):
                 preamble = _('%s is') % field.label  # Showing only items where label is id
                 try:
                     choices = dict(field.choices)
-                    logger.debug("Choices are " + str(choices))
                     opts = [choices[x] for x in val]
                 except KeyError:
                     choices = dict([(str(k), v) for k, v in field.choices])

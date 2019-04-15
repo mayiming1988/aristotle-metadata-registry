@@ -25,11 +25,9 @@ setup_aristotle_test_environment()
 
 @tag('search')
 class TestSearch(utils.AristotleTestUtils, TestCase):
-    def tearDown(self):
-        call_command('clear_index', interactive=False, verbosity=0)
-
     @reversion.create_revision()
     def setUp(self):
+        call_command('clear_index', interactive=False, verbosity=0)
         super().setUp()
         import haystack
         haystack.connections.reload('default')
@@ -350,6 +348,7 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
         response = self.client.post(reverse('friendly_login'),
                     {'username': 'william.styker@weaponx.mil', 'password': 'mutantsMustDie'})
 
+        # login
         self.assertEqual(response.status_code,302) # logged in
         self.assertTrue(perms.user_is_registrar(self.registrar,self.ra))
 

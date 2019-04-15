@@ -209,6 +209,7 @@ class CollectionIndex(BaseObjectIndex, indexes.Indexable):
     """ Index of collections """
     text = indexes.CharField(document=True, use_template=True)
     stewardship_organisation = indexes.IntegerField(faceted=True, model_attr="stewardship_organisation__id")
+
     name = indexes.CharField(model_attr="name")
     description = indexes.CharField(model_attr="description")
     modified = indexes.DateTimeField(model_attr="modified")
