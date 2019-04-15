@@ -182,7 +182,9 @@
                         {% endif %}
                     </div>
                 {% endfor %}
-                {% include 'aristotle_mdr/slots/slots_editor_tab.html' %}
+                {% if slots_active %}
+                  {% include 'aristotle_mdr/slots/slots_editor_tab.html' %}
+                {% endif %}
             </div>
         {% endif %}
         {% if show_id_tab %}

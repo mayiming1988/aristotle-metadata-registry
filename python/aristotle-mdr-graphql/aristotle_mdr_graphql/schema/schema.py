@@ -10,6 +10,7 @@ from aristotle_mdr_graphql.utils import type_from_model
 
 class AristotleQuery(AristotleDSEQuery, AristotleMDRQuery, CometQuery, graphene.ObjectType):
     """The query root of the Aristotle GraphQL API"""
+    pass
 
 
 # Loop through the models and instantiate GraphQL Nodes:
