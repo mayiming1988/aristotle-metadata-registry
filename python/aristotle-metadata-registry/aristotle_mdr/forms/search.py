@@ -153,7 +153,7 @@ class EmptyPermissionSearchQuerySet(EmptySearchQuerySet):
 
 class PermissionSearchQuerySet(SearchQuerySet):
     def models(self, *mods):
-        # TODO :We have to redefine this because Whoosh & Haystack don't play well with model filtering
+        # We have to redefine this because Whoosh & Haystack don't play well with model filtering
         from haystack.utils import get_model_ct
         mods = [get_model_ct(m) for m in mods]
 
