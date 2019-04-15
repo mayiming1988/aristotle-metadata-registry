@@ -295,7 +295,6 @@ class TokenSearchForm(FacetedSearchForm):
                         from django.contrib.contenttypes.models import ContentType
                         arg = arg.lower().replace('_', '').replace('-', '')
                         app_labels = fetch_metadata_apps()
-                        raise ValueError("Is this running?")
                         app_labels.append('aristotle_mdr_help')
                         mods = ContentType.objects.filter(app_label__in=app_labels).all()
                         for i in mods:
