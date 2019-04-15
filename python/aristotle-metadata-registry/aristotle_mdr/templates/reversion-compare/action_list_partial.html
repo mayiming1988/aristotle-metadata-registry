@@ -27,6 +27,7 @@
     {% for action in action_list %}
         <tr>
             {% if compare_view %}
+                {# Comparision row #}
                 <td scope="row">
                     {% if comparable %}
                         <input type="radio" name="version_id1" value="{{ action.version.pk|unlocalize }}" {% if action.first %}style="visibility:hidden" {% endif %}{% if version1.pk|unlocalize == action.version.pk|unlocalize or action.second %}checked="checked"{% endif%}/>
@@ -36,6 +37,7 @@
                     {% endif %}
                 </td>
             {% endif %}
+            {# Date/time #}
             <th scope="row">
                 {% if action.url %}
                     <a href="{{action.url}}">{{action.revision.date_created|date:_("DATETIME_FORMAT")}}</a>
@@ -43,21 +45,36 @@
                     {{action.revision.date_created|date:_("DATETIME_FORMAT")}}
                 {% endif %}
             </th>
+            {# User #}
             <td>
                 {% if action.revision.user %}
                     {% firstof action.revision.user.get_full_name  action.revision.user.email %}
                 {% endif %}
             </td>
+            {# Comment #}
             <td>{{action.revision.comment|linebreaks|default:"-"}}</td>
-            <td>
-                {# Visibility, move to dropdown #}
+            <td> {# Visibility, move to dropdown #}
+                <div class="dropdown">
+                       <button class="dropdown dropdown-menu-form" data-help-name='status'>
+                        <a href="#" class="dropdown-toggle"
+                           data-toggle="dropdown">
+                            <i class="fa fa-unlock-alt fa-fw"></i>
+                            {% trans 'Status' context 'Registration Status' %} <span class="badge"></span><span
+                                class="caret"></span>
+                            </a>
+                       </button>
+                </div>
+
+                <!-- {#
                 {% if action.revision.date_created > public_date %}
                     <i class="fa fa-fw fa-globe"></i> Public
                 {% elif action.revision.date_created > authenticated_date %}
                     <i class="fa fa-fw fa-user-circle-o"></i> Logged in users
                 {% else %}
-                    <i class="fa fa-fw fa-users"></i> Workgroup only
+                   <i class="fa fa-fw fa-users"></i> Workgroup only
                 {% endif %}
+
+                #} -->
             </td>
         </tr>
     {% endfor %}

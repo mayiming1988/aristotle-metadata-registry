@@ -126,14 +126,14 @@ class ConceptVersionView(ConceptRenderView):
     }
 
     def check_item(self, item):
-        # Will 403 when user cant view the item
+        # Will 403 Forbidden when user can't view the item
         return user_can_view(self.request.user, item)
 
     def get_item(self):
         # Gets the current item
         return self.item_version.object
 
-    def get_matching_object_from_revision(self, revision, current_version, target_ct=None):
+    def get_matching_object_from_revision(revision, current_version, target_ct=None):
         # Finds another version in the same revision with same id
         current_ct_id = current_version.content_type_id
         version_filter = Q(revision=revision) &\
@@ -323,7 +323,7 @@ class ConceptVersionView(ConceptRenderView):
                     }
 
                 # There is a version in the revision that is of the correct
-                # type. Need to check wether it links to the correct item
+                # type. Need to check whether it links to the correct item
                 related_model = apps.get_model(data['model'])
 
                 # Find the field that links the weak model back to our model
@@ -457,6 +457,9 @@ class ConceptVersionView(ConceptRenderView):
 
 
 class ConceptHistoryCompareView(HistoryCompareDetailView):
+    """
+    Class that performs the historical comparision between versions of a same concept
+    """
     model = MDR._concept
     pk_url_kwarg = 'iid'
     template_name = "aristotle_mdr/actions/concept_history_compare.html"
