@@ -93,7 +93,7 @@
                 "sha256:b1b7da98be6b4082abfa6e18282ece450271f366bce81d0d521342a0db862506"
             ],
             "index": "pypi",
-            "version": "==4.5.0"
+            "version": "==4.3.0"
         },
         "certifi": {
             "hashes": [
