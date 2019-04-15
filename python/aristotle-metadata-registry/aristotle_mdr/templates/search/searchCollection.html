@@ -2,11 +2,11 @@
 {% load aristotle_search_tags %}
 <div class="result">
     {% if discussion_post.id %}
-        <a href="{% url 'aristotle:stewards:group:collection' group.slug collection.pk %}">{{ collection.title}}</a>
+        <a href="{% url 'aristotle:stewards:group:collection' group.slug collection.pk %}">{{ collection.title|striptags}}</a>
     {% endif %}
     <span class="post_title">(Collection)</span>
     <p>
-        {{ collection.description|truncatechars:70}}
+        {{ collection.description|striptags|truncatechars:70}}
     </p>
     <div class="attrs">
     <span class="attr">

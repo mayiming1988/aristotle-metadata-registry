@@ -157,8 +157,8 @@ class PermissionSearchQuerySet(SearchQuerySet):
         from haystack.utils import get_model_ct
         mods = [get_model_ct(m) for m in mods]
 
-        # This is perofrming a filter on the search result to restrict it to only the actual models
-        return self #filter(django_ct__in=mods)
+        # This is performing a filter on the search result to restrict it to only the actual models
+        return self.filter(django_ct__in=mods)
 
     def apply_permission_checks(self, user=None, public_only=False, user_workgroups_only=False):
         """"
@@ -295,7 +295,7 @@ class TokenSearchForm(FacetedSearchForm):
                         from django.contrib.contenttypes.models import ContentType
                         arg = arg.lower().replace('_', '').replace('-', '')
                         app_labels = fetch_metadata_apps()
-
+                        raise ValueError("Is this running?")
                         app_labels.append('aristotle_mdr_help')
                         mods = ContentType.objects.filter(app_label__in=app_labels).all()
                         for i in mods:
@@ -472,11 +472,14 @@ class PermissionSearchForm(TokenSearchForm):
         # Inactive last
         self.fields['ra'].choices = [(ra.id, ra.name) for ra in MDR.RegistrationAuthority.objects.filter(active__in=[0, 1]).order_by('active', 'name')]
 
-        # List of app labels for default search
+        # List of models that you can search for
+        # TODO: ensure that this includes collections
+
         self.default_models = [
             m[0] for m in model_choices()
             if m[0].split('.', 1)[0] in fetch_metadata_apps()
         ]
+
         # Set choices for models
         self.fields['models'].choices = [
             m for m in model_choices()

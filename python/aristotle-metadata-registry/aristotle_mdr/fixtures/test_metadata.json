@@ -793,11 +793,4 @@
     },
     "model": "aristotle_mdr.supersederelationship"
   },
-  {
-    "fields:": {},
-    "model" : "aristotle_mdr.contrib.stewards.collection"
-  }
-
-
-
 ]
