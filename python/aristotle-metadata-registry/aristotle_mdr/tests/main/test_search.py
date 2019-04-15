@@ -22,7 +22,6 @@ import unittest
 
 setup_aristotle_test_environment()
 
-
 @tag('search')
 class TestSearch(utils.AristotleTestUtils, TestCase):
     @reversion.create_revision()
