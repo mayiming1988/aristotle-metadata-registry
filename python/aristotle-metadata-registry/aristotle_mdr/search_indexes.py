@@ -231,6 +231,3 @@ class CollectionIndex(BaseObjectIndex, indexes.Indexable):
         """
         t = loader.get_template(self.template_name)
         return t.render({'collection': collection})
-
-
-

@@ -297,4 +297,3 @@ def group_backend_factory(*args, **kwargs):
     })
 
     return StewardURLManager(*args, **kwargs)
-
