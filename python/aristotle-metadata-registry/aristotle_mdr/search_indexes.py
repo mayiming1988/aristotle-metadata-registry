@@ -204,19 +204,32 @@ class DiscussionIndex(BaseObjectIndex, indexes.Indexable):
         # When reindexing occurs
         return self.get_model().objects.filter(modified__lte=timezone.now())
 
-# class CollectionsIndex(BaseObjectIndex, indexes.Indexable):
-#     """ Index of collections """
-#     text = indexes.CharField(document=True, use_template=True)
-#     stewardship_organisation = indexes.IntegerField(faceted=True, model_attr="stewardship_organisation__id")
-#     description = indexes.CharField(model_attr="description")
-#
-#     modified = indexes.DateTimeField(model_attr="modified")
-#     created = indexes.DateTimeField(model_attr="created")
-#
-#     rendered_search_result = indexes.CharField(indexed=False)
-#
-#
-#     def get_model(self):
-#         return
-#
-#
+
+class CollectionIndex(BaseObjectIndex, indexes.Indexable):
+    """ Index of collections """
+    text = indexes.CharField(document=True, use_template=True)
+    stewardship_organisation = indexes.IntegerField(faceted=True, model_attr="stewardship_organisation__id")
+    name = indexes.CharField(model_attr="name")
+    description = indexes.CharField(model_attr="description")
+    modified = indexes.DateTimeField(model_attr="modified")
+    created = indexes.DateTimeField(model_attr="created")
+
+    rendered_search_result = indexes.CharField(indexed=False)
+    template_name = "search/searchCollection.html"
+
+    def get_model(self):
+        return contrib_models.Collection
+
+    def index_queryset(self, using=None):
+        # When reindexing occurs
+        return self.get_model().objects.filter(modified__lte=timezone.now())
+
+    def prepare_rendered_search_result(self, collection):
+        """
+        Pre-renders all the collections to avoid hitting the database every search
+        """
+        t = loader.get_template(self.template_name)
+        return t.render({'collection': collection})
+
+
+

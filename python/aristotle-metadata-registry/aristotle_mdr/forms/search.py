@@ -153,10 +153,12 @@ class EmptyPermissionSearchQuerySet(EmptySearchQuerySet):
 
 class PermissionSearchQuerySet(SearchQuerySet):
     def models(self, *mods):
-        # We have to redefine this because Whoosh & Haystack don't play well with model filtering
+        # TODO :We have to redefine this because Whoosh & Haystack don't play well with model filtering
         from haystack.utils import get_model_ct
         mods = [get_model_ct(m) for m in mods]
-        return self.filter(django_ct__in=mods)
+
+        # This is perofrming a filter on the search result to restrict it to only the actual models
+        return self #filter(django_ct__in=mods)
 
     def apply_permission_checks(self, user=None, public_only=False, user_workgroups_only=False):
         """"
@@ -289,10 +291,11 @@ class TokenSearchForm(FacetedSearchForm):
                                 kwargs[str(opt)] = clean_value
                     elif opt == "type":
                         # we'll allow these through and assume they meant content type
-
+                        # Look up all the models that you can search from
                         from django.contrib.contenttypes.models import ContentType
                         arg = arg.lower().replace('_', '').replace('-', '')
                         app_labels = fetch_metadata_apps()
+
                         app_labels.append('aristotle_mdr_help')
                         mods = ContentType.objects.filter(app_label__in=app_labels).all()
                         for i in mods:
@@ -346,6 +349,7 @@ class TokenSearchForm(FacetedSearchForm):
         if self.load_all:
             sqs = sqs.load_all()
 
+        # Populate the app lables that you can filter on
         app_labels = fetch_metadata_apps()
         app_labels.append('aristotle_mdr_help')
         # TODO: Do we even need this?
@@ -693,24 +697,6 @@ class PermissionSearchForm(TokenSearchForm):
                             id_to_item[id] = (id_to_instance[int(id)], count)
                     self.facets['fields'][facet] = id_to_item
 
-            # for facet in self.facets['fields'].keys():
-            #     if facet in model_types.keys():
-            #         # Facet is for a model that must be looked up from the database
-            #         item_type = model_types.get(facet)
-            #         id_to_item = {}
-            #
-            #         for id, count in self.facets['fields'][facet]:
-            #             if id is None:
-            #                 name = None
-            #             else:
-            #                 # TODO: optimize item lookup
-            #                 name = item_type.objects.filter(pk=int(id)).first()
-            #             if name is None:
-            #                 logger.warning(
-            #                     "Warning: Failed to find item type [%s] with id [%s]" % (item_type, id)
-            #                 )
-            #             id_to_item[id] = (name, count)
-            #         self.facets['fields'][facet] = id_to_item
         return sqs
 
     def check_spelling(self, sqs):
