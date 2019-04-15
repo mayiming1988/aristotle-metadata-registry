@@ -93,7 +93,7 @@
                 "sha256:b1b7da98be6b4082abfa6e18282ece450271f366bce81d0d521342a0db862506"
             ],
             "index": "pypi",
-            "version": "==4.2.2"
+            "version": "==4.3.0"
         },
         "certifi": {
             "hashes": [
@@ -758,10 +758,10 @@
         },
         "weasyprint": {
             "hashes": [
-                "sha256:16e7b1932fec1620936aa487527a637bd86f8f7aec8c9d1e582f0957ad8aa43f",
-                "sha256:f7d34ae0eab3e09b04ee81077e4ecbcabbdb340d2d3271270c664cf60f84a0bb"
+                "sha256:968df4eecfb30fe572591f7ef1ad3d179adc0294c249aaae47b183cfbe3e491b",
+                "sha256:af8d39f45027ecd7fa47272b93558d851a49b3dad238a52478475a3733ffa141"
             ],
-            "version": "==46"
+            "version": "==47"
         },
         "webencodings": {
             "hashes": [
