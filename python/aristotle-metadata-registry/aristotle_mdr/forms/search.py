@@ -676,6 +676,7 @@ class PermissionSearchForm(TokenSearchForm):
                     id_to_item = {}
                     # Facet is for a model that must be looked up from the database
                     item_type = model_types.get(facet)
+
                     ids = []
                     for id, count in self.facets['fields'][facet]:
                         if id is not None:
@@ -692,25 +693,6 @@ class PermissionSearchForm(TokenSearchForm):
                         else:
                             id_to_item[id] = (id_to_instance[int(id)], count)
                     self.facets['fields'][facet] = id_to_item
-
-            # for facet in self.facets['fields'].keys():
-            #     if facet in model_types.keys():
-            #         # Facet is for a model that must be looked up from the database
-            #         item_type = model_types.get(facet)
-            #         id_to_item = {}
-            #
-            #         for id, count in self.facets['fields'][facet]:
-            #             if id is None:
-            #                 name = None
-            #             else:
-            #                 # TODO: optimize item lookup
-            #                 name = item_type.objects.filter(pk=int(id)).first()
-            #             if name is None:
-            #                 logger.warning(
-            #                     "Warning: Failed to find item type [%s] with id [%s]" % (item_type, id)
-            #                 )
-            #             id_to_item[id] = (name, count)
-            #         self.facets['fields'][facet] = id_to_item
         return sqs
 
     def check_spelling(self, sqs):
