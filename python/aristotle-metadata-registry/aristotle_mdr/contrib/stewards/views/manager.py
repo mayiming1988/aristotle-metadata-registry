@@ -296,28 +296,6 @@ class StewardURLManager(GroupURLManager):
         return ListManagedItems.as_view(manager=self, group_class=self.group_class)
 
 
-    # def references_create_folder_view(self):
-    #     return reference_views.ListStewardReferencesView.as_view(manager=self, group_class=self.group_class)
-
-    # def references_steward_list_view(self):
-    #     return reference_views.ListStewardReferencesView.as_view(manager=self, group_class=self.group_class)
-
-    # def references_document_detail_view(self):
-    #     return reference_views.DetailReferenceDocumentView.as_view(manager=self, group_class=self.group_class)
-
-    # def references_folder_detail_view(self):
-    #     return reference_views.DetailReferenceFolderView.as_view(manager=self, group_class=self.group_class)
-
-    # def references_create_document_view(self):
-    #     return reference_views.CreateReferenceDocumentView.as_view(manager=self, group_class=self.group_class)
-
-    # def references_edit_view(self):
-    #     return reference_views.UpdateReferenceDocumentView.as_view(manager=self, group_class=self.group_class)
-
-    # def references_delete_view(self):
-    #     return reference_views.DeleteReferenceDocumentView.as_view(manager=self, group_class=self.group_class)
-
-
 def group_backend_factory(*args, **kwargs):
     kwargs.update({
         "group_class": MDR.StewardOrganisation,

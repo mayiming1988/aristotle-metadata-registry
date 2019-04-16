@@ -547,4 +547,3 @@ def publish_item_url(item):
 @register.filter
 def publish_registry_item_url(item):
     return reverse('aristotle_publishing:publish_registry_item', args=[item._meta.model_name, item.id])
-

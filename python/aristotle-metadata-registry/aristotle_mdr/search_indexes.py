@@ -75,6 +75,7 @@ class BaseObjectIndex(indexes.SearchIndex):
         ct = ContentType.objects.get_for_model(obj)
         return ct.pk
 
+
 class ConceptIndex(BaseObjectIndex):
     text = ConceptFallbackCharField(document=True, use_template=True)
     django_ct_app_label = indexes.CharField()

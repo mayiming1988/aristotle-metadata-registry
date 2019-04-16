@@ -350,6 +350,7 @@ class ProposedSupersedesManager(models.Manager):
 class PublishedItemQuerySet(PublishedMixin, models.QuerySet):
     pass
 
+
 class ManagedItemQuerySet(PublishedItemQuerySet):
 
     def editable(self, user):

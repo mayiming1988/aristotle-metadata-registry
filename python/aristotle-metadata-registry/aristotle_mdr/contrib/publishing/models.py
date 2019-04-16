@@ -60,7 +60,6 @@ class PublicationRecord(TimeStampedModel):
         help_text=_("Enter a date in the future to specify the date is published from.")
     )
 
-
     def __str__(self):
         return "Published: {} ({}) on {}".format(
             # self.get_reference_type_display().title(),

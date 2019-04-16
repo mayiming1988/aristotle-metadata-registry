@@ -4,6 +4,6 @@ from aristotle_mdr.contrib.groups.backends import (
     HasRoleMixin, HasRolePermissionMixin,
 )
 
+
 class StewardGroupMixin(GroupMixin):
     group_class = MDR.StewardOrganisation
-
