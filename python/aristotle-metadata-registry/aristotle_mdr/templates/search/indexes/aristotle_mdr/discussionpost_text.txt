@@ -1,3 +1,5 @@
 {{ object.title }}
 {{ object.body }}
-{{ object.comments }}
+{% for comment in object.comments.all %}
+    {{ comment }}
+{% endfor %}
