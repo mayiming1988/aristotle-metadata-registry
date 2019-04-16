@@ -128,7 +128,6 @@ class StewardOrganisation(AbstractGroup):
         "manage_managed_items": [roles.admin, roles.steward],
         "manage_collections": [roles.admin, roles.steward],
         "list_workgroups": [roles.admin, AbstractGroup.Permissions.is_member],
-        "view_references": [Permissions.can_view_group],
         "manage_references": [roles.admin, roles.steward],
     }
     states = Choices(

@@ -179,6 +179,7 @@ class DiscussionIndex(BaseObjectIndex, indexes.Indexable):
     """ Index of Discussion posts """
     text = indexes.CharField(document=True, use_template=True)
     name = indexes.CharField(model_attr='title')
+    name_sortable = indexes.CharField(model_attr='title', indexed=False, stored=True)
     discussion_body = indexes.CharField(model_attr='body')
     modified = indexes.DateTimeField(model_attr='modified')
     created = indexes.DateTimeField(model_attr='created')

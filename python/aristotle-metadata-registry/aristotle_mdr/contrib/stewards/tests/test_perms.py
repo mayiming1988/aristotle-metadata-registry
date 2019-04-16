@@ -84,6 +84,7 @@ class OrgGroupHasPermissions(BaseStewardOrgsTestCase, TestCase):
             "invite_member": True,
             "manage_managed_items": True,
             "list_workgroups": True,
+            "manage_references": True,
         }
         for permission_name, is_permitted in org_1_role_permissions.items():
             self.assertEqual(
@@ -110,6 +111,7 @@ class OrgGroupHasPermissions(BaseStewardOrgsTestCase, TestCase):
             "invite_member": False,
             "manage_managed_items": True,
             "list_workgroups": True,
+            "manage_references": True,
         }
         for permission_name, is_permitted in org_1_role_permissions.items():
             self.assertEqual(
@@ -136,6 +138,7 @@ class OrgGroupHasPermissions(BaseStewardOrgsTestCase, TestCase):
             "invite_member": False,
             "manage_managed_items": False,
             "list_workgroups": True,
+            "manage_references": False,
         }
         for permission_name, is_permitted in org_1_role_permissions.items():
             self.assertEqual(
