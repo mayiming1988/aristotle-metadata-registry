@@ -9,7 +9,7 @@
 <div class="modal-body">
         <ol class="breadcrumb">
           <li><a href="{{ item.stewardship_organisation.get_absolute_url }}">{{ item.stewardship_organisation.name }}</a></li>
-          <li><a href="{{ item.get_absolute_url }}">{{ item.name }}</a></li>
+          <li><a href="{{ item.get_absolute_url }}">{{ item.name }}{{ item.title }}</a></li>
           <li class="active">Publish details</li>
         </ol>
 <ul>
