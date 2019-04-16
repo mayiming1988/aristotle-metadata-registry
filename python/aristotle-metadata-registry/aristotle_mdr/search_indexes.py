@@ -179,6 +179,7 @@ class DiscussionIndex(BaseObjectIndex, indexes.Indexable):
     modified = indexes.DateTimeField(model_attr='modified')
     created = indexes.DateTimeField(model_attr='created')
     workgroup = indexes.IntegerField(faceted=True)
+    comments = indexes.CharField(indexed=False)
 
     rendered_search_result = indexes.CharField(indexed=False)
 
@@ -191,11 +192,16 @@ class DiscussionIndex(BaseObjectIndex, indexes.Indexable):
         t = loader.get_template(self.template_name)
         return t.render({'discussion_post': discussion_post})
 
+    def prepare_comments(self, obj):
+        content = ''
+        for comment in obj.comments.all():
+            content = content + " " + comment.body
+        return content
+
+        return None
+
     def prepare_workgroup(self, obj):
-        if obj.workgroup:
-            return int(obj.workgroup.id)
-        else:
-            return -99
+        return int(obj.workgroup.id)
 
     def get_model(self):
         return models.DiscussionPost
