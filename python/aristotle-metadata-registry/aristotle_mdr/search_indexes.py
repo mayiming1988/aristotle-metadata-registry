@@ -197,10 +197,7 @@ class DiscussionIndex(BaseObjectIndex, indexes.Indexable):
         return t.render({'discussion_post': discussion_post})
 
     def prepare_workgroup(self, obj):
-        if obj.workgroup:
-            return int(obj.workgroup.id)
-        else:
-            return -99
+        return int(obj.workgroup.id)
 
     def get_model(self):
         return models.DiscussionPost
