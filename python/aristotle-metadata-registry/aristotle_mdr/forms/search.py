@@ -173,7 +173,7 @@ class PermissionSearchQuerySet(SearchQuerySet):
         """
         sqs = self
         q = SQ(is_public=True)
-        q |= SQ(published_date_public__lte=timezone.localtime(timezone.now()))
+        q |= SQ(published_date_public__lte=timezone.now())
         if user is None or user.is_anonymous():
             # Regular users can only see public items, so filter only on the public items.
             sqs = sqs.filter(q)

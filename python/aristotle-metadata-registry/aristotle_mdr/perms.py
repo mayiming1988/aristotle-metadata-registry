@@ -88,13 +88,10 @@ def user_can_view(user, item):
     else:
         user_key = str(user.id)
 
-    # If the item was modified in the last 15 seconds, don't use cache
     can_use_cache = False
-    if hasattr(item, "was_modified_very_recently"):
-        if item.was_modified_very_recently():
-            can_use_cache = False
-        else:
-            can_use_cache = True
+    # If the item was not modified recently, use cache
+    if hasattr(item, "was_modified_very_recently") and not item.was_modified_very_recently():
+        can_use_cache = True
 
     key = 'user_can_view_%s|%s:%s|%s' % (user_key, item._meta.app_label, item._meta.app_label, str(item.id))
     cached_can_view = cache.get(key)
@@ -120,14 +117,10 @@ def user_can_edit(user, item):
     if item.__class__ == get_user_model():  # -- Sometimes duck-typing fails --
         return user == item
 
-    if hasattr(item, "was_modified_very_recently"):
-        if item.was_modified_very_recently():
-            # If the item was modified in the last 15 seconds, don't use cache
-            can_use_cache = False
-        else:
-            can_use_cache = True
-    else:
-        can_use_cache = False
+    can_use_cache = False
+    # If the item was not modified recently, use cache
+    if hasattr(item, "was_modified_very_recently") and not item.was_modified_very_recently():
+        can_use_cache = True
 
     user_key = str(user.id)
     key = 'user_can_edit_%s|%s:%s|%s' % (user_key, item._meta.app_label, item._meta.app_label, str(item.id))

@@ -3,7 +3,6 @@ from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from model_utils.models import TimeStampedModel
-import reversion
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.fields import (

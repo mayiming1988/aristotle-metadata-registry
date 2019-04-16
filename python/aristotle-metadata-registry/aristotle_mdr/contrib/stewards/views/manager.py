@@ -91,13 +91,6 @@ class StewardURLManager(GroupURLManager):
             url("collection/(?P<pk>\d+)/edit$", view=self.collection_edit_view(), name="collection_edit_view"),
             url("collection/(?P<pk>\d+)/delete", view=self.collection_delete_view(), name="collection_delete"),
 
-            # url("references/$", view=self.references_steward_list_view(), name="reference_documents"),
-            # url("references/new_folder", view=self.references_create_folder_view(), name="reference_folder_create"),
-            # url("references/upload", view=self.references_create_document_view(), name="reference_documents_create"),
-            # url("references/folder/(?P<pk>\d+)$", view=self.references_folder_detail_view(), name="reference_folder_detail_view"),
-            # url("references/file/(?P<pk>\d+)$", view=self.references_document_detail_view(), name="reference_document_detail_view"),
-            # url("references/(?P<pk>\d+)/edit$", view=self.references_edit_view(), name="reference_references_edit_view"),
-            # url("references/(?P<pk>\d+)/delete", view=self.references_delete_view(), name="reference_document_delete_view"),
         ]
 
     def list_all_view(self, *args, **kwargs):
