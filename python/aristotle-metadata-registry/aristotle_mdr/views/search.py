@@ -11,12 +11,12 @@ class PermissionSearchView(FacetedSearchView):
     def build_page(self):
 
         try:
-            rpp = self.form.cleaned_data['rpp']
+            results_per_page = self.form.cleaned_data['rpp']
         except (AttributeError, KeyError):
-            rpp = ''
+            results_per_page = ''
 
-        if rpp in self.results_per_page_values:
-            self.results_per_page = rpp
+        if results_per_page in self.results_per_page_values:
+            self.results_per_page = results_per_page
         else:
             if len(self.results_per_page_values) > 0:
                 self.results_per_page = self.results_per_page_values[0]

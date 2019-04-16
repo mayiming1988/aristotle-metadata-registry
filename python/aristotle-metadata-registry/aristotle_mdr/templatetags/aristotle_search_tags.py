@@ -31,18 +31,19 @@ def search_describe_filters(search_form):
     Takes a search form and returns a user friendly
     textual description of the filters.
     """
-
     out = ""
     if search_form.applied_filters:
         filter_texts = []
-        for f in search_form.applied_filters:
-            val = search_form.cleaned_data.get(f)
-            field = search_form.fields.get(f)
+        for filter in search_form.applied_filters:
+            # Get the applied filters
+            val = search_form.cleaned_data.get(filter)
+            field = search_form.fields.get(filter)
 
             if field.label is None:
                 continue
             if hasattr(field, 'choices'):
-                preamble = _('%s is') % field.label
+                # If we can map value to choice
+                preamble = _('%s is') % field.label  # Showing only items where label is id
                 try:
                     choices = dict(field.choices)
                     opts = [choices[x] for x in val]
@@ -57,9 +58,30 @@ def search_describe_filters(search_form):
                     verbed = str(opts[0])
                 filter_texts.append('%s %s' % (preamble, verbed))
             else:
+                # If we can't map the value to choice
+                # Unfortunately we need to perform the id lookup here because as you click through the facets,
+                # the selected facet disappears
                 preamble = _('%s is') % field.label
-                verbed = str(val)
-                filter_texts.append('%s %s' % (preamble, verbed))
+                id = val
+                from django.contrib.contenttypes.models import ContentType
+                model_type = {
+                    'ra': MDR.RegistrationAuthority,
+                    'wg': MDR.Workgroup,
+                    'ct': ContentType,
+                    'sa': MDR.StewardOrganisation,
+                }.get(filter, None)
+                item = None
+                if model_type and id:
+                    # Related to https://github.com/aristotle-mdr/aristotle-metadata-registry/pull/343
+                    # This fails sometimes on Postgres in *tests only*... so far.
+                    item = model_type.objects.filter(pk=int(id)).first()
+                    if item is None:
+                        logger.warning(
+                            "Warning: Failed to find item type [%s] with id [%s]" % (model_type, id)
+                        )
+
+                filter_texts.append('%s %s' % (preamble, item))
+
         if len(filter_texts) > 1:
             out = "; ".join([str(o) for o in filter_texts][:-1])
             out += _(' and %s') % str(filter_texts[-1])
@@ -67,33 +89,6 @@ def search_describe_filters(search_form):
             out = str(filter_texts[0])
 
     return out
-
-
-@register.filter
-def get_item_from_facet(_type, _id):
-    from django.contrib.contenttypes.models import ContentType
-
-    model_type = {
-        'ra': MDR.RegistrationAuthority,
-        'wg': MDR.Workgroup,
-        'ct': ContentType,
-    }.get(_type, None)
-
-    item = None
-
-    if model_type and _id:
-        # Related to https://github.com/aristotle-mdr/aristotle-metadata-registry/pull/343
-        # This fails sometimes on Postgres in *tests only*... so far.
-        item = model_type.objects.filter(pk=int(_id)).first()
-        if item is None:
-            logger.warning(
-                "Warning: Failed to find item type [%s] with id [%s]" % (model_type, _id)
-            )
-            item = {
-                'name': 'None',
-                'id': _id
-            }
-    return item
 
 
 @register.filter
@@ -152,3 +147,11 @@ def is_concept(result):
     from django.apps import apps
     kls = apps.get_model(app_label=result.app_label, model_name=result.model_name)
     return issubclass(kls, MDR._concept)
+
+
+@register.filter
+def add_ellipsis_if_truncated(text, truncate_at):
+    if len(text) > truncate_at:
+        return text[:truncate_at] + "..."
+    else:
+        return text

@@ -12,7 +12,7 @@ import aristotle_mdr.forms as MDRForms
 from aristotle_mdr import perms
 from reversion_compare.admin import CompareVersionAdmin
 
-from aristotle_mdr.search_indexes import conceptIndex
+from aristotle_mdr.search_indexes import ConceptIndex
 from haystack import indexes
 
 import reversion
@@ -364,7 +364,7 @@ register_concept(
 )
 
 
-class aristotle_mdr_DataElementConceptSearchIndex(conceptIndex, indexes.Indexable):
+class aristotle_mdr_DataElementConceptSearchIndex(ConceptIndex, indexes.Indexable):
     data_element_concept = indexes.MultiValueField(model_attr="name", faceted=True, null=True)
     data_element_concept.title = 'Data element concept'
     object_class = indexes.MultiValueField(model_attr="objectClass__name", faceted=True, null=True)
@@ -382,7 +382,7 @@ register_concept(
 )
 
 
-class aristotle_mdr_DataElementSearchIndex(conceptIndex, indexes.Indexable):
+class aristotle_mdr_DataElementSearchIndex(ConceptIndex, indexes.Indexable):
     data_element_concept = indexes.MultiValueField(model_attr="dataElementConcept__name", faceted=True, null=True)
     data_element_concept.title = 'Data element concept'
     object_class = indexes.MultiValueField(model_attr="dataElementConcept__objectClass__name", faceted=True, null=True)
@@ -400,7 +400,7 @@ register_concept(
 )
 
 
-class aristotle_mdr_DataElementDerivationSearchIndex(conceptIndex, indexes.Indexable):
+class aristotle_mdr_DataElementDerivationSearchIndex(ConceptIndex, indexes.Indexable):
     data_element_concept = indexes.MultiValueField(faceted=True, null=True)
     data_element_concept.title = 'Data element concept'
     object_class = indexes.MultiValueField(faceted=True, null=True)

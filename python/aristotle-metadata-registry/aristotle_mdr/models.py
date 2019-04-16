@@ -1770,8 +1770,8 @@ def update_org_to_match_workgroup(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=DiscussionComment)
-def new_comment_created(sender, **kwargs):
-    comment = kwargs['instance']
+def new_comment_created(sender, instance, **kwargs):
+    comment = instance
     post = comment.post
     if kwargs.get('raw'):
         # Don't run during loaddata
@@ -1784,8 +1784,9 @@ def new_comment_created(sender, **kwargs):
 
 
 @receiver(post_save, sender=DiscussionPost)
-def new_post_created(sender, **kwargs):
-    post = kwargs['instance']
+def new_post_created(sender, instance, **kwargs):
+    # Don't pass the instance to the JSONEncoder
+    post = instance
     if kwargs.get('raw'):
         # Don't run during loaddata
         return
