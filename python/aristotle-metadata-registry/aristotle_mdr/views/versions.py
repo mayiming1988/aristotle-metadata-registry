@@ -491,7 +491,7 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         versions = self._order_version_queryset(
             reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
         )
-        # If not a superuser or in workgroup restict versions the user can see
+        # If not a superuser or in workgroup restrict versions the user can see
         in_workgroup = (metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list)
         if not (self.request.user.is_superuser or in_workgroup):
             try:

@@ -9,6 +9,7 @@ from django.db.models import Q
 from django.conf import settings
 import collections
 from re import finditer
+import reversion
 
 from aristotle_mdr_api.v4.concepts.serializers import (
     ConceptSerializer,
@@ -158,7 +159,7 @@ class GeneralGraphicalConceptView(ObjectAPIView):
         return ' '.join([m.group(0) for m in matches])
 
 
-class ConceptLinks(ObjectAPIView):
+class ConceptLinksView(ObjectAPIView):
     """Retrieve a graphical representation of the links relations"""
 
     def get(self, request, *args, **kwargs):
@@ -195,15 +196,24 @@ class ConceptLinks(ObjectAPIView):
         )
 
 
-class ListVersions(ObjectAPIView):
-    """ Update the visibility of the version of an item """
-    logger.debug("List versions is called")
+class ListVersionsView(ObjectAPIView):
+    """ List the visibility of the versions of an item """
+
     def get(self, request, *args, **kwargs):
-        concept = self.get_object()
-        raise ValueError(str(dir(concept)))
-        # TODO : how to pull out versions and visibility from concept
+        """
+        Return the list of associated versions
+        """
+        # Get the versions
+        metadata_item = self.get_object()
+        versions = reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
+        versions = versions.order_by("-revision__date_created")
+
+        # Serialize the versions
+        serializer = serializers.VersionSerializer(versions, many=True)
+
+        return Response(
+            {'versions' : serializer.data},
+            status.HTTP_200_OK)
 
 
-
-        return Response(status.HTTP_200_OK)
-
+# class UpdateVersionView(generics.APIView):
