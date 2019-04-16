@@ -132,6 +132,7 @@ class ConceptVersionView(ConceptRenderView):
     def get_item(self):
         # Gets the current item
         return self.item_version.object
+        logger.debug("Current version is" + str(self.item_version.object))
 
     def get_matching_object_from_revision(self, revision, current_version, target_ct=None):
         # Finds another version in the same revision with same id

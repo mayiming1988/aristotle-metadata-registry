@@ -193,3 +193,17 @@ class ConceptLinks(ObjectAPIView):
             {'nodes': nodes, 'edges': edges},
             status.HTTP_200_OK
         )
+
+
+class ListVersions(ObjectAPIView):
+    """ Update the visibility of the version of an item """
+    logger.debug("List versions is called")
+    def get(self, request, *args, **kwargs):
+        concept = self.get_object()
+        raise ValueError(str(dir(concept)))
+        # TODO : how to pull out versions and visibility from concept
+
+
+
+        return Response(status.HTTP_200_OK)
+

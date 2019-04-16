@@ -9,6 +9,7 @@ class MultiUpdateListSerializer(serializers.ListSerializer):
     To be used for multple updates on a list serializer
     Creates new models and deletes missing models
     Needs a non required IntegerField for id
+
     """
 
     perform_create = True

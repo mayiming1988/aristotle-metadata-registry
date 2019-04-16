@@ -19,6 +19,10 @@ class ConceptSerializer(serializers.ModelSerializer):
         fields = ('id', 'uuid', 'name', 'version', 'definition', 'short_definition', 'absolute_url', 'expand_node_get_url')
 
 
+class VersionSerializer(serializers.ModelSerializer):
+    pass
+
+
 class SupersedeRelationshipSerialiser(serializers.ModelSerializer):
 
     absolute_url = serializers.SerializerMethodField('get_the_absolute_url')
