@@ -44,6 +44,7 @@ class BaseObjectIndex(indexes.SearchIndex):
     created = indexes.DateTimeField(model_attr='created')
     name = indexes.CharField(model_attr='name', boost=1)
     facet_model_ct = indexes.IntegerField(faceted=True)
+    django_ct_app_label = indexes.CharField()
     # Thanks ElasticSearch - https://github.com/django-haystack/django-haystack/issues/569
     name_sortable = indexes.CharField(model_attr='name', indexed=False, stored=True)
     # django_ct_model_name = indexes.CharField()
@@ -53,6 +54,9 @@ class BaseObjectIndex(indexes.SearchIndex):
     rendered_search_result = indexes.CharField(indexed=False)
 
     badge_template_name = "search/badges/base.html"
+
+    def prepare_django_ct_app_label(self, obj):
+        return obj._meta.app_label
 
     def prepare_rendered_badge(self, obj):
         t = loader.get_template(self.badge_template_name)
@@ -78,7 +82,6 @@ class BaseObjectIndex(indexes.SearchIndex):
 
 class ConceptIndex(BaseObjectIndex):
     text = ConceptFallbackCharField(document=True, use_template=True)
-    django_ct_app_label = indexes.CharField()
     uuid = indexes.CharField(model_attr='uuid')
     statuses = indexes.MultiValueField(faceted=True)
     highest_state = indexes.IntegerField()
@@ -100,9 +103,6 @@ class ConceptIndex(BaseObjectIndex):
     rendered_badge = indexes.CharField(indexed=False)
 
     # Preparation functions for conceptIndex
-
-    def prepare_django_ct_app_label(self, obj):
-        return obj._meta.app_label
 
     def prepare_registrationAuthorities(self, obj):
         ras_stats = [str(s.registrationAuthority.id) for s in obj.current_statuses().all()]
