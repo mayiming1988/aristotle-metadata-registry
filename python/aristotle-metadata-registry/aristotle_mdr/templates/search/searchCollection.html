@@ -1,0 +1,16 @@
+{% load util_tags humanize %}
+{% load aristotle_search_tags %}
+<div class="result">
+        <a href="{% url 'aristotle:stewards:group:collection_detail_view' collection.stewardship_organisation.slug collection.id %}">{{ collection.name }}</a>
+    <span class="post_title">(Collection)</span>
+    <p>
+        {{ collection.description|striptags|truncatechars:70}}
+    </p>
+    <div class="attrs">
+    <span class="attr">
+        <span class="time">Created: <time datetime="{{ collection.created|isotime }}">{{ collection.created }}
+        </time></span>
+        <header class="time">Last modified:</header><time datetime="{{ collection.modified|isotime }}">{{ collection.modified }}</time>
+    </span>
+    </div>
+</div>

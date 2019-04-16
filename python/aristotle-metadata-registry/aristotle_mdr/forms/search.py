@@ -30,7 +30,6 @@ import logging
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
-
 QUICK_DATES = Choices(
     ('', 'anytime', _('Any time')),
     ('h', 'hour', _('Last hour')),
@@ -40,7 +39,6 @@ QUICK_DATES = Choices(
     ('y', 'year', _('This year')),
     ('X', 'custom', _('Custom period')),
 )
-
 
 SORT_OPTIONS = Choices(
     ('n', 'natural', _('Relevance')),
@@ -72,6 +70,7 @@ SHORT_STATE_MAP = {
 def allowable_search_models():
     return fetch_metadata_apps() + [
         'aristotle_mdr_help',
+        'aristotle_mdr_stewards',
     ] + getattr(settings, 'ARISTOTLE_SEARCH_EXTRA_MODULES', [])
 
 
@@ -164,14 +163,19 @@ class PermissionSearchQuerySet(SearchQuerySet):
         # We have to redefine this because Whoosh & Haystack don't play well with model filtering
         from haystack.utils import get_model_ct
         mods = [get_model_ct(m) for m in mods]
+
+        # This is performing a filter on the search result to restrict it to only the actual models
         return self.filter(django_ct__in=mods)
 
     def apply_permission_checks(self, user=None, public_only=False, user_workgroups_only=False):
+        """"
+        Apply permission checks by altering the SearchQuery
+        """
         sqs = self
         q = SQ(is_public=True)
         q |= SQ(published_date_public__lte=timezone.localtime(timezone.now()))
         if user is None or user.is_anonymous():
-            # Regular users can only see public items, so boot them off now.
+            # Regular users can only see public items, so filter only on the public items.
             sqs = sqs.filter(q)
             return sqs
 
@@ -198,6 +202,11 @@ class PermissionSearchQuerySet(SearchQuerySet):
         return sqs
 
     def apply_registration_status_filters(self, states=[], ras=[]):
+        """
+        :param states:
+        :param ras:
+        :return: SearchQuerySet
+        """
         sqs = self
         if states and not ras:
             states = [int(s) for s in states]
@@ -251,6 +260,7 @@ class TokenSearchForm(FacetedSearchForm):
         try:
             query = self.cleaned_data.get('q')
         except:
+            # There was no query
             return {}
         opts = connections[DEFAULT_ALIAS].get_unified_index().fields.keys()
         kwargs = {}
@@ -258,6 +268,7 @@ class TokenSearchForm(FacetedSearchForm):
         token_models = []
         boost_ups = []
         for word in query.split(" "):
+            # Boost the query words that start with +
             if word.startswith("+"):
                 boost_strength = min(4, len(word) - len(word.lstrip('+')))
                 boost_val = round(0.1 + 1.1 ** (boost_strength ** 1.35), 3)
@@ -287,7 +298,7 @@ class TokenSearchForm(FacetedSearchForm):
                                 kwargs[str(opt)] = clean_value
                     elif opt == "type":
                         # we'll allow these through and assume they meant content type
-
+                        # Look up all the models that you can search from
                         from django.contrib.contenttypes.models import ContentType
                         arg = arg.lower().replace('_', '').replace('-', '')
                         app_labels = allowable_search_models()
@@ -322,11 +333,14 @@ class TokenSearchForm(FacetedSearchForm):
             return self.no_query_found()
 
         if self.query_text:
+            # If there is query text
             # Search on text (which is the document) and name fields (so name can be boosted)
             sqs = self.searchqueryset.filter(
                 SQ(text=AutoQuery(self.query_text)) | SQ(name=AutoQuery(self.query_text))
             )
+
         else:
+            # Don't search
             sqs = self.searchqueryset
 
         if self.token_models:
@@ -342,8 +356,9 @@ class TokenSearchForm(FacetedSearchForm):
 
         # Only show models that are in apps that are enabled
         app_labels = allowable_search_models()
+        # We need to restrict search so that if an install app is "disabled" by
+        #    Aristotle, its models won't show up in search.
         sqs = sqs.filter(django_ct_app_label__in=app_labels)
-
         return sqs
 
     def no_query_found(self):
@@ -352,8 +367,6 @@ class TokenSearchForm(FacetedSearchForm):
 
 datePickerOptions = {
     "format": "YYYY-MM-DD",
-    # "pickTime": False,
-    # "pickDate": True,
     "defaultDate": "",
     "useCurrent": False,
 }
@@ -365,8 +378,10 @@ class PermissionSearchForm(TokenSearchForm):
         This form allows us to perform the base query then restrict it to just those
         of interest.
 
+
         TODO: This might not scale well, so it may need to be looked at in production.
     """
+    # Use short names to reduce URL length
     mq=forms.ChoiceField(
         required=False,
         initial=QUICK_DATES.anytime,
@@ -399,18 +414,15 @@ class PermissionSearchForm(TokenSearchForm):
         label="Created before date",
         widget=BootstrapDateTimePicker(options=datePickerOptions)
     )
-
-    # Use short singular names
-    # ras = [(ra.id, ra.name) for ra in MDR.RegistrationAuthority.objects.all()]
     ra = forms.MultipleChoiceField(
         required=False, label=_("Registration authority"),
         choices=[], widget=BootstrapDropdownSelectMultiple
     )
-
     sort = forms.ChoiceField(
         required=False, initial=SORT_OPTIONS.natural,
         choices=SORT_OPTIONS, widget=BootstrapDropdownSelect
     )
+
     from aristotle_mdr.search_indexes import BASE_RESTRICTION
     res = forms.ChoiceField(
         required=False, initial=None,
@@ -441,10 +453,17 @@ class PermissionSearchForm(TokenSearchForm):
         required=False,
         label='Results per page'
     )
-    # F for facet!
-    # searchqueryset = PermissionSearchQuerySet
+    # Hidden Workgroup field that is not rendered in the template,
+    # label is required for faceting display
+    wg = forms.IntegerField(required=False,
+                            label="Workgroup")
+    # Hidden Stewardship Organisation field that is not rendered in the template,
+    # label is required for faceting display
+    sa = forms.IntegerField(required=False,
+                            label="Stewardship Organisation")
 
-    filters = "models mq cq cds cde mds mde state ra res".split()
+    # Filters that are to be applied
+    filters = ["models", "mq", "cq", "cds", "cde", "mds", "mde", "state", "ra", "res", "wg", "sa"]
 
     def __init__(self, *args, **kwargs):
         if 'searchqueryset' not in kwargs.keys() or kwargs['searchqueryset'] is None:
@@ -453,15 +472,18 @@ class PermissionSearchForm(TokenSearchForm):
             raise ImproperlyConfigured("Aristotle Search Queryset connection must be a subclass of PermissionSearchQuerySet")
         super().__init__(*args, **kwargs)
 
-        # Show visible workgroups ordered by active state and name
+        # Populate choice of Registration Authorities ordered by active state and name
         # Inactive last
         self.fields['ra'].choices = [(ra.id, ra.name) for ra in MDR.RegistrationAuthority.objects.filter(active__in=[0, 1]).order_by('active', 'name')]
 
-        # List of app lables for default search
+        # List of models that you can search for
+        # TODO: ensure that this includes collections
+
         self.default_models = [
             m[0] for m in model_choices()
             if m[0].split('.', 1)[0] in allowable_search_models()
         ]
+
         # Set choices for models
         self.fields['models'].choices = [
             m for m in model_choices()
@@ -484,6 +506,9 @@ class PermissionSearchForm(TokenSearchForm):
 
     @property
     def applied_filters(self):
+        """
+        :return: The filters appearing in the URL that are applied
+        """
         if not hasattr(self, 'cleaned_data'):
             return []
         return [f for f in self.filters if self.cleaned_data.get(f, False)]
@@ -495,21 +520,26 @@ class PermissionSearchForm(TokenSearchForm):
             sqs = sqs.models(*self.get_models())
         self.repeat_search = repeat_search
 
+        # Is there no filter and no query -> no search was performed
         has_filter = self.kwargs or self.token_models or self.applied_filters
         if not has_filter and not self.query_text:
             return self.no_query_found()
 
         if self.applied_filters and not self.query_text:  # and not self.kwargs:
-            # If there is a filter, but no query then we'll force some results.
+            # If there is a filter, but no query, then we'll force some results.
             sqs = self.searchqueryset.order_by('-modified')
             self.filter_search = True
             self.attempted_filter_search = True
 
+        # Get filter data from query
         states = self.cleaned_data.get('state', None)
         ras = self.cleaned_data.get('ra', None)
         restriction = self.cleaned_data['res']
-        sqs = sqs.apply_registration_status_filters(states, ras)
+        workgroup = self.cleaned_data.get('wg', None)
+        stewardship_organisation = self.cleaned_data.get('sa', None)
 
+        # Apply the filters
+        sqs = sqs.apply_registration_status_filters(states, ras)
         if restriction:
             sqs = sqs.filter(restriction=restriction)
 
@@ -520,6 +550,16 @@ class PermissionSearchForm(TokenSearchForm):
             user_workgroups_only=self.cleaned_data['myWorkgroups_only']
         )
 
+        if workgroup is not None:
+            # We don't want to filter on a non-existent field
+            # Must filter exactly
+            sqs = sqs.filter(workgroup__exact=workgroup)
+
+        if stewardship_organisation is not None:
+            # Apply the stewardship organisation filter
+            sqs = sqs.filter(stewardship_organisation=stewardship_organisation)
+
+        # f for facets
         extra_facets_details = {}
         facets_opts = self.request.GET.getlist('f', [])
 
@@ -559,28 +599,40 @@ class PermissionSearchForm(TokenSearchForm):
             'models': 'facet_model_ct',
             'state': 'statuses',
         }
+
+        # Add filters that are also facets to Search Query Set
         for _filter, facet in filters_to_facets.items():
             if _filter not in self.applied_filters:
-                # Don't do this: sqs = sqs.facet(facet, sort='count')
                 sqs = sqs.facet(facet)
 
         logged_in_facets = {
             'wg': 'workgroup',
             'res': 'restriction'
         }
+
+        # If user is logged in, add permisssioned facets to Search Query Set
         if self.request.user.is_active:
             for _filter, facet in logged_in_facets.items():
                 if _filter not in self.applied_filters:
                     # Don't do this: sqs = sqs.facet(facet, sort='count')
                     sqs = sqs.facet(facet)
 
-        extra_facets = []
+        # For facets that will always appear on the sidebar, but are not part of the previous lists
+        additional_hardcoded_facets = ['stewardship_organisation']
+        for facet in additional_hardcoded_facets:
+            sqs = sqs.facet(facet)
 
+        """
+        Generate details about facets from ``concepts`` registered (as facetable) with a Haystack search index that conforms
+        to Aristotle permissions. Excludes facets that have been previously been added.
+        """
+        extra_facets = []
         from aristotle_mdr.search_indexes import registered_indexes
         for model_index in registered_indexes:
             for name, field in model_index.fields.items():
                 if field.faceted:
-                    if name not in (list(filters_to_facets.values()) + list(logged_in_facets.values())):
+                    if name not in (list(filters_to_facets.values()) + list(logged_in_facets.values()) +
+                                    additional_hardcoded_facets):
                         extra_facets.append(name)
 
                         x = extra_facets_details.get(name, {})
@@ -593,8 +645,10 @@ class PermissionSearchForm(TokenSearchForm):
                         # Don't do this: sqs = sqs.facet(facet, sort='count')  # Why Sam, why?
                         sqs = sqs.facet(name)
 
+        # Generate facet content
         self.facets = sqs.facet_counts()
 
+        # Populate the extra facet fields
         if 'fields' in self.facets:
             self.extra_facet_fields = [
                 (k, {'values': sorted(v, key=lambda x: -x[1])[:10], 'details': extra_facets_details[k]})
@@ -615,9 +669,41 @@ class PermissionSearchForm(TokenSearchForm):
                 if k in extra_facets
             ]
 
+            # Cut down to only the top 10 results for each facet, order by number of results
             for facet, counts in self.facets['fields'].items():
-                # Return the 5 top results for each facet in order of number of results.
                 self.facets['fields'][facet] = sorted(counts, key=lambda x: -x[1])[:10]
+
+            # Perform id to object lookup
+            from django.contrib.contenttypes.models import ContentType
+            model_types = {
+                'stewardship_organisation': MDR.StewardOrganisation,
+                'registrationAuthorities': MDR.RegistrationAuthority,
+                'workgroup': MDR.Workgroup,
+                'facet_model_ct': ContentType,
+            }
+
+            for facet in self.facets['fields'].keys():
+                if facet in model_types.keys():
+                    id_to_item = {}
+                    # Facet is for a model that must be looked up from the database
+                    item_type = model_types.get(facet)
+                    ids = []
+                    for id, count in self.facets['fields'][facet]:
+                        if id is not None:
+                            ids.append(id)
+
+                    id_to_instance = item_type.objects.in_bulk(ids)
+
+                    for id, count in self.facets['fields'][facet]:
+                        if id is None:
+                            id_to_item[id] = (None, count)
+                        # TODO: eradicate -99 from code
+                        elif (id == -99):
+                            id_to_item[id] = (None, count)
+
+                        else:
+                            id_to_item[id] = (id_to_instance[int(id)], count)
+                    self.facets['fields'][facet] = id_to_item
 
         return sqs
 
@@ -651,11 +737,16 @@ class PermissionSearchForm(TokenSearchForm):
                     else:
                         suggested_query.append(token)
                     suggestions.append((token, suggestion))
+
             if optimal_query != original_query:
-                self.spelling_suggestions = suggestions
-                self.has_spelling_suggestions = has_suggestions
-                self.original_query = self.cleaned_data.get('q')
-                self.suggested_query = quote_plus(' '.join(suggested_query), safe="")
+                if optimal_query == original_query.lower():
+                    # If the suggested query is the same query but in lowercase, don't suggest it
+                    self.has_spelling_suggestions = False
+                else:
+                    self.spelling_suggestions = suggestions
+                    self.has_spelling_suggestions = has_suggestions
+                    self.original_query = self.cleaned_data.get('q')
+                    self.suggested_query = quote_plus(' '.join(suggested_query), safe="")
 
     def apply_date_filtering(self, sqs):
         modify_quick_date = self.cleaned_data['mq']

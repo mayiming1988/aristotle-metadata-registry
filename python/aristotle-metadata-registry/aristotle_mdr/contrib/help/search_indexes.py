@@ -4,10 +4,10 @@ from aristotle_mdr.contrib.help import models
 from django.utils import timezone
 from aristotle_mdr.search_indexes import RESTRICTION
 
-from aristotle_mdr.search_indexes import baseObjectIndex
+from aristotle_mdr.search_indexes import BaseObjectIndex
 
 
-class HelpObjectIndex(baseObjectIndex):
+class HelpObjectIndex(BaseObjectIndex):
     name = indexes.CharField(model_attr='title')
     name_sortable = indexes.CharField(model_attr='title', indexed=False, stored=True)
     is_public = indexes.BooleanField(model_attr='is_public')

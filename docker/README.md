@@ -32,10 +32,14 @@ in or tracked for changes.
   For example to run all Aristotle tests, run:
 
         docker-compose exec web django-admin test aristotle_mdr.tests --settings=aristotle_mdr.tests.settings.settings
+        
+  Note that the test settings are used.
 
   Or to run a single class of tests, run:
 
         docker-compose exec web django-admin test aristotle_mdr.tests.main.test_html_pages.AnonymousUserViewingThePages --settings=aristotle_mdr.tests.settings.settings
+        
+     Note that the test settings are used.
 
 * Step 3 (optional): It is possible to execute bash in the docker container using:
   
