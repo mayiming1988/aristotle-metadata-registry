@@ -457,6 +457,9 @@ class ConceptVersionView(ConceptRenderView):
 
 
 class ConceptHistoryCompareView(HistoryCompareDetailView):
+    """Shows the table of the different versions of the object and the changes that were made
+        between versions"""
+
     model = MDR._concept
     pk_url_kwarg = 'iid'
     template_name = "aristotle_mdr/actions/concept_history_compare.html"
@@ -487,7 +490,8 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         versions = self._order_version_queryset(
             reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
         )
-        # If not a superuser or in workgroup restict versions the user can see
+        # Perform permission checking on the versions shown
+        # TODO : rewrite dates to deal with permission checking
         in_workgroup = (metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list)
         if not (self.request.user.is_superuser or in_workgroup):
             try:
@@ -514,6 +518,7 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
 
         versions = versions.order_by("-revision__date_created")
 
+        # Append all the versions to the action list for display
         for version in versions:
             action_list.append({
                 'version': version,
