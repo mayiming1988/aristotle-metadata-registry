@@ -15,10 +15,40 @@ from aristotle_mdr.contrib.groups.managers import AbstractGroupQuerySet
 
 
 class PublishedMixin(object):
+    def visible(self, user):
+        """
+        Returns a queryset that returns all managed items that the given user has
+        permission to view.
+
+        It is **chainable** with other querysets.
+        """
+        if user.is_superuser:
+            return self.all()
+
+        q = self.is_published_public
+        if user.is_anonymous():
+            return self.filter(q)
+
+        q |= self.is_published_auth
+        # q |= Q(
+        #     workgroup__in=user.profile.workgroups,
+        #     publication_details__permission=visibility_permission_choices.workgroup
+        # )
+
+        return self.filter(q)
+
+    def public(self):
+        """
+        Returns a queryset that returns all published items that the given user has
+        permission to view.
+
+        It is **chainable** with other querysets.
+        """
+        q = self.is_published_public
+        return self.filter(q)
 
     @property
     def is_published_public(self):
-        from aristotle_mdr.models import _concept
         return Q(
             publication_details__permission=visibility_permission_choices.public,
             publication_details__publication_date__lte=timezone.now(),
@@ -317,28 +347,11 @@ class ProposedSupersedesManager(models.Manager):
         return super().get_queryset().filter(proposed=True)
 
 
-class ManagedItemQuerySet(PublishedMixin, models.QuerySet):
-    def visible(self, user):
-        """
-        Returns a queryset that returns all managed items that the given user has
-        permission to view.
+class PublishedItemQuerySet(PublishedMixin, models.QuerySet):
+    pass
 
-        It is **chainable** with other querysets.
-        """
-        if user.is_superuser:
-            return self.all()
 
-        q = self.is_published_public
-        if user.is_anonymous():
-            return self.filter(q)
-
-        q |= self.is_published_auth
-        # q |= Q(
-        #     workgroup__in=user.profile.workgroups,
-        #     publication_details__permission=visibility_permission_choices.workgroup
-        # )
-
-        return self.filter(q)
+class ManagedItemQuerySet(PublishedItemQuerySet):
 
     def editable(self, user):
         """

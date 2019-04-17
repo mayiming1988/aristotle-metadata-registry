@@ -1,6 +1,7 @@
 from typing import List, Dict
 import datetime
 from django import forms
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.apps import apps
 from django.utils import timezone
@@ -64,6 +65,13 @@ SHORT_STATE_MAP = {
     "sup": "superseded",
     "ret": "retired",
 }
+
+
+def allowable_search_models():
+    return fetch_metadata_apps() + [
+        'aristotle_mdr_help',
+        'aristotle_mdr_stewards',
+    ] + getattr(settings, 'ARISTOTLE_SEARCH_EXTRA_MODULES', [])
 
 
 # This function is not critical and are mathematically sound, so testing is not required.
@@ -132,7 +140,6 @@ def first_letter(j):
 
 
 def get_permission_sqs(*args, **kwargs):
-    from django.conf import settings
     psqs_kls = getattr(settings, 'ARISTOTLE_PERMISSION_SEARCH_CLASS', None)
     if psqs_kls is None:
         psqs_kls = PermissionSearchQuerySet
@@ -294,8 +301,7 @@ class TokenSearchForm(FacetedSearchForm):
                         # Look up all the models that you can search from
                         from django.contrib.contenttypes.models import ContentType
                         arg = arg.lower().replace('_', '').replace('-', '')
-                        app_labels = fetch_metadata_apps()
-                        app_labels.append('aristotle_mdr_help')
+                        app_labels = allowable_search_models()
                         mods = ContentType.objects.filter(app_label__in=app_labels).all()
                         for i in mods:
                             if hasattr(i.model_class(), 'get_verbose_name'):
@@ -348,12 +354,11 @@ class TokenSearchForm(FacetedSearchForm):
         if self.load_all:
             sqs = sqs.load_all()
 
-        # Populate the app lables that you can filter on
-        app_labels = fetch_metadata_apps()
-        app_labels.append('aristotle_mdr_help')
-        # TODO: Do we even need this?
-        # sqs = sqs.filter(django_ct_app_label__in=app_labels)
-
+        # Only show models that are in apps that are enabled
+        app_labels = allowable_search_models()
+        # We need to restrict search so that if an install app is "disabled" by
+        #    Aristotle, its models won't show up in search.
+        sqs = sqs.filter(django_ct_app_label__in=app_labels)
         return sqs
 
     def no_query_found(self):
@@ -476,13 +481,13 @@ class PermissionSearchForm(TokenSearchForm):
 
         self.default_models = [
             m[0] for m in model_choices()
-            if m[0].split('.', 1)[0] in fetch_metadata_apps()
+            if m[0].split('.', 1)[0] in allowable_search_models()
         ]
 
         # Set choices for models
         self.fields['models'].choices = [
             m for m in model_choices()
-            if m[0].split('.', 1)[0] in fetch_metadata_apps() + ['aristotle_mdr_help']
+            if m[0].split('.', 1)[0] in allowable_search_models()
         ]
 
     def get_models(self):

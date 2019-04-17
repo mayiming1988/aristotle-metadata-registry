@@ -90,6 +90,7 @@ class StewardURLManager(GroupURLManager):
             url("collection/(?P<pk>\d+)$", view=self.collection_detail_view(), name="collection_detail_view"),
             url("collection/(?P<pk>\d+)/edit$", view=self.collection_edit_view(), name="collection_edit_view"),
             url("collection/(?P<pk>\d+)/delete", view=self.collection_delete_view(), name="collection_delete"),
+
         ]
 
     def list_all_view(self, *args, **kwargs):
