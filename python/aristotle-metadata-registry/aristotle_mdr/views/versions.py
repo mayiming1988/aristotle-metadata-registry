@@ -496,6 +496,7 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         if not (self.request.user.is_superuser or in_workgroup):
             try:
                 version_publishing = metadata_item.version_publication_details.first()
+                logger.critical(str(version_publishing))
             except:
                 version_publishing = None
             if version_publishing is None:
@@ -508,10 +509,11 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
                     first_visible_date = (
                         version_publishing.authenticated_user_publication_date or version_publishing.public_user_publication_date
                     )
-
+            # If there are no visible versions, return no versions
             if not first_visible_date:
                 versions = versions.none()
             else:
+                # Return the versions where the filter
                 versions = versions.filter(
                     revision__date_created__gt=first_visible_date
                 )
@@ -524,6 +526,8 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
                 'revision': version.revision,
                 'url': reverse(self.item_action_url, args=[version.id])
             })
+
+            logger.critical((str(version.revision)))
         return action_list
 
     def get_context_data(self, *args, **kwargs):

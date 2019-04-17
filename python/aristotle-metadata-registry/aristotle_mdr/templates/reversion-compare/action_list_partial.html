@@ -54,6 +54,8 @@
             {# Comment #}
             <td>{{action.revision.comment|linebreaks|default:"-"}}</td>
             <td> {# Visibility, move to dropdown #}
+
+                <!-- {#
                 <div class="dropdown">
                        <button class="dropdown dropdown-menu-form" data-help-name='status'>
                         <a href="#" class="dropdown-toggle"
@@ -63,9 +65,7 @@
                                 class="caret"></span>
                             </a>
                        </button>
-                </div>
-
-                <!-- {#
+                </div> #} -->
                 {% if action.revision.date_created > public_date %}
                     <i class="fa fa-fw fa-globe"></i> Public
                 {% elif action.revision.date_created > authenticated_date %}
@@ -73,8 +73,6 @@
                 {% else %}
                    <i class="fa fa-fw fa-users"></i> Workgroup only
                 {% endif %}
-
-                #} -->
             </td>
         </tr>
     {% endfor %}

@@ -1,4 +1,5 @@
 from rest_framework import generics
+from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 from aristotle_mdr_api.v4.permissions import AuthCanViewEdit
@@ -216,4 +217,7 @@ class ListVersionsView(ObjectAPIView):
             status.HTTP_200_OK)
 
 
-# class UpdateVersionView(generics.APIView):
+class UpdateVersionView(APIView):
+    """Updates the properties of a version, particuarly visibility"""
+    serializer_class = serializers.VersionSerializer
+
