@@ -7,4 +7,6 @@ urlpatterns = [
     url(r'^(?P<pk>\d+)/general-graphical/$', views.GeneralGraphicalConceptView.as_view(), name='item_general_graphical'),
     url(r'^(?P<pk>\d+)/links-graphical/$', views.ConceptLinksView.as_view(), name='api_item_links'),
     url(r'^(?P<pk>\d+)/list-versions/$', views.ListVersionsView.as_view(), name="list-versions"),
+    url(r'^(?P<pk>\d+)/list-permissions/$', views.ListVersionsPermissionsView.as_view(), name="list-version-permissions"),
+    url(r'^(?P<pk>\d+)/update-permission/$', views.UpdateVersionPermissionsView.as_view(), name="update-version-permissions")
 ]

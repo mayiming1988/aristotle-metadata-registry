@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from aristotle_mdr_api.v4.permissions import AuthCanViewEdit
 from aristotle_mdr_api.v4.concepts import serializers
 from aristotle_mdr.models import _concept, concept, aristotleComponent, SupersedeRelationship
+from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
 from django.db.models import Q
 from django.conf import settings
@@ -198,7 +199,7 @@ class ConceptLinksView(ObjectAPIView):
 
 
 class ListVersionsView(ObjectAPIView):
-    """ List the visibility of the versions of an item """
+    """ List the versions of an item  """
 
     def get(self, request, *args, **kwargs):
         """
@@ -206,7 +207,7 @@ class ListVersionsView(ObjectAPIView):
         """
         # Get the versions
         metadata_item = self.get_object()
-        versions = reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
+        versions = reversion.models.Version.objects.get_for_object(metadata_item)
         versions = versions.order_by("-revision__date_created")
 
         # Serialize the versions
@@ -217,7 +218,49 @@ class ListVersionsView(ObjectAPIView):
             status.HTTP_200_OK)
 
 
-class UpdateVersionView(APIView):
+class ListVersionsPermissionsView(ObjectAPIView):
+    "List the version permissions of an item"
+
+    def get(self, request, *args, **kwargs):
+        metadata_item = self.get_object()
+        versions = reversion.models.Version.objects.get_for_object(metadata_item)
+        versions.order_by("-revision__date_created")
+
+        # Lookup all the respective versions
+        permissions = []
+        for version in versions:
+            try:
+                version_permission = VersionPermissions.objects.get(version=version)
+            except VersionPermissions.DoesNotExist:
+                version_permission = None
+
+            permissions.append(version_permission)
+
+        serializer = serializers.VersionPermissionsSerializer(permissions, many=True)
+
+        return Response({'permissions': serializer.data},
+                        status.HTTP_200_OK)
+
+
+class UpdateVersionPermissionsView(ObjectAPIView):
     """Updates the properties of a version, particuarly visibility"""
-    serializer_class = serializers.VersionSerializer
+
+    def patch(self, request, *args, **kwargs):
+        data = request.data
+
+       # Get the object
+
+       # Get the associated version
+
+       # Get the versions viewing permissions
+
+       #  Update the viewing permissions
+
+       # Return the response
+
+        return Response({'data': data},
+                         status.HTTP_200_OK)
+
+
+
 

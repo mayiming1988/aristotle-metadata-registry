@@ -43,6 +43,11 @@ class UtilsManager(models.Manager):
             qs = self.get_queryset().filter(id__in=ids)
             qs.delete()
 
+    def get_object_or_none(self, *args, **kwargs):
+        try:
+            return self.objects.get(*args, **kwargs)
+        except self.DoesNotExist:
+            return None
 
 class MetadataItemQuerySet(InheritanceQuerySet):
     pass
