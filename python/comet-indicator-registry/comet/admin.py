@@ -37,9 +37,3 @@ register_concept(comet.models.Framework,
         ('Data Quality Guidelines', {'fields': ['parentFramework','indicators']}),
     ]
 )
-
-# admin.site.register(comet.models.IndicatorSetType)
-# admin.site.register(comet.models.IndicatorType)
-
-# reversion.revisions.register(comet.models.IndicatorSetType)
-# reversion.revisions.register(comet.models.IndicatorType)

@@ -12,23 +12,16 @@ from aristotle_mdr.utils.model_utils import (
 )
 
 
-class IndicatorType(ManagedItem):
-    class Meta:
-        verbose_name = "Indicator Type"
-
-# Subclassing from DataElement causes indicators to present as DataElements, which isn't quite right.
-
-
 class Indicator(MDR.concept):
     """
     An indicator is a single measure that is reported on regularly
     and that provides relevant and actionable information about population or system performance.
     """
+    # Subclassing from DataElement causes indicators to present as DataElements, which isn't quite right.
     backwards_compatible_fields = ['representation_class']
 
     template = "comet/indicator.html"
     outcome_areas = ConceptManyToManyField('OutcomeArea', related_name="indicators", blank=True)
-    indicator_type = models.ForeignKey(IndicatorType, blank=True, null=True)
 
 
     computation_description = MDR.RichTextField(blank=True)
@@ -130,13 +123,8 @@ class IndicatorDisaggregationDefinition(IndicatorDataElementBase):
     pass
 
 
-class IndicatorSetType(ManagedItem):
-    pass
-
-
 class IndicatorSet(MDR.concept):
     template = "comet/indicatorset.html"
-    indicator_set_type = models.ForeignKey(IndicatorSetType, blank=True, null=True)
 
 
 class IndicatorInclusion(aristotleComponent):
@@ -165,12 +153,13 @@ class OutcomeArea(MDR.concept):
 
 class QualityStatement(MDR.concept):
     template = "comet/qualitystatement.html"
-    timeliness = MDR.RichTextField(blank=True)
-    accessibility = MDR.RichTextField(blank=True)
-    interpretability = MDR.RichTextField(blank=True)
+
     relevance = MDR.RichTextField(blank=True)
+    timeliness = MDR.RichTextField(blank=True)
     accuracy = MDR.RichTextField(blank=True)
     coherence = MDR.RichTextField(blank=True)
+    interpretability = MDR.RichTextField(blank=True)
+    accessibility = MDR.RichTextField(blank=True)
 
 
 class Framework(MDR.concept):
