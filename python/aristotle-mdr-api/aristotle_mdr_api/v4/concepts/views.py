@@ -240,6 +240,7 @@ class ListVersionsPermissionsView(ObjectAPIView):
 
 class UpdateVersionPermissionsView(ObjectAPIView):
     """Updates the visibility permissions of a Version"""
+
     def post(self, request, *args, **kwargs):
         version_pk = kwargs.get('vpk', None)
 
@@ -264,8 +265,25 @@ class UpdateVersionPermissionsView(ObjectAPIView):
         if serializer.is_valid():
             # TODO: handle error in saving
             serializer.save()
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetVersionsPermissionsView(ObjectAPIView):
+    """ Gets the visibility permisions of a Version """
+
+    def get(self, request, *args, **kwargs):
+        version_pk = kwargs.get('vpk', None)
+
+        # TODO: pull to function to avoid repetition
+        metadata_item = self.get_object()
+        version = reversion.models.Version.objects.get_for_object(metadata_item)
+        version = version.filter(pk=version_pk).first()
+
+        # Get the versions viewing permissions
+        version_permission = VersionPermissions.objects.get_object_or_none(version=version)
+
+        return Response(version_permission.visibility, status.HTTP_200_OK)
 
 
 
