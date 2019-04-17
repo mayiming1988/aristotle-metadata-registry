@@ -27,22 +27,13 @@ class ConceptSerializer(serializers.ModelSerializer):
 class VersionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Version
-        fields = ('id', 'object_id', 'serialized_data', 'field_dict')
+        fields = ('id', 'object_id', 'serialized_data')
 
 
 class VersionPermissionsSerializer(serializers.ModelSerializer):
-    version = serializers.SerializerMethodField()
-
-    def get_version(self, obj):
-        version =  getattr(obj, 'version', 'null')
-        version_serializer = VersionSerializer(version)
-
-        return version_serializer.data
-
-
     class Meta:
         model = VersionPermissions
-        fields = ('version', 'visibility_permission')
+        fields = ('visibility',)
 
 
 class SupersedeRelationshipSerialiser(serializers.ModelSerializer):

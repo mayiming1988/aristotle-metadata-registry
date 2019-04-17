@@ -9,7 +9,6 @@ urlpatterns = [
     url(r'^', include('aristotle_mdr.contrib.links.urls', app_name="aristotle_mdr_links", namespace="aristotle_mdr_links")),
     url(r'^', include('aristotle_mdr.contrib.slots.urls', app_name="aristotle_slots", namespace="aristotle_slots")),
     url(r'^', include('aristotle_mdr.contrib.identifiers.urls', app_name="aristotle_mdr_identifiers", namespace="aristotle_identifiers")),
-
     url(r'^', include('aristotle_mdr.urls')),
     url(r'^', include('aristotle_mdr.contrib.links.urls', namespace="aristotle_mdr_links")),
     url(r'^comet/', include('comet.urls', namespace='comet')),

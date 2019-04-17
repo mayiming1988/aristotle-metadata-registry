@@ -229,12 +229,8 @@ class ListVersionsPermissionsView(ObjectAPIView):
         # Lookup all the respective versions
         permissions = []
         for version in versions:
-            try:
-                version_permission = VersionPermissions.objects.get(version=version)
-            except VersionPermissions.DoesNotExist:
-                version_permission = None
-
-            permissions.append(version_permission)
+                version_permission = VersionPermissions.objects.get_object_or_none(version=version)
+                permissions.append(version_permission)
 
         serializer = serializers.VersionPermissionsSerializer(permissions, many=True)
 
@@ -243,23 +239,33 @@ class ListVersionsPermissionsView(ObjectAPIView):
 
 
 class UpdateVersionPermissionsView(ObjectAPIView):
-    """Updates the properties of a version, particuarly visibility"""
+    """Updates the visibility permissions of a Version"""
+    def post(self, request, *args, **kwargs):
+        version_pk = kwargs.get('vpk', None)
 
-    def patch(self, request, *args, **kwargs):
-        data = request.data
+        # Get the version
+        metadata_item = self.get_object()
+        version = reversion.models.Version.objects.get_for_object(metadata_item)
+        version = version.filter(pk=version_pk).first()
 
-       # Get the object
+        # Get the versions viewing permissions
+        version_permission = VersionPermissions.objects.get_object_or_none(version=version)
+        try:
+            visibility = request.data['visibility']
+        except KeyError:
+            return Response(status.HTTP_400_BAD_REQUEST)
 
-       # Get the associated version
+        # Update the visibility permissions
+        data = {"visibility": visibility}
 
-       # Get the versions viewing permissions
-
-       #  Update the viewing permissions
-
-       # Return the response
-
-        return Response({'data': data},
-                         status.HTTP_200_OK)
+        serializer = serializers.VersionPermissionsSerializer(version,
+                                                              data=data,
+                                                              partial=True)
+        if serializer.is_valid():
+            # TODO: handle error in saving
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 

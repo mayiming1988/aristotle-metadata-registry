@@ -12,7 +12,7 @@ from model_utils.models import TimeStampedModel
 from aristotle_mdr import models as MDR
 from aristotle_mdr.fields import ConceptOneToOneField
 from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
-
+from aristotle_mdr.managers import UtilsManager
 
 class VersionPublicationRecord(TimeStampedModel):
     class Meta:
@@ -41,18 +41,21 @@ class VersionPublicationRecord(TimeStampedModel):
 
 class VersionPermissions(TimeStampedModel):
         """Track the viewing permissions of versions """
+
+        objects = UtilsManager()
+
         version = models.OneToOneField(
             reversion.models.Version,
             on_delete=models.CASCADE,
             primary_key=True)
 
-        visibility_permission = models.CharField(
+        visibility = models.CharField(
             max_length=20,
             choices=VISIBILITY_PERMISSION_CHOICES,
             default=VISIBILITY_PERMISSION_CHOICES.workgroup)
 
         def __str__(self):
-            return "Version is: {}  and permissions are: {}".format(str(self.version), str(self.visibility_permission))
+            return "Version is: {}  and permissions are: {}".format(str(self.version), str(self.visibility))
 
 class PublicationRecord(TimeStampedModel):
     class Meta:
