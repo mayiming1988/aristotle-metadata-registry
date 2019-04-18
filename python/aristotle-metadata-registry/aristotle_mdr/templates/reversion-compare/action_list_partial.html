@@ -8,6 +8,7 @@
     </caption>
     <thead>
     <tr>
+        {# Table titles for compare view #}
         {% if compare_view %}
             <th scope="col">
                 {% if comparable %}
@@ -20,7 +21,7 @@
         <th scope="col">{% trans 'Date/time' %}</th>
         <th scope="col">{% trans 'User' %}</th>
         <th scope="col">{% trans 'Comment' %}</th>
-        <th scope="col">{% trans 'Visibility' %}</th>
+        <th scope="col"><input class="btn btn-default" type="submit" value="{% trans 'Edit Visibility' %}"></th>
     </tr>
     </thead>
     <tbody>
@@ -84,7 +85,7 @@
                 {% if comparable %}
                     <input class="btn btn-default btn-xs" type="submit" value="{% trans 'compare' %}">
                 {% else %}
-                    <i>{% trans 'compare' %}</i>
+                    <i>{% trans 'Compare' %}</i>
                 {% endif %}
             </th>
         {% endif %}
@@ -98,7 +99,9 @@
             {#                {% trans 'Comment' %}#}
         </th>
         <th scope="col">
-            {#                {% trans 'Visiblity' %}#}
+            {# {% trans 'Visiblity' %}#}
+        </th>
+        <th>
         </th>
     </tr>
     </tfoot>
