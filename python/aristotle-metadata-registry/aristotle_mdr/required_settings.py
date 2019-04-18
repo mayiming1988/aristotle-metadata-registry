@@ -247,22 +247,6 @@ ARISTOTLE_SETTINGS = {
 
 }
 
-CKEDITOR_CONFIGS = {
-    'default': {
-        # 'toolbar': 'full',
-        'toolbar': [
-            {'name': 'clipboard', 'items': ['Cut', 'Copy', 'Paste', 'PasteText', '-', 'Undo', 'Redo']},
-            {'name': 'basicstyles', 'items': ['Bold', 'Italic', 'Subscript', 'Superscript', '-', 'RemoveFormat']},
-            {'name': 'links', 'items': ['Link', 'Unlink']},
-            {'name': 'paragraph', 'items': ['NumberedList', 'BulletedList', '-', 'Blockquote']},
-            {'name': 'insert', 'items': ['Image', 'Table', 'HorizontalRule', 'SpecialChar']},
-            {'name': 'document', 'items': ['Maximize', 'Source']},
-        ],
-        'width': "",
-        "removePlugins": "stylesheetparser",
-    },
-}
-
 HAYSTACK_SIGNAL_PROCESSOR = 'aristotle_mdr.contrib.help.signals.AristotleHelpSignalProcessor'
 # HAYSTACK_SEARCH_RESULTS_PER_PAGE = 10
 HAYSTACK_CONNECTIONS = {
