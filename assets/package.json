@@ -69,9 +69,9 @@
     "webpack-merge": "^4.2.1"
   },
   "scripts": {
-    "build": "ASSET_PATH=$ASSET_PATH webpack --config webpack.prod.js",
+    "build": "NODE_PATH=/usr/src/app/cloud-custom-templates/source/aihw/assets/ ASSET_PATH=$ASSET_PATH webpack --config webpack.prod.js",
     "devbuild": "webpack --config webpack.dev.js",
-    "watch": "webpack --watch --config webpack.dev.js",
+    "watch": "NODE_PATH=/usr/src/app/cloud-custom-templates/source/aihw/assets/ webpack --watch --config webpack.dev.js",
     "test": "karma start karma.conf.js --single-run",
     "watchtest": "karma start karma.conf.js",
     "lint": "eslint --ext .js,.vue ./src",
