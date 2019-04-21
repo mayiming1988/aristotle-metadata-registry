@@ -234,7 +234,7 @@ class DataSetSpecification(aristotle.models.concept):
         related_name='statistical_unit_of',
         blank=True,
         null=True,
-        help_text=_("Indiciates if the ordering for a dataset is must match exactly the order laid out in the specification."),
+        help_text=_("A Statistic Unit is this Object Class that is recorded against each entry described by this specification"),
         verbose_name='Statistical Unit'
         )
     collection_method = aristotle.models.RichTextField(
