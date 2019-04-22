@@ -159,7 +159,7 @@ module.exports = {
             'vue$': 'vue/dist/vue.esm.js',
             'src': path.resolve(__dirname, 'src'),
             '@': path.resolve(__dirname, 'src/components'),
-            'cloud_custom': path.resolve(process.env.CLOUD_DIRECTORY_BASE || "/dev/null")
+            'cloud_custom': path.resolve(process.env.CLOUD_DIRECTORY_BASE || "src/custom/")
         }
     }
 };
