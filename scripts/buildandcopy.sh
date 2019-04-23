@@ -66,7 +66,7 @@ if [[ $SKIP_WEBPACK_BUILD -ne 1 ]]; then
     rm -f ./dist/webpack-stats.json
     # Fetch custom static
     if [[ ! -z "$CUSTOM_STATIC_BUCKET_NAME" ]]; then
-        aws s3 cp s3://$CUSTOM_STATIC_BUCKET_NAME ./src/custom --recursive
+        aws s3 cp s3://$CUSTOM_STATIC_BUCKET_NAME/static ./src/custom --recursive
     fi
     npm install
     npm run build
