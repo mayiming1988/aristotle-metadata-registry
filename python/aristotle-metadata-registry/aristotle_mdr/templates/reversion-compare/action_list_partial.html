@@ -1,4 +1,9 @@
 {% load i18n l10n %}
+<style>
+    select {
+        font-family: 'FontAwesome','sans-serif'
+    }
+</style>
 {% if compare_view %}<form method="GET" action="{{ action }}">{% endif %}
 <table id="change-history" class='table table-striped'>
     <caption>Revisions for {{object.name}}
@@ -8,27 +13,26 @@
     </caption>
     <thead>
     <tr>
-        {# Table titles for compare view #}
         {% if compare_view %}
             <th scope="col">
                 {% if comparable %}
-                    <input class="btn btn-default btn-xs" type="submit" value="{% trans 'compare' %}">
+                    <input class="btn btn-default btn-xs" type="submit" value="{% trans 'Compare' %}">
                 {% else %}
-                    <i>{% trans 'compare' %}</i>
+                    <i>{% trans 'Compare' %}</i>
                 {% endif %}
             </th>
         {% endif %}
         <th scope="col">{% trans 'Date/time' %}</th>
         <th scope="col">{% trans 'User' %}</th>
         <th scope="col">{% trans 'Comment' %}</th>
-        <th scope="col"><input class="btn btn-default" type="submit" value="{% trans 'Edit Visibility' %}"></th>
+        <th scope="col"><input class="btn btn-default btn-sm" type="button" onclick="enable_editing()" value="Edit Visibility"></th>
+
     </tr>
     </thead>
     <tbody>
     {% for action in action_list %}
         <tr>
             {% if compare_view %}
-                {# Comparision row #}
                 <td scope="row">
                     {% if comparable %}
                         <input type="radio" name="version_id1" value="{{ action.version.pk|unlocalize }}" {% if action.first %}style="visibility:hidden" {% endif %}{% if version1.pk|unlocalize == action.version.pk|unlocalize or action.second %}checked="checked"{% endif%}/>
@@ -38,7 +42,6 @@
                     {% endif %}
                 </td>
             {% endif %}
-            {# Date/time #}
             <th scope="row">
                 {% if action.url %}
                     <a href="{{action.url}}">{{action.revision.date_created|date:_("DATETIME_FORMAT")}}</a>
@@ -46,44 +49,32 @@
                     {{action.revision.date_created|date:_("DATETIME_FORMAT")}}
                 {% endif %}
             </th>
-            {# User #}
             <td>
                 {% if action.revision.user %}
                     {% firstof action.revision.user.get_full_name  action.revision.user.email %}
                 {% endif %}
             </td>
-            {# Comment #}
             <td>{{action.revision.comment|linebreaks|default:"-"}}</td>
-            <td> {# Visibility, move to dropdown #}
+            <td>
+                {# Visibility #}
+                <select disabled class="form-control enable-visibility">
+                    <option selected>&#xf0ac; Public</option>
+                    <option>&#xf2bd; Logged in users</option>
+                    <option>&#xf0c0; Workgroup only</option>
+                </select>
 
-                <!-- {#
-                <div class="dropdown">
-                       <button class="dropdown dropdown-menu-form" data-help-name='status'>
-                        <a href="#" class="dropdown-toggle"
-                           data-toggle="dropdown">
-                            <i class="fa fa-unlock-alt fa-fw"></i>
-                            {% trans 'Status' context 'Registration Status' %} <span class="badge"></span><span
-                                class="caret"></span>
-                            </a>
-                       </button>
-                </div> #} -->
-                {% if action.revision.date_created > public_date %}
-                    <i class="fa fa-fw fa-globe"></i> Public
-                {% elif action.revision.date_created > authenticated_date %}
-                    <i class="fa fa-fw fa-user-circle-o"></i> Logged in users
-                {% else %}
-                   <i class="fa fa-fw fa-users"></i> Workgroup only
-                {% endif %}
             </td>
-        </tr>
     {% endfor %}
+            <td><input class="btn btn-default btn-xs" type="submit" value="Save Visibilities"></td>
+            </tr>
+
     </tbody>
     <tfoot>
     <tr>
         {% if compare_view %}
             <th scope="col">
                 {% if comparable %}
-                    <input class="btn btn-default btn-xs" type="submit" value="{% trans 'compare' %}">
+                    <input class="btn btn-default btn-xs" type="submit" value="{% trans 'Compare' %}">
                 {% else %}
                     <i>{% trans 'Compare' %}</i>
                 {% endif %}
@@ -99,11 +90,23 @@
             {#                {% trans 'Comment' %}#}
         </th>
         <th scope="col">
-            {# {% trans 'Visiblity' %}#}
-        </th>
-        <th>
+            {#                {% trans 'Visiblity' %}#}
         </th>
     </tr>
     </tfoot>
 </table>
 {% if compare_view %}</form>{% endif %}
+
+<script>
+    function enable_editing() {
+        var visibilitySelects  = document.getElementsByClassName('enable-visibility')
+        for (let select of visibilitySelects) {
+            select.disabled = false;
+        }
+    }
+
+    function code_to_visiblity() {
+
+    }
+
+</script>
