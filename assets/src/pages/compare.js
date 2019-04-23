@@ -2,8 +2,10 @@ import init from 'src/lib/init.js'
 
 import 'src/styles/aristotle.compare.less'
 import request from 'src/lib/request.js'
+import {addHeaderMessage, initMessages} from 'src/lib/messages.js'
 
 init();
+initMessages();
 
 $(document).ready(function() {
     document.getElementById('edit-visibilities-button').addEventListener("click", enable_editing);
@@ -13,7 +15,6 @@ $(document).ready(function() {
 function save_current_state() {
     // Get the visibility states
     var visibilitySelects = document.getElementsByClassName('visibility-select');
-
     // Create a variable
 }
 
@@ -60,5 +61,6 @@ function update_visibilities() {
         let params = ''
         request("PATCH", url, visibilityPermissions, params)
     }
+    addHeaderMessage('Saving performed sucesfully');
 }
 

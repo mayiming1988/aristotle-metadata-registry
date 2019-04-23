@@ -63,11 +63,10 @@
             <td>{{action.revision.comment|linebreaks|default:"-"}}</td>
             <td>
                 {# Visibility #}
-                {{ action.version.id }}
                 <select disabled class="form-control visibility-select" data-version-id="{{ action.version.id }}">
-                    <option value="0"{% if action.permission == 0 %}selected{%endif%}>&#xf0ac; Public</option>
-                    <option value="1"{% if action.permission == 1 %}selected{%endif%}>&#xf2bd; Logged in users</option>
-                    <option value="2"{% if action.permission == 2 %}selected{%endif%}>&#xf0c0; Workgroup only</option>
+                    <option value="0"{% if action.permission == choices.public %}selected{%endif%}>&#xf0ac; Public</option>
+                    <option value="1"{% if action.permission == choices.auth %}selected{%endif%}>&#xf2bd; Logged in users</option>
+                    <option value="2"{% if action.permission == choices.workgroup %}selected{%endif%}>&#xf0c0; Workgroup only</option>
                 </select>
             </td>
     {% endfor %}

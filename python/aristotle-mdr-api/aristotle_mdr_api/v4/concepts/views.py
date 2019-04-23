@@ -272,7 +272,6 @@ class GetVersionsPermissionsView(ObjectAPIView):
     def get(self, request, *args, **kwargs):
         version_pk = kwargs.get('vpk', None)
 
-        # TODO: pull to function to avoid repetition
         metadata_item = self.get_object()
         version = reversion.models.Version.objects.get_for_object(metadata_item)
         version = version.filter(pk=version_pk).first()

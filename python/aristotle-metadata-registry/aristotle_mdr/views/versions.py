@@ -526,13 +526,13 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
             version_permission = VersionPermissions.objects.get_object_or_none(version=version)
 
             if version_permission is None:
-                version_permission_code = 0 # default to workgroup
+                # Default to workgroup level permissions
+                version_permission_code = 0
             else:
                 version_permission_code = version_permission.visibility
 
             action_list.append({
                 'permission': int(version_permission_code),
-                'permission_choices': VISIBILITY_PERMISSION_CHOICES,
                 'version': version,
                 'revision': version.revision,
                 'url': reverse(self.item_action_url, args=[version.id])
@@ -543,7 +543,8 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
     def get_context_data(self, *args, **kwargs):
         context = {
             'activetab': 'history',
-            'hide_item_actions': True
+            'hide_item_actions': True,
+            'choices': VISIBILITY_PERMISSION_CHOICES,
         }
 
         try:
@@ -559,22 +560,5 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
 
         context['failed'] = False
         context['item'] = context['object'].item
-        try:
-            version_publishing = self.get_object().version_publication_details.first()
-        except:
-            return context
-        if version_publishing is None:
-            public_date = None
-            authenticated_date = None
-        else:
-            public_date = version_publishing.public_user_publication_date
-            authenticated_date = (
-                version_publishing.authenticated_user_publication_date or version_publishing.public_user_publication_date
-            )
-
-        context.update({
-            "public_date": public_date,
-            "authenticated_date": authenticated_date,
-        })
 
         return context
