@@ -25,11 +25,17 @@
         <th scope="col">{% trans 'Date/time' %}</th>
         <th scope="col">{% trans 'User' %}</th>
         <th scope="col">{% trans 'Comment' %}</th>
-        <th scope="col"><input class="btn btn-default btn-sm" type="button" onclick="enable_editing()" value="Edit Visibility"></th>
+        <th scope="col">
+                <input class="btn btn-default btn-sm" type="button" onclick="enable_editing()" value="Edit Visibilities">
 
+                <input disabled class="btn btn-default btn-sm" id="save-visibility" type="button"
+                       onclick="update_visibilities()"
+                       value="Save Visibilities">
+        </th>
     </tr>
     </thead>
     <tbody>
+    {# Iteration through the versions #}
     {% for action in action_list %}
         <tr>
             {% if compare_view %}
@@ -57,15 +63,13 @@
             <td>{{action.revision.comment|linebreaks|default:"-"}}</td>
             <td>
                 {# Visibility #}
-                <select disabled class="form-control enable-visibility">
-                    <option selected>&#xf0ac; Public</option>
-                    <option>&#xf2bd; Logged in users</option>
-                    <option>&#xf0c0; Workgroup only</option>
+                <select disabled class="form-control visibility-select" data-version-id="{{ action.version.id }}">
+                    <option value="0"{% if action.permission == 0 %}selected{%endif%}>&#xf0ac; Public</option>
+                    <option value="1"{% if action.permission == 1 %}selected{%endif%}>&#xf2bd; Logged in users</option>
+                    <option value="2"{% if action.permission == 2 %}selected{%endif%}>&#xf0c0; Workgroup only</option>
                 </select>
-
             </td>
     {% endfor %}
-            <td><input class="btn btn-default btn-xs" type="submit" value="Save Visibilities"></td>
             </tr>
 
     </tbody>
@@ -99,14 +103,24 @@
 
 <script>
     function enable_editing() {
-        var visibilitySelects  = document.getElementsByClassName('enable-visibility')
+        var visibilitySelects  = document.getElementsByClassName('visibility-select');
         for (let select of visibilitySelects) {
             select.disabled = false;
         }
+        var saveVisibilityButton = document.getElementById('save-visibility')
+        saveVisibilityButton.disabled = false;
     }
+    function update_visibilities() {
+        var selectedValues = new Array();
 
-    function code_to_visiblity() {
-
+        var visibilitySelects = document.getElementsByClassName('visibility-select');
+        for (let element of visibilitySelects) {
+             var value  = element.options[element.selectedIndex].value;
+             var id = element.getAttribute("data-version-id");
+             console.log(id)
+             selectedValues.push(value)
+         }
+         console.log(selectedValues)
     }
 
 </script>

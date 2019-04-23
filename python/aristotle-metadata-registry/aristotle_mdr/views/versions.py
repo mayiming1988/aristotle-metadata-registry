@@ -11,6 +11,8 @@ from aristotle_mdr import models as MDR
 from aristotle_mdr.utils.text import pretify_camel_case
 from aristotle_mdr.views.views import ConceptRenderView
 from aristotle_mdr.perms import user_can_view
+from aristotle_mdr.contrib.publishing.models import VersionPermissions
+from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
 
 import json
 from collections import defaultdict
@@ -513,7 +515,7 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
             if not first_visible_date:
                 versions = versions.none()
             else:
-                # Return the versions where the filter
+                # Return the versions where the versions were created after the first visible data
                 versions = versions.filter(
                     revision__date_created__gt=first_visible_date
                 )
@@ -521,13 +523,21 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         versions = versions.order_by("-revision__date_created")
 
         for version in versions:
+            version_permission = VersionPermissions.objects.get_object_or_none(version=version)
+
+            if version_permission is None:
+                version_permission_code = 0 # default to workgroup
+            else:
+                version_permission_code = version_permission.visibility
+
             action_list.append({
+                'permission': int(version_permission_code),
+                'permission_choices': VISIBILITY_PERMISSION_CHOICES,
                 'version': version,
                 'revision': version.revision,
                 'url': reverse(self.item_action_url, args=[version.id])
             })
 
-            logger.critical((str(version.revision)))
         return action_list
 
     def get_context_data(self, *args, **kwargs):
