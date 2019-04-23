@@ -9,6 +9,7 @@ from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
 from django.db.models import Q
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 import collections
 from re import finditer
 import reversion
@@ -238,36 +239,32 @@ class ListVersionsPermissionsView(ObjectAPIView):
                         status.HTTP_200_OK)
 
 
-class UpdateVersionPermissionsView(ObjectAPIView):
+class UpdateVersionPermissionsView(generics.UpdateAPIView):
     """Updates the visibility permissions of a Version"""
 
-    def post(self, request, *args, **kwargs):
-        version_pk = kwargs.get('vpk', None)
+    permission_classes = (AuthCanViewEdit,)
+    permission_key = 'metadata'
+    serializer_class = serializers.VersionPermissionsSerializer
+    lookup_url_kwarg = 'pk'
 
-        # Get the version
-        metadata_item = self.get_object()
-        version = reversion.models.Version.objects.get_for_object(metadata_item)
-        version = version.filter(pk=version_pk).first()
+    def get_object(self, **kwargs):
+        # Get the item
+        pk = self.kwargs[self.lookup_url_kwarg]
+        item = get_object_or_404(_concept, pk=pk).item
 
-        # Get the versions viewing permissions
+        # Get the version id
+        version_pk = self.kwargs.get('vpk', None)
+
+        # Get the correct version
+        versions = reversion.models.Version.objects.get_for_object(item)
+        version = versions.filter(pk=version_pk).first()
+
         version_permission = VersionPermissions.objects.get_object_or_none(version=version)
-        try:
-            visibility = request.data['visibility']
-        except KeyError:
-            return Response(status.HTTP_400_BAD_REQUEST)
 
-        # Update the visibility permissions
-        data = {"visibility": visibility}
+        # May raise a permission denied
+        self.check_object_permissions(self.request, version_permission)
 
-        serializer = serializers.VersionPermissionsSerializer(version,
-                                                              data=data,
-                                                              partial=True)
-        if serializer.is_valid():
-            # TODO: handle error in saving
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        return version_permission
 
 class GetVersionsPermissionsView(ObjectAPIView):
     """ Gets the visibility permisions of a Version """

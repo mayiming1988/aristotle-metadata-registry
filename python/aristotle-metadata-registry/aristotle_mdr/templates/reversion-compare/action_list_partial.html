@@ -5,7 +5,7 @@
     }
 </style>
 {% if compare_view %}<form method="GET" action="{{ action }}">{% endif %}
-<table id="change-history" class='table table-striped'>
+<table id="change-history" class='table table-striped' data-object-id="{{ object.id }}">
     <caption>Revisions for {{object.name}}
         {% if compare_view %}
             - {% trans 'Select two items and click compare to see the differences between them'%}
@@ -26,10 +26,10 @@
         <th scope="col">{% trans 'User' %}</th>
         <th scope="col">{% trans 'Comment' %}</th>
         <th scope="col">
-                <input class="btn btn-default btn-sm" type="button" onclick="enable_editing()" value="Edit Visibilities">
+                <input class="btn btn-default btn-sm" id="edit-visibilities-button"
+                       type="button" value="Edit Visibilities">
 
-                <input disabled class="btn btn-default btn-sm" id="save-visibility" type="button"
-                       onclick="update_visibilities()"
+                <input disabled class="btn btn-default btn-sm" id="save-visibilities-button" type="button"
                        value="Save Visibilities">
         </th>
     </tr>
@@ -63,6 +63,7 @@
             <td>{{action.revision.comment|linebreaks|default:"-"}}</td>
             <td>
                 {# Visibility #}
+                {{ action.version.id }}
                 <select disabled class="form-control visibility-select" data-version-id="{{ action.version.id }}">
                     <option value="0"{% if action.permission == 0 %}selected{%endif%}>&#xf0ac; Public</option>
                     <option value="1"{% if action.permission == 1 %}selected{%endif%}>&#xf2bd; Logged in users</option>
@@ -100,27 +101,3 @@
     </tfoot>
 </table>
 {% if compare_view %}</form>{% endif %}
-
-<script>
-    function enable_editing() {
-        var visibilitySelects  = document.getElementsByClassName('visibility-select');
-        for (let select of visibilitySelects) {
-            select.disabled = false;
-        }
-        var saveVisibilityButton = document.getElementById('save-visibility')
-        saveVisibilityButton.disabled = false;
-    }
-    function update_visibilities() {
-        var selectedValues = new Array();
-
-        var visibilitySelects = document.getElementsByClassName('visibility-select');
-        for (let element of visibilitySelects) {
-             var value  = element.options[element.selectedIndex].value;
-             var id = element.getAttribute("data-version-id");
-             console.log(id)
-             selectedValues.push(value)
-         }
-         console.log(selectedValues)
-    }
-
-</script>
