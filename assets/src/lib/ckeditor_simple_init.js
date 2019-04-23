@@ -1,15 +1,19 @@
 /* globals CKEDITOR */
 import 'ckeditor/ckeditor.js'
-import { addPlugins, addPluginConfig } from 'src/lib/ckeditor_plugins.js'
+// This import is necessary to include, otherwise the import won't work
+import 'ckeditor/plugins/justify/plugin.js'
+import  {addPlugins} from 'src/lib/ckeditor_plugins.js'
 addPlugins(CKEDITOR)
 
 export function initCKEditor() {
     $('textarea[data-type=ckeditortype]').each(function() {
+        // Don't load the CKEditor unnecessarily
+        // CKEDITOR.replace( 'myfield', { customConfig: '' } );
+
         var textarea = $(this)
         var processed = textarea.attr('data-processed')
         if (processed == 0) {
             var config = JSON.parse(textarea.attr('data-config'));
-            addPluginConfig(config)
             CKEDITOR.replace(this.id, config)
             textarea.attr('data-processed', 1)
         }
