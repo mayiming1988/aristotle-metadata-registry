@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 PYTHON_CMD="python3"
+USAGE="Usage: buildandcopy [--manual] [--dry] [--skip-wp] [--help]"
 
 # Basic flag arg parsing
 MANUAL=0
@@ -19,10 +20,14 @@ for i in $@; do
         "--skip-wp")
         SKIP_WEBPACK_BUILD=1
         ;;
+        "--help")
+        echo "$USAGE"
+        exit 0
+        ;;
     esac
 done
 
-
+# Check environment is set correctly
 if ! [[ -z "$DISABLE_COLLECTSTATIC" ]]; then
     echo "Collectstatic disabled"
     exit 0
@@ -43,6 +48,10 @@ if [[ -z "$STORAGE_BUCKET_NAME" ]]; then
     exit 1
 fi
 
+if [[ -z "$CUSTOM_STATIC_BUCKET_NAME" ]]; then
+    echo "No custom static buckets, building without"
+fi
+
 if [[ -z "$ASSET_PATH" ]];then 
     echo "ASSET_PATH environment variable must be set"
     exit 1
@@ -55,6 +64,10 @@ if [[ $SKIP_WEBPACK_BUILD -ne 1 ]]; then
     echo "Running webpack build..."
     # Remove stats if it exists
     rm -f ./dist/webpack-stats.json
+    # Fetch custom static
+    if [[ ! -z "$CUSTOM_STATIC_BUCKET_NAME" ]]; then
+        aws s3 cp s3://$CUSTOM_STATIC_BUCKET_NAME ./src/custom --recursive
+    fi
     npm install
     npm run build
     echo "Webpack build complete!"
