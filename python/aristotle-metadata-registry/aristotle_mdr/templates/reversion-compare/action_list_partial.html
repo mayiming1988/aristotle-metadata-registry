@@ -26,12 +26,17 @@
         <th scope="col">{% trans 'Date/time' %}</th>
         <th scope="col">{% trans 'User' %}</th>
         <th scope="col">{% trans 'Comment' %}</th>
-        <th scope="col">
-                <input class="btn btn-default btn-sm" id="edit-visibilities-button"
-                       type="button" value="Edit Visibilities">
 
-                <input disabled class="btn btn-default btn-sm" id="save-visibilities-button" type="button"
-                       value="Save Visibilities">
+        {% if user_can_edit %}
+            <th scope="col">
+                    <input class="btn btn-default btn-sm" id="edit-visibilities-button"
+                        type="button" value="Edit Visibilities">
+                    <input disabled class="btn btn-default btn-sm" id="save-visibilities-button" type="button"
+                        value="Save Visibilities">
+        {% else %}
+            <th scope="col">{% trans 'Visibility' %}</th>
+        {% endif %}
+
         </th>
     </tr>
     </thead>
@@ -64,15 +69,23 @@
             <td>{{action.revision.comment|linebreaks|default:"-"}}</td>
             <td>
                 {# Visibility #}
-                <select disabled class="form-control visibility-select" data-version-id="{{ action.version.id }}">
-                    <option value="0"{% if action.permission == choices.public %}selected{%endif%}>&#xf0ac; Public</option>
-                    <option value="1"{% if action.permission == choices.auth %}selected{%endif%}>&#xf2bd; Logged in users</option>
-                    <option value="2"{% if action.permission == choices.workgroup %}selected{%endif%}>&#xf0c0; Workgroup only</option>
-                </select>
+
+                {% if user_can_edit %}
+                    <select disabled class="form-control visibility-select" data-version-id="{{ action.version.id }}">
+                        <option value="0"{% if action.permission == choices.public %}selected{%endif%}>&#xf0ac; Public</option>
+                        <option value="1"{% if action.permission == choices.auth %}selected{%endif%}>&#xf2bd; Logged in users</option>
+                        <option value="2"{% if action.permission == choices.workgroup %}selected{%endif%}
+                        >&#xf0c0; Workgroup only</option></select>
+
+                {% else %}
+                     {# User can't edit #}
+                     {% if action.permission == choices.public %} <i class="fa fa-fw fa-globe"></i> Public {%endif%}
+                     {% if action.permission == choices.auth %}  <i class="fa fa-fw fa-user-circle"></i> Logged in users {%endif%}
+                     {% if action.permission == choices.workgroup %} <i class="fa fa-fw fa-users"></i> Workgroup only {%endif%}
+                {% endif %}
             </td>
     {% endfor %}
             </tr>
-
     </tbody>
     <tfoot>
     <tr>

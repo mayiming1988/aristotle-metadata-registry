@@ -10,7 +10,7 @@ from django.urls import reverse
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils.text import pretify_camel_case
 from aristotle_mdr.views.views import ConceptRenderView
-from aristotle_mdr.perms import user_can_view
+from aristotle_mdr.perms import user_can_view, user_can_edit
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
 
@@ -496,7 +496,7 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         in_workgroup = (metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list)
         authenticated_user = (not self.request.user.is_anonymous())
 
-        # Determine the permissions of the users
+        # Determine the viewing permissions of the users
         if not (self.request.user.is_superuser):
             # Superusers can see everything
             for version in versions:
@@ -519,10 +519,13 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
                         versions = versions.exclude(pk=version.pk)
 
                 else:
-                    # Visibility is public, don't exclude anything
+                    # Visibility is public, don't exclude this version
                     pass
 
         versions = versions.order_by("-revision__date_created")
+
+        # Determine the editing permissions of the user
+        USER_CAN_EDIT = user_can_edit(self.request.user, metadata_item)
 
         for version in versions:
             version_permission = VersionPermissions.objects.get_object_or_none(version=version)
@@ -543,10 +546,16 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         return action_list
 
     def get_context_data(self, *args, **kwargs):
+
+        # Determine the editing permissions of the user
+        metadata_item = self.get_object()
+        USER_CAN_EDIT = user_can_edit(self.request.user, metadata_item)
+
         context = {
             'activetab': 'history',
             'hide_item_actions': True,
             'choices': VISIBILITY_PERMISSION_CHOICES,
+            'user_can_edit' : USER_CAN_EDIT,
         }
 
         try:
