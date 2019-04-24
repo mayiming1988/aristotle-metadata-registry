@@ -6,6 +6,7 @@ from aristotle_mdr import models as mdr_models
 from aristotle_mdr.contrib.slots import models as slot_models
 from aristotle_mdr.contrib.links import models as link_models
 from aristotle_mdr.contrib.aristotle_backwards import models as aristotle_backwards_models
+from aristotle_mdr.contrib.stewards import models as aristotle_steward_models
 from aristotle_mdr_graphql.fields import AristotleFilterConnectionField, AristotleConceptFilterConnectionField
 from aristotle_mdr_graphql.utils import type_from_model, type_from_concept_model, inline_type_from_model
 from aristotle_mdr_graphql import resolvers
@@ -33,13 +34,17 @@ dedinputs = inline_type_from_model(mdr_models.DedInputsThrough)
 dedderives = inline_type_from_model(mdr_models.DedDerivesThrough)
 DataElementDerivationNode = type_from_concept_model(mdr_models.DataElementDerivation)
 SlotNode = inline_type_from_model(slot_models.Slot)
-DataElementNode = type_from_concept_model(mdr_models.DataElement, extra_filter_fields=['dataElementConcept',
-                                                                                       'valueDomain',
-                                                                                       'dataElementConcept__objectClass'
-                                                                                       ],
-                                          )
+DataElementNode = type_from_concept_model(
+    mdr_models.DataElement,
+    extra_filter_fields=[
+        'dataElementConcept',
+        'valueDomain',
+        'dataElementConcept__objectClass'
+    ],
+)
 ValueDomainNode = type_from_concept_model(mdr_models.ValueDomain, resolver=resolvers.ValueDomainResolver())
 ClassificationSchemeNode = type_from_concept_model(aristotle_backwards_models.ClassificationScheme)
+CollectionNode = type_from_model(aristotle_steward_models.Collection)
 
 
 class RegistrationAuthorityNode(DjangoObjectType):
@@ -69,9 +74,9 @@ class Query(object):
     links = AristotleFilterConnectionField(LinkNode)
     link_ends = AristotleFilterConnectionField(LinkEndNode)
     relations = AristotleFilterConnectionField(relationNode)
-    relation_roles = AristotleFilterConnectionField(relationRoleNode)
+    # relation_roles = AristotleFilterConnectionField(relationRoleNode)
     # organizations = AristotleFilterConnectionField(OrganizationNode)
-    registration_authorities = DjangoFilterConnectionField(RegistrationAuthorityNode)
+    registration_authorities = AristotleFilterConnectionField(RegistrationAuthorityNode)
     # discussion_posts = AristotleFilterConnectionField(DiscussionPostNode)
     # discussion_comments = AristotleFilterConnectionField(DiscussionCommentNode)
     # review_requests = AristotleFilterConnectionField(ReviewRequestNode)
@@ -86,3 +91,4 @@ class Query(object):
     data_elements = AristotleConceptFilterConnectionField(DataElementNode)
     data_element_derivations = AristotleConceptFilterConnectionField(DataElementDerivationNode)
     classification_schemes = AristotleConceptFilterConnectionField(ClassificationSchemeNode)
+    collections = AristotleFilterConnectionField(CollectionNode)

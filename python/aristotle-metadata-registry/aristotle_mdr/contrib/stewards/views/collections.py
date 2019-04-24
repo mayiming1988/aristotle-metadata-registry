@@ -33,3 +33,6 @@ class EditCollectionViewBase(UserFormViewMixin, GroupMixin, HasRolePermissionMix
     def form_valid(self, form):
         form.instance.stewardship_organisation = self.get_group()
         return super().form_valid(form)
+
+    def get_queryset(self):
+        return self.get_group().collection_set.all().visible(self.request.user)
