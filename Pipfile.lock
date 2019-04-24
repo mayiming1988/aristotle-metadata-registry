@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "d28a55e41816c3d2222dd012f588909d3749d935d009eb8c019a4dfa407cf885"
+            "sha256": "4d74a1ba4dd3af3b2753dab3b70b494f3a25a362d613c5a257f024406f0a6346"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -747,7 +747,6 @@
                 "sha256:4c291ca23bbb55c76518905869ef34bdd5f0e46af7afe6861e8375643ffee1a0",
                 "sha256:9a247273df709c4fedb38c711e44292304f73f39ab01beda9f6b9fc375669ac3"
             ],
-            "index": "pypi",
             "version": "==1.24.2"
         },
         "vine": {
@@ -1169,7 +1168,6 @@
                 "sha256:4c291ca23bbb55c76518905869ef34bdd5f0e46af7afe6861e8375643ffee1a0",
                 "sha256:9a247273df709c4fedb38c711e44292304f73f39ab01beda9f6b9fc375669ac3"
             ],
-            "index": "pypi",
             "version": "==1.24.2"
         },
         "wcag-zoo": {

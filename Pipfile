@@ -22,7 +22,6 @@ aristotle-mdr-api = {path = "./python/aristotle-mdr-api",editable = true}
 aristotle-mdr-graphql = {path = "./python/aristotle-mdr-graphql",editable = true}
 comet-indicator-registry = {path = "./python/comet-indicator-registry",editable = true}
 mallard-questionnaire-registry = {path = "./python/mallard-questionnaire-registry",editable = true}
-urllib3 = "*"
 
 [dev-packages]
 coverage = "*"
