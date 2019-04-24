@@ -78,7 +78,7 @@
                         >&#xf0c0; Workgroup only</option></select>
 
                 {% else %}
-                     {# User can't edit #}
+                {# User can't edit #}
                      {% if action.permission == choices.public %} <i class="fa fa-fw fa-globe"></i> Public {%endif%}
                      {% if action.permission == choices.auth %}  <i class="fa fa-fw fa-user-circle"></i> Logged in users {%endif%}
                      {% if action.permission == choices.workgroup %} <i class="fa fa-fw fa-users"></i> Workgroup only {%endif%}

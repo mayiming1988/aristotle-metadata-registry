@@ -555,7 +555,7 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
             'activetab': 'history',
             'hide_item_actions': True,
             'choices': VISIBILITY_PERMISSION_CHOICES,
-            'user_can_edit' : USER_CAN_EDIT,
+            'user_can_edit': USER_CAN_EDIT,
         }
 
         try:

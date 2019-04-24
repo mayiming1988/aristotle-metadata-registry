@@ -14,6 +14,7 @@ from aristotle_mdr.fields import ConceptOneToOneField
 from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
 from aristotle_mdr.managers import UtilsManager
 
+
 class VersionPublicationRecord(TimeStampedModel):
     class Meta:
         unique_together = (
@@ -39,34 +40,34 @@ class VersionPublicationRecord(TimeStampedModel):
         verbose_name=_("Logged-in version history start date")
     )
 
+
 class VersionPermissions(TimeStampedModel):
-        """Track the viewing permissions of versions """
+    objects = UtilsManager()
 
-        objects = UtilsManager()
+    version = models.OneToOneField(
+        reversion.models.Version,
+        on_delete=models.CASCADE,
+        primary_key=True)
 
-        version = models.OneToOneField(
-            reversion.models.Version,
-            on_delete=models.CASCADE,
-            primary_key=True)
+    visibility = models.CharField(
+        max_length=20,
+        choices=VISIBILITY_PERMISSION_CHOICES,
+        default=VISIBILITY_PERMISSION_CHOICES.workgroup)
 
-        visibility = models.CharField(
-            max_length=20,
-            choices=VISIBILITY_PERMISSION_CHOICES,
-            default=VISIBILITY_PERMISSION_CHOICES.workgroup)
+    def __str__(self):
+        return "Version is: {}  and permissions are: {}".format(str(self.version), str(self.visibility))
 
-        def __str__(self):
-            return "Version is: {}  and permissions are: {}".format(str(self.version), str(self.visibility))
+    def can_view(self):
+        return True
+        # TODO implement API permissions
 
-        def can_view(self):
-            return True
-            # TODO implement API permissions
+    def can_edit(self):
+        return True
+        # TODO implement API permissions
 
-        def can_edit(self):
-            return True
-            # TODO implement API permissions
-        @property
-        def id(self):
-            return self.version.id
+    @property
+    def id(self):
+        return self.version.id
 
 
 class PublicationRecord(TimeStampedModel):
