@@ -22,8 +22,6 @@ function enable_editing() {
 }
 
 function update_visibilities() {
-    let idToVisibility = {};
-
     let objectElement = document.getElementById("change-history");
     let url = objectElement.getAttribute("data-update-api-url");
 
@@ -43,9 +41,8 @@ function update_visibilities() {
 
         updatedVisibilities.push(obj);
     }
-    var isReqDone = false;
     let params = ''
     request("POST", url, updatedVisibilities, params).then(
-        x => addHeaderMessage("Saving visibilities was successful!"));
+        () => addHeaderMessage("Saving visibilities was successful!"));
 }
 
