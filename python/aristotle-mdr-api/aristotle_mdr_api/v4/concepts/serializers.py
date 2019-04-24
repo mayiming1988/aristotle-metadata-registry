@@ -5,7 +5,7 @@ from reversion.models import Version
 
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.models import _concept, SupersedeRelationship
-from aristotle_mdr_api.v4.serializers import MultiUpdateNoDeleteListSerializer
+from aristotle_mdr_api.v4.serializers import VersionVisibilityPermissionSerializer
 
 
 class ConceptSerializer(serializers.ModelSerializer):
@@ -32,14 +32,12 @@ class VersionSerializer(serializers.ModelSerializer):
 
 
 class VersionPermissionsSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(required=False)
-    version = serializers.PrimaryKeyRelatedField(validators=[], queryset=Version.objects.all())
+    version_id = serializers.IntegerField(required=False)
+
     class Meta:
         model = VersionPermissions
-        fields = ('id', 'version', 'visibility')
-        list_serializer_class = MultiUpdateNoDeleteListSerializer
-        read_only_fields = ('id',)
-
+        fields = ('version_id','visibility')
+        list_serializer_class = VersionVisibilityPermissionSerializer
 
 
 class SupersedeRelationshipSerialiser(serializers.ModelSerializer):

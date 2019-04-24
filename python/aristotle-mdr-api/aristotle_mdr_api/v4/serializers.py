@@ -11,35 +11,46 @@ class MultiUpdateListSerializer(serializers.ListSerializer):
     Needs a non required IntegerField for id
 
     """
-
     perform_create = True
     perform_delete = True
+    create_if_not_in_db = False
+
+    lookup_key_flag = 'id'
 
     def update(self, instance: QuerySet, validated_data: Iterable[Dict]):
         db_mapping: Dict[int, Model] = {obj.id: obj for obj in instance}
 
         existing_data = []
         new_data = []
-        for item in validated_data:
-            if 'id' in item:
-                existing_data.append(item)
-            else:
-                new_data.append(item)
 
-        submitted_ids = [obj['id'] for obj in existing_data]
+        if self.create_if_not_in_db:
+            for item in validated_data:
+                if item[self.lookup_key_flag] in db_mapping:
+                    existing_data.append(item)
+                else:
+                    new_data.append(item)
+        else:
+            for item in validated_data:
+                if self.lookup_key_flag in item:
+                    existing_data.append(item)
+                else:
+                    new_data.append(item)
+
+        submitted_ids = [obj[self.lookup_key_flag] for obj in existing_data]
         return_list = []
 
         # Update existing item
         for item in existing_data:
-            db_item = db_mapping.get(item['id'], None)
+            db_item = db_mapping.get(item[self.lookup_key_flag], None)
             # Make sure the id is a real item
             if db_item is not None:
-                del item['id']
+                del item[self.lookup_key_flag]
                 return_list.append(self.child.update(db_item, item))
 
         # Create new items
         if self.perform_create:
             for item in new_data:
+                del item[self.lookup_key_flag]
                 return_list.append(self.child.create(item))
 
         # Delete existing items
@@ -54,3 +65,12 @@ class MultiUpdateListSerializer(serializers.ListSerializer):
 
 class MultiUpdateNoDeleteListSerializer(MultiUpdateListSerializer):
     perform_delete = False
+
+class MultiUpdateCreateIfNotInDatabase(MultiUpdateListSerializer):
+    create_if_not_in_db = True
+    perform_delete = False
+
+class VersionVisibilityPermissionSerializer(MultiUpdateListSerializer):
+    create_if_not_in_db = True
+    perform_delete = False
+    lookup_key_flag = 'version_id'

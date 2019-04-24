@@ -218,7 +218,6 @@ class ListVersionsView(ObjectAPIView):
             {'versions' : serializer.data},
             status.HTTP_200_OK)
 
-
 class ListVersionsPermissionsView(ObjectAPIView):
     "List the version permissions of an item"
 
@@ -258,25 +257,6 @@ class UpdateVersionPermissionsView(generics.ListAPIView):
         version_permissions = VersionPermissions.objects.filter(pk__in=version_ids)
 
         return version_permissions
-
-    # def get_object(self, **kwargs):
-    #     # Get the item
-    #     pk = self.kwargs[self.lookup_url_kwarg]
-    #     item = get_object_or_404(_concept, pk=pk).item
-    #
-    #     # Get the version id
-    #     version_pk = self.kwargs.get('vpk', None)
-    #
-    #     # Get the correct version
-    #     versions = reversion.models.Version.objects.get_for_object(item)
-    #     version = versions.filter(pk=version_pk).first()
-    #
-    #     version_permission = VersionPermissions.objects.get_object_or_none(version=version)
-    #
-    #     # May raise a permission denied
-    #     self.check_object_permissions(self.request, version_permission)
-    #
-    #     return version_permission
 
     def update(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
