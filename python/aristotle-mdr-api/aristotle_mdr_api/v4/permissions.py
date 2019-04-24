@@ -2,6 +2,7 @@ from rest_framework.permissions import BasePermission, SAFE_METHODS
 from aristotle_mdr import perms
 from aristotle_mdr_api.token_auth.permissions import (
     IsAuthenticated,
+    IsSuperuser,
     TokenOrAllowedPerm
 )
 
@@ -36,3 +37,4 @@ class UserFinePerms(BasePermission):
 
 AuthCanViewEdit = (IsAuthenticated & TokenOrAllowedPerm & UserCanViewEdit)  # type: ignore
 AuthFinePerms = (IsAuthenticated & TokenOrAllowedPerm & UserFinePerms)  # type: ignore
+SuperOnly = (IsSuperuser & TokenOrAllowedPerm)  # type: ignore
