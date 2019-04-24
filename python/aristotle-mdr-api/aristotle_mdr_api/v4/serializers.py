@@ -8,13 +8,12 @@ class MultiUpdateListSerializer(serializers.ListSerializer):
     """
     To be used for multple updates on a list serializer
     Creates new models and deletes missing models
-    Needs a non required IntegerField for id
+    Needs a non required IntegerField for idA
 
     """
     perform_create = True
     perform_delete = True
     create_if_not_in_db = False
-
     lookup_key_flag = 'id'
 
     def update(self, instance: QuerySet, validated_data: Iterable[Dict]):
@@ -44,13 +43,11 @@ class MultiUpdateListSerializer(serializers.ListSerializer):
             db_item = db_mapping.get(item[self.lookup_key_flag], None)
             # Make sure the id is a real item
             if db_item is not None:
-                del item[self.lookup_key_flag]
                 return_list.append(self.child.update(db_item, item))
 
         # Create new items
         if self.perform_create:
             for item in new_data:
-                del item[self.lookup_key_flag]
                 return_list.append(self.child.create(item))
 
         # Delete existing items

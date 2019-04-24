@@ -12,12 +12,6 @@ $(document).ready(function() {
     document.getElementById('save-visibilities-button').addEventListener("click", update_visibilities);
 });
 
-function save_current_state() {
-    // Get the visibility states
-    var visibilitySelects = document.getElementsByClassName('visibility-select');
-    // Create a variable
-}
-
 function enable_editing() {
     var visibilitySelects = document.getElementsByClassName('visibility-select');
     for (let select of visibilitySelects) {
@@ -30,37 +24,28 @@ function enable_editing() {
 function update_visibilities() {
     let idToVisibility = {};
 
-    let objectElement = document.getElementById("change-history")
-    let objectId = objectElement.getAttribute("data-object-id");
+    let objectElement = document.getElementById("change-history");
+    let url = objectElement.getAttribute("data-update-api-url");
 
     let visibilitySelects = document.getElementsByClassName('visibility-select');
 
     // Iterate through selections
+    let updatedVisibilities = new Array();
+    for (let select of visibilitySelects) {
 
-    // TODO: only get changed to minimize database hitting
-    for (let element of visibilitySelects) {
-        let value = element.options[element.selectedIndex].value;
+        let visibility = select.options[select.selectedIndex].value;
+        let version_id = select.getAttribute("data-version-id");
 
-        let visibility = {
-            'visibility': value
+        let obj = {
+            'version_id': version_id,
+            'visibility': visibility
         }
 
-        let id = element.getAttribute("data-version-id");
-        idToVisibility[id] = visibility;
+        updatedVisibilities.push(obj);
     }
-
-
-    // TODO : move to getting url from data element set by {% url %}
-    let base_url = "/api/v4/item/" + objectId + "/update-permission/";
-
-    let urls = new Array();
-
-    for (let id in idToVisibility) {
-        let url = base_url + id + "/";
-        let visibilityPermissions  = idToVisibility[id]
-        let params = ''
-        request("PATCH", url, visibilityPermissions, params)
-    }
-    addHeaderMessage('Saving performed sucesfully');
+    var isReqDone = false;
+    let params = ''
+    request("POST", url, updatedVisibilities, params).then(
+        x => addHeaderMessage("Saving visibilities was successful!"));
 }
 

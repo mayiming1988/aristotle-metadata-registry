@@ -5,7 +5,8 @@
     }
 </style>
 {% if compare_view %}<form method="GET" action="{{ action }}">{% endif %}
-<table id="change-history" class='table table-striped' data-object-id="{{ object.id }}">
+<table id="change-history" class='table table-striped'
+       data-update-api-url="{% url 'api_v4:item:update-version-permissions' object.id %}">
     <caption>Revisions for {{object.name}}
         {% if compare_view %}
             - {% trans 'Select two items and click compare to see the differences between them'%}
