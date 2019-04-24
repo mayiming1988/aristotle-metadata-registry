@@ -128,6 +128,7 @@ class StewardOrganisation(AbstractGroup):
         "manage_managed_items": [roles.admin, roles.steward],
         "manage_collections": [roles.admin, roles.steward],
         "list_workgroups": [roles.admin, AbstractGroup.Permissions.is_member],
+        "manage_references": [roles.admin, roles.steward],
     }
     states = Choices(
         ('active', _('Active')),
@@ -743,6 +744,10 @@ class _concept(baseAristotleObject):
 
     class ReportBuilder:
         exclude = ('_is_public', '_is_locked')
+
+    @classmethod
+    def model_to_publish(self):
+        return _concept
 
     @property
     def non_cached_fields_changed(self):

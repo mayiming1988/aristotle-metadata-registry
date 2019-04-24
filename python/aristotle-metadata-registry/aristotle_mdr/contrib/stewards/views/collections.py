@@ -12,7 +12,7 @@ from aristotle_mdr.views.utils import (
 from aristotle_mdr.views.utils import UserFormViewMixin
 
 from aristotle_mdr.contrib.stewards.models import Collection
-from aristotle_mdr.contrib.stewards.forms import CollectionForm
+from aristotle_mdr.contrib.stewards.forms.collections import CollectionForm
 
 from aristotle_mdr.contrib.groups.backends import (
     GroupURLManager, GroupMixin,
@@ -33,3 +33,6 @@ class EditCollectionViewBase(UserFormViewMixin, GroupMixin, HasRolePermissionMix
     def form_valid(self, form):
         form.instance.stewardship_organisation = self.get_group()
         return super().form_valid(form)
+
+    def get_queryset(self):
+        return self.get_group().collection_set.all().visible(self.request.user)

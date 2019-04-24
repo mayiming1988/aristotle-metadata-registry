@@ -43,11 +43,24 @@ class BaseObjectIndex(indexes.SearchIndex):
     modified = indexes.DateTimeField(model_attr='modified')
     created = indexes.DateTimeField(model_attr='created')
     name = indexes.CharField(model_attr='name', boost=1)
+    facet_model_ct = indexes.IntegerField(faceted=True)
+    django_ct_app_label = indexes.CharField()
     # Thanks ElasticSearch - https://github.com/django-haystack/django-haystack/issues/569
-    # name_sortable = indexes.CharField(model_attr='name', indexed=False, stored=True)
+    name_sortable = indexes.CharField(model_attr='name', indexed=False, stored=True)
     # django_ct_model_name = indexes.CharField()
     # access = indexes.MultiValueField()
+    rendered_badge = indexes.CharField(indexed=False)
+
     rendered_search_result = indexes.CharField(indexed=False)
+
+    badge_template_name = "search/badges/base.html"
+
+    def prepare_django_ct_app_label(self, obj):
+        return obj._meta.app_label
+
+    def prepare_rendered_badge(self, obj):
+        t = loader.get_template(self.badge_template_name)
+        return t.render({'object': obj})
 
     def prepare_rendered_search_result(self, obj):
         t = loader.get_template(self.template_name)
@@ -60,10 +73,15 @@ class BaseObjectIndex(indexes.SearchIndex):
         """Used when the entire index for model is updated."""
         return self.get_model().objects.filter(modified__lte=timezone.now())
 
+    def prepare_facet_model_ct(self, obj):
+        # We need to use the content type, as if we use text it gets stemmed wierdly
+        from django.contrib.contenttypes.models import ContentType
+        ct = ContentType.objects.get_for_model(obj)
+        return ct.pk
+
 
 class ConceptIndex(BaseObjectIndex):
     text = ConceptFallbackCharField(document=True, use_template=True)
-    django_ct_app_label = indexes.CharField()
     uuid = indexes.CharField(model_attr='uuid')
     statuses = indexes.MultiValueField(faceted=True)
     highest_state = indexes.IntegerField()
@@ -74,25 +92,17 @@ class ConceptIndex(BaseObjectIndex):
     restriction = indexes.IntegerField(faceted=True)
     version = indexes.CharField(model_attr="version")
     submitter_id = indexes.IntegerField(model_attr="submitter_id", null=True)
-    facet_model_ct = indexes.IntegerField(faceted=True)
     identifier = indexes.MultiValueField()
     namespace = indexes.MultiValueField()
     published_date_public = indexes.DateTimeField(null=True)
     stewardship_organisation = indexes.IntegerField(faceted=True, model_attr="stewardship_organisation__id")
 
     template_name = "search/searchItem.html"
+    badge_template_name = "search/badges/metadata.html"
 
     rendered_badge = indexes.CharField(indexed=False)
 
     # Preparation functions for conceptIndex
-
-    def prepare_django_ct_app_label(self, obj):
-        return obj._meta.app_label
-
-    def prepare_rendered_badge(self, obj):
-
-        t = loader.get_template('search/badge.html')
-        return t.render({'object': obj})
 
     def prepare_registrationAuthorities(self, obj):
         ras_stats = [str(s.registrationAuthority.id) for s in obj.current_statuses().all()]
@@ -137,12 +147,6 @@ class ConceptIndex(BaseObjectIndex):
         ]
         return states
 
-    def prepare_facet_model_ct(self, obj):
-        # We need to use the content type, as if we use text it gets stemmed wierdly
-        from django.contrib.contenttypes.models import ContentType
-        ct = ContentType.objects.get_for_model(obj)
-        return ct.pk
-
     def prepare_restriction(self, obj):
         if obj._is_public:
             return RESTRICTION['Public']
@@ -175,6 +179,7 @@ class DiscussionIndex(BaseObjectIndex, indexes.Indexable):
     """ Index of Discussion posts """
     text = indexes.CharField(document=True, use_template=True)
     name = indexes.CharField(model_attr='title')
+    name_sortable = indexes.CharField(model_attr='title', indexed=False, stored=True)
     discussion_body = indexes.CharField(model_attr='body')
     modified = indexes.DateTimeField(model_attr='modified')
     created = indexes.DateTimeField(model_attr='created')
@@ -192,10 +197,7 @@ class DiscussionIndex(BaseObjectIndex, indexes.Indexable):
         return t.render({'discussion_post': discussion_post})
 
     def prepare_workgroup(self, obj):
-        if obj.workgroup:
-            return int(obj.workgroup.id)
-        else:
-            return -99
+        return int(obj.workgroup.id)
 
     def get_model(self):
         return models.DiscussionPost

@@ -22,7 +22,6 @@ import unittest
 
 setup_aristotle_test_environment()
 
-
 @tag('search')
 class TestSearch(utils.AristotleTestUtils, TestCase):
     @reversion.create_revision()
@@ -682,6 +681,7 @@ class TestTokenSearch(TestCase):
 
     @reversion.create_revision()
     def setUp(self):
+        call_command('clear_index', interactive=False, verbosity=0)
         # These are really terrible Object Classes, but I was bored and needed to spice things up.
         # Technically, the Object Class would be "Mutant"
         super().setUp()

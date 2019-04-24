@@ -5,4 +5,5 @@ from aristotle_mdr.contrib.publishing import views
 urlpatterns = [
     url(r'^item/(?P<iid>\d+)/publish_versions/?$', views.VersionPublishMetadataFormView.as_view(), name='edit_version_history_visibility'),
     url(r'^publish/(?P<model_name>\w+)/(?P<iid>\d+)?$', views.PublishContentFormView.as_view(), name='publish_item'),
+    url(r'^registry/publish/(?P<model_name>\w+)/(?P<iid>\d+)?$', views.PublishRegistryContentFormView.as_view(), name='publish_registry_item'),
 ]

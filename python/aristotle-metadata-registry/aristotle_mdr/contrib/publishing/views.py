@@ -52,7 +52,7 @@ class VersionPublishMetadataFormView(GenericWithItemURLFormView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class PublishContentFormView(PermissionRequiredMixin, CreateUpdateView):
+class PublishContentBaseView(PermissionRequiredMixin, CreateUpdateView):
     template_name = "aristotle_mdr/publish/publish_object.html"
     model = PublicationRecord
     fields = ['permission', 'publication_date']
@@ -68,21 +68,11 @@ class PublishContentFormView(PermissionRequiredMixin, CreateUpdateView):
 
     def get_content_type(self):
         if not self.content_type:
-            from aristotle_mdr.models import _concept
-
             model_name = self.kwargs['model_name']
-            # if model_name in ["concept", "metadata"]:
-            #     model_name = "_concept"
             self.content_type = get_object_or_404(ContentType, model=model_name)
-            logger.critical(self.content_type.model_class())
-            logger.critical(self.content_type.model_class())
-            logger.critical(self.content_type.model_class())
-            logger.critical(self.content_type.model_class())
-            logger.critical(self.content_type.model_class())
-            logger.critical(self.content_type.model_class())
-            logger.critical(issubclass(self.content_type.model_class(), _concept))
-            if issubclass(self.content_type.model_class(), _concept):
-                self.content_type = get_object_or_404(ContentType, model="_concept")
+            if getattr(self.content_type.model_class(), "model_to_publish", None):
+                model = self.content_type.model_class().model_to_publish().__name__.lower()
+                self.content_type = get_object_or_404(ContentType, model=model)
         return self.content_type
 
     def get_publishable_object(self):
@@ -95,20 +85,9 @@ class PublishContentFormView(PermissionRequiredMixin, CreateUpdateView):
 
             # Verify the thing we want to publish exists
             self.publishable_object = get_object_or_404(model, pk=self.kwargs['iid'])
-            self.publishable_object = getattr(self.publishable_object, "item", self.publishable_object)
+            # self.publishable_object = getattr(self.publishable_object, "item", self.publishable_object)
 
         return self.publishable_object
-
-    def dispatch(self, request, *args, **kwargs):
-        publishable_object = self.get_publishable_object()
-        if not publishable_object.stewardship_organisation:
-            from django.shortcuts import render_to_response
-            return render_to_response(
-                "aristotle_mdr/publish/errors/no_steward.html",
-                {"item": publishable_object},
-                status=404
-            )
-        return super().dispatch(request, *args, **kwargs)
 
     def get_object(self, queryset=None):
 
@@ -143,10 +122,30 @@ class PublishContentFormView(PermissionRequiredMixin, CreateUpdateView):
             'it will be visible to %(user_type)s '
             'from %(date)s'
         ) % {
-            'object_name': published_object.name,
+            'object_name': str(published_object),
             'date': self.object.publication_date,
             'user_type': self.object.get_permission_display(),
         }
         messages.add_message(self.request, messages.INFO, message)
 
         return self.get_publishable_object().get_absolute_url()
+
+
+class PublishRegistryContentFormView(PublishContentBaseView):
+    def check_permissions(self, request):
+        publishable_object = self.get_publishable_object()
+        return request.user.is_superuser
+
+
+class PublishContentFormView(PublishContentBaseView):
+
+    def dispatch(self, request, *args, **kwargs):
+        publishable_object = self.get_publishable_object()
+        if not publishable_object.stewardship_organisation:
+            from django.shortcuts import render_to_response
+            return render_to_response(
+                "aristotle_mdr/publish/errors/no_steward.html",
+                {"item": publishable_object},
+                status=404
+            )
+        return super().dispatch(request, *args, **kwargs)

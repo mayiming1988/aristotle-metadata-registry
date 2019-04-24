@@ -25,15 +25,14 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
         from aristotle_mdr.contrib.reviews.models import ReviewRequest
         from aristotle_mdr.contrib.help.models import HelpPage, ConceptHelp
         from aristotle_mdr.contrib.publishing.models import PublicationRecord
+
         post_save.connect(self.handle_object_save)
-        # post_revision_commit.connect(self.handle_concept_revision)
         pre_delete.connect(self.handle_concept_delete, sender=_concept)
         post_save.connect(self.update_visibility_review_request, sender=ReviewRequest)
         m2m_changed.connect(self.update_visibility_review_request, sender=ReviewRequest.concepts.through)
         concept_visibility_updated.connect(self.handle_concept_recache)
         post_save.connect(self.async_handle_save, sender=HelpPage)
         post_save.connect(self.async_handle_save, sender=ConceptHelp)
-
         post_save.connect(self.item_published, sender=PublicationRecord)
         super().setup()
 
@@ -49,7 +48,6 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
         self.async_handle_save(instance.__class__, instance)
 
     # Called on the saving of all objects
-
     def handle_object_save(self, sender, instance, **kwargs):
         from aristotle_mdr.models import _concept, aristotleComponent
         if isinstance(instance, _concept) and type(instance) is not _concept:

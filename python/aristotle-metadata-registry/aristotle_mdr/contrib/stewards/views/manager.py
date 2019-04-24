@@ -90,6 +90,7 @@ class StewardURLManager(GroupURLManager):
             url("collection/(?P<pk>\d+)$", view=self.collection_detail_view(), name="collection_detail_view"),
             url("collection/(?P<pk>\d+)/edit$", view=self.collection_edit_view(), name="collection_edit_view"),
             url("collection/(?P<pk>\d+)/delete", view=self.collection_delete_view(), name="collection_delete"),
+
         ]
 
     def list_all_view(self, *args, **kwargs):
@@ -143,7 +144,7 @@ class StewardURLManager(GroupURLManager):
             raise_exception = True
 
             def get_queryset(self):
-                return self.get_group().collection_set.filter(parent_collection__isnull=True).all().order_by('name')
+                return self.get_group().collection_set.filter(parent_collection__isnull=True).all().visible(self.request.user).order_by('name')
 
         return ListCollectionsView.as_view(manager=self, group_class=self.group_class)
 
@@ -158,7 +159,7 @@ class StewardURLManager(GroupURLManager):
             model = Collection
 
             def get_queryset(self):
-                return self.get_group().collection_set.all()
+                return self.get_group().collection_set.visible(self.request.user).all()
 
             def get_context_data(self, *args, **kwargs):
                 context = super().get_context_data(*args, **kwargs)
@@ -184,18 +185,12 @@ class StewardURLManager(GroupURLManager):
         class UpdateCollectionView(EditCollectionViewBase, UpdateView):
             template_name = "aristotle_mdr/collections/edit.html"
 
-            def get_queryset(self):
-                return self.get_group().collection_set.all()
-
         return UpdateCollectionView.as_view(manager=self, group_class=self.group_class)
 
     def collection_delete_view(self):
 
         class DeleteCollectionView(EditCollectionViewBase, DeleteView):
             template_name = "aristotle_mdr/collections/delete.html"
-
-            def get_queryset(self):
-                return self.get_group().collection_set.all()
 
             def get_success_url(self):
                 messages.success(

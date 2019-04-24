@@ -91,3 +91,11 @@ class PublicationRecord(TimeStampedModel):
         default=timezone.now,
         help_text=_("Enter a date in the future to specify the date is published from.")
     )
+
+    def __str__(self):
+        return "Published: {} ({}) on {}".format(
+            # self.get_reference_type_display().title(),
+            self.content_object,
+            self.content_object.pk,
+            self.publication_date
+        )

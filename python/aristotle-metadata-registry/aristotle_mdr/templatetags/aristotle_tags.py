@@ -537,3 +537,13 @@ def has_group_perm(context, group, permission):
     if not request.user.is_authenticated:
         return False
     return group.user_has_permission(request.user, permission)
+
+
+@register.filter
+def publish_item_url(item):
+    return reverse('aristotle_publishing:publish_item', args=[item._meta.model_name, item.id])
+
+
+@register.filter
+def publish_registry_item_url(item):
+    return reverse('aristotle_publishing:publish_registry_item', args=[item._meta.model_name, item.id])

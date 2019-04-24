@@ -30,7 +30,6 @@ class Indicator(MDR.concept):
     outcome_areas = ConceptManyToManyField('OutcomeArea', related_name="indicators", blank=True)
     indicator_type = models.ForeignKey(IndicatorType, blank=True, null=True)
 
-
     computation_description = MDR.RichTextField(blank=True)
     computation = MDR.RichTextField(blank=True)
 
@@ -52,7 +51,6 @@ class Indicator(MDR.concept):
         ('disaggregators', 'indicatordisaggregationdefinition_set'),
     ]
     clone_fields = ['indicatornumeratordefinition', 'indicatordenominatordefinition', 'indicatordisaggregationdefinition']
-
 
     def add_component(self, model_class, **kwargs):
         kwargs.pop('indicator', None)
@@ -97,7 +95,7 @@ class Indicator(MDR.concept):
 
 class IndicatorDataElementBase(aristotleComponent):
     class Meta:
-        abstract=True
+        abstract = True
         ordering = ['order']
 
     indicator = ConceptForeignKey(Indicator)
