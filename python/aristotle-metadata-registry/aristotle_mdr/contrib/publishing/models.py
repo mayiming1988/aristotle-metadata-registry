@@ -62,6 +62,11 @@ class VersionPermissions(TimeStampedModel):
         def can_edit(self):
             return True
 
+        @property
+        def id(self):
+            return self.version.id
+
+
 class PublicationRecord(TimeStampedModel):
     class Meta:
         unique_together = (

@@ -3,7 +3,7 @@ from aristotle_mdr_api.v4.concepts import views
 
 
 urlpatterns = [
-    url(r'^(?P<pk>\d+)/update-permission/(?P<vpk>\d+)/$', views.UpdateVersionPermissionsView.as_view(),
+    url(r'^(?P<pk>\d+)/update-permissions/$', views.UpdateVersionPermissionsView.as_view(),
         name="update-version-permissions"),
     url(r'^(?P<pk>\d+)/view-permission/(?P<vpk>\d+)/$', views.GetVersionsPermissionsView.as_view(),
         name='view-version-permissions'),

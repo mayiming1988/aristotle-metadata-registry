@@ -239,32 +239,56 @@ class ListVersionsPermissionsView(ObjectAPIView):
                         status.HTTP_200_OK)
 
 
-class UpdateVersionPermissionsView(generics.UpdateAPIView):
-    """Updates the visibility permissions of a Version"""
+class UpdateVersionPermissionsView(generics.ListAPIView):
+    """Updates the visibility permissions of all Versions associated with an id"""
 
     permission_classes = (AuthCanViewEdit,)
     permission_key = 'metadata'
     serializer_class = serializers.VersionPermissionsSerializer
     lookup_url_kwarg = 'pk'
 
-    def get_object(self, **kwargs):
-        # Get the item
+    def get_queryset(self):
         pk = self.kwargs[self.lookup_url_kwarg]
         item = get_object_or_404(_concept, pk=pk).item
 
-        # Get the version id
-        version_pk = self.kwargs.get('vpk', None)
-
-        # Get the correct version
+        # Get associated versions
         versions = reversion.models.Version.objects.get_for_object(item)
-        version = versions.filter(pk=version_pk).first()
+        version_ids = [version.pk for version in versions]
+        # Get the matching version permissions
+        version_permissions = VersionPermissions.objects.filter(pk__in=version_ids)
 
-        version_permission = VersionPermissions.objects.get_object_or_none(version=version)
+        return version_permissions
 
-        # May raise a permission denied
-        self.check_object_permissions(self.request, version_permission)
+    # def get_object(self, **kwargs):
+    #     # Get the item
+    #     pk = self.kwargs[self.lookup_url_kwarg]
+    #     item = get_object_or_404(_concept, pk=pk).item
+    #
+    #     # Get the version id
+    #     version_pk = self.kwargs.get('vpk', None)
+    #
+    #     # Get the correct version
+    #     versions = reversion.models.Version.objects.get_for_object(item)
+    #     version = versions.filter(pk=version_pk).first()
+    #
+    #     version_permission = VersionPermissions.objects.get_object_or_none(version=version)
+    #
+    #     # May raise a permission denied
+    #     self.check_object_permissions(self.request, version_permission)
+    #
+    #     return version_permission
 
-        return version_permission
+    def update(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        serializer = self.get_serializer(queryset, data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
 
 class GetVersionsPermissionsView(ObjectAPIView):
     """ Gets the visibility permisions of a Version """

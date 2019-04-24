@@ -34,6 +34,7 @@ class MultiUpdateListSerializer(serializers.ListSerializer):
             db_item = db_mapping.get(item['id'], None)
             # Make sure the id is a real item
             if db_item is not None:
+                del item['id']
                 return_list.append(self.child.update(db_item, item))
 
         # Create new items
