@@ -57,10 +57,10 @@ class VersionPermissions(TimeStampedModel):
         def __str__(self):
             return "Version is: {}  and permissions are: {}".format(str(self.version), str(self.visibility))
 
-        def can_view(self):
-            return True
-        def can_edit(self):
-            return True
+        # def can_view(self):
+        #     return True
+        # def can_edit(self):
+        #     return True
 
         @property
         def id(self):

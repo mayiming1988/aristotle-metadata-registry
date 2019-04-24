@@ -134,7 +134,6 @@ class ConceptVersionView(ConceptRenderView):
     def get_item(self):
         # Gets the current item
         return self.item_version.object
-        logger.debug("Current version is" + str(self.item_version.object))
 
     def get_matching_object_from_revision(self, revision, current_version, target_ct=None):
         # Finds another version in the same revision with same id
@@ -493,32 +492,35 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         versions = self._order_version_queryset(
             reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
         )
-        # If not a superuser or in workgroup restrict versions the user can see
+
         in_workgroup = (metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list)
-        if not (self.request.user.is_superuser or in_workgroup):
-            try:
-                version_publishing = metadata_item.version_publication_details.first()
-                logger.critical(str(version_publishing))
-            except:
-                version_publishing = None
-            if version_publishing is None:
-                versions = versions.none()
-                first_visible_date = None
-            else:
-                if self.request.user.is_anonymous:
-                    first_visible_date = version_publishing.public_user_publication_date
+        authenticated_user = (not self.request.user.is_anonymous())
+
+        # Determine the permissions of the users
+        if not (self.request.user.is_superuser):
+            # Superusers can see everything
+            for version in versions:
+                version_permission = VersionPermissions.objects.get_object_or_none(version=version)
+                visibility = int(version_permission.visibility)
+
+                if version_permission is None:
+                    # Default to applying workgroup permissions
+                    if not in_workgroup:
+                        versions = versions.exclude(pk=version.pk)
+
+                elif visibility == VISIBILITY_PERMISSION_CHOICES.workgroup:
+                    # Apply workgroup permissions
+                    if not in_workgroup:
+                        versions = versions.exclude(pk=version.pk)
+
+                elif visibility == VISIBILITY_PERMISSION_CHOICES.auth:
+                    # Exclude anonymous users
+                    if not authenticated_user:
+                        versions = versions.exclude(pk=version.pk)
+
                 else:
-                    first_visible_date = (
-                        version_publishing.authenticated_user_publication_date or version_publishing.public_user_publication_date
-                    )
-            # If there are no visible versions, return no versions
-            if not first_visible_date:
-                versions = versions.none()
-            else:
-                # Return the versions where the versions were created after the first visible data
-                versions = versions.filter(
-                    revision__date_created__gt=first_visible_date
-                )
+                    # Visibility is public, don't exclude anything
+                    pass
 
         versions = versions.order_by("-revision__date_created")
 
