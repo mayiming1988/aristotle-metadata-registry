@@ -501,26 +501,27 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
             # Superusers can see everything
             for version in versions:
                 version_permission = VersionPermissions.objects.get_object_or_none(version=version)
-                visibility = int(version_permission.visibility)
 
                 if version_permission is None:
                     # Default to applying workgroup permissions
                     if not in_workgroup:
                         versions = versions.exclude(pk=version.pk)
-
-                elif visibility == VISIBILITY_PERMISSION_CHOICES.workgroup:
-                    # Apply workgroup permissions
-                    if not in_workgroup:
-                        versions = versions.exclude(pk=version.pk)
-
-                elif visibility == VISIBILITY_PERMISSION_CHOICES.auth:
-                    # Exclude anonymous users
-                    if not authenticated_user:
-                        versions = versions.exclude(pk=version.pk)
-
                 else:
-                    # Visibility is public, don't exclude this version
-                    pass
+                    visibility = int(version_permission.visibility)
+
+                    if visibility == VISIBILITY_PERMISSION_CHOICES.workgroup:
+                        # Apply workgroup permissions
+                        if not in_workgroup:
+                            versions = versions.exclude(pk=version.pk)
+
+                    elif visibility == VISIBILITY_PERMISSION_CHOICES.auth:
+                        # Exclude anonymous users
+                        if not authenticated_user:
+                            versions = versions.exclude(pk=version.pk)
+
+                    else:
+                      # Visibility is public, don't exclude this version
+                     pass
 
         versions = versions.order_by("-revision__date_created")
 
