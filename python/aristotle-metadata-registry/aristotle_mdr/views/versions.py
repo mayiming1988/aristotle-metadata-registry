@@ -520,8 +520,8 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
                             versions = versions.exclude(pk=version.pk)
 
                     else:
-                      # Visibility is public, don't exclude this version
-                     pass
+                        # Visibility is public, don't exclude this version
+                        pass
 
         versions = versions.order_by("-revision__date_created")
 
