@@ -5,11 +5,14 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
+import reversion.models
+
 from model_utils.models import TimeStampedModel
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.fields import ConceptOneToOneField
-from aristotle_mdr.constants import visibility_permission_choices
+from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
+from aristotle_mdr.managers import UtilsManager
 
 
 class VersionPublicationRecord(TimeStampedModel):
@@ -38,6 +41,35 @@ class VersionPublicationRecord(TimeStampedModel):
     )
 
 
+class VersionPermissions(TimeStampedModel):
+    objects = UtilsManager()
+
+    version = models.OneToOneField(
+        reversion.models.Version,
+        on_delete=models.CASCADE,
+        primary_key=True)
+
+    visibility = models.CharField(
+        max_length=20,
+        choices=VISIBILITY_PERMISSION_CHOICES,
+        default=VISIBILITY_PERMISSION_CHOICES.workgroup)
+
+    def __str__(self):
+        return "Version is: {}  and permissions are: {}".format(str(self.version), str(self.visibility))
+
+    def can_view(self):
+        return True
+        # TODO implement API permissions
+
+    def can_edit(self):
+        return True
+        # TODO implement API permissions
+
+    @property
+    def id(self):
+        return self.version.id
+
+
 class PublicationRecord(TimeStampedModel):
     class Meta:
         unique_together = (
@@ -52,8 +84,8 @@ class PublicationRecord(TimeStampedModel):
         related_name="published_content"
     )
     permission = models.IntegerField(
-        choices=visibility_permission_choices,
-        default=visibility_permission_choices.public
+        choices=VISIBILITY_PERMISSION_CHOICES,
+        default=VISIBILITY_PERMISSION_CHOICES.public
     )
     publication_date = models.DateField(
         default=timezone.now,

@@ -731,3 +731,4 @@ class PermsTestCase(BaseAPITestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Token abc')
         response = self.client.get(reverse('api_v4:item:item', args=[self.item.id]))
         self.assertEqual(response.status_code, 403)
+

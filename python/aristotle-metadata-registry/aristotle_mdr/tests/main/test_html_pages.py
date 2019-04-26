@@ -1433,6 +1433,8 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         #from reversion import revisions as reversion
         import reversion
 
+
+        # Creat a revision
         with reversion.revisions.create_revision():
             self.item1.name = "change 1"
             reversion.set_comment("change 1")
