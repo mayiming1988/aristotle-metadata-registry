@@ -6,6 +6,9 @@ PYTHON_CMD="python3"
 MANUAL=0
 DRY=0
 SKIP_WEBPACK_BUILD=0
+STORAGE_BUCKET_NAME="aristotle-storage-static-jnkqjasxq3ji"
+ASSET_PATH="https://d3obyunbje7zuy.cloudfront.net/bundles/"
+
 for i in $@; do
     case $i in
         "--manual")
@@ -36,16 +39,6 @@ fi
 if [[ "$TRAVIS" == "true" ]] && [[ "$TRAVIS_BRANCH" != "master" || "$TRAVIS_PULL_REQUEST" != "false" ]]; then
     echo "Not on correct branch. skipping..."
     exit 0
-fi
-
-if [[ -z "$STORAGE_BUCKET_NAME" ]]; then
-    echo "STORAGE_BUCKET_NAME environment variable must be set"
-    exit 1
-fi
-
-if [[ -z "$ASSET_PATH" ]];then 
-    echo "ASSET_PATH environment variable must be set"
-    exit 1
 fi
 
 mkdir -p ./python/aristotle-metadata-registry/aristotle_mdr/manifests
