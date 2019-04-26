@@ -1,14 +1,18 @@
 from rest_framework import generics
+from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 from aristotle_mdr_api.v4.permissions import AuthCanViewEdit
 from aristotle_mdr_api.v4.concepts import serializers
 from aristotle_mdr.models import _concept, concept, aristotleComponent, SupersedeRelationship
+from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
 from django.db.models import Q
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 import collections
 from re import finditer
+import reversion
 
 from aristotle_mdr_api.v4.concepts.serializers import (
     ConceptSerializer,
@@ -158,7 +162,7 @@ class GeneralGraphicalConceptView(ObjectAPIView):
         return ' '.join([m.group(0) for m in matches])
 
 
-class ConceptLinks(ObjectAPIView):
+class ConceptLinksView(ObjectAPIView):
     """Retrieve a graphical representation of the links relations"""
 
     def get(self, request, *args, **kwargs):
@@ -193,3 +197,94 @@ class ConceptLinks(ObjectAPIView):
             {'nodes': nodes, 'edges': edges},
             status.HTTP_200_OK
         )
+
+
+class ListVersionsView(ObjectAPIView):
+    """ List the versions of an item  """
+
+    def get(self, request, *args, **kwargs):
+        """
+        Return the list of associated versions
+        """
+        # Get the versions
+        metadata_item = self.get_object()
+        versions = reversion.models.Version.objects.get_for_object(metadata_item)
+        versions = versions.order_by("-revision__date_created")
+
+        # Serialize the versions
+        serializer = serializers.VersionSerializer(versions, many=True)
+
+        return Response(
+            {'versions' : serializer.data},
+            status.HTTP_200_OK)
+
+class ListVersionsPermissionsView(ObjectAPIView):
+    "List the version permissions of an item"
+
+    def get(self, request, *args, **kwargs):
+        metadata_item = self.get_object()
+        versions = reversion.models.Version.objects.get_for_object(metadata_item)
+        versions.order_by("-revision__date_created")
+
+        # Lookup all the respective versions
+        permissions = []
+        for version in versions:
+                version_permission = VersionPermissions.objects.get_object_or_none(version=version)
+                permissions.append(version_permission)
+
+        serializer = serializers.VersionPermissionsSerializer(permissions, many=True)
+
+        return Response({'permissions': serializer.data},
+                        status.HTTP_200_OK)
+
+
+class UpdateVersionPermissionsView(generics.ListAPIView):
+    """Updates the visibility permissions of all Versions associated with an id"""
+
+    permission_classes = (AuthCanViewEdit,)
+    permission_key = 'metadata'
+    serializer_class = serializers.VersionPermissionsSerializer
+    lookup_url_kwarg = 'pk'
+
+    def get_queryset(self):
+        pk = self.kwargs[self.lookup_url_kwarg]
+        item = get_object_or_404(_concept, pk=pk).item
+
+        # Get associated versions
+        versions = reversion.models.Version.objects.get_for_object(item)
+        version_ids = [version.pk for version in versions]
+        # Get the matching version permissions
+        version_permissions = VersionPermissions.objects.filter(pk__in=version_ids)
+
+        return version_permissions
+
+    def update(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        serializer = self.get_serializer(queryset, data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+
+class GetVersionsPermissionsView(ObjectAPIView):
+    """ Gets the visibility permisions of a Version """
+
+    def get(self, request, *args, **kwargs):
+        version_pk = kwargs.get('vpk', None)
+
+        metadata_item = self.get_object()
+        version = reversion.models.Version.objects.get_for_object(metadata_item)
+        version = version.filter(pk=version_pk).first()
+
+        # Get the versions viewing permissions
+        version_permission = VersionPermissions.objects.get_object_or_none(version=version)
+
+        return Response(version_permission.visibility, status.HTTP_200_OK)
+
+
+
+

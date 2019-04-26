@@ -5,7 +5,7 @@ from aristotle_mdr_graphql.utils import type_from_concept_model
 from aristotle_mdr_graphql import resolvers
 
 # DataCatalogNode = type_from_concept_model(dse_models.DataCatalog)
-# DatasetNode = type_from_concept_model(dse_models.Dataset)
+DatasetNode = type_from_concept_model(dse_models.Dataset)
 # DistributionNode = type_from_concept_model(dse_models.Distribution)
 # DistributionDataElementPathNode = type_from_model(dse_models.DistributionDataElementPath)
 DataSetSpecificationNode = type_from_concept_model(
@@ -32,6 +32,6 @@ class DSSClusterInclusionNode(DjangoObjectType):
 class Query(object):
 
     # data_catalogs = AristotleConceptFilterConnectionField(DataCatalogNode)
-    # datasets = AristotleConceptFilterConnectionField(DatasetNode)
+    datasets = AristotleConceptFilterConnectionField(DatasetNode)
     # distributions = AristotleConceptFilterConnectionField(DistributionNode)
     dataset_specifications = AristotleConceptFilterConnectionField(DataSetSpecificationNode)

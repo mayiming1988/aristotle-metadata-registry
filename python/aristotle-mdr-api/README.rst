@@ -8,7 +8,7 @@ Aristotle-MDR API
     :target: https://coveralls.io/r/aristotle-mdr/aristotle-mdr-api
 
 The Aristotle-MDR API provides a self-documenting JSON API for retrieving content
-from thean Aristotle-MeteData-Registry
+from the Aristotle-Metadata-Registry
 
 Quick start
 -----------

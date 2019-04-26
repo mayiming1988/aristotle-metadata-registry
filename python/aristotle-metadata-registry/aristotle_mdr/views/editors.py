@@ -6,6 +6,7 @@ from django.views.generic import (
 from django.views.generic.detail import SingleObjectMixin
 
 import reversion
+from reversion.models import Version
 
 from aristotle_mdr.utils import (
     concept_to_clone_dict, construct_change_message_extra_formsets,
@@ -13,6 +14,7 @@ from aristotle_mdr.utils import (
 )
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
+from aristotle_mdr.contrib.publishing.models import VersionPermissions
 
 from aristotle_mdr.views.utils import ObjectLevelPermissionRequiredMixin
 from aristotle_mdr.contrib.identifiers.models import ScopedIdentifier
@@ -29,6 +31,9 @@ logger.debug("Logging started for " + __name__)
 
 
 class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
+    """
+    Base class for editing concepts
+    """
     raise_exception = True
     redirect_unauthenticated_users = True
     object_level_permissions = True
@@ -140,6 +145,7 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         self.object = self.item
 
         if form.is_valid():
+            # Actualize the model, but don't save just yet
             item = form.save(commit=False)
             change_comments = form.data.get('change_comments', None)
             form_invalid = False
@@ -147,28 +153,33 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
             form_invalid = True
 
         formsets_invalid = self.validate_formsets(extra_formsets)
-        invalid = form_invalid or formsets_invalid
 
-        if invalid:
+        if form_invalid or formsets_invalid:
             return self.form_invalid(form, formsets=extra_formsets)
         else:
+            # The form and the formsets were valid
             # This was removed from the revision below due to a bug with saving
             # long slots, links are still saved due to reversion follows
             self.save_formsets(extra_formsets)
 
+            # Create the revision
             with reversion.revisions.create_revision():
 
-                # save the change comments
                 if not change_comments:
+                    # If there were no change comments made in the form
                     change_comments = construct_change_message_extra_formsets(request, form, extra_formsets)
 
                 reversion.revisions.set_user(request.user)
                 reversion.revisions.set_comment(change_comments)
 
-                # Save item
+                # Update the item
                 form.save_m2m()
                 item.save()
                 form.save_custom_fields(item)
+
+            # Versions are loaded with the most recent version first, so we get the one that was just created
+            version = Version.objects.get_for_object(item).first()
+            VersionPermissions.objects.create(version=version)
 
             return HttpResponseRedirect(url_slugify_concept(self.item))
 
@@ -243,10 +254,7 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
         if invalid:
             return self.form_invalid(form, formsets=extra_formsets)
         else:
-
             with reversion.revisions.create_revision():
-
-                # save the change comments
                 if not change_comments:
                     change_comments = construct_change_message_extra_formsets(request, form, extra_formsets)
 

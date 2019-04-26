@@ -1,6 +1,12 @@
 {% load i18n l10n %}
+<style>
+    select {
+        font-family: 'FontAwesome','sans-serif'
+    }
+</style>
 {% if compare_view %}<form method="GET" action="{{ action }}">{% endif %}
-<table id="change-history" class='table table-striped'>
+<table id="change-history" class='table table-striped'
+       data-update-api-url="{% url 'api_v4:item:update-version-permissions' object.id %}">
     <caption>Revisions for {{object.name}}
         {% if compare_view %}
             - {% trans 'Select two items and click compare to see the differences between them'%}
@@ -11,19 +17,31 @@
         {% if compare_view %}
             <th scope="col">
                 {% if comparable %}
-                    <input class="btn btn-default btn-xs" type="submit" value="{% trans 'compare' %}">
+                    <input class="btn btn-default btn-xs" type="submit" value="{% trans 'Compare' %}">
                 {% else %}
-                    <i>{% trans 'compare' %}</i>
+                    <i>{% trans 'Compare' %}</i>
                 {% endif %}
             </th>
         {% endif %}
         <th scope="col">{% trans 'Date/time' %}</th>
         <th scope="col">{% trans 'User' %}</th>
         <th scope="col">{% trans 'Comment' %}</th>
-        <th scope="col">{% trans 'Visiblity' %}</th>
+
+        {% if user_can_edit %}
+            <th scope="col">
+                    <input class="btn btn-default btn-sm" id="edit-visibilities-button"
+                        type="button" value="Edit Visibilities">
+                    <input disabled class="btn btn-default btn-sm" id="save-visibilities-button" type="button"
+                        value="Save Visibilities">
+        {% else %}
+            <th scope="col">{% trans 'Visibility' %}</th>
+        {% endif %}
+
+        </th>
     </tr>
     </thead>
     <tbody>
+    {# Iteration through the versions #}
     {% for action in action_list %}
         <tr>
             {% if compare_view %}
@@ -50,26 +68,33 @@
             </td>
             <td>{{action.revision.comment|linebreaks|default:"-"}}</td>
             <td>
-                {# first_public_version #}
-                {% if action.revision.date_created > public_date %}
-                    <i class="fa fa-fw fa-globe"></i> Public
-                {% elif action.revision.date_created > authenticated_date %}
-                    <i class="fa fa-fw fa-user-circle-o"></i> Logged in users
+                {# Visibility #}
+
+                {% if user_can_edit %}
+                    <select disabled class="form-control visibility-select" data-version-id="{{ action.version.id }}">
+                        <option value="0"{% if action.permission == choices.public %}selected{%endif%}>&#xf0ac; Public</option>
+                        <option value="1"{% if action.permission == choices.auth %}selected{%endif%}>&#xf2bd; Logged in users</option>
+                        <option value="2"{% if action.permission == choices.workgroup %}selected{%endif%}
+                        >&#xf0c0; Workgroup only</option></select>
+
                 {% else %}
-                    <i class="fa fa-fw fa-users"></i> Workgroup only
+                {# User can't edit #}
+                     {% if action.permission == choices.public %} <i class="fa fa-fw fa-globe"></i> Public {%endif%}
+                     {% if action.permission == choices.auth %}  <i class="fa fa-fw fa-user-circle"></i> Logged in users {%endif%}
+                     {% if action.permission == choices.workgroup %} <i class="fa fa-fw fa-users"></i> Workgroup only {%endif%}
                 {% endif %}
             </td>
-        </tr>
     {% endfor %}
+            </tr>
     </tbody>
     <tfoot>
     <tr>
         {% if compare_view %}
             <th scope="col">
                 {% if comparable %}
-                    <input class="btn btn-default btn-xs" type="submit" value="{% trans 'compare' %}">
+                    <input class="btn btn-default btn-xs" type="submit" value="{% trans 'Compare' %}">
                 {% else %}
-                    <i>{% trans 'compare' %}</i>
+                    <i>{% trans 'Compare' %}</i>
                 {% endif %}
             </th>
         {% endif %}
