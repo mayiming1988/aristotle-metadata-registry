@@ -9,8 +9,7 @@ import reversion
 from reversion.models import Version
 
 from aristotle_mdr.utils import (
-    concept_to_clone_dict, construct_change_message_extra_formsets,
-    construct_change_message, url_slugify_concept, is_active_module
+    concept_to_clone_dict, construct_change_message_extra_formsets,  url_slugify_concept, is_active_module
 )
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
@@ -166,7 +165,8 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
             with reversion.revisions.create_revision():
 
                 if not change_comments:
-                    # If there were no change comments made in the form
+                    # If there were no change comments made in the form, generate a change comment based
+                    # on the fields changed
                     change_comments = construct_change_message_extra_formsets(request, form, extra_formsets)
 
                 reversion.revisions.set_user(request.user)
