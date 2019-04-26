@@ -77,9 +77,9 @@ if [[ $MANUAL -eq 1 ]]; then
     fi
     $PYTHON_CMD setup.py bdist_wheel
     if [[ $DRY -eq 1 ]]; then
-        aws s3 cp ./dist s3://aristotle-pypi-bucket-1kyswb3cn1pa1 --recursive --dry
+        aws s3 cp ./dist s3://aristotle-pypi-bucket-1kyswb3cn1pa1 --recursive --acl public-read --dry
     else
-        aws s3 cp ./dist s3://aristotle-pypi-bucket-1kyswb3cn1pa1 --recursive 
+        aws s3 cp ./dist s3://aristotle-pypi-bucket-1kyswb3cn1pa1 --recursive --acl public-read
     fi
 fi
 
