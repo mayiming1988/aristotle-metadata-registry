@@ -1,5 +1,6 @@
 {% extends "aristotle_mdr/stewards/base.html" %}
 {% load i18n aristotle_tags util_tags %}
+{% has_group_perm group "manage_collections" as can_manage_collections %}
 
 
 {% block title %}{{item.name}} Collections | {{ stewardship_organisation }}{% endblock %}
@@ -10,12 +11,9 @@
         {% block page_title %}{{ stewardship_organisation }} |  Collection | {{item.name}}{% endblock %}
     </h2>
 
-    {% has_group_perm group "manage_collections" as can_manage_collections %}
-    {% if can_manage_collections %}
-    <a class="btn btn-default pull-right" href="{% url 'aristotle:stewards:group:collection_edit_view' group.slug item.pk %}">Edit</a>
-    {% endif %}
-
     <section>
+    {% include "aristotle_mdr/collections/helpers/actionbar.html" %}
+    {% include "aristotle_mdr/publish/helpers/publication_details_panel.html" with item=page show_no_publication=True %}
 
     <header>Description</header>
     <div class="well">{{ item.description|bleach }}</div>

@@ -121,9 +121,9 @@ def managed_item(request, model_slug, iid):
 class ConceptRenderView(TagsMixin, TemplateView):
     """
     Class based view for rendering a concept, replaces render_if_condition_met
-    **This should be used with a permission mixin or check_item override**
 
-    slug_redirect determines wether /item/id redirects to /item/id/model_slug/name_slug
+    **This should be used with a permission mixin or check_item override**
+    slug_redirect determines whether /item/id redirects to /item/id/model_slug/name_slug
     """
 
     objtype: Any = None
@@ -169,8 +169,7 @@ class ConceptRenderView(TagsMixin, TemplateView):
         return item
 
     def get_related(self, model):
-        """Return a queryset fetching related concepts"""
-
+        """Returns a queryset fetching related concepts"""
         related_fields = []
         prefetch_fields = ['statuses']
         for field in model._meta.get_fields():

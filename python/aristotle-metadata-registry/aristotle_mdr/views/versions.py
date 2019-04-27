@@ -10,7 +10,9 @@ from django.urls import reverse
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils.text import pretify_camel_case
 from aristotle_mdr.views.views import ConceptRenderView
-from aristotle_mdr.perms import user_can_view
+from aristotle_mdr.perms import user_can_view, user_can_edit
+from aristotle_mdr.contrib.publishing.models import VersionPermissions
+from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
 
 import json
 from collections import defaultdict
@@ -126,7 +128,7 @@ class ConceptVersionView(ConceptRenderView):
     }
 
     def check_item(self, item):
-        # Will 403 when user cant view the item
+        # Will 403 Forbidden when user can't view the item
         return user_can_view(self.request.user, item)
 
     def get_item(self):
@@ -323,7 +325,7 @@ class ConceptVersionView(ConceptRenderView):
                     }
 
                 # There is a version in the revision that is of the correct
-                # type. Need to check wether it links to the correct item
+                # type. Need to check whether it links to the correct item
                 related_model = apps.get_model(data['model'])
 
                 # Find the field that links the weak model back to our model
@@ -457,9 +459,9 @@ class ConceptVersionView(ConceptRenderView):
 
 
 class ConceptHistoryCompareView(HistoryCompareDetailView):
-    """Shows the table of the different versions of the object and the changes that were made
-        between versions"""
-
+    """
+    Class that performs the historical comparision between versions of a same concept
+    """
     model = MDR._concept
     pk_url_kwarg = 'iid'
     template_name = "aristotle_mdr/actions/concept_history_compare.html"
@@ -490,47 +492,71 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         versions = self._order_version_queryset(
             reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
         )
-        # Perform permission checking on the versions shown
-        # TODO : rewrite dates to deal with permission checking
-        in_workgroup = (metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list)
-        if not (self.request.user.is_superuser or in_workgroup):
-            try:
-                version_publishing = metadata_item.version_publication_details.first()
-            except:
-                version_publishing = None
-            if version_publishing is None:
-                versions = versions.none()
-                first_visible_date = None
-            else:
-                if self.request.user.is_anonymous:
-                    first_visible_date = version_publishing.public_user_publication_date
-                else:
-                    first_visible_date = (
-                        version_publishing.authenticated_user_publication_date or version_publishing.public_user_publication_date
-                    )
 
-            if not first_visible_date:
-                versions = versions.none()
-            else:
-                versions = versions.filter(
-                    revision__date_created__gt=first_visible_date
-                )
+        in_workgroup = (metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list)
+        authenticated_user = (not self.request.user.is_anonymous())
+
+        # Determine the viewing permissions of the users
+        if not (self.request.user.is_superuser):
+            # Superusers can see everything
+            for version in versions:
+                version_permission = VersionPermissions.objects.get_object_or_none(version=version)
+
+                if version_permission is None:
+                    # Default to applying workgroup permissions
+                    if not in_workgroup:
+                        versions = versions.exclude(pk=version.pk)
+                else:
+                    visibility = int(version_permission.visibility)
+
+                    if visibility == VISIBILITY_PERMISSION_CHOICES.workgroup:
+                        # Apply workgroup permissions
+                        if not in_workgroup:
+                            versions = versions.exclude(pk=version.pk)
+
+                    elif visibility == VISIBILITY_PERMISSION_CHOICES.auth:
+                        # Exclude anonymous users
+                        if not authenticated_user:
+                            versions = versions.exclude(pk=version.pk)
+
+                    else:
+                        # Visibility is public, don't exclude this version
+                        pass
 
         versions = versions.order_by("-revision__date_created")
 
-        # Append all the versions to the action list for display
+        # Determine the editing permissions of the user
+        USER_CAN_EDIT = user_can_edit(self.request.user, metadata_item)
+
         for version in versions:
+            version_permission = VersionPermissions.objects.get_object_or_none(version=version)
+
+            if version_permission is None:
+                # Default to workgroup level permissions
+                version_permission_code = 0
+            else:
+                version_permission_code = version_permission.visibility
+
             action_list.append({
+                'permission': int(version_permission_code),
                 'version': version,
                 'revision': version.revision,
                 'url': reverse(self.item_action_url, args=[version.id])
             })
+
         return action_list
 
     def get_context_data(self, *args, **kwargs):
+
+        # Determine the editing permissions of the user
+        metadata_item = self.get_object()
+        USER_CAN_EDIT = user_can_edit(self.request.user, metadata_item)
+
         context = {
             'activetab': 'history',
-            'hide_item_actions': True
+            'hide_item_actions': True,
+            'choices': VISIBILITY_PERMISSION_CHOICES,
+            'user_can_edit': USER_CAN_EDIT,
         }
 
         try:
@@ -546,22 +572,5 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
 
         context['failed'] = False
         context['item'] = context['object'].item
-        try:
-            version_publishing = self.get_object().version_publication_details.first()
-        except:
-            return context
-        if version_publishing is None:
-            public_date = None
-            authenticated_date = None
-        else:
-            public_date = version_publishing.public_user_publication_date
-            authenticated_date = (
-                version_publishing.authenticated_user_publication_date or version_publishing.public_user_publication_date
-            )
-
-        context.update({
-            "public_date": public_date,
-            "authenticated_date": authenticated_date,
-        })
 
         return context

@@ -1,3 +1,4 @@
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
@@ -11,9 +12,24 @@ from aristotle_mdr.fields import (
     ConceptManyToManyField,
 )
 
+from aristotle_mdr.managers import PublishedItemQuerySet
+
+
+class CollectionQuerySet(PublishedItemQuerySet):
+    pass
+
+
+# When we switch to MPTT we will need this
+# class CollectionQuerySet(PublishedMixin, TreeQuerySet):
+#     pass
+# class CollectionManager(models.Manager.from_queryset(PageQuerySet), TreeManager):
+#     pass
+
 
 class Collection(TimeStampedModel):
     """A collection of metadata belonging to a Stewardship Organisation"""
+    objects = CollectionQuerySet.as_manager()
+    # objects = CollectionManager()
 
     stewardship_organisation = models.ForeignKey(
         'aristotle_mdr.StewardOrganisation', to_field="uuid", null=False,
@@ -28,6 +44,7 @@ class Collection(TimeStampedModel):
 
     metadata = ConceptManyToManyField('aristotle_mdr._concept', blank=True)
     parent_collection = models.ForeignKey('self', blank=True, null=True)
+    publication_details = GenericRelation('aristotle_mdr_publishing.PublicationRecord')
 
     def get_absolute_url(self):
         return reverse(

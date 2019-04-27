@@ -6,6 +6,7 @@ from aristotle_dse import models as dse_models
 from django.db.models import Model
 from django.db.models.manager import Manager
 from django.db.models.query import QuerySet
+from aristotle_mdr.contrib.links import models as link_models
 
 import logging
 
@@ -63,10 +64,12 @@ class AristotleResolver(object):
             if hasattr(queryset, 'visible'):
                 return queryset.visible(info.context.user)
 
-            if issubclass(queryset.model, mdr_models.aristotleComponent):
+            if queryset.model in (link_models.Link, link_models.LinkEnd):
                 return queryset
 
-            return None
+            if issubclass(queryset.model, mdr_models.aristotleComponent):
+                return queryset
+            return queryset.none()
 
         elif isinstance(retval, QuerySet):
             # In case a queryset is returned
@@ -75,7 +78,7 @@ class AristotleResolver(object):
             if issubclass(retval.model, mdr_models.aristotleComponent):
                 return retval
 
-            return None
+            return retval.none()
 
         return retval
 
