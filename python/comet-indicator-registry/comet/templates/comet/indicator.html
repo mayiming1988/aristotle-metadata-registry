@@ -117,6 +117,20 @@
 </ul>
 {% endif %}
 
+
+{#% if item.dimensions.exists %#}
+<h2>Dimensions</h2>
+<ul>
+{% for dimension in item.dimensions.all %}
+  {% if dimension.framework.id in viewable_ids %}
+    <li>
+    {% include "comet/helpers/dimension_link.html" with item=dimension showType=False skip_can_view=True %}
+    </li>
+  {% endif %}
+{% endfor %}
+</ul>
+{% endif %#}
+
 {% if item.rationale %}
 <h2>Rationale</h2>
 <p>{{ item.rationale | bleach }}</p>

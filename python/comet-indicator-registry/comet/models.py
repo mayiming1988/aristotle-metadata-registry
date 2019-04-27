@@ -3,13 +3,17 @@ from __future__ import unicode_literals
 from django.db import models
 from django.utils.translation import ugettext as _
 
+from mptt.models import MPTTModel, TreeForeignKey
+from model_utils.models import TimeStampedModel
+
 import aristotle_mdr.models as MDR
-from aristotle_mdr.fields import ConceptForeignKey, ConceptManyToManyField
 import aristotle_dse.models as aristotle_dse
+from aristotle_mdr.fields import ConceptForeignKey, ConceptManyToManyField
 from aristotle_mdr.utils.model_utils import (
     ManagedItem,
     aristotleComponent,
 )
+from comet.managers import FrameworkDimensionManager
 
 
 class Indicator(MDR.concept):
@@ -34,9 +38,15 @@ class Indicator(MDR.concept):
 
     disaggregation_description = MDR.RichTextField(blank=True)
 
+    quality_statement = ConceptForeignKey(
+        "QualityStatement",
+        null=True, blank=True,
+        help_text=_("A statement of multiple quality dimensions for the purpose of assessing the quality of the data for reporting against this Indicator.")
+    )
     rationale = MDR.RichTextField(blank=True)
     benchmark = MDR.RichTextField(blank=True)
     reporting_information = MDR.RichTextField(blank=True)
+    dimensions = ConceptManyToManyField("FrameworkDimension", related_name="indicators", blank=True)
 
     serialize_weak_entities = [
         ('numerators', 'indicatornumeratordefinition_set'),
@@ -162,5 +172,30 @@ class QualityStatement(MDR.concept):
 
 class Framework(MDR.concept):
     template = "comet/framework.html"
-    parentFramework = ConceptForeignKey('Framework', blank=True, null=True, related_name="childFrameworks")
-    indicators = ConceptManyToManyField(Indicator, related_name="frameworks", blank=True)
+    # parentFramework = ConceptForeignKey('Framework', blank=True, null=True, related_name="childFrameworks")
+
+    serialize_weak_entities = [
+        ('dimensions', 'frameworkdimension_set'),
+    ]
+
+    def root_dimensions(self):
+        return self.frameworkdimension_set.all().filter(
+            parent=None
+        )
+
+class FrameworkDimension(MPTTModel, TimeStampedModel, aristotleComponent):
+
+    objects = FrameworkDimensionManager()
+    framework = ConceptForeignKey('Framework')
+    name = models.CharField(max_length=2048)
+    description = MDR.RichTextField(blank=True)
+    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='child_dimensions')
+
+    @property
+    def parentItem(self):
+        return self.framework
+
+    @property
+    def parentItemId(self):
+        return self.framework_id
+
