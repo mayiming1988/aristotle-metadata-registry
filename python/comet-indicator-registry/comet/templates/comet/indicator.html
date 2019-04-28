@@ -118,7 +118,7 @@
 {% endif %}
 
 
-{#% if item.dimensions.exists %#}
+{% if item.dimensions.exists %}
 <h2>Dimensions</h2>
 <ul>
 {% for dimension in item.dimensions.all %}
@@ -129,7 +129,7 @@
   {% endif %}
 {% endfor %}
 </ul>
-{% endif %#}
+{% endif %}
 
 {% if item.rationale %}
 <h2>Rationale</h2>
