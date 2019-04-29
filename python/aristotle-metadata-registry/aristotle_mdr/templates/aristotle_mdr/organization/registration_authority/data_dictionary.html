@@ -1,0 +1,34 @@
+{% extends "aristotle_mdr/organization/registration_authority/base.html" %}
+{% load aristotle_tags util_tags %}
+
+{% block content %}
+  <form method="get">
+      <div class="well">
+          <h4>Filter</h4>
+          <div class="form-group col-sm-4 col-md-3">
+              {{ filter.form.created }}
+          </div>
+      </div>
+    <button type="submit">Search</button>
+  </form>
+  <ul>
+          <div class="result">
+  {% for concept in filter.qs %}
+    {% if concept.id %}
+        <a href="{% url 'aristotle:item' concept.id %}">{{ concept.name }}</a>
+    {% endif %}
+    <span class="item_type">({{ concept.get_verbose_name }})</span>
+    <p>
+        {{ concept.definition|striptags|truncatewords:20 }}
+    </p>
+    <div class="attrs">
+    <span class="attr">
+        <span class="time">Created: <time datetime="{{ concept.created|isotime }}">{{ concept.created }}</time></span>
+        <header class="time">Last modified:</header>
+        <time datetime="{{ concept.modified|isotime }}">{{ concept.modified }}</time>
+    </span>
+    </div>
+</div>
+  {% endfor %}
+  </ul>
+{% endblock %}

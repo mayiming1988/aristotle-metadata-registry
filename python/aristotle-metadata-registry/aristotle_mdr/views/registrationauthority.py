@@ -8,11 +8,14 @@ from django.views.generic import (
     ListView,
     DetailView,
     UpdateView,
-    TemplateView
 )
 from django.views.generic.detail import SingleObjectMixin
 from django.core.exceptions import PermissionDenied
 from django.forms.models import modelform_factory
+from django.core.exceptions import ImproperlyConfigured
+
+import django_filters
+from django_filters.views import FilterView
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.forms import actions
@@ -25,9 +28,12 @@ from aristotle_mdr.views.utils import (
     AlertFieldsMixin,
     UserFormViewMixin
 )
+from aristotle_mdr.forms.utils import BootstrapableMixin
 from aristotle_mdr import perms
 from aristotle_mdr.contrib.validators.views import ValidationRuleEditView
 from aristotle_mdr.contrib.validators.models import RAValidationRules
+
+
 
 from ckeditor.widgets import CKEditorWidget
 import logging
@@ -305,3 +311,55 @@ class RAValidationRuleEditView(SingleObjectMixin, MainPageMixin, ValidationRuleE
             context['url'] = reverse('api_v4:ra_rules', args=[context['rules'].id])
             context['method'] = 'put'
         return context
+
+
+class ConceptFilter(django_filters.FilterSet):
+    created = django_filters.DateFromToRangeFilter()
+
+    class Meta:
+        model = MDR._concept
+        fields = ['created']
+
+    # Override the primary queryset
+    @property
+    def qs(self):
+        parent = super(ConceptFilter, self).qs
+
+        # Get statuses associated with a particular Registration Authority
+        statuses = MDR.Status.objects.select_related().filter(registrationAuthority=self.iid)
+
+        # Filter the concepts on those with a particular status associated with the registration authority
+        parent.filter(statuses__in=statuses)
+
+        return parent
+
+    def __init__(self, **kwargs):
+        # Override the init method so we can pass the iid to the queryset
+        super(ConceptFilter, self).__init__()
+        self.iid = kwargs.get('iid')
+
+
+class DateFilterView(FilterView, BootstrapableMixin):
+
+    filterset_class = ConceptFilter
+    template_name = 'aristotle_mdr/organization/registration_authority/data_dictionary.html'
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+
+        # Need to pass the item context for use in the URL
+        context['item'] = MDR.RegistrationAuthority.objects.get(id=self.kwargs['iid'])
+        return context
+
+    def get_filterset_kwargs(self, filterset_class):
+        kwargs = super().get_filterset_kwargs(filterset_class)
+        kwargs.update({
+             'iid': self.kwargs['iid']
+         })
+
+        return kwargs
+
+
+
+
+
