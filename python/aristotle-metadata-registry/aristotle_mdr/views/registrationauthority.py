@@ -348,7 +348,9 @@ class ConceptFilter(django_filters.FilterSet):
         super().__init__(*args, **kwargs)
 
 
-class DateFilterView(FilterView):
+class DateFilterView(FilterView, MainPageMixin):
+    active_tab = 'data_dictionary'
+
     filterset_class = ConceptFilter
     template_name = 'aristotle_mdr/organization/registration_authority/data_dictionary.html'
 
@@ -356,8 +358,12 @@ class DateFilterView(FilterView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
 
+        context.update(self.get_tab_context())
+        ra = MDR.RegistrationAuthority.objects.get(id=self.kwargs['iid'])
         # Need to pass the item context for use in the URL
-        context['item'] = MDR.RegistrationAuthority.objects.get(id=self.kwargs['iid'])
+        context['item'] = ra
+        context['is_manager'] = self.is_manager(ra)
+
         return context
 
     def get_filterset_kwargs(self, filterset_class):
