@@ -9,7 +9,8 @@ initCore()
 initWidgets()
 initMoveable()
 
-// So we can ingnore warning when submitting a form
+// So we can ignore warning when submitting a form
+// Don't like using globals, but we need this state in unload handler
 let formSubmitted = false
 
 // Display a prompt when the user navigates away from the page
