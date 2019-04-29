@@ -124,7 +124,7 @@ setup(
 
         # Bulk updates
         'django-bulk-update',
-        'mptt'
+        'django-mptt'
     ],
 
 )
