@@ -332,6 +332,20 @@ class CustomFieldsTestCase(BaseAPITestCase):
         self.assertEqual(cf_models.CustomField.objects.filter(name='Spiciness').count(), 1)
         self.assertEqual(cf_models.CustomField.objects.filter(name='Blandness').count(), 1)
 
+    def test_multiple_create_as_standard_user(self):
+        self.login_user()
+        postdata = [
+            {'order': 1, 'name': 'Spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
+            {'order': 2, 'name': 'Blandness', 'type': 'int', 'help_text': 'The Blandness'}
+        ]
+
+        response = self.client.post(
+            reverse('api_v4:custom_field_list'),
+            postdata,
+            format='json'
+        )
+        self.assertEqual(response.status_code, 403)
+
     def test_multiple_update(self):
         ids = self.create_test_fields()
         self.login_superuser()
@@ -717,3 +731,4 @@ class PermsTestCase(BaseAPITestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Token abc')
         response = self.client.get(reverse('api_v4:item:item', args=[self.item.id]))
         self.assertEqual(response.status_code, 403)
+

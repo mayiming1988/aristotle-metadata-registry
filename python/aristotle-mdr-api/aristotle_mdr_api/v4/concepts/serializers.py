@@ -1,6 +1,11 @@
 from rest_framework import serializers
-from aristotle_mdr.models import _concept, SupersedeRelationship
 from django.urls import reverse
+
+from reversion.models import Version
+
+from aristotle_mdr.contrib.publishing.models import VersionPermissions
+from aristotle_mdr.models import _concept, SupersedeRelationship
+from aristotle_mdr_api.v4.serializers import VersionVisibilityPermissionSerializer
 
 
 class ConceptSerializer(serializers.ModelSerializer):
@@ -16,7 +21,23 @@ class ConceptSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = _concept
-        fields = ('id', 'uuid', 'name', 'version', 'definition', 'short_definition', 'absolute_url', 'expand_node_get_url')
+        fields = ('id', 'uuid', 'name', 'version', 'definition', 'short_definition',
+                  'absolute_url', 'expand_node_get_url')
+
+
+class VersionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Version
+        fields = ('id', 'object_id', 'serialized_data')
+
+
+class VersionPermissionsSerializer(serializers.ModelSerializer):
+    version_id = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = VersionPermissions
+        fields = ('version_id','visibility')
+        list_serializer_class = VersionVisibilityPermissionSerializer
 
 
 class SupersedeRelationshipSerialiser(serializers.ModelSerializer):

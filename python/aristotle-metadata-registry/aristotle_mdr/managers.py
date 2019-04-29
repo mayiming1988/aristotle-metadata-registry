@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import Q, OuterRef, Subquery
 from django.utils import timezone
 from django.utils.module_loading import import_string
+from django.core.exceptions import ObjectDoesNotExist
 from aristotle_mdr.utils import fetch_aristotle_settings
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
@@ -72,6 +73,12 @@ class UtilsManager(models.Manager):
             ids = [o.id for o in objects]
             qs = self.get_queryset().filter(id__in=ids)
             qs.delete()
+
+    def get_object_or_none(self, **kwargs):
+        try:
+            return self.get(**kwargs)
+        except ObjectDoesNotExist:
+            return None
 
 
 class MetadataItemQuerySet(InheritanceQuerySet):
