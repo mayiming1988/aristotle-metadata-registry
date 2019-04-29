@@ -1,5 +1,6 @@
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 from django.urls import reverse
+from django.forms import Select
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import (
@@ -8,12 +9,9 @@ from django.views.generic import (
     DetailView,
     UpdateView,
 )
-
-
 from django.views.generic.detail import SingleObjectMixin
 from django.core.exceptions import PermissionDenied
 from django.forms.models import modelform_factory
-from django.db.models import Subquery
 
 import django_filters
 from django_filters.views import FilterView
@@ -30,14 +28,15 @@ from aristotle_mdr.views.utils import (
     UserFormViewMixin
 
 )
-from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker, BootstrapDropdownSelect
+from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 from aristotle_mdr import perms
 from aristotle_mdr.contrib.validators.views import ValidationRuleEditView
 from aristotle_mdr.contrib.validators.models import RAValidationRules
-from aristotle_mdr.managers import StatusQuerySet
-
 
 from ckeditor.widgets import CKEditorWidget
+
+import datetime
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -316,36 +315,41 @@ class RAValidationRuleEditView(SingleObjectMixin, MainPageMixin, ValidationRuleE
 
 
 class ConceptFilter(django_filters.FilterSet):
-
-    STATUS_CHOICES = MDR.STATES + [(-99, ('Unregistered'))]
-
     registration_date = django_filters.DateFilter(field_name='statuses__registrationDate',
                                                   widget=BootstrapDateTimePicker,
                                                   method='filter_registration_date')
-    status = django_filters.ChoiceFilter(choices=STATUS_CHOICES, field_name='statuses__state')
+
+    STATUS_CHOICES = MDR.STATES + [(-99, ('Unregistered'))]
+    status = django_filters.ChoiceFilter(choices=STATUS_CHOICES,
+                                         field_name='statuses__state',
+                                         widget=Select(attrs={'class': 'form-control'}))
 
     class Meta:
         model = MDR._concept
-        exclude = ['created']
+        # Exclude unused fields, otherwise they appear in the template
+        exclude = ['created', 'modified']
 
     def filter_registration_date(self, queryset, name, value):
         selected_date = value
+
         # Return all the statuses that are valid at a particular date and then
-        # filter on the concepts corresponding to a valid status
+        # filter on the concepts linked to a valid status
         return queryset.filter(statuses__in=MDR.Status.objects.valid_at_date(when=selected_date))
 
-    # Override the primary queryset
     @property
     def qs(self):
+        # Override the primary queryset to restrict to specific Registration Authority on page
         parent = super().qs
 
-        # Filter the concepts on those with a particular status associated with the registration authority
         return parent.filter(statuses__registrationAuthority=self.registration_authority_id)
 
     def __init__(self, *args, **kwargs):
         # Override the init method so we can pass the iid to the queryset
         self.registration_authority_id = kwargs.pop('registration_authority_id')
         super().__init__(*args, **kwargs)
+
+        # Override the initial status on the Select Dropdown for display purposes
+        self.form.initial['status'] = 5 # set to Standard
 
 
 class DateFilterView(FilterView, MainPageMixin):
@@ -354,15 +358,18 @@ class DateFilterView(FilterView, MainPageMixin):
     filterset_class = ConceptFilter
     template_name = 'aristotle_mdr/organization/registration_authority/data_dictionary.html'
 
-
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
 
         context.update(self.get_tab_context())
+
+        # Need to pass the ra context for use in building links in the template
         ra = MDR.RegistrationAuthority.objects.get(id=self.kwargs['iid'])
-        # Need to pass the item context for use in the URL
         context['item'] = ra
         context['is_manager'] = self.is_manager(ra)
+
+        context['status'] = self.request.GET.get('status', 5)
+        context['date'] = self.request.GET.get('registration_date', datetime.date.today())
 
         return context
 
@@ -372,9 +379,11 @@ class DateFilterView(FilterView, MainPageMixin):
              'registration_authority_id': self.kwargs['iid']
          })
 
+        if kwargs["data"] is None:
+            # If there were no selections made in the form, set defaults
+            kwargs["data"] = {"status": 5, # Standard
+                              "registration_date": str(datetime.date.today())}
+
         return kwargs
-
-
-
 
 
