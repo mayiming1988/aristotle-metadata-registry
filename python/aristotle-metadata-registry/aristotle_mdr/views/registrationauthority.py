@@ -2,7 +2,6 @@ from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 from django.urls import reverse
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
-
 from django.views.generic import (
     CreateView,
     ListView,
@@ -12,8 +11,7 @@ from django.views.generic import (
 from django.views.generic.detail import SingleObjectMixin
 from django.core.exceptions import PermissionDenied
 from django.forms.models import modelform_factory
-from django.core.exceptions import ImproperlyConfigured
-
+from django.db import models
 import django_filters
 from django_filters.views import FilterView
 
@@ -27,7 +25,9 @@ from aristotle_mdr.views.utils import (
     MemberRemoveFromGroupView,
     AlertFieldsMixin,
     UserFormViewMixin
+
 )
+from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 from aristotle_mdr.forms.utils import BootstrapableMixin
 from aristotle_mdr import perms
 from aristotle_mdr.contrib.validators.views import ValidationRuleEditView
@@ -319,6 +319,15 @@ class ConceptFilter(django_filters.FilterSet):
     class Meta:
         model = MDR._concept
         fields = ['created']
+
+        filter_overrides = {
+            models.DateTimeField: {
+               'filter_class': django_filters.DateFromToRangeFilter,
+               'extra': lambda f: {
+                   'widget': BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"})
+               }
+            }
+        }
 
     # Override the primary queryset
     @property

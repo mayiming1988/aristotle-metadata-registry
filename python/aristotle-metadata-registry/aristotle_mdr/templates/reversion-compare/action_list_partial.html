@@ -1,4 +1,5 @@
 {% load i18n l10n %}
+
 {% if compare_view %}<form method="GET" action="{{ action }}">{% endif %}
 <table id="change-history" class='table table-striped'
        data-update-api-url="{% url 'api_v4:item:update-version-permissions' object.id %}">
