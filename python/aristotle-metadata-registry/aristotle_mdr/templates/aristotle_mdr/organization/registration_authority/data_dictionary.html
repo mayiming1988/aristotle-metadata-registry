@@ -2,17 +2,30 @@
 {% load aristotle_tags util_tags %}
 {% load bootstrap3 %}
 
-{% block content %}
+{% block racontent %}
 <form method="get">
+    <div class="h4">Data dictionary </div>
+    <p>
+            {{item.stewardship_organisation.name}}/{{ item.name }} (Registration Authority)
+            showing concepts registered 'Standard' on {% now "jS F Y" %}.
+    </p>
     <div class="well">
-        <h4 class="text-center">Select your desired range of dates:</h4>
+    <div class="h4">Filter further</div>
         <div class="row text-center">
             <div class="form-group">
-                {{ filter.form.created }}
+              Valid date: {{ filter.form.registration_date }}
             </div>
-                <button type="submit" class="btn btn-primary">Filter</button>
-    </div>
         </div>
+        <div class="row">
+            <div class="form-group">
+                {{ filter.form.status}}
+            </div>
+        </div>
+        <div class="row text-center">
+                <button type="submit" class="btn btn-primary">Filter</button>
+        </div>
+    </div>
+</div
 </form>
     <table class="table table-striped">
         <caption>Concepts</caption>

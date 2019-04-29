@@ -8,10 +8,13 @@ from django.views.generic import (
     DetailView,
     UpdateView,
 )
+
+
 from django.views.generic.detail import SingleObjectMixin
 from django.core.exceptions import PermissionDenied
 from django.forms.models import modelform_factory
-from django.db import models
+from django.db.models import Subquery
+
 import django_filters
 from django_filters.views import FilterView
 
@@ -27,12 +30,11 @@ from aristotle_mdr.views.utils import (
     UserFormViewMixin
 
 )
-from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
-from aristotle_mdr.forms.utils import BootstrapableMixin
+from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker, BootstrapDropdownSelect
 from aristotle_mdr import perms
 from aristotle_mdr.contrib.validators.views import ValidationRuleEditView
 from aristotle_mdr.contrib.validators.models import RAValidationRules
-
+from aristotle_mdr.managers import StatusQuerySet
 
 
 from ckeditor.widgets import CKEditorWidget
@@ -314,44 +316,42 @@ class RAValidationRuleEditView(SingleObjectMixin, MainPageMixin, ValidationRuleE
 
 
 class ConceptFilter(django_filters.FilterSet):
-    created = django_filters.DateFromToRangeFilter()
+
+    STATUS_CHOICES = MDR.STATES + [(-99, ('Unregistered'))]
+
+    registration_date = django_filters.DateFilter(field_name='statuses__registrationDate',
+                                                  widget=BootstrapDateTimePicker,
+                                                  method='filter_registration_date')
+    status = django_filters.ChoiceFilter(choices=STATUS_CHOICES, field_name='statuses__state')
 
     class Meta:
         model = MDR._concept
-        fields = ['created']
+        exclude = ['created']
 
-        filter_overrides = {
-            models.DateTimeField: {
-               'filter_class': django_filters.DateFromToRangeFilter,
-               'extra': lambda f: {
-                   'widget': BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"})
-               }
-            }
-        }
+    def filter_registration_date(self, queryset, name, value):
+        selected_date = value
+        # Return all the statuses that are valid at a particular date and then
+        # filter on the concepts corresponding to a valid status
+        return queryset.filter(statuses__in=MDR.Status.objects.valid_at_date(when=selected_date))
 
     # Override the primary queryset
     @property
     def qs(self):
-        parent = super(ConceptFilter, self).qs
-
-        # Get statuses associated with a particular Registration Authority
-        statuses = MDR.Status.objects.select_related().filter(registrationAuthority=self.iid)
+        parent = super().qs
 
         # Filter the concepts on those with a particular status associated with the registration authority
-        parent.filter(statuses__in=statuses)
+        return parent.filter(statuses__registrationAuthority=self.registration_authority_id)
 
-        return parent
-
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         # Override the init method so we can pass the iid to the queryset
-        super(ConceptFilter, self).__init__()
-        self.iid = kwargs.get('iid')
+        self.registration_authority_id = kwargs.pop('registration_authority_id')
+        super().__init__(*args, **kwargs)
 
 
-class DateFilterView(FilterView, BootstrapableMixin):
-
+class DateFilterView(FilterView):
     filterset_class = ConceptFilter
     template_name = 'aristotle_mdr/organization/registration_authority/data_dictionary.html'
+
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -363,7 +363,7 @@ class DateFilterView(FilterView, BootstrapableMixin):
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super().get_filterset_kwargs(filterset_class)
         kwargs.update({
-             'iid': self.kwargs['iid']
+             'registration_authority_id': self.kwargs['iid']
          })
 
         return kwargs
