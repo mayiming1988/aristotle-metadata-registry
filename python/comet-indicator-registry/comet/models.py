@@ -41,6 +41,8 @@ class Indicator(MDR.concept):
 
     disaggregation_description = MDR.RichTextField(blank=True)
 
+    quality_statement = ConceptForeignKey("QualityStatement")
+
     rationale = MDR.RichTextField(blank=True)
     benchmark = MDR.RichTextField(blank=True)
     reporting_information = MDR.RichTextField(blank=True)
