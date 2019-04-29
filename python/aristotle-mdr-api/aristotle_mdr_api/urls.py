@@ -20,7 +20,6 @@ urlpatterns = [
     # url(r'^api-token-auth/', tokenviews.obtain_auth_token),
     url(r'^token/', include('aristotle_mdr_api.token_auth.urls', namespace='token_auth')),
     url(r'^$', APIRootView.as_view(), name="aristotle_api_root"),
-
     url(r'^v3/', include('aristotle_mdr_api.v3.urls', namespace='aristotle_mdr_api.v3')),
     url(r'^v4/', include('aristotle_mdr_api.v4.urls', namespace='api_v4')),
 ]

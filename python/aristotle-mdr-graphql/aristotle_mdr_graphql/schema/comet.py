@@ -3,7 +3,6 @@ from comet import models as comet_models
 from aristotle_mdr_graphql.utils import type_from_concept_model, type_from_model, inline_type_from_model
 from graphene_django.filter import DjangoFilterConnectionField
 
-# IndicatorTypeNode = type_from_concept_model(comet_models.IndicatorType)
 IndicatorNode = type_from_concept_model(comet_models.Indicator)
 # IndicatorSetTypeNode = type_from_model(comet_models.IndicatorSetType)
 IndicatorSetNode = type_from_concept_model(comet_models.IndicatorSet)
@@ -18,7 +17,6 @@ IndicatorDisaggregationDefinitionNode = type_from_model(comet_models.IndicatorDi
 
 class Query(object):
 
-    # indicator_types = AristotleConceptFilterConnectionField(IndicatorTypeNode)
     indicators = AristotleConceptFilterConnectionField(IndicatorNode)
     indicator_sets = AristotleConceptFilterConnectionField(IndicatorSetNode)
     # indicator_set_types = AristotleFilterConnectionField(IndicatorSetTypeNode)

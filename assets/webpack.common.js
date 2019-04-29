@@ -8,7 +8,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 var BundleTracker  = require('webpack-bundle-tracker')
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 
-const entries = entry('./src/pages/*.js')
+const entries = entry('./src/pages/*.js', './src/custom/entry/*.js')
 
 module.exports = {
     entry: entries,
@@ -159,7 +159,6 @@ module.exports = {
             'vue$': 'vue/dist/vue.esm.js',
             'src': path.resolve(__dirname, 'src'),
             '@': path.resolve(__dirname, 'src/components'),
-            'cloud_custom': path.resolve(process.env.CLOUD_DIRECTORY_BASE || "src/custom/")
         }
     }
 };
