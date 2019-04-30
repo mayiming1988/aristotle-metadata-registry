@@ -7,64 +7,71 @@
 <form method="get">
     <div class="h4">Data dictionary</div>
     <p>
-            Data dictionary for {{item.stewardship_organisation.name}}/{{ item.name }} (Registration Authority)
-            showing concepts registered as {{status|search_state_to_text }} on <time datetime="{{ date|isotime }}"></time>.
+        Data dictionary for {{item.stewardship_organisation.name}}/{{ item.name }} (Registration Authority)
+        showing concepts registered as {{status|search_state_to_text }} on
+        <time datetime="{{ date|isotime }}"></time>
+        .
     </p>
     <div class="well">
-    <div class="h5 text-center">Select a different date or registration status</div>
+        <div class="h5 text-center">Select a different date or registration status</div>
         <div class="row text-center">
             <div class="form-group col-sm-6 col-md-6">
                 {{ filter.form.registration_date }}
             </div>
             <div class="form-group col-sm-6 col-md-6">
                 {{ filter.form.status}}
-        </div>
+            </div>
         </div>
         <div class="row text-center">
-                <button type="submit" class="btn btn-primary">Filter</button>
+            <button type="submit" class="btn btn-primary">Filter</button>
         </div>
     </div>
-</div
+    </div
 </form>
-    {% if filter.qs.all %}
-    <table class="table table-striped">
-        <caption>Data dictionary of concepts</caption>
-        <tbody>
-        <tr>
-            <th scope="col">
-                Name
-            </th>
-            <th scope="col">
-                Definition
-            </th>
-            <th scope="col">
-                Created
-            </th>
-            <th scope="col">
-                Last modified
-            </th>
-        </tr>
-            {% for concept in filter.qs %}
-                <tr>
-                    <td>
-                        <a href="{% url 'aristotle:item' concept.id %}">{{ concept.name }}</a>
-                    </td>
-                    <td>
-                        {{ concept.definition|striptags|truncatechars:40}}
-                    </td>
-                    <td>
-                        <span class="time"><time datetime="{{ concept.created|isotime }}">{{ concept.created }}</time></span>
-                    </td>
-                    <td>
-                        <time datetime="{{ concept.modified|isotime }}">{{ concept.modified }}</time>
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-        <div class="well">
-             <div class="h4">There were no concepts with your selected parameters</div>
-        </div>
-    {% endif %}
+{% if filter.qs.all %}
+<table class="table table-striped">
+    <caption>Concepts
+        <a href="{{ download_url }} " class='btn btn-default pull-right'>
+            <i class='fa fa-download'></i>
+            Download
+        </a>
+    </caption>
+    <tbody>
+    <tr>
+        <th scope="col">
+            Name
+        </th>
+        <th scope="col">
+            Definition
+        </th>
+        <th scope="col">
+            Created
+        </th>
+        <th scope="col">
+            Last modified
+        </th>
+    </tr>
+    {% for concept in filter.qs %}
+    <tr>
+        <td>
+            <a href="{% url 'aristotle:item' concept.id %}">{{ concept.name }}</a>
+        </td>
+        <td>
+            {{ concept.definition|striptags|truncatechars:40}}
+        </td>
+        <td>
+            <span class="time"><time datetime="{{ concept.created|isotime }}">{{ concept.created }}</time></span>
+        </td>
+        <td>
+            <time datetime="{{ concept.modified|isotime }}">{{ concept.modified }}</time>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="well">
+    <div class="h4">There were no concepts with your selected parameters</div>
+</div>
+{% endif %}
 {% endblock %}

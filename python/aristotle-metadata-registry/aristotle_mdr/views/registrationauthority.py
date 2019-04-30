@@ -322,7 +322,6 @@ class ConceptFilter(django_filters.FilterSet):
     status = django_filters.ChoiceFilter(choices=MDR.STATES,
                                          field_name='statuses__state',
                                          widget=Select(attrs={'class': 'form-control'}))
-
     class Meta:
         model = MDR._concept
         # Exclude unused fields, otherwise they appear in the template
@@ -347,9 +346,6 @@ class ConceptFilter(django_filters.FilterSet):
         self.registration_authority_id = kwargs.pop('registration_authority_id')
         super().__init__(*args, **kwargs)
 
-        # Override the initial status on the Select Dropdown for display purposes
-        self.form.initial['status'] = MDR.STATES.standard # set to Standard
-
 
 class DateFilterView(FilterView, MainPageMixin):
     active_tab = 'data_dictionary'
@@ -370,6 +366,8 @@ class DateFilterView(FilterView, MainPageMixin):
         context['status'] = self.request.GET.get('status', MDR.STATES.standard)
         context['date'] = self.request.GET.get('registration_date', datetime.date.today())
 
+        context['download_url'] = self.build_download_url(context['object_list'])
+
         return context
 
     def get_filterset_kwargs(self, filterset_class):
@@ -383,5 +381,14 @@ class DateFilterView(FilterView, MainPageMixin):
             kwargs["data"] = {"status": MDR.STATES.standard,
                               "registration_date": str(datetime.date.today())}
         return kwargs
+
+    def build_download_url(self, queryset):
+        url = reverse('aristotle:download_options', args={'pdf'})
+        url += '?'
+        for concept in queryset:
+            url += ('items={}&'.format(concept.id))
+        return url[:-1]
+
+
 
 
