@@ -261,6 +261,7 @@ class UpdateVersionPermissionsView(generics.ListAPIView):
         # Get associated versions
         versions = reversion.models.Version.objects.get_for_object(item)
         version_ids = [version.pk for version in versions]
+
         # Get the matching version permissions
         version_permissions = VersionPermissions.objects.filter(pk__in=version_ids)
 
@@ -270,12 +271,12 @@ class UpdateVersionPermissionsView(generics.ListAPIView):
         queryset = self.filter_queryset(self.get_queryset())
 
         serializer = self.get_serializer(queryset, data=request.data, many=True)
+
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
-
         return self.update(request, *args, **kwargs)
 
 

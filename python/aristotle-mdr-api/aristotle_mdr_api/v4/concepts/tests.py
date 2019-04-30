@@ -135,7 +135,7 @@ class ConceptAPITestCase(BaseAPITestCase):
 
     def test_api_updates_version_permissions(self):
 
-        self.login_superuser()
+        self.login_user()
 
         post_data = [{
             "version_id": self.version_with_permission.id,
@@ -169,7 +169,51 @@ class ConceptAPITestCase(BaseAPITestCase):
 
 
     def test_api_can_create_version_permissions(self):
-        pass
+        self.login_user()
+
+        post_data = [{
+            "version_id": self.version_without_permission.id,
+            "visibility" : 2,
+        }]
+
+        response = self.client.post(
+            reverse('api_v4:item:update-version-permissions', args=[self.reversion_item_without_permissions.id]),
+            post_data, format='json'
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        self.assertCountEqual(response.data, post_data, "The response should be the same as the posted data")
+
+        self.assertEqual(
+            int(VersionPermissions.objects.get_object_or_none(version=self.version_without_permission).visibility),
+            2)
+
+
+    def test_api_cant_edit_non_item_version_permissions(self):
+        self.login_user()
+
+        post_data = [
+            {"version_id": self.version_with_permission.id,
+             "visibility": 2},
+            {"version_id": self.version_without_permission.id,
+             "visibility": 0}
+        ]
+
+        response = self.client.post(
+            reverse('api_v4:item:update-version-permissions', args=[self.reversion_item_with_permissions.id]),
+                    post_data, format='json'
+        )
+
+        self.assertEqual(
+            int(VersionPermissions.objects.get_object_or_none(version=self.version_without_permission).visibility),
+            0)
+
+
+
+
+
+
 
 
 
