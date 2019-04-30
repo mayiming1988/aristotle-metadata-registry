@@ -403,8 +403,3 @@ class DateFilterView(FilterView, MainPageMixin):
             options.append({'label': dl.label, 'url': url})
 
         return options
-
-
-
-
-
