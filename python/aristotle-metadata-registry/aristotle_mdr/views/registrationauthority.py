@@ -319,15 +319,14 @@ class ConceptFilter(django_filters.FilterSet):
                                                   widget=BootstrapDateTimePicker,
                                                   method='filter_registration_date')
 
-    STATUS_CHOICES = MDR.STATES + [(-99, ('Unregistered'))]
-    status = django_filters.ChoiceFilter(choices=STATUS_CHOICES,
+    status = django_filters.ChoiceFilter(choices=MDR.STATES,
                                          field_name='statuses__state',
                                          widget=Select(attrs={'class': 'form-control'}))
 
     class Meta:
         model = MDR._concept
         # Exclude unused fields, otherwise they appear in the template
-        exclude = ['created', 'modified']
+        fields = []
 
     def filter_registration_date(self, queryset, name, value):
         selected_date = value
@@ -349,7 +348,7 @@ class ConceptFilter(django_filters.FilterSet):
         super().__init__(*args, **kwargs)
 
         # Override the initial status on the Select Dropdown for display purposes
-        self.form.initial['status'] = 5 # set to Standard
+        self.form.initial['status'] = MDR.STATES.standard # set to Standard
 
 
 class DateFilterView(FilterView, MainPageMixin):
@@ -368,7 +367,7 @@ class DateFilterView(FilterView, MainPageMixin):
         context['item'] = ra
         context['is_manager'] = self.is_manager(ra)
 
-        context['status'] = self.request.GET.get('status', 5)
+        context['status'] = self.request.GET.get('status', MDR.STATES.standard)
         context['date'] = self.request.GET.get('registration_date', datetime.date.today())
 
         return context
@@ -381,9 +380,8 @@ class DateFilterView(FilterView, MainPageMixin):
 
         if kwargs["data"] is None:
             # If there were no selections made in the form, set defaults
-            kwargs["data"] = {"status": 5, # Standard
+            kwargs["data"] = {"status": MDR.STATES.standard,
                               "registration_date": str(datetime.date.today())}
-
         return kwargs
 
 
