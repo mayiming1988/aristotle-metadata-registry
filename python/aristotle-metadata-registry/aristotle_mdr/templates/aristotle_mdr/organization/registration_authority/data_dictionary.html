@@ -31,11 +31,24 @@
 {% if filter.qs.all %}
 <table class="table table-striped">
     <caption>Concepts
-        <a href="{{ download_url }} " class='btn btn-default pull-right'>
-            <i class='fa fa-download'></i>
-            Download
-        </a>
+        <div class="btn-group pull-right">
+            <button id="metadata_action_menu_download" accesskey="d" class="btn btn-default dropdown-toggle"
+                    data-toggle="dropdown">
+                <i class="fa fa-download"></i> Download <span class="caret"></span>
+            </button>
+            {% downloadMenu item %}
+            <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                {% for dl in downloaders %}
+                <li><a href="{{ dl.url }}">
+                    Download as {{dl.label}}
+                </a></li>
+                {% empty %}
+                <li><a><em>No downloads for this item</em></a></li>
+                {% endfor %}
+            </ul>
+        </div>
     </caption>
+
     <tbody>
     <tr>
         <th scope="col">

@@ -12,6 +12,7 @@ from django.views.generic import (
 from django.views.generic.detail import SingleObjectMixin
 from django.core.exceptions import PermissionDenied
 from django.forms.models import modelform_factory
+from django.http.request import QueryDict
 
 import django_filters
 from django_filters.views import FilterView
@@ -30,6 +31,8 @@ from aristotle_mdr.views.utils import (
 )
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 from aristotle_mdr import perms
+from aristotle_mdr.utils import fetch_aristotle_downloaders
+
 from aristotle_mdr.contrib.validators.views import ValidationRuleEditView
 from aristotle_mdr.contrib.validators.models import RAValidationRules
 
@@ -367,7 +370,7 @@ class DateFilterView(FilterView, MainPageMixin):
         context['status'] = self.request.GET.get('status', MDR.STATES.standard)
         context['date'] = self.request.GET.get('registration_date', datetime.date.today())
 
-        context['download_url'] = self.build_download_url(context['object_list'])
+        context['downloaders'] = self.build_downloaders(context['object_list'])
 
         return context
 
@@ -381,9 +384,27 @@ class DateFilterView(FilterView, MainPageMixin):
                               "registration_date": str(datetime.date.today())}
         return kwargs
 
-    def build_download_url(self, queryset):
-        url = reverse('aristotle:download_options', args={'pdf'})
-        url += '?'
-        for concept in queryset:
-            url += ('items={}&'.format(concept.id))
-        return url[:-1]
+    def build_downloaders(self, queryset):
+        downloaders = fetch_aristotle_downloaders()
+
+        options: list = []
+
+        ids = [concept.id for concept in queryset]
+
+        for dl in downloaders:
+            query = QueryDict(mutable=True)
+            query.setlist('items', ids)
+
+            url = '{url}?{qstring}'.format(
+                url=reverse('aristotle:download_options', args=[dl.download_type]),
+                qstring=query.urlencode()
+            )
+
+            options.append({'label': dl.label, 'url': url})
+
+        return options
+
+
+
+
+
