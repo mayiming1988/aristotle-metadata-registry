@@ -322,6 +322,7 @@ class ConceptFilter(django_filters.FilterSet):
     status = django_filters.ChoiceFilter(choices=MDR.STATES,
                                          field_name='statuses__state',
                                          widget=Select(attrs={'class': 'form-control'}))
+
     class Meta:
         model = MDR._concept
         # Exclude unused fields, otherwise they appear in the template
@@ -372,9 +373,7 @@ class DateFilterView(FilterView, MainPageMixin):
 
     def get_filterset_kwargs(self, filterset_class):
         kwargs = super().get_filterset_kwargs(filterset_class)
-        kwargs.update({
-             'registration_authority_id': self.kwargs['iid']
-         })
+        kwargs.update({'registration_authority_id': self.kwargs['iid']})
 
         if kwargs["data"] is None:
             # If there were no selections made in the form, set defaults
@@ -388,7 +387,3 @@ class DateFilterView(FilterView, MainPageMixin):
         for concept in queryset:
             url += ('items={}&'.format(concept.id))
         return url[:-1]
-
-
-
-
