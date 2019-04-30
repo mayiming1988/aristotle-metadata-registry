@@ -485,6 +485,7 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         self.model = item.item.__class__  # Get the subclassed object
         return item
 
+
     # Overwrite this to add item url
     def _get_action_list(self):
         action_list = []

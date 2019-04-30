@@ -6,6 +6,7 @@ from aristotle_mdr_api.v4.permissions import AuthCanViewEdit
 from aristotle_mdr_api.v4.concepts import serializers
 from aristotle_mdr.models import _concept, concept, aristotleComponent, SupersedeRelationship
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
+from aristotle_mdr.perms import user_can_edit
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
 from django.db.models import Q
 from django.conf import settings
@@ -248,7 +249,11 @@ class UpdateVersionPermissionsView(generics.ListAPIView):
 
     def get_queryset(self):
         pk = self.kwargs[self.lookup_url_kwarg]
+
         item = get_object_or_404(_concept, pk=pk).item
+
+        if not user_can_edit(self.request.user, item):
+            raise PermissionError()
 
         # Get associated versions
         versions = reversion.models.Version.objects.get_for_object(item)
@@ -267,6 +272,7 @@ class UpdateVersionPermissionsView(generics.ListAPIView):
         return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
+
         return self.update(request, *args, **kwargs)
 
 
