@@ -70,7 +70,7 @@
             <a href="{% url 'aristotle:item' concept.id %}">{{ concept.name }}</a>
         </td>
         <td>
-            {{ concept.definition|striptags|truncatechars:40}}
+            {{ concept.short_definition }}
         </td>
         <td>
             <span class="time"><time datetime="{{ concept.created|isotime }}">{{ concept.created }}</time></span>
