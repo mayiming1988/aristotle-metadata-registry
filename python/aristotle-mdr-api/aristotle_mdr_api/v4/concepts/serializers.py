@@ -7,6 +7,8 @@ from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.models import _concept, SupersedeRelationship
 from aristotle_mdr_api.v4.serializers import VersionVisibilityPermissionSerializer
 
+import logging
+logger = logging.getLogger(__name__)
 
 class ConceptSerializer(serializers.ModelSerializer):
 
@@ -38,6 +40,11 @@ class VersionPermissionsSerializer(serializers.ModelSerializer):
         model = VersionPermissions
         fields = ('version_id','visibility')
         list_serializer_class = VersionVisibilityPermissionSerializer
+
+    def validate_version_id(self, value):
+        if value not in self.context.get('version_ids'):
+            raise serializers.ValidationError()
+        return value
 
 
 class SupersedeRelationshipSerialiser(serializers.ModelSerializer):

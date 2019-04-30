@@ -252,7 +252,6 @@ class UpdateVersionPermissionsView(generics.ListAPIView):
 
     def get_queryset(self):
         pk = self.kwargs[self.lookup_url_kwarg]
-
         item = get_object_or_404(_concept, pk=pk).item
 
         if not user_can_edit(self.request.user, item):
@@ -260,17 +259,24 @@ class UpdateVersionPermissionsView(generics.ListAPIView):
 
         # Get associated versions
         versions = reversion.models.Version.objects.get_for_object(item)
-        version_ids = [version.pk for version in versions]
+        self.version_ids = [version.pk for version in versions]
 
         # Get the matching version permissions
-        version_permissions = VersionPermissions.objects.filter(pk__in=version_ids)
+        version_permissions = VersionPermissions.objects.filter(pk__in=self.version_ids)
 
         return version_permissions
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({'version_ids': self.version_ids})
+
+        return context
 
     def update(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
-        serializer = self.get_serializer(queryset, data=request.data, many=True)
+        serializer = self.get_serializer(queryset, data=request.data, many=True,
+                                         context={'version_ids':self.version_ids})
 
         serializer.is_valid(raise_exception=True)
         serializer.save()

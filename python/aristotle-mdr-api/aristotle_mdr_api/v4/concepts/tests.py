@@ -205,9 +205,7 @@ class ConceptAPITestCase(BaseAPITestCase):
                     post_data, format='json'
         )
 
-        self.assertEqual(
-            int(VersionPermissions.objects.get_object_or_none(version=self.version_without_permission).visibility),
-            0)
+        self.assertEqual(response.status_code, 400)
 
 
 
