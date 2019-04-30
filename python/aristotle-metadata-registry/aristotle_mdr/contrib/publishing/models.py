@@ -62,7 +62,6 @@ class VersionPermissions(TimeStampedModel):
         return self.version.id
 
 
-
 class PublicationRecord(TimeStampedModel):
     class Meta:
         unique_together = (

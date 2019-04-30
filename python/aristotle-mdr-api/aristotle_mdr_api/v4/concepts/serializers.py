@@ -7,9 +7,6 @@ from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.models import _concept, SupersedeRelationship
 from aristotle_mdr_api.v4.serializers import VersionVisibilityPermissionSerializer
 
-import logging
-logger = logging.getLogger(__name__)
-
 class ConceptSerializer(serializers.ModelSerializer):
 
     absolute_url = serializers.SerializerMethodField('get_the_absolute_url')
