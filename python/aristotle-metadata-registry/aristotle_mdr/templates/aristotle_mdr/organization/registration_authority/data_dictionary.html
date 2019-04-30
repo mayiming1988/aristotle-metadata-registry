@@ -5,19 +5,19 @@
 
 {% block racontent %}
 <form method="get">
-    <div class="h4">Data dictionary </div>
+    <div class="h4">Data dictionary</div>
     <p>
-            {{item.stewardship_organisation.name}}/{{ item.name }} (Registration Authority)
+            Data dictionary for {{item.stewardship_organisation.name}}/{{ item.name }} (Registration Authority)
             showing concepts registered as {{status|search_state_to_text }} on <time datetime="{{ date|isotime }}"></time>.
     </p>
     <div class="well">
     <div class="h5 text-center">Select a different date or registration status</div>
         <div class="row text-center">
             <div class="form-group col-sm-6 col-md-6">
-                <h5>New date:</h5> {{ filter.form.registration_date }}
+                {{ filter.form.registration_date }}
             </div>
             <div class="form-group col-sm-6 col-md-6">
-                <h5>New status:</h5>{{ filter.form.status}}
+                {{ filter.form.status}}
         </div>
         </div>
         <div class="row text-center">
@@ -28,7 +28,7 @@
 </form>
     {% if filter.qs.all %}
     <table class="table table-striped">
-        <caption>Concepts</caption>
+        <caption>Data dictionary of concepts</caption>
         <tbody>
         <tr>
             <th scope="col">
@@ -67,5 +67,4 @@
              <div class="h4">There were no concepts with your selected parameters</div>
         </div>
     {% endif %}
-    </div>
 {% endblock %}
