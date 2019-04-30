@@ -326,7 +326,7 @@ class ConceptFilter(django_filters.FilterSet):
     class Meta:
         model = MDR._concept
         # Exclude unused fields, otherwise they appear in the template
-        fields = []
+        fields:str = []
 
     def filter_registration_date(self, queryset, name, value):
         selected_date = value
