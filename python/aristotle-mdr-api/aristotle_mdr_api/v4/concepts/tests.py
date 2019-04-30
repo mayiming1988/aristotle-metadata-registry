@@ -4,12 +4,15 @@ from django.conf import settings
 from aristotle_mdr import models as mdr_models
 from aristotle_mdr_api.v4.tests import BaseAPITestCase
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
+from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
 
 import reversion
 from reversion.models import Version
 
 import logging
+
 logger = logging.getLogger(__name__)
+
 
 class ConceptAPITestCase(BaseAPITestCase):
 
@@ -37,7 +40,8 @@ class ConceptAPITestCase(BaseAPITestCase):
                 definition="Concept with no permissions",
                 submitter=self.user
             )
-        self.version_without_permission = Version.objects.get_for_object(self.reversion_item_without_permissions).first()
+        self.version_without_permission = Version.objects.get_for_object(
+            self.reversion_item_without_permissions).first()
 
         self.version_with_permission = Version.objects.get_for_object(self.reversion_item_with_permissions).first()
         VersionPermissions.objects.create(version=self.version_with_permission)
@@ -81,7 +85,6 @@ class ConceptAPITestCase(BaseAPITestCase):
         self.assertEqual(len(response.data['edges']), 1)
 
     def test_general_graph_number_of_nodes(self):
-
         self.maximum_number_of_nodes = settings.MAXIMUM_NUMBER_OF_NODES_IN_GENERAL_GRAPHICAL_REPRESENTATION
 
         for i in range(settings.MAXIMUM_NUMBER_OF_NODES_IN_GENERAL_GRAPHICAL_REPRESENTATION):
@@ -119,7 +122,6 @@ class ConceptAPITestCase(BaseAPITestCase):
         self.assertEqual(len(response2.data['edges']), self.maximum_number_of_nodes - 1)
 
     def test_unauthenticated_user_cant_update_version_permissions(self):
-
         self.login_other_user()
 
         post_data = [{
@@ -129,12 +131,11 @@ class ConceptAPITestCase(BaseAPITestCase):
 
         response = self.client.post(
             reverse('api_v4:item:update-version-permissions', args=[self.reversion_item_with_permissions.id]),
-                    post_data, format='json')
+            post_data, format='json')
 
         self.assertEqual(response.status_code, 403)
 
     def test_api_updates_version_permissions(self):
-
         self.login_user()
 
         post_data = [{
@@ -143,7 +144,7 @@ class ConceptAPITestCase(BaseAPITestCase):
         }]
         response = self.client.post(
             reverse('api_v4:item:update-version-permissions', args=[self.reversion_item_with_permissions.id]),
-                    post_data, format='json')
+            post_data, format='json')
 
         self.assertEqual(response.status_code, 200)
 
@@ -158,22 +159,21 @@ class ConceptAPITestCase(BaseAPITestCase):
 
         post_data = [{
             "version_id": self.version_with_permission.id,
-            "visibility": 0,
+            "visibility": VISIBILITY_PERMISSION_CHOICES.public,
         }]
 
         response = self.client.post(
             reverse('api_v4:item:update-version-permissions', args=[self.reversion_item_with_permissions.id]),
-                    post_data, format='json')
+            post_data, format='json')
 
         self.assertEqual(response.status_code, 403)
-
 
     def test_api_can_create_version_permissions(self):
         self.login_user()
 
         post_data = [{
             "version_id": self.version_without_permission.id,
-            "visibility" : 2,
+            "visibility": VISIBILITY_PERMISSION_CHOICES.workgroup,
         }]
 
         response = self.client.post(
@@ -187,40 +187,29 @@ class ConceptAPITestCase(BaseAPITestCase):
 
         self.assertEqual(
             int(VersionPermissions.objects.get_object_or_none(version=self.version_without_permission).visibility),
-            2)
-
+            VISIBILITY_PERMISSION_CHOICES.workgroup)
 
     def test_api_cant_edit_non_item_version_permissions(self):
         self.login_user()
 
         post_data = [
             {"version_id": self.version_with_permission.id,
-             "visibility": 2},
+             "visibility": VISIBILITY_PERMISSION_CHOICES.workgroup},
             {"version_id": self.version_without_permission.id,
-             "visibility": 0}
+             "visibility": VISIBILITY_PERMISSION_CHOICES.workgroup}
         ]
 
         response = self.client.post(
             reverse('api_v4:item:update-version-permissions', args=[self.reversion_item_with_permissions.id]),
-                    post_data, format='json'
+            post_data, format='json'
         )
 
         self.assertEqual(response.status_code, 400)
 
+        # Assert that no visibility object was created in the database
 
+        self.assertIsNone(VersionPermissions.objects.get_object_or_none(version=self.version_without_permission))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        self.assertEqual(int(VersionPermissions.objects.get_object_or_none
+                             (version=self.version_with_permission).visibility),
+                         VISIBILITY_PERMISSION_CHOICES.workgroup)
