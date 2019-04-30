@@ -1,11 +1,12 @@
 from django.urls import reverse
+from django.conf import settings
 
 from aristotle_mdr import models as mdr_models
 from aristotle_mdr_api.v4.tests import BaseAPITestCase
-from django.conf import settings
-
+from aristotle_mdr.contrib.publishing.models import VersionPermissions
 
 import reversion
+from reversion.models import Version
 
 import logging
 logger = logging.getLogger(__name__)
@@ -24,17 +25,22 @@ class ConceptAPITestCase(BaseAPITestCase):
         # Create a new item without version permissions
         with reversion.revisions.create_revision():
             self.reversion_item_without_permissions = mdr_models.ObjectClass.objects.create(
-                name="A published item",
-                definition="test",
-                submitter=self.submitting_user
+                name="A concept without permissions",
+                definition="Concept with no permissions",
+                submitter=self.user
             )
             reversion.revisions.set_comment("First edit")
 
-        raise ValueError(self.reversion_item_without_permissions)
+        with reversion.revisions.create_revision():
+            self.reversion_item_with_permissions = mdr_models.ObjectClass.objects.create(
+                name="A published item",
+                definition="Concept with no permissions",
+                submitter=self.user
+            )
+        self.version_without_permission = Version.objects.get_for_object(self.reversion_item_without_permissions).first()
 
-
-
-
+        self.version_with_permission = Version.objects.get_for_object(self.reversion_item_with_permissions).first()
+        VersionPermissions.objects.create(version=self.version_with_permission)
 
     def test_get_concept(self):
         self.login_user()
@@ -112,6 +118,41 @@ class ConceptAPITestCase(BaseAPITestCase):
         self.assertEqual(len(response2.data['nodes']), self.maximum_number_of_nodes)
         self.assertEqual(len(response2.data['edges']), self.maximum_number_of_nodes - 1)
 
-    def test_updating_version_permissions(self):
-        pass
+    def test_unauthenticated_user_cant_update_version_permissions(self):
+
+        self.login_other_user()
+
+        post_data = {
+            "version_id": self.version_with_permission.id,
+            "visibility": 2
+        }
+        response = self.client.post(
+            reverse('api_v4:item:update-version-permissions', args=[self.reversion_item_with_permissions.id]),
+                    post_data, format='json')
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_api_updates_version_permissions(self):
+
+        self.login_superuser()
+
+        post_data = {
+            "version_id": self.version_with_permission.id,
+            "visibility": 0
+        }
+        response = self.client.post(
+            reverse('api_v4:item:update-version-permissions', args=[self.reversion_item_with_permissions.id]),
+                    post_data, format='json')
+
+        raise ValueError(response)
+        self.assertEqual(response, post_data)
+
+
+
+
+
+
+
+
+
 

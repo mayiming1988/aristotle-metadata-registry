@@ -1,16 +1,19 @@
 from rest_framework import generics
-from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
+
 from aristotle_mdr_api.v4.permissions import AuthCanViewEdit
 from aristotle_mdr_api.v4.concepts import serializers
 from aristotle_mdr.models import _concept, concept, aristotleComponent, SupersedeRelationship
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.perms import user_can_edit
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
+
 from django.db.models import Q
 from django.conf import settings
 from django.shortcuts import get_object_or_404
+from django.core.exceptions import PermissionDenied
+
 import collections
 from re import finditer
 import reversion
@@ -253,7 +256,7 @@ class UpdateVersionPermissionsView(generics.ListAPIView):
         item = get_object_or_404(_concept, pk=pk).item
 
         if not user_can_edit(self.request.user, item):
-            raise PermissionError()
+            raise PermissionDenied()
 
         # Get associated versions
         versions = reversion.models.Version.objects.get_for_object(item)
