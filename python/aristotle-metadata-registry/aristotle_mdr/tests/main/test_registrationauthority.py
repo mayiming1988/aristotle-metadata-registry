@@ -7,7 +7,7 @@ import aristotle_mdr.tests.utils as utils
 
 from aristotle_bg_workers.tasks import register_items
 
-# This is for testing permissions around RA mangement.
+# This is for testing permissions around RA management.
 
 class RACreationTests(utils.LoggedInViewPages,TestCase):
     def test_anon_cannot_create(self):
