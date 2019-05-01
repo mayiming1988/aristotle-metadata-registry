@@ -435,7 +435,6 @@ class AlterBaseOperation(Operation):
         return "Update %s bases to %s" % (self.model_name, self.bases)
 
 
-
 class CustomFieldMover(Operation):
     reduce_to_sql = False
     reversible = True
