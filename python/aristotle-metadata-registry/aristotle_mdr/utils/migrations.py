@@ -436,13 +436,13 @@ class AlterBaseOperation(Operation):
 
 
 
-
 class CustomFieldMover(Operation):
     reduce_to_sql = False
     reversible = True
     atomic = None
 
-    def __init__(self, app_label, model_name, field_name,
+    def __init__(
+        self, app_label, model_name, field_name,
         custom_field_name=None, custom_field_type="str",
         custom_field_kwargs={}
     ):
