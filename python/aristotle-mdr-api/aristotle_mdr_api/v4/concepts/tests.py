@@ -194,7 +194,7 @@ class ConceptAPITestCase(BaseAPITestCase):
 
         post_data = [
             {"version_id": self.version_with_permission.id,
-             "visibility": VISIBILITY_PERMISSION_CHOICES.workgroup},
+             "visibility": VISIBILITY_PERMISSION_CHOICES.public},
             {"version_id": self.version_without_permission.id,
              "visibility": VISIBILITY_PERMISSION_CHOICES.workgroup}
         ]
@@ -210,6 +210,7 @@ class ConceptAPITestCase(BaseAPITestCase):
 
         self.assertIsNone(VersionPermissions.objects.get_object_or_none(version=self.version_without_permission))
 
+        # Check that the other version permissions were not updated
         self.assertEqual(int(VersionPermissions.objects.get_object_or_none
                              (version=self.version_with_permission).visibility),
                          VISIBILITY_PERMISSION_CHOICES.workgroup)
