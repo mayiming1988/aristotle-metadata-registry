@@ -7,6 +7,9 @@ USAGE="Usage: buildandcopy [--manual] [--dry] [--skip-wp] [--help]"
 MANUAL=0
 DRY=0
 SKIP_WEBPACK_BUILD=0
+STORAGE_BUCKET_NAME="aristotle-storage-static-jnkqjasxq3ji"
+ASSET_PATH="https://d3obyunbje7zuy.cloudfront.net/bundles/"
+
 for i in $@; do
     case $i in
         "--manual")
@@ -43,18 +46,8 @@ if [[ "$TRAVIS" == "true" ]] && [[ "$TRAVIS_BRANCH" != "master" || "$TRAVIS_PULL
     exit 0
 fi
 
-if [[ -z "$STORAGE_BUCKET_NAME" ]]; then
-    echo "STORAGE_BUCKET_NAME environment variable must be set"
-    exit 1
-fi
-
 if [[ -z "$CUSTOM_STATIC_BUCKET_NAME" ]]; then
     echo "No custom static buckets, building without"
-fi
-
-if [[ -z "$ASSET_PATH" ]];then 
-    echo "ASSET_PATH environment variable must be set"
-    exit 1
 fi
 
 mkdir -p ./python/aristotle-metadata-registry/aristotle_mdr/manifests
@@ -97,9 +90,9 @@ if [[ $MANUAL -eq 1 ]]; then
     fi
     $PYTHON_CMD setup.py bdist_wheel
     if [[ $DRY -eq 1 ]]; then
-        aws s3 cp ./dist s3://aristotle-pypi-bucket-1kyswb3cn1pa1 --recursive --dry
+        aws s3 cp ./dist s3://aristotle-pypi-bucket-1kyswb3cn1pa1 --recursive --acl public-read --dry
     else
-        aws s3 cp ./dist s3://aristotle-pypi-bucket-1kyswb3cn1pa1 --recursive 
+        aws s3 cp ./dist s3://aristotle-pypi-bucket-1kyswb3cn1pa1 --recursive --acl public-read
     fi
 fi
 
