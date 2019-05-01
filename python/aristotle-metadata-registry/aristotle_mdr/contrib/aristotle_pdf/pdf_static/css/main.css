@@ -1,5 +1,5 @@
 @page {
-    size: {{ pagesize }};
+    size: {{ page_size }};
     @bottom-right {
         content: "Page " counter(page)
                  " of " counter(pages)
