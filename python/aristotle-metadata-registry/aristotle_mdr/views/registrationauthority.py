@@ -336,7 +336,7 @@ class ConceptFilter(django_filters.FilterSet):
 
         # Return all the statuses that are valid at a particular date and then
         # filter on the concepts linked to a valid status
-        return queryset.filter(statuses__in=MDR.Status.objects.valid_at_date(when=selected_date))
+        return queryset.filter(statuses__in=MDR.Status.objects.valid_at_date(when=selected_date)).distinct()
 
     @property
     def qs(self):
