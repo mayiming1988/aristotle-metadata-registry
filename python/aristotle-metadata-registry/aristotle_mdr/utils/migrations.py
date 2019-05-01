@@ -406,6 +406,7 @@ class ConceptMigrationRenameConceptFields(migrations.Migration):
 #         ""+field_name: Subquery(org_val)
 #     })
 
+
 # https://code.djangoproject.com/ticket/23521
 class AlterBaseOperation(Operation):
     reduce_to_sql = False
@@ -432,3 +433,70 @@ class AlterBaseOperation(Operation):
 
     def describe(self):
         return "Update %s bases to %s" % (self.model_name, self.bases)
+
+
+
+
+class CustomFieldMover(Operation):
+    reduce_to_sql = False
+    reversible = True
+    atomic = None
+
+    def __init__(self, app_label, model_name, field_name,
+        custom_field_name=None, custom_field_type="str",
+        custom_field_kwargs={}
+    ):
+        self.app_label = app_label
+        self.model_name = model_name
+        self.field_name = field_name
+        self.custom_field_name = custom_field_name or field_name
+        self.custom_field_type = custom_field_type
+        self.custom_field_kwargs = custom_field_kwargs
+
+    def describe(self):
+        return "Move field to custom field for " % (self.model_name, self.bases)
+
+    def state_forwards(self, app_label, state):
+        pass
+
+    def state_backwards(self, app_label, state):
+        pass
+
+    def database_forwards(self, app_label, schema_editor, from_state, to_state):
+        apps = from_state.apps
+
+        ContentType = apps.get_model('contenttypes', 'ContentType')
+        if ContentType.objects.count() == 0:
+            # Below forces content types to be created for the migrated items
+            # In production, contenttypes should already be loaded
+            from django.contrib.contenttypes.management import create_contenttypes
+            app_config = apps.get_app_config(self.app_label.lower())
+            app_config.models_module = app_config.models_module or True
+            create_contenttypes(app_config)
+
+        CustomField = apps.get_model('aristotle_mdr_custom_fields', 'CustomField')
+        CustomValue = apps.get_model('aristotle_mdr_custom_fields', 'CustomValue')
+
+        ctype = ContentType.objects.get(
+            app_label=self.app_label.lower(),
+            model=self.model_name.lower(),
+        )
+
+        custom_field, c = CustomField.objects.get_or_create(
+            name=self.custom_field_name,
+            type=self.custom_field_type,
+            allowed_model=ctype,
+            defaults=self.custom_field_kwargs
+        )
+        MigratedModel = apps.get_model(self.app_label, self.model_name)
+
+        for obj in MigratedModel.objects.all():
+            if getattr(obj, self.field_name):
+                CustomValue.objects.create(
+                    field=custom_field,
+                    concept=obj,
+                    content=getattr(obj, self.field_name)
+                )
+
+    def database_backwards(self, app_label, schema_editor, from_state, to_state):
+        pass

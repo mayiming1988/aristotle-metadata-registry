@@ -130,6 +130,12 @@
             </div>
             <div class="panel-body">
                 <p>{{ data_element_set.definition | bleach }}</p>
+
+                <ul>
+                    {% for group in data_element_set.linked_group.all %}
+                    <li>{{group.name}}</li>
+                    {% endfor %}
+                </ul>
             </div>
 
             <table class="dssInclusions table table-striped table-condensed">
@@ -165,7 +171,7 @@
                 {% for deinc in data_element_set.dssdeinclusion_set.all %}
                     {% if deinc.data_element.id in viewable_ids %}
                         <tr>
-                            <td>{{ deinc.order|default_if_none:" " }}
+                            <td>{{ deinc.reference|default_if_none:" " }}
                             </td>
                             <td>
                                 {% include "aristotle_mdr/helpers/itemLink.html" with item=deinc.data_element skip_can_view=True %}
