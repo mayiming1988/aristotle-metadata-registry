@@ -378,10 +378,6 @@ class DateFilterView(FilterView, MainPageMixin):
         kwargs = super().get_filterset_kwargs(filterset_class)
         kwargs.update({'registration_authority_id': self.kwargs['iid']})
 
-        if kwargs["data"] is None:
-            # If there were no selections made in the form, set defaults
-            kwargs["data"] = {"status": MDR.STATES.standard,
-                              "registration_date": str(datetime.date.today())}
         return kwargs
 
     def build_downloaders(self, queryset):
