@@ -14,12 +14,12 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_mdr', '0057_auto_20190329_1609'),
+        ('aristotle_mdr', '0059_auto_20190502_1036'),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='OrgainizationRecord',
+            name='OrganizationRecord',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
                 ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
                 ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
                 ('type', models.CharField(choices=[('s', 'Submitting Organization'), ('r', 'Responsible Organization')], max_length=1)),
-                ('concept', aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr._concept')),
+                ('concept', aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='org_records', to='aristotle_mdr._concept')),
                 ('organization_record', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.OrgainizationRecord')),
             ],
             options={
