@@ -49,7 +49,7 @@ class VersionPermissions(TimeStampedModel):
         on_delete=models.CASCADE,
         primary_key=True)
 
-    visibility = models.CharField(
+    visibility = models.IntegerField(
         max_length=20,
         choices=VISIBILITY_PERMISSION_CHOICES,
         default=VISIBILITY_PERMISSION_CHOICES.workgroup)
