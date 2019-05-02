@@ -3,6 +3,12 @@
 {% load aristotle_tags util_tags %}
 {% load static from staticfiles %}
 
+{% load render_bundle from webpack_loader %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'review_impacts' 'js' %}
+{% endblock %}
+
 {% block title %}Review details{{ item.name }}{% endblock %}
 {% block tabpanel %}
 <div role="tabpanel" class="tab-pane active" id="review_impact">
@@ -12,7 +18,7 @@
     related to those in this review are endorsed.
     </div>
   </div>
-  <table class="table">
+  <table class="table" id="item-table" data-promote-url="{% url 'api_v4:reviews:promote_concept' review.registration_authority.id %}">
     <thead>
       <tr>
       <th rowspan=2>Name</th>
@@ -39,7 +45,7 @@
         <td>{{ concept.info.old.old_reg_date }}</td>
         <td>{{ concept.info.new_state.text }}</td>
         <td><time datetime="{{ review.registration_date|isotime }}">{{ review.registration_date }}</time></td>
-        <td><button class="btn btn-sm">Promote</button></td>
+        <td><button class="btn btn-sm promote-button">Promote</button></td>
       </tr>
       {% endfor %}
     </tbody>
