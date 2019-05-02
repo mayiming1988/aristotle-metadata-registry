@@ -18,14 +18,13 @@
     related to those in this review are endorsed.
     </div>
   </div>
-  <table class="table" id="item-table" data-promote-url="{% url 'api_v4:reviews:promote_concept' review.registration_authority.id %}">
+  <table class="table" id="item-table" data-promote-url="{% url 'api_v4:reviews:promote_concept' review.id %}">
     <thead>
       <tr>
       <th rowspan=2>Name</th>
       <th rowspan=2>Type</th>
       <th colspan=2>Previous</th>
       <th colspan=2>New</th>
-        <th rowspan=2>Promote to Items</th>
       </tr>
       <tr>
       <th>State</th>
@@ -45,7 +44,11 @@
         <td>{{ concept.info.old.old_reg_date }}</td>
         <td>{{ concept.info.new_state.text }}</td>
         <td><time datetime="{{ review.registration_date|isotime }}">{{ review.registration_date }}</time></td>
-        <td><button class="btn btn-sm promote-button">Promote</button></td>
+        {% if concept in review.concepts.all %}
+                  <td><button disabled class="btn btn-primary btn-sm promote-button" id="{{ concept.id }}">Promote {{ concept }}</button></td>
+        {% else %}
+        <td><button class="btn btn-primary btn-sm promote-button" id="{{ concept.id }}">Promote {{ concept }}</button></td>
+        {% endif %}
       </tr>
       {% endfor %}
     </tbody>

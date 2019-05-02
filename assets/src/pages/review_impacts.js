@@ -5,13 +5,25 @@ import {addHeaderMessage, initMessages} from 'src/lib/messages.js'
 
 init();
 initMessages();
-$(document).ready(function() {
-    let addButtons = document.getElementsByClassName('promote-button');
 
-    Array.from(classname).forEach(function(element) {
-      element.addEventListener('click', myFunction);
+let addButtons = document.getElementsByClassName('promote-button');
+
+Array.from(addButtons).forEach(function(element) {
+      element.addEventListener('click', promote_to_items);
     });
-});
 
-console.log("ww")
+function promote_to_items() {
+    // From the
+    let tableElement = document.getElementById('item-table')
+    let url = tableElement.getAttribute("data-promote-url")
 
+    let body = {"concept_id" : this.id}
+
+    let params = ''
+    request("PUT", url, body, params).then(
+        () => {
+            addHeaderMessage("Promoting item was succesful!");
+            document.getElementById(this.id).innerText = "Promoted";
+            document.getElementById(this.id).disabled = true;
+        });
+}
