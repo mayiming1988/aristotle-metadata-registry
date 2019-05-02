@@ -22,7 +22,7 @@ function enable_editing() {
 }
 
 function update_visibilities() {
-    let objectElement = document.getElementById("item-table");
+    let objectElement = document.getElementById("change-history");
     let url = objectElement.getAttribute("data-update-api-url");
 
     let visibilitySelects = document.getElementsByClassName('visibility-select');
