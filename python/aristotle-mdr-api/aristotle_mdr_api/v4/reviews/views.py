@@ -1,4 +1,6 @@
 from rest_framework import generics
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
@@ -40,5 +42,11 @@ class ReviewUpdateAndCommentView(generics.UpdateAPIView):
             raise PermissionDenied
         return obj
 
-class PromoteImpactedItemToItemsView(generics.UpdateAPIView):
+
+class PromoteImpactedItemToReviewItemsView(APIView):
+    def put(self, request, *args, **kwargsx):
+        return Response({"api_is_up": "yes"})
+
+
+class RemoveItemFromReviewItemsView(APIView):
     pass

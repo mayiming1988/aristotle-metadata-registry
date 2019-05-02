@@ -132,17 +132,6 @@ class ReviewDetailsView(ReviewActionMixin, DetailView):
         return context
 
 
-class ReviewListItemsView(ReviewActionMixin, DetailView):
-    template_name = "aristotle_mdr/reviews/review/list.html"
-    active_tab_name = "itemlist"
-
-    def get_context_data(self, *args, **kwargs):
-        # Call the base implementation first to get a context
-        context = super().get_context_data(*args, **kwargs)
-        context['next'] = self.request.GET.get('next', reverse('aristotle_reviews:userReadyForReview'))
-        return context
-
-
 class ReviewUpdateView(ReviewActionMixin, UpdateView):
     template_name = "aristotle_mdr/reviews/review/update.html"
     form_class = forms.RequestReviewUpdateForm
@@ -386,6 +375,16 @@ class ReviewIssuesView(ReviewActionMixin, TemplateView):
 
         return context
 
+class ReviewListItemsView(ReviewActionMixin, DetailView):
+    template_name = "aristotle_mdr/reviews/review/list.html"
+    active_tab_name = "itemlist"
+
+    def get_context_data(self, *args, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(*args, **kwargs)
+        context['next'] = self.request.GET.get('next', reverse('aristotle_reviews:userReadyForReview'))
+        return context
+
 
 class ReviewImpactView(ReviewActionMixin, TemplateView):
     pk_url_kwarg = 'review_id'
@@ -397,6 +396,7 @@ class ReviewImpactView(ReviewActionMixin, TemplateView):
         # Call the base implementation first to get a context
         context = super().get_context_data(*args, **kwargs)
         review = self.get_review()
+
         if review.cascade_registration:
             # Get the affected items
             queryset = cascade_items_queryset(items=review.concepts.all())
