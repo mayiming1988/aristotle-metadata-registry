@@ -31,7 +31,8 @@
                 <time datetime="{{ item.modified|isotime }}">{{ item.modified }}</time>
             </td>
             <td>
-                <button class="btn btn-danger btn-sm remove-button" id="{{ item.id }}">Remove</button>
+                <button class="btn btn-danger remove-button btn-sm" id="{{ item.id }}"
+                      title="Remove {{ item.name }} from this review">Remove</button>
             </td>
         </tr>
         {% endfor %}
