@@ -49,6 +49,9 @@ class PromoteImpactedItemToReviewItemsView(APIView):
     def put(self, request, *args, **kwargs):
         review_request = get_object_or_404(ReviewRequest, pk=kwargs.get('pk'))
 
+        if not review_request.can_edit(request.user):
+            raise PermissionDenied
+
         concept_id = int(request.data['concept_id'])
         review_request.concepts.add(MDR._concept.objects.get(pk=concept_id))
 
@@ -58,6 +61,9 @@ class PromoteImpactedItemToReviewItemsView(APIView):
 class RemoveItemFromReviewItemsView(APIView):
     def put(self, request, *args, **kwargs):
         review_request = get_object_or_404(ReviewRequest, pk=kwargs.get('pk'))
+
+        if not review_request.can_edit(request.user):
+            raise PermissionDenied
 
         concept_id = int(request.data['concept_id'])
         review_request.concepts.remove(MDR._concept.objects.get(pk=concept_id))
