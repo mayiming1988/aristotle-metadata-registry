@@ -796,11 +796,11 @@ class _concept(baseAristotleObject):
 
     @property
     def submitting_organizations(self):
-        self.org_records.filter(type='s')
+        return self.org_records.all().filter(type='s')
 
     @property
     def responsible_organizations(self):
-        self.org_records.filter(type='r')
+        return self.org_records.all().filter(type='r')
 
     @classmethod
     def get_autocomplete_name(self):
