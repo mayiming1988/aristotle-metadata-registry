@@ -183,6 +183,7 @@ class Framework(MDR.concept):
             parent=None
         )
 
+
 class FrameworkDimension(MPTTModel, TimeStampedModel, aristotleComponent):
 
     objects = FrameworkDimensionManager()

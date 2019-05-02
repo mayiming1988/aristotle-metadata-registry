@@ -1,15 +1,19 @@
 from rest_framework import generics
-from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
+
 from aristotle_mdr_api.v4.permissions import AuthCanViewEdit
 from aristotle_mdr_api.v4.concepts import serializers
 from aristotle_mdr.models import _concept, concept, aristotleComponent, SupersedeRelationship
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
+from aristotle_mdr.perms import user_can_edit
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
+
 from django.db.models import Q
 from django.conf import settings
 from django.shortcuts import get_object_or_404
+from django.core.exceptions import PermissionDenied
+
 import collections
 from re import finditer
 import reversion
@@ -250,18 +254,30 @@ class UpdateVersionPermissionsView(generics.ListAPIView):
         pk = self.kwargs[self.lookup_url_kwarg]
         item = get_object_or_404(_concept, pk=pk).item
 
+        if not user_can_edit(self.request.user, item):
+            raise PermissionDenied()
+
         # Get associated versions
         versions = reversion.models.Version.objects.get_for_object(item)
-        version_ids = [version.pk for version in versions]
+        self.version_ids = [version.pk for version in versions]
+
         # Get the matching version permissions
-        version_permissions = VersionPermissions.objects.filter(pk__in=version_ids)
+        version_permissions = VersionPermissions.objects.filter(pk__in=self.version_ids)
 
         return version_permissions
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({'version_ids': self.version_ids})
+
+        return context
 
     def update(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
-        serializer = self.get_serializer(queryset, data=request.data, many=True)
+        serializer = self.get_serializer(queryset, data=request.data, many=True,
+                                         context={'version_ids':self.version_ids})
+
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
