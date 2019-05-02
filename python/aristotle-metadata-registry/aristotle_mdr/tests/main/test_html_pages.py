@@ -400,7 +400,6 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
     @tag('version')
     def test_display_version_concept_info(self):
         self.item.references = '<p>refs</p>'
-        self.item.responsible_organisation = 'My org'
 
         with reversion.create_revision():
             self.item.save()
@@ -418,10 +417,6 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertFalse(names_and_refs['References'].is_link)
         self.assertTrue(names_and_refs['References'].is_html)
         self.assertEqual(names_and_refs['References'].value, '<p>refs</p>')
-
-        self.assertFalse(names_and_refs['Responsible Organisation'].is_link)
-        self.assertFalse(names_and_refs['Responsible Organisation'].is_html)
-        self.assertEqual(names_and_refs['Responsible Organisation'].value, 'My org')
 
     def test_display_item_histroy_without_wg(self):
         self.item.workgroup = None

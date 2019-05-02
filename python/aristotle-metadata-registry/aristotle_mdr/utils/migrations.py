@@ -473,6 +473,11 @@ class CustomFieldMover(Operation):
             app_config.models_module = app_config.models_module or True
             create_contenttypes(app_config)
 
+        # Only add custom field if there are any items
+        MigratedModel = apps.get_model(self.app_label, self.model_name)
+        if MigratedModel.objects.count() == 0:
+            return
+
         CustomField = apps.get_model('aristotle_mdr_custom_fields', 'CustomField')
         CustomValue = apps.get_model('aristotle_mdr_custom_fields', 'CustomValue')
 
@@ -487,7 +492,6 @@ class CustomFieldMover(Operation):
             allowed_model=ctype,
             defaults=self.custom_field_kwargs
         )
-        MigratedModel = apps.get_model(self.app_label, self.model_name)
 
         for obj in MigratedModel.objects.all():
             if getattr(obj, self.field_name):
