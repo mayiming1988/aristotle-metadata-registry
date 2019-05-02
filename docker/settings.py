@@ -11,8 +11,7 @@ ALLOWED_HOSTS = ["*"]
 DEBUG = os.environ.get('DJANGO_DEBUG', False) == "True"
 ARISTOTLE_SETTINGS['SITE_NAME'] = 'Aristotle Development Server'
 ARISTOTLE_SETTINGS['DOWNLOADERS'] = [
-    # TODO: Why isn't this working?
-    # 'aristotle_pdf.downloader.PDFDownloader'
+    'aristotle_mdr.contrib.aristotle_pdf.downloader.PDFDownloader'
 ]
 
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
