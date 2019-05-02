@@ -220,6 +220,10 @@ class Organization(registryGroup):
         return url_slugify_organization(self)
 
 
+class OrganizationRecord(ManagedItem):
+    """A record of an organization"""
+
+
 RA_ACTIVE_CHOICES = Choices(
     (0, 'active', _('Active & Visible')),
     (1, 'inactive', _('Inactive & Visible')),
@@ -560,6 +564,7 @@ class Workgroup(AbstractGroup, TimeStampedModel):
 
     definition = RichTextField(
         _('definition'),
+        null=True, blank=True,
         help_text=_("Representation of a concept by a descriptive statement "
                     "which serves to differentiate it from related concepts. (3.2.39)")
     )
@@ -656,12 +661,6 @@ class DiscussionComment(discussionAbstract):
         return self.body
 
 
-# class ReferenceDocument(models.Model):
-#     url = models.URLField()
-#     definition = models.TextField()
-#     object = models.ForeignKey(managedObject)
-
-
 class _concept(baseAristotleObject):
     """
     9.1.2.1 - Concept class
@@ -710,8 +709,6 @@ class _concept(baseAristotleObject):
         help_text=_("Descriptive comments about the metadata item (8.1.2.2.3.4)"),
         blank=True
     )
-    submitting_organisation = ShortTextField(blank=True)
-    responsible_organisation = ShortTextField(blank=True)
 
     superseded_by_items = ConceptManyToManyField(  # 11.5.3.4
         'self',
@@ -789,6 +786,14 @@ class _concept(baseAristotleObject):
     def short_definition(self):
         stripped = strip_tags(self.definition)
         return truncate_words(stripped, 20)
+
+    @property
+    def submitting_organizations(self):
+        return self.org_records.all().filter(type='s')
+
+    @property
+    def responsible_organizations(self):
+        return self.org_records.all().filter(type='r')
 
     @classmethod
     def get_autocomplete_name(self):
@@ -992,6 +997,21 @@ class SupersedeRelationship(TimeStampedModel):
     objects = models.Manager()
     approved = SupersedesManager()  # Only non proposed relationships can be retrieved here
     proposed_objects = ProposedSupersedesManager()  # Only proposed objects can be retrieved here
+
+
+class RecordRelation(TimeStampedModel):
+    """Link between a concept and an orgainization record"""
+    TYPE_CHOICES = Choices(
+        ('s', 'Submitting Organization'),
+        ('r', 'Responsible Organization'),
+    )
+
+    concept = ConceptForeignKey(_concept, related_name='org_records')
+    organization_record = models.ForeignKey(OrganizationRecord)
+    type = models.CharField(
+        choices=TYPE_CHOICES,
+        max_length=1,
+    )
 
 
 REVIEW_STATES = Choices(

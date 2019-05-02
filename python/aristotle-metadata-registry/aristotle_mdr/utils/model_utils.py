@@ -36,6 +36,7 @@ class baseAristotleObject(TimeStampedModel):
     )
     definition = RichTextField(
         _('definition'),
+        null=True, blank=True,
         help_text=_("Representation of a concept by a descriptive statement "
                     "which serves to differentiate it from related concepts. (3.2.39)")
     )

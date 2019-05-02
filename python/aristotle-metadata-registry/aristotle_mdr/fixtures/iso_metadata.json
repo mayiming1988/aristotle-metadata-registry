@@ -450,9 +450,7 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
       "symbol": "cm",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -464,9 +462,7 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
       "symbol": "mm",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -478,9 +474,7 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
       "symbol": "Celsius",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -492,9 +486,7 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
       "symbol": "s",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -506,9 +498,7 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
       "symbol": "min",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -520,9 +510,7 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
       "symbol": "h",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -534,9 +522,7 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
       "symbol": "D",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -548,9 +534,7 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
       "symbol": "Y",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -562,9 +546,7 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
       "symbol": "g",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -576,9 +558,7 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
       "symbol": "Kg",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -590,8 +570,6 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -602,8 +580,6 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -614,8 +590,6 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -626,8 +600,6 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -638,8 +610,6 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",

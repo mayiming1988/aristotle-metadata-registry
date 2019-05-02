@@ -136,22 +136,14 @@ class ConceptWizardPage(HaystackReindexMixin, utils.AristotleTestUtils):
         step_2_data = {
             self.wizard_form_name+'-current_step': 'results',
             'results-name':"Test Item",
+            'results-definition':"Test Definition",
         }
         management_forms = utils.get_management_forms(self.model, item_is_model=True, slots=True)
         step_2_data.update(management_forms)
         step_2_data.update(self.extra_step2_data)
 
-        response = self.client.post(self.wizard_url, step_2_data)
-        wizard = response.context['wizard']
-        self.assertTrue('definition' in wizard['form'].errors.keys())
-        # NOWG self.assertTrue('workgroup' in wizard['form'].errors.keys())
-
-        # no "test item" yet.
-        self.assertFalse(models._concept.objects.filter(name="Test Item").exists())
-
-        # must submit a definition at this step. But we are using a non-permitted workgroup.
+        # But we are using a non-permitted workgroup.
         step_2_data.update({
-            'results-definition':"Test Definition",
             'results-workgroup':self.wg2.id
             })
         response = self.client.post(self.wizard_url, step_2_data)
@@ -643,19 +635,11 @@ class DataElementConceptAdvancedWizardPage(HaystackReindexMixin, utils.Aristotle
         step_3_data = {
             self.wizard_form_name+'-current_step': 'make_oc',
             'make_oc-name':"Animagus",
+            'make_oc-definition':"A wizard who can change shape.",
         }
 
-        response = self.client.post(self.wizard_url, step_3_data)
-        wizard = response.context['wizard']
-        self.assertTrue('definition' in wizard['form'].errors.keys())
-        # NOWG self.assertTrue('workgroup' in wizard['form'].errors.keys())
-
-        # no "test item" yet.
-        self.assertFalse(models._concept.objects.filter(name="Test Item").exists())
-
-        # must submit a definition at this step. But we are using a non-permitted workgroup.
+        # we are using a non-permitted workgroup.
         step_3_data.update({
-            'make_oc-definition':"A wizard who can change shape.",
             'make_oc-workgroup':self.wg2.id
             })
         response = self.client.post(self.wizard_url, step_3_data)
@@ -663,7 +647,7 @@ class DataElementConceptAdvancedWizardPage(HaystackReindexMixin, utils.Aristotle
         self.assertEqual(response.status_code, 200)
         self.assertTrue('workgroup' in wizard['form'].errors.keys())
 
-        # must submit a definition at this step. With the right workgroup
+        # With the right workgroup
         step_3_data.update({
             'make_oc-workgroup':self.wg1.id
             })
@@ -676,27 +660,17 @@ class DataElementConceptAdvancedWizardPage(HaystackReindexMixin, utils.Aristotle
         step_4_data = {
             self.wizard_form_name+'-current_step': 'make_p',
             'make_p-name':"Animal type",
-        }
-
-        response = self.client.post(self.wizard_url, step_4_data)
-        wizard = response.context['wizard']
-        self.assertTrue('definition' in wizard['form'].errors.keys())
-        # NOWG self.assertTrue('workgroup' in wizard['form'].errors.keys())
-
-        # no "test item" yet.
-        self.assertFalse(models._concept.objects.filter(name="Test Item").exists())
-
-        # must submit a definition at this step. But we are using a non-permitted workgroup.
-        step_4_data.update({
             'make_p-definition':"A wizard who can change shape.",
             'make_p-workgroup':self.wg2.pk
-            })
+        }
+
+        # we are using a non-permitted workgroup.
         response = self.client.post(self.wizard_url, step_4_data)
         wizard = response.context['wizard']
         self.assertEqual(response.status_code, 200)
         self.assertTrue('workgroup' in wizard['form'].errors.keys())
 
-        # must submit a definition at this step. With the right workgroup
+        # With the right workgroup
         step_4_data.update({
             'make_p-workgroup':self.wg1.pk
             })
@@ -718,7 +692,6 @@ class DataElementConceptAdvancedWizardPage(HaystackReindexMixin, utils.Aristotle
         wizard = response.context['wizard']
         self.assertEqual(response.status_code, 200)
         self.assertTrue('name' in wizard['form'].errors.keys())
-        self.assertTrue('definition' in wizard['form'].errors.keys())
         # NOWG self.assertTrue('workgroup' in wizard['form'].errors.keys())
 
         # must submit a name and definition at this step. But we are using a non-permitted workgroup.
@@ -942,19 +915,11 @@ class DataElementAdvancedWizardPage(HaystackReindexMixin, utils.LoggedInViewPage
         step_3_data = {
             self.wizard_form_name+'-current_step': 'make_dec',
             'make_dec-name':"Animagus--Animal type",
+            'make_dec-definition':"The record of the shape a wizard can change into.",
         }
 
-        response = self.client.post(self.wizard_url, step_3_data)
-        wizard = response.context['wizard']
-        self.assertTrue('definition' in wizard['form'].errors.keys())
-        # NOWG self.assertTrue('workgroup' in wizard['form'].errors.keys())
-
-        # no "test item" yet.
-        self.assertFalse(models.DataElementConcept.objects.filter(name="Animagus--Animal type").exists())
-
-        # must submit a definition at this step. But we are using a non-permitted workgroup.
+        # we are using a non-permitted workgroup.
         step_3_data.update({
-            'make_dec-definition':"The record of the shape a wizard can change into.",
             'make_dec-workgroup':self.wg2.pk
             })
         response = self.client.post(self.wizard_url, step_3_data)
@@ -962,7 +927,7 @@ class DataElementAdvancedWizardPage(HaystackReindexMixin, utils.LoggedInViewPage
         self.assertEqual(response.status_code, 200)
         self.assertTrue('workgroup' in wizard['form'].errors.keys())
 
-        # must submit a definition at this step. With the right workgroup
+        # With the right workgroup
         step_3_data.update({
             'make_dec-workgroup':self.wg1.id
             })
@@ -977,19 +942,11 @@ class DataElementAdvancedWizardPage(HaystackReindexMixin, utils.LoggedInViewPage
         step_4_data = {
             self.wizard_form_name+'-current_step': 'find_de_results',
             'find_de_results-name':"Animagus--Animal type, MoM Code",
+            'find_de_results-definition':"The record of the shape a wizard can change into.",
         }
 
-        response = self.client.post(self.wizard_url, step_4_data)
-        wizard = response.context['wizard']
-        self.assertTrue('definition' in wizard['form'].errors.keys())
-        # NOWG self.assertTrue('workgroup' in wizard['form'].errors.keys())
-
-        # no "test item" yet.
-        self.assertFalse(models.DataElement.objects.filter(name="Animagus--Animal type, MoM Code").exists())
-
-        # must submit a definition at this step. But we are using a non-permitted workgroup.
+        # we are using a non-permitted workgroup.
         step_4_data.update({
-            'find_de_results-definition':"The record of the shape a wizard can change into.",
             'find_de_results-workgroup':self.wg2.pk
             })
         response = self.client.post(self.wizard_url, step_4_data)
@@ -997,7 +954,7 @@ class DataElementAdvancedWizardPage(HaystackReindexMixin, utils.LoggedInViewPage
         self.assertEqual(response.status_code, 200)
         self.assertTrue('workgroup' in wizard['form'].errors.keys())
 
-        # must submit a definition at this step. With the right workgroup
+        # With the right workgroup
         step_4_data.update({
             'find_de_results-workgroup':self.wg1.pk
             })
