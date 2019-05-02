@@ -3,16 +3,22 @@
 {% load aristotle_tags util_tags %}
 {% load static from staticfiles %}
 
+{% load render_bundle from webpack_loader %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'review_impacts' 'js' %}
+{% endblock %}
+
 {% block title %}Review details{{ item.name }}{% endblock %}
 {% block tabpanel %}
 <div role="tabpanel" class="tab-pane active" id="review_impact">
   <div class="panel">
     <div class="panel-body">
-    Below is a full list of metadata that has will be registered, if all items
+      Below is a full list of metadata that has will be registered, <i>if</i> all items
     related to those in this review are endorsed.
     </div>
   </div>
-  <table class="table">
+  <table class="table" id="item-table" data-promote-url="{% url 'api_v4:reviews:promote_concept' review.id %}">
     <thead>
       <tr>
       <th rowspan=2>Name</th>
@@ -38,6 +44,11 @@
         <td>{{ concept.info.old.old_reg_date }}</td>
         <td>{{ concept.info.new_state.text }}</td>
         <td><time datetime="{{ review.registration_date|isotime }}">{{ review.registration_date }}</time></td>
+        {% if concept in review.concepts.all %}
+                  <td><button disabled class="btn btn-primary btn-sm promote-button" id="{{ concept.id }}">Promote {{ concept }}</button></td>
+        {% else %}
+        <td><button class="btn btn-primary btn-sm promote-button" id="{{ concept.id }}">Promote {{ concept }}</button></td>
+        {% endif %}
       </tr>
       {% endfor %}
     </tbody>

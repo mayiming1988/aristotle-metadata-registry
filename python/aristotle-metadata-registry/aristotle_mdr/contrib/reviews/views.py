@@ -1,25 +1,22 @@
 from typing import List, Dict, Any
 from django.conf import settings
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
-from django.forms import modelformset_factory
 from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import redirect, get_object_or_404
-from django.urls import reverse
-from django.utils.decorators import method_decorator
+
 from django.utils.module_loading import import_string
 from django.utils import timezone
 from django.forms import modelformset_factory
-# from django.views.generic import ListView, TemplateView, DeleteView
 from django.urls import reverse
+
 from django.views.generic import (
     DetailView,
-    ListView,
-    UpdateView,
-    FormView,
     TemplateView,
     CreateView,
     UpdateView
@@ -129,17 +126,6 @@ class ReviewDetailsView(ReviewActionMixin, DetailView):
         context = super().get_context_data(*args, **kwargs)
         # context['next'] = self.request.GET.get('next', reverse('aristotle_reviews:userReadyForReview'))
         context['can_accept_review'] = self.review.status == models.REVIEW_STATES.open and perms.user_can_approve_review(self.request.user, self.review)
-        return context
-
-
-class ReviewListItemsView(ReviewActionMixin, DetailView):
-    template_name = "aristotle_mdr/reviews/review/list.html"
-    active_tab_name = "itemlist"
-
-    def get_context_data(self, *args, **kwargs):
-        # Call the base implementation first to get a context
-        context = super().get_context_data(*args, **kwargs)
-        context['next'] = self.request.GET.get('next', reverse('aristotle_reviews:userReadyForReview'))
         return context
 
 
@@ -387,6 +373,17 @@ class ReviewIssuesView(ReviewActionMixin, TemplateView):
         return context
 
 
+class ReviewListItemsView(ReviewActionMixin, DetailView):
+    template_name = "aristotle_mdr/reviews/review/list.html"
+    active_tab_name = "itemlist"
+
+    def get_context_data(self, *args, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(*args, **kwargs)
+        context['next'] = self.request.GET.get('next', reverse('aristotle_reviews:userReadyForReview'))
+        return context
+
+
 class ReviewImpactView(ReviewActionMixin, TemplateView):
     pk_url_kwarg = 'review_id'
     template_name = "aristotle_mdr/reviews/review/impact.html"
@@ -397,9 +394,12 @@ class ReviewImpactView(ReviewActionMixin, TemplateView):
         # Call the base implementation first to get a context
         context = super().get_context_data(*args, **kwargs)
         review = self.get_review()
+
         if review.cascade_registration:
+            # Get the affected items
             queryset = cascade_items_queryset(items=review.concepts.all())
         else:
+            # Get all related items
             queryset = review.concepts.all()
         extra_info, any_higher = get_status_change_details(queryset, review.registration_authority, review.state)
 

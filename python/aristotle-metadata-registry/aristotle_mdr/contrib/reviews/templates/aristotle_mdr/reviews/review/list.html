@@ -2,12 +2,19 @@
 {% load i18n humanize %}
 {% load aristotle_tags util_tags %}
 {% load static from staticfiles %}
+{% load render_bundle from webpack_loader %}
+
+
+{% block webpack_bundle %}
+  {% render_bundle 'review_items' 'js' %}
+{% endblock %}
+
 
 {% block title %}Review details - items {{ item.name }}{% endblock %}
 {% block tabpanel %}
           <div role="tabpanel" class="tab-pane active" id="review_items">
-            <h3>Items current listed for this review</h3>
-            <table>
+            <table class="table table-striped" id="item-table" data-remove-url="{% url 'api_v4:reviews:remove_concept' review.id %}">
+              <caption>Items currently listed for this review</caption>
               <tr>
               <th>
                 Item Details
@@ -21,6 +28,9 @@
                     </td>
                     <td>
                       <time datetime="{{ item.modified|isotime }}">{{ item.modified }}</time>
+                    </td>
+                    <td>
+                      <button class="btn btn-sm remove-button" id="{{ item.id }}">Remove</button>
                     </td>
                   </tr>
                 {% endfor %}
