@@ -13,6 +13,7 @@
                 Item Details
               </th>
               <th>Last Modified</th>
+                <th>Remove</th>
               </tr>
                 {% for item in review.concepts.all %}
                   <tr>
@@ -21,6 +22,9 @@
                     </td>
                     <td>
                       <time datetime="{{ item.modified|isotime }}">{{ item.modified }}</time>
+                    </td>
+                    <td>
+                      <button class="btn btn-sm">Remove</button>
                     </td>
                   </tr>
                 {% endfor %}
