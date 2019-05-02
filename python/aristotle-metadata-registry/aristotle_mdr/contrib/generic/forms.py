@@ -114,6 +114,19 @@ def one_to_many_formset_filters(formset, item):
                 if issubclass(form._meta.model, DSSDEInclusion):
                     form.fields['group'].queryset = groups_queryset
 
+                if issubclass(form._meta.model, DSSGrouping):
+                    form.fields['linked_group'].queryset = groups_queryset
+
+    if 'comet' in settings.INSTALLED_APPS:
+        from comet.models import Framework, FrameworkDimension
+        if isinstance(item, Framework):
+            # Only show the dimensions related to this Framework
+            fd_queryset = FrameworkDimension.objects.filter(framework=item)
+
+            for form in my_forms:
+                if issubclass(form._meta.model, FrameworkDimension):
+                    form.fields['parent'].queryset = fd_queryset
+
     formset.filtered_empty_form = my_forms.pop()
 
     return formset

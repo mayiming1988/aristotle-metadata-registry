@@ -347,8 +347,14 @@ class TestFavouritesMigration(MigrationsTestCase, TestCase):
 class TestLinkRootMigration(MigrationsTestCase, TestCase):
 
     app = 'aristotle_mdr_links'
-    migrate_from = '0006_link_root_item'
-    migrate_to = '0007_migrate_root_item'
+    migrate_from = [
+        ('aristotle_mdr','0046_auto_20181107_0433'),
+        ('aristotle_mdr_links','0006_link_root_item'),
+    ]
+    migrate_to = [
+        ('aristotle_mdr','0046_auto_20181107_0433'),
+        ('aristotle_mdr_links','0007_migrate_root_item'),
+    ]
 
     def setUpBeforeMigration(self, apps):
         objectclass = apps.get_model('aristotle_mdr', 'ObjectClass')

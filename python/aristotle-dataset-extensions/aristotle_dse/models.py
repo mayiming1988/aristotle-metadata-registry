@@ -225,30 +225,17 @@ class DataSetSpecification(aristotle.models.concept):
     clone_fields = ['dssclusterinclusion_set', 'dssdeinclusion_set', 'groups']
 
     template = "aristotle_dse/concepts/dataSetSpecification.html"
-    ordered = models.BooleanField(
-        default=False,
-        help_text=_("Indicates if the ordering for a dataset is must match exactly the order laid out in the specification.")
-        )
+
     statistical_unit = ConceptForeignKey(
         aristotle.models._concept,
         related_name='statistical_unit_of',
         blank=True,
         null=True,
-        help_text=_("A Statistic Unit is this Object Class that is recorded against each entry described by this specification"),
+        help_text=_("A Statistical Unit is the Object Class that is recorded against each entry described by this specification"),
         verbose_name='Statistical Unit'
         )
     collection_method = aristotle.models.RichTextField(
         blank=True,
-        help_text=_('')
-        )
-    implementation_start_date = models.DateField(
-        blank=True,
-        null=True,
-        help_text=_('')
-        )
-    implementation_end_date = models.DateField(
-        blank=True,
-        null=True,
         help_text=_('')
         )
 
@@ -306,6 +293,11 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         ordering = ['order']
 
     inline_field_layout = 'list'
+    reference = models.CharField(
+        max_length=512,
+        null=True, blank=True,
+        help_text=_("Optional field for refering to this item within the DSS.")
+    )
 
     dss = ConceptForeignKey(DataSetSpecification)
     maximum_occurances = models.PositiveIntegerField(
@@ -356,6 +348,9 @@ class DSSGrouping(aristotle.models.aristotleComponent):
     definition = RichTextField(
         _('definition'),
         blank=True,
+    )
+    linked_group = models.ManyToManyField(
+        'self', blank=True, symmetrical=False
     )
     order = models.PositiveSmallIntegerField(
         "Position",

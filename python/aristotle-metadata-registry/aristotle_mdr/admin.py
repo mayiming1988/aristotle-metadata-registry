@@ -22,6 +22,7 @@ from aristotle_mdr.register import register_concept
 from aristotle_mdr.utils import fetch_aristotle_settings
 
 reversion.revisions.register(MDR.Status)
+reversion.revisions.register(MDR.RecordRelation)
 reversion.revisions.register(
     MDR._concept,
     follow=[
