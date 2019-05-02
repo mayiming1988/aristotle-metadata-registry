@@ -49,21 +49,13 @@ class VersionPermissions(TimeStampedModel):
         on_delete=models.CASCADE,
         primary_key=True)
 
-    visibility = models.CharField(
+    visibility = models.IntegerField(
         max_length=20,
         choices=VISIBILITY_PERMISSION_CHOICES,
         default=VISIBILITY_PERMISSION_CHOICES.workgroup)
 
     def __str__(self):
         return "Version is: {}  and permissions are: {}".format(str(self.version), str(self.visibility))
-
-    def can_view(self):
-        return True
-        # TODO implement API permissions
-
-    def can_edit(self):
-        return True
-        # TODO implement API permissions
 
     @property
     def id(self):
