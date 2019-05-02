@@ -17,9 +17,6 @@ from django.urls import reverse
 
 from django.views.generic import (
     DetailView,
-    ListView,
-    UpdateView,
-    FormView,
     TemplateView,
     CreateView,
     UpdateView
