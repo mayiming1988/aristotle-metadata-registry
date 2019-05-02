@@ -186,7 +186,7 @@ class ConceptAPITestCase(BaseAPITestCase):
         self.assertCountEqual(response.data, post_data, "The response should be the same as the posted data")
 
         self.assertEqual(
-            int(VersionPermissions.objects.get_object_or_none(version=self.version_without_permission).visibility),
+            VersionPermissions.objects.get_object_or_none(version=self.version_without_permission).visibility,
             VISIBILITY_PERMISSION_CHOICES.workgroup)
 
     def test_api_cant_edit_non_item_version_permissions(self):
@@ -211,6 +211,6 @@ class ConceptAPITestCase(BaseAPITestCase):
         self.assertIsNone(VersionPermissions.objects.get_object_or_none(version=self.version_without_permission))
 
         # Check that the other version permissions were not updated
-        self.assertEqual(int(VersionPermissions.objects.get_object_or_none
-                             (version=self.version_with_permission).visibility),
+        self.assertEqual(VersionPermissions.objects.get_object_or_none
+                             (version=self.version_with_permission).visibility,
                          VISIBILITY_PERMISSION_CHOICES.workgroup)
