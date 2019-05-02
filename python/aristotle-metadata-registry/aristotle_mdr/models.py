@@ -220,7 +220,7 @@ class Organization(registryGroup):
         return url_slugify_organization(self)
 
 
-class OrgainizationRecord(ManagedItem):
+class OrganizationRecord(ManagedItem):
     """A record of an organization"""
 
 
@@ -1014,7 +1014,7 @@ class RecordRelation(TimeStampedModel):
     )
 
     concept = ConceptForeignKey(_concept, related_name='org_records')
-    organization_record = models.ForeignKey(OrgainizationRecord)
+    organization_record = models.ForeignKey(OrganizationRecord)
     type = models.CharField(
         choices=TYPE_CHOICES,
         max_length=1,
