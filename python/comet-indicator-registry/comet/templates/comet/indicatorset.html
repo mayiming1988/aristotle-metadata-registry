@@ -3,14 +3,16 @@
 
 {% block objSpecific %}
     {% if item.indicatorinclusion_set.exists %}
-    <h3>Indicators:</h3>
-    <table class="table">
-        <thead>
-            <th>Name</th>
-            <th>ID</th>
-            <th>Indicator</th>
-        </thead>
-        <tbody>
+        <h3>Indicators:</h3>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>ID</th>
+                <th>Indicator</th>
+            </tr>
+            </thead>
+            <tbody>
             {% for inc in item.indicatorinclusion_set.all %}
                 <tr>
                     <td>{{inc.name}}</td>
@@ -27,7 +29,7 @@
                     </td>
                 </tr>
             {% endfor %}
-        </tbody>
-    </table>
+            </tbody>
+        </table>
     {% endif %}
 {% endblock %}

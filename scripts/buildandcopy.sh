@@ -1,11 +1,15 @@
 #!/bin/bash
 set -e
 PYTHON_CMD="python3"
+USAGE="Usage: buildandcopy [--manual] [--dry] [--skip-wp] [--help]"
 
 # Basic flag arg parsing
 MANUAL=0
 DRY=0
 SKIP_WEBPACK_BUILD=0
+STORAGE_BUCKET_NAME="aristotle-storage-static-jnkqjasxq3ji"
+ASSET_PATH="https://d3obyunbje7zuy.cloudfront.net/bundles/"
+
 for i in $@; do
     case $i in
         "--manual")
@@ -19,10 +23,14 @@ for i in $@; do
         "--skip-wp")
         SKIP_WEBPACK_BUILD=1
         ;;
+        "--help")
+        echo "$USAGE"
+        exit 0
+        ;;
     esac
 done
 
-
+# Check environment is set correctly
 if ! [[ -z "$DISABLE_COLLECTSTATIC" ]]; then
     echo "Collectstatic disabled"
     exit 0
@@ -38,14 +46,8 @@ if [[ "$TRAVIS" == "true" ]] && [[ "$TRAVIS_BRANCH" != "master" || "$TRAVIS_PULL
     exit 0
 fi
 
-if [[ -z "$STORAGE_BUCKET_NAME" ]]; then
-    echo "STORAGE_BUCKET_NAME environment variable must be set"
-    exit 1
-fi
-
-if [[ -z "$ASSET_PATH" ]];then 
-    echo "ASSET_PATH environment variable must be set"
-    exit 1
+if [[ -z "$CUSTOM_STATIC_BUCKET_NAME" ]]; then
+    echo "No custom static buckets, building without"
 fi
 
 mkdir -p ./python/aristotle-metadata-registry/aristotle_mdr/manifests
@@ -55,6 +57,10 @@ if [[ $SKIP_WEBPACK_BUILD -ne 1 ]]; then
     echo "Running webpack build..."
     # Remove stats if it exists
     rm -f ./dist/webpack-stats.json
+    # Fetch custom static
+    if [[ ! -z "$CUSTOM_STATIC_BUCKET_NAME" ]]; then
+        aws s3 cp s3://$CUSTOM_STATIC_BUCKET_NAME/static ./src/custom --recursive
+    fi
     npm install
     npm run build
     echo "Webpack build complete!"
@@ -84,9 +90,9 @@ if [[ $MANUAL -eq 1 ]]; then
     fi
     $PYTHON_CMD setup.py bdist_wheel
     if [[ $DRY -eq 1 ]]; then
-        aws s3 cp ./dist s3://aristotle-pypi-bucket-1kyswb3cn1pa1 --recursive --dry
+        aws s3 cp ./dist s3://aristotle-pypi-bucket-1kyswb3cn1pa1 --recursive --acl public-read --dry
     else
-        aws s3 cp ./dist s3://aristotle-pypi-bucket-1kyswb3cn1pa1 --recursive 
+        aws s3 cp ./dist s3://aristotle-pypi-bucket-1kyswb3cn1pa1 --recursive --acl public-read
     fi
 fi
 

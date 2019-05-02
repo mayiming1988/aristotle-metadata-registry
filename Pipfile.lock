@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "4d74a1ba4dd3af3b2753dab3b70b494f3a25a362d613c5a257f024406f0a6346"
+            "sha256": "ffc54cd35ce4f5a6e2f813b1a77054f1eab390bb971d0f1ed3b77c2fe0ac4355"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -314,6 +314,14 @@
                 "sha256:8cd377744aa45f9f131d652ec460c57d1aaa88d3e9b586c8e27eb709341b9084"
             ],
             "version": "==3.1.2"
+        },
+        "django-mptt": {
+            "hashes": [
+                "sha256:6bf9eb26e54e92006ca82108a1c946c7df533ec27bddf3f795a83a32a3d1b04b",
+                "sha256:c765c1501dd0b5c22f0ca8b948550bd294cd2db68aefa0560c6ed7fcfdf4b95e"
+            ],
+            "index": "pypi",
+            "version": "==0.10.0"
         },
         "django-notifications-hq": {
             "hashes": [
@@ -633,9 +641,9 @@
         },
         "pyrsistent": {
             "hashes": [
-                "sha256:3ca82748918eb65e2d89f222b702277099aca77e34843c5eb9d52451173970e2"
+                "sha256:5403d37f4d55ff4572b5b5676890589f367a9569529c6f728c11046c4ea4272b"
             ],
-            "version": "==0.14.11"
+            "version": "==0.15.1"
         },
         "python-magic": {
             "hashes": [
@@ -1019,10 +1027,10 @@
         },
         "pbr": {
             "hashes": [
-                "sha256:8257baf496c8522437e8a6cfe0f15e00aedc6c0e0e7c9d55eeeeab31e0853843",
-                "sha256:8c361cc353d988e4f5b998555c88098b9d5964c2e11acf7b0d21925a66bb5824"
+                "sha256:6901995b9b686cb90cceba67a0f6d4d14ae003cd59bc12beb61549bdfbe3bc89",
+                "sha256:d950c64aeea5456bbd147468382a5bb77fe692c13c9f00f0219814ce5b642755"
             ],
-            "version": "==5.1.3"
+            "version": "==5.2.0"
         },
         "pprintpp": {
             "hashes": [
@@ -1033,10 +1041,10 @@
         },
         "premailer": {
             "hashes": [
-                "sha256:27bde883086afdf66af6368b11a44b57622de185b24484a4b4aab641d5271fd9",
-                "sha256:e636c4e98646582d81f12da1d7dfd012f6cecbd195e60c27292fea3f7bddc4d1"
+                "sha256:06f227702bd76a82da851f45af4c0831abfdf6555134faa8ffb1ea10e118f834",
+                "sha256:e8ad94c32dc1b3f1fe21f6bf9912ec10149e99106d097463ac6955fb49f84668"
             ],
-            "version": "==3.4.0"
+            "version": "==3.4.1"
         },
         "psycopg2": {
             "hashes": [

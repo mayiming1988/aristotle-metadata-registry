@@ -39,6 +39,8 @@ class AristotleResolver(object):
                     return retval
                 else:
                     return None
+            if isinstance(retval, link_models.LinkEnd) or isinstance(retval, link_models.Link):
+                return retval
 
             return None
 
