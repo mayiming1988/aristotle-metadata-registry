@@ -220,6 +220,10 @@ class Organization(registryGroup):
         return url_slugify_organization(self)
 
 
+class OrganizationRecord(ManagedItem):
+    """A record of an organization"""
+
+
 RA_ACTIVE_CHOICES = Choices(
     (0, 'active', _('Active & Visible')),
     (1, 'inactive', _('Inactive & Visible')),
@@ -783,6 +787,14 @@ class _concept(baseAristotleObject):
         stripped = strip_tags(self.definition)
         return truncate_words(stripped, 20)
 
+    @property
+    def submitting_organizations(self):
+        return self.org_records.all().filter(type='s')
+
+    @property
+    def responsible_organizations(self):
+        return self.org_records.all().filter(type='r')
+
     @classmethod
     def get_autocomplete_name(self):
         return 'Autocomplete' + "".join(
@@ -985,6 +997,21 @@ class SupersedeRelationship(TimeStampedModel):
     objects = models.Manager()
     approved = SupersedesManager()  # Only non proposed relationships can be retrieved here
     proposed_objects = ProposedSupersedesManager()  # Only proposed objects can be retrieved here
+
+
+class RecordRelation(TimeStampedModel):
+    """Link between a concept and an orgainization record"""
+    TYPE_CHOICES = Choices(
+        ('s', 'Submitting Organization'),
+        ('r', 'Responsible Organization'),
+    )
+
+    concept = ConceptForeignKey(_concept, related_name='org_records')
+    organization_record = models.ForeignKey(OrganizationRecord)
+    type = models.CharField(
+        choices=TYPE_CHOICES,
+        max_length=1,
+    )
 
 
 REVIEW_STATES = Choices(
