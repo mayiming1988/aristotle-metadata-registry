@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
                 ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
                 ('type', models.CharField(choices=[('s', 'Submitting Organization'), ('r', 'Responsible Organization')], max_length=1)),
                 ('concept', aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='org_records', to='aristotle_mdr._concept')),
-                ('organization_record', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.OrgainizationRecord')),
+                ('organization_record', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.OrganizationRecord')),
             ],
             options={
                 'abstract': False,
