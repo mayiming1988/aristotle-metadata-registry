@@ -56,13 +56,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         return rep
 
 
-class ReviewConceptsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ReviewRequest
-        fields =  ('concepts')
-
-
-
 class ReviewTimelineMixin:
     def validate_request(self, value):
         if not user_can_view(self.context['request'].user, value):
