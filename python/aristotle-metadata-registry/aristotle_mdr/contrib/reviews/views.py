@@ -372,6 +372,7 @@ class ReviewIssuesView(ReviewActionMixin, TemplateView):
 
         return context
 
+
 class ReviewListItemsView(ReviewActionMixin, DetailView):
     template_name = "aristotle_mdr/reviews/review/list.html"
     active_tab_name = "itemlist"
