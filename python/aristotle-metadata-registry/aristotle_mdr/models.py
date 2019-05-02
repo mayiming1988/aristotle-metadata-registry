@@ -794,6 +794,14 @@ class _concept(baseAristotleObject):
         stripped = strip_tags(self.definition)
         return truncate_words(stripped, 20)
 
+    @property
+    def submitting_organizations(self):
+        self.org_records.filter(type='s')
+
+    @property
+    def responsible_organizations(self):
+        self.org_records.filter(type='r')
+
     @classmethod
     def get_autocomplete_name(self):
         return 'Autocomplete' + "".join(
@@ -1005,7 +1013,7 @@ class RecordRelation(TimeStampedModel):
         ('r', 'Responsible Organization'),
     )
 
-    concept = ConceptForeignKey(_concept)
+    concept = ConceptForeignKey(_concept, related_name='org_records')
     organization_record = models.ForeignKey(OrgainizationRecord)
     type = models.CharField(
         choices=TYPE_CHOICES,

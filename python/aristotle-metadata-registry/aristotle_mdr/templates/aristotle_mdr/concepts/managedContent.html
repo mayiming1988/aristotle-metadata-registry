@@ -27,7 +27,7 @@
                 {{ item.origin|bleach }}
             {% endif %}
 
-            {% if item.references or item.submitting_organisation or item.reponsible_organisation %}
+            {% if item.references %}
                 <div>
                     <h2>References</h2>
                     {% if item.references %}
@@ -40,15 +40,18 @@
                 </div>
             {% endif %}
 
-            {% if item.submitting_organisation or item.reponsible_organisation %}
-                    {% if item.submitting_organisation %}
-                        <h3>Submitting Organisation</h3>
-                        <p>{{ item.submitting_organisation }}</p>
-                    {% endif %}
-                    {% if item.responsible_organisation %}
-                        <h3>Responsible Organisation</h3>
-                        <p>{{ item.responsible_organisation }}</p>
-                    {% endif %}
+            {% if item.submitting_organizations %}
+                <h3>Submitting Organizations</h3>
+                {% for org in item.submitting_organizations %}
+                <p>{{ org.name }}</p>
+                {% endfor %}
+            {% endif %}
+
+            {% if item.responsible_organizations %}
+                <h3>Responsible Organizations</h3>
+                {% for org in item.responsible_organizations %}
+                <p>{{ org.name }}</p>
+                {% endfor %}
             {% endif %}
 
             {% if custom_values %}
