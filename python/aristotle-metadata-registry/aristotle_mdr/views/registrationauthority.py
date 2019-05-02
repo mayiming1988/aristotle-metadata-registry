@@ -382,6 +382,7 @@ class DateFilterView(FilterView, MainPageMixin):
             # If there were no selections made in the form, set defaults
             kwargs["data"] = {"status": MDR.STATES.standard,
                               "registration_date": str(datetime.date.today())}
+
         return kwargs
 
     def build_downloaders(self, queryset):
