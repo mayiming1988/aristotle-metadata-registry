@@ -560,6 +560,7 @@ class Workgroup(AbstractGroup, TimeStampedModel):
 
     definition = RichTextField(
         _('definition'),
+        null=True, blank=True,
         help_text=_("Representation of a concept by a descriptive statement "
                     "which serves to differentiate it from related concepts. (3.2.39)")
     )
@@ -656,12 +657,6 @@ class DiscussionComment(discussionAbstract):
         return self.body
 
 
-# class ReferenceDocument(models.Model):
-#     url = models.URLField()
-#     definition = models.TextField()
-#     object = models.ForeignKey(managedObject)
-
-
 class _concept(baseAristotleObject):
     """
     9.1.2.1 - Concept class
@@ -710,8 +705,6 @@ class _concept(baseAristotleObject):
         help_text=_("Descriptive comments about the metadata item (8.1.2.2.3.4)"),
         blank=True
     )
-    submitting_organisation = ShortTextField(blank=True)
-    responsible_organisation = ShortTextField(blank=True)
 
     superseded_by_items = ConceptManyToManyField(  # 11.5.3.4
         'self',
