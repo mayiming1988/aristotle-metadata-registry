@@ -13,16 +13,21 @@ Array.from(removeButtons).forEach(function(element) {
     });
 
 function remove_from_items() {
-    let tableElement = document.getElementById('item-table')
-    let url = tableElement.getAttribute("data-remove-url")
+    let response = confirm("Are you sure you want to remove this item from the review? This" +
+        " action is permanent.")
 
-    let body = {"concept_id" : this.id}
+    if (response == true) {
+        let tableElement = document.getElementById('item-table')
+        let url = tableElement.getAttribute("data-remove-url")
 
-    let params = ''
-    request("PUT", url, body, params).then(
-        () => {
-            addHeaderMessage("Removing item was succesful!");
-            document.getElementById(this.id).innerText = "Removed";
-            document.getElementById(this.id).disabled = true;
-        });
+        let body = {"concept_id": this.id}
+
+        let params = ''
+        request("PUT", url, body, params).then(
+            () => {
+                addHeaderMessage("Removing item was succesful!");
+                document.getElementById(this.id).innerText = "Removed";
+                document.getElementById(this.id).disabled = true;
+            });
+    }
 }
