@@ -1,18 +1,21 @@
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 from django.urls import reverse
+from django.forms import Select
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
-
 from django.views.generic import (
     CreateView,
     ListView,
     DetailView,
     UpdateView,
-    TemplateView
 )
 from django.views.generic.detail import SingleObjectMixin
 from django.core.exceptions import PermissionDenied
 from django.forms.models import modelform_factory
+from django.http.request import QueryDict
+
+import django_filters
+from django_filters.views import FilterView
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.forms import actions
@@ -24,12 +27,19 @@ from aristotle_mdr.views.utils import (
     MemberRemoveFromGroupView,
     AlertFieldsMixin,
     UserFormViewMixin
+
 )
+from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 from aristotle_mdr import perms
+from aristotle_mdr.utils import fetch_aristotle_downloaders
+
 from aristotle_mdr.contrib.validators.views import ValidationRuleEditView
 from aristotle_mdr.contrib.validators.models import RAValidationRules
 
 from ckeditor.widgets import CKEditorWidget
+
+import datetime
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -305,3 +315,92 @@ class RAValidationRuleEditView(SingleObjectMixin, MainPageMixin, ValidationRuleE
             context['url'] = reverse('api_v4:ra_rules', args=[context['rules'].id])
             context['method'] = 'put'
         return context
+
+
+class ConceptFilter(django_filters.FilterSet):
+    registration_date = django_filters.DateFilter(field_name='statuses__registrationDate',
+                                                  widget=BootstrapDateTimePicker,
+                                                  method='filter_registration_date')
+
+    status = django_filters.ChoiceFilter(choices=MDR.STATES,
+                                         field_name='statuses__state',
+                                         widget=Select(attrs={'class': 'form-control'}))
+
+    class Meta:
+        model = MDR._concept
+        # Exclude unused fields, otherwise they appear in the template
+        fields: list = []
+
+    def filter_registration_date(self, queryset, name, value):
+        selected_date = value
+
+        # Return all the statuses that are valid at a particular date and then
+        # filter on the concepts linked to a valid status
+        return queryset.filter(statuses__in=MDR.Status.objects.valid_at_date(when=selected_date)).distinct()
+
+    @property
+    def qs(self):
+        # Override the primary queryset to restrict to specific Registration Authority on page
+        parent = super().qs
+
+        return parent.filter(statuses__registrationAuthority=self.registration_authority_id)
+
+    def __init__(self, *args, **kwargs):
+        # Override the init method so we can pass the iid to the queryset
+        self.registration_authority_id = kwargs.pop('registration_authority_id')
+        super().__init__(*args, **kwargs)
+
+
+class DateFilterView(FilterView, MainPageMixin):
+    active_tab = 'data_dictionary'
+
+    filterset_class = ConceptFilter
+    template_name = 'aristotle_mdr/organization/registration_authority/data_dictionary.html'
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+
+        context.update(self.get_tab_context())
+
+        # Need to pass the ra context for use in building links in the template
+        ra = MDR.RegistrationAuthority.objects.get(id=self.kwargs['iid'])
+        context['item'] = ra
+        context['is_manager'] = self.is_manager(ra)
+
+        context['status'] = self.request.GET.get('status', MDR.STATES.standard)
+        context['date'] = self.request.GET.get('registration_date', datetime.date.today())
+
+        context['downloaders'] = self.build_downloaders(context['object_list'])
+
+        return context
+
+    def get_filterset_kwargs(self, filterset_class):
+        kwargs = super().get_filterset_kwargs(filterset_class)
+        kwargs.update({'registration_authority_id': self.kwargs['iid']})
+
+        if kwargs["data"] is None:
+            # If there were no selections made in the form, set defaults
+            kwargs["data"] = {"status": MDR.STATES.standard,
+                              "registration_date": str(datetime.date.today())}
+
+        return kwargs
+
+    def build_downloaders(self, queryset):
+        downloaders = fetch_aristotle_downloaders()
+
+        options: list = []
+
+        ids = [concept.id for concept in queryset]
+
+        for dl in downloaders:
+            query = QueryDict(mutable=True)
+            query.setlist('items', ids)
+
+            url = '{url}?{qstring}'.format(
+                url=reverse('aristotle:download_options', args=[dl.download_type]),
+                qstring=query.urlencode()
+            )
+
+            options.append({'label': dl.label, 'url': url})
+
+        return options

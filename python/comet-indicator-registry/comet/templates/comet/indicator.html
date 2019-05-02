@@ -2,180 +2,199 @@
 {% load aristotle_tags util_tags %}
 
 {% block extra_head_scripts %}
-<style>
-  .seemore {
-    float:right;
-    font-size:90%;
-  }
+    <style>
+        .seemore {
+            float:right;
+            font-size:90%;
+        }
 
-  .indicator_box {
-    display: flex;
-    flex-wrap: wrap;
-  }
-  .indicator_box > * {
-    flex-grow: 1;
-    flex-basis: 15em;
-    word-wrap: break-word;
-  }
+        .indicator_box {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .indicator_box > * {
+            flex-grow: 1;
+            flex-basis: 15em;
+            word-wrap: break-word;
+        }
 
-  .numerator {
-    padding-bottom: 5px;
-  }
-  .numerator .text {
-    vertical-align: bottom;
-  }
+        .numerator {
+            padding-bottom: 5px;
+        }
+        .numerator .text {
+            vertical-align: bottom;
+        }
 
-  .fraction .vinculum {
-    border-top: 1px solid #ddd;
-    margin: 0px 5px 15px;
-    overflow: visible;
-  }
-  .fraction .vinculum:after {
-    content: '/';
-    text-align: center;
-    display: block;
-    background: white;
-    margin: -0.75em 48%;
-    color: #888;
-  }
+        .fraction .vinculum {
+            border-top: 1px solid #ddd;
+            margin: 0px 5px 15px;
+            overflow: visible;
+        }
+        .fraction .vinculum:after {
+            content: '/';
+            text-align: center;
+            display: block;
+            background: white;
+            margin: -0.75em 48%;
+            color: #888;
+        }
 
-</style>
+    </style>
 {% endblock %}
 
 {% block objSpecific %}
 
-<div class="indicator_box">
-  <div class="fraction panel panel-info aristotle-display-panel">
-    <header class="panel-heading">Numerator</header>
-    <div class="panel-body">
-      <div class="dividend numerator">
-        <div class="text">
-          {% if item.numerator_description %}
-          {{ item.numerator_description | bleach }}
-          {% else %}
-          No description available
-          {% endif %}
+    <div class="indicator_box">
+        <div class="fraction panel panel-info aristotle-display-panel">
+            <header class="panel-heading">Numerator</header>
+            <div class="panel-body">
+                <div class="dividend numerator">
+                    <div class="text">
+                        {% if item.numerator_description %}
+                            {{ item.numerator_description | bleach }}
+                        {% else %}
+                            No description available
+                        {% endif %}
+                    </div>
+                    {% if item.numerator_description or item.indicatornumeratordefinition_set.exists %}
+                        <a class="seemore" href="#numerators">See more</a>
+                    {% endif %}
+                </div>
+            </div>
+            <hr class="vinculum">
+            <header class="panel-heading">Denominator</header>
+            <div class="panel-body">
+                <div class="dividend denominator">
+                    <div class="text">
+                        {% if item.denominator_description %}
+                            {{ item.denominator_description | bleach }}
+                        {% else %}
+                            No description available
+                        {% endif %}
+                    </div>
+                    {% if item.denominator_description or item.indicatordenominatordefinition_set.exists %}
+                        <a class="seemore" href="#denominators">See more</a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
+        <div class="computation panel panel-info aristotle-display-panel">
+            <header class="panel-heading">Computation</header>
+            <div class="panel-body">
+                <div class="computation">
+                    {% if item.computation %}
+                        {{ item.computation | bleach | truncatewords_html:80  }}
+                    {% elif item.computation_description %}
+                        {{ item.computation_description | bleach | truncatewords_html:60  }}
+                    {% else %}
+                        <em>No computation details</em>
+                    {% endif %}
+                </div>
+                {% if item.computation or item.computation_description %}
+                    <a class="seemore" href="#computation">See more</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="disaggregation panel panel-info aristotle-display-panel">
+            <header class="panel-heading">Disaggregation</header>
+            <div class="panel-body">
+                <div>{{ item.disaggregation_description | bleach | truncatewords_html:80 }}</div>
+                {% if item.disaggregation_description or item.indicatordisaggregationdefinition_set.exists %}
+                    <a class="seemore" href="#disaggregation">See more</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if item.outcome_areas.all.exists %}
+        <h2>Outcome Areas</h2>
+        <ul>
+            {% for outcome in item.outcome_areas.all %}
+                {% if outcome.id in viewable_ids %}
+                    <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=outcome showType=False skip_can_view=True %}</li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if item.quality_statement %}
+        <h2>Quality Statement</h2>
+        {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item.quality_statement showType=False skip_can_view=True %}
+    {% endif %}
+
+
+    {% if item.dimensions.exists %}
+        <h2>Dimensions</h2>
+        <ul>
+            {% for dimension in item.dimensions.all %}
+                {% if dimension.framework.id in viewable_ids %}
+                    <li>
+                        {% include "comet/helpers/dimension_link.html" with item=dimension showType=False skip_can_view=True %}
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if item.rationale %}
+        <h2>Rationale</h2>
+        <p>{{ item.rationale | bleach }}</p>
+    {% endif %}
+
+    <h2>Calculation rules</h2>
+    <div class="container">
+        <div class="row" id="computation">
+            <div class="col-sm-2">
+                <header class="h4">Computation Rule</header>
+            </div>
+            <div class="col-sm-9">
+                <dl>
+                    <dt>Computation</dt>
+                    {% if item.computation %}
+                        <dd><div class="computation well">{{ item.computation | bleach }}</div></dd>
+                    {% endif %}
+                    <dt>Description</dt>
+                    <dd>
+                        {{ item.computation_description | bleach }}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
         {% if item.numerator_description or item.indicatornumeratordefinition_set.exists %}
-        <a class="seemore" href="#numerators">See more</a>
+            <div class="row" id="numerators">
+                <div class="col-sm-2">
+                    <header class="h4">Numerators</header>
+                </div>
+                <div class="col-sm-9">
+                    {{ item.numerator_description | bleach  }}
+                    {% include "comet/helpers/indicator_component_item.html" with queryset=item.indicatornumeratordefinition_set.all %}
+                </div>
+            </div>
         {% endif %}
-      </div>
-    </div>
-    <hr class="vinculum">
-    <header class="panel-heading">Denominator</header>
-    <div class="panel-body">
-      <div class="dividend denominator">
-        <div class="text">
-          {% if item.denominator_description %}
-          {{ item.denominator_description | bleach }}
-          {% else %}
-          No description available
-          {% endif %}
-        </div>
         {% if item.denominator_description or item.indicatordenominatordefinition_set.exists %}
-        <a class="seemore" href="#denominators">See more</a>
+            <div class="row" id="denominators">
+                <div class="col-sm-2">
+                    <header class="h4">Denominators</header>
+                </div>
+                <div class="col-sm-9">
+                    {{ item.denominator_description | bleach }}
+                    {% include "comet/helpers/indicator_component_item.html" with queryset=item.indicatordenominatordefinition_set.all %}
+                </div>
+            </div>
         {% endif %}
-      </div>
-    </div>
-  </div>
-  <div class="computation panel panel-info aristotle-display-panel">
-    <header class="panel-heading">Computation</header>
-    <div class="panel-body">
-      <div class="computation">
-        {% if item.computation %}
-          {{ item.computation | bleach | truncatewords_html:80  }}
-        {% elif item.computation_description %}
-          {{ item.computation_description | bleach | truncatewords_html:60  }}
-        {% else %}
-          <em>No computation details</em>
+        {% if item.disaggregation_description or item.indicatordisaggregationdefinition_set.exists %}
+            <div class="row" id="disaggregation">
+                <div class="col-sm-2">
+                    <header class="h4">Disaggregation</header>
+                </div>
+                <div class="col-sm-9">
+                    {{ item.disaggregation_description|bleach }}
+                    {% include "comet/helpers/indicator_component_item.html" with queryset=item.indicatordisaggregationdefinition_set.all %}
+                </div>
+            </div>
         {% endif %}
-      </div>
-      {% if item.computation or item.computation_description %}
-        <a class="seemore" href="#computation">See more</a>
-      {% endif %}
-    </div>
-  </div>
-  <div class="disaggregation panel panel-info aristotle-display-panel">
-    <header class="panel-heading">Disaggregation</header>
-    <div class="panel-body">
-      <div>{{ item.disaggregation_description | bleach | truncatewords_html:80 }}</div>
-      {% if item.disaggregation_description or item.indicatordisaggregationdefinition_set.exists %}
-      <a class="seemore" href="#disaggregation">See more</a>
-      {% endif %}
-    </div>
-  </div>
-</div>
 
-{% if item.outcome_areas.all.exists %}
-<h2>Outcome Areas</h2>
-<ul>
-{% for outcome in item.outcome_areas.all %}
-  {% if outcome.id in viewable_ids %}
-    <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=outcome showType=False skip_can_view=True %}</li>
-  {% endif %}
-{% endfor %}
-</ul>
-{% endif %}
-
-{% if item.rationale %}
-<h2>Rationale</h2>
-<p>{{ item.rationale | bleach }}</p>
-{% endif %}
-
-<h2>Calculation rules</h2>
-<div class="container">
-  <div class="row" id="computation">
-    <div class="col-sm-2">
-      <header class="h4">Computation Rule</header>
     </div>
-    <div class="col-sm-9">
-        <dl>
-          <dt>Computation</dt>
-          {% if item.computation %}
-          <dd><div class="computation well">{{ item.computation | bleach }}</div></dd>
-          {% endif %}
-          <dt>Description</dt>
-          <dd>
-          {{ item.computation_description | bleach }}
-          </dd>
-        </dl>
-    </div>
-  </div>
-
-  {% if item.numerator_description or item.indicatornumeratordefinition_set.exists %}
-  <div class="row" id="numerators">
-    <div class="col-sm-2">
-      <header class="h4">Numerators</header>
-    </div>
-    <div class="col-sm-9">
-        {{ item.numerator_description | bleach  }}
-        {% include "comet/helpers/indicator_component_item.html" with queryset=item.indicatornumeratordefinition_set.all %}
-    </div>
-  </div>
-  {% endif %}
-  {% if item.denominator_description or item.indicatordenominatordefinition_set.exists %}
-  <div class="row" id="denominators">
-    <div class="col-sm-2">
-      <header class="h4">Denominators</header>
-    </div>
-    <div class="col-sm-9">
-        {{ item.denominator_description | bleach }}
-        {% include "comet/helpers/indicator_component_item.html" with queryset=item.indicatordenominatordefinition_set.all %}
-    </div>
-  </div>
-  {% endif %}
-  {% if item.disaggregation_description or item.indicatordisaggregationdefinition_set.exists %}
-  <div class="row" id="disaggregation">
-    <div class="col-sm-2">
-      <header class="h4">Disaggregation</header>
-    </div>
-    <div class="col-sm-9">
-        {{ item.disaggregation_description|bleach }}
-        {% include "comet/helpers/indicator_component_item.html" with queryset=item.indicatordisaggregationdefinition_set.all %}
-    </div>
-  </div>
-  {% endif %}
-  
-</div>
 
 {% endblock %}

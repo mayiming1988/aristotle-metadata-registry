@@ -37,7 +37,6 @@ class BaseDownloadView(TemplateView):
     """
     Base class inherited by single and bulk download views below
     """
-
     template_name = 'aristotle_mdr/downloads/creating_download.html'
     bulk = False
 
