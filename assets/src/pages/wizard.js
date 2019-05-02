@@ -9,24 +9,28 @@ initCore()
 initWidgets()
 initMoveable()
 
+// So we can ignore warning when submitting a form
+// Don't like using globals, but we need this state in unload handler
+let formSubmitted = false
 
 // Display a prompt when the user navigates away from the page
 function handleUnload(event) {
-    event.preventDefault()
-    // Most newer browsers don't display this message and use a general message instead
-    event.returnValue = 'Are you sure you want to leave? Data you have entered may not be saved'
+    if (!formSubmitted) {
+        event.preventDefault()
+        // Most newer browsers don't display this message and use a general message instead
+        event.returnValue = 'Are you sure you want to leave?'
+    }
 }
 
 if (settings.wizard_leave_prompt) {
     // add event
     window.addEventListener('beforeunload', handleUnload)
 
-    // remove unload event when clicking a button
-    let buttons = document.querySelectorAll('button')
-    for (let button of buttons) {
-        button.addEventListener('click', () => {
-            // On button click remove the before unload listener
-            window.removeEventListener('beforeunload', handleUnload)
+    // Set flag to false when submitting form
+    let forms = document.querySelectorAll('form')
+    for (let form of forms) {
+        form.addEventListener('submit', () => {
+            formSubmitted = true
         })
     }
 }

@@ -33,8 +33,6 @@ register_concept(
             {'fields': [
                 'statistical_unit',
                 'collection_method',
-                'ordered',
-                ('implementation_start_date', 'implementation_end_date'),
             ]}
         ),
     ],

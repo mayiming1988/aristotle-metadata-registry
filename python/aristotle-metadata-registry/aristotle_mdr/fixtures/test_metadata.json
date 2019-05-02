@@ -499,8 +499,6 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -511,8 +509,6 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -523,8 +519,6 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -535,8 +529,6 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -547,8 +539,6 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -559,8 +549,6 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -571,8 +559,6 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -583,9 +569,7 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
       "symbol": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -597,9 +581,7 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
       "symbol": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -612,9 +594,7 @@
   {
     "fields": {
       "unit_of_measure": 17,
-      "submitting_organisation": "",
       "format": "X[XX]",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "data_type": null,
@@ -630,9 +610,7 @@
   {
     "fields": {
       "unit_of_measure": 17,
-      "submitting_organisation": "",
       "format": "X",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "data_type": null,
@@ -699,9 +677,7 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
       "objectClass": 19,
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -714,9 +690,7 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
       "objectClass": 19,
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -729,9 +703,7 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
       "objectClass": 19,
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -744,9 +716,7 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
       "objectClass": 19,
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -759,8 +729,6 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -773,8 +741,6 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",

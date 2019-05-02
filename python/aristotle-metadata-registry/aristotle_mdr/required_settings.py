@@ -146,7 +146,8 @@ INSTALLED_APPS = (
     'django_filters',
 
     'django_jsonforms',
-    'missing'
+    'missing',
+    'mptt',
 
 )
 

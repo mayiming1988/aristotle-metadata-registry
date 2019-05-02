@@ -282,6 +282,8 @@ class ConceptRenderView(TagsMixin, TemplateView):
         context['activetab'] = 'item'
         context['links'] = self.get_links()
         context['custom_values'] = self.get_custom_values()
+        context['submitting_organizations'] = self.item.submitting_organizations
+        context['responsible_organizations'] = self.item.responsible_organizations
 
         # Add a list of viewable concept ids for fast visibility checks in
         # templates
