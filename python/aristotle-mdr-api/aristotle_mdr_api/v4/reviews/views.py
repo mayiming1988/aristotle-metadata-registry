@@ -8,6 +8,8 @@ from django.core.exceptions import PermissionDenied
 from aristotle_mdr.contrib.reviews.models import ReviewComment, ReviewRequest
 from aristotle_mdr_api.v4.permissions import AuthCanViewEdit
 from aristotle_mdr import perms
+import aristotle_mdr.models as MDR
+
 
 from . import serializers
 
@@ -44,9 +46,20 @@ class ReviewUpdateAndCommentView(generics.UpdateAPIView):
 
 
 class PromoteImpactedItemToReviewItemsView(APIView):
-    def put(self, request, *args, **kwargsx):
-        return Response({"api_is_up": "yes"})
+    def put(self, request, *args, **kwargs):
+        review_request = get_object_or_404(ReviewRequest, pk=kwargs.get('pk'))
+
+        concept_id = int(request.data['concept_id'])
+        review_request.concepts.add(MDR._concept.objects.get(pk=concept_id))
+
+        return Response({"concept_id": concept_id}, 200)
 
 
 class RemoveItemFromReviewItemsView(APIView):
-    pass
+    def put(self, request, *args, **kwargs):
+        review_request = get_object_or_404(ReviewRequest, pk=kwargs.get('pk'))
+
+        concept_id = int(request.data['concept_id'])
+        review_request.concepts.remove(MDR._concept.objects.get(pk=concept_id))
+
+        return Response({"concept_id" : concept_id}, 200)
