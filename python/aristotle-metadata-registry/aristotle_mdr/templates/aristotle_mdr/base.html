@@ -22,9 +22,9 @@
       <title>{% block title %}{% endblock %} - {{ config.SITE_NAME }}</title>
 
     {# Webpack split chunk #}
-    {% render_bundle 'common' 'css' %}
 
     {% block webpack_css_bundle %}
+       {% render_bundle 'base' 'css' %}
     {% endblock %}
 
     {% include 'aristotle_mdr/scripts.html' %}
