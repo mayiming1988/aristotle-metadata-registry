@@ -398,8 +398,10 @@ class ReviewImpactView(ReviewActionMixin, TemplateView):
         context = super().get_context_data(*args, **kwargs)
         review = self.get_review()
         if review.cascade_registration:
+            # Get the affected items
             queryset = cascade_items_queryset(items=review.concepts.all())
         else:
+            # Get all related items
             queryset = review.concepts.all()
         extra_info, any_higher = get_status_change_details(queryset, review.registration_authority, review.state)
 

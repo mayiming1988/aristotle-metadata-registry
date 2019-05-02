@@ -10,19 +10,6 @@ from aristotle_mdr import perms
 from . import serializers
 
 
-# class ReviewView(generics.RetrieveUpdateAPIView):
-#     """Retrive and update and issue"""
-#     permission_classes=(AuthCanViewEdit,)
-#     serializer_class=serializers.IssueSerializer
-#     queryset=ReviewRequest.objects.all()
-
-
-# class ReviewCreateView(generics.CreateAPIView):
-#     """Create a new review"""
-#     permission_classes=(AuthCanViewEdit,)
-#     serializer_class=serializers.IssueSerializer
-
-
 class ReviewCommentCreateView(generics.CreateAPIView):
     """Create a comment against a review"""
     permission_classes=(AuthCanViewEdit,)
@@ -52,3 +39,6 @@ class ReviewUpdateAndCommentView(generics.UpdateAPIView):
         if not perms.user_can_close_or_reopen_review(self.request.user, obj):
             raise PermissionDenied
         return obj
+
+class PromoteImpactedItemToItemsView(generics.UpdateAPIView):
+    pass

@@ -8,7 +8,7 @@
 <div role="tabpanel" class="tab-pane active" id="review_impact">
   <div class="panel">
     <div class="panel-body">
-    Below is a full list of metadata that has will be registered, if all items
+      Below is a full list of metadata that has will be registered, <i>if</i> all items
     related to those in this review are endorsed.
     </div>
   </div>
@@ -19,6 +19,7 @@
       <th rowspan=2>Type</th>
       <th colspan=2>Previous</th>
       <th colspan=2>New</th>
+        <th rowspan=2>Promote to Items</th>
       </tr>
       <tr>
       <th>State</th>
@@ -38,6 +39,7 @@
         <td>{{ concept.info.old.old_reg_date }}</td>
         <td>{{ concept.info.new_state.text }}</td>
         <td><time datetime="{{ review.registration_date|isotime }}">{{ review.registration_date }}</time></td>
+        <td><button class="btn btn-sm">Promote</button></td>
       </tr>
       {% endfor %}
     </tbody>
