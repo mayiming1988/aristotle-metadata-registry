@@ -18,7 +18,7 @@
     <tbody>
       {% for item in page_obj %}
       <tr>
-        <td><input type="checkbox" id="id_items_{{ item.id }}" name="items" value="{{ item.id }}"></td>
+        <td><input type="checkbox" id="id_items_{{ item.id }}" name="items" class="checkbox" value="{{ item.id }}"></td>
         <td><i 
             {% if all_favourite %}
             class="fa fa-bookmark"
