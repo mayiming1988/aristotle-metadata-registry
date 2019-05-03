@@ -430,7 +430,6 @@ def get_cascaded_ids(items=[]):
     all_cascaded_ids = []
 
     for item in items:
-        logger.debug(item)
         if isinstance(item, _concept):
             # Can't cascade from concept
             cascade = item.item.registry_cascade_items

@@ -126,6 +126,7 @@ class ReviewDetailsView(ReviewActionMixin, DetailView):
         context = super().get_context_data(*args, **kwargs)
         # context['next'] = self.request.GET.get('next', reverse('aristotle_reviews:userReadyForReview'))
         context['can_accept_review'] = self.review.status == models.REVIEW_STATES.open and perms.user_can_approve_review(self.request.user, self.review)
+        context['open_close_approved'] = True
         return context
 
 
