@@ -14,7 +14,7 @@
     "codemirror": "^5.45.0",
     "eonasdan-bootstrap-datetimepicker": "^4.17.47",
     "font-awesome": "^4.7.0",
-    "jquery": "^3.3.1",
+    "jquery": "^3.4.0",
     "jquery-migrate": "^3.0.1",
     "js-yaml": "^3.13.0",
     "mdn-polyfills": "^5.16.0",
