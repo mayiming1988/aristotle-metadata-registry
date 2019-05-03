@@ -9,8 +9,13 @@ export default {
       itemId: String,
       url: String,
       buttonType: {
-        type: String
+        type: String,
+        default: 'btn-danger',
       },
+      buttonText: {
+        type: String,
+        default: 'Delete'
+      }
     },
     methods: {
         deleteClicked: function(e) {
