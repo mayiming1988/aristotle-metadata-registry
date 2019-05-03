@@ -44,28 +44,37 @@ class ReviewUpdateAndCommentView(generics.UpdateAPIView):
             raise PermissionDenied
         return obj
 
+class AlterItemInReviewView(APIView):
+    operation_flag = ''
 
-class PromoteImpactedItemToReviewItemsView(APIView):
     def put(self, request, *args, **kwargs):
+        if self.operation_flag == '':
+            raise AssertionError("An operation flag must be set")
+
         review_request = get_object_or_404(ReviewRequest, pk=kwargs.get('pk'))
 
         if not review_request.can_edit(request.user):
             raise PermissionDenied
 
         concept_id = int(request.data['concept_id'])
-        review_request.concepts.add(MDR._concept.objects.get(pk=concept_id))
 
-        return Response({"concept_id": concept_id}, 200)
+        if self.operation_flag == 'add':
+            review_request.concepts.add(MDR._concept.objects.get(pk=concept_id))
+            return Response({"concept_id": concept_id}, 200)
+
+        elif self.operation_flag == 'remove':
+            review_request.concepts.remove(MDR._concept.objects.get(pk=concept_id))
+            return Response({"concept_id": concept_id}, 200)
+
+        else:
+            raise AssertionError("Flag must be set to either add or remove")
 
 
-class RemoveItemFromReviewItemsView(APIView):
-    def put(self, request, *args, **kwargs):
-        review_request = get_object_or_404(ReviewRequest, pk=kwargs.get('pk'))
+class PromoteImpactedItemToReviewItemsView(AlterItemInReviewView):
+    operation_flag = 'add'
 
-        if not review_request.can_edit(request.user):
-            raise PermissionDenied
 
-        concept_id = int(request.data['concept_id'])
-        review_request.concepts.remove(MDR._concept.objects.get(pk=concept_id))
+class RemoveItemFromReviewItemsView(AlterItemInReviewView):
+    operation_flag = 'remove'
 
-        return Response({"concept_id" : concept_id}, 200)
+
