@@ -29,7 +29,7 @@ from django_bulk_update.helper import bulk_update
 from aristotle_mdr import models as MDR
 from aristotle_mdr import perms
 from aristotle_mdr.forms.forms import ReviewChangesForm
-from aristotle_mdr.utils import cascade_items_queryset, get_status_change_details
+from aristotle_mdr.utils import cascade_items_queryset, get_status_change_details, get_cascaded_ids
 from aristotle_mdr.views import ReviewChangesView, display_review
 from aristotle_mdr.views.utils import (
     generate_visibility_matrix,
@@ -381,6 +381,21 @@ class ReviewListItemsView(ReviewActionMixin, DetailView):
         # Call the base implementation first to get a context
         context = super().get_context_data(*args, **kwargs)
         context['next'] = self.request.GET.get('next', reverse('aristotle_reviews:userReadyForReview'))
+
+        review = self.get_review()
+
+        concepts = []
+        cascaded_ids = get_cascaded_ids(review.concepts.all())
+
+        for concept in review.concepts.all():
+            if concept.id in cascaded_ids:
+                # Concept was added as a cascade
+                concepts.append({'item': concept, 'remove' : False})
+            else:
+                concepts.append({'item': concept, 'remove' : True})
+
+        context['concepts'] = concepts
+
         return context
 
 

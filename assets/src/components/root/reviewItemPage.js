@@ -1,6 +1,6 @@
 import yesNoModal from '@/yesNoModal.vue'
 import deleteButton from '@/deleteButton.vue'
-import apiRequest from 'src/mixins/apiRequest.js' 
+import apiRequest from 'src/mixins/apiRequest.js'
 import apiErrors from '@/apiErrorDisplay.vue'
 
 export default {
@@ -12,20 +12,20 @@ export default {
         'api-errors': apiErrors
     },
     data: {
-        modal_text: 'Are you sure',
+        modal_text: '',
         modal_visible: false,
         tag_item: null,
     },
     methods: {
         deleteClicked: function(item) {
-            this.tag_item = item
-            this.modal_text = 'Are you sure you want to delete ' + item.name
+            this.item = item
+            this.modal_text = 'Are you sure you want to remove ' + item.name + ' from this review?'
             this.modal_visible = true
         },
         deleteConfirmed: function() {
-            this.delete(this.tag_item['url']) // API FUNCTOI
+            this.delete(this.item['url'])
             .then(() => {
-                $(this.tag_item.target).closest('tr').remove()
+                $(this.item.target).closest('tr').remove()
                 this.modal_visible = false
             })
         },
@@ -34,3 +34,4 @@ export default {
         }
     }
 }
+

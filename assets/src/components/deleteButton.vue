@@ -1,10 +1,18 @@
 <template>
-  <button class="btn btn-danger" @click="deleteClicked">Delete</button>
+  <button class="btn" :class="buttonType" @click="deleteClicked">Delete</button>
 </template>
 
 <script>
 export default {
-    props: ['itemName', 'itemId', 'url'],
+    props: {
+      itemName: String,
+      itemId: String,
+      url: String,
+      buttonType: {
+        type: String,
+        default: 'btn-danger'
+      },
+    },
     methods: {
         deleteClicked: function(e) {
             var item = {

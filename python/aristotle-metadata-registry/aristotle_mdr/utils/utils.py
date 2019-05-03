@@ -422,6 +422,23 @@ def cascade_items_queryset(items=[]):
 
     return _concept.objects.filter(id__in=all_ids)
 
+def get_cascaded_ids(items=[]):
+    from aristotle_mdr.models import _concept
+
+    for item in items:
+        if isinstance(item, _concept):
+            # Can't cascade from concept
+            cascade = item.item.registry_cascade_items
+        else:
+            cascade = item.registry_cascade_items
+
+        cascaded_ids = [item.id for item in cascade]
+
+        return cascaded_ids
+
+
+
+
 
 def get_status_change_details(queryset, ra, new_state):
     from aristotle_mdr.models import STATES, Status

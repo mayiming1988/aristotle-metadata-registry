@@ -12,99 +12,129 @@
 
 {% block title %}Review details - items {{ item.name }}{% endblock %}
 {% block tabpanel %}
-<div role="tabpanel" class="tab-pane active" id="review_items">
-    <table class="table table-striped" id="item-table"
-           data-remove-url="{% url 'api_v4:reviews:remove_concept' review.id %}">
-        <caption>Items currently listed for this review</caption>
-        <tr>
-            <th>
-                Item Details
-            </th>
-            <th>Last Modified</th>
-        </tr>
-        {% for item in review.concepts.all %}
-        <tr>
-            <td>
-                {% include "aristotle_mdr/helpers/inlineDetails.html" with item=item %}
-            </td>
-            <td>
-                <time datetime="{{ item.modified|isotime }}">{{ item.modified }}</time>
-            </td>
-            <td>
-                <button class="btn btn-danger remove-button btn-sm" id="{{ item.id }}"
-                      title="Remove {{ item.name }} from this review">Remove</button>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
-</div>
-<div role="tabpanel" class="tab-pane {% if active_tab == 'checks'%}active{%endif%}" id="review_checks">
-    {% if active_tab == 'checks'%}
-    <table class="table">
-        <thead>
-        <tr>
-            <th>Item</th>
-            <th>Results</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for agg in total_results %}
-        <tr>
-            <td>{{ agg.item_name }}</td>
-            <td>
-                {% if not setup_valid %}
-                <p>
-                    No Validation rules avaliable
-                </p>
-                {% else %}
-                {% with results=agg.results %}
-                <div class="list-group">
-                    {% for result in agg.results %}
-                    <a href="#" class="list-group-item">
-                        <div class="h5 list-group-item-heading">
-                            {% if result.status %}
-                            <i class="fa fa-check text-success"></i><span class="sr-only">Success</span>
-                            {% elif result.rule.severity == 'warning' %}
-                            <i class="fa fa-circle" style="color:#ffc107;"></i><span class="sr-only">Warning</span>
-                            {% else %}
-                            <i class="fa fa-times text-danger"></i><span class="sr-only">Failure</span>
-                            {% endif %}
-                            {{ result.validator.get_name }}
-                            {% if result.validator.rule.description %}
-                            <button class="btn btn-default btn-xs" type="button" data-toggle="collapse"
-                                    data-target="#collapse_rule_{{forloop.parentloop.counter}}_{{ forloop.counter }}"
-                                    aria-expanded="false" aria-controls="collapseExample">
-                                More info
-                            </button>
-                            {% endif %}
-                        </div>
-                        {% if result.message %}
-                        <p class="list-group-item-text">
-                            {{ result.message }}
-                        </p>
-                        {% endif %}
-                        {% if result.validator.rule.description %}
-                        <div class="collapse" id="collapse_rule_{{forloop.parentloop.counter}}_{{ forloop.counter }}">
-                            <div class="well">
-                                {{result.validator.rule.description}}
+<!--suppress ALL -->
+<div id="vue-container">
+    <api-errors :errors="errors"></api-errors>
+    <div role="tabpanel" class="tab-pane active" id="review_items">
+        <table class="table table-striped" id="item-table">
+            <caption>Items currently listed for this review</caption>
+            <tr>
+                <th>
+                    Item Details
+                </th>
+                <th>Last Modified</th>
+            </tr>
+            {% for concept in concepts %}
+            <tr>
+                <td>
+                    {% include "aristotle_mdr/helpers/inlineDetails.html" with item=concept.item %}
+                </td>
+                <td>
+                    <time datetime="{{ concept.item.modified|isotime }}">{{ concept.item.modified }}</time>
+                </td>
+                <td>
+
+                    {% if concept.remove %}
+                    <delete-button
+                            button-type="btn-danger"
+                            item-id="{{ concept.item.id }}"
+                            item-name="{{ concept.item.name }}"
+                            url="{% url 'api_v4:reviews:remove_concept' review.id %}"
+                            @click="deleteClicked">
+                    </delete-button>
+                    {% else %}
+                    <delete-button
+                            button-type="btn-warning"
+                            item-id="{{ concept.item.id }}"
+                            item-name="{{ concept.item.name }}"
+                            url="{% url 'api_v4:reviews:remove_concept' review.id %}"
+                            @click="deleteClicked">
+                    </delete-button>
+                    {% endif %}
+                </td>
+
+            </tr>
+            {% endfor %}
+            <yesno-modal
+                    id="deleteTagModal"
+                    title="Delete Tag"
+                    :text="modal_text"
+                    @yes="deleteConfirmed"
+                    :visible="modal_visible"
+                    @no="deleteCancelled">
+            </yesno-modal>
+
+        </table>
+    </div>
+    <div role="tabpanel" class="tab-pane {% if active_tab == 'checks'%}active{%endif%}" id="review_checks">
+        {% if active_tab == 'checks'%}
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Item</th>
+                <th>Results</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for agg in total_results %}
+            <tr>
+                <td>{{ agg.item_name }}</td>
+                <td>
+                    {% if not setup_valid %}
+                    <p>
+                        No Validation rules avaliable
+                    </p>
+                    {% else %}
+                    {% with results=agg.results %}
+                    <div class="list-group">
+                        {% for result in agg.results %}
+                        <a href="#" class="list-group-item">
+                            <div class="h5 list-group-item-heading">
+                                {% if result.status %}
+                                <i class="fa fa-check text-success"></i><span class="sr-only">Success</span>
+                                {% elif result.rule.severity == 'warning' %}
+                                <i class="fa fa-circle" style="color:#ffc107;"></i><span class="sr-only">Warning</span>
+                                {% else %}
+                                <i class="fa fa-times text-danger"></i><span class="sr-only">Failure</span>
+                                {% endif %}
+                                {{ result.validator.get_name }}
+                                {% if result.validator.rule.description %}
+                                <button class="btn btn-default btn-xs" type="button" data-toggle="collapse"
+                                        data-target="#collapse_rule_{{forloop.parentloop.counter}}_{{ forloop.counter }}"
+                                        aria-expanded="false" aria-controls="collapseExample">
+                                    More info
+                                </button>
+                                {% endif %}
                             </div>
-                        </div>
-                        {% endif %}
-                        {% comment %}
-                        <pre>{% spaceless %}
+                            {% if result.message %}
+                            <p class="list-group-item-text">
+                                {{ result.message }}
+                            </p>
+                            {% endif %}
+                            {% if result.validator.rule.description %}
+                            <div class="collapse"
+                                 id="collapse_rule_{{forloop.parentloop.counter}}_{{ forloop.counter }}">
+                                <div class="well">
+                                    {{result.validator.rule.description}}
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% comment %}
+                            <pre>{% spaceless %}
                         {{result}}
                       {% endspaceless %}</pre>
-                        {% endcomment %}
-                    </a>
-                    {% endfor %}
-                </div>
-                {% endwith %}
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    {% endif %}
+                            {% endcomment %}
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endwith %}
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
