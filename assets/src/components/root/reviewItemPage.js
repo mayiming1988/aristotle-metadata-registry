@@ -20,7 +20,7 @@ export default {
     methods: {
         deleteClicked: function(item) {
             this.item = item
-            this.modal_text = item.modalText + ' ' + this.item.name + ' from this review?'
+            this.modal_text = item.modalText
             this.modal_visible = true
         },
         deleteConfirmed: function() {

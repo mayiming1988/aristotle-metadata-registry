@@ -384,11 +384,9 @@ class ReviewListItemsView(ReviewActionMixin, DetailView):
 
         review = self.get_review()
 
-        logger.debug("Review is" + str(review.concepts.all()))
 
         concepts = []
         cascaded_ids = get_cascaded_ids(items=review.concepts.all())
-        logger.debug("cascaded_ids are" + str(cascaded_ids))
 
         for concept in review.concepts.all():
             if concept.id in cascaded_ids:

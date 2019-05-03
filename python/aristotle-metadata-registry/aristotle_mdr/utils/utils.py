@@ -418,7 +418,6 @@ def cascade_items_queryset(items=[]):
 
         cascaded_ids = [a.id for a in cascade]
 
-        logger.debug('cascaded ids in impact view are' + str(cascaded_ids))
         cascaded_ids.append(item.id)
         all_ids.extend(cascaded_ids)
 
@@ -427,19 +426,21 @@ def cascade_items_queryset(items=[]):
 def get_cascaded_ids(items=[]):
     from aristotle_mdr.models import _concept
 
+    all_cascaded_ids = []
+
     for item in items:
         logger.debug(item)
         if isinstance(item, _concept):
             # Can't cascade from concept
             cascade = item.item.registry_cascade_items
-            logger.debug("Hello World" + str(cascade))
         else:
             cascade = item.registry_cascade_items
 
-    cascaded_ids = [item.id for item in cascade]
-    return cascaded_ids
+        cascaded_ids = [item.id for item in cascade]
 
+        all_cascaded_ids.extend(cascaded_ids)
 
+    return all_cascaded_ids
 
 
 
