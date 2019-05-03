@@ -384,16 +384,15 @@ class ReviewListItemsView(ReviewActionMixin, DetailView):
 
         review = self.get_review()
 
-
         concepts = []
         cascaded_ids = get_cascaded_ids(items=review.concepts.all())
 
         for concept in review.concepts.all():
             if concept.id in cascaded_ids:
                 # Concept was added as a cascade
-                concepts.append({'item': concept, 'remove' : False})
+                concepts.append({'item': concept, 'remove': False})
             else:
-                concepts.append({'item': concept, 'remove' : True})
+                concepts.append({'item': concept, 'remove': True})
 
         context['concepts'] = concepts
 

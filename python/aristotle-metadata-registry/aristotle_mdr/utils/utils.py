@@ -423,6 +423,7 @@ def cascade_items_queryset(items=[]):
 
     return _concept.objects.filter(id__in=all_ids)
 
+
 def get_cascaded_ids(items=[]):
     from aristotle_mdr.models import _concept
 
@@ -441,7 +442,6 @@ def get_cascaded_ids(items=[]):
         all_cascaded_ids.extend(cascaded_ids)
 
     return all_cascaded_ids
-
 
 
 def get_status_change_details(queryset, ra, new_state):
