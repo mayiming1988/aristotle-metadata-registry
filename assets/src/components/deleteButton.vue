@@ -9,8 +9,7 @@ export default {
       itemId: String,
       url: String,
       buttonType: {
-        type: String,
-        default: 'btn-danger'
+        type: String
       },
     },
     methods: {

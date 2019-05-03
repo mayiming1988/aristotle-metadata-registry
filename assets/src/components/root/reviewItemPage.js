@@ -3,13 +3,14 @@ import deleteButton from '@/deleteButton.vue'
 import apiRequest from 'src/mixins/apiRequest.js'
 import apiErrors from '@/apiErrorDisplay.vue'
 
+
 export default {
     el: '#vue-container',
     mixins: [apiRequest],
     components: {
         'yesno-modal': yesNoModal,
         'delete-button': deleteButton,
-        'api-errors': apiErrors
+        'api-errors': apiErrors,
     },
     data: {
         modal_text: '',

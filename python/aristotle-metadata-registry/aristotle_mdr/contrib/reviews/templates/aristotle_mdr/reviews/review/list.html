@@ -13,9 +13,9 @@
 {% block title %}Review details - items {{ item.name }}{% endblock %}
 {% block tabpanel %}
 <!--suppress ALL -->
-<div id="vue-container">
     <api-errors :errors="errors"></api-errors>
     <div role="tabpanel" class="tab-pane active" id="review_items">
+        <div id="vue-container"></div>
         <table class="table table-striped" id="item-table">
             <caption>Items currently listed for this review</caption>
             <tr>
@@ -35,6 +35,7 @@
                 <td>
 
                     {% if concept.remove %}
+                    {{ concept.remove }}
                     <delete-button
                             button-type="btn-danger"
                             item-id="{{ concept.item.id }}"
@@ -136,5 +137,4 @@
         </table>
         {% endif %}
     </div>
-</div>
 {% endblock %}
