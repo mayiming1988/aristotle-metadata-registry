@@ -23,7 +23,7 @@ export default {
             this.modal_visible = true
         },
         deleteConfirmed: function() {
-            this.delete(this.tag_item['url']) // API FUNCTOI
+            this.delete(this.tag_item['url'])
             .then(() => {
                 $(this.tag_item.target).closest('tr').remove()
                 this.modal_visible = false
