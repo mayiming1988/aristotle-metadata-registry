@@ -5,11 +5,18 @@ import 'src/styles/aristotle.dashboard.less'
 
 initCore();
 
-let selectAllCheckbox = document.getElementById('select_all_checkbox');
+let selectAllCheckbox = document.getElementById('select-all-checkbox');
 selectAllCheckbox.addEventListener("change", function () {
     toggle_all_checkboxes(this);
     show_select_all_div();
 });
+
+let selectAllQuerysetButton = document.getElementById("select-all-queryset")
+
+selectAllQuerysetButton.addEventListener("click", function () {
+    select_all_queryset()
+});
+
 
 function toggle_all_checkboxes(source) {
     var checkboxes = document.querySelectorAll('input[type="checkbox"]');
@@ -25,9 +32,17 @@ function show_select_all_div() {
 
     if (select_all.style.display == 'block') {
         select_all.style.display = 'none';
-    }
-    else {
+    } else {
         select_all.style.display = 'block';
     }
 
+}
+
+function select_all_queryset() {
+    let length_queryset = document.getElementById('select-all-queryset').getAttribute('data-total-queryset');
+
+    let markup = `All of your ${length_queryset} favourites
+        have been selected. <button class="btn btn-outline btn-outline-info">Clear selections</button>
+        `;
+    document.getElementById("select-all-div").innerHTML = markup;
 }

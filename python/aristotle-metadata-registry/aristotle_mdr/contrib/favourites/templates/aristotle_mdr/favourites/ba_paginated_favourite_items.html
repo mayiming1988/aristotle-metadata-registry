@@ -2,13 +2,21 @@
 <form action="{% url 'aristotle:bulk_action' %}?next={{ request.path }}" method="POST">
   {% csrf_token %}
   <div id="select-all-div" class=" well well-sm" style="display:none">
-    You have selected the {{ number_all_favourites }} items on the page. Select all 200 of your favourites?
+{#   {% if page_obj|length == number_all_favourites %} #}
+<!--      You have selected all of your {{ number_all_favourites }} favourites.-->
+  {#  {% else %} #}
+    You have selected the <b>{{ page_obj|length }}</b> items on the page
+    <button class="btn btn-outline btn-outline-info" id="select-all-queryset"
+    data-total-queryset="{{ number_all_favourites }}">
+      Select all <b>{{ number_all_favourites }}</b> of your favourites?
+  </button>
+  {#  {% endif %} #}
   </div>
   <table class="table">
     <thead>
       <tr>
         <th>
-          <input title='{% trans "Select all" %}' type="checkbox" id="select_all_checkbox" name="all_in_queryset">
+          <input title='{% trans "Select all" %}' type="checkbox" id="select-all-checkbox">
         </th>
         <th></th>
         <th>Item</th>
