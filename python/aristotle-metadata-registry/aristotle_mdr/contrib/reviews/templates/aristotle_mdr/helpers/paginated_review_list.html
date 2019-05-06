@@ -9,7 +9,8 @@ Showing {{ page.paginator.count }} result{{ page.paginator.count|pluralize }}.
 <table class="table">
 <thead>
     <tr>
-        <th>{% trans 'Message' %}</th>
+        <th>{% trans 'Title' %}</th>
+        <th>{% trans 'Submitter' %}</th>
         <th>{% trans 'Registration Authority' %}</th>
         <th title="{% trans 'Number of items' %}">#</th>
         <th>{% trans 'Status' %}</th>
@@ -47,6 +48,7 @@ Showing {{ page.paginator.count }} result{{ page.paginator.count|pluralize }}.
                 {% endif %}
             </a>
         </td>
+        <td>{{ item.requester.display_name }}</td>
         <td>{{ item.registration_authority.name }}</td>
         <td>
             <a href="{% url 'aristotle_reviews:review_list' item.id %}">

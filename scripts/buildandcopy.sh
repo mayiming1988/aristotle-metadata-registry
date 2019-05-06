@@ -62,6 +62,8 @@ if [[ $SKIP_WEBPACK_BUILD -ne 1 ]]; then
         aws s3 cp s3://$CUSTOM_STATIC_BUCKET_NAME/static ./src/custom --recursive
     fi
     npm install
+    # Export asset path to be used by build
+    export ASSET_PATH="$ASSET_PATH"
     npm run build
     echo "Webpack build complete!"
 fi
