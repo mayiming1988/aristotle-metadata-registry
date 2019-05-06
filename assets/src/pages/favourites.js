@@ -20,7 +20,6 @@ selectAllQuerysetButton.addEventListener("click", function () {
 let clearSelectionsButton = document.getElementById("clear-selections")
 
 addEventListener("click", function () {
-
 });
 
 
@@ -55,8 +54,4 @@ function select_all_queryset() {
 
     // Select the hidden queryset checkbox
     document.getElementById("all_in_queryset").checked = true;
-}
-
-function clear_selections() {
-
 }
