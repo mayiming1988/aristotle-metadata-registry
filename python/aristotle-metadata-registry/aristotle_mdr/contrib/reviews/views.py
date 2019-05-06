@@ -239,6 +239,7 @@ class ReviewStatusChangeBase(ReviewActionMixin, ReviewChangesView):
         kwargs['review'] = self.get_review()
         if self.show_supersedes:
             kwargs['supersedes'] = self.get_supersedes_context()
+        kwargs['show_supersedes'] = self.show_supersedes
         return kwargs
 
     def get_form_kwargs(self, step):
