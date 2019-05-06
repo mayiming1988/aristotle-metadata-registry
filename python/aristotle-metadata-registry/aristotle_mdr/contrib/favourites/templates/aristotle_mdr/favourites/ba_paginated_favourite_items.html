@@ -1,7 +1,7 @@
 {% load i18n %}
 <form action="{% url 'aristotle:bulk_action' %}?next={{ request.path }}" method="POST">
   {% csrf_token %}
-  <div id="select-all-div" class=" well well-sm">
+  <div id="select-all-div" class=" well well-sm" style="display:none">
     You have selected the {{ page_obj|length }} items on the page. Select all 200 of your favourites?
   </div>
   <table class="table">

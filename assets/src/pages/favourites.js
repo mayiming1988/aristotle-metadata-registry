@@ -27,7 +27,7 @@ function show_select_all_div() {
         select_all.style.display = 'none';
     }
     else {
-        e.style.display = 'block';
+        select_all.style.display = 'block';
     }
 
 }
