@@ -124,7 +124,7 @@ class EditTags(LoginRequiredMixin, View):
 
 class FavouritesAndTags(LoginRequiredMixin, ListView):
 
-    paginate_by = 20
+    paginate_by = 20 # TODO: revert to 20
     template_name = "aristotle_mdr/favourites/userFavourites.html"
 
     def get_queryset(self):
@@ -162,6 +162,7 @@ class FavouritesAndTags(LoginRequiredMixin, ListView):
         context['help'] = self.request.GET.get('help', False)
         context['favourite'] = self.request.GET.get('favourite', False)
         context['tags'] = self.get_tags()
+        context['number_all_favourites'] = self.get_queryset().count()
         return context
 
 
