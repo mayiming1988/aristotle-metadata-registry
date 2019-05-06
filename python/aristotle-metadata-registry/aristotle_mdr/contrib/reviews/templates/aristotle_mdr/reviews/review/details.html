@@ -21,7 +21,7 @@
               {% if review.message %}
                 <comment
                   pic="{{ review.requester.profile.profile_picture_url }}"
-                  name="{{ review.requester.get_short_name }}"
+                  name="{{ review.requester.display_name }}"
                   created="{{ review.created|date:"c" }}"
                   body="{{ review.message }}">
                 </comment>
@@ -31,7 +31,7 @@
                 {% if item.timeline_type == "comment" %}
                   <comment
                     pic="{{ item.author.profile.profile_picture_url }}"
-                    name="{{ item.author.get_short_name }}"
+                    name="{{ item.author.display_name }}"
                     created="{{ item.created|date:"c" }}"
                     body="{{ item.body }}">
                   </comment>
