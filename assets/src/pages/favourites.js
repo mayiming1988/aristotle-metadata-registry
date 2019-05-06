@@ -17,6 +17,12 @@ selectAllQuerysetButton.addEventListener("click", function () {
     select_all_queryset()
 });
 
+let clearSelectionsButton = document.getElementById("clear-selections")
+
+addEventListener("click", function () {
+
+});
+
 
 function toggle_all_checkboxes(source) {
     var checkboxes = document.querySelectorAll('input[type="checkbox"]');
@@ -41,13 +47,16 @@ function show_select_all_div() {
 function select_all_queryset() {
     let length_queryset = document.getElementById('select-all-queryset-button').getAttribute('data-total-queryset');
 
-    let markup = `All of your ${length_queryset} favourites
-        have been selected. <button class="btn btn-outline btn-outline-info">Clear selections</button>
+    let markup = `
+        All of your ${length_queryset} favourites have been selected 
+        <button class="btn btn-outline btn-outline-info" id="clear-selections-button">Clear selections</button>
         `;
     document.getElementById("select-all-div").innerHTML = markup;
 
     // Select the hidden queryset checkbox
     document.getElementById("all_in_queryset").checked = true;
+}
 
+function clear_selections() {
 
 }
