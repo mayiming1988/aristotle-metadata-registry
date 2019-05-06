@@ -6,7 +6,7 @@ import {addHeaderMessage, initMessages} from 'src/lib/messages.js'
 init();
 initMessages();
 
-let addButtons = document.getElementsByClassName('promote-button');
+let addButtons = document.querySelectorAll('.promote-button');
 
 for (let button of addButtons) {
       button.addEventListener('click', promote_to_items);
