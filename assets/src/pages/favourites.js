@@ -5,10 +5,10 @@ import 'src/styles/aristotle.dashboard.less'
 
 initCore();
 
-let selectAllCheckbox = document.getElementById("select_all_checkbox");
+let selectAllCheckbox = document.getElementById('select_all_checkbox');
 selectAllCheckbox.addEventListener("change", function () {
     toggle_all_checkboxes(this);
-    console.log(item_checkboxes_on_page())
+    show_select_all_div();
 });
 
 function toggle_all_checkboxes(source) {
@@ -18,11 +18,16 @@ function toggle_all_checkboxes(source) {
             checkboxes[i].checked = source.checked;
         }
     }
-
-}
-function item_checkboxes_on_page() {
-    var checkboxes = document.getElementsByClassName("checkbox");
-
-    return checkboxes.length
 }
 
+function show_select_all_div() {
+    var select_all = document.getElementById('select-all-div')
+
+    if (select_all.style.display == 'block') {
+        select_all.style.display = 'none';
+    }
+    else {
+        e.style.display = 'block';
+    }
+
+}
