@@ -129,3 +129,16 @@ class IssueTests(AristotleTestUtils, TestCase):
             reverse_args=[self.item.id, issue.pk],
             status_code=403
         )
+
+    def test_proposable_fields(self):
+        fields = models.Issue.get_propose_fields()
+        # Make sure all explicitly specified fields were added
+        self.assertEqual(
+            len(fields),
+            len(models.Issue.proposable_fields)
+        )
+        # Check html set correctly
+        self.assertEqual(fields[0]['name'], 'name')
+        self.assertEqual(fields[0]['html'], False)
+        self.assertEqual(fields[1]['name'], 'definition')
+        self.assertEqual(fields[1]['html'], True)
