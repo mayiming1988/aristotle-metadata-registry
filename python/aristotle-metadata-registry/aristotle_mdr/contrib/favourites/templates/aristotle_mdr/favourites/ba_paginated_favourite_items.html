@@ -1,27 +1,13 @@
 {% load i18n aristotle_tags util_tags %}
 <form action="{% url 'aristotle:bulk_action' %}?next={{ request.path }}" method="POST">
     {% csrf_token %}
-    <div id="select-all-div" class=" well well-sm" style="display:none">
-         {% if page_obj|length == number_all_favourites %}
-            You have selected all of your {{ number_all_favourites }} favourites
-         {% else %}
-            You have selected the <b>{{ page_obj|length }}</b> items on the page
-            <button class="btn btn-outline btn-outline-info" id="select-all-queryset-button"
-                    data-total-queryset="{{ number_all_favourites }}">Select all <b>{{ number_all_favourites }}</b>
-                of your favourites?
-            </button>
-        {% endif %}
-    </div>
+
+    {% include "aristotle_mdr/helpers/select_all.html" with total_queryset_size=count_favourites item='favourites' %}
 
     <table class="table">
         <thead>
         <tr>
             <th>
-                <input title='{% trans "Select all" %}' type="checkbox" id="all_in_queryset" name="all_in_queryset"
-                       style="display: none;">
-                <input type="hidden" name="qs" value="{{ view.object_list|register_queryset }}">
-
-                <input title='{% trans "Select all" %}' type="checkbox" id="select-all-checkbox">
             </th>
             <th></th>
             <th>Item</th>

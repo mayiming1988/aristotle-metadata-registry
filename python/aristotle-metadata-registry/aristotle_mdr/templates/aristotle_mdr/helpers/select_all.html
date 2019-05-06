@@ -1,0 +1,19 @@
+{% load i18n aristotle_tags util_tags %}
+
+<div id="select-all-div" class=" well well-sm" style="display:none">
+    {% if page_obj|length == total_queryset_size %}
+        You have selected all of your {{ total_queryset_size }} {{ item }}
+    {% else %}
+        You have selected the <b>{{ page_obj|length }}</b> items on the page
+        <button class="btn btn-outline btn-outline-info" id="select-all-queryset-button"
+                data-total-queryset="{{ total_queryset_size }}">Select all <b>{{ total_queryset_size }}</b>
+            of your {{ item }}?
+        </button>
+    {% endif %}
+</div>
+
+<input title='{% trans "Select all" %}' type="checkbox" id="all_in_queryset" name="all_in_queryset"
+       style="display: none;">
+<input type="hidden" name="qs" value="{{ view.object_list|register_queryset }}">
+
+<input title='{% trans "Select all" %}' type="checkbox" id="select-all-checkbox">

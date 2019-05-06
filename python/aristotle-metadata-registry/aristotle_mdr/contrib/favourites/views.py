@@ -162,7 +162,7 @@ class FavouritesAndTags(LoginRequiredMixin, ListView):
         context['help'] = self.request.GET.get('help', False)
         context['favourite'] = self.request.GET.get('favourite', False)
         context['tags'] = self.get_tags()
-        context['number_all_favourites'] = self.get_queryset().count()
+        context['count_favourites'] = self.get_queryset().count()
         return context
 
 
