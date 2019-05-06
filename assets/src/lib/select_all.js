@@ -9,6 +9,9 @@ export function initSelectAll() {
     selectAllQuerysetButton.addEventListener("click", function () {
         select_all_queryset()
     });
+
+    var initialText = document.getElementById('select-all-div').innerHTML;
+
 }
 
 
@@ -53,4 +56,6 @@ function select_all_queryset() {
 
 function clear_selections() {
     toggle_select_all_div();
+    document.getElementById("select-all-div").innerHTML = '';
+
 }
