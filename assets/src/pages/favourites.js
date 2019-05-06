@@ -11,7 +11,7 @@ selectAllCheckbox.addEventListener("change", function () {
     show_select_all_div();
 });
 
-let selectAllQuerysetButton = document.getElementById("select-all-queryset")
+let selectAllQuerysetButton = document.getElementById("select-all-queryset-button")
 
 selectAllQuerysetButton.addEventListener("click", function () {
     select_all_queryset()
@@ -39,10 +39,15 @@ function show_select_all_div() {
 }
 
 function select_all_queryset() {
-    let length_queryset = document.getElementById('select-all-queryset').getAttribute('data-total-queryset');
+    let length_queryset = document.getElementById('select-all-queryset-button').getAttribute('data-total-queryset');
 
     let markup = `All of your ${length_queryset} favourites
         have been selected. <button class="btn btn-outline btn-outline-info">Clear selections</button>
         `;
     document.getElementById("select-all-div").innerHTML = markup;
+
+    // Select the hidden queryset checkbox
+    document.getElementById("all_in_queryset").checked = true;
+
+
 }

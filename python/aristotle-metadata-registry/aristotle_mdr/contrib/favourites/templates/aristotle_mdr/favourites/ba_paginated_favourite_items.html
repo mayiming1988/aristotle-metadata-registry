@@ -1,68 +1,74 @@
-{% load i18n %}
+{% load i18n aristotle_tags util_tags %}
 <form action="{% url 'aristotle:bulk_action' %}?next={{ request.path }}" method="POST">
-  {% csrf_token %}
-  <div id="select-all-div" class=" well well-sm" style="display:none">
-{#   {% if page_obj|length == number_all_favourites %} #}
-<!--      You have selected all of your {{ number_all_favourites }} favourites.-->
-  {#  {% else %} #}
-    You have selected the <b>{{ page_obj|length }}</b> items on the page
-    <button class="btn btn-outline btn-outline-info" id="select-all-queryset"
-    data-total-queryset="{{ number_all_favourites }}">
-      Select all <b>{{ number_all_favourites }}</b> of your favourites?
-  </button>
-  {#  {% endif %} #}
-  </div>
-  <table class="table">
-    <thead>
-      <tr>
-        <th>
-          <input title='{% trans "Select all" %}' type="checkbox" id="select-all-checkbox">
-        </th>
-        <th></th>
-        <th>Item</th>
-        <th>Definition</th>
-        {% if tags_list %}
-          <th>Tags</th>
-        {% endif %}
-      </tr>
-    </thead>
-    <tbody>
-      {% for item in page_obj %}
-      <tr>
-        <td><input type="checkbox" id="id_items_{{ item.id }}" name="items" class="checkbox" value="{{ item.id }}"></td>
-        <td><i 
-            {% if all_favourite %}
-            class="fa fa-bookmark"
-            {% elif item.item_favourite %}
-            class="fa fa-bookmark{% if item.item_favourite < 1 %}-o{% endif %}"
-            {% else %}
-            class="fa fa-bookmark-o"
+    {% csrf_token %}
+    <div id="select-all-div" class=" well well-sm" style="display:none">
+        {# {% if page_obj|length == number_all_favourites %} #}
+        <!--      You have selected all of your {{ number_all_favourites }} favourites.-->
+        {# {% else %} #}
+        You have selected the <b>{{ page_obj|length }}</b> items on the page
+        <button class="btn btn-outline btn-outline-info" id="select-all-queryset-button"
+                data-total-queryset="{{ number_all_favourites }}">Select all <b>{{ number_all_favourites }}</b>
+            of your favourites?
+        </button>
+        {# {% endif %} #}
+    </div>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th>
+                <input title='{% trans "Select all" %}' type="checkbox" id="all_in_queryset" name="all_in_queryset"
+                       style="display: none;">
+                <input type="hidden" name="qs" value="{{ view.object_list|register_queryset }}">
+
+                <input title='{% trans "Select all" %}' type="checkbox" id="select-all-checkbox">
+            </th>
+            <th></th>
+            <th>Item</th>
+            <th>Definition</th>
+            {% if tags_list %}
+            <th>Tags</th>
             {% endif %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in page_obj %}
+        <tr>
+            <td><input type="checkbox" id="id_items_{{ item.id }}" name="items" class="checkbox" value="{{ item.id }}">
+            </td>
+            <td><i
+                    {% if all_favourite %}
+                    class="fa fa-bookmark"
+                    {% elif item.item_favourite %}
+                    class="fa fa-bookmark{% if item.item_favourite < 1 %}-o{% endif %}"
+                    {% else %}
+                    class="fa fa-bookmark-o"
+                    {% endif %}
             >
-          </i>
-        </td>
-        <td>
-          <a href="{% url 'aristotle_mdr:item' item.id %}">{{ item.name }}</a>
-          <div class="small" style="white-space: nowrap;">
-              {{ item.item.get_verbose_name }}
-          </div>
-        </td>
-        <td>{{ item.definition|striptags|truncatewords:"50" }}</td>
-        {% if tags_list %}
-          <td>
-            <ul class="taggle_list">
-              {% for fav in item.user_favourites %}
-                <li class="taggle">
-                  <a href="{% url 'aristotle_favourites:tag' fav.tag.id %}">{{ fav.tag.name }}</a>
-                </li>
-              {% endfor %}
-            </ul>
-          </td>
-        {% endif %}
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-{% include "aristotle_mdr/helpers/list_action_bar.html" with wrap=True %}
-{% include "aristotle_mdr/helpers/paginator.html" with page=page %}
+            </i>
+            </td>
+            <td>
+                <a href="{% url 'aristotle_mdr:item' item.id %}">{{ item.name }}</a>
+                <div class="small" style="white-space: nowrap;">
+                    {{ item.item.get_verbose_name }}
+                </div>
+            </td>
+            <td>{{ item.definition|striptags|truncatewords:"50" }}</td>
+            {% if tags_list %}
+            <td>
+                <ul class="taggle_list">
+                    {% for fav in item.user_favourites %}
+                    <li class="taggle">
+                        <a href="{% url 'aristotle_favourites:tag' fav.tag.id %}">{{ fav.tag.name }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% include "aristotle_mdr/helpers/list_action_bar.html" with wrap=True %}
+    {% include "aristotle_mdr/helpers/paginator.html" with page=page %}
 </form>
