@@ -1,5 +1,11 @@
 {% load i18n aristotle_tags util_tags %}
 
+<div id="initial-div" class="well well-sm" style="display:none">
+    {% if page_obj|length == total_queryset_siz
+
+</div>
+
+
 <div id="select-all-div" class=" well well-sm" style="display:none">
     {% if page_obj|length == total_queryset_size %}
         You have selected all of your {{ total_queryset_size }} {{ item }}
