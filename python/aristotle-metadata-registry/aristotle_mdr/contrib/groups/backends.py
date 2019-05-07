@@ -34,8 +34,8 @@ from django.http import Http404
 from .base import AbstractGroup
 from .utils import GroupRegistrationTokenGenerator
 
-
 import logging
+
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
@@ -280,9 +280,9 @@ class GroupMemberAddView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin,
                 self.manager = manager
                 self.group = group
 
-                self.fields['user'].queryset = get_user_model().objects.all().difference(
-                    self.group.member_list.all()
-                )
+                self.fields['user'].queryset = get_user_model().objects.all().exclude(
+                    pk__in=self.group.member_list.all() ).distinct()
+
         return MembershipCreateForm
 
     def get_form_kwargs(self):
@@ -405,6 +405,7 @@ class GroupURLManager(InvitationBackend):
             membership_class=self.membership_class,
             *args, **kwargs
         )
+
     # We need to put the function view inside the class based view because values are set at runtime
     def invite_view(self, *args, **kwargs):
         """
@@ -484,6 +485,7 @@ class GroupURLManager(InvitationBackend):
                         class Meta:
                             fields = []
                             model = User
+
                     return ActivateMembershipForm
                 else:
                     return UserRegistrationForm
@@ -516,6 +518,7 @@ class GroupURLManager(InvitationBackend):
                     "%s:%s" % (self.manager.namespace, "member_list"),
                     args=[self.group.slug]
                 )
+
         return ActivateView.as_view(manager=self, group_class=self.group_class)
 
     def invite_by_emails(self, emails, group, sender=None, request=None, **kwargs):
@@ -545,7 +548,8 @@ class GroupURLManager(InvitationBackend):
             users.append(user)
         return users
 
-    def email_message(self, user, subject_template, body_template, request, group, sender=None, message_class=EmailMessage, **kwargs):
+    def email_message(self, user, subject_template, body_template, request, group, sender=None,
+                      message_class=EmailMessage, **kwargs):
         """
         Returns an email message for a new user.
 
@@ -574,7 +578,7 @@ class GroupURLManager(InvitationBackend):
             'accept_url': reverse(
                 "%s:%s" % (self.namespace, "accept_invitation"),
                 args=[group.slug, user.pk, self.get_token(user, group)],
-                ),
+            ),
             'request': request
         })
 

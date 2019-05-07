@@ -59,6 +59,8 @@ class BaseStewardOrgsTestCase(utils.AristotleTestUtils):
 @skip("Skipped until we have time to fix inviting")
 class InviteUserToStewardGroup(BaseStewardOrgsTestCase, TestCase):
 
+
+
     def test_created_user_is_added_to_stewardship_org(self):
         self.login_superuser()
 
