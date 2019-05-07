@@ -12,10 +12,8 @@
         <th>
             {# If you want to use the fancy js make sure you render the webpack bundle in your template #}
                 {% if js_select_all %}
-
                     {# Don't render anything #}
                 {% elif allow_select_all %}
-                    <p>Is this loading?</p>
                     <input title='{% trans "Select all" %}' type="checkbox" id="all_in_queryset" name="all_in_queryset">
                     <input type="hidden" name="qs" value="{{ object_list|register_queryset }}">
                 {% endif %}
