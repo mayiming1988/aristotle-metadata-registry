@@ -1,4 +1,6 @@
 <form action="{% url 'aristotle:bulk_action' %}?next={{ request.path }}" method="POST">
+    {% include "aristotle_mdr/helpers/select_all.html" with total_queryset_size=view.object_list item=item.get_verbose_name %}
+
     {% csrf_token %}
     {% if delete %}
         {% include "aristotle_mdr/helpers/paginated_list.html" with delete=delete %}
