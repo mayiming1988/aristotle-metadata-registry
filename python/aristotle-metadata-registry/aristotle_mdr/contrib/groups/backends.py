@@ -291,6 +291,13 @@ class GroupMemberAddView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin,
         kwargs['manager'] = self.manager
         return kwargs
 
+    def get_context_data(self, *args,**kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['active_group_page'] = 'members'
+
+        return context
+
+
     def form_valid(self, form):
         form.instance.group = self.get_group()
         return super().form_valid(form)
