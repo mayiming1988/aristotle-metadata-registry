@@ -1,4 +1,5 @@
 {% extends request.is_ajax|yesno:"aristotle_mdr/base_ajax.html,aristotle_mdr/base.html" %}
+{% load bootstrap3 static %}
 
 {% block title %}Change users roles in {{ item.name }}{% endblock %}
 {% block content %}
@@ -19,10 +20,7 @@ for user <em>"{% firstof user_to_change.get_full_name user_to_change.email %}"</
     <section>
 
     <div>
-        <div>
-            {{ form.roles.label }}{{ form.roles }}
-            {{ form.roles.errors }}
-        </div>
+        {% bootstrap_form form %}
     </div>
 
 
