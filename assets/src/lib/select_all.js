@@ -27,26 +27,23 @@ function get_all_checkboxes() {
         return document.querySelectorAll('input[type="checkbox"]');
 }
 
-function disable_all_checkboxes() {
+function toggle_checkboxes_state() {
     let checkboxes = get_all_checkboxes();
-    for (let i=0; i < checkboxes.length; i++) {
-        checkboxes[i].setAttribute('disabled', true)
-    }
-}
-
-function enable_all_checkboxes() {
-    let checkboxes = get_all_checkboxes();
-    for (let i=0; i < checkboxes.length; i++) {
-        checkboxes[i].removeAttribute('disabled')
+    for (let checkbox of checkboxes) {
+        if (checkbox.hasAttribute('disabled')) {
+            checkbox.removeAttribute('disabled')
+        }
+        else {
+            checkbox.setAttribute('disabled', true)
+        }
     }
 }
 
 function toggle_all_checkboxes(source) {
     let checkboxes = get_all_checkboxes();
-    // TODO move to better for loop
-    for (let i = 0; i < checkboxes.length; i++) {
-        if (checkboxes[i] != source) {
-            checkboxes[i].checked = source.checked;
+    for (let checkbox of checkboxes) {
+        if (checkbox != source) {
+            checkbox.checked = source.checked;
         }
     }
     document.getElementById("all_in_queryset").checked = false;
@@ -60,7 +57,6 @@ function show_initial_div() {
 function hide_initial_div() {
     let initial = document.getElementById('initial-div')
     initial.style.display = 'none';
-
 }
 
 function hide_select_all_div() {
@@ -75,21 +71,20 @@ function select_all_queryset() {
         function () {
             clear_selections(this);
     });
-
-    disable_all_checkboxes();
+    // Disable checkbox
+    toggle_checkboxes_state()
 
     // Enable the hidden checkbox
     var hiddenSelectAllCheckBox = document.getElementById("all_in_queryset")
     hiddenSelectAllCheckBox.removeAttribute('disabled')
     hiddenSelectAllCheckBox.checked = true;
 
-
 }
 function clear_selections(source) {
     hide_select_all_div()
     hide_initial_div()
+    toggle_checkboxes_state()
     toggle_all_checkboxes(source)
-    enable_all_checkboxes()
 }
 
 function swap_divs() {
