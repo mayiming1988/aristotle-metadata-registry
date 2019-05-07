@@ -424,7 +424,6 @@ class GroupURLManager(InvitationBackend):
                 self.invited_users = form.emails
                 self.manager.invite_by_emails(form.emails, request=self.request, group=self.get_group())
 
-
                 return HttpResponseRedirect(self.get_success_url())
 
             def get_success_url(self):
