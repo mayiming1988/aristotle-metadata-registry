@@ -1,24 +1,63 @@
-from django.test import TestCase
-from aristotle_mdr.models import StewardOrganisation
+import logging
+
 import aristotle_mdr.tests.utils as utils
-from django.contrib.auth.models import AnonymousUser
-from django.core.cache import cache
-
-from django.contrib.auth import get_user_model
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
 from aristotle_mdr.contrib.groups.base import (
     AbstractMembership,
     AbstractGroup
 )
-from django.utils.translation import ugettext_lazy as _
+from aristotle_mdr.models import StewardOrganisation
+from aristotle_mdr.utils import setup_aristotle_test_environment
 from model_utils import Choices
 
-import logging
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
+from django.core.cache import cache
+from django.test import TestCase
+from django.utils.translation import ugettext_lazy as _
+
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
 setup_aristotle_test_environment()
+
+
+class BaseStewardOrgsTestCase(utils.AristotleTestUtils):
+    def setUp(self):
+        super().setUp()
+        cache.clear()
+
+        self.steward_org = StewardOrganisation.objects.create(
+            name="Test Stewardship Organisation",
+            description="Test test test",
+            state=StewardOrganisation.states.active
+        )
+        self.user_in_steward_org = User.objects.create(
+            email='steve@aristotle.example.com',
+            short_name='steve'
+        )
+        self.steward_org.grant_role(
+            role=StewardOrganisation.roles.member,
+            user=self.user_in_steward_org
+        )
+
+
+class InviteUserToStewardGroup(BaseStewardOrgsTestCase, TestCase):
+
+    def test_created_user_is_added_to_stewardship_org(self):
+        pass
+
+
+
+class GroupsBulkActions(utils.AristotleTestUtils, TestCase):
+    def setUp(self):
+        super().setUp()
+        cache.clear()
+
+    def test_anonymous_users_dont_have_any_permission_for_groups(self):
+        self.anonymous_user = AnonymousUser()
+        self.abstract_group = StewardOrganisation.objects.create(name="Test Steward Organisation")
+        for perm in self.abstract_group.role_permissions.keys():
+            self.assertEqual(self.abstract_group.user_has_permission(self.anonymous_user, perm), False)
 
 
 class FakeGroup(AbstractGroup):
@@ -51,17 +90,6 @@ class FakeGroup(AbstractGroup):
 class FakeMembership(AbstractMembership):
     group_class = FakeGroup
 
-
-class GroupsBulkActions(utils.AristotleTestUtils, TestCase):
-    def setUp(self):
-        super().setUp()
-        cache.clear()
-
-    def test_anonymous_users_dont_have_any_permission_for_groups(self):
-        self.anonymous_user = AnonymousUser()
-        self.abstract_group = StewardOrganisation.objects.create(name="Test Steward Organisation")
-        for perm in self.abstract_group.role_permissions.keys():
-            self.assertEqual(self.abstract_group.user_has_permission(self.anonymous_user, perm), False)
 
 class GroupTestCase(TestCase):
 
