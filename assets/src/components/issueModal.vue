@@ -9,10 +9,12 @@
     </form-field>
     <template v-if="isFields">
         <h3>Proposed changes</h3>
-        <select v-model="formdata.proposal_field">
-            <option disabled value="">Select a field</option>
-            <option v-for="f in fields" :value="f.name" :key="f.name">{{ capitalize(f.name) }}</option>
-        </select>
+        <template v-if="!edit">
+            <select v-model="formdata.proposal_field">
+                <option disabled value="">Select a field</option>
+                <option v-for="f in fields" :value="f.name" :key="f.name">{{ capitalize(f.name) }}</option>
+            </select>
+        </template>
         <template v-if="formdata.proposal_field">
             <h4>Value for {{ capitalize(formdata.proposal_field) }}</h4>
             <form-field :name="formdata.proposal_field">
