@@ -65,6 +65,7 @@ class BaseStewardOrgsTestCase(utils.AristotleTestUtils):
             )
         )
 
+
 class OrgGroupHasPermissions(BaseStewardOrgsTestCase, TestCase):
     def test_admin_permissions(self):
         org_1_role_permissions = {
@@ -266,7 +267,6 @@ class OrgPermissionsTests(BaseStewardOrgsTestCase, TestCase):
             role=StewardOrganisation.roles.admin,
             user=self.org_manager,
         )
-        # logger.critical()
         self.assertTrue(perms.user_can_create_registration_authority(
             self.org_manager, self.steward_org_2,
         ))
