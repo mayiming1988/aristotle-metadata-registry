@@ -5,7 +5,6 @@ from braces.views import (
 
 import os
 
-from django import forms
 from django.conf.urls import url, include
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -24,11 +23,9 @@ from django.contrib import messages
 
 from organizations.backends.defaults import InvitationBackend
 
-# from . import forms
 import attr
 
 from django.conf import settings
-from django.contrib.auth import authenticate, login
 from django.core.mail import EmailMessage
 from django.utils.translation import ugettext_lazy as _
 from django import forms
