@@ -1,8 +1,8 @@
 {% load i18n aristotle_tags util_tags %}
 <form action="{% url 'aristotle:bulk_action' %}?next={{ request.path }}" method="POST">
-    {% csrf_token %}
 
     {% include "aristotle_mdr/helpers/select_all.html" with total_queryset_size=count_favourites item='favourites' %}
+    {% csrf_token %}
 
     <table class="table">
         <thead>
