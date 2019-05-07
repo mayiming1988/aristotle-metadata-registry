@@ -3,9 +3,9 @@
 
     {% csrf_token %}
     {% if delete %}
-        {% include "aristotle_mdr/helpers/paginated_list.html" with delete=delete %}
+        {% include "aristotle_mdr/helpers/paginated_list.html" with delete=delete js_select_all=True %}
     {% else %}
-        {% include "aristotle_mdr/helpers/paginated_list.html" %}
+        {% include "aristotle_mdr/helpers/paginated_list.html" with js_select_all=True %}
     {% endif %}
     {% include "aristotle_mdr/helpers/list_action_bar.html" with wrap=True %}
 </form>

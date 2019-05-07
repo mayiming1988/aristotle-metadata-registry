@@ -18,6 +18,7 @@
         <button class="btn btn-outline btn-outline-info" id="clear-selections-button" type="button">Clear selections</button>
 </div>
 
+{# Hidden form selections #}
 <input title='{% trans "Select all" %}' type="checkbox" id="all_in_queryset" name="all_in_queryset"
        style="display: none;">
 <input type="hidden" name="qs" value="{{ view.object_list|register_queryset }}">
