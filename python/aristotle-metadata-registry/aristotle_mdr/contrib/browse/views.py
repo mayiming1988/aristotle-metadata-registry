@@ -65,7 +65,7 @@ class BrowseModels(AppBrowser):
 class BrowseConcepts(AppBrowser):
     """Show a list of items of a particular model"""
     _model = None
-    paginate_by = 25
+    paginate_by = 2
 
     @property
     def model(self):

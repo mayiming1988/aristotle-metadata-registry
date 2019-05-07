@@ -5,7 +5,6 @@
     // 4. Add total_query_size context to your view
 
 export function initSelectAll() {
-
     let selectAllCheckbox = document.getElementById('select-all-checkbox');
     selectAllCheckbox.addEventListener("change", function () {
         toggle_all_checkboxes(this);
@@ -24,6 +23,10 @@ export function initSelectAll() {
     });
 }
 
+function get_all_checkboxes() {
+        return document.querySelectorAll('input[type="checkbox"]');
+}
+
 function disable_all_checkboxes() {
     let checkboxes = get_all_checkboxes();
     for (let i=0; i < checkboxes.length; i++) {
@@ -31,8 +34,11 @@ function disable_all_checkboxes() {
     }
 }
 
-function get_all_checkboxes() {
-        return document.querySelectorAll('input[type="checkbox"]');
+function enable_all_checkboxes() {
+    let checkboxes = get_all_checkboxes();
+    for (let i=0; i < checkboxes.length; i++) {
+        checkboxes[i].removeAttribute('disabled')
+    }
 }
 
 function toggle_all_checkboxes(source) {
@@ -69,14 +75,21 @@ function select_all_queryset() {
         function () {
             clear_selections(this);
     });
-    document.getElementById("all_in_queryset").checked = true;
 
     disable_all_checkboxes();
+
+    // Enable the hidden checkbox
+    var hiddenSelectAllCheckBox = document.getElementById("all_in_queryset")
+    hiddenSelectAllCheckBox.removeAttribute('disabled')
+    hiddenSelectAllCheckBox.checked = true;
+
+
 }
 function clear_selections(source) {
     hide_select_all_div()
     hide_initial_div()
     toggle_all_checkboxes(source)
+    enable_all_checkboxes()
 }
 
 function swap_divs() {
