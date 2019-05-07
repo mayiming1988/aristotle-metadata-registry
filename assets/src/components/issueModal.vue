@@ -16,7 +16,7 @@
                 </div>
                 <collapse v-model="showAccordion[index]">
                 <div class="panel-body">
-                    <textarea class="form-control ta-fixed-width" v-model="formdata.proposals[f.name]" />
+                    <textarea class="form-control ta-fixed-width" v-model="proposals[f.name]" />
                 </div>
                 </collapse>
             </div>
@@ -74,14 +74,15 @@ export default {
     },
     data: () => ({
         showAccordion: [],
+        proposals: {},
         formdata: {
             name: '',
             description: '',
-            proposals: {}
+            proposals: ''
         }
     }),
     created: function() {
-        this.formdata.proposals = JSON.parse(this.initial)
+        this.proposals = JSON.parse(this.initial)
         this.fields = JSON.parse(this.proposeFields)
         // Have accordian off by default
         for (let i = 0; i < this.fields.length; i++) {
@@ -97,6 +98,7 @@ export default {
             if (!this.loading) {
                 let postdata = this.formdata
                 postdata['item'] = this.iid
+                postdata['proposals'] = JSON.stringify(this.proposals)
                 let promise = this.post(this.url, postdata)
                 promise.then((response) => {
                     // If issue created and url returned

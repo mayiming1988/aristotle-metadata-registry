@@ -14,8 +14,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 
 class IssueBase(LoginRequiredMixin, SimpleItemGet):
 
-    pk_kwarg = 'iid'
-
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['activetab'] = 'issues'
