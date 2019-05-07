@@ -8,7 +8,7 @@ class IssueSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Issue
-        fields = ('name', 'description', 'item', 'isopen', 'submitter', 'proposals')
+        fields = ('name', 'description', 'item', 'isopen', 'submitter', 'proposal_field', 'proposal_value')
 
     submitter = serializers.HiddenField(
         default=serializers.CurrentUserDefault()

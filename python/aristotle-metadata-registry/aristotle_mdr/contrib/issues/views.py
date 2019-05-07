@@ -22,20 +22,21 @@ class IssueBase(LoginRequiredMixin, SimpleItemGet):
 
     def get_modal_data(self, issue=None):
         """Get data for issue modal creation and editing"""
-        data = {'name': '', 'description': '', 'proposals': ''}
         # Get field data for proposable fields on concept
         field_data = {}
         for fname in Issue.proposable_fields:
             value = getattr(self.item, fname, '')
             field_data[fname] = value
-        if not issue:
-            data['proposals'] = json.dumps(field_data)
-        else:
-            data['proposals'] = issue.proposals
+
+        data = {}
+        if issue:
+            data['proposal_field'] = issue.proposal_field
+            data['proposal_value'] = issue.proposal_value
             data['name'] = issue.name
             data['description'] = issue.description
         return {
             'fields': json.dumps(Issue.get_propose_fields()),
+            'field_data': field_data,
             'initial': json.dumps(data)
         }
 

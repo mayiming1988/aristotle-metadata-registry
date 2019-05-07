@@ -32,7 +32,8 @@ class Issue(TimeStampedModel):
         related_name='issues'
     )
     isopen = models.BooleanField(default=True)
-    proposals = JSONField(default='{}')
+    proposal_field = models.TextField(blank=True)
+    proposal_value = models.TextField(blank=True)
 
     def can_edit(self, user):
         return user.id == self.submitter.id

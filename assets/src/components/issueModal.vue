@@ -9,18 +9,16 @@
     </form-field>
     <template v-if="isFields">
         <h3>Proposed changes</h3>
-        <div class="panel-group">
-            <div v-for="(f, index) in fields" class="panel panel-default" :key="index">
-                <div class="panel-heading" role="button" @click="toggleAccordion(index)">
-                    <h4 class="panel-title">{{ capitalize(f.name) }}</h4>
-                </div>
-                <collapse v-model="showAccordion[index]">
-                <div class="panel-body">
-                    <textarea class="form-control ta-fixed-width" v-model="proposals[f.name]" />
-                </div>
-                </collapse>
-            </div>
-        </div>
+        <select v-model="formdata.proposal_field">
+            <option disabled value="">Select a field</option>
+            <option v-for="f in fields" :value="f.name" :key="f.name">{{ capitalize(f.name) }}</option>
+        </select>
+        <template v-if="formdata.proposal_field">
+            <h4>Value for {{ capitalize(formdata.proposal_field) }}</h4>
+            <form-field :name="formdata.proposal_field">
+                <textarea v-model="formdata.proposal_value" class="form-control ta-fixed-width" />
+            </form-field>
+        </template>
     </template>
     <div slot="footer">
         <button type="button" class="btn btn-default" @click="emitClose">Close</button>
@@ -34,7 +32,6 @@
 
 <script>
 import Modal from 'uiv/src/components/modal/Modal.vue'
-import Collapse from 'uiv/src/components/collapse/Collapse.vue'
 import formField from '@/forms/bsFieldWrapper.vue'
 import apiErrors from '@/apiErrorDisplay.vue'
 import apiRequest from 'src/mixins/apiRequest.js'
@@ -45,7 +42,6 @@ export default {
     mixins: [apiRequest],
     components: {
         Modal,
-        Collapse,
         formField,
         apiErrors,
         saving,
@@ -67,6 +63,10 @@ export default {
             type: String,
             required: true
         },
+        itemFieldsJson: {
+            type: String,
+            default: '{}'
+        },
         // Fields we can propose changes for
         proposeFields: {
             type: String,
@@ -79,23 +79,17 @@ export default {
         }
     },
     data: () => ({
-        showAccordion: [],
-        proposals: {},
         formdata: {
             name: '',
             description: '',
-            proposals: ''
+            proposal_field: '',
+            proposal_value: ''
         }
     }),
     created: function() {
         this.formdata = JSON.parse(this.initial)
-        this.proposals = JSON.parse(this.formdata.proposals)
+        this.itemFields = JSON.parse(this.itemFieldsJson)
         this.fields = JSON.parse(this.proposeFields)
-        // TODO Remove fields not in initial
-        // Have accordian off by default
-        for (let i = 0; i < this.fields.length; i++) {
-            this.showAccordion.push(false)
-        }
     },
     methods: {
         capitalize: capitalize,
@@ -121,13 +115,6 @@ export default {
                         this.redirect(response.data['url'])
                     }
                 })
-            }
-        },
-        toggleAccordion: function(index) {
-            if (this.showAccordion[index]) {
-                this.$set(this.showAccordion, index, false)
-            } else {
-                this.showAccordion = this.showAccordion.map((v, i) => i === index)
             }
         }
     },
