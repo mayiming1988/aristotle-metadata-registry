@@ -1,17 +1,11 @@
-from django.urls import reverse
 from django.contrib.auth import get_user_model
-from django.test import TestCase, tag
+from django.test import TestCase
 
 from aristotle_mdr import models as mdr_models
 from aristotle_mdr import perms
-from aristotle_mdr.models import StewardOrganisation, Workgroup
+from aristotle_mdr.models import StewardOrganisation
 from aristotle_mdr.tests import utils
-from aristotle_mdr.tests.main.test_bulk_actions import BulkActionsTest
 from aristotle_mdr.utils import setup_aristotle_test_environment
-from aristotle_mdr.contrib.slots.utils import concepts_with_similar_slots
-
-import datetime
-import json
 
 User = get_user_model()
 setup_aristotle_test_environment()
@@ -21,7 +15,6 @@ class BaseStewardOrgsTestCase(utils.AristotleTestUtils):
     def setUp(self):
         super().setUp()
 
-        # self.steward_org_1 is set up in tests/utils.py class LoggedInViewPages
         self.steward_org_2 = StewardOrganisation.objects.create(
             name='Org 1',
             description="2",

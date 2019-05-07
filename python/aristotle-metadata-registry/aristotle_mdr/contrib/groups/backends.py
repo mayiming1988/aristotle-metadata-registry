@@ -84,9 +84,6 @@ class GroupBase(GroupTemplateMixin):
         qs = qs.prefetch_related('members')
         if self.request.user.is_anonymous():
             return qs
-        # if self.superuser_override and self.request.user.is_superuser:
-        #     return qs.prefetch_related('members')
-        # qs = qs.group_list_for_user(self.request.user).prefetch_related('members')
         return qs
 
 
@@ -271,9 +268,6 @@ class GroupMembershipFormView(LoginRequiredMixin, HasRolePermissionMixin, GroupM
 class GroupMemberAddView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin, CreateView):
     fallback_template_name = "groups/group/members/add.html"
     role_permission = "edit_members"
-    # queryset = User.objects.all()
-    # fields = ["user", "role"]
-    # form_class = MembershipCreateForm
 
     def get_form_class(self):
         class MembershipCreateForm(forms.ModelForm):
@@ -411,13 +405,11 @@ class GroupURLManager(InvitationBackend):
             membership_class=self.membership_class,
             *args, **kwargs
         )
-
+    # We need to put the function view inside the class based view because values are set at runtime
     def invite_view(self, *args, **kwargs):
         """
         Initiates the organization and user account creation process
         """
-        # if self.can_invite_new_users_via_email:
-        #     pass
         from aristotle_mdr.contrib.user_management.org_backends import InviteView as InviteViewBase
 
         class InviteView(HasRolePermissionMixin, InviteViewBase, GroupMixin):
@@ -431,6 +423,7 @@ class GroupURLManager(InvitationBackend):
                 """
                 self.invited_users = form.emails
                 self.manager.invite_by_emails(form.emails, request=self.request, group=self.get_group())
+
 
                 return HttpResponseRedirect(self.get_success_url())
 
@@ -456,6 +449,7 @@ class GroupURLManager(InvitationBackend):
 
     notification_subject = 'aristotle_mdr/users_management/newuser/email/notification_subject.txt'
     notification_body = 'aristotle_mdr/users_management/newuser/email/notification_body.html'
+
     invitation_subject = 'aristotle_mdr/users_management/newuser/email/invitation_subject.txt'
     invitation_body = 'aristotle_mdr/users_management/newuser/email/invitation_body.html'
     reminder_subject = 'aristotle_mdr/users_management/newuser/email/reminder_subject.txt'
@@ -530,11 +524,16 @@ class GroupURLManager(InvitationBackend):
         an invitation email for that user to complete registration.
         If your project uses email in a different way then you should make to
         extend this method as it only checks the `email` attribute for Users.
+
+        We'll still send an email if the user exists
         """
         users = []
         for email in emails:
             try:
                 user = User.objects.get(email=email)
+                # We still want to send an invitation link
+                logger.debug("The user exists")
+
             except User.DoesNotExist:
                 # TODO break out user creation process
                 user = User.objects.create(
@@ -549,12 +548,15 @@ class GroupURLManager(InvitationBackend):
 
     def email_message(self, user, subject_template, body_template, request, group, sender=None, message_class=EmailMessage, **kwargs):
         """
-        Returns an email message for a new user. This can be easily overriden.
+        Returns an email message for a new user.
+
+        This can be easily overriden.
         For instance, to send an HTML message, use the EmailMultiAlternatives message_class
-        and attach the additional conent.
+        and attach the additional component.
         """
 
         if sender:
+            # We have a specific sender
             import email.utils
             from_email = "%s <%s>" % (
                 sender.full_name,
@@ -562,6 +564,7 @@ class GroupURLManager(InvitationBackend):
             )
             reply_to = "%s <%s>" % (sender.full_name, sender.email)
         else:
+            # There's no specific sender
             from_email = settings.DEFAULT_FROM_EMAIL
             reply_to = from_email
 
@@ -580,19 +583,23 @@ class GroupURLManager(InvitationBackend):
         body_template = loader.get_template(body_template)
         subject = subject_template.render(kwargs).strip()  # Remove stray newline characters
         body = body_template.render(kwargs)
+
         return message_class(subject, body, from_email, [user.email], headers=headers)
 
     def send_invitation(self, user, group, sender=None, **kwargs):
         """An intermediary function for sending an invitation email that
         selects the templates, generating the token, and ensuring that the user
         has not already joined the site.
+        We still want to send an email if they already are a member of
         """
         if user.is_active:
             return False
+            # TODO: change this
         token = self.get_token(user, group)
         kwargs.update({'token': token})
         kwargs.update({'sender': sender})
         kwargs.update({'user_id': user.pk})
+        # Send the email
         self.email_message(user, self.invitation_subject, self.invitation_body, group=group, **kwargs).send()
         return True
 
