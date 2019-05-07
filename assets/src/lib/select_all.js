@@ -1,4 +1,4 @@
-// To add the gmail-style select all button to a bulk_action page:
+// To add the gmail style select all button to a bulk_action page:
     // 1. import {initSelectAll} from "src/lib/select_all"
     // 2. initSelectAll()
     // 3. Add {{page}}.js to webpack
@@ -54,6 +54,7 @@ function show_initial_div() {
     initial.style.display = 'block';
 }
 
+
 function hide_initial_div() {
     let initial = document.getElementById('initial-div')
     initial.style.display = 'none';
@@ -64,6 +65,29 @@ function hide_select_all_div() {
     select_all.style.display = 'none';
 }
 
+function swap_divs() {
+    let select_all = document.getElementById('select-all-div')
+
+    if (select_all.style.display == 'block') {
+        // If div is displayed, hide it
+        select_all.style.display = 'none';
+    }
+    else {
+        // Show the div
+        select_all.style.display = 'block';
+    }
+
+    let initial_div = document.getElementById('initial-div')
+
+    if (initial_div.style.display == 'block') {
+        initial_div.style.display = 'none';
+    }
+    else {
+        initial_div.style.display = 'block'
+    }
+}
+
+// Listener function
 function select_all_queryset() {
     swap_divs();
 
@@ -74,12 +98,13 @@ function select_all_queryset() {
     // Disable checkbox
     toggle_checkboxes_state()
 
-    // Enable the hidden checkbox
+    // Enable the hidden checkbox otherwise it won't submit correctly
     var hiddenSelectAllCheckBox = document.getElementById("all_in_queryset")
     hiddenSelectAllCheckBox.removeAttribute('disabled')
     hiddenSelectAllCheckBox.checked = true;
 
 }
+// Listener function
 function clear_selections(source) {
     hide_select_all_div()
     hide_initial_div()
@@ -87,21 +112,3 @@ function clear_selections(source) {
     toggle_all_checkboxes(source)
 }
 
-function swap_divs() {
-    let select_all = document.getElementById('select-all-div')
-
-    if (select_all.style.display == 'block') {
-        // If div is displayed, hide it
-        select_all.style.display = 'none';
-    } else {
-        // Show it
-        select_all.style.display = 'block';
-    }
-    let initial_div = document.getElementById('initial-div')
-
-    if (initial_div.style.display == 'block') {
-        initial_div.style.display = 'none';
-    } else {
-        initial_div.style.display = 'block'
-    }
-}
