@@ -1,7 +1,6 @@
 <template>
     <modal :value="value" title="Create Issue" size="lg" @input="emitClose">
     <api-errors :errors="errors"></api-errors>
-    <h3>Issue</h3>
     <form-field name="name">
         <input id="name" class="form-control" v-model="formdata.name" />
     </form-field>
@@ -13,14 +12,12 @@
         <div class="panel-group">
             <div v-for="(f, index) in fields" class="panel panel-default" :key="index">
                 <div class="panel-heading" role="button" @click="toggleAccordion(index)">
-                    <h4 class="panel-title">{{ f.name }}</h4>
+                    <h4 class="panel-title">{{ capitalize(f.name) }}</h4>
                 </div>
                 <collapse v-model="showAccordion[index]">
-                    <div class="panel-body">
-                        <form-field :name="f.name">
-                            <textarea class="form-control ta-fixed-width" v-model="formdata.proposals[f.name]" />
-                        </form-field>
-                    </div>
+                <div class="panel-body">
+                    <textarea class="form-control ta-fixed-width" v-model="formdata.proposals[f.name]" />
+                </div>
                 </collapse>
             </div>
         </div>
@@ -42,6 +39,7 @@ import formField from '@/forms/bsFieldWrapper.vue'
 import apiErrors from '@/apiErrorDisplay.vue'
 import apiRequest from 'src/mixins/apiRequest.js'
 import saving from '@/saving.vue'
+import { capitalize } from 'src/lib/utils.js'
 
 export default {
     mixins: [apiRequest],
@@ -91,6 +89,7 @@ export default {
         }
     },
     methods: {
+        capitalize: capitalize,
         emitClose: function() {
             this.$emit('input', false)
         },
@@ -109,9 +108,9 @@ export default {
         },
         toggleAccordion: function(index) {
             if (this.showAccordion[index]) {
-              this.$set(this.showAccordion, index, false)
+                this.$set(this.showAccordion, index, false)
             } else {
-              this.showAccordion = this.showAccordion.map((v, i) => i === index)
+                this.showAccordion = this.showAccordion.map((v, i) => i === index)
             }
         }
     },
