@@ -1,7 +1,8 @@
 // To add the gmail-style select all button to a bulk_action page:
-// 1. import {initSelectAll} from "src/lib/select_all"
-// 2. initSelectAll()
-// 3. Add {{page}}.js to webpack
+    // 1. import {initSelectAll} from "src/lib/select_all"
+    // 2. initSelectAll()
+    // 3. Add {{page}}.js to webpack
+    // 4. Add total_query_size context to your view
 
 export function initSelectAll() {
 

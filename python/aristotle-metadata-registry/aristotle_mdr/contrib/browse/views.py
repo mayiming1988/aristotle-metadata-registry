@@ -93,6 +93,7 @@ class BrowseConcepts(AppBrowser):
         context['model'] = self.model
         context['model_name'] = self.model._meta.model_name
         context['sort'] = self.order
+        context['total_queryset_size'] = self.get_queryset().count()
         return context
 
     def get_template_names(self):
