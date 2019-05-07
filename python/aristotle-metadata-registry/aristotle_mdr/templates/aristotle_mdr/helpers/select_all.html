@@ -1,8 +1,8 @@
 {% load i18n aristotle_tags util_tags %}
 
 <div id="initial-div" class="well well-sm" style="display: none">
-        {% if page_obj|length == total_queryset_size %}
-        You have selected all of your {{ total_queryset_size }} {{ item }}
+    {% if page_obj|length == total_queryset_size %}
+        You have selected all <b>{{ total_queryset_size }}</b> {{ item }}. There are no more items to select.
     {% else %}
         You have selected the <b>{{ page_obj|length }}</b> items on the page
         <button class="btn btn-outline btn-outline-info" id="select-all-queryset-button" type="button">
@@ -14,7 +14,7 @@
 </div>
 
 <div id="select-all-div" class=" well well-sm" style="display:none">
-    All of your <i>{{ total_queryset_size }}</i> favourites have been selected
+    All of your <b>{{ total_queryset_size }}</b> {{ item }} have been selected
         <button class="btn btn-outline btn-outline-info" id="clear-selections-button" type="button">Clear selections</button>
 </div>
 

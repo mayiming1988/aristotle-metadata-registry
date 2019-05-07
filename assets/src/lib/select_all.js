@@ -24,9 +24,21 @@ export function initSelectAll() {
     });
 }
 
+function disable_all_checkboxes() {
+    let checkboxes = get_all_checkboxes();
+    for (let i=0; i < checkboxes.length; i++) {
+        checkboxes[i].setAttribute('disabled', true)
+    }
+}
+
+function get_all_checkboxes() {
+        return document.querySelectorAll('input[type="checkbox"]');
+}
+
 function toggle_all_checkboxes(source) {
-    var checkboxes = document.querySelectorAll('input[type="checkbox"]');
-    for (var i = 0; i < checkboxes.length; i++) {
+    let checkboxes = get_all_checkboxes();
+    // TODO move to better for loop
+    for (let i = 0; i < checkboxes.length; i++) {
         if (checkboxes[i] != source) {
             checkboxes[i].checked = source.checked;
         }
@@ -45,6 +57,11 @@ function hide_initial_div() {
 
 }
 
+function hide_select_all_div() {
+    let select_all = document.getElementById('select-all-div')
+    select_all.style.display = 'none';
+}
+
 function select_all_queryset() {
     swap_divs();
 
@@ -53,6 +70,8 @@ function select_all_queryset() {
             clear_selections(this);
     });
     document.getElementById("all_in_queryset").checked = true;
+
+    disable_all_checkboxes();
 }
 function clear_selections(source) {
     hide_select_all_div()
@@ -77,9 +96,4 @@ function swap_divs() {
     } else {
         initial_div.style.display = 'block'
     }
-}
-
-function hide_select_all_div() {
-    let select_all = document.getElementById('select-all-div')
-    select_all.style.display = 'none';
 }
