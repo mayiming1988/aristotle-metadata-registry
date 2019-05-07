@@ -30,6 +30,8 @@
     <issue-modal
             v-model="issueModalOpen"
             iid="{{ item.id }}"
-            url="{% url 'api_v4:issues:create' %}">
+            url="{% url 'api_v4:issues:create' %}"
+            propose-fields="{{ fields }}"
+            initial="{{ field_data }}">
     </issue-modal>
 {% endblock %}

@@ -1,13 +1,20 @@
+from typing import Optional
+
 from django.http import Http404
 from django.views.generic import TemplateView
+from django.shortcuts import get_object_or_404
 
 from aristotle_mdr.views.utils import SimpleItemGet
 from aristotle_mdr.contrib.issues.models import Issue
+from aristotle_mdr.models import _concept
 from aristotle_mdr import perms
+import json
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 
 class IssueBase(LoginRequiredMixin, SimpleItemGet):
+
+    pk_kwarg = 'iid'
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -27,10 +34,21 @@ class IssueList(IssueBase, TemplateView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
+        # Fetch issues for the item
         open_issues, closed_issues = self.get_issues()
+        # Get concept
+        # Get field data for proposable fields on concept
+        field_data = {}
+        if self.item:
+            for fname in Issue.proposable_fields:
+                value = getattr(self.item, fname, '')
+                field_data[fname] = value
+        # Update context
         context.update({
             'open_issues': open_issues,
-            'closed_issues': closed_issues
+            'closed_issues': closed_issues,
+            'fields': json.dumps(Issue.get_propose_fields()),
+            'field_data': json.dumps(field_data)
         })
         return context
 
