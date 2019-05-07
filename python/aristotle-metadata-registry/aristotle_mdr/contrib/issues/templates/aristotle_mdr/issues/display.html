@@ -71,4 +71,13 @@
             @set_open="setIsOpen"
             @created="addComment">
     </issue-comment>
+
+
+    <issue-modal
+            v-model="issueModalOpen"
+            iid="{{ item.id }}"
+            url="{% url 'api_v4:issues:create' %}"
+            propose-fields="{{ fields }}"
+            initial="{{ initial }}">
+    </issue-modal>
 {% endblock %}

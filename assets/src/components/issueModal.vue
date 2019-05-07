@@ -1,5 +1,5 @@
 <template>
-    <modal :value="value" title="Create Issue" size="lg" @input="emitClose">
+    <modal :value="value" :title="actionText" size="lg" @input="emitClose">
     <api-errors :errors="errors"></api-errors>
     <form-field name="name">
         <input id="name" class="form-control" v-model="formdata.name" />
@@ -25,8 +25,8 @@
     <div slot="footer">
         <button type="button" class="btn btn-default" @click="emitClose">Close</button>
         <saving v-if="loading" />
-        <button v-if="!loading" type="button" class="btn btn-primary" @click="createIssue">
-            Create Issue
+        <button v-if="!loading" type="button" class="btn btn-primary" @click="saveIssue">
+            {{ actionText }}
         </button>
     </div>
     </modal>
@@ -65,11 +65,17 @@ export default {
         },
         initial: {
             type: String,
-            default: '{}'
+            required: true
         },
+        // Fields we can propose changes for
         proposeFields: {
             type: String,
             default: '{}'
+        },
+        // Whether we are editing an issue instead of creating
+        edit: {
+            type: Boolean,
+            default: false
         }
     },
     data: () => ({
@@ -82,8 +88,10 @@ export default {
         }
     }),
     created: function() {
-        this.proposals = JSON.parse(this.initial)
+        this.formdata = JSON.parse(this.initial)
+        this.proposals = JSON.parse(this.formdata.proposals)
         this.fields = JSON.parse(this.proposeFields)
+        // TODO Remove fields not in initial
         // Have accordian off by default
         for (let i = 0; i < this.fields.length; i++) {
             this.showAccordion.push(false)
@@ -94,15 +102,22 @@ export default {
         emitClose: function() {
             this.$emit('input', false)
         },
-        createIssue: function() {
+        saveIssue: function() {
             if (!this.loading) {
+                // Get data
                 let postdata = this.formdata
                 postdata['item'] = this.iid
+                // TODO only save edited fields
                 postdata['proposals'] = JSON.stringify(this.proposals)
-                let promise = this.post(this.url, postdata)
+                // determinal http method
+                let method = 'post'
+                if (this.edit) {
+                    method = 'put'
+                }
+                let promise = this.request(this.url, postdata, {}, method)
                 promise.then((response) => {
-                    // If issue created and url returned
-                    if (response.status == 201 && response.data['url']) {
+                    // If 200 status and url returned
+                    if (response.status >= 200 && response.status < 300 && response.data['url']) {
                         this.redirect(response.data['url'])
                     }
                 })
@@ -119,6 +134,13 @@ export default {
     computed: {
         isFields: function() {
             return Array.isArray(this.fields)
+        },
+        actionText: function() {
+            let action = 'Create'
+            if (this.edit) {
+                action = 'Edit'
+            }
+            return action + ' Issue'
         }
     }
 }

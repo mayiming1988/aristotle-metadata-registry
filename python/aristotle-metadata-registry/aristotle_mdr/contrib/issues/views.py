@@ -20,6 +20,25 @@ class IssueBase(LoginRequiredMixin, SimpleItemGet):
         context['hide_item_actions'] = True
         return context
 
+    def get_modal_data(self, issue=None):
+        """Get data for issue modal creation and editing"""
+        data = {'name': '', 'description': '', 'proposals': ''}
+        # Get field data for proposable fields on concept
+        field_data = {}
+        for fname in Issue.proposable_fields:
+            value = getattr(self.item, fname, '')
+            field_data[fname] = value
+        if not issue:
+            data['proposals'] = json.dumps(field_data)
+        else:
+            data['proposals'] = issue.proposals
+            data['name'] = issue.name
+            data['description'] = issue.description
+        return {
+            'fields': json.dumps(Issue.get_propose_fields()),
+            'initial': json.dumps(data)
+        }
+
 
 class IssueList(IssueBase, TemplateView):
 
@@ -34,20 +53,13 @@ class IssueList(IssueBase, TemplateView):
         context = super().get_context_data(*args, **kwargs)
         # Fetch issues for the item
         open_issues, closed_issues = self.get_issues()
-        # Get concept
-        # Get field data for proposable fields on concept
-        field_data = {}
-        if self.item:
-            for fname in Issue.proposable_fields:
-                value = getattr(self.item, fname, '')
-                field_data[fname] = value
         # Update context
         context.update({
             'open_issues': open_issues,
             'closed_issues': closed_issues,
-            'fields': json.dumps(Issue.get_propose_fields()),
-            'field_data': json.dumps(field_data)
         })
+        # Update context with modal data
+        context.update(self.get_modal_data())
         return context
 
 
@@ -88,4 +100,5 @@ class IssueDisplay(IssueBase, TemplateView):
             'can_alter_open'
         )
         context['own_issue'] = (self.request.user.id == self.issue.submitter.id)
+        context.update(self.get_modal_data(self.issue))
         return context
