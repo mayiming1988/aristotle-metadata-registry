@@ -1,6 +1,5 @@
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import FieldError
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, TemplateView
@@ -65,7 +64,7 @@ class BrowseModels(AppBrowser):
 class BrowseConcepts(AppBrowser):
     """Show a list of items of a particular model"""
     _model = None
-    paginate_by = 2
+    paginate_by = 25
 
     @property
     def model(self):
