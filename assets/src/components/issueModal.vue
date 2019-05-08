@@ -1,34 +1,34 @@
 <template>
     <modal :value="value" :title="actionText" size="lg" @input="emitClose">
-    <api-errors :errors="errors"></api-errors>
-    <form-field name="name">
-        <input id="name" class="form-control" v-model="formdata.name" />
-    </form-field>
-    <form-field name="description">
-        <textarea id="description" class="form-control ta-fixed-width" v-model="formdata.description"></textarea>
-    </form-field>
-    <template v-if="isFields">
-        <h3>Proposed changes</h3>
-        <template v-if="!edit">
-            <select v-model="formdata.proposal_field">
-                <option disabled value="">Select a field</option>
-                <option v-for="f in fields" :value="f.name" :key="f.name">{{ capitalize(f.name) }}</option>
-            </select>
+        <api-errors :errors="errors"></api-errors>
+        <form-field name="name">
+            <input id="name" class="form-control" v-model="formdata.name" />
+        </form-field>
+        <form-field name="description">
+            <textarea id="description" class="form-control ta-fixed-width" v-model="formdata.description"></textarea>
+        </form-field>
+        <template v-if="isFields">
+            <h3>Proposed changes</h3>
+            <template v-if="!edit">
+                <select v-model="formdata.proposal_field">
+                    <option disabled value="">Select a field</option>
+                    <option v-for="f in fields" :value="f.name" :key="f.name">{{ capitalize(f.name) }}</option>
+                </select>
+            </template>
+            <template v-if="formdata.proposal_field">
+                <h4>Value for {{ capitalize(formdata.proposal_field) }}</h4>
+                <form-field :name="formdata.proposal_field">
+                    <textarea v-model="proposals[formdata.proposal_field]" class="form-control ta-fixed-width" />
+                </form-field>
+            </template>
         </template>
-        <template v-if="formdata.proposal_field">
-            <h4>Value for {{ capitalize(formdata.proposal_field) }}</h4>
-            <form-field :name="formdata.proposal_field">
-                <textarea v-model="formdata.proposal_value" class="form-control ta-fixed-width" />
-            </form-field>
-        </template>
-    </template>
-    <div slot="footer">
-        <button type="button" class="btn btn-default" @click="emitClose">Close</button>
-        <saving v-if="loading" />
-        <button v-if="!loading" type="button" class="btn btn-primary" @click="saveIssue">
-            {{ actionText }}
-        </button>
-    </div>
+        <div slot="footer">
+            <button type="button" class="btn btn-default" @click="emitClose">Close</button>
+            <saving v-if="loading" />
+            <button v-if="!loading" type="button" class="btn btn-primary" @click="saveIssue">
+                {{ actionText }}
+            </button>
+        </div>
     </modal>
 </template>
 
@@ -81,6 +81,7 @@ export default {
         }
     },
     data: () => ({
+        proposals: {},
         formdata: {
             name: '',
             description: '',
@@ -90,7 +91,12 @@ export default {
     }),
     created: function() {
         this.formdata = JSON.parse(this.initial)
-        this.itemFields = JSON.parse(this.itemFieldsJson)
+        if (!this.edit) {
+            // When creating new proposals set initial values from item
+            this.proposals = JSON.parse(this.itemFieldsJson)
+        } else {
+            this.proposals[this.formdata.proposal_field] = this.formdata.proposal_value
+        }
         this.fields = JSON.parse(this.proposeFields)
     },
     methods: {
