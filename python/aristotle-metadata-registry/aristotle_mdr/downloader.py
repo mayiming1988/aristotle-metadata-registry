@@ -1,4 +1,4 @@
-from typing import Any, List, Dict, Optional, Union, Tuple, AnyStr, Iterable
+from typing import Any, List, Dict, Optional, Union, AnyStr
 
 from django.db.models.query import QuerySet
 from django.contrib.auth import get_user_model
@@ -7,7 +7,6 @@ from django.core.files.storage import get_storage_class
 from django.core.files import File
 from django.core.exceptions import PermissionDenied
 from django.utils.safestring import mark_safe
-from django.template.loader import render_to_string
 from django.core.files.base import ContentFile
 from django.conf import settings
 from django.utils.module_loading import import_string
@@ -16,18 +15,18 @@ from django.core.mail.message import EmailMessage
 from django.urls import reverse
 from django.template.loader import render_to_string
 
-import io
-import csv
 from hashlib import sha256
 import pickle
 import pypandoc
 
 from aristotle_mdr.contrib.help.models import ConceptHelp
 from aristotle_mdr import models as MDR
-from aristotle_mdr.views import get_if_user_can_view
 from aristotle_mdr.utils import fetch_aristotle_settings, get_model_label, format_seconds
 from aristotle_mdr.utils.utils import get_download_template_path_for_item
-from celery import shared_task
+
+import logging
+logger = logging.getLogger(__name__)
+logger.debug("Logging started for " + __name__)
 
 
 class Downloader:
@@ -69,7 +68,9 @@ class Downloader:
         'subclasses': None,
         'front_page': None,
         'back_page': None,
-        'email_copy': False
+        'email_copy': False,
+        'registration_status' : None,
+        'registration_authority': None,
     }
 
     def __init__(self, item_ids: List[int], user_id: Optional[int], options: Dict[str, Any] = {}):
@@ -282,7 +283,6 @@ class HTMLDownloader(Downloader):
         # This will raise an exception if the list is empty, but that's ok
         item = self.items[0]
         sub_items = self.get_sub_items_dict()
-
         context.update({
             'title': item.name,
             'item': item,
@@ -295,11 +295,13 @@ class HTMLDownloader(Downloader):
         item_class = type(item)
 
         label = get_model_label(item_class)
+
         if label not in items_dict:
             model_help = ConceptHelp.objects.filter(
                 app_label=item_class._meta.app_label,
                 concept_type=item_class._meta.model_name
             ).first()
+
             items_dict[label] = {
                 'items': [],
                 'verbose_name': item_class.get_verbose_name(),
@@ -310,7 +312,10 @@ class HTMLDownloader(Downloader):
         items_dict[label]['items'].append(item)
 
     def get_sub_items_dict(self, include_root=False) -> Dict[str, Dict[str, Any]]:
+        """Function that populates the supporting items in the template. Only populates
+         the """
         items: Dict[str, Dict[str, Any]] = {}
+
 
         # Get all items using above method to create dict
         for item in self.items:
@@ -318,11 +323,28 @@ class HTMLDownloader(Downloader):
             if include_root:
                 self._add_to_sub_items(items, item)
 
-            for dl_item in item.get_download_items():
-                if isinstance(dl_item, QuerySet):
-                    sub_list = list(dl_item.visible(self.user))
+            registration_authority_id = self.options['registration_authority']
+            status = self.options['status']
+
+            for download_items in item.get_download_items():
+
+                if isinstance(download_items, QuerySet):
+                    # It's a queryset with multiple items
+
+                    registration_authority_id = self.options['registration_authority']
+                    status = self.options['status']
+
+                    if registration_authority_id is not None:
+                        registration_authority = MDR.RegistrationAuthority.objects.get(pk=registration_authority_id)
+                        download_items.filter(registration_authority=registration_authority)
+
+                    if status is not None:
+                        download_items.filter(status__state=status)
+
+                    sub_list = list(download_items.visible(self.user))
                 else:
-                    sub_list = [dl_item]
+                    raise AssertionError("Must be a QuerySet")
+
 
                 for sub_item in sub_list:
                     # Can be none for components
