@@ -114,6 +114,7 @@ urlpatterns=[
     url(r'^action/compare/?$', views.comparator.CompareConceptsView.as_view(), name='compare_concepts'),
 
     url(r'^action/changestatus/(?P<iid>\d+)$', views.ChangeStatusView.as_view(), name='changeStatus'),
+    url(r'^action/deletestatus/(?P<sid>\d+)/(?P<iid>\d+)$', views.DeleteStatus.as_view(), name='deleteStatus'),
     # url(r'^remove/WorkgroupUser/(?P<iid>\d+)/(?P<userid>\d+)$', views.removeWorkgroupUser, name='removeWorkgroupUser'),
 
     url(r'^account/?$', RedirectView.as_view(url=reverse_lazy("aristotle:userHome"), permanent=True)),
