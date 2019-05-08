@@ -6,10 +6,10 @@ from django.core.exceptions import PermissionDenied, FieldDoesNotExist, ObjectDo
 from django.urls import reverse
 from django.db import transaction
 from django.db.models.query import QuerySet
-from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404
+from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import TemplateView, RedirectView
+from django.views.generic import TemplateView, RedirectView, DeleteView
 from django.utils.module_loading import import_string
 from django.utils.functional import SimpleLazyObject
 from django.utils import timezone
@@ -606,8 +606,25 @@ class ChangeStatusView(ReviewChangesView):
         return HttpResponseRedirect(url_slugify_concept(self.item))
 
 
+class DeleteStatus(DeleteView):
+
+    model = MDR.Status
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(MDR.Status, pk=self.kwargs['sid'])
+
+    def delete(self, request, *args, **kwargs):
+
+        status_to_be_deleted = self.get_object()
+        status_to_be_deleted.delete()
+        return HttpResponseRedirect(reverse('aristotle:registrationHistory', kwargs={'iid': self.kwargs['iid']}))
+
+    def get(self, *args, **kwargs):
+        return self.post(*args, **kwargs)
+
+
 def extensions(request):
-    content=[]
+    content = []
     aristotle_apps = fetch_aristotle_settings().get('CONTENT_EXTENSIONS', [])
 
     if aristotle_apps:
