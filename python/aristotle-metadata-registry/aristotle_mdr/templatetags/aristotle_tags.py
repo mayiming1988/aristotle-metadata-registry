@@ -69,15 +69,15 @@ def in_workgroup(user, workgroup):
 
 
 @register.filter
-def can_change_status(item, user):
+def can_add_status(item, user):
     """
-    A filter that acts as a wrapper around ``aristotle_mdr.perms.can_change_status``.
+    A filter that acts as a wrapper around ``aristotle_mdr.perms.user_can_add_status``.
     Returns true if the user has permission to change status the item, otherwise it returns False.
     If calling ``user_can_add_status`` throws an exception it safely returns False.
 
     For example::
 
-      {% if myItem|can_change_status:request.user %}
+      {% if myItem|can_add_status:request.user %}
         {{ item }}
       {% endif %}
     """
