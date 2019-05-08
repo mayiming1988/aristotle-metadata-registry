@@ -6,11 +6,11 @@ import {addHeaderMessage, initMessages} from 'src/lib/messages.js'
 init();
 initMessages();
 
-let addButtons = document.getElementsByClassName('promote-button');
+let addButtons = document.querySelectorAll('.promote-button');
 
-Array.from(addButtons).forEach(function(element) {
-      element.addEventListener('click', promote_to_items);
-    });
+for (let button of addButtons) {
+      button.addEventListener('click', promote_to_items);
+    }
 
 function promote_to_items() {
     // From the
