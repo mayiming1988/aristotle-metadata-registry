@@ -32,7 +32,6 @@
             iid="{{ item.id }}"
             url="{% url 'api_v4:issues:create' %}"
             item-fields-json="{{ field_data }}"
-            propose-fields="{{ fields }}"
-            initial="{{ initial }}">
+            propose-fields="{{ fields }}">
     </issue-modal>
 {% endblock %}

@@ -14,26 +14,23 @@ export function initCKEditor(config) {
 }
 
 export function initCKEditorFromTextarea(textarea, config) {
+    let editor = null
     let processed = textarea.getAttribute('data-processed')
     if (processed == 0 || processed == null) {
         // If config not provided use data-config
         if (config === undefined) {
             config = JSON.parse(textarea.getAttribute('data-config'));
         }
-        console.log(config)
-        console.log(textarea)
-        CKEDITOR.replace(textarea, config)
+        editor = CKEDITOR.replace(textarea, config)
         textarea.setAttribute('data-processed', 1)
     }
+    return editor
 }
 
 // ReInitialize ckeditor instances
 export function reinitCKEditors(form) {
-    $(form).find('div.cke').remove()
-    $(form).find('textarea[data-type=ckeditortype]').each(function() {
-        let textarea = $(this)
-        let config = JSON.parse(textarea.attr('data-config'));
-        CKEDITOR.replace(this.id, config)
-        textarea.attr('data-processed', 1)
-    })
+    for (let div of form.querySelectorAll('div.cke')) {
+        div.parentNode.removeChild(div)        
+    }
+    initCKEditor()
 }

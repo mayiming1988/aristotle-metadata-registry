@@ -18,7 +18,8 @@
             <template v-if="formdata.proposal_field">
                 <h4>Value for {{ capitalize(formdata.proposal_field) }}</h4>
                 <form-field :name="formdata.proposal_field">
-                    <textarea v-model="proposals[formdata.proposal_field]" class="form-control ta-fixed-width" />
+                    <!--- <textarea v-model="proposals[formdata.proposal_field]" class="form-control ta-fixed-width" /> --->
+                    <html-editor v-model="proposals[formdata.proposal_field]" />
                 </form-field>
             </template>
         </template>
@@ -33,6 +34,7 @@
 </template>
 
 <script>
+import htmlEditor from '@/htmlEditor.vue'
 import Modal from 'uiv/src/components/modal/Modal.vue'
 import formField from '@/forms/bsFieldWrapper.vue'
 import apiErrors from '@/apiErrorDisplay.vue'
@@ -43,10 +45,11 @@ import { capitalize } from 'src/lib/utils.js'
 export default {
     mixins: [apiRequest],
     components: {
-        Modal,
-        formField,
-        apiErrors,
-        saving,
+        'modal': Modal,
+        'form-field': formField,
+        'api-errors': apiErrors,
+        'saving': saving,
+        'html-editor': htmlEditor
     },
     props: {
         iid: {
@@ -63,7 +66,7 @@ export default {
         },
         initial: {
             type: String,
-            required: true
+            default: ''
         },
         itemFieldsJson: {
             type: String,
@@ -81,6 +84,7 @@ export default {
         }
     },
     data: () => ({
+        html: 'Spicy',
         proposals: {},
         formdata: {
             name: '',
@@ -90,11 +94,11 @@ export default {
         }
     }),
     created: function() {
-        this.formdata = JSON.parse(this.initial)
         if (!this.edit) {
             // When creating new proposals set initial values from item
             this.proposals = JSON.parse(this.itemFieldsJson)
         } else {
+            this.formdata = JSON.parse(this.initial)
             this.proposals[this.formdata.proposal_field] = this.formdata.proposal_value
         }
         this.fields = JSON.parse(this.proposeFields)

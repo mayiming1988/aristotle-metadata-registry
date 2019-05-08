@@ -36,7 +36,7 @@ class IssueBase(LoginRequiredMixin, SimpleItemGet):
             data['description'] = issue.description
         return {
             'fields': json.dumps(Issue.get_propose_fields()),
-            'field_data': field_data,
+            'field_data': json.dumps(field_data),
             'initial': json.dumps(data)
         }
 
