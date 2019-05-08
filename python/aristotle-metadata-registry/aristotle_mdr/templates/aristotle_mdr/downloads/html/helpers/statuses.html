@@ -1,0 +1,25 @@
+{% load i18n aristotle_tags util_tags %}
+
+<ul>
+    {% if statuses.all %}
+        {% for status in statuses.all %}
+        <li>
+            <a href="{% url 'aristotle:registrationAuthority' status.registrationAuthority.id status.registrationAuthority.name|slugify %}">{{ status.registrationAuthority }}</a>
+            : {% trans status.state_name %} on <time datetime="{{ status.registrationDate|isotime }}">{{ status.registrationDate }}</time>
+            </li>
+        {% endfor %}
+    {% else %}
+        {% for status in statuses %}
+        <li>
+           <a href="{% url 'aristotle:registrationAuthority' status.registrationAuthority.id status.registrationAuthority.name|slugify %}">{{ status.registrationAuthority }}</a>
+            : {% trans status.state_name %} on <time datetime="{{ status.registrationDate|isotime }}">{{ status.registrationDate }}</time>
+            </li>
+        {% empty %}
+            <li><em>{% trans 'Not endorsed' %}</em>
+            </li>
+        {% endfor %}
+    {% endif %}
+    {% if statuses and item %}
+    <li class="viewHistory"><strong><a href="{% url 'aristotle:registrationHistory' item.id %}">{% trans 'View registration history'%}</a></strong></li>
+    {% endif %}
+</ul>

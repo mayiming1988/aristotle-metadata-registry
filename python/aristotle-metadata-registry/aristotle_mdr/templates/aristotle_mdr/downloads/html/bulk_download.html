@@ -11,8 +11,17 @@
    <body>
    <div id="main">
        <div id='content'>
+            <h1>Included Items</h1>
+            {% for item in items %}
+                <div style="page-break-after:always;">
+                    {% include item|template_path:'html,inline' with item=item header="h2" %}
+                </div>
+            {% endfor %}
+            <div>
+                <h1>Supporting Items</h1>
+            </div>
             {% for l,dict in included_items.items %}
-            <h1>{{ dict.verbose_name_plural }}</h1>
+            <h2>{{ dict.verbose_name_plural }}</h2>
                 {% with object=dict.help %}
                     {% if object %}
                     <p>
@@ -26,16 +35,17 @@
                 {% endwith %}
                 {% for item in dict.items %}
                     <div style="page-break-after:always;">
-                        {% include item|template_path:'html,inline' with item=item header="h2" %}
+                        {% include item|template_path:'html,' with item=item header="h3" %}
                     </div>
                 {% endfor %}
             {% endfor %}
+            {% comment %}
             <div>
                 <h1>Glossary of included metadata types</h1>
                 {% for l,dict in included_items.items %}
                 {% with object=dict.help %}
                     {% if object %}
-                    <h2>{{t.get_verbose_name}}</h2>
+                    <h2>{{object.title}}</h2>
     
                     <p>{% relink object 'brief' %}</p>
                     {% if object.offical_definition %}
@@ -61,6 +71,7 @@
                 {% endwith %}
                 {% endfor %}
             </div>
+            {% endcomment %}
         </div>
     </div>
    </body>
