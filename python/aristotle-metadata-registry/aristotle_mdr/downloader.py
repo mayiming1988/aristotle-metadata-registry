@@ -69,7 +69,7 @@ class Downloader:
         'front_page': None,
         'back_page': None,
         'email_copy': False,
-        'registration_status' : None,
+        'registration_status': None,
         'registration_authority': None,
     }
 
@@ -316,7 +316,6 @@ class HTMLDownloader(Downloader):
          the """
         items: Dict[str, Dict[str, Any]] = {}
 
-
         # Get all items using above method to create dict
         for item in self.items:
             # include_root includes the selected items in the dict
@@ -341,12 +340,10 @@ class HTMLDownloader(Downloader):
                 else:
                     raise AssertionError("Must be a QuerySet")
 
-
                 for sub_item in sub_list:
                     # Can be none for components
                     if sub_item is not None:
                         self._add_to_sub_items(items, sub_item)
-
 
         # Sort the items lists by name
         for label, data in items.items():

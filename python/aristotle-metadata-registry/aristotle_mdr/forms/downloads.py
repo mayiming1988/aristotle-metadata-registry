@@ -10,13 +10,16 @@ class ModelChoicePKField(forms.ModelChoiceField):
             return None
         return value
 
+
 class EmptyChoiceField(forms.ChoiceField):
-    def __init__(self, choices=(), empty_label=None, required=True, widget=None, label=None, initial=None, help_text=None, *args, **kwargs):
+    def __init__(self, choices=(), empty_label=None, required=True, widget=None, label=None, initial=None,
+                 help_text=None, *args, **kwargs):
         # prepend an empty label if it exists (and field is not required!)
         if not required and empty_label is not None:
             choices = tuple([(u'', empty_label)] + list(choices))
 
-        super(EmptyChoiceField, self).__init__(choices=choices, required=required, widget=widget, label=label, initial=initial, help_text=help_text, *args, **kwargs)
+        super(EmptyChoiceField, self).__init__(choices=choices, required=required, widget=widget, label=label,
+                                               initial=initial, help_text=help_text, *args, **kwargs)
 
     def to_python(self, value):
         if value == u'':
@@ -56,10 +59,10 @@ class DownloadOptionsForm(forms.Form):
     )
 
     registration_authority = ModelChoicePKField(
-            queryset=RegistrationAuthority.objects.all(),
-            required=False,
-            help_text="Select a particular registration authority to filter the base level items"
-        )
+        queryset=RegistrationAuthority.objects.all(),
+        required=False,
+        help_text="Select a particular registration authority to filter the base level items"
+    )
     registration_status = EmptyChoiceField(
         empty_label='--------------------------',
         choices=STATES,
