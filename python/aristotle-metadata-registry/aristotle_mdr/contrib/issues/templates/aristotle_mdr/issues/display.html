@@ -71,7 +71,7 @@
             edit
             v-model="issueModalOpen"
             iid="{{ item.id }}"
-            url="{% url 'api_v4:issues:create' %}"
+            url="{% url 'api_v4:issues:issue' object.id %}"
             propose-fields="{{ fields }}"
             initial="{{ initial }}">
     </issue-modal>
