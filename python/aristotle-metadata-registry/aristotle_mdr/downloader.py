@@ -279,7 +279,7 @@ class HTMLDownloader(Downloader):
         """
         context = self.get_base_download_context()
 
-        # This will raise an exception if the list is empty, but thats ok
+        # This will raise an exception if the list is empty, but that's ok
         item = self.items[0]
         sub_items = self.get_sub_items_dict()
 
@@ -293,6 +293,7 @@ class HTMLDownloader(Downloader):
 
     def _add_to_sub_items(self, items_dict, item):
         item_class = type(item)
+
         label = get_model_label(item_class)
         if label not in items_dict:
             model_help = ConceptHelp.objects.filter(
@@ -305,6 +306,7 @@ class HTMLDownloader(Downloader):
                 'verbose_name_plural': item_class.get_verbose_name_plural(),
                 'help': model_help
             }
+
         items_dict[label]['items'].append(item)
 
     def get_sub_items_dict(self, include_root=False) -> Dict[str, Dict[str, Any]]:
@@ -363,7 +365,7 @@ class HTMLDownloader(Downloader):
 
     def get_template(self) -> str:
         """
-        Gets the template context
+        Gets the template contex
         Can be used by subclasses
         """
         if self.bulk:

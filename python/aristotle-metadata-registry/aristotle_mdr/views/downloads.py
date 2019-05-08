@@ -1,6 +1,4 @@
 from typing import List, Dict, Any, Iterable
-from django.conf import settings
-from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 from django.http import (
     Http404,
@@ -9,19 +7,13 @@ from django.http import (
     HttpResponseServerError,
     HttpResponseNotFound,
 )
-from django.shortcuts import render, redirect, get_object_or_404
-from django.template import TemplateDoesNotExist
 from django.views.generic import TemplateView, View, FormView
 from django.core.files.storage import get_storage_class
 
 from aristotle_mdr import models as MDR
-from aristotle_mdr.views import get_if_user_can_view
 from aristotle_mdr.utils.download import get_download_class
 from aristotle_bg_workers.tasks import download
 from celery.result import AsyncResult as async_result
-from celery import states
-from django.core.cache import cache
-from django.utils.http import urlencode
 from aristotle_mdr.forms.downloads import DownloadOptionsForm
 
 import logging
