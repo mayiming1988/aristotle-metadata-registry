@@ -324,22 +324,18 @@ class HTMLDownloader(Downloader):
                 self._add_to_sub_items(items, item)
 
             registration_authority_id = self.options['registration_authority']
-            status = self.options['status']
+            state = self.options['registration_status']
 
             for download_items in item.get_download_items():
 
                 if isinstance(download_items, QuerySet):
                     # It's a queryset with multiple items
 
-                    registration_authority_id = self.options['registration_authority']
-                    status = self.options['status']
-
                     if registration_authority_id is not None:
-                        registration_authority = MDR.RegistrationAuthority.objects.get(pk=registration_authority_id)
-                        download_items.filter(registration_authority=registration_authority)
+                        download_items = download_items.filter(statuses__registrationAuthority=registration_authority_id)
 
-                    if status is not None:
-                        download_items.filter(status__state=status)
+                    if state is not None:
+                        download_items = download_items.filter(statuses__state=state)
 
                     sub_list = list(download_items.visible(self.user))
                 else:
@@ -350,6 +346,7 @@ class HTMLDownloader(Downloader):
                     # Can be none for components
                     if sub_item is not None:
                         self._add_to_sub_items(items, sub_item)
+
 
         # Sort the items lists by name
         for label, data in items.items():

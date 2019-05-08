@@ -44,12 +44,12 @@ class DownloadOptionsForm(forms.Form):
     registration_authority = ModelChoicePKField(
             queryset=RegistrationAuthority.objects.all(),
             required=False,
-            help_text="Select a particular registration authority to filter the supporting items on"
+            help_text="Select a particular registration authority to filter the base level items"
         )
     registration_status = forms.ChoiceField(
         choices=STATES,
         required=False,
-        help_text="Select a particular registration status to filter the supporting items on"
+        help_text="Select a particular registration status to filter the base level items"
     )
 
     email_copy = forms.BooleanField(

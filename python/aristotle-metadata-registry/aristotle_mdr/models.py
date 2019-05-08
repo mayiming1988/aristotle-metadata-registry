@@ -1376,7 +1376,7 @@ class DataElementConcept(concept):
 
     def get_download_items(self):
         return [
-            ObjectClass.objects.filter(id=self.objectclass_id),
+            ObjectClass.objects.filter(id=self.objectClass_id),
             Property.objects.filter(id=self.property_id),
         ]
 
@@ -1433,8 +1433,8 @@ class DataElement(concept):
 
     def get_download_items(self):
         items = [
-            DataElementConcept.objects.filter(id=self.dataelementconcept_id),
-            ValueDomain.objects.filter(id=self.valuedomain_id)
+            DataElementConcept.objects.filter(id=self.dataElementConcept_id),
+            ValueDomain.objects.filter(id=self.valueDomain_id)
         ]
         if self.dataElementConcept:
             items += self.dataElementConcept.get_download_items()
