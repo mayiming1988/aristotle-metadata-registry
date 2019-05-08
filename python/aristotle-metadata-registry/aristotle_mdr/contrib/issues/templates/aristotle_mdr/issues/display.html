@@ -14,30 +14,24 @@
 {% block infoContent %}
     <div class="row">
         <div class="col-sm-8 col-xs-offset-1">
-            <a  class="btn btn-default pull-right" href="{% url 'aristotle_issues:item_issues' object.item_id %}">
+            <a  class="btn btn-default pull-right margin-above" href="{% url 'aristotle_issues:item_issues' object.item_id %}">
                 All issues for this item
             </a>
             <h1>
                 <open-close :is-open="isOpen"></open-close>
+                {{ object.name }}
                 {% if own_issue %}
-                    <inline-edit
-                            initial="{{ object.name }}"
-                            submit-url="{% url 'api_v4:issues:issue' object.id %}"
-                            field-name="name">
-                    </inline-edit>
-                {% else %}
-                    {{ object.name }}
+                  <button class="btn btn-default btn-sm" @click="openIssueModal">Edit</button>
                 {% endif %}
             </h1>
+
             <p class="text-muted">Opened {{ object.created|timesince }} ago by {{ object.submitter.display_name }}</p>
-            <p>
-                <switch-edit-api
-                        name="description"
-                        initial="{{ object.description }}"
-                        {% if own_issue %}submit-url="{% url 'api_v4:issues:issue' object.id %}"{% endif %}
-                >
-                </switch-edit-api>
-            </p>
+            <div class="panel panel-default">
+              <div class="panel-heading"><strong>Description</strong></div>
+              <div class="panel-body">
+                {{ object.description }}
+              </div>
+            </div>
         </div>
     </div>
 

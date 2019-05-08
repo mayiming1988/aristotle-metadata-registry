@@ -109,8 +109,6 @@ export default {
                 // Get data
                 let postdata = this.formdata
                 postdata['item'] = this.iid
-                // TODO only save edited fields
-                postdata['proposals'] = JSON.stringify(this.proposals)
                 // determinal http method
                 let method = 'post'
                 if (this.edit) {

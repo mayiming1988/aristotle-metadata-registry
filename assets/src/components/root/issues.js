@@ -26,6 +26,9 @@ export default {
         },
         addComment: function(comment) {
             this.new_comments.push(comment)
+        },
+        openIssueModal: function() {
+            this.issueModalOpen = true
         }
     }
 }
