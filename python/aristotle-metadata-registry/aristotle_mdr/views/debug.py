@@ -1,5 +1,6 @@
 from django.http import HttpResponse, Http404
 
+
 def download(request):
     """Built in download method"""
     from aristotle_mdr.contrib.aristotle_pdf.downloader import PDFDownloader
