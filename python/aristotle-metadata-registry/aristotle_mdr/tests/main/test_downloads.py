@@ -305,6 +305,12 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
             definition='Quickness',
             submitter=self.editor
         )
+        self.forbidden_speed = models.Property.objects.create(
+            name='Speed',
+            definition='Quickness'
+            # No submitter so forbidden
+        )
+
         self.aspeed = models.DataElementConcept.objects.create(
             name='Animal - Speed',
             definition='An animals speed',
@@ -338,11 +344,11 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
         self.assertTrue(self.aspeed.definition in html)
 
     def test_content_not_exists_in_bulk_html_download_on_forbidden_items(self):
-        downloader = HTMLDownloader([self.animal.id, self.aspeed.id, self.speed.id], self.editor.id, {})
+        downloader = HTMLDownloader([self.animal.id, self.aspeed.id, self.forbidden_speed.id], self.editor.id, {})
         html = downloader.get_html().decode()
         self.assertTrue(self.animal.definition in html)
         self.assertTrue(self.aspeed.definition in html)
-        self.assertFalse(self.speed.definition in html)
+        self.assertFalse(self.forbidden_speed.definition in html)
 
     def test_sub_item_list_single_download(self):
 

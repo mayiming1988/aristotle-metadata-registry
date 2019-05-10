@@ -341,8 +341,6 @@ class HTMLDownloader(Downloader):
                 else:
                     raise AssertionError("Must be a QuerySet")
 
-                print("SUB LIST" + str(sub_list))
-
                 for sub_item in sub_list:
                     # Can be none for components
                     if sub_item is not None:
