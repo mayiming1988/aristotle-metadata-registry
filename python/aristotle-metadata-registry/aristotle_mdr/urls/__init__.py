@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
 
@@ -21,6 +22,12 @@ urlpatterns = [
     url(r'^', include('aristotle_mdr.contrib.validators.urls', namespace='aristotle_validations')),
     url(r'^api/', include('aristotle_mdr_api.urls'))
 ]
+
+if settings.DEBUG:
+    from aristotle_mdr.views import debug as debug_views
+    urlpatterns += [
+        url(r'^aristotle_debug/pdf', debug_views.download, name='api_mark_all_read'),
+    ]
 
 handler403 = 'aristotle_mdr.views.unauthorised'
 handler404 = 'aristotle_mdr.views.not_found'
