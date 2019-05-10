@@ -281,7 +281,7 @@ class GroupMemberAddView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin,
                 self.group = group
 
                 self.fields['user'].queryset = get_user_model().objects.all().exclude(
-                    pk__in=self.group.member_list.all()).distinct()
+                    pk__in=self.group.member_list.all())
 
         return MembershipCreateForm
 
@@ -299,6 +299,7 @@ class GroupMemberAddView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin,
 
     def form_valid(self, form):
         form.instance.group = self.get_group()
+        messages.success(self.request, 'User added successfully.')
         return super().form_valid(form)
 
     def get_initial(self):
