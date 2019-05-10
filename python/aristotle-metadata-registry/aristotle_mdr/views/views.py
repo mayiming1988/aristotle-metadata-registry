@@ -9,11 +9,12 @@ from django.db.models.query import QuerySet
 from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import TemplateView, RedirectView, DeleteView
+from django.views.generic import TemplateView, RedirectView, DeleteView, UpdateView
 from django.utils.module_loading import import_string
 from django.utils.functional import SimpleLazyObject
 from django.utils import timezone
 from formtools.wizard.views import SessionWizardView
+from aristotle_mdr.forms import EditStatusForm
 
 import json
 
@@ -619,8 +620,35 @@ class DeleteStatus(DeleteView):
         status_to_be_deleted.delete()
         return HttpResponseRedirect(reverse('aristotle:registrationHistory', kwargs={'iid': self.kwargs['iid']}))
 
-    def get(self, *args, **kwargs):
-        return self.post(*args, **kwargs)
+
+class EditStatus(UpdateView):
+    template_name = 'aristotle_mdr/status_edit.html'
+    form_class = EditStatusForm
+    model = MDR.Status
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(MDR.Status, pk=self.kwargs['sid'])
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context.update({'ra': self.RA, 'item': self.item})
+
+        return context
+
+    def get_initial(self):
+        self.RA = get_object_or_404(MDR.RegistrationAuthority, pk=self.kwargs['raid'])
+        self.item = get_object_or_404(MDR._concept, pk=self.kwargs['iid'])
+        self.status = get_object_or_404(MDR.Status, pk=self.kwargs['sid'])
+        initial = super().get_initial()
+        initial['registrationDate'] = self.status.registrationDate
+        initial['until_date'] = self.status.until_date
+        initial['state'] = self.status.state
+
+        return initial
+
+    def form_valid(self, form):
+        self.object = form.save()
+        return redirect(reverse('aristotle:registrationHistory', args=[self.kwargs['iid']]))
 
 
 def extensions(request):
