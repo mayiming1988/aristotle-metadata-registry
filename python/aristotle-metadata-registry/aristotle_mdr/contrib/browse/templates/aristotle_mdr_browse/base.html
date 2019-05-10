@@ -1,5 +1,12 @@
 {% extends "aristotle_mdr/base.html" %}
 
+{% load render_bundle from webpack_loader %}
+
+{% block webpack_bundle %}
+{% render_bundle 'browse' 'js' %}
+{% endblock %}
+
+
 {% block content %}
     <h2>{% block title %}Browsing {{ model.get_verbose_name_plural }}{% endblock %}</h2>
 
