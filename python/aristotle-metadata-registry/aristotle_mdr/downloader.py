@@ -26,10 +26,6 @@ from aristotle_mdr.utils.utils import get_download_template_path_for_item
 
 import logging
 logger = logging.getLogger(__name__)
-logger.debug("Logging started for " + __name__)
-
-import logging
-logger = logging.getLogger(__name__)
 
 
 class Downloader:
@@ -370,10 +366,9 @@ class HTMLDownloader(Downloader):
 
         # sub_items = self.get_sub_items_dict(include_root=True)
         if self.options['include_supporting']:
-            sub_items = self.get_sub_items_dict() #include_root=True)
+            sub_items = self.get_sub_items_dict()
         else:
             sub_items = []
-
 
         context.update({
             'subtitle': subtitle,

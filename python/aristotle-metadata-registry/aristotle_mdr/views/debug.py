@@ -7,7 +7,7 @@ def download(request, dtype):
     from aristotle_mdr.contrib.aristotle_pdf.downloader import PDFDownloader
     from aristotle_mdr.downloader import DocxDownloader
     from aristotle_mdr.downloader import HTMLDownloader
-    
+
     if dtype == "pdf":
         DClass = PDFDownloader
     elif dtype == "word":
