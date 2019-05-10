@@ -11,6 +11,7 @@ from aristotle_mdr.fields import ConceptForeignKey
 from aristotle_mdr.contrib.custom_fields.managers import CustomValueManager, CustomFieldManager
 from aristotle_mdr.contrib.custom_fields.types import type_choices
 
+from aristotle_mdr.contrib.custom_fields.constants import CUSTOM_FIELD_STATES
 from aristotle_mdr.constants import visibility_permission_choices as permission_choices
 
 
@@ -22,9 +23,26 @@ class CustomField(TimeStampedModel):
     help_text = models.CharField(max_length=1000, blank=True)
     allowed_model = models.ForeignKey(ContentType, blank=True, null=True)
     choices = models.TextField(blank=True)
+
     visibility = models.IntegerField(
         choices=permission_choices,
         default=permission_choices.public
+    )
+
+    # The Status of a Custom Field.
+    #
+    # Active = This field can be added or edited for items in the system
+    #
+    # Inactive = This field is no longer editable or addable to metadata items
+    # by regular users. Superusers can alter content. Older items
+    # with this field will still display it.
+    #
+    # Hidden = This field is no longer editable or addable to metadata items by regular users.
+    # Superusers can alter content. Older items with this field will not
+    # display it.
+    state = models.IntegerField(
+        choices=CUSTOM_FIELD_STATES,
+        default=CUSTOM_FIELD_STATES.active
     )
 
     objects = CustomFieldManager()
@@ -55,6 +73,29 @@ class CustomField(TimeStampedModel):
 
     def can_edit(self, user):
         return user.is_superuser
+
+
+class Status(TimeStampedModel):
+    """
+    The Status of a Custom Field.
+    Active = This field can be added or edited for items in the system
+
+    Inactive = This field is no longer editable or addable to metadata items
+    by regular users. Superusers can alter content. Older items
+    with this field will still display it.
+
+    Hidden = This field is no longer editable or addable to metadata items by regular users.
+    Superusers can alter content. Older items with this field will not
+    display it.
+
+    """
+    custom_field = models.OneToOneField(
+        CustomField,
+        on_delete=models.CASCADE,
+        primary_key=True
+    )
+    status = models.IntegerField(choices=CUSTOM_FIELD_STATES,
+                                 default=CUSTOM_FIELD_STATES.active)
 
 
 class CustomValue(TimeStampedModel):
