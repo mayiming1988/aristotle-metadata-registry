@@ -10,6 +10,7 @@
 {% endblock %}
 
 {% block page %}
+    <div class="container-fluid">
     <h1>Edit Custom Fields</h1>
     <div id="vue-container">
         <formset
@@ -19,5 +20,6 @@
                 url="{% url 'api_v4:custom_field_list' %}"
                 :show-delete="false">
         </formset>
+    </div>
     </div>
 {% endblock %}
