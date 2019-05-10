@@ -337,8 +337,11 @@ class HTMLDownloader(Downloader):
                         download_items = download_items.filter(statuses__state=state)
 
                     sub_list = list(download_items.visible(self.user))
+
                 else:
                     raise AssertionError("Must be a QuerySet")
+
+                print("SUB LIST" + str(sub_list))
 
                 for sub_item in sub_list:
                     # Can be none for components

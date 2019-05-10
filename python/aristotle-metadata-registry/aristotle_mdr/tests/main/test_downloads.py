@@ -104,7 +104,9 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
                 'include_supporting': True,
                 'email_copy': True,
                 'include_related': False,
-                'title': ''
+                'title': '',
+                'registration_authority': None,
+                'registration_status': None
             }
         )
 
@@ -301,6 +303,7 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
         self.speed = models.Property.objects.create(
             name='Speed',
             definition='Quickness',
+            submitter=self.editor
         )
         self.aspeed = models.DataElementConcept.objects.create(
             name='Animal - Speed',
@@ -342,16 +345,20 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
         self.assertFalse(self.speed.definition in html)
 
     def test_sub_item_list_single_download(self):
+
         self.aspeed.objectClass = self.animal
         self.aspeed.property = self.speed
         self.aspeed.save()
 
         downloader = HTMLDownloader([self.aspeed.id], self.editor.id, {})
+
         context = downloader.get_context()
         self.assertCountEqual(
             context['subitems']['aristotle_mdr.objectclass']['items'],
             [self.animal]
         )
+
+        print("Hello" + str(context['subitems']))
         self.assertCountEqual(
             context['subitems']['aristotle_mdr.property']['items'],
             [self.speed]

@@ -1375,6 +1375,7 @@ class DataElementConcept(concept):
         return out
 
     def get_download_items(self):
+
         return [
             ObjectClass.objects.filter(id=self.objectClass_id),
             Property.objects.filter(id=self.property_id),
