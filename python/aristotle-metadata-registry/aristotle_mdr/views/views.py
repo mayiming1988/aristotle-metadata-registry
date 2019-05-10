@@ -618,6 +618,11 @@ class DeleteStatus(DeleteView):
 
         status_to_be_deleted = self.get_object()
         status_to_be_deleted.delete()
+
+        # Update the search engine indexation for the concept:
+        from aristotle_mdr.models import concept_visibility_updated
+        item_to_be_updated = get_object_or_404(MDR._concept, pk=self.kwargs['iid'])
+        concept_visibility_updated.send(concept=item_to_be_updated, sender=self.__class__)
         return HttpResponseRedirect(reverse('aristotle:registrationHistory', kwargs={'iid': self.kwargs['iid']}))
 
 
@@ -648,6 +653,9 @@ class EditStatus(UpdateView):
 
     def form_valid(self, form):
         self.object = form.save()
+        # Update the search engine indexation for the concept:
+        from aristotle_mdr.models import concept_visibility_updated
+        concept_visibility_updated.send(concept=self.get_object(), sender=self.__class__)
         return redirect(reverse('aristotle:registrationHistory', args=[self.kwargs['iid']]))
 
 

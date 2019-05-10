@@ -10,14 +10,12 @@ from aristotle_mdr.forms.creation_wizards import UserAwareForm
 from aristotle_mdr.forms.fields import ReviewChangesChoiceField, MultipleEmailField
 from aristotle_mdr.contrib.autocomplete import widgets
 from django_jsonforms.forms import JSONSchemaField
+from aristotle_mdr.forms.utils import RegistrationAuthorityMixin
 
 import logging
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
-
-
-from .utils import RegistrationAuthorityMixin
 
 
 class ChangeStatusGenericForm(RegistrationAuthorityMixin, UserAwareForm):

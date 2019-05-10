@@ -1822,6 +1822,10 @@ def new_post_created(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Status)
 def states_changed(sender, instance, *args, **kwargs):
+    logger.critical("THIS WAS ACTUALLY CALLED")
+    logger.critical("THIS IS THE CONCEPT")
+    logger.critical(instance.concept)
+    concept_visibility_updated.send(concept=instance.concept, sender=Status)
     fire("concept_changes.status_changed", obj=instance, **kwargs)
 
 
