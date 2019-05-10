@@ -104,7 +104,9 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
                 'include_supporting': True,
                 'email_copy': True,
                 'include_related': False,
-                'title': ''
+                'title': '',
+                'registration_authority': None,
+                'registration_status': None
             }
         )
 
@@ -301,7 +303,14 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
         self.speed = models.Property.objects.create(
             name='Speed',
             definition='Quickness',
+            submitter=self.editor
         )
+        self.forbidden_speed = models.Property.objects.create(
+            name='Speed',
+            definition='Quickness'
+            # No submitter so forbidden
+        )
+
         self.aspeed = models.DataElementConcept.objects.create(
             name='Animal - Speed',
             definition='An animals speed',
@@ -335,23 +344,27 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
         self.assertTrue(self.aspeed.definition in html)
 
     def test_content_not_exists_in_bulk_html_download_on_forbidden_items(self):
-        downloader = HTMLDownloader([self.animal.id, self.aspeed.id, self.speed.id], self.editor.id, {})
+        downloader = HTMLDownloader([self.animal.id, self.aspeed.id, self.forbidden_speed.id], self.editor.id, {})
         html = downloader.get_html().decode()
         self.assertTrue(self.animal.definition in html)
         self.assertTrue(self.aspeed.definition in html)
-        self.assertFalse(self.speed.definition in html)
+        self.assertFalse(self.forbidden_speed.definition in html)
 
     def test_sub_item_list_single_download(self):
+
         self.aspeed.objectClass = self.animal
         self.aspeed.property = self.speed
         self.aspeed.save()
 
         downloader = HTMLDownloader([self.aspeed.id], self.editor.id, {})
+
         context = downloader.get_context()
         self.assertCountEqual(
             context['subitems']['aristotle_mdr.objectclass']['items'],
             [self.animal]
         )
+
+        print("Hello" + str(context['subitems']))
         self.assertCountEqual(
             context['subitems']['aristotle_mdr.property']['items'],
             [self.speed]
