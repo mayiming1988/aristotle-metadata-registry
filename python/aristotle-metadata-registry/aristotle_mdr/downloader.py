@@ -391,7 +391,7 @@ class HTMLDownloader(Downloader):
         else:
             context = self.get_download_context()
         context.update({"is_bulk_download": self.bulk})
-        
+
         return context
 
     def get_template(self) -> str:
