@@ -14,7 +14,7 @@
             <h1>Included Items</h1>
             {% for item in items %}
                 <div style="page-break-after:always;">
-                    {% include item|template_path:'html,inline' with item=item header="h2" %}
+                    {% include item|template_path:'html,' with item=item header="h2" %}
                 </div>
             {% endfor %}
             <div>

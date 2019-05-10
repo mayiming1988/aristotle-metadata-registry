@@ -1,13 +1,13 @@
 {% load aristotle_tags %}
 
 {% if item.dssclusterinclusion_set.exists %}
-    <h3>Clusters</h3>
-    <table>
+    <header class="minor">Clusters</header>
+    <table class="dss_inclusions">
         <thead>
         <tr>
-            <th style="width:2cm;vertical-align:top;"></th>
+            <th style="width:1cm;vertical-align:top;">Ref</th>
             <th>Name</th>
-            <th style="width:5cm;">Cardinality</th>
+            <th style="width:3cm;">Cardinality</th>
             <th style="width:1cm;">#</th>
         </tr>
         </thead>
@@ -20,13 +20,13 @@
 {% endif %}
 
 {% if item.dssdeinclusion_set.exists %}
-    <h3>Data Elements</h3>
-    <table>
+    <header class="minor">Data Elements</header>
+    <table class="dss_inclusions">
         <thead>
         <tr>
-            <th style="width:2cm;vertical-align:top;"></th>
+            <th style="width:1cm;vertical-align:top;">Ref</th>
             <th>Name</th>
-            <th style="width:5cm;">Cardinality</th>
+            <th style="width:3cm;">Cardinality</th>
             <th style="width:1cm;">#</th>
         </tr>
         </thead>
@@ -42,7 +42,8 @@
     <table style="font-size:80%">
         <tr>
             <th>Ref</th>
-            <td>
+            <td>A reference name for this data element or cluster within this 
+            Data Set Specification.
             </td>
         </tr>
         <tr>

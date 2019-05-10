@@ -22,6 +22,12 @@
     {% endif %}
   </header>
   <dl>
+    <dt class="small">Item id
+    </dt>
+    <dd>
+      {{item.id}}
+      {% if item.version %}v {{item.version}}{% endif %}
+    </dd>
     <dt>Metadata Type</dt>
     <dd>{{ item.get_verbose_name }}
     </dd>
@@ -31,58 +37,82 @@
       </div>
     </dd>
     
-    <dt>{% trans 'Endorsed by' %}:</dt>
+    <dt>{% trans 'Endorsed by' %}</dt>
     <dd>
       <div class="">
           {% include "aristotle_mdr/downloads/html/helpers/statuses.html" with statuses=item.current_statuses only %}
       </div>
     </dd>
-  
+    <dt>Supersedes</dt>
+    <dd>
+      <ul>
+          {# This is inefficient - % for suprel in item.superseded_items_relation_set.all %#}
+          {% for suprel in item|visible_supersedes_items:user %}
+              <li>
+                  <a href="{% url 'aristotle:item' iid=suprel.older_item.id %}">
+                      {{ suprel.older_item.name }}
+                  </a>
+                  <ul>
+                      {% for rel in suprel.rels %}
+                          <li>
+            <span title="{% trans 'The registration authority that applied this relationship' %}">
+              {{ rel.registration_authority.name }}
+            </span>,
+                              <time datetime="{{ rel.date_effective|isotime }}">{{ rel.date_effective }}</time> -
+                              {{ rel.message }}
+                          </li>
+                      {% endfor %}
+                  </ul>
+              </li>
+          {% empty %}
+              <li><em>{% trans 'None' context 'No older objects' %}</em></li>
+          {% endfor %}
+      </ul>
+    </dd>
+    <dt>Superseded by</dt>
+    <dd>
+      <ul>
+          {% for suprel in item|visible_superseded_by_items:user %}
+              <li>
+                  <a href="{% url 'aristotle:item' iid=suprel.newer_item.id %}">
+                      {{ suprel.newer_item.name }}
+                  </a>
+                  <ul>
+                      {% for rel in suprel.rels %}
+                          <li>
+            <span title="{% trans 'The registration authority that applied this relationship' %}">
+              {{ rel.registration_authority.name }}
+            </span>,
+                              <time datetime="{{ rel.date_effective|isotime }}">{{ rel.date_effective }}</time>
+                              {% if rel.message %} - {{ rel.message }} {% endif %}
+                          </li>
+                      {% endfor %}
+                  </ul>
+              </li>
+          {% empty %}
+              <li><em>{% trans 'None' context 'No newer objects' %}</em></li>
+          {% endfor %}
+      </ul>
+    </dd>
+
     {% block objSpecific %}
     {% endblock %}
-  
+
+    {% comment %}  
     <dt>
       Related items
     </dt>
     <dd>
-      <dl>
-        <dt>Supersedes</dt>
-        <dd>
-          <ul>
-          {% for sup in item.approved_supersedes %}
-            {% if sup|can_view:user %}
-              <li>
-              <a href="/item/{{ sup.id }}/">{{ sup }}</a>
-              <span>(id {{ sup.id }})</span>
-              </li>
-            {% endif %}
-          {% empty %}
-            <li>-</li>
-          {% endfor %}
-          </ul>
-        </dd>
-        <dt>Superseded by</dt>
-        <dd>
-          <ul>
-            {% for sup in item.approved_superseded_by %}
-              {% if sup|can_view:user %}
-                <li>
-                <a href="/item/{{ sup.id }}/">{{ sup }}</a>
-                <span>(id {{ sup.id }})</span>
-                </li>
-              {% endif %}
-            {% empty %}
-              <li>-</li>
-            {% endfor %}
-          </ul>
-        </dd>
-      </dl>
     </dd>
-  
+    {% endcomment %}  
   </dl>
   
   {% if subitems %}
-  <header>Additional Components</header>
+      {% if is_bulk_download %}
+        <header>Additional Components</header>
+      {% else %}
+          <h1>Additional Components</h1>
+      {% endif %}
       {% for l,dict in subitems.items %}
       <div style="page-break-after:always;">
           <h2>{{ dict.verbose_name }}</h2>
@@ -95,9 +125,7 @@
       </div>
       {% endfor %}
   {% endif %}
-  {% if item.slots.count > 0 %}
-      {% include "aristotle_mdr/slots/html/slots_display.html" %}
-  {% endif %}
+  {% include "aristotle_mdr/downloads/html/slots/slots_display.html" %}
 </section>
 
 {% endblock %}

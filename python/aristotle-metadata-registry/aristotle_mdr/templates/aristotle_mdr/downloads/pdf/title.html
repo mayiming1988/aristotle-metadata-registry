@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load static from staticfiles %}
 
 <!doctype html>
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -7,17 +8,37 @@
       <meta http-equiv="content-type" content="text/html; charset=UTF-8">
       <link rel="stylesheet" type="text/css" href="css/pdf.css" />
    </head>
-   <body>
-   <div id="main">
-        {% if options.title %}<h1>{{ options.title }}</h1>{% endif %}
-        {% if tableOfContents %}
-           <div style="page-break-after:always;">
-                PDF download for:
-                <strong>
-                    {{ item.name }}
-                </strong>
-           </div>
-        {% endif %}
-    </div>
+   <body class="">
+    {% if tableOfContents %}
+       <div class="title_page" style="page-break-after:always;">
+
+            <div class="title_section">
+                {% comment %}
+                    <img height="50px" src="{% static config.SITE_BRAND %}" alt="{{ config.SITE_NAME }}" title="{{ config.SITE_NAME }}">
+                {% endcomment %}
+
+            <div class="main_title">
+            {% if options.title %}<h1>{{ options.title }}</h1>{% endif %}
+            {% if item.name %}
+                {{ item.name }}
+            {% endif %}
+            {% if items|length > 1 %}
+                PDF download for Multiple Items
+            {% else %}
+                {{ items.0.name }}
+            {% endif %}
+            </div>
+
+                <div class="byline">
+                Exported from {{config.SITE_NAME}}
+                </div>
+                {% if export_date %}
+                <div class="byline date">
+                On {{ export_date }}
+                </div>
+            {% endif %}
+            </div>
+       </div>
+    {% endif %}
    </body>
 </html>

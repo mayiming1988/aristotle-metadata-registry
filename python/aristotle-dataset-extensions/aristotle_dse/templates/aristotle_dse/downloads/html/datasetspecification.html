@@ -4,8 +4,10 @@
 {% block title %}{{ item.name }} ({{item.status}}){% endblock %}
 {% block objSpecific %}
 {% if item.data_elements.all %}
-    <dt>Metadata items in this Data Set Specification</dt>
-    <dd>
+    <dt>
+        <header>Metadata items in this Data Set Specification</header>
+    </dt>
+    <dd class="dss_inclusions">
     {% include "aristotle_dse/downloads/html/helpers/inclusions.html" with item=item %}
     </dd>
 {% endif %}

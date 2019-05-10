@@ -1,19 +1,20 @@
 from typing import Any, List, Dict, Optional, Union, AnyStr
 
-from django.db.models.query import QuerySet
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
-from django.core.files.storage import get_storage_class
 from django.core.files import File
+from django.core.files.storage import get_storage_class
 from django.core.exceptions import PermissionDenied
-from django.utils.safestring import mark_safe
 from django.core.files.base import ContentFile
-from django.conf import settings
-from django.utils.module_loading import import_string
-from django.http.request import QueryDict
 from django.core.mail.message import EmailMessage
-from django.urls import reverse
+from django.db.models.query import QuerySet
+from django.http.request import QueryDict
 from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils.module_loading import import_string
+from django.utils.safestring import mark_safe
+from django.utils.timezone import now
 
 from hashlib import sha256
 import pickle
@@ -269,7 +270,9 @@ class HTMLDownloader(Downloader):
         context = {
             'user': self.user,
             'page_size': page_size,
-            'options': self.options
+            'options': self.options,
+            'config': aristotle_settings,
+            "export_date": now(),
         }
         return context
 
@@ -384,9 +387,12 @@ class HTMLDownloader(Downloader):
         Can be used by subclasses
         """
         if self.bulk:
-            return self.get_bulk_download_context()
+            context = self.get_bulk_download_context()
         else:
-            return self.get_download_context()
+            context = self.get_download_context()
+        context.update({"is_bulk_download": self.bulk})
+        
+        return context
 
     def get_template(self) -> str:
         """
