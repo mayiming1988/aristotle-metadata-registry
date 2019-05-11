@@ -541,7 +541,6 @@ class GroupURLManager(InvitationBackend):
                 user = User.objects.get(email=email)
                 # TODO: We still want to send the user a notification email, add this functionality later
 
-
             except User.DoesNotExist:
                 # TODO break out user creation process
                 user = User.objects.create(
