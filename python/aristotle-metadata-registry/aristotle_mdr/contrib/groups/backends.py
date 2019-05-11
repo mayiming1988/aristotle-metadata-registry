@@ -534,14 +534,12 @@ class GroupURLManager(InvitationBackend):
         If your project uses email in a different way then you should make to
         extend this method as it only checks the `email` attribute for Users.
 
-        We'll still send an email if the user exists
         """
         users = []
         for email in emails:
             try:
                 user = User.objects.get(email=email)
-                # We still want to send an invitation link
-                logger.debug("The user exists")
+                # TODO: We still want to send the user an email, add laters
 
             except User.DoesNotExist:
                 # TODO break out user creation process
