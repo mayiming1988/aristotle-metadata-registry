@@ -4,6 +4,8 @@ from django.contrib.contenttypes.models import ContentType
 
 
 class CustomFieldQueryset(SimplePermsQueryset):
+    # TODO: add permisisons checking here
+
     perm_field_name = 'visibility'
 
 

@@ -1,7 +1,6 @@
 <template>
     <div class="vue-formset">
-        <table class="table table-striped table-responsive">
-
+        <table class="table table-striped">
             <!-- Show labels -->
             <thead v-if="showLabels">
 
@@ -13,6 +12,7 @@
             <tr v-if="showDelete" class="col-md-2"><label>Delete</label></tr>
             </thead>
             <tbody>
+            <tr>
             <!-- Show forms -->
             <draggable :list="formsData" :options="sortableConfig">
                 <baseForm
@@ -37,12 +37,11 @@
                         <div class="col-md-1">
                             <button class="btn btn-danger" @click="deleteRow(index)">Delete</button>
                         </div>
-
                     </template>
                 </baseForm>
             </draggable>
-
-
+            </tr>
+            </tbody>
         </table>
         <!-- Add and submit buttons -->
         <div class="vue-formset-button-group">
