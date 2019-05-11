@@ -600,11 +600,14 @@ class GroupURLManager(InvitationBackend):
         """An intermediary function for sending an invitation email that
         selects the templates, generating the token, and ensuring that the user
         has not already joined the site.
-        We still want to send an email if they already are a member of
+
+        We're currently not sending emails to users already part of the registry
+         because we're using a different View to add users
+        to Stewardship Organisations for the time being.
         """
         if user.is_active:
             return False
-            # TODO: change this
+
         token = self.get_token(user, group)
         kwargs.update({'token': token})
         kwargs.update({'sender': sender})
@@ -619,11 +622,4 @@ class GroupURLManager(InvitationBackend):
 
 
 def group_backend_factory(*args, **kwargs):
-    # _group_class = group_class
-    # _membership_class = membership_class
-    # url_path = url_path
-    # class Backend(GroupBackend):
-    #     group_class = _group_class
-    #     membership_class = _membership_class
-
     return GroupURLManager(*args, **kwargs)
