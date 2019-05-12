@@ -6,6 +6,8 @@ from aristotle_mdr.contrib.custom_fields.types import type_field_mapping
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.models import _concept
 from aristotle_mdr.utils.utils import get_concept_content_types
+from aristotle_mdr.contrib.custom_fields.constants import CUSTOM_FIELD_STATES
+
 
 import csv
 import itertools
@@ -78,22 +80,22 @@ class CustomValueFormMixin:
                 choices.append(('', '------'))
                 field_default_args['choices'] = choices
 
-            raise ValueError(custom_field.state)
-            key = custom_field.form_field_name
-            if key in self.initial:
-                # Avoid key error
-                if self.initial[key] == '':
-                    # There's no content
-                    pass
-            else:
-
-                # Add fields to form for display
-                self.fields[custom_fname] = field_class(
-                    required=False,
-                    label=custom_field.name,
-                    help_text=custom_field.help_text,
-                    **field_default_args
-                )
+            if custom_field.state == CUSTOM_FIELD_STATES.inactive:
+                # The Custom Field is set to inactive but visible
+                key = custom_field.form_field_name
+                if key in self.initial:
+                    # Avoid key error
+                    if self.initial[key] == '':
+                        # There's no content, so we don't bother showing it
+                        pass
+                    else:
+                        # Add fields to form for display
+                        self.fields[custom_fname] = field_class(
+                                required=False,
+                                label=custom_field.name,
+                                help_text=custom_field.help_text,
+                                **field_default_args
+                            )
 
     @property
     def custom_fields(self) -> List:
