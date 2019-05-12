@@ -920,6 +920,7 @@ class _concept(baseAristotleObject):
     is_locked.short_description = 'Locked'  # type: ignore
 
     def recache_states(self):
+        logger.critical("HEY THIS IS HAPPENING!!!!!")
         self._is_public = self.check_is_public()
         self._is_locked = self.check_is_locked()
         self.save()
@@ -1825,7 +1826,8 @@ def states_changed(sender, instance, *args, **kwargs):
     logger.critical("THIS WAS ACTUALLY CALLED")
     logger.critical("THIS IS THE CONCEPT")
     logger.critical(instance.concept)
-    concept_visibility_updated.send(concept=instance.concept, sender=Status)
+    # concept_visibility_updated.send(concept=instance.concept, sender=Status)
+    # instance.concept.recache_states()
     fire("concept_changes.status_changed", obj=instance, **kwargs)
 
 

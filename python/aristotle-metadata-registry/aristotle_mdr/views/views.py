@@ -655,7 +655,7 @@ class EditStatus(UpdateView):
         self.object = form.save()
         # Update the search engine indexation for the concept:
         from aristotle_mdr.models import concept_visibility_updated
-        concept_visibility_updated.send(concept=self.get_object(), sender=self.__class__)
+        concept_visibility_updated.send(concept=self.get_object().concept, sender=self.get_object().concept.__class__)
         return redirect(reverse('aristotle:registrationHistory', args=[self.kwargs['iid']]))
 
 
