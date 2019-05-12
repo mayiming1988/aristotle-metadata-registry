@@ -53,9 +53,11 @@ class CustomValueFormMixin:
     def __init__(self, custom_fields: Iterable[CustomField] = [], **kwargs):
         super().__init__(**kwargs)  # type: ignore
 
-
         # Map custom field form names to CustomField objects
         self.cfields = {cf.form_field_name: cf for cf in custom_fields}
+
+
+        fields_to_remove = []
 
         # Iterate over mapping
         for custom_fname, custom_field in self.cfields.items():
@@ -66,7 +68,6 @@ class CustomValueFormMixin:
 
             if issubclass(field_class, forms.ChoiceField):
                 # Special case for choice fields
-
                 # Get csv string from CustomField
                 values = custom_field.choices
                 # Parse lines with csv reader
@@ -80,16 +81,12 @@ class CustomValueFormMixin:
                 choices.append(('', '------'))
                 field_default_args['choices'] = choices
 
-
-            # TODO: look for a better way to perform this lookup
             if custom_field.state == CUSTOM_FIELD_STATES.inactive:
                 # The Custom Field is set to inactive but visible
                 key = custom_field.form_field_name
                 if key in self.initial:
-                    # Avoid key error
                     if self.initial[key] == '':
-                        # There's no content and it's inactive, so we don't bother showing it
-                        pass
+                        fields_to_remove.append(key)
                     else:
                         # There's content so we want to show it
                         # Add fields to form for display
@@ -108,6 +105,8 @@ class CustomValueFormMixin:
                     help_text=custom_field.help_text,
                     **field_default_args
                 )
+        for key in fields_to_remove:
+            del self.cfields[key]
 
     @property
     def custom_fields(self) -> List:
