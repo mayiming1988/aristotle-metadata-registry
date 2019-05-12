@@ -8,10 +8,8 @@ from aristotle_mdr.models import _concept
 from aristotle_mdr.utils.utils import get_concept_content_types
 from aristotle_mdr.contrib.custom_fields.constants import CUSTOM_FIELD_STATES
 
-
 import csv
 import itertools
-
 
 class CustomFieldForm(forms.ModelForm):
     class Meta:
