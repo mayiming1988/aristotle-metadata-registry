@@ -364,7 +364,6 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
             [self.animal]
         )
 
-        print("Hello" + str(context['subitems']))
         self.assertCountEqual(
             context['subitems']['aristotle_mdr.property']['items'],
             [self.speed]
