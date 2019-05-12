@@ -356,7 +356,7 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
         self.aspeed.property = self.speed
         self.aspeed.save()
 
-        downloader = HTMLDownloader([self.aspeed.id], self.editor.id, {})
+        downloader = HTMLDownloader([self.aspeed.id], self.editor.id, {"include_supporting": True})
 
         context = downloader.get_context()
         self.assertCountEqual(
