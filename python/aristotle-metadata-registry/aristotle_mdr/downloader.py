@@ -287,7 +287,7 @@ class HTMLDownloader(Downloader):
         if self.options['include_supporting']:
             sub_items = self.get_sub_items_dict()
         else:
-            sub_items = []
+            sub_items = {}
 
         context.update({
             'title': item.name,
@@ -371,7 +371,7 @@ class HTMLDownloader(Downloader):
         if self.options['include_supporting']:
             sub_items = self.get_sub_items_dict()
         else:
-            sub_items = []
+            sub_items = {}
 
         context.update({
             'subtitle': subtitle,
