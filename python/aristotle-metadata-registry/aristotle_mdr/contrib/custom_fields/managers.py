@@ -65,4 +65,5 @@ class CustomFieldManager(Manager):
 
         queryset = self.get_queryset().filter(fil)
 
+        # Filter out the cusotm fields that are 'Hidden'
         return queryset.exclude(state=CUSTOM_FIELD_STATES.hidden)

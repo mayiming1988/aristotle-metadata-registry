@@ -75,29 +75,6 @@ class CustomField(TimeStampedModel):
         return user.is_superuser
 
 
-class Status(TimeStampedModel):
-    """
-    The Status of a Custom Field.
-    Active = This field can be added or edited for items in the system
-
-    Inactive = This field is no longer editable or addable to metadata items
-    by regular users. Superusers can alter content. Older items
-    with this field will still display it.
-
-    Hidden = This field is no longer editable or addable to metadata items by regular users.
-    Superusers can alter content. Older items with this field will not
-    display it.
-
-    """
-    custom_field = models.OneToOneField(
-        CustomField,
-        on_delete=models.CASCADE,
-        primary_key=True
-    )
-    status = models.IntegerField(choices=CUSTOM_FIELD_STATES,
-                                 default=CUSTOM_FIELD_STATES.active)
-
-
 class CustomValue(TimeStampedModel):
     field = models.ForeignKey(CustomField, related_name='values')
     content = models.TextField()
