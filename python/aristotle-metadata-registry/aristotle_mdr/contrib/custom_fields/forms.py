@@ -11,6 +11,7 @@ from aristotle_mdr.contrib.custom_fields.constants import CUSTOM_FIELD_STATES
 import csv
 import itertools
 
+
 class CustomFieldForm(forms.ModelForm):
     class Meta:
         model = CustomField
@@ -54,7 +55,6 @@ class CustomValueFormMixin:
         # Map custom field form names to CustomField objects
         self.cfields = {cf.form_field_name: cf for cf in custom_fields}
 
-
         fields_to_remove = []
 
         # Iterate over mapping
@@ -89,11 +89,11 @@ class CustomValueFormMixin:
                         # There's content so we want to show it
                         # Add fields to form for display
                         self.fields[custom_fname] = field_class(
-                                required=False,
-                                label=custom_field.name,
-                                help_text=custom_field.help_text,
-                                **field_default_args
-                            )
+                            required=False,
+                            label=custom_field.name,
+                            help_text=custom_field.help_text,
+                            **field_default_args
+                        )
             else:
                 # It's not inactive or hidden, so we display it
                 # Add fields to form for display

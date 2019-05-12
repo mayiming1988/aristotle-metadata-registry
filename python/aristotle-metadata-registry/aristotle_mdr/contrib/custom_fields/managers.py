@@ -4,7 +4,6 @@ from django.contrib.contenttypes.models import ContentType
 from aristotle_mdr.contrib.custom_fields.constants import CUSTOM_FIELD_STATES
 
 
-
 class CustomFieldQueryset(SimplePermsQueryset):
     # TODO: add permisisons checking here
 
