@@ -50,15 +50,21 @@ class CustomValueFormMixin:
 
     def __init__(self, custom_fields: Iterable[CustomField] = [], **kwargs):
         super().__init__(**kwargs)  # type: ignore
-        # Map custom field for names to CustomField objects
+
+
+        # Map custom field form names to CustomField objects
         self.cfields = {cf.form_field_name: cf for cf in custom_fields}
+
         # Iterate over mapping
         for custom_fname, custom_field in self.cfields.items():
             field = type_field_mapping[custom_field.type]
+
             field_class = field['field']
             field_default_args = field.get('args', {})
-            # Special case for choice fields
+
             if issubclass(field_class, forms.ChoiceField):
+                # Special case for choice fields
+
                 # Get csv string from CustomField
                 values = custom_field.choices
                 # Parse lines with csv reader
@@ -71,13 +77,23 @@ class CustomValueFormMixin:
                 choices = [(v, v) for v in choice_values]
                 choices.append(('', '------'))
                 field_default_args['choices'] = choices
-            # Add field to form
-            self.fields[custom_fname] = field_class(
-                required=False,
-                label=custom_field.name,
-                help_text=custom_field.help_text,
-                **field_default_args
-            )
+
+            raise ValueError(custom_field.state)
+            key = custom_field.form_field_name
+            if key in self.initial:
+                # Avoid key error
+                if self.initial[key] == '':
+                    # There's no content
+                    pass
+            else:
+
+                # Add fields to form for display
+                self.fields[custom_fname] = field_class(
+                    required=False,
+                    label=custom_field.name,
+                    help_text=custom_field.help_text,
+                    **field_default_args
+                )
 
     @property
     def custom_fields(self) -> List:

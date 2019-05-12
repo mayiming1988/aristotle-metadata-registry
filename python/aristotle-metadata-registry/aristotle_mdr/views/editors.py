@@ -67,7 +67,7 @@ class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
         return kwargs
 
     def get_custom_values(self):
-        # If we are editing, must be able to see all values
+        # If we are editing, must be able to see the content added to a custom value
         return CustomValue.objects.get_for_item(self.item.concept)
 
     def get_initial(self):

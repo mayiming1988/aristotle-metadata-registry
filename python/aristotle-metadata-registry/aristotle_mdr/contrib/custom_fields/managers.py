@@ -58,8 +58,6 @@ class CustomFieldManager(Manager):
         # Filter out the custom fields that are 'Hidden'
         return queryset.exclude(state=CUSTOM_FIELD_STATES.hidden)
 
-
-
     def get_for_model(self, model):
         """Return the fields for a given model.
            Used for editing screen"""
