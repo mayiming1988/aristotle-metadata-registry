@@ -1,6 +1,8 @@
 from django.db.models import Manager, Q
 from aristotle_mdr.contrib.slots.manager import SimplePermsQueryset
 from django.contrib.contenttypes.models import ContentType
+from aristotle_mdr.contrib.custom_fields.constants import CUSTOM_FIELD_STATES
+
 
 
 class CustomFieldQueryset(SimplePermsQueryset):
@@ -45,11 +47,25 @@ class CustomFieldManager(Manager):
         return CustomFieldQueryset(self.model, using=self._db)
 
     def get_allowed_fields(self, concept, user):
-        """Return the fields viewable on an item by a user"""
-        return self.get_queryset().visible(user, concept.workgroup)
+        """Return the fields viewable on an item by a user.
+        Only for viewing, not for editing
+
+        Filtering
+        """
+
+        queryset = self.get_queryset().visible(user, concept.workgroup)
+
+        # Filter out the custom fields that are 'Hidden'
+        return queryset.exclude(state=CUSTOM_FIELD_STATES.hidden)
+
+
 
     def get_for_model(self, model):
-        """Return the fields for a given model"""
+        """Return the fields for a given model.
+           Used for editing screen"""
         ct = ContentType.objects.get_for_model(model)
         fil = Q(allowed_model__isnull=True) | Q(allowed_model=ct)
-        return self.get_queryset().filter(fil)
+
+        queryset = self.get_queryset().filter(fil)
+
+        return queryset.exclude(state=CUSTOM_FIELD_STATES.hidden)
