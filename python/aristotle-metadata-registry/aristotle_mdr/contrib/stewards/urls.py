@@ -1,6 +1,5 @@
 from django.conf.urls import url, include
 from aristotle_mdr.models import StewardOrganisationMembership, StewardOrganisation
-# from .views import
 from .views import views, manager
 
 urlpatterns = [
