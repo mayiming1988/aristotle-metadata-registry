@@ -1,183 +1,196 @@
 <template>
     <div class="vue-formset">
-        <div class="row container" v-for="(item, index) in formsData">
-            <hr>
-            <h5><em>{{ item.name }}</em></h5>
+        <draggable :list="formsData" :options="sortableConfig">
 
-            <div class="col-md-8">
-            <draggable :list="formsData" :options="sortableConfig">
+            <div class="row container" v-for="(item, index) in formsData">
 
-                <baseForm
-                    v-model="formsData[index]"
-                    :key="item.vid"
-                    :fields="fields"
-                    :inline="false"
-                    :errors="getError(item.vid)"
-                    :fe_errors="getIndexValidationErrors('formsData', index)"
-                    :showSubmit="false"
-                    :showLabels="true">
+                <div class="col-md-10">
+                    <div class="panel panel-info">
 
-                    <template slot="before">
-                        <div class="row">
-                        <div class="text-center">
-                            <i class="fa fa-lg fa-bars grabber"></i>
+                        <div class="panel-heading" role="button" @click="toggleAccordion(index)">
+                            <h4 class="panel-title"><i class="fa fa-lg fa-bars grabber"></i>  {{ item.name }}</h4>
                         </div>
-                        </div>
-                    </template>
+                        <collapse v-model="showAccordion[index]">
+                            <div class="panel-body">
+                                <baseForm
+                                        v-model="formsData[index]"
+                                        :key="item.vid"
+                                        :fields="fields"
+                                        :inline="false"
+                                        :errors="getError(item.vid)"
+                                        :fe_errors="getIndexValidationErrors('formsData', index)"
+                                        :showSubmit="false"
+                                        :showLabels="true">
 
-                    <template v-if="showDeleteItem(item.new)" slot="after">
-                        <div class="col-md-1">
-                            <button class="btn btn-danger" @click="deleteRow(index)">Delete</button>
-                        </div>
-                    </template>
-
-                </baseForm>
-
-            </draggable>
+                                    <template v-if="showDeleteItem(item.new)" slot="after">
+                                        <div class="col-md-1">
+                                            <button class="btn btn-danger" @click="deleteRow(index)">Delete</button>
+                                        </div>
+                                    </template>
+                                </baseForm>
+                            </div>
+                        </collapse>
+                    </div>
+                </div>
             </div>
-        </div>
+        </draggable>
 
         <div class="vue-formset-button-group">
             <button class="btn btn-success" @click="addRow">Add</button>
-            <button class="btn btn-primary" @click="submitFormSet">Submit</button>
+            <button class="btn btn-primary" @click="submitFormSet">Submit Edits</button>
         </div>
     </div>
 </template>
 
 <script>
-import validationMixin from 'src/mixins/validation.js'
-import baseForm from '@/forms/baseForm.vue'
-import draggable from 'vuedraggable'
+    import validationMixin from 'src/mixins/validation.js'
+    import baseForm from '@/forms/baseForm.vue'
+    import draggable from 'vuedraggable'
+    import Collapse from 'uiv/src/components/collapse/Collapse.vue'
 
-/* 
-Formset with validation,
-emits a submit event
-use apiFormset in django templates
-*/
-export default {
-    components: {
-        draggable,
-        baseForm,
-    },
-    mixins: [validationMixin],
-    props: {
-        fields: {
-            type: Object
+    /*
+    Formset with validation,
+    emits a submit event
+    use apiFormset in django templates
+    */
+    export default {
+        components: {
+            Collapse,
+            draggable,
+            baseForm,
         },
-        orderField: {
-            type: String,
-            default: 'order'
+        mixins: [validationMixin],
+        props: {
+            fields: {
+                type: Object
+            },
+            orderField: {
+                type: String,
+                default: 'order'
+            },
+            showLabels: {
+                type: Boolean,
+                default: true
+            },
+            showDelete: {
+                type: Boolean,
+                default: true
+            },
+            initial: {
+                type: Array
+            },
+            errors: {
+                type: Array
+            },
         },
-        showLabels: {
-            type: Boolean,
-            default: true
-        },
-        showDelete: {
-            type: Boolean,
-            default: true
-        },
-        initial: {
-            type: Array
-        },
-        errors: {
-            type: Array
-        },
-    },
-    data: () => ({
-        message: '',
-        sortableConfig: {
-            handle: '.grabber',
-        },
-        stripFields: ['vid', 'new'],
-        error_map: {},
-        formsData: [],
-        nextVid: 0
-    }),
-    created: function() {
-        if (this.initial) {
-            this.formsData = this.initial
-            this.nextVid = this.formsData.length
-        }
-        for (let i=0; i < this.formsData.length; i++) {
-            // Add a vue id to each item as unique key
-            this.formsData[i]['vid'] = i
-            this.formsData[i]['new'] = false
-        }
-    },
-    validations: function() {
-        return this.getValidations(this.fields, 'formsData', true)
-    },
-    watch: {
-        errors: function() {
-            let error_map = {}
-            for (let i=0; i < this.errors.length; i++) {
-                let err = this.errors[i]
-                let vid = this.formsData[i]['vid']
-                error_map[vid] = err
+        data: () => ({
+            message: '',
+            sortableConfig: {
+                handle: '.grabber',
+            },
+            stripFields: ['vid', 'new'],
+            error_map: {},
+            formsData: [],
+            nextVid: 0,
+            showAccordion: [],
+        }),
+        created: function () {
+            if (this.initial) {
+                this.formsData = this.initial
+                this.nextVid = this.formsData.length
             }
-            this.error_map = error_map
-        }
-    },
-    computed: {
-        default: function() {
-            let defaults = {vid: this.nextVid, new: true}
-            for (let fname in this.fields) {
-                let field = this.fields[fname]
-                if (field.default != null) {
-                    defaults[fname] = field.default
+            for (let i = 0; i < this.formsData.length; i++) {
+                // Add a vue id to each item as unique key
+                this.formsData[i]['vid'] = i
+                this.formsData[i]['new'] = false
+
+                // Populate the showAccordion list
+                this.showAccordion.push(false)
+            }
+        },
+        validations: function () {
+            return this.getValidations(this.fields, 'formsData', true)
+        },
+        watch: {
+            errors: function () {
+                let error_map = {}
+                for (let i = 0; i < this.errors.length; i++) {
+                    let err = this.errors[i]
+                    let vid = this.formsData[i]['vid']
+                    error_map[vid] = err
                 }
+                this.error_map = error_map
             }
-            return defaults
-        }
-    },
-    methods: {
-        getError: function(vid) {
-            return this.error_map[vid]
         },
-        addRow: function() {
-            this.formsData.push(this.default)
-            this.nextVid += 1
-        },
-        deleteRow: function(index) {
-            this.formsData.splice(index, 1)
-        },
-        postProcess: function() {
-            let fdata = []
-            for (let i=0; i < this.formsData.length; i++) {
-                // Get shallow clone of item
-                let item = Object.assign({}, this.formsData[i])
-                // Remove unneeded fields
-                for (let field of this.stripFields) {
-                    delete item[field]
+        computed: {
+            default: function () {
+                let defaults = {vid: this.nextVid, new: true}
+                for (let fname in this.fields) {
+                    let field = this.fields[fname]
+                    if (field.default != null) {
+                        defaults[fname] = field.default
+                    }
                 }
-                // Reorder
-                item['order'] = i + 1
-                fdata.push(item)
-            }
-            return fdata
-        },
-        submitFormSet: function() {
-            if (this.isDataValid('formsData')) {
-                let dataToSubmit = this.postProcess()
-                this.$emit('submit', dataToSubmit)
+                return defaults
             }
         },
-        showDeleteItem: function(isnew) {
-            if (this.showDelete) {
-                return true
-            } else {
-                return isnew
+        methods: {
+            getError: function (vid) {
+                return this.error_map[vid]
+            },
+            addRow: function () {
+                this.formsData.push(this.default)
+                this.nextVid += 1
+            },
+            deleteRow: function (index) {
+                this.formsData.splice(index, 1)
+            },
+            postProcess: function () {
+                let fdata = []
+                for (let i = 0; i < this.formsData.length; i++) {
+                    // Get shallow clone of item
+                    let item = Object.assign({}, this.formsData[i])
+                    // Remove unneeded fields
+                    for (let field of this.stripFields) {
+                        delete item[field]
+                    }
+                    // Reorder
+                    item['order'] = i + 1
+                    fdata.push(item)
+                }
+                return fdata
+            },
+            submitFormSet: function () {
+                if (this.isDataValid('formsData')) {
+                    let dataToSubmit = this.postProcess()
+                    this.$emit('submit', dataToSubmit)
+                }
+            },
+            toggleAccordion: function (index) {
+                if (this.showAccordion[index]) {
+                    this.$set(this.showAccordion, index, false)
+                }
+                else {
+                    this.showAccordion = this.showAccordion.map((v, i) => i === index)
+                }
+            },
+            showDeleteItem: function (isnew) {
+                if (this.showDelete) {
+                    return true
+                } else {
+                    return isnew
+                }
             }
         }
     }
-}
 </script>
 
 <style>
-.grabber {
-    padding-top: 5px;
-}
-.vue-formset-button-group {
-    margin-top: 10px;
-}
+    .grabber {
+        padding-top: 5px;
+    }
+
+    .vue-formset-button-group {
+        margin-top: 10px;
+    }
 </style>
