@@ -99,15 +99,51 @@ class WorkgroupQuerySet(AbstractGroupQuerySet):
     def visible(self, user):
         if user.is_anonymous():
             return self.none()
+
         if user.is_superuser:
             return self.all()
-        # TODO: Figure out how to make admins of the steward org able to view using this queryset
-        return user.profile.workgroups
+
+        from aristotle_mdr.models import StewardOrganisation, Workgroup
+        SO_STATES = StewardOrganisation.states
+        WG_STATES = StewardOrganisation.states
+        SO_VISIBLE_STATES = StewardOrganisation.visible_states
+
+        if user.is_superuser:
+            return self.all()
+
+        q = Q(
+            members__user=user,
+        )
+        q |= Q(
+            stewardship_organisation__state=StewardOrganisation.active_states,
+            stewardship_organisation__members__user=user,
+            stewardship_organisation__members__role=StewardOrganisation.roles.admin
+        )
+        return self.filter(q)
 
 
 class RegistrationAuthorityQuerySet(models.QuerySet):
     def visible(self, user):
-        return self.all()
+        from aristotle_mdr.models import RA_ACTIVE_CHOICES
+        from aristotle_mdr.models import StewardOrganisation
+        SO_STATES = StewardOrganisation.states
+        SO_VISIBLE_STATES = StewardOrganisation.visible_states
+
+        if user.is_superuser:
+            return self.all()
+
+        q = Q(
+            active__in=[
+                RA_ACTIVE_CHOICES.active,
+                RA_ACTIVE_CHOICES.inactive,
+            ],
+            stewardship_organisation__state__in=SO_VISIBLE_STATES
+        )
+        q |= Q(
+            stewardship_organisation__state=SO_STATES.private,
+            stewardship_organisation__members__user=user,
+        )
+        return self.filter(q)
 
 
 class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
