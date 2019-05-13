@@ -1,24 +1,21 @@
 <template>
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <strong>
-          <a class="blackLink" role="button" data-toggle="collapse" href="#collapseProposal" aria-expanded="false" aria-controls="#collapseProposal">
-            Proposed changes to {{ fieldName }}
-          </a>
-        </strong>
-      </div>
-      <div id="collapseProposal" class="collapse panel-body">
-        <slot></slot>
-        <button v-if="canApprove" class="btn btn-success" @click="approve">Approve</button>
-      </div>
-    </div>
+  <collapse-panel :title="title">
+    <slot />
+    <button v-if="canApprove" class="btn btn-success" @click="approve">
+        Approve Changes & Close
+    </button>
+  </collapse-panel>
 </template>
 
 <script>
 import apiRequest from 'src/mixins/apiRequest.js'
+import collapsePanel from '@/collapsePanel.vue'
 
 export default {
     mixins: [apiRequest],
+    components: {
+        'collapse-panel': collapsePanel
+    },
     props: {
         fieldName: {
             type: String,
@@ -36,6 +33,11 @@ export default {
     methods: {
         approve: function() {
             console.log('approved')
+        }
+    },
+    computed: {
+        title: function() {
+            return 'Proposed changes to ' + this.fieldName
         }
     }
 }
