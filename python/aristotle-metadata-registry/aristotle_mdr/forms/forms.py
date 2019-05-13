@@ -10,9 +10,12 @@ from aristotle_mdr.forms.creation_wizards import UserAwareForm
 from aristotle_mdr.forms.fields import ReviewChangesChoiceField, MultipleEmailField
 from aristotle_mdr.contrib.autocomplete import widgets
 from django_jsonforms.forms import JSONSchemaField
+from aristotle_mdr.forms.utils import RegistrationAuthorityMixin
 
+import logging
 
-from .utils import RegistrationAuthorityMixin
+logger = logging.getLogger(__name__)
+logger.debug("Logging started for " + __name__)
 
 
 class ChangeStatusGenericForm(RegistrationAuthorityMixin, UserAwareForm):
@@ -136,6 +139,33 @@ class EditUserForm(ModelForm):
         labels = {
             'short_name': 'Display Name'
         }
+
+
+class EditStatusForm(ModelForm):
+    class Meta:
+        model = MDR.Status
+        fields = ['registrationDate', 'until_date', 'state', 'changeDetails']
+
+    registrationDate = forms.DateField(
+        required=False,
+        label=_("Registration date"),
+        widget=BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"}),
+    )
+    until_date = forms.DateField(
+        required=False,
+        label=_("Expiration date"),
+        widget=BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"}),
+    )
+    state = forms.ChoiceField(
+        choices=MDR.STATES,
+        widget=forms.RadioSelect,
+    )
+    changeDetails = forms.CharField(
+        max_length=512,
+        required=False,
+        label=_("Why is the status being changed for these items?"),
+        widget=forms.Textarea
+    )
 
 
 class NotificationPermissionsForm(forms.Form):

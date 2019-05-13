@@ -44,6 +44,7 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
         super().teardown()
 
     def handle_concept_recache(self, concept, **kwargs):
+        logger.critical("HELLO WORLDDDDD")
         instance = concept.item
         self.async_handle_save(instance.__class__, instance)
 

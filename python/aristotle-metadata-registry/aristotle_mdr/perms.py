@@ -8,8 +8,8 @@ from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
 import logging
 logger = logging.getLogger(__name__)
 
-VIEW_CACHE_SECONDS=60
-EDIT_CACHE_SECONDS=60
+VIEW_CACHE_SECONDS = 60
+EDIT_CACHE_SECONDS = 60
 
 
 def user_can_alter_comment(user, comment):
