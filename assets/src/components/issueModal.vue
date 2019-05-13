@@ -17,9 +17,13 @@
             </template>
             <template v-if="formdata.proposal_field">
                 <h4>Value for {{ capitalize(formdata.proposal_field) }}</h4>
-                <form-field :name="formdata.proposal_field">
-                    <!--- <textarea v-model="proposals[formdata.proposal_field]" class="form-control ta-fixed-width" /> --->
-                    <html-editor v-model="proposals[formdata.proposal_field]" />
+                <form-field :name="formdata.proposal_field" :displayLabel="false">
+                    <template v-if="isHtml(formdata.proposal_field)">
+                        <html-editor v-model="proposals[formdata.proposal_field]" />
+                    </template>
+                    <template v-else>
+                        <textarea v-model="proposals[formdata.proposal_field]" class="form-control ta-fixed-width" />
+                    </template>
                 </form-field>
             </template>
         </template>
@@ -102,6 +106,11 @@ export default {
             this.proposals[this.formdata.proposal_field] = this.formdata.proposal_value
         }
         this.fields = JSON.parse(this.proposeFields)
+        // Create map of fields to whether html
+        this.htmlMap = new Map()
+        for (let f of this.fields) {
+            this.htmlMap.set(f.name, f.html)
+        }
     },
     methods: {
         capitalize: capitalize,
@@ -126,6 +135,10 @@ export default {
                     }
                 })
             }
+        },
+        /* Return whether a field should be rendered as html or not */
+        isHtml: function(field) {
+            return (this.htmlMap.get(field) === true)
         }
     },
     computed: {
