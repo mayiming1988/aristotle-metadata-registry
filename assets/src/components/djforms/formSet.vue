@@ -147,8 +147,6 @@
             },
             deleteRow: function (index) {
                 this.formsData.splice(index, 1)
-                this.nextVid -= 1
-                this.showAccordion.pop()
             },
             postProcess: function () {
                 let fdata = []
