@@ -33,15 +33,17 @@
                 {{ object.description }}
               </div>
             </div>
-            <issue-panel
-              v-if="isOpen"
-              field-name="{{ object.proposal_field }}"
-              {% if can_approve %}can-approve{% endif %}
-              approve-url="{% url 'api_v4:issues:approve' object.id %}"
-              @set_open="setIsOpen"
-            >
-              <span v-pre>{{ object.proposal_value|bleach }}</span>
-            </issue-panel>
+            {% if has_proposed_changes %}
+              <issue-panel
+                v-if="isOpen"
+                field-name="{{ object.proposal_field }}"
+                {% if can_approve %}can-approve{% endif %}
+                approve-url="{% url 'api_v4:issues:approve' object.id %}"
+                @set_open="setIsOpen"
+              >
+                <span v-pre>{{ object.proposal_value|bleach }}</span>
+              </issue-panel>
+            {% endif %}
         </div>
     </div>
 

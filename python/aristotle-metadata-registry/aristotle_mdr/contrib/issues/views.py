@@ -99,10 +99,12 @@ class IssueDisplay(IssueBase, TemplateView):
         # Set permissions
         can_edit_item = perms.user_can_edit(self.request.user, self.issue.item)
         own_issue = (self.request.user.id == self.issue.submitter.id)
+        has_proposed_changes = (self.issue.proposal_field and self.issue.proposal_value)
         context.update({
             'can_open_close': (own_issue or can_edit_item),
             'own_issue': own_issue,
-            'can_approve': can_edit_item
+            'can_approve': can_edit_item,
+            'has_proposed_changes': has_proposed_changes
         })
         # Get data for modal
         context.update(self.get_modal_data(self.issue))
