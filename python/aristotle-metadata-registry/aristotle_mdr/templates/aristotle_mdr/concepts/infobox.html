@@ -137,6 +137,18 @@
                         </ul>
                     </dd>
                 {% endif %}
+                <dt class="large">{% trans 'Collections' %} </dt>
+                    <ul>
+                    {% for collection in item.collection_set.all|can_view_iter:request.user %}
+                        <li>
+                            <a href="{% url 'aristotle_mdr:stewards:group:collection_detail_view' collection.stewardship_organisation.slug collection.pk %}">{{ collection.name }}</a>
+                        </li>
+                        {% empty %}
+                        <li><em>None</em></li>
+                    {% endfor %}
+                    </ul>
+
+
                 {% if item.workgroup and request.user|in_workgroup:item.workgroup %}
                     <hr>
                     <dt>{% trans 'Workgroup' %}</dt>

@@ -132,12 +132,14 @@ class StewardOrganisation(AbstractGroup):
     }
     states = Choices(
         ('active', _('Active')),
+        ('active_and_hidden', _('Active & Hidden')),
         ('archived', _('Deactivated & Visible')),
         ('hidden', _('Deactivated & Hidden')),
     )
 
     active_states = [
         states.active,
+        states.active_and_hidden,
     ]
     visible_states = [
         states.active, states.archived,
@@ -920,7 +922,6 @@ class _concept(baseAristotleObject):
     is_locked.short_description = 'Locked'  # type: ignore
 
     def recache_states(self):
-        logger.critical("HEY THIS IS HAPPENING!!!!!")
         self._is_public = self.check_is_public()
         self._is_locked = self.check_is_locked()
         self.save()
@@ -1071,6 +1072,7 @@ class Status(TimeStampedModel):
 
 
 def recache_concept_states(sender, instance, *args, **kwargs):
+    logger.critical(instance.concept)
     instance.concept.recache_states()
 
 
@@ -1821,11 +1823,6 @@ def new_post_created(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Status)
 def states_changed(sender, instance, *args, **kwargs):
-    logger.critical("THIS WAS ACTUALLY CALLED")
-    logger.critical("THIS IS THE CONCEPT")
-    logger.critical(instance.concept)
-    # concept_visibility_updated.send(concept=instance.concept, sender=Status)
-    # instance.concept.recache_states()
     fire("concept_changes.status_changed", obj=instance, **kwargs)
 
 
