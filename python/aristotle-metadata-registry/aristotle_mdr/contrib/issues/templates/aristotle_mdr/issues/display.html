@@ -49,42 +49,43 @@
 
     {% for comment in comments %}
         <comment
-                pic="{{ comment.author.profile.profile_picture_url }}"
-                name="{{ comment.author.display_name }}"
-                created="{{ comment.created|date:"c" }}"
-                body="{{ comment.body }}">
+            pic="{{ comment.author.profile.profile_picture_url }}"
+            name="{{ comment.author.display_name }}"
+            created="{{ comment.created|date:"c" }}"
+            body="{{ comment.body }}">
         </comment>
     {% endfor %}
 
     <comment
-            v-for="comment in new_comments"
-            :key="comment.id"
-            :pic="comment.pic"
-            :name="comment.name"
-            :created="comment.created"
-            :body="comment.body">
+        v-for="comment in new_comments"
+        :key="comment.id"
+        :pic="comment.pic"
+        :name="comment.name"
+        :created="comment.created"
+        :body="comment.body">
     </comment>
 
     <issue-comment
-            pic="{{ user.profile.profile_picture_url }}"
-            user-id="{{ user.id }}"
-            user-name="{{ user.get_short_name }}"
-            issue-id="{{ object.id }}"
-            {% if object.isopen %}is-open{% endif %}
-            {% if can_open_close %}can-open-close{% endif %}
-            comment-url="{% url 'api_v4:issues:comment' %}"
-            open-close-url="{% url 'api_v4:issues:update_and_comment' object.id %}"
-            @set_open="setIsOpen"
-            @created="addComment">
+        pic="{{ user.profile.profile_picture_url }}"
+        user-id="{{ user.id }}"
+        user-name="{{ user.get_short_name }}"
+        issue-id="{{ object.id }}"
+        {% if object.isopen %}is-open{% endif %}
+        {% if can_open_close %}can-open-close{% endif %}
+        comment-url="{% url 'api_v4:issues:comment' %}"
+        open-close-url="{% url 'api_v4:issues:update_and_comment' object.id %}"
+        @set_open="setIsOpen"
+        @created="addComment">
     </issue-comment>
 
 
     <issue-modal
-            edit
-            v-model="issueModalOpen"
-            iid="{{ item.id }}"
-            url="{% url 'api_v4:issues:issue' object.id %}"
-            propose-fields="{{ fields }}"
-            initial="{{ initial }}">
+        edit
+        v-model="issueModalOpen"
+        iid="{{ item.id }}"
+        url="{% url 'api_v4:issues:issue' object.id %}"
+        propose-fields="{{ fields }}"
+        initial="{{ initial }}"
+        html-editor-config="{{ config }}">
     </issue-modal>
 {% endblock %}

@@ -19,7 +19,7 @@
                 <h4>Value for {{ capitalize(formdata.proposal_field) }}</h4>
                 <form-field :name="formdata.proposal_field" :displayLabel="false">
                     <template v-if="isHtml(formdata.proposal_field)">
-                        <html-editor v-model="proposals[formdata.proposal_field]" />
+                        <html-editor v-model="proposals[formdata.proposal_field]" :json-config="htmlEditorConfig" />
                     </template>
                     <template v-else>
                         <textarea v-model="proposals[formdata.proposal_field]" class="form-control ta-fixed-width" />
@@ -86,6 +86,10 @@ export default {
         edit: {
             type: Boolean,
             default: false
+        },
+        htmlEditorConfig: {
+            type: String,
+            default: '{}'
         }
     },
     data: () => ({

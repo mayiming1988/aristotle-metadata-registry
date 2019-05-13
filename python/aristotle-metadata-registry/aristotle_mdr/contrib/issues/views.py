@@ -3,6 +3,7 @@ from typing import Optional
 from django.http import Http404
 from django.views.generic import TemplateView
 from django.shortcuts import get_object_or_404
+from django.conf import settings
 
 from aristotle_mdr.views.utils import SimpleItemGet
 from aristotle_mdr.contrib.issues.models import Issue
@@ -37,7 +38,8 @@ class IssueBase(LoginRequiredMixin, SimpleItemGet):
         return {
             'fields': json.dumps(Issue.get_propose_fields()),
             'field_data': json.dumps(field_data),
-            'initial': json.dumps(data)
+            'initial': json.dumps(data),
+            'config': json.dumps(settings.CKEDITOR_CONFIGS['default'])
         }
 
 
