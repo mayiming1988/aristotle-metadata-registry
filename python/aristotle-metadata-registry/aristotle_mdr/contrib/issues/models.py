@@ -44,6 +44,20 @@ class Issue(TimeStampedModel):
     def can_alter_open(self, user):
         return self.can_edit(user) or self.item.can_edit(user)
 
+    def apply(self):
+        """Apply proposed changes to an item"""
+        if self.proposal_field and self.proposal_value:
+            item = self.item
+            setattr(item, self.proposal_field, self.proposal_value)
+            return item.save()
+        return None
+
+    def close(self):
+        """Closes an issue, applying changes to item aswell"""
+        self.isopen = False
+        self.apply()
+        return self.save()
+
     def get_absolute_url(self):
         return url_slugify_issue(self)
 

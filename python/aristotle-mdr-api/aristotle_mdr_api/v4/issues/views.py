@@ -60,20 +60,25 @@ class IssueUpdateAndCommentView(APIView):
         obj = self.get_object()
 
         if 'isopen' not in request.data:
-            return Response()
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         serializer_context = {'request': request}
+        # Setup issue serializer for partial update
         issue_serializer = self.issue_serializer(
             instance=obj,
             data={'isopen': request.data['isopen']},
             partial=True,
             context=serializer_context
         )
-        issue_serializer.is_valid()
+        # Check valid
+        issue_serializer.is_valid(raise_exception=True)
 
         response_content = {}
 
         if 'comment' in request.data:
+            # Process comment
             commentdata = request.data['comment']
             commentdata['issue'] = obj.pk
 
@@ -85,8 +90,13 @@ class IssueUpdateAndCommentView(APIView):
             comment_serializer.save()
             response_content['comment'] = comment_serializer.data
 
-        issue_serializer.save()
+        # Save issue
+        issue = issue_serializer.save()
+        # Set response data
         response_content['issue'] = issue_serializer.data
+        # Apply change to item if user has permission
+        if perms.user_can_edit(request.user, issue.item):
+            issue.apply()
 
         return Response(
             response_content,

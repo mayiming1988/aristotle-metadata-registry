@@ -194,9 +194,43 @@ class IssueEndpointsTestCase(BaseAPITestCase):
         self.assertFalse('comment' in response.data)
         self.assertFalse(response.data['issue']['isopen'])
 
-        issue = models.Issue.objects.get(pk=issue.pk)
+        issue.refresh_from_db()
         self.assertFalse(issue.isopen)
         self.assertEqual(issue.comments.count(), 0)
+
+    @tag('issue_apply')
+    def test_close_with_changes(self):
+        updated_definition = 'Fixed definition'
+
+        issue = models.Issue.objects.create(
+            name='Fix definition',
+            description='It needs fixing',
+            item=self.item,
+            submitter=self.user,
+            proposal_field='definition',
+            proposal_value=updated_definition
+        )
+
+        self.login_user()
+        response = self.client.post(
+            reverse('api_v4:issues:update_and_comment', args=[issue.pk]),
+            {'isopen': False},
+            format='json'
+        )
+
+        # Check response
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('issue' in response.data)
+        self.assertFalse('comment' in response.data)
+        self.assertFalse(response.data['issue']['isopen'])
+
+        # Make sure issue is closed
+        issue.refresh_from_db()
+        self.assertFalse(issue.isopen)
+
+        # Check item was updated
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.definition, updated_definition)
 
 
 class CustomFieldsTestCase(BaseAPITestCase):
@@ -643,4 +677,3 @@ class PermsTestCase(BaseAPITestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Token abc')
         response = self.client.get(reverse('api_v4:item:item', args=[self.item.id]))
         self.assertEqual(response.status_code, 403)
-
