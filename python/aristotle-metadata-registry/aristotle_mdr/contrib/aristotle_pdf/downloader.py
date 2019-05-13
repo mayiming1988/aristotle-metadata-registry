@@ -4,7 +4,6 @@ from io import BytesIO
 from django.template.loader import select_template, get_template
 from django.core.files.base import File
 
-from aristotle_mdr.contrib.help.models import ConceptHelp
 from aristotle_mdr.downloader import HTMLDownloader
 
 import logging

@@ -13,11 +13,10 @@
 {% if group.allows_multiple_roles %}
     {% trans "This group allows members to have multiple roles" %}
 {% else %}
-    {% trans "This group allows members to a single roles" %}
+    {% trans "This group allows members to have a single role" %}
 {% endif %}
 </div>
-{# <a href="{%url view.manager.namespace|add:":member_add" group.slug %}">Add member</a> #}
-<a href="{%url view.manager.namespace|add:":invite" group.slug %}">Invite member</a>
+<a href="{%url view.manager.namespace|add:":member_add" group.slug %}">Add member</a>
 
 <table class="table">
     <thead>

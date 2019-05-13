@@ -87,15 +87,17 @@ def download(download_type: str, item_ids: List[int], user_id: int, options={}) 
 
 @shared_task(name='send_sandbox_notification_emails')
 def send_sandbox_notification_emails(emails_list, user_email, sandbox_access_url):
-
     from django.core.mail import send_mail
+    from django.conf import settings
+
+    from_email = settings.DEFAULT_FROM_EMAIL
 
     # Send a separate email to each email address:
     for email in emails_list:
         send_mail(
             'Sandbox Access',
             'Hello there, to access my Sandbox please use the following URL: ' + sandbox_access_url,
-            user_email,
+            from_email,
             [email]
         )
 
@@ -104,8 +106,6 @@ def send_sandbox_notification_emails(emails_list, user_email, sandbox_access_url
 def send_notification_email(recipient, message):
     from django.core.mail import send_mail
     from django.conf import settings
-
-    # TODO: CHECK IF THIS SETTING WORKS IN PRODUCTION ENVIRONMENT:
 
     from_email = settings.DEFAULT_FROM_EMAIL
 

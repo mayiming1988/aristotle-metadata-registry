@@ -255,7 +255,7 @@ class DataSetSpecification(aristotle.models.concept):
 
     @property
     def clusters(self):
-        ids = self.dssclusterinclusion_set.all().values_list('dss', flat=True)
+        ids = self.dssclusterinclusion_set.all().values_list('child', flat=True)
         return self.__class__.objects.filter(id__in=ids)
 
     @property
@@ -281,9 +281,10 @@ class DataSetSpecification(aristotle.models.concept):
         return [
             self.clusters.all(),
             self.data_elements.all(),
-            aristotle.models.ObjectClass.objects.filter(dataelementconcept__dataelement__dssInclusions__dss=self),
-            aristotle.models.Property.objects.filter(dataelementconcept__dataelement__dssInclusions__dss=self),
-            aristotle.models.ValueDomain.objects.filter(dataelement__dssInclusions__dss=self),
+            # We need to make these distinct to avoid duplicates being returned
+            aristotle.models.ObjectClass.objects.filter(dataelementconcept__dataelement__dssInclusions__dss=self).distinct(),
+            aristotle.models.Property.objects.filter(dataelementconcept__dataelement__dssInclusions__dss=self).distinct(),
+            aristotle.models.ValueDomain.objects.filter(dataelement__dssInclusions__dss=self).distinct(),
         ]
 
 

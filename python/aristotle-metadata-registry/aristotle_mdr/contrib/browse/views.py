@@ -1,6 +1,5 @@
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import FieldError
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, TemplateView
@@ -93,6 +92,7 @@ class BrowseConcepts(AppBrowser):
         context['model'] = self.model
         context['model_name'] = self.model._meta.model_name
         context['sort'] = self.order
+        context['total_queryset_size'] = self.get_queryset().count()
         return context
 
     def get_template_names(self):
