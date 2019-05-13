@@ -8,6 +8,7 @@
 </template>
 
 <script>
+import { addHeaderMessage } from 'src/lib/messages.js'
 import apiRequest from 'src/mixins/apiRequest.js'
 import collapsePanel from '@/collapsePanel.vue'
 
@@ -30,9 +31,22 @@ export default {
             required: true
         }
     },
+    data: () => ({
+        message: 'Changes applied'
+    }),
     methods: {
         approve: function() {
-            console.log('approved')
+            let data = {
+                'isopen': false
+            }
+
+            let promise = this.post(this.approveUrl, data)
+            promise.then((response) => {
+                if (response.status == 200) {
+                    addHeaderMessage(this.message)
+                    this.$emit('set_open', false)
+                }
+            })
         }
     },
     computed: {
