@@ -1,19 +1,20 @@
 from typing import Any, List, Dict, Optional, Union, AnyStr
 
-from django.db.models.query import QuerySet
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
-from django.core.files.storage import get_storage_class
 from django.core.files import File
+from django.core.files.storage import get_storage_class
 from django.core.exceptions import PermissionDenied
-from django.utils.safestring import mark_safe
 from django.core.files.base import ContentFile
-from django.conf import settings
-from django.utils.module_loading import import_string
-from django.http.request import QueryDict
 from django.core.mail.message import EmailMessage
-from django.urls import reverse
+from django.db.models.query import QuerySet
+from django.http.request import QueryDict
 from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils.module_loading import import_string
+from django.utils.safestring import mark_safe
+from django.utils.timezone import now
 
 from hashlib import sha256
 import pickle
@@ -26,7 +27,6 @@ from aristotle_mdr.utils.utils import get_download_template_path_for_item
 
 import logging
 logger = logging.getLogger(__name__)
-logger.debug("Logging started for " + __name__)
 
 
 class Downloader:
@@ -73,7 +73,7 @@ class Downloader:
         'registration_authority': None,
     }
 
-    def __init__(self, item_ids: List[int], user_id: Optional[int], options: Dict[str, Any] = {}):
+    def __init__(self, item_ids: List[int], user_id: Optional[int], options: Dict[str, Any] = {}, override_bulk: bool = False):
         self.item_ids = item_ids
         self.error = False
 
@@ -86,7 +86,7 @@ class Downloader:
 
         # Do len here since we are going to evaluate it later anyways
         self.numitems = len(self.items)
-        self.bulk = (self.numitems > 1)
+        self.bulk = (self.numitems > 1) or override_bulk
 
         if self.numitems == 0:
             raise PermissionDenied('User does not have permission to view any items')
@@ -270,7 +270,9 @@ class HTMLDownloader(Downloader):
         context = {
             'user': self.user,
             'page_size': page_size,
-            'options': self.options
+            'options': self.options,
+            'config': aristotle_settings,
+            "export_date": now(),
         }
         return context
 
@@ -282,7 +284,11 @@ class HTMLDownloader(Downloader):
 
         # This will raise an exception if the list is empty, but that's ok
         item = self.items[0]
-        sub_items = self.get_sub_items_dict()
+        if self.options['include_supporting']:
+            sub_items = self.get_sub_items_dict()
+        else:
+            sub_items = {}
+
         context.update({
             'title': item.name,
             'item': item,
@@ -361,10 +367,15 @@ class HTMLDownloader(Downloader):
         _list = "<li>" + "</li><li>".join([item.name for item in self.items if item]) + "</li>"
         subtitle = mark_safe("Generated from the following metadata items:<ul>%s<ul>" % _list)
 
-        sub_items = self.get_sub_items_dict(include_root=True)
+        # sub_items = self.get_sub_items_dict(include_root=True)
+        if self.options['include_supporting']:
+            sub_items = self.get_sub_items_dict()
+        else:
+            sub_items = {}
 
         context.update({
             'subtitle': subtitle,
+            'tableOfContents': True,
             'items': self.items,
             'included_items': sub_items
         })
@@ -376,9 +387,12 @@ class HTMLDownloader(Downloader):
         Can be used by subclasses
         """
         if self.bulk:
-            return self.get_bulk_download_context()
+            context = self.get_bulk_download_context()
         else:
-            return self.get_download_context()
+            context = self.get_download_context()
+        context.update({"is_bulk_download": self.bulk})
+
+        return context
 
     def get_template(self) -> str:
         """
