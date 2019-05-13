@@ -57,6 +57,8 @@
             {% for deinc in item.dssclusterinclusion_set.all %}
                 {% if deinc.child.id in viewable_ids %}
                     <tr>
+                        <td>{{ deinc.reference|default_if_none:" " }}
+                        </td>
                         <td>
                             <i class="fa fa-fw fa-folder-o"></i>{% include "aristotle_mdr/helpers/itemLink.html" with item=deinc.child skip_can_view=True %}
                             {% if deinc.specific_information %}
@@ -67,7 +69,8 @@
                             {% endif %}
                             {% if deinc.conditional_obligation %}
                                 <div>
-                                    <strong>Conditional Obligation:</strong>{{ deinc.conditional_obligation|bleach }}
+                                    <strong>Conditional Obligation:</strong>
+                                    {{ deinc.conditional_obligation|bleach }}
                                 </div>
                             {% endif %}
                         </td>

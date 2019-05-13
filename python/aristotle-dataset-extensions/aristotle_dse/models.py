@@ -255,7 +255,7 @@ class DataSetSpecification(aristotle.models.concept):
 
     @property
     def clusters(self):
-        ids = self.dssclusterinclusion_set.all().values_list('dss', flat=True)
+        ids = self.dssclusterinclusion_set.all().values_list('child', flat=True)
         return self.__class__.objects.filter(id__in=ids)
 
     @property
