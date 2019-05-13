@@ -50,7 +50,9 @@ class CustomValueFormMixin:
     cleaned_data: dict
 
     def __init__(self, custom_fields: Iterable[CustomField] = [], **kwargs):
-        self.initial = None
+        # This is immediately overridden by __init__ but python type checking demands it
+        self.initial: list = list()
+
         super().__init__(**kwargs)  # type: ignore
 
         # Map custom field form names to CustomField objects
