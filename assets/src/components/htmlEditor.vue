@@ -26,6 +26,7 @@ export default {
     },
     mounted: function() {
         this.editor = initCKEditorFromTextarea(this.$refs.te, this.config)
+        this.displayed = this.initial
         this.editor.on('change', this.onEditorChange)
     },
     beforeDestroy: function() {
