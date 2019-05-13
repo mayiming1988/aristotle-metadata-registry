@@ -213,16 +213,13 @@ class IssueEndpointsTestCase(BaseAPITestCase):
 
         self.login_user()
         response = self.client.post(
-            reverse('api_v4:issues:update_and_comment', args=[issue.pk]),
+            reverse('api_v4:issues:approve', args=[issue.pk]),
             {'isopen': False},
             format='json'
         )
 
         # Check response
         self.assertEqual(response.status_code, 200)
-        self.assertTrue('issue' in response.data)
-        self.assertFalse('comment' in response.data)
-        self.assertFalse(response.data['issue']['isopen'])
 
         # Make sure issue is closed
         issue.refresh_from_db()
