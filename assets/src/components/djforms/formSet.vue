@@ -4,13 +4,14 @@
             <hr>
             <h5><em>{{ item.name }}</em></h5>
 
+            <div class="col-md-8">
             <draggable :list="formsData" :options="sortableConfig">
-                <div class="">
+
                 <baseForm
                     v-model="formsData[index]"
                     :key="item.vid"
                     :fields="fields"
-                    :inline="true"
+                    :inline="false"
                     :errors="getError(item.vid)"
                     :fe_errors="getIndexValidationErrors('formsData', index)"
                     :showSubmit="false"
@@ -31,9 +32,9 @@
                     </template>
 
                 </baseForm>
-                </div>
 
             </draggable>
+            </div>
         </div>
 
         <div class="vue-formset-button-group">
@@ -80,7 +81,7 @@ export default {
         },
         errors: {
             type: Array
-        }
+        },
     },
     data: () => ({
         message: '',
