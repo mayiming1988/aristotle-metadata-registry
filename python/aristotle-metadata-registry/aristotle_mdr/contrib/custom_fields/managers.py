@@ -46,8 +46,6 @@ class CustomFieldManager(Manager):
     def get_allowed_fields(self, concept, user):
         """Return the fields viewable on an item by a user.
         Only for viewing, not for editing
-
-        Filtering
         """
 
         queryset = self.get_queryset().visible(user, concept.workgroup)
@@ -63,5 +61,5 @@ class CustomFieldManager(Manager):
 
         queryset = self.get_queryset().filter(fil)
 
-        # Filter out the cusotm fields that are 'Hidden'
+        # Filter out the custom fields that are 'Hidden'
         return queryset.exclude(state=CUSTOM_FIELD_STATES.hidden)
