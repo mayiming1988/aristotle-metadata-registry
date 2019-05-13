@@ -5,8 +5,8 @@ import { assertSingleEmit, fakePromiseMethod, clickElementIfExists } from './uti
 
 var assert = chai.assert
 
-import issueComment from '../src/components/issueComment.vue'
-import issueModal from '../src/components/issueModal.vue'
+import issueComment from '../src/components/issues/issueComment.vue'
+import issueModal from '../src/components/issues/issueModal.vue'
 import rootComponent from '../src/components/root/issues.js'
 
 describe('issueComment', function() {

@@ -1,10 +1,10 @@
 import comment from '@/comment.vue'
-import issueComment from '@/issueComment.vue'
 import openClose from '@/openClose.vue'
 import switchEditApi from '@/switchEditApi.vue'
 import inlineEdit from '@/inlineEdit.vue'
-import issueModal from '@/issueModal.vue'
-import issuePanel from '@/issuePanel.vue'
+import issueComment from '@/issues/issueComment.vue'
+import issueModal from '@/issues/issueModal.vue'
+import issuePanel from '@/issues/issuePanel.vue'
 
 export default {
     el: '#vue-container',
