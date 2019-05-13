@@ -85,6 +85,7 @@ urlpatterns=[
 
     # Concept page overrides
     url(r'^item/(?P<iid>\d+)/dataelement/(?P<name_slug>.+)/?$', views.DataElementView.as_view(), name='dataelement'),
+    url(r'^item/(?P<iid>\d+)/objectclass/(?P<name_slug>.+)/?$', views.ObjectClassView.as_view(), name='objectclass_view'),
     url(r'^item/(?P<iid>\d+)(?:\/(?P<model_slug>\w+)\/(?P<name_slug>.+))?/?$', views.ConceptView.as_view(), name='item'),
     url(r'^item/(?P<iid>\d+)(?:\/.*)?$', views.ConceptView.as_view(), name='item_short'),  # Catch every other 'item' URL and throw it for a redirect
     url(r'^item/(?P<uuid>[\w-]+)/?(.*)?$', views.concept_by_uuid, name='item_uuid'),
