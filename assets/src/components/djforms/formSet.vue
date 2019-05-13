@@ -1,35 +1,41 @@
 <template>
     <div class="vue-formset">
-        <div v-if="showLabels" class="row">
-            <div class="col-md-1 text-center"><label>Order</label></div>
-            <div v-for="(fielddata, name) in fields" :key="name" class="col-md-2">
-                <label v-if="fielddata.label">{{ fielddata.label }}</label>
-            </div>
-            <div v-if="showDelete" class="col-md-2"><label>Delete</label></div>
+        <div class="row container" v-for="(item, index) in formsData">
+            <hr>
+            <h5><em>{{ item.name }}</em></h5>
+
+            <draggable :list="formsData" :options="sortableConfig">
+                <div class="">
+                <baseForm
+                    v-model="formsData[index]"
+                    :key="item.vid"
+                    :fields="fields"
+                    :inline="true"
+                    :errors="getError(item.vid)"
+                    :fe_errors="getIndexValidationErrors('formsData', index)"
+                    :showSubmit="false"
+                    :showLabels="true">
+
+                    <template slot="before">
+                        <div class="row">
+                        <div class="text-center">
+                            <i class="fa fa-lg fa-bars grabber"></i>
+                        </div>
+                        </div>
+                    </template>
+
+                    <template v-if="showDeleteItem(item.new)" slot="after">
+                        <div class="col-md-1">
+                            <button class="btn btn-danger" @click="deleteRow(index)">Delete</button>
+                        </div>
+                    </template>
+
+                </baseForm>
+                </div>
+
+            </draggable>
         </div>
-        <draggable :list="formsData" :options="sortableConfig">
-            <baseForm 
-                v-for="(item, index) in formsData" 
-                v-model="formsData[index]"
-                :key="item.vid" 
-                :fields="fields" 
-                :inline="true"
-                :errors="getError(item.vid)"
-                :fe_errors="getIndexValidationErrors('formsData', index)"
-                :showSubmit="false"
-                :showLabels="false">
-                <template slot="before">
-                    <div class="col-md-1 text-center">
-                        <i class="fa fa-lg fa-bars grabber"></i>
-                    </div>
-                </template>
-                <template v-if="showDeleteItem(item.new)" slot="after">
-                    <div class="col-md-1">
-                        <button class="btn btn-danger" @click="deleteRow(index)">Delete</button>
-                    </div>
-                </template>
-            </baseForm>
-        </draggable>
+
         <div class="vue-formset-button-group">
             <button class="btn btn-success" @click="addRow">Add</button>
             <button class="btn btn-primary" @click="submitFormSet">Submit</button>
