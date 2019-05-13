@@ -1,5 +1,6 @@
 {% extends 'aristotle_mdr/concepts/contentInfoBase.html' %}
 {% load render_bundle from webpack_loader %}
+{% load util_tags %}
 
 {% block title %}Issue #{{object.id}} - {{ object.name }} {% endblock %}
 
@@ -30,6 +31,18 @@
               <div class="panel-heading"><strong>Description</strong></div>
               <div class="panel-body">
                 {{ object.description }}
+              </div>
+            </div>
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <strong>
+                  <a class="blackLink" role="button" data-toggle="collapse" href="#collapseProposal" aria-expanded="false" aria-controls="#collapseProposal">
+                    Proposed changes to {{ object.proposal_field }}
+                  </a>
+                </strong>
+              </div>
+              <div id="collapseProposal" class="collapse panel-body">
+                {{ object.proposal_value|bleach }}
               </div>
             </div>
         </div>
