@@ -51,7 +51,7 @@ class CustomValueFormMixin:
 
     def __init__(self, custom_fields: Iterable[CustomField] = [], **kwargs):
         # This is immediately overridden by __init__ but python type checking demands it
-        # self.initial: Dict
+        self.initial: Dict
 
         super().__init__(**kwargs)  # type: ignore
 
@@ -84,13 +84,11 @@ class CustomValueFormMixin:
                 choices.append(('', '------'))
                 field_default_args['choices'] = choices
 
-
             if custom_field.state == CUSTOM_FIELD_STATES.inactive:
                 # The Custom Field is set to inactive but visible
                 if key in self.initial:
                     if self.initial[key] == '':
                         fields_to_remove.append(key)
-
 
             if key not in fields_to_remove:
                 self.fields[custom_fname] = field_class(

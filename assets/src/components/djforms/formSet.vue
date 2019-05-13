@@ -2,7 +2,7 @@
     <div class="vue-formset">
         <draggable :list="formsData" :options="sortableConfig">
 
-            <div class="row container" v-for="(item, index) in formsData">
+            <div class="row container" v-for="(item, index) in formsData" v-bind:key="index">
 
                 <div class="col-md-10">
                     <div class="panel panel-info">
@@ -141,12 +141,14 @@
             addRow: function () {
                 this.formsData.push(this.default)
                 this.nextVid += 1
-                this.showAccordion = this.showAccordion.map(value => false)
+                this.showAccordion = this.showAccordion.map(() => false)
                 this.showAccordion.push(true)
 
             },
             deleteRow: function (index) {
                 this.formsData.splice(index, 1)
+                this.nextVid -= 1
+                this.showAccordion.pop()
             },
             postProcess: function () {
                 let fdata = []
