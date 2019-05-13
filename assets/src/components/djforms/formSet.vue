@@ -141,6 +141,9 @@
             addRow: function () {
                 this.formsData.push(this.default)
                 this.nextVid += 1
+                this.showAccordion = this.showAccordion.map(value => false)
+                this.showAccordion.push(true)
+
             },
             deleteRow: function (index) {
                 this.formsData.splice(index, 1)
