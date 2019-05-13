@@ -50,6 +50,7 @@ class CustomValueFormMixin:
     cleaned_data: dict
 
     def __init__(self, custom_fields: Iterable[CustomField] = [], **kwargs):
+        self.initial = None
         super().__init__(**kwargs)  # type: ignore
 
         # Map custom field form names to CustomField objects
@@ -57,8 +58,6 @@ class CustomValueFormMixin:
 
         fields_to_remove = []
 
-        if not hasattr(self, 'initial'):
-            return
 
 
             # Iterate over mapping
