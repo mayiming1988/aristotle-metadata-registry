@@ -60,9 +60,7 @@ class CustomValueFormMixin:
 
         fields_to_remove = []
 
-
-
-            # Iterate over mapping
+        # Iterate over mapping
         for custom_fname, custom_field in self.cfields.items():
             field = type_field_mapping[custom_field.type]
 
