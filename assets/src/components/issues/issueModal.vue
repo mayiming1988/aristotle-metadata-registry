@@ -124,6 +124,10 @@ export default {
                 // Get data
                 let postdata = this.formdata
                 postdata['item'] = this.iid
+                // Set final value for proposed change
+                if (postdata.proposal_field) {
+                    postdata['proposal_value'] = this.proposals[postdata.proposal_field]
+                }
                 // determinal http method
                 let method = 'post'
                 if (this.edit) {
