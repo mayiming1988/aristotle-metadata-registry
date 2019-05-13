@@ -33,18 +33,13 @@
                 {{ object.description }}
               </div>
             </div>
-            <div class="panel panel-default">
-              <div class="panel-heading">
-                <strong>
-                  <a class="blackLink" role="button" data-toggle="collapse" href="#collapseProposal" aria-expanded="false" aria-controls="#collapseProposal">
-                    Proposed changes to {{ object.proposal_field }}
-                  </a>
-                </strong>
-              </div>
-              <div id="collapseProposal" class="collapse panel-body">
-                {{ object.proposal_value|bleach }}
-              </div>
-            </div>
+            <issue-panel
+              field-name="{{ object.proposal_field }}"
+              {% if can_approve %}can-approve{% endif %}
+              approve-url="{% url 'api_v4:issues:approve' object.id %}"
+            >
+              <span v-pre>{{ object.proposal_value|bleach }}</span>
+            </issue-panel>
         </div>
     </div>
 
@@ -71,10 +66,10 @@
             user-id="{{ user.id }}"
             user-name="{{ user.get_short_name }}"
             issue-id="{{ object.id }}"
-            issue-is-open="{{ object.isopen }}"
+            {% if object.isopen %}is-open{% endif %}
+            {% if can_open_close %}can-open-close{% endif %}
             comment-url="{% url 'api_v4:issues:comment' %}"
             open-close-url="{% url 'api_v4:issues:update_and_comment' object.id %}"
-            open-close-permission="{{ can_open_close }}"
             @set_open="setIsOpen"
             @created="addComment">
     </issue-comment>

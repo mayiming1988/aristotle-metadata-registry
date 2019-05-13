@@ -21,18 +21,48 @@ import apiRequest from 'src/mixins/apiRequest.js'
 
 export default {
     mixins: [apiRequest],
-    props: ['pic', 'userId', 'userName', 'issueId', 'issueIsOpen',
-        'commentUrl', 'openCloseUrl', 'openClosePermission'],
+    props: {
+        pic: {
+            type: String,
+            required: true
+        },
+        userId: {
+            type: String,
+            required: true
+        },
+        userName: {
+            type: String,
+            required: true
+        },
+        issueId: {
+            type: String,
+            required: true
+        },
+        isOpen: {
+            type: Boolean,
+            default: false
+        },
+        canOpenClose: {
+            type: Boolean,
+            default: false
+        },
+        commentUrl: {
+            type: String,
+            required: true
+        },
+        openCloseUrl: {
+            type: String,
+            required: true
+        }
+    },
     components: {
         apiErrors,
         userPanel
     },
     data: () => ({
         body: '',
-        isOpen: false
     }),
     created: function() {
-        this.isOpen = (this.issueIsOpen == 'True')
         this.$emit('set_open', this.isOpen)
     },
     methods: {
@@ -87,9 +117,6 @@ export default {
         }
     },
     computed: {
-        canOpenClose: function() {
-            return (this.openClosePermission == 'True')
-        },
         openCloseText: function() {
             let text
             if (this.isOpen) {

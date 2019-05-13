@@ -91,15 +91,19 @@ class IssueDisplay(IssueBase, TemplateView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
+        # Set objects
         context['object'] = self.issue
         context['comments'] = self.issue.comments.select_related(
             'author__profile'
         ).all().order_by('created')
-        context['can_open_close'] = perms.user_can(
-            self.request.user,
-            self.issue,
-            'can_alter_open'
-        )
-        context['own_issue'] = (self.request.user.id == self.issue.submitter.id)
+        # Set permissions
+        can_edit_item = perms.user_can_edit(self.request.user, self.issue.item)
+        own_issue = (self.request.user.id == self.issue.submitter.id)
+        context.update({
+            'can_open_close': (own_issue or can_edit_item),
+            'own_issue': own_issue,
+            'can_approve': can_edit_item
+        })
+        # Get data for modal
         context.update(self.get_modal_data(self.issue))
         return context

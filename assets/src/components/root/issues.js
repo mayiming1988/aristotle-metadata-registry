@@ -4,6 +4,7 @@ import openClose from '@/openClose.vue'
 import switchEditApi from '@/switchEditApi.vue'
 import inlineEdit from '@/inlineEdit.vue'
 import issueModal from '@/issueModal.vue'
+import issuePanel from '@/issuePanel.vue'
 
 export default {
     el: '#vue-container',
@@ -13,7 +14,8 @@ export default {
         openClose,
         switchEditApi,
         inlineEdit,
-        issueModal
+        issueModal,
+        issuePanel
     },
     data: {
         new_comments: [],

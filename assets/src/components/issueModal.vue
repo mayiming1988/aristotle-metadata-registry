@@ -72,6 +72,7 @@ export default {
             type: String,
             default: ''
         },
+        // Current state of item's fields
         itemFieldsJson: {
             type: String,
             default: '{}'
@@ -89,6 +90,7 @@ export default {
     },
     data: () => ({
         html: 'Spicy',
+        // 
         proposals: {},
         formdata: {
             name: '',
