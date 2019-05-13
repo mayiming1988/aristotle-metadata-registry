@@ -11,7 +11,6 @@ from aristotle_mdr.forms.fields import ReviewChangesChoiceField, MultipleEmailFi
 from aristotle_mdr.contrib.autocomplete import widgets
 from django_jsonforms.forms import JSONSchemaField
 
-
 from .utils import RegistrationAuthorityMixin
 
 
