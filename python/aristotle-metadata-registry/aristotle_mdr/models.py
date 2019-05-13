@@ -132,12 +132,14 @@ class StewardOrganisation(AbstractGroup):
     }
     states = Choices(
         ('active', _('Active')),
+        ('active_and_hidden', _('Active & Hidden')),
         ('archived', _('Deactivated & Visible')),
         ('hidden', _('Deactivated & Hidden')),
     )
 
     active_states = [
         states.active,
+        states.active_and_hidden,
     ]
     visible_states = [
         states.active, states.archived,
@@ -1070,6 +1072,7 @@ class Status(TimeStampedModel):
 
 
 def recache_concept_states(sender, instance, *args, **kwargs):
+    logger.critical(instance.concept)
     instance.concept.recache_states()
 
 
