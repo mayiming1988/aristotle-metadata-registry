@@ -3,8 +3,10 @@ from django.conf import settings
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.core.exceptions import FieldDoesNotExist
 from django.dispatch import receiver
+from django.utils.translation import ugettext_lazy as _
 
 from model_utils.models import TimeStampedModel
+from model_utils import Choices
 from aristotle_mdr.fields import ConceptForeignKey
 from aristotle_mdr.models import _concept
 from aristotle_mdr.utils import (url_slugify_issue)
@@ -19,7 +21,13 @@ logger = logging.getLogger(__name__)
 class Issue(TimeStampedModel):
 
     # Fields on a concept that are proposable (must be text)
-    proposable_fields = ['name', 'definition', 'references', 'origin', 'comments']
+    proposable_fields = Choices(
+        ('name', _('Name')),
+        ('definition', _('Definition')),
+        ('references', _('References')),
+        ('origin', _('Origin')),
+        ('comments', _('Comments')),
+    )
 
     name = models.CharField(max_length=1000)
     description = models.TextField(blank=True)
@@ -32,7 +40,10 @@ class Issue(TimeStampedModel):
         related_name='issues'
     )
     isopen = models.BooleanField(default=True)
-    proposal_field = models.TextField(blank=True)
+    proposal_field = models.TextField(
+        choices=proposable_fields,
+        blank=True
+    )
     proposal_value = models.TextField(blank=True)
 
     def can_edit(self, user):
@@ -69,7 +80,7 @@ class Issue(TimeStampedModel):
         """
         fields = []
 
-        for fname in cls.proposable_fields:
+        for fname, uname in cls.proposable_fields:
             try:
                 field = _concept._meta.get_field(fname)
             except FieldDoesNotExist:

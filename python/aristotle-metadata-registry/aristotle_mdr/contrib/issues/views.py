@@ -27,7 +27,7 @@ class IssueBase(LoginRequiredMixin, SimpleItemGet):
         """Get data for issue modal creation and editing"""
         # Get field data for proposable fields on concept
         field_data = {}
-        for fname in Issue.proposable_fields:
+        for fname, oname in Issue.proposable_fields:
             value = getattr(self.item, fname, '')
             field_data[fname] = value
 
