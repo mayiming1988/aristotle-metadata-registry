@@ -1,7 +1,8 @@
 <template>
   <div class="issuePanel">
       <!-- Colapsable panel -->
-      <collapse-panel :title="title">
+      <collapse-panel :title="title" v-if="!hidePanel">
+        <alert v-if="itemChanged" type="warning">{{ changedMessage }}</alert>
         <slot />
         <button v-if="canApprove" class="btn btn-success" @click="openConfirmDialog">
             Approve Changes & Close
@@ -16,14 +17,15 @@
 import { addHeaderMessage } from 'src/lib/messages.js'
 import apiRequest from 'src/mixins/apiRequest.js'
 import collapsePanel from '@/collapsePanel.vue'
-import Modal from 'uiv/src/components/modal/Modal.vue'
 import confirmModal from '@/yesNoModal.vue'
+import Alert from 'uiv/src/components/alert/Alert.vue'
 
 export default {
     mixins: [apiRequest],
     components: {
         'collapse-panel': collapsePanel,
-        'confirm-modal': confirmModal
+        'confirm-modal': confirmModal,
+        'alert': Alert
     },
     props: {
         fieldName: {
@@ -37,11 +39,20 @@ export default {
         approveUrl: {
             type: String,
             required: true
+        },
+        itemChanged: {
+            type: Boolean,
+            default: false
+        },
+        hidePanel: {
+            type: Boolean,
+            default: false
         }
     },
     data: () => ({
         message: 'Changes applied',
         confirmMessage: 'Are you sure you want to approve these changes?',
+        changedMessage: 'The item has been changed since this issue was created',
         confirmOpen: false
     }),
     methods: {
@@ -57,6 +68,7 @@ export default {
                     this.$emit('set_open', false)
                 }
             })
+            this.confirmOpen = false
         },
         openConfirmDialog: function() {
             this.confirmOpen = true

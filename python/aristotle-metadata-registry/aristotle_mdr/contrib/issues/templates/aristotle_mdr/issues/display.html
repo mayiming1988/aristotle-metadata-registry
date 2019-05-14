@@ -33,18 +33,19 @@
                 {{ object.description }}
               </div>
             </div>
-            {% if has_proposed_changes %}
+            {% if has_proposed_changes and object.isopen %}
               <issue-panel
-                v-if="isOpen"
+                :hide-panel="!isOpen"
                 field-name="{{ object.proposal_field }}"
                 {% if can_approve %}can-approve{% endif %}
+                {% if item_changed %}item-changed{% endif %}
                 approve-url="{% url 'api_v4:issues:approve' object.id %}"
                 @set_open="setIsOpen"
               >
                 <div v-pre>
                   <ul class="nav nav-tabs" role="tablist">
                       <li role="presentation" class="active">
-                        <a href="#new" aria-controls="new" role="tab" data-toggle="tab">New</a>
+                        <a href="#new" aria-controls="new" role="tab" data-toggle="tab">New Content</a>
                       </li>
                       <li role="presentation">
                         <a href="#diff" aria-controls="diff" role="tab" data-toggle="tab">Differences</a>
@@ -53,10 +54,14 @@
 
                   <div class="tab-content">
                       <div role="tabpanel" class="tab-pane active" id="new">
-                        {{ object.proposal_value|bleach }}
+                        <div class="margin-above margin-below">
+                          {{ object.proposal_value|bleach }}
+                        </div>
                       </div>
                       <div role="tabpanel" class="tab-pane" id="diff">
-                        {{ diff_table|safe }}
+                        <div class="margin-above margin-below">
+                          {{ diff_table|safe }}
+                        </div>
                       </div>
                   </div>
                 </div>

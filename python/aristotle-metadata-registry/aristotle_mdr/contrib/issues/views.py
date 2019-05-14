@@ -113,11 +113,13 @@ class IssueDisplay(IssueBase, TemplateView):
         can_edit_item = perms.user_can_edit(self.request.user, self.issue.item)
         own_issue = (self.request.user.id == self.issue.submitter.id)
         has_proposed_changes = (self.issue.proposal_field and self.issue.proposal_value)
+        item_changed = self.issue.modified < self.issue.item.modified
         context.update({
             'can_open_close': (own_issue or can_edit_item),
             'own_issue': own_issue,
             'can_approve': can_edit_item,
-            'has_proposed_changes': has_proposed_changes
+            'has_proposed_changes': has_proposed_changes,
+            'item_changed': item_changed
         })
         # Add diff table
         diff_table = ''
