@@ -7,6 +7,7 @@ from aristotle_mdr import models as mdr_models
 from aristotle_mdr.constants import visibility_permission_choices as permission_choices
 from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
+from aristotle_mdr.contrib.custom_fields.constants import CUSTOM_FIELD_STATES
 
 
 class CustomFieldsTestCase(AristotleTestUtils, TestCase):
@@ -116,19 +117,19 @@ class CustomFieldManagerTestCase(AristotleTestUtils, TestCase):
         self.allfield = CustomField.objects.create(
             order=0,
             name='AllField',
-            type='String',
+            type='str',
             visibility=permission_choices.public
         )
         self.authfield = CustomField.objects.create(
             order=1,
             name='AuthField',
-            type='String',
+            type='str',
             visibility=permission_choices.auth
         )
         self.wgfield = CustomField.objects.create(
             order=2,
             name='WgField',
-            type='String',
+            type='str',
             visibility=permission_choices.workgroup
         )
 
@@ -137,7 +138,7 @@ class CustomFieldManagerTestCase(AristotleTestUtils, TestCase):
         restricted = CustomField.objects.create(
             order=3,
             name='Restricted',
-            type='String',
+            type='str',
             allowed_model=ct
         )
         return restricted
@@ -164,3 +165,70 @@ class CustomFieldManagerTestCase(AristotleTestUtils, TestCase):
         self.make_restricted_field(mdr_models.ObjectClass)
         mf = CustomField.objects.get_for_model(mdr_models.DataElement)
         self.assertCountEqual(mf, [self.authfield, self.allfield, self.wgfield])
+
+
+class CustomFieldsStatusTestCase(AristotleTestUtils, TestCase):
+    def setUp(self):
+        super().setUp()
+
+        self.item = mdr_models.ObjectClass.objects.create(
+            submitter=self.editor,
+            name='Person',
+            definition='A Human',
+            workgroup=self.wg1
+        )
+        self.activefield = CustomField.objects.create(
+            order=0,
+            name='ActiveField',
+            type='str',
+            state=CUSTOM_FIELD_STATES.active
+        )
+        self.inactivefield = CustomField.objects.create(
+            order=1,
+            name='InactiveField',
+            type='str',
+            state=CUSTOM_FIELD_STATES.inactive
+        )
+        self.hiddenfield = CustomField.objects.create(
+            order=2,
+            name='HiddenField',
+            type='int',
+            state=CUSTOM_FIELD_STATES.hidden,
+        )
+
+        self.activevalue = CustomValue.objects.create(
+            field=self.activefield,
+            concept=self.item,
+            content='Active'
+        )
+
+        self.inactivevalue = CustomValue.objects.create(
+            field=self.activefield,
+            concept=self.item,
+            content="Inactive"
+        )
+        self.hiddenvalue = CustomValue.objects.create(
+            field=self.activefield,
+            concept=self.item,
+            content='Hidden'
+        )
+
+
+    def test_viewing_active_custom_field(self):
+        self.login_viewer()
+        pass
+
+
+    def test_editing_active_custom_field(self):
+        self.login_superuser()
+
+        response = self.reverse_get(
+            'aristotle:edit_item',
+            reverse_args=[self.item.id],
+            status_code=200
+        )
+
+        initial = response.context['form'].initial
+        self.assertTrue(self.activefield.form_field_name in initial)
+        self.assertEqual(initial[self.activefield.form_field_name], 'Active')
+
