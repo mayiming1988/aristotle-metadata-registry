@@ -8,17 +8,7 @@
         </button>
       </collapse-panel>
       <!-- Confirm modal -->
-      <modal v-model="confirmOpen" title="Confirm">
-        Are you sure you want to approve these changes
-        <div slot="footer">
-            <button class="btn btn-default" @click="closeConformDialog">
-                Cancel
-            </button>
-            <button class="btn btn-success" @click="approve">
-                Confirm
-            </button>
-        </div>
-      </modal>
+      <confirm-modal :visible="confirmOpen" :text="confirmMessage" @yes="approve" @no="closeConfirmDialog" />
   </div>
 </template>
 
@@ -27,12 +17,13 @@ import { addHeaderMessage } from 'src/lib/messages.js'
 import apiRequest from 'src/mixins/apiRequest.js'
 import collapsePanel from '@/collapsePanel.vue'
 import Modal from 'uiv/src/components/modal/Modal.vue'
+import confirmModal from '@/yesNoModal.vue'
 
 export default {
     mixins: [apiRequest],
     components: {
         'collapse-panel': collapsePanel,
-        'modal': Modal
+        'confirm-modal': confirmModal
     },
     props: {
         fieldName: {
@@ -50,6 +41,7 @@ export default {
     },
     data: () => ({
         message: 'Changes applied',
+        confirmMessage: 'Are you sure you want to approve these changes?',
         confirmOpen: false
     }),
     methods: {
@@ -69,7 +61,7 @@ export default {
         openConfirmDialog: function() {
             this.confirmOpen = true
         },
-        closeConformDialog: function() {
+        closeConfirmDialog: function() {
             this.confirmOpen = false
         }
     },
