@@ -343,6 +343,7 @@ class ConceptFilter(django_filters.FilterSet):
         status_has_selected_ra = Q(statuses__registrationAuthority__id=self.registration_authority_id)
 
         return queryset.filter(status_is_valid & status_has_selected_ra).distinct()
+
     @property
     def qs(self):
         # Override the primary queryset to restrict to specific Registration Authority on page
@@ -374,12 +375,18 @@ class DateFilterView(FilterView, MainPageMixin):
 
         status = self.request.GET.get('status', MDR.STATES.standard)
         if status == '':
-            status = MDR.STATES.standard
+            # No status has been selected
+            context['not_all_selected'] = True
+            return context
         context['status'] = status
-        selected_date = self.request.GET.get('registration_date', datetime.date.today())
-        context['date'] = selected_date
 
-        context['downloaders'] = self.build_downloaders(context['object_list'])
+        selected_date = self.request.GET.get('registration_date', datetime.date.today())
+        if selected_date == '':
+            # No date has been selected
+            context['not_all_selected'] = True
+            return context
+
+        context['date'] = selected_date
 
         concept_to_status: Dict = {}
 
@@ -393,6 +400,9 @@ class DateFilterView(FilterView, MainPageMixin):
             concept_to_status[concept] = status
 
         context['concepts'] = concept_to_status
+
+        context['downloaders'] = self.build_downloaders(context['object_list'])
+
 
         return context
 

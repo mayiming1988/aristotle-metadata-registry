@@ -500,5 +500,26 @@ class TestDataDictionary(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.context['object_list'].exists())
 
+    def test_data_dictionary_displays_dates_correctly(self):
+        # Register the concept twice with the same status
+        self.ra.register(self.oc, MDR.STATES.standard, self.su,
+                         registrationDate=datetime.datetime(2018, 1, 1))
+        self.ra.register(self.oc, MDR.STATES.standard, self.su,
+                         registrationDate=datetime.datetime(2019, 1, 1))
+
+        self.check_registered_std(self.oc)
+
+        self.login_superuser()
+
+        response = self.client.get(
+            reverse('aristotle:registrationauthority_data_dictionary', args=[self.ra.id]) +
+            '?registration_date=2018-1-2&status=5'
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # for concept, status in response.context['concepts'].items():
+        #     pass
+
+
 
 
