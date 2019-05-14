@@ -353,7 +353,6 @@ describe('issueModal', function() {
             proposal_value: '',
             item: '1'
         }
-        console.log(fake.firstCall.args)
         assert.isTrue(fake.calledWithExactly('/fake/api/', expected_data, {}, 'post'))
     })
 
