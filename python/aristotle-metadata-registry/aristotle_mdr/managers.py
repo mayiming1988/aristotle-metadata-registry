@@ -214,6 +214,7 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
         )
 
         # If the metadata belongs to an SO, check the user can see it
+        item_not_assigned_to_org = Q(stewardship_organisation__isnull=True)
         item_in_allowed_org = Q(
             stewardship_organisation__isnull=False,
             stewardship_organisation__in=Subquery(inner_so_qs.values('uuid'))
@@ -227,7 +228,8 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
                     user_in_workgroup |
                     item_is_published |
                     item_is_for_registrar
-                ) & item_in_allowed_org
+                ) & 
+                Q(item_in_allowed_org | item_not_assigned_to_org)
             )
         )
 
