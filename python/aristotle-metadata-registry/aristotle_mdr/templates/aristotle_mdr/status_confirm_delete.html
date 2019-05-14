@@ -1,0 +1,20 @@
+{% extends 'aristotle_mdr/base.html' %}
+{% load aristotle_tags util_tags i18n %}
+{% load bootstrap3 static %}
+{% block title %}Delete Status {{ object.state_name }}{% endblock %}
+
+{% block content %}
+    <h2>
+        Delete confirmation for state "{{ object.state_name }}"
+    </h2>
+
+    <form action="" method="post">{% csrf_token %}
+        <p>Are you sure you want to delete the state "{{ object.state_name }}" applied in <a href="{% url 'aristotle:item' object.concept.id %}">{{ object.concept }}</a> by <a href="{% url 'aristotle:registrationAuthority' object.registrationAuthority.id %}">{{ object.registrationAuthority }}</a>?</p>
+        <div class="pull-right">
+            <a class="btn btn-default" href="{% url 'aristotle:registrationHistory' object.concept.id %}">Cancel</a>
+            <input class="btn btn-primary" type="submit" value="{% trans 'Confirm' %}" />
+        </div>
+
+    </form>
+
+{% endblock %}

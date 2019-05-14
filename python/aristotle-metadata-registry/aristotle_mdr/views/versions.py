@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.db.models import Q
 from django.utils.dateparse import parse_datetime
 from django.urls import reverse
+from django.core.exceptions import FieldDoesNotExist
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils.text import pretify_camel_case
@@ -405,7 +406,11 @@ class ConceptVersionView(ConceptRenderView):
         # Add concept fields as "Names & References"
         for field in self.concept_fields:
             if field in self.concept_version_data['fields']:
-                fieldobj = MDR._concept._meta.get_field(field)
+                try:
+                    fieldobj = MDR._concept._meta.get_field(field)
+                except FieldDoesNotExist:
+                    # The field doesn't exist on the new version, don't do anything
+                    pass
                 is_html = (issubclass(type(fieldobj), RichTextField))
                 field = VersionField(
                     value=self.concept_version_data['fields'][field],
