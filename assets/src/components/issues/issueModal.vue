@@ -11,7 +11,7 @@
             <h3>Proposed changes</h3>
             <template v-if="!edit">
                 <select v-model="formdata.proposal_field">
-                    <option disabled value="">Select a field</option>
+                    <option value="">None</option>
                     <option v-for="f in fields" :value="f.name" :key="f.name">{{ capitalize(f.name) }}</option>
                 </select>
             </template>
