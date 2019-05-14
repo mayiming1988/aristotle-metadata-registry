@@ -1,5 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from django.utils import timezone
+
+from datetime import timedelta
 
 from aristotle_mdr import models as mdr_models
 from aristotle_mdr import perms
@@ -72,9 +75,77 @@ class BaseStewardOrgsTestCase(utils.AristotleTestUtils):
             name="Public RA",
             stewardship_organisation=self.regular_org,
         )
+        self.private_oc = models.ObjectClass.objects.create(
+            name="Private OC",
+            stewardship_organisation=self.private_org,
+            workgroup=self.private_wg,
+        )
+        self.regular_oc = models.ObjectClass.objects.create(
+            name="Public OC",
+            stewardship_organisation=self.regular_org,
+            workgroup=self.regular_wg,
+        )
 
 
 class TestPrivatePermissions(BaseStewardOrgsTestCase, TestCase):
+    def test_metadata_permissions(self):
+        self.assertTrue(
+            self.private_oc not in models.ObjectClass.objects.all().visible(self.oscar)    
+        )
+        self.assertTrue(
+            self.regular_oc not in models.ObjectClass.objects.all().visible(self.oscar)    
+        )
+        self.assertTrue(
+            self.private_oc not in models.ObjectClass.objects.all().visible(self.pyle)    
+        )
+        self.assertTrue(
+            self.regular_oc not in models.ObjectClass.objects.all().visible(self.pyle)    
+        )
+
+        self.private_ra.register(
+            item=self.private_oc,
+            state=models.STATES.standard,
+            user=self.su,
+            registrationDate=(timezone.now()-timedelta(days=5)).date()
+        )
+        self.regular_ra.register(
+            item=self.regular_oc,
+            state=models.STATES.standard,
+            user=self.su,
+            registrationDate=(timezone.now()-timedelta(days=5)).date()
+        )
+        self.private_ra.register(
+            item=self.regular_oc,
+            state=models.STATES.standard,
+            user=self.su,
+            registrationDate=(timezone.now()-timedelta(days=5)).date()
+        )
+        self.regular_ra.register(
+            item=self.private_oc,
+            state=models.STATES.standard,
+            user=self.su,
+            registrationDate=(timezone.now()-timedelta(days=5)).date()
+        )
+
+        self.assertTrue(
+            self.private_oc not in models.ObjectClass.objects.all().visible(None)    
+        )
+        self.assertTrue(
+            self.regular_oc in models.ObjectClass.objects.all().visible(None)    
+        )
+        self.assertTrue(
+            self.private_oc in models.ObjectClass.objects.all().visible(self.pyle)    
+        )
+        self.assertTrue(
+            self.regular_oc in models.ObjectClass.objects.all().visible(self.pyle)    
+        )
+        self.assertTrue(
+            self.regular_oc in models.ObjectClass.objects.all().visible(self.oscar)    
+        )
+        self.assertTrue(
+            self.private_oc not in models.ObjectClass.objects.all().visible(self.oscar)    
+        )
+
     def test_ra_permissions(self):
         RA = models.RegistrationAuthority
         self.assertTrue(

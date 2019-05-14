@@ -1072,7 +1072,6 @@ class Status(TimeStampedModel):
 
 
 def recache_concept_states(sender, instance, *args, **kwargs):
-    logger.critical(instance.concept)
     instance.concept.recache_states()
 
 

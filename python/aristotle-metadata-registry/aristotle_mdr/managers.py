@@ -106,16 +106,21 @@ class WorkgroupQuerySet(AbstractGroupQuerySet):
         from aristotle_mdr.models import StewardOrganisation, Workgroup
         SO_STATES = StewardOrganisation.states
         WG_STATES = StewardOrganisation.states
-        SO_VISIBLE_STATES = StewardOrganisation.visible_states
 
         if user.is_superuser:
             return self.all()
 
+        # If you are a member, you can see the Workgroup
         q = Q(
             members__user=user,
         )
+        # If you are the admin of a SO, you can see all the WGs.
         q |= Q(
-            stewardship_organisation__state=StewardOrganisation.active_states,
+            stewardship_organisation__state__in=[
+                StewardOrganisation.states.active,
+                StewardOrganisation.states.archived,
+                StewardOrganisation.states.private,
+            ],
             stewardship_organisation__members__user=user,
             stewardship_organisation__members__role=StewardOrganisation.roles.admin
         )
@@ -124,24 +129,26 @@ class WorkgroupQuerySet(AbstractGroupQuerySet):
 
 class RegistrationAuthorityQuerySet(models.QuerySet):
     def visible(self, user):
-        from aristotle_mdr.models import RA_ACTIVE_CHOICES
-        from aristotle_mdr.models import StewardOrganisation
-        SO_STATES = StewardOrganisation.states
-        SO_VISIBLE_STATES = StewardOrganisation.visible_states
+        from aristotle_mdr.models import RA_ACTIVE_CHOICES, StewardOrganisation
 
         if user.is_superuser:
             return self.all()
 
         q = Q(
-            active__in=[
-                RA_ACTIVE_CHOICES.active,
-                RA_ACTIVE_CHOICES.inactive,
-            ],
-            stewardship_organisation__state__in=SO_VISIBLE_STATES
-        )
-        q |= Q(
-            stewardship_organisation__state=SO_STATES.private,
-            stewardship_organisation__members__user=user,
+            # If the RA is NOT hidden **AND**
+            ~Q(active=RA_ACTIVE_CHOICES.hidden) &
+            Q(
+                # AND the SO is visible
+                Q(stewardship_organisation__state__in=[
+                    StewardOrganisation.states.active,
+                    StewardOrganisation.states.archived,
+                ]) |
+                # OR you are a member of the SO.
+                Q(
+                    stewardship_organisation__state=StewardOrganisation.states.private,
+                    stewardship_organisation__members__user=user,
+                )
+            )
         )
         return self.filter(q)
 
@@ -188,13 +195,26 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
                 Q(
                     Q(statuses__registrationAuthority__registrars__profile__user=user)
                 )
+
             )
             q |= Q(id__in=Subquery(inner_qs.values('pk')))
 
         q |= self.is_published_public
         q |= self.is_published_auth
 
-        q &= ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
+        inner_so_qs = StewardOrganisation.objects.filter(
+            # The metadata belongs to an SO that is visible
+            Q(state__in=[
+                StewardOrganisation.states.active,
+                StewardOrganisation.states.archived,
+            ]) |
+            # Or the SO or the metadata is private and you are a member of the SO.
+            Q(
+                state=StewardOrganisation.states.private,
+                members__user=user,
+            )
+        )
+        q &= Q(stewardship_organisation__in=Subquery(inner_so_qs.values('uuid')))
 
         return self.filter(q)
 
@@ -253,7 +273,10 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
         from aristotle_mdr.models import StewardOrganisation
         return self.filter(
             Q(self.is_published_public | Q(_is_public=True)) &
-            ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
+            ~Q(stewardship_organisation__state__in=[
+                StewardOrganisation.states.hidden,
+                StewardOrganisation.states.private
+            ])
         )
 
     def with_related(self):
