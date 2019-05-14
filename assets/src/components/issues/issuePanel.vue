@@ -1,21 +1,38 @@
 <template>
-  <collapse-panel :title="title">
-    <slot />
-    <button v-if="canApprove" class="btn btn-success" @click="approve">
-        Approve Changes & Close
-    </button>
-  </collapse-panel>
+  <div class="issuePanel">
+      <!-- Colapsable panel -->
+      <collapse-panel :title="title">
+        <slot />
+        <button v-if="canApprove" class="btn btn-success" @click="openConfirmDialog">
+            Approve Changes & Close
+        </button>
+      </collapse-panel>
+      <!-- Confirm modal -->
+      <modal v-model="confirmOpen" title="Confirm">
+        Are you sure you want to approve these changes
+        <div slot="footer">
+            <button class="btn btn-default" @click="closeConformDialog">
+                Cancel
+            </button>
+            <button class="btn btn-success" @click="approve">
+                Confirm
+            </button>
+        </div>
+      </modal>
+  </div>
 </template>
 
 <script>
 import { addHeaderMessage } from 'src/lib/messages.js'
 import apiRequest from 'src/mixins/apiRequest.js'
 import collapsePanel from '@/collapsePanel.vue'
+import Modal from 'uiv/src/components/modal/Modal.vue'
 
 export default {
     mixins: [apiRequest],
     components: {
-        'collapse-panel': collapsePanel
+        'collapse-panel': collapsePanel,
+        'modal': Modal
     },
     props: {
         fieldName: {
@@ -32,7 +49,8 @@ export default {
         }
     },
     data: () => ({
-        message: 'Changes applied'
+        message: 'Changes applied',
+        confirmOpen: false
     }),
     methods: {
         approve: function() {
@@ -47,6 +65,12 @@ export default {
                     this.$emit('set_open', false)
                 }
             })
+        },
+        openConfirmDialog: function() {
+            this.confirmOpen = true
+        },
+        closeConformDialog: function() {
+            this.confirmOpen = false
         }
     },
     computed: {
