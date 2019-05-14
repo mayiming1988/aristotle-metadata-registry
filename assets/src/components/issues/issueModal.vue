@@ -80,7 +80,7 @@ export default {
         // Fields we can propose changes for
         proposeFields: {
             type: String,
-            default: '{}'
+            default: '[]'
         },
         // Whether we are editing an issue instead of creating
         edit: {
@@ -94,14 +94,19 @@ export default {
     },
     data: () => ({
         html: 'Spicy',
-        // 
+        // Proposed changes for different fields
         proposals: {},
+        // Fields we can propose changes for
+        fields: [],
+        // Data to be posted
         formdata: {
             name: '',
             description: '',
             proposal_field: '',
             proposal_value: ''
-        }
+        },
+        // Map of fields to whether html
+        htmlMap: new Map()
     }),
     created: function() {
         if (!this.edit) {
@@ -113,7 +118,6 @@ export default {
         }
         this.fields = JSON.parse(this.proposeFields)
         // Create map of fields to whether html
-        this.htmlMap = new Map()
         for (let f of this.fields) {
             this.htmlMap.set(f.name, f.html)
         }
