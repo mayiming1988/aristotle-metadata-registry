@@ -93,7 +93,7 @@
             {{ status.registrationDate }}
         </td>
         <td>
-            <time datetime="{{ status.until_date|isotime }}"></time>
+            {{ status.until_date|default_if_none:"--" }}
         </td>
     </tr>
     {% endfor %}

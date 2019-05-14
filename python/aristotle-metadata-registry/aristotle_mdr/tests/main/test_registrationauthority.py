@@ -447,15 +447,15 @@ class TestDataDictionary(utils.AristotleTestUtils, TestCase):
     def test_overlapping_registrations_with_different_ras(self):
         # Register the concept with the first RA, registered from 2018 to perpetuity
         self.ra.register(self.oc, MDR.STATES.standard, self.su,
-                         registrationDate=datetime.datetime(2018, 1, 1),
-                         until_date=datetime.datetime(2019, 1, 1)
+                         registrationDate=datetime.date(2018, 1, 1),
+                         until_date=datetime.date(2019, 1, 1)
                          )
 
         # Register the concept again with a different RA, registered from 2019 to perpetuity
         self.second_ra.register(self.oc,
                                 MDR.STATES.standard,
                                 self.su,
-                                registrationDate=datetime.datetime(2019, 1, 1))
+                                registrationDate=datetime.date(2019, 1, 1))
 
         # Go to the data dictionary page for the second Registration Authority
         self.login_superuser()
@@ -470,7 +470,7 @@ class TestDataDictionary(utils.AristotleTestUtils, TestCase):
     def test_data_dictionary_filters_status(self):
         # Register the concept, status is 5
         self.ra.register(self.oc, MDR.STATES.standard, self.su,
-                         registrationDate=datetime.datetime(2018,1,1))
+                         registrationDate=datetime.date(2018,1,1))
 
         self.check_registered_std(self.oc)
 
@@ -487,7 +487,7 @@ class TestDataDictionary(utils.AristotleTestUtils, TestCase):
     def test_data_dictionary_filters_date(self):
         # Register the concept, status is 5
         self.ra.register(self.oc, MDR.STATES.standard, self.su,
-                         registrationDate=datetime.datetime(2018, 1, 1))
+                         registrationDate=datetime.date(2018, 1, 1))
 
         self.check_registered_std(self.oc)
 
@@ -500,12 +500,12 @@ class TestDataDictionary(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.context['object_list'].exists())
 
-    def test_data_dictionary_displays_dates_correctly(self):
+    def test_data_dictionary_displays_closest_registration_date(self):
         # Register the concept twice with the same status
         self.ra.register(self.oc, MDR.STATES.standard, self.su,
-                         registrationDate=datetime.datetime(2018, 1, 1))
+                         registrationDate=datetime.date(2018, 1, 1))
         self.ra.register(self.oc, MDR.STATES.standard, self.su,
-                         registrationDate=datetime.datetime(2019, 1, 1))
+                         registrationDate=datetime.date(2016, 1, 1))
 
         self.check_registered_std(self.oc)
 
@@ -516,10 +516,6 @@ class TestDataDictionary(utils.AristotleTestUtils, TestCase):
             '?registration_date=2018-1-2&status=5'
         )
         self.assertEqual(response.status_code, 200)
-
-        # for concept, status in response.context['concepts'].items():
-        #     pass
-
-
-
-
+        # Check that the date refered is closest to queried date
+        for concept, status in response.context['concepts'].items():
+            self.assertEqual(status.registrationDate, datetime.date(2018,1,1))

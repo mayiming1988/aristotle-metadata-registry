@@ -403,7 +403,6 @@ class DateFilterView(FilterView, MainPageMixin):
 
         context['downloaders'] = self.build_downloaders(context['object_list'])
 
-
         return context
 
     def get_filterset_kwargs(self, filterset_class):
