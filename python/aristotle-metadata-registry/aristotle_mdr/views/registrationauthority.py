@@ -335,15 +335,19 @@ class ConceptFilter(django_filters.FilterSet):
         selected_date = value
 
         # Return all the statuses that are valid at a particular date and then
-        # filter on the concepts linked to a valid status
-        return queryset.filter(statuses__in=MDR.Status.objects.valid_at_date(when=selected_date)).distinct()
+        # filter on the concepts linked to a valid status.
+        status_is_valid = Q(statuses__in=MDR.Status.objects.valid_at_date(when=selected_date))
 
+        # Return only the statuses that are linked to the selected RA
+        status_has_selected_ra = Q(statuses__registrationAuthority__id=self.registration_authority_id)
+
+        return queryset.filter(status_is_valid & status_has_selected_ra).distinct()
     @property
     def qs(self):
         # Override the primary queryset to restrict to specific Registration Authority on page
         parent = super().qs
 
-        return parent.filter(statuses__registrationAuthority=self.registration_authority_id)
+        return parent.filter(statuses__registrationAuthority__id=self.registration_authority_id)
 
     def __init__(self, *args, **kwargs):
         # Override the init method so we can pass the iid to the queryset

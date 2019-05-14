@@ -72,7 +72,8 @@
             {{ concept.short_definition }}
         </td>
         <td>
-            <span class="time"><time datetime="{{ concept.created|isotime }}"></time></span>
+            {{ concept.statuses.all }}
+<!--            <span class="time"><time datetime="{{ concept.created|isotime }}"></time></span>-->
         </td>
         <td>
             <time datetime="{{ concept.modified|isotime }}"></time>
