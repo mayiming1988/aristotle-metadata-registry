@@ -136,7 +136,7 @@ export default {
                 if (postdata.proposal_field) {
                     postdata['proposal_value'] = this.proposals[postdata.proposal_field]
                 }
-                // determinal http method
+                // determine http method
                 let method = 'post'
                 if (this.edit) {
                     method = 'put'

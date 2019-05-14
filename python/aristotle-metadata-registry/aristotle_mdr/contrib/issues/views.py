@@ -4,13 +4,15 @@ from django.http import Http404
 from django.views.generic import TemplateView
 from django.shortcuts import get_object_or_404
 from django.conf import settings
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 from aristotle_mdr.views.utils import SimpleItemGet
 from aristotle_mdr.contrib.issues.models import Issue
 from aristotle_mdr.models import _concept
 from aristotle_mdr import perms
+
 import json
-from django.contrib.auth.mixins import LoginRequiredMixin
+import difflib
 
 
 class IssueBase(LoginRequiredMixin, SimpleItemGet):
@@ -91,6 +93,15 @@ class IssueDisplay(IssueBase, TemplateView):
 
         return super(IssueBase, self).get(request, *args, **kwargs)
 
+    def get_diff_table(self, prop_field, prop_value):
+        differ = difflib.HtmlDiff(wrapcolumn=50)
+
+        old = getattr(self.item, prop_field)
+        old_lines = old.split('\n')
+        new_lines = prop_value.split('\n')
+
+        return differ.make_table(old_lines, new_lines, context=True, numlines=5)
+
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         # Set objects
@@ -108,6 +119,11 @@ class IssueDisplay(IssueBase, TemplateView):
             'can_approve': can_edit_item,
             'has_proposed_changes': has_proposed_changes
         })
+        # Add diff table
+        diff_table = ''
+        if has_proposed_changes:
+            diff_table = self.get_diff_table(self.issue.proposal_field, self.issue.proposal_value)
+        context['diff_table'] = diff_table
         # Get data for modal
         context.update(self.get_modal_data(self.issue))
         return context

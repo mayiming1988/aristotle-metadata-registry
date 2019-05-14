@@ -41,7 +41,25 @@
                 approve-url="{% url 'api_v4:issues:approve' object.id %}"
                 @set_open="setIsOpen"
               >
-                <span v-pre>{{ object.proposal_value|bleach }}</span>
+                <div v-pre>
+                  <ul class="nav nav-tabs" role="tablist">
+                      <li role="presentation" class="active">
+                        <a href="#new" aria-controls="new" role="tab" data-toggle="tab">New</a>
+                      </li>
+                      <li role="presentation">
+                        <a href="#diff" aria-controls="diff" role="tab" data-toggle="tab">Differences</a>
+                      </li>
+                  </ul>
+
+                  <div class="tab-content">
+                      <div role="tabpanel" class="tab-pane active" id="new">
+                        {{ object.proposal_value|bleach }}
+                      </div>
+                      <div role="tabpanel" class="tab-pane" id="diff">
+                        {{ diff_table|safe }}
+                      </div>
+                  </div>
+                </div>
               </issue-panel>
             {% endif %}
         </div>
