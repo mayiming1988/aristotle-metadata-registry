@@ -27,7 +27,7 @@ describe('issueComment', function() {
     it('sets and emits when isOpen is True', function() {
         this.wrapper = VueTestUtils.shallowMount(issueComment, {
             propsData: {
-                issueIsOpen: 'True'
+                isOpen: true
             }
         })
         assert.isTrue(this.wrapper.vm.isOpen)
@@ -36,14 +36,14 @@ describe('issueComment', function() {
 
     it('sets can open close false', function() {
         this.wrapper.setProps({
-            openClosePermission: 'False'
+            canOpenClose: false
         })
         assert.isFalse(this.wrapper.vm.canOpenClose)
     })
 
     it('sets can open close true', function() {
         this.wrapper.setProps({
-            openClosePermission: 'True'
+            canOpenClose: true
         })
         assert.isTrue(this.wrapper.vm.canOpenClose)
     })
@@ -96,7 +96,7 @@ describe('issueComment', function() {
 
     it('renders button if open close permission', function() {
         this.wrapper.setProps({
-            openClosePermission: 'True'
+            canOpenClose: true
         })
         return this.wrapper.vm.$nextTick().then(() => {
             assert.isTrue(this.wrapper.vm.canOpenClose)
@@ -174,7 +174,7 @@ describe('issueComment', function() {
         // Set data and props
         this.wrapper.setProps({
             openCloseUrl: '/fake/api/',
-            openClosePermission: 'True'
+            canOpenClose: true
         })
         this.wrapper.setData({
             isOpen: false
@@ -199,7 +199,7 @@ describe('issueComment', function() {
         // Set data and props
         this.wrapper.setProps({
             openCloseUrl: '/fake/api/',
-            openClosePermission: 'True'
+            canOpenClose: true
         })
         this.wrapper.setData({
             isOpen: false,
@@ -235,7 +235,7 @@ describe('issueComment', function() {
         // Set data and props
         this.wrapper.setProps({
             openCloseUrl: '/fake/api/',
-            openClosePermission: 'True'
+            canOpenClose: true
         })
         this.wrapper.setData({
             isOpen: false,
@@ -272,7 +272,7 @@ describe('issueComment', function() {
         // Set data and props
         this.wrapper.setProps({
             openCloseUrl: '/fake/api/',
-            openClosePermission: 'True',
+            canOpenClose: true,
             pic: 'example.com/pic.jpg',
             userName: 'John'
         })
@@ -315,13 +315,13 @@ describe('issueModal', function() {
 
     it('updates formdata name input', function() {
         assert.equal(this.wrapper.vm.formdata.name, '')
-        this.wrapper.find('input').setValue('Issue Name')
+        this.wrapper.find('input#name').setValue('Issue Name')
         assert.equal(this.wrapper.vm.formdata.name, 'Issue Name')
     })
 
     it('updates formdata description input', function() {
         assert.equal(this.wrapper.vm.formdata.description, '')
-        this.wrapper.find('textarea').setValue('Issue Description')
+        this.wrapper.find('textarea#description').setValue('Issue Description')
         assert.equal(this.wrapper.vm.formdata.description, 'Issue Description')
     })
 
@@ -331,6 +331,7 @@ describe('issueModal', function() {
     })
 
     it('calls post on create issue click', function() {
+        // Set props and data
         this.wrapper.setProps({
             iid: '1',
             url: '/fake/api/'
@@ -338,20 +339,26 @@ describe('issueModal', function() {
         this.wrapper.setData({
             formdata: {name: 'Test Name', description: 'Test Desc'}
         })
-        let fake = fakePromiseMethod(this.wrapper, 'post', {})
+        // Setup fake method
+        let fake = fakePromiseMethod(this.wrapper, 'request', {})
+        // Click button
+        assert.isFalse(this.wrapper.vm.loading)
         clickElementIfExists(this.wrapper, 'button.btn-primary')
-
+        // Check fake called correctly
         assert.isTrue(fake.calledOnce)
         let expected_data = {
             name: 'Test Name',
             description: 'Test Desc',
+            proposal_field: '',
+            proposal_value: '',
             item: '1'
         }
-        assert.isTrue(fake.calledWithExactly('/fake/api/', expected_data))
+        console.log(fake.firstCall.args)
+        assert.isTrue(fake.calledWithExactly('/fake/api/', expected_data, {}, 'post'))
     })
 
     it('redirects on 201 response with url', function() {
-        let fake = fakePromiseMethod(this.wrapper, 'post', {
+        let fake = fakePromiseMethod(this.wrapper, 'request', {
             status: 201,
             data: {
                 url: 'some/fake/url/'
@@ -372,7 +379,7 @@ describe('issueModal', function() {
     })
 
     it('doesn\'t redirect on non 201 status', function() {
-        let fake = fakePromiseMethod(this.wrapper, 'post', {
+        let fake = fakePromiseMethod(this.wrapper, 'request', {
             status: 999,
             data: {
                 url: 'some/fake/url/'
