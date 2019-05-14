@@ -218,7 +218,7 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
             stewardship_organisation__isnull=False,
             stewardship_organisation__in=Subquery(inner_so_qs.values('uuid'))
         )
-        
+
         q = Q(
             user_is_submitter |
             Q(
@@ -229,7 +229,6 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
                     item_is_for_registrar
                 ) & item_in_allowed_org
             )
-            
         )
 
         return self.filter(q)
