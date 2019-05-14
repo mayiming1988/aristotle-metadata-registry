@@ -57,13 +57,13 @@
             Definition
         </th>
         <th scope="col">
-            Created
+            Registered from
         </th>
         <th scope="col">
-            Last modified
+            Registered until
         </th>
     </tr>
-    {% for concept in filter.qs %}
+    {% for concept, status in concepts.items %}
     <tr>
         <td>
             <a href="{% url 'aristotle:item' concept.id %}">{{ concept.name }}</a>
@@ -72,11 +72,10 @@
             {{ concept.short_definition }}
         </td>
         <td>
-            {{ concept.statuses.all }}
-<!--            <span class="time"><time datetime="{{ concept.created|isotime }}"></time></span>-->
+            {{ status.registrationDate }}
         </td>
         <td>
-            <time datetime="{{ concept.modified|isotime }}"></time>
+            <time datetime="{{ status.until_date|isotime }}"></time>
         </td>
     </tr>
     {% endfor %}

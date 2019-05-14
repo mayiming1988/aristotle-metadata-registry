@@ -39,6 +39,7 @@ from aristotle_mdr.contrib.validators.models import RAValidationRules
 from ckeditor.widgets import CKEditorWidget
 
 import datetime
+from typing import Dict
 
 import logging
 
@@ -371,10 +372,27 @@ class DateFilterView(FilterView, MainPageMixin):
         context['item'] = ra
         context['is_manager'] = self.is_manager(ra)
 
-        context['status'] = self.request.GET.get('status', MDR.STATES.standard)
-        context['date'] = self.request.GET.get('registration_date', datetime.date.today())
+        status = self.request.GET.get('status', MDR.STATES.standard)
+        if status == '':
+            status = MDR.STATES.standard
+        context['status'] = status
+        selected_date = self.request.GET.get('registration_date', datetime.date.today())
+        context['date'] = selected_date
 
         context['downloaders'] = self.build_downloaders(context['object_list'])
+
+        concept_to_status: Dict = {}
+
+        # Get the current statuses that are most up to date
+        statuses = MDR.Status.objects.current(when=selected_date).filter(registrationAuthority=ra)
+        on_status = Q(state=status)
+
+        for concept in context['object_list']:
+            on_concept = Q(concept=concept)
+            status = statuses.get(on_concept & on_status)
+            concept_to_status[concept] = status
+
+        context['concepts'] = concept_to_status
 
         return context
 
