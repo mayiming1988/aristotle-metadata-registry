@@ -14,6 +14,7 @@
                     <option value="">None</option>
                     <option v-for="f in fields" :value="f.name" :key="f.name">{{ capitalize(f.name) }}</option>
                 </select>
+                <small>Only the selected field will be proposed as a change</small>
             </template>
             <template v-if="formdata.proposal_field">
                 <h4>Value for {{ capitalize(formdata.proposal_field) }}</h4>
