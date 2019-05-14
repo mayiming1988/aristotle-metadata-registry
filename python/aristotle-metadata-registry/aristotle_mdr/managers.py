@@ -170,37 +170,35 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
         from aristotle_mdr.models import StewardOrganisation
         from aristotle_mdr.models import Workgroup
 
-        if user is None or user.is_anonymous:
+        if user is None or user.is_anonymous or not user.is_active:
             return self.public()
         if user.is_superuser:
             return self.all()
-        q = Q(_is_public=True)
+        is_cached_public = Q(_is_public=True)
 
-        if user.is_active:
-            # User can see everything they've made.
-            q |= Q(submitter=user)
-            # User can see everything in their workgroups.
-            # q |= Q(workgroup__in=user.profile.workgroups)
-            workgroups = Workgroup.objects.filter(members__user=user, archived=False)
-            q |= Q(workgroup__in=Subquery(workgroups.values('pk')))
+        # User can see everything they've made thats not assigned to an SO.
+        user_is_submitter = Q(submitter=user, stewardship_organisation__isnull=True)
 
-            inner_qs = self
-            inner_qs = inner_qs.filter(
-                # Registars can see items they have been asked to review
-                Q(
-                    Q(rr_review_requests__registration_authority__registrars__profile__user=user) &
-                    ~Q(rr_review_requests__status=REVIEW_STATES.revoked)
-                ) |
-                # Registars can see items that have been registered in their registration authority
-                Q(
-                    Q(statuses__registrationAuthority__registrars__profile__user=user)
-                )
+        # User can see everything in their workgroups.
+        workgroups = Workgroup.objects.filter(members__user=user, archived=False)
+        user_in_workgroup = Q(workgroup__in=Subquery(workgroups.values('pk')))
 
+        inner_qs = self
+        inner_qs = inner_qs.filter(
+            # Registars can see items they have been asked to review
+            Q(
+                Q(rr_review_requests__registration_authority__registrars__profile__user=user) &
+                ~Q(rr_review_requests__status=REVIEW_STATES.revoked)
+            ) |
+            # Registars can see items that have been registered in their registration authority
+            Q(
+                Q(statuses__registrationAuthority__registrars__profile__user=user)
             )
-            q |= Q(id__in=Subquery(inner_qs.values('pk')))
 
-        q |= self.is_published_public
-        q |= self.is_published_auth
+        )
+        item_is_for_registrar = Q(id__in=Subquery(inner_qs.values('pk')))
+
+        item_is_published = self.is_published_public | self.is_published_auth
 
         inner_so_qs = StewardOrganisation.objects.filter(
             # The metadata belongs to an SO that is visible
@@ -214,7 +212,25 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
                 members__user=user,
             )
         )
-        q &= Q(stewardship_organisation__in=Subquery(inner_so_qs.values('uuid')))
+
+        # If the metadata belongs to an SO, check the user can see it
+        item_in_allowed_org = Q(
+            stewardship_organisation__isnull=False,
+            stewardship_organisation__in=Subquery(inner_so_qs.values('uuid'))
+        )
+        
+        q = Q(
+            user_is_submitter |
+            Q(
+                Q(
+                    is_cached_public |
+                    user_in_workgroup |
+                    item_is_published |
+                    item_is_for_registrar
+                ) & item_in_allowed_org
+            )
+            
+        )
 
         return self.filter(q)
 
