@@ -327,6 +327,7 @@ class CustomFieldsStatusTestCase(AristotleTestUtils, TestCase):
         self.assertFalse(self.hiddenfield.form_field_name in fields)
 
     def test_superuser_can_see_hidden_fields(self):
+        # A superuser should be able to see hidden custom fields
         self.login_superuser()
 
         response = self.reverse_get(
@@ -335,3 +336,28 @@ class CustomFieldsStatusTestCase(AristotleTestUtils, TestCase):
             status_code=200
         )
         self.assertEqual(len(response.context['custom_values']), 1)
+
+    def test_superuser_can_edit_empty_inactive_fields(self):
+        # A superuser should be able to edit inactive hidden fields
+        self.login_superuser()
+
+        response = self.reverse_get(
+            'aristotle:edit_item',
+            reverse_args=[self.inactive_item_with_no_value.id],
+            status_code=200,
+        )
+        fields = response.context['form'].fields
+
+        self.assertTrue(self.inactivefield.form_field_name in fields)
+
+    def test_superuser_can_edit_hidden_fields(self):
+        self.login_superuser()
+
+        response = self.reverse_get(
+            'aristotle:edit_item',
+            reverse_args=[self.hidden_item.id],
+            status_code=200,
+        )
+        fields = response.context['form'].fields
+
+        self.assertTrue(self.hiddenfield.form_field_name in fields)

@@ -62,7 +62,7 @@ class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
         kwargs = super().get_form_kwargs()
         kwargs.update({
             'user': self.request.user,
-            'custom_fields': CustomField.objects.get_for_model(type(self.item))
+            'custom_fields': CustomField.objects.get_for_model(type(self.item), self.request.user)
         })
         return kwargs
 

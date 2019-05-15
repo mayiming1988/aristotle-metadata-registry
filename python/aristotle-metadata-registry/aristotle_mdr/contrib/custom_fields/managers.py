@@ -47,7 +47,6 @@ class CustomFieldManager(Manager):
         """Return the fields viewable on an item by a user.
         Only for viewing, not for editing
         """
-
         queryset = self.get_queryset().visible(user, concept.workgroup)
 
         if user.is_superuser:
@@ -56,13 +55,15 @@ class CustomFieldManager(Manager):
             # Filter out the custom fields that are 'Hidden'
             return queryset.exclude(state=CUSTOM_FIELD_STATES.hidden)
 
-    def get_for_model(self, model):
+    def get_for_model(self, model, user):
         """Return the fields for a given model.
            Used for editing screen"""
         ct = ContentType.objects.get_for_model(model)
         fil = Q(allowed_model__isnull=True) | Q(allowed_model=ct)
 
         queryset = self.get_queryset().filter(fil)
-
-        # Filter out the custom fields that are 'Hidden'
-        return queryset.exclude(state=CUSTOM_FIELD_STATES.hidden)
+        if user.is_superuser:
+            return queryset
+        else:
+            # Filter out the custom fields that are 'Hidden'
+            return queryset.exclude(state=CUSTOM_FIELD_STATES.hidden)
