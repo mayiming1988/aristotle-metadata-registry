@@ -52,16 +52,12 @@
                       </li>
                   </ul>
 
-                  <div class="tab-content">
+                  <div class="tab-content border-tab-content">
                       <div role="tabpanel" class="tab-pane active" id="new">
-                        <div class="margin-above margin-below">
                           {{ object.proposal_value|bleach }}
-                        </div>
                       </div>
                       <div role="tabpanel" class="tab-pane" id="diff">
-                        <div class="margin-above margin-below">
                           {{ diff_table|safe }}
-                        </div>
                       </div>
                   </div>
                 </div>

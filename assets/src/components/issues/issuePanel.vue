@@ -89,4 +89,8 @@ export default {
 a.blackLink {
     color: #333333;
 }
+
+.issuePanel button {
+    margin-top: 10px;
+}
 </style>
