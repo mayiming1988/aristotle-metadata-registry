@@ -99,15 +99,58 @@ class WorkgroupQuerySet(AbstractGroupQuerySet):
     def visible(self, user):
         if user.is_anonymous():
             return self.none()
+
         if user.is_superuser:
             return self.all()
-        # TODO: Figure out how to make admins of the steward org able to view using this queryset
-        return user.profile.workgroups
+
+        from aristotle_mdr.models import StewardOrganisation, Workgroup
+        SO_STATES = StewardOrganisation.states
+        WG_STATES = StewardOrganisation.states
+
+        if user.is_superuser:
+            return self.all()
+
+        # If you are a member, you can see the Workgroup
+        q = Q(
+            members__user=user,
+        )
+        # If you are the admin of a SO, you can see all the WGs.
+        q |= Q(
+            stewardship_organisation__state__in=[
+                StewardOrganisation.states.active,
+                StewardOrganisation.states.archived,
+                StewardOrganisation.states.private,
+            ],
+            stewardship_organisation__members__user=user,
+            stewardship_organisation__members__role=StewardOrganisation.roles.admin
+        )
+        return self.filter(q)
 
 
 class RegistrationAuthorityQuerySet(models.QuerySet):
     def visible(self, user):
-        return self.all()
+        from aristotle_mdr.models import RA_ACTIVE_CHOICES, StewardOrganisation
+
+        if user.is_superuser:
+            return self.all()
+
+        q = Q(
+            # If the RA is NOT hidden **AND**
+            ~Q(active=RA_ACTIVE_CHOICES.hidden) &
+            Q(
+                # AND the SO is visible
+                Q(stewardship_organisation__state__in=[
+                    StewardOrganisation.states.active,
+                    StewardOrganisation.states.archived,
+                ]) |
+                # OR you are a member of the SO.
+                Q(
+                    stewardship_organisation__state=StewardOrganisation.states.private,
+                    stewardship_organisation__members__user=user,
+                )
+            )
+        )
+        return self.filter(q)
 
 
 class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
@@ -127,38 +170,68 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
         from aristotle_mdr.models import StewardOrganisation
         from aristotle_mdr.models import Workgroup
 
-        if user is None or user.is_anonymous:
+        if user is None or user.is_anonymous or not user.is_active:
             return self.public()
         if user.is_superuser:
             return self.all()
-        q = Q(_is_public=True)
+        if user.perm_view_all_metadata:
+            return self.all()
+        is_cached_public = Q(_is_public=True)
 
-        if user.is_active:
-            # User can see everything they've made.
-            q |= Q(submitter=user)
-            # User can see everything in their workgroups.
-            # q |= Q(workgroup__in=user.profile.workgroups)
-            workgroups = Workgroup.objects.filter(members__user=user, archived=False)
-            q |= Q(workgroup__in=Subquery(workgroups.values('pk')))
+        # User can see everything they've made thats not assigned to an SO.
+        user_is_submitter = Q(submitter=user)
 
-            inner_qs = self
-            inner_qs = inner_qs.filter(
-                # Registars can see items they have been asked to review
-                Q(
-                    Q(rr_review_requests__registration_authority__registrars__profile__user=user) &
-                    ~Q(rr_review_requests__status=REVIEW_STATES.revoked)
-                ) |
-                # Registars can see items that have been registered in their registration authority
-                Q(
-                    Q(statuses__registrationAuthority__registrars__profile__user=user)
-                )
+        # User can see everything in their workgroups.
+        workgroups = Workgroup.objects.filter(members__user=user, archived=False)
+        user_in_workgroup = Q(workgroup__in=Subquery(workgroups.values('pk')))
+
+        inner_qs = self
+        inner_qs = inner_qs.filter(
+            # Registars can see items they have been asked to review
+            Q(
+                Q(rr_review_requests__registration_authority__registrars__profile__user=user) &
+                ~Q(rr_review_requests__status=REVIEW_STATES.revoked)
+            ) |
+            # Registars can see items that have been registered in their registration authority
+            Q(
+                Q(statuses__registrationAuthority__registrars__profile__user=user)
             )
-            q |= Q(id__in=Subquery(inner_qs.values('pk')))
 
-        q |= self.is_published_public
-        q |= self.is_published_auth
+        )
+        item_is_for_registrar = Q(id__in=Subquery(inner_qs.values('pk')))
 
-        q &= ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
+        item_is_published = self.is_published_public | self.is_published_auth
+
+        inner_so_qs = StewardOrganisation.objects.filter(
+            # The metadata belongs to an SO that is visible
+            Q(state__in=[
+                StewardOrganisation.states.active,
+                StewardOrganisation.states.archived,
+            ]) |
+            # Or the SO or the metadata is private and you are a member of the SO.
+            Q(
+                state=StewardOrganisation.states.private,
+                members__user=user,
+            )
+        )
+
+        # If the metadata belongs to an SO, check the user can see it
+        item_not_assigned_to_org = Q(stewardship_organisation__isnull=True)
+        item_in_allowed_org = Q(
+            stewardship_organisation__isnull=False,
+            stewardship_organisation__in=Subquery(inner_so_qs.values('uuid'))
+        )
+
+        q = Q(
+            Q(
+                user_is_submitter |
+                is_cached_public |
+                user_in_workgroup |
+                item_is_published |
+                item_is_for_registrar
+            ) &
+            Q(item_in_allowed_org | item_not_assigned_to_org)
+        )
 
         return self.filter(q)
 
@@ -173,7 +246,7 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
             ObjectClass.objects.filter(name__contains="Person").editable()
             ObjectClass.objects.editable().filter(name__contains="Person")
         """
-        from aristotle_mdr.models import StewardOrganisation
+        from aristotle_mdr.models import StewardOrganisation, Workgroup
         if user.is_superuser:
             return self.all()
         if user.is_anonymous():
@@ -183,19 +256,20 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
         # User can edit everything they've made thats not locked
         q |= Q(submitter=user, _is_locked=False)
 
-        q |= Q(
-            workgroup__members__role__in=['submitter', 'steward', 'manager'],
-            workgroup__members__user=user,
-            workgroup__archived=False,
-            _is_locked=False
+        editable_items = self.all().filter(
+            Q(
+                workgroup__members__role__in=['submitter', 'steward', 'manager'],
+                workgroup__members__user=user,
+                workgroup__archived=False,
+                _is_locked=False
+            ) | Q(
+                workgroup__members__role__in=['steward', 'manager'],
+                workgroup__members__user=user,
+                workgroup__archived=False,
+                _is_locked=True
+            )
         )
-
-        q |= Q(
-            workgroup__members__role__in=['steward', 'manager'],
-            workgroup__members__user=user,
-            workgroup__archived=False,
-            _is_locked=True
-        )
+        q |= Q(id__in=Subquery(editable_items.values('pk')))
 
         return self.filter(
             q &
@@ -217,7 +291,10 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
         from aristotle_mdr.models import StewardOrganisation
         return self.filter(
             Q(self.is_published_public | Q(_is_public=True)) &
-            ~Q(stewardship_organisation__state=StewardOrganisation.states.hidden)
+            ~Q(stewardship_organisation__state__in=[
+                StewardOrganisation.states.hidden,
+                StewardOrganisation.states.private
+            ])
         )
 
     def with_related(self):
