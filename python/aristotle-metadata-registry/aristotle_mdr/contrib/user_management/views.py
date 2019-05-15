@@ -63,6 +63,8 @@ class UpdateAnotherUserSiteWidePerms(AnotherUserMixin, FormView):
         user = self.get_user()
         initial = {
             "is_superuser": user.is_superuser,
+            "is_staff": user.is_staff,
+            "perm_view_all_metadata": user.perm_view_all_metadata,
         }
         return initial
 
@@ -71,6 +73,8 @@ class UpdateAnotherUserSiteWidePerms(AnotherUserMixin, FormView):
         with transaction.atomic():
             # Maybe wrap inside reversion.revisions.create_revision() later
             user.is_superuser = form.cleaned_data['is_superuser']
+            user.is_staff = form.cleaned_data['is_staff']
+            user.perm_view_all_metadata = form.cleaned_data['perm_view_all_metadata']
             user.save()
         return super().form_valid(form)
 

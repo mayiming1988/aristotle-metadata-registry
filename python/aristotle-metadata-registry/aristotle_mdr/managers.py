@@ -174,6 +174,8 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
             return self.public()
         if user.is_superuser:
             return self.all()
+        if user.perm_view_all_metadata:
+            return self.all()
         is_cached_public = Q(_is_public=True)
 
         # User can see everything they've made thats not assigned to an SO.
