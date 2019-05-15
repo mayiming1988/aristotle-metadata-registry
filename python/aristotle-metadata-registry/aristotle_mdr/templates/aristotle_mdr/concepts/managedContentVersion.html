@@ -29,13 +29,17 @@
       {% for field, value in fields.items %}
           <h3>
             {{ field }}
-            {% if value.help_text %}
+
+            {% comment %}
+             {% if value.help_text %}
+
               <small>
                 <a tabindex="0" type="button" class="aristotle-popover" data-toggle="popover" data-trigger="focus" title="{{ field }}" data-content="{{ value.help_text }}">
                   <i class="fa fa-2x fa-question-circle"></i>
                 </a>
               </small>
-            {% endif %}
+             {% endif %}
+            {% endcomment %}
           </h3>
           <p>{% include 'aristotle_mdr/helpers/version_field.html' with field=value %}</p>
       {% endfor %}

@@ -236,6 +236,7 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
             name='My Object',
             definition='mine'
         )
+        # Create a review
         self.review = models.ReviewRequest.objects.create(
             registration_authority=self.ra,
             requester=self.editor,
@@ -251,6 +252,7 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
             submitter=self.editor
         )
 
+    # Create a supersedes relation
     def create_ss_relation(self, older, newer):
         rel = MDR.SupersedeRelationship.objects.create(
             proposed=True,
@@ -319,6 +321,7 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         )
 
     def test_rr_supersedes_create(self):
+        """Test the creation of a review re"""
         # Add second item to review
         item2 = self.create_editor_item('My 2nd Object', 'mine')
         self.review.concepts.add(item2)
@@ -461,6 +464,7 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         self.assertFalse(response2.context['formset'][0].is_valid())
 
     def test_accept_review_supersedes_approved(self):
+        """ Test that accepting the review supersedes the approval """
         older = MDR.ObjectClass.objects.create(name='2nd', definition='Second')
         ss = self.create_ss_relation(older, self.item)
         self.assertEqual(self.review.proposed_supersedes.count(), 1)
@@ -480,6 +484,7 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 302)
 
         self.review.refresh_from_db()
+        # Check that the review was approved, and change to an 'Approved' state
         self.assertEqual(self.review.status, REVIEW_STATES.approved)
         ss.refresh_from_db()
         self.assertFalse(ss.proposed)

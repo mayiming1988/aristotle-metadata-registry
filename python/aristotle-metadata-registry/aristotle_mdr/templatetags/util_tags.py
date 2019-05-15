@@ -133,3 +133,15 @@ def iso_time(dt: Union[datetime, date, None]):
 @register.filter
 def lookup_string(mapping, key):
     return mapping.get(key, '')
+
+
+@register.filter
+def get_custom_values_for_item(item, user):
+    from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
+    allowed = CustomField.objects.get_allowed_fields(item.concept, user)
+    custom_values = CustomValue.objects.get_allowed_for_item(item.concept, allowed)
+    not_empty_custom_values = []
+    for value in custom_values:
+        if value.content:
+            not_empty_custom_values.append(value)
+    return not_empty_custom_values
