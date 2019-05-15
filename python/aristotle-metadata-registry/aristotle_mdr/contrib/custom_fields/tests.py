@@ -171,12 +171,35 @@ class CustomFieldsStatusTestCase(AristotleTestUtils, TestCase):
     def setUp(self):
         super().setUp()
 
-        self.item = mdr_models.ObjectClass.objects.create(
+        self.active_item = mdr_models.ObjectClass.objects.create(
             submitter=self.editor,
             name='Person',
             definition='A Human',
             workgroup=self.wg1
         )
+
+        self.inactive_item = mdr_models.ObjectClass.objects.create(
+            submitter=self.editor,
+            name='Person',
+            definition='A Human',
+            workgroup=self.wg1
+        )
+
+        # An item with no Custom Value associated for the inactive Custom Field
+        self.inactive_item_with_no_value = mdr_models.ObjectClass.objects.create(
+            submitter=self.editor,
+            name="Person",
+            definition='A Human',
+            workgroup=self.wg1
+        )
+
+        self.hidden_item = mdr_models.ObjectClass.objects.create(
+            submitter=self.editor,
+            name='Person',
+            definition='A Human',
+            workgroup=self.wg1
+        )
+
         self.activefield = CustomField.objects.create(
             order=0,
             name='ActiveField',
@@ -192,43 +215,134 @@ class CustomFieldsStatusTestCase(AristotleTestUtils, TestCase):
         self.hiddenfield = CustomField.objects.create(
             order=2,
             name='HiddenField',
-            type='int',
+            type='str',
             state=CUSTOM_FIELD_STATES.hidden,
         )
 
-        self.activevalue = CustomValue.objects.create(
+        self.active_value = CustomValue.objects.create(
             field=self.activefield,
-            concept=self.item,
+            concept=self.active_item,
             content='Active'
         )
 
-        self.inactivevalue = CustomValue.objects.create(
-            field=self.activefield,
-            concept=self.item,
+        self.inactive_value = CustomValue.objects.create(
+            field=self.inactivefield,
+            concept=self.inactive_item,
             content="Inactive"
         )
-        self.hiddenvalue = CustomValue.objects.create(
-            field=self.activefield,
-            concept=self.item,
+
+        self.hidden_value = CustomValue.objects.create(
+            field=self.hiddenfield,
+            concept=self.hidden_item,
             content='Hidden'
         )
 
-
-    def test_viewing_active_custom_field(self):
-        self.login_viewer()
-        pass
-
-
     def test_editing_active_custom_field(self):
-        self.login_superuser()
+        # Check that the editor can edit an active custom field
+        self.login_editor()
 
         response = self.reverse_get(
             'aristotle:edit_item',
-            reverse_args=[self.item.id],
+            reverse_args=[self.active_item.id],
             status_code=200
         )
 
-        initial = response.context['form'].initial
-        self.assertTrue(self.activefield.form_field_name in initial)
-        self.assertEqual(initial[self.activefield.form_field_name], 'Active')
+        fields = response.context['form'].fields
+        self.assertTrue(self.activefield.form_field_name in fields)
+
+    def test_viewing_active_custom_field(self):
+        # Check that the viewer can view an active custom field
+        self.login_viewer()
+
+        response = self.reverse_get(
+                'aristotle:item',
+                reverse_args=[self.active_item.id, 'objectclass', 'person'],
+                status_code=200
+            )
+        # Check that the active value is showing up
+        self.assertEqual(len(response.context['custom_values']), 1)
+
+
+    def test_viewing_inactive_field_with_content(self):
+        # Users should still be able to view inactive custom field with content
+        self.login_viewer()
+
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.inactive_item.id, 'objectclass', 'person'],
+            status_code=200
+        )
+        self.assertEqual(len(response.context['custom_values']), 1)
+
+
+    def test_editor_cant_edit_empty_inactive_field(self):
+        # An editor should not be able to edit an inactive custom field with no content
+        self.login_editor()
+
+        response = self.reverse_get(
+            'aristotle:edit_item',
+            reverse_args=[self.inactive_item_with_no_value.id],
+            status_code=200
+        )
+
+        fields = response.context['form'].fields
+        # The inactive field shouldn't show up
+        self.assertFalse(self.inactivefield.form_field_name in fields)
+
+
+    def test_editor_can_edit_inactive_field_with_content(self):
+        # An editor should still be able to edit an inactive custom field if it has previously been
+        # filled with content
+        self.login_editor()
+
+        response = self.reverse_get(
+            'aristotle:edit_item',
+            reverse_args=[self.inactive_item.id],
+            status_code=200
+        )
+
+        fields = response.context['form'].fields
+        self.assertTrue(self.inactivefield.form_field_name in fields)
+
+
+    def test_viewer_cant_view_hidden_field(self):
+        # A viewer should not be able to see a custom field if it has been hidden
+        self.login_viewer()
+
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.hidden_item.id, 'objectclass', 'person'],
+            status_code=200
+        )
+        self.assertEqual(len(response.context['custom_values']), 0)
+
+
+    def test_editor_cant_edit_hidden_field(self):
+        # An editor should not be able to edit a custom field if it has been hidden
+        self.login_editor()
+
+        response = self.reverse_get(
+            'aristotle:edit_item',
+            reverse_args=[self.hidden_item.id],
+            status_code=200
+        )
+
+        fields = response.context['form'].fields
+
+        self.assertFalse(self.hiddenfield.form_field_name in fields)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -11,6 +11,10 @@ from aristotle_mdr.contrib.custom_fields.constants import CUSTOM_FIELD_STATES
 import csv
 import itertools
 
+import logging
+logger = logging.getLogger(__name__)
+
+
 
 class CustomFieldForm(forms.ModelForm):
     class Meta:
@@ -87,7 +91,10 @@ class CustomValueFormMixin:
             if custom_field.state == CUSTOM_FIELD_STATES.inactive:
                 # The Custom Field is set to inactive but visible
                 if key in self.initial:
+                    # Checking for a String being None because integer CustomValues stores an empty value as
+                    # the string None.
                     if self.initial[key] == '':
+                        logger.debug(key)
                         fields_to_remove.append(key)
 
             if key not in fields_to_remove:
