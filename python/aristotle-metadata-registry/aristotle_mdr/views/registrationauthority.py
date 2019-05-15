@@ -39,6 +39,7 @@ from aristotle_mdr.contrib.validators.models import RAValidationRules
 from ckeditor.widgets import CKEditorWidget
 
 import datetime
+from typing import Dict
 
 import logging
 
@@ -335,15 +336,20 @@ class ConceptFilter(django_filters.FilterSet):
         selected_date = value
 
         # Return all the statuses that are valid at a particular date and then
-        # filter on the concepts linked to a valid status
-        return queryset.filter(statuses__in=MDR.Status.objects.valid_at_date(when=selected_date)).distinct()
+        # filter on the concepts linked to a valid status.
+        status_is_valid = Q(statuses__in=MDR.Status.objects.valid_at_date(when=selected_date))
+
+        # Return only the statuses that are linked to the selected RA
+        status_has_selected_ra = Q(statuses__registrationAuthority__id=self.registration_authority_id)
+
+        return queryset.filter(status_is_valid & status_has_selected_ra).distinct()
 
     @property
     def qs(self):
         # Override the primary queryset to restrict to specific Registration Authority on page
         parent = super().qs
 
-        return parent.filter(statuses__registrationAuthority=self.registration_authority_id)
+        return parent.filter(statuses__registrationAuthority__id=self.registration_authority_id)
 
     def __init__(self, *args, **kwargs):
         # Override the init method so we can pass the iid to the queryset
@@ -367,8 +373,33 @@ class DateFilterView(FilterView, MainPageMixin):
         context['item'] = ra
         context['is_manager'] = self.is_manager(ra)
 
-        context['status'] = self.request.GET.get('status', MDR.STATES.standard)
-        context['date'] = self.request.GET.get('registration_date', datetime.date.today())
+        status = self.request.GET.get('status', MDR.STATES.standard)
+        if status == '':
+            # No status has been selected
+            context['not_all_selected'] = True
+            return context
+        context['status'] = status
+
+        selected_date = self.request.GET.get('registration_date', datetime.date.today())
+        if selected_date == '':
+            # No date has been selected
+            context['not_all_selected'] = True
+            return context
+
+        context['date'] = selected_date
+
+        concept_to_status: Dict = {}
+
+        # Get the current statuses that are most up to date
+        statuses = MDR.Status.objects.current(when=selected_date).filter(registrationAuthority=ra)
+        on_status = Q(state=status)
+
+        for concept in context['object_list']:
+            on_concept = Q(concept=concept)
+            status = statuses.get(on_concept & on_status)
+            concept_to_status[concept] = status
+
+        context['concepts'] = concept_to_status
 
         context['downloaders'] = self.build_downloaders(context['object_list'])
 

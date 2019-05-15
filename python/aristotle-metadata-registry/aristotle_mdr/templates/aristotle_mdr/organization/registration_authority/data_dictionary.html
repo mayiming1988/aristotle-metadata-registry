@@ -6,11 +6,17 @@
 {% block racontent %}
 <form method="get">
     <div class="h4">Data dictionary</div>
+    {% if not_all_selected %}
+        <p>
+        Data dictionary for {{item.stewardship_organisation.name}}/{{ item.name }} (Registration Authority).
+    </p>
+    {% else %}
     <p>
         Data dictionary for {{item.stewardship_organisation.name}}/{{ item.name }} (Registration Authority)
         showing concepts registered as {{status|search_state_to_text }} on
         <time datetime="{{ date|isotime }}"></time>.
     </p>
+    {% endif %}
     <div class="well">
         <div class="h5 text-center">Select a different date or registration status</div>
         <div class="row text-center">
@@ -27,6 +33,11 @@
     </div>
     </div
 </form>
+{% if not_all_selected %}
+<div class="well">
+    <div class="h5 text-center">Please select both filters.</div>
+</div>
+{% else %}
 {% if filter.qs.all %}
 <table class="table table-striped">
     <caption>Concepts
@@ -53,29 +64,36 @@
         <th scope="col">
             Name
         </th>
+        <th>
+            Type
+        </th>
         <th scope="col">
             Definition
         </th>
         <th scope="col">
-            Created
+            Registered from
         </th>
         <th scope="col">
-            Last modified
+            Registered until
         </th>
     </tr>
-    {% for concept in filter.qs %}
+    {% for concept, status in concepts.items %}
     <tr>
         <td>
             <a href="{% url 'aristotle:item' concept.id %}">{{ concept.name }}</a>
         </td>
         <td>
+            {{ concept.item.get_verbose_name }}
+        </td>
+        <td>
             {{ concept.short_definition }}
+
         </td>
         <td>
-            <span class="time"><time datetime="{{ concept.created|isotime }}"></time></span>
+            {{ status.registrationDate }}
         </td>
         <td>
-            <time datetime="{{ concept.modified|isotime }}"></time>
+            {{ status.until_date|default_if_none:"--" }}
         </td>
     </tr>
     {% endfor %}
@@ -85,5 +103,6 @@
 <div class="well">
     <div class="h5 text-center">There were no concepts with your chosen filters.</div>
 </div>
+{% endif %}
 {% endif %}
 {% endblock %}

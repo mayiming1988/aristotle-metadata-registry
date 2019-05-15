@@ -395,6 +395,7 @@ class StatusQuerySet(models.QuerySet):
         """
         Returns a queryset that returns the most up to date statuses
 
+
         It is **chainable** with other querysets.
         """
         if hasattr(when, 'date'):

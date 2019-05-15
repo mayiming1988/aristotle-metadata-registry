@@ -2,11 +2,11 @@
 
 {% block title %}Page not found{% endblock %}
 {% block page_error %}
-<p>
-The page you have requested was not found
-{% if anon %}
- or is publically visible. You can <a href="{% url 'friendly_login' %}?next={{request.path}}">log in</a> and see if your account has access.
-{% endif %}
-</p>
+    <p>
+        The page you have requested was not found
+        {% if anon %}
+            or is publically visible. You can <a href="{% url 'friendly_login' %}?next={{request.path}}">log in</a> and see if your account has access.
+        {% endif %}
+    </p>
 
 {% endblock %}
