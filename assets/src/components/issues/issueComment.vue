@@ -1,11 +1,16 @@
 <template>
-    <div>
+    <div class="issueComment">
         <api-errors :errors="errors"></api-errors>
         <user-panel :pic="pic">
             <span slot="heading">
                 New Comment
             </span>
-            <textarea class="form-control ta-fixed-width" v-model="body"></textarea>
+            <textarea-resize
+                class="form-control ta-fixed-width"
+                v-model="body"
+                :min-height="100"
+                :max-height="200"
+            />
             <div class="panel-footer text-right" slot="footer">
                 <button v-if="canOpenClose" :class="openCloseClass" @click="openClose">{{ openCloseText }}</button>
                 <button class="btn btn-primary" @click="makeComment">Comment</button>
@@ -18,6 +23,7 @@
 import userPanel from '@/userPanel.vue'
 import apiErrors from '@/apiErrorDisplay.vue'
 import apiRequest from 'src/mixins/apiRequest.js'
+import { TextareaAutosize } from 'vue-textarea-autosize'
 
 export default {
     mixins: [apiRequest],
@@ -56,8 +62,9 @@ export default {
         }
     },
     components: {
-        apiErrors,
-        userPanel
+        'api-errors': apiErrors,
+        'user-panel': userPanel,
+        'textarea-resize': TextareaAutosize
     },
     data: () => ({
         body: '',
