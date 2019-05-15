@@ -51,9 +51,9 @@ class TestUserpages(utils.LoggedInViewPages, TestCase):
     def test_view_all_perms(self):
         from aristotle_mdr import models
         from django.contrib.auth import get_user_model
-        
+
         User = get_user_model()
-        
+
         peeping_tom = User.objects.create(
             email="tom@aristotle.example.com",
             short_name="Tom"
