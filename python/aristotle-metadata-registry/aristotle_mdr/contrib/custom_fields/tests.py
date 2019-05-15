@@ -276,7 +276,7 @@ class CustomFieldsStatusTestCase(AristotleTestUtils, TestCase):
 
 
     def test_editor_cant_edit_empty_inactive_field(self):
-        # An editor should not be able to edit an inactive custom field with no content
+        # An editor should not be able to edit an inactive custom field with no CustomValue associated
         self.login_editor()
 
         response = self.reverse_get(
