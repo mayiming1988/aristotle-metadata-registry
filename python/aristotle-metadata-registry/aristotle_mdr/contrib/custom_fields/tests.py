@@ -255,13 +255,12 @@ class CustomFieldsStatusTestCase(AristotleTestUtils, TestCase):
         self.login_viewer()
 
         response = self.reverse_get(
-                'aristotle:item',
-                reverse_args=[self.active_item.id, 'objectclass', 'person'],
-                status_code=200
-            )
+            'aristotle:item',
+            reverse_args=[self.active_item.id, 'objectclass', 'person'],
+            status_code=200
+        )
         # Check that the active value is showing up
         self.assertEqual(len(response.context['custom_values']), 1)
-
 
     def test_viewing_inactive_field_with_content(self):
         # Users should still be able to view inactive custom field with content
@@ -273,7 +272,6 @@ class CustomFieldsStatusTestCase(AristotleTestUtils, TestCase):
             status_code=200
         )
         self.assertEqual(len(response.context['custom_values']), 1)
-
 
     def test_editor_cant_edit_empty_inactive_field(self):
         # An editor should not be able to edit an inactive custom field with no CustomValue associated
@@ -289,7 +287,6 @@ class CustomFieldsStatusTestCase(AristotleTestUtils, TestCase):
         # The inactive field shouldn't show up
         self.assertFalse(self.inactivefield.form_field_name in fields)
 
-
     def test_editor_can_edit_inactive_field_with_content(self):
         # An editor should still be able to edit an inactive custom field if it has previously been
         # filled with content
@@ -304,7 +301,6 @@ class CustomFieldsStatusTestCase(AristotleTestUtils, TestCase):
         fields = response.context['form'].fields
         self.assertTrue(self.inactivefield.form_field_name in fields)
 
-
     def test_viewer_cant_view_hidden_field(self):
         # A viewer should not be able to see a custom field if it has been hidden
         self.login_viewer()
@@ -315,7 +311,6 @@ class CustomFieldsStatusTestCase(AristotleTestUtils, TestCase):
             status_code=200
         )
         self.assertEqual(len(response.context['custom_values']), 0)
-
 
     def test_editor_cant_edit_hidden_field(self):
         # An editor should not be able to edit a custom field if it has been hidden
@@ -330,19 +325,3 @@ class CustomFieldsStatusTestCase(AristotleTestUtils, TestCase):
         fields = response.context['form'].fields
 
         self.assertFalse(self.hiddenfield.form_field_name in fields)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
