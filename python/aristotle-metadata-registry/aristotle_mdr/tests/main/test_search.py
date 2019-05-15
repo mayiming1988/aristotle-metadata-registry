@@ -850,7 +850,7 @@ class TestTokenSearch(TestCase):
         self.assertEqual(len(objs), 1)
         self.assertEqual(objs[0].object, item)
 
-    @unittest.expectedFailure()  # TODO: Fix this
+    @unittest.skip("TODO: Fix this")
     def test_title_prioritisation(self):
         self.client.login(email='super@example.com', password='user')
         # Item with pokemon as name
