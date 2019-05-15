@@ -3,28 +3,34 @@ set -e
 PYTHON_CMD="python3"
 USAGE="Usage: buildandcopy [--manual] [--dry] [--skip-wp] [--help]"
 
-# Basic flag arg parsing
 MANUAL=0
 DRY=0
 SKIP_WEBPACK_BUILD=0
 
+# Basic flag arg parsing
 for i in $@; do
     case $i in
         "--manual")
-        MANUAL=1
-        echo "Doing manual deploy"
-        ;;
+            MANUAL=1
+            echo "Doing manual deploy"
+            ;;
         "--dry")
-        DRY=1
-        echo "Doing dry run"
-        ;;
+            DRY=1
+            echo "Doing dry run"
+            ;;
         "--skip-wp")
-        SKIP_WEBPACK_BUILD=1
-        ;;
+            SKIP_WEBPACK_BUILD=1
+            echo "Skipping webpack build"
+            ;;
         "--help")
-        echo "$USAGE"
-        exit 0
-        ;;
+            echo "$USAGE"
+            exit 0
+            ;;
+        *)
+            echo "Unknown argument $i"
+            echo $USAGE
+            exit 1
+            ;;
     esac
 done
 
