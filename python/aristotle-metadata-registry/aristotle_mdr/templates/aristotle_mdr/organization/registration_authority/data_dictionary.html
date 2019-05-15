@@ -20,25 +20,30 @@
     <div class="well">
         <div class="h5 text-center">Select a different date or registration status</div>
         <div class="row text-center">
-            <div class="form-group col-sm-6 col-md-6">
+            <div class="form-group col-sm-5 col-md-5">
                 {{ filter.form.registration_date }}
             </div>
-            <div class="form-group col-sm-6 col-md-6">
-                {{ filter.form.status}}
+            <div class="form-group col-sm-5 col-md-5">
+                {{ filter.form.status }}
+            </div>
+            <div class="form-group col-sm-2 col-md-2">
+                {{ filter.form.letter }}
             </div>
         </div>
         <div class="row text-center">
             <button type="submit" class="btn btn-primary">Filter</button>
         </div>
     </div>
-    </div
+    </div>
 </form>
 {% if not_all_selected %}
 <div class="well">
     <div class="h5 text-center">Please select both filters.</div>
 </div>
 {% else %}
-{% if filter.qs.all %}
+{% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
+
+{% if object_list %}
 <table class="table table-striped">
     <caption>Concepts
         <div class="btn-group pull-right">
@@ -87,7 +92,6 @@
         </td>
         <td>
             {{ concept.short_definition }}
-
         </td>
         <td>
             {{ status.registrationDate }}
@@ -99,6 +103,7 @@
     {% endfor %}
     </tbody>
 </table>
+{% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
 {% else %}
 <div class="well">
     <div class="h5 text-center">There were no concepts with your chosen filters.</div>

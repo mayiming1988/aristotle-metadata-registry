@@ -14,6 +14,8 @@ from django.core.exceptions import PermissionDenied
 from django.forms.models import modelform_factory
 from django.http.request import QueryDict
 
+import string
+
 import django_filters
 from django_filters.views import FilterView
 
@@ -321,10 +323,16 @@ class RAValidationRuleEditView(SingleObjectMixin, MainPageMixin, ValidationRuleE
 class ConceptFilter(django_filters.FilterSet):
     registration_date = django_filters.DateFilter(field_name='statuses__registrationDate',
                                                   widget=BootstrapDateTimePicker,
-                                                  method='filter_registration_date')
+                                                  method='noop')
 
     status = django_filters.ChoiceFilter(choices=MDR.STATES,
                                          field_name='statuses__state',
+                                         method='noop',
+                                         widget=Select(attrs={'class': 'form-control'}))
+
+    letters = [(i, i) for i in string.ascii_uppercase + "&"]
+    letter = django_filters.ChoiceFilter(choices=letters,
+                                         method='noop',
                                          widget=Select(attrs={'class': 'form-control'}))
 
     class Meta:
@@ -333,28 +341,52 @@ class ConceptFilter(django_filters.FilterSet):
         fields: list = []
 
     def filter_registration_date(self, queryset, name, value):
-        selected_date = value
+        return queryset.filter(status_is_valid & status_has_selected_ra)
 
-        # Return all the statuses that are valid at a particular date and then
-        # filter on the concepts linked to a valid status.
-        status_is_valid = Q(statuses__in=MDR.Status.objects.valid_at_date(when=selected_date))
-
-        # Return only the statuses that are linked to the selected RA
-        status_has_selected_ra = Q(statuses__registrationAuthority__id=self.registration_authority_id)
-
-        return queryset.filter(status_is_valid & status_has_selected_ra).distinct()
+    def noop(self, queryset, name, value):
+        return queryset
 
     @property
     def qs(self):
-        # Override the primary queryset to restrict to specific Registration Authority on page
-        parent = super().qs
+        from django.db.models.functions import Upper, Substr
+        from django.db.models import Q, OuterRef, Subquery
+        if not hasattr(self, '_qs'):
+            qs = super().qs
 
-        return parent.filter(statuses__registrationAuthority__id=self.registration_authority_id)
+            selected_date = self.form.cleaned_data['registration_date']
+            selected_state = self.form.cleaned_data['status']
+            selected_letter = self.form.cleaned_data['letter']
+
+            # Return all the statuses that are valid at a particular date and then
+            # filter on the concepts linked to a valid status.
+            # Return only the statuses that are linked to the selected RA
+            status_is_valid = Q(
+                statuses__in=Subquery(
+                    MDR.Status.objects.filter(
+                        state=selected_state,
+                        registrationAuthority__id=self.registration_authority_id
+                    ).valid_at_date(when=selected_date).values('pk')
+                )
+            )
+
+            inner = MDR._concept.objects.filter(status_is_valid)
+            qs = qs.filter(pk__in=Subquery(inner.values('pk'))).prefetch_related('statuses__registrationAuthority')
+
+            qs = qs.annotate(first_letter=Upper(Substr('name', 1, 1)))
+            if selected_letter == "&":
+                qs = qs.filter(~Q(first_letter__in=string.ascii_uppercase))
+            elif selected_letter in string.ascii_uppercase:
+                qs = qs.filter(name__istartswith=selected_letter)
+
+            self._qs = qs.order_by(Upper('name'))
+
+        return self._qs
 
     def __init__(self, *args, **kwargs):
         # Override the init method so we can pass the iid to the queryset
         self.registration_authority_id = kwargs.pop('registration_authority_id')
         super().__init__(*args, **kwargs)
+        self.queryset = self.queryset.visible(self.request.user)
 
 
 class DateFilterView(FilterView, MainPageMixin):
@@ -362,6 +394,7 @@ class DateFilterView(FilterView, MainPageMixin):
 
     filterset_class = ConceptFilter
     template_name = 'aristotle_mdr/organization/registration_authority/data_dictionary.html'
+    paginate_by = 50
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -391,16 +424,14 @@ class DateFilterView(FilterView, MainPageMixin):
         concept_to_status: Dict = {}
 
         # Get the current statuses that are most up to date
-        statuses = MDR.Status.objects.current(when=selected_date).filter(registrationAuthority=ra)
-        on_status = Q(state=status)
+        statuses = MDR.Status.objects.current(when=selected_date).filter(registrationAuthority=ra, state=status)
 
         for concept in context['object_list']:
             on_concept = Q(concept=concept)
-            status = statuses.get(on_concept & on_status)
+            status = statuses.get(on_concept)
             concept_to_status[concept] = status
 
         context['concepts'] = concept_to_status
-
         context['downloaders'] = self.build_downloaders(context['object_list'])
 
         return context
