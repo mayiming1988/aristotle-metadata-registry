@@ -53,7 +53,7 @@ class CustomFieldManager(Manager):
         if user.is_superuser:
             return queryset
         else:
-        # Filter out the custom fields that are 'Hidden'
+            # Filter out the custom fields that are 'Hidden'
             return queryset.exclude(state=CUSTOM_FIELD_STATES.hidden)
 
     def get_for_model(self, model):

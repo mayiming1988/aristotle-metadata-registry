@@ -335,4 +335,3 @@ class CustomFieldsStatusTestCase(AristotleTestUtils, TestCase):
             status_code=200
         )
         self.assertEqual(len(response.context['custom_values']), 1)
-
