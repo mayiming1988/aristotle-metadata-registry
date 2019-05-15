@@ -7,8 +7,6 @@ USAGE="Usage: buildandcopy [--manual] [--dry] [--skip-wp] [--help]"
 MANUAL=0
 DRY=0
 SKIP_WEBPACK_BUILD=0
-STORAGE_BUCKET_NAME="aristotle-storage-static-jnkqjasxq3ji"
-ASSET_PATH="https://d3obyunbje7zuy.cloudfront.net/bundles/"
 
 for i in $@; do
     case $i in
@@ -36,16 +34,28 @@ if ! [[ -z "$DISABLE_COLLECTSTATIC" ]]; then
     exit 0
 fi
 
+if [[ -z $ASSET_PATH ]]; then
+    echo "ASSET_PATH must be set"
+    exit 1
+fi
+
+if [[ -z $STORAGE_BUCKET_NAME ]]; then
+    echo "STORAGE_BUCKET_NAME must be set"
+    exit 1
+fi
+
 if ! [[ "$PWD" =~ .*aristotle-metadata-registry$ ]]; then
     echo "Must be run from root of repo"
     exit 1
 fi
 
+# If running on travis check if this needs to be run
 if [[ "$TRAVIS" == "true" ]] && [[ "$TRAVIS_BRANCH" != "master" || "$TRAVIS_PULL_REQUEST" != "false" ]]; then
     echo "Not on correct branch. skipping..."
     exit 0
 fi
 
+# Message if not custom static bucket
 if [[ -z "$CUSTOM_STATIC_BUCKET_NAME" ]]; then
     echo "No custom static buckets, building without"
 fi
@@ -87,14 +97,22 @@ cp ./assets/dist/webpack-stats.json ./python/aristotle-metadata-registry/aristot
 
 if [[ $MANUAL -eq 1 ]]; then
     echo "Doing a manual deploy to s3..."
+    # Check manual bucket set
+    if [[ -z $MANUAL_BUCKET ]]; then
+        echo "MANUAL_BUCKET not set"
+        exit 1
+    fi
+    # Clean dist if exists
     if [[ -e ./dist ]];then
         rm -r ./dist
     fi
+    # Run setup
     $PYTHON_CMD setup.py bdist_wheel
+    # Push to s3
     if [[ $DRY -eq 1 ]]; then
-        aws s3 cp ./dist s3://aristotle-pypi-bucket-1kyswb3cn1pa1 --recursive --acl public-read --dry
+        aws s3 cp ./dist $MANUAL_BUCKET --recursive --acl public-read --dry
     else
-        aws s3 cp ./dist s3://aristotle-pypi-bucket-1kyswb3cn1pa1 --recursive --acl public-read
+        aws s3 cp ./dist $MANUAL_BUCKET --recursive --acl public-read
     fi
 fi
 
