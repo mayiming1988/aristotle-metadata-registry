@@ -179,7 +179,7 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
         is_cached_public = Q(_is_public=True)
 
         # User can see everything they've made thats not assigned to an SO.
-        user_is_submitter = Q(submitter=user, stewardship_organisation__isnull=True)
+        user_is_submitter = Q(submitter=user)
 
         # User can see everything in their workgroups.
         workgroups = Workgroup.objects.filter(members__user=user, archived=False)
@@ -223,16 +223,14 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
         )
 
         q = Q(
-            user_is_submitter |
             Q(
-                Q(
-                    is_cached_public |
-                    user_in_workgroup |
-                    item_is_published |
-                    item_is_for_registrar
-                ) &
-                Q(item_in_allowed_org | item_not_assigned_to_org)
-            )
+                user_is_submitter |
+                is_cached_public |
+                user_in_workgroup |
+                item_is_published |
+                item_is_for_registrar
+            ) &
+            Q(item_in_allowed_org | item_not_assigned_to_org)
         )
 
         return self.filter(q)
@@ -248,7 +246,7 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
             ObjectClass.objects.filter(name__contains="Person").editable()
             ObjectClass.objects.editable().filter(name__contains="Person")
         """
-        from aristotle_mdr.models import StewardOrganisation
+        from aristotle_mdr.models import StewardOrganisation, Workgroup
         if user.is_superuser:
             return self.all()
         if user.is_anonymous():
@@ -258,19 +256,20 @@ class ConceptQuerySet(PublishedMixin, MetadataItemQuerySet):
         # User can edit everything they've made thats not locked
         q |= Q(submitter=user, _is_locked=False)
 
-        q |= Q(
-            workgroup__members__role__in=['submitter', 'steward', 'manager'],
-            workgroup__members__user=user,
-            workgroup__archived=False,
-            _is_locked=False
+        editable_items = self.all().filter(
+            Q(
+                workgroup__members__role__in=['submitter', 'steward', 'manager'],
+                workgroup__members__user=user,
+                workgroup__archived=False,
+                _is_locked=False
+            ) | Q(
+                workgroup__members__role__in=['steward', 'manager'],
+                workgroup__members__user=user,
+                workgroup__archived=False,
+                _is_locked=True
+            )
         )
-
-        q |= Q(
-            workgroup__members__role__in=['steward', 'manager'],
-            workgroup__members__user=user,
-            workgroup__archived=False,
-            _is_locked=True
-        )
+        q |= Q(id__in=Subquery(editable_items.values('pk')))
 
         return self.filter(
             q &

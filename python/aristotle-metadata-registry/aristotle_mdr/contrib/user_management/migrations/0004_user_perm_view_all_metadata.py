@@ -9,6 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('aristotle_mdr_user_management', '0003_auto_20180820_0248'),
+        ('aristotle_mdr', '0061_auto_20190503_1505'),
     ]
 
     operations = [
