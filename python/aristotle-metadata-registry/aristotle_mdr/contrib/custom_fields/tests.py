@@ -325,3 +325,14 @@ class CustomFieldsStatusTestCase(AristotleTestUtils, TestCase):
         fields = response.context['form'].fields
 
         self.assertFalse(self.hiddenfield.form_field_name in fields)
+
+    def test_superuser_can_see_hidden_fields(self):
+        self.login_superuser()
+
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.hidden_item.id, 'objectclass', 'person'],
+            status_code=200
+        )
+        self.assertEqual(len(response.context['custom_values']), 1)
+

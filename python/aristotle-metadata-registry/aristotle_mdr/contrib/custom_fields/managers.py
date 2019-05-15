@@ -50,8 +50,11 @@ class CustomFieldManager(Manager):
 
         queryset = self.get_queryset().visible(user, concept.workgroup)
 
+        if user.is_superuser:
+            return queryset
+        else:
         # Filter out the custom fields that are 'Hidden'
-        return queryset.exclude(state=CUSTOM_FIELD_STATES.hidden)
+            return queryset.exclude(state=CUSTOM_FIELD_STATES.hidden)
 
     def get_for_model(self, model):
         """Return the fields for a given model.
