@@ -14,12 +14,16 @@ logger = logging.getLogger(__name__)
 
 
 class AristotleResolver(object):
+
+    # allowed models that are not concepts:
+    allowed_models = [link_models.LinkEnd, link_models.Link, mdr_models.OrganizationRecord]
     @classmethod
     def resolver(cls, attname, default_value, root, info, **args):
         retval = getattr(root, attname, default_value)
 
         # If object is a django model
         if isinstance(retval, Model):
+
             if isinstance(retval, mdr_models._concept):
                 # Use user_can_view to determine if we display
                 if perms.user_can_view(info.context.user, retval):
@@ -39,7 +43,8 @@ class AristotleResolver(object):
                     return retval
                 else:
                     return None
-            if isinstance(retval, link_models.LinkEnd) or isinstance(retval, link_models.Link):
+
+            if type(retval) in cls.allowed_models:
                 return retval
 
             return None
@@ -48,6 +53,10 @@ class AristotleResolver(object):
             # Need this for when related manager is returned when querying object.related_set
             # Can safely return restricted queryset
             queryset = retval.get_queryset()
+
+            # We need to check permissions for Organizations depending on the authentication of the user:
+            if queryset.model == mdr_models.RecordRelation:
+                return queryset
 
             if queryset.model == slots_models.Slot:
                 instance = getattr(retval, 'instance', None)

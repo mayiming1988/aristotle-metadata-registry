@@ -41,13 +41,12 @@ class IssueCommentRetrieveView(generics.RetrieveAPIView):
     queryset=IssueComment.objects.all()
 
 
-class IssueUpdateAndCommentView(APIView):
-    """Open or close an issue, with optional comment"""
+class IssueAPIView(APIView):
     permission_classes=(AuthCanViewEdit,)
     permission_key='metadata'
-    issue_serializer=serializers.IssueSerializer
-    comment_serializer=serializers.IssueCommentSerializer
     pk_url_kwarg='pk'
+
+    issue_serializer=serializers.IssueSerializer
 
     def get_object(self):
         pk = self.kwargs[self.pk_url_kwarg]
@@ -56,39 +55,82 @@ class IssueUpdateAndCommentView(APIView):
             raise PermissionDenied
         return obj
 
+    def alter_open_issue(self, issue, commit=False):
+        serializer_context = {'request': self.request}
+        # Setup issue serializer for partial update
+        issue_serializer = self.issue_serializer(
+            instance=issue,
+            data={'isopen': self.request.data['isopen']},
+            partial=True,
+            context=serializer_context
+        )
+        # Check valid
+        issue_serializer.is_valid(raise_exception=True)
+        # Save if requested
+        if commit:
+            return issue_serializer.save()
+        return issue_serializer
+
+
+class IssueUpdateAndCommentView(IssueAPIView):
+    """Open or close an issue, with optional comment"""
+    issue_serializer=serializers.IssueSerializer
+    comment_serializer=serializers.IssueCommentSerializer
+
     def post(self, request, *args, **kwargs):
         obj = self.get_object()
 
         if 'isopen' not in request.data:
-            return Response()
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        serializer_context = {'request': request}
-        issue_serializer = self.issue_serializer(
-            instance=obj,
-            data={'isopen': request.data['isopen']},
-            partial=True,
-            context=serializer_context
-        )
-        issue_serializer.is_valid()
+        issue_serializer = self.alter_open_issue(obj)
 
         response_content = {}
 
         if 'comment' in request.data:
+            # Process comment
             commentdata = request.data['comment']
             commentdata['issue'] = obj.pk
 
             comment_serializer = self.comment_serializer(
                 data=commentdata,
-                context=serializer_context
+                context={'request': request}
             )
             comment_serializer.is_valid(raise_exception=True)
             comment_serializer.save()
             response_content['comment'] = comment_serializer.data
 
-        issue_serializer.save()
+        # Save issue
+        issue = issue_serializer.save()
+        # Set response data
         response_content['issue'] = issue_serializer.data
 
         return Response(
             response_content,
             status=status.HTTP_200_OK,
         )
+
+
+class IssueApproveView(IssueAPIView):
+
+    def post(self, request, *args, **kwargs):
+        obj = self.get_object()
+
+        if 'isopen' not in request.data:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        issue_serializer = self.alter_open_issue(obj)
+
+        # Apply change to item if user has permission
+        if not perms.user_can_edit(request.user, obj.item):
+            raise PermissionDenied
+
+        # Make changes
+        obj.apply()
+        issue_serializer.save()
+
+        return Response(status=status.HTTP_200_OK)

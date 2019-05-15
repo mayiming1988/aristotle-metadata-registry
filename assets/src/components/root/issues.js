@@ -1,8 +1,10 @@
 import comment from '@/comment.vue'
-import issueComment from '@/issueComment.vue'
 import openClose from '@/openClose.vue'
 import switchEditApi from '@/switchEditApi.vue'
 import inlineEdit from '@/inlineEdit.vue'
+import issueComment from '@/issues/issueComment.vue'
+import issueModal from '@/issues/issueModal.vue'
+import issuePanel from '@/issues/issuePanel.vue'
 
 export default {
     el: '#vue-container',
@@ -11,11 +13,14 @@ export default {
         issueComment,
         openClose,
         switchEditApi,
-        inlineEdit
+        inlineEdit,
+        issueModal,
+        issuePanel
     },
     data: {
         new_comments: [],
-        isOpen: true
+        isOpen: true,
+        issueModalOpen: false
     },
     methods: {
         setIsOpen: function(isopen) {
@@ -23,6 +28,9 @@ export default {
         },
         addComment: function(comment) {
             this.new_comments.push(comment)
+        },
+        openIssueModal: function() {
+            this.issueModalOpen = true
         }
     }
 }

@@ -44,10 +44,11 @@ module.exports = (config) => {
             // webpack watches dependencies
 
             // webpack configuration
-            optimization: {
-                // Don't minimize so that error lines are correct
-                minimize: false
-            },
+            devtool: 'inline-source-map',
+            // optimization: {
+            //     // Don't minimize so that error lines are correct
+            //     minimize: false
+            // },
             module: {
                 rules: [
                     {

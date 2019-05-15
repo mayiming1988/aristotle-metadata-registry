@@ -1,11 +1,16 @@
 <template>
-    <div>
+    <div class="issueComment">
         <api-errors :errors="errors"></api-errors>
         <user-panel :pic="pic">
             <span slot="heading">
                 New Comment
             </span>
-            <textarea class="form-control ta-fixed-width" v-model="body"></textarea>
+            <textarea-resize
+                class="form-control ta-fixed-width"
+                v-model="body"
+                :min-height="100"
+                :max-height="200"
+            />
             <div class="panel-footer text-right" slot="footer">
                 <button v-if="canOpenClose" :class="openCloseClass" @click="openClose">{{ openCloseText }}</button>
                 <button class="btn btn-primary" @click="makeComment">Comment</button>
@@ -15,24 +20,56 @@
 </template>
 
 <script>
-import userPanel from './userPanel.vue'
+import userPanel from '@/userPanel.vue'
 import apiErrors from '@/apiErrorDisplay.vue'
 import apiRequest from 'src/mixins/apiRequest.js'
+import { TextareaAutosize } from 'vue-textarea-autosize'
 
 export default {
     mixins: [apiRequest],
-    props: ['pic', 'userId', 'userName', 'issueId', 'issueIsOpen',
-        'commentUrl', 'openCloseUrl', 'openClosePermission'],
+    props: {
+        pic: {
+            type: String,
+            required: true
+        },
+        userId: {
+            type: String,
+            required: true
+        },
+        userName: {
+            type: String,
+            required: true
+        },
+        issueId: {
+            type: String,
+            required: true
+        },
+        isOpen: {
+            type: Boolean,
+            default: false
+        },
+        canOpenClose: {
+            type: Boolean,
+            default: false
+        },
+        commentUrl: {
+            type: String,
+            required: true
+        },
+        openCloseUrl: {
+            type: String,
+            required: true
+        }
+    },
     components: {
-        apiErrors,
-        userPanel
+        'api-errors': apiErrors,
+        'user-panel': userPanel,
+        'textarea-resize': TextareaAutosize
     },
     data: () => ({
         body: '',
-        isOpen: false
     }),
     created: function() {
-        this.isOpen = (this.issueIsOpen == 'True')
         this.$emit('set_open', this.isOpen)
     },
     methods: {
@@ -87,9 +124,6 @@ export default {
         }
     },
     computed: {
-        canOpenClose: function() {
-            return (this.openClosePermission == 'True')
-        },
         openCloseText: function() {
             let text
             if (this.isOpen) {
