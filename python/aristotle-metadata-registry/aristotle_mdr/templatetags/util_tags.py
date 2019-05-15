@@ -87,10 +87,11 @@ def json_script(value, element_id):
 
 @register.filter(name='bleach')
 def bleach_filter(html: str) -> SafeString:
-
+    """Clean a html string before it is rendered"""
+    # If trying to bleach a none just return it
     if html is None:
         return html
-
+    # Remove tags and attr based on settings
     clean_html = bleach.clean(
         html,
         tags=settings.BLEACH_ALLOWED_TAGS,
@@ -98,7 +99,10 @@ def bleach_filter(html: str) -> SafeString:
         strip=True,  # Remove disallowed tags instead of escaping them
         strip_comments=True,
     )
-    return mark_safe("<div class='bleached-content'> " + clean_html + " </div>")
+    # Wrap html so we can style it & make sure it isnt rendered by vue
+    wrapped_html = '<div v-pre class="bleached-content">' + clean_html + '</div>'
+    # Return Wrapped html as safe string
+    return mark_safe(wrapped_html)
 
 
 @register.filter
