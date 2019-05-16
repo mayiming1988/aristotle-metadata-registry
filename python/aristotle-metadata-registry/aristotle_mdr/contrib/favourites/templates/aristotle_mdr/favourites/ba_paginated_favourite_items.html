@@ -33,7 +33,7 @@
         <td>
           <a href="{% url 'aristotle_mdr:item' item.id %}">{{ item.name }}</a>
           <div class="small" style="white-space: nowrap;">
-              {{ item.item.get_verbose_name }}
+              {{ item.item_type_name }}
           </div>
         </td>
         <td>{{ item.definition|striptags|truncatewords:"50" }}</td>
