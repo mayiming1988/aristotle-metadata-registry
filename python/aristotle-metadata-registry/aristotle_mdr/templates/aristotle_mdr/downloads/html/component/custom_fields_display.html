@@ -1,0 +1,25 @@
+{% load util_tags %}
+
+{% with custom_values=item|get_custom_values_for_item:user %}
+{% if custom_values %}
+<dt>Custom Fields</h2>
+<dd>
+    <div class="container">
+        {% for cv in custom_values %}
+            <div class="row">
+                <div class="col-sm-3">
+                    <b>{{ cv.field.name }}</b>
+                </div>
+                <div class="col-sm-9">
+                    {% if cv.is_html %}
+                        {{ cv.content|bleach }}
+                    {% else %}
+                        {{ cv.content }}
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</dd>
+{% endif %}
+{% endwith %}

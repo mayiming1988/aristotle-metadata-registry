@@ -1,11 +1,17 @@
-from aristotle_mdr.fields import LowerEmailField
+from django.db import models
+from django.utils.translation import ugettext_lazy as _
 from improved_user.model_mixins import AbstractUser
 
-from django.utils.translation import ugettext_lazy as _
+from aristotle_mdr.fields import LowerEmailField
 
 
 class User(AbstractUser):
     email = LowerEmailField(_('email address'), max_length=254, unique=True)
+    perm_view_all_metadata = models.BooleanField(
+        default=False,
+        verbose_name="Allow user to view all metadata",
+        help_text="Enable this to allow a user to see all metadata stored in the registry"
+    )
 
     @property
     def first_name(self):

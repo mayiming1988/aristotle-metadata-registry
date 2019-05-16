@@ -12,16 +12,22 @@
 {% endblock %}
 
 {% block objSpecific %}
+    {% if item.collection_method or item.statistical_unit %}
     <h2>Collection and usage information</h2>
     <div>
+        {% if item.statistical_unit %}
         <h3>Statistical Unit</h3>
         <div>
             {% include "aristotle_mdr/helpers/itemLink.html" with item=item.statistical_unit showType=False %}
         </div>
+        {% endif %}
+
+        {% if item.collection_method %}
         <h3>Collection Method</h3>
         <div>{{ item.collection_method | bleach }}</div>
-
+        {% endif %}
     </div>
+    {% endif %}
 
     <h2>Metadata items in this Data Set Specification</h2>
     <p> Below is a list of all the components within this Dataset Specification.
@@ -57,6 +63,8 @@
             {% for deinc in item.dssclusterinclusion_set.all %}
                 {% if deinc.child.id in viewable_ids %}
                     <tr>
+                        <td>{{ deinc.reference|default_if_none:" " }}
+                        </td>
                         <td>
                             <i class="fa fa-fw fa-folder-o"></i>{% include "aristotle_mdr/helpers/itemLink.html" with item=deinc.child skip_can_view=True %}
                             {% if deinc.specific_information %}
@@ -67,7 +75,8 @@
                             {% endif %}
                             {% if deinc.conditional_obligation %}
                                 <div>
-                                    <strong>Conditional Obligation:</strong>{{ deinc.conditional_obligation|bleach }}
+                                    <strong>Conditional Obligation:</strong>
+                                    {{ deinc.conditional_obligation|bleach }}
                                 </div>
                             {% endif %}
                         </td>
@@ -150,7 +159,9 @@
                         Data&nbsp;Type
                     </th>
                     <th title="Maximum Character Length">
-                        Length
+                        <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left" data-html="true"
+                           title="Length" data-content="The maximum character length">
+                            Length</a>
                     </th>
                     <th class="hidden-xs hidden-sm">
                         Format

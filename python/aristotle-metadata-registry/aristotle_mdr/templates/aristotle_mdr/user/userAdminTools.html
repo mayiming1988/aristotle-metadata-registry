@@ -62,6 +62,12 @@
           <i class="fa fa-check fa-fw" aria-hidden="true"></i>
           Manage Registry Validation Rules
         </a>
+        {% if aristotle_cloud_is_active %}
+        <a class="list-group-item" href="{% url 'aristotle_cloud:cloud_page_management:admin_list' %}">
+          <i class="fa fa-file-o fa-fw" aria-hidden="true"></i>
+          Manage Pages
+        </a>
+        {% endif %}
     </ul>
   </div>
 </div>

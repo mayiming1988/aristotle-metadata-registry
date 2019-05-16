@@ -6,14 +6,15 @@ from django.core.exceptions import PermissionDenied, FieldDoesNotExist, ObjectDo
 from django.urls import reverse
 from django.db import transaction
 from django.db.models.query import QuerySet
-from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404
+from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import TemplateView, RedirectView
+from django.views.generic import TemplateView, RedirectView, DeleteView, UpdateView
 from django.utils.module_loading import import_string
 from django.utils.functional import SimpleLazyObject
 from django.utils import timezone
 from formtools.wizard.views import SessionWizardView
+from aristotle_mdr.forms import EditStatusForm
 
 import json
 
@@ -296,6 +297,36 @@ class ConceptView(ConceptRenderView):
 
     def check_item(self, item):
         return user_can_view(self.request.user, item)
+
+
+class ObjectClassView(ConceptRenderView):
+
+    objtype = MDR.ObjectClass
+
+    def check_item(self, item):
+        return user_can_view(self.request.user, item)
+
+    def get_related(self, model):
+        related_objects = [
+        ]
+        prefetch_objects = [
+            'statuses'
+        ]
+        return model.objects.prefetch_related(*prefetch_objects)
+
+    def get_context_data(self, *args, **kwargs):
+        oc = self.get_item()
+        dec_qs = MDR.DataElementConcept.objects.filter(objectClass=oc)
+        dec_count = dec_qs.all().visible(self.request.user).count()
+
+        ctx = super().get_context_data(*args, **kwargs)
+        dec_qs = dec_qs.filter(statuses__state=MDR.STATES.standard).order_by("name")
+
+        decs = list(dec_qs[:51])
+        ctx['data_element_concepts'] = decs
+        ctx['total_data_element_concept_count'] = dec_count
+        ctx['excess_data_element_concepts'] = (len(decs) > 50)
+        return ctx
 
 
 class DataElementView(ConceptRenderView):
@@ -589,8 +620,60 @@ class ChangeStatusView(ReviewChangesView):
         return HttpResponseRedirect(url_slugify_concept(self.item))
 
 
+class DeleteStatus(DeleteView):
+
+    model = MDR.Status
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(MDR.Status, pk=self.kwargs['sid'])
+
+    def delete(self, request, *args, **kwargs):
+
+        status_to_be_deleted = self.get_object()
+        status_to_be_deleted.delete()
+
+        # Update the search engine indexation for the concept:
+        from aristotle_mdr.models import concept_visibility_updated
+        item_to_be_updated = get_object_or_404(MDR._concept, pk=self.kwargs['iid'])
+        concept_visibility_updated.send(concept=item_to_be_updated, sender=self.__class__)
+        return HttpResponseRedirect(reverse('aristotle:registrationHistory', kwargs={'iid': self.kwargs['iid']}))
+
+
+class EditStatus(UpdateView):
+    template_name = 'aristotle_mdr/status_edit.html'
+    form_class = EditStatusForm
+    model = MDR.Status
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(MDR.Status, pk=self.kwargs['sid'])
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context.update({'ra': self.RA, 'item': self.item})
+
+        return context
+
+    def get_initial(self):
+        self.RA = get_object_or_404(MDR.RegistrationAuthority, pk=self.kwargs['raid'])
+        self.item = get_object_or_404(MDR._concept, pk=self.kwargs['iid'])
+        self.status = get_object_or_404(MDR.Status, pk=self.kwargs['sid'])
+        initial = super().get_initial()
+        initial['registrationDate'] = self.status.registrationDate
+        initial['until_date'] = self.status.until_date
+        initial['state'] = self.status.state
+
+        return initial
+
+    def form_valid(self, form):
+        self.object = form.save()
+        # Update the search engine indexation for the concept:
+        from aristotle_mdr.models import concept_visibility_updated
+        concept_visibility_updated.send(concept=self.get_object().concept, sender=self.get_object().concept.__class__)
+        return redirect(reverse('aristotle:registrationHistory', args=[self.kwargs['iid']]))
+
+
 def extensions(request):
-    content=[]
+    content = []
     aristotle_apps = fetch_aristotle_settings().get('CONTENT_EXTENSIONS', [])
 
     if aristotle_apps:

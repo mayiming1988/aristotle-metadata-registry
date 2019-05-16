@@ -27,6 +27,7 @@ class StatusMixin:
 
 class ReviewRequest(StatusMixin, TimeStampedModel):
     objects = ReviewRequestQuerySet.as_manager()
+
     concepts = models.ManyToManyField(
         MDR._concept, related_name="rr_review_requests"
     )

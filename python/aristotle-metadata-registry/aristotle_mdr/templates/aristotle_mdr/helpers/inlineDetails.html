@@ -6,12 +6,15 @@
             {% include "aristotle_mdr/helpers/itemLink.html" with skip_can_view=True %}
         {% endif %}
         {% if statuses != False %}
-            <div class="attr"><small>Statuses:
-                {% for s in item.current_statuses %}
-                    [{{ s.registrationAuthority }}: {{ s.state_name }}]
-                {% empty %}
-                    <em>Unregistered</em>
-                {% endfor %}</small>
+            <div class="attr">
+                <small>
+                    Statuses:
+                    {% for s in item.current_statuses %}
+                        [{{ s.registrationAuthority }}: {{ s.state_name }}]
+                    {% empty %}
+                        <em>Unregistered</em>
+                    {% endfor %}
+                </small>
             </div>
         {% endif %}
 

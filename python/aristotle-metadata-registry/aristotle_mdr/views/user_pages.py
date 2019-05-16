@@ -9,7 +9,7 @@ from django.core.cache import cache
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db.models import Q
-from django.http import HttpResponseRedirect, HttpResponseNotFound, Http404
+from django.http import HttpResponseRedirect, Http404
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
@@ -18,7 +18,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.cache import never_cache
 from django.views.generic.edit import FormMixin
 from django.views.generic import (
-    DetailView,
     ListView,
     UpdateView,
     FormView,
@@ -41,6 +40,9 @@ from aristotle_bg_workers.tasks import send_sandbox_notification_emails
 import json
 import random
 import ast
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class FriendlyLoginView(LoginView):

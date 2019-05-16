@@ -65,6 +65,14 @@ class TestTemplateTags_aristotle_tags_py(TestCase):
 
 class UtilTagsTestCase(TestCase):
 
+    wrapdiv = '<div v-pre class="bleached-content">'
+
+    def assertWrapped(self, bleached: str, inner: str):
+        """Check that inner is wrapped in bleach div"""
+        self.assertTrue(bleached.startswith(self.wrapdiv))
+        self.assertTrue(bleached.endswith('</div>'))
+        self.assertEqual(bleached[len(self.wrapdiv):-6], inner)
+
     def test_blech_strings_safe(self):
         """Make sure strings returned by bleach are marked safe"""
         html = '<b>Bold</b> <u>Underline</u>'
@@ -75,26 +83,26 @@ class UtilTagsTestCase(TestCase):
     def test_bleach_non_allowed_tags(self):
         html = '<b>Bold</b> <u>Underline</u>'
         bleached = util_tags.bleach_filter(html)
-        self.assertEqual(bleached, "<div class='bleached-content'> Bold Underline </div>")
+        self.assertWrapped(bleached, "Bold Underline")
 
     @override_settings(BLEACH_ALLOWED_TAGS=['a'])
     def test_bleach_mixed_tags(self):
         html = '<a>Link</a> <u>Underline</u>'
         bleached = util_tags.bleach_filter(html)
-        self.assertEqual(bleached, "<div class='bleached-content'> <a>Link</a> Underline </div>")
+        self.assertWrapped(bleached, "<a>Link</a> Underline")
 
     @override_settings(BLEACH_ALLOWED_TAGS=['a'])
     @override_settings(BLEACH_ALLOWED_ATTRIBUTES={'a': 'href'})
     def test_bleach_removes_not_allowed_attrs(self):
         html = '<a href="/url" title="Wow">Link</a>'
         bleached = util_tags.bleach_filter(html)
-        self.assertEqual(bleached, '<div class=\'bleached-content\'> <a href="/url">Link</a> </div>')
+        self.assertWrapped(bleached, '<a href="/url">Link</a>')
 
     def test_bleach_tag_case(self):
         """Test that bleach handles tags being uppercase"""
         html = '<B>Bold</B>'
         bleached = util_tags.bleach_filter(html)
-        self.assertEqual(bleached, "<div class='bleached-content'> <b>Bold</b> </div>")
+        self.assertWrapped(bleached, "<b>Bold</b>")
 
     def test_bleach_handles_none(self):
         bleached = util_tags.bleach_filter(None)
