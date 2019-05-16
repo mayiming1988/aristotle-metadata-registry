@@ -435,12 +435,13 @@ class DE_Complete(UserAwareForm):
         pass
 
 
-def organizationrecord_inlineformset_factory():
+def record_relation_inlineformset_factory():
     """Create an inline formset factory for organization record"""
     base_formset = inlineformset_factory(
-        MDR._concept, MDR.OrganizationRecord,
+        MDR._concept, MDR.RecordRelation,
         can_delete=True,
-        fields=('concept', 'organization_record'),
-        extra=0,
+        fields=('concept', 'type', 'organization_record'),
+        extra=1,
     )
     return base_formset
+

@@ -534,19 +534,25 @@ class ExtraFormsetMixin:
 
         for formsetinfo in extra_formsets:
             type = formsetinfo['type']
+
             if type == 'identifiers':
                 context['identifier_FormSet'] = formsetinfo['formset']
+
             elif type == 'slot':
                 context['slots_FormSet'] = formsetinfo['formset']
+
             elif type == 'weak':
                 if 'weak_formsets' not in context.keys():
                     context['weak_formsets'] = []
                 context['weak_formsets'].append({'formset': formsetinfo['formset'], 'title': formsetinfo['title']})
+
             elif type == 'through':
                 if 'through_formsets' not in context.keys():
                     context['through_formsets'] = []
                 context['through_formsets'].append({'formset': formsetinfo['formset'], 'title': formsetinfo['title']})
-        # TODO: add my organization record formset here
+
+            elif type == 'record_relation':
+                context['recordrelation_FormSet'] = formsetinfo['formset']
 
         return context
 
@@ -698,8 +704,14 @@ class ExtraFormsetMixin:
 
         return formset
 
-    def get_organization_record_formset(self):
-        pass
+    def get_recordrelations_formset(self):
+        from aristotle_mdr.forms.creation_wizards import record_relation_inlineformset_factory
+
+        formset = record_relation_inlineformset_factory()
+
+        formset.filtered_empty_form = formset.empty_form
+
+        return formset
 
     def get_identifier_formset(self):
         from aristotle_mdr.contrib.identifiers.forms import identifier_inlineformset_factory

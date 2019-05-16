@@ -1,7 +1,6 @@
-from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.views.generic import (
-    CreateView, DetailView, UpdateView, FormView
+     UpdateView, FormView
 )
 from django.views.generic.detail import SingleObjectMixin
 
@@ -10,7 +9,7 @@ from reversion.models import Version
 
 from aristotle_mdr.utils import (
     concept_to_clone_dict, construct_change_message_extra_formsets,
-    construct_change_message, url_slugify_concept, is_active_module
+    url_slugify_concept, is_active_module
 )
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
@@ -126,7 +125,16 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
             })
 
         if self.additional_records_active:
-            organization_formset = self.get_organization_record_formset()
+            recordrelation_formset = self.get_recordrelations_formset()(
+                instance=self.item.concept,
+                data=postdata
+            )
+            extra_formsets.append({
+                'formset': recordrelation_formset,
+                'title': 'Record Relation',
+                'type': 'record_relation',
+                'saveargs': None
+            })
 
 
         if self.identifiers_active:
@@ -322,7 +330,6 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
         fscontext = self.get_formset_context(extra_formsets)
         context.update(fscontext)
 
-        # context['show_slots_tab'] = self.slots_active or
         context['show_slots_tab'] = context['form'].custom_fields
         context['show_id_tab'] = self.identifiers_active
 
