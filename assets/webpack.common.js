@@ -5,7 +5,7 @@ const entry = require('webpack-glob-entry')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
-var BundleTracker  = require('webpack-bundle-tracker')
+const BundleTracker  = require('webpack-bundle-tracker')
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 
 const entries = entry('./src/pages/*.js', './src/custom/entry/*.js')

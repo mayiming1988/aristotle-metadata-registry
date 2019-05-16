@@ -1,9 +1,13 @@
 from django.test import TestCase, tag
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+
+import datetime
+
 from aristotle_mdr import models
 import aristotle_mdr.contrib.validators.models as vmodels
 import aristotle_mdr.tests.utils as utils
+import aristotle_mdr.models as MDR
 
 from aristotle_bg_workers.tasks import register_items
 
@@ -419,3 +423,99 @@ class RegisterTaskTests(utils.AristotleTestUtils, TestCase):
         self.check_registered_std(self.oc)
         self.check_registered_std(self.prop)
         self.check_registered_std(self.dec)
+
+
+class TestDataDictionary(utils.AristotleTestUtils, TestCase):
+    def check_registered_std(self, item):
+        status = item.statuses.order_by('-created').first()
+        self.assertIsNotNone(status)
+        self.assertEqual(status.registrationAuthority, self.ra)
+        self.assertEqual(status.state, models.STATES.standard)
+
+    def setUp(self):
+        super().setUp()
+
+        self.second_ra = models.RegistrationAuthority.objects.create(name="Health",
+                                                                     definition="Health Registration Auth",
+                                                                     stewardship_organisation=self.steward_org_1)
+        self.oc = models.ObjectClass.objects.create(
+            name='Animal',
+            definition='An animal',
+            workgroup=self.wg1
+        )
+
+    def test_overlapping_registrations_with_different_ras(self):
+        # Register the concept with the first RA, registered from 2018 to perpetuity
+        self.ra.register(self.oc, MDR.STATES.standard, self.su,
+                         registrationDate=datetime.date(2018, 1, 1),
+                         until_date=datetime.date(2019, 1, 1)
+                         )
+
+        # Register the concept again with a different RA, registered from 2019 to perpetuity
+        self.second_ra.register(self.oc,
+                                MDR.STATES.standard,
+                                self.su,
+                                registrationDate=datetime.date(2019, 1, 1))
+
+        # Go to the data dictionary page for the second Registration Authority
+        self.login_superuser()
+        response = self.client.get(
+            reverse('aristotle:registrationauthority_data_dictionary', args=[self.second_ra.id]) +
+            '?registration_date=2018-6-6&status=5'
+        )
+        self.assertEqual(response.status_code, 200)
+        # Check that there is nothing in the queryset
+        self.assertFalse(response.context['object_list'].exists())
+
+    def test_data_dictionary_filters_status(self):
+        # Register the concept, status is 5
+        self.ra.register(self.oc, MDR.STATES.standard, self.su,
+                         registrationDate=datetime.date(2018,1,1))
+
+        self.check_registered_std(self.oc)
+
+        # Go to the data dictionary page for the first Registration Authority
+        self.login_superuser()
+        response = self.client.get(
+            reverse('aristotle:registrationauthority_data_dictionary', args=[self.ra.id]) +
+            '?registration_date=2018-6-6&status=4'
+        )
+        self.assertEqual(response.status_code, 200)
+        # Check that there is nothing in the queryset
+        self.assertFalse(response.context['object_list'].exists())
+
+    def test_data_dictionary_filters_date(self):
+        # Register the concept, status is 5
+        self.ra.register(self.oc, MDR.STATES.standard, self.su,
+                         registrationDate=datetime.date(2018, 1, 1))
+
+        self.check_registered_std(self.oc)
+
+        self.login_superuser()
+
+        response = self.client.get(
+            reverse('aristotle:registrationauthority_data_dictionary', args=[self.ra.id]) +
+            '?registration_date=2017-1-1&status=5'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['object_list'].exists())
+
+    def test_data_dictionary_displays_closest_registration_date(self):
+        # Register the concept twice with the same status
+        self.ra.register(self.oc, MDR.STATES.standard, self.su,
+                         registrationDate=datetime.date(2018, 1, 1))
+        self.ra.register(self.oc, MDR.STATES.standard, self.su,
+                         registrationDate=datetime.date(2016, 1, 1))
+
+        self.check_registered_std(self.oc)
+
+        self.login_superuser()
+
+        response = self.client.get(
+            reverse('aristotle:registrationauthority_data_dictionary', args=[self.ra.id]) +
+            '?registration_date=2018-1-2&status=5'
+        )
+        self.assertEqual(response.status_code, 200)
+        # Check that the date refered is closest to queried date
+        for concept, status in response.context['concepts'].items():
+            self.assertEqual(status.registrationDate, datetime.date(2018,1,1))
