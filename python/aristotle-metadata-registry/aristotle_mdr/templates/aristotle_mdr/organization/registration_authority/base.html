@@ -25,11 +25,9 @@
   <li role="presentation" {% if active_tab == 'home' %}class="active"{% endif %}>
     <a href="{% url 'aristotle:registrationAuthority' item.pk %}"><i class="fa fa-fw fa-home" aria-hidden="true"></i>Home</a>
   </li>
-  {% comment %}
   <li role="presentation" {% if active_tab == 'data_dictionary' %}class="active"{% endif %}>
     <a href="{% url 'aristotle:registrationauthority_data_dictionary' item.pk %}"><i class="fa fa-fw fa-book" aria-hidden="true"></i>Data Dictionary</a>
   </li>
-  {% endcomment %}
 
   {% if is_manager %} {# This is set to true for superusers as well #}
   <li role="presentation" {% if active_tab == 'members' %}class="active"{% endif %}>
