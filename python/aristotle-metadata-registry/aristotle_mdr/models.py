@@ -794,7 +794,7 @@ class _concept(baseAristotleObject):
         return item
 
     @property
-    def item(self):
+    def item(self) -> models.Model:
         """
         Performs a lookup to find the subclassed item.
         If the type is cached in _type this lookup is fast
