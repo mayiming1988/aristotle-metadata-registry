@@ -546,6 +546,7 @@ class ExtraFormsetMixin:
                 if 'through_formsets' not in context.keys():
                     context['through_formsets'] = []
                 context['through_formsets'].append({'formset': formsetinfo['formset'], 'title': formsetinfo['title']})
+        # TODO: add my organization record formset here
 
         return context
 
@@ -586,6 +587,7 @@ class ExtraFormsetMixin:
             })
 
         weak_list = self.get_m2m_weak(item)
+
         for weak in weak_list:
 
             if clone_item:
@@ -695,6 +697,9 @@ class ExtraFormsetMixin:
         formset.filtered_empty_form = formset.empty_form
 
         return formset
+
+    def get_organization_record_formset(self):
+        pass
 
     def get_identifier_formset(self):
         from aristotle_mdr.contrib.identifiers.forms import identifier_inlineformset_factory

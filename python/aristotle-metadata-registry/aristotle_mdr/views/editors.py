@@ -42,6 +42,9 @@ class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.additional_records_active = True # TODO: introduce better behavior for this
+
         self.slots_active = is_active_module('aristotle_mdr.contrib.slots')
         self.identifiers_active = is_active_module('aristotle_mdr.contrib.identifiers')
 
@@ -121,6 +124,10 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
                 'type': 'slot',
                 'saveargs': None
             })
+
+        if self.additional_records_active:
+            organization_formset = self.get_organization_record_formset()
+
 
         if self.identifiers_active:
             id_formset = self.get_identifier_formset()(
@@ -207,6 +214,8 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         context['show_slots_tab'] = self.slots_active or context['form'].custom_fields
         context['slots_active'] = self.slots_active
         context['show_id_tab'] = self.identifiers_active
+
+        context['additional_records_active'] = self.additional_records_active
 
         return context
 

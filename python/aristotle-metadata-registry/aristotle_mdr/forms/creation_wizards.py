@@ -1,5 +1,6 @@
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
+from django.forms.models import inlineformset_factory
 from django.utils import timezone, dateparse
 from django.utils.translation import ugettext_lazy as _
 
@@ -432,3 +433,14 @@ class DE_Complete(UserAwareForm):
 
     def save(self, *args, **kwargs):
         pass
+
+
+def organizationrecord_inlineformset_factory():
+    """Create an inline formset factory for organization record"""
+    base_formset = inlineformset_factory(
+        MDR._concept, MDR.OrganizationRecord,
+        can_delete=True,
+        fields=('concept', 'organization_record'),
+        extra=0,
+    )
+    return base_formset

@@ -127,8 +127,10 @@
                     {% endif %}
                 </div>
             {% endfor %}
+            {% if additional_records_active %}
             <!--- TODO: add formset here -->
-            <p>Hello World</p>
+            <p>The organization editor is here</p>
+            {% endif %}
         </div>
         <!--- TODO: figure out weak_formsets and through_formsets -->
         {% if form.object_specific_fields or weak_formsets or through_formsets %}
