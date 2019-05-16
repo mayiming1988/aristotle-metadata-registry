@@ -2,7 +2,7 @@ from typing import List
 from django.contrib.contenttypes.models import ContentType
 from django.apps import apps as regapps
 
-from aristotle_mdr.models import _concept
+# from aristotle_mdr.models import _concept
 
 
 def recache_types(apps=None) -> List[str]:
@@ -13,6 +13,9 @@ def recache_types(apps=None) -> List[str]:
 
     if apps is None:
         apps = regapps
+
+    # Get this from apps so it will work in migrations
+    _concept = apps.get_model('aristotle_mdr', '_concept')
 
     updated = []
 
