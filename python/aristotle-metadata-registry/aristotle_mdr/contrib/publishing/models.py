@@ -75,7 +75,6 @@ class PublicationRecord(TimeStampedModel):
         related_name="published_content"
     )
     permission = models.IntegerField(
-        max_length=20,
         choices=VISIBILITY_PERMISSION_CHOICES,
         default=VISIBILITY_PERMISSION_CHOICES.public
     )
