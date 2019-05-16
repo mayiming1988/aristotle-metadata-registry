@@ -188,7 +188,14 @@ class CustomFieldsStatusTestCase(AristotleTestUtils, TestCase):
         # An item with no Custom Value associated for the inactive Custom Field
         self.inactive_item_with_no_value = mdr_models.ObjectClass.objects.create(
             submitter=self.editor,
-            name="Person",
+            name='Person',
+            definition='A Human',
+            workgroup=self.wg1
+        )
+
+        self.inactive_item_with_empty_int_field = mdr_models.ObjectClass.objects.create(
+            submitter=self.editor,
+            name='Person',
             definition='A Human',
             workgroup=self.wg1
         )
@@ -209,7 +216,7 @@ class CustomFieldsStatusTestCase(AristotleTestUtils, TestCase):
         self.inactivefield = CustomField.objects.create(
             order=1,
             name='InactiveField',
-            type='str',
+            type='int',
             state=CUSTOM_FIELD_STATES.inactive
         )
         self.hiddenfield = CustomField.objects.create(
@@ -228,7 +235,13 @@ class CustomFieldsStatusTestCase(AristotleTestUtils, TestCase):
         self.inactive_value = CustomValue.objects.create(
             field=self.inactivefield,
             concept=self.inactive_item,
-            content="Inactive"
+            content='Inactive'
+        )
+
+        self.inactive_value_empty_int = CustomValue.objects.create(
+            field=self.inactivefield,
+            concept=self.inactive_item_with_empty_int_field,
+            content=''
         )
 
         self.hidden_value = CustomValue.objects.create(
@@ -300,6 +313,19 @@ class CustomFieldsStatusTestCase(AristotleTestUtils, TestCase):
 
         fields = response.context['form'].fields
         self.assertTrue(self.inactivefield.form_field_name in fields)
+
+    def test_editor_cant_edit_inactive_int_field_with_no_content(self):
+        # An editor should not be able to edit an inactive integer field with no content
+        self.login_editor()
+
+        response = self.reverse_get(
+            'aristotle:edit_item',
+            reverse_args=[self.inactive_item_with_empty_int_field.id],
+            status_code=200
+        )
+
+        fields = response.context['form'].fields
+        self.assertFalse(self.inactivefield.form_field_name in fields)
 
     def test_viewer_cant_view_hidden_field(self):
         # A viewer should not be able to see a custom field if it has been hidden

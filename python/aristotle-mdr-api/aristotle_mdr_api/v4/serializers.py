@@ -63,9 +63,11 @@ class MultiUpdateListSerializer(serializers.ListSerializer):
 class MultiUpdateNoDeleteListSerializer(MultiUpdateListSerializer):
     perform_delete = False
 
+
 class MultiUpdateCreateIfNotInDatabase(MultiUpdateListSerializer):
     create_if_not_in_db = True
     perform_delete = False
+
 
 class VersionVisibilityPermissionSerializer(MultiUpdateListSerializer):
     create_if_not_in_db = True

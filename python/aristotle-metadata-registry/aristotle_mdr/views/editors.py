@@ -1,8 +1,5 @@
-from django.db import transaction
 from django.http import HttpResponseRedirect
-from django.views.generic import (
-    CreateView, DetailView, UpdateView, FormView
-)
+from django.views.generic import UpdateView, FormView
 from django.views.generic.detail import SingleObjectMixin
 
 import reversion
@@ -10,7 +7,7 @@ from reversion.models import Version
 
 from aristotle_mdr.utils import (
     concept_to_clone_dict, construct_change_message_extra_formsets,
-    construct_change_message, url_slugify_concept, is_active_module
+    url_slugify_concept, is_active_module
 )
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR

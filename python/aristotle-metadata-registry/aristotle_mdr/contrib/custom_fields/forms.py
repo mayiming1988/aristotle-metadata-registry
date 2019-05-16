@@ -87,7 +87,7 @@ class CustomValueFormMixin:
                 field_default_args['choices'] = choices
 
             if custom_field.state == CUSTOM_FIELD_STATES.inactive:
-                if self.user.is_superuser: #type: ignore
+                if self.user.is_superuser:  # type: ignore
                     pass
                 else:
                     # The Custom Field is set to inactive but visible
@@ -96,10 +96,8 @@ class CustomValueFormMixin:
                         fields_to_remove.append(key)
                     else:
                         # There is a custom value associated but it's empty
-                        # TODO: Integer Custom Values are stored as strings, not sure what we want to do here
-                        # about that
                         if self.initial[key] == '':
-                            if self.user.is_superuser: # type: ignore
+                            if self.user.is_superuser:  # type: ignore
                                 pass
                             else:
                                 fields_to_remove.append(key)
@@ -121,6 +119,8 @@ class CustomValueFormMixin:
     def save_custom_fields(self, concept: _concept) -> _concept:
         for fname in self.cfields.keys():
             data = self.cleaned_data[fname]
+            if data == 'None' or data is None:
+                data = ''
             if fname in self.cfields:
                 field = self.cfields[fname]
                 obj, created = CustomValue.objects.update_or_create(
