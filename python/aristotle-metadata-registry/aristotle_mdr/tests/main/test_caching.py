@@ -85,19 +85,27 @@ class TypeCachingTests(TestCase):
         self.assertEqual(concept._type, self.oc_ct)
 
     def test_type_caching_bulk_update(self):
-        oc = self.create_oc()
-        concept = oc._concept_ptr
-
-        self.assertIsNotNone(concept._type)
-        concept._type = None
-        concept.save()
+        oc1 = models.ObjectClass.objects.create(name='OC1', definition='Object Class number 1')
+        oc2 = models.ObjectClass.objects.create(name='OC2', definition='Object Class number 2')
+        co1 = oc1._concept_ptr
+        co2 = oc2._concept_ptr
+        # Reset _type
+        models._concept.objects.all().update(_type=None)
+        co1.refresh_from_db()
+        co2.refresh_from_db()
+        # Make sure _type was reset
+        self.assertIsNone(oc1._type)
+        self.assertIsNone(oc2._type)
 
         updated = recache_types()
         # Make sure some app labels were returned
         self.assertGreater(len(updated), 0)
 
-        concept.refresh_from_db()
-        self.assertEqual(concept._type, self.oc_ct)
+        co1.refresh_from_db()
+        co2.refresh_from_db()
+
+        self.assertEqual(co1._type, self.oc_ct)
+        self.assertEqual(co2._type, self.oc_ct)
 
     def test_cached_item(self):
         oc = self.create_oc()
