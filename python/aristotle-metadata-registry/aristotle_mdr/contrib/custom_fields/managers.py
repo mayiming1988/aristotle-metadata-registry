@@ -55,15 +55,18 @@ class CustomFieldManager(Manager):
             # Filter out the custom fields that are 'Hidden'
             return queryset.exclude(state=CUSTOM_FIELD_STATES.hidden)
 
-    def get_for_model(self, model, user):
+    def get_for_model(self, model, user=None):
         """Return the fields for a given model.
            Used for editing screen"""
         ct = ContentType.objects.get_for_model(model)
         fil = Q(allowed_model__isnull=True) | Q(allowed_model=ct)
 
         queryset = self.get_queryset().filter(fil)
-        if user.is_superuser:
-            return queryset
+        if user is not None:
+            if user.is_superuser:
+                return queryset
+            else:
+                return queryset.exclude(state=CUSTOM_FIELD_STATES.hidden)
         else:
             # Filter out the custom fields that are 'Hidden'
             return queryset.exclude(state=CUSTOM_FIELD_STATES.hidden)
