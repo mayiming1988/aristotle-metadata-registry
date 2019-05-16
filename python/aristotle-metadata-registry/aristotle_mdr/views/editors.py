@@ -11,6 +11,8 @@ from aristotle_mdr.utils import (
     concept_to_clone_dict, construct_change_message_extra_formsets,
     url_slugify_concept, is_active_module
 )
+from django.forms import Select
+
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
 from aristotle_mdr.contrib.publishing.models import VersionPermissions

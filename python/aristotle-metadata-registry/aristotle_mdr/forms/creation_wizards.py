@@ -441,6 +441,8 @@ def record_relation_inlineformset_factory():
         MDR._concept, MDR.RecordRelation,
         can_delete=True,
         fields=('concept', 'type', 'organization_record'),
+        widgets={'type': forms.widgets.Select(attrs={'class': 'form-control'}),
+                 'organization_record': forms.widgets.Select(attrs={'class': 'form-control'})},
         extra=1,
     )
     return base_formset
