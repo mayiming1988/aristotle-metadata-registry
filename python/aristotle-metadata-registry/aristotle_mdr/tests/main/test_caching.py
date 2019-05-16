@@ -3,6 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
+from aristotle_mdr.utils.cache import recache_types
 from django.contrib.auth import get_user_model
 
 import datetime
@@ -76,4 +77,22 @@ class TypeCachingTests(TestCase):
         oc_ct = ContentType.objects.get_for_model(oc)
 
         concept = oc._concept_ptr
+        self.assertEqual(concept._type, oc_ct)
+
+    def test_type_caching_bulk_update(self):
+        oc = models.ObjectClass.objects.create(
+            name='Test item',
+            definition='An item used for testing or test base purposes'
+        )
+        oc_ct = ContentType.objects.get_for_model(oc)
+        concept = oc._concept_ptr
+
+        self.assertIsNotNone(concept._type)
+        concept._type = None
+        concept.save()
+
+        updated = recache_types()
+        print(updated)
+
+        concept.refresh_from_db()
         self.assertEqual(concept._type, oc_ct)
