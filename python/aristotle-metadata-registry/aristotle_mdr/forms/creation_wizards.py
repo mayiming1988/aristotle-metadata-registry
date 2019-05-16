@@ -152,7 +152,10 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
 
     def concept_fields(self):
         # version/workgroup are displayed with name/definition
+        # This is where References, Origin URI, Origin and Comments are populated
+
         field_names = [field.name for field in MDR.baseAristotleObject._meta.fields] + ['version', 'workgroup']
+
         concept_field_names = [
             field.name for field in MDR.concept._meta.fields
             if field.name not in field_names

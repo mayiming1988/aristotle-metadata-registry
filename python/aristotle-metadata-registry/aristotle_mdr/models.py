@@ -710,6 +710,16 @@ class _concept(baseAristotleObject):
         blank=True
     )
 
+    reference_link  = models.URLField(
+        blank=True,
+        help_text=_("A link to reference information about the metadata item")
+    )
+
+    organization_link = models.URLField(
+        blank=True,
+        help_text=_("Associated organizations")
+    )
+
     superseded_by_items = ConceptManyToManyField(  # 11.5.3.4
         'self',
         through='SupersedeRelationship',
