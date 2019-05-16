@@ -805,7 +805,38 @@ class _concept(baseAristotleObject):
             return cached_item
 
         # Fallback to using get_subclass (this is slow)
-        return _concept.objects.get_subclass(pk=self.pk)
+        item = _concept.objects.get_subclass(pk=self.pk)
+        # Set _type for future calls (dont save though)
+        self._type = ContentType.objects.get_for_model(type(item))
+
+        return item
+
+    @property
+    def item_type(self) -> ContentType:
+        """Returns the content type of the subclassed item"""
+        if self._type:
+            return self._type
+
+        # Fallback to using get_subclass (this is slow)
+        instance = _concept.objects.get_subclass(pk=self.pk)
+        model = type(instance)
+        ct = ContentType.objects.get_for_model(type(instance))
+        # Set _type for future calls (dont save though)
+        self._type = ct
+
+        return ct
+
+    @property
+    def item_type_name(self) -> str:
+        """
+        Return the verbose name of the subclassed items type
+        e.g. (Object Class)
+        """
+        # Get content type
+        ct = self.item_type
+        # Get model and return name
+        model = ct.model_class()
+        return model.get_verbose_name()
 
     @property
     def concept(self):
