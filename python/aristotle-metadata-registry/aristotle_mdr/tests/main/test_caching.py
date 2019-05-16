@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.contrib.contenttypes.models import ContentType
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
@@ -6,11 +7,6 @@ from django.contrib.auth import get_user_model
 
 import datetime
 from time import sleep
-
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-
-setup_aristotle_test_environment()
 
 
 class CachingForRawPermissions(TestCase):
@@ -68,3 +64,16 @@ class CachingForRawPermissions(TestCase):
         )
         self.assertTrue(perms.user_can_view(self.submitter, self.item))
         self.assertTrue(perms.user_can_view(self.viewer, self.item))
+
+
+class TypeCachingTests(TestCase):
+
+    def test_type_caching_new_items(self):
+        oc = models.ObjectClass.objects.create(
+            name='New Item',
+            definition='So very new'
+        )
+        oc_ct = ContentType.objects.get_for_model(oc)
+
+        concept = oc._concept_ptr
+        self.assertEqual(concept._type, oc_ct)

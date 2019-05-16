@@ -11,6 +11,7 @@ from django.dispatch import receiver, Signal
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
+from django.contrib.contenttypes.models import ContentType
 
 from model_utils import Choices, FieldTracker
 from model_utils.models import TimeStampedModel
@@ -694,6 +695,13 @@ class _concept(baseAristotleObject):
     # To be usable these must be updated when statuses are changed
     _is_public = models.BooleanField(default=False)
     _is_locked = models.BooleanField(default=False)
+
+    # Cache of what type of item this is (set in handle_object_save)
+    _type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE,
+        null=True
+    )
 
     version = models.CharField(max_length=20, blank=True)
     references = RichTextField(blank=True)
