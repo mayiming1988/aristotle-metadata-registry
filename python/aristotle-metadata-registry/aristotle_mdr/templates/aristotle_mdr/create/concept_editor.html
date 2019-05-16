@@ -143,10 +143,10 @@
                     </tr>
                     </thead>
                     <tbody id="org_records" class="draggableTable">
-                    {% for recordform in formset %}
+                    {% for recordform in formset.forms %}
                     <tr class="movablerow">
                         <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
-                        {% for hidden in slot_form.hidden_fields %}
+                        {% for hidden in recordform.hidden_fields %}
                             {{ hidden }}
                         {% endfor %}
                         </td>
