@@ -22,12 +22,15 @@ export function replacePrefix(element, num_forms) {
 export function addRow(formid, row_selector, urlfunc) {
     // Get panel list
     let panelList = document.getElementById(formid)
+
     if (panelList.tagName === 'TABLE') {
         // If it's a table use the body
         panelList = panelList.querySelector('tbody')
+        console.log("Table detected")
     } else if (panelList.tagName === 'FORM') {
         // If panelList is a form and has a form-list class use that
         let list = panelList.querySelector('.form-list')
+        console.log("is form")
         if (list !== null) {
             panelList = list
         }
@@ -37,6 +40,7 @@ export function addRow(formid, row_selector, urlfunc) {
     panelList = $(panelList)
 
     let formstage = $('.formstage#' + formid + ' ' + row_selector)
+    console.log(formstage)
 
     // Clone the formstage
     let new_form = formstage.clone();
@@ -72,7 +76,6 @@ export function addRow(formid, row_selector, urlfunc) {
         let element = $(this);
         initDALWidget(element, urlfunc)
     })
-
     reinitCKEditors(new_form);
 }
 

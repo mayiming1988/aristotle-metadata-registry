@@ -113,4 +113,8 @@
         {% include 'aristotle_mdr/generic/actions/alter_one_to_many_formstage.html' with formset=identifier_FormSet %}
     {% endif %}
 
+    {% if recordrelation_FormSet %}
+        {% include 'aristotle_mdr/generic/actions/alter_one_to_many_formstage.html' with formset=recordrelation_FormSet %}
+    {% endif %}
+
 {% endblock %}

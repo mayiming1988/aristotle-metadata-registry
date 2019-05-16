@@ -128,12 +128,13 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
 
         if self.additional_records_active:
             recordrelation_formset = self.get_recordrelations_formset()(
+                queryset=MDR.RecordRelation.objects.all(),
                 instance=self.item.concept,
                 data=postdata
             )
             extra_formsets.append({
                 'formset': recordrelation_formset,
-                'title': 'Record Relation',
+                'title': 'RecordRelation',
                 'type': 'record_relation',
                 'saveargs': None
             })

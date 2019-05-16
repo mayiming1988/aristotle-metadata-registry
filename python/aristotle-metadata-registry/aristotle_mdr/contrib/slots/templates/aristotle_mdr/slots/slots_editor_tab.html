@@ -20,13 +20,11 @@
     <tbody id="slots" class="draggableTable">
     {% for slot_form in formset.forms %}
       <tr class="moveablerow">
-
           <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
             {% for hidden in slot_form.hidden_fields %}
             {{ hidden }}
             {% endfor %}
           </td>
-
           {% for field in slot_form.visible_fields %}
             <td>
               {{ field.errors.as_ul }}
@@ -39,6 +37,5 @@
     </table>
     <a class="btn btn-primary add_code_button" formid="slots">
         <i class="fa fa-plus-circle"></i> Add a slot</a>
-
 {% endwith %}
 {% endblock %}
