@@ -69,22 +69,23 @@ class CachingForRawPermissions(TestCase):
 
 class TypeCachingTests(TestCase):
 
-    def test_type_caching_new_items(self):
-        oc = models.ObjectClass.objects.create(
+    def setUp(self):
+        self.oc_ct = ContentType.objects.get_for_model(models.ObjectClass)
+
+    def create_oc(self):
+        return models.ObjectClass.objects.create(
             name='New Item',
             definition='So very new'
         )
-        oc_ct = ContentType.objects.get_for_model(oc)
+
+    def test_type_caching_new_items(self):
+        oc = self.create_oc()
 
         concept = oc._concept_ptr
-        self.assertEqual(concept._type, oc_ct)
+        self.assertEqual(concept._type, self.oc_ct)
 
     def test_type_caching_bulk_update(self):
-        oc = models.ObjectClass.objects.create(
-            name='Test item',
-            definition='An item used for testing or test base purposes'
-        )
-        oc_ct = ContentType.objects.get_for_model(oc)
+        oc = self.create_oc()
         concept = oc._concept_ptr
 
         self.assertIsNotNone(concept._type)
@@ -92,7 +93,17 @@ class TypeCachingTests(TestCase):
         concept.save()
 
         updated = recache_types()
-        print(updated)
+        # Make sure some app labels were returned
+        self.assertGreater(len(updated), 0)
 
         concept.refresh_from_db()
-        self.assertEqual(concept._type, oc_ct)
+        self.assertEqual(concept._type, self.oc_ct)
+
+    def test_cached_item(self):
+        oc = self.create_oc()
+        concept = oc._concept_ptr
+
+        cached_item = concept.cached_item
+
+        self.assertIsNotNone(cached_item)
+        self.assertEqual(cached_item, oc)

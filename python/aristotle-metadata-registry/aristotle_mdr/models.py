@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union, Iterable
+from typing import List, Tuple, Union, Iterable, Optional
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ImproperlyConfigured
@@ -775,11 +775,36 @@ class _concept(baseAristotleObject):
         return _concept.objects.filter(pk=self.pk).visible(user).exists()
 
     @property
+    def cached_item(self) -> Optional[models.Model]:
+        """
+        Return cached subclassed item or None
+        The .item property below should be used instead
+        unless the slow query needs to be avoided in all cases
+        """
+        item = None
+        ct = self._type
+        if ct is not None:
+            model = ct.model_class()
+            try:
+                item = model.objects.get(pk=self.pk)
+            except model.DoesNotExist:
+                # This should never happen if _type wasn't messed with
+                return None
+
+        return item
+
+    @property
     def item(self):
         """
-        Performs a lookup using ``model_utils.managers.InheritanceManager`` to
-        find the subclassed item.
+        Performs a lookup to find the subclassed item.
+        If the type is cached in _type this lookup is fast
+        otherwise InheritanceManager is used which is quite slow
         """
+        cached_item = self.cached_item
+        if cached_item is not None:
+            return cached_item
+
+        # Fallback to using get_subclass (this is slow)
         return _concept.objects.get_subclass(pk=self.pk)
 
     @property
