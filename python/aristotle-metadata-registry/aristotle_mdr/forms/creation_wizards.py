@@ -14,6 +14,9 @@ from aristotle_mdr.utils.utils import fetch_aristotle_settings
 
 from aristotle_mdr.contrib.custom_fields.forms import CustomValueFormMixin
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class UserAwareFormMixin:
     def __init__(self, *args, **kwargs):
@@ -111,7 +114,7 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
     """
 
     def __init__(self, *args, **kwargs):
-        # TODO: Have tis throw a 'no user' error
+        # TODO: Have this throw a 'no user' error
         super().__init__(*args, **kwargs)
 
         if 'aristotle_mdr_backwards' not in fetch_aristotle_settings().get('CONTENT_EXTENSIONS', []):
