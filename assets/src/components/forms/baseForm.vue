@@ -1,7 +1,7 @@
 <template>
     <div class="vue-form" :class="{'row': inline }">
         <slot name="before" />
-        <bsFieldWrapper v-for="(fielddata, name) in fields" :key="name" :name="name" :label="fielddata.label" :display-label="showLabels" :has-errors="hasErrors(name)" :column="inline">
+        <bsFieldWrapper v-for="(fielddata, name) in fields" v-if="fielddata.display != false" :key="name" :name="name" :label="fielddata.label" :display-label="showLabels" :has-errors="hasErrors(name)" :column="inline">
             <singleError :fe-errors="getFrontendError(name)" :be-errors="getBackendErrors(name)" :column="inline" />
             <formField
                 :tag="fielddata.tag" 
@@ -11,7 +11,7 @@
                 :options="fielddata.options"
                 :value="value[name]" 
                 @input="fieldInput(name, $event)"
-            />
+                />
         </bsFieldWrapper>
         <slot name="after" />
     </div>

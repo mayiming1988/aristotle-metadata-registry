@@ -22,7 +22,6 @@ class CustomField(TimeStampedModel):
     # Optional
     help_text = models.CharField(max_length=1000, blank=True)
     allowed_model = models.ForeignKey(ContentType, blank=True, null=True)
-    choices = models.TextField(blank=True)
 
     visibility = models.IntegerField(
         choices=permission_choices,
@@ -35,6 +34,8 @@ class CustomField(TimeStampedModel):
     )
 
     objects = CustomFieldManager()
+    choices = models.TextField(blank=True)
+
 
     class Meta:
         ordering = ['order']

@@ -15,7 +15,7 @@ import itertools
 class CustomFieldForm(forms.ModelForm):
     class Meta:
         model = CustomField
-        exclude = ['order', 'choices']
+        exclude = ['order']
 
     def get_concept_qs(self):
         mapping = get_concept_content_types()

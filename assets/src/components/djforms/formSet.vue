@@ -99,6 +99,7 @@
                 this.formsData = this.initial
                 this.nextVid = this.formsData.length
             }
+
             for (let i = 0; i < this.formsData.length; i++) {
                 // Add a vue id to each item as unique key
                 this.formsData[i]['vid'] = i
@@ -107,6 +108,8 @@
                 // Populate the showAccordion list
                 this.showAccordion.push(false)
             }
+            // Set a flag on a form field to prevent initial display of form field
+            this.fields['choices'].display = false
         },
         validations: function () {
             return this.getValidations(this.fields, 'formsData', true)
@@ -135,6 +138,10 @@
             }
         },
         methods: {
+            formUpdated: function () {
+                 console.log('the form object updated')
+            },
+
             getError: function (vid) {
                 return this.error_map[vid]
             },
