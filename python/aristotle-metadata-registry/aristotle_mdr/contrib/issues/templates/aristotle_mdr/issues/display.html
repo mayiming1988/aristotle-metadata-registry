@@ -27,12 +27,12 @@
             </h1>
 
             <div class="margin-below">
-              <ul class="taggle_list">
+              <ul class="taggle_inline_list">
                 {% for label in object.labels.all %}
                 <li class="taggle">{{ label.label }}</li>
                 {% endfor %}
               </ul>
-              <p class="padded text-muted">Opened {{ object.created|timesince }} ago by {{ object.submitter.display_name }}</p>
+              <span>Opened {{ object.created|timesince }} ago by {{ object.submitter.display_name }}</span>
             </div>
 
             <div class="panel panel-default">

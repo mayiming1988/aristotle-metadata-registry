@@ -62,8 +62,8 @@ class IssueList(IssueBase, TemplateView):
     template_name='aristotle_mdr/issues/list.html'
 
     def get_issues(self):
-        open_issues = self.item.issues.filter(isopen=True).order_by('created')
-        closed_issues = self.item.issues.filter(isopen=False).order_by('created')
+        open_issues = self.item.issues.filter(isopen=True).order_by('created').prefetch_related('labels')
+        closed_issues = self.item.issues.filter(isopen=False).order_by('created').prefetch_related('labels')
         return open_issues, closed_issues
 
     def get_context_data(self, *args, **kwargs):
