@@ -135,7 +135,6 @@ class IssueLabel(models.Model):
     )
 
 
-
 @receiver(post_save, sender=Issue)
 def new_issue_created(sender, instance, *args, **kwargs):
     # issue = kwargs['instance']
