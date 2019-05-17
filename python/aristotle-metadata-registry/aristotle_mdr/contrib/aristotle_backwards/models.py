@@ -29,4 +29,3 @@ class RepresentationClass(ManagedItem):
     perform calculations using them together.
     """
     template = "aristotle_mdr_backwards/manageditems/representationclass.html"
-
