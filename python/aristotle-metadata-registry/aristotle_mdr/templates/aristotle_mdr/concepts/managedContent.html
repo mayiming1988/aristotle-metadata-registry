@@ -43,14 +43,20 @@
             {% if item.submitting_organizations %}
                 <h3>Submitting Organizations</h3>
                 {% for rec in item.submitting_organizations %}
-                <p><a href="{{ rec.organization_record.get_absolute_url }}">{{ rec.organization_record.name }}</a></p>
+                    {% if rec.organization_record|can_view:request.user %}
+                        <p><a href="{{ rec.organization_record.get_absolute_url }}">{{ rec.organization_record.name }}</a></p>
+                    {% else %}
+                    {% endif %}
                 {% endfor %}
             {% endif %}
 
             {% if item.responsible_organizations %}
                 <h3>Responsible Organizations</h3>
                 {% for rec in item.responsible_organizations %}
-                <p><a href="{{ rec.organization_record.get_absolute_url }}">{{ rec.organization_record.name }}</a></p>
+                {% if rec.organization_record|can_view:request.user %}
+                    <p><a href="{{ rec.organization_record.get_absolute_url }}">{{ rec.organization_record.name }}</a></p>
+                {% else %}
+                {% endif %}
                 {% endfor %}
             {% endif %}
 
