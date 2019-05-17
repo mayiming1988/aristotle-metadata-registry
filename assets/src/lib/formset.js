@@ -26,11 +26,9 @@ export function addRow(formid, row_selector, urlfunc) {
     if (panelList.tagName === 'TABLE') {
         // If it's a table use the body
         panelList = panelList.querySelector('tbody')
-        console.log("Table detected")
     } else if (panelList.tagName === 'FORM') {
         // If panelList is a form and has a form-list class use that
         let list = panelList.querySelector('.form-list')
-        console.log("is form")
         if (list !== null) {
             panelList = list
         }
