@@ -1,12 +1,9 @@
 <template>
     <div class="vue-formset">
         <draggable :list="formsData" :options="sortableConfig">
-
             <div class="row container" v-for="(item, index) in formsData" v-bind:key="index">
-
                 <div class="col-md-10">
                     <div class="panel panel-info">
-
                         <div class="panel-heading" role="button" @click="toggleAccordion(index)">
                             <h4 class="panel-title"><i class="fa fa-lg fa-bars grabber"></i>  {{ item.name }}</h4>
                         </div>
@@ -39,6 +36,7 @@
         <div class="vue-formset-button-group">
             <button class="btn btn-success" @click="addRow">Add</button>
             <button class="btn btn-primary" @click="submitFormSet">Submit Edits</button>
+
         </div>
     </div>
 </template>
@@ -48,7 +46,6 @@
     import baseForm from '@/forms/baseForm.vue'
     import draggable from 'vuedraggable'
     import Collapse from 'uiv/src/components/collapse/Collapse.vue'
-
     /*
     Formset with validation,
     emits a submit event
@@ -110,7 +107,18 @@
                 this.showAccordion.push(false)
             }
             // Set a flag on a form field to prevent initial display of form field
-            this.fields['choices'].display = false
+
+            for (let form of this.formsData) {
+                /// Type is the 'Type field' of the form
+                if (form.type === 'enum') {
+                    form['choices'].display = false
+                }
+                else {
+                    form['choices'].display = true
+                }
+            }
+
+
         },
         validations: function () {
             return this.getValidations(this.fields, 'formsData', true)
@@ -147,7 +155,6 @@
                 this.nextVid += 1
                 this.showAccordion = this.showAccordion.map(() => false)
                 this.showAccordion.push(true)
-
             },
             deleteRow: function (index) {
                 this.formsData.splice(index, 1)
