@@ -132,7 +132,7 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
                 data=postdata
             )
 
-            # Override the queryset
+            # Override the queryset to restrict to the records the user has permission to view
             for record_relation_form in recordrelation_formset:
                 record_relation_form.fields['organization_record'].queryset = MDR.OrganizationRecord.objects.visible(self.request.user)
 
