@@ -3,7 +3,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db.models.fields import CharField, TextField
 from django.http import HttpResponse
-from django.http import QueryDict
 from django.test import TestCase, override_settings, tag, RequestFactory
 from django.urls import reverse
 from django.utils import timezone
@@ -28,12 +27,6 @@ import datetime
 from unittest import mock, skip
 import reversion
 import json
-
-from aristotle_mdr.tests.utils import store_taskresult, get_download_result
-
-from mock import patch
-
-from aristotle_mdr.templatetags.aristotle_tags import get_dataelements_from_m2m
 
 
 class AnonymousUserViewingThePages(TestCase):
@@ -680,7 +673,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(first_message.message, 'You have been logged out')
         self.assertEqual(second_message.message, 'Version could not be loaded')
 
-    def test_comparitor_with_bad_version_data(self):
+    def test_comparator_with_bad_version_data(self):
         versions = self.create_versions()
         # Mangle the last versions serialized data
         last_version = versions.order_by('-revision__date_created').first()
@@ -1363,18 +1356,6 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
                                         data.update({"%s-%d-%s"%(pre,i+1,field) : added_value})
                     data.pop("%s-%d-id"%(pre,i), None)
 
-                # self.assertIsNotNone(updating_field)
-                # # no string was found to update
-                # # if this happends the test needs to be passed an updating_field or changed to support more than text updates
-
-                # i=0
-                # data.update({"%s-%d-DELETE"%(pre,i): 'checked', "%s-%d-%s"%(pre,i,updating_field) : getattr(v, updating_field)+" - deleted"}) # delete the last one.
-
-                # # add order and updating_value to newly added data
-                # i=num_vals
-                # data.update({"%s-%d-ORDER"%(pre,i) : i, "%s-%d-%s"%(pre,i,updating_field) : "new value -updated"})
-
-                # # add management form
                 data.update({
                     "%s-TOTAL_FORMS"%pre:num_vals, "%s-INITIAL_FORMS"%0: num_vals, "%s-MAX_NUM_FORMS"%pre:1000,
                     })
@@ -1558,28 +1539,6 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertTrue(self.item1.statuses.order_by('state')[0].state == models.STATES.incomplete)
         self.assertTrue(self.item1.statuses.order_by('state')[1].state == models.STATES.candidate)
         self.assertEqual(self.item1.name,updated_name_again)
-
-
-    # def test_anon_cannot_view_item_history(self):
-    #     self.logout()
-    #     response = self.client.get(reverse('aristotle:item_history',args=[self.item1.id]))
-    #     self.assertEqual(response.status_code,302)
-    #     response = self.client.get(reverse('aristotle:item_history',args=[self.item2.id]))
-    #     self.assertEqual(response.status_code,302)
-
-
-    #     # Register to check if link is on page... it shouldn't be
-    #     models.Status.objects.create(
-    #         concept=self.item1,
-    #         registrationAuthority=self.ra,
-    #         registrationDate = datetime.date(2009,4,28),
-    #         state =  models.STATES.standard
-    #         )
-
-    #     # Anon users shouldn't even have the link to history *any* items
-    #     response = self.client.get(self.item1.get_absolute_url())
-    #     self.assertEqual(response.status_code,200)
-    #     self.assertNotContains(response, reverse('aristotle:item_history',args=[self.item1.id]))
 
     @tag('changestatus')
     def test_registrar_can_change_status(self):
@@ -2916,16 +2875,6 @@ class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):
 
         item = response.context['item']
 
-        # des = get_dataelements_from_m2m(item, "inputs")
-        # self.assertEqual(des[0].pk, self.de3.pk)
-        # self.assertEqual(des[1].pk, self.de2.pk)
-        # self.assertEqual(des[2].pk, self.de1.pk)
-
-        # des = get_dataelements_from_m2m(item, "derives")
-        # self.assertEqual(des[0].pk, self.de1.pk)
-        # self.assertEqual(des[1].pk, self.de2.pk)
-        # self.assertEqual(des[2].pk, self.de3.pk)
-
     @skip('to be fixed in future')
     @tag('ded_version')
     def test_derivation_version_follow(self):
@@ -2958,10 +2907,6 @@ class LoggedInViewManagedItemPages(utils.LoggedInViewPages):
             **self.defaults
         )
 
-    # def get_page(self,item):
-    #     url_name = "".join(item._meta.verbose_name.title().split())
-    #     url_name = url_name[0].lower() + url_name[1:]
-    #     return reverse('aristotle:%s'%url_name,args=[item.id])
 
     def get_page(self,item):
         return item.get_absolute_url()
@@ -3052,19 +2997,3 @@ class RegistrationAuthorityViewPage(utils.LoggedInViewPages, TestCase):
         self.logout()
         response = self.client.get(reverse('aristotle:all_registration_authorities'))
         self.assertEqual(response.status_code,200)
-
-# I hate the old orgs and want them to go away
-# class OrganizationViewPage(LoggedInViewUnmanagedPages, TestCase):
-#     url_name='organization'
-#     itemType=models.Organization
-
-#     def setUp(self):
-#         super().setUp()
-
-#     def get_page(self,item):
-#         return item.get_absolute_url()
-
-#     def test_view_all_orgs(self):
-#         self.logout()
-#         response = self.client.get(reverse('aristotle:all_organizations'))
-#         self.assertEqual(response.status_code,200)

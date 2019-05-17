@@ -123,7 +123,7 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             duplicates = self.find_duplicates()
             kwargs = self.get_form_kwargs(step)
             kwargs.update({
-                'custom_fields': CustomField.objects.get_for_model(self.model),
+                'custom_fields': CustomField.objects.get_for_model(self.model, user=self.request.user),
                 'data': data,
                 'files': files,
                 'prefix': self.get_form_prefix(step, self.form_list[step]),

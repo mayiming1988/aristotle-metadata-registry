@@ -1,8 +1,5 @@
-from django.db import transaction
 from django.http import HttpResponseRedirect
-from django.views.generic import (
-    CreateView, DetailView, UpdateView, FormView
-)
+from django.views.generic import UpdateView, FormView
 from django.views.generic.detail import SingleObjectMixin
 
 import reversion
@@ -10,7 +7,7 @@ from reversion.models import Version
 
 from aristotle_mdr.utils import (
     concept_to_clone_dict, construct_change_message_extra_formsets,
-    construct_change_message, url_slugify_concept, is_active_module
+    url_slugify_concept, is_active_module
 )
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
@@ -62,12 +59,12 @@ class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
         kwargs = super().get_form_kwargs()
         kwargs.update({
             'user': self.request.user,
-            'custom_fields': CustomField.objects.get_for_model(type(self.item))
+            'custom_fields': CustomField.objects.get_for_model(type(self.item), user=self.request.user)
         })
         return kwargs
 
     def get_custom_values(self):
-        # If we are editing, must be able to see all values
+        # If we are editing, must be able to see the content added to a custom value
         return CustomValue.objects.get_for_item(self.item.concept)
 
     def get_initial(self):

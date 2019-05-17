@@ -50,7 +50,6 @@ class VersionPermissions(TimeStampedModel):
         primary_key=True)
 
     visibility = models.IntegerField(
-        max_length=20,
         choices=VISIBILITY_PERMISSION_CHOICES,
         default=VISIBILITY_PERMISSION_CHOICES.workgroup)
 
