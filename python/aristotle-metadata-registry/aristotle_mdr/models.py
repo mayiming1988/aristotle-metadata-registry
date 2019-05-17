@@ -750,7 +750,7 @@ class _concept(baseAristotleObject):
         verbose_name = "item"
 
     class ReportBuilder:
-        exclude = ('_is_public', '_is_locked')
+        exclude = ('_is_public', '_is_locked', '_type')
 
     @classmethod
     def model_to_publish(self):
@@ -761,6 +761,7 @@ class _concept(baseAristotleObject):
         changed = self.tracker.changed()
         changed.pop('_is_public', False)
         changed.pop('_is_locked', False)
+        changed.pop('_type', False)
         return len(changed.keys()) > 0
 
     @property
