@@ -23,6 +23,9 @@
         <th>{% trans 'Description' %}
         </th>
         <th>
+            <i class="fa fa-folder" title="{% trans 'Number of sub collections' %}"></i>
+        </th>
+        <th>
             <i class="fa fa-hashtag" title="{% trans 'Number of items' %}"></i>
         </th>
         {% if can_manage_collections %}
@@ -40,6 +43,7 @@
                 </a>
             </td>
             <td>{{ item.description|striptags|truncatewords:50 }}</td>
+            <td>{{ item.collection_set.count }}</td>
             <td>{{ item.metadata.all.count }}</td>
 
             {% if can_manage_collections %}

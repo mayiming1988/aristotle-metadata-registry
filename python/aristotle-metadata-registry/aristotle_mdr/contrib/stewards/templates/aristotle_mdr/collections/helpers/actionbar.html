@@ -1,8 +1,8 @@
 {% load aristotle_tags i18n %}
 {% has_group_perm group "manage_collections" as can_manage_collections %}
 
+{% if can_manage_collections %}
 <div class="btn-group pull-right">
-
     {% if user.is_active %}
     <div class="btn-group">
       <button id="metadata_action_menu_action" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
@@ -39,5 +39,6 @@
     </div>
     {% endif %}
 </div>
+{% endif %}
 
 {% bootstrap_modal "infobox_adv_edit" size='lg' %}

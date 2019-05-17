@@ -165,8 +165,8 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
         # if permission not in self.role_permissions.keys()
         #     raise PermissionNotDefined
 
-        if user.is_anonymous():
-            return False
+        # if user.is_anonymous():
+        #     return False
 
         if user.is_superuser:
             return True
@@ -177,7 +177,9 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
                     perm = perm_or_role
                     yield perm(user, group=self)
                 else:
-                    if not self.is_active():
+                    if user.is_anonymous():
+                        yield False
+                    elif not self.is_active():
                         yield False
                     else:
                         role = perm_or_role
