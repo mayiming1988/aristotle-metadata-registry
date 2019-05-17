@@ -93,8 +93,4 @@ export default {
 select.left-select {
     float: left;
 }
-
-.taggle_list {
-    width: auto;
-}
 </style>
