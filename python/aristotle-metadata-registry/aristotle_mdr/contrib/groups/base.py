@@ -56,7 +56,7 @@ class AbstractMembershipBase(ModelBase):
 class AbstractMembershipModel(models.Model):
     class Meta:
         abstract = True
-    
+
     @classmethod
     def user_has_role_for_any_group(cls, user, role):
         return cls.objects.filter(user=user, role=role).exists()

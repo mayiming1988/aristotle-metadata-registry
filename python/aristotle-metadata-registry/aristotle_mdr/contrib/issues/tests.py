@@ -4,6 +4,7 @@ from aristotle_mdr import models as mdr_models
 from aristotle_mdr.contrib.issues import models
 from aristotle_mdr.contrib.stewards.tests.test_perms import BaseStewardOrgsTestCase
 
+
 class IssueTests(AristotleTestUtils, TestCase):
 
     def setUp(self):
@@ -149,7 +150,7 @@ class LabelTests(BaseStewardOrgsTestCase, AristotleTestUtils, TestCase):
     def setUp(self):
         super().setUp()
         from aristotle_mdr.contrib.issues.models import IssueLabel
-        
+
         self.rw_label = IssueLabel.objects.create(
             label="Registry-wide",
         )
@@ -157,7 +158,6 @@ class LabelTests(BaseStewardOrgsTestCase, AristotleTestUtils, TestCase):
             label="Just for the SO",
             stewardship_organisation=self.steward_org_1,
         )
-        
 
     def test_super_label_permissions(self):
         self.login_superuser()
