@@ -1,7 +1,5 @@
 from django.http import HttpResponseRedirect
-from django.views.generic import (
-     UpdateView, FormView
-)
+from django.views.generic import UpdateView, FormView
 from django.views.generic.detail import SingleObjectMixin
 
 import reversion
@@ -43,7 +41,7 @@ class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.additional_records_active = True # TODO: introduce better behavior for this
+        self.additional_records_active = True   # TODO: introduce better behavior for this
 
         self.slots_active = is_active_module('aristotle_mdr.contrib.slots')
         self.identifiers_active = is_active_module('aristotle_mdr.contrib.identifiers')
@@ -141,7 +139,6 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
                 'type': 'record_relation',
                 'saveargs': None
             })
-
 
         if self.identifiers_active:
             id_formset = self.get_identifier_formset()(

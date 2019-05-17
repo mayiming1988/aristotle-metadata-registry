@@ -446,5 +446,3 @@ def record_relation_inlineformset_factory():
         extra=1,
     )
     return base_formset
-
-
