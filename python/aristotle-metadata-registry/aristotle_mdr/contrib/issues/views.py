@@ -38,6 +38,7 @@ class IssueBase(LoginRequiredMixin, SimpleItemGet):
             data['proposal_value'] = issue.proposal_value
             data['name'] = issue.name
             data['description'] = issue.description
+            data['labels'] = list(issue.labels.all().values_list('id', flat=True))
 
         # Fetch issue labels
         this_so_or_none = (

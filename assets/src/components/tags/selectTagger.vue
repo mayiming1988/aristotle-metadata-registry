@@ -45,14 +45,18 @@ export default {
         }
     },
     created: function() {
+        // Build valueMap and current options
         for (let option of this.options) {
             this.valueMap.set(option.value, option.text)
             this.currentOptions.add(option.value)
         }
+        // Remove initial tags from current options
+        for (let tag of this.value) {
+            this.currentOptions.delete(tag)
+        }
     },
     methods: {
         getText: function(value) {
-            console.log(value)
             let name = this.valueMap.get(value)
             if (name === undefined) {
                 name = ''

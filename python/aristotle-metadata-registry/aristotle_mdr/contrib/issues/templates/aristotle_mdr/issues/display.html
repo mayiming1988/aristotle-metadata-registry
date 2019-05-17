@@ -105,6 +105,8 @@
         url="{% url 'api_v4:issues:issue' object.id %}"
         propose-fields="{{ fields }}"
         initial="{{ initial }}"
-        html-editor-config="{{ config }}">
+        html-editor-config="{{ config }}"
+        all-labels-json="{{ allLabels }}"
+    >
     </issue-modal>
 {% endblock %}

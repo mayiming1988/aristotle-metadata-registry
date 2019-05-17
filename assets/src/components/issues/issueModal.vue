@@ -128,13 +128,20 @@ export default {
             // When creating new proposals set initial values from item
             this.proposals = JSON.parse(this.itemFieldsJson)
         } else {
+            // Set formdata from initial
             this.formdata = JSON.parse(this.initial)
+            // Set proposal value
             this.proposals[this.formdata.proposal_field] = this.formdata.proposal_value
+            // Make sure formdata labels are strings
+            for (let i in this.formdata.labels) {
+                if (typeof this.formdata.labels[i] === "number") {
+                    this.formdata.labels[i] = this.formdata.labels[i].toString()
+                }
+            }
         }
         this.fields = JSON.parse(this.proposeFields)
         // Build label options
         let labels = JSON.parse(this.allLabelsJson)
-        console.log(labels)
         for (let [id, name] of Object.entries(labels)) {
             this.labelOptions.push({value: id, text: name})
         }
