@@ -54,6 +54,7 @@ from .fields import (
 from .managers import (
     ConceptManager,
     ReviewRequestQuerySet, WorkgroupQuerySet,
+    StewardOrganisationQuerySet,
     RegistrationAuthorityQuerySet,
     StatusQuerySet, UtilsManager,
     SupersedesManager, ProposedSupersedesManager
@@ -99,7 +100,7 @@ concept_visibility_updated = Signal(providing_args=["concept"])
 
 
 class StewardOrganisation(AbstractGroup):
-    # objects = managers.AbstractGroupQuerySet.as_manager()
+    objects = StewardOrganisationQuerySet.as_manager()
 
     class Meta:
         verbose_name = "Steward Organisation"

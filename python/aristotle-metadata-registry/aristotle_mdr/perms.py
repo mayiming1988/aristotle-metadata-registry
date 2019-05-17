@@ -492,3 +492,26 @@ def user_can_create_registration_authority(user, steward_org=None):
     if steward_org:
         kwargs["pk"] = steward_org.pk
     return StewardOrganisation.objects.filter(**kwargs).active().exists()
+
+
+def user_can_edit_issue_label(user, label):
+    if user.is_superuser:
+        return True
+
+    if label.stewardship_organisation is None:
+        return False
+
+    from aristotle_mdr.models import StewardOrganisation
+    return label.stewardship_organisation.has_role(
+        user=user, role=StewardOrganisation.roles.admin
+    )
+
+
+def can_alter_any_issue_labels(user):
+    if user.is_superuser:
+        return True
+
+    from aristotle_mdr.models import StewardOrganisation, StewardOrganisationMembership
+    return StewardOrganisationMembership.user_has_role_for_any_group(
+        user=user, role=StewardOrganisation.roles.admin
+    )

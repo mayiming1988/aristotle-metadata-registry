@@ -1,0 +1,33 @@
+{% extends "aristotle_mdr/user/userHome.html" %}
+{% load bootstrap3 static %}
+
+
+{% block sidebar %}
+    {% include "aristotle_mdr/user/userSideBar.html" with activeTab='adminTools' %}
+{% endblock %}
+
+{% block page %}
+    <h1>{% block title %}Delete Issue Label{% endblock %}</h1>
+
+    <div class="alert alert-danger">
+        <p>
+        <strong>
+        You are about to delete the label <em>{{object.label}}</em>.
+        </strong>
+        </p>
+        <p>
+        This <em>will not</em> delete any issues associated with this label.
+        </p><p>
+        Click "Delete Label" to proceed.
+        </p>
+    </div>
+
+    <form method="post" action="">{% csrf_token %}
+
+    <div class="pull-right">
+      <a class="btn btn-danger" href="{% url 'aristotle_issues:admin_issue_label_list' %}">Cancel</a>
+      <button class="btn btn-primary" type="submit">Delete Label</button>
+    </div>
+    </form>
+
+{% endblock %}

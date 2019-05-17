@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from django.urls import reverse
 
 from aristotle_mdr import models as mdr_models
 from aristotle_mdr import perms
@@ -21,9 +22,10 @@ class BaseStewardOrgsTestCase(utils.AristotleTestUtils):
             state=StewardOrganisation.states.active
         )
 
-        self.org_manager = User.objects.create(
+        self.org_manager = User.objects.create_user(
             email="oscar@aristotle.example.com",
-            short_name="Oscar"
+            short_name="Oscar",
+            password="naughty_kitten"
         )
         self.steward_org_1.grant_role(
             role=StewardOrganisation.roles.admin,
@@ -64,6 +66,15 @@ class BaseStewardOrgsTestCase(utils.AristotleTestUtils):
                 user=self.org_member,
             )
         )
+
+    def login_oscar(self):
+        self.logout()
+        response = self.client.post(
+            reverse('friendly_login'),
+            {'username': 'oscar@aristotle.example.com', 'password': 'naughty_kitten'}
+        )
+        self.assertEqual(response.status_code, 302)
+        return response
 
 
 class OrgGroupHasPermissions(BaseStewardOrgsTestCase, TestCase):

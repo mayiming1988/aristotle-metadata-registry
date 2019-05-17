@@ -2,7 +2,7 @@ from django.test import TestCase
 from aristotle_mdr.tests.utils import AristotleTestUtils
 from aristotle_mdr import models as mdr_models
 from aristotle_mdr.contrib.issues import models
-
+from aristotle_mdr.contrib.stewards.tests.test_perms import BaseStewardOrgsTestCase
 
 class IssueTests(AristotleTestUtils, TestCase):
 
@@ -142,3 +142,87 @@ class IssueTests(AristotleTestUtils, TestCase):
         self.assertEqual(fields[0]['html'], False)
         self.assertEqual(fields[1]['name'], 'definition')
         self.assertEqual(fields[1]['html'], True)
+
+
+class LabelTests(BaseStewardOrgsTestCase, AristotleTestUtils, TestCase):
+
+    def setUp(self):
+        super().setUp()
+        from aristotle_mdr.contrib.issues.models import IssueLabel
+        
+        self.rw_label = IssueLabel.objects.create(
+            label="Registry-wide",
+        )
+        self.so_label = IssueLabel.objects.create(
+            label="Just for the SO",
+            stewardship_organisation=self.steward_org_1,
+        )
+        
+
+    def test_super_label_permissions(self):
+        self.login_superuser()
+
+        response = self.reverse_get(
+            'aristotle_issues:admin_labels_update',
+            reverse_args=[self.rw_label.id],
+            status_code=200
+        )
+
+        response = self.reverse_get(
+            'aristotle_issues:admin_labels_update',
+            reverse_args=[self.so_label.id],
+            status_code=200
+        )
+        response = self.reverse_get('aristotle_issues:admin_labels_create', status_code=200)
+        response = self.reverse_get('aristotle_issues:admin_issue_label_list', status_code=200)
+
+    def test_so_manager_label_permissions(self):
+        self.login_oscar()
+
+        response = self.reverse_get(
+            'aristotle_issues:admin_labels_update',
+            reverse_args=[self.rw_label.id],
+            status_code=403
+        )
+
+        response = self.reverse_get(
+            'aristotle_issues:admin_labels_update',
+            reverse_args=[self.so_label.id],
+            status_code=200
+        )
+        response = self.reverse_get('aristotle_issues:admin_labels_create', status_code=200)
+        response = self.reverse_get('aristotle_issues:admin_issue_label_list', status_code=200)
+
+    def test_viewer_label_permissions(self):
+        self.login_viewer()
+
+        response = self.reverse_get(
+            'aristotle_issues:admin_labels_update',
+            reverse_args=[self.rw_label.id],
+            status_code=403
+        )
+
+        response = self.reverse_get(
+            'aristotle_issues:admin_labels_update',
+            reverse_args=[self.so_label.id],
+            status_code=403
+        )
+        response = self.reverse_get('aristotle_issues:admin_labels_create', status_code=403)
+        response = self.reverse_get('aristotle_issues:admin_issue_label_list', status_code=403)
+
+    def test_public_label_permissions(self):
+        self.logout()
+
+        response = self.reverse_get(
+            'aristotle_issues:admin_labels_update',
+            reverse_args=[self.rw_label.id],
+            status_code=302  # TODO: Check this redirects to login
+        )
+
+        response = self.reverse_get(
+            'aristotle_issues:admin_labels_update',
+            reverse_args=[self.so_label.id],
+            status_code=302  # TODO: Check this redirects to login
+        )
+        response = self.reverse_get('aristotle_issues:admin_labels_create', status_code=302)
+        response = self.reverse_get('aristotle_issues:admin_issue_label_list', status_code=302)
