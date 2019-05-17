@@ -1,13 +1,14 @@
 from typing import Optional
 
 from django.http import Http404
+from django.db.models import Q
 from django.views.generic import TemplateView
 from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from aristotle_mdr.views.utils import SimpleItemGet
-from aristotle_mdr.contrib.issues.models import Issue
+from aristotle_mdr.contrib.issues.models import Issue, IssueLabel
 from aristotle_mdr.models import _concept
 from aristotle_mdr import perms
 
@@ -37,11 +38,22 @@ class IssueBase(LoginRequiredMixin, SimpleItemGet):
             data['proposal_value'] = issue.proposal_value
             data['name'] = issue.name
             data['description'] = issue.description
+
+        # Fetch issue labels
+        this_so_or_none = (
+            Q(stewardship_organisation__isnull=True) |
+            Q(stewardship_organisation=self.item.stewardship_organisation)
+        )
+        labels = list(
+            IssueLabel.objects.filter(this_so_or_none).values_list('label', flat=True)
+        )
+
         return {
             'fields': json.dumps(Issue.get_propose_fields()),
             'field_data': json.dumps(field_data),
             'initial': json.dumps(data),
-            'config': json.dumps(settings.CKEDITOR_CONFIGS['default'])
+            'config': json.dumps(settings.CKEDITOR_CONFIGS['default']),
+            'allLabels': json.dumps(labels)
         }
 
 
