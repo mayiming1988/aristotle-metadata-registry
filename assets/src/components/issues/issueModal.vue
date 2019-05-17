@@ -8,7 +8,7 @@
             <textarea id="description" class="form-control ta-fixed-width" v-model="formdata.description"></textarea>
         </form-field>
         <form-field name="labels">
-            <select-tagger v-model="formdata.labels" :options="allLabels" />
+            <select-tagger v-model="formdata.labels" :options="labelOptions" />
         </form-field>
         <template v-if="isFields">
             <h3 class="divider">Proposed changes</h3>
@@ -97,7 +97,7 @@ export default {
             type: String,
             default: '{}'
         },
-        // Json array of label text
+        // Json map of label ids to label names
         allLabelsJson: {
             type: String,
             required: true
@@ -110,7 +110,8 @@ export default {
         // Fields we can propose changes for
         fields: [],
         // All labels that could be added to this issue
-        allLabels: [],
+        // Array of options objects to be passed to selectTagger
+        labelOptions: [],
         // Data to be posted
         formdata: {
             name: '',
@@ -131,7 +132,12 @@ export default {
             this.proposals[this.formdata.proposal_field] = this.formdata.proposal_value
         }
         this.fields = JSON.parse(this.proposeFields)
-        this.allLabels = JSON.parse(this.allLabelsJson)
+        // Build label options
+        let labels = JSON.parse(this.allLabelsJson)
+        console.log(labels)
+        for (let [id, name] of Object.entries(labels)) {
+            this.labelOptions.push({value: id, text: name})
+        }
         // Create map of fields to whether html
         for (let f of this.fields) {
             this.htmlMap.set(f.name, f.html)

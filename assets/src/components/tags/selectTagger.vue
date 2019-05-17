@@ -2,12 +2,12 @@
     <div class="selectTagger">
         <select class="left-select" @input="tagSelected">
             <option value="">{{ emptyOption }}</option>
-            <option v-for="option in currentOptions" :key="option" :value="option">{{ option }}</option>
+            <option v-for="val in currentOptions" :key="val" :value="val">{{ getText(val) }}</option>
         </select>
         <ul class="taggle_list">
-            <li v-for="tag in value" class="taggle" :key="tag" :value="tag">
-                <span clas="taggle_text">{{ tag }}</span>
-                <button class="close" @click="removeTag(tag)">×</button>
+            <li v-for="val in value" class="taggle" :key="val">
+                <span clas="taggle_text">{{ getText(val) }}</span>
+                <button class="close" @click="removeTag(val)">×</button>
             </li>
         </ul>
     </div>
@@ -21,10 +21,11 @@ Has v-model support
 export default {
     data: () => ({
         /* 
-        Stores options the user is allowed to select from
+        Stores options objects the user is allowed to select from
         this avoids letting them add duplicates
         */
-        currentOptions: new Set()
+        currentOptions: new Set(),
+        valueMap: new Map()
     }),
     props: {
         // Currently selected tags
@@ -32,7 +33,7 @@ export default {
             type: Array,
             required: true
         },
-        // List of all tags (used as initial options)
+        // List of all tags as options objects (used as initial options)
         options: {
             type: Array,
             required: true
@@ -44,9 +45,20 @@ export default {
         }
     },
     created: function() {
-        this.currentOptions = new Set(this.options)
+        for (let option of this.options) {
+            this.valueMap.set(option.value, option.text)
+            this.currentOptions.add(option.value)
+        }
     },
     methods: {
+        getText: function(value) {
+            console.log(value)
+            let name = this.valueMap.get(value)
+            if (name === undefined) {
+                name = ''
+            }
+            return name
+        },
         tagSelected: function(event) {
             let option = event.target.options[event.target.selectedIndex]
             let selection = option.value

@@ -44,16 +44,15 @@ class IssueBase(LoginRequiredMixin, SimpleItemGet):
             Q(stewardship_organisation__isnull=True) |
             Q(stewardship_organisation=self.item.stewardship_organisation)
         )
-        labels = list(
-            IssueLabel.objects.filter(this_so_or_none).values_list('label', flat=True)
-        )
+        labels = IssueLabel.objects.filter(this_so_or_none)
+        label_map = {l.pk: l.label for l in labels}
 
         return {
             'fields': json.dumps(Issue.get_propose_fields()),
             'field_data': json.dumps(field_data),
             'initial': json.dumps(data),
             'config': json.dumps(settings.CKEDITOR_CONFIGS['default']),
-            'allLabels': json.dumps(labels)
+            'allLabels': json.dumps(label_map)
         }
 
 
