@@ -13,6 +13,7 @@
                         <collapse v-model="showAccordion[index]">
                             <div class="panel-body">
                                 <baseForm
+                                        @input="addChoiceField"
                                         v-model="formsData[index]"
                                         :key="item.vid"
                                         :fields="fields"
@@ -138,10 +139,6 @@
             }
         },
         methods: {
-            formUpdated: function () {
-                 console.log('the form object updated')
-            },
-
             getError: function (vid) {
                 return this.error_map[vid]
             },
@@ -182,6 +179,17 @@
                 }
                 else {
                     this.showAccordion = this.showAccordion.map((v, i) => i === index)
+                }
+            },
+            addChoiceField: function (field) {
+                // If Choice in the type select box is picked, we want to pass a prop down to the form and
+                // add the Choice text field.
+                if (field.type == 'enum') {
+                    // The field selected is enum
+                    this.fields['choices'].display = true
+                }
+                else {
+                    this.fields['choices'].display = false
                 }
             },
             showDeleteItem: function (isnew) {

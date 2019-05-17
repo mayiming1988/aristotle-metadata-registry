@@ -16,6 +16,8 @@ class CustomFieldForm(forms.ModelForm):
     class Meta:
         model = CustomField
         exclude = ['order']
+        # Make choices and the type enum next to each other
+        field_order = ['name', 'type', 'choices']
 
     def get_concept_qs(self):
         mapping = get_concept_content_types()
