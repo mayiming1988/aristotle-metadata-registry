@@ -48,6 +48,7 @@ DataElementNode = type_from_concept_model(
 ValueDomainNode = type_from_concept_model(mdr_models.ValueDomain, resolver=resolvers.ValueDomainResolver())
 ClassificationSchemeNode = type_from_concept_model(aristotle_backwards_models.ClassificationScheme)
 CollectionNode = type_from_model(aristotle_steward_models.Collection)
+RepresentationClassNode = type_from_model(aristotle_backwards_models.RepresentationClass)
 
 
 class RegistrationAuthorityNode(DjangoObjectType):
