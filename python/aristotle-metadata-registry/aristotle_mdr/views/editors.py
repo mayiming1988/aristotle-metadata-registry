@@ -131,6 +131,11 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
                 instance=self.item.concept,
                 data=postdata
             )
+
+            # Override the queryset
+            for record_relation_form in recordrelation_formset:
+                record_relation_form.fields['organization_record'].queryset = MDR.OrganizationRecord.objects.visible(self.request.user)
+
             extra_formsets.append({
                 'formset': recordrelation_formset,
                 'title': 'RecordRelation',
