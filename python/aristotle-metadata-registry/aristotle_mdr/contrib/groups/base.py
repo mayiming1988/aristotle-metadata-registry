@@ -53,7 +53,16 @@ class AbstractMembershipBase(ModelBase):
         return clsobj
 
 
-class AbstractMembership(models.Model, metaclass=AbstractMembershipBase):
+class AbstractMembershipModel(models.Model):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def user_has_role_for_any_group(cls, user, role):
+        return cls.objects.filter(user=user, role=role).exists()
+
+
+class AbstractMembership(AbstractMembershipModel, metaclass=AbstractMembershipBase):
     class Meta:
         abstract = True
         unique_together = ("user", "group")
@@ -61,7 +70,7 @@ class AbstractMembership(models.Model, metaclass=AbstractMembershipBase):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
 
-class AbstractMultipleMembership(models.Model, metaclass=AbstractMembershipBase):
+class AbstractMultipleMembership(AbstractMembershipModel, metaclass=AbstractMembershipBase):
     class Meta:
         abstract = True
         unique_together = ("user", "group", "role")
