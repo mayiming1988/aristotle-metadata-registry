@@ -20,7 +20,7 @@ def user_can_alter_post(user, post):
     return user.is_superuser or user == post.author or user_is_workgroup_manager(user, post.workgroup)
 
 
-def can_post_discussion(user, _):
+def can_post_discussion(user):
     return user.is_active and user.profile.myWorkgroups.count() > 0
 
 
