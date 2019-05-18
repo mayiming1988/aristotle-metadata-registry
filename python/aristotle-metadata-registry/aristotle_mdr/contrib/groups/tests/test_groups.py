@@ -125,6 +125,9 @@ class GroupsBulkActions(utils.AristotleTestUtils, TestCase):
         self.anonymous_user = AnonymousUser()
         self.abstract_group = StewardOrganisation.objects.create(name="Test Steward Organisation")
         for perm in self.abstract_group.role_permissions.keys():
+            if perm is "view_group":
+                # We have one anon permitted permission now
+                continue
             self.assertEqual(self.abstract_group.user_has_permission(self.anonymous_user, perm), False)
 
 

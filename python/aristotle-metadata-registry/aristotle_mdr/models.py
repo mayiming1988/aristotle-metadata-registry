@@ -115,7 +115,19 @@ class StewardOrganisation(AbstractGroup):
     class Permissions:
         @classmethod
         def can_view_group(cls, user, group=None):
-            return group.state in group.active_states
+            if group.state in group.visible_states:
+                return True
+
+            if user.is_superuser:
+                return True
+
+            if group.state == group.states.private:
+                return AbstractGroup.Permissions.is_member(user, group)
+
+            if group.state == group.states.hidden:
+                return user.is_superuser
+
+            return False
 
     role_permissions = {
         "view_group": [Permissions.can_view_group],
