@@ -126,7 +126,7 @@ class StewardOrganisation(AbstractGroup):
 
             if group.state == group.states.hidden:
                 return user.is_superuser
-            
+
             return False
 
     role_permissions = {
