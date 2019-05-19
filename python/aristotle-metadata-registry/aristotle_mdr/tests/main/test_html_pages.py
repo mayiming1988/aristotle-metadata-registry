@@ -188,8 +188,9 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         response = self.reverse_get(
             'aristotle:item',
             reverse_args=[self.itemid, 'property', 'wow'],
-            status_code=404
+            status_code=302
         )
+        self.assertEqual(response.url, url_slugify_concept(self.item))
 
     def test_itempage_wrong_name(self):
         self.login_editor()
