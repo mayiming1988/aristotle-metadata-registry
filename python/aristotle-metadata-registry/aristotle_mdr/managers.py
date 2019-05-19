@@ -95,6 +95,44 @@ class MetadataItemManager(InheritanceManager, UtilsManager):
         return qs
 
 
+class StewardOrganisationQuerySet(AbstractGroupQuerySet):
+    def visible(self, user):
+        from aristotle_mdr.models import StewardOrganisation
+
+        if user is None or user.is_anonymous():
+            return self.filter(
+                state__in=[
+                    StewardOrganisation.states.active,
+                    StewardOrganisation.states.archived,
+                ],
+            )
+
+        if user.is_superuser:
+            return self.all()
+
+        # If you are a member, you can see the Workgroup
+        q = Q(
+            members__user=user,
+            state__in=[
+                StewardOrganisation.states.active,
+                StewardOrganisation.states.private,
+            ],
+        )
+        # If you are the admin of a SO, you can see all the WGs.
+        q |= Q(
+            state__in=[
+                StewardOrganisation.states.active,
+                StewardOrganisation.states.archived,
+                StewardOrganisation.states.private,
+            ],
+            members__user=user,
+            members__role=StewardOrganisation.roles.admin
+        )
+
+        inner_so_qs = StewardOrganisation.objects.filter(q)
+        return self.filter(uuid__in=Subquery(inner_so_qs.values('uuid')))
+
+
 class WorkgroupQuerySet(AbstractGroupQuerySet):
     def visible(self, user):
         if user.is_anonymous():
@@ -104,7 +142,6 @@ class WorkgroupQuerySet(AbstractGroupQuerySet):
             return self.all()
 
         from aristotle_mdr.models import StewardOrganisation, Workgroup
-        SO_STATES = StewardOrganisation.states
         WG_STATES = StewardOrganisation.states
 
         if user.is_superuser:

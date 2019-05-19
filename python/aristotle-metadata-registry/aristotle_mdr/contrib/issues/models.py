@@ -46,6 +46,11 @@ class Issue(TimeStampedModel):
     )
     proposal_value = models.TextField(blank=True)
 
+    labels = models.ManyToManyField(
+        'IssueLabel',
+        blank=True,
+    )
+
     def can_edit(self, user):
         return user.id == self.submitter.id
 
@@ -117,6 +122,20 @@ class IssueComment(TimeStampedModel):
 
     def can_edit(self, user):
         return user.id == self.author.id
+
+
+class IssueLabel(models.Model):
+    class Meta:
+        ordering=["label"]
+
+    label = models.CharField(max_length=200)
+    stewardship_organisation = models.ForeignKey(
+        'aristotle_mdr.StewardOrganisation',
+        null=True, blank=True, default=None,
+        on_delete=models.CASCADE,
+        to_field="uuid"
+    )
+    description = models.TextField(blank=True)
 
 
 @receiver(post_save, sender=Issue)

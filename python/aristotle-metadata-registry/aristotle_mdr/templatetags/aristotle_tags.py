@@ -547,3 +547,8 @@ def publish_item_url(item):
 @register.filter
 def publish_registry_item_url(item):
     return reverse('aristotle_publishing:publish_registry_item', args=[item._meta.model_name, item.id])
+
+
+@register.filter
+def can_edit_label(label, user):
+    return perms.user_can_edit_issue_label(user, label)

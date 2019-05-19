@@ -7,6 +7,7 @@ from django.db.models import Model
 from django.db.models.manager import Manager
 from django.db.models.query import QuerySet
 from aristotle_mdr.contrib.links import models as link_models
+from aristotle_mdr.contrib.aristotle_backwards import models as backwards_models
 
 import logging
 
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 class AristotleResolver(object):
 
     # allowed models that are not concepts:
-    allowed_models = [link_models.LinkEnd, link_models.Link, mdr_models.OrganizationRecord]
+    allowed_models = [link_models.LinkEnd, link_models.Link, mdr_models.OrganizationRecord, backwards_models.RepresentationClass]
     @classmethod
     def resolver(cls, attname, default_value, root, info, **args):
         retval = getattr(root, attname, default_value)

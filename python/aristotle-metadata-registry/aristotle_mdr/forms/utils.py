@@ -31,13 +31,11 @@ class StewardOrganisationRestrictedChoicesForm(BootstrapableMixin, UserAwareForm
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         from aristotle_mdr.models import StewardOrganisation, StewardOrganisationMembership
-        kwargs = {
-            "state__in": StewardOrganisation.active_states
-        }
+        qs_kwargs = {}
         if not self.user.is_superuser:
-            kwargs.update({
+            qs_kwargs.update({
                 "members__user": self.user,
                 "members__role": StewardOrganisation.roles.admin,
             })
         self.fields["stewardship_organisation"].widget = forms.Select(attrs={'class': 'form-control'})
-        self.fields["stewardship_organisation"].queryset = StewardOrganisation.objects.all().filter(**kwargs)
+        self.fields["stewardship_organisation"].queryset = StewardOrganisation.objects.visible(self.user).filter(**qs_kwargs)
