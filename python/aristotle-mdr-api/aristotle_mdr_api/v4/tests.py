@@ -85,6 +85,7 @@ class IssueEndpointsTestCase(BaseAPITestCase):
             {
                 'name': 'Test issue',
                 'description': 'Just a test one',
+                'labels': [],
                 'item': item.pk,
             },
             format='json'
