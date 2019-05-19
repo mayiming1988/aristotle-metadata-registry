@@ -12,7 +12,18 @@ import rootComponent from '../src/components/root/issues.js'
 describe('issueComment', function() {
 
     beforeEach(function() {
-        this.wrapper = VueTestUtils.mount(issueComment)
+        this.propsData = {
+            pic: 'example.com/fake.jpg',
+            userId: '1',
+            issueId: '1',
+            userName: 'trevor',
+            commentUrl: 'example.com/comment',
+            openCloseUrl: 'example.com/openclose',
+        }
+        this.wrapper = VueTestUtils.mount(
+            issueComment,
+            {propsData: this.propsData}
+        )
     })
 
     afterEach(function() {
@@ -25,11 +36,11 @@ describe('issueComment', function() {
     })
 
     it('sets and emits when isOpen is True', function() {
-        this.wrapper = VueTestUtils.shallowMount(issueComment, {
-            propsData: {
-                isOpen: true
-            }
-        })
+        this.propsData['isOpen'] = true;
+        this.wrapper = VueTestUtils.mount(
+            issueComment,
+            {propsData: this.propsData}
+        )
         assert.isTrue(this.wrapper.vm.isOpen)
         assertSingleEmit(this.wrapper, 'set_open', true)
     })
@@ -307,7 +318,15 @@ describe('issueComment', function() {
 describe('issueModal', function() {
 
     beforeEach(function() {
-        this.wrapper = VueTestUtils.shallowMount(issueModal)
+        let propsData = {
+            iid: '1',
+            url: '/fake/api',
+            allLabelsJson: '{}'
+        }
+        this.wrapper = VueTestUtils.shallowMount(
+            issueModal,
+            {propsData: propsData}
+        )
     })
 
     afterEach(function() {
@@ -352,6 +371,7 @@ describe('issueModal', function() {
             description: 'Test Desc',
             proposal_field: '',
             proposal_value: '',
+            labels: [],
             item: '1'
         }
         assert.isTrue(fake.calledWithExactly('/fake/api/', expected_data, {}, 'post'))

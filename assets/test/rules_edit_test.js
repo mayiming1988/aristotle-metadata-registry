@@ -77,10 +77,12 @@ describe('editForm', function() {
         this.wrapper.setData({formData: {rules: 'name: wow\nimportance: very'}})
         // submit
         this.wrapper.vm.submit()
-        assert.isTrue(this.wrapper.vm.submitted)
         // make change
-        this.wrapper.setData({formData: {rules: 'name: new\nimportance: very'}})
+        assert.isTrue(this.wrapper.vm.submitted)
+        this.wrapper.setData({formData: {rules: 'name: new\nimportance: very', submitted: true}})
+
         return this.wrapper.vm.$nextTick().then(() => {
+            assert.isFalse(this.wrapper.vm.submitted)
             // check emit
             let edit_events = this.wrapper.emitted().edit
             assert.equal(edit_events.length, 1)
@@ -89,8 +91,9 @@ describe('editForm', function() {
 
     it('doesnt emit edit made before submit', function() {
         // make change
-        this.wrapper.setData({formData: {rules: 'name: new\nimportance: very'}})
+        this.wrapper.setData({formData: {rules: 'name: new\nimportance: very', submitted: true}})
         return this.wrapper.vm.$nextTick().then(() => {
+            assert.isFalse(this.wrapper.vm.submitted)
             // check emit
             let edit_events = this.wrapper.emitted().edit
             assert.isNotOk(edit_events) // assert not truthy (will be undefined)
