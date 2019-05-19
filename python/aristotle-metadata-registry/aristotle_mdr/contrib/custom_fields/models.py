@@ -11,6 +11,7 @@ from aristotle_mdr.fields import ConceptForeignKey
 from aristotle_mdr.contrib.custom_fields.managers import CustomValueManager, CustomFieldManager
 from aristotle_mdr.contrib.custom_fields.types import type_choices
 
+from aristotle_mdr.contrib.custom_fields.constants import CUSTOM_FIELD_STATES
 from aristotle_mdr.constants import visibility_permission_choices as permission_choices
 
 
@@ -22,9 +23,15 @@ class CustomField(TimeStampedModel):
     help_text = models.CharField(max_length=1000, blank=True)
     allowed_model = models.ForeignKey(ContentType, blank=True, null=True)
     choices = models.TextField(blank=True)
+
     visibility = models.IntegerField(
         choices=permission_choices,
         default=permission_choices.public
+    )
+
+    state = models.IntegerField(
+        choices=CUSTOM_FIELD_STATES,
+        default=CUSTOM_FIELD_STATES.active
     )
 
     objects = CustomFieldManager()

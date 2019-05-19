@@ -125,15 +125,17 @@ class IssueComment(TimeStampedModel):
 
 
 class IssueLabel(models.Model):
+    class Meta:
+        ordering=["label"]
+
     label = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
     stewardship_organisation = models.ForeignKey(
         'aristotle_mdr.StewardOrganisation',
-        null=True, default=None,
+        null=True, blank=True, default=None,
         on_delete=models.CASCADE,
         to_field="uuid"
     )
-
+    description = models.TextField(blank=True)
 
 @receiver(post_save, sender=Issue)
 def new_issue_created(sender, instance, *args, **kwargs):

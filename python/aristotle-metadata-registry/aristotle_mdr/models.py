@@ -54,6 +54,7 @@ from .fields import (
 from .managers import (
     ConceptManager,
     ReviewRequestQuerySet, WorkgroupQuerySet,
+    StewardOrganisationQuerySet,
     RegistrationAuthorityQuerySet,
     StatusQuerySet, UtilsManager,
     SupersedesManager, ProposedSupersedesManager
@@ -99,7 +100,7 @@ concept_visibility_updated = Signal(providing_args=["concept"])
 
 
 class StewardOrganisation(AbstractGroup):
-    # objects = managers.AbstractGroupQuerySet.as_manager()
+    objects = StewardOrganisationQuerySet.as_manager()
 
     class Meta:
         verbose_name = "Steward Organisation"
@@ -115,7 +116,19 @@ class StewardOrganisation(AbstractGroup):
     class Permissions:
         @classmethod
         def can_view_group(cls, user, group=None):
-            return group.state in group.active_states
+            if group.state in group.visible_states:
+                return True
+
+            if user.is_superuser:
+                return True
+
+            if group.state == group.states.private:
+                return AbstractGroup.Permissions.is_member(user, group)
+
+            if group.state == group.states.hidden:
+                return user.is_superuser
+
+            return False
 
     role_permissions = {
         "view_group": [Permissions.can_view_group],

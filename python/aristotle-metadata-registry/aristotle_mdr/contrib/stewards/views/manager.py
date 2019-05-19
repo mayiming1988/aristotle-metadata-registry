@@ -163,6 +163,7 @@ class StewardURLManager(GroupURLManager):
 
             def get_context_data(self, *args, **kwargs):
                 context = super().get_context_data(*args, **kwargs)
+                context['sub_collections'] = self.get_object().collection_set.visible(user=self.request.user).order_by('name')
                 context['metadata'] = self.get_object().metadata.all().select_subclasses().visible(user=self.request.user).order_by('name')
                 return context
 
