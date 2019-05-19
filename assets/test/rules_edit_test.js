@@ -91,7 +91,7 @@ describe('editForm', function() {
 
     it('doesnt emit edit made before submit', function() {
         // make change
-        this.wrapper.setData({formData: {rules: 'name: new\nimportance: very', submitted: true}})
+        this.wrapper.setData({formData: {rules: 'name: new\nimportance: very'}})
         return this.wrapper.vm.$nextTick().then(() => {
             assert.isFalse(this.wrapper.vm.submitted)
             // check emit
@@ -107,12 +107,13 @@ describe('editForm', function() {
         this.wrapper.vm.submit()
         assert.isTrue(this.wrapper.vm.submitted)
         // make first change
-        this.wrapper.setData({formData: {rules: 'name: new\nimportance: very'}})
+        this.wrapper.setData({formData: {rules: 'name: new\nimportance: very', submitted: true}})
         return this.wrapper.vm.$nextTick().then(() => {
             // check emit
             assert.equal(this.wrapper.emitted().edit.length, 1)
             // make second change
-            this.wrapper.setData({formData: {rules: 'name: newer\nimportance: very'}})
+            assert.isFalse(this.wrapper.vm.submitted)
+            this.wrapper.setData({formData: {rules: 'name: newer\nimportance: very', submitted: false}})
             return this.wrapper.vm.$nextTick().then(() => {
                 // make sure still 1 emit
                 assert.equal(this.wrapper.emitted().edit.length, 1)
