@@ -19,10 +19,12 @@ class IssueEndpointsTestCase(BaseAPITestCase):
 
     def post_issue(self, item):
         response = self.client.post(
-            reverse('api_v4:reviews:create'),
+            reverse('api_v4:issues:create'),
             {
                 'name': 'Test issue',
-                'message': 'Just a test one',
+                'description': 'Just a test one',
+                'labels': [],
+                'item': item.id
             },
             format='json'
         )
@@ -32,6 +34,7 @@ class IssueEndpointsTestCase(BaseAPITestCase):
 
         self.login_user()
         response = self.post_issue(self.item)
+        print(response.content)
 
         self.assertEqual(response.status_code, 201)
 
