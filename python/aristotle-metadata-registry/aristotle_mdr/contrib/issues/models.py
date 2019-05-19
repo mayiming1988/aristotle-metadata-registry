@@ -137,6 +137,7 @@ class IssueLabel(models.Model):
     )
     description = models.TextField(blank=True)
 
+
 @receiver(post_save, sender=Issue)
 def new_issue_created(sender, instance, *args, **kwargs):
     # issue = kwargs['instance']
