@@ -19,12 +19,10 @@ class IssueEndpointsTestCase(BaseAPITestCase):
 
     def post_issue(self, item):
         response = self.client.post(
-            reverse('api_v4:issues:create'),
+            reverse('api_v4:reviews:create'),
             {
                 'name': 'Test issue',
-                'description': 'Just a test one',
-                'labels': [],
-                'item': item.id
+                'message': 'Just a test one',
             },
             format='json'
         )
