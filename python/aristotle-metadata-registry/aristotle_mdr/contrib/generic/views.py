@@ -554,6 +554,9 @@ class ExtraFormsetMixin:
             elif type == 'record_relation':
                 context['recordrelation_FormSet'] = formsetinfo['formset']
 
+            elif type == 'reference_links':
+                context['referencelinks_FormSet'] = formsetinfo['formset']
+
         return context
 
     def get_extra_formsets(self, item=None, postdata=None, clone_item=False):
@@ -708,6 +711,15 @@ class ExtraFormsetMixin:
         from aristotle_mdr.forms.creation_wizards import record_relation_inlineformset_factory
 
         formset = record_relation_inlineformset_factory()
+
+        formset.filtered_empty_form = formset.empty_form
+
+        return formset
+
+    def get_referencelinks_formset(self):
+        from aristotle_mdr.forms.creation_wizards import reference_link_inlineformset_factory
+
+        formset = reference_link_inlineformset_factory()
 
         formset.filtered_empty_form = formset.empty_form
 

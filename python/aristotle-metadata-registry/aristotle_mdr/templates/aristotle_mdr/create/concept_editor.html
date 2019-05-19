@@ -165,6 +165,45 @@
                 {% endwith %}
                 {% endif %}
             {% endif %}
+            {% if reference_links_active %}
+                {% if referencelinks_FormSet %}
+
+                {% with formset=referencelinks_FormSet %}
+
+                {{ formset.management_form }}
+
+                <table class="form table table-hover">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th>{% trans 'Reference Document' %}</th>
+                        <th>{% trans 'Note' %}</th>
+                        <th>{% trans 'Delete' %}</th>
+                    </tr>
+                    </thead>
+                    <tbody id="org_records" class="draggableTable">
+                    {% for recordform in formset.forms %}
+                    <tr class="movablerow">
+                        <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
+                        {% for hidden in recordform.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
+                        </td>
+                        {% for field in recordform.visible_fields %}
+                        <td>
+                            {{ field.errors.as_ul }}
+                            {{ field }}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <a class="btn btn-primary add_code_button" formid="org_records">
+                    <i class="fa fa-plus-circle"></i> Add a record</a>
+                {% endwith %}
+                {% endif %}
+            {% endif %}
         </div>
 
         {% if form.object_specific_fields or weak_formsets or through_formsets %}

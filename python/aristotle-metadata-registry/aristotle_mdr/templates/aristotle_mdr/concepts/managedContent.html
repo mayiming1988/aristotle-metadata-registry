@@ -27,7 +27,7 @@
                 {{ item.origin|bleach }}
             {% endif %}
 
-            {% if item.references %}
+            {% if item.references or item.metadatareferencelink_set.exists %}
                 <div>
                     <h2>References</h2>
                     {% if item.references %}

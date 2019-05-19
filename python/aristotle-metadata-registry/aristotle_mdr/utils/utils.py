@@ -527,3 +527,8 @@ def is_postgres() -> bool:
     """
     from django.db import connection
     return connection.vendor == 'postgresql'
+
+
+def cloud_enabled():
+    from django.conf import settings
+    return "aristotle_cloud" in settings.INSTALLED_APPS

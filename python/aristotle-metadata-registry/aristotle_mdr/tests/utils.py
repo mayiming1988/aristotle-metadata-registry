@@ -33,7 +33,7 @@ def model_to_dict(item):
     return dict((k, v) for (k, v) in mtd(item).items() if v is not None)
 
 
-def get_management_forms(item, slots=False, identifiers=False, item_is_model=False):
+def get_management_forms(item, org_records=True, slots=False, identifiers=False, item_is_model=False):
 
     d = {}
 
@@ -42,6 +42,12 @@ def get_management_forms(item, slots=False, identifiers=False, item_is_model=Fal
         d['slots-INITIAL_FORMS'] = 0
         d['slots-MIN_NUM_FORMS'] = 0
         d['slots-MAX_NUM_FORMS'] = 0
+
+    if org_records:
+        d['org_records-TOTAL_FORMS'] = 0
+        d['org_records-INITIAL_FORMS'] = 0
+        d['org_records-MIN_NUM_FORMS'] = 0
+        d['org_records-MAX_NUM_FORMS'] = 0
 
     if identifiers:
         d['identifiers-TOTAL_FORMS'] = 0

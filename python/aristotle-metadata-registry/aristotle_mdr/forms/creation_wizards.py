@@ -438,8 +438,26 @@ def record_relation_inlineformset_factory():
         MDR._concept, MDR.RecordRelation,
         can_delete=True,
         fields=('concept', 'type', 'organization_record'),
-        widgets={'type': forms.widgets.Select(attrs={'class': 'form-control'}),
-                 'organization_record': forms.widgets.Select(attrs={'class': 'form-control'})},
+        widgets={
+            'type': forms.widgets.Select(attrs={'class': 'form-control'}),
+            'organization_record': forms.widgets.Select(attrs={'class': 'form-control'})
+        },
+        extra=1,
+    )
+    return base_formset
+
+
+def reference_link_inlineformset_factory():
+    """Create an inline formset factory for organization record"""
+    from aristotle_cloud.contrib.steward_extras.models import MetadataReferenceLink
+    base_formset = inlineformset_factory(
+        MDR._concept, MetadataReferenceLink,
+        can_delete=True,
+        fields=('metadata', 'reference', 'description'),
+        widgets={
+            'reference': forms.widgets.Select(attrs={'class': 'form-control'}),
+            # 'organization_record': forms.widgets.Select(attrs={'class': 'form-control'})
+        },
         extra=1,
     )
     return base_formset

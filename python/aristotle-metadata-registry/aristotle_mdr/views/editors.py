@@ -7,7 +7,7 @@ from reversion.models import Version
 
 from aristotle_mdr.utils import (
     concept_to_clone_dict, construct_change_message_extra_formsets,
-    url_slugify_concept, is_active_module
+    url_slugify_concept, is_active_module, cloud_enabled
 )
 
 from aristotle_mdr import forms as MDRForms
@@ -41,7 +41,9 @@ class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.additional_records_active = True   # TODO: introduce better behavior for this
+        # TODO: introduce better behavior for this
+        self.additional_records_active = True
+        self.reference_links_active = cloud_enabled()
 
         self.slots_active = is_active_module('aristotle_mdr.contrib.slots')
         self.identifiers_active = is_active_module('aristotle_mdr.contrib.identifiers')
@@ -131,12 +133,30 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
 
             # Override the queryset to restrict to the records the user has permission to view
             for record_relation_form in recordrelation_formset:
-                record_relation_form.fields['organization_record'].queryset = MDR.OrganizationRecord.objects.visible(self.request.user)
+                record_relation_form.fields['organization_record'].queryset = MDR.OrganizationRecord.objects.visible(self.request.user).order_by("name")
 
             extra_formsets.append({
                 'formset': recordrelation_formset,
                 'title': 'RecordRelation',
                 'type': 'record_relation',
+                'saveargs': None
+            })
+
+        if self.reference_links_active:
+            recordrelation_formset = self.get_referencelinks_formset()(
+                instance=self.item.concept,
+                data=postdata
+            )
+            from aristotle_cloud.contrib.steward_extras.models import ReferenceBase
+
+            # Override the queryset to restrict to the records the user has permission to view
+            for record_relation_form in recordrelation_formset:
+                record_relation_form.fields['reference'].queryset = ReferenceBase.objects.visible(self.request.user).order_by("title")
+
+            extra_formsets.append({
+                'formset': recordrelation_formset,
+                'title': 'ReferenceLink',
+                'type': 'reference_links',
                 'saveargs': None
             })
 
@@ -227,6 +247,7 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         context['show_id_tab'] = self.identifiers_active
 
         context['additional_records_active'] = self.additional_records_active
+        context['reference_links_active'] = self.reference_links_active
 
         return context
 
