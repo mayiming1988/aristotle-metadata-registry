@@ -3,6 +3,10 @@ from aristotle_mdr.models import _concept, PossumProfile
 
 
 class Tag(models.Model):
+    """
+    A tag users can assign to metadata items
+    These are only viewable and editable by the user that created them
+    """
 
     class Meta:
         unique_together = ('profile', 'name')
@@ -21,6 +25,8 @@ class Tag(models.Model):
     created = models.DateTimeField(
         auto_now_add=True
     )
+    # Whether this is a "primary" tag or not
+    # primary tag denote the item as "favourited" in the ui
     primary = models.BooleanField(
         default=False
     )

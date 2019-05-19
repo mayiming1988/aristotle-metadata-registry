@@ -7,8 +7,11 @@
         <form-field name="description">
             <textarea id="description" class="form-control ta-fixed-width" v-model="formdata.description"></textarea>
         </form-field>
+        <form-field name="labels">
+            <select-tagger v-model="formdata.labels" :options="labelOptions" />
+        </form-field>
         <template v-if="isFields">
-            <h3>Proposed changes</h3>
+            <h3 class="divider">Proposed changes</h3>
             <template v-if="!edit">
                 <select v-model="formdata.proposal_field">
                     <option value="">None</option>
@@ -45,6 +48,7 @@ import formField from '@/forms/bsFieldWrapper.vue'
 import apiErrors from '@/apiErrorDisplay.vue'
 import apiRequest from 'src/mixins/apiRequest.js'
 import saving from '@/saving.vue'
+import selectTagger from '@/tags/selectTagger.vue'
 import { capitalize } from 'src/lib/utils.js'
 
 export default {
@@ -54,7 +58,8 @@ export default {
         'form-field': formField,
         'api-errors': apiErrors,
         'saving': saving,
-        'html-editor': htmlEditor
+        'html-editor': htmlEditor,
+        'select-tagger': selectTagger
     },
     props: {
         iid: {
@@ -91,6 +96,11 @@ export default {
         htmlEditorConfig: {
             type: String,
             default: '{}'
+        },
+        // Json map of label ids to label names
+        allLabelsJson: {
+            type: String,
+            required: true
         }
     },
     data: () => ({
@@ -99,12 +109,16 @@ export default {
         proposals: {},
         // Fields we can propose changes for
         fields: [],
+        // All labels that could be added to this issue
+        // Array of options objects to be passed to selectTagger
+        labelOptions: [],
         // Data to be posted
         formdata: {
             name: '',
             description: '',
             proposal_field: '',
-            proposal_value: ''
+            proposal_value: '',
+            labels: []
         },
         // Map of fields to whether html
         htmlMap: new Map()
@@ -114,10 +128,23 @@ export default {
             // When creating new proposals set initial values from item
             this.proposals = JSON.parse(this.itemFieldsJson)
         } else {
+            // Set formdata from initial
             this.formdata = JSON.parse(this.initial)
+            // Set proposal value
             this.proposals[this.formdata.proposal_field] = this.formdata.proposal_value
+            // Make sure formdata labels are strings
+            for (let i in this.formdata.labels) {
+                if (typeof this.formdata.labels[i] === "number") {
+                    this.formdata.labels[i] = this.formdata.labels[i].toString()
+                }
+            }
         }
         this.fields = JSON.parse(this.proposeFields)
+        // Build label options
+        let labels = JSON.parse(this.allLabelsJson)
+        for (let [id, name] of Object.entries(labels)) {
+            this.labelOptions.push({value: id, text: name})
+        }
         // Create map of fields to whether html
         for (let f of this.fields) {
             this.htmlMap.set(f.name, f.html)
@@ -154,7 +181,7 @@ export default {
         /* Return whether a field should be rendered as html or not */
         isHtml: function(field) {
             return (this.htmlMap.get(field) === true)
-        }
+        },
     },
     computed: {
         isFields: function() {
@@ -170,3 +197,10 @@ export default {
     }
 }
 </script>
+
+<style>
+.divider {
+    width: 100%;
+    display: inline-block;
+}
+</style>

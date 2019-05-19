@@ -1,3 +1,4 @@
+/* eslint-env node */
 const webpack = require('webpack')
 const path = require('path')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
@@ -44,11 +45,12 @@ module.exports = (config) => {
             // webpack watches dependencies
 
             // webpack configuration
+            mode: 'development',
             devtool: 'inline-source-map',
-            // optimization: {
-            //     // Don't minimize so that error lines are correct
-            //     minimize: false
-            // },
+            optimization: {
+                // Don't minimize so that error lines are correct
+                minimize: false
+            },
             module: {
                 rules: [
                     {

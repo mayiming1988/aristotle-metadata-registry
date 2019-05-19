@@ -26,7 +26,15 @@
                 {% endif %}
             </h1>
 
-            <p class="text-muted">Opened {{ object.created|timesince }} ago by {{ object.submitter.display_name }}</p>
+            <div class="margin-below">
+              <ul class="taggle_inline_list">
+                {% for label in object.labels.all %}
+                <li class="taggle">{{ label.label }}</li>
+                {% endfor %}
+              </ul>
+              <span>Opened {{ object.created|timesince }} ago by {{ object.submitter.display_name }}</span>
+            </div>
+
             <div class="panel panel-default">
               <div class="panel-heading"><strong>Description</strong></div>
               <div class="panel-body">
@@ -105,6 +113,8 @@
         url="{% url 'api_v4:issues:issue' object.id %}"
         propose-fields="{{ fields }}"
         initial="{{ initial }}"
-        html-editor-config="{{ config }}">
+        html-editor-config="{{ config }}"
+        all-labels-json="{{ allLabels }}"
+    >
     </issue-modal>
 {% endblock %}
