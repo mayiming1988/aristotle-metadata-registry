@@ -34,7 +34,6 @@ class IssueEndpointsTestCase(BaseAPITestCase):
 
         self.login_user()
         response = self.post_issue(self.item)
-        print(response.content)
 
         self.assertEqual(response.status_code, 201)
 
