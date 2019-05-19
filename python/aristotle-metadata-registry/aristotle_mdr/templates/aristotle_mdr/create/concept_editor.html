@@ -113,7 +113,6 @@
                 <strong>These fields are optional</strong>
                 but give extra context to this item, so add where appropriate.
             </div>
-
             {% for field in form.concept_fields %}
                 <div class="wizard_field">
                     <span>{{ field.label_tag }} {{ field.help_text }}</span>
@@ -127,7 +126,47 @@
                     {% endif %}
                 </div>
             {% endfor %}
+            {% if additional_records_active %}
+                {% if recordrelation_FormSet %}
+
+                {% with formset=recordrelation_FormSet %}
+
+                {{ formset.management_form }}
+
+                <table class="form table table-hover">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th>{% trans 'Organisation Record Type' %}</th>
+                        <th>{% trans 'Organization Record' %}</th>
+                        <th>{% trans 'Delete' %}</th>
+                    </tr>
+                    </thead>
+                    <tbody id="org_records" class="draggableTable">
+                    {% for recordform in formset.forms %}
+                    <tr class="movablerow">
+                        <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
+                        {% for hidden in recordform.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
+                        </td>
+                        {% for field in recordform.visible_fields %}
+                        <td>
+                            {{ field.errors.as_ul }}
+                            {{ field }}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <a class="btn btn-primary add_code_button" formid="org_records">
+                    <i class="fa fa-plus-circle"></i> Add a record</a>
+                {% endwith %}
+                {% endif %}
+            {% endif %}
         </div>
+
         {% if form.object_specific_fields or weak_formsets or through_formsets %}
             <div role="tabpanel" class="tab-pane" id="tab_components">
                 {% for field in form.object_specific_fields %}
@@ -169,6 +208,7 @@
                         your registry for this particular metadata type.
                     </p>
                 </div>
+                {# Slots also displays custom fields #}
                 {% for field in form.custom_fields %}
                     <div class="wizard_field">
                         <span>{{ field.label_tag }} {{ field.help_text }}</span>

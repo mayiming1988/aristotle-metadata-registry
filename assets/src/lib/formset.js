@@ -22,6 +22,7 @@ export function replacePrefix(element, num_forms) {
 export function addRow(formid, row_selector, urlfunc) {
     // Get panel list
     let panelList = document.getElementById(formid)
+
     if (panelList.tagName === 'TABLE') {
         // If it's a table use the body
         panelList = panelList.querySelector('tbody')
@@ -72,7 +73,6 @@ export function addRow(formid, row_selector, urlfunc) {
         let element = $(this);
         initDALWidget(element, urlfunc)
     })
-
     reinitCKEditors(new_form);
 }
 

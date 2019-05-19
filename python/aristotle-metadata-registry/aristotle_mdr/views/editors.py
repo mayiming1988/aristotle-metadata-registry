@@ -9,6 +9,7 @@ from aristotle_mdr.utils import (
     concept_to_clone_dict, construct_change_message_extra_formsets,
     url_slugify_concept, is_active_module
 )
+
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
@@ -39,6 +40,9 @@ class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.additional_records_active = True   # TODO: introduce better behavior for this
+
         self.slots_active = is_active_module('aristotle_mdr.contrib.slots')
         self.identifiers_active = is_active_module('aristotle_mdr.contrib.identifiers')
 
@@ -116,6 +120,23 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
                 'formset': slot_formset,
                 'title': 'Slots',
                 'type': 'slot',
+                'saveargs': None
+            })
+
+        if self.additional_records_active:
+            recordrelation_formset = self.get_recordrelations_formset()(
+                instance=self.item.concept,
+                data=postdata
+            )
+
+            # Override the queryset to restrict to the records the user has permission to view
+            for record_relation_form in recordrelation_formset:
+                record_relation_form.fields['organization_record'].queryset = MDR.OrganizationRecord.objects.visible(self.request.user)
+
+            extra_formsets.append({
+                'formset': recordrelation_formset,
+                'title': 'RecordRelation',
+                'type': 'record_relation',
                 'saveargs': None
             })
 
@@ -204,6 +225,8 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         context['show_slots_tab'] = self.slots_active or context['form'].custom_fields
         context['slots_active'] = self.slots_active
         context['show_id_tab'] = self.identifiers_active
+
+        context['additional_records_active'] = self.additional_records_active
 
         return context
 
@@ -310,7 +333,6 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
         fscontext = self.get_formset_context(extra_formsets)
         context.update(fscontext)
 
-        # context['show_slots_tab'] = self.slots_active or
         context['show_slots_tab'] = context['form'].custom_fields
         context['show_id_tab'] = self.identifiers_active
 

@@ -1015,7 +1015,7 @@ class SupersedeRelationship(TimeStampedModel):
 
 
 class RecordRelation(TimeStampedModel):
-    """Link between a concept and an orgainization record"""
+    """Link between a concept and an organization record"""
     TYPE_CHOICES = Choices(
         ('s', 'Submitting Organization'),
         ('r', 'Responsible Organization'),
