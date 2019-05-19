@@ -14,7 +14,7 @@ def remove_type_data(apps, schema_migration):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_mdr', '0062_auto_20190515_1942')
+        ('aristotle_mdr', '0063_auto_20190515_1942')
     ]
 
     operations = [
