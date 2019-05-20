@@ -5,7 +5,7 @@
                 <div class="col-md-10">
                     <div class="panel panel-info">
                         <div class="panel-heading" role="button" @click="toggleAccordion(index)">
-                            <h4 class="panel-title"><i class="fa fa-lg fa-bars grabber"></i> {{ item.name }}</h4>
+                            <h4 class="panel-title"><i class="fa fa-lg fa-bars grabber"></i> {{ item.name }} ->  {{ item.allowed_model }}</h4>
                         </div>
                         <collapse v-model="showAccordion[index]">
                             <div class="panel-body">

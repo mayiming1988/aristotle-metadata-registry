@@ -12,6 +12,9 @@ from aristotle_mdr.contrib.custom_fields.forms import CustomFieldForm, CustomFie
 from aristotle_mdr_api.v4.custom_fields.serializers import CustomFieldSerializer
 from aristotle_mdr.contrib.slots.models import Slot
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class CustomFieldListView(IsSuperUserMixin, BootTableListView):
     template_name='aristotle_mdr/custom_fields/list.html'
@@ -28,6 +31,7 @@ class CustomFieldListView(IsSuperUserMixin, BootTableListView):
 
 
 class CustomFieldMultiEditView(IsSuperUserMixin, VueFormView):
+    """ View to edit the values for all custom fields """
     template_name='aristotle_mdr/custom_fields/multiedit.html'
     form_class=CustomFieldForm
     non_write_fields = ['hr_type', 'hr_visibility']
@@ -38,6 +42,7 @@ class CustomFieldMultiEditView(IsSuperUserMixin, VueFormView):
     def get_vue_initial(self) -> List[Dict[str, str]]:
         fields = self.get_custom_fields()
         serializer = CustomFieldSerializer(fields, many=True)
+
         return serializer.data
 
 

@@ -27,6 +27,10 @@ export default {
             default: function() {
                 return []
             }
+        },
+        helpText: {
+            type: String,
+            required : false,
         }
     },
     methods: {

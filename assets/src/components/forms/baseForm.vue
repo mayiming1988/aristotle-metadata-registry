@@ -3,7 +3,7 @@
         <slot name="before"/>
         <!-- Each div is a field -->
         <div v-for="(fielddata, name) in fields" v-if="displayField(name, showChoiceField)">
-            <bsFieldWrapper :key="name" :name="name" :label="fielddata.label" :display-label="showLabels" :has-errors="hasErrors(name)" :column="inline">
+            <bsFieldWrapper :help-text="fielddata.help_text" :key="name" :name="name" :label="fielddata.label" :display-label="showLabels" :has-errors="hasErrors(name)" :column="inline">
                     <singleError :fe-errors="getFrontendError(name)" :be-errors="getBackendErrors(name)" :column="inline"/>
                     <formField
                             :tag="fielddata.tag"

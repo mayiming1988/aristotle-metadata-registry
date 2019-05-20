@@ -34,7 +34,7 @@ class CustomField(TimeStampedModel):
     )
 
     objects = CustomFieldManager()
-    choices = models.TextField(blank=True)
+    choices = models.CharField(blank=True, max_length=1000)
 
 
     class Meta:

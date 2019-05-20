@@ -9,7 +9,7 @@ class CustomFieldSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
     order = serializers.IntegerField()
     name = serializers.CharField(max_length=1000)
-    choices = serializers.CharField(required=False, default='')
+    choices = serializers.CharField(allow_blank=True, default='')
 
     class Meta:
         model = CustomField
