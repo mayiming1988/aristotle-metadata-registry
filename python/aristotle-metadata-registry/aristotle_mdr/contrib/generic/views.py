@@ -929,7 +929,6 @@ class VueFormView(FormView):
             logger.debug("WWW" + fname + str(field))
             widget_name = type(field.widget).__name__
 
-
             # Data that is used to render the field in the Vue template
             field_data = {
                 'rules': {},
@@ -942,7 +941,6 @@ class VueFormView(FormView):
 
             if widget_name in self.widget_mapping:
                 field_data.update(self.widget_mapping[widget_name])
-
 
             if widget_name == 'Select':
                 # field.choices can be an iterator hence the need for this

@@ -36,7 +36,6 @@ class CustomField(TimeStampedModel):
 
     objects = CustomFieldManager()
 
-
     class Meta:
         ordering = ['order']
 

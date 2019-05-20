@@ -15,6 +15,7 @@ from aristotle_mdr.contrib.slots.models import Slot
 
 import json
 
+
 class CustomFieldListView(IsSuperUserMixin, BootTableListView):
     template_name='aristotle_mdr/custom_fields/list.html'
     model=models.CustomField
@@ -44,13 +45,11 @@ class CustomFieldMultiEditView(IsSuperUserMixin, VueFormView):
 
         return serializer.data
 
-
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data()
 
         context['vue_allowed_models'] = json.dumps(self.get_allowed_models())
         return context
-
 
     def get_allowed_models(self):
         allowed_models: Dict = {}
@@ -59,6 +58,7 @@ class CustomFieldMultiEditView(IsSuperUserMixin, VueFormView):
             allowed_models[allowed_model.pk] = allowed_model.name.title()
 
         return allowed_models
+
 
 class CustomFieldDeleteView(IsSuperUserMixin, CancelUrlMixin, SingleObjectMixin, FormView):
     model=models.CustomField
