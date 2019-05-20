@@ -943,9 +943,12 @@ class VueFormView(FormView):
             if widget_name in self.widget_mapping:
                 field_data.update(self.widget_mapping[widget_name])
 
+
             if widget_name == 'Select':
                 # field.choices can be an iterator hence the need for this
                 field_data['options'] = [[c[0], c[1]] for c in field.choices]
+
+                logger.debug("FFF" + str([[c[0], c[1]] for c in field.choices]))
 
                 if self.capitalize_options:
                     for item in field_data['options']:
@@ -958,7 +961,7 @@ class VueFormView(FormView):
                         field_data['rules'][attr] = attrdata
 
             vuefields[fname] = field_data
-        logger.debug('vue fields' + str(vuefields))
+
         return vuefields
 
     def post(self, request, *args, **kwargs):
@@ -969,9 +972,11 @@ class VueFormView(FormView):
         context['vue_fields'] = json.dumps(
             self.get_vue_form_fields(context['form'])
         )
+
         initial = self.get_vue_initial()
 
         self.strip_fields(initial)
+
         context['vue_initial'] = json.dumps(initial)
 
         return context

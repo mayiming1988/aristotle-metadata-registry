@@ -32,9 +32,9 @@ class CustomField(TimeStampedModel):
         choices=CUSTOM_FIELD_STATES,
         default=CUSTOM_FIELD_STATES.active
     )
+    choices = models.CharField(blank=True, max_length=1000)
 
     objects = CustomFieldManager()
-    choices = models.CharField(blank=True, max_length=1000)
 
 
     class Meta:

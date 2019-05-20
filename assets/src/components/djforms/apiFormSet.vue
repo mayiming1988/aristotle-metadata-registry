@@ -4,9 +4,10 @@
         <alert v-if="request_error.length > 0" type="danger">{{ request_error }}</alert>
         <FormSet 
             :fields="fields" 
-            :initial="initial" 
+            :initial="initial"
+            :allowed="allowed"
             :errors="errors"
-            :showLabeld="showLabels"
+            :showLabels="showLabels"
             :showDelete="showDelete"
             @submit="onSubmit">
         </FormSet>
@@ -37,6 +38,10 @@ export default {
             type: String,
             default: '[]'
         },
+        dataAllowed: {
+            type: String,
+            default: '[]'
+        },
         url: {
             type: String
         },
@@ -50,6 +55,7 @@ export default {
         },
     },
     created: function() {
+        this.allowed = JSON.parse(this.dataAllowed)
         this.fields = JSON.parse(this.dataFields)
         this.initial = JSON.parse(this.dataInitial)
     },

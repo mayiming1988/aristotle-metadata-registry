@@ -5,7 +5,7 @@
                 <div class="col-md-10">
                     <div class="panel panel-info">
                         <div class="panel-heading" role="button" @click="toggleAccordion(index)">
-                            <h4 class="panel-title"><i class="fa fa-lg fa-bars grabber"></i> {{ item.name }} ->  {{ item.allowed_model }}</h4>
+                            <h4 class="panel-title"><i class="fa fa-lg fa-bars grabber"></i> {{ item.name }}: {{ getAllowedModelName(item.allowed_model) }}</h4>
                         </div>
                         <collapse v-model="showAccordion[index]">
                             <div class="panel-body">
@@ -33,7 +33,6 @@
                 </div>
             </div>
         </draggable>
-
         <div class="vue-formset-button-group">
             <button class="btn btn-success" @click="addRow">Add</button>
             <button class="btn btn-primary" @click="submitFormSet">Submit Edits</button>
@@ -77,7 +76,10 @@
                 default: true
             },
             initial: {
-                type: Array
+                type: Array,
+            },
+            allowed: {
+                type: Object,
             },
             errors: {
                 type: Array
@@ -99,7 +101,6 @@
                 this.formsData = this.initial
                 this.nextVid = this.formsData.length
             }
-
             for (let i = 0; i < this.formsData.length; i++) {
                 // Add a vue id to each item as unique key
                 this.formsData[i]['vid'] = i
@@ -150,6 +151,14 @@
             }
         },
         methods: {
+            getAllowedModelName: function (id) {
+                if (id == null) {
+                    return 'All'
+                }
+                else {
+                    return this.allowed[id.toString()]
+                }
+            },
             displayChoiceField: function (vid) {
                 return this.displayChoicesProp[vid]
             },

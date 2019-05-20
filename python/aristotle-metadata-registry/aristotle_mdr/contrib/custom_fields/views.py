@@ -3,6 +3,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.views.generic import FormView
 from django.views.generic.detail import SingleObjectMixin
+from django.contrib.contenttypes.models import ContentType
 
 from aristotle_mdr.mixins import IsSuperUserMixin
 from aristotle_mdr.contrib.generic.views import VueFormView
@@ -12,9 +13,7 @@ from aristotle_mdr.contrib.custom_fields.forms import CustomFieldForm, CustomFie
 from aristotle_mdr_api.v4.custom_fields.serializers import CustomFieldSerializer
 from aristotle_mdr.contrib.slots.models import Slot
 
-import logging
-logger = logging.getLogger(__name__)
-
+import json
 
 class CustomFieldListView(IsSuperUserMixin, BootTableListView):
     template_name='aristotle_mdr/custom_fields/list.html'
@@ -45,6 +44,21 @@ class CustomFieldMultiEditView(IsSuperUserMixin, VueFormView):
 
         return serializer.data
 
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data()
+
+        context['vue_allowed_models'] = json.dumps(self.get_allowed_models())
+        return context
+
+
+    def get_allowed_models(self):
+        allowed_models: Dict = {}
+        # We don't need to do any form of permission checking because this is a super user only view
+        for allowed_model in ContentType.objects.all():
+            allowed_models[allowed_model.pk] = allowed_model.name.title()
+
+        return allowed_models
 
 class CustomFieldDeleteView(IsSuperUserMixin, CancelUrlMixin, SingleObjectMixin, FormView):
     model=models.CustomField
