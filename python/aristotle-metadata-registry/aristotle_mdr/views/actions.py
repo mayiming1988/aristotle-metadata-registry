@@ -130,7 +130,8 @@ class SupersedeItemView(UnorderedGenericAlterOneToManyView, ItemSubpageView, Per
     form_add_another_text = _('Add a relationship')
     form_title = _('Change Superseding')
 
-    show_proposed = False
+    # Whether to show only proposed supersedes
+    show_proposed: bool = False
 
     def has_permission(self):
         return perms.user_can_supersede(self.request.user, self.item)
@@ -141,11 +142,12 @@ class SupersedeItemView(UnorderedGenericAlterOneToManyView, ItemSubpageView, Per
     def get_editable_queryset(self):
         qs = super().get_editable_queryset()
 
-        if not self.show_proposed:
-            qs = qs.filter(proposed=False)
+        if self.show_proposed:
+            qs = qs.filter(proposed=True)
 
         if self.request.user.is_superuser:
             return qs
+
         return qs.filter(
             registration_authority__registrars__profile__user=self.request.user
         )
@@ -169,6 +171,7 @@ class ProposedSupersedeItemView(SupersedeItemView):
     def get_form(self):
         return actions.SupersedeForm
 
-    def save_instance(self, instance):
-        instance.proposed = True
-        super().save_instance()
+    def save_instances(self, instances):
+        for instance in instances:
+            instance.proposed = True
+            instance.save()

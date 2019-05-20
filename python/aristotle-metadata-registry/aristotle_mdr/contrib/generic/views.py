@@ -175,6 +175,7 @@ class GenericAlterForeignKey(GenericAlterManyToSomethingFormView):
             with transaction.atomic(), reversion.revisions.create_revision():
                 instance = self.form.save(commit=False)
                 self.save_instance(instance)
+
                 reversion.revisions.set_user(request.user)
                 reversion.revisions.set_comment(
                     _("Altered relationship of '%s' on %s") % (self.model_base_field, self.item)
@@ -435,6 +436,14 @@ class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
             formset.ordering_field = self.ordering_field
         return formset
 
+    def save_instances(self, instance):
+        """
+        Saves the instances returned by the formset
+        Can be overwritten to add/change extra data
+        """
+        for instance in instances:
+            instance.save()
+
     def post(self, request, *args, **kwargs):
         """
         Handles POST requests, instantiating a form instance with the passed
@@ -447,7 +456,10 @@ class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
         if self.formset.is_valid():
             with transaction.atomic(), reversion.revisions.create_revision():
                 self.item.save()
-                self.formset.save()
+
+                instances = self.formset.save(commit=False)
+                self.save_instances(instances)
+
                 reversion.revisions.set_user(request.user)
                 reversion.revisions.set_comment(construct_change_message(request, None, [self.formset]))
 

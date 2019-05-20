@@ -93,9 +93,15 @@ class ReviewActionMixin(LoginRequiredMixin, UserFormViewMixin):
     def get_review(self):
         return get_object_or_404(models.ReviewRequest, pk=self.kwargs['review_id'])
 
+    def get_supersedes_qs(self):
+        return MDR.SupersedeRelationship.objects.filter(
+            newer_item__in=self.review_concepts,
+            registration_authority=self.review.registration_authority
+        ).select_related('older_item', 'newer_item')
+
     def get_supersedes_context(self) -> List[Dict[str, Dict[str, Any]]]:
         supersedes = []
-        qs = self.review.proposed_supersedes.select_related('older_item', 'newer_item')
+        qs = self.get_supersedes_qs()
         for ss in qs:
             supersedes.append({
                 'older': {'id': ss.older_item.id, 'name': ss.older_item.name},
@@ -448,7 +454,7 @@ class ReviewSupersedesEditView(ReviewActionMixin, FormsetView):
 
     def get_formset_kwargs(self):
         kwargs = super().get_formset_kwargs()
-        kwargs['queryset'] = self.review.proposed_supersedes
+        kwargs['queryset'] = self.get_supersedes_qs()
         return kwargs
 
     def get_formset(self):
