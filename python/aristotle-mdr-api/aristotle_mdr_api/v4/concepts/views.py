@@ -288,7 +288,7 @@ class UpdateVersionPermissionsView(generics.ListAPIView):
 
 
 class GetVersionsPermissionsView(ObjectAPIView):
-    """ Gets the visibility permisions of a Version """
+    """ Gets the visibility permissions of a Version """
 
     def get(self, request, *args, **kwargs):
         version_pk = kwargs.get('vpk', None)
