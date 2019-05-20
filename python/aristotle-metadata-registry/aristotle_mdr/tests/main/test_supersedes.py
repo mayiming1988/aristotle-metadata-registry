@@ -5,10 +5,7 @@ from django.utils import timezone
 
 import aristotle_mdr.models as models
 import aristotle_mdr.tests.utils as utils
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-
-setup_aristotle_test_environment()
+from aristotle_mdr.utils import url_slugify_concept
 
 
 class SupersededProperty(TestCase):
@@ -50,7 +47,7 @@ class SupersededProperty(TestCase):
         self.assertTrue(self.item1.is_superseded)
 
 
-class SupersedePage(utils.LoggedInViewPages, TestCase):
+class SupersedePage(utils.AristotleTestUtils, TestCase):
     def setUp(self):
         super().setUp()
 
@@ -60,6 +57,13 @@ class SupersedePage(utils.LoggedInViewPages, TestCase):
         self.item2 = models.ObjectClass.objects.create(name="OC2", workgroup=self.wg1)
         self.item3 = models.ObjectClass.objects.create(name="OC3", workgroup=self.wg2)
         self.item4 = models.Property.objects.create(name="Prop4", workgroup=self.wg1)
+
+    def make_standard(self, item):
+        self.ra.register(
+            item,
+            models.STATES.standard,
+            self.su
+        )
 
     @tag('unit_test', 'supersede')
     def test_supersede_querysets(self):
@@ -136,8 +140,8 @@ class SupersedePage(utils.LoggedInViewPages, TestCase):
         self.assertEqual(self.item1.superseded_by_items_relation_set.count(), 0)
 
         management_form = utils.MockManagementForm(
-            prefix = "superseded_by_items_relation_set",
-            # mock_form = 
+            prefix="superseded_by_items_relation_set",
+            # mock_form =
         )
         management_form.add_form({
             'newer_item': self.item1.id,
@@ -163,7 +167,7 @@ class SupersedePage(utils.LoggedInViewPages, TestCase):
         )
 
         management_form = utils.MockManagementForm(
-            prefix = "superseded_by_items_relation_set",
+            prefix="superseded_by_items_relation_set",
         )
         management_form.add_form({
             'newer_item': self.item2.id,
@@ -180,8 +184,8 @@ class SupersedePage(utils.LoggedInViewPages, TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertTrue(self.item2 in models.ObjectClass.objects.get(
-                id=self.item1.id
-            ).superseded_by_items.all()
+            id=self.item1.id
+        ).superseded_by_items.all()
         )
         # self.assertEqual(
         #     models.ObjectClass.objects.get(
@@ -191,7 +195,7 @@ class SupersedePage(utils.LoggedInViewPages, TestCase):
         # )
 
         management_form = utils.MockManagementForm(
-            prefix = "superseded_by_items_relation_set",
+            prefix="superseded_by_items_relation_set",
         )
         management_form.add_form({
             'newer_item': self.item3.id,
@@ -211,13 +215,12 @@ class SupersedePage(utils.LoggedInViewPages, TestCase):
         # self.assertEqual(
         #     models.ObjectClass.objects.get(id=self.item1.id).superseded_by.item, self.item2)
         self.assertTrue(self.item3 not in models.ObjectClass.objects.get(
-                id=self.item1.id
-            ).superseded_by_items.all()
+            id=self.item1.id
+        ).superseded_by_items.all()
         )
 
-
         management_form = utils.MockManagementForm(
-            prefix = "superseded_by_items_relation_set",
+            prefix="superseded_by_items_relation_set",
         )
         management_form.add_form({
             'newer_item': self.item3.id,
@@ -240,28 +243,27 @@ class SupersedePage(utils.LoggedInViewPages, TestCase):
         self.assertEqual(response.status_code, 200)
         # self.assertEqual(models.ObjectClass.objects.get(id=self.item1.id).superseded_by.item, self.item2)
         self.assertTrue(self.item4 not in models.ObjectClass.objects.get(
-                id=self.item1.id
-            ).superseded_by_items.all()
+            id=self.item1.id
+        ).superseded_by_items.all()
         )
-
 
     @tag('integration_test', 'supersede')
     def test_viewer_cannot_view_supersede_page(self):
         self.login_viewer()
-        response = self.client.get(reverse('aristotle:supersede',args=[self.item1.id]))
-        self.assertEqual(response.status_code,403)
-        response = self.client.get(reverse('aristotle:supersede',args=[self.item2.id]))
-        self.assertEqual(response.status_code,403)
+        response = self.client.get(reverse('aristotle:supersede', args=[self.item1.id]))
+        self.assertEqual(response.status_code, 403)
+        response = self.client.get(reverse('aristotle:supersede', args=[self.item2.id]))
+        self.assertEqual(response.status_code, 403)
 
     @tag('integration_test', 'supersede')
     def test_editor_cannot_view_supersede_page(self):
         self.login_editor()
-        response = self.client.get(reverse('aristotle:supersede',args=[self.item1.id]))
-        self.assertEqual(response.status_code,403)
-        response = self.client.get(reverse('aristotle:supersede',args=[self.item2.id]))
-        self.assertEqual(response.status_code,403)
-        response = self.client.get(reverse('aristotle:supersede',args=[self.item3.id]))
-        self.assertEqual(response.status_code,403)
+        response = self.client.get(reverse('aristotle:supersede', args=[self.item1.id]))
+        self.assertEqual(response.status_code, 403)
+        response = self.client.get(reverse('aristotle:supersede', args=[self.item2.id]))
+        self.assertEqual(response.status_code, 403)
+        response = self.client.get(reverse('aristotle:supersede', args=[self.item3.id]))
+        self.assertEqual(response.status_code, 403)
 
     @tag('integration_test', 'supersede')
     def test_registrar_can_view_supersede_page(self):
@@ -276,9 +278,123 @@ class SupersedePage(utils.LoggedInViewPages, TestCase):
             self.su
         )
         self.login_registrar()
-        response = self.client.get(reverse('aristotle:supersede',args=[self.item1.id]))
-        self.assertEqual(response.status_code,200)
-        response = self.client.get(reverse('aristotle:supersede',args=[self.item2.id]))
-        self.assertEqual(response.status_code,403)
-        response = self.client.get(reverse('aristotle:supersede',args=[self.item3.id]))
-        self.assertEqual(response.status_code,200)
+        response = self.client.get(reverse('aristotle:supersede', args=[self.item1.id]))
+        self.assertEqual(response.status_code, 200)
+        response = self.client.get(reverse('aristotle:supersede', args=[self.item2.id]))
+        self.assertEqual(response.status_code, 403)
+        response = self.client.get(reverse('aristotle:supersede', args=[self.item3.id]))
+        self.assertEqual(response.status_code, 200)
+
+    def test_propose_supersede(self):
+        # Register items so registrar can use them
+        self.make_standard(self.item1)
+        self.make_standard(self.item2)
+        self.login_registrar()
+
+        # Get formset postdata for single supersedes
+        postdata = self.get_formset_postdata(
+            [{
+                'newer_item': self.item2.id,
+                'registration_authority': self.ra.id,
+                'message': '',
+                'date_effective': ''
+            }],
+            prefix='superseded_by_items_relation_set'
+        )
+
+        response = self.reverse_post(
+            'aristotle:proposed_supersede',
+            postdata,
+            reverse_args=[self.item1.id],
+        )
+        self.assertRedirects(response, url_slugify_concept(self.item1))
+        self.assertEqual(self.item1.superseded_by_items_relation_set.count(), 1)
+        ss = self.item1.superseded_by_items_relation_set.first()
+        self.assertTrue(ss.proposed)
+
+    def test_edit_existing_proposed_supersedes(self):
+        # Register items so registrar can use them
+        self.make_standard(self.item1)
+        self.make_standard(self.item2)
+        # Make some supersedes relations
+        ss = models.SupersedeRelationship.objects.create(
+            proposed=False,
+            older_item=self.item1,
+            newer_item=self.item2,
+            registration_authority=self.ra,
+        )
+        ssp = models.SupersedeRelationship.objects.create(
+            proposed=True,
+            older_item=self.item1,
+            newer_item=self.item3,
+            registration_authority=self.ra,
+        )
+
+        self.login_registrar()
+        response = self.reverse_get(
+            'aristotle:proposed_supersede',
+            reverse_args=[self.item1.id]
+        )
+        self.assertEqual(response.status_code, 200)
+
+        formset = response.context['formset']
+        self.assertEqual(len(formset), 1)
+        self.assertEqual(formset[0].initial['newer_item'], self.item2.id)
+
+    def test_proposed_supersedes_show_in_edit_form(self):
+        # Register items so registrar can use them
+        self.make_standard(self.item1)
+        self.make_standard(self.item2)
+        # Make proposed supersede
+        ss = models.SupersedeRelationship.objects.create(
+            proposed=False,
+            older_item=self.item1,
+            newer_item=self.item2,
+            registration_authority=self.ra,
+        )
+
+        self.login_registrar()
+        response = self.reverse_get(
+            'aristotle:supersede',
+            reverse_args=[self.item1.id]
+        )
+        self.assertEqual(response.status_code, 200)
+
+        formset = response.context['formset']
+        self.assertEqual(len(formset), 1)
+
+    def test_approve_supersede_by_editing(self):
+        # Register items so registrar can use them
+        self.make_standard(self.item1)
+        self.make_standard(self.item2)
+        # Make proposed supersede
+        ss = models.SupersedeRelationship.objects.create(
+            proposed=False,
+            older_item=self.item1,
+            newer_item=self.item2,
+            registration_authority=self.ra,
+        )
+
+        # Get formset postdata for single supersedes
+        postdata = self.get_formset_postdata(
+            [{
+                'id': ss.id,
+                'newer_item': self.item2.id,
+                'registration_authority': self.ra.id,
+                'proposed': False,
+                'message': '',
+                'date_effective': ''
+            }],
+            prefix='superseded_by_items_relation_set'
+        )
+
+        self.login_registrar()
+        response = self.reverse_post(
+            'aristotle:proposed_supersede',
+            postdata,
+            reverse_args=[self.item1.id],
+        )
+        self.assertRedirects(response, url_slugify_concept(self.item1))
+
+        ss.refresh_from_db()
+        self.assertFalse(ss.proposed)

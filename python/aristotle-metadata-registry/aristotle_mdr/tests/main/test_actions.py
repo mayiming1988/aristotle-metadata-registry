@@ -4,7 +4,6 @@ from django.test import TestCase, tag
 from aristotle_mdr.tests.utils import AristotleTestUtils
 from aristotle_mdr.views.editors import CloneItemView
 from aristotle_mdr import models
-from aristotle_mdr import models
 
 
 @tag('clone')
