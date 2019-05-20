@@ -46,14 +46,14 @@
 
                 {% if item|can_add_status:request.user %}
                     <li><a class="" href="{% url 'aristotle:changeStatus' item.id %}" data-toggle="modal" data-target="#infobox_adv_edit">
-                        <i class="fa fa-fw fa-university"></i> {% trans 'Change registration status'%}
+                        <i class="fa fa-fw fa-university"></i> {% trans 'Add registration status'%}
                     </a></li>
                 {% endif %}
 
                 {% if item|can_supersede:request.user %}
                     <li>
                       <a class="" href="{% url 'aristotle:supersede' item.id %}">
-                        <i class="fa fa-fw fa-fast-forward"></i> {% trans 'Supersede item'%}
+                        <i class="fa fa-fw fa-fast-forward"></i> {% trans 'Edit Supersedes'%}
                       </a>
                     </li>
                 {% endif %}
@@ -61,7 +61,7 @@
                 {% if item|can_edit:request.user %}
                     <li>
                       <a class="" href="{% url 'aristotle:proposed_supersede' item.id %}">
-                        <i class="fa fa-fw fa-fast-forward"></i> {% trans 'Propose Supersede item'%}
+                        <i class="fa fa-fw fa-fast-forward"></i> {% trans 'Propose Supersedes'%}
                       </a>
                     </li>
                 {% endif %}

@@ -556,7 +556,7 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         )
         formset = response.context['formset']
         self.assertEqual(len(formset), 0)
-        self.assertNotContains(response, 'TheOldestItem')
+        self.assertNotContains(response, self.item.name)
 
     def test_supersedes_edit_page_registrar(self):
         """Make sure a registrar can't edit supersedes (need to be manager)"""

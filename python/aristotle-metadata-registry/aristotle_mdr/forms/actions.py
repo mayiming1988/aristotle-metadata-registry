@@ -102,3 +102,11 @@ class SupersedeForm(forms.ModelForm):
         if self.item.id == item.id:
             raise forms.ValidationError("An item may not supersede itself")
         return item
+
+
+class SupersedeAdminForm(SupersedeForm):
+    """Supersede form where user can change proposed status aswell"""
+
+    class Meta:
+        model = MDR.SupersedeRelationship
+        fields = ['proposed', 'newer_item', 'registration_authority', 'message', 'date_effective']
