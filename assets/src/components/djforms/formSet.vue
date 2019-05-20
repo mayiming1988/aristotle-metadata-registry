@@ -135,19 +135,19 @@
                 }
                 return defaults
             },
-            displayChoicesProp: function () {
+            displayChoices: function () {
                 // Display choices fields is an dictionary of true/false values to allow the form field to determine
                 // whether or not to display the form field
-                let displayChoicesProp = new Object();
+                let displayChoices = new Object();
 
                 for (let i = 0; i < this.formsData.length; i++) {
                     if (this.formsData[i]['type'] === 'enum') {
-                        displayChoicesProp[i] = true
+                        displayChoices[i] = true
                     } else {
-                        displayChoicesProp[i] = false
+                        displayChoices[i] = false
                     }
                 }
-                return displayChoicesProp
+                return displayChoices
             }
         },
         methods: {
@@ -160,7 +160,7 @@
                 }
             },
             displayChoiceField: function (vid) {
-                return this.displayChoicesProp[vid]
+                return this.displayChoices[vid]
             },
             getError: function (vid) {
                 return this.error_map[vid]
@@ -204,7 +204,7 @@
             },
             addChoiceField: function (form) {
                 if (form.type == 'enum') {
-                    this.displayChoicesProp[form.vid] = true
+                    this.displayChoices[form.vid] = true
                 }
             },
             showDeleteItem: function (isnew) {
