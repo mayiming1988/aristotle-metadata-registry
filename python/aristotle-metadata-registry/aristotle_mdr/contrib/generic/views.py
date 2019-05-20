@@ -926,7 +926,6 @@ class VueFormView(FormView):
     def get_vue_form_fields(self, form: forms.Form) -> Dict[str, Dict]:
         vuefields = {}
         for fname, field in form.fields.items():
-            logger.debug("WWW" + fname + str(field))
             widget_name = type(field.widget).__name__
 
             # Data that is used to render the field in the Vue template
@@ -945,8 +944,6 @@ class VueFormView(FormView):
             if widget_name == 'Select':
                 # field.choices can be an iterator hence the need for this
                 field_data['options'] = [[c[0], c[1]] for c in field.choices]
-
-                logger.debug("FFF" + str([[c[0], c[1]] for c in field.choices]))
 
                 if self.capitalize_options:
                     for item in field_data['options']:

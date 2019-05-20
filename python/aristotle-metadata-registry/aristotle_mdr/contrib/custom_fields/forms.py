@@ -16,8 +16,6 @@ class CustomFieldForm(forms.ModelForm):
     class Meta:
         model = CustomField
         exclude = ['order']
-        # Make choices and the type enum next to each other
-        field_order = ['name', 'type', 'choices']
 
         help_texts = {
             'choices': "Enter a comma separated list of options."

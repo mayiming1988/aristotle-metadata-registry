@@ -106,10 +106,6 @@
                 this.formsData[i]['vid'] = i
                 this.formsData[i]['new'] = false
 
-                if (this.formsData[i]['type'] == 'enum') {
-                    this.formsData[i][' '] = true
-                }
-
                 // Populate the showAccordion list
                 this.showAccordion.push(false)
             }
@@ -140,8 +136,8 @@
                 return defaults
             },
             displayChoices: function () {
-                // Display choices fields is an dictionary of true/false values to allow the form field to determine
-                // whether or not to display the form field
+                // Display choices fields is an dictionary of true/false values to allow the baseForm component
+                // to determine whether or not to display the choice form field
                 let displayChoices = new Object();
 
                 for (let i = 0; i < this.formsData.length; i++) {
