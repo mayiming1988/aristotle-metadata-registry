@@ -244,6 +244,7 @@ class ListVersionsPermissionsView(ObjectAPIView):
 
 class UpdateVersionPermissionsView(generics.ListAPIView):
     """Updates the visibility permissions of all Versions associated with an id"""
+    version_ids = []
 
     permission_classes = (AuthCanViewEdit,)
     permission_key = 'metadata'
