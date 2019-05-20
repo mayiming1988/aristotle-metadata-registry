@@ -51,9 +51,19 @@
                 {% endif %}
 
                 {% if item|can_supersede:request.user %}
-                    <li><a class="" href="{% url 'aristotle:supersede' item.id %}">
+                    <li>
+                      <a class="" href="{% url 'aristotle:supersede' item.id %}">
                         <i class="fa fa-fw fa-fast-forward"></i> {% trans 'Supersede item'%}
-                    </a></li>
+                      </a>
+                    </li>
+                {% endif %}
+
+                {% if item|can_edit:request.user %}
+                    <li>
+                      <a class="" href="{% url 'aristotle:proposed_supersede' item.id %}">
+                        <i class="fa fa-fw fa-fast-forward"></i> {% trans 'Propose Supersede item'%}
+                      </a>
+                    </li>
                 {% endif %}
 
                 {% if item.registry_cascade_items %}
