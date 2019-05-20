@@ -2,7 +2,8 @@
     <div class="vue-form" :class="{'row': inline }" @>
         <slot name="before"/>
         <!-- Each div is a field -->
-        <div v-for="(fielddata, name) in fields" v-if="displayField(name, showChoiceField)">
+        <div :key="name" v-for="(fielddata, name) in fields">
+            <div v-if="displayField(name, showChoiceField)">
             <bsFieldWrapper :help-text="fielddata.help_text" :key="name" :name="name" :label="fielddata.label" :display-label="showLabels" :has-errors="hasErrors(name)" :column="inline">
                     <singleError :fe-errors="getFrontendError(name)" :be-errors="getBackendErrors(name)" :column="inline"/>
                     <formField
@@ -16,7 +17,6 @@
                     />
                 </bsFieldWrapper>
         </div>
-        <div v-else>
         </div>
             <slot name="after"/>
     </div>

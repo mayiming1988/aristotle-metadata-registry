@@ -107,7 +107,7 @@
                 this.formsData[i]['new'] = false
 
                 if (this.formsData[i]['type'] == 'enum') {
-                    this.formsData[i]['display'] = true
+                    this.formsData[i][' '] = true
                 }
 
                 // Populate the showAccordion list
@@ -156,7 +156,7 @@
         },
         methods: {
             getAllowedModelName: function (id) {
-                if (id == null) {
+                if (id == null || id == '') {
                     return 'All'
                 }
                 else {
