@@ -106,6 +106,10 @@
                 this.formsData[i]['vid'] = i
                 this.formsData[i]['new'] = false
 
+                if (this.formsData[i]['type'] == 'enum') {
+                    this.formsData[i]['display'] = true
+                }
+
                 // Populate the showAccordion list
                 this.showAccordion.push(false)
             }
@@ -205,6 +209,7 @@
             addChoiceField: function (form) {
                 if (form.type == 'enum') {
                     this.displayChoices[form.vid] = true
+                    this.formsData[form.vid]['display'] = false
                 }
             },
             showDeleteItem: function (isnew) {
