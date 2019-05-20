@@ -157,6 +157,13 @@ class GenericAlterForeignKey(GenericAlterManyToSomethingFormView):
 
         return FKOnlyForm
 
+    def save_instance(self, instance):
+        """
+        Saves the instance returned by the form
+        Can be overwritten to add/change extra data
+        """
+        instance.save()
+
     def post(self, request, *args, **kwargs):
         """
         Handles POST requests, instantiating a form instance with the passed
@@ -166,7 +173,8 @@ class GenericAlterForeignKey(GenericAlterManyToSomethingFormView):
         self.form = form(self.request.POST, self.request.FILES, instance=self.item)
         if self.form.is_valid():
             with transaction.atomic(), reversion.revisions.create_revision():
-                self.form.save()  # do this to ensure we are saving reversion records for the value domain, not just the values
+                instance = self.form.save(commit=False)
+                self.save_instance(instance)
                 reversion.revisions.set_user(request.user)
                 reversion.revisions.set_comment(
                     _("Altered relationship of '%s' on %s") % (self.model_base_field, self.item)

@@ -151,3 +151,8 @@ class SupersedeItemView(UnorderedGenericAlterOneToManyView, ItemSubpageView, Per
             "item": self.item.item,
             "user": self.request.user,
         }
+
+
+class ProposedSupersedeItemView(SupersedeItemView):
+    permission_checks = [perms.user_can_supersede]
+    form_add_another_text = _('Add a proposed relationship')
