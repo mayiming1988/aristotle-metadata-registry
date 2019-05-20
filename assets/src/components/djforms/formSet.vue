@@ -5,7 +5,7 @@
                 <div class="col-md-10">
                     <div class="panel panel-info">
                         <div class="panel-heading" role="button" @click="toggleAccordion(index)">
-                            <h4 class="panel-title"><i class="fa fa-lg fa-bars grabber"></i>  {{ item.name }}</h4>
+                            <h4 class="panel-title"><i class="fa fa-lg fa-bars grabber"></i> {{ item.name }}</h4>
                         </div>
                         <collapse v-model="showAccordion[index]">
                             <div class="panel-body">
@@ -18,7 +18,8 @@
                                         :errors="getError(item.vid)"
                                         :fe_errors="getIndexValidationErrors('formsData', index)"
                                         :showSubmit="false"
-                                        :showLabels="true">
+                                        :showLabels="true"
+                                        :showChoiceField="displayChoiceField(item.vid)">
 
                                     <template v-if="showDeleteItem(item.new)" slot="after">
                                         <div class="col-md-1">
@@ -59,6 +60,7 @@
         },
         mixins: [validationMixin],
         props: {
+            // List of the available fields
             fields: {
                 type: Object
             },
@@ -106,19 +108,6 @@
                 // Populate the showAccordion list
                 this.showAccordion.push(false)
             }
-            // Set a flag on a form field to prevent initial display of form field
-
-            for (let form of this.formsData) {
-                /// Type is the 'Type field' of the form
-                if (form.type === 'enum') {
-                    form['choices'].display = false
-                }
-                else {
-                    form['choices'].display = true
-                }
-            }
-
-
         },
         validations: function () {
             return this.getValidations(this.fields, 'formsData', true)
@@ -144,9 +133,26 @@
                     }
                 }
                 return defaults
+            },
+            displayChoicesProp: function () {
+                // Display choices fields is an dictionary of true/false values to allow the form field to determine
+                // whether or not to display the form field
+                let displayChoicesProp = new Object();
+
+                for (let i = 0; i < this.formsData.length; i++) {
+                    if (this.formsData[i]['type'] === 'enum') {
+                        displayChoicesProp[i] = true
+                    } else {
+                        displayChoicesProp[i] = false
+                    }
+                }
+                return displayChoicesProp
             }
         },
         methods: {
+            displayChoiceField: function (vid) {
+                return this.displayChoicesProp[vid]
+            },
             getError: function (vid) {
                 return this.error_map[vid]
             },
@@ -183,20 +189,13 @@
             toggleAccordion: function (index) {
                 if (this.showAccordion[index]) {
                     this.$set(this.showAccordion, index, false)
-                }
-                else {
+                } else {
                     this.showAccordion = this.showAccordion.map((v, i) => i === index)
                 }
             },
-            addChoiceField: function (field) {
-                // If Choice in the type select box is picked, we want to pass a prop down to the form and
-                // add the Choice text field.
-                if (field.type == 'enum') {
-                    // The field selected is enum
-                    this.fields['choices'].display = true
-                }
-                else {
-                    this.fields['choices'].display = false
+            addChoiceField: function (form) {
+                if (form.type == 'enum') {
+                    this.displayChoicesProp[form.vid] = true
                 }
             },
             showDeleteItem: function (isnew) {
