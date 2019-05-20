@@ -9,8 +9,6 @@ import reversion.models
 
 from model_utils.models import TimeStampedModel
 
-from aristotle_mdr import models as MDR
-from aristotle_mdr.fields import ConceptOneToOneField
 from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
 from aristotle_mdr.managers import UtilsManager
 

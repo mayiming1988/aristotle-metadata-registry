@@ -25,7 +25,6 @@ from aristotle_mdr.contrib.generic.forms import (
 import json
 import reversion
 import inspect
-import re
 from copy import copy
 
 import logging
@@ -958,8 +957,10 @@ class VueFormView(FormView):
         for fname, field in form.fields.items():
             widget_name = type(field.widget).__name__
 
+            # Data that is used to render the field in the Vue template
             field_data = {
                 'rules': {},
+                'help_text': field.help_text,
                 'tag': self.default_tag,
                 'label': field.label,
                 'options': [],
@@ -984,6 +985,7 @@ class VueFormView(FormView):
                         field_data['rules'][attr] = attrdata
 
             vuefields[fname] = field_data
+
         return vuefields
 
     def post(self, request, *args, **kwargs):
@@ -994,7 +996,11 @@ class VueFormView(FormView):
         context['vue_fields'] = json.dumps(
             self.get_vue_form_fields(context['form'])
         )
+
         initial = self.get_vue_initial()
+
         self.strip_fields(initial)
+
         context['vue_initial'] = json.dumps(initial)
+
         return context

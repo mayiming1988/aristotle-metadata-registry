@@ -9,10 +9,11 @@ class CustomFieldSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
     order = serializers.IntegerField()
     name = serializers.CharField(max_length=1000)
+    choices = serializers.CharField(allow_blank=True, default='')
 
     class Meta:
         model = CustomField
         fields = ('id', 'order', 'name', 'type', 'help_text', 'hr_type',
-                  'allowed_model', 'visibility', 'hr_visibility', 'state')
+                  'allowed_model', 'visibility', 'hr_visibility', 'state', 'choices')
         read_only_fields = ('hr_type', 'hr_visibility')
         list_serializer_class = MultiUpdateNoDeleteListSerializer
