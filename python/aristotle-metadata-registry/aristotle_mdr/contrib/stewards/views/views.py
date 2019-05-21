@@ -25,19 +25,19 @@ class ListStewardOrg(PermissionRequiredMixin, LoginRequiredMixin, GroupBase, Sor
         return StewardOrganisation.objects.all()
 
     def get_queryset(self):
-        metadata_counts = dict(self.get_initial_queryset().all().values_list('pk').annotate(
-            num_items = Count('metadata', distinct=True),
+        metadata_counts=dict(self.get_initial_queryset().all().values_list('pk').annotate(
+            num_items=Count('metadata', distinct=True),
         ))
         member_counts = dict(self.get_initial_queryset().all().values_list('pk').annotate(
-            num_members = Count('members', distinct=True),
+            num_members=Count('members', distinct=True),
         ))
         workgroup_counts = dict(self.get_initial_queryset().all().values_list('pk').annotate(
-            num_members = Count('workgroup', distinct=True),
+            num_members=Count('workgroup', distinct=True),
         ))
 
+        # This is very inefficient when member, workgroup and metadata counts grow
         groups = self.get_initial_queryset().annotate(
-            # This is very inefficient when member, workgroup and metadata counts grow
-            num_ras = Count('registrationauthority', distinct=True),
+            num_ras=Count('registrationauthority', distinct=True),
         )
 
         if self.text_filter:
