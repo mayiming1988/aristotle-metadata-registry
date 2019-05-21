@@ -133,6 +133,10 @@ class IndicatorDisaggregationDefinition(IndicatorDataElementBase):
 
 class IndicatorSet(MDR.concept):
     template = "comet/indicatorset.html"
+    serialize_weak_entities = [
+        ('indicators', 'indicatorinclusion_set'),
+    ]
+    clone_fields = ['indicatorinclusion',]
 
 
 class IndicatorInclusion(aristotleComponent):

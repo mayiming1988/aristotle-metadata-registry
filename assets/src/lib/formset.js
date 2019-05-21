@@ -1,5 +1,6 @@
 import { initDALWidget } from './dal_simple_init.js'
 import { reinitCKEditors } from './ckeditor_simple_init.js'
+import { reorderRows } from 'src/lib/moveable.js'
 
 export function replacePrefix(element, num_forms) {
     let name = $(element).attr('name')
@@ -73,6 +74,7 @@ export function addRow(formid, row_selector, urlfunc) {
         let element = $(this);
         initDALWidget(element, urlfunc)
     })
+    reorderRows(panelList);
     reinitCKEditors(new_form);
 }
 

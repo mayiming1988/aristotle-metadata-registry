@@ -268,7 +268,7 @@ class StewardURLManager(GroupURLManager):
                 for t in types:
                     t.item_count = t.model_class().objects.filter(
                         stewardship_organisation=self.get_group()
-                    ).count()
+                    ).visible(self.request.user).count()
                 return types
 
         return ListManagedItemTypesList.as_view(manager=self, group_class=self.group_class)
