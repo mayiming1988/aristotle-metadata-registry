@@ -25,9 +25,6 @@ from aristotle_mdr_api.v4.concepts.serializers import (
 from aristotle_mdr_api.v4.views import ObjectAPIView
 from aristotle_mdr import perms
 
-
-
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -246,7 +243,7 @@ class ListVersionsPermissionsView(ObjectAPIView):
 
 
 class UpdateVersionPermissionsView(generics.ListAPIView):
-    """Updates the visibility permissions of all Versions associated with an id"""
+    """Updates the visibility permissions of all versions associated with an id"""
     version_ids = []
 
     permission_classes = (AuthCanViewEdit,)
@@ -291,7 +288,7 @@ class UpdateVersionPermissionsView(generics.ListAPIView):
 
 
 class GetVersionsPermissionsView(ObjectAPIView):
-    """ Gets the visibility permissions of a Version """
+    """ Gets the visibility permissions of a version """
 
     def get(self, request, *args, **kwargs):
         version_pk = kwargs.get('vpk', None)
