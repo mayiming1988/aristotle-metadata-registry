@@ -72,19 +72,19 @@ class DeleteSandboxForm(UserAwareForm):
 class SupersedeForm(forms.ModelForm):
     class Meta:
         model = MDR.SupersedeRelationship
-        fields = ['newer_item', 'registration_authority', 'message', 'date_effective']
+        fields = ['older_item', 'registration_authority', 'message', 'date_effective']
 
     def __init__(self, *args, **kwargs):
         self.item = kwargs.pop('item')
         self.user = kwargs.pop('user')
         super().__init__(*args, **kwargs)
 
-        qs = self.item.item._meta.model.objects.visible(self.user)
+        qs = self.item._meta.model.objects.visible(self.user)
 
-        self.fields['newer_item']=forms.ModelChoiceField(
+        self.fields['older_item']=forms.ModelChoiceField(
             queryset=qs,
             empty_label="None",
-            label=_("Superseded by"),
+            label=_("Supersedes"),
             widget=widgets.ConceptAutocompleteSelect(
                 model=self.item._meta.model
             )
@@ -95,8 +95,8 @@ class SupersedeForm(forms.ModelForm):
             label=_("Registration authority"),
         )
 
-    def clean_newer_item(self):
-        item = self.cleaned_data['newer_item']
+    def clean_older_item(self):
+        item = self.cleaned_data['older_item']
         if not item:
             return None
         if self.item.id == item.id:
@@ -109,4 +109,4 @@ class SupersedeAdminForm(SupersedeForm):
 
     class Meta:
         model = MDR.SupersedeRelationship
-        fields = ['proposed', 'newer_item', 'registration_authority', 'message', 'date_effective']
+        fields = ['proposed', 'older_item', 'registration_authority', 'message', 'date_effective']

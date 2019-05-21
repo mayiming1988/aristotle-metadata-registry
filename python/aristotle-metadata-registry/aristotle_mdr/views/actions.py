@@ -125,8 +125,8 @@ class SupersedeItemView(UnorderedGenericAlterOneToManyView, ItemSubpageView, Per
     permission_checks = [perms.user_can_supersede]
     model_base = MDR._concept
     model_to_add = MDR.SupersedeRelationship
-    model_base_field = 'superseded_by_items_relation_set'
-    model_to_add_field = 'older_item'
+    model_base_field = 'superseded_items_relation_set'
+    model_to_add_field = 'newer_item'
     form_add_another_text = _('Add a relationship')
     form_title = _('Change Superseding')
 

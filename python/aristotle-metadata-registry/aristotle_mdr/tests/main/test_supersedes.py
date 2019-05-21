@@ -319,14 +319,14 @@ class SupersedePage(utils.AristotleTestUtils, TestCase):
         # Make some supersedes relations
         ss = models.SupersedeRelationship.objects.create(
             proposed=False,
-            older_item=self.item1,
-            newer_item=self.item2,
+            newer_item=self.item1,
+            older_item=self.item2,
             registration_authority=self.ra,
         )
         ssp = models.SupersedeRelationship.objects.create(
             proposed=True,
-            older_item=self.item1,
-            newer_item=self.item3,
+            newer_item=self.item1,
+            older_item=self.item3,
             registration_authority=self.ra,
         )
 
@@ -339,7 +339,37 @@ class SupersedePage(utils.AristotleTestUtils, TestCase):
 
         formset = response.context['formset']
         self.assertEqual(len(formset), 1)
-        self.assertEqual(formset[0].initial['newer_item'], self.item2.id)
+        self.assertEqual(formset[0].initial['older_item'], self.item3.id)
+
+    def test_edit_existing_all_supersedes(self):
+        # Register items so registrar can use them
+        self.make_standard(self.item1)
+        self.make_standard(self.item2)
+        # Make some supersedes relations
+        ss = models.SupersedeRelationship.objects.create(
+            proposed=False,
+            newer_item=self.item1,
+            older_item=self.item2,
+            registration_authority=self.ra,
+        )
+        ssp = models.SupersedeRelationship.objects.create(
+            proposed=True,
+            newer_item=self.item1,
+            older_item=self.item3,
+            registration_authority=self.ra,
+        )
+
+        self.login_registrar()
+        response = self.reverse_get(
+            'aristotle:supersede',
+            reverse_args=[self.item1.id]
+        )
+        self.assertEqual(response.status_code, 200)
+
+        formset = response.context['formset']
+        self.assertEqual(len(formset), 2)
+        self.assertEqual(formset[0].initial['older_item'], self.item2.id)
+        self.assertEqual(formset[1].initial['older_item'], self.item3.id)
 
     def test_proposed_supersedes_show_in_edit_form(self):
         # Register items so registrar can use them

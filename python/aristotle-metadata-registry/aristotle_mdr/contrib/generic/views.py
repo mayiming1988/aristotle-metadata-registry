@@ -436,7 +436,7 @@ class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
             formset.ordering_field = self.ordering_field
         return formset
 
-    def save_instances(self, instance):
+    def save_instances(self, instances):
         """
         Saves the instances returned by the formset
         Can be overwritten to add/change extra data
