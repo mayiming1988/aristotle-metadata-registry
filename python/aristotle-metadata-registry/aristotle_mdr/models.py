@@ -986,7 +986,10 @@ class concept(_concept):
 class SupersedeRelationship(TimeStampedModel):
     # Whether this relationship is proposed by a review,
     # or an actual approved relation
-    proposed = models.BooleanField(default=False)
+    proposed = models.BooleanField(
+        default=False,
+        help_text='Whether this is a proposal or an active supersedes relation'
+    )
     older_item = ConceptForeignKey(
         _concept,
         related_name='superseded_by_items_relation_set',

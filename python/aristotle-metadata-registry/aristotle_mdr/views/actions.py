@@ -128,7 +128,7 @@ class SupersedeItemView(UnorderedGenericAlterOneToManyView, ItemSubpageView, Per
     model_base_field = 'superseded_items_relation_set'
     model_to_add_field = 'newer_item'
     form_add_another_text = _('Add a relationship')
-    form_title = _('Change Superseding')
+    form_title = _('Edit Supersedes')
 
     # Whether to show only proposed supersedes
     show_proposed: bool = False
@@ -164,6 +164,7 @@ class SupersedeItemView(UnorderedGenericAlterOneToManyView, ItemSubpageView, Per
 
 class ProposedSupersedeItemView(SupersedeItemView):
     permission_checks = [perms.user_can_edit]
+    form_title = _('Propose Supersedes')
     form_add_another_text = _('Add a proposed relationship')
 
     show_proposed = True
