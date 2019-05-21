@@ -278,13 +278,30 @@ class DataSetSpecification(aristotle.models.concept):
         )
 
     def get_download_items(self):
+        from django.db.models import Q
         return [
             self.clusters.all(),
-            self.data_elements.all(),
+            aristotle.models.DataElement.objects.filter(
+                Q(dssInclusions__dss=self) |
+				Q(dssInclusions__dss__in=self.clusters.all()) 
+            ).distinct(),
             # We need to make these distinct to avoid duplicates being returned
-            aristotle.models.ObjectClass.objects.filter(dataelementconcept__dataelement__dssInclusions__dss=self).distinct(),
-            aristotle.models.Property.objects.filter(dataelementconcept__dataelement__dssInclusions__dss=self).distinct(),
-            aristotle.models.ValueDomain.objects.filter(dataelement__dssInclusions__dss=self).distinct(),
+            aristotle.models.DataElementConcept.objects.filter(
+                Q(dataelement__dssInclusions__dss=self) |
+				Q(dataelement__dssInclusions__dss__in=self.clusters.all()) 
+            ).distinct(),
+            aristotle.models.ObjectClass.objects.filter(
+                Q(dataelementconcept__dataelement__dssInclusions__dss=self) |
+				Q(dataelementconcept__dataelement__dssInclusions__dss__in=self.clusters.all()) 
+            ).distinct(),
+            aristotle.models.Property.objects.filter(
+                Q(dataelementconcept__dataelement__dssInclusions__dss=self) |
+				Q(dataelementconcept__dataelement__dssInclusions__dss__in=self.clusters.all()) 
+            ).distinct(),
+            aristotle.models.ValueDomain.objects.filter(
+                Q(dataelement__dssInclusions__dss=self) |
+				Q(dataelement__dssInclusions__dss__in=self.clusters.all()) 
+            ).distinct(),
         ]
 
 
