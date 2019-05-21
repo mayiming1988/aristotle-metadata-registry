@@ -2,7 +2,7 @@ from rest_framework import generics
 from rest_framework import status
 from rest_framework.response import Response
 
-from aristotle_mdr_api.v4.permissions import AuthCanViewEdit
+from aristotle_mdr_api.v4.permissions import AuthCanViewEdit, UnAuthenticatedUserCanView
 from aristotle_mdr_api.v4.concepts import serializers
 from aristotle_mdr.models import _concept, concept, aristotleComponent, SupersedeRelationship
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
@@ -25,13 +25,15 @@ from aristotle_mdr_api.v4.concepts.serializers import (
 from aristotle_mdr_api.v4.views import ObjectAPIView
 from aristotle_mdr import perms
 
+
+
+
 import logging
 logger = logging.getLogger(__name__)
 
 
 class ConceptView(generics.RetrieveAPIView):
-    permission_classes=(AuthCanViewEdit,)
-    permission_key='metadata'
+    permission_classes=(UnAuthenticatedUserCanView,)
     serializer_class=serializers.ConceptSerializer
     queryset=_concept.objects.all()
 
@@ -97,7 +99,7 @@ class SupersedesGraphicalConceptView(ObjectAPIView):
 
 class GeneralGraphicalConceptView(ObjectAPIView):
     """Retrieve a Graphical Representation of the General Relationships"""
-    permission_classes = (AuthCanViewEdit,)
+    permission_classes = (UnAuthenticatedUserCanView,)
     permission_key = 'metadata'
 
     def get(self, request, pk, format=None):
@@ -168,6 +170,7 @@ class GeneralGraphicalConceptView(ObjectAPIView):
 
 class ConceptLinksView(ObjectAPIView):
     """Retrieve a graphical representation of the links relations"""
+    permission_classes = (UnAuthenticatedUserCanView,)
 
     def get(self, request, *args, **kwargs):
         concept = self.get_object()
