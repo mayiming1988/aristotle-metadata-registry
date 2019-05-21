@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union, Iterable
+from typing import List, Tuple, Union, Iterable, Optional
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ImproperlyConfigured
@@ -11,6 +11,7 @@ from django.dispatch import receiver, Signal
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
+from django.contrib.contenttypes.models import ContentType
 
 from model_utils import Choices, FieldTracker
 from model_utils.models import TimeStampedModel
@@ -710,6 +711,13 @@ class _concept(baseAristotleObject):
     _is_public = models.BooleanField(default=False)
     _is_locked = models.BooleanField(default=False)
 
+    # Cache of what type of item this is (set in handle_object_save)
+    _type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE,
+        null=True
+    )
+
     version = models.CharField(max_length=20, blank=True)
     references = RichTextField(blank=True)
     origin_URI = models.URLField(
@@ -755,7 +763,7 @@ class _concept(baseAristotleObject):
         verbose_name = "item"
 
     class ReportBuilder:
-        exclude = ('_is_public', '_is_locked')
+        exclude = ('_is_public', '_is_locked', '_type')
 
     @classmethod
     def model_to_publish(self):
@@ -766,6 +774,7 @@ class _concept(baseAristotleObject):
         changed = self.tracker.changed()
         changed.pop('_is_public', False)
         changed.pop('_is_locked', False)
+        changed.pop('_type', False)
         return len(changed.keys()) > 0
 
     @property
@@ -782,12 +791,68 @@ class _concept(baseAristotleObject):
         return _concept.objects.filter(pk=self.pk).visible(user).exists()
 
     @property
-    def item(self):
+    def cached_item(self) -> Optional[models.Model]:
         """
-        Performs a lookup using ``model_utils.managers.InheritanceManager`` to
-        find the subclassed item.
+        Return cached subclassed item or None
+        The .item property below should be used instead
+        unless the slow query needs to be avoided in all cases
         """
-        return _concept.objects.get_subclass(pk=self.pk)
+        item = None
+        ct = self._type
+        if ct is not None:
+            model = ct.model_class()
+            try:
+                item = model.objects.get(pk=self.pk)
+            except model.DoesNotExist:
+                # This should never happen if _type wasn't messed with
+                return None
+
+        return item
+
+    @property
+    def item(self) -> models.Model:
+        """
+        Performs a lookup to find the subclassed item.
+        If the type is cached in _type this lookup is fast
+        otherwise InheritanceManager is used which is quite slow
+        """
+        cached_item = self.cached_item
+        if cached_item is not None:
+            return cached_item
+
+        # Fallback to using get_subclass (this is slow)
+        item = _concept.objects.get_subclass(pk=self.pk)
+        # Set _type for future calls (dont save though)
+        self._type = ContentType.objects.get_for_model(type(item))
+
+        return item
+
+    @property
+    def item_type(self) -> ContentType:
+        """Returns the content type of the subclassed item"""
+        if self._type:
+            return self._type
+
+        # Fallback to using get_subclass (this is slow)
+        instance = _concept.objects.get_subclass(pk=self.pk)
+        model = type(instance)
+        ct = ContentType.objects.get_for_model(type(instance))
+        # Set _type for future calls (dont save though)
+        self._type = ct
+
+        return ct
+
+    @property
+    def item_type_name(self) -> str:
+        """
+        Return the verbose name of the subclassed items type
+        e.g. (Object Class)
+        """
+        # Get content type
+        ct = self.item_type
+        # Get model and return name
+        model = ct.model_class()
+        return model.get_verbose_name()
 
     @property
     def concept(self):

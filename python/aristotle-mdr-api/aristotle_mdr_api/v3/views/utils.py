@@ -32,6 +32,7 @@ api_excluded_fields = [
     "_concept_ptr",
     "_is_locked",
     "_is_public",
+    "_type",
     "packages",
     "relatedDiscussions",
     "superseded_by",
