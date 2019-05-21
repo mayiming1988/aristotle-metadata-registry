@@ -2,6 +2,15 @@
 {% load i18n humanize %}
 {% load aristotle_tags util_tags %}
 {% load static from staticfiles %}
+{% load render_bundle from webpack_loader %}
+
+{% block webpack_css_bundle %}
+  {% render_bundle 'review_base' 'css' %}
+{% endblock %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'review_base' 'js' %}
+{% endblock %}
 
 {% block title %}Review details{{ review.title }}{% endblock %}
 
@@ -19,9 +28,11 @@
         <div class="panel panel-default">
           <div class="panel-heading clearfix">
             <div class="pull-left" style="margin:8px 0 0 0;">
-                  {% if open_close_approved %}
-                      <open-close-approved :review-status="status" initial-status="{{review.status_code}}"></open-close-approved>
-                  {% endif %}
+              <open-close-approved 
+                {% if dynamic_open_close %}:review-status="status"{% endif %} 
+                initial-status="{{review.status_code}}"
+              >
+              </open-close-approved>
                   <span v-pre>{{ review.message }}</span>
             </div>
             <span v-pre class="pull-right">
