@@ -12,7 +12,7 @@ from aristotle_mdr import perms
 
 
 class IssueView(generics.RetrieveUpdateAPIView):
-    """Retrive and update and issue"""
+    """Retrieve and update and issue"""
     permission_classes=(AuthCanViewEdit,)
     permission_key='metadata'
     serializer_class=serializers.IssueSerializer

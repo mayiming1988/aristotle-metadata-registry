@@ -2,7 +2,7 @@ from rest_framework import generics
 from rest_framework import status
 from rest_framework.response import Response
 
-from aristotle_mdr_api.v4.permissions import AuthCanViewEdit
+from aristotle_mdr_api.v4.permissions import AuthCanViewEdit, UnAuthenticatedUserCanView
 from aristotle_mdr_api.v4.concepts import serializers
 from aristotle_mdr.models import _concept, concept, aristotleComponent, SupersedeRelationship
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
@@ -17,6 +17,7 @@ from django.core.exceptions import PermissionDenied
 import collections
 from re import finditer
 import reversion
+from typing import List
 
 from aristotle_mdr_api.v4.concepts.serializers import (
     ConceptSerializer,
@@ -30,8 +31,10 @@ logger = logging.getLogger(__name__)
 
 
 class ConceptView(generics.RetrieveAPIView):
-    permission_classes=(AuthCanViewEdit,)
+    permission_classes=(UnAuthenticatedUserCanView,)
+
     permission_key='metadata'
+
     serializer_class=serializers.ConceptSerializer
     queryset=_concept.objects.all()
 
@@ -59,16 +62,15 @@ class SupersedesGraphicalConceptView(ObjectAPIView):
                                                        "font": {"size": 15}}
                     nodes.append(serialised_item)
 
-            if current_item.superseded_by_items_relation_set.first():
-                for sup_by_rel in current_item.superseded_by_items_relation_set.all():
-                    newer = sup_by_rel.newer_item
-                    if newer.id not in seen_items_ids:
-                        if perms.user_can_view(self.request.user, current_item):
-                            nodes.append(ConceptSerializer(newer).data)
-                            queue.append(newer)
-                            seen_items_ids.add(newer.id)
+            for sup_by_rel in current_item.superseded_by_items_relation_set.filter(proposed=False).all():
+                newer = sup_by_rel.newer_item
+                if newer.id not in seen_items_ids:
+                    if perms.user_can_view(self.request.user, current_item):
+                        nodes.append(ConceptSerializer(newer).data)
+                        queue.append(newer)
+                        seen_items_ids.add(newer.id)
 
-            for sup_rel in current_item.superseded_items_relation_set.all():
+            for sup_rel in current_item.superseded_items_relation_set.filter(proposed=False).all():
                 if sup_rel.older_item.id not in seen_items_ids:
                     if perms.user_can_view(self.request.user, current_item):
                         nodes.append(ConceptSerializer(sup_rel.older_item).data)
@@ -96,8 +98,8 @@ class SupersedesGraphicalConceptView(ObjectAPIView):
 
 
 class GeneralGraphicalConceptView(ObjectAPIView):
-    """Retrieve a Graphical Representation of the General Relationships"""
-    permission_classes = (AuthCanViewEdit,)
+    """Retrieve a graphical representation of the general relationships"""
+    permission_classes = (UnAuthenticatedUserCanView,)
     permission_key = 'metadata'
 
     def get(self, request, pk, format=None):
@@ -168,6 +170,7 @@ class GeneralGraphicalConceptView(ObjectAPIView):
 
 class ConceptLinksView(ObjectAPIView):
     """Retrieve a graphical representation of the links relations"""
+    permission_classes = (UnAuthenticatedUserCanView,)
 
     def get(self, request, *args, **kwargs):
         concept = self.get_object()
@@ -244,7 +247,8 @@ class ListVersionsPermissionsView(ObjectAPIView):
 
 
 class UpdateVersionPermissionsView(generics.ListAPIView):
-    """Updates the visibility permissions of all Versions associated with an id"""
+    """Updates the visibility permissions of all versions associated with an id"""
+    version_ids: List = []
 
     permission_classes = (AuthCanViewEdit,)
     permission_key = 'metadata'
@@ -255,10 +259,10 @@ class UpdateVersionPermissionsView(generics.ListAPIView):
         pk = self.kwargs[self.lookup_url_kwarg]
         # Get item
         self.item = get_object_or_404(_concept, pk=pk).item
-        if not user_can_edit(self.request.user, item):
+        if not user_can_edit(self.request.user, self.item):
             raise PermissionDenied()
         # Get associated versions
-        versions = reversion.models.Version.objects.get_for_object(item)
+        versions = reversion.models.Version.objects.get_for_object(self.item)
         self.version_ids = [version.pk for version in versions]
 
         return super().dispatch(request, *args, **kwargs)
@@ -295,7 +299,7 @@ class UpdateVersionPermissionsView(generics.ListAPIView):
 
 
 class GetVersionsPermissionsView(ObjectAPIView):
-    """ Gets the visibility permisions of a Version """
+    """ Gets the visibility permissions of a version """
 
     def get(self, request, *args, **kwargs):
         version_pk = kwargs.get('vpk', None)

@@ -1,16 +1,8 @@
 {% with formset.filtered_empty_form as form %}
-    {# TODO #}
-    <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
-        {% comment %}
-      {% if formset.is_ordered or True %}
-      <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
-      {% else %}
-      <td title=""><i class="fa"></i>
-      {% endif %}
-      {% endcomment %}
-        {% for hidden in form.hidden_fields %}
-            {{ hidden }}
-        {% endfor %}
+    {% if not disable_ordering %}<td title="Drag to reorder"><i class="fa fa-bars grabber"></i>{% endif %}
+    {% for hidden in form.hidden_fields %}
+        {{ hidden }}
+    {% endfor %}
     </td>
     <td>
         <div>

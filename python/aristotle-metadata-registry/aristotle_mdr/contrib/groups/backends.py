@@ -213,7 +213,10 @@ class GroupCreateView(LoginRequiredMixin, PermissionRequiredMixin, GroupBase, Cr
 
 
 class GroupUpdateView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin, UpdateView):
-    fallback_template_name = "groups/group/update.html"
+    """ Settings page for updating a Stewardship Organisation """
+
+    template_name = "groups/group/settings.html"
+
     role_permission = "edit_group_details"
     current_group_context = "settings"
 

@@ -7,7 +7,7 @@ from aristotle_mdr import perms
 
 
 class ObjectAPIView(APIView):
-    """Api View providing a util function to get an item with permission checks"""
+    """API View providing a util function to get an item with permission checks"""
 
     # Model to lookup, default to _concept
     model = _concept

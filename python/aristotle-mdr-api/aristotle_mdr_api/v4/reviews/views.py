@@ -10,7 +10,6 @@ from aristotle_mdr_api.v4.permissions import AuthCanViewEdit
 from aristotle_mdr import perms
 import aristotle_mdr.models as MDR
 
-
 from . import serializers
 
 
@@ -43,6 +42,7 @@ class ReviewUpdateAndCommentView(generics.UpdateAPIView):
         if not perms.user_can_close_or_reopen_review(self.request.user, obj):
             raise PermissionDenied
         return obj
+
 
 class AlterItemInReviewView(APIView):
     operation_flag = ''

@@ -156,6 +156,13 @@ class GenericAlterForeignKey(GenericAlterManyToSomethingFormView):
 
         return FKOnlyForm
 
+    def save_instance(self, instance):
+        """
+        Saves the instance returned by the form
+        Can be overwritten to add/change extra data
+        """
+        instance.save()
+
     def post(self, request, *args, **kwargs):
         """
         Handles POST requests, instantiating a form instance with the passed
@@ -165,7 +172,9 @@ class GenericAlterForeignKey(GenericAlterManyToSomethingFormView):
         self.form = form(self.request.POST, self.request.FILES, instance=self.item)
         if self.form.is_valid():
             with transaction.atomic(), reversion.revisions.create_revision():
-                self.form.save()  # do this to ensure we are saving reversion records for the value domain, not just the values
+                instance = self.form.save(commit=False)
+                self.save_instance(instance)
+
                 reversion.revisions.set_user(request.user)
                 reversion.revisions.set_comment(
                     _("Altered relationship of '%s' on %s") % (self.model_base_field, self.item)
@@ -426,6 +435,14 @@ class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
             formset.ordering_field = self.ordering_field
         return formset
 
+    def save_instances(self, instances):
+        """
+        Saves the instances returned by the formset
+        Can be overwritten to add/change extra data
+        """
+        for instance in instances:
+            instance.save()
+
     def post(self, request, *args, **kwargs):
         """
         Handles POST requests, instantiating a form instance with the passed
@@ -438,7 +455,10 @@ class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
         if self.formset.is_valid():
             with transaction.atomic(), reversion.revisions.create_revision():
                 self.item.save()
-                self.formset.save()
+
+                instances = self.formset.save(commit=False)
+                self.save_instances(instances)
+
                 reversion.revisions.set_user(request.user)
                 reversion.revisions.set_comment(construct_change_message(request, None, [self.formset]))
 
@@ -505,6 +525,11 @@ class UnorderedGenericAlterOneToManyView(GenericAlterOneToManyViewBase):
     model_to_add_field = ''
     form_add_another_text = ''
     formset = None
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['disable_ordering'] = True
+        return context
 
 
 class ExtraFormsetMixin:

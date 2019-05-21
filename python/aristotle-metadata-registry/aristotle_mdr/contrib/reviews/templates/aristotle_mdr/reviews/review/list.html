@@ -12,10 +12,8 @@
 
 {% block title %}Review details - items {{ item.name }}{% endblock %}
 {% block tabpanel %}
-<!--suppress ALL -->
     <api-errors :errors="errors"></api-errors>
     <div role="tabpanel" class="tab-pane active" id="review_items">
-        <div id="vue-container"></div>
         <table class="table table-striped" id="item-table">
             <caption>Items currently listed for this review</caption>
             <tr>
@@ -26,10 +24,10 @@
             </tr>
             {% for concept in concepts %}
             <tr>
-                <td>
+                <td v-pre>
                     {% include "aristotle_mdr/helpers/inlineDetails.html" with item=concept.item %}
                 </td>
-                <td>
+                <td v-pre>
                     <time datetime="{{ concept.item.modified|isotime }}">{{ concept.item.modified }}</time>
                 </td>
                 <td>
@@ -70,7 +68,7 @@
 
         </table>
     </div>
-    <div role="tabpanel" class="tab-pane {% if active_tab == 'checks'%}active{%endif%}" id="review_checks">
+    <div v-pre role="tabpanel" class="tab-pane {% if active_tab == 'checks'%}active{%endif%}" id="review_checks">
         {% if active_tab == 'checks'%}
         <table class="table">
             <thead>
@@ -123,11 +121,6 @@
                                 </div>
                             </div>
                             {% endif %}
-                            {% comment %}
-                            <pre>{% spaceless %}
-                        {{result}}
-                      {% endspaceless %}</pre>
-                            {% endcomment %}
                         </a>
                         {% endfor %}
                     </div>

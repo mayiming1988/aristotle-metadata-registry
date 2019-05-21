@@ -20,13 +20,13 @@
             </a>
             <h1>
                 <open-close :is-open="isOpen"></open-close>
-                {{ object.name }}
+                <span v-pre>{{ object.name }}</span>
                 {% if own_issue %}
                   <button class="btn btn-default btn-sm" @click="openIssueModal">Edit</button>
                 {% endif %}
             </h1>
 
-            <div class="margin-below">
+            <div v-pre class="margin-below">
               <ul class="taggle_inline_list">
                 {% for label in object.labels.all %}
                 <li class="taggle">{{ label.label }}</li>
@@ -35,7 +35,7 @@
               <span>Opened {{ object.created|timesince }} ago by {{ object.submitter.display_name }}</span>
             </div>
 
-            <div class="panel panel-default">
+            <div v-pre class="panel panel-default">
               <div class="panel-heading"><strong>Description</strong></div>
               <div class="panel-body">
                 {{ object.description }}
