@@ -1,22 +1,12 @@
 {% extends "aristotle_mdr/reviews/review/base.html" %}
 {% load i18n humanize %}
 {% load aristotle_tags %}
-{% load render_bundle from webpack_loader %}
-
-{% block webpack_css_bundle %}
-  {% render_bundle 'itemPage' 'css' %}
-{% endblock %}
-
-{% block webpack_bundle %}
-  {% render_bundle 'itemPage' 'js' %}
-{% endblock %}
 
 {% block title %}Issues for Review{{ item.name }}{% endblock %}
 {% block tabpanel %}
-<div role="tabpanel" class="tab-pane active" id="review_issues">
+<div v-pre role="tabpanel" class="tab-pane active" id="review_issues">
   <h2>Open issues related to items in this review</h2>
 
-  <div id="vue-container">
       {% regroup open_issues by item as issues %}
       {% for issue_set in issues %}
           <h3>{{ issue_set.grouper.name }}</h1>
@@ -24,8 +14,6 @@
       {% empty %}
         <p>No issues to display</p>
       {% endfor %}
-
-  </div>
 
 </div>
 

@@ -1,9 +1,8 @@
 <table id="{{ formset.prefix }}" class="formset form table table-hover" style="overflow: auto">
     {% with formset.empty_form as form %}
-        {# {{ form.media }} #}
         <thead>
         <tr>
-            <th></th>
+            {% if not disable_ordering %}<th></th>{% endif %}
             {% for field in form.visible_fields %}
                 <th><div>{{ field.label|capfirst }}</div>
                     <small title="{{ field.help_text }}">{{ field.help_text|truncatewords:10 }}</small>
@@ -15,18 +14,10 @@
     <tbody id="{{ formset.prefix }}" class="draggableTable">
     {% for form in formset.forms %}
         <tr class="moveablerow">
-            {# TODO #}
-            <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
-                {% comment %}
-      {% if formset.is_ordered or True %}
-      <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
-      {% else %}
-      <td title=""><i class="fa"></i>
-      {% endif %}
-      {% endcomment %}
-                {% for hidden in form.hidden_fields %}
-                    {{ hidden }}
-                {% endfor %}
+            {% if not disable_ordering %}<td title="Drag to reorder"><i class="fa fa-bars grabber"></i>{% endif %}
+            {% for hidden in form.hidden_fields %}
+                {{ hidden }}
+            {% endfor %}
             </td>
             {% for field in form.visible_fields %}
                 <td>

@@ -9,7 +9,16 @@
 
 <script>
 export default {
-    props: ['reviewStatus','initialStatus'],
+    props: {
+        reviewStatus: {
+            type: String,
+            default: '',
+        },
+        initialStatus: {
+            type: String,
+            required: true
+        },
+    },
     computed: {
         current_status: function() {
             return this.reviewStatus || this.initialStatus

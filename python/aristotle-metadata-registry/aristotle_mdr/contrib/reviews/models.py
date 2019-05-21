@@ -84,6 +84,9 @@ class ReviewRequest(StatusMixin, TimeStampedModel):
 
     @property
     def proposed_supersedes(self):
+        """
+        Get the proposed supersedes attached to this review only
+        """
         return self.supersedes.filter(proposed=True)
 
     def get_absolute_url(self):

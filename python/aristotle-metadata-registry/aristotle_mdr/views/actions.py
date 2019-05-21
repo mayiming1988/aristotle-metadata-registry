@@ -125,10 +125,13 @@ class SupersedeItemView(UnorderedGenericAlterOneToManyView, ItemSubpageView, Per
     permission_checks = [perms.user_can_supersede]
     model_base = MDR._concept
     model_to_add = MDR.SupersedeRelationship
-    model_base_field = 'superseded_by_items_relation_set'
-    model_to_add_field = 'older_item'
+    model_base_field = 'superseded_items_relation_set'
+    model_to_add_field = 'newer_item'
     form_add_another_text = _('Add a relationship')
-    form_title = _('Change Superseding')
+    form_title = _('Edit Supersedes')
+
+    # Whether to show only proposed supersedes
+    show_proposed: bool = False
 
     def has_permission(self):
         return perms.user_can_supersede(self.request.user, self.item)
@@ -137,17 +140,39 @@ class SupersedeItemView(UnorderedGenericAlterOneToManyView, ItemSubpageView, Per
         return url_slugify_concept(self.item)
 
     def get_editable_queryset(self):
+        qs = super().get_editable_queryset()
+
+        if self.show_proposed:
+            qs = qs.filter(proposed=True)
+
         if self.request.user.is_superuser:
-            return super().get_editable_queryset()
-        return super().get_editable_queryset().filter(
+            return qs
+
+        return qs.filter(
             registration_authority__registrars__profile__user=self.request.user
         )
 
     def get_form(self):
-        return actions.SupersedeForm
+        return actions.SupersedeAdminForm
 
     def get_form_kwargs(self):
         return {
             "item": self.item.item,
             "user": self.request.user,
         }
+
+
+class ProposedSupersedeItemView(SupersedeItemView):
+    permission_checks = [perms.user_can_edit]
+    form_title = _('Propose Supersedes')
+    form_add_another_text = _('Add a proposed relationship')
+
+    show_proposed = True
+
+    def get_form(self):
+        return actions.SupersedeForm
+
+    def save_instances(self, instances):
+        for instance in instances:
+            instance.proposed = True
+            instance.save()

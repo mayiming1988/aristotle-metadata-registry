@@ -109,6 +109,7 @@ urlpatterns=[
         ),
 
     url(r'^action/supersede/(?P<iid>\d+)$', views.actions.SupersedeItemView.as_view(), name='supersede'),
+    url(r'^action/proposed/supersede/(?P<iid>\d+)$', views.actions.ProposedSupersedeItemView.as_view(), name='proposed_supersede'),
 
     url(r'^action/bulkaction/?$', views.bulk_actions.BulkAction.as_view(), name='bulk_action'),
     url(r'^action/bulkaction/state/?$', views.bulk_actions.ChangeStatusBulkActionView.as_view(), name='change_state_bulk_action'),

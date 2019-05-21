@@ -2,6 +2,7 @@ import yesNoModal from '@/yesNoModal.vue'
 import deleteButton from '@/deleteButton.vue'
 import apiRequest from 'src/mixins/apiRequest.js'
 import apiErrors from '@/apiErrorDisplay.vue'
+import openClose from '@/reviews/openClose.vue'
 
 
 export default {
@@ -11,6 +12,7 @@ export default {
         'yesno-modal': yesNoModal,
         'delete-button': deleteButton,
         'api-errors': apiErrors,
+        'open-close-approved': openClose
     },
     data: {
         modal_text: '',

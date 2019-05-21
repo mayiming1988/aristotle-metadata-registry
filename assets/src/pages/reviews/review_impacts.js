@@ -1,7 +1,10 @@
 import init from 'src/lib/init.js'
-
 import request from 'src/lib/request.js'
+
 import {addHeaderMessage, initMessages} from 'src/lib/messages.js'
+
+import openClose from '@/reviews/openClose.vue'
+import renderComponents from 'src/lib/renderComponents.js'
 
 init();
 initMessages();
@@ -27,3 +30,7 @@ function promote_to_items() {
             document.getElementById(this.id).disabled = true;
         });
 }
+
+renderComponents({
+    'open-close-approved': openClose
+})

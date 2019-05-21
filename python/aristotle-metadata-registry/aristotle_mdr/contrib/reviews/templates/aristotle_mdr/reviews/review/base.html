@@ -2,13 +2,22 @@
 {% load i18n humanize %}
 {% load aristotle_tags util_tags %}
 {% load static from staticfiles %}
+{% load render_bundle from webpack_loader %}
+
+{% block webpack_css_bundle %}
+  {% render_bundle 'review_base' 'css' %}
+{% endblock %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'review_base' 'js' %}
+{% endblock %}
 
 {% block title %}Review details{{ review.title }}{% endblock %}
 
 {% block breadcrumbs %}
 <ol class="breadcrumb">
-  <!--<li><a href="{% url 'aristotle_reviews:userReadyForReview' %}">Review list</a></li>-->
-  <li><a href="{{review.registration_authority.get_absolute_url }}">{{review.registration_authority.name }}</a></li>
+  {# <li><a href="{% url 'aristotle_reviews:userReadyForReview' %}">Review list</a></li> #}
+  <li><a href="{{ review.registration_authority.get_absolute_url }}">{{ review.registration_authority.name }}</a></li>
   <li class="active"><a href="{% url 'aristotle_reviews:userReadyForReview' %}">Reviews</a></li>
   <li class="active">Request review details</li>
 </ol>
@@ -19,21 +28,27 @@
         <div class="panel panel-default">
           <div class="panel-heading clearfix">
             <div class="pull-left" style="margin:8px 0 0 0;">
-                {% if open_close_approved %}
-                    <open-close-approved :review-status="status" initial-status="{{review.status_code}}"></open-close-approved>
-                    {{ review.message }}
-                {% endif %}
+              <open-close-approved 
+                {% if dynamic_open_close %}:review-status="status"{% endif %} 
+                initial-status="{{review.status_code}}"
+              >
+              </open-close-approved>
+                  <span v-pre>{{ review.message }}</span>
             </div>
-                <span class="pull-right">
-                {% if can_edit_review %}
-                <a class="btn btn-sm btn-primary" href="{% url 'aristotle_reviews:request_update' review.id %}">Edit review</a>
-                {% endif %}
-              {% if can_accept_review %}
-            <a href="{% url 'aristotle_reviews:review_details' review.id %}#accept_review" class="btn btn-sm btn-success" >Jump to approval</a>
+            <span v-pre class="pull-right">
+              {% if can_edit_review %}
+                <a class="btn btn-sm btn-primary" href="{% url 'aristotle_reviews:request_update' review.id %}">
+                  Edit review
+                </a>
               {% endif %}
-                </span>
+              {% if can_accept_review %}
+                <a href="{% url 'aristotle_reviews:review_details' review.id %}#accept_review" class="btn btn-sm btn-success" >
+                  Jump to approval
+                </a>
+              {% endif %}
+            </span>
           </div>
-          <div class="panel-body">
+          <div v-pre class="panel-body">
             <div class="table-row">
             <div class="col-sm-6">
                 <i class="fa fa-fw fa-crosshairs"></i>
@@ -67,8 +82,8 @@
           </div>
         </div>
         
-        <ul class="nav nav-tabs" role="tablist">
-          <!-- TODO: Make tabs vue -->
+        <ul v-pre class="nav nav-tabs" role="tablist">
+          {# TODO: Make tabs vue #}
           <li role="presentation" class="{% if active_tab == 'details'%}active{%endif%}"><a href="{% url 'aristotle_reviews:review_details' review.id %}" role="tab"><i class="fa fa-comments-o"></i> Conversation</a></li>
           <li role="presentation" class="{% if active_tab == 'itemlist'%}active{%endif%}"><a href="{% url 'aristotle_reviews:review_list' review.id %}" role="tab"><i class="fa fa-th-list"></i> Items</a></li>
           <li role="presentation" class="{% if active_tab == 'checks'%}active{%endif%}"><a href="{% url 'aristotle_reviews:request_checks' review.id %}" role="tab"><i class="fa fa-check-square-o"></i> Validation</a></li>

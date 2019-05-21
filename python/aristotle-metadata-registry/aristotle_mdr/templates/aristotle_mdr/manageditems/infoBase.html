@@ -24,7 +24,7 @@
   {% include "aristotle_mdr/manageditems/helpers/actionbar.html" %}
 
   <!-- Nav tabs -->
-  <ul class="nav nav-tabs" role="tablist">
+  <ul v-pre class="nav nav-tabs" role="tablist">
     <li role="presentation" {% if activetab == "item" %}class="active"{% endif %}>
       <a href="{{ item.get_absolute_url }}" aria-controls="item">Item</a>
     </li>
