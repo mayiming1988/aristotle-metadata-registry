@@ -94,6 +94,7 @@ class SupersedeForm(forms.ModelForm):
             empty_label="None",
             label=_("Registration authority"),
         )
+        self.fields['message'].widget.attrs.update({'class': 'small-text-area'})
 
     def clean_older_item(self):
         item = self.cleaned_data['older_item']

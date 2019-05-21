@@ -527,6 +527,11 @@ class UnorderedGenericAlterOneToManyView(GenericAlterOneToManyViewBase):
     form_add_another_text = ''
     formset = None
 
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['disable_ordering'] = True
+        return context
+
 
 class ExtraFormsetMixin:
     # Mixin of utils function for adding additional formsets to a view
