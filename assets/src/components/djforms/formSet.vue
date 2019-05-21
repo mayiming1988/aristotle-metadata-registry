@@ -1,18 +1,16 @@
 <template>
     <div class="vue-formset">
         <draggable :list="formsData" :options="sortableConfig">
-
             <div class="row container" v-for="(item, index) in formsData" v-bind:key="index">
-
                 <div class="col-md-10">
                     <div class="panel panel-info">
-
                         <div class="panel-heading" role="button" @click="toggleAccordion(index)">
-                            <h4 class="panel-title"><i class="fa fa-lg fa-bars grabber"></i>  {{ item.name }}</h4>
+                            <h4 class="panel-title"><i class="fa fa-lg fa-bars grabber"></i> {{ item.name }}: {{ getAllowedModelName(item.allowed_model) }}</h4>
                         </div>
                         <collapse v-model="showAccordion[index]">
                             <div class="panel-body">
                                 <baseForm
+                                        @input="addChoiceField"
                                         v-model="formsData[index]"
                                         :key="item.vid"
                                         :fields="fields"
@@ -20,7 +18,8 @@
                                         :errors="getError(item.vid)"
                                         :fe_errors="getIndexValidationErrors('formsData', index)"
                                         :showSubmit="false"
-                                        :showLabels="true">
+                                        :showLabels="true"
+                                        :showChoiceField="displayChoiceField(item.vid)">
 
                                     <template v-if="showDeleteItem(item.new)" slot="after">
                                         <div class="col-md-1">
@@ -34,10 +33,10 @@
                 </div>
             </div>
         </draggable>
-
         <div class="vue-formset-button-group">
             <button class="btn btn-success" @click="addRow">Add</button>
             <button class="btn btn-primary" @click="submitFormSet">Submit Edits</button>
+
         </div>
     </div>
 </template>
@@ -47,7 +46,6 @@
     import baseForm from '@/forms/baseForm.vue'
     import draggable from 'vuedraggable'
     import Collapse from 'uiv/src/components/collapse/Collapse.vue'
-
     /*
     Formset with validation,
     emits a submit event
@@ -61,6 +59,7 @@
         },
         mixins: [validationMixin],
         props: {
+            // List of the available fields
             fields: {
                 type: Object
             },
@@ -77,7 +76,10 @@
                 default: true
             },
             initial: {
-                type: Array
+                type: Array,
+            },
+            allowed: {
+                type: Object,
             },
             errors: {
                 type: Array
@@ -132,9 +134,34 @@
                     }
                 }
                 return defaults
+            },
+            displayChoices: function () {
+                // Display choices fields is an dictionary of true/false values to allow the baseForm component
+                // to determine whether or not to display the choice form field
+                let displayChoices = new Object();
+
+                for (let i = 0; i < this.formsData.length; i++) {
+                    if (this.formsData[i]['type'] === 'enum') {
+                        displayChoices[i] = true
+                    } else {
+                        displayChoices[i] = false
+                    }
+                }
+                return displayChoices
             }
         },
         methods: {
+            getAllowedModelName: function (id) {
+                if (id == null || id == '') {
+                    return 'All'
+                }
+                else {
+                    return this.allowed[id.toString()]
+                }
+            },
+            displayChoiceField: function (vid) {
+                return this.displayChoices[vid]
+            },
             getError: function (vid) {
                 return this.error_map[vid]
             },
@@ -143,7 +170,6 @@
                 this.nextVid += 1
                 this.showAccordion = this.showAccordion.map(() => false)
                 this.showAccordion.push(true)
-
             },
             deleteRow: function (index) {
                 this.formsData.splice(index, 1)
@@ -172,9 +198,14 @@
             toggleAccordion: function (index) {
                 if (this.showAccordion[index]) {
                     this.$set(this.showAccordion, index, false)
-                }
-                else {
+                } else {
                     this.showAccordion = this.showAccordion.map((v, i) => i === index)
+                }
+            },
+            addChoiceField: function (form) {
+                if (form.type == 'enum') {
+                    this.displayChoices[form.vid] = true
+                    this.formsData[form.vid]['display'] = false
                 }
             },
             showDeleteItem: function (isnew) {

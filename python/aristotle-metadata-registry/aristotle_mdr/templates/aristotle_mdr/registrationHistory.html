@@ -6,7 +6,7 @@
     <h1>
         Registration History of
         {{ item.name }}
-        ({{ item.item.get_verbose_name }})
+        ({{ item.item_type_name }})
     </h1>
     <ol class="breadcrumb">
         <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a></li>

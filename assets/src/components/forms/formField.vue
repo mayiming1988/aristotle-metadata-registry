@@ -27,6 +27,10 @@ export default {
             default: function() {
                 return []
             }
+        },
+        helpText: {
+            type: String,
+            required : false,
         }
     },
     methods: {
@@ -42,6 +46,7 @@ export default {
         emitOnChange: function(event) {
             // Need to use change since ie11 doesnt fire input events
             // for select elements :(
+
             if (this.tag == 'select') {
                 this.$emit('input', event.target.value)
             }

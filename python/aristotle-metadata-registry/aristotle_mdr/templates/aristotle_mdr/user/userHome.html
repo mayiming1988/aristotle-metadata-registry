@@ -55,7 +55,7 @@
                     {% for view in recently_viewed %}
                       <a class="list-group-item" href="{{ view.concept.get_absolute_url }}">
                         {{ view.concept }}
-                        <small>({{ view.concept.item.get_verbose_name }})</small>
+                        <small>({{ view.concept.item_type_name }})</small>
                         <br>
                         <small><time datetime="{{ view.view_date|isotime }}" data-time-from="true">{{ view.view_date }}</time></small>
                       </a>

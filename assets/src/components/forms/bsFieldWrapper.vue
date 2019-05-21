@@ -1,6 +1,7 @@
 <template>
   <div class="form-group" :class="{'has-error': hasErrors, 'col-md-2': column}">
     <label :class="{'sr-only': !displayLabel}" :for="name">{{ labelToDisplay }}</label>
+    <small><em>{{ helpText }}</em></small>
     <slot></slot>
   </div>
 </template>
@@ -14,6 +15,9 @@ export default {
         },
         label: {
             type: String
+        },
+        helpText: {
+          type: String
         },
         displayLabel: {
             type: Boolean,

@@ -133,36 +133,19 @@ class ConceptRenderView(TagsMixin, TemplateView):
     nameslug_arg: str = 'name_slug'
     slug_redirect: bool = False
 
-    def get_queryset(self):
-        itemid = self.kwargs[self.itemid_arg]
-
-        if self.objtype:
-            model = self.objtype
-        else:
-            model = None
-            # If we have a model_slug try using that
-            model_slug = self.kwargs.get(self.modelslug_arg, '')
-            if model_slug:
-                try:
-                    rel = MDR._concept._meta.get_field(model_slug)
-                except FieldDoesNotExist:
-                    rel = None
-
-                # Check if it is an auto created one to one field
-                if rel and rel.one_to_one and rel.auto_created and issubclass(rel.related_model, MDR._concept):
-                    model = rel.related_model
-
-        if model is None:
-            try:
-                model = type(MDR._concept.objects.get_subclass(id=itemid))
-            except ObjectDoesNotExist:
-                raise Http404
-
+    def get_queryset(self, concept):
+        ct = concept.item_type
+        model = ct.model_class()
         return self.get_related(model)
 
     def get_item(self):
+        # Get itemid from kwargs
         itemid = self.kwargs[self.itemid_arg]
-        queryset = self.get_queryset()
+        # Lookup concept
+        concept = get_object_or_404(MDR._concept, pk=itemid)
+        # Get queryset with (with select/prefetchs)
+        queryset = self.get_queryset(concept)
+        # Fetch subclassed item
         try:
             item = queryset.get(pk=itemid)
         except ObjectDoesNotExist:
