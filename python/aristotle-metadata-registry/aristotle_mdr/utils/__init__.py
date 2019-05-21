@@ -32,6 +32,7 @@ from .utils import (
     get_status_change_details,
     get_model_label,
     format_seconds,
-    is_postgres
+    is_postgres,
+    cloud_enabled
 )
 from . import doc_parse
