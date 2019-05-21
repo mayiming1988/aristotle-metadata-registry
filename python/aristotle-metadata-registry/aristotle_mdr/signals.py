@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db.models.signals import m2m_changed, post_save, pre_delete
+from django.contrib.contenttypes.models import ContentType
 # from reversion.signals import post_revision_commit
 import haystack.signals as signals  # .RealtimeSignalProcessor as RealtimeSignalProcessor
 from aristotle_mdr.utils import fetch_metadata_apps
@@ -50,12 +51,24 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
     # Called on the saving of all objects
     def handle_object_save(self, sender, instance, **kwargs):
         from aristotle_mdr.models import _concept, aristotleComponent
-        if isinstance(instance, _concept) and type(instance) is not _concept:
+
+        itype = type(instance)
+
+        # If saving a concept subclass
+        if isinstance(instance, _concept) and itype is not _concept:
             if instance._meta.app_label in fetch_metadata_apps():
+                # If newly created
+                if kwargs.get('created', False):
+                    # Make sure we have a _concept_ptr
+                    if hasattr(instance, '_concept_ptr'):
+                        concept = instance._concept_ptr
+                        ct = ContentType.objects.get_for_model(itype)
+                        concept._type = ct
+                        concept.save()
+
+                # Handle async
                 obj = instance.item
                 self.async_handle_save(obj.__class__, obj, **kwargs)
-            else:
-                return
 
         from aristotle_mdr.models import DiscussionPost
         if isinstance(instance, DiscussionPost):
