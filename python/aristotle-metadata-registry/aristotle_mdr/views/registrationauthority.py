@@ -326,12 +326,11 @@ class ConceptFilter(django_filters.FilterSet):
 
     status = django_filters.ChoiceFilter(choices=MDR.STATES,
                                          method='noop',
+
                                          widget=Select(attrs={'class': 'form-control'}))
 
-
     model_choices = tuple([(model.pk, model.name.title()) for model in get_concept_content_types().values()])
-
-    concept_type  = django_filters.MultipleChoiceFilter(choices=model_choices,
+    concept_type = django_filters.MultipleChoiceFilter(choices=model_choices,
                                                         method='noop')
 
     letters = [(i, i) for i in string.ascii_uppercase + "&"]
@@ -356,20 +355,22 @@ class ConceptFilter(django_filters.FilterSet):
         if not hasattr(self, '_qs'):
             qs = super().qs
 
+            raise ValueError(self.form.cleaned_data)
             selected_date = self.form.cleaned_data['registration_date']
             selected_state = self.form.cleaned_data['status']
             selected_letter = self.form.cleaned_data['letter']
             selected_types = self.form.cleaned_data['concept_type']
 
-            logger.debug("selected types" + str(selected_types))
-
             # If they haven't selected anything
             if selected_state == '':
                 selected_state = None
 
+            if not selected_types:
+                selected_types = None
+
             # Return all the statuses that are valid at a particular date and then
             # filter on the concepts linked to a valid status.
-            # Return only the statuses that are linked to the selected RA
+            # Return only the statuses that are linked to the RA for the page that you are on
             status_is_valid = Q(
                 statuses__in=Subquery(
                     MDR.Status.objects.filter(
@@ -381,6 +382,10 @@ class ConceptFilter(django_filters.FilterSet):
 
             inner = MDR._concept.objects.filter(status_is_valid)
             qs = qs.filter(pk__in=Subquery(inner.values('pk'))).prefetch_related('statuses__registrationAuthority')
+
+            # Filter on the selected concept types
+            if selected_types is not None:
+                qs = qs.filter(_type__in=selected_types)
 
             qs = qs.annotate(first_letter=Upper(Substr('name', 1, 1)))
             if selected_letter == "&":

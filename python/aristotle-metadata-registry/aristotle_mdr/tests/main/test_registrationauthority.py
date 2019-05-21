@@ -516,6 +516,26 @@ class TestDataDictionary(utils.AristotleTestUtils, TestCase):
             '?registration_date=2018-1-2&status=5'
         )
         self.assertEqual(response.status_code, 200)
-        # Check that the date refered is closest to queried date
+        # Check that the date rendered is closest to queried date
         for concept, status in response.context['concepts'].items():
             self.assertEqual(status.registrationDate, datetime.date(2018,1,1))
+
+    def test_data_dictionary_filters_concept_type(self):
+        self.ra.register(self.oc, MDR.STATES.standard, self.su,
+                         registrationDate=datetime.date(2018, 1, 1))
+
+        self.check_registered_std(self.oc)
+
+        self.login_superuser()
+
+        response = self.client.get(
+            reverse('aristotle:registrationauthority_data_dictionary', args=[self.ra.id]) +
+                    '?registration_date=2018-1-2&status=5&concept_type=23')
+
+        self.assertEqual(response.status_code, 200)
+
+        self.assertTrue(response.context['object_list'].exists())
+
+
+
+

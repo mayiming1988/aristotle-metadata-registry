@@ -36,7 +36,6 @@
         </div>
     </div>
     </div>
-</form>
 {% if not_all_selected %}
 <div class="well">
     <div class="h5 text-center">Please select both filters.</div>
@@ -71,7 +70,7 @@
             Name
         </th>
         <th>
-            {{ filter.form.content_type }}
+            {{ filter.form.concept_type }}
         </th>
         <th scope="col">
             Definition
@@ -83,7 +82,6 @@
             Registered until
         </th>
     </tr>
-    {# Form is all the way down here so we can submit this #}
     </form>
     {% for concept, status in concepts.items %}
     <tr>
