@@ -15,6 +15,7 @@ class RulesAPITestCase(BaseAPITestCase):
         self.ra = mdr_models.RegistrationAuthority.objects.create(
             name='My RA',
             definition='My very own',
+            stewardship_organisation=self.so
         )
         self.valid_rules = (
             '- status: Standard\n'
@@ -124,7 +125,8 @@ class RulesAPITestCase(BaseAPITestCase):
         self.ra.managers.add(self.user)
         newra = mdr_models.RegistrationAuthority.objects.create(
             name='Brand new RA',
-            definition='Brand new'
+            definition='Brand new',
+            stewardship_organisation=self.so
         )
         rules = RAValidationRules.objects.create(
             registration_authority=self.ra,
