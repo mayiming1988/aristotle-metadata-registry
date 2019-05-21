@@ -1,5 +1,4 @@
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
-# from aristotle_mdr.contrib.stewards import models
 from django.db.models import Count, Q, Model
 from django.views.generic import (
     CreateView,
@@ -27,21 +26,18 @@ class ListStewardOrg(PermissionRequiredMixin, LoginRequiredMixin, GroupBase, Sor
 
     def get_queryset(self):
         metadata_counts = dict(self.get_initial_queryset().all().values_list('pk').annotate(
-            num_items=Count('metadata', distinct=True),
+            num_items = Count('metadata', distinct=True),
         ))
         member_counts = dict(self.get_initial_queryset().all().values_list('pk').annotate(
-            num_members=Count('members', distinct=True),
+            num_members = Count('members', distinct=True),
         ))
         workgroup_counts = dict(self.get_initial_queryset().all().values_list('pk').annotate(
-            num_members=Count('workgroup', distinct=True),
+            num_members = Count('workgroup', distinct=True),
         ))
 
         groups = self.get_initial_queryset().annotate(
             # This is very inefficient when member, workgroup and metadata counts grow
-            # num_items=Count('metadata', distinct=True)
-            # num_members=Count('members', distinct=True)
-            # num_workgroups=Count('workgroup', distinct=True),
-            num_ras=Count('registrationauthority', distinct=True),
+            num_ras = Count('registrationauthority', distinct=True),
         )
 
         if self.text_filter:
