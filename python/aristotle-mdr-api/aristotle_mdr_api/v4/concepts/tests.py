@@ -1,5 +1,6 @@
 from django.urls import reverse
 from django.conf import settings
+from django.utils import timezone
 
 from aristotle_mdr import models as mdr_models
 from aristotle_mdr_api.v4.tests import BaseAPITestCase
@@ -25,6 +26,36 @@ class ConceptAPITestCase(BaseAPITestCase):
         )
         self.concept = self.item._concept_ptr
 
+        self.public_concept = mdr_models.ObjectClass.objects.create(
+            name='Public',
+            definition="Public Definition",
+            submitter=self.user
+
+        )
+
+        self.non_public_concept = mdr_models.ObjectClass.objects.create(
+            name='Not Public',
+            definition='Not a Public Definition',
+            submitter=self.user
+        )
+
+        self.so = mdr_models.StewardOrganisation.objects.create(
+            name='Best Stewardship Organisation',
+        )
+
+        self.ra = mdr_models.RegistrationAuthority.objects.create(
+            name='First RA',
+            definition='First',
+            stewardship_organisation=self.so
+        )
+        # Make the public_concept public
+        self.status  = mdr_models.Status.objects.create(
+            concept=self.public_concept,
+            registrationAuthority=self.ra,
+            registrationDate=timezone.now(),
+            state=self.ra.public_state
+        )
+
         # Create a new item without version permissions
         with reversion.revisions.create_revision():
             self.reversion_item_without_permissions = mdr_models.ObjectClass.objects.create(
@@ -34,6 +65,7 @@ class ConceptAPITestCase(BaseAPITestCase):
             )
             reversion.revisions.set_comment("First edit")
 
+        # Create a new item with version permissions
         with reversion.revisions.create_revision():
             self.reversion_item_with_permissions = mdr_models.ObjectClass.objects.create(
                 name="A published item",
@@ -52,6 +84,49 @@ class ConceptAPITestCase(BaseAPITestCase):
             reverse('api_v4:item:item', args=[self.concept.id]),
         )
         self.assertEqual(response.status_code, 200)
+
+    def test_unauthenticated_user_can_view_public_concept(self):
+        response = self.client.get(
+                reverse('api_v4:item:item', args=[self.public_concept.id]),
+            )
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_unauthenticated_user_cant_view_non_public_concept(self):
+        response = self.client.get(
+            reverse('api_v4:item:item', args=[self.non_public_concept.id]),
+        )
+
+        self.assertEqual(response.status_code, 401)
+
+
+    def test_unauth_user_can_view_graph_representation_public_concept(self):
+        response = self.client.get(
+            reverse('api_v4:item:item_general_graphical', args=[self.public_concept.id]),
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_unauth_user_cant_view_graph_representation_non_public_concept(self):
+
+        response = self.client.get(
+            reverse('api_v4:item:item_general_graphical', args=[self.non_public_concept.id]),
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+
+    def test_unauth_user_can_view_links_representation_public_concept(self):
+        response = self.client.get(
+            reverse('api_v4:item:api_item_links', args=[self.public_concept.id]),
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_unauth_user_cant_view_links_representation_non_public_concept(self):
+        response = self.client.get(
+            reverse('api_v4:item:api_item_links', args=[self.non_public_concept.id])
+        )
+        self.assertEqual(response.status_code, 403)
 
     def test_supersedes_graph(self):
         self.steward_org_1 = mdr_models.StewardOrganisation.objects.create(

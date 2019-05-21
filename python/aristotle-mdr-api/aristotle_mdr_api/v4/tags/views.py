@@ -11,7 +11,7 @@ from aristotle_mdr.models import _concept
 
 
 class TagView(generics.RetrieveUpdateDestroyAPIView):
-    """Retrive and update a tag"""
+    """Retrieve and update a tag"""
     permission_classes=(AuthCanViewEdit,)
     permission_key='metadata'
     serializer_class=serializers.TagSerializer

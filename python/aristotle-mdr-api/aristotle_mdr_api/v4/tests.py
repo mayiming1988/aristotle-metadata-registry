@@ -9,7 +9,6 @@ from aristotle_mdr.contrib.custom_fields import models as cf_models
 from aristotle_mdr.contrib.favourites.models import Tag, Favourite
 from aristotle_mdr.contrib.favourites.tests import BaseFavouritesTestCase
 from aristotle_mdr_api.token_auth.models import AristotleToken
-from django.conf import settings
 
 import logging
 logger = logging.getLogger(__name__)
