@@ -163,7 +163,7 @@ class SupersedeItemView(UnorderedGenericAlterOneToManyView, ItemSubpageView, Per
 
 
 class ProposedSupersedeItemView(SupersedeItemView):
-    permission_checks = [perms.user_can_supersede]
+    permission_checks = [perms.user_can_edit]
     form_add_another_text = _('Add a proposed relationship')
 
     show_proposed = True
