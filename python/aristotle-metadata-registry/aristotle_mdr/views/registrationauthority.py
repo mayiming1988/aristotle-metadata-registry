@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.forms import Select
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
+from aristotle_mdr.utils.utils import get_concept_content_types
 from django.views.generic import (
     CreateView,
     ListView,
@@ -13,8 +14,6 @@ from django.views.generic.detail import SingleObjectMixin
 from django.core.exceptions import PermissionDenied
 from django.forms.models import modelform_factory
 from django.http.request import QueryDict
-
-import string
 
 import django_filters
 from django_filters.views import FilterView
@@ -29,7 +28,6 @@ from aristotle_mdr.views.utils import (
     MemberRemoveFromGroupView,
     AlertFieldsMixin,
     UserFormViewMixin
-
 )
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 from aristotle_mdr import perms
@@ -42,6 +40,8 @@ from ckeditor.widgets import CKEditorWidget
 
 import datetime
 from typing import Dict
+import string
+
 
 import logging
 
@@ -321,14 +321,20 @@ class RAValidationRuleEditView(SingleObjectMixin, MainPageMixin, ValidationRuleE
 
 
 class ConceptFilter(django_filters.FilterSet):
-    registration_date = django_filters.DateFilter(field_name='statuses__registrationDate',
-                                                  widget=BootstrapDateTimePicker,
+    registration_date = django_filters.DateFilter(widget=BootstrapDateTimePicker,
                                                   method='noop')
 
     status = django_filters.ChoiceFilter(choices=MDR.STATES,
-                                         field_name='statuses__state',
                                          method='noop',
                                          widget=Select(attrs={'class': 'form-control'}))
+
+
+
+    model_choices = tuple([(model.pk, model.name) for model in get_concept_content_types()])
+
+    concept_type  = django_filters.ChoiceFilter(choices=model_choices,
+                                                method='noop',
+                                                widget=Select(attrs={'class': 'form-control'}))
 
     letters = [(i, i) for i in string.ascii_uppercase + "&"]
     letter = django_filters.ChoiceFilter(choices=letters,
@@ -340,22 +346,25 @@ class ConceptFilter(django_filters.FilterSet):
         # Exclude unused fields, otherwise they appear in the template
         fields: list = []
 
-    def filter_registration_date(self, queryset, name, value):
-        return queryset.filter(status_is_valid & status_has_selected_ra)
-
     def noop(self, queryset, name, value):
         return queryset
 
     @property
     def qs(self):
+        # We're doing all the filtering at once here in order to improve filtering performance
+
         from django.db.models.functions import Upper, Substr
-        from django.db.models import Q, OuterRef, Subquery
+        from django.db.models import Q, Subquery
         if not hasattr(self, '_qs'):
             qs = super().qs
 
             selected_date = self.form.cleaned_data['registration_date']
             selected_state = self.form.cleaned_data['status']
             selected_letter = self.form.cleaned_data['letter']
+
+            # If they haven't selected anything
+            if selected_state == '':
+                selected_state = None
 
             # Return all the statuses that are valid at a particular date and then
             # filter on the concepts linked to a valid status.
@@ -406,14 +415,14 @@ class DateFilterView(FilterView, MainPageMixin):
         context['item'] = ra
         context['is_manager'] = self.is_manager(ra)
 
-        status = self.request.GET.get('status', MDR.STATES.standard)
+        status = self.request.GET.get('status')
         if status == '':
             # No status has been selected
             context['not_all_selected'] = True
             return context
         context['status'] = status
 
-        selected_date = self.request.GET.get('registration_date', datetime.date.today())
+        selected_date = self.request.GET.get('registration_date')
         if selected_date == '':
             # No date has been selected
             context['not_all_selected'] = True

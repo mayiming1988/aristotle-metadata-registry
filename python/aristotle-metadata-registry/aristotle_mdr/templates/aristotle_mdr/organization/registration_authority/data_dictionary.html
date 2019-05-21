@@ -8,17 +8,18 @@
     <div class="h4">Data dictionary</div>
     {% if not_all_selected %}
         <p>
-        Data dictionary for {{item.stewardship_organisation.name}}/{{ item.name }} (Registration Authority).
-    </p>
+            Data dictionary for {{item.stewardship_organisation.name}}/{{ item.name }} (Registration Authority).
+        </p>
     {% else %}
-    <p>
-        Data dictionary for {{item.stewardship_organisation.name}}/{{ item.name }} (Registration Authority)
-        showing concepts registered as {{status|search_state_to_text }} on
-        <time datetime="{{ date|isotime }}"></time>.
-    </p>
+        <p>
+            Data dictionary for {{item.stewardship_organisation.name}}/{{ item.name }} (Registration Authority)
+            showing concepts registered as {{status|search_state_to_text }} on
+            <time datetime="{{ date|isotime }}"></time>.
+        </p>
     {% endif %}
     <div class="well">
-        <div class="h5 text-center">Select a different date or registration status</div>
+        <div class="h5 text-center">Select a different date or registration status. You can also jump to metadata
+            starting with a certain letter.</div>
         <div class="row text-center">
             <div class="form-group col-sm-5 col-md-5">
                 {{ filter.form.registration_date }}
@@ -70,7 +71,7 @@
             Name
         </th>
         <th>
-            Type
+            {{ filter.form.concept_type }}
         </th>
         <th scope="col">
             Definition
