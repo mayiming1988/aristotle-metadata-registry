@@ -371,7 +371,7 @@ class SupersedePage(utils.AristotleTestUtils, TestCase):
         self.make_standard(self.item2)
         # Make proposed supersede
         ss = models.SupersedeRelationship.objects.create(
-            proposed=False,
+            proposed=True,
             older_item=self.item1,
             newer_item=self.item2,
             registration_authority=self.ra,
@@ -393,9 +393,9 @@ class SupersedePage(utils.AristotleTestUtils, TestCase):
         self.make_standard(self.item2)
         # Make proposed supersede
         ss = models.SupersedeRelationship.objects.create(
-            proposed=False,
-            older_item=self.item1,
-            newer_item=self.item2,
+            proposed=True,
+            older_item=self.item2,
+            newer_item=self.item1,
             registration_authority=self.ra,
         )
 
@@ -403,13 +403,14 @@ class SupersedePage(utils.AristotleTestUtils, TestCase):
         postdata = self.get_formset_postdata(
             [{
                 'id': ss.id,
-                'older_item': self.item2.id,
-                'registration_authority': self.ra.id,
-                'proposed': False,
-                'message': '',
+                'older_item': ss.older_item.id,
+                'registration_authority': ss.registration_authority.id,
+                # Dont submit proposed (it's a checkbox)
+                'message': ss.message,
                 'date_effective': ''
             }],
-            prefix='superseded_items_relation_set'
+            prefix='superseded_items_relation_set',
+            initialforms=1
         )
 
         self.login_registrar()
@@ -419,6 +420,9 @@ class SupersedePage(utils.AristotleTestUtils, TestCase):
             reverse_args=[self.item1.id],
         )
         self.assertRedirects(response, url_slugify_concept(self.item1))
+
+        # import pdb; pdb.set_trace()
+        self.assertEqual(self.item1.superseded_items_relation_set.all().count(), 1)
 
         ss.refresh_from_db()
         self.assertFalse(ss.proposed)
