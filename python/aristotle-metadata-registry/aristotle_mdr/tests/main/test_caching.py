@@ -1,16 +1,13 @@
 from django.test import TestCase
+from django.contrib.contenttypes.models import ContentType
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
+from aristotle_mdr.utils.cache import recache_types
 from django.contrib.auth import get_user_model
 
 import datetime
 from time import sleep
-
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-
-setup_aristotle_test_environment()
 
 
 class CachingForRawPermissions(TestCase):
@@ -68,3 +65,53 @@ class CachingForRawPermissions(TestCase):
         )
         self.assertTrue(perms.user_can_view(self.submitter, self.item))
         self.assertTrue(perms.user_can_view(self.viewer, self.item))
+
+
+class TypeCachingTests(TestCase):
+
+    def setUp(self):
+        self.oc_ct = ContentType.objects.get_for_model(models.ObjectClass)
+
+    def create_oc(self):
+        return models.ObjectClass.objects.create(
+            name='New Item',
+            definition='So very new'
+        )
+
+    def test_type_caching_new_items(self):
+        oc = self.create_oc()
+
+        concept = oc._concept_ptr
+        self.assertEqual(concept._type, self.oc_ct)
+
+    def test_type_caching_bulk_update(self):
+        oc1 = models.ObjectClass.objects.create(name='OC1', definition='Object Class number 1')
+        oc2 = models.ObjectClass.objects.create(name='OC2', definition='Object Class number 2')
+        co1 = oc1._concept_ptr
+        co2 = oc2._concept_ptr
+        # Reset _type
+        models._concept.objects.all().update(_type=None)
+        co1.refresh_from_db()
+        co2.refresh_from_db()
+        # Make sure _type was reset
+        self.assertIsNone(oc1._type)
+        self.assertIsNone(oc2._type)
+
+        updated = recache_types()
+        # Make sure some app labels were returned
+        self.assertGreater(len(updated), 0)
+
+        co1.refresh_from_db()
+        co2.refresh_from_db()
+
+        self.assertEqual(co1._type, self.oc_ct)
+        self.assertEqual(co2._type, self.oc_ct)
+
+    def test_cached_item(self):
+        oc = self.create_oc()
+        concept = oc._concept_ptr
+
+        cached_item = concept.cached_item
+
+        self.assertIsNotNone(cached_item)
+        self.assertEqual(cached_item, oc)
