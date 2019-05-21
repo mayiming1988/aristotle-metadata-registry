@@ -8,7 +8,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const BundleTracker  = require('webpack-bundle-tracker')
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 
-const entries = entry('./src/pages/*.js', './src/pages/*/*.js', './src/custom/entry/*.js')
+const entries = entry('./src/pages/*.js', './src/pages/**/*.js', './src/custom/entry/*.js')
 
 module.exports = {
     entry: entries,
