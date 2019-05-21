@@ -31,6 +31,9 @@ logger = logging.getLogger(__name__)
 
 class ConceptView(generics.RetrieveAPIView):
     permission_classes=(UnAuthenticatedUserCanView,)
+
+    permission_key='metadata'
+
     serializer_class=serializers.ConceptSerializer
     queryset=_concept.objects.all()
 
