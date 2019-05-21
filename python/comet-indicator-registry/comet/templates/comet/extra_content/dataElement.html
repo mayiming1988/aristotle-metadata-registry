@@ -18,7 +18,7 @@
         <ul>
             {% for denom in item.indicatordenominatordefinition_set.all %}
                 {% if denom.indicator_id in viewable_ids %}
-                    <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=denom skip_can_view=True %}</li>
+                    <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=denom.indicator skip_can_view=True %}</li>
                 {% endif %}
             {% endfor %}
         </ul>
@@ -28,7 +28,7 @@
         <ul>
             {% for dis in item.indicatordisaggregationdefinition_set.all %}
                 {% if dis.indicator_id in viewable_ids %}
-                    <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=dis skip_can_view=True %}</li>
+                    <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=dis.indicator skip_can_view=True %}</li>
                 {% endif %}
             {% endfor %}
         </ul>
