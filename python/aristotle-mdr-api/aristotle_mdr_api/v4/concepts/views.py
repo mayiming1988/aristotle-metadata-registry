@@ -95,7 +95,7 @@ class SupersedesGraphicalConceptView(ObjectAPIView):
 
 
 class GeneralGraphicalConceptView(ObjectAPIView):
-    """Retrieve a Graphical Representation of the General Relationships"""
+    """Retrieve a graphical representation of the general relationships"""
     permission_classes = (UnAuthenticatedUserCanView,)
     permission_key = 'metadata'
 
