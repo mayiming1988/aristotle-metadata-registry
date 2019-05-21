@@ -59,16 +59,15 @@ class SupersedesGraphicalConceptView(ObjectAPIView):
                                                        "font": {"size": 15}}
                     nodes.append(serialised_item)
 
-            if current_item.superseded_by_items_relation_set.first():
-                for sup_by_rel in current_item.superseded_by_items_relation_set.all():
-                    newer = sup_by_rel.newer_item
-                    if newer.id not in seen_items_ids:
-                        if perms.user_can_view(self.request.user, current_item):
-                            nodes.append(ConceptSerializer(newer).data)
-                            queue.append(newer)
-                            seen_items_ids.add(newer.id)
+            for sup_by_rel in current_item.superseded_by_items_relation_set.filter(proposed=False).all():
+                newer = sup_by_rel.newer_item
+                if newer.id not in seen_items_ids:
+                    if perms.user_can_view(self.request.user, current_item):
+                        nodes.append(ConceptSerializer(newer).data)
+                        queue.append(newer)
+                        seen_items_ids.add(newer.id)
 
-            for sup_rel in current_item.superseded_items_relation_set.all():
+            for sup_rel in current_item.superseded_items_relation_set.filter(proposed=False).all():
                 if sup_rel.older_item.id not in seen_items_ids:
                     if perms.user_can_view(self.request.user, current_item):
                         nodes.append(ConceptSerializer(sup_rel.older_item).data)
