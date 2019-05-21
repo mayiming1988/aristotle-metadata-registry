@@ -17,6 +17,7 @@ from django.core.exceptions import PermissionDenied
 import collections
 from re import finditer
 import reversion
+from typing import List
 
 from aristotle_mdr_api.v4.concepts.serializers import (
     ConceptSerializer,
@@ -248,7 +249,7 @@ class ListVersionsPermissionsView(ObjectAPIView):
 
 class UpdateVersionPermissionsView(generics.ListAPIView):
     """Updates the visibility permissions of all versions associated with an id"""
-    version_ids = []
+    version_ids: List = []
 
     permission_classes = (AuthCanViewEdit,)
     permission_key = 'metadata'
@@ -259,10 +260,10 @@ class UpdateVersionPermissionsView(generics.ListAPIView):
         pk = self.kwargs[self.lookup_url_kwarg]
         # Get item
         self.item = get_object_or_404(_concept, pk=pk).item
-        if not user_can_edit(self.request.user, item):
+        if not user_can_edit(self.request.user, self.item):
             raise PermissionDenied()
         # Get associated versions
-        versions = reversion.models.Version.objects.get_for_object(item)
+        versions = reversion.models.Version.objects.get_for_object(self.item)
         self.version_ids = [version.pk for version in versions]
 
         return super().dispatch(request, *args, **kwargs)
