@@ -19,7 +19,7 @@ function renumberRow(row,num) {
     }
 }
 
-function reorderRows(panelList) {
+export function reorderRows(panelList) {
     $('.moveablerow', panelList).each(function(index) {
         renumberRow(this,index);
         $(this).find('input[name$=-DELETE]').attr('title',"Delete item "+index);
