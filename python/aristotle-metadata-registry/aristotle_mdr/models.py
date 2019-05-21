@@ -66,8 +66,6 @@ from aristotle_mdr.contrib.groups.base import (
     AbstractMembership,
 )
 
-from aristotle_mdr.contrib.groups import managers
-
 import logging
 
 logger = logging.getLogger(__name__)

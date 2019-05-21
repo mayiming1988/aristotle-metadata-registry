@@ -29,7 +29,7 @@ from aristotle_mdr.views.utils import (
     AlertFieldsMixin,
     UserFormViewMixin
 )
-from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
+from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker, BootstrapDropdownSelectMultiple
 from aristotle_mdr import perms
 from aristotle_mdr.utils import fetch_aristotle_downloaders
 
@@ -329,12 +329,10 @@ class ConceptFilter(django_filters.FilterSet):
                                          widget=Select(attrs={'class': 'form-control'}))
 
 
+    model_choices = tuple([(model.pk, model.name.title()) for model in get_concept_content_types().values()])
 
-    model_choices = tuple([(model.pk, model.name) for model in get_concept_content_types()])
-
-    concept_type  = django_filters.ChoiceFilter(choices=model_choices,
-                                                method='noop',
-                                                widget=Select(attrs={'class': 'form-control'}))
+    concept_type  = django_filters.MultipleChoiceFilter(choices=model_choices,
+                                                        method='noop')
 
     letters = [(i, i) for i in string.ascii_uppercase + "&"]
     letter = django_filters.ChoiceFilter(choices=letters,
@@ -361,6 +359,9 @@ class ConceptFilter(django_filters.FilterSet):
             selected_date = self.form.cleaned_data['registration_date']
             selected_state = self.form.cleaned_data['status']
             selected_letter = self.form.cleaned_data['letter']
+            selected_types = self.form.cleaned_data['concept_type']
+
+            logger.debug("selected types" + str(selected_types))
 
             # If they haven't selected anything
             if selected_state == '':
@@ -415,14 +416,14 @@ class DateFilterView(FilterView, MainPageMixin):
         context['item'] = ra
         context['is_manager'] = self.is_manager(ra)
 
-        status = self.request.GET.get('status')
+        status = self.request.GET.get('status', MDR.STATES.standard)
         if status == '':
             # No status has been selected
             context['not_all_selected'] = True
             return context
         context['status'] = status
 
-        selected_date = self.request.GET.get('registration_date')
+        selected_date = self.request.GET.get('registration_date', datetime.date.today())
         if selected_date == '':
             # No date has been selected
             context['not_all_selected'] = True
