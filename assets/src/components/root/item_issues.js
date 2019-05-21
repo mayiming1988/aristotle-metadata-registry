@@ -1,4 +1,4 @@
-import issueModal from '@/issueModal.vue'
+import issueModal from '@/issues/issueModal.vue'
 
 export default {
     el: '#vue-container',

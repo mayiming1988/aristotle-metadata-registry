@@ -28,8 +28,13 @@
     </div>
 
     <issue-modal
-            v-model="issueModalOpen"
-            iid="{{ item.id }}"
-            url="{% url 'api_v4:issues:create' %}">
+        v-model="issueModalOpen"
+        iid="{{ item.id }}"
+        url="{% url 'api_v4:issues:create' %}"
+        item-fields-json="{{ field_data }}"
+        propose-fields="{{ fields }}"
+        html-editor-config="{{ config }}"
+        all-labels-json="{{ allLabels }}"
+    >
     </issue-modal>
 {% endblock %}

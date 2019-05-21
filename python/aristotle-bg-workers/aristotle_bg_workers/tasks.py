@@ -46,7 +46,7 @@ def reindex_task(self, *args, **kwargs):
 
 
 @shared_task(base=AristotleTask, bind=True, name='long__load_help')
-def loadhelp_task(*args, **kwargs):
+def loadhelp_task(self, *args, **kwargs):
     meta = {"requester": kwargs['requester'], "start_date": datetime.datetime.now()}
     self.update_state(meta=meta, state="STARTED")
     meta.update({"result": run_django_command('load_aristotle_help')})

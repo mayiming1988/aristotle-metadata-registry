@@ -1,9 +1,11 @@
 <template>
-  <div :id="id" class="modal fade exclude-scrap" tabindex="-1" role="dialog">
+  <div ref="modal" class="modal fade exclude-scrap" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <button type="button" class="close" @click="noAction" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <button type="button" class="close" @click="noAction" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+          </button>
           <h4 class="modal-title">{{ title }}</h4>
         </div>
         <div class="modal-body">
@@ -20,7 +22,20 @@
 
 <script>
 export default {
-    props: ['id', 'title', 'text', 'visible'],
+    props: {
+        title: {
+            type: String,
+            default: 'Confirm'
+        },
+        text: {
+            type: String,
+            required: true
+        },
+        visible: {
+            type: Boolean,
+            required: true
+        }
+    },
     methods: {
         yesAction: function() {
             this.$emit('yes')
@@ -32,9 +47,9 @@ export default {
     watch: {
         visible: function(value) {
             if (value == true) {
-                $('#' + this.id).modal('show')
+                $(this.$refs.modal).modal('show')
             } else {
-                $('#' + this.id).modal('hide')
+                $(this.$refs.modal).modal('hide')
             }
         }
     }

@@ -28,7 +28,10 @@ class AristotleBackend(ModelBackend):
         extensions = fetch_aristotle_settings().get('CONTENT_EXTENSIONS', [])
 
         if app_label == "aristotle_mdr" and hasattr(perms, perm_name):
-            return getattr(perms, perm_name)(user_obj, obj)
+            if obj:
+                return getattr(perms, perm_name)(user_obj, obj)
+            else:
+                return getattr(perms, perm_name)(user_obj)
 
         from django.apps import apps
         from aristotle_mdr.models import _concept

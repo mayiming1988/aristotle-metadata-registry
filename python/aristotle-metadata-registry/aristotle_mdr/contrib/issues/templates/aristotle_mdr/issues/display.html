@@ -1,5 +1,6 @@
 {% extends 'aristotle_mdr/concepts/contentInfoBase.html' %}
 {% load render_bundle from webpack_loader %}
+{% load util_tags %}
 
 {% block title %}Issue #{{object.id}} - {{ object.name }} {% endblock %}
 
@@ -14,61 +15,106 @@
 {% block infoContent %}
     <div class="row">
         <div class="col-sm-8 col-xs-offset-1">
-            <a  class="btn btn-default pull-right" href="{% url 'aristotle_issues:item_issues' object.item_id %}">
+            <a  class="btn btn-default pull-right margin-above" href="{% url 'aristotle_issues:item_issues' object.item_id %}">
                 All issues for this item
             </a>
             <h1>
                 <open-close :is-open="isOpen"></open-close>
+                {{ object.name }}
                 {% if own_issue %}
-                    <inline-edit
-                            initial="{{ object.name }}"
-                            submit-url="{% url 'api_v4:issues:issue' object.id %}"
-                            field-name="name">
-                    </inline-edit>
-                {% else %}
-                    {{ object.name }}
+                  <button class="btn btn-default btn-sm" @click="openIssueModal">Edit</button>
                 {% endif %}
             </h1>
-            <p class="text-muted">Opened {{ object.created|timesince }} ago by {{ object.submitter.display_name }}</p>
-            <p>
-                <switch-edit-api
-                        name="description"
-                        initial="{{ object.description }}"
-                        {% if own_issue %}submit-url="{% url 'api_v4:issues:issue' object.id %}"{% endif %}
-                >
-                </switch-edit-api>
-            </p>
+
+            <div class="margin-below">
+              <ul class="taggle_inline_list">
+                {% for label in object.labels.all %}
+                <li class="taggle">{{ label.label }}</li>
+                {% endfor %}
+              </ul>
+              <span>Opened {{ object.created|timesince }} ago by {{ object.submitter.display_name }}</span>
+            </div>
+
+            <div class="panel panel-default">
+              <div class="panel-heading"><strong>Description</strong></div>
+              <div class="panel-body">
+                {{ object.description }}
+              </div>
+            </div>
+            {% if has_proposed_changes and object.isopen %}
+              <issue-panel
+                :hide-panel="!isOpen"
+                field-name="{{ object.proposal_field }}"
+                {% if can_approve %}can-approve{% endif %}
+                {% if item_changed %}item-changed{% endif %}
+                approve-url="{% url 'api_v4:issues:approve' object.id %}"
+                @set_open="setIsOpen"
+              >
+                <div v-pre>
+                  <ul class="nav nav-tabs" role="tablist">
+                      <li role="presentation" class="active">
+                        <a href="#new" aria-controls="new" role="tab" data-toggle="tab">New Content</a>
+                      </li>
+                      <li role="presentation">
+                        <a href="#diff" aria-controls="diff" role="tab" data-toggle="tab">Differences</a>
+                      </li>
+                  </ul>
+
+                  <div class="tab-content border-tab-content">
+                      <div role="tabpanel" class="tab-pane active" id="new">
+                          {{ object.proposal_value|bleach }}
+                      </div>
+                      <div role="tabpanel" class="tab-pane" id="diff">
+                          {{ diff_table|safe }}
+                      </div>
+                  </div>
+                </div>
+              </issue-panel>
+            {% endif %}
         </div>
     </div>
 
     {% for comment in comments %}
         <comment
-                pic="{{ comment.author.profile.profile_picture_url }}"
-                name="{{ comment.author.display_name }}"
-                created="{{ comment.created|date:"c" }}"
-                body="{{ comment.body }}">
+            pic="{{ comment.author.profile.profile_picture_url }}"
+            name="{{ comment.author.display_name }}"
+            created="{{ comment.created|date:"c" }}"
+            body="{{ comment.body }}">
         </comment>
     {% endfor %}
 
     <comment
-            v-for="comment in new_comments"
-            :key="comment.id"
-            :pic="comment.pic"
-            :name="comment.name"
-            :created="comment.created"
-            :body="comment.body">
+        v-for="comment in new_comments"
+        :key="comment.id"
+        :pic="comment.pic"
+        :name="comment.name"
+        :created="comment.created"
+        :body="comment.body">
     </comment>
 
     <issue-comment
-            pic="{{ user.profile.profile_picture_url }}"
-            user-id="{{ user.id }}"
-            user-name="{{ user.get_short_name }}"
-            issue-id="{{ object.id }}"
-            issue-is-open="{{ object.isopen }}"
-            comment-url="{% url 'api_v4:issues:comment' %}"
-            open-close-url="{% url 'api_v4:issues:update_and_comment' object.id %}"
-            open-close-permission="{{ can_open_close }}"
-            @set_open="setIsOpen"
-            @created="addComment">
+        pic="{{ user.profile.profile_picture_url }}"
+        user-id="{{ user.id }}"
+        user-name="{{ user.get_short_name }}"
+        issue-id="{{ object.id }}"
+        {% if object.isopen %}is-open{% endif %}
+        {% if can_open_close %}can-open-close{% endif %}
+        comment-url="{% url 'api_v4:issues:comment' %}"
+        open-close-url="{% url 'api_v4:issues:update_and_comment' object.id %}"
+        @set_open="setIsOpen"
+        @created="addComment">
     </issue-comment>
+
+
+    <issue-modal
+        edit
+        v-model="issueModalOpen"
+        iid="{{ item.id }}"
+        url="{% url 'api_v4:issues:issue' object.id %}"
+        propose-fields="{{ fields }}"
+        initial="{{ initial }}"
+        html-editor-config="{{ config }}"
+        all-labels-json="{{ allLabels }}"
+    >
+    </issue-modal>
 {% endblock %}

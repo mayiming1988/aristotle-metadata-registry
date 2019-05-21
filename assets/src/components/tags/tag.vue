@@ -1,5 +1,5 @@
 <template>
-  <div id="taggle-editor" class="input taggle_textarea"></div>
+    <div id="taggle-editor" class="input taggle_textarea" />
 </template>
 
 <script>
@@ -7,26 +7,34 @@ import Taggle from 'taggle'
 
 export default {
     props: {
-        'tags': {
+        /* List of tags currently applied */
+        tags: {
             type: Array,
             required: true
         },
-        'newtags': {
+        /* List of tags that will be newly created (can be empty) */
+        newtags: {
             type: Array,
             required: true
+        },
+        /* List of tags that are allowed (empty implies any are allowed) */
+        allowedTags: {
+            type: Array,
+            default: () => []
         }
     },
     mounted: function() {
         this.tag_editor = new Taggle('taggle-editor', {
-            preserveCase: true,
             tags: this.tags,
+            preserveCase: true,
+            clearOnBlur: false,
+            allowDuplicates: false,
             onTagAdd: () => {
                 this.updateTags()
             },
             onTagRemove: () => {
                 this.updateTags()
             },
-            clearOnBlur: false
         })
 
 

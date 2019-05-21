@@ -13,7 +13,7 @@
 
     <section>
     {% include "aristotle_mdr/collections/helpers/actionbar.html" %}
-    {% include "aristotle_mdr/publish/helpers/publication_details_panel.html" with item=page show_no_publication=True %}
+    {% include "aristotle_mdr/publish/helpers/publication_details_panel.html" with item=item show_no_publication=True %}
 
     <header>Description</header>
     <div class="well">{{ item.description|bleach }}</div>
@@ -22,7 +22,7 @@
     <table class="table">
         <thead></thead>
         <tbody>
-            {% for obj in item.collection_set.all|order_by:"name" %}
+            {% for obj in sub_collections.all %}
             <tr>
                 <td>
                 <a href="{{ obj.get_absolute_url }}">{{obj.name}}</a><br>

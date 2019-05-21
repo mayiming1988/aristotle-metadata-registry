@@ -1,7 +1,7 @@
 {% extends 'aristotle_mdr/base.html' %}
 {% load aristotle_tags util_tags i18n %}
 {% load bootstrap3 static %}
-{% block title %}Edit Status {{ item.name }}{% endblock %}
+{% block title %}Edit Status for {{ item.name }}{% endblock %}
 
 {% block content %}
     <h2>
@@ -11,7 +11,7 @@
     <form method="post">{% csrf_token %}
         {% bootstrap_form form %}
         <div class="pull-right">
-            <a class="btn btn-default" href="{% url 'aristotle:item' item.id %}">Cancel</a>
+            <a class="btn btn-default" href="{% url 'aristotle:item' item.id %}">{% trans 'Cancel' %}</a>
             <input class="btn btn-primary" type="submit" name="submit_skip" value="{% trans 'Update Status' %}" />
         </div>
     </form>

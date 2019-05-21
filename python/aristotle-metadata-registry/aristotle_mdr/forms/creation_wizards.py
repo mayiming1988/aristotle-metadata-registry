@@ -1,5 +1,6 @@
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
+from django.forms.models import inlineformset_factory
 from django.utils import timezone, dateparse
 from django.utils.translation import ugettext_lazy as _
 
@@ -111,7 +112,7 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
     """
 
     def __init__(self, *args, **kwargs):
-        # TODO: Have tis throw a 'no user' error
+        # TODO: Have this throw a 'no user' error
         super().__init__(*args, **kwargs)
 
         if 'aristotle_mdr_backwards' not in fetch_aristotle_settings().get('CONTENT_EXTENSIONS', []):
@@ -149,7 +150,10 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
 
     def concept_fields(self):
         # version/workgroup are displayed with name/definition
+        # This is where References, Origin URI, Origin and Comments are populated
+
         field_names = [field.name for field in MDR.baseAristotleObject._meta.fields] + ['version', 'workgroup']
+
         concept_field_names = [
             field.name for field in MDR.concept._meta.fields
             if field.name not in field_names
@@ -426,3 +430,34 @@ class DE_Complete(UserAwareForm):
 
     def save(self, *args, **kwargs):
         pass
+
+
+def record_relation_inlineformset_factory():
+    """Create an inline formset factory for organization record"""
+    base_formset = inlineformset_factory(
+        MDR._concept, MDR.RecordRelation,
+        can_delete=True,
+        fields=('concept', 'type', 'organization_record'),
+        widgets={
+            'type': forms.widgets.Select(attrs={'class': 'form-control'}),
+            'organization_record': forms.widgets.Select(attrs={'class': 'form-control'})
+        },
+        extra=1,
+    )
+    return base_formset
+
+
+def reference_link_inlineformset_factory():
+    """Create an inline formset factory for organization record"""
+    from aristotle_cloud.contrib.steward_extras.models import MetadataReferenceLink
+    base_formset = inlineformset_factory(
+        MDR._concept, MetadataReferenceLink,
+        can_delete=True,
+        fields=('metadata', 'reference', 'description'),
+        widgets={
+            'reference': forms.widgets.Select(attrs={'class': 'form-control'}),
+            # 'organization_record': forms.widgets.Select(attrs={'class': 'form-control'})
+        },
+        extra=1,
+    )
+    return base_formset

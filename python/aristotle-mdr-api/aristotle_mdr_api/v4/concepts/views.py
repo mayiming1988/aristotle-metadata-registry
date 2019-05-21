@@ -219,8 +219,9 @@ class ListVersionsView(ObjectAPIView):
         serializer = serializers.VersionSerializer(versions, many=True)
 
         return Response(
-            {'versions' : serializer.data},
+            {'versions': serializer.data},
             status.HTTP_200_OK)
+
 
 class ListVersionsPermissionsView(ObjectAPIView):
     "List the version permissions of an item"
@@ -251,17 +252,19 @@ class UpdateVersionPermissionsView(generics.ListAPIView):
     serializer_class = serializers.VersionPermissionsSerializer
     lookup_url_kwarg = 'pk'
 
-    def get_queryset(self):
+    def dispatch(self, request, *args, **kwargs):
         pk = self.kwargs[self.lookup_url_kwarg]
-        item = get_object_or_404(_concept, pk=pk).item
-
+        # Get item
+        self.item = get_object_or_404(_concept, pk=pk).item
         if not user_can_edit(self.request.user, item):
             raise PermissionDenied()
-
         # Get associated versions
         versions = reversion.models.Version.objects.get_for_object(item)
         self.version_ids = [version.pk for version in versions]
 
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
         # Get the matching version permissions
         version_permissions = VersionPermissions.objects.filter(pk__in=self.version_ids)
 
@@ -269,15 +272,20 @@ class UpdateVersionPermissionsView(generics.ListAPIView):
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        context.update({'version_ids': self.version_ids})
+
+        # Have to add this for when swagger docs are made
+        if hasattr(self, 'version_ids'):
+            context.update({'version_ids': self.version_ids})
 
         return context
 
     def update(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
-        serializer = self.get_serializer(queryset, data=request.data, many=True,
-                                         context={'version_ids':self.version_ids})
+        serializer = self.get_serializer(
+            queryset, data=request.data, many=True,
+            context={'version_ids': self.version_ids}
+        )
 
         serializer.is_valid(raise_exception=True)
         serializer.save()

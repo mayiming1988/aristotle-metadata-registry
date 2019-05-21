@@ -53,7 +53,16 @@ class AbstractMembershipBase(ModelBase):
         return clsobj
 
 
-class AbstractMembership(models.Model, metaclass=AbstractMembershipBase):
+class AbstractMembershipModel(models.Model):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def user_has_role_for_any_group(cls, user, role):
+        return cls.objects.filter(user=user, role=role).exists()
+
+
+class AbstractMembership(AbstractMembershipModel, metaclass=AbstractMembershipBase):
     class Meta:
         abstract = True
         unique_together = ("user", "group")
@@ -61,7 +70,7 @@ class AbstractMembership(models.Model, metaclass=AbstractMembershipBase):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
 
-class AbstractMultipleMembership(models.Model, metaclass=AbstractMembershipBase):
+class AbstractMultipleMembership(AbstractMembershipModel, metaclass=AbstractMembershipBase):
     class Meta:
         abstract = True
         unique_together = ("user", "group", "role")
@@ -165,8 +174,8 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
         # if permission not in self.role_permissions.keys()
         #     raise PermissionNotDefined
 
-        if user.is_anonymous():
-            return False
+        # if user.is_anonymous():
+        #     return False
 
         if user.is_superuser:
             return True
@@ -177,7 +186,9 @@ class AbstractGroup(models.Model, metaclass=AbstractGroupBase):
                     perm = perm_or_role
                     yield perm(user, group=self)
                 else:
-                    if not self.is_active():
+                    if user.is_anonymous():
+                        yield False
+                    elif not self.is_active():
                         yield False
                     else:
                         role = perm_or_role

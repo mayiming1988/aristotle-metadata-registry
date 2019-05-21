@@ -533,18 +533,28 @@ class ExtraFormsetMixin:
 
         for formsetinfo in extra_formsets:
             type = formsetinfo['type']
+
             if type == 'identifiers':
                 context['identifier_FormSet'] = formsetinfo['formset']
+
             elif type == 'slot':
                 context['slots_FormSet'] = formsetinfo['formset']
+
             elif type == 'weak':
                 if 'weak_formsets' not in context.keys():
                     context['weak_formsets'] = []
                 context['weak_formsets'].append({'formset': formsetinfo['formset'], 'title': formsetinfo['title']})
+
             elif type == 'through':
                 if 'through_formsets' not in context.keys():
                     context['through_formsets'] = []
                 context['through_formsets'].append({'formset': formsetinfo['formset'], 'title': formsetinfo['title']})
+
+            elif type == 'record_relation':
+                context['recordrelation_FormSet'] = formsetinfo['formset']
+
+            elif type == 'reference_links':
+                context['referencelinks_FormSet'] = formsetinfo['formset']
 
         return context
 
@@ -585,6 +595,7 @@ class ExtraFormsetMixin:
             })
 
         weak_list = self.get_m2m_weak(item)
+
         for weak in weak_list:
 
             if clone_item:
@@ -690,6 +701,24 @@ class ExtraFormsetMixin:
         from aristotle_mdr.contrib.slots.forms import slot_inlineformset_factory
 
         formset = slot_inlineformset_factory()
+
+        formset.filtered_empty_form = formset.empty_form
+
+        return formset
+
+    def get_recordrelations_formset(self):
+        from aristotle_mdr.forms.creation_wizards import record_relation_inlineformset_factory
+
+        formset = record_relation_inlineformset_factory()
+
+        formset.filtered_empty_form = formset.empty_form
+
+        return formset
+
+    def get_referencelinks_formset(self):
+        from aristotle_mdr.forms.creation_wizards import reference_link_inlineformset_factory
+
+        formset = reference_link_inlineformset_factory()
 
         formset.filtered_empty_form = formset.empty_form
 
