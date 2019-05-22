@@ -5,6 +5,8 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
+from aristotle_mdr_api.v3.generators import AristotleV3SchemaGenerator
+
 # Create a router and register our viewsets with it.
 router = routers.DefaultRouter()
 router.register(r'metadata', concepts.ConceptViewSet)
@@ -22,6 +24,7 @@ schema_view = get_schema_view(
         description="Aristotle API",
         license=openapi.License(name="BSD License"),
     ),
+    generator_class=AristotleV3SchemaGenerator,
     public=True,
     permission_classes=(permissions.AllowAny,),
     urlconf='aristotle_mdr_api.v3.urls'

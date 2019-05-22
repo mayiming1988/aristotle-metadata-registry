@@ -4,6 +4,8 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
+from aristotle_mdr_api.v4.generators import AristotleSchemaGenerator
+
 schema_view = get_schema_view(
     openapi.Info(
         title="Aristotle API",
@@ -11,6 +13,7 @@ schema_view = get_schema_view(
         description="Aristotle API",
         license=openapi.License(name="BSD License"),
     ),
+    generator_class=AristotleSchemaGenerator,
     public=True,
     permission_classes=(permissions.AllowAny,),
     urlconf='aristotle_mdr_api.v4.urls'
