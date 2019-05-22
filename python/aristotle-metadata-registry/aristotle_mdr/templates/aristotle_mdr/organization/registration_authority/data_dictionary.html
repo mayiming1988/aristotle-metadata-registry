@@ -6,6 +6,9 @@
 {% block racontent %}
 <form method="get">
     <div class="h4">Data dictionary</div>
+    <div class="alert-danger">
+    {{ filter.form.errors }}
+    </div>
     {% if not_all_selected %}
         <p>
             Data dictionary for {{item.stewardship_organisation.name}}/{{ item.name }} (Registration Authority).
@@ -36,10 +39,11 @@
         </div>
     </div>
     </div>
-{% if not_all_selected %}
-<div class="well">
-    <div class="h5 text-center">Please select both filters.</div>
-</div>
+
+    {% if not_all_selected %}
+    <div class="well">
+      <div class="h5 text-center">Please select both filters.</div>
+    </div>
 {% else %}
 {% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
 

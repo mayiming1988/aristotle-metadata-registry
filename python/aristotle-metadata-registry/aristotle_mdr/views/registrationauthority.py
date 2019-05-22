@@ -1,4 +1,5 @@
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
+
 from django.urls import reverse
 from django.forms import Select
 from django.db.models import Q
@@ -17,6 +18,7 @@ from django.http.request import QueryDict
 
 import django_filters
 from django_filters.views import FilterView
+from dal.autocomplete import ModelSelect2Multiple
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.forms import actions
@@ -41,7 +43,6 @@ from ckeditor.widgets import CKEditorWidget
 import datetime
 from typing import Dict
 import string
-
 
 import logging
 
@@ -86,7 +87,8 @@ def organization(request, iid, *args, **kwargs):
 def all_registration_authorities(request):
     # All visible ras
     ras = MDR.RegistrationAuthority.objects.filter(active__in=[0, 1]).order_by('name')
-    return render(request, "aristotle_mdr/organization/all_registration_authorities.html", {'registrationAuthorities': ras})
+    return render(request, "aristotle_mdr/organization/all_registration_authorities.html",
+                  {'registrationAuthorities': ras})
 
 
 def all_organizations(request):
@@ -189,7 +191,8 @@ class MembersRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, 
         return context
 
 
-class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, AlertFieldsMixin, MainPageMixin, UpdateView):
+class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, AlertFieldsMixin, MainPageMixin,
+                                UpdateView):
     model = MDR.RegistrationAuthority
     template_name = "aristotle_mdr/user/registration_authority/edit.html"
     permission_required = "aristotle_mdr.change_registrationauthority"
@@ -222,7 +225,8 @@ class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequire
         return context
 
 
-class EditRegistrationAuthorityStates(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, MainPageMixin, UpdateView):
+class EditRegistrationAuthorityStates(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, MainPageMixin,
+                                      UpdateView):
     model = MDR.RegistrationAuthority
     template_name = "aristotle_mdr/user/registration_authority/edit_states.html"
     permission_required = "aristotle_mdr.change_registrationauthority"
@@ -326,12 +330,13 @@ class ConceptFilter(django_filters.FilterSet):
 
     status = django_filters.ChoiceFilter(choices=MDR.STATES,
                                          method='noop',
-
                                          widget=Select(attrs={'class': 'form-control'}))
 
     model_choices = tuple([(model.pk, model.name.title()) for model in get_concept_content_types().values()])
+
     concept_type = django_filters.MultipleChoiceFilter(choices=model_choices,
-                                                        method='noop')
+                                                       method='noop',
+                                                       widget=ModelSelect2Multiple)
 
     letters = [(i, i) for i in string.ascii_uppercase + "&"]
     letter = django_filters.ChoiceFilter(choices=letters,
@@ -349,16 +354,18 @@ class ConceptFilter(django_filters.FilterSet):
     @property
     def qs(self):
         # We're doing all the filtering at once here in order to improve filtering performance
-
         from django.db.models.functions import Upper, Substr
         from django.db.models import Q, Subquery
+
+        if not self.form.is_valid():
+            return super().qs
+
         if not hasattr(self, '_qs'):
             qs = super().qs
-
-            raise ValueError(self.form.cleaned_data)
             selected_date = self.form.cleaned_data['registration_date']
             selected_state = self.form.cleaned_data['status']
             selected_letter = self.form.cleaned_data['letter']
+
             selected_types = self.form.cleaned_data['concept_type']
 
             # If they haven't selected anything
