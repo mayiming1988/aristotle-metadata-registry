@@ -31,10 +31,10 @@ setup(
     ],
     install_requires=[
         'djangorestframework>=3.8',
-        'django-rest-swagger',
         'django_filter',
         'django-jsonforms',
         'coreapi',
+        'drf-yasg',
     ]
 
 )

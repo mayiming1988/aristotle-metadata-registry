@@ -143,6 +143,7 @@ INSTALLED_APPS = (
     'aristotle_mdr_api.token_auth',
     'rest_framework',
     'rest_framework_swagger',
+    'drf_yasg',
     'django_filters',
 
     'django_jsonforms',
