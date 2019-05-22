@@ -431,6 +431,10 @@ class RegistrationAuthority(Organization):
         """
         Register an item. If the user has permission
         """
+        if isinstance(item, _concept) and type(item) is not _concept:
+            # Must pass in a concept
+            item = item.concept
+
         if not perms.user_can_add_ra_status(user, self, item):
             # Return a failure as this item isn't allowed
             return {'success': [], 'failed': [item]}
@@ -445,7 +449,7 @@ class RegistrationAuthority(Organization):
 
     def _register(self, item, state, user, *args, **kwargs):
         """
-        Internal function that permforms actual registration
+        Internal function that performs actual registration
         Does not do any permissions checks
         Used by register and cascaded_register functions
         """

@@ -446,7 +446,7 @@ class TestDataDictionary(utils.AristotleTestUtils, TestCase):
         self.oc = models.ObjectClass.objects.create(
             name='Animal',
             definition='An animal',
-            workgroup=self.wg1
+            workgroup=self.wg1,
         )
 
     def test_overlapping_registrations_with_different_ras(self):
@@ -525,12 +525,13 @@ class TestDataDictionary(utils.AristotleTestUtils, TestCase):
         for concept, status in response.context['concepts'].items():
             self.assertEqual(status.registrationDate, datetime.date(2018, 1, 1))
 
-    @skip("There's currently a problem with caching item type")
     def test_data_dictionary_filters_concept_type(self):
         self.ra.register(self.oc, MDR.STATES.standard, self.su,
                          registrationDate=datetime.date(2018, 1, 1))
 
         self.check_registered_std(self.oc)
+        self.oc.refresh_from_db()
+        self.assertIsNotNone(self.oc._type)
 
         self.login_superuser()
 
