@@ -358,6 +358,16 @@ REST_FRAMEWORK = {
     )
 }
 
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    }
+}
+
 # Caching
 # Key used to store value in fetch_aristotle_downloaders
 DOWNLOADERS_CACHE_KEY = 'aristotle_downloaders'
