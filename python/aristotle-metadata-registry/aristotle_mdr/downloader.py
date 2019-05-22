@@ -176,7 +176,6 @@ class Downloader:
             'item_names': ', '.join([i.name for i in self.items]),
             'download_url': url
         }
-        attachments = []
 
         # Send email with a link to the file and link to regenerate
         storage = self.get_storage()
@@ -197,7 +196,6 @@ class Downloader:
             'Aristotle Download',
             render_to_string(template_name, context),
             to=[self.user.email],
-            attachments=attachments,
         )
         email.content_subtype = 'html'  # Sets the mime type of the body to text/html
         email.send(fail_silently=True)
