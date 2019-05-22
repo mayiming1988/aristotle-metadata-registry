@@ -178,7 +178,7 @@ class Downloader:
         }
         attachments = []
 
-        # Send email with a link to the file
+        # Send email with a link to the file and link to regenerate
         storage = self.get_storage()
         if hasattr(storage, 'querystring_expire'):
             expire_seconds = storage.querystring_expire
