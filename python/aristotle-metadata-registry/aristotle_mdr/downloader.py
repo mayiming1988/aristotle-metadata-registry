@@ -178,33 +178,20 @@ class Downloader:
         }
         attachments = []
 
-        if size <= max_email_file_size:
-            context['attached'] = True
-            # Read bytes from file
-            f.open('rb')
-            content = f.read()
-            f.close()
-
-            # Tuple of filename, file object, mime type
-            attachments.append((
-                '.'.join([self.filename, self.file_extension]),
-                content,
-                self.mime_type
-            ))
-        else:
-            storage = self.get_storage()
-            if hasattr(storage, 'querystring_expire'):
-                expire_seconds = storage.querystring_expire
-                context['expire_time'] = format_seconds(expire_seconds)
-            # Build url to regenerate download
-            query = QueryDict(mutable=True)
-            query.setlist('items', self.item_ids)
-            regenerate_url = '{url}?{qstring}'.format(
-                url=reverse('aristotle:download_options', args=[self.download_type]),
-                qstring=query.urlencode()
-            )
-            # Update context
-            context.update({'attached': False, 'regenerate_url': regenerate_url})
+        # Send email with a link to the file
+        storage = self.get_storage()
+        if hasattr(storage, 'querystring_expire'):
+            expire_seconds = storage.querystring_expire
+            context['expire_time'] = format_seconds(expire_seconds)
+        # Build url to regenerate download
+        query = QueryDict(mutable=True)
+        query.setlist('items', self.item_ids)
+        regenerate_url = '{url}?{qstring}'.format(
+            url=reverse('aristotle:download_options', args=[self.download_type]),
+            qstring=query.urlencode()
+        )
+        # Update context
+        context.update({'attached': False, 'regenerate_url': regenerate_url})
 
         email = EmailMessage(
             'Aristotle Download',

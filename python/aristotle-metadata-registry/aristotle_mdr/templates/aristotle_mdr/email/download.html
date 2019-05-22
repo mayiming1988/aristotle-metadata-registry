@@ -1,8 +1,4 @@
 <b>Aristotle Download</b>
-{% if attached %}
-<p>Please finds attached your download for {{ item_names }}.<p>
-{% else %}
-<p>Your download for {{ item_names }} is ready. The file was too big to attach but you can <a href="{{ download_url }}">Click Here</a> to download it</p>
+<p>Your download for {{ item_names }} is ready. <a href="{{ download_url }}">Click Here</a> to download it</p>
 {% if expire_time %}<p>This link will expire in {{ expire_time }}.</p>{% endif %}
 <p>If the link has expired <a href="{{ regenerate_url }}">Click Here</a> to start the download again.</p>
-{% endif %}

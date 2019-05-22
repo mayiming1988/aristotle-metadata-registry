@@ -369,9 +369,6 @@ DOWNLOADS_STORAGE = None
 # Used to override aristotle settings. Should not be used in production
 OVERRIDE_ARISTOTLE_SETTINGS = None
 
-# Size after which to only send links to files
-MAX_EMAIL_FILE_SIZE = 1000 * 1000 * 10  # 10MB in bytes
-
 # Graphql
 GRAPHQL_ENABLED = False
 
