@@ -332,11 +332,10 @@ class ConceptFilter(django_filters.FilterSet):
                                          method='noop',
                                          widget=Select(attrs={'class': 'form-control'}))
 
-    model_choices = tuple([(model.pk, model.name.title()) for model in get_concept_content_types().values()])
-
-    concept_type = django_filters.MultipleChoiceFilter(choices=model_choices,
-                                                       method='noop',
-                                                       widget=ModelSelect2Multiple)
+    concept_type = django_filters.MultipleChoiceFilter(
+        choices=tuple([(model.pk, model.name.title()) for model in get_concept_content_types().values()]),
+        method='noop',
+        widget=ModelSelect2Multiple)
 
     letters = [(i, i) for i in string.ascii_uppercase + "&"]
     letter = django_filters.ChoiceFilter(choices=letters,
