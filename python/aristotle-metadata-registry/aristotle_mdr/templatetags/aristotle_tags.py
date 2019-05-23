@@ -209,7 +209,6 @@ def visible_superseded_by_items(item, user):
         superseded_items_relation_set__older_item_id=item.pk,
     ).distinct()
 
-
     sup_rels = [
         {
             "pk": obj.pk,
