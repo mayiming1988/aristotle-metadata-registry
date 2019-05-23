@@ -407,7 +407,7 @@ def get_managed_item_models() -> List[Model]:
     return models
 
 
-def get_concept_type_choices() -> Tuple[ContentType]:
+def get_concept_type_choices():
     from django.apps import apps
     if apps.ready:
         return tuple([(model.pk, model.name.title()) for model in get_concept_content_types().values()])
