@@ -15,6 +15,9 @@ from aristotle_mdr.utils.utils import fetch_aristotle_settings
 
 from aristotle_mdr.contrib.custom_fields.forms import CustomValueFormMixin
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class UserAwareFormMixin:
     def __init__(self, *args, **kwargs):
@@ -172,6 +175,7 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
         for name in self.fields:
             if name in obj_field_names:
                 fields.append(self[name])
+                logger.debug("Hello World" + str(name))
         return fields
 
 
