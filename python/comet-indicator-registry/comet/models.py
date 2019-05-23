@@ -31,11 +31,7 @@ class Indicator(MDR.concept):
     computation = MDR.RichTextField(blank=True)
 
     numerator_description = MDR.RichTextField(blank=True)
-    numerator_computation = models.TextField(blank=True)
-
     denominator_description = MDR.RichTextField(blank=True)
-    denominator_computation = models.TextField(blank=True)
-
     disaggregation_description = MDR.RichTextField(blank=True)
 
     quality_statement = ConceptForeignKey(
@@ -106,11 +102,11 @@ class IndicatorDataElementBase(aristotleComponent):
         "Order",
         help_text=_("The position of this data element in the indicator")
     )
-    description = MDR.RichTextField(blank=True)
     guide_for_use = MDR.RichTextField(blank=True)
     data_element = ConceptForeignKey(MDR.DataElement, blank=True, null=True)
     data_set_specification = ConceptForeignKey(aristotle_dse.DataSetSpecification, blank=True, null=True)
     data_set = ConceptForeignKey(aristotle_dse.Dataset, blank=True, null=True)
+    description = MDR.RichTextField(blank=True)
 
     inline_field_layout = 'list'
 
