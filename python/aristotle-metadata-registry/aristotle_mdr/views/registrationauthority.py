@@ -402,6 +402,7 @@ class ConceptFilter(django_filters.FilterSet):
         # Override the init method so we can pass the iid to the queryset
         self.registration_authority_id = kwargs.pop('registration_authority_id')
 
+        # This is overriden because otherwise it runs on docs CI
         self.base_filters['concept_type'] = django_filters.MultipleChoiceFilter(
             choices=get_concept_type_choices(),
             method='noop',

@@ -526,7 +526,7 @@ class TestDataDictionary(utils.AristotleTestUtils, TestCase):
             self.assertEqual(status.registrationDate, datetime.date(2018, 1, 1))
 
     def test_data_dictionary_filters_concept_type(self):
-        self.ra.register(self.oc, MDR.STATES.standard, self.su,
+        self.ra.register(self.oc.concept, MDR.STATES.standard, self.su,
                          registrationDate=datetime.date(2018, 1, 1))
 
         self.check_registered_std(self.oc)
