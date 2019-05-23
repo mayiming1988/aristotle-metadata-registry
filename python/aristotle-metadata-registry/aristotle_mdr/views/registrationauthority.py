@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.forms import Select
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
-from aristotle_mdr.utils.utils import get_concept_content_types
+from django.db.utils import OperationalError
 from django.views.generic import (
     CreateView,
     ListView,
@@ -31,10 +31,10 @@ from aristotle_mdr.views.utils import (
     AlertFieldsMixin,
     UserFormViewMixin
 )
-from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker, BootstrapDropdownSelectMultiple
+from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 from aristotle_mdr import perms
 from aristotle_mdr.utils import fetch_aristotle_downloaders
-
+from aristotle_mdr.utils.utils import get_concept_type_choices
 from aristotle_mdr.contrib.validators.views import ValidationRuleEditView
 from aristotle_mdr.contrib.validators.models import RAValidationRules
 
@@ -333,7 +333,7 @@ class ConceptFilter(django_filters.FilterSet):
                                          widget=Select(attrs={'class': 'form-control'}))
 
     concept_type = django_filters.MultipleChoiceFilter(
-        choices=tuple([(model.pk, model.name.title()) for model in get_concept_content_types().values()]),
+        choices=get_concept_type_choices(),
         method='noop',
         widget=ModelSelect2Multiple)
 
@@ -406,7 +406,9 @@ class ConceptFilter(django_filters.FilterSet):
     def __init__(self, *args, **kwargs):
         # Override the init method so we can pass the iid to the queryset
         self.registration_authority_id = kwargs.pop('registration_authority_id')
+
         super().__init__(*args, **kwargs)
+
         self.queryset = self.queryset.visible(self.request.user)
 
 
