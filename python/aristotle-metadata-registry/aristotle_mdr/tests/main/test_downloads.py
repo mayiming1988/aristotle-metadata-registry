@@ -260,6 +260,7 @@ class DownloderTestCase(AristotleTestUtils, TestCase):
         with self.assertRaises(PermissionDenied):
             downloader = FakeDownloader([self.item.id], self.viewer.id, {})
 
+    @skip('Removed direct email attachments')
     def test_email_file_direct(self):
         downloader = FakeDownloader([self.item.id], self.editor.id, {})
         f = ContentFile('MyFile')
