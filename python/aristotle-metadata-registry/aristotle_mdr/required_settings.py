@@ -142,7 +142,7 @@ INSTALLED_APPS = (
     'aristotle_mdr_api',
     'aristotle_mdr_api.token_auth',
     'rest_framework',
-    'rest_framework_swagger',
+    'drf_yasg',
     'django_filters',
 
     'django_jsonforms',
@@ -355,6 +355,16 @@ REST_FRAMEWORK = {
         'aristotle_mdr_api.token_auth.authentication.AristotleTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     )
+}
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    }
 }
 
 # Caching
