@@ -166,12 +166,13 @@ class OutcomeArea(MDR.concept):
 class QualityStatement(MDR.concept):
     template = "comet/qualitystatement.html"
 
-    relevance = MDR.RichTextField(blank=True)
+    institutional_environment = MDR.RichTextField(blank=True)
     timeliness = MDR.RichTextField(blank=True)
+    accessibility = MDR.RichTextField(blank=True)
+    interpretability = MDR.RichTextField(blank=True)
+    relevance = MDR.RichTextField(blank=True)
     accuracy = MDR.RichTextField(blank=True)
     coherence = MDR.RichTextField(blank=True)
-    interpretability = MDR.RichTextField(blank=True)
-    accessibility = MDR.RichTextField(blank=True)
 
 
 class Framework(MDR.concept):
