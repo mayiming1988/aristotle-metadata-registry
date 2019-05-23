@@ -332,11 +332,6 @@ class ConceptFilter(django_filters.FilterSet):
                                          method='noop',
                                          widget=Select(attrs={'class': 'form-control'}))
 
-    concept_type = django_filters.MultipleChoiceFilter(
-        choices=get_concept_type_choices(),
-        method='noop',
-        widget=ModelSelect2Multiple)
-
     letters = [(i, i) for i in string.ascii_uppercase + "&"]
     letter = django_filters.ChoiceFilter(choices=letters,
                                          method='noop',
@@ -406,6 +401,11 @@ class ConceptFilter(django_filters.FilterSet):
     def __init__(self, *args, **kwargs):
         # Override the init method so we can pass the iid to the queryset
         self.registration_authority_id = kwargs.pop('registration_authority_id')
+
+        self.filters['concept_type'] = django_filters.MultipleChoiceFilter(
+            choices=get_concept_type_choices(),
+            method='noop',
+            widget=ModelSelect2Multiple)
 
         super().__init__(*args, **kwargs)
 

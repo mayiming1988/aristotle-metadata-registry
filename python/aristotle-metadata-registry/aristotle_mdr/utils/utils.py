@@ -408,10 +408,7 @@ def get_managed_item_models() -> List[Model]:
 
 
 def get_concept_type_choices():
-    from django.apps import apps
-    if apps.ready:
-        return tuple([(model.pk, model.name.title()) for model in get_concept_content_types().values()])
-    return tuple()
+    return tuple([(model.pk, model.name.title()) for model in get_concept_content_types().values()])
 
 
 def get_managed_content_types() -> Dict[Model, ContentType]:
