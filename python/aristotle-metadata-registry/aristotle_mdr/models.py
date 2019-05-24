@@ -66,8 +66,6 @@ from aristotle_mdr.contrib.groups.base import (
     AbstractMembership,
 )
 
-from aristotle_mdr.contrib.groups import managers
-
 import logging
 
 logger = logging.getLogger(__name__)
@@ -447,7 +445,7 @@ class RegistrationAuthority(Organization):
 
     def _register(self, item, state, user, *args, **kwargs):
         """
-        Internal function that permforms actual registration
+        Internal function that performs actual registration
         Does not do any permissions checks
         Used by register and cascaded_register functions
         """

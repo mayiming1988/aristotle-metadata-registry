@@ -1,8 +1,10 @@
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
+
 from django.urls import reverse
 from django.forms import Select
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
+from django.db.utils import OperationalError
 from django.views.generic import (
     CreateView,
     ListView,
@@ -14,10 +16,9 @@ from django.core.exceptions import PermissionDenied
 from django.forms.models import modelform_factory
 from django.http.request import QueryDict
 
-import string
-
 import django_filters
 from django_filters.views import FilterView
+from dal.autocomplete import ModelSelect2Multiple
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.forms import actions
@@ -29,12 +30,11 @@ from aristotle_mdr.views.utils import (
     MemberRemoveFromGroupView,
     AlertFieldsMixin,
     UserFormViewMixin
-
 )
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 from aristotle_mdr import perms
 from aristotle_mdr.utils import fetch_aristotle_downloaders
-
+from aristotle_mdr.utils.utils import get_concept_type_choices
 from aristotle_mdr.contrib.validators.views import ValidationRuleEditView
 from aristotle_mdr.contrib.validators.models import RAValidationRules
 
@@ -42,6 +42,7 @@ from ckeditor.widgets import CKEditorWidget
 
 import datetime
 from typing import Dict
+import string
 
 import logging
 
@@ -86,7 +87,8 @@ def organization(request, iid, *args, **kwargs):
 def all_registration_authorities(request):
     # All visible ras
     ras = MDR.RegistrationAuthority.objects.filter(active__in=[0, 1]).order_by('name')
-    return render(request, "aristotle_mdr/organization/all_registration_authorities.html", {'registrationAuthorities': ras})
+    return render(request, "aristotle_mdr/organization/all_registration_authorities.html",
+                  {'registrationAuthorities': ras})
 
 
 def all_organizations(request):
@@ -189,7 +191,8 @@ class MembersRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, 
         return context
 
 
-class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, AlertFieldsMixin, MainPageMixin, UpdateView):
+class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, AlertFieldsMixin, MainPageMixin,
+                                UpdateView):
     model = MDR.RegistrationAuthority
     template_name = "aristotle_mdr/user/registration_authority/edit.html"
     permission_required = "aristotle_mdr.change_registrationauthority"
@@ -222,7 +225,8 @@ class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequire
         return context
 
 
-class EditRegistrationAuthorityStates(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, MainPageMixin, UpdateView):
+class EditRegistrationAuthorityStates(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, MainPageMixin,
+                                      UpdateView):
     model = MDR.RegistrationAuthority
     template_name = "aristotle_mdr/user/registration_authority/edit_states.html"
     permission_required = "aristotle_mdr.change_registrationauthority"
@@ -321,12 +325,10 @@ class RAValidationRuleEditView(SingleObjectMixin, MainPageMixin, ValidationRuleE
 
 
 class ConceptFilter(django_filters.FilterSet):
-    registration_date = django_filters.DateFilter(field_name='statuses__registrationDate',
-                                                  widget=BootstrapDateTimePicker,
+    registration_date = django_filters.DateFilter(widget=BootstrapDateTimePicker,
                                                   method='noop')
 
     status = django_filters.ChoiceFilter(choices=MDR.STATES,
-                                         field_name='statuses__state',
                                          method='noop',
                                          widget=Select(attrs={'class': 'form-control'}))
 
@@ -340,26 +342,36 @@ class ConceptFilter(django_filters.FilterSet):
         # Exclude unused fields, otherwise they appear in the template
         fields: list = []
 
-    def filter_registration_date(self, queryset, name, value):
-        return queryset.filter(status_is_valid & status_has_selected_ra)
-
     def noop(self, queryset, name, value):
         return queryset
 
     @property
     def qs(self):
+        # We're doing all the filtering at once here in order to improve filtering performance
         from django.db.models.functions import Upper, Substr
-        from django.db.models import Q, OuterRef, Subquery
+        from django.db.models import Q, Subquery
+
+        if not self.form.is_valid():
+            return super().qs
+
         if not hasattr(self, '_qs'):
             qs = super().qs
-
             selected_date = self.form.cleaned_data['registration_date']
             selected_state = self.form.cleaned_data['status']
             selected_letter = self.form.cleaned_data['letter']
 
+            selected_types = self.form.cleaned_data['concept_type']
+
+            # If they haven't selected anything
+            if selected_state == '':
+                selected_state = None
+
+            if not selected_types:
+                selected_types = None
+
             # Return all the statuses that are valid at a particular date and then
             # filter on the concepts linked to a valid status.
-            # Return only the statuses that are linked to the selected RA
+            # Return only the statuses that are linked to the RA for the page that you are on
             status_is_valid = Q(
                 statuses__in=Subquery(
                     MDR.Status.objects.filter(
@@ -371,6 +383,10 @@ class ConceptFilter(django_filters.FilterSet):
 
             inner = MDR._concept.objects.filter(status_is_valid)
             qs = qs.filter(pk__in=Subquery(inner.values('pk'))).prefetch_related('statuses__registrationAuthority')
+
+            # Filter on the selected concept types
+            if selected_types is not None:
+                qs = qs.filter(_type__in=selected_types)
 
             qs = qs.annotate(first_letter=Upper(Substr('name', 1, 1)))
             if selected_letter == "&":
@@ -385,7 +401,15 @@ class ConceptFilter(django_filters.FilterSet):
     def __init__(self, *args, **kwargs):
         # Override the init method so we can pass the iid to the queryset
         self.registration_authority_id = kwargs.pop('registration_authority_id')
+
+        # This is overriden because otherwise it runs on docs CI
+        self.base_filters['concept_type'] = django_filters.MultipleChoiceFilter(
+            choices=get_concept_type_choices(),
+            method='noop',
+            widget=ModelSelect2Multiple)
+
         super().__init__(*args, **kwargs)
+
         self.queryset = self.queryset.visible(self.request.user)
 
 

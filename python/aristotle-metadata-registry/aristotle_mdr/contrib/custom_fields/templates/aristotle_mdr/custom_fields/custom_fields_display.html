@@ -5,17 +5,15 @@
 {% endif %}
 <div class="container">
     {% for cv in custom_values %}
-        <div class="row">
-            <div class="col-sm-3">
+            <div class="dl">
                 <b>{{ cv.field.name }}</b>
             </div>
-            <div class="col-sm-9">
+            <div class="dt">
                 {% if cv.is_html %}
                     {{ cv.content|bleach }}
                 {% else %}
                     {{ cv.content }}
                 {% endif %}
             </div>
-        </div>
     {% endfor %}
 </div>

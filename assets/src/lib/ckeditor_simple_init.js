@@ -29,8 +29,12 @@ export function initCKEditorFromTextarea(textarea, config) {
 
 // ReInitialize ckeditor instances
 export function reinitCKEditors(form) {
-    for (let div of form.querySelectorAll('div.cke')) {
-        div.parentNode.removeChild(div)        
-    }
-    initCKEditor()
+    $(form).find('div.cke').remove()
+    $(form).find('textarea[data-type=ckeditortype]').each(function() {
+        let textarea = $(this)
+        let config = JSON.parse(textarea.attr('data-config'));
+        CKEDITOR.replace(this.id, config)
+        textarea.attr('data-processed', 1)
+    })
+
 }

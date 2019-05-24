@@ -200,26 +200,28 @@ def visible_superseded_by_items(item, user):
     """
     Fetch newer items for an older item
     """
+
+    # Get all the objects that have superseded items
     objects = item.__class__.objects.prefetch_related(
         'superseded_items_relation_set__newer_item',
         'superseded_items_relation_set__registration_authority',
     ).visible(user).filter(
         superseded_items_relation_set__older_item_id=item.pk,
-        superseded_items_relation_set__proposed=False,
     ).distinct()
+
     sup_rels = [
         {
             "pk": obj.pk,
             "newer_item": obj,
             "rels": [
                 {
-                    # "newer_item": sup.newer_item,
                     "message": sup.message,
                     "date_effective": sup.date_effective,
                     "registration_authority": sup.registration_authority,
+                    "proposed": sup.proposed
                 }
                 for sup in obj.superseded_items_relation_set.all()
-                if sup.older_item_id == item.pk and sup.proposed is False
+                if sup.older_item_id == item.pk
             ]
         }
         for obj in objects

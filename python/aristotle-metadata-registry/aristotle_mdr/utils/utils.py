@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from django.apps import apps
 from django.conf import settings
 from django.core.cache import cache
@@ -405,6 +405,10 @@ def get_managed_item_models() -> List[Model]:
             if issubclass(model, ManagedItem) and model != ManagedItem:
                 models.append(model)
     return models
+
+
+def get_concept_type_choices():
+    return tuple([(model.pk, model.name.title()) for model in get_concept_content_types().values()])
 
 
 def get_managed_content_types() -> Dict[Model, ContentType]:
