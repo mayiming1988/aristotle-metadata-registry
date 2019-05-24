@@ -4,6 +4,10 @@
 {% block objSpecific %}
     <h2>Data Quality</h2>
     <dl class="qualityStatement">
+        {% if item.institutional_environment %}
+            <dt>Institutional Environment</dt>
+            <dd>{{ item.institutional_environment|bleach }}</dd>
+        {% endif %}
         {% if item.timeliness %}
             <dt>Timeliness</dt>
             <dd>{{ item.timeliness|bleach }}</dd>
