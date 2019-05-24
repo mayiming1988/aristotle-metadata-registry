@@ -17,12 +17,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def can_publish(user, item):
-    return user.is_superuser or user == item.submitter
-
-
 class VersionPublishMetadataFormView(GenericWithItemURLFormView):
-    permission_checks = [can_publish]
+    permission_checks = [perms.user_can_publish_object]
     template_name = "aristotle_mdr/publish/publish_metadata_versions.html"
     form_class = VersionPublicationForm
 
