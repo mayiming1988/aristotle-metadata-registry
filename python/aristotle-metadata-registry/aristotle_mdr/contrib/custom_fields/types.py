@@ -2,6 +2,8 @@ from django import forms
 from model_utils import Choices
 from ckeditor.fields import RichTextFormField
 
+from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
+
 
 # Type choices presented when creating a custom field
 type_choices = Choices(
@@ -26,6 +28,9 @@ type_field_mapping = {
     },
     'date': {
         'field': forms.DateField,
+        'args': {
+            'widget': BootstrapDateTimePicker(options={'format': 'YYYY-MM-DD'})
+        }
     },
     'html': {
         'field': RichTextFormField
