@@ -713,7 +713,8 @@ class _concept(baseAristotleObject):
     _type = models.ForeignKey(
         ContentType,
         on_delete=models.CASCADE,
-        null=True
+        null=True,
+        blank=True,
     )
 
     version = models.CharField(max_length=20, blank=True)
