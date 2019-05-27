@@ -14,6 +14,10 @@ from aristotle_mdr.contrib.links.utils import get_links_for_concept
 
 from formtools.wizard.views import SessionWizardView
 
+import logging
+logger = logging.getLogger("Wizards")
+
+
 
 class EditLinkFormView(FormView):
     template_name = "aristotle_mdr_links/actions/edit_link.html"
@@ -126,7 +130,6 @@ class AddLinkWizard(SessionWizardView):
         if istep == 0:
             kwargs['user'] = self.request.user
         elif istep == 1:
-            relation = self.get_cleaned_data_for_step('0')['relation']
             kwargs['roles'] = self.get_roles()
         elif istep == 2:
             relation = self.get_cleaned_data_for_step('0')['relation']
@@ -161,6 +164,7 @@ class AddLinkWizard(SessionWizardView):
         context = super().get_context_data(*args, **kwargs)
         istep = int(self.steps.current)
         if istep == 1:
+            context['relation'] = self.get_cleaned_data_for_step('0')['relation']
             context['roles_exist'] = context['form'].fields['role'].queryset.exists()
         elif istep == 2:
             context['roles'] = self.get_roles()

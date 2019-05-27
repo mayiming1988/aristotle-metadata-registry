@@ -12,9 +12,9 @@
     </div>
     {% if not roles_exist %}
     <div class="alert alert-danger">
-      The relation you selected doesnt have any roles. 
-      {% if root_item|can_edit:user %}
-        <a href="{% url 'aristotle_mdr_links:relation_roles_edit' root_item.id %}">Click here to add some</a>
+      The relation you selected doesn't have any roles.
+      {% if relation|can_edit:user %}
+        <a href="{% url 'aristotle_mdr_links:relation_roles_edit' relation.pk %}">Click here to add some</a>
       {% endif %}
     </div>
     {% endif %}
