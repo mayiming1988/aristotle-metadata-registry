@@ -271,15 +271,9 @@ class SupersedePage(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_propose_supersede(self):
-        # Register items so registrar can use them
-        self.make_standard(self.item1)
-        self.make_standard(self.item2)
+        self.login_editor()
 
-        # Make registrar a manager so they can edit the item
-        self.wg1.giveRoleToUser('manager', self.registrar)
-        self.login_registrar()
-
-        self.assertTrue(perms.user_can_edit(self.registrar, self.item1))
+        self.assertTrue(perms.user_can_edit(self.editor, self.item1))
 
         # Get formset postdata for single supersedes
         postdata = self.get_formset_postdata(
@@ -304,9 +298,6 @@ class SupersedePage(utils.AristotleTestUtils, TestCase):
         self.assertTrue(ss.proposed)
 
     def test_edit_existing_proposed_supersedes(self):
-        # Register items so registrar can use them
-        self.make_standard(self.item1)
-        self.make_standard(self.item2)
         # Make some supersedes relations
         ss = models.SupersedeRelationship.objects.create(
             proposed=False,
@@ -323,7 +314,7 @@ class SupersedePage(utils.AristotleTestUtils, TestCase):
 
         # Make registrar a manager so they can edit the item
         self.wg1.giveRoleToUser('manager', self.registrar)
-        self.login_registrar()
+        self.login_editor()
 
         response = self.reverse_get(
             'aristotle:proposed_supersede',
