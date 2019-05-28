@@ -7,21 +7,21 @@
 {% block form_title %}Step 2: Select a role{% endblock %}
 
 {% block wizard_content %}
-    <div class="alert alert-info">
-        Select the role you would like ({{ root_item.name }}) to have in this link
-    </div>
-    {% if not roles_exist %}
-    <div class="alert alert-danger">
-      The relation you selected doesn't have any roles.
-      {% if relation|can_edit:user %}
-        <a href="{% url 'aristotle_mdr_links:relation_roles_edit' relation.pk %}" class="suppress-leave-warning">
-            Click here to add some</a>
-      {% endif %}
-    </div>
-    {% endif %}w
-    <div>
-        <table>
+<div class="alert alert-info">
+    Select the role you would like ({{ root_item.name }}) to have in this link
+</div>
+{% if not roles_exist %}
+<div class="alert alert-danger">
+    The relation you selected doesn't have any roles.
+    {% if relation|can_edit:user %}
+    <a href="{% url 'aristotle_mdr_links:relation_roles_edit' relation.pk %}" class="suppress-leave-warning">
+        Click here to add some</a>
+    {% endif %}
+</div>
+{% endif %}
+<div>
+    <table>
         {{ form.as_table }}
-        </table>
-    </div>
+    </table>
+</div>
 {% endblock %}
