@@ -14,9 +14,6 @@ from aristotle_mdr.contrib.links.utils import get_links_for_concept
 
 from formtools.wizard.views import SessionWizardView
 
-import logging
-logger = logging.getLogger("Wizards")
-
 
 class EditLinkFormView(FormView):
     template_name = "aristotle_mdr_links/actions/edit_link.html"
