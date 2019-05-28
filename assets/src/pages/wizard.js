@@ -14,7 +14,7 @@ initMoveable()
 let formSubmitted = false
 
 // Class to override the leaving behavior
-let leaveLinks = document.querySelectorAll('.supress-leave-warning');
+let leaveLinks = document.querySelectorAll('.suppress-leave-warning');
 
 for (let link of leaveLinks) {
     link.addEventListener('click', suppress_leave_warning)

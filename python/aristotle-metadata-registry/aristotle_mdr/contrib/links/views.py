@@ -18,7 +18,6 @@ import logging
 logger = logging.getLogger("Wizards")
 
 
-
 class EditLinkFormView(FormView):
     template_name = "aristotle_mdr_links/actions/edit_link.html"
     form_class = link_forms.LinkEndEditor
