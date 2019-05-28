@@ -1,29 +1,19 @@
-from braces.views import LoginRequiredMixin, PermissionRequiredMixin
-
 from django.conf.urls import url
 from django.contrib import messages
-from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Q
 from django.http import Http404
-from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import (
-    ListView, TemplateView, CreateView, UpdateView, DetailView, DeleteView
+    ListView, CreateView, UpdateView, DetailView, DeleteView
 )
 from django.urls import reverse
-from aristotle_mdr.utils.model_utils import ManagedItem
-
 
 from aristotle_mdr.contrib.groups.backends import (
-    GroupURLManager, GroupMixin,
-    HasRoleMixin, HasRolePermissionMixin,
+    GroupURLManager, GroupMixin, HasRolePermissionMixin,
 )
-# from aristotle_mdr.models import StewardOrganisationMembership, StewardOrganisation, _concept
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils.model_utils import ManagedItem
-from aristotle_mdr.views.workgroups import GenericListWorkgroup, CreateWorkgroup
+from aristotle_mdr.views.workgroups import GenericListWorkgroup
 from aristotle_mdr.views.registrationauthority import ListRegistrationAuthorityBase
-from aristotle_mdr.views.utils import UserFormViewMixin
 
 from . import views
 from aristotle_mdr.contrib.stewards.models import Collection

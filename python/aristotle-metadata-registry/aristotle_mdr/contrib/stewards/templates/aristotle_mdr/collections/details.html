@@ -18,9 +18,10 @@
     <header>Description</header>
     <div class="well">{{ item.description|bleach }}</div>
 
+    <header>Metadata in this collection:</header>
+    <div class="well well-sm"></div>
 
     <table class="table">
-        <thead></thead>
         <tbody>
             {% for obj in sub_collections.all %}
             <tr>
