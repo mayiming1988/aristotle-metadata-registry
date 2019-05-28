@@ -23,7 +23,7 @@
     <div class="well well-sm">
         <ul>
         {% for type, count in type_counts.items %}
-            <li>{{ type|title }}: {{ count }}</li>
+            <li>{{ type|title}}{{count|pluralize:",s"}}: {{ count }}</li>
         {% endfor %}
         </ul>
     </div>
