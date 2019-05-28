@@ -140,7 +140,6 @@ class ConceptIndex(BaseObjectIndex):
             state = -9
         return state
 
-
     def prepare_ra_statuses(self, obj):
         # This allows us to check a registration authority and a state simultaneously
         states = [
