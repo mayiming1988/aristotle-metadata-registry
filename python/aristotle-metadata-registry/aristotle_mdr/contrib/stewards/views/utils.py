@@ -15,6 +15,3 @@ def get_aggregate_count_of_collection(queryset):
         types.append(item.item_type)
 
     return dict(Counter(types))
-
-
-

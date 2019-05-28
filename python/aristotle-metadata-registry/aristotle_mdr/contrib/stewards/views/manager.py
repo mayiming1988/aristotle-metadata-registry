@@ -196,6 +196,7 @@ class StewardURLManager(GroupURLManager):
 
     def browse_view(self):
         from aristotle_mdr.contrib.browse.views import BrowseConcepts
+
         class Browse(StewardGroupMixin, BrowseConcepts):
             current_group_context = "metadata"
             model = MDR._concept

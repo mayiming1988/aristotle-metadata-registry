@@ -3,7 +3,7 @@ from aristotle_mdr.views.utils import UserFormViewMixin
 from aristotle_mdr.contrib.stewards.models import Collection
 from aristotle_mdr.contrib.stewards.forms.collections import CollectionForm
 
-from aristotle_mdr.contrib.groups.backends import GroupMixin,HasRolePermissionMixin
+from aristotle_mdr.contrib.groups.backends import GroupMixin, HasRolePermissionMixin
 
 import logging
 
