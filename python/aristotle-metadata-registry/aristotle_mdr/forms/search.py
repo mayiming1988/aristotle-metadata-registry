@@ -784,19 +784,21 @@ class PermissionSearchForm(TokenSearchForm):
         return sqs
 
     def apply_sorting(self, sqs):  # pragma: no cover, no security issues, standard Haystack methods, so already tested.
+
         sort_order = self.cleaned_data['sort']
 
+        # Ordering is evaluated from left to right
         if sort_order == SORT_OPTIONS.modified_ascending:
-            sqs = sqs.order_by('-modified', 'name_sortable')
+            sqs = sqs.order_by('name_sortable', '-modified')
 
         elif sort_order == SORT_OPTIONS.modified_descending:
-            sqs = sqs.order_by('modified', '-name_sortable')
+            sqs = sqs.order_by('-name_sortable', 'modified')
 
         elif sort_order == SORT_OPTIONS.created_ascending:
-            sqs = sqs.order_by('created')
+            sqs = sqs.order_by('-name_sortable', 'created')
 
         elif sort_order == SORT_OPTIONS.created_descending:
-            sqs = sqs.order_by('-created')
+            sqs = sqs.order_by('name_sortable', '-created')
 
         elif sort_order == SORT_OPTIONS.alphabetical:
             sqs = sqs.order_by('name_sortable')
