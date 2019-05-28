@@ -18,8 +18,16 @@
     <header>Description</header>
     <div class="well">{{ item.description|bleach }}</div>
 
+    {% if type_counts %}
     <header>Metadata in this collection:</header>
-    <div class="well well-sm"></div>
+    <div class="well well-sm">
+        <ul>
+        {% for type, count in type_counts.items %}
+            <li>{{ type|title }}: {{ count }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
 
     <table class="table">
         <tbody>

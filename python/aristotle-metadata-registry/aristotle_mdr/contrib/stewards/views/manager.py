@@ -16,6 +16,7 @@ from aristotle_mdr.views.workgroups import GenericListWorkgroup
 from aristotle_mdr.views.registrationauthority import ListRegistrationAuthorityBase
 
 from . import views
+from aristotle_mdr.contrib.stewards.views.utils import get_aggregate_count_of_collection
 from aristotle_mdr.contrib.stewards.models import Collection
 from aristotle_mdr.contrib.stewards.views.collections import EditCollectionViewBase
 
@@ -113,7 +114,6 @@ class StewardURLManager(GroupURLManager):
         return CreateWorkgroup.as_view(manager=self, group_class=self.group_class)
 
     def registration_authority_list_view(self):
-
         class ListRegistrationAuthorities(StewardGroupMixin, HasRolePermissionMixin, ListRegistrationAuthorityBase):
             current_group_context = "registrationauthorities"
             role_permission = "view_group"
@@ -126,7 +126,6 @@ class StewardURLManager(GroupURLManager):
         return ListRegistrationAuthorities.as_view(manager=self, group_class=self.group_class)
 
     def collection_list_view(self):
-
         class ListCollectionsView(StewardGroupMixin, HasRolePermissionMixin, ListCollectionsBase):
             current_group_context = "collections"
             role_permission = "view_group"
@@ -139,7 +138,6 @@ class StewardURLManager(GroupURLManager):
         return ListCollectionsView.as_view(manager=self, group_class=self.group_class)
 
     def collection_detail_view(self):
-
         class DetailCollectionsView(StewardGroupMixin, HasRolePermissionMixin, DetailView):
             current_group_context = "collections"
             role_permission = "view_group"
@@ -153,14 +151,19 @@ class StewardURLManager(GroupURLManager):
 
             def get_context_data(self, *args, **kwargs):
                 context = super().get_context_data(*args, **kwargs)
+
                 context['sub_collections'] = self.get_object().collection_set.visible(user=self.request.user).order_by('name')
-                context['metadata'] = self.get_object().metadata.all().select_subclasses().visible(user=self.request.user).order_by('name')
+
+                metadata = self.get_object().metadata.all().select_subclasses().visible(user=self.request.user).order_by('name')
+
+                context['metadata'] = metadata
+                context['type_counts'] = get_aggregate_count_of_collection(metadata)
+
                 return context
 
         return DetailCollectionsView.as_view(manager=self, group_class=self.group_class)
 
     def collection_create_view(self):
-
         class CreateCollectionView(EditCollectionViewBase, CreateView):
             template_name = "aristotle_mdr/collections/add.html"
 
@@ -172,7 +175,6 @@ class StewardURLManager(GroupURLManager):
         return CreateCollectionView.as_view(manager=self, group_class=self.group_class)
 
     def collection_edit_view(self):
-
         class UpdateCollectionView(EditCollectionViewBase, UpdateView):
             template_name = "aristotle_mdr/collections/edit.html"
 
@@ -194,7 +196,6 @@ class StewardURLManager(GroupURLManager):
 
     def browse_view(self):
         from aristotle_mdr.contrib.browse.views import BrowseConcepts
-
         class Browse(StewardGroupMixin, BrowseConcepts):
             current_group_context = "metadata"
             model = MDR._concept
@@ -207,10 +208,6 @@ class StewardURLManager(GroupURLManager):
                 # Call the base implementation first to get a context
                 self.kwargs['app'] = "aristotle_mdr"
                 context = super().get_context_data(*args, **kwargs)
-                # if self.kwargs['app'] not in fetch_metadata_apps():
-                #     raise Http404
-                # context['app_label'] = self.kwargs['app']
-                # context['app'] = apps.get_app_config(self.kwargs['app'])
                 return context
 
             def get_template_names(self):
@@ -219,7 +216,6 @@ class StewardURLManager(GroupURLManager):
         return Browse.as_view(manager=self, group_class=self.group_class)
 
     def managed_item_create_view(self):
-
         class CreateManagedItemView(StewardGroupMixin, ManagedItemViewMixin, CreateView):
             template_name = "stewards/managed_item/add.html"
             role_permission = "manage_managed_items"
@@ -233,7 +229,6 @@ class StewardURLManager(GroupURLManager):
         return CreateManagedItemView.as_view(manager=self, group_class=self.group_class)
 
     def managed_item_edit_view(self):
-
         class UpdateManagedItemView(StewardGroupMixin, ManagedItemViewMixin, UpdateView):
             template_name = "stewards/managed_item/edit.html"
             role_permission = "manage_managed_items"
@@ -243,7 +238,6 @@ class StewardURLManager(GroupURLManager):
         return UpdateManagedItemView.as_view(manager=self, group_class=self.group_class)
 
     def managed_item_list_types(self):
-
         class ListManagedItemTypesList(StewardGroupMixin, HasRolePermissionMixin, ListView):
             current_group_context = "managed"
             role_permission = "view_group"

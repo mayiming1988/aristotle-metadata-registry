@@ -1,5 +1,6 @@
 from aristotle_mdr import models as MDR
 from aristotle_mdr.contrib.groups.backends import GroupMixin
+from collections import Counter
 
 
 class StewardGroupMixin(GroupMixin):
@@ -7,12 +8,13 @@ class StewardGroupMixin(GroupMixin):
 
 
 def get_aggregate_count_of_collection(queryset):
-    item_to_count = {}
+    """ Return a dict with the count of each item type in a queryset of concepts """
+    types = []
 
     for item in queryset:
-        item_to_count[item.item_type] += 1
+        types.append(item.item_type)
 
-    return item_to_count
+    return dict(Counter(types))
 
 
 
