@@ -161,6 +161,7 @@ class AddLinkWizard(SessionWizardView):
         return role_concepts
 
     def get_context_data(self, *args, **kwargs):
+        # Steps are 0 indexed, but the template is 1 indexed
         context = super().get_context_data(*args, **kwargs)
         istep = int(self.steps.current)
         if istep == 1:

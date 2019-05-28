@@ -13,6 +13,18 @@ initMoveable()
 // Don't like using globals, but we need this state in unload handler
 let formSubmitted = false
 
+// Class to override the leaving behavior
+let leaveLinks = document.querySelectorAll('.supress-leave-warning');
+
+for (let link of leaveLinks) {
+    link.addEventListener('click', suppress_leave_warning)
+}
+
+// Suppress the prompt when the user navigates away from the page
+function suppress_leave_warning() {
+   window.removeEventListener('beforeunload', handleUnload)
+}
+
 // Display a prompt when the user navigates away from the page
 function handleUnload(event) {
     if (!formSubmitted) {

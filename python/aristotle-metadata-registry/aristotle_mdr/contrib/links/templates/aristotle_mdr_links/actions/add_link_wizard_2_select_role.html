@@ -14,7 +14,8 @@
     <div class="alert alert-danger">
       The relation you selected doesn't have any roles.
       {% if relation|can_edit:user %}
-        <a href="{% url 'aristotle_mdr_links:relation_roles_edit' relation.pk %}">Click here to add some</a>
+        <a href="{% url 'aristotle_mdr_links:relation_roles_edit' relation.pk %}" class="supress-leave-warning">
+            Click here to add some</a>
       {% endif %}
     </div>
     {% endif %}
