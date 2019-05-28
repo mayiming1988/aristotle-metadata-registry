@@ -554,10 +554,16 @@ class ReviewChangesView(SessionWizardView):
         if not regDate:
             regDate = timezone.now().date()
 
+        cascading = (can_cascade and cascade)
+
         # Call celery task to register items
-        register_items.delay(
+        register_func = register_items
+        if (len(item_ids) > 1 or cascading):
+            register_func = register_items.delay
+
+        register_func(
             item_ids,
-            (can_cascade and cascade),
+            cascading,
             state,
             ras[0].id,
             self.request.user.id,
