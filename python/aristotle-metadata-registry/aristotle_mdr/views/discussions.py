@@ -15,7 +15,9 @@ from aristotle_mdr.views.utils import ObjectLevelPermissionRequiredMixin
 
 from braces.views import LoginRequiredMixin
 from django.views.generic import DeleteView, TemplateView, FormView, UpdateView
+from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
 
+import logging; logger = logging.getLogger("__name__")
 
 class All(LoginRequiredMixin, TemplateView):
     # Show all discussions for all of a users workgroups
@@ -180,13 +182,22 @@ class NewComment(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, PostMix
         return HttpResponseRedirect(reverse("aristotle:discussionsPost", args=[post.pk]))
 
 
-class DeletePost(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, PostMixin, DeleteView):
-    model = MDR.DiscussionPost
+class DeletePost(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, ConfirmDeleteView):
+
+    confirm_template = "aristotle_mdr/generic/actions/confirm_delete.html"
+    template_name = "aristotle_mdr/generic/actions/confirm_delete.html"
+    form_delete_button_text = _("Delete")
+    warning_text = _("You are about to delete a discussion post \
+                     and all associated comments. Confirm below, or click cancel to return to the item.")
+
+    model_base = MDR.DiscussionPost
     permission_required = "aristotle_mdr.can_delete_discussion_post"
     raise_exception = True
     redirect_unauthenticated_users = True
 
-    def delete(self, request, *args, **kwargs):
+    item_kwarg = "pid"
+
+    def perform_deletion(self):
         post = self.get_object()
         workgroup = post.workgroup
 
@@ -200,9 +211,6 @@ class DeletePost(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, PostMix
         workgroup = post.workgroup
 
         return HttpResponseRedirect(reverse("aristotle:discussionsWorkgroup", args=[workgroup.pk]))
-
-    def get(self, request, *args, **kwargs):
-        return self.post(request, *args, **kwargs)
 
 
 class EditPost(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, PostMixin, UpdateView):

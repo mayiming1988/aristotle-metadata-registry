@@ -56,6 +56,8 @@ class GenericWithItemURLView(View):
     item_kwarg = "iid"
 
     def dispatch(self, request, *args, **kwargs):
+        # raise ValueError(str(self.model_base) + 'pk' + str(self.kwargs[self.item_kwarg]))
+
         self.item = get_object_or_404(self.model_base, pk=self.kwargs[self.item_kwarg])
 
         if not (
@@ -836,10 +838,11 @@ class ConfirmDeleteView(GenericWithItemURLView, TemplateView):
     template_name = "aristotle_mdr/generic/actions/confirm_delete.html"
     form_delete_button_text = _("Delete")
     warning_text = _("You are about to delete something, confirm below, or click cancel to return to the item.")
+    form_title = "Delete item"
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context['form_title'] = self.form_title or _('Add child item')
+        context['form_title'] = self.form_title
         context['form_delete_button_text'] = self.form_delete_button_text
         context['warning_text'] = self.get_warning_text()
         return context
