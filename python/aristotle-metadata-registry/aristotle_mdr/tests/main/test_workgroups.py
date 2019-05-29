@@ -7,13 +7,11 @@ import aristotle_mdr.tests.utils as utils
 
 from aristotle_mdr.utils import setup_aristotle_test_environment
 
-
 setup_aristotle_test_environment()
 
-# This is for testing permissions around workgroup management.
 
 class WorkgroupMembership(TestCase):
-
+    """ Test permissions around workgroup management"""
     def setUp(self):
         self.steward_org_1 = models.StewardOrganisation.objects.create(
             name='Org 1',
@@ -25,6 +23,7 @@ class WorkgroupMembership(TestCase):
         user = get_user_model().objects.create_user('editor1@example.com','editor1')
         wg.giveRoleToUser('viewer', user)
         self.assertTrue(perms.user_in_workgroup(user,wg))
+
     def test_RemoveUserFromWorkgroup(self):
         # Does removing a user from a workgroup remove their permissions? It should!
         wg = models.Workgroup.objects.create(name="Test WG 1", stewardship_organisation=self.steward_org_1)
@@ -38,6 +37,7 @@ class WorkgroupMembership(TestCase):
         # Caching issue, refresh from DB with correct permissions
         user = get_user_model().objects.get(pk=user.pk)
         self.assertFalse(perms.user_is_workgroup_manager(user,wg))
+
     def test_managersCanEditWorkgroups(self):
         wg = models.Workgroup.objects.create(name="Test WG 1", stewardship_organisation=self.steward_org_1)
         user1 = get_user_model().objects.create_user('manager@example.com','manager')
@@ -83,6 +83,7 @@ class WorkgroupMembership(TestCase):
         self.assertTrue(wg1 in editable.all())
         self.assertTrue(wg2 in editable.all())
         self.assertTrue(wg3 not in editable.all())
+
 
 class WorkgroupAnonTests(utils.LoggedInViewPages, TestCase):
     def test_anon_cannot_add(self):
@@ -330,6 +331,23 @@ class WorkgroupMemberTests(utils.LoggedInViewPages,TestCase):
         self.assertEqual(response.status_code,403)
         response = self.client.get(reverse('aristotle:workgroup_member_remove',args=[self.wg1.id,self.newuser.pk]))
         self.assertEqual(response.status_code,403)
+
+    def test_viewer_cannot_see_add_user_button(self):
+        """ The viewer should not be able to see the Add User button in the workgroup member list, as
+            they are not permitted to add users"""
+        self.login_viewer()
+
+        response = self.client.get(reverse('aristotle:workgroupMembers', args=[self.wg1.id]))
+
+        self.assertNotContainsHtml(response, 'Add a user')
+
+    def test_manager_can_see_add_user_button(self):
+        """ Managers should be able to see the Add User button in the workgroup member list"""
+        self.login_manager()
+
+        response = self.client.get(reverse('aristotle:workgroupMembers', args=[self.wg1.id]))
+
+        self.assertContainsHtml(response, 'Add a user')
 
     def test_manager_can_add_or_change_users(self):
         self.login_manager()
