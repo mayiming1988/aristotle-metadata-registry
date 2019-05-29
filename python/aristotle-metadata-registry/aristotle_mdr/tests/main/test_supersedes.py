@@ -75,7 +75,7 @@ class SupersedePage(utils.AristotleTestUtils, TestCase):
 
     @tag('unit_test', 'supersede')
     def test_supersede_form(self):
-        from aristotle_mdr.forms.actions import SupersedeForm
+        from aristotle_mdr.forms.actions import SupersedeAdminForm
         self.ra.register(
             self.item1,
             models.STATES.standard,
@@ -92,13 +92,13 @@ class SupersedePage(utils.AristotleTestUtils, TestCase):
             'registration_authority': self.ra,
         }
 
-        form = SupersedeForm(data=form_data, item=self.item1, user=self.registrar)
+        form = SupersedeAdminForm(data=form_data, item=self.item1, user=self.registrar)
         self.assertTrue(form.is_valid())
 
-        form = SupersedeForm(data=form_data, item=self.item1, user=self.su)
+        form = SupersedeAdminForm(data=form_data, item=self.item1, user=self.su)
         self.assertTrue(form.is_valid())
 
-        form = SupersedeForm(data=form_data, item=self.item1, user=self.editor)
+        form = SupersedeAdminForm(data=form_data, item=self.item1, user=self.editor)
         self.assertFalse(form.is_valid())
 
         ra2 = models.RegistrationAuthority.objects.create(name="Test RA", definition="My WG", stewardship_organisation=self.steward_org_1)
@@ -107,7 +107,7 @@ class SupersedePage(utils.AristotleTestUtils, TestCase):
 
         self.assertTrue(self.item1.can_view(new_registrar))
         self.assertTrue(self.item2.can_view(new_registrar))
-        form = SupersedeForm(data=form_data, item=self.item1, user=new_registrar)
+        form = SupersedeAdminForm(data=form_data, item=self.item1, user=new_registrar)
         self.assertFalse(form.is_valid())
 
     @tag('integration_test', 'supersede')
