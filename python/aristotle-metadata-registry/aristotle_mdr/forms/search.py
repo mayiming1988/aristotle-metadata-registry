@@ -40,10 +40,12 @@ QUICK_DATES = Choices(
     ('X', 'custom', _('Custom period')),
 )
 
+
+# For dates and times, ascending means that earlier dates will precede later ones.
 SORT_OPTIONS = Choices(
     ('n', 'natural', _('Relevance')),
-    ('ma', 'modified_ascending', _('Most Recently Modified')),
-    ('md', 'modified_descending', _('Least Recently Modified')),
+    ('md', 'modified_descending', _('Most Recently Modified')),
+    ('ma', 'modified_ascending', _('Least Recently Modified')),
     ('ca', 'created_ascending', _('First Created')),
     ('cd', 'created_descending', _('Last Created')),
     ('aa', 'alphabetical', _('Alphabetical')),
@@ -789,10 +791,10 @@ class PermissionSearchForm(TokenSearchForm):
 
         # Ordering is evaluated from left to right
         if sort_order == SORT_OPTIONS.modified_ascending:
-            sqs = sqs.order_by('name_sortable', '-modified')
+            sqs = sqs.order_by('name_sortable', 'modified')
 
         elif sort_order == SORT_OPTIONS.modified_descending:
-            sqs = sqs.order_by('-name_sortable', 'modified')
+            sqs = sqs.order_by('-name_sortable', '-modified')
 
         elif sort_order == SORT_OPTIONS.created_ascending:
             sqs = sqs.order_by('-name_sortable', 'created')
