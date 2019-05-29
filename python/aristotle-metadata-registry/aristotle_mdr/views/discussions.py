@@ -190,27 +190,27 @@ class DeletePost(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, Confirm
     warning_text = _("You are about to delete a discussion post \
                      and all associated comments. Confirm below, or click cancel to return to the item.")
 
+    form_title = "Delete Discussion Post"
     model_base = MDR.DiscussionPost
     permission_required = "aristotle_mdr.can_delete_discussion_post"
     raise_exception = True
     redirect_unauthenticated_users = True
 
+    # Override lookup pk
     item_kwarg = "pid"
 
     def perform_deletion(self):
-        post = self.get_object()
+        post = self.item
         workgroup = post.workgroup
 
         post.comments.all().delete()
         post.delete()
 
-        return HttpResponseRedirect(reverse("aristotle:discussionsWorkgroup", args=[workgroup.pk]))
-
     def get_success_url(self):
-        post = self.get_object()
+        post = self.item
         workgroup = post.workgroup
 
-        return HttpResponseRedirect(reverse("aristotle:discussionsWorkgroup", args=[workgroup.pk]))
+        return reverse("aristotle:discussionsWorkgroup", args=[workgroup.pk])
 
 
 class EditPost(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, PostMixin, UpdateView):
