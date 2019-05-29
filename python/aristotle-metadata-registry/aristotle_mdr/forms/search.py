@@ -791,16 +791,16 @@ class PermissionSearchForm(TokenSearchForm):
 
         # Ordering is evaluated from left to right
         if sort_order == SORT_OPTIONS.modified_ascending:
-            sqs = sqs.order_by('name_sortable', 'modified')
+            sqs = sqs.order_by('modified', 'name_sortable')
 
         elif sort_order == SORT_OPTIONS.modified_descending:
-            sqs = sqs.order_by('-name_sortable', '-modified')
+            sqs = sqs.order_by('-modified', 'name_sortable')
 
         elif sort_order == SORT_OPTIONS.created_ascending:
-            sqs = sqs.order_by('-name_sortable', 'created')
+            sqs = sqs.order_by('created', 'name_sortable')
 
         elif sort_order == SORT_OPTIONS.created_descending:
-            sqs = sqs.order_by('name_sortable', '-created')
+            sqs = sqs.order_by('-created', 'name_sortable')
 
         elif sort_order == SORT_OPTIONS.alphabetical:
             sqs = sqs.order_by('name_sortable')
