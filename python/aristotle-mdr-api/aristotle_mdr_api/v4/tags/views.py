@@ -8,6 +8,7 @@ from django.http import Http404
 
 from aristotle_mdr.contrib.favourites.models import Tag, Favourite
 from aristotle_mdr.models import _concept
+from aristotle_mdr.perms import user_can_view
 
 
 class TagView(generics.RetrieveUpdateDestroyAPIView):
@@ -50,7 +51,9 @@ class ItemTagUpdateView(generics.UpdateAPIView):
         return self.http_method_not_allowed(request, *args, **kwargs)
 
     def get_object(self):
-        self.check_object_permissions(self.request, self.item)
+        if not user_can_view(self.request.user, self.item):
+            self.permission_denied(request, "You do not have permission to view this item")
+
         return Favourite.objects.filter(
             tag__profile=self.request.user.profile,
             tag__primary=False,
