@@ -56,8 +56,6 @@ class GenericWithItemURLView(View):
     item_kwarg = "iid"
 
     def dispatch(self, request, *args, **kwargs):
-        # raise ValueError(str(self.model_base) + 'pk' + str(self.kwargs[self.item_kwarg]))
-
         self.item = get_object_or_404(self.model_base, pk=self.kwargs[self.item_kwarg])
 
         if not (
