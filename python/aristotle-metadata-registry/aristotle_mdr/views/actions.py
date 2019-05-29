@@ -172,7 +172,8 @@ class ProposedSupersedeItemView(SupersedeItemView):
         qs = qs.filter(proposed=True)
         return qs
 
-    def save_instances(self, instances):
+    def save_formset(self, formset):
+        instances = formset.save(commit=False)
         for instance in instances:
             instance.proposed = True
             instance.save()

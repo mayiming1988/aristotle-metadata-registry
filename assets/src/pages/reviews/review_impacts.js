@@ -9,6 +9,10 @@ import renderComponents from 'src/lib/renderComponents.js'
 init();
 initMessages();
 
+renderComponents({
+    'open-close-approved': openClose
+})
+
 let addButtons = document.querySelectorAll('.promote-button');
 
 for (let button of addButtons) {
@@ -16,7 +20,6 @@ for (let button of addButtons) {
     }
 
 function promote_to_items() {
-    // From the
     let tableElement = document.getElementById('item-table')
     let url = tableElement.getAttribute("data-promote-url")
 
@@ -30,7 +33,3 @@ function promote_to_items() {
             document.getElementById(this.id).disabled = true;
         });
 }
-
-renderComponents({
-    'open-close-approved': openClose
-})

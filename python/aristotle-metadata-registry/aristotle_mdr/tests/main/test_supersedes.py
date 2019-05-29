@@ -412,7 +412,6 @@ class SupersedePage(utils.AristotleTestUtils, TestCase):
         )
         self.assertRedirects(response, url_slugify_concept(self.item1))
 
-        # import pdb; pdb.set_trace()
         self.assertEqual(self.item1.superseded_items_relation_set.all().count(), 1)
 
         ss.refresh_from_db()

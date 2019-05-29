@@ -156,12 +156,12 @@ class GenericAlterForeignKey(GenericAlterManyToSomethingFormView):
 
         return FKOnlyForm
 
-    def save_instance(self, instance):
+    def save_form(self, form):
         """
-        Saves the instance returned by the form
+        Saves the formset returned by the view
         Can be overwritten to add/change extra data
         """
-        instance.save()
+        form.save()
 
     def post(self, request, *args, **kwargs):
         """
@@ -172,8 +172,7 @@ class GenericAlterForeignKey(GenericAlterManyToSomethingFormView):
         self.form = form(self.request.POST, self.request.FILES, instance=self.item)
         if self.form.is_valid():
             with transaction.atomic(), reversion.revisions.create_revision():
-                instance = self.form.save(commit=False)
-                self.save_instance(instance)
+                self.save_form(self.form)
 
                 reversion.revisions.set_user(request.user)
                 reversion.revisions.set_comment(
@@ -435,13 +434,12 @@ class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
             formset.ordering_field = self.ordering_field
         return formset
 
-    def save_instances(self, instances):
+    def save_formset(self, formset):
         """
         Saves the instances returned by the formset
         Can be overwritten to add/change extra data
         """
-        for instance in instances:
-            instance.save()
+        formset.save()
 
     def post(self, request, *args, **kwargs):
         """
@@ -456,8 +454,7 @@ class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
             with transaction.atomic(), reversion.revisions.create_revision():
                 self.item.save()
 
-                instances = self.formset.save(commit=False)
-                self.save_instances(instances)
+                self.save_formset(self.formset)
 
                 reversion.revisions.set_user(request.user)
                 reversion.revisions.set_comment(construct_change_message(request, None, [self.formset]))
