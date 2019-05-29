@@ -40,14 +40,18 @@
             <thead>
             <tr>
                 <th>
-                    Clusters
+                    <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="right" data-html="true"
+                       title="Reference" data-content="Optional field for referring to this item within the DSS">
+                        Reference
+                    </a>
                 </th>
-                <th>Statuses
-                </th>
+
+                <th>Clusters</th>
+                <th>Statuses</th>
                 <th>
                     <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left" data-html="true"
-                       title="Data Element Inclusion" data-content="The rules for inclusion for a data element within a data set.<br>May be optional, mandatory or conditional">
-                        Inclusion
+                       title="Cardinality" data-content="Specifies if a field is required, optional or conditional within a dataset based on this specification.">
+                        Cardinality
                     </a>
                 </th>
                 <th class="maxOccurs">
@@ -58,15 +62,18 @@
                 </th>
             </tr>
             </thead>
-            <tbody>
 
+            <tbody>
             {% for deinc in item.dssclusterinclusion_set.all %}
                 {% if deinc.child.id in viewable_ids %}
                     <tr>
-                        <td>{{ deinc.reference|default_if_none:" " }}
-                        </td>
+
+                        <td>{{ deinc.reference|default_if_none:""}}</td>
+
                         <td>
-                            <i class="fa fa-fw fa-folder-o"></i>{% include "aristotle_mdr/helpers/itemLink.html" with item=deinc.child skip_can_view=True %}
+                            <i class="fa fa-fw fa-folder-o"></i>
+                            {% include "aristotle_mdr/helpers/itemLink.html" with item=deinc.child skip_can_view=True %}
+
                             {% if deinc.specific_information %}
                                 <div>
                                     <strong>Specific Information:</strong>
@@ -80,6 +87,7 @@
                                 </div>
                             {% endif %}
                         </td>
+
                         <td>
                             <ul>
                                 {% for s in deinc.child.valid_statuses|distinct:"registrationAuthority_id" %}
@@ -98,8 +106,9 @@
                     </tr>
                     {% if deinc.child.data_elements %}
                         <tr>
+                            <td></td>
                             <td colspan="10">
-                                <div style="padding-left: 5em">
+                                <div style="padding-left: 3em">
                                     <button class="collapsible">
                                         Data Elements <i class="fa fa-caret-down"></i>
                                     </button>
@@ -151,6 +160,11 @@
                 <thead>
                 <tr>
                     <th>
+                        <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="right" data-html="true"
+                       title="Reference" data-content="Optional field for referring to this item within the DSS">
+                        Reference
+                    </a>
+
                     </th>
                     <th>
                         Data Element
@@ -168,8 +182,8 @@
                     </th>
                     <th>
                         <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left" data-html="true"
-                           title="Data Element Inclusion" data-content="The rules for inclusion for a data element within a data set.<br>May be optional, mandatory or conditional">
-                            Inclusion</a>
+                           title="Cardinality" data-content="The rules for inclusion for a data element within a data set.<br>May be optional, mandatory or conditional">
+                            Cardinality</a>
                     </th>
                     <th class="maxOccurs">
                         <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left"
@@ -239,7 +253,7 @@
                     <th>
                         Format
                     </th>
-                    <th>Inclusion</th>
+                    <th>Cardinality</th>
                     <th title="Maximum Occurrences">#</th>
                 </tr>
                 </tfoot>
