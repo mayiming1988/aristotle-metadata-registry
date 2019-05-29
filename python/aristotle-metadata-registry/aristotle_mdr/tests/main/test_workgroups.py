@@ -10,7 +10,7 @@ from aristotle_mdr.utils import setup_aristotle_test_environment
 
 setup_aristotle_test_environment()
 
-# This is for testing permissions around workgroup mangement.
+# This is for testing permissions around workgroup management.
 
 class WorkgroupMembership(TestCase):
 
