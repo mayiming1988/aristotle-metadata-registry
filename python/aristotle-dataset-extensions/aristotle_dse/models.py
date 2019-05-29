@@ -283,24 +283,24 @@ class DataSetSpecification(aristotle.models.concept):
             self.clusters.all(),
             aristotle.models.DataElement.objects.filter(
                 Q(dssInclusions__dss=self) |
-				Q(dssInclusions__dss__in=self.clusters.all()) 
+                Q(dssInclusions__dss__in=self.clusters.all())
             ).distinct(),
             # We need to make these distinct to avoid duplicates being returned
             aristotle.models.DataElementConcept.objects.filter(
                 Q(dataelement__dssInclusions__dss=self) |
-				Q(dataelement__dssInclusions__dss__in=self.clusters.all()) 
+                Q(dataelement__dssInclusions__dss__in=self.clusters.all())
             ).distinct(),
             aristotle.models.ObjectClass.objects.filter(
                 Q(dataelementconcept__dataelement__dssInclusions__dss=self) |
-				Q(dataelementconcept__dataelement__dssInclusions__dss__in=self.clusters.all()) 
+                Q(dataelementconcept__dataelement__dssInclusions__dss__in=self.clusters.all())
             ).distinct(),
             aristotle.models.Property.objects.filter(
                 Q(dataelementconcept__dataelement__dssInclusions__dss=self) |
-				Q(dataelementconcept__dataelement__dssInclusions__dss__in=self.clusters.all()) 
+                Q(dataelementconcept__dataelement__dssInclusions__dss__in=self.clusters.all())
             ).distinct(),
             aristotle.models.ValueDomain.objects.filter(
                 Q(dataelement__dssInclusions__dss=self) |
-				Q(dataelement__dssInclusions__dss__in=self.clusters.all()) 
+                Q(dataelement__dssInclusions__dss__in=self.clusters.all())
             ).distinct(),
         ]
 
