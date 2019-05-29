@@ -311,10 +311,12 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         ordering = ['order']
 
     inline_field_layout = 'list'
+
     reference = models.CharField(
         max_length=512,
-        null=True, blank=True,
-        help_text=_("Optional field for refering to this item within the DSS.")
+        blank=True,
+        help_text=_("Optional field for refering to this item within the DSS."),
+        default=''
     )
 
     dss = ConceptForeignKey(DataSetSpecification)
