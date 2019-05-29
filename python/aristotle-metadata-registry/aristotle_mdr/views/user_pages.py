@@ -9,7 +9,7 @@ from django.core.cache import cache
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db.models import Q
-from django.http import HttpResponseRedirect, Http404
+from django.http import HttpResponseRedirect
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
@@ -602,10 +602,13 @@ class GetShareMixin:
     """Code shared by all share link views"""
 
     def dispatch(self, request, *args, **kwargs):
+
         self.share = self.get_share()
         emails = json.loads(self.share.emails)
+
         if request.user.email not in emails:
-            raise Http404
+            # If the user is not in the list of allowed emails
+            raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
     def get_share(self):
