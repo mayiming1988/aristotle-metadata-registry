@@ -222,8 +222,7 @@ def user_can_add_ra_status(user, ra, item):
     if ss_items.exists():
         return True
 
-    if user.profile.is_registrar and item.is_public():
-        return True
+    return False
 
 
 def user_can_supersede(user, item):
