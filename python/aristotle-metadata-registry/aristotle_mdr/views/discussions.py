@@ -182,19 +182,21 @@ class NewComment(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, PostMix
 
 
 class DeletePost(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, ConfirmDeleteView):
-
-    confirm_template = "aristotle_mdr/generic/actions/confirm_delete.html"
+    """ A confirm delete view to delete a post and all associated comments """
     template_name = "aristotle_mdr/generic/actions/confirm_delete.html"
+    confirm_template = "aristotle_mdr/generic/actions/confirm_delete.html"
+
     form_delete_button_text = _("Delete")
     warning_text = _("You are about to delete a discussion post \
                      and all associated comments. Confirm below, or click cancel to return to the item.")
-
     form_title = "Delete Discussion Post"
     model_base = MDR.DiscussionPost
+
     permission_required = "aristotle_mdr.can_delete_discussion_post"
     raise_exception = True
     redirect_unauthenticated_users = True
 
+    reverse_url = 'aristotle:discussionsPost'
     # Override lookup pk
     item_kwarg = "pid"
 
