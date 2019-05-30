@@ -167,12 +167,20 @@ class GroupMemberListView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin
     role_permission = "edit_members"
     current_group_context = "members"
 
-    paginate_by = 20
+    paginate_by = 50
 
     def get_queryset(self):
+        # Get queryset of StewardOrganisationMemberships
         qs = super().get_queryset()
-        return qs.filter(group=self.get_group())
 
+        # Filter on StewardOrganisationMemberships that are part of the current Stewardship Organisation
+        qs = qs.filter(group=self.get_group())
+
+        # Populate users to avoid bulk lookup in template
+        qs = qs.select_related('user')
+
+        # Sort alphabetically by user
+        return qs.order_by('user__short_name')
 
 class GroupMemberRemoveView(LoginRequiredMixin, HasRolePermissionMixin, GroupMemberMixin, FormView):
     fallback_template_name = "groups/group/members/remove.html"

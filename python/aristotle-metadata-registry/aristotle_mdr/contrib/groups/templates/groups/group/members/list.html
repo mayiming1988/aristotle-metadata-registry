@@ -35,20 +35,19 @@
         </tr>
     </thead>
     <tbody>
-        {% regroup object_list.all by user as member_list %}
-        {% for member in member_list %}
-        {% with member_user=member.grouper %}
 
+        {% with members=object_list.all %}
+        {% for member in members %}
         <tr>
             <td>
-                {% if member_user == request.user %}
+                {% if member.user == request.user %}
                     <a href="{% url 'aristotle_mdr:userProfile' %}">
-                        {{ member_user.display_name }}
+                        {{ member.user.full_name }}
                         ({% trans "You" %})
                     </a>                
                 {% else %}
-                    <a title='{% trans "View profile" %}' href="{% url 'aristotle-user:view_another_user' member.grouper.pk %}">
-                        {{ member_user.display_name }}
+                    <a title='{% trans "View profile" %}' href="{% url 'aristotle-user:view_another_user' member.user.pk %}">
+                        {{ member.user.full_name }}
                     </a>
                 {% endif %}
 
@@ -56,25 +55,23 @@
             <td>
                 {% if group.allows_multiple_roles %}
                     <ul>
-                    {% for membership in member.list %}
-                        <li>{{membership.role}}</li>
+                    {% for role in member.role %}
+                        <li>{{ role }}</li>
                     {% endfor %}
                     </ul>
                 {% else %}
-                    {% for membership in member.list %}
-                        {{membership.role}}
-                    {% endfor %}
+                        {{ member.role|title }}
                 {% endif %}
             </td>
             <td>
-                <a href="{%url view.manager.namespace|add:":membership_update" group.slug member.grouper.pk %}">Change role</a>
+                <a href="{%url view.manager.namespace|add:":membership_update" group.slug member.user.pk %}">Change role</a>
             </td>
             <td>
-                <a href="{%url view.manager.namespace|add:":membership_remove" group.slug member.grouper.pk %}">Remove</a>
+                <a href="{%url view.manager.namespace|add:":membership_remove" group.slug member.user.pk %}">Remove</a>
             </td>
         </tr>
-        {% endwith %}
         {% endfor %}
+        {% endwith %}
     </tbody>
 </table>
 {% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}

@@ -34,7 +34,6 @@ class AbstractMembershipBase(ModelBase):
             clsobj.add_to_class(
                 "role",
                 models.CharField(
-                    # choices=clsobj.roles,
                     max_length=128,
                     help_text=_('Role within this group')
                 )
