@@ -1,3 +1,5 @@
+from typing import Optional
+from django.db.models import Model
 from django.apps import apps
 from django.conf import settings
 
@@ -32,7 +34,7 @@ def fire(signal_name, obj=None, namespace="aristotle_mdr.contrib.async_signals",
         import_string("%s.%s" % (namespace, signal_name))(message)
 
 
-def safe_object(message):
+def safe_object(message) -> Optional[Model]:
     __object__ = message['__object__']
     if __object__.get('object', None):
         instance = __object__['object']
