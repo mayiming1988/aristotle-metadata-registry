@@ -171,6 +171,8 @@ class GroupMemberListView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin
     role_permission = "edit_members"
     current_group_context = "members"
 
+    paginate_by = 20
+
     def get_queryset(self):
         qs = super().get_queryset()
         return qs.filter(group=self.get_group())

@@ -8,16 +8,15 @@
 
 
 {% block group_content %}
-
-<div>
-{% if group.allows_multiple_roles %}
-    {% trans "This group allows members to have multiple roles" %}
-{% else %}
-    {% trans "This group allows members to have a single role" %}
-{% endif %}
+<br>
+<div class="well well-sm">
+    {% if group.allows_multiple_roles %}
+        {{ group.name }} allows members to have multiple roles.
+    {% else %}
+        {{ group.name }} allows members to have a single role.
+    {% endif %}
+    <a class="btn btn-outline-info" href="{%url view.manager.namespace|add:":member_add" group.slug %}">Add a member</a>
 </div>
-<a href="{%url view.manager.namespace|add:":member_add" group.slug %}">Add member</a>
-
 <table class="table">
     <thead>
         <tr>
@@ -29,25 +28,27 @@
                     {% trans "Current Role" %}
                 {% endif %}
             </th>
-            <th>Change</th>
+            <th>Change Role</th>
+            <th>
+                Remove
+            </th>
         </tr>
     </thead>
     <tbody>
-
-    
         {% regroup object_list.all by user as member_list %}
         {% for member in member_list %}
         {% with member_user=member.grouper %}
+
         <tr>
             <td>
-                {% if member.grouper == request.user %}
+                {% if member_user == request.user %}
                     <a href="{% url 'aristotle_mdr:userProfile' %}">
-                        {{ member.grouper.display_name }}
+                        {{ member_user.display_name }}
                         ({% trans "You" %})
                     </a>                
                 {% else %}
                     <a title='{% trans "View profile" %}' href="{% url 'aristotle-user:view_another_user' member.grouper.pk %}">
-                        {{ member.grouper.display_name }}
+                        {{ member_user.display_name }}
                     </a>
                 {% endif %}
 
@@ -76,4 +77,5 @@
         {% endfor %}
     </tbody>
 </table>
+{% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
 {% endblock %}
