@@ -12,7 +12,9 @@
                 </div>
                 <div class="col-sm-9">
                     {% if cv.is_html %}
+                    <div class="indent-right-2">
                         {{ cv.content|bleach }}
+                    </div>
                     {% else %}
                         {{ cv.content }}
                     {% endif %}
