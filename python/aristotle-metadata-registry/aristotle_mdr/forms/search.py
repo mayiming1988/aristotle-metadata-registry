@@ -40,12 +40,14 @@ QUICK_DATES = Choices(
     ('X', 'custom', _('Custom period')),
 )
 
+
+# For dates and times, ascending means that earlier dates will precede later ones.
 SORT_OPTIONS = Choices(
     ('n', 'natural', _('Relevance')),
-    ('ma', 'modified_ascending', _('First Modified')),
-    ('md', 'modified_descending', _('Last Modified')),
-    ('ma', 'created_ascending', _('First Created')),
-    ('md', 'created_descending', _('Last Created')),
+    ('md', 'modified_descending', _('Most Recently Modified')),
+    ('ma', 'modified_ascending', _('Least Recently Modified')),
+    ('ca', 'created_ascending', _('First Created')),
+    ('cd', 'created_descending', _('Last Created')),
     ('aa', 'alphabetical', _('Alphabetical')),
     ('s', 'state', _('Registration state')),
 )
@@ -377,9 +379,6 @@ class PermissionSearchForm(TokenSearchForm):
         We need to make a new form as permissions to view objects are a bit finicky.
         This form allows us to perform the base query then restrict it to just those
         of interest.
-
-
-        TODO: This might not scale well, so it may need to be looked at in production.
     """
     # Use short names to reduce URL length
     mq=forms.ChoiceField(
@@ -414,6 +413,7 @@ class PermissionSearchForm(TokenSearchForm):
         label="Created before date",
         widget=BootstrapDateTimePicker(options=datePickerOptions)
     )
+
     ra = forms.MultipleChoiceField(
         required=False, label=_("Registration authority"),
         choices=[], widget=BootstrapDropdownSelectMultiple
@@ -786,17 +786,25 @@ class PermissionSearchForm(TokenSearchForm):
         return sqs
 
     def apply_sorting(self, sqs):  # pragma: no cover, no security issues, standard Haystack methods, so already tested.
+
         sort_order = self.cleaned_data['sort']
+
+        # Ordering is evaluated from left to right
         if sort_order == SORT_OPTIONS.modified_ascending:
-            sqs = sqs.order_by('-modified', 'name_sortable')
+            sqs = sqs.order_by('modified', 'name_sortable')
+
         elif sort_order == SORT_OPTIONS.modified_descending:
-            sqs = sqs.order_by('modified', '-name_sortable')
+            sqs = sqs.order_by('-modified', 'name_sortable')
+
         elif sort_order == SORT_OPTIONS.created_ascending:
-            sqs = sqs.order_by('-created', 'name_sortable')
+            sqs = sqs.order_by('created', 'name_sortable')
+
         elif sort_order == SORT_OPTIONS.created_descending:
-            sqs = sqs.order_by('created', '-name_sortable')
+            sqs = sqs.order_by('-created', 'name_sortable')
+
         elif sort_order == SORT_OPTIONS.alphabetical:
             sqs = sqs.order_by('name_sortable')
+
         elif sort_order == SORT_OPTIONS.state:
             sqs = sqs.order_by('-highest_state', 'name_sortable')
 

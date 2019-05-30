@@ -938,3 +938,4 @@ class TestSearchDescriptions(TestCase):
         self.assertTrue('Item type is Object Classes' in description)
         self.assertTrue('and' in description)
         self.assertTrue('Item visibility state is Public' in description)
+

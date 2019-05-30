@@ -169,8 +169,6 @@ class Downloader:
         return storage.url(final_fname)
 
     def email_file(self, f: File, size: int, url: str):
-        max_email_file_size = settings.MAX_EMAIL_FILE_SIZE
-
         template_name = 'aristotle_mdr/email/download.html'
         context: Dict[str, Union[str, bool]] = {
             'item_names': ', '.join([i.name for i in self.items]),

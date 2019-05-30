@@ -676,14 +676,14 @@ class FormsetTestUtils:
 
     def get_formset_postdata(self, datalist: List[Dict], prefix: str='form', initialforms: int=0):
         """
-        Get postdata for a formset
+        Get the POST data for a formset
 
         Arguments:
             datalist: List of form dictionaries to be posted
 
         Keyword Arguments:
             prefix: Formsets prefix
-            initialforms: number of forms initialy rendered
+            initialforms: number of forms initial rendered
         """
 
         postdata = {}

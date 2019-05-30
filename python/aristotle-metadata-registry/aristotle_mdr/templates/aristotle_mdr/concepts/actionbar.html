@@ -12,7 +12,7 @@
                 <i class="fa fa-fw fa-pencil-square-o"></i> {% trans 'Actions'%} <span class="caret"></span>
             </button>
             <ul class="dropdown-menu dropdown-menu-right" role="menu">
-                {% if item|can_edit:request.user %}
+                {% if can_edit %}
                     <li><a class="" href="{% url 'aristotle:edit_item' item.id %}"
                            data-toggle="modal" data-target="#infobox_adv_edit">
                         <i class="fa fa-fw fa-pencil-square-o"></i> {% trans 'Open item editor'%}
@@ -30,27 +30,26 @@
                         <i class="fa fa-fw fa-flag"></i> {% trans 'Submit for review'%}
                     </a></li>
 
-                {% if item.stewardship_organisation %}
-                    {% has_group_perm item.stewardship_organisation "publish_objects" as can_publish_objects %}
-                    <li><a class=" " href="{% url 'aristotle_publishing:edit_version_history_visibility' item.id %}"
+                {% if item.stewardship_organisation and can_publish %}
+                    <li><a href="{% url 'aristotle_publishing:edit_version_history_visibility' item.id %}"
                            data-toggle="modal" data-target="#infobox_adv_edit">
                         <i class="fa fa-fw fa-history"></i> {% trans 'History visibility'%}
                     </a>
                     </li>
-                    <li><a class=" " href="{% url 'aristotle_publishing:publish_item' item.meta.model_name item.id %}"
+                    <li><a href="{% url 'aristotle_publishing:publish_item' item.meta.model_name item.id %}"
                            data-toggle="modal" data-target="#infobox_adv_edit">
                         <i class="fa fa-fw fa-globe"></i> {% trans 'Publication details'%}
                     </a>
                     </li>
                 {% endif %}
 
-                {% if item|can_add_status:request.user %}
+                {% if can_add_status %}
                     <li><a class="" href="{% url 'aristotle:changeStatus' item.id %}" data-toggle="modal" data-target="#infobox_adv_edit">
                         <i class="fa fa-fw fa-university"></i> {% trans 'Add registration status'%}
                     </a></li>
                 {% endif %}
 
-                {% if item|can_supersede:request.user %}
+                {% if can_supersede %}
                     <li>
                       <a class="" href="{% url 'aristotle:supersede' item.id %}">
                         <i class="fa fa-fw fa-fast-forward"></i> {% trans 'Edit Supersedes'%}
@@ -58,7 +57,7 @@
                     </li>
                 {% endif %}
 
-                {% if item|can_edit:request.user %}
+                {% if can_edit %}
                     <li>
                       <a class="" href="{% url 'aristotle:proposed_supersede' item.id %}">
                         <i class="fa fa-fw fa-fast-forward"></i> {% trans 'Propose Supersedes'%}

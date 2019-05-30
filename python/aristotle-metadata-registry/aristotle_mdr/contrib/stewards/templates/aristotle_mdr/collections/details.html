@@ -18,9 +18,18 @@
     <header>Description</header>
     <div class="well">{{ item.description|bleach }}</div>
 
+    {% if type_counts %}
+    <header>Metadata in this collection:</header>
+    <div class="well well-sm">
+        <ul>
+        {% for type, count in type_counts.items %}
+            <li>{{ type|title}}{{count|pluralize:",s"}}: {{ count }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
 
     <table class="table">
-        <thead></thead>
         <tbody>
             {% for obj in sub_collections.all %}
             <tr>

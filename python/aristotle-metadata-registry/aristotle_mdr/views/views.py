@@ -22,6 +22,9 @@ import reversion
 
 from aristotle_mdr.perms import (
     user_can_view, user_can_edit,
+    user_can_add_status,
+    user_can_publish_object,
+    user_can_supersede,
     user_can_add_status
 )
 from aristotle_mdr import perms
@@ -257,17 +260,19 @@ class ConceptRenderView(TagsMixin, TemplateView):
         else:
             context['isFavourite'] = self.request.user.profile.is_favourite(self.item)
 
-        context['last_edit'] = Version.objects.get_for_object(self.item).first()
-        # Only display viewable slots
-        context['slots'] = Slot.objects.get_item_allowed(self.item, self.user)
-        context['item'] = self.item
-        context['statuses'] = self.item.current_statuses
-        context['discussions'] = self.item.relatedDiscussions.all()
-        context['activetab'] = 'item'
-        context['links'] = self.get_links()
-        context['custom_values'] = self.get_custom_values()
-        context['submitting_organizations'] = self.item.submitting_organizations
-        context['responsible_organizations'] = self.item.responsible_organizations
+        context.update({
+            'last_edit': Version.objects.get_for_object(self.item).first(),
+            # Only display viewable slots
+            'slots': Slot.objects.get_item_allowed(self.item, self.user),
+            'item': self.item,
+            'statuses': self.item.current_statuses,
+            'discussions': self.item.relatedDiscussions.all(),
+            'activetab': 'item',
+            'links': self.get_links(),
+            'custom_values': self.get_custom_values(),
+            'submitting_organizations': self.item.submitting_organizations,
+            'responsible_organizations': self.item.responsible_organizations,
+        })
 
         # Add a list of viewable concept ids for fast visibility checks in
         # templates
@@ -276,6 +281,14 @@ class ConceptRenderView(TagsMixin, TemplateView):
             lambda: list(MDR._concept.objects.visible(self.user).values_list('id', flat=True))
         )
         context['viewable_ids'] = lazy_viewable_ids
+
+        # Permissions (so they are looked up once)
+        context.update({
+            'can_edit': user_can_edit(self.user, self.item),
+            'can_publish': user_can_publish_object(self.user, self.item),
+            'can_supersede': user_can_supersede(self.user, self.item),
+            'can_add_status': user_can_add_status(self.user, self.item)
+        })
 
         return context
 
@@ -554,10 +567,16 @@ class ReviewChangesView(SessionWizardView):
         if not regDate:
             regDate = timezone.now().date()
 
+        cascading = (can_cascade and cascade)
+
         # Call celery task to register items
-        register_items.delay(
+        register_func = register_items
+        if (len(item_ids) > 1 or cascading):
+            register_func = register_items.delay
+
+        register_func(
             item_ids,
-            (can_cascade and cascade),
+            cascading,
             state,
             ras[0].id,
             self.request.user.id,

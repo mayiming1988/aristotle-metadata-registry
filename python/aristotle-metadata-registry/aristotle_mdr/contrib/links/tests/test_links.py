@@ -389,8 +389,50 @@ class TestLinkPages(LinkTestBase, TestCase):
             self.item3._concept_ptr
         )
 
-    def test_add_link_root_item_set(self):
+    def test_add_roles_to_relation(self):
+        """ Test whether adding roles to a relation via the formset is working successfully"""
 
+        self.empty_relation = models.Relation.objects.create(
+            name='Blank Relation',
+            definition='Super blank',
+            submitter=self.editor,
+            workgroup=self.wg1
+        )
+
+        self.login_editor()
+
+        # Generate the POST data
+        postdata = self.get_formset_postdata(
+            [{
+                'name': "A role",
+                'definition': "Something that must be performed",
+                'multiplicity': 1,
+                'relation': self.empty_relation.pk,
+                'ORDER': 0  # Order refers to the ordinality in the db
+            }],
+            prefix='relationrole_set',
+            initialforms=0
+        )
+
+        # POST the data to the view
+        response = self.reverse_post(
+            'aristotle_mdr_links:relation_roles_edit',
+            postdata,
+            reverse_args=[self.empty_relation.id],
+        )
+
+        # Assert that the form was redirected
+        self.assertEqual(response.status_code, 302)
+
+        # Check that relational role was created
+        roles = self.empty_relation.relationrole_set.all().order_by('ordinal')
+
+        self.assertEqual(roles[0].name, "A role")
+        self.assertEqual(roles[0].definition, "Something that must be performed")
+        self.assertEqual(roles[0].multiplicity, 1)
+
+
+    def test_add_link_root_item_set(self):
         self.login_editor()
         response = self.reverse_get(
             'aristotle_mdr_links:add_link',
