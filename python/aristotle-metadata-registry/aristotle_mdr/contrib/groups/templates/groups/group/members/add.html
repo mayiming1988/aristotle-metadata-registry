@@ -8,13 +8,16 @@
 </h1>
 <div class="container-fluid">
     <div class="row">
-        <div class="col-xs-6">
-<form action="{% url view.manager.namespace|add:":member_add" group.slug %}" method="POST">
-    {% csrf_token %}
-    <table>
-     {% bootstrap_form form %}
-    </table>
+        <div class="col-md-6">
+            <form action="{% url view.manager.namespace|add:":member_add" group.slug %}" method="POST">
+                {% bootstrap_form_errors form %}
+                {% csrf_token %}
 
+                {% bootstrap_label "User" %}
+                <br>
+                {{ form.user }}
+
+                {% bootstrap_field form.role %}
     <a class="btn btn-default" href="{%url view.manager.namespace|add:":detail" group.slug %}">Cancel</a>
     <button class="btn btn-primary" type="submit">Submit</button>
 </form>

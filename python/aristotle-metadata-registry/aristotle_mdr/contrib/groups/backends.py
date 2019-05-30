@@ -1,15 +1,23 @@
+import logging
+import os
 from typing import Optional, List
+
+import attr
 from braces.views import (
     LoginRequiredMixin, PermissionRequiredMixin, SuperuserRequiredMixin
 )
-
-import os
-
+from django import forms
+from django.conf import settings
 from django.conf.urls import url, include
+from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.urls import reverse
+from django.core.mail import EmailMessage
+from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
+from django.template import loader
+from django.urls import reverse
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (
     FormView,
     ListView,
@@ -18,23 +26,10 @@ from django.views.generic import (
     CreateView,
     RedirectView,
 )
-from django.template import loader
-from django.contrib import messages
-
 from organizations.backends.defaults import InvitationBackend
-
-import attr
-
-from django.conf import settings
-from django.core.mail import EmailMessage
-from django.utils.translation import ugettext_lazy as _
-from django import forms
-from django.http import Http404
-
 from .base import AbstractGroup
 from .utils import GroupRegistrationTokenGenerator
-
-import logging
+from aristotle_mdr.contrib.autocomplete.widgets import UserAutocompleteSelect
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
@@ -102,6 +97,7 @@ class GroupMixin(GroupBase):
             slug = self.slug_url_kwarg
         else:
             slug = self.group_slug_url_kwarg
+
         return get_object_or_404(
             self.get_group_queryset(), slug=self.kwargs[slug]
         )
@@ -280,13 +276,17 @@ class GroupMemberAddView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin,
                 fields = ["user", "role"]
                 model = self.manager.membership_class
 
+                widgets = {'user': UserAutocompleteSelect}
+
             def __init__(self, manager, group, *args, **kwargs):
                 super().__init__(*args, **kwargs)
                 self.manager = manager
                 self.group = group
 
+                # Populate the user selection with users not in the registry
                 self.fields['user'].queryset = get_user_model().objects.all().exclude(
                     pk__in=self.group.member_list.all())
+
 
         return MembershipCreateForm
 
@@ -545,7 +545,6 @@ class GroupURLManager(InvitationBackend):
             try:
                 user = User.objects.get(email=email)
                 # TODO: We still want to send the user a notification email, add this functionality later
-
             except User.DoesNotExist:
                 # TODO break out user creation process
                 user = User.objects.create(
@@ -563,7 +562,7 @@ class GroupURLManager(InvitationBackend):
         """
         Returns an email message for a new user.
 
-        This can be easily overriden.
+        This can be easily overridden.
         For instance, to send an HTML message, use the EmailMultiAlternatives message_class
         and attach the additional component.
         """
@@ -615,7 +614,7 @@ class GroupURLManager(InvitationBackend):
         kwargs.update({'token': token})
         kwargs.update({'sender': sender})
         kwargs.update({'user_id': user.pk})
-        # Send the email
+
         self.email_message(user, self.invitation_subject, self.invitation_body, group=group, **kwargs).send()
         return True
 
