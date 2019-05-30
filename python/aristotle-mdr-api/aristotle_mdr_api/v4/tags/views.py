@@ -3,6 +3,7 @@ from rest_framework.schemas import ManualSchema, AutoSchema
 from coreapi import Field
 from aristotle_mdr_api.v4.permissions import AuthCanViewEdit
 from aristotle_mdr_api.v4.tags import serializers
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 from django.http import Http404
 from drf_yasg.utils import swagger_auto_schema
@@ -30,7 +31,7 @@ class ItemTagUpdateView(generics.UpdateAPIView):
     def dispatch(self, request, *args, **kwargs):
         item_id = self.kwargs[self.pk_url_kwarg]
         self.item = get_object_or_404(_concept, pk=item_id)
-        return super().dispatch(request, *args, *kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     @swagger_auto_schema(auto_schema=None)
     def patch(self, request, *args, **kwargs):
@@ -38,7 +39,7 @@ class ItemTagUpdateView(generics.UpdateAPIView):
 
     def get_object(self):
         if not user_can_view(self.request.user, self.item):
-            self.permission_denied(request, "You do not have permission to view this item")
+            raise PermissionDenied
 
         return Favourite.objects.filter(
             tag__profile=self.request.user.profile,
