@@ -288,7 +288,7 @@ class GroupMemberAddView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin,
 
                 error_messages = {
                     'user': {
-                        'invalid': 'User is already a member of the Stewardship Organisation'
+                        'invalid_choice': 'User is already a member of this Stewardship Organisation'
                     }
                 }
 
