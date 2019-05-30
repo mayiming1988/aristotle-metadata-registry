@@ -182,6 +182,7 @@ class GroupMemberListView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin
         # Sort alphabetically by user
         return qs.order_by('user__short_name')
 
+
 class GroupMemberRemoveView(LoginRequiredMixin, HasRolePermissionMixin, GroupMemberMixin, FormView):
     fallback_template_name = "groups/group/members/remove.html"
     role_permission = "edit_members"
@@ -303,6 +304,7 @@ class GroupMemberAddView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin,
 
 
         return MembershipCreateForm
+
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
