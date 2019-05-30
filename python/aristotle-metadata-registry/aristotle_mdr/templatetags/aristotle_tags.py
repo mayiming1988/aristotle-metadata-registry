@@ -346,7 +346,7 @@ def zws(string):
         <h1>{% zws item.name %}</h1>
 
     """
-    return string.replace("—", "&shy;—")
+    return mark_safe(string.replace("—", "&shy;—"))
 
 
 @register.simple_tag

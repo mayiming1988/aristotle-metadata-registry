@@ -5,6 +5,8 @@
 {% endblock %}
 
 {% block relationships %}
+    {% comment %}
+    {# TODO: this loads too slow on big sets #}
     {% if item.valuedomain_set.all %}
         <h3>Value Domains using this Data Type</h3>
         <ul>
@@ -15,4 +17,5 @@
         {% endfor %}
         </ul>
     {% endif %}
+    {% endcomment %}
 {% endblock %}
