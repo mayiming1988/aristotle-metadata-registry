@@ -28,7 +28,7 @@
                             {% endif %}
                         </a>
                         <div>
-                            {{ ra.definition | striptags | truncatewords:50 | bleach }}
+                            {{ ra.short_definition | safe }}
                         </div>
                     </li>
                 {% endfor %}
