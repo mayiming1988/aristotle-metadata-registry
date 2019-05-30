@@ -286,12 +286,18 @@ class GroupMemberAddView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin,
 
                 widgets = {'user': UserAutocompleteSelect}
 
+                error_messages = {
+                    'user': {
+                        'invalid': 'User is already a member of the Stewardship Organisation'
+                    }
+                }
+
             def __init__(self, manager, group, *args, **kwargs):
                 super().__init__(*args, **kwargs)
                 self.manager = manager
                 self.group = group
 
-                # Populate the user selection with users not in the registry
+                # The autocomplete select ignores this but it's still used for form validation
                 self.fields['user'].queryset = get_user_model().objects.all().exclude(
                     pk__in=self.group.member_list.all())
 
