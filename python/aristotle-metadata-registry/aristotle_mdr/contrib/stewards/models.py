@@ -52,6 +52,9 @@ class Collection(TimeStampedModel):
             args=[self.stewardship_organisation.slug, self.pk]
         )
 
+    def __str__(self):
+        return self.name
+
 
 # class CollectionEntry(models.Model):
 #     order = models.PositiveSmallIntegerField("Order")
