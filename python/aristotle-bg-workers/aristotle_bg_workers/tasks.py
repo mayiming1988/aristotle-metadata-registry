@@ -62,8 +62,12 @@ def fire_async_signal(namespace, signal_name, message={}):
 @shared_task(name='update_search_index')
 def update_search_index(action, sender, instance, **kwargs):
     from django.apps import apps
+    # Fetch sender model
     sender = apps.get_model(sender['app_label'], sender['model_name'])
-    instance = apps.get_model(instance['app_label'], instance['model_name']).objects.filter(pk=instance['pk']).first()
+    # Fetch instance (this will raise an exeption and fail the task if not found)
+    instance = apps.get_model(instance['app_label'], instance['model_name']).objects.get(pk=instance['pk'])
+
+    # Pass to haystack signal processor
     processor = apps.get_app_config('haystack').signal_processor
     if action == "save":
         logger.debug("UPDATING INDEX FOR {}".format(instance))
