@@ -12,7 +12,6 @@ from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.contenttypes.models import ContentType
-from django.template.defaultfilters import safe
 
 from model_utils import Choices, FieldTracker
 from model_utils.models import TimeStampedModel
