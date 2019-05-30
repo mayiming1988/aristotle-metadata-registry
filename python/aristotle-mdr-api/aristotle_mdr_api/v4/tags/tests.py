@@ -5,7 +5,7 @@ from aristotle_mdr import perms
 from aristotle_mdr import models as mdr_models
 from aristotle_mdr_api.v4.tests import BaseAPITestCase
 from aristotle_mdr.contrib.favourites.tests import BaseFavouritesTestCase
-from aristotle_mdr.contrib.favourites.models import Tag
+from aristotle_mdr.contrib.favourites.models import Tag, Favourite
 
 
 class TagsEndpointsTestCase(BaseAPITestCase, BaseFavouritesTestCase):
