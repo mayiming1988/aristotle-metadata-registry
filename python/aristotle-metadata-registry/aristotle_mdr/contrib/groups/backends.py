@@ -302,9 +302,7 @@ class GroupMemberAddView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin,
                 self.fields['user'].queryset = get_user_model().objects.all().exclude(
                     pk__in=self.group.member_list.all())
 
-
         return MembershipCreateForm
-
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
