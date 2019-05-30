@@ -23,7 +23,7 @@
                         <a href="{% url 'aristotle:item' iid=i.id %}">{{ i.name }}</a>
                     </dt>
                     <dd>
-                        {{ i.definition|striptags|truncatewords:20 }}
+                        {{ i.short_definition }}
                     </dd>
                 {% endfor %}
             </dl>

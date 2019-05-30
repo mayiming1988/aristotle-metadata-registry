@@ -19,7 +19,7 @@
         {% endif %}
 
         <div class="definition">
-            {{ item.definition|striptags|truncatewords:20 }}
+            {{ item.short_definition }}
         </div>
     {% endif %}
 {% else %}

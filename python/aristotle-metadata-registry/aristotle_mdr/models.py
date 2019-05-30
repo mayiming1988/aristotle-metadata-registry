@@ -862,6 +862,11 @@ class _concept(baseAristotleObject):
 
     @property
     def short_definition(self):
+        """
+        Provides a truncated (20 characters long) description of the item.
+        Html tags are stripped.
+        :return: 20 character long string.
+        """
         stripped = strip_tags(self.definition)
         return truncate_words(stripped, 20)
 
