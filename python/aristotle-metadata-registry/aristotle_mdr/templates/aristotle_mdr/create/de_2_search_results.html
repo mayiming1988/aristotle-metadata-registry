@@ -33,18 +33,17 @@
                 <p>
                     The following object classes were found with a name like <em>"{{ oc_name }}"</em>
                     {% if oc_definition %} and definition like <em>"{{ oc_definition }}"</em> {% endif %}
-                    elligible for reuse.
+                    eligible for reuse.
                 </p>
 
                 {{ form.oc_options.label_tag }}
                 <ol class="searchResults">
                 {% for id, obj in form.oc_options.field.choices|slice:":-1" %}
                     <li>
-                        <label>
                             <input type="radio" name="component_results-oc_options" value="{{id}}"></input>
                             {% include "aristotle_mdr/create/wizard_search_result_item.html" with object=obj.object %}
-                        </label>
                     </li>
+                    <hr>
                 {% endfor %}
                 </ol>
             </div>
@@ -89,11 +88,10 @@
                 <ol class="searchResults">
                 {% for id, obj in form.pr_options.field.choices|slice:":-1" %}
                     <li>
-                        <label>
                             <input type="radio" name="component_results-pr_options" value="{{id}}"></input>
                             {% include "aristotle_mdr/create/wizard_search_result_item.html" with object=obj.object %}
-                        </label>
                     </li>
+                    <hr>
                 {% endfor %}
                 </ol>
             </div>
@@ -138,11 +136,10 @@
                 <ol class="searchResults">
                 {% for id, obj in form.vd_options.field.choices|slice:":-1" %}
                     <li>
-                        <label>
                             <input type="radio" name="component_results-vd_options" value="{{id}}"></input>
                             {% include "aristotle_mdr/create/wizard_search_result_item.html" with object=obj.object %}
-                        </label>
                     </li>
+                    <hr>
                 {% endfor %}
                 </ol>
             </div>
