@@ -5,6 +5,7 @@ from aristotle_mdr_api.v4.permissions import AuthCanViewEdit
 from aristotle_mdr_api.v4.tags import serializers
 from django.shortcuts import get_object_or_404
 from django.http import Http404
+from drf_yasg.utils import swagger_auto_schema
 
 from aristotle_mdr.contrib.favourites.models import Tag, Favourite
 from aristotle_mdr.models import _concept
@@ -25,28 +26,13 @@ class ItemTagUpdateView(generics.UpdateAPIView):
     permission_key='metadata'
     serializer_class=serializers.ItemTagSerializer
     pk_url_kwarg='iid'
-    schema = ManualSchema(
-        fields=[
-            Field(
-                'iid',
-                required=True,
-                location='path',
-                description='Item id to update tags on'
-            ),
-            Field(
-                'tags',
-                required=True,
-                location='body',
-                description='A list of tag instances with optional id'
-            ),
-        ]
-    )
 
     def dispatch(self, request, *args, **kwargs):
         item_id = self.kwargs[self.pk_url_kwarg]
         self.item = get_object_or_404(_concept, pk=item_id)
         return super().dispatch(request, *args, *kwargs)
 
+    @swagger_auto_schema(auto_schema=None)
     def patch(self, request, *args, **kwargs):
         return self.http_method_not_allowed(request, *args, **kwargs)
 
