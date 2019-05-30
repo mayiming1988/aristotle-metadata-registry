@@ -18,7 +18,6 @@ from django.views.generic import DeleteView, TemplateView, FormView, UpdateView
 from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
 
 
-
 class All(LoginRequiredMixin, TemplateView):
     # Show all discussions for all of a users workgroups
     template_name = "aristotle_mdr/discussions/all.html"
