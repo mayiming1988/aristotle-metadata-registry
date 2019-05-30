@@ -18,6 +18,7 @@ from django.views.generic import DeleteView, TemplateView, FormView, UpdateView
 from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
 
 
+
 class All(LoginRequiredMixin, TemplateView):
     # Show all discussions for all of a users workgroups
     template_name = "aristotle_mdr/discussions/all.html"
@@ -181,9 +182,8 @@ class NewComment(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, PostMix
         return HttpResponseRedirect(reverse("aristotle:discussionsPost", args=[post.pk]))
 
 
-class DeletePost(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, ConfirmDeleteView):
+class DeletePost(LoginRequiredMixin, ConfirmDeleteView):
     """ A confirm delete view to delete a post and all associated comments """
-    template_name = "aristotle_mdr/generic/actions/confirm_delete.html"
     confirm_template = "aristotle_mdr/generic/actions/confirm_delete.html"
 
     form_delete_button_text = _("Delete")
@@ -192,7 +192,8 @@ class DeletePost(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, Confirm
     form_title = "Delete Discussion Post"
     model_base = MDR.DiscussionPost
 
-    permission_required = "aristotle_mdr.can_delete_discussion_post"
+    permission_checks = [perms.can_delete_discussion_post]
+
     raise_exception = True
     redirect_unauthenticated_users = True
 
@@ -202,7 +203,6 @@ class DeletePost(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, Confirm
 
     def perform_deletion(self):
         post = self.item
-        workgroup = post.workgroup
 
         post.comments.all().delete()
         post.delete()
