@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db.models.signals import m2m_changed, post_save, pre_delete
+from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
 # from reversion.signals import post_revision_commit
 import haystack.signals as signals  # .RealtimeSignalProcessor as RealtimeSignalProcessor
@@ -112,41 +113,40 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
             message.pop('pk_set', None)
 
             from aristotle_bg_workers.celery import app
-            app.send_task(
-                'update_search_index',
-                args=[
-                    'save',
-                    {   # sender
-                        'app_label': sender._meta.app_label,
-                        'model_name': sender._meta.model_name,
-                    },
-                    {   # instance
-                        'pk': instance.pk,
-                        'app_label': instance._meta.app_label,
-                        'model_name': instance._meta.model_name,
-                    },
-                ],
-                kwargs=message
-            )
+
+            task_args = [
+                'save',
+                {   # sender
+                    'app_label': sender._meta.app_label,
+                    'model_name': sender._meta.model_name,
+                },
+                {   # instance
+                    'pk': instance.pk,
+                    'app_label': instance._meta.app_label,
+                    'model_name': instance._meta.model_name,
+                },
+            ]
+
+            # Start task on commit
+            transaction.on_commit(lambda: app.send_task('update_search_index', args=task_args, kwargs=message))
 
     def async_handle_delete(self, sender, instance, **kwargs):
         if not settings.ARISTOTLE_ASYNC_SIGNALS:
             super().handle_delete(sender, instance, **kwargs)
         else:
             from aristotle_bg_workers.celery import app
-            app.send_task(
-                'update_search_index',
-                args=[
-                    'delete',
-                    {   # sender
-                        'app_label': sender._meta.app_label,
-                        'model_name': sender._meta.model_name,
-                    },
-                    {   # instance
-                        'pk': instance.pk,
-                        'app_label': instance._meta.app_label,
-                        'model_name': instance._meta.model_name,
-                    },
-                ],
-                kwargs=kwargs
-            )
+            task_args = [
+                'delete',
+                {   # sender
+                    'app_label': sender._meta.app_label,
+                    'model_name': sender._meta.model_name,
+                },
+                {   # instance
+                    'pk': instance.pk,
+                    'app_label': instance._meta.app_label,
+                    'model_name': instance._meta.model_name,
+                },
+            ]
+
+            # Start task on commit
+            transaction.on_commit(lambda: app.send_task('update_search_index', args=task_args, kwargs=message))
