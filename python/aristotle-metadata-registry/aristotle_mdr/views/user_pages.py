@@ -41,6 +41,8 @@ import json
 import random
 import ast
 
+import copy
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -217,10 +219,13 @@ class Roles(LoginRequiredMixin, TemplateView):
 
 @login_required
 def recent(request):
+    """ Display the list of the user's recent actions """
     from reversion.models import Revision
     from aristotle_mdr.views.utils import paginated_reversion_list
+
     items = Revision.objects.filter(user=request.user).order_by('-date_created')
     context = {}
+
     return paginated_reversion_list(request, items, "aristotle_mdr/user/recent.html", context)
 
 
@@ -374,7 +379,7 @@ class EditView(LoginRequiredMixin, UpdateView):
     form_class = MDRForms.EditUserForm
 
     def get_object(self, querySet=None):
-        return self.request.user
+        return copy.deepcopy(self.request.user)
 
     def get_success_url(self):
         return reverse('aristotle:userProfile')
@@ -401,6 +406,7 @@ class EditView(LoginRequiredMixin, UpdateView):
         picture = form.cleaned_data['profile_picture']
         picture_update = True
 
+        # Determine whether picture has been updated or changed
         if picture:
             if 'profile_picture' in form.changed_data:
                 profile.profilePicture = picture
@@ -425,6 +431,7 @@ class EditView(LoginRequiredMixin, UpdateView):
 
             if valid:
                 profile.save()
+
             else:
                 form.add_error('profile_picture', 'Image could not be saved. {}'.format(invalid_message))
                 return self.form_invalid(form)
