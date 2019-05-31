@@ -38,6 +38,7 @@ export function addRow(formid, row_selector, urlfunc) {
     // Convert to jquery object
     panelList = $(panelList)
 
+
     let formstage = $('.formstage#' + formid + ' ' + row_selector)
 
     // Clone the formstage

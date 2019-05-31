@@ -18,13 +18,14 @@
             <header><em>These supersedes relations are being proposed as part of this request</em></header>
             <hr>
 
-                <table class="form table table-striped">
+            <form method="post">
                     {% csrf_token %}
                     {{ formset.management_form }}
                     {{ formset.non_form_errors }}
+                <table class="form table table-striped">
                     <thead>
                     <tr>
-                        {% for form in formset.forms %}
+                        {% for form in formset %}
                             {% if forloop.first %}
                                 {% for field in form.visible_fields %}
                                     <th>
@@ -32,8 +33,8 @@
                                     </th>
                                 {% endfor %}
                         </tr>
-                        </thead>
                         {% endif %}
+                        </thead>
                         <tbody id="supersedes_form">
                         <tr>
                                 {% for field in form.hidden_fields %}
