@@ -19,7 +19,7 @@
         {% endif %}
 
         <div class="definition">
-            {{ item.short_definition }}
+            {{ item.short_definition | safe }}
         </div>
     {% endif %}
 {% else %}

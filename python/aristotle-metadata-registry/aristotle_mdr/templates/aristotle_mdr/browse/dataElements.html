@@ -23,7 +23,7 @@
                         <a href="{% url 'aristotle:item' iid=i.id %}">{{ i.name }}</a>
                     </dt>
                     <dd>
-                        {{ i.short_definition }}
+                        {{ i.short_definition | safe }}
                     </dd>
                 {% endfor %}
             </dl>
