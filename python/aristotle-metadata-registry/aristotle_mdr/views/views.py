@@ -14,7 +14,6 @@ from django.utils.module_loading import import_string
 from django.utils.functional import SimpleLazyObject
 from django.utils import timezone
 from formtools.wizard.views import SessionWizardView
-from aristotle_mdr.forms import EditStatusForm
 
 import json
 
@@ -29,7 +28,7 @@ from aristotle_mdr.perms import (
 )
 from aristotle_mdr import perms
 from aristotle_mdr.utils import url_slugify_concept
-
+from aristotle_mdr.forms import EditStatusForm
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils import (
@@ -47,8 +46,8 @@ from aristotle_mdr.views.utils import (
 from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
-
 from aristotle_bg_workers.tasks import register_items
+from aristotle_bg_workers.utils import run_task_on_commit
 
 from reversion.models import Version
 
@@ -569,12 +568,8 @@ class ReviewChangesView(SessionWizardView):
 
         cascading = (can_cascade and cascade)
 
-        # Call celery task to register items
-        register_func = register_items
-        if (len(item_ids) > 1 or cascading):
-            register_func = register_items.delay
-
-        register_func(
+        # Register items (using celery if required)
+        register_args = [
             item_ids,
             cascading,
             state,
@@ -582,7 +577,14 @@ class ReviewChangesView(SessionWizardView):
             self.request.user.id,
             changeDetails,
             (regDate.year, regDate.month, regDate.day)
-        )
+        ]
+
+        use_celery: bool = (len(item_ids) > 1 or cascading)
+
+        if use_celery:
+            run_task_on_commit(register_items, args=args)
+        else:
+            register_items(*args)
 
 
 class ChangeStatusView(ReviewChangesView):
