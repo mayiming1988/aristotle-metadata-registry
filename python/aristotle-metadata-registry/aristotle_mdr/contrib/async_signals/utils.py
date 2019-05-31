@@ -1,4 +1,4 @@
-from typing import Optional, Mapping
+from typing import Optional, Dict
 from django.db.models import Model
 from django.apps import apps
 from django.conf import settings
@@ -44,7 +44,7 @@ def safe_object(message) -> Optional[Model]:
     return model.objects.filter(pk=objdata['pk']).first()
 
 
-def clean_signal(kwargs: Mapping):
+def clean_signal(kwargs: Dict):
     """Clean signal kwargs before serialization"""
     # Remove these keys from mapping
     keys_to_remove = ('signal', 'model', 'pk_set')
