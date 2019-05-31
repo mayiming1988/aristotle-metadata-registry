@@ -582,9 +582,9 @@ class ReviewChangesView(SessionWizardView):
         use_celery: bool = (len(item_ids) > 1 or cascading)
 
         if use_celery:
-            run_task_on_commit(register_items, args=args)
+            run_task_on_commit(register_items, args=register_args)
         else:
-            register_items(*args)
+            register_items(*register_args)
 
 
 class ChangeStatusView(ReviewChangesView):
