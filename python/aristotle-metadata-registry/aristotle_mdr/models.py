@@ -1596,7 +1596,7 @@ class PossumProfile(models.Model):
         height_field='profilePictureHeight',
         width_field='profilePictureWidth',
         max_upload_size=((1024 ** 2) * 10),  # 10 MB
-        content_types=['image/jpg', 'image/png', 'image/bmp', 'image/jpeg'],
+        content_types=['image/jpg', 'image/png', 'image/bmp', 'image/jpeg', 'image/x-ms-bmp'],
         js_checker=True
     )
     notificationPermissions = JSONField(
