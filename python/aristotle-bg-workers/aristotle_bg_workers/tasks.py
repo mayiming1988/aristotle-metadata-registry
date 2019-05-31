@@ -1,12 +1,12 @@
-from typing import Optional, List, Tuple
-import datetime
-from io import StringIO
-
-from django.core.management import call_command
-from django.contrib.auth import get_user_model
-
 from celery import shared_task, Task
 from celery.utils.log import get_task_logger
+from io import StringIO
+from typing import Optional, List, Tuple
+import datetime
+
+from django.contrib.auth import get_user_model
+from django.core.management import call_command
+from django.utils.module_loading import import_string
 
 from aristotle_mdr.utils.download import get_download_class
 from aristotle_mdr.models import _concept, RegistrationAuthority
@@ -55,7 +55,7 @@ def loadhelp_task(self, *args, **kwargs):
 
 @shared_task(name='fire_async_signal')
 def fire_async_signal(namespace, signal_name, message={}):
-    from django.utils.module_loading import import_string
+    """Runs the given function with the message as argument"""
     import_string("%s.%s" % (namespace, signal_name))(message)
 
 

@@ -3,45 +3,45 @@ from django.db.models import Model
 from django.apps import apps
 from django.conf import settings
 
+from aristotle_bg_workers.tasks import fire_async_signal
+from aristotle_bg_workers.utils import run_task_on_commit
 import logging
 logger = logging.getLogger(__name__)
 
 
 def fire(signal_name, obj=None, namespace="aristotle_mdr.contrib.async_signals", **kwargs):
+    """Starts celery task to run given signal code"""
     from django.utils.module_loading import import_string
     message = kwargs
     if getattr(settings, 'ARISTOTLE_ASYNC_SIGNALS', False):
         # pragma: no cover -- We've dropped channels, and are awaiting (pun) on celery stuff
+
+        # Add object data to message
         message.update({
             '__object__': {
                 'pk': obj.pk,
                 'app_label': obj._meta.app_label,
                 'model_name': obj._meta.model_name,
             },
-            # "__signal__": signal_name,
         })
-        from aristotle_bg_workers.celery import app
+        # Clean message of unwanted (and unserializable) content
         message = clean_signal(message)
-        app.send_task(
-            'fire_async_signal',
-            args=[namespace, signal_name],
-            kwargs={"message": message}
-        )
-
-        # Channel("aristotle_mdr.contrib.channels.%s" % signal_name).send(message)
+        # Run the task after database commit
+        run_task_on_commit(fire_async_signal, args=[namespace, signal_name], kwargs={'message': message})
     else:
         message.update({'__object__': {'object': obj}})
         import_string("%s.%s" % (namespace, signal_name))(message)
 
 
 def safe_object(message) -> Optional[Model]:
-    __object__ = message['__object__']
-    if __object__.get('object', None):
-        instance = __object__['object']
-    else:
-        model = apps.get_model(__object__['app_label'], __object__['model_name'])
-        instance = model.objects.filter(pk=__object__['pk']).first()
-    return instance
+    """Fetch an object from its __object__ data"""
+    objdata = message['__object__']
+    # If we have the actual object use that
+    if 'object' in objdata:
+        return objdata['object']
+    # Fetch object by app_label model_name and pk
+    model = apps.get_model(objdata['app_label'], objdata['model_name'])
+    return model.objects.filter(pk=objdata['pk']).first()
 
 
 def clean_signal(kwargs: Mapping):
