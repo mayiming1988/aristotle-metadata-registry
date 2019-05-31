@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Mapping
 from django.db.models import Model
 from django.apps import apps
 from django.conf import settings
@@ -44,8 +44,16 @@ def safe_object(message) -> Optional[Model]:
     return instance
 
 
-def clean_signal(message):
-    message.pop('signal', None)
-    if message.get('changed_fields', False):
-        message['changed_fields'] = list(message['changed_fields'])
-    return message
+def clean_signal(kwargs: Mapping):
+    """Clean signal kwargs before serialization"""
+    # Remove these keys from mapping
+    keys_to_remove = ('signal', 'model', 'pk_set')
+    for key in keys_to_remove:
+        if key in kwargs:
+            del kwargs[key]
+
+    # Switch changed_fields to a list
+    if 'changed_fields' in kwargs:
+        kwargs['changed_fields'] = list(kwargs['changed_fields'])
+
+    return kwargs

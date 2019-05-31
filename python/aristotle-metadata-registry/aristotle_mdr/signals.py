@@ -1,28 +1,29 @@
 from django.conf import settings
-from django.db.models.signals import m2m_changed, post_save, pre_delete
-from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
-# from reversion.signals import post_revision_commit
-import haystack.signals as signals  # .RealtimeSignalProcessor as RealtimeSignalProcessor
+from django.db import transaction
+from django.db.models.signals import m2m_changed, post_save, pre_delete
+from haystack import signals as haystack_signals
+
+from aristotle_mdr.contrib.async_signals.utils import clean_signal
+from aristotle_bg_workers.tasks import update_search_index
+from aristotle_bg_workers.utils import run_task_on_commit
 from aristotle_mdr.utils import fetch_metadata_apps
+
 # Don't import aristotle_mdr.models directly, only pull in whats required,
 #  otherwise Haystack gets into a circular dependancy.
-
-# class AristotleSignalProcessor(signals.BaseSignalProcessor):
-# Replace below with this when doing a dataload (shuts off Haystack)
-#    pass
 
 import logging
 logger = logging.getLogger(__name__)
 
 
-# @receiver(pre_save)
+# This is imported by other modules
 def pre_save_clean(sender, instance, *args, **kwargs):
     instance.full_clean()
 
 
-class AristotleSignalProcessor(signals.BaseSignalProcessor):
+class AristotleSignalProcessor(haystack_signals.BaseSignalProcessor):
     def setup(self):
+        """Connect django signals to this classes methods"""
         from aristotle_mdr.models import _concept, concept_visibility_updated
         from aristotle_mdr.contrib.reviews.models import ReviewRequest
         from aristotle_mdr.contrib.help.models import HelpPage, ConceptHelp
@@ -105,14 +106,7 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
         if not settings.ARISTOTLE_ASYNC_SIGNALS:
             super().handle_save(sender, instance, **kwargs)   # Call haystack handle save
         else:
-            from aristotle_mdr.contrib.async_signals.utils import clean_signal
             message = clean_signal(kwargs)
-            # TODO: Find out why the model k-argument is showing up now.
-            message.pop('model', None)
-            # TODO: I JUST FOUND ANOTHER ERROR: THE TYPE OF THE PK ATTRIBUTE IS A SET TYPE AND IT IS NOT SERIALIZABLE.
-            message.pop('pk_set', None)
-
-            from aristotle_bg_workers.celery import app
 
             task_args = [
                 'save',
@@ -128,13 +122,14 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
             ]
 
             # Start task on commit
-            transaction.on_commit(lambda: app.send_task('update_search_index', args=task_args, kwargs=message))
+            run_task_on_commit(update_search_index, args=task_args, kwargs=message)
 
     def async_handle_delete(self, sender, instance, **kwargs):
         if not settings.ARISTOTLE_ASYNC_SIGNALS:
             super().handle_delete(sender, instance, **kwargs)
         else:
-            from aristotle_bg_workers.celery import app
+            message = clean_signal(kwargs)
+
             task_args = [
                 'delete',
                 {   # sender
@@ -149,4 +144,4 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
             ]
 
             # Start task on commit
-            transaction.on_commit(lambda: app.send_task('update_search_index', args=task_args, kwargs=message))
+            run_task_on_commit(update_search_index, args=task_args, kwargs=message)
