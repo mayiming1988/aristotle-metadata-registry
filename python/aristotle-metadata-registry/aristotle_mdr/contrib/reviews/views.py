@@ -39,6 +39,7 @@ from aristotle_mdr.views.utils import (
 )
 
 from aristotle_bg_workers.tasks import register_items
+from aristotle_bg_workers.utils import run_task_on_commit
 
 from . import models, forms
 
@@ -267,15 +268,18 @@ class ReviewAcceptView(ReviewStatusChangeBase):
             regDate = timezone.now().date()
 
         # Set all old items to the Superseded status
-        register_items.delay(
-            old_items,
-            False,
-            MDR.STATES.superseded,
-            review.registration_authority_id,
-            self.request.user.id,
-            "",
-            (regDate.year, regDate.month, regDate.day),
-            False
+        run_task_on_commit(
+            register_items,
+            args=[
+                old_items,
+                False,
+                MDR.STATES.superseded,
+                review.registration_authority_id,
+                self.request.user.id,
+                "",
+                (regDate.year, regDate.month, regDate.day),
+                False
+            ]
         )
 
         # approve all proposed supersedes
