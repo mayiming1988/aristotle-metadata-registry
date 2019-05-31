@@ -3,8 +3,8 @@ from django.db.models import Model
 from django.apps import apps
 from django.conf import settings
 
-from aristotle_bg_workers.tasks import fire_async_signal
-from aristotle_bg_workers.utils import run_task_on_commit
+from aristotle_bg_workers.utils import run_task_by_name_on_commit
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ def fire(signal_name, obj=None, namespace="aristotle_mdr.contrib.async_signals",
         # Clean message of unwanted (and unserializable) content
         message = clean_signal(message)
         # Run the task after database commit
-        run_task_on_commit(fire_async_signal, args=[namespace, signal_name], kwargs={'message': message})
+        run_task_by_name_on_commit('fire_async_signal', args=[namespace, signal_name], kwargs={'message': message})
     else:
         message.update({'__object__': {'object': obj}})
         import_string("%s.%s" % (namespace, signal_name))(message)
