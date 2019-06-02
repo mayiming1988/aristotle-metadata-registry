@@ -10,7 +10,9 @@
             </div>
             <div class="dt">
                 {% if cv.is_html %}
+                    <div class="indent-right-2">
                     {{ cv.content|bleach }}
+                    </div>
                 {% else %}
                     {{ cv.content }}
                 {% endif %}

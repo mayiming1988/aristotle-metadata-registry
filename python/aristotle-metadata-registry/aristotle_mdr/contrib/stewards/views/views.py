@@ -19,6 +19,7 @@ class ListStewardOrg(PermissionRequiredMixin, LoginRequiredMixin, GroupBase, Sor
     raise_exception = True
     model = StewardOrganisation
     redirect_unauthenticated_users = True
+
     paginate_by = 20
 
     def get_initial_queryset(self):

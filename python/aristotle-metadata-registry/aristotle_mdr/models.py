@@ -348,12 +348,6 @@ class RegistrationAuthority(Organization):
         'manager': _("Manager")
     }
 
-    def get_absolute_url(self):
-        return url_slugify_registration_authoritity(self)
-
-    def can_view(self, user):
-        return True
-
     @property
     def unlocked_states(self):
         return range(STATES.notprogressed, self.locked_state)
@@ -365,6 +359,36 @@ class RegistrationAuthority(Organization):
     @property
     def public_states(self):
         return range(self.public_state, STATES.retired + 1)
+
+    @property
+    def members(self):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+
+        reg_pks = list(self.registrars.all().values_list("pk", flat=True))
+        man_pks = list(self.managers.all().values_list("pk", flat=True))
+
+        pks = set(reg_pks + man_pks)
+        return User.objects.filter(pk__in=pks)
+
+    @property
+    def is_active(self):
+        return self.active == RA_ACTIVE_CHOICES.active
+
+    @property
+    def is_visible(self):
+        return not self.active == RA_ACTIVE_CHOICES.hidden
+
+    @property
+    def short_definition(self):
+        stripped = strip_tags(self.definition)
+        return truncate_words(stripped, 50)
+
+    def get_absolute_url(self):
+        return url_slugify_registration_authoritity(self)
+
+    def can_view(self, user):
+        return True
 
     def statusDescriptions(self):
         descriptions = [
@@ -488,25 +512,6 @@ class RegistrationAuthority(Organization):
     def removeUser(self, user):
         self.registrars.remove(user)
         self.managers.remove(user)
-
-    @property
-    def members(self):
-        from django.contrib.auth import get_user_model
-        User = get_user_model()
-
-        reg_pks = list(self.registrars.all().values_list("pk", flat=True))
-        man_pks = list(self.managers.all().values_list("pk", flat=True))
-
-        pks = set(reg_pks + man_pks)
-        return User.objects.filter(pk__in=pks)
-
-    @property
-    def is_active(self):
-        return self.active == RA_ACTIVE_CHOICES.active
-
-    @property
-    def is_visible(self):
-        return not self.active == RA_ACTIVE_CHOICES.hidden
 
 
 @receiver(post_save, sender=RegistrationAuthority)
@@ -783,12 +788,6 @@ class _concept(baseAristotleObject):
         # changed.pop('_is_locked', False)
         return self.tracker.changed()
 
-    def can_edit(self, user):
-        return _concept.objects.filter(pk=self.pk).editable(user).exists()
-
-    def can_view(self, user):
-        return _concept.objects.filter(pk=self.pk).visible(user).exists()
-
     @property
     def cached_item(self) -> Optional[models.Model]:
         """
@@ -863,6 +862,11 @@ class _concept(baseAristotleObject):
 
     @property
     def short_definition(self):
+        """
+        Provides a truncated (20 characters long) description of the item.
+        Html tags are stripped.
+        :return: 20 character long string.
+        """
         stripped = strip_tags(self.definition)
         return truncate_words(stripped, 20)
 
@@ -954,6 +958,12 @@ class _concept(baseAristotleObject):
     def approved_superseded_by(self):
         supersedes = self.superseded_by_items_relation_set.filter(proposed=False).select_related('newer_item')
         return [ss.newer_item for ss in supersedes]
+
+    def can_edit(self, user):
+        return _concept.objects.filter(pk=self.pk).editable(user).exists()
+
+    def can_view(self, user):
+        return _concept.objects.filter(pk=self.pk).visible(user).exists()
 
     def check_is_public(self, when=timezone.now()):
         """
@@ -1596,7 +1606,7 @@ class PossumProfile(models.Model):
         height_field='profilePictureHeight',
         width_field='profilePictureWidth',
         max_upload_size=((1024 ** 2) * 10),  # 10 MB
-        content_types=['image/jpg', 'image/png', 'image/bmp', 'image/jpeg'],
+        content_types=['image/jpg', 'image/png', 'image/bmp', 'image/jpeg', 'image/x-ms-bmp'],
         js_checker=True
     )
     notificationPermissions = JSONField(
