@@ -41,6 +41,8 @@ export function addRow(formid, row_selector, urlfunc) {
 
     let formstage = $('.formstage#' + formid + ' ' + row_selector)
 
+    console.log(formstage)
+
     // Clone the formstage
     let new_form = formstage.clone();
 

@@ -19,41 +19,55 @@
             <hr>
 
             <form method="post">
-                    {% csrf_token %}
-                    {{ formset.management_form }}
-                    {{ formset.non_form_errors }}
-                <table class="form table table-striped">
+                {% csrf_token %}
+                {{ formset.management_form }}
+                {{ formset.non_form_errors }}
+                <table id="{{ formset.prefix }}" class="form table table-striped">
                     <thead>
                     <tr>
                         {% for form in formset %}
-                            {% if forloop.first %}
-                                {% for field in form.visible_fields %}
-                                    <th>
-                                        {{ field.label_tag }}
-                                    </th>
-                                {% endfor %}
-                        </tr>
-                        {% endif %}
-                        </thead>
-                        <tbody id="supersedes_form">
-                        <tr>
-                                {% for field in form.hidden_fields %}
-                                    {{ field }}
-                                {% endfor %}
-
-                                {% for field in form.visible_fields %}
-                                <td>
-                                    {{ field.errors }}
-                                    {{ field }}
-                                </td>
-                                {% endfor %}
-                        </tr>
+                        {% if forloop.first %}
+                        {% for field in form.visible_fields %}
+                        <th>
+                            {{ field.label_tag }}
+                        </th>
                         {% endfor %}
+                    </tr>
+                    {% endif %}
+                    </thead>
+                    <tbody id="supersedes">
+
+                    <tr class="form-inline">
+                        {% for field in form.visible_fields %}
+                        <td>
+                            {{ field.errors }}
+                            {{ field }}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+
                     </tbody>
                 </table>
-                <a class="add_code_button btn btn-success" formid="supersedes_form" href="#">Add</a>
+                <a class="add_code_button btn btn-success" formid="supersedes" href="#">Add</a>
                 <button type="submit" class="btn btn-primary">Submit</button>
             </form>
+
+            <table id="{{ formset.prefix }}" formid="supersedes" class="formstage" style="display:none">
+                {% with formset.empty_form as form %}
+                    {% for field in form.hidden_fields %}
+                        {{ field }}
+                    {% endfor %}
+                    <td>
+                    {% for field in form.visible_fields %}
+                        {{ field }}
+                    {% endfor %}
+                    </td>
+                </>
+                </table>
+
+            </div>
+            {% endwith %}
         </div>
     </div>
 </div>

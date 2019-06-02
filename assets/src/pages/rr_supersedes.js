@@ -1,6 +1,6 @@
 import { initCore } from 'src/lib/init.js'
 import { initDAL } from 'src/lib/dal_simple_init.js'
-import initFormset from 'src/lib/formset.js'
+import {addRow} from "../lib/formset";
 
 function get_url(element) {
     let id = element.attr('id')
@@ -19,4 +19,7 @@ function get_url(element) {
 
 initCore()
 initDAL(get_url)
-initFormset(get_url)
+
+$('a.add_code_button').click(function() {
+        addRow($(this).attr('formid'), 'tr', get_url);
+    });
