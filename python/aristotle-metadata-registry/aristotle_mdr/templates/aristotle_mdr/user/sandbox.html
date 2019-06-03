@@ -26,8 +26,7 @@
             <span id="share_link_1">{{ host }}{% url 'aristotle_mdr:sharedSandbox' share.uuid %}</span>
             <button type="button" class="btn btn-default btn-sm copybutton" data-clipboard-target="#share_link_1">Copy</button>
             <br>
-            You are sharing your Sandbox with {{ number_of_accounts_user_is_sharing_with }} user
-            {{ number_of_accounts_user_is_sharing_with|pluralize }}, to control who can see
+            You are sharing your Sandbox with {{ number_of_accounts_user_is_sharing_with }} user{{ number_of_accounts_user_is_sharing_with|pluralize }}, to control who can see
             your Sandbox click 'Manage Share Link'
         </div>
     {% endif %}

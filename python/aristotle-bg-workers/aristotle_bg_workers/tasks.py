@@ -70,10 +70,9 @@ def update_search_index(action, sender, instance, **kwargs):
     # Pass to haystack signal processor
     processor = apps.get_app_config('haystack').signal_processor
     if action == "save":
-        logger.debug("Updating index for {}".format(instance))
+        logger.debug("UPDATING INDEX FOR {}".format(instance))
         processor.handle_save(sender, instance, **kwargs)
     elif action == "delete":
-        logger.debug("Updating index for {}".format(instance))
         processor.handle_delete(sender, instance, **kwargs)
 
 
