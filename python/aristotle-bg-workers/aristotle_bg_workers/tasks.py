@@ -1,12 +1,12 @@
-from typing import Optional, List, Tuple
-import datetime
-from io import StringIO
-
-from django.core.management import call_command
-from django.contrib.auth import get_user_model
-
 from celery import shared_task, Task
 from celery.utils.log import get_task_logger
+from io import StringIO
+from typing import Optional, List, Tuple
+import datetime
+
+from django.contrib.auth import get_user_model
+from django.core.management import call_command
+from django.utils.module_loading import import_string
 
 from aristotle_mdr.utils.download import get_download_class
 from aristotle_mdr.models import _concept, RegistrationAuthority
@@ -55,15 +55,19 @@ def loadhelp_task(self, *args, **kwargs):
 
 @shared_task(name='fire_async_signal')
 def fire_async_signal(namespace, signal_name, message={}):
-    from django.utils.module_loading import import_string
+    """Runs the given function with the message as argument"""
     import_string("%s.%s" % (namespace, signal_name))(message)
 
 
 @shared_task(name='update_search_index')
 def update_search_index(action, sender, instance, **kwargs):
     from django.apps import apps
+    # Fetch sender model
     sender = apps.get_model(sender['app_label'], sender['model_name'])
-    instance = apps.get_model(instance['app_label'], instance['model_name']).objects.filter(pk=instance['pk']).first()
+    # Fetch instance (this will raise an exeption and fail the task if not found)
+    instance = apps.get_model(instance['app_label'], instance['model_name']).objects.get(pk=instance['pk'])
+
+    # Pass to haystack signal processor
     processor = apps.get_app_config('haystack').signal_processor
     if action == "save":
         logger.debug("UPDATING INDEX FOR {}".format(instance))
