@@ -39,6 +39,7 @@ from aristotle_mdr.views.utils import (
 )
 
 from aristotle_bg_workers.tasks import register_items
+from aristotle_bg_workers.utils import run_task_on_commit
 
 from . import models, forms
 
@@ -267,7 +268,7 @@ class ReviewAcceptView(ReviewStatusChangeBase):
             regDate = timezone.now().date()
 
         # Set all old items to the Superseded status
-        register_items.delay(
+        register_args=[
             old_items,
             False,
             MDR.STATES.superseded,
@@ -276,7 +277,16 @@ class ReviewAcceptView(ReviewStatusChangeBase):
             "",
             (regDate.year, regDate.month, regDate.day),
             False
-        )
+        ]
+
+        # Run as celery task unless always sync
+        if settings.ALWAYS_SYNC_REGISTER:
+            register_items(*register_args)
+        else:
+            run_task_on_commit(
+                register_items,
+                args=register_args
+            )
 
         # approve all proposed supersedes
         sups.update(proposed=False)
