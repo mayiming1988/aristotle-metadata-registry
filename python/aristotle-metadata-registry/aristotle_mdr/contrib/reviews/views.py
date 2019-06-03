@@ -443,12 +443,11 @@ class ReviewSupersedesEditView(ReviewActionMixin, FormsetView):
     perm_function = 'user_can_edit_review'
 
     def get_formset_class(self):
-        # return formset_factory(forms.ReviewRequestSupersedesForm, extra=0, can_delete=True)
         return modelformset_factory(
             MDR.SupersedeRelationship,
             form=forms.ReviewRequestSupersedesForm,
             formset=forms.ReviewRequestSupersedesFormset,
-            extra=0,
+            extra=1,
             can_delete=True,
         )
 

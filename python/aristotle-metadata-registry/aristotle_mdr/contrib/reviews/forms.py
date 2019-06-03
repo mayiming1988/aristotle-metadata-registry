@@ -190,7 +190,6 @@ class ReviewRequestSupersedesForm(forms.ModelForm):
 
 
 class ReviewRequestSupersedesFormset(forms.BaseModelFormSet):
-
     def clean(self):
         super().clean()
         # Map older items to newer items
