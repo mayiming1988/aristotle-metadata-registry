@@ -580,6 +580,8 @@ class ReviewChangesView(SessionWizardView):
         ]
 
         use_celery: bool = (len(item_ids) > 1 or cascading)
+        if settings.ALWAYS_SYNC_REGISTER:
+            use_celery = False
 
         if use_celery:
             run_task_on_commit(register_items, args=register_args)

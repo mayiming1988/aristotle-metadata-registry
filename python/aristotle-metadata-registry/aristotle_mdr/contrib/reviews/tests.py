@@ -489,6 +489,7 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         ss.refresh_from_db()
         self.assertFalse(ss.proposed)
 
+    @override_settings(ALWAYS_SYNC_REGISTER=True)
     def test_supersedes_status_applied(self):
         older = MDR.ObjectClass.objects.create(name='Old', definition='Very old')
         ss = self.create_ss_relation(older, self.item)
