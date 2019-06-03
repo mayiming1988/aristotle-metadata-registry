@@ -576,10 +576,9 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         can_edit = response.context['can_edit_review']
         self.assertEqual(can_edit, True)
 
-    @skip("In progress")
     def test_superseded_date_in_info_box_for_supersede_via_review(self):
-        """ Confirm that when a supersedes is created via review, the date at which the supersedes
-        was applied appears in the concept infobox"""
+        """ Confirm that when a supersedes is created via review, the date at which the supersedes was applied
+        appears in the concept infobox """
 
         # Add second item to review
         second_item = self.create_editor_item(name='Person', definition="A human being")
@@ -594,10 +593,10 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
             {'older_item': older_item.id,
              'newer_item': self.item.id,
              'message': 'Supersede this!',
-             'effective_date': datetime.date(2019, 1, 1)
+             'date_effective': datetime.date(2019, 1, 1)
              },
         ]
-        response = self.post_formset(data=data, extraforms=0)
+        response = self.post_formset(data, 0)
 
         # Check that the pages redirects
         self.assertEqual(response.status_code, 302)
@@ -616,6 +615,9 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
             ['review_accept', 'review_changes']
         )
         self.assertEqual(response.status_code, 302)
+
+        # Caching ...
+        self.review.refresh_from_db()
         # Check that the review was approved, and changed to an 'Approved' state
         self.assertEqual(self.review.status, REVIEW_STATES.approved)
 
@@ -625,8 +627,13 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
             reverse_args=[self.item.id, 'objectclass', 'my-object'],  # Slug for self.item
             status_code=200
         )
-        supersedes_relation = response.context['rel'].date_effective
-        self.assertEqual(supersedes_relation, datetime.date(2019, 1, 1))
+
+        # Check the item to see if date_effective is set
+        older_item = response.context['item']
+
+        supersedes_relation = older_item.superseded_items_relation_set.first()
+
+        self.assertEqual(supersedes_relation.date_effective, datetime.date(2019, 1, 1))
 
     def test_superseded_date_in_info_box_for_proposed_supersed(self):
         pass
