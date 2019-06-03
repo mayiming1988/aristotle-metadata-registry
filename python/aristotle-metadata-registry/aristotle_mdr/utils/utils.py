@@ -377,6 +377,7 @@ def get_aristotle_url(label, obj_id, obj_name=None):
 
 
 def strip_tags(text: str) -> str:
+    """This filter removes all the tags from a string."""
     return bleach.clean(text, tags=[], strip=True)
 
 

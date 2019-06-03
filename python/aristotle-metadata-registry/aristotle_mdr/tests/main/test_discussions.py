@@ -207,7 +207,7 @@ class WorkgroupMembersCanMakePostsAndComments(utils.LoggedInViewPages,TestCase):
     def can_the_current_logged_in_user_delete_post(self):
         post = models.DiscussionPost.objects.create(author=self.viewer,workgroup=self.wg1,title="test",body="test")
 
-        response = self.client.get(reverse('aristotle:discussionsDeletePost',args=[post.id]))
+        response = self.client.post(reverse('aristotle:discussionsDeletePost',args=[post.id]))
         self.assertRedirects(response,reverse('aristotle:discussionsWorkgroup',args=[self.wg1.id]))
         self.assertEqual(models.DiscussionPost.objects.filter(id=post.id).count(),0)
 
@@ -434,7 +434,6 @@ class WorkgroupMembersCanMakePostsAndComments(utils.LoggedInViewPages,TestCase):
 
     @tag('notify_comment')
     def test_user_is_notified_of_comment_and_is_linked_to_post(self):
-
         # Create post as editor
         post = models.DiscussionPost.objects.create(
             workgroup=self.wg1,
@@ -464,11 +463,6 @@ class WorkgroupMembersCanMakePostsAndComments(utils.LoggedInViewPages,TestCase):
             'aristotle:notify_redirect',
             args=[noti.actor_content_type.id, noti.actor_object_id]
         )
-
-        # THIS IS NOT APPLICABLE ANYMORE BECAUSE WE HAVE CHANGED THE NOTIFICATION SYSTEM:
-        # response = self.client.get(notify_redirect_url)
-        # self.assertEqual(response.status_code, 302)
-        # self.assertEqual(response.url, post_page_url)
 
 
 class ViewDiscussionPostPage(utils.LoggedInViewPages, TestCase):
