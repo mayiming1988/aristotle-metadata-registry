@@ -346,7 +346,8 @@ def zws(string):
         <h1>{% zws item.name %}</h1>
 
     """
-    return mark_safe(string.replace("—", "&shy;—"))
+    from util_tags import bleach_filter
+    return bleach_filter(string.replace("—", "&shy;—"))
 
 
 @register.simple_tag
