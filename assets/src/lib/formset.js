@@ -20,6 +20,8 @@ export function replacePrefix(element, num_forms) {
 
 // Adds a row to a formset given a form element and row css selector
 // urlfunc is optional (used for dal init)
+
+// Property is
 export function addRow(formid, row_selector, urlfunc) {
     // Get panel list
     let panelList = document.getElementById(formid)
@@ -39,9 +41,8 @@ export function addRow(formid, row_selector, urlfunc) {
     panelList = $(panelList)
 
 
+    // Important note: formid is the actual **id** of the formstage
     let formstage = $('.formstage#' + formid + ' ' + row_selector)
-
-    console.log(formstage)
 
     // Clone the formstage
     let new_form = formstage.clone();
@@ -70,6 +71,7 @@ export function addRow(formid, row_selector, urlfunc) {
     });
 
     // rename the form entries
+
     let total_forms_identifier = 'input[name=' + formid + '-TOTAL_FORMS]'
     $(total_forms_identifier).val(num_forms+1);
 

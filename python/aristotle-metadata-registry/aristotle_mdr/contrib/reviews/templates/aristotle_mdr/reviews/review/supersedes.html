@@ -22,7 +22,7 @@
                 {% csrf_token %}
                 {{ formset.management_form }}
                 {{ formset.non_form_errors }}
-                <table id="{{ formset.prefix }}" class="form table table-striped">
+                <table id="{{ formset.prefix }}" class="form formset table table-striped">
                     <thead>
                     <tr>
                         {% for form in formset %}
@@ -37,7 +37,7 @@
                     </thead>
                     <tbody id="supersedes">
 
-                    <tr class="form-inline">
+                    <tr>
                         {% for field in form.visible_fields %}
                         <td>
                             {{ field.errors }}
@@ -49,21 +49,22 @@
 
                     </tbody>
                 </table>
-                <a class="add_code_button btn btn-success" formid="supersedes" href="#">Add</a>
+                <a class="add_code_button btn btn-success" formid="{{ formset.prefix }}" href="#">Add</a>
                 <button type="submit" class="btn btn-primary">Submit</button>
             </form>
 
             <table id="{{ formset.prefix }}" formid="supersedes" class="formstage" style="display:none">
+                <tr>
                 {% with formset.empty_form as form %}
                     {% for field in form.hidden_fields %}
                         {{ field }}
                     {% endfor %}
-                    <td>
                     {% for field in form.visible_fields %}
+                    <td>
                         {{ field }}
-                    {% endfor %}
                     </td>
-                </>
+                    {% endfor %}
+                </tr>
                 </table>
 
             </div>
