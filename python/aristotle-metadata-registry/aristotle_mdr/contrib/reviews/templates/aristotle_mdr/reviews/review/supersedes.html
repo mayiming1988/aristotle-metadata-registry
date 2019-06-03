@@ -27,6 +27,7 @@
                     <tr>
                         {% for form in formset %}
                         {% if forloop.first %}
+
                         {% for field in form.visible_fields %}
                         <th>
                             {{ field.label_tag }}
@@ -36,8 +37,11 @@
                     {% endif %}
                     </thead>
                     <tbody id="supersedes">
-
                     <tr>
+                        {% for hidden in form.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
+
                         {% for field in form.visible_fields %}
                         <td>
                             {{ field.errors }}
@@ -56,8 +60,8 @@
             <table id="{{ formset.prefix }}" formid="supersedes" class="formstage" style="display:none">
                 <tr>
                 {% with formset.empty_form as form %}
-                    {% for field in form.hidden_fields %}
-                        {{ field }}
+                    {% for hidden in form.hidden_fields %}
+                        {{ hidden }}
                     {% endfor %}
                     {% for field in form.visible_fields %}
                     <td>
