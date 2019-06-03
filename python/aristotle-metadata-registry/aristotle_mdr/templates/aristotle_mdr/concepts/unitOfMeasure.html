@@ -27,6 +27,8 @@
     {% endif %}
 
 
+    {% comment %}
+    {# TODO: this loads too slow on big sets #}
     {% if item.valuedomain_set.all %}
         <h3>Value Domains using this measure</h3>
         <ul>
@@ -37,5 +39,6 @@
         {% endfor %}
         </ul>
     {% endif %}
+    {% endcomment %}
 {% endblock %}
 
