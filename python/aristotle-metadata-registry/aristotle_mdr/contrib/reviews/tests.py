@@ -1,18 +1,19 @@
-from django.urls import reverse
-from django.test import TestCase, tag
-from django.core.cache import cache
+import datetime
 from unittest import skip
 from urllib.parse import urlencode
+
+from django.contrib.auth import get_user_model
+from django.core.cache import cache
+from django.test import TestCase, tag
+from django.urls import reverse
+
 import aristotle_mdr.models as MDR
-from aristotle_mdr.contrib.reviews.forms import RequestReviewCreateForm
-from aristotle_mdr.contrib.reviews.models import ReviewRequest
 import aristotle_mdr.tests.utils as utils
 from aristotle_mdr import perms
 from aristotle_mdr.contrib.reviews import models
 from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
-from django.contrib.auth import get_user_model
-
-import datetime
+from aristotle_mdr.contrib.reviews.forms import RequestReviewCreateForm
+from aristotle_mdr.contrib.reviews.models import ReviewRequest
 
 User = get_user_model()
 
@@ -281,7 +282,7 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
-    def test_formest_queryset_existing_rel(self):
+    def test_formset_queryset_existing_rel(self):
         # Add second item to review
         item2 = self.create_editor_item('My 2nd Object', 'mine')
         self.review.concepts.add(item2)
@@ -321,7 +322,7 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         )
 
     def test_rr_supersedes_create(self):
-        """Test the creation of a review re"""
+        """Test the creation of a review request """
         # Add second item to review
         item2 = self.create_editor_item('My 2nd Object', 'mine')
         self.review.concepts.add(item2)
@@ -358,6 +359,7 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         ]
         response = self.post_formset(data, 2)
         self.assertEqual(response.status_code, 302)
+
         # Check objects updated
         self.review.refresh_from_db()
         supersedes = self.review.proposed_supersedes
@@ -464,7 +466,6 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         self.assertFalse(response2.context['formset'][0].is_valid())
 
     def test_accept_review_supersedes_approved(self):
-        """ Test that accepting the review supersedes the approval """
         older = MDR.ObjectClass.objects.create(name='2nd', definition='Second')
         ss = self.create_ss_relation(older, self.item)
         self.assertEqual(self.review.proposed_supersedes.count(), 1)
@@ -484,7 +485,7 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 302)
 
         self.review.refresh_from_db()
-        # Check that the review was approved, and change to an 'Approved' state
+        # Check that the review was approved, and changed to an 'Approved' state
         self.assertEqual(self.review.status, REVIEW_STATES.approved)
         ss.refresh_from_db()
         self.assertFalse(ss.proposed)
@@ -574,6 +575,61 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 200)
         can_edit = response.context['can_edit_review']
         self.assertEqual(can_edit, True)
+
+    @skip("In progress")
+    def test_superseded_date_in_info_box_for_supersede_via_review(self):
+        """ Confirm that when a supersedes is created via review, the date at which the supersedes
+        was applied appears in the concept infobox"""
+
+        # Add second item to review
+        second_item = self.create_editor_item(name='Person', definition="A human being")
+
+        self.review.concepts.add(second_item)
+
+        # Create items to be used in supersedes tab, all are Object Classes
+        older_item = self.create_editor_item('Old Person', 'A person that is very old')
+
+        # Post data
+        data = [
+            {'older_item': older_item.id,
+             'newer_item': self.item.id,
+             'message': 'Supersede this!',
+             'effective_date': datetime.date(2019, 1, 1)
+             },
+        ]
+        response = self.post_formset(data=data, extraforms=0)
+
+        # Check that the pages redirects
+        self.assertEqual(response.status_code, 302)
+
+        # Accept the review
+        wizard_data = [
+            {'status_message': 'This review is approved', 'close_review': '1'},
+            {'selected_list': [str(self.item.id)]}
+        ]
+
+        self.login_registrar()
+        response = self.post_to_wizard(
+            wizard_data,
+            reverse('aristotle_mdr_review_requests:accept_review', args=[self.review.id]),
+            'review_accept_view',
+            ['review_accept', 'review_changes']
+        )
+        self.assertEqual(response.status_code, 302)
+        # Check that the review was approved, and changed to an 'Approved' state
+        self.assertEqual(self.review.status, REVIEW_STATES.approved)
+
+        # Go to older item page and check whether superseded date appears
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.item.id, 'objectclass', 'my-object'],  # Slug for self.item
+            status_code=200
+        )
+        supersedes_relation = response.context['rel'].date_effective
+        self.assertEqual(supersedes_relation, datetime.date(2019, 1, 1))
+
+    def test_superseded_date_in_info_box_for_proposed_supersed(self):
+        pass
 
 
 @skip('Needs to be updated for new reviews system')
@@ -1073,9 +1129,11 @@ class OldReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 200)
 
     def registrar_can_accept_review(self, review_changes=False):
+
         self.login_registrar()
         other_ra = MDR.RegistrationAuthority.objects.create(name="A different ra")
 
+        # Create a review
         review = self.make_review_request_iterable([self.item1], request_kwargs=dict(
             requester=self.editor,
             registration_authority=other_ra,
@@ -1141,7 +1199,7 @@ class OldReviewRequestActionsPage(utils.AristotleTestUtils, TestCase):
 
         if review_changes:
             self.assertEqual(response.status_code, 200)
-            self.assertEqual(response.context['wizard']['steps'].step1, 2)  # check we are now on second setep
+            self.assertEqual(response.context['wizard']['steps'].step1, 2)  # check we are now on second step
             selected_for_change = [self.item1.id]
             selected_for_change_strings = [str(a) for a in selected_for_change]
 

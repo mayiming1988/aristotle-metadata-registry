@@ -182,7 +182,7 @@ class ReviewRequestSupersedesForm(forms.ModelForm):
     class Meta:
         fields = ('newer_item', 'older_item', 'message', 'date_effective')
         widgets = {
-            'older_item': ConceptAutocompleteSelect(attrs={"class" : "form-control"}),
+            'older_item': ConceptAutocompleteSelect(attrs={"class": "form-control"}),
             'message': forms.widgets.TextInput(attrs={"class": "form-control"}),
             'newer_item': DataAttrSelect(attrs={"class": "form-control"}),
             'date_effective': BootstrapDateTimePicker
