@@ -1,5 +1,5 @@
 from django.urls import reverse
-from django.test import TestCase, tag
+from django.test import TestCase, tag, override_settings
 from django.core.cache import cache
 from unittest import skip
 from urllib.parse import urlencode

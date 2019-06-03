@@ -1599,6 +1599,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
 
     @tag('changestatus')
+    @override_settings(ALWAYS_SYNC_REGISTER=True)
     def test_registrar_can_change_status_with_cascade(self):
         if not hasattr(self,"run_cascade_tests"):
             return
@@ -1620,6 +1621,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
             self.assertTrue(sub_item.is_registered)
 
     @tag('changestatus')
+    @override_settings(ALWAYS_SYNC_REGISTER=True)
     def test_registrar_can_change_status_with_cascade_bad_perms(self):
         if not hasattr(self,"run_cascade_tests"):
             return
@@ -1747,6 +1749,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
                     self.assertFalse(sub_item.is_registered)
 
     @tag('changestatus')
+    @override_settings(ALWAYS_SYNC_REGISTER=True)
     def test_registrar_can_change_status_with_review_cascade(self):
         self.registrar_can_change_status_with_review(cascade=True)
 
