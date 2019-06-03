@@ -619,9 +619,16 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         # Caching ...
         self.review.refresh_from_db()
         # Check that the review was approved, and changed to an 'Approved' state
-        self.assertEqual(self.review.status, REVIEW_STATES.approved)
 
-        # Check to see that date_effective is set
+        self.assertEqual(self.review.status, REVIEW_STATES.approved)
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.item.id, 'objectclass', 'my-object'],  # Slug for self.item
+            status_code=200
+        )
+        # Check the item to see if date_effective is set
+        older_item = response.context['item']
+
         supersedes_relation = older_item.superseded_items_relation_set.first()
 
         self.assertEqual(supersedes_relation.date_effective, datetime.date(2019, 1, 1))
