@@ -30,11 +30,11 @@ class DataCatalog(aristotle.models.concept):
         blank=True, null=True,
         help_text=_('The dataset specification to which this data source conforms'),
         )
-    publisher = models.ForeignKey(
-        aristotle.models.Organization,
-        blank=True, null=True,
-        help_text=_('The entity responsible for making the catalog online.'),
-        )
+    # publisher_record = models.ForeignKey(
+    #     aristotle.models.OrganizationRecord,
+    #     blank=True, null=True,
+    #     help_text=_('The entity responsible for making the catalog online.'),
+    #     )
     spatial = models.TextField(
         blank=True, null=True,
         help_text=_('The geographical area covered by the catalog.'),
@@ -47,14 +47,6 @@ class DataCatalog(aristotle.models.concept):
             'it should be replicated on each distribution.'
         ),
         )
-
-    @property
-    def publishing_organisations(self):
-        return aristotle.models.Organization.objects.filter(dataset__catalog=self).distinct()
-
-    # @property
-    # def homepage(self):
-    #     return self.originURI
 
 
 class Dataset(aristotle.models.concept):
@@ -69,12 +61,13 @@ class Dataset(aristotle.models.concept):
         blank=True, null=True,
         help_text=_('Date of formal issuance (e.g., publication) of the catalog.'),
         )
-    publisher = models.ForeignKey(
-        aristotle.models.Organization,
-        blank=True, null=True,
-        help_text=_('An entity responsible for making the dataset available.'),
-        )
-    accrual_periodicity = models.TextField(
+    # publisher_record = models.ForeignKey(
+    #     aristotle.models.OrganizationRecord,
+    #     verbose_name=_("Publisher"),
+    #     blank=True, null=True,
+    #     help_text=_('An entity responsible for making the dataset available.'),
+    #     )
+    frequency = models.TextField(
         blank=True, null=True,
         help_text=_('The frequency at which dataset is published.'),
         )
@@ -101,7 +94,8 @@ class Dataset(aristotle.models.concept):
         )
     dct_modified = models.DateTimeField(
         blank=True, null=True,
-        help_text=_('Most recent date on which the catalog was changed, updated or modified.'),
+        verbose_name="Modification date",
+        help_text=_('Most recent date on which the dataset was changed, updated or modified.'),
         )
 
 
@@ -123,17 +117,13 @@ class Distribution(aristotle.models.concept):
         )
     dct_modified = models.DateTimeField(
         blank=True, null=True,
+        verbose_name="Modification date",
         help_text=_('Most recent date on which the catalog was changed, updated or modified.'),
         )
     dataset = models.ForeignKey(
         Dataset,
         blank=True, null=True,
         help_text=_('Connects a distribution to its available datasets'),
-        )
-    publisher = models.ForeignKey(
-        aristotle.models.Organization,
-        blank=True, null=True,
-        help_text=_('An entity responsible for making the dataset available.'),
         )
     license = models.TextField(
         blank=True, null=True,

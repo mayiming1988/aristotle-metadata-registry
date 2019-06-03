@@ -321,7 +321,7 @@ class Command(BaseCommand):
 
                 ds.publisher = publishing_org or ds.publisher
                 ds.contact_point = dataset.get('contact_point','') or ds.contact_point
-                ds.accrual_periodicity = dataset.get('update_freq','') or ds.accrual_periodicity
+                ds.frequency = dataset.get('update_freq','') or ds.frequency
                 ds.origin_URI = "%s/dataset/%s" % (self.catalog_url, dataset['name'])
 
                 ds.save()
