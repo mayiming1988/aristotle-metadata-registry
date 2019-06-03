@@ -411,6 +411,9 @@ class DSSDEInclusion(DSSInclusion):
             msg = "Data element '%s' at position %s" % (self.data_element.name, self.order)
         return msg
 
+    def __str__(self):
+        return 'Inclusion for {}'.format(self.data_element.name)
+
 
 # Holds the link between a DSS and a cluster with the DSS Specific details.
 class DSSClusterInclusion(DSSInclusion):
