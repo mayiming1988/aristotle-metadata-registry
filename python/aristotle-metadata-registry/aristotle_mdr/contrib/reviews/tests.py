@@ -635,9 +635,6 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
 
         self.assertEqual(supersedes_relation.date_effective, datetime.date(2019, 1, 1))
 
-    def test_superseded_date_in_info_box_for_proposed_supersed(self):
-        pass
-
 
 @skip('Needs to be updated for new reviews system')
 class ReviewRequestPermissions(utils.AristotleTestUtils, TestCase):
