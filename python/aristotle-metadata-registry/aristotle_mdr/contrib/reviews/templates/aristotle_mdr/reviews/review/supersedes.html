@@ -17,7 +17,6 @@
         <div class="panel-body">
             <header><em>These supersedes relations are being proposed as part of this request</em></header>
             <hr>
-
             <form method="post">
                 {% csrf_token %}
                 {{ formset.management_form }}
@@ -26,22 +25,22 @@
                     <thead>
                     <tr>
                         {% for form in formset %}
-                        {% if forloop.first %}
-
-                        {% for field in form.visible_fields %}
-                        <th>
-                            {{ field.label_tag }}
-                        </th>
+                            {% if forloop.first %}
+                                {% for field in form.visible_fields %}
+                                <th>
+                                    {{ field.label_tag }}
+                                </th>
+                                {% endfor %}
+                            {% endif %}
                         {% endfor %}
                     </tr>
-                    {% endif %}
                     </thead>
                     <tbody id="supersedes">
+                    {% for form in formset %}
                     <tr>
                         {% for hidden in form.hidden_fields %}
                             {{ hidden }}
                         {% endfor %}
-
                         {% for field in form.visible_fields %}
                         <td>
                             {{ field.errors }}
@@ -50,7 +49,6 @@
                         {% endfor %}
                     </tr>
                     {% endfor %}
-
                     </tbody>
                 </table>
                 <a class="add_code_button btn btn-success" formid="{{ formset.prefix }}" href="#">Add</a>
@@ -59,9 +57,9 @@
 
             <table id="{{ formset.prefix }}" formid="supersedes" class="formstage" style="display:none">
                 <tr>
-                {% with formset.empty_form as form %}
+                    {% with formset.empty_form as form %}
                     {% for hidden in form.hidden_fields %}
-                        {{ hidden }}
+                    {{ hidden }}
                     {% endfor %}
                     {% for field in form.visible_fields %}
                     <td>
@@ -69,11 +67,10 @@
                     </td>
                     {% endfor %}
                 </tr>
-                </table>
-
-            </div>
-            {% endwith %}
+            </table>
         </div>
+        {% endwith %}
     </div>
+</div>
 </div>
 {% endblock tabpanel %}
