@@ -412,7 +412,13 @@ class DSSDEInclusion(DSSInclusion):
         return msg
 
     def __str__(self):
-        return 'Inclusion for {}'.format(self.data_element.name)
+        has_content = self.reference is not None and self.reference != ''
+        if has_content:
+            return 'Data element {} at position {} with reference: {}.'.format(self.data_element.name, self.order, self.reference)
+        return 'Data element {} at position {}'.format(self.data_element.name, self.order)
+
+    def get_absolute_url(self):
+        pass
 
 
 # Holds the link between a DSS and a cluster with the DSS Specific details.
@@ -433,3 +439,11 @@ class DSSClusterInclusion(DSSInclusion):
         if self.order:
             return "Cluster '{cls}' at position {pos}".format(cls=self.child.name, pos=self.order)
         return "Cluster '{}'".format(self.child.name)
+
+    def __str__(self):
+        return "Cluster '{cls}' at position {pos}".format(cls=self.child.name, pos=self.order)
+
+
+
+
+

@@ -30,7 +30,12 @@
                         {% else %}
                             <ul>
                                 {% for item in versions %}
-                                    <li><a href="{{ item.object.get_absolute_url }}">{{ item }}</a></li>
+                                    {% if item.object.get_absolute_url != None %}
+                                        <li><a href="{{ item.object.get_absolute_url }}">{{ item }}</a></li>
+                                    {% else %}
+                                        {# If there is no URL for the object #}
+                                        <li>{{ item }}</li>
+                                    {% endif %}
                                 {% endfor %}
                             </ul>
                         {% endif %}
