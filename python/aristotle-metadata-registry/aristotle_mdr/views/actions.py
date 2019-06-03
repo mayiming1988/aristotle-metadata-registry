@@ -85,7 +85,6 @@ class CheckCascadedStates(ItemSubpageView, DetailView):
 
 
 class DeleteSandboxView(UserFormViewMixin, FormView):
-
     form_class = actions.DeleteSandboxForm
     template_name = "aristotle_mdr/actions/delete_sandbox.html"
 
@@ -101,7 +100,6 @@ class DeleteSandboxView(UserFormViewMixin, FormView):
         return initial
 
     def form_invalid(self, form):
-
         if self.request.is_ajax():
             if 'item' in form.errors:
                 return JsonResponse({'completed': False, 'message': form.errors['item']})
@@ -111,8 +109,10 @@ class DeleteSandboxView(UserFormViewMixin, FormView):
         return super().form_invalid(form)
 
     def form_valid(self, form):
+        logger.debug("Form is valid")
 
         item = form.cleaned_data['item']
+
         item.delete()
 
         if self.request.is_ajax():

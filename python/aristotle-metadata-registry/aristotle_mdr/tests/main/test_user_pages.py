@@ -172,7 +172,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
 
 
     @tag('sandbox')
-    def test_delete_non_existant_content_sandbox(self):
+    def test_delete_non_existent_content_sandbox(self):
         self.login_viewer()
 
         response = self.client.post(reverse('aristotle_mdr:sandbox_delete'), {'item': 123456789}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
