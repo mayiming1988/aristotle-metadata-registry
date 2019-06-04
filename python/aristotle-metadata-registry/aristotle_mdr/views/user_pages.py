@@ -500,7 +500,7 @@ def django_admin_wrapper(request, page_url):
 
 
 class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListView):
-    """Display Users sandbox items"""
+    """Display the User's sandbox items"""
 
     paginate_by = 25
     template_name = "aristotle_mdr/user/sandbox.html"

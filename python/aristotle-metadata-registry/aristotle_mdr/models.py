@@ -1692,14 +1692,16 @@ class PossumProfile(models.Model):
 
     @property
     def mySandboxContent(self):
+        """ Sandbox content is content:
+            1. Submitted by the user
+            2. That is not registered
+            3. That is not under review or is for a review that has been revoked
+            4. That has not been added to a workgroup"""
         from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
         return _concept.objects.filter(
-            Q(submitter=self.user,
-              statuses__isnull=True
-              ) & Q(Q(rr_review_requests__isnull=True) |
-                    Q(rr_review_requests__status=REVIEW_STATES.revoked)
-                    )
-        )
+            Q(submitter=self.user,statuses__isnull=True)
+            & Q(Q(rr_review_requests__isnull=True) | Q(rr_review_requests__status=REVIEW_STATES.revoked))
+            & Q(workgroup__isnull=True))
 
     @property
     def editable_workgroups(self):
