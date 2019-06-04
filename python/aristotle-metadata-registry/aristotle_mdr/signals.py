@@ -135,11 +135,11 @@ class AristotleSignalProcessor(haystack_signals.BaseSignalProcessor):
                 'update_search_index',
                 args=[
                     'delete',
-                    { # sender
+                    {  # sender
                         'app_label': sender._meta.app_label,
                         'model_name': sender._meta.model_name,
                     },
-                    { # instance
+                    {  # instance
                         'pk': instance.pk,
                         'app_label': instance._meta.app_label,
                         'model_name': instance._meta.model_name

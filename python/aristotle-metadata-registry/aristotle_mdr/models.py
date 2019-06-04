@@ -266,12 +266,14 @@ class RegistrationAuthority(Organization):
     )
     locked_state = models.IntegerField(
         choices=STATES,
-        help_text=_("When metadata is endorsed at  the specified 'locked' level, the metadata item will not longer be able to be altered by standard users. Only Workgroup or Organisation Stewards will be able to edit 'locked' metadata."),
+        help_text=_(
+            "When metadata is endorsed at  the specified 'locked' level, the metadata item will not longer be able to be altered by standard users. Only Workgroup or Organisation Stewards will be able to edit 'locked' metadata."),
         default=STATES.candidate
     )
     public_state = models.IntegerField(
         choices=STATES,
-        help_text=_("When metadata is endorsed at the specified 'public' level, the metadata item will be visible to all users"),
+        help_text=_(
+            "When metadata is endorsed at the specified 'public' level, the metadata item will be visible to all users"),
         default=STATES.recorded
     )
 
@@ -294,7 +296,8 @@ class RegistrationAuthority(Organization):
 
     notprogressed = models.TextField(
         _("Not Progressed"),
-        help_text=_("A description of the meaning of the 'Not Progressed' status level for this Registration Authority."),
+        help_text=_(
+            "A description of the meaning of the 'Not Progressed' status level for this Registration Authority."),
         blank=True
     )
     incomplete = models.TextField(
@@ -324,7 +327,8 @@ class RegistrationAuthority(Organization):
     )
     preferred = models.TextField(
         _("Preferred Standard"),
-        help_text=_("A description of the meaning of the 'Preferred Standard' status level for this Registration Authority."),
+        help_text=_(
+            "A description of the meaning of the 'Preferred Standard' status level for this Registration Authority."),
         blank=True
     )
     superseded = models.TextField(
@@ -932,13 +936,9 @@ class _concept(baseAristotleObject):
     def editable_by(self):
         """Returns a list of the users allowed to edit this concept."""
         from django.contrib.auth import get_user_model
-        query = (
-            Q(
-                Q(workgroupmembership__role__in=['submitter', 'steward', 'manager']) &
-                Q(workgroupmembership__group=self.workgroup)
-            ) |
-            Q(created_items=self)
-        )
+        query = (Q(Q(workgroupmembership__role__in=['submitter', 'steward', 'manager']) &
+                   Q(workgroupmembership__group=self.workgroup)) | Q(created_items=self)
+                 )
         return get_user_model().objects.filter(query).distinct()
 
     @property
@@ -1699,9 +1699,9 @@ class PossumProfile(models.Model):
             4. That has not been added to a workgroup"""
         from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
         return _concept.objects.filter(
-            Q(submitter=self.user,statuses__isnull=True)
-            & Q(Q(rr_review_requests__isnull=True) | Q(rr_review_requests__status=REVIEW_STATES.revoked))
-            & Q(workgroup__isnull=True))
+            Q(submitter=self.user, statuses__isnull=True) &
+            Q(Q(rr_review_requests__isnull=True) | Q(rr_review_requests__status=REVIEW_STATES.revoked)) &
+            Q(workgroup__isnull=True))
 
     @property
     def editable_workgroups(self):
