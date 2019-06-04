@@ -310,8 +310,10 @@ class DSSInclusion(aristotle.models.aristotleComponent):
     )
 
     dss = ConceptForeignKey(DataSetSpecification)
+    # TODO: Update the spelling for this field, everywhere.
     maximum_occurances = models.PositiveIntegerField(
         default=1,
+        verbose_name=_("Maximum Occurances"),
         help_text=_("The maximum number of times a item can be included in a dataset")
         )
     cardinality = models.CharField(
