@@ -130,20 +130,16 @@ class AristotleSignalProcessor(haystack_signals.BaseSignalProcessor):
             super().handle_delete(sender, instance, **kwargs)
         else:
             message = clean_signal(kwargs)
-            from aristotle_bg_workers.celery import app
-            app.send_task(
-                'update_search_index',
-                args=[
-                    'delete',
-                    {  # sender
-                        'app_label': sender._meta.app_label,
-                        'model_name': sender._meta.model_name,
-                    },
-                    {  # instance
-                        'pk': instance.pk,
-                        'app_label': instance._meta.app_label,
-                        'model_name': instance._meta.model_name
-                    },
-                ],
-                kwargs=message
-            )
+            args = [
+                'delete',
+                {  # sender
+                    'app_label': sender._meta.app_label,
+                    'model_name': sender._meta.model_name,
+                },
+                {  # instance
+                    'pk': instance.pk,
+                    'app_label': instance._meta.app_label,
+                    'model_name': instance._meta.model_name
+                },
+            ]
+            update_search_index.delay(*args, **message)
