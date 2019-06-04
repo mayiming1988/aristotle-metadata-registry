@@ -13,6 +13,7 @@ from aristotle_mdr.utils import fetch_metadata_apps
 #  otherwise Haystack gets into a circular dependancy.
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -88,7 +89,7 @@ class AristotleSignalProcessor(haystack_signals.BaseSignalProcessor):
 
     def update_visibility_review_request(self, sender, instance, **kwargs):
         from aristotle_mdr.contrib.reviews.models import ReviewRequest
-        assert(sender in [ReviewRequest, ReviewRequest.concepts.through])
+        assert (sender in [ReviewRequest, ReviewRequest.concepts.through])
         for concept in instance.concepts.all():
             obj = concept.item
             self.async_handle_save(obj.__class__, obj, **kwargs)
@@ -104,17 +105,17 @@ class AristotleSignalProcessor(haystack_signals.BaseSignalProcessor):
     def async_handle_save(self, sender, instance, **kwargs):
         # Dev tests settings
         if not settings.ARISTOTLE_ASYNC_SIGNALS:
-            super().handle_save(sender, instance, **kwargs)   # Call haystack handle save
+            super().handle_save(sender, instance, **kwargs)  # Call haystack handle save
         else:
             message = clean_signal(kwargs)
 
             task_args = [
                 'save',
-                {   # sender
+                {  # sender
                     'app_label': sender._meta.app_label,
                     'model_name': sender._meta.model_name,
                 },
-                {   # instance
+                {  # instance
                     'pk': instance.pk,
                     'app_label': instance._meta.app_label,
                     'model_name': instance._meta.model_name,
@@ -129,19 +130,16 @@ class AristotleSignalProcessor(haystack_signals.BaseSignalProcessor):
             super().handle_delete(sender, instance, **kwargs)
         else:
             message = clean_signal(kwargs)
-
-            task_args = [
+            args = [
                 'delete',
-                {   # sender
+                {  # sender
                     'app_label': sender._meta.app_label,
                     'model_name': sender._meta.model_name,
                 },
-                {   # instance
+                {  # instance
                     'pk': instance.pk,
                     'app_label': instance._meta.app_label,
-                    'model_name': instance._meta.model_name,
+                    'model_name': instance._meta.model_name
                 },
             ]
-
-            # Start task on commit
-            run_task_on_commit(update_search_index, args=task_args, kwargs=message)
+            update_search_index.delay(*args, **message)
