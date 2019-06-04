@@ -3,19 +3,19 @@
 {% if custom_values %}
     <h2>Custom Fields</h2>
 {% endif %}
-<div class="container">
+<div class="container custom_fields">
+    <dl>
     {% for cv in custom_values %}
-            <div class="dl">
-                <b>{{ cv.field.name }}</b>
-            </div>
-            <div class="dt">
+            <dt>
+                {{ cv.field.name }}
+            </dt>
+            <dd>
                 {% if cv.is_html %}
-                    <div class="indent-right-2">
                     {{ cv.content|bleach }}
-                    </div>
                 {% else %}
                     {{ cv.content }}
                 {% endif %}
-            </div>
+            </dd>
     {% endfor %}
+    </dl>
 </div>
