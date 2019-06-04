@@ -936,9 +936,13 @@ class _concept(baseAristotleObject):
     def editable_by(self):
         """Returns a list of the users allowed to edit this concept."""
         from django.contrib.auth import get_user_model
-        query = (Q(Q(workgroupmembership__role__in=['submitter', 'steward', 'manager']) &
-                   Q(workgroupmembership__group=self.workgroup)) | Q(created_items=self)
-                 )
+        query = (
+            Q(
+                Q(workgroupmembership__role__in=['submitter', 'steward', 'manager']) &
+                Q(workgroupmembership__group=self.workgroup)
+            ) |
+            Q(created_items=self)
+        )
         return get_user_model().objects.filter(query).distinct()
 
     @property
@@ -1699,9 +1703,12 @@ class PossumProfile(models.Model):
             4. That has not been added to a workgroup"""
         from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
         return _concept.objects.filter(
-            Q(submitter=self.user, statuses__isnull=True) &
-            Q(Q(rr_review_requests__isnull=True) | Q(rr_review_requests__status=REVIEW_STATES.revoked)) &
-            Q(workgroup__isnull=True))
+            Q(submitter=self.user,
+              statuses__isnull=True
+              ) & Q(Q(rr_review_requests__isnull=True) |
+                    Q(rr_review_requests__status=REVIEW_STATES.revoked)
+                    ) & Q(workgroup__isnull=True)
+        )
 
     @property
     def editable_workgroups(self):
