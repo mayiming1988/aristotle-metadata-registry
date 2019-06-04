@@ -64,7 +64,8 @@ def update_search_index(action, sender, instance, **kwargs):
     from django.apps import apps
     # Fetch sender model
     sender = apps.get_model(sender['app_label'], sender['model_name'])
-    # Fetch instance (this will raise an exeption and fail the task if not found)
+
+    # Fetch instance (this will raise an exception and fail the task if not found)
     instance = apps.get_model(instance['app_label'], instance['model_name']).objects.get(pk=instance['pk'])
 
     # Pass to haystack signal processor
