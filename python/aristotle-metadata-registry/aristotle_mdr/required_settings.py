@@ -349,8 +349,8 @@ ARISTOTLE_VALIDATORS = {
 
 # Serialization
 SERIALIZATION_MODULES = {'mdrjson': 'aristotle_mdr_api.serializers.idjson',
-                         # Override
-                         'aristotle_mdr_json': 'aristotle_mdr.contrib.serializers.concept_json'}
+                         # Override django-reversion serializer
+                         'aristotle_mdr_json': 'aristotle_mdr.contrib.serializers.concept_serializer'}
 
 # API
 REST_FRAMEWORK = {
