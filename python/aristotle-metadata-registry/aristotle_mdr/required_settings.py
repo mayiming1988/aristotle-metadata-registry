@@ -348,7 +348,9 @@ ARISTOTLE_VALIDATORS = {
 }
 
 # Serialization
-SERIALIZATION_MODULES = {'mdrjson': 'aristotle_mdr_api.serializers.idjson'}
+SERIALIZATION_MODULES = {'mdrjson': 'aristotle_mdr_api.serializers.idjson',
+                         # Override
+                         'aristotle_mdr_json': 'aristotle_mdr.contrib.serializers.concept_json'}
 
 # API
 REST_FRAMEWORK = {
