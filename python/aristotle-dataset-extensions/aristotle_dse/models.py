@@ -283,24 +283,24 @@ class DataSetSpecification(aristotle.models.concept):
             self.clusters.all(),
             aristotle.models.DataElement.objects.filter(
                 Q(dssInclusions__dss=self) |
-				Q(dssInclusions__dss__in=self.clusters.all()) 
+                Q(dssInclusions__dss__in=self.clusters.all())
             ).distinct(),
             # We need to make these distinct to avoid duplicates being returned
             aristotle.models.DataElementConcept.objects.filter(
                 Q(dataelement__dssInclusions__dss=self) |
-				Q(dataelement__dssInclusions__dss__in=self.clusters.all()) 
+                Q(dataelement__dssInclusions__dss__in=self.clusters.all())
             ).distinct(),
             aristotle.models.ObjectClass.objects.filter(
                 Q(dataelementconcept__dataelement__dssInclusions__dss=self) |
-				Q(dataelementconcept__dataelement__dssInclusions__dss__in=self.clusters.all()) 
+                Q(dataelementconcept__dataelement__dssInclusions__dss__in=self.clusters.all())
             ).distinct(),
             aristotle.models.Property.objects.filter(
                 Q(dataelementconcept__dataelement__dssInclusions__dss=self) |
-				Q(dataelementconcept__dataelement__dssInclusions__dss__in=self.clusters.all()) 
+                Q(dataelementconcept__dataelement__dssInclusions__dss__in=self.clusters.all())
             ).distinct(),
             aristotle.models.ValueDomain.objects.filter(
                 Q(dataelement__dssInclusions__dss=self) |
-				Q(dataelement__dssInclusions__dss__in=self.clusters.all()) 
+                Q(dataelement__dssInclusions__dss__in=self.clusters.all())
             ).distinct(),
         ]
 
@@ -411,6 +411,15 @@ class DSSDEInclusion(DSSInclusion):
             msg = "Data element '%s' at position %s" % (self.data_element.name, self.order)
         return msg
 
+    def __str__(self):
+        has_reference = self.reference is not None and self.reference != ''
+        if has_reference:
+            return 'Data element {} at position {} with reference: {}.'.format(self.data_element.name, self.order, self.reference)
+        return 'Data element {} at position {}'.format(self.data_element.name, self.order)
+
+    def get_absolute_url(self):
+        pass
+
 
 # Holds the link between a DSS and a cluster with the DSS Specific details.
 class DSSClusterInclusion(DSSInclusion):
@@ -430,3 +439,11 @@ class DSSClusterInclusion(DSSInclusion):
         if self.order:
             return "Cluster '{cls}' at position {pos}".format(cls=self.child.name, pos=self.order)
         return "Cluster '{}'".format(self.child.name)
+
+    def __str__(self):
+        return "Cluster '{cls}' at position {pos}".format(cls=self.child.name, pos=self.order)
+
+
+
+
+

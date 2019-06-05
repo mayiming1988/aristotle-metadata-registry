@@ -20,4 +20,4 @@ class CollectionForm(BootstrapableMixin, UserAwareFormMixin, forms.ModelForm):
 
     class Meta:
         model = Collection
-        fields = ['name', 'description', 'metadata']
+        fields = ['name', 'parent_collection', 'description', 'metadata']

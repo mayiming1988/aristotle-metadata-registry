@@ -266,12 +266,14 @@ class RegistrationAuthority(Organization):
     )
     locked_state = models.IntegerField(
         choices=STATES,
-        help_text=_("When metadata is endorsed at  the specified 'locked' level, the metadata item will not longer be able to be altered by standard users. Only Workgroup or Organisation Stewards will be able to edit 'locked' metadata."),
+        help_text=_(
+            "When metadata is endorsed at  the specified 'locked' level, the metadata item will not longer be able to be altered by standard users. Only Workgroup or Organisation Stewards will be able to edit 'locked' metadata."),
         default=STATES.candidate
     )
     public_state = models.IntegerField(
         choices=STATES,
-        help_text=_("When metadata is endorsed at the specified 'public' level, the metadata item will be visible to all users"),
+        help_text=_(
+            "When metadata is endorsed at the specified 'public' level, the metadata item will be visible to all users"),
         default=STATES.recorded
     )
 
@@ -294,7 +296,8 @@ class RegistrationAuthority(Organization):
 
     notprogressed = models.TextField(
         _("Not Progressed"),
-        help_text=_("A description of the meaning of the 'Not Progressed' status level for this Registration Authority."),
+        help_text=_(
+            "A description of the meaning of the 'Not Progressed' status level for this Registration Authority."),
         blank=True
     )
     incomplete = models.TextField(
@@ -324,7 +327,8 @@ class RegistrationAuthority(Organization):
     )
     preferred = models.TextField(
         _("Preferred Standard"),
-        help_text=_("A description of the meaning of the 'Preferred Standard' status level for this Registration Authority."),
+        help_text=_(
+            "A description of the meaning of the 'Preferred Standard' status level for this Registration Authority."),
         blank=True
     )
     superseded = models.TextField(
@@ -1606,7 +1610,7 @@ class PossumProfile(models.Model):
         height_field='profilePictureHeight',
         width_field='profilePictureWidth',
         max_upload_size=((1024 ** 2) * 10),  # 10 MB
-        content_types=['image/jpg', 'image/png', 'image/bmp', 'image/jpeg'],
+        content_types=['image/jpg', 'image/png', 'image/bmp', 'image/jpeg', 'image/x-ms-bmp'],
         js_checker=True
     )
     notificationPermissions = JSONField(
@@ -1692,13 +1696,18 @@ class PossumProfile(models.Model):
 
     @property
     def mySandboxContent(self):
+        """ Sandbox content is content:
+            1. Submitted by the user
+            2. That is not registered
+            3. That is not under review or is for a review that has been revoked
+            4. That has not been added to a workgroup"""
         from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
         return _concept.objects.filter(
             Q(submitter=self.user,
               statuses__isnull=True
               ) & Q(Q(rr_review_requests__isnull=True) |
                     Q(rr_review_requests__status=REVIEW_STATES.revoked)
-                    )
+                    ) & Q(workgroup__isnull=True)
         )
 
     @property

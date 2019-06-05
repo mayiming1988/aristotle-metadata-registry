@@ -1,5 +1,5 @@
 from django.urls import reverse
-from django.test import TestCase, tag
+from django.test import TestCase, tag, override_settings
 from django.core.cache import cache
 from unittest import skip
 from urllib.parse import urlencode
@@ -489,6 +489,7 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         ss.refresh_from_db()
         self.assertFalse(ss.proposed)
 
+    @override_settings(ALWAYS_SYNC_REGISTER=True)
     def test_supersedes_status_applied(self):
         older = MDR.ObjectClass.objects.create(name='Old', definition='Very old')
         ss = self.create_ss_relation(older, self.item)
@@ -574,6 +575,63 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 200)
         can_edit = response.context['can_edit_review']
         self.assertEqual(can_edit, True)
+
+    def test_superseded_date_in_info_box_for_supersede_via_review(self):
+        """ Confirm that when a supersedes is created via review, the date at which the supersedes was applied
+        appears in the concept infobox """
+
+        # Add second item to review
+        second_item = self.create_editor_item(name='Person', definition="A human being")
+
+        self.review.concepts.add(second_item)
+
+        # Create items to be used in supersedes tab, all are Object Classes
+        older_item = self.create_editor_item('Old Person', 'A person that is very old')
+
+        # Post data
+        data = [
+            {'older_item': older_item.id,
+             'newer_item': self.item.id,
+             'message': 'Supersede this!',
+             'date_effective': datetime.date(2019, 1, 1)
+             },
+        ]
+        response = self.post_formset(data, 0)
+
+        # Check that the pages redirects
+        self.assertEqual(response.status_code, 302)
+
+        # Accept the review
+        wizard_data = [
+            {'status_message': 'This review is approved', 'close_review': '1'},
+            {'selected_list': [str(self.item.id)]}
+        ]
+
+        self.login_registrar()
+        response = self.post_to_wizard(
+            wizard_data,
+            reverse('aristotle_mdr_review_requests:accept_review', args=[self.review.id]),
+            'review_accept_view',
+            ['review_accept', 'review_changes']
+        )
+        self.assertEqual(response.status_code, 302)
+
+        # Caching ...
+        self.review.refresh_from_db()
+        # Check that the review was approved, and changed to an 'Approved' state
+
+        self.assertEqual(self.review.status, REVIEW_STATES.approved)
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.item.id, 'objectclass', 'my-object'],  # Slug for self.item
+            status_code=200
+        )
+        # Check the item to see if date_effective is set
+        older_item = response.context['item']
+
+        supersedes_relation = older_item.superseded_items_relation_set.first()
+
+        self.assertEqual(supersedes_relation.date_effective, datetime.date(2019, 1, 1))
 
 
 @skip('Needs to be updated for new reviews system')
