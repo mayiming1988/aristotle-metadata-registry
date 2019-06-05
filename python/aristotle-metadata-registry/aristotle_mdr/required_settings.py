@@ -85,7 +85,11 @@ SILENCED_SYSTEM_CHECKS = [
 ALLOWED_HOSTS: list = []
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
+# Use asynchronous processing of signals
 ARISTOTLE_ASYNC_SIGNALS = os.getenv('ARISTOTLE_ASYNC_SIGNALS', False) == "True"
+# Always register items synchronously (without celery)
+ALWAYS_SYNC_REGISTER = os.getenv('ARISTOTLE_SYNC_REGISTER', False) == "True"
 
 INSTALLED_APPS = (
     'aristotle_bg_workers',

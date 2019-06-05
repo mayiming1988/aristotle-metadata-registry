@@ -2,7 +2,7 @@
 const path = require('path')
 const webpack = require('webpack')
 const entry = require('webpack-glob-entry')
-const CleanWebpackPlugin = require('clean-webpack-plugin')
+const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const BundleTracker  = require('webpack-bundle-tracker')
@@ -52,11 +52,12 @@ module.exports = {
                                 '@babel/preset-env',
                                 {
                                     useBuiltIns: 'entry',
-                                    modules: false
+                                    modules: false,
+                                    corejs: '2'
                                 }
                             ]
                         ],
-                        plugins: ["@babel/plugin-syntax-dynamic-import"]
+                        plugins: ["@babel/plugin-syntax-dynamic-import"],
                     }
                 }]
             },
@@ -105,7 +106,7 @@ module.exports = {
     },
     plugins: [
         // Clean dist folder before builds
-        new CleanWebpackPlugin(['dist']),
+        new CleanWebpackPlugin(),
         // Load .vue files
         new VueLoaderPlugin(),
         // Provide $ and jQuery to scripts, no need to import

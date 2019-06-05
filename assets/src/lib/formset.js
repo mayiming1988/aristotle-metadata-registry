@@ -20,8 +20,14 @@ export function replacePrefix(element, num_forms) {
 
 // Adds a row to a formset given a form element and row css selector
 // urlfunc is optional (used for dal init)
+
+// To set up a dynamically added formset
+// 1. Create a formset
+// 2. Add a formstage
+// 3. Add an add_code_button
+
 export function addRow(formid, row_selector, urlfunc) {
-    // Get panel list
+    // The panelList is the formset
     let panelList = document.getElementById(formid)
 
     if (panelList.tagName === 'TABLE') {
@@ -34,10 +40,10 @@ export function addRow(formid, row_selector, urlfunc) {
             panelList = list
         }
     }
-
     // Convert to jquery object
     panelList = $(panelList)
 
+    // Important note: formid is the actual **id** of the formstage not 'formid'
     let formstage = $('.formstage#' + formid + ' ' + row_selector)
 
     // Clone the formstage
@@ -58,7 +64,7 @@ export function addRow(formid, row_selector, urlfunc) {
 
     let all_rows = panelList.find(row_selector)
     let num_forms = all_rows.length
-    
+
     // Append form to the panel list
     panelList.append(new_form)
 

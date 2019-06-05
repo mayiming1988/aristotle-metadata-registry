@@ -56,7 +56,7 @@
                     {% endif %}
                 </a>
             </td>
-            <td>{{ item.definition|striptags|truncatewords:50 }}</td>
+            <td>{{ item.short_definition | safe }}</td>
             <td>{{ item.user_count }}</td>
             {% if show_all %}
             {% endif %}
