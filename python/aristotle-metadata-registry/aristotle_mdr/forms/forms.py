@@ -181,7 +181,7 @@ class NotificationPermissionsForm(forms.Form):
                     "properties": {
                         "general changes": {
                             "type": "object",
-                            "title": "",
+                            "title": "General Changes",
                             "description": "Notify me of changes to:",
                             "properties": {
                                 "items in my workgroups": {
@@ -206,7 +206,7 @@ class NotificationPermissionsForm(forms.Form):
                         },
                         "superseded": {
                             "type": "object",
-                            "title": "",
+                            "title": "Supersedes",
                             "description": "Notify me when the following metadata is superseded:",
                             "properties": {
                                 "items in my workgroups": {
@@ -231,7 +231,7 @@ class NotificationPermissionsForm(forms.Form):
                         },
                         "new items": {
                             "type": "object",
-                            "title": "",
+                            "title": "New Items",
                             "description": "Notify me of new items in my workgroups:",
                             "properties": {
                                 "new items in my workgroups": {
