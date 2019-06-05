@@ -32,7 +32,7 @@ from aristotle_mdr.views.utils import (paginated_list,
                                        paginated_registration_authority_list,
                                        GenericListWorkgroup,
                                        AjaxFormMixin)
-from aristotle_mdr.views.views import ConceptRenderView
+from aristotle_mdr.views.views import ConceptRenderView, get_app_config_list
 from aristotle_mdr.utils import fetch_metadata_apps
 from aristotle_mdr.utils import get_aristotle_url
 from aristotle_bg_workers.tasks import send_sandbox_notification_emails
@@ -270,7 +270,7 @@ def admin_tools(request):
             # Only output subclasses of 11179 concept
             app_models = model_stats.get(m.app_label, {'app': None, 'models': []})
             if app_models['app'] is None:
-                app_models['app'] = getattr(apps.get_app_config(m.app_label), 'verbose_name')
+                app_models['app'] = apps.get_app_config(m.app_label)
             app_models['models'].append(
                 (
                     m.model_class(),
@@ -279,6 +279,11 @@ def admin_tools(request):
                 )
             )
             model_stats[m.app_label] = app_models
+
+    model_stats = sorted(
+        model_stats.values(),
+        key=lambda x: (x['app'].create_page_priority, x['app'].create_page_name, x['app'].verbose_name)
+    )
 
     page = render(
         request,
@@ -312,7 +317,7 @@ def admin_stats(request):
             # Only output subclasses of 11179 concept
             app_models = model_stats.get(m.app_label, {'app': None, 'models': []})
             if app_models['app'] is None:
-                app_models['app'] = getattr(apps.get_app_config(m.app_label), 'verbose_name')
+                app_models['app'] = apps.get_app_config(m.app_label)
             if use_cache:
                 total = get_cached_query_count(
                     qs=m.model_class().objects,
@@ -347,6 +352,11 @@ def admin_stats(request):
                 )
             )
             model_stats[m.app_label] = app_models
+
+    model_stats = sorted(
+        model_stats.values(),
+        key=lambda x: (x['app'].create_page_priority, x['app'].create_page_name, x['app'].verbose_name)
+    )
 
     page = render(
         request, "aristotle_mdr/user/userAdminStats.html",

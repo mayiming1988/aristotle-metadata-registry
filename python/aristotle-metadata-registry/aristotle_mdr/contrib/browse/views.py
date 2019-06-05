@@ -3,9 +3,11 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, TemplateView
-from aristotle_mdr.utils import get_concepts_for_apps, fetch_metadata_apps
 from collections import OrderedDict
+
+from aristotle_mdr.utils import get_concepts_for_apps, fetch_metadata_apps
 from aristotle_mdr.models import _concept
+from aristotle_mdr.views.views import get_app_config_list
 
 
 class BrowseApps(TemplateView):
@@ -14,24 +16,7 @@ class BrowseApps(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        aristotle_apps = fetch_metadata_apps()
-        out = {}
-
-        for m in get_concepts_for_apps(aristotle_apps):
-            # Only output subclasses of 11179 concept
-            app_models = out.get(m.app_label, {'app': None, 'models': []})
-            if app_models['app'] is None:
-                app_models['app'] = getattr(
-                    apps.get_app_config(m.app_label),
-                    'verbose_name',
-                    _("No name")  # Where no name is configured in the app_config, set a dummy so we don't keep trying
-                )
-
-            app_models['models'].append(m)
-            out[m.app_label] = app_models
-
-        context['apps'] = OrderedDict(sorted(out.items(), key=lambda app: app[1]['app']))
+        context['apps'] = get_app_config_list()
         return context
 
 
