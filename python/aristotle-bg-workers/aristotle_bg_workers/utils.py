@@ -1,6 +1,7 @@
 from celery import Task
 from django.db import transaction
 from django.db.models import Model
+from django.apps import apps
 from typing import Iterable, Mapping, Dict
 
 from aristotle_bg_workers.celery import app
