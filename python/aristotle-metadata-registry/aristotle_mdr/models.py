@@ -266,12 +266,14 @@ class RegistrationAuthority(Organization):
     )
     locked_state = models.IntegerField(
         choices=STATES,
-        help_text=_("When metadata is endorsed at  the specified 'locked' level, the metadata item will not longer be able to be altered by standard users. Only Workgroup or Organisation Stewards will be able to edit 'locked' metadata."),
+        help_text=_(
+            "When metadata is endorsed at  the specified 'locked' level, the metadata item will not longer be able to be altered by standard users. Only Workgroup or Organisation Stewards will be able to edit 'locked' metadata."),
         default=STATES.candidate
     )
     public_state = models.IntegerField(
         choices=STATES,
-        help_text=_("When metadata is endorsed at the specified 'public' level, the metadata item will be visible to all users"),
+        help_text=_(
+            "When metadata is endorsed at the specified 'public' level, the metadata item will be visible to all users"),
         default=STATES.recorded
     )
 
@@ -294,7 +296,8 @@ class RegistrationAuthority(Organization):
 
     notprogressed = models.TextField(
         _("Not Progressed"),
-        help_text=_("A description of the meaning of the 'Not Progressed' status level for this Registration Authority."),
+        help_text=_(
+            "A description of the meaning of the 'Not Progressed' status level for this Registration Authority."),
         blank=True
     )
     incomplete = models.TextField(
@@ -324,7 +327,8 @@ class RegistrationAuthority(Organization):
     )
     preferred = models.TextField(
         _("Preferred Standard"),
-        help_text=_("A description of the meaning of the 'Preferred Standard' status level for this Registration Authority."),
+        help_text=_(
+            "A description of the meaning of the 'Preferred Standard' status level for this Registration Authority."),
         blank=True
     )
     superseded = models.TextField(
@@ -1227,8 +1231,14 @@ class UnitOfMeasure(concept):
 
     template = "aristotle_mdr/concepts/unitOfMeasure.html"
     list_details_template = "aristotle_mdr/concepts/list_details/unit_of_measure.html"
-    measure = models.ForeignKey(Measure, blank=True, null=True)
-    symbol = models.CharField(max_length=20, blank=True)
+    measure = models.ForeignKey(Measure,
+                                blank=True,
+                                null=True,
+                                on_delete=models.SET_NULL,
+                                )
+    symbol = models.CharField(max_length=20,
+                              blank=True,
+                              )
 
 
 class DataType(concept):
@@ -1343,7 +1353,8 @@ class ValueDomain(concept):
         blank=True,
         null=True,
         help_text=_('Datatype used in a Value Domain'),
-        verbose_name='Data Type'
+        verbose_name='Data Type',
+        on_delete=models.SET_NULL,
     )
     format = models.CharField(  # 11.3.2.5.2.1
         max_length=100,
@@ -1361,14 +1372,16 @@ class ValueDomain(concept):
         blank=True,
         null=True,
         help_text=_('Unit of Measure used in a Value Domain'),
-        verbose_name='Unit Of Measure'
+        verbose_name='Unit Of Measure',
+        on_delete=models.SET_NULL,
     )
     conceptual_domain = ConceptForeignKey(
         ConceptualDomain,
         blank=True,
         null=True,
         help_text=_('The Conceptual Domain that this Value Domain which provides representation.'),
-        verbose_name='Conceptual Domain'
+        verbose_name='Conceptual Domain',
+        on_delete=models.SET_NULL,
     )
     classification_scheme = ConceptForeignKey(
         'aristotle_mdr_backwards.ClassificationScheme',
@@ -1376,6 +1389,7 @@ class ValueDomain(concept):
         null=True,
         related_name='valueDomains',
         verbose_name='Classification Scheme',
+        on_delete=models.SET_NULL,
     )
     representation_class = ConceptForeignKey(
         'aristotle_mdr_backwards.RepresentationClass',
@@ -1383,6 +1397,7 @@ class ValueDomain(concept):
         null=True,
         related_name='value_domains',
         verbose_name='Representation Class',
+        on_delete=models.SET_NULL,
     )
     description = models.TextField(
         _('description'),
@@ -1692,13 +1707,18 @@ class PossumProfile(models.Model):
 
     @property
     def mySandboxContent(self):
+        """ Sandbox content is content:
+            1. Submitted by the user
+            2. That is not registered
+            3. That is not under review or is for a review that has been revoked
+            4. That has not been added to a workgroup"""
         from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
         return _concept.objects.filter(
             Q(submitter=self.user,
               statuses__isnull=True
               ) & Q(Q(rr_review_requests__isnull=True) |
                     Q(rr_review_requests__status=REVIEW_STATES.revoked)
-                    )
+                    ) & Q(workgroup__isnull=True)
         )
 
     @property

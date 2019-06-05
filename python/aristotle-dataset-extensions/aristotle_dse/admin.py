@@ -48,7 +48,7 @@ register_concept(
     models.DataCatalog,
     extra_fieldsets=[
         ('Data Source',
-            {'fields': ['issued', 'publisher', 'homepage', 'spatial', 'license']}),
+            {'fields': ['issued', 'homepage', 'spatial', 'license']}),
     ]
 )
 
@@ -60,8 +60,8 @@ register_concept(
             {'fields': ['spatial', 'temporal']}),
         ('Publishing',
             {'fields': [
-                'publisher', 'contact_point', 'landing_page',
-                'dct_modified', 'issued', 'accrual_periodicity'
+                'contact_point', 'landing_page',
+                'dct_modified', 'issued', 'frequency'
                 ]}),
     ]
 )
@@ -77,7 +77,7 @@ register_concept(
             ]}),
         ('Publishing',
             {'fields': [
-                'license', 'rights', 'publisher',
+                'license', 'rights',
                 'dct_modified', 'issued',
                 ]}),
     ],

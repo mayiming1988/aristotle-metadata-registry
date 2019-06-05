@@ -1,15 +1,16 @@
 from celery import shared_task, Task
 from celery.utils.log import get_task_logger
+from django.apps import apps
+from django.contrib.auth import get_user_model
+from django.core.management import call_command
+from django.utils.module_loading import import_string
 from io import StringIO
 from typing import Optional, List, Tuple
 import datetime
 
-from django.contrib.auth import get_user_model
-from django.core.management import call_command
-from django.utils.module_loading import import_string
-
 from aristotle_mdr.utils.download import get_download_class
 from aristotle_mdr.models import _concept, RegistrationAuthority
+from aristotle_bg_workers.utils import lookup_model
 
 import reversion
 
@@ -60,20 +61,29 @@ def fire_async_signal(namespace, signal_name, message={}):
 
 
 @shared_task(name='update_search_index')
-def update_search_index(action, sender, instance, **kwargs):
-    from django.apps import apps
+def update_search_index(sender, instance, **kwargs):
+    """Task to update the search index when a model has been saved"""
     # Fetch sender model
-    sender = apps.get_model(sender['app_label'], sender['model_name'])
-    # Fetch instance (this will raise an exeption and fail the task if not found)
-    instance = apps.get_model(instance['app_label'], instance['model_name']).objects.get(pk=instance['pk'])
+    sender = lookup_model(sender)
+    # Fetch instance (this will raise an exception and fail the task if not found)
+    instance = lookup_model(instance).objects.get(pk=instance['pk'])
 
     # Pass to haystack signal processor
     processor = apps.get_app_config('haystack').signal_processor
-    if action == "save":
-        logger.debug("UPDATING INDEX FOR {}".format(instance))
-        processor.handle_save(sender, instance, **kwargs)
-    elif action == "delete":
-        processor.handle_delete(sender, instance, **kwargs)
+    processor.handle_save(sender, instance, **kwargs)
+
+
+@shared_task(name='delete_search_index')
+def delete_search_index(sender, instance, **kwargs):
+    """Task to update the search index when a model has been deleted"""
+    # Fetch sender model
+    sender = lookup_model(sender)
+    # Fetch instance (this will raise an exception and fail the task if not found)
+    instance = lookup_model(instance).objects.get(pk=instance['pk'])
+
+    # Pass to haystack signal processor
+    processor = apps.get_app_config('haystack').signal_processor
+    processor.handle_delete(sender, instance, **kwargs)
 
 
 @shared_task(name='download')

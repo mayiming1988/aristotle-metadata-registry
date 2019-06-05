@@ -486,21 +486,13 @@ class RegistrarTools(LoginRequiredMixin, View):
         )
 
 
-# @login_required
-# def my_review_list(request):
-#     # Users can see any items they have been asked to review
-#     q = Q(requester=request.user)
-#     reviews = MDR.ReviewRequest.objects.visible(request.user).filter(q).filter(registration_authority__active=0)
-#     return paginated_list(request, reviews, "aristotle_mdr/user/my_review_list.html", {'reviews': reviews})
-
-
 @login_required
 def django_admin_wrapper(request, page_url):
     return render(request, "aristotle_mdr/user/admin.html", {'page_url': page_url})
 
 
 class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListView):
-    """Display Users sandbox items"""
+    """Display the User's sandbox items"""
 
     paginate_by = 25
     template_name = "aristotle_mdr/user/sandbox.html"

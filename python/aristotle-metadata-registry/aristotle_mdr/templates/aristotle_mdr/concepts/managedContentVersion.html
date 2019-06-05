@@ -12,7 +12,7 @@
 {% block content %}
 <header class="row">
     {% block concept_title %}
-    {% include "aristotle_mdr/concepts/titles/display_title.html" %}
+    {% include "aristotle_mdr/concepts/titles/display_title.html" with item=current_item %}
     {% endblock %}
 </header>
 <section class="managed row">

@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DetailView, FormView
+from django.db import transaction
 
 from braces.views import PermissionRequiredMixin
 
@@ -12,12 +13,9 @@ from aristotle_mdr import perms
 from aristotle_mdr import models as MDR
 from aristotle_mdr.contrib.generic.views import UnorderedGenericAlterOneToManyView
 from aristotle_mdr.forms import actions
-from aristotle_mdr.views.utils import (
-    generate_visibility_matrix,
-    ObjectLevelPermissionRequiredMixin,
-    UserFormViewMixin
-)
+from aristotle_mdr.views.utils import UserFormViewMixin
 from aristotle_mdr.utils import url_slugify_concept
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -101,7 +99,6 @@ class DeleteSandboxView(UserFormViewMixin, FormView):
         return initial
 
     def form_invalid(self, form):
-
         if self.request.is_ajax():
             if 'item' in form.errors:
                 return JsonResponse({'completed': False, 'message': form.errors['item']})
@@ -110,7 +107,10 @@ class DeleteSandboxView(UserFormViewMixin, FormView):
 
         return super().form_invalid(form)
 
+    @transaction.atomic()
     def form_valid(self, form):
+        # This probably shouldn't be a transaction, but haystack in its infinite wisdom
+        # requires you pass an instance to delete the search index.
 
         item = form.cleaned_data['item']
         item.delete()
