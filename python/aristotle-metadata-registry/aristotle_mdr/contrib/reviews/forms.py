@@ -105,6 +105,7 @@ class RequestReviewUpdateForm(UserAwareModelForm):
         self.fields['target_registration_state'].choices = MDR.STATES
         self.fields['concepts'].queryset = self.fields['concepts'].queryset.all().visible(self.user)
         self.fields['concepts'].widget.choices = self.fields['concepts'].choices
+        self.fields['concepts'].label = "Metadata"
 
 
 class RequestReviewAcceptForm(UserAwareForm):
