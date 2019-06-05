@@ -1,11 +1,14 @@
 from datetime import timedelta
+from django.dispatch import receiver, Signal
 from django.contrib.auth import get_user_model
 from django.utils.timezone import now
 
+from aristotle_mdr.contrib.async_signals.utils import fire
 from aristotle_mdr.contrib.async_signals.utils import safe_object
 from aristotle_mdr.contrib.view_history.models import UserViewHistory
 
 User = get_user_model()
+metadata_item_viewed = Signal(providing_args=['user'])
 
 
 def item_viewed_action(message):
@@ -24,3 +27,8 @@ def item_viewed_action(message):
                 concept=instance,
                 user=user
             )
+
+
+@receiver(metadata_item_viewed)
+def item_viewed(sender, *args, **kwargs):
+    fire("signals.item_viewed_action", namespace="aristotle_mdr.contrib.view_history", obj=sender, **kwargs)

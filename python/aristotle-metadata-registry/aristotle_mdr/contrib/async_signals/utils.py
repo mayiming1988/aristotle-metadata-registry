@@ -11,8 +11,6 @@ def fire(signal_name, obj=None, namespace="aristotle_mdr.contrib.async_signals",
     """Starts celery task to run given signal code"""
     message = kwargs
     if getattr(settings, 'ARISTOTLE_ASYNC_SIGNALS', False):
-        # pragma: no cover -- We've dropped channels, and are awaiting (pun) on celery stuff
-
         # Add object data to message
         message.update({
             '__object__': {
