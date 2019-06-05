@@ -1,5 +1,6 @@
 from celery import shared_task, Task
 from celery.utils.log import get_task_logger
+from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.utils.module_loading import import_string
