@@ -35,11 +35,10 @@
                 <ol class="searchResults">
                 {% for id, obj in form.oc_options.field.choices|slice:":-1" %}
                     <li>
-                        <label>
                             <input type="radio" name="component_results-oc_options" value="{{id}}"></input>
                             {% include "aristotle_mdr/create/wizard_search_result_item.html" with object=obj.object %}
-                        </label>
                     </li>
+                    <hr>
                 {% endfor %}
                 </ol>
             </div>
@@ -79,11 +78,10 @@
                 <ol class="searchResults">
                 {% for id, obj in form.pr_options.field.choices|slice:":-1" %}
                     <li>
-                        <label>
                             <input type="radio" name="component_results-pr_options" value="{{id}}"></input>
                             {% include "aristotle_mdr/create/wizard_search_result_item.html" with object=obj.object %}
-                        </label>
                     </li>
+                    <hr>
                 {% endfor %}
                 </ol>
             </div>

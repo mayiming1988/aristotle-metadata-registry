@@ -30,7 +30,6 @@ urlpatterns = [
         url(r'^about/(?P<template>.+)/?$', views.DynamicTemplateView.as_view(), name="about"),
         url(r'^about/?$', TemplateView.as_view(template_name='aristotle_dse/static/about_aristotle_dse.html'), name="about"),
 
-        # url(r'^add/column_to_distribution/(?P<dist_id>\d+)', views.add_column_to_distribution, name='add_column_to_distribution'),
         url(r'^add/column_to_distribution/(?P<iid>\d+)?/?$',
             GenericAlterOneToManyView.as_view(
                 model_base=models.Distribution,

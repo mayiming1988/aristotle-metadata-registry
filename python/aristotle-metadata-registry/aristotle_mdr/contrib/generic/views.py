@@ -836,12 +836,17 @@ class ConfirmDeleteView(GenericWithItemURLView, TemplateView):
     template_name = "aristotle_mdr/generic/actions/confirm_delete.html"
     form_delete_button_text = _("Delete")
     warning_text = _("You are about to delete something, confirm below, or click cancel to return to the item.")
+    form_title = "Delete item"
+
+    # Default to concept
+    reverse_url = 'aristotle:item'
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context['form_title'] = self.form_title or _('Add child item')
+        context['form_title'] = self.form_title
         context['form_delete_button_text'] = self.form_delete_button_text
         context['warning_text'] = self.get_warning_text()
+        context['reverse_url'] = self.reverse_url
         return context
 
     def get_warning_text(self):

@@ -202,7 +202,6 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
 
             # Create the revision
             with reversion.revisions.create_revision():
-
                 if not change_comments:
                     # If there were no change comments made in the form
                     change_comments = construct_change_message_extra_formsets(request, form, extra_formsets)
@@ -278,8 +277,6 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
     def post(self, request, *args, **kwargs):
         form = self.get_form()
         extra_formsets = self.get_extra_formsets(self.model, request.POST)
-
-        # self.object = self.item
 
         if form.is_valid():
             item = form.save(commit=False)
