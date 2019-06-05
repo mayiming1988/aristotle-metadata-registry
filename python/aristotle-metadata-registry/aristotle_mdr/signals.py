@@ -5,7 +5,7 @@ from django.db.models.signals import m2m_changed, post_save, pre_delete
 from haystack import signals as haystack_signals
 
 from aristotle_mdr.contrib.async_signals.utils import clean_signal
-from aristotle_bg_workers.tasks import update_search_index
+from aristotle_bg_workers.tasks import update_search_index, delete_search_index
 from aristotle_bg_workers.utils import run_task_on_commit
 from aristotle_mdr.utils import fetch_metadata_apps
 
@@ -110,7 +110,6 @@ class AristotleSignalProcessor(haystack_signals.BaseSignalProcessor):
             message = clean_signal(kwargs)
 
             task_args = [
-                'save',
                 {  # sender
                     'app_label': sender._meta.app_label,
                     'model_name': sender._meta.model_name,
@@ -131,7 +130,6 @@ class AristotleSignalProcessor(haystack_signals.BaseSignalProcessor):
         else:
             message = clean_signal(kwargs)
             args = [
-                'delete',
                 {  # sender
                     'app_label': sender._meta.app_label,
                     'model_name': sender._meta.model_name,
@@ -142,4 +140,4 @@ class AristotleSignalProcessor(haystack_signals.BaseSignalProcessor):
                     'model_name': instance._meta.model_name
                 },
             ]
-            update_search_index.delay(*args, **message)
+            delete_search_index.delay(*args, **message)
