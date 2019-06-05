@@ -68,7 +68,7 @@
                 {% if deinc.child.id in viewable_ids %}
                     <tr>
 
-                        <td>{{ deinc.reference|default_if_none:""}}</td>
+                        <td>{{ deinc.reference|default_if_none:"-"}}</td>
 
                         <td>
                             <i class="fa fa-fw fa-folder-o"></i>
@@ -175,7 +175,8 @@
                     <th title="Maximum Character Length">
                         <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left" data-html="true"
                            title="Length" data-content="The maximum character length">
-                            Length</a>
+                            Length
+                        </a>
                     </th>
                     <th class="hidden-xs hidden-sm">
                         Format
@@ -183,12 +184,14 @@
                     <th>
                         <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left" data-html="true"
                            title="Cardinality" data-content="The rules for inclusion for a data element within a data set.<br>May be optional, mandatory or conditional">
-                            Cardinality</a>
+                            Cardinality
+                        </a>
                     </th>
                     <th class="maxOccurs">
                         <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left"
                            title="Maximum Occurrences" data-content="The maximum number of times a data element may be repeated in a data set.">
-                            #</a>
+                            #
+                        </a>
                     </th>
                 </tr>
                 </thead>
@@ -196,8 +199,7 @@
                 {% for deinc in data_element_set.dssdeinclusion_set.all %}
                     {% if deinc.data_element.id in viewable_ids %}
                         <tr>
-                            <td>{{ deinc.reference|default_if_none:" " }}
-                            </td>
+                            <td>{{ deinc.reference|default_if_none:"-" }}</td>
                             <td>
                                 {% include "aristotle_mdr/helpers/itemLink.html" with item=deinc.data_element skip_can_view=True %}
                                 {% if deinc.specific_information %}
