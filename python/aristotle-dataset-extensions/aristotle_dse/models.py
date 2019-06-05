@@ -387,6 +387,11 @@ class DSSDEInclusion(DSSInclusion):
     )
 
     inline_field_layout = 'list'
+    inline_field_order = [
+        "order", "dss",
+        "data_element", "reference", "cardinality", "maximum_occurrences",
+        "conditional_obligation", "specific_information", "group", "specialisation_classes"
+    ]
 
     class Meta(DSSInclusion.Meta):
         verbose_name = "DSS Data Element"
@@ -409,6 +414,13 @@ class DSSClusterInclusion(DSSInclusion):
     The child in this relationship is considered to be a child of the parent DSS as specified by the `dss` property.
     """
     child = ConceptForeignKey(DataSetSpecification, related_name='parent_dss')
+
+    inline_field_layout = 'list'
+    inline_field_order = [
+        "order", "dss", "child",
+        "reference", "cardinality", "maximum_occurrences",
+        "conditional_obligation", "specific_information"
+    ]
 
     class Meta(DSSInclusion.Meta):
         verbose_name = "DSS Cluster"
