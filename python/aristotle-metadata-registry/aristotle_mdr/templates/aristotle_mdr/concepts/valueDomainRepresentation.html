@@ -52,7 +52,12 @@ So we've split this out into its own template.
         {% endif %}
     </table>
     {% if item.permissiblevalue_set.count > 0 or item.supplementaryvalue_set.count > 0 %}
-        <strong>Permissible Values</strong>
+        {% if valueHeading %}
+          <h3>Values</h3>
+        {% else %}
+          <strong>Values</strong>
+        {% endif %}
+
         <table class="codeList table table-striped">
             <thead>
             <tr>
@@ -71,8 +76,7 @@ So we've split this out into its own template.
             {% for perm in item.permissiblevalue_set.all %}
                 <tr>
                     {% if forloop.first %}
-                        <th rowspan="{{ item.permissiblevalue_set.count }}">Permissible Values
-                        </th>
+                        <th rowspan="{{ item.permissiblevalue_set.count }}">Permissible Values</th>
                     {% endif %}
                     <td>{{ perm.value }}</td>
                     {% if perm.value_meaning %}
@@ -100,8 +104,7 @@ So we've split this out into its own template.
             {% for perm in item.supplementaryvalue_set.all %}
                 <tr>
                     {% if forloop.first %}
-                        <th rowspan="{{ item.supplementaryvalue_set.count }}">Supplementary Values
-                        </th>
+                        <th rowspan="{{ item.supplementaryvalue_set.count }}">Supplementary Values</th>
                     {% endif %}
                     <td>{{ perm.value }}</td>
                     {% if perm.value_meaning %}

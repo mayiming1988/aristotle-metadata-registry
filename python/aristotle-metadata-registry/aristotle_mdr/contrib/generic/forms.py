@@ -173,6 +173,7 @@ def ordered_formset_factory(model, ordering_field, exclude=[], extra=0):
 
     formset = modelformset_factory(
         model,
+        fields=getattr(model, "inline_field_order", "__all__"),
         formset=HiddenOrderModelFormSet,
         can_order=True,  # we assign this back to the ordering field
         can_delete=True,

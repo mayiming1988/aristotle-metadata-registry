@@ -34,12 +34,12 @@ def addDataElementsToDSS(request, dss_id):
         form = forms.AddDataElementsToDSSForm(request.POST, user=request.user, qs=qs, dss=dss)
         if form.is_valid():
             cardinality = form.cleaned_data['cardinality']
-            maxOccurs = form.cleaned_data['maximum_occurances']
+            maxOccurs = form.cleaned_data['maximum_occurrences']
             with reversion.revisions.create_revision():
                 for de in form.cleaned_data['dataElements']:
                     dss.addDataElement(
                         data_element=de,
-                        maximum_occurances=maxOccurs,
+                        maximum_occurrences=maxOccurs,
                         cardinality=cardinality
                     )
                 dss.save()
@@ -67,12 +67,12 @@ def addClustersToDSS(request, dss_id):
         form = forms.AddClustersToDSSForm(request.POST, user=request.user, qs=qs, dss=dss)
         if form.is_valid():
             cardinality = form.cleaned_data['cardinality']
-            maxOccurs = form.cleaned_data['maximum_occurances']
+            maxOccurs = form.cleaned_data['maximum_occurrences']
             with reversion.revisions.create_revision():
                 for child_dss in form.cleaned_data['clusters']:
                     dss.addCluster(
                         child=child_dss,
-                        maximum_occurances=maxOccurs,
+                        maximum_occurrences=maxOccurs,
                         cardinality=cardinality
                     )
                 dss.save()
@@ -292,7 +292,7 @@ def editInclusionOrder(request, dss_id, inc_type):
                         if inc.dss != item:
                             raise PermissionDenied
                         inc.order = form['ORDER'].value()
-                        # inc.maximum_occurances = form['maximum_occurances'].value()
+                        # inc.maximum_occurrences = form['maximum_occurrences'].value()
                         # value = form.save(commit=False) #Don't immediately save, we need to attach the value domain
                         # value.dss = item
                         inc.save()
@@ -360,22 +360,21 @@ class DatasetSpecificationView(ConceptRenderView):
         qs = qs.prefetch_related(Prefetch('dssclusterinclusion_set', dssclusterinclusions))
         return qs
 
+    def grouped(self):
+        dss_is_grouped = False
+        ungrouped_name = "Data Elements"
+        for g in self.item.groups.order_by('order'):
+            ungrouped_name = "Ungrouped Data Elements"
+            dss_is_grouped = True
+            yield g
+        yield {
+            "name": ungrouped_name,
+            "ungrouped": True,
+            "dssdeinclusion_set": self.item.ungrouped_data_element_inclusions()
+        }
+
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
 
-        def grouped():
-            dss_is_grouped = False
-            ungrouped_name = "Data Elements"
-            for g in self.item.groups.order_by('order'):
-                ungrouped_name = "Ungrouped Data Elements"
-                dss_is_grouped = True    
-                yield g
-            yield {
-                "name": ungrouped_name,
-                "ungrouped": True,
-                "dssdeinclusion_set": self.item.ungrouped_data_element_inclusions()
-            }
-        
-        context['groups_with_data_elements'] = grouped()
-
+        context['groups_with_data_elements'] = self.grouped()
         return context

@@ -78,3 +78,6 @@ class CustomValue(TimeStampedModel):
     @property
     def is_html(self):
         return self.field.type == 'html'
+
+    def __str__(self):
+        return 'CustomValue with field "{}" for concept "{}"'.format(self.field, self.concept)
