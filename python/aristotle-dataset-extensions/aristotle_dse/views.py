@@ -34,12 +34,12 @@ def addDataElementsToDSS(request, dss_id):
         form = forms.AddDataElementsToDSSForm(request.POST, user=request.user, qs=qs, dss=dss)
         if form.is_valid():
             cardinality = form.cleaned_data['cardinality']
-            maxOccurs = form.cleaned_data['maximum_occurances']
+            maxOccurs = form.cleaned_data['maximum_occurrences']
             with reversion.revisions.create_revision():
                 for de in form.cleaned_data['dataElements']:
                     dss.addDataElement(
                         data_element=de,
-                        maximum_occurances=maxOccurs,
+                        maximum_occurrences=maxOccurs,
                         cardinality=cardinality
                     )
                 dss.save()
@@ -67,12 +67,12 @@ def addClustersToDSS(request, dss_id):
         form = forms.AddClustersToDSSForm(request.POST, user=request.user, qs=qs, dss=dss)
         if form.is_valid():
             cardinality = form.cleaned_data['cardinality']
-            maxOccurs = form.cleaned_data['maximum_occurances']
+            maxOccurs = form.cleaned_data['maximum_occurrences']
             with reversion.revisions.create_revision():
                 for child_dss in form.cleaned_data['clusters']:
                     dss.addCluster(
                         child=child_dss,
-                        maximum_occurances=maxOccurs,
+                        maximum_occurrences=maxOccurs,
                         cardinality=cardinality
                     )
                 dss.save()
@@ -292,7 +292,7 @@ def editInclusionOrder(request, dss_id, inc_type):
                         if inc.dss != item:
                             raise PermissionDenied
                         inc.order = form['ORDER'].value()
-                        # inc.maximum_occurances = form['maximum_occurances'].value()
+                        # inc.maximum_occurrences = form['maximum_occurrences'].value()
                         # value = form.save(commit=False) #Don't immediately save, we need to attach the value domain
                         # value.dss = item
                         inc.save()
