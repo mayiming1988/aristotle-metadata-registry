@@ -1,0 +1,29 @@
+{% load aristotle_tags %}
+
+<h3>Use in indicators</h3>
+{% if item.indicatornumeratordefinition_set.exists or item.indicatordenominatordefinition_set.exists or item.indicatordisaggregationdefinition_set.exists %}
+    This Data Set Specification is included in the following Indicators.
+    Some indicators may be hidden based on your current permissions.
+    {% if item.indicatornumeratordefinition_set.exists %}
+        <h4>As a numerator</h4>
+        <ul>
+            {% for num in item.indicatornumeratordefinition_set.all|order_by:"indicator__name" %}
+                {% if num.indicator_id in viewable_ids %}
+                    <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=num.indicator skip_can_view=True %}</li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% if item.indicatordenominatordefinition_set.exists %}
+        <h4>As a denominator</h4>
+        <ul>
+            {% for denom in item.indicatordenominatordefinition_set.all|order_by:"indicator__name" %}
+                {% if denom.indicator_id in viewable_ids %}
+                    <li>{% include "aristotle_mdr/helpers/inlineDetails.html" with item=denom.indicator skip_can_view=True %}</li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% else %}
+    This Data Set Specification is not included in any Indicators.
+{% endif %}

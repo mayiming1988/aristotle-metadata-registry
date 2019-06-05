@@ -37,11 +37,11 @@ class ResponseDomain(aristotle.models.aristotleComponent):
 
     question = models.ForeignKey(Question, related_name="response_domains")
     value_domain = models.ForeignKey(aristotle.models.ValueDomain)
-    maximum_occurances = models.PositiveIntegerField(
+    maximum_occurrences = models.PositiveIntegerField(
         default=1,
         help_text=_("The maximum number of times a response can be included in a question")
         )
-    minimum_occurances = models.PositiveIntegerField(
+    minimum_occurrences = models.PositiveIntegerField(
         default=1,
         help_text=_("The minimum number of times a response can be included in a question")
         )
