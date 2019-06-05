@@ -1,6 +1,7 @@
-from typing import Iterable, Mapping
-from django.db import transaction
 from celery import Task
+from django.db import transaction
+from django.db.models import Model
+from typing import Iterable, Mapping, Dict
 
 from aristotle_bg_workers.celery import app
 
@@ -16,3 +17,8 @@ def run_task_by_name_on_commit(task: str, args: Iterable = [], kwargs: Mapping =
     The function above is preffered, only use this one if you can't import the task
     """
     transaction.on_commit(lambda: app.send_task(task, args, kwargs))
+
+
+def lookup_model(data: Dict) -> Model:
+    """Lookup model from dict containing app label and model name"""
+    return apps.get_model(data['app_label'], data['model_name'])
