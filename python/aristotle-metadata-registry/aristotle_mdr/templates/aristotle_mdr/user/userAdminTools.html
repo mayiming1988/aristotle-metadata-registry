@@ -90,12 +90,14 @@ therefore the counts below may be out of date due to caching.
         <th>Concept type</th>
         <th>#</th>
     </thead>
-{% for app,app_models in models.items %}
+{% for app in models %}
     <tbody>
-    {% for model,count,adminlink in app_models.models %}
+    {% for model,count,adminlink in app.models %}
     <tr>
         {% if forloop.first %}
-            <td rowspan="{{app_models.models|length }}">{{ app_models.app }}</td>
+            <td rowspan="{{app_models.models|length }}">
+              {% firstof app.app.create_page_name app.app.verbose_name %}
+            </td>
         {% endif %}
         <td>
             <a href="{{ adminlink }}">

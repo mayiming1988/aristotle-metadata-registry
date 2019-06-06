@@ -29,12 +29,14 @@
         <th>All time</th>
         <th>#</th>
     </thead>
-{% for app,app_models in model_stats.items %}
+{% for app in model_stats %}
     <tbody>
-    {% for model,count,adminlink in app_models.models %}
+    {% for model,count,adminlink in app.models %}
     <tr>
         {% if forloop.first %}
-            <td rowspan="{{app_models.models|length }}">{{ app_models.app }}</td>
+            <td rowspan="{{app_models.models|length }}">
+                {% firstof app.app.create_page_name app.app.verbose_name %}
+            </td>
         {% endif %}
         <td>
             <a href="{{ adminlink }}">
