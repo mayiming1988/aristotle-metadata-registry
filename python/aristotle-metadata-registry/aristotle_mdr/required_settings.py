@@ -397,3 +397,6 @@ MAXIMUM_NUMBER_OF_NODES_IN_GENERAL_GRAPHICAL_REPRESENTATION = 200
 # the Django app label and the model name.
 # E.g. [("app_label", "model_name"), ...]
 EXTRA_GRAPHQL_SCHEMA_MODELS: list = []
+
+# This are the related fields that are subserialized by the reversion serializer
+WHITELISTED_SUBSERIALIZED_FIELDS = ['slots', 'identifiers','customvalues_set']
