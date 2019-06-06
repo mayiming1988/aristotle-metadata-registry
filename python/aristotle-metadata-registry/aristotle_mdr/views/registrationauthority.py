@@ -225,8 +225,8 @@ class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequire
         return context
 
 
-class EditRegistrationAuthorityStates(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, MainPageMixin,
-                                      UpdateView):
+class EditRegistrationAuthorityStates(LoginRequiredMixin,
+                                      ObjectLevelPermissionRequiredMixin, MainPageMixin, UpdateView):
     model = MDR.RegistrationAuthority
     template_name = "aristotle_mdr/user/registration_authority/edit_states.html"
     permission_required = "aristotle_mdr.change_registrationauthority"

@@ -92,6 +92,14 @@ class RACreationTests(utils.LoggedInViewPages, TestCase):
 
 
 class RAUpdateTests(utils.LoggedInViewPages, TestCase):
+
+    def setUp(self):
+        self.test_ra = models.RegistrationAuthority.object.create(
+            name='Test Registration Authority',
+            definition='Just for testing',
+            stewardship_organisation=self.steward_org_1
+        )
+
     def test_anon_cannot_update(self):
         self.logout()
         response = self.client.get(reverse('aristotle:registrationauthority_create'))
@@ -181,6 +189,9 @@ class RAUpdateTests(utils.LoggedInViewPages, TestCase):
 
         self.assertEqual(my_ra.name, "My cool registrar")
         self.assertEqual(my_ra.definition, "This RA rocks!")
+
+    def test_cannot_set_locked_below_public(self):
+        pass
 
 
 class RAListTests(utils.LoggedInViewPages, TestCase):
