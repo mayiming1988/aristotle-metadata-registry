@@ -64,7 +64,7 @@ class DSSGroupingSerializer(serializers.ModelSerializer):
         exclude = excluded_fields
 
 
-class Serializer(serializers.ModelSerializer):
+class BaseSerializer(serializers.ModelSerializer):
     slots = SlotsSerializer(many=True)
     customvalue_set = CustomValuesSerializer(many=True)
     identifiers = IdentifierSerializer(many=True)
@@ -80,8 +80,8 @@ class ConceptSerializerFactory():
     """ Generalized serializer factory to dynamically set form fields for simpler concepts """
     UNIVERSAL_FIELDS = ('slots', 'customvalue_set', 'identifiers', 'org_records')
 
-    FIELD_SUBSERIALIZER_MAPPING = {'dssdeinclusion_set': DSSDEInclusionSerializer,
-                                   'dssclusterinclusion_set': DSSClusterInclusionSerializer}
+    FIELD_SUBSERIALIZER_MAPPING = {'dssdeinclusion_set': DSSDEInclusionSerializer(many=True),
+                                   'dssclusterinclusion_set': DSSClusterInclusionSerializer(many=True)}
 
     def _get_concept_fields(self, concept):
         """Internal helper function to get fields that are actually **on** the model.
@@ -131,13 +131,25 @@ class ConceptSerializerFactory():
         concept_model = self._get_model(concept)
 
         concept_fields = self._get_concept_fields(concept)
-
         relation_fields = self._get_relation_fields(concept)
-
         included_fields = concept_fields + relation_fields + universal_fields
 
-        Serializer = None
+        # Generate metaclass dynamically
+        meta_attrs = {'model': concept_model,
+                      'fields': included_fields}
 
+        Meta = type('Meta', object, meta_attrs)
+
+        serializer_attrs = {}
+
+        for field_name in relation_fields:
+            if field_name in self.FIELD_SUBSERIALIZER_MAPPING:
+                # Field is for something that should have it's fields serialized
+                serializer = self.FIELD_SUBSERIALIZER_MAPPING[field_name]
+                serializer_attrs[field_name] = serializer
+
+        # Generate serializer dynamically
+        Serializer = type('Serializer', (BaseSerializer,), serializer_attrs)
         return Serializer
 
     def generate_deserializer(self, json):
@@ -154,8 +166,6 @@ class Serializer(Serializer):
 
         concept = queryset[0]
 
-        if concept._meta.object_name == 'Data Set Specification':
-            pass
         # Generate the serializer
         ModelSerializer = ConceptSerializerFactory().generate_serializer(concept)
 
@@ -165,9 +175,6 @@ class Serializer(Serializer):
         # Add the app label as a key to the json so that the deserializer can be instantiated
         data = serializer.data
         data['model'] = '{}.{}'.format(concept._meta.app_label, concept._meta.object_name)
-
-        raise ValueError(data)
-
 
         self.data = json.dumps(data)
 
