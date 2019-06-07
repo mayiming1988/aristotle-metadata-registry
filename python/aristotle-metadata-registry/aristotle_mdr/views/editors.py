@@ -211,8 +211,9 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
 
                 # Update the item
                 form.save_m2m()
-                item.save()
                 form.save_custom_fields(item)
+                item.save()
+
 
             # Versions are loaded with the most recent version first, so we get the one that was just created
             version = Version.objects.get_for_object(item).first()

@@ -103,8 +103,6 @@ class SerializerTestCase(AristotleTestUtils, TestCase):
         postdata = model_to_dict_with_change_time(object_class)
         postdata[custom_field.form_field_name] = 4
 
-        print(postdata)
-
         self.login_editor()
         self.reverse_post(
             'aristotle:edit_item',
@@ -114,8 +112,5 @@ class SerializerTestCase(AristotleTestUtils, TestCase):
         )
         serialized_data = self.get_serialized_data_dict(object_class)
 
-        self.assertEqual(serialized_data['customvalue_set'][0]['content'], 4)
+        self.assertEqual(int(serialized_data['customvalue_set'][0]['content']), 4)
 
-    def test_slots_serialized(self):
-        """ Test that slots were serialized """
-        pass

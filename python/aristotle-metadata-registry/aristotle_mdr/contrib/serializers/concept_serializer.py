@@ -192,6 +192,7 @@ class Serializer(Serializer):
 
 
 def Deserializer(json, using=DEFAULT_DB_ALIAS, **options):
+    # TODO: fix
     """ Deserialize JSON back into Django ORM instances.
         Django deserializers yield a DeserializedObject generator.
         DeserializedObjects are thin wrappers over POPOs. """
