@@ -259,6 +259,8 @@ class ConceptRenderView(TagsMixin, TemplateView):
         else:
             context['isFavourite'] = self.request.user.profile.is_favourite(self.item)
 
+        aristotle_settings = fetch_aristotle_settings()
+
         context.update({
             'last_edit': Version.objects.get_for_object(self.item).first(),
             # Only display viewable slots
@@ -271,6 +273,7 @@ class ConceptRenderView(TagsMixin, TemplateView):
             'custom_values': self.get_custom_values(),
             'submitting_organizations': self.item.submitting_organizations,
             'responsible_organizations': self.item.responsible_organizations,
+            'infobox_identifier_name': aristotle_settings['INFOBOX_IDENTIFIER_NAME']
         })
 
         # Add a list of viewable concept ids for fast visibility checks in
