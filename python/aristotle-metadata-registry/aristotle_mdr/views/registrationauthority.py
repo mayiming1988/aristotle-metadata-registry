@@ -22,7 +22,10 @@ from dal.autocomplete import ModelSelect2Multiple
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.forms import actions
-from aristotle_mdr.forms.registrationauthority import CreateRegistrationAuthorityForm
+from aristotle_mdr.forms.registrationauthority import (
+    CreateRegistrationAuthorityForm,
+    EditRegistationAuthorityForm
+)
 from aristotle_mdr.views.utils import (
     paginated_registration_authority_list,
     ObjectLevelPermissionRequiredMixin,
@@ -234,19 +237,7 @@ class EditRegistrationAuthorityStates(LoginRequiredMixin,
     redirect_unauthenticated_users = True
     object_level_permissions = True
 
-    fields = [
-        'locked_state',
-        'public_state',
-        'notprogressed',
-        'incomplete',
-        'candidate',
-        'recorded',
-        'qualified',
-        'standard',
-        'preferred',
-        'superseded',
-        'retired',
-    ]
+    form_class = EditRegistationAuthorityForm
 
     pk_url_kwarg = 'iid'
     context_object_name = "item"
