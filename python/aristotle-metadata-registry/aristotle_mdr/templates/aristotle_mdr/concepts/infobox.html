@@ -101,7 +101,8 @@
                                 {{ rel.registration_authority.name }}
                               </span>,
                                                 <time datetime="{{ rel.date_effective|isotime }}">{{ rel.date_effective }}</time> -
-                                                {{ rel.message }}
+                                                {% if rel.message %} - {{ rel.message }} {% endif %}
+                                                {% if rel.proposed %}<em>[Proposed]</em>{% endif %}
                                             </li>
                                         {% endfor %}
                                     </ul>

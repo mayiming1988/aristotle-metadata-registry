@@ -56,9 +56,12 @@ class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context.update({'model': self.model._meta.model_name,
-                        'app_label': self.model._meta.app_label,
-                        'item': self.item})
+        context.update({
+            'model': self.model._meta.model_name,
+            'app_label': self.model._meta.app_label,
+            'item': self.item,
+            'model_class': self.model,
+        })
         return context
 
     def get_form_kwargs(self):

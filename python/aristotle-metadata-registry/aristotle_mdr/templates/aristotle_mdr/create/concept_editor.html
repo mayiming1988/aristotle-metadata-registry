@@ -1,4 +1,5 @@
 {% load i18n aristotle_help static %}
+{% load aristotle_tags util_tags %}
 
 
 {% if form.errors or slots_FormSet.errors or slots_FormSet.non_form_errors %}
@@ -97,7 +98,10 @@
                 {% endif %}
             </div>
             <div class="wizard_field">
-                <span>{{ form.definition.label_tag }} {{ form.definition.help_text }}</span>
+                <span>
+                    {{ form.definition.label_tag }} {{ form.definition.help_text }}
+                    {% field_help_icon model_class 'definition' %}
+                </span>
                 {% if form.definition.errors %}
                     <span class="alert alert-danger">
                     {{ form.definition.errors }}
@@ -362,3 +366,5 @@
         </div>
     </div>
 </div>
+
+<div v-pre>{% bootstrap_modal "context_help" size='md' %}</div>

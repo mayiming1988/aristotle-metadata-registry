@@ -555,3 +555,20 @@ def publish_registry_item_url(item):
 @register.filter
 def can_edit_label(label, user):
     return perms.user_can_edit_issue_label(user, label)
+
+
+@register.simple_tag(takes_context=True)
+def field_help_icon(context, item_or_model, field_name):
+    from django.template import loader
+
+    template = loader.get_template('aristotle_mdr_help/helpers/field_icon.html')
+    kls = item_or_model.__class__
+    extra_context = {
+        'app': kls._meta.app_label,
+        'model_name': kls._meta.model_name,
+        'field_name': field_name,
+        'model_class': kls,
+    }
+    return mark_safe(
+        template.render(extra_context, context['request'])
+    )
