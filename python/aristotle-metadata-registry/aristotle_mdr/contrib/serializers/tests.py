@@ -48,7 +48,7 @@ class SerializerTestCase(AristotleTestUtils, TestCase):
             self.object_class.save()
 
     def get_serialized_data_dict(self, concept):
-        version = reversion.models.Version.objects.get_for_object(self.object_class).first()
+        version = reversion.models.Version.objects.get_for_object(concept).first()
         return json.loads(version.serialized_data)
 
     def get_app_label(self, concept):
@@ -87,7 +87,11 @@ class SerializerTestCase(AristotleTestUtils, TestCase):
 
     def test_custom_fields_serialized_from_concept_editor(self):
         """ Test that the custom fields were serialized from the editor"""
-        self.login_editor()
+        object_class = MDR.ObjectClass.objects.create(
+            name='Person',
+            definition='A human being',
+            submitter=self.editor
+        )
 
         custom_field = CustomField.objects.create(
             name='MyCustomField',
@@ -95,18 +99,20 @@ class SerializerTestCase(AristotleTestUtils, TestCase):
             help_text='Custom',
             order=0
         )
-        postdata = model_to_dict_with_change_time(self.object_class)
+
+        postdata = model_to_dict_with_change_time(object_class)
         postdata[custom_field.form_field_name] = 4
 
+        print(postdata)
+
+        self.login_editor()
         self.reverse_post(
             'aristotle:edit_item',
             postdata,
-            reverse_args=[self.object_class.id],
+            reverse_args=[object_class.id],
             status_code=302
         )
-        serialized_data = self.get_serialized_data_dict(self.object_class)
-
-        raise ValueError(serialized_data)
+        serialized_data = self.get_serialized_data_dict(object_class)
 
         self.assertEqual(serialized_data['customvalue_set'][0]['content'], 4)
 
