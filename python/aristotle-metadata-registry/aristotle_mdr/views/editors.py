@@ -300,9 +300,10 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
                 reversion.revisions.set_comment(change_comments)
 
                 # Save item
-                item.save()
                 form.save_custom_fields(item)
                 form.save_m2m()
+
+                item.save()
 
             # Copied from wizards.py - maybe refactor
             final_formsets = []

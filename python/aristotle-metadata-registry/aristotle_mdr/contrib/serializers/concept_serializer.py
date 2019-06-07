@@ -14,7 +14,6 @@ from aristotle_dse.models import DSSClusterInclusion, DSSDEInclusion, DSSGroupin
 from aristotle_mdr.models import RecordRelation
 
 import json as JSON
-import io
 
 import logging
 
