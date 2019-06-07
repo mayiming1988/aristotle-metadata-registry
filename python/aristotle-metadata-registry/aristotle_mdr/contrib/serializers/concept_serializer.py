@@ -2,7 +2,6 @@
 Serializer for concept and all attached fields
 """
 from rest_framework import serializers
-from rest_framework.parsers import JSONParser
 
 from django.core.serializers.base import Serializer, DeserializedObject, build_instance
 from django.apps import apps
