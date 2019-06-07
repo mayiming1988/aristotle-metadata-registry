@@ -140,6 +140,16 @@ class SerializerTestCase(AristotleTestUtils, TestCase):
         self.assertEqual(serialized_data['dssdeinclusion_set'][0]['specific_information'],
                          'Highly specific information')
 
+
     def test_dss_serialized_through_editor(self):
-        """ Test that DSS's are effectively saved through the reversion """
+        """ Test that DSS's are effectively saved through the concept editor """
+
+        # Get the correct formset
+
+        # Setup the management form
+
+        # Post the formset
+
+        #
+
 
