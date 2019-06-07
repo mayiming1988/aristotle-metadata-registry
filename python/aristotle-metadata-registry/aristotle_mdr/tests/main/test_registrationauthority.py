@@ -228,7 +228,12 @@ class RAUpdateTests(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 200)
 
         form = response.context['form']
+        nfe = form.non_field_errors()
+        # Make sure form is invalid
         self.assertFalse(form.is_valid())
+        # Make sure there are non form errors that are rendererd
+        self.assertTrue(len(nfe) > 0)
+        self.assertContains(response, nfe[0])
 
 
 class RAListTests(utils.LoggedInViewPages, TestCase):
