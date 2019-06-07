@@ -195,11 +195,6 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         if form_invalid or formsets_invalid:
             return self.form_invalid(form, formsets=extra_formsets)
         else:
-            # The form and the formsets were valid
-            # This was removed from the revision below due to a bug with saving
-            # long slots, links are still saved due to reversion follows
-            self.save_formsets(extra_formsets)
-
             # Create the revision
             with reversion.revisions.create_revision():
                 if not change_comments:
@@ -212,6 +207,10 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
                 # Update the item
                 form.save_m2m()
                 form.save_custom_fields(item)
+
+                # This is here while we investigate bugs with saving the extra formsets
+                self.save_formsets(extra_formsets)
+
                 item.save()
 
 

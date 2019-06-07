@@ -2,7 +2,7 @@
 
 from django.test import TestCase
 
-from aristotle_dse.models import DataSetSpecification
+import aristotle_dse.models as DSE
 from aristotle_mdr.tests.utils import AristotleTestUtils, model_to_dict_with_change_time
 from aristotle_mdr.contrib.custom_fields.models import CustomValue, CustomField
 from aristotle_mdr.contrib.custom_fields.types import type_choices as TYPE_CHOICES
@@ -22,11 +22,24 @@ class SerializerTestCase(AristotleTestUtils, TestCase):
             submitter=self.editor
         )
 
-        # TODO: add other fields
-        self.data_set_specification = DataSetSpecification.objects.create(
+        self.data_set_specification = DSE.DataSetSpecification.objects.create(
             name='Person DSS',
             definition='A data set specification about people',
             submitter=self.editor
+        )
+
+        self.data_element = MDR.DataElement.objects.create(
+            name='Data Element',
+            definition='This is a data element'
+        )
+
+        self.dss_de_inclusion = DSE.DSSDEInclusion(
+            data_element=self.data_element,
+            specific_information="Specific information",
+            conditional_obligation="Conditional",
+            order=1,
+            dss=self.data_set_specification
+
         )
 
         self.custom_field = CustomField.objects.create(
@@ -113,4 +126,20 @@ class SerializerTestCase(AristotleTestUtils, TestCase):
         serialized_data = self.get_serialized_data_dict(object_class)
 
         self.assertEqual(int(serialized_data['customvalue_set'][0]['content']), 4)
+
+    def test_dss_data_element_inclusion_serialized_through_reversion(self):
+        """ Test that DSSDEInclusions added via the concept editor are serialized and saved
+         to the DSS's Version"""
+        with reversion.create_revision():
+            self.dss_de_inclusion.specific_information = 'Highly specific information'
+            self.dss_de_inclusion.save()
+            self.data_set_specification.save()
+
+        serialized_data = self.get_serialized_data_dict(self.data_set_specification)
+
+        self.assertEqual(serialized_data['dssdeinclusion_set'][0]['specific_information'],
+                         'Highly specific information')
+
+    def test_dss_serialized_through_editor(self):
+        """ Test that DSS's are effectively saved through the reversion """
 

@@ -15,9 +15,11 @@ from unittest import skip
 
 import reversion
 
+
 def setUpModule():
     from django.core.management import call_command
     call_command('load_aristotle_help', verbosity=0, interactive=False)
+
 
 class DataSetSpecificationVisibility(ManagedObjectVisibility,TestCase):
     def setUp(self):
@@ -25,6 +27,7 @@ class DataSetSpecificationVisibility(ManagedObjectVisibility,TestCase):
         self.item = models.DataSetSpecification.objects.create(name="Test DSS",
             workgroup=self.wg,
             )
+
 
 class DataSetSpecificationAdmin(AdminPageForConcept,TestCase):
     itemType=models.DataSetSpecification
@@ -77,9 +80,6 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages,TestCase):
                 dss=self.item1,
                 child=self.item1
             )
-
-
-        #self.item1.addCluster(child=self.item3)
         default_fields = {
             'specialisation_classes': oc.id,
             'data_element': de.id,
@@ -100,7 +100,6 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages,TestCase):
         check_url = reverse('aristotle:check_cascaded_states', args=[self.item1.pk])
         response = self.client.get(self.get_page(self.item1))
         self.assertEqual(response.status_code,302)
-        # self.assertNotContains(response, check_url)  # No content on the page as the user was redirected to a login page
 
         response = self.client.get(check_url)
         self.assertTrue(response.status_code,403)
