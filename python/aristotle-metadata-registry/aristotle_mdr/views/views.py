@@ -420,6 +420,19 @@ def create_list(request):
         w.update(_w)
         wizards.append(w)
 
+    return render(
+        request, "aristotle_mdr/create/create_list.html",
+        {
+            'models': get_app_config_list(),
+            'wizards': wizards
+        }
+    )
+
+
+def get_app_config_list(count=False):
+    out = {}
+    aristotle_apps = fetch_metadata_apps()
+
     for m in get_concepts_for_apps(aristotle_apps):
         # Only output subclasses of 11179 concept
         app_models = out.get(m.app_label, {'app': None, 'models': []})
@@ -433,18 +446,15 @@ def create_list(request):
                 app = AristotleExtensionBaseConfig()
                 app.verbose_name = "No name"
                 app_models['app'] = app
-        app_models['models'].append((m, m.model_class()))
+        app_models['models'].append({
+            "content_type": m,
+            "class": m.model_class()
+        })
         out[m.app_label] = app_models
 
-    return render(
-        request, "aristotle_mdr/create/create_list.html",
-        {
-            'models': sorted(
-                out.values(),
-                key=lambda x: (x['app'].create_page_priority, x['app'].create_page_name, x['app'].verbose_name)
-            ),
-            'wizards': wizards
-        }
+    return sorted(
+        out.values(),
+        key=lambda x: (x['app'].create_page_priority, x['app'].create_page_name, x['app'].verbose_name)
     )
 
 
