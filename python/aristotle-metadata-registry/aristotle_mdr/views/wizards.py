@@ -18,6 +18,7 @@ from aristotle_mdr.contrib.custom_fields.models import CustomField
 from aristotle_mdr.contrib.help.models import ConceptHelp
 from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.utils import (
+    cloud_enabled,
     fetch_aristotle_settings,
     fetch_metadata_apps,
     is_active_module
@@ -179,7 +180,7 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             context.update(fscontext)
 
         context.update({'model_name': self.model._meta.verbose_name,
-                        'model_name_plural': self.model._meta.verbose_name_plural,
+                        'model_name_plural': self.model._meta.verbose_name_plural.title,
                         'help': ConceptHelp.objects.filter(
                             app_label=self.model._meta.app_label,
                             concept_type=self.model._meta.model_name
@@ -188,6 +189,16 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
                         'help_guide': self.help_guide(),
                         'current_step': self.steps.current,
                         })
+
+        if cloud_enabled():
+            from aristotle_cloud.contrib.custom_help.models import CustomHelp
+            context.update({
+                "custom_help": CustomHelp.objects.filter(
+                    content_type__app_label=self.model._meta.app_label,
+                    content_type__model=self.model._meta.model_name,
+                ).first()
+            })
+
         return context
 
     def get(self, *args, **kwargs):

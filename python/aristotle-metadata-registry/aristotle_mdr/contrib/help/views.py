@@ -80,6 +80,13 @@ class ConceptHelpView(AppHelpViewer):
 
         ct = ContentType.objects.get(app_label=self.app, model=model)
         context['model'] = ct.model_class()
+        custom_help = None
+
+        if cloud_enabled():
+            from aristotle_cloud.contrib.custom_help.models import CustomHelp
+            custom_help = CustomHelp.objects.filter(content_type=ct).first()
+
+        context['custom_help'] = custom_help
         return context
 
 

@@ -331,11 +331,11 @@
                 {% if form.object_specific_fields or weak_formsets or through_formsets %}
                 <dt>{{ model_name|title }} Components</dt>
                 <dd>
-                    The fields in the tab are specific to {{model_name_plural}}
+                    The fields in the tab are specific to <em>{{model_name_plural}}</em>
                     and allow for item specific metadata and relations to be
                     recorded.
 
-                    For more information on {{model_name_plural}}, read the
+                    For more information on <em>{{model_name_plural}}</em>, read the
                     <a href="{% url 'aristotle_help:concept_help' app_label model %}">
                         help page.</a>
                 </dd>
@@ -352,17 +352,7 @@
                 {% endif %}
             </dl>
 
-            {% if help %}
-                <header>Help on {{ model_name_plural }}</header>
-                <strong>For more information on {{model_name_plural}}, read the
-                    <a href="{% url 'aristotle_help:concept_help' app_label model %}">
-                        help page.
-                    </a>
-                </strong>
-                <p>
-                    {% relink help 'creation_tip' %}
-                </p>
-            {% endif %}
+            {% include 'aristotle_mdr/helpers/tips_section.html' %}
         </div>
     </div>
 </div>

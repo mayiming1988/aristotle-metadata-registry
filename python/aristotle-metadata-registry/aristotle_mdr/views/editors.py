@@ -57,11 +57,23 @@ class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context.update({
+            'model_name_plural': self.model._meta.verbose_name_plural.title,
             'model': self.model._meta.model_name,
             'app_label': self.model._meta.app_label,
             'item': self.item,
             'model_class': self.model,
         })
+
+
+        if cloud_enabled():
+            from aristotle_cloud.contrib.custom_help.models import CustomHelp
+            context.update({
+                "custom_help": CustomHelp.objects.filter(
+                    content_type__app_label=self.model._meta.app_label,
+                    content_type__model=self.model._meta.model_name,
+                ).first()
+            })
+
         return context
 
     def get_form_kwargs(self):
