@@ -311,7 +311,7 @@ class GroupMemberAddView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin,
         return kwargs
 
     def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
+        context = super().get_context_data()
         context['active_group_page'] = 'members'
 
         return context
@@ -375,7 +375,7 @@ class GroupURLManager(InvitationBackend):
                 url(r'^invite$', view=self.invite_view(), name="invite"),
                 url(
                     r'^accept-invitation/(?P<user_id>[\d]+)-(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-                    view=self.activate_view(),
+                    view=self.activate_view(request=None, user_id=None, token=None),
                     name="accept_invitation"
                 ),
             ]))
