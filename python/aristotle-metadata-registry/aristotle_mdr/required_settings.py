@@ -405,4 +405,3 @@ ARISTOTLE_EMAIL_SANDBOX_NOTIFICATIONS = os.getenv('ARISTOTLE_EMAIL_SANDBOX_NOTIF
 
 # Set an environment variable as the default email address to send backend emails for account recovery (password reset).
 ARISTOTLE_EMAIL_ACCOUNT_RECOVERY = os.getenv('ARISTOTLE_EMAIL_ACCOUNT_RECOVERY', None)
-
