@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = "==1.11.20"
+django = "~=1.11"
 django-haystack = ">=2.7.dev1,<2.8.0"
 "psycopg2" = "~=2.7.0"
 "django-redis" = "*"
