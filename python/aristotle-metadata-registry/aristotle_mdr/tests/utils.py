@@ -666,7 +666,6 @@ class LoggedInViewPages(object):
 
 class FormsetTestUtils:
     """Utilities to help create formset post data"""
-
     def instantiate_formset(self, formset_class, data, instance=None, initial=None):
         prefix = formset_class().prefix
         formset_data = {}
@@ -684,7 +683,6 @@ class FormsetTestUtils:
             return formset_class(formset_data, instance=instance, initial=initial)
         else:
             return formset_class(formset_data, initial=initial)
-
 
     def get_formset_postdata(self, datalist: List[Dict], prefix: str='form', initialforms: int=0):
         """

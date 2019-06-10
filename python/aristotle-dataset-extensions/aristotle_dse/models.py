@@ -12,6 +12,8 @@ from aristotle_mdr.fields import (
     ShortTextField,
 )
 
+import reversion
+
 
 class DataCatalog(aristotle.models.concept):
     """
