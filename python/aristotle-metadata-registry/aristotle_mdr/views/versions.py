@@ -513,9 +513,6 @@ class ConceptVersionCompareView(TemplateView, SimpleItemGet, ViewableVersionsMix
     """
     template_name = 'aristotle_mdr/compare/compare.html'
 
-    first_version_kwarg = 'fvid'
-    second_version_kwarg = 'svid'
-
     field_to_diff = {}
 
     def get_concept(self):
@@ -528,7 +525,7 @@ class ConceptVersionCompareView(TemplateView, SimpleItemGet, ViewableVersionsMix
         return data[0]['fields']
 
     def generate_diff(self, first_json, second_json):
-        # Because of how difflib works the first json must be the earlier version
+        # Because of how Google's diff-match-patch works the first json must be the earlier version
         # We only need to iterate one time because the fields should be consistent across
         # the JSON serialized_data
         DiffMatchPatch = diff_match_patch.diff_match_patch()
@@ -547,15 +544,14 @@ class ConceptVersionCompareView(TemplateView, SimpleItemGet, ViewableVersionsMix
                 self.field_to_diff[field] = diff
 
             if isinstance(first_value, dict):
-                # TODO: implment recursive behavior for this
+                # TODO: implement recursive behavior for this
                 pass
-        raise ValueError(self.field_to_diff)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        first_json = self.get_json(kwargs.pop(self.first_version_kwarg))
-        second_json = self.get_json(kwargs.pop(self.second_version_kwarg))
+        first_json = self.get_json(pk=self.request.GET.get('v1', ''))
+        second_json = self.get_json(pk=self.request.GET.get('v2', ''))
 
         self.generate_diff(first_json, second_json)
 
