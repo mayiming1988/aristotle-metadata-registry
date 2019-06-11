@@ -10,7 +10,7 @@ initMessages();
 document.getElementById('edit-visibilities-button').addEventListener("click", enable_editing);
 document.getElementById('save-visibilities-button').addEventListener("click", update_visibilities);
 
-document.getElementById('compare').addEventListener("click", build_compare_url);
+document.getElementById('compare').addEventListener("click", go_to_compare);
 
 function enable_editing() {
     var visibilitySelects = document.getElementsByClassName('visibility-select');
@@ -46,15 +46,28 @@ function update_visibilities() {
         () => addHeaderMessage("Saving visibilities was successful!"));
 }
 
-function build_compare_url() {
+function go_to_compare() {
     let compareButton = document.getElementById('compare');
+
     let base_url = compareButton.getAttribute('data-compare-url');
 
-    let firstVersionId = document.querySelector('input[name="version_id1"]:checked').value;
-    let secondVersionId = document.querySelector('input[name="version_id2"]:checked').value;
+    let firstVersionRadioButton = document.querySelector('input[name="version_id1"]:checked');
+    let secondVersionRadioButton = document.querySelector('input[name="version_id2"]:checked');
+
+    if (firstVersionRadioButton === null | secondVersionRadioButton === null) {
+        return null
+    }
+    let firstVersionId =  firstVersionRadioButton.value;
+    let secondVersionId = secondVersionRadioButton.value;
+
+    if (firstVersionId === secondVersionId) {
+        // You can't compare the same version
+        addHeaderMessage("You can't compare a version with itself!");
+        return null
+    }
 
     let url = base_url + `?v1=${firstVersionId}&v2=${secondVersionId}`
-
+    // Redirect to URL
     window.location.href = url
 
 
