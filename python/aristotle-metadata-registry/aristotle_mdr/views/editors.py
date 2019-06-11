@@ -69,7 +69,6 @@ class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
             ).first(),
         })
 
-
         if cloud_enabled():
             from aristotle_cloud.contrib.custom_help.models import CustomHelp
             context.update({

@@ -105,7 +105,6 @@ class ConceptFieldHelpView(TemplateView):
         try:
             field = ct.model_class()._meta.get_field(field_name)
         except FieldDoesNotExist:
-        # if field is None:
             raise Http404
 
         custom_help = None
@@ -126,4 +125,3 @@ class ConceptFieldHelpView(TemplateView):
             'custom_help': custom_help,
         })
         return super().get_context_data(**kwargs)
-        

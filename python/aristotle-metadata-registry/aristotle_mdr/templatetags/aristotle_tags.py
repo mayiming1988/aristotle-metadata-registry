@@ -575,6 +575,7 @@ def field_help_icon(context, item_or_model, field_name):
         template.render(extra_context, context['request'])
     )
 
+
 @register.filter()
 def get_field(content_type, field_name):
     return content_type.model_class()._meta.get_field(field_name)
