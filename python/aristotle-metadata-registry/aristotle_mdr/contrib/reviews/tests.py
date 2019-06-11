@@ -514,27 +514,6 @@ class ReviewRequestSupersedesTestCase(utils.AristotleTestUtils, TestCase):
         self.assertIsNotNone(status)
         self.assertEqual(status.state, MDR.STATES.superseded)
 
-    @tag('proposed')
-    def test_proposed_ss_not_shown_item_page(self):
-        self.item.submitter = self.editor
-        self.item.save()
-        older = MDR.ObjectClass.objects.create(
-            name='TheOldestItem',
-            definition='Very old',
-            submitter=self.editor
-        )
-        ss = self.create_ss_relation(older, self.item)
-        self.assertTrue(ss.proposed)
-
-        self.login_editor()
-        response = self.reverse_get(
-            'aristotle:item',
-            reverse_args=[self.item.id],
-            follow=True,
-            status_code=200
-        )
-        self.assertNotContains(response, 'TheOldestItem')
-
     def test_supersedes_edit_page_registrar(self):
         """Make sure a registrar can't edit supersedes (need to be manager)"""
         self.login_registrar()
