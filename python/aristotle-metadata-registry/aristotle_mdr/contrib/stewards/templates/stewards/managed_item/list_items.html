@@ -60,7 +60,7 @@ Showing
             {% for item in page_obj %}
                 <tr>
                     <td>
-                        {% include "aristotle_mdr/helpers/itemLink.html" with item=item shared_items=shared_items %}
+                        {% include "aristotle_mdr/helpers/itemLink.html" with item=item shared_items=shared_items skip_can_view=True %}
                     </td>
                     <td>
                         {% include item.item.list_details_template with item=item %}
