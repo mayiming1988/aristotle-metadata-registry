@@ -590,6 +590,7 @@ class ConceptVersionListView(ListView):
     as listing all the specific versions
     """
     template_name = 'aristotle_mdr/compare/versions.html'
+    item_action_url = 'aristotle:item_version'
 
     model = MDR._concept
     pk_url_kwarg = 'iid'
@@ -606,10 +607,8 @@ class ConceptVersionListView(ListView):
         return item
 
     def get_queryset(self):
-        """Return a queryset of all the versions the user has permission to access """
-
-        return []
-
+        """Return a queryset of all the versions the user has permission to access as well as associated metadata
+         involved in template rendering"""
         metadata_item = self.get_object()
 
         versions = reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
@@ -643,14 +642,44 @@ class ConceptVersionListView(ListView):
                     else:
                         # Visibility is public, don't exclude this version
                         pass
+        versions = versions.order_by('-revision__date_created')
 
-        return versions.order_by("-revision__date_created")
+
+        version_list = []
+        for version in versions:
+            version_permission = VersionPermissions.objects.get_object_or_none(version=version)
+
+            if version_permission is None:
+                # Default to workgroup level permissions
+                version_permission_code = 0
+            else:
+                version_permission_code = version_permission.visibility
+
+            version_list.append({
+                'permission': int(version_permission_code),
+                'version': version,
+                'revision': version.revision,
+                'url': reverse(self.item_action_url, args=[version.id])
+            })
+
+        return version_list
 
     def get_context_data(self, **kwargs):
+        super().get_context_data()
+
+        # Determine the editing permissions of the user
+        metadata_item = self.get_object()
+        USER_CAN_EDIT = user_can_edit(self.request.user, metadata_item)
+
         context = {
             'activetab': 'history',
+            'user_can_edit': USER_CAN_EDIT
         }
+
+
+        context['object'] = self.get_object()
         context['item'] = self.get_object().item
+        context['versions'] = self.get_queryset()
 
         return context
 
