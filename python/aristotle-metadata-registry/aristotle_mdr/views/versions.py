@@ -524,29 +524,31 @@ class ConceptVersionCompareView(TemplateView, SimpleItemGet, ViewableVersionsMix
     def get_json(self, pk):
         version = reversion.models.Version.objects.get(pk=pk)
         data = json.loads(version.serialized_data)
-        return data[0]
+        return data[0]['fields']
 
     def generate_diff(self, first_json, second_json):
         # Because of how difflib works the first json must be the earlier version
         # We only need to iterate one time because the fields should be consistent across
-        # the JSON
-
-        diffmatchpatch = diff_match_patch.diff_match_patch()
+        # the JSON serialized_data
+        DiffMatchPatch = diff_match_patch.diff_match_patch()
 
         for field in first_json:
             first_value = first_json[field]
-            second_value = second_json[field]
 
-            if isinstance(first_value, str):
+            second_value = ''
+            if field in second_json:
+                second_value = second_json[field]
 
-                diff = diffmatchpatch.diff_main(first_value, second_value)
-
-                diffmatchpatch.diff_cleanupSemantic(diff)
-
+            if isinstance(first_value, str) or isinstance(first_value, int):
+                # No special treatment required
+                diff = DiffMatchPatch.diff_main(str(first_value), str(second_value))
+                DiffMatchPatch.diff_cleanupSemantic(diff)
                 self.field_to_diff[field] = diff
 
+            if isinstance(first_value, dict):
+                # TODO: implment recursive behavior for this
+                pass
         raise ValueError(self.field_to_diff)
-
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -556,12 +558,11 @@ class ConceptVersionCompareView(TemplateView, SimpleItemGet, ViewableVersionsMix
 
         self.generate_diff(first_json, second_json)
 
+        context['diffs'] = self.field_to_diff
         context['item'] = self.get_concept().item
         context['activetab'] = 'history'
 
-
         return context
-
 
 
 class ConceptVersionListView(ListView, SimpleItemGet, ViewableVersionsMixin):

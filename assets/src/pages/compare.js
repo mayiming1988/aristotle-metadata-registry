@@ -7,10 +7,8 @@ import {addHeaderMessage, initMessages} from 'src/lib/messages.js'
 init();
 initMessages();
 
-$(document).ready(function() {
-    document.getElementById('edit-visibilities-button').addEventListener("click", enable_editing);
-    document.getElementById('save-visibilities-button').addEventListener("click", update_visibilities);
-});
+document.getElementById('edit-visibilities-button').addEventListener("click", enable_editing);
+document.getElementById('save-visibilities-button').addEventListener("click", update_visibilities);
 
 function enable_editing() {
     var visibilitySelects = document.getElementsByClassName('visibility-select');
@@ -46,3 +44,6 @@ function update_visibilities() {
         () => addHeaderMessage("Saving visibilities was successful!"));
 }
 
+function build_compare_url() {
+
+}
