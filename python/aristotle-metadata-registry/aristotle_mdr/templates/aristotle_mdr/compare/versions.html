@@ -13,9 +13,6 @@
 {% endblock %}
 
 {% block infoContent %}
-
-
-
 <table id="change-history" class='table table-striped'
        data-update-api-url="{% url 'api_v4:item:update-version-permissions' object.id %}">
     <caption>Revisions for {{object.name}}
@@ -25,7 +22,6 @@
     <tr>
             <th scope="col">
                     <input class="btn btn-default btn-xs" type="submit" value="{% trans 'Compare' %}">
-                    <i>{% trans 'Compare' %}</i>
             </th>
         <th scope="col">{% trans 'Date/time' %}</th>
         <th scope="col">{% trans 'User' %}</th>
@@ -51,7 +47,6 @@
                 <td scope="row">
                         <input type="radio" name="version_id1" value="{{ version.version.pk|unlocalize }}" {% if version.first %}style="visibility:hidden" {% endif %}{% if version1.pk|unlocalize == version.version.pk|unlocalize or action.second %}checked="checked"{% endif%}/>
                         <input type="radio" name="version_id2" value="{{ version.version.pk|unlocalize }}" {% if version2.pk|unlocalize == version.version.pk|unlocalize or version.first == 1 %}checked="checked"{% endif%}/>
-                        <i>-</i>
                 </td>
             <th scope="row">
                 {% if version.url %}
@@ -68,9 +63,8 @@
             <td>{{version.revision.comment|linebreaks|default:"-"}}</td>
             <td>
                 {# Visibility #}
-
                 {% if user_can_edit %}
-                    <select disabled class="form-control visibility-select version-select" data-version-id="{{ version.version.id }}">
+                    <select disabled class="form-control visibility-select version-select" data-version-id="{{ version.version.pk }}">
                         <option value="0" {% if version.permission == choices.public %}selected{%endif%}>&#xf0ac; Public</option>
                         <option value="1" {% if version.permission == choices.auth %}selected{%endif%}>&#xf2bd; Logged in users</option>
                         <option value="2" {% if version.permission == choices.workgroup %}selected{%endif%}
@@ -85,31 +79,6 @@
     {% endfor %}
             </tr>
     </tbody>
-    <tfoot>
-    <tr>
-        {% if compare_view %}
-            <th scope="col">
-                {% if comparable %}
-                    <input class="btn btn-default btn-xs" type="submit" value="{% trans 'Compare' %}">
-                {% else %}
-                    <i>{% trans 'Compare' %}</i>
-                {% endif %}
-            </th>
-        {% endif %}
-        <th scope="col">
-            {#                {% trans 'Date/time' %}#}
-        </th>
-        <th scope="col">
-            {#                {% trans 'User' %}#}
-        </th>
-        <th scope="col">
-            {#                {% trans 'Comment' %}#}
-        </th>
-        <th scope="col">
-            {#                {% trans 'Visiblity' %}#}
-        </th>
-    </tr>
-    </tfoot>
 </table>
 
 {% endblock %}

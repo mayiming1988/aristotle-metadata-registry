@@ -2,7 +2,7 @@ from django.apps import apps
 from django.http import Http404, HttpResponseRedirect
 from django.core.exceptions import PermissionDenied
 from django.views.generic.list import ListView
-from django.views.generic.detail import SingleObjectMixin
+from django.views.generic import FormView
 from django.contrib.contenttypes.models import ContentType
 from django.contrib import messages
 from django.db.models import Q
@@ -465,128 +465,16 @@ class ConceptVersionView(ConceptRenderView):
         return [self.template_name]
 
 
-class ConceptHistoryCompareView(HistoryCompareDetailView):
+class ConceptVersionCompareView(FormView):
     """
-    Class that performs the historical comparision between versions of a same concept, as well
-    as listing all the specific versions
+    View that performs the historical comparision between two different versions of the same concept
     """
-    model = MDR._concept
-    pk_url_kwarg = 'iid'
-    template_name = "aristotle_mdr/actions/concept_history_compare.html"
-
-    compare_exclude = [
-        'favourites',
-        'user_view_history',
-        'submitter',
-        'is_public',
-        'is_locked',
-        'issues',
-        'owned_links'
-    ]
-
-    item_action_url = 'aristotle:item_version'
-
-    def get_object(self, queryset=None):
-        item = super().get_object(queryset)
-        if not user_can_view(self.request.user, item):
-            raise PermissionDenied
-        self.model = item.item.__class__  # Get the subclassed object
-        return item
-
-    # Overwrite this to add item url
-    def _get_action_list(self):
-        action_list = []
-        metadata_item = self.get_object()
-        versions = self._order_version_queryset(
-            reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
-        )
-
-        in_workgroup = (metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list)
-        authenticated_user = (not self.request.user.is_anonymous())
-
-        # Determine the viewing permissions of the users
-        if not (self.request.user.is_superuser):
-            # Superusers can see everything
-            for version in versions:
-                version_permission = VersionPermissions.objects.get_object_or_none(version=version)
-
-                if version_permission is None:
-                    # Default to applying workgroup permissions
-                    if not in_workgroup:
-                        versions = versions.exclude(pk=version.pk)
-                else:
-                    visibility = int(version_permission.visibility)
-
-                    if visibility == VISIBILITY_PERMISSION_CHOICES.workgroup:
-                        # Apply workgroup permissions
-                        if not in_workgroup:
-                            versions = versions.exclude(pk=version.pk)
-
-                    elif visibility == VISIBILITY_PERMISSION_CHOICES.auth:
-                        # Exclude anonymous users
-                        if not authenticated_user:
-                            versions = versions.exclude(pk=version.pk)
-
-                    else:
-                        # Visibility is public, don't exclude this version
-                        pass
-
-        versions = versions.order_by("-revision__date_created")
-
-        # Determine the editing permissions of the user
-        USER_CAN_EDIT = user_can_edit(self.request.user, metadata_item)
-
-        for version in versions:
-            version_permission = VersionPermissions.objects.get_object_or_none(version=version)
-
-            if version_permission is None:
-                # Default to workgroup level permissions
-                version_permission_code = 0
-            else:
-                version_permission_code = version_permission.visibility
-
-            action_list.append({
-                'permission': int(version_permission_code),
-                'version': version,
-                'revision': version.revision,
-                'url': reverse(self.item_action_url, args=[version.id])
-            })
-
-        return action_list
-
-    def get_context_data(self, *args, **kwargs):
-
-        # Determine the editing permissions of the user
-        metadata_item = self.get_object()
-        USER_CAN_EDIT = user_can_edit(self.request.user, metadata_item)
-
-        context = {
-            'activetab': 'history',
-            'hide_item_actions': True,
-            'choices': VISIBILITY_PERMISSION_CHOICES,
-            'user_can_edit': USER_CAN_EDIT,
-        }
-
-        try:
-            context.update(super().get_context_data(*args, **kwargs))
-        except reversion.errors.RevertError:
-            # There was a deserialization error
-            # Return context so we can show user error message
-            logger.error('Reversion deserialization error')
-            context['object'] = self.get_object()
-            context['item'] = context['object']
-            context['failed'] = True
-            return context
-
-        context['failed'] = False
-        context['item'] = context['object'].item
-
-        return context
+    pass
 
 
 class ConceptVersionListView(ListView):
     """
-    Class that performs the historical comparision between versions of a same concept, as well
+    View that performs the historical comparision between versions of the same concept, as well
     as listing all the specific versions
     """
     template_name = 'aristotle_mdr/compare/versions.html'
@@ -594,7 +482,6 @@ class ConceptVersionListView(ListView):
 
     model = MDR._concept
     pk_url_kwarg = 'iid'
-
 
     def get_object(self):
         item = MDR._concept.objects.get(pk=self.kwargs[self.pk_url_kwarg])
@@ -617,7 +504,7 @@ class ConceptVersionListView(ListView):
         authenticated_user = (not self.request.user.is_anonymous())
 
         # Determine the viewing permissions of the users
-        if not (self.request.user.is_superuser):
+        if not self.request.user.is_superuser:
             # Superusers can see everything
             for version in versions:
                 version_permission = VersionPermissions.objects.get_object_or_none(version=version)
@@ -644,9 +531,9 @@ class ConceptVersionListView(ListView):
                         pass
         versions = versions.order_by('-revision__date_created')
 
-
         version_list = []
         for version in versions:
+            # TODO: move to bulk lookup for performance
             version_permission = VersionPermissions.objects.get_object_or_none(version=version)
 
             if version_permission is None:
@@ -671,16 +558,10 @@ class ConceptVersionListView(ListView):
         metadata_item = self.get_object()
         USER_CAN_EDIT = user_can_edit(self.request.user, metadata_item)
 
-        context = {
-            'activetab': 'history',
-            'user_can_edit': USER_CAN_EDIT
-        }
-
-
-        context['object'] = self.get_object()
-        context['item'] = self.get_object().item
-        context['versions'] = self.get_queryset()
+        context = {'activetab': 'history',
+                   'user_can_edit': USER_CAN_EDIT,
+                   'object': self.get_object(),
+                   'item': self.get_object().item,
+                   'versions': self.get_queryset()}
 
         return context
-
-
