@@ -1,12 +1,14 @@
 from django.apps import apps
 from django.http import Http404, HttpResponseRedirect
 from django.core.exceptions import PermissionDenied
+from django.views.generic.list import ListView
 from django.contrib.contenttypes.models import ContentType
 from django.contrib import messages
 from django.db.models import Q
 from django.utils.dateparse import parse_datetime
 from django.urls import reverse
 from django.core.exceptions import FieldDoesNotExist
+from django.shortcuts import get_object_or_404
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils.text import pretify_camel_case
@@ -117,7 +119,7 @@ class VersionField:
 
 
 class ConceptVersionView(ConceptRenderView):
-
+    """ Display the version of a concept at a particular point"""
     slug_redirect = False
     version_arg = 'verid'
     template_name = 'aristotle_mdr/concepts/managedContentVersion.html'
@@ -465,7 +467,8 @@ class ConceptVersionView(ConceptRenderView):
 
 class ConceptHistoryCompareView(HistoryCompareDetailView):
     """
-    Class that performs the historical comparision between versions of a same concept
+    Class that performs the historical comparision between versions of a same concept, as well
+    as listing all the specific versions
     """
     model = MDR._concept
     pk_url_kwarg = 'iid'
@@ -579,3 +582,65 @@ class ConceptHistoryCompareView(HistoryCompareDetailView):
         context['item'] = context['object'].item
 
         return context
+
+
+class ConceptVersionListView(ListView):
+    """
+    Class that performs the historical comparision between versions of a same concept, as well
+    as listing all the specific versions
+    """
+    template_name = 'aristotle_mdr/compare/versions.html'
+
+    def get_object(self, *args, **kwargs):
+        pk = kwargs['iid']
+        item = get_object_or_404(pk=pk)
+
+        if not user_can_view(self.request.user, item):
+            raise PermissionDenied
+
+        return item
+
+    def get_queryset(self):
+        """Return a queryset of all the versions the user has permission to access """
+
+        return []
+
+        metadata_item = self.get_object()
+
+        versions = reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
+
+        in_workgroup = (metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list)
+        authenticated_user = (not self.request.user.is_anonymous())
+
+        # Determine the viewing permissions of the users
+        if not (self.request.user.is_superuser):
+            # Superusers can see everything
+            for version in versions:
+                version_permission = VersionPermissions.objects.get_object_or_none(version=version)
+
+                if version_permission is None:
+                    # Default to applying workgroup permissions
+                    if not in_workgroup:
+                        versions = versions.exclude(pk=version.pk)
+                else:
+                    visibility = int(version_permission.visibility)
+
+                    if visibility == VISIBILITY_PERMISSION_CHOICES.workgroup:
+                        # Apply workgroup permissions
+                        if not in_workgroup:
+                            versions = versions.exclude(pk=version.pk)
+
+                    elif visibility == VISIBILITY_PERMISSION_CHOICES.auth:
+                        # Exclude anonymous users
+                        if not authenticated_user:
+                            versions = versions.exclude(pk=version.pk)
+
+                    else:
+                        # Visibility is public, don't exclude this version
+                        pass
+
+        return versions.order_by("-revision__date_created")
+
+    def get_context_data(self, **kwargs):
+        super().get_context_data()
+
