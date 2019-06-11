@@ -20,7 +20,7 @@ from aristotle_mdr.views.utils import SimpleItemGet
 
 import json
 import reversion
-import difflib
+import diff_match_patch
 
 from collections import defaultdict
 from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
@@ -214,7 +214,7 @@ class ConceptVersionView(ConceptRenderView):
         # Find weak models create mapping of model labels to link fields
         weak_map = self.default_weak_map
         for field in model._meta.get_fields():
-            if field.is_relation and field.one_to_many and\
+            if field.is_relation and field.one_to_many and \
                     issubclass(field.related_model, MDR.aristotleComponent):
                 weak_map[field.related_model._meta.label_lower] = field.field.name
 
@@ -513,22 +513,55 @@ class ConceptVersionCompareView(TemplateView, SimpleItemGet, ViewableVersionsMix
     """
     template_name = 'aristotle_mdr/compare/compare.html'
 
+    first_version_kwarg = 'fvid'
+    second_version_kwarg = 'svid'
+
+    field_to_diff = {}
+
     def get_concept(self):
         return self.get_item(self.request.user)
 
-    def get_versions(self, **kwargs):
-        first_version = reversion.models.Version.objects.get(pk=kwargs.pop('fvid'))
-        second_version = reversion.models.Version.objects.get(pk=kwargs.pop('svid'))
+    def get_json(self, pk):
+        version = reversion.models.Version.objects.get(pk=pk)
+        data = json.loads(version.serialized_data)
+        return data[0]
 
+    def generate_diff(self, first_json, second_json):
+        # Because of how difflib works the first json must be the earlier version
+        # We only need to iterate one time because the fields should be consistent across
+        # the JSON
 
-    def generate_diff(self):
-        pass
+        diffmatchpatch = diff_match_patch.diff_match_patch()
+
+        for field in first_json:
+            first_value = first_json[field]
+            second_value = second_json[field]
+
+            if isinstance(first_value, str):
+
+                diff = diffmatchpatch.diff_main(first_value, second_value)
+
+                diffmatchpatch.diff_cleanupSemantic(diff)
+
+                self.field_to_diff[field] = diff
+
+        raise ValueError(self.field_to_diff)
 
 
     def get_context_data(self, **kwargs):
-        super().get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
-        versions = self.get_versions(**kwargs)
+        first_json = self.get_json(kwargs.pop(self.first_version_kwarg))
+        second_json = self.get_json(kwargs.pop(self.second_version_kwarg))
+
+        self.generate_diff(first_json, second_json)
+
+        context['item'] = self.get_concept().item
+        context['activetab'] = 'history'
+
+
+        return context
+
 
 
 class ConceptVersionListView(ListView, SimpleItemGet, ViewableVersionsMixin):
@@ -570,8 +603,6 @@ class ConceptVersionListView(ListView, SimpleItemGet, ViewableVersionsMixin):
         return version_list
 
     def get_context_data(self, **kwargs):
-        super().get_context_data()
-
         # Determine the editing permissions of the user
         metadata_item = self.get_object()
         USER_CAN_EDIT = user_can_edit(self.request.user, metadata_item)
