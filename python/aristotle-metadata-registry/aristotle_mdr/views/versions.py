@@ -2,7 +2,7 @@ from django.apps import apps
 from django.http import Http404, HttpResponseRedirect
 from django.core.exceptions import PermissionDenied
 from django.views.generic.list import ListView
-from django.views.generic import FormView
+from django.views.generic import TemplateView
 from django.contrib.contenttypes.models import ContentType
 from django.contrib import messages
 from django.db.models import Q
@@ -16,11 +16,13 @@ from aristotle_mdr.views.views import ConceptRenderView
 from aristotle_mdr.perms import user_can_view, user_can_edit
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
+from aristotle_mdr.views.utils import SimpleItemGet
 
 import json
-from collections import defaultdict
-from reversion_compare.views import HistoryCompareDetailView
 import reversion
+import difflib
+
+from collections import defaultdict
 from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
 
 import logging
@@ -465,38 +467,8 @@ class ConceptVersionView(ConceptRenderView):
         return [self.template_name]
 
 
-class ConceptVersionCompareView(FormView):
-    """
-    View that performs the historical comparision between two different versions of the same concept
-    """
-    pass
-
-
-class ConceptVersionListView(ListView):
-    """
-    View that performs the historical comparision between versions of the same concept, as well
-    as listing all the specific versions
-    """
-    template_name = 'aristotle_mdr/compare/versions.html'
-    item_action_url = 'aristotle:item_version'
-
-    model = MDR._concept
-    pk_url_kwarg = 'iid'
-
-    def get_object(self):
-        item = MDR._concept.objects.get(pk=self.kwargs[self.pk_url_kwarg])
-
-        if not user_can_view(self.request.user, item):
-            raise PermissionDenied
-
-        self.model = item.item.__class__  # Get the subclassed object
-
-        return item
-
-    def get_queryset(self):
-        """Return a queryset of all the versions the user has permission to access as well as associated metadata
-         involved in template rendering"""
-        metadata_item = self.get_object()
+class ViewableVersionsMixin:
+    def get_versions(self, metadata_item):
 
         versions = reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
 
@@ -529,7 +501,53 @@ class ConceptVersionListView(ListView):
                     else:
                         # Visibility is public, don't exclude this version
                         pass
+
         versions = versions.order_by('-revision__date_created')
+
+        return versions
+
+
+class ConceptVersionCompareView(TemplateView, SimpleItemGet, ViewableVersionsMixin):
+    """
+    View that performs the historical comparision between two different versions of the same concept
+    """
+    template_name = 'aristotle_mdr/compare/compare.html'
+
+    def get_concept(self):
+        return self.get_item(self.request.user)
+
+    def get_versions(self, **kwargs):
+        first_version = reversion.models.Version.objects.get(pk=kwargs.pop('fvid'))
+        second_version = reversion.models.Version.objects.get(pk=kwargs.pop('svid'))
+
+
+    def generate_diff(self):
+        pass
+
+
+    def get_context_data(self, **kwargs):
+        super().get_context_data(**kwargs)
+
+        versions = self.get_versions(**kwargs)
+
+
+class ConceptVersionListView(ListView, SimpleItemGet, ViewableVersionsMixin):
+    """
+    View  that lists all the specific versions of a particular concept
+    """
+    template_name = 'aristotle_mdr/compare/versions.html'
+    item_action_url = 'aristotle:item_version'
+
+    def get_object(self):
+        item = self.get_item(self.request.user)
+        self.model = item.item.__class__  # Get the subclassed object
+        return item
+
+    def get_queryset(self):
+        """Return a queryset of all the versions the user has permission to access as well as associated metadata
+         involved in template rendering"""
+        metadata_item = self.get_object()
+        versions = self.get_versions(metadata_item)
 
         version_list = []
         for version in versions:

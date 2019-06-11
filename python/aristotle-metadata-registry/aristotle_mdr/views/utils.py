@@ -628,7 +628,6 @@ class TagsMixin:
 
 
 class SimpleItemGet:
-
     item_id_arg = 'iid'
 
     def get_item(self, user):

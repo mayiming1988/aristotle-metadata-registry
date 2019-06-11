@@ -1,0 +1,18 @@
+{% extends 'aristotle_mdr/concepts/contentInfoBase.html' %}
+
+{% load aristotle_tags i18n l10n %}
+{% load render_bundle from webpack_loader %}
+
+{% block title %}Version history of {{ object.item.name }}{% endblock %}
+
+{% block webpack_css_bundle %}
+    {% render_bundle 'compare' 'css' %}
+{% endblock %}
+
+{% block webpack_bundle %}
+    {% render_bundle 'compare' 'js' %}
+{% endblock %}
+
+{% block infoContent %}
+Hello World
+{% endblock %}
