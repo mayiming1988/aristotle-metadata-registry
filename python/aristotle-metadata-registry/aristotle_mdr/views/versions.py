@@ -2,13 +2,13 @@ from django.apps import apps
 from django.http import Http404, HttpResponseRedirect
 from django.core.exceptions import PermissionDenied
 from django.views.generic.list import ListView
+from django.views.generic.detail import SingleObjectMixin
 from django.contrib.contenttypes.models import ContentType
 from django.contrib import messages
 from django.db.models import Q
 from django.utils.dateparse import parse_datetime
 from django.urls import reverse
 from django.core.exceptions import FieldDoesNotExist
-from django.shortcuts import get_object_or_404
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils.text import pretify_camel_case
@@ -591,12 +591,17 @@ class ConceptVersionListView(ListView):
     """
     template_name = 'aristotle_mdr/compare/versions.html'
 
-    def get_object(self, *args, **kwargs):
-        pk = kwargs['iid']
-        item = get_object_or_404(pk=pk)
+    model = MDR._concept
+    pk_url_kwarg = 'iid'
+
+
+    def get_object(self):
+        item = MDR._concept.objects.get(pk=self.kwargs[self.pk_url_kwarg])
 
         if not user_can_view(self.request.user, item):
             raise PermissionDenied
+
+        self.model = item.item.__class__  # Get the subclassed object
 
         return item
 
@@ -642,5 +647,11 @@ class ConceptVersionListView(ListView):
         return versions.order_by("-revision__date_created")
 
     def get_context_data(self, **kwargs):
-        super().get_context_data()
+        context = {
+            'activetab': 'history',
+        }
+        context['item'] = self.get_object().item
+
+        return context
+
 
