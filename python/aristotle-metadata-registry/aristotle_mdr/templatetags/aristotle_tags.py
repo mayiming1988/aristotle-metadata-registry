@@ -172,7 +172,7 @@ def visible_supersedes_items(item, user):
         'superseded_by_items_relation_set__registration_authority',
     ).visible(user).filter(
         superseded_by_items_relation_set__newer_item_id=item.pk,
-        superseded_by_items_relation_set__proposed=False
+        # superseded_by_items_relation_set__proposed=False
     ).distinct()
     sup_rels = [
         {
@@ -184,9 +184,11 @@ def visible_supersedes_items(item, user):
                     "message": sup.message,
                     "date_effective": sup.date_effective,
                     "registration_authority": sup.registration_authority,
+                    "proposed": sup.proposed
                 }
                 for sup in obj.superseded_by_items_relation_set.all()
-                if sup.newer_item_id == item.pk and sup.proposed is False
+                if sup.newer_item_id == item.pk
+                # and sup.proposed is False
             ]
         }
         for obj in objects

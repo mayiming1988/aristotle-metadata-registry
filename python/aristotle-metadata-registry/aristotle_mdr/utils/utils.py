@@ -215,7 +215,11 @@ error_messages = {
 }
 
 
-def fetch_aristotle_settings():
+def fetch_aristotle_settings() -> Dict:
+    """
+    Fetch Aristotle settings.
+    :return: dict with all the aristotle settings.
+    """
     if hasattr(settings, 'ARISTOTLE_SETTINGS_LOADER'):
         aristotle_settings = import_string(getattr(settings, 'ARISTOTLE_SETTINGS_LOADER'))()
     else:

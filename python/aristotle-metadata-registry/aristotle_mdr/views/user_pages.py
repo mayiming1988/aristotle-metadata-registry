@@ -589,7 +589,6 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
                 if len(recently_added_emails) > 0:
                     send_sandbox_notification_emails.delay(
                         recently_added_emails,
-                        self.request.user.email,
                         self.request.get_host() + reverse('aristotle_mdr:sharedSandbox', args=[self.share.uuid])
                     )
 

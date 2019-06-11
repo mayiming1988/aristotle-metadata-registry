@@ -40,7 +40,7 @@ User = get_user_model()
 class ListForObjectMixin(DetailView):
     related_class = None
 
-    def get_object(self):
+    def get_object(self, queryset=None):
         self.object = DetailView.get_object(self, queryset=self.related_class.objects.all())
         return self.object
 
@@ -311,7 +311,7 @@ class GroupMemberAddView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin,
         return kwargs
 
     def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
+        context = super().get_context_data()
         context['active_group_page'] = 'members'
 
         return context
@@ -375,7 +375,7 @@ class GroupURLManager(InvitationBackend):
                 url(r'^invite$', view=self.invite_view(), name="invite"),
                 url(
                     r'^accept-invitation/(?P<user_id>[\d]+)-(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-                    view=self.activate_view(),
+                    view=self.activate_view(request=None, user_id=None, token=None),
                     name="accept_invitation"
                 ),
             ]))
@@ -484,7 +484,7 @@ class GroupURLManager(InvitationBackend):
     registration_form_template = 'aristotle_mdr/users_management/newuser/register_form.html'
     accept_url_name = 'registry_invitations_register'
 
-    def activate_view(self):
+    def activate_view(self, request, user_id, token):
         """
         View function that activates the given User by setting `is_active` to
         true if the provided information is verified.
@@ -547,7 +547,7 @@ class GroupURLManager(InvitationBackend):
 
         return ActivateView.as_view(manager=self, group_class=self.group_class)
 
-    def invite_by_emails(self, emails, group, sender=None, request=None, **kwargs):
+    def invite_by_emails(self, emails, group, request=None, **kwargs):
         """Creates an inactive user with the information we know and then sends
         an invitation email for that user to complete registration.
         If your project uses email in a different way then you should make to
@@ -567,12 +567,12 @@ class GroupURLManager(InvitationBackend):
                 )
                 user.is_active = False
                 user.save()
-            self.send_invitation(user, group=group, sender=request.user, request=request, **kwargs)
+                kwargs.update({'group': group})
+            self.send_invitation(user, sender=request.user, request=request, **kwargs)
             users.append(user)
         return users
 
-    def email_message(self, user, subject_template, body_template, request, group, sender=None,
-                      message_class=EmailMessage, **kwargs):
+    def email_message(self, user, subject_template, body_template, message_class=EmailMessage, **kwargs):
         """
         Returns an email message for a new user.
 
@@ -581,14 +581,14 @@ class GroupURLManager(InvitationBackend):
         and attach the additional component.
         """
 
-        if sender:
+        if kwargs['sender']:
             # We have a specific sender
             import email.utils
             from_email = "%s <%s>" % (
-                sender.full_name,
+                kwargs['sender'].full_name,
                 email.utils.parseaddr(settings.DEFAULT_FROM_EMAIL)[1]
             )
-            reply_to = "%s <%s>" % (sender.full_name, sender.email)
+            reply_to = "%s <%s>" % (kwargs['sender'].full_name, kwargs['sender'].email)
         else:
             # There's no specific sender
             from_email = settings.DEFAULT_FROM_EMAIL
@@ -596,13 +596,12 @@ class GroupURLManager(InvitationBackend):
 
         headers = {'Reply-To': reply_to}
         kwargs.update({
-            'sender': sender,
+            'sender': kwargs.get('sender', None),
             'user': user,
             'accept_url': reverse(
                 "%s:%s" % (self.namespace, "accept_invitation"),
-                args=[group.slug, user.pk, self.get_token(user, group)],
+                args=[kwargs['group'].slug, user.pk, self.get_token(user, **kwargs)],
             ),
-            'request': request
         })
 
         subject_template = loader.get_template(subject_template)
@@ -612,7 +611,7 @@ class GroupURLManager(InvitationBackend):
 
         return message_class(subject, body, from_email, [user.email], headers=headers)
 
-    def send_invitation(self, user, group, sender=None, **kwargs):
+    def send_invitation(self, user, sender=None, **kwargs):
         """An intermediary function for sending an invitation email that
         selects the templates, generating the token, and ensuring that the user
         has not already joined the site.
@@ -624,17 +623,18 @@ class GroupURLManager(InvitationBackend):
         if user.is_active:
             return False
 
-        token = self.get_token(user, group)
+        token = self.get_token(user, **kwargs)
         kwargs.update({'token': token})
         kwargs.update({'sender': sender})
         kwargs.update({'user_id': user.pk})
+        kwargs.update({'group': kwargs['group']})
 
-        self.email_message(user, self.invitation_subject, self.invitation_body, group=group, **kwargs).send()
+        self.email_message(user, self.invitation_subject, self.invitation_body, **kwargs).send()
         return True
 
-    def get_token(self, user, group, **kwargs):
+    def get_token(self, user, **kwargs):
         """Returns a unique token for the given user"""
-        return GroupRegistrationTokenGenerator(group).make_token(user)
+        return GroupRegistrationTokenGenerator(kwargs['group']).make_token(user)
 
 
 def group_backend_factory(*args, **kwargs):

@@ -200,11 +200,16 @@ class SignupMixin:
 
     def send_password_reset(self, user_email, request):
 
+        if settings.ARISTOTLE_EMAIL_ACCOUNT_RECOVERY:
+            from_email = settings.ARISTOTLE_EMAIL_ACCOUNT_RECOVERY
+        else:
+            from_email = settings.DEFAULT_FROM_EMAIL
+
         form = PasswordResetForm({'email': user_email})
         if form.is_valid():
             form.save(
                 request=request,
-                from_email=settings.DEFAULT_FROM_EMAIL,
+                from_email=from_email,
                 use_https=True
             )
             return True
