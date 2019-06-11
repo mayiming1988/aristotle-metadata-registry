@@ -10,7 +10,7 @@ initMessages();
 document.getElementById('edit-visibilities-button').addEventListener("click", enable_editing);
 document.getElementById('save-visibilities-button').addEventListener("click", update_visibilities);
 
-document.getElementById('')
+document.getElementById('compare').addEventListener("click", build_compare_url);
 
 function enable_editing() {
     var visibilitySelects = document.getElementsByClassName('visibility-select');
@@ -48,10 +48,15 @@ function update_visibilities() {
 
 function build_compare_url() {
     let compareButton = document.getElementById('compare');
-    let url = compareButton.getAttribute('data-compare-url');
+    let base_url = compareButton.getAttribute('data-compare-url');
 
     let firstVersionId = document.querySelector('input[name="version_id1"]:checked').value;
     let secondVersionId = document.querySelector('input[name="version_id2"]:checked').value;
 
-    console.log(firstVersionId + " " + secondVersionId)
+    let url = base_url + `?v1=${firstVersionId}&v2=${secondVersionId}`
+
+    window.location.href = url
+
+
+
 }

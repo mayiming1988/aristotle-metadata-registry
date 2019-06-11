@@ -524,6 +524,7 @@ class ConceptVersionCompareView(TemplateView, SimpleItemGet, ViewableVersionsMix
     def get_json(self, pk):
         version = reversion.models.Version.objects.get(pk=pk)
         data = json.loads(version.serialized_data)
+        # We're only really interested in the fields
         return data[0]['fields']
 
     def generate_diff(self, first_json, second_json):
