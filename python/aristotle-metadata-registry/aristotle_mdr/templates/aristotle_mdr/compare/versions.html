@@ -16,12 +16,13 @@
 <table id="change-history" class='table table-striped'
        data-update-api-url="{% url 'api_v4:item:update-version-permissions' object.id %}">
     <caption>Revisions for {{object.name}}
-            - {% trans 'Select two items and click compare to see the differences between them'%}
+            - {% trans 'Select two items and click compare to see the differences between them.'%}
     </caption>
     <thead>
     <tr>
             <th scope="col">
-                    <input class="btn btn-default btn-xs" type="submit" value="{% trans 'Compare' %}">
+                    <input id="compare" class="btn btn-default btn-xs" type="submit" value="{% trans 'Compare' %}"
+                           data-compare-url="{% url 'aristotle:compare_versions' object.id %}">
             </th>
         <th scope="col">{% trans 'Date/time' %}</th>
         <th scope="col">{% trans 'User' %}</th>
@@ -45,8 +46,11 @@
     {% for version in versions %}
         <tr>
                 <td scope="row">
-                        <input type="radio" name="version_id1" value="{{ version.version.pk|unlocalize }}" {% if version.first %}style="visibility:hidden" {% endif %}{% if version1.pk|unlocalize == version.version.pk|unlocalize or action.second %}checked="checked"{% endif%}/>
-                        <input type="radio" name="version_id2" value="{{ version.version.pk|unlocalize }}" {% if version2.pk|unlocalize == version.version.pk|unlocalize or version.first == 1 %}checked="checked"{% endif%}/>
+                        <input type="radio" name="version_id1" value="{{ version.version.pk|unlocalize }}"
+                               {% if version.first %}style="visibility:hidden"
+                               {% endif %}{% if version1.pk|unlocalize == version.version.pk|unlocalize or action.second %}checked="checked"{% endif%}/>
+                        <input type="radio" name="version_id2" value="{{ version.version.pk|unlocalize }}"
+                               {% if version2.pk|unlocalize == version.version.pk|unlocalize or version.first == 1 %}checked="checked"{% endif%}/>
                 </td>
             <th scope="row">
                 {% if version.url %}
