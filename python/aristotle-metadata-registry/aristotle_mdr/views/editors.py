@@ -15,6 +15,7 @@ from aristotle_mdr import models as MDR
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
 
 from aristotle_mdr.views.utils import ObjectLevelPermissionRequiredMixin
+from aristotle_mdr.contrib.help.models import ConceptHelp
 from aristotle_mdr.contrib.identifiers.models import ScopedIdentifier
 from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.custom_fields.forms import CustomValueFormMixin
@@ -62,6 +63,10 @@ class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
             'app_label': self.model._meta.app_label,
             'item': self.item,
             'model_class': self.model,
+            'help': ConceptHelp.objects.filter(
+                app_label=self.model._meta.app_label,
+                concept_type=self.model._meta.model_name
+            ).first(),
         })
 
 

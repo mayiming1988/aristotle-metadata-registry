@@ -119,7 +119,10 @@
             </div>
             {% for field in form.concept_fields %}
                 <div class="wizard_field">
-                    <span>{{ field.label_tag }} {{ field.help_text }}</span>
+                    <span>
+                        {{ field.label_tag }} {{ field.help_text }}
+                        {% field_help_icon model_class field.name %}
+                    </span>
                     {% if field.errors %}
                         <span class="alert alert-danger">
                         {{ field.errors }}
@@ -222,7 +225,10 @@
                         </div>
                     {% endif %}
                     <div class="wizard_field">
-                        <span>{{ field.label_tag }} {{ field.help_text }}</span>
+                        <span>
+                            {{ field.label_tag }} {{ field.help_text }}
+                            {% field_help_icon model_class field.name %}
+                        </span>
                         {% if field.errors %}
                             <span class="alert alert-danger">
                             {{ field.errors }}
@@ -304,12 +310,10 @@
         {% endif %}
         <div role="tabpanel" class="tab-pane" id="tab_tips">
 
-            <header class='editor'>How to use this creation wizard</header>
+            <header class='editor'>How to use this editor</header>
             <p>
-                This wizard is designed to help you create well-defined,
-                reusable metadata.
-
-                Each tab in this wizard covers metadata for different purposes:
+                This editor is designed to help you create well-defined,
+                reusable metadata. Each tab in this editor covers metadata for different purposes:
             </p>
             <dl>
                 <dt>Definition</dt>
@@ -352,9 +356,9 @@
                 {% endif %}
             </dl>
 
-            {% include 'aristotle_mdr/helpers/tips_section.html' %}
+            {% include 'aristotle_mdr_help/helpers/tips_section.html' %}
         </div>
     </div>
 </div>
 
-<div v-pre>{% bootstrap_modal "context_help" size='md' %}</div>
+<div v-pre>{% bootstrap_modal "context_help" size='lg' %}</div>

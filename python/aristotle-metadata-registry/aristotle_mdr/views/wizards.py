@@ -185,6 +185,7 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
                             app_label=self.model._meta.app_label,
                             concept_type=self.model._meta.model_name
                         ).first(),
+                        'model_class': self.model,
                         'template_name': self.template_name,
                         'help_guide': self.help_guide(),
                         'current_step': self.steps.current,

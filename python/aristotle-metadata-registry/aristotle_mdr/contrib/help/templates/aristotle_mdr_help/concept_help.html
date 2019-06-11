@@ -1,5 +1,5 @@
 {% extends "aristotle_mdr_help/base.html" %}
-{% load i18n aristotle_help util_tags %}
+{% load i18n aristotle_help util_tags aristotle_tags %}
 
 {% block breadcumbs %}
     <li><a href="{% url 'aristotle_help:help_base' %}">Help</a></li>
@@ -58,11 +58,28 @@
 </p>
 {% endif %}
 
-{% if custom_help.extra_help %}
-<h3>Registry definied field help</h3>
+{% if custom_help.field_help %}
+<h3>Registry defined field help</h3>
+    <ul>
+    {% for field_name, field_help in custom_help.field_help.items %}
+    {% if field_help %}
+        <li><a href="#field_is_{{field_name}}">
+        {% with field=custom_help.content_type|get_field:field_name %}
+            {{ field.verbose_name.title }}
+        {% endwith %}
+        </a></li>
+    {% endif %}
+    {% endfor %}
+    </ul>
 <dl>
-    {% for field, field_help in custom_help.field_help.items %}
-    <dt>{{ field }}</dt>
+    {% for field_name, field_help in custom_help.field_help.items %}
+    <dt id="field_is_{{field_name}}">
+        <a href="#field_is_{{field_name}}">
+        {% with field=custom_help.content_type|get_field:field_name %}
+            {{ field.verbose_name.title }}   
+        {% endwith %}
+        </a>
+    </dt>
     <dd>
         <div class="well">
         {{ field_help | bleach }}
