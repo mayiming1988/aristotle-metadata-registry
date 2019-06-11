@@ -522,17 +522,20 @@ class DataElementConceptWizard(MultiStepAristotleWizard):
         if self.steps.current == 'make_oc':
             context.update({
                 'model_name': MDR.ObjectClass._meta.verbose_name,
+                'model_class': MDR.ObjectClass,
                 'help_guide': self.help_guide(MDR.ObjectClass),
                 })
         if self.steps.current == 'make_p':
             context.update({
                 'model_name': MDR.Property._meta.verbose_name,
+                'model_class': MDR.Property,
                 'help_guide': self.help_guide(MDR.Property),
                 })
         if self.steps.current == 'find_dec_results':
             context.update({
                 'oc_match': self.get_object_class(),
                 'pr_match': self.get_property(),
+                'model_class': MDR.DataElementConcept,
                 'dec_matches': self.get_data_element_concept(),
                 'hide_components_tab': True
                 })
@@ -816,12 +819,18 @@ class DataElementWizard(MultiStepAristotleWizard):
         if self.steps.current == 'make_vd':
             context.update({
                 'model_name': MDR.ValueDomain._meta.verbose_name,
+                'model_class': MDR.ValueDomain,
                 'help_guide': self.help_guide(MDR.Property),
                 })
+        if self.steps.current == 'make_dec':
+            context.update({
+                'model_class': MDR.DataElementConcept,
+            })
         if self.steps.current == 'find_dec_results':
             context.update({
                 'oc_match': self.get_object_class(),
                 'pr_match': self.get_property(),
+                'model_class': MDR.DataElementConcept,
                 'dec_matches': self.get_data_element_concepts(),
                 'hide_components_tab': True
                 })
@@ -830,6 +839,7 @@ class DataElementWizard(MultiStepAristotleWizard):
                 'oc_match': self.get_object_class(),
                 'pr_match': self.get_property(),
                 'vd_match': self.get_value_domain(),
+                'model_class': MDR.DataElement,
                 'de_matches': self.get_data_elements_from_components()
                 })
         if self.steps.current == 'find_de_results':
@@ -837,6 +847,7 @@ class DataElementWizard(MultiStepAristotleWizard):
                 'dec_match': self.get_data_element_concept(),
                 'vd_match': self.get_value_domain(),
                 'de_matches': self.get_data_elements(),
+                'model_class': MDR.DataElement,
                 'hide_components_tab': True
                 })
         if self.steps.current == 'completed':
