@@ -6,6 +6,7 @@ import settings from 'src/settings.json'
 import 'src/styles/aristotle.wizard.less'
 
 init()
+initMoveable()
 
 // So we can ignore warning when submitting a form
 // Don't like using globals, but we need this state in unload handler
