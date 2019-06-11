@@ -1,0 +1,23 @@
+{% load aristotle_tags util_tags i18n static %}
+
+{% if data_element.id in viewable_ids %}
+    <td>
+        &bull; {% include "aristotle_mdr/helpers/itemLink.html" with item=data_element skip_can_view=True %}
+    </td>
+    <td>
+        {% include "aristotle_mdr/helpers/itemLink.html" with item=data_element.valueDomain skip_can_view=True %}
+    </td>
+    <td>
+        {% firstof data_element.valueDomain.data_type.name "-" %}
+    </td>
+    <td>
+        {% firstof data_element.valueDomain.maximum_length "-" %}
+    </td>
+    <td>
+        {% firstof data_element.valueDomain.format "-" %}
+    </td>
+{% else %}
+    <td>
+        You don't have permission to view this item
+    </td>
+{% endif %}
