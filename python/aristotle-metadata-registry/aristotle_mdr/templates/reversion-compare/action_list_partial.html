@@ -68,9 +68,9 @@
 
                 {% if user_can_edit %}
                     <select disabled class="form-control visibility-select version-select" data-version-id="{{ action.version.id }}">
-                        <option value="0"{% if action.permission == choices.public %}selected{%endif%}>&#xf0ac; Public</option>
-                        <option value="1"{% if action.permission == choices.auth %}selected{%endif%}>&#xf2bd; Logged in users</option>
-                        <option value="2"{% if action.permission == choices.workgroup %}selected{%endif%}
+                        <option value="0" {% if action.permission == choices.public %}selected{%endif%}>&#xf0ac; Public</option>
+                        <option value="1" {% if action.permission == choices.auth %}selected{%endif%}>&#xf2bd; Logged in users</option>
+                        <option value="2" {% if action.permission == choices.workgroup %}selected{%endif%}
                         >&#xf0c0; Workgroup only</option></select>
                 {% else %}
                 {# User can't edit #}
