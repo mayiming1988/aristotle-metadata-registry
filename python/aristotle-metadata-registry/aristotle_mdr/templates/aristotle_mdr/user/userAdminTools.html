@@ -93,19 +93,22 @@ therefore the counts below may be out of date due to caching.
 {% for app in models %}
     <tbody>
     {% for model,count,adminlink in app.models %}
-    <tr>
         {% if forloop.first %}
-            <td rowspan="{{app_models.models|length }}">
-              {% firstof app.app.create_page_name app.app.verbose_name %}
-            </td>
+        <tr>
+            <th>
+                {% firstof app.app.create_page_name app.app.verbose_name %}
+            </th>
+        </tr>
         {% endif %}
-        <td>
-            <a href="{{ adminlink }}">
-                {{ model.get_verbose_name }}
-            </a>
-        </td>
-        <td>{{ count }}</td>
-    </tr>
+        <tr>
+            <td></td>
+            <td>
+                <a href="{{ adminlink }}">
+                    {{ model.get_verbose_name }}
+                </a>
+            </td>
+            <td>{{ count }}</td>
+        </tr>
     {% endfor %}
     <tbody>
 {% endfor %}
