@@ -6,6 +6,45 @@
 {% block title %}Version history of {{ item.name }}{% endblock %}
 
 {% block infoContent %}
-<h2>Comparing versions of {{ item.name }}</h2>
-{{ diffs }}
+<h2>Version comparator for {{ item.name }}</h2>
+<p>Comparing differences between versions of {{ item.name }}.
+    <em>Only fields where there is a difference between saves are displayed.</em></p>
+
+{% if diffs %}
+<table class="table table-striped">
+    <caption>Differences</caption>
+    <tbody>
+    <tr>
+        <th scope="col">Field</th>
+        <th scope="col">Differences</th>
+    </tr>
+    {% for field, diff in diffs.items %}
+        <tr>
+            {% if not diff %}
+            {# If there's no difference don't display it #}
+            {% else %}
+            <td>
+                {{ field }}
+            </td>
+            <td>
+            {% for difference in diff %}
+                {% if difference.0 == 1 %}
+                    <ins>{{ difference.1 }}</ins>
+                {% elif difference.0 == -1 %}
+                    <del>{{ difference.1 }}</del>
+                {% else %}
+                    {# Don't display no change with any special formatting #}
+                    {{ difference.1 }}
+                {% endif  %}
+            {% endfor %}
+            </td>
+            {% endif %}
+
+        </tr>
+    {% endfor %}
+    </tbody>
+
+
+</table>
+{% endif %}
 {% endblock %}
