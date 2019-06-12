@@ -66,6 +66,8 @@ function go_to_compare() {
         return null
     }
 
+    // Set the version of
+
     let url = base_url + `?v1=${firstVersionId}&v2=${secondVersionId}`
     // Redirect to URL
     window.location.href = url

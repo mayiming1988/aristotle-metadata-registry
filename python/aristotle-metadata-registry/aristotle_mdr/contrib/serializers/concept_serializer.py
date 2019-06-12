@@ -21,28 +21,47 @@ logger = logging.getLogger(__name__)
 
 
 class IdentifierSerializer(serializers.ModelSerializer):
+    id = serializers.SerializerMethodField(method_name='get_id')
+
     class Meta:
         model = ScopedIdentifier
         fields = ['namespace', 'identifier', 'version', 'order']
 
+    def get_id(self, identifier):
+        return None
+
 
 class CustomValuesSerializer(serializers.ModelSerializer):
+    id = serializers.SerializerMethodField()
+
     class Meta:
         model = CustomValue
-        fields = ['field', 'content']
+        fields = ['field', 'content', 'id']
+
+    def get_id(self, custom_value):
+        return custom_value.field.id
 
 
 class SlotsSerializer(serializers.ModelSerializer):
+    id = serializers.SerializerMethodField()
+
     class Meta:
         model = Slot
-        fields = ['name', 'length', 'value', 'order', 'permission']
+        fields = ['name', 'value', 'order', 'permission', 'id']
+
+    def get_id(self, slot):
+        return slot.pk
 
 
 class OrganisationRecordsSerializer(serializers.ModelSerializer):
+    id = serializers.SerializerMethodField()
+
     class Meta:
         model = RecordRelation
         fields = ['organization_record', 'type']
 
+    def get_id(self, org_record):
+        return org_record.pk
 
 excluded_fields = ('dss',)
 
@@ -123,8 +142,8 @@ class ConceptSerializerFactory():
     def generate_serializer(self, concept):
         """ Generate the serializer class """
         concept_class = self._get_class_for_serializer(concept)
-
         Serializer = self._generate_serializer_class(concept_class)
+
         return Serializer
 
     def _generate_serializer_class(self, concept_class):

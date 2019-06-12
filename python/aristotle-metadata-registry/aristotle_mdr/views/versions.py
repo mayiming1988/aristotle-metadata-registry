@@ -513,6 +513,8 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
     """
     template_name = 'aristotle_mdr/compare/compare.html'
 
+    hidden_diff_fields = ['modified']
+
     field_to_diff = {}
 
     def get_concept(self):
@@ -523,34 +525,48 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
 
         data = json.loads(version.serialized_data)
         # We're only really interested in comparing the fields
+
+        raise ValueError(data)
+
         return data
 
-    def generate_diff(self, first_json, second_json):
+    def generate_diff(self, earlier_json, later_json):
         """
         Returns a dictionary containing tuples with the differences per field.
         The first element of the tuple specifies if it is an insertion (1), a deletion (-1), or an equality (0).
+
+        Example:
+        {field: [(0, hello), (1, world)]}
+
         """
-        # TODO: fix the problem where a later version has more fields which are not iterated over
         DiffMatchPatch = diff_match_patch.diff_match_patch()
 
-        for field in first_json:
-            first_value = first_json[field]
+        # The JSON compared **should** always have equivalent fields
+        for field in earlier_json:
+            if field not in self.hidden_diff_fields:
+                earlier_value = earlier_json[field]
+                later_value = later_json[field]
 
-            second_value = ''
-            if field in second_json:
-                second_value = second_json[field]
+                if earlier_value != later_value:
+                    # No point doing diffs if there is no difference
 
-            if isinstance(first_value, str) or isinstance(first_value, int):
-                # No special treatment required
-                diff = DiffMatchPatch.diff_main(str(first_value), str(second_value))
+                    if isinstance(earlier_value, str) or isinstance(earlier_value, int):
+                        # No special treatment required for strings and int
+                            diff = DiffMatchPatch.diff_main(str(earlier_value), str(later_value))
+                            DiffMatchPatch.diff_cleanupSemantic(diff)
+                            self.field_to_diff[field] = diff
 
-                DiffMatchPatch.diff_cleanupSemantic(diff)
+                    elif isinstance(earlier_value, list):
+                        # If it's a list, it's a list of dicts of serialized sub items
 
-                self.field_to_diff[field] = diff
+                        both_empty = earlier_value == [] and later_value == []
+                        if not both_empty:
+                            added_subitems = []
+                            removed_subitems = []
 
-            elif isinstance(first_value, dict):
-                # TODO: implement recursive behavior for this
-                pass
+
+
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
