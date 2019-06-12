@@ -2,7 +2,14 @@
 
 {% load aristotle_tags i18n l10n %}
 {% load render_bundle from webpack_loader %}
-{% render_bundle 'diff' 'css'  %}
+
+{% block webpack_bundle %}
+    {% render_bundle 'compare_versions' 'js' %}
+{% endblock %}
+
+{%  block webpack_css_bundle %}
+    {% render_bundle 'compare_versions' 'css' %}
+{% endblock %}
 
 {% block title %}Version history of {{ item.name }}{% endblock %}
 
@@ -34,7 +41,7 @@
                 {% elif difference.0 == -1 %}
                     <del>{{ difference.1 }}</del>
                 {% else %}
-{#                     Don't display no change with any special formatting#}
+                {# Don't display no change with any special formatting F#}
                     {{ difference.1 }}
                 {% endif  %}
             {% endfor %}
