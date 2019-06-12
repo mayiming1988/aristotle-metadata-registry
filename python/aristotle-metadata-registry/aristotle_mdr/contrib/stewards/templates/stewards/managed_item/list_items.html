@@ -6,26 +6,25 @@
 
 {% block steward_content %}
 
-    <div class="row"><div class="col-xs-12">
+    <div class="row margin-above">
+      <div class="col-xs-12">
     
-<span class="h4">
-Showing
-    {% if page_obj.has_other_pages %}
-        {{ page_obj.start_index }} - {{ page_obj.end_index }} of
-    {% endif %}
-    {{ page_obj.paginator.count }} {{model.get_verbose_name_plural}}.
-
-
-</span>
+        <span class="h4">
+          Showing
+          {% if page_obj.has_other_pages %}
+            {{ page_obj.start_index }} - {{ page_obj.end_index }} of
+          {% endif %}
+          {{ page_obj.paginator.count }} {{model.get_verbose_name_plural}}.
+        </span>
 
         {% has_group_perm group "manage_managed_items" as can_manage_managed_items %}
         {% if can_manage_managed_items %}
-            <a class=" btn btn-default pull-right" href="{% url 'aristotle_mdr:stewards:group:create_managed_item' group.slug model.meta.model_name %}">
-                <i class="fa fa-plus-circle fa-user"></i> Create {{model.get_verbose_name}}</a>
-
+          <a class=" btn btn-default pull-right" href="{% url 'aristotle_mdr:stewards:group:create_managed_item' group.slug model.meta.model_name %}">
+            <i class="fa fa-plus-circle fa-user"></i> Create {{model.get_verbose_name}}
+          </a>
         {% endif %}
 
-    </div>
+      </div>
     </div>
 
 
@@ -60,7 +59,7 @@ Showing
             {% for item in page_obj %}
                 <tr>
                     <td>
-                        {% include "aristotle_mdr/helpers/itemLink.html" with item=item shared_items=shared_items %}
+                        {% include "aristotle_mdr/helpers/itemLink.html" with item=item shared_items=shared_items skip_can_view=True %}
                     </td>
                     <td>
                         {% include item.item.list_details_template with item=item %}
