@@ -206,7 +206,7 @@ class ConceptVersionView(ConceptRenderView):
         return True
 
     def get_weak_versions(self, model):
-        # Get version data for weak entites (reverse relations to an
+        # Get version data for weak entities (reverse relations to an
         # aristotleComponent)
 
         pk = self.item_version_data['pk']
@@ -507,7 +507,7 @@ class ViewableVersionsMixin:
         return versions
 
 
-class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateView):
+class ConceptVersionCompareView(SimpleItemGet, TemplateView):
     """
     View that performs the historical comparision between two different versions of the same concept
     """
@@ -526,8 +526,6 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
         data = json.loads(version.serialized_data)
         # We're only really interested in comparing the fields
 
-        raise ValueError(data)
-
         return data
 
     def generate_diff(self, earlier_json, later_json):
@@ -543,13 +541,13 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
 
         # The JSON compared **should** always have equivalent fields
         for field in earlier_json:
+            # Iterate through all fields in the JSON
             if field not in self.hidden_diff_fields:
                 earlier_value = earlier_json[field]
                 later_value = later_json[field]
 
                 if earlier_value != later_value:
                     # No point doing diffs if there is no difference
-
                     if isinstance(earlier_value, str) or isinstance(earlier_value, int):
                         # No special treatment required for strings and int
                             diff = DiffMatchPatch.diff_main(str(earlier_value), str(later_value))
@@ -558,15 +556,41 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
 
                     elif isinstance(earlier_value, list):
                         # If it's a list, it's a list of dicts of serialized sub items
-
                         both_empty = earlier_value == [] and later_value == []
                         if not both_empty:
-                            added_subitems = []
-                            removed_subitems = []
+                            changed_subitems = list(set(earlier_value + later_value))
 
+                            added = []
+                            removed = []
 
+                            # If items has been added or removed, add appropriate tags
+                            for item in changed_subitems:
+                                if item['id'] in earlier_value and item['id'] not in later_value:
+                                    removed.append(item)
+                                elif item['id'] in later_value and item['id'] not in earlier_value:
+                                    added.append(item)
 
+                            # Build added data structure
+                            # TODO: refactor to a single for loop
+                            for item in changed_subitems:
+                                diff_dict = {}
+                                for field, value in item:
+                                    diff_dict[field] = (1, value)
 
+                                self.field_to_diff[item] = diff_dict
+
+                            # Build removed data structure
+                            for item in removed:
+                                diff_dict = {}
+                                for field, value in item:
+                                    diff_dict[field] = (-1, value)
+
+                                self.field_to_diff[item] = diff_dict
+
+                            # For items that have had fields changed, perform the comparision on a per field basis
+                            for item in changed_subitems:
+                                if item not in added and item not in removed:
+                                    pass
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -586,7 +610,7 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
         return context
 
 
-class ConceptVersionListView(ListView, SimpleItemGet, ViewableVersionsMixin):
+class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
     """
     View  that lists all the specific versions of a particular concept
     """
