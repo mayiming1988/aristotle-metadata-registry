@@ -57,7 +57,10 @@
             </div>
             <div class="fancy_name_version">
                 <div class="wizard_field name">
-                    <span>{{ form.name.label_tag }} {{ form.name.help_text }}</span>
+                    <span>
+                        {{ form.name.label_tag }} {{ form.name.help_text }}
+                        {% field_help_icon model_class 'name' %}
+                    </span>
                     {% if form.name.errors %}
                         <span class="alert alert-danger">
                         {{ form.name.errors }}
@@ -68,7 +71,10 @@
                     {% endif %}
                 </div>
                 <div class="wizard_field version">
-                    <span>{{ form.version.label_tag }}</span>
+                    <span>
+                        {{ form.version.label_tag }} {{ form.version.help_text }}
+                        {% field_help_icon model_class 'version' %}
+                    </span>
                     {% if form.version.errors %}
                         <span class="alert alert-danger">
                         {{ form.version.errors }}

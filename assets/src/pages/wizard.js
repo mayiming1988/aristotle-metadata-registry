@@ -1,4 +1,4 @@
-// You're a wizard harry
+// You're a wizard Harry
 import init from 'src/lib/init.js'
 import { initMoveable } from 'src/lib/moveable.js'
 
