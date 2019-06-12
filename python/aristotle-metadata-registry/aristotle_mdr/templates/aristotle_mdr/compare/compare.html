@@ -2,6 +2,7 @@
 
 {% load aristotle_tags i18n l10n %}
 {% load render_bundle from webpack_loader %}
+{% render_bundle 'diff' 'css'  %}
 
 {% block title %}Version history of {{ item.name }}{% endblock %}
 
@@ -29,7 +30,7 @@
             <td>
             {% for difference in diff %}
                 {% if difference.0 == 1 %}
-                    <ins>{{ difference.1 }}</ins>
+                    <ins class="">{{ difference.1 }}</ins>
                 {% elif difference.0 == -1 %}
                     <del>{{ difference.1 }}</del>
                 {% else %}
