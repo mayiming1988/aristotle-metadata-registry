@@ -526,6 +526,10 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
         return data
 
     def generate_diff(self, first_json, second_json):
+        """
+        Returns a dictionary containing tuples with the differences per field.
+        The first element of the tuple specifies if it is an insertion (1), a deletion (-1), or an equality (0).
+        """
         # TODO: fix the problem where a later version has more fields which are not iterated over
         DiffMatchPatch = diff_match_patch.diff_match_patch()
 
