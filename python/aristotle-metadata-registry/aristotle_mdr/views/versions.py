@@ -26,6 +26,7 @@ from collections import defaultdict
 from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -44,15 +45,15 @@ class VersionField:
         if not value:
             self.value = ''
         else:
-            self.value=str(value)
+            self.value = str(value)
 
         if type(obj) == list and len(obj) == 1:
             self.obj = obj[0]
         else:
-            self.obj=obj
+            self.obj = obj
 
-        self.help_text=help_text
-        self.is_html=html
+        self.help_text = help_text
+        self.is_html = html
         self.reference_label = reference_label
 
     def dereference(self, lookup):
@@ -143,9 +144,9 @@ class ConceptVersionView(ConceptRenderView):
     def get_matching_object_from_revision(self, revision, current_version, target_ct=None):
         # Finds another version in the same revision with same id
         current_ct_id = current_version.content_type_id
-        version_filter = Q(revision=revision) &\
-            Q(object_id=current_version.object_id) &\
-            ~Q(content_type_id=current_ct_id)
+        version_filter = Q(revision=revision) & \
+                         Q(object_id=current_version.object_id) & \
+                         ~Q(content_type_id=current_ct_id)
 
         # Other versions in the revision could have the same id
         versions = reversion.models.Version.objects.filter(
@@ -247,9 +248,9 @@ class ConceptVersionView(ConceptRenderView):
         # Create replacement mapping fields to models
         replacements = {}
         for field in model._meta.get_fields():
-            if field.is_relation and (field.many_to_one or field.many_to_many) and\
+            if field.is_relation and (field.many_to_one or field.many_to_many) and \
                     (issubclass(field.related_model, MDR._concept) or
-                        issubclass(field.related_model, MDR.aristotleComponent)):
+                     issubclass(field.related_model, MDR.aristotleComponent)):
                 replacements[field.name] = field.related_model
 
         # Create new mapping with user friendly keys and replaced models
@@ -515,8 +516,6 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
 
     hidden_diff_fields = ['modified']
 
-    field_to_diff = {}
-
     def get_concept(self):
         return self.get_item(self.request.user)
 
@@ -524,7 +523,6 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
         version = reversion.models.Version.objects.get(pk=pk)
 
         data = json.loads(version.serialized_data)
-        # We're only really interested in comparing the fields
 
         return data
 
@@ -538,11 +536,14 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
 
         """
         DiffMatchPatch = diff_match_patch.diff_match_patch()
+        field_to_diff = {}
 
-        # The JSON compared **should** always have equivalent fields
+        # TODO: deal with fields changing between revisions
+
         for field in earlier_json:
             # Iterate through all fields in the JSON
             if field not in self.hidden_diff_fields:
+                # Don't show fields like modified, which are set by the database
                 earlier_value = earlier_json[field]
                 later_value = later_json[field]
 
@@ -550,57 +551,82 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
                     # No point doing diffs if there is no difference
                     if isinstance(earlier_value, str) or isinstance(earlier_value, int):
                         # No special treatment required for strings and int
-                            diff = DiffMatchPatch.diff_main(str(earlier_value), str(later_value))
-                            DiffMatchPatch.diff_cleanupSemantic(diff)
-                            self.field_to_diff[field] = diff
+                        diff = DiffMatchPatch.diff_main(str(earlier_value), str(later_value))
+                        DiffMatchPatch.diff_cleanupSemantic(diff)
+                        field_to_diff[field] = diff
 
                     elif isinstance(earlier_value, list):
-                        # If it's a list, it's a list of dicts of serialized sub items
-                        both_empty = earlier_value == [] and later_value == []
-                        if not both_empty:
-                            changed_subitems = list(set(earlier_value + later_value))
+                        field_to_diff[field] = self.build_diff_of_lists(earlier_value, later_value)
 
-                            added = []
-                            removed = []
+        return field_to_diff
 
-                            # If items has been added or removed, add appropriate tags
-                            for item in changed_subitems:
-                                if item['id'] in earlier_value and item['id'] not in later_value:
-                                    removed.append(item)
-                                elif item['id'] in later_value and item['id'] not in earlier_value:
-                                    added.append(item)
+    def build_diff_of_lists(self, earlier_values_list, later_values_list):
+        """
+        Given a list of dictionaries containing JSON representations of objects, iterates through and builds a list of
+        difference dictionaries
+        Example:
+            [{'field': [(0, hello), (1, world)], 'other_field': [(0, goodbye), (-1, world)]]
+        """
+        differences = []
 
-                            # Build added data structure
-                            # TODO: refactor to a single for loop
-                            for item in changed_subitems:
-                                diff_dict = {}
-                                for field, value in item:
-                                    diff_dict[field] = (1, value)
+        # Blame Google for this unpythonic variable
+        DiffMatchPatch = diff_match_patch.diff_match_patch()
 
-                                self.field_to_diff[item] = diff_dict
+        both_empty = earlier_values_list == [] and later_values_list == []
+        if not both_empty:
 
-                            # Build removed data structure
-                            for item in removed:
-                                diff_dict = {}
-                                for field, value in item:
-                                    diff_dict[field] = (-1, value)
+            earlier_items = {item['id']: item for item in earlier_values_list}
+            later_items = {item['id']: item for item in later_values_list}
 
-                                self.field_to_diff[item] = diff_dict
+            # Items that are in the later items but not the earlier items have been 'added'
+            added_ids = set(later_items.keys()) - set(earlier_items.keys())
+            for id in added_ids:
+                item = later_items[id]
+                difference_dict = {}
+                for field, value in item:
+                    difference_dict[field] = (1, value)
 
-                            # For items that have had fields changed, perform the comparision on a per field basis
-                            for item in changed_subitems:
-                                if item not in added and item not in removed:
-                                    pass
+                differences.append(difference_dict)
+
+            # Items that are in the earlier items but not the later items have been 'removed'
+            removed_ids = set(earlier_items.keys()) - set(later_items.keys())
+            for id in removed_ids:
+                item = earlier_items[id]
+                difference_dict = {}
+                for field, value in item:
+                    difference_dict[field] = (-1, value)
+
+                differences.append(difference_dict)
+
+            # Items with IDs that are present in both have been changed,
+            # so we want to perform a field-by-field dict comparision
+            changed_ids = set(earlier_items).intersection(set(later_items))
+            for id in changed_ids:
+                earlier_item = earlier_items[id]
+                later_item = later_items[id]
+
+                difference_dict = {}
+
+                for field, earlier_value in earlier_item.items():
+                    later_value = later_item[field]
+                    diff = DiffMatchPatch.diff_main(str(earlier_value), str(later_value))
+                    DiffMatchPatch.diff_cleanupSemantic(diff)
+
+                    difference_dict[field] = diff
+
+                differences.append(difference_dict)
+
+
+            return differences
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        first_json = self.get_json(pk=self.request.GET.get('v1', ''))
-        second_json = self.get_json(pk=self.request.GET.get('v2', ''))
+        earlier_json = self.get_json(pk=self.request.GET.get('v1', ''))
+        later_json = self.get_json(pk=self.request.GET.get('v2', ''))
 
-        self.generate_diff(first_json, second_json)
-
-        context['diffs'] = self.field_to_diff
+        context['diffs'] = self.generate_diff(earlier_json, later_json)
 
         context['object'] = self.get_concept()
         context['item'] = self.get_concept().item
@@ -618,7 +644,7 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
     item_action_url = 'aristotle:item_version'
 
     def get_object(self):
-        concept = self.get_item(self.request.user).item # Versions are now saved on the model rather than the concept
+        concept = self.get_item(self.request.user).item  # Versions are now saved on the model rather than the concept
         return concept
 
     def get_queryset(self):
