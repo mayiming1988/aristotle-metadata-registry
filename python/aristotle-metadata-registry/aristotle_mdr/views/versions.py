@@ -507,7 +507,7 @@ class ViewableVersionsMixin:
         return versions
 
 
-class ConceptVersionCompareView(TemplateView, SimpleItemGet, ViewableVersionsMixin):
+class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateView):
     """
     View that performs the historical comparision between two different versions of the same concept
     """
@@ -520,14 +520,13 @@ class ConceptVersionCompareView(TemplateView, SimpleItemGet, ViewableVersionsMix
 
     def get_json(self, pk):
         version = reversion.models.Version.objects.get(pk=pk)
+
         data = json.loads(version.serialized_data)
-        # We're only really interested in the fields
-        return data[0]['fields']
+        # We're only really interested in comparing the fields
+        return data
 
     def generate_diff(self, first_json, second_json):
-        # Because of how Google's diff-match-patch works the first json must be the earlier version
-        # We only need to iterate one time because the fields should be consistent across
-        # the JSON serialized_data
+        # TODO: fix the problem where a later version has more fields which are not iterated over
         DiffMatchPatch = diff_match_patch.diff_match_patch()
 
         for field in first_json:
@@ -540,10 +539,12 @@ class ConceptVersionCompareView(TemplateView, SimpleItemGet, ViewableVersionsMix
             if isinstance(first_value, str) or isinstance(first_value, int):
                 # No special treatment required
                 diff = DiffMatchPatch.diff_main(str(first_value), str(second_value))
+
                 DiffMatchPatch.diff_cleanupSemantic(diff)
+
                 self.field_to_diff[field] = diff
 
-            if isinstance(first_value, dict):
+            elif isinstance(first_value, dict):
                 # TODO: implement recursive behavior for this
                 pass
 
@@ -556,7 +557,10 @@ class ConceptVersionCompareView(TemplateView, SimpleItemGet, ViewableVersionsMix
         self.generate_diff(first_json, second_json)
 
         context['diffs'] = self.field_to_diff
+
+        context['object'] = self.get_concept()
         context['item'] = self.get_concept().item
+
         context['activetab'] = 'history'
 
         return context
@@ -570,9 +574,8 @@ class ConceptVersionListView(ListView, SimpleItemGet, ViewableVersionsMixin):
     item_action_url = 'aristotle:item_version'
 
     def get_object(self):
-        item = self.get_item(self.request.user)
-        self.model = item.item.__class__  # Get the subclassed object
-        return item
+        concept = self.get_item(self.request.user).item # Versions are now saved on the model rather than the concept
+        return concept
 
     def get_queryset(self):
         """Return a queryset of all the versions the user has permission to access as well as associated metadata
@@ -586,7 +589,7 @@ class ConceptVersionListView(ListView, SimpleItemGet, ViewableVersionsMixin):
             version_permission = VersionPermissions.objects.get_object_or_none(version=version)
 
             if version_permission is None:
-                # Default to workgroup level permissions
+                # Default to displaying workgroup level permissions
                 version_permission_code = 0
             else:
                 version_permission_code = version_permission.visibility

@@ -3,8 +3,8 @@
 {% load aristotle_tags i18n l10n %}
 {% load render_bundle from webpack_loader %}
 
-{% block title %}Version history of {{ object.item.name }}{% endblock %}
+{% block title %}Version history of {{ item.name }}{% endblock %}
 
 {% block infoContent %}
-Hello World
+<header>Comparing versions of {{ item.name }}</header>
 {% endblock %}

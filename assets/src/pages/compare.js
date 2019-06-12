@@ -54,7 +54,7 @@ function go_to_compare() {
     let firstVersionRadioButton = document.querySelector('input[name="version_id1"]:checked');
     let secondVersionRadioButton = document.querySelector('input[name="version_id2"]:checked');
 
-    if (firstVersionRadioButton === null | secondVersionRadioButton === null) {
+    if (firstVersionRadioButton === null || secondVersionRadioButton === null) {
         return null
     }
     let firstVersionId =  firstVersionRadioButton.value;
