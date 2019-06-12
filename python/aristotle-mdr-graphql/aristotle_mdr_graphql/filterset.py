@@ -53,7 +53,7 @@ class StatusFilterSet(FilterSet):
         fields = ['is_current', 'ra']
 
     def filter_is_current(self, qs, name, value):
-        if name=="is_current" and value:
+        if name == "is_current" and value:
             return qs.current()
         else:
             return qs
