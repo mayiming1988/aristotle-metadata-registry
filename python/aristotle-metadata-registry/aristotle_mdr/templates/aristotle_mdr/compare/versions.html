@@ -15,9 +15,11 @@
 {% block infoContent %}
 <table id="change-history" class='table table-striped'
        data-update-api-url="{% url 'api_v4:item:update-version-permissions' object.id %}">
-    <caption>Revisions for {{object.name}}
-        Select two items and click compare to see the differences between them. The radio button on the left is the
-        'latest' version to compare and the button on the right is the 'earlier' version.
+    <caption>Revisions for {{object.name}}.
+        <div class="well well-sm">
+            Select two items and click compare to see the differences between them. The radio button on the left is the
+            'later' version to compare and the button on the right is the 'earlier' version.
+        </div>
     </caption>
     <thead>
     <tr>

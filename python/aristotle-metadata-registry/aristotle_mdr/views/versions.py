@@ -528,7 +528,7 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
 
     def generate_diff(self, earlier_json, later_json):
         """
-        Returns a dictionary containing tuples with the differences per field.
+        Returns a dictionary containing a list of tuples with the differences per field.
         The first element of the tuple specifies if it is an insertion (1), a deletion (-1), or an equality (0).
 
         Example:
@@ -553,10 +553,12 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
                         # No special treatment required for strings and int
                         diff = DiffMatchPatch.diff_main(str(earlier_value), str(later_value))
                         DiffMatchPatch.diff_cleanupSemantic(diff)
-                        field_to_diff[field] = diff
+
+                        field_to_diff[field] = {'subitem': False, 'diffs': diff}
 
                     elif isinstance(earlier_value, list):
-                        field_to_diff[field] = self.build_diff_of_lists(earlier_value, later_value)
+                        field_to_diff[field] = {'subitem': True,
+                                                'diffs': self.build_diff_of_lists(earlier_value, later_value)}
 
         return field_to_diff
 
