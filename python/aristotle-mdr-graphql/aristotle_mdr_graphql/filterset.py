@@ -61,6 +61,7 @@ class StatusFilterSet(FilterSet):
 
 class ConceptFilterSet(FilterSet):
 
+    aristotle_id = django_filters.NumberFilter(name='id')
     identifier = django_filters.CharFilter(name='identifiers__identifier', lookup_expr='iexact', distinct=True)
     identifier_namespace = django_filters.CharFilter(name='identifiers__namespace__shorthand_prefix', lookup_expr='iexact', distinct=True)
     identifier_version = django_filters.CharFilter(name='identifiers__version', lookup_expr='iexact', distinct=True)
