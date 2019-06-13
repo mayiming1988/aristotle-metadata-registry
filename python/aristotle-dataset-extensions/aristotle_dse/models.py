@@ -410,8 +410,8 @@ class DSSDEInclusion(DSSInclusion):
     def __str__(self):
         has_reference = self.reference is not None and self.reference != ''
         if has_reference:
-            return 'Data element {} at position {} with reference: {}.'.format(self.data_element.name, self.order, self.reference)
-        return 'Data element {} at position {}'.format(self.data_element.name, self.order)
+            return 'Data element {} at position {} with reference: {}.'.format(self.data_element_id, self.order, self.reference)
+        return 'Data element {} at position {}'.format(self.data_element_id, self.order)
 
     def get_absolute_url(self):
         pass
