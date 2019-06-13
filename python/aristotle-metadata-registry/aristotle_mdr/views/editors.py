@@ -213,7 +213,6 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
 
                 item.save()
 
-
             # Versions are loaded with the most recent version first, so we get the one that was just created
             version = Version.objects.get_for_object(item).first()
             VersionPermissions.objects.create(version=version)

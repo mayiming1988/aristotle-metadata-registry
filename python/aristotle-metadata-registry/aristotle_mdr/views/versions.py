@@ -145,9 +145,9 @@ class ConceptVersionView(ConceptRenderView):
     def get_matching_object_from_revision(self, revision, current_version, target_ct=None):
         # Finds another version in the same revision with same id
         current_ct_id = current_version.content_type_id
-        version_filter = Q(revision=revision) & \
-                         Q(object_id=current_version.object_id) & \
-                         ~Q(content_type_id=current_ct_id)
+        version_filter = Q(revision=revision) &\
+            Q(object_id=current_version.object_id) &\
+            ~Q(content_type_id=current_ct_id)
 
         # Other versions in the revision could have the same id
         versions = reversion.models.Version.objects.filter(
@@ -721,7 +721,6 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
             else:
                 version_permission_code = version_permission.visibility
 
-
             version_list.append({
                 'permission': int(version_permission_code),
                 'version': version,
@@ -744,4 +743,3 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
                    'choices': VISIBILITY_PERMISSION_CHOICES}
 
         return context
-

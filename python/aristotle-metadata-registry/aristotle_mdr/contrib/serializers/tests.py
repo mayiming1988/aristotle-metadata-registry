@@ -139,6 +139,3 @@ class SerializerTestCase(AristotleTestUtils, TestCase):
 
         self.assertEqual(serialized_data['dssdeinclusion_set'][0]['specific_information'],
                          'Highly specific information')
-
-
-
