@@ -61,7 +61,7 @@ CKEDITOR_UPLOAD_PATH = 'uploads/'
 
 
 # Required for admindocs, see: https://code.djangoproject.com/ticket/21386
-SITE_ID=None
+SITE_ID = None
 
 # This gets called because of the DataElementConcept.property attribute.
 # We can resolve this by explicitly adding the parent pointer field, to squash Error E006
@@ -212,6 +212,7 @@ ARISTOTLE_SETTINGS = {
     'SITE_NAME': 'Default Site Name',  # 'The main title for the site.'
     'SITE_BRAND': 'aristotle_mdr/images/aristotle_small.png',  # URL for the Site-wide logo
     'SITE_INTRO': 'Use Default Site Name to search for metadata...',  # 'Intro text use on the home page as a prompt for users.'
+    'INFOBOX_IDENTIFIER_NAME': '',  # Identifier name used in Metadata Infobox Template.
     'SITE_DESCRIPTION': 'About this site',  # 'The main title for the site.'
     'CONTENT_EXTENSIONS': [],
     'PDF_PAGE_SIZE': 'A4',
@@ -246,7 +247,7 @@ ARISTOTLE_SETTINGS = {
 
     # These settings aren't active yet.
     # "USER_EMAIL_RESTRICTIONS": None,
-    "USER_VISIBILITY": ['owner', 'workgroup_manager', 'registation_authority_manager']
+    "USER_VISIBILITY": ['owner', 'workgroup_manager', 'registation_authority_manager'],
     # "SIGNUP_OPTION": 'closed', # or 'closed'
     # "GROUPS_CAN_INVITE": 'closed', # or 'closed'
 
@@ -395,3 +396,12 @@ MAXIMUM_NUMBER_OF_NODES_IN_GENERAL_GRAPHICAL_REPRESENTATION = 200
 # the Django app label and the model name.
 # E.g. [("app_label", "model_name"), ...]
 EXTRA_GRAPHQL_SCHEMA_MODELS: list = []
+
+# Set an environment variable as the default email address to send backend emails for notifications.
+ARISTOTLE_EMAIL_NOTIFICATIONS = os.getenv('ARISTOTLE_EMAIL_NOTIFICATIONS', None)
+
+# Set an environment variable as the default email address to send backend emails for sandbox invitation notifications.
+ARISTOTLE_EMAIL_SANDBOX_NOTIFICATIONS = os.getenv('ARISTOTLE_EMAIL_SANDBOX_NOTIFICATIONS', None)
+
+# Set an environment variable as the default email address to send backend emails for account recovery (password reset).
+ARISTOTLE_EMAIL_ACCOUNT_RECOVERY = os.getenv('ARISTOTLE_EMAIL_ACCOUNT_RECOVERY', None)

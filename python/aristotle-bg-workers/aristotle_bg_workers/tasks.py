@@ -96,15 +96,18 @@ def download(download_type: str, item_ids: List[int], user_id: int, options={}) 
         # Get file url
         return downloader.download()
 
-    raise LookupError('Requested Donwloader class could not be found')
+    raise LookupError('Requested Downloader class could not be found')
 
 
 @shared_task(name='send_sandbox_notification_emails')
-def send_sandbox_notification_emails(emails_list, user_email, sandbox_access_url):
+def send_sandbox_notification_emails(emails_list, sandbox_access_url):
     from django.core.mail import send_mail
     from django.conf import settings
 
-    from_email = settings.DEFAULT_FROM_EMAIL
+    if settings.ARISTOTLE_EMAIL_SANDBOX_NOTIFICATIONS:
+        from_email = settings.ARISTOTLE_EMAIL_SANDBOX_NOTIFICATIONS
+    else:
+        from_email = settings.DEFAULT_FROM_EMAIL
 
     # Send a separate email to each email address:
     for email in emails_list:
@@ -121,7 +124,10 @@ def send_notification_email(recipient, message):
     from django.core.mail import send_mail
     from django.conf import settings
 
-    from_email = settings.DEFAULT_FROM_EMAIL
+    if settings.ARISTOTLE_EMAIL_NOTIFICATIONS:
+        from_email = settings.ARISTOTLE_EMAIL_NOTIFICATIONS
+    else:
+        from_email = settings.DEFAULT_FROM_EMAIL
 
     send_mail(
         'Notification',

@@ -33,7 +33,7 @@ class ChangeStatusGenericForm(RegistrationAuthorityMixin, UserAwareForm):
     )
     changeDetails = forms.CharField(
         max_length=512,
-        required=False,
+        required=True,
         label=_("Why is the status being changed for these items?"),
         widget=forms.Textarea
     )
@@ -162,7 +162,7 @@ class EditStatusForm(ModelForm):
     )
     changeDetails = forms.CharField(
         max_length=512,
-        required=False,
+        required=True,
         label=_("Why is the status being changed for these items?"),
         widget=forms.Textarea
     )

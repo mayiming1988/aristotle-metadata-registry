@@ -1231,8 +1231,14 @@ class UnitOfMeasure(concept):
 
     template = "aristotle_mdr/concepts/unitOfMeasure.html"
     list_details_template = "aristotle_mdr/concepts/list_details/unit_of_measure.html"
-    measure = models.ForeignKey(Measure, blank=True, null=True)
-    symbol = models.CharField(max_length=20, blank=True)
+    measure = models.ForeignKey(Measure,
+                                blank=True,
+                                null=True,
+                                on_delete=models.SET_NULL,
+                                )
+    symbol = models.CharField(max_length=20,
+                              blank=True,
+                              )
 
 
 class DataType(concept):
@@ -1347,7 +1353,8 @@ class ValueDomain(concept):
         blank=True,
         null=True,
         help_text=_('Datatype used in a Value Domain'),
-        verbose_name='Data Type'
+        verbose_name='Data Type',
+        on_delete=models.SET_NULL,
     )
     format = models.CharField(  # 11.3.2.5.2.1
         max_length=100,
@@ -1365,14 +1372,16 @@ class ValueDomain(concept):
         blank=True,
         null=True,
         help_text=_('Unit of Measure used in a Value Domain'),
-        verbose_name='Unit Of Measure'
+        verbose_name='Unit Of Measure',
+        on_delete=models.SET_NULL,
     )
     conceptual_domain = ConceptForeignKey(
         ConceptualDomain,
         blank=True,
         null=True,
         help_text=_('The Conceptual Domain that this Value Domain which provides representation.'),
-        verbose_name='Conceptual Domain'
+        verbose_name='Conceptual Domain',
+        on_delete=models.SET_NULL,
     )
     classification_scheme = ConceptForeignKey(
         'aristotle_mdr_backwards.ClassificationScheme',
@@ -1380,6 +1389,7 @@ class ValueDomain(concept):
         null=True,
         related_name='valueDomains',
         verbose_name='Classification Scheme',
+        on_delete=models.SET_NULL,
     )
     representation_class = ConceptForeignKey(
         'aristotle_mdr_backwards.RepresentationClass',
@@ -1387,6 +1397,7 @@ class ValueDomain(concept):
         null=True,
         related_name='value_domains',
         verbose_name='Representation Class',
+        on_delete=models.SET_NULL,
     )
     description = models.TextField(
         _('description'),

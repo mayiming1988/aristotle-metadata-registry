@@ -259,6 +259,8 @@ class ConceptRenderView(TagsMixin, TemplateView):
         else:
             context['isFavourite'] = self.request.user.profile.is_favourite(self.item)
 
+        aristotle_settings = fetch_aristotle_settings()
+
         context.update({
             'last_edit': Version.objects.get_for_object(self.item).first(),
             # Only display viewable slots
@@ -271,6 +273,7 @@ class ConceptRenderView(TagsMixin, TemplateView):
             'custom_values': self.get_custom_values(),
             'submitting_organizations': self.item.submitting_organizations,
             'responsible_organizations': self.item.responsible_organizations,
+            'infobox_identifier_name': aristotle_settings['INFOBOX_IDENTIFIER_NAME']
         })
 
         # Add a list of viewable concept ids for fast visibility checks in
@@ -417,6 +420,19 @@ def create_list(request):
         w.update(_w)
         wizards.append(w)
 
+    return render(
+        request, "aristotle_mdr/create/create_list.html",
+        {
+            'models': get_app_config_list(),
+            'wizards': wizards
+        }
+    )
+
+
+def get_app_config_list(count=False):
+    out = {}
+    aristotle_apps = fetch_metadata_apps()
+
     for m in get_concepts_for_apps(aristotle_apps):
         # Only output subclasses of 11179 concept
         app_models = out.get(m.app_label, {'app': None, 'models': []})
@@ -430,18 +446,15 @@ def create_list(request):
                 app = AristotleExtensionBaseConfig()
                 app.verbose_name = "No name"
                 app_models['app'] = app
-        app_models['models'].append((m, m.model_class()))
+        app_models['models'].append({
+            "content_type": m,
+            "class": m.model_class()
+        })
         out[m.app_label] = app_models
 
-    return render(
-        request, "aristotle_mdr/create/create_list.html",
-        {
-            'models': sorted(
-                out.values(),
-                key=lambda x: (x['app'].create_page_priority, x['app'].create_page_name, x['app'].verbose_name)
-            ),
-            'wizards': wizards
-        }
+    return sorted(
+        out.values(),
+        key=lambda x: (x['app'].create_page_priority, x['app'].create_page_name, x['app'].verbose_name)
     )
 
 

@@ -30,8 +30,8 @@ def startswith(string, substr):
 
 
 @register.filter
-def visible_count(model, user):
-    return model.objects.all().visible(user).count()
+def visible_count(ct, user):
+    return ct.model_class().objects.all().visible(user).count()
 
 
 @register.filter
