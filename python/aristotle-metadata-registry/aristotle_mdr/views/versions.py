@@ -519,14 +519,7 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
     def get_concept(self):
         return self.get_item(self.request.user)
 
-    def get_json(self, pk):
-        version = reversion.models.Version.objects.get(pk=pk)
-
-        data = json.loads(version.serialized_data)
-
-        return data
-
-    def generate_diff(self, earlier_json, later_json):
+    def generate_diff(self, earlier_json, later_json, raw=False):
         """
         Returns a dictionary containing a list of tuples with the differences per field.
         The first element of the tuple specifies if it is an insertion (1), a deletion (-1), or an equality (0).
@@ -539,7 +532,6 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
         field_to_diff = {}
 
         # TODO: deal with fields changing between revisions
-
         for field in earlier_json:
             # Iterate through all fields in the JSON
             if field not in self.hidden_diff_fields:
@@ -560,10 +552,9 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
                         field_to_diff[field] = {'subitem': True,
                                                 'diffs': self.build_diff_of_lists(earlier_value, later_value)}
 
-
         return field_to_diff
 
-    def build_diff_of_lists(self, earlier_values_list, later_values_list):
+    def build_diff_of_lists(self, earlier_values_list, later_values_list, raw=False):
         """
         Given a list of dictionaries containing JSON representations of objects, iterates through and builds a list of
         difference dictionaries
@@ -634,19 +625,50 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
 
             return differences
 
+    def get_version_jsons(self, version_1, version_2):
+        """
+        Diffing is order sensitive, so date comparision is performed to ensure that the versions are compared with
+        correct chronology.
+        """
+        first_version = reversion.models.Version.objects.get(pk=version_1)
+        first_version_created = first_version.revision.date_created
+
+        second_version = reversion.models.Version.objects.get(pk=version_2)
+        second_version_created = second_version.revision.date_created
+
+        if first_version_created > second_version_created:
+            # If the first version is after the second version
+            later_version = first_version
+            earlier_version = second_version
+        else:
+            # The first version is before the second version
+            later_version = second_version
+            earlier_version = first_version
+
+        return (json.loads(earlier_version.serialized_data),
+                json.loads(later_version.serialized_data))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        earlier_json = self.get_json(pk=self.request.GET.get('v1', ''))
-        later_json = self.get_json(pk=self.request.GET.get('v2', ''))
-
-        context['diffs'] = self.generate_diff(earlier_json, later_json)
-
+        context['activetab'] = 'history'
         context['object'] = self.get_concept()
         context['item'] = self.get_concept().item
 
-        context['activetab'] = 'history'
+        version_1 = self.request.GET.get('v1')
+        version_2 = self.request.GET.get('v2')
+
+        if not version_1 or not version_2:
+            context['not_all_versions_selected'] = True
+            return context
+
+        earlier_json, later_json = self.get_version_jsons(version_1, version_2)
+
+        raw = self.request.GET.get('raw')
+        if raw:
+            context['diffs'] = self.generate_diff(earlier_json, later_json, raw=True)
+
+        context['diffs'] = self.generate_diff(earlier_json, later_json)
 
         return context
 

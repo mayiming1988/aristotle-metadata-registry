@@ -16,76 +16,91 @@
 {% block infoContent %}
     <h2>Version comparator for {{ item.name }}</h2>
     <p>Comparing differences between versions of {{ item.name }}.
-        <em>Only fields where there is a difference between saves are displayed.</em></p>
-
-    {% if diffs %}
-        <table class="table table-striped">
-            <caption>Differences</caption>
-            <tbody>
-            <tr>
-                <th scope="col">Field</th>
-                <th scope="col">Differences</th>
-            </tr>
-            {% for field, diff in diffs.items %}
+        <em>Only fields where there is a difference between saves are displayed.</em>
+    </p>
+    {% if not_all_versions_selected %}
+        <div class="well">
+        Both versions must be selected
+        </div>
+    {% else %}
+    <div class="container">
+        {% if diffs %}
+            <table class="table table-striped">
+                <caption>Differences
+                    <div class="btn-group pull-right">
+                        <a type="button" class="btn btn-primary">Rendered</a>
+                        <a type="button" href="{{ request.get_full_path }}&raw=true" class="btn btn-default">Raw</a>
+                    </div>
+                </caption>
+                <tbody>
                 <tr>
-                    {% if not diff %}
-                        {# If there's no difference don't display it #}
-                    {% else %}
-                        <td>
-                            {{ field }}
-                        </td>
-                        <td>
-                            {% if diff.subitem %}
-                                {# It's a subitem so we need to display it in a special way #}
-                                <table class="table table-striped">
-                                <caption></caption>
-                                    {% for item_diff in diff.diffs %}
-                                        <tr>
-                                            {% for field, differences in item_diff.items %}
-                                                <tr>
-                                                <td>
-                                                    {{ field }}
-                                                </td>
-                                                <td>
-                                                    {% for difference in differences %}
-                                                        {% if difference.0 == 1 %}
-                                                            <ins>{{ difference.1 }}</ins>
-                                                        {% elif difference.0 == -1 %}
-                                                            <del>{{ difference.1 }}</del>
-                                                        {% else %}
-                                                            {# Don't display no change with any special formatting #}
-                                                            {{ difference.1 }}
-                                                        {% endif %}
-                                                    {% endfor %} {# <-- End per field iteration #}
-                                                </td>
-                                                </tr>
-                                            {% endfor %}
-                                            <tr><td></td></tr>
-                                        </tr>
-                                    {% endfor %} {# <-- End per item iteration #}
-                                </table>
-
-                            {% else %}
-                                {% for difference in diff.diffs %}
-                                    {% if difference.0 == 1 %}
-                                        <ins>{{ difference.1 }}</ins>
-                                    {% elif difference.0 == -1 %}
-                                        <del>{{ difference.1 }}</del>
-                                    {% else %}
-                                        {# Don't display no change with any special formatting #}
-                                        {{ difference.1 }}
-                                    {% endif %}
-
-                                {% endfor %}
-                                </td>
-                            {% endif %}
-                    {% endif %}
-
+                    <th scope="col">Field</th>
+                    <th scope="col">Differences</th>
                 </tr>
-            {% endfor %}
-            </tbody>
+                {% for field, diff in diffs.items %}
+                    <tr>
+                        {% if not diff %}
+                            {# If there's no difference don't display it #}
+                        {% else %}
+                            <td>
+                                {{ field }}
+                            </td>
+                            <td>
+                                {% if diff.subitem %}
+                                    {# It's a subitem so we need to display it in a special way #}
+                                    <table class="table table-striped">
+                                        <caption></caption>
+                                        {% for item_diff in diff.diffs %}
+                                            <tr>
+                                                {% for field, differences in item_diff.items %}
+                                                    <tr>
+                                                        <td>
+                                                            {{ field }}
+                                                        </td>
+                                                        <td>
+
+                                                            {% for difference in differences %}
+                                                                {% if difference.0 == 1 %}
+                                                                    <ins>{{ difference.1 }}</ins>
+                                                                {% elif difference.0 == -1 %}
+                                                                    <del>{{ difference.1 }}</del>
+                                                                {% else %}
+                                                                    {# Don't display no change with any special formatting #}
+                                                                    {{ difference.1 }}
+                                                                {% endif %}
+
+                                                            {% endfor %} {# <-- End per field iteration #}
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                            <tr>
+                                                <td></td>
+                                            </tr>
+                                            </tr>
+                                        {% endfor %} {# <-- End per item iteration #}
+                                    </table>
+
+                                {% else %}
+                                    {% for difference in diff.diffs %}
+                                        {% if difference.0 == 1 %}
+                                            <ins>{{ difference.1 }}</ins>
+                                        {% elif difference.0 == -1 %}
+                                            <del>{{ difference.1 }}</del>
+                                        {% else %}
+                                            {# Don't display no change with any special formatting #}
+                                            {{ difference.1 }}
+                                        {% endif %}
+                                    {% endfor %}
+                                    </td>
+                                {% endif %}
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+    {%  endif %} {# <-- End not all versions selected #}
 
 
-        </table>
-    {% endif %}
 {% endblock %}
