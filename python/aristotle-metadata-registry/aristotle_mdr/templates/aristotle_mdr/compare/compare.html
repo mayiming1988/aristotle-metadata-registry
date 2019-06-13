@@ -14,7 +14,7 @@
 {% block title %}Version history of {{ item.name }}{% endblock %}
 
 {% block infoContent %}
-    <h2>Version comparator for {{ item.name }}</h2>
+    <h2>Version Comparator for {{ item.name }}</h2>
     <p>Comparing differences between versions of {{ item.name }}.
         <em>Only fields where there is a difference between saves are displayed.</em>
     </p>
@@ -34,7 +34,6 @@
                         {% else %}
                             <a type="button" class="btn btn-primary">Rendered</a>
                             <a type="button" href="{{ request.get_full_path }}&raw=true" class="btn btn-default">Raw</a>
-
                         {% endif %}
                     </div>
                 </caption>
@@ -83,7 +82,6 @@
                                             </tr>
                                         {% endfor %} {# <-- End per item iteration #}
                                     </table>
-
                                 {% else %}
                                     {% for difference in diff.diffs %}
                                         {% if difference.0 == 1 %}

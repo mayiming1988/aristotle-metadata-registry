@@ -669,7 +669,6 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
 
         context['activetab'] = 'history'
         context['object'] = self.get_concept()
-        context['item'] = self.get_concept().item
 
         version_1 = self.request.GET.get('v1')
         version_2 = self.request.GET.get('v2')
@@ -722,6 +721,7 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
             else:
                 version_permission_code = version_permission.visibility
 
+
             version_list.append({
                 'permission': int(version_permission_code),
                 'version': version,
@@ -740,7 +740,8 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
                    'user_can_edit': USER_CAN_EDIT,
                    'object': self.get_object(),
                    'item': self.get_object().item,
-                   'versions': self.get_queryset()}
+                   'versions': self.get_queryset(),
+                   'choices': VISIBILITY_PERMISSION_CHOICES}
 
         return context
 

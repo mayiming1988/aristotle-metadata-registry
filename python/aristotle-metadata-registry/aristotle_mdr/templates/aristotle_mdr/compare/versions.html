@@ -13,13 +13,11 @@
 {% endblock %}
 
 {% block infoContent %}
+    <h2>Revisions for {{object.name}}.</h2>
+    <p>Select two items and click compare to see the differences between them.</p>
+
 <table id="change-history" class='table table-striped'
        data-update-api-url="{% url 'api_v4:item:update-version-permissions' object.id %}">
-    <caption>Revisions for {{object.name}}.
-        <div class="well well-sm">
-            Select two items and click compare to see the differences between them.
-        </div>
-    </caption>
     <thead>
     <tr>
             <th scope="col">
@@ -51,10 +49,8 @@
         <tr>
                 <td scope="row">
                         <input type="radio" name="version_id1" value="{{ version.version.pk|unlocalize }}"
-                               {% if version.first %}style="visibility:hidden"
-                               {% endif %}{% if version1.pk|unlocalize == version.version.pk|unlocalize or action.second %}checked="checked"{% endif%}/>
-                        <input type="radio" name="version_id2" value="{{ version.version.pk|unlocalize }}"
-                               {% if version2.pk|unlocalize == version.version.pk|unlocalize or version.first == 1 %}checked="checked"{% endif%}/>
+                               {% if version.first %}style="visibility:hidden;"{% endif %}>
+                        <input type="radio" name="version_id2" value="{{ version.version.pk|unlocalize }}">
                 </td>
             <th scope="row">
                 {% if version.url %}
