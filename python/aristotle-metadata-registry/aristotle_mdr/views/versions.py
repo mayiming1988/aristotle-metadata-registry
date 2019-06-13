@@ -527,7 +527,7 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
             try:
                 name = model._meta.get_field(field).related_model._meta.verbose_name
                 if name[0].islower():
-                    # If it doesn't start with a capital
+                    # If it doesn't start with a capital, we want to capitalize it
                     name = name.title()
             except AttributeError:
                 name = field
@@ -685,6 +685,8 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
         context = super().get_context_data(**kwargs)
 
         context['activetab'] = 'history'
+        context['hide_item_actions'] = True
+
 
         self.concept = self.get_item(self.request.user)
         self.model =  self.get_model(self.concept)
@@ -757,6 +759,7 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
                    'object': self.get_object(),
                    'item': self.get_object().item,
                    'versions': self.get_queryset(),
-                   'choices': VISIBILITY_PERMISSION_CHOICES}
+                   'choices': VISIBILITY_PERMISSION_CHOICES,
+                   "hide_item_actions": True}
 
         return context
