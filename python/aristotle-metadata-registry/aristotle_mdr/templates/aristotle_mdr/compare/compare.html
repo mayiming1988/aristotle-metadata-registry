@@ -75,7 +75,7 @@
                                                             </td>
                                                             <td>
                                                                 {% for difference in differences %}
-                                                                    {{ difference|render_difference|safe }}
+                                                                    {% render_difference difference %}
                                                                 {% endfor %} {# <-- End per field iteration #}
                                                             </td>
                                                         </tr>
@@ -89,7 +89,7 @@
                                     {% else %}
                                         {# Not a subitem, no special treatment required #}
                                         {% for difference in diff.diffs %}
-                                            {{ difference|render_difference|safe }}
+                                            {% render_difference difference %}
                                         {% endfor %}
                                         </td>
                                     {% endif %}

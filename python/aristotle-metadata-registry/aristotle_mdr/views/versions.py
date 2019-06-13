@@ -777,5 +777,7 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
 
         return context
 
+
 class CompareHTMLFieldsView(SimpleItemGet, TemplateView):
+    """ A view to render two HTML fields side by side so that they can be compared visually"""
     pass
