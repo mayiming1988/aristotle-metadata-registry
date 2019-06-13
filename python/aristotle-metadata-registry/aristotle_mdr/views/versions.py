@@ -519,13 +519,18 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
     def get_model(self, concept):
         return concept.item._meta.model
 
-    def get_user_friendly_field_name(self, model, field: str):
+    def is_field_html(self, field, model):
+        fieldobj = model._meta.get_field(field)
+        return issubclass(type(fieldobj), RichTextField)
+
+    def get_user_friendly_field_name(self, field: str):
         # If the field ends with _set we want to remove it
+        # TODO: refactor above function into this function
         postfix = '_set'
         if field.endswith(postfix):
             field = field[:-len(postfix)]
             try:
-                name = model._meta.get_field(field).related_model._meta.verbose_name
+                name = self.model._meta.get_field(field).related_model._meta.verbose_name
                 if name[0].islower():
                     # If it doesn't start with a capital, we want to capitalize it
                     name = name.title()
@@ -559,6 +564,11 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
                     # No point doing diffs if there is no difference
                     if isinstance(earlier_value, str) or isinstance(earlier_value, int):
                         # No special treatment required for strings and int
+
+                        # Determine if field is HTML
+
+                        is_html_field = self.is_field_html(field, self.model)
+
                         earlier = str(earlier_value)
                         later = str(later_value)
 
@@ -569,10 +579,12 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
                         diff = DiffMatchPatch.diff_main(earlier, later)
                         DiffMatchPatch.diff_cleanupSemantic(diff)
 
-                        field_to_diff[field.title()] = {'subitem': False, 'diffs': diff}
+                        field_to_diff[field.title()] = {'subitem': False,
+                                                        'is_html' : is_html_field,
+                                                        'diffs': diff,}
 
                     elif isinstance(earlier_value, list):
-                        field = self.get_user_friendly_field_name(self.model, field)
+                        field = self.get_user_friendly_field_name(field)
                         field_to_diff[field] = {'subitem': True,
                                                 'diffs': self.build_diff_of_lists(earlier_value, later_value)}
 
@@ -580,8 +592,8 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
 
     def build_diff_of_lists(self, earlier_values_list, later_values_list, raw=False):
         """
-        Given a list of dictionaries containing JSON representations of objects, iterates through and builds a list of
-        difference dictionaries
+        Given a list of dictionaries containing representations of objects, iterates through and builds a list of
+        difference dictionaries per field
         Example:
             [{'field': [(0, hello), (1, world)], 'other_field': [(0, goodbye), (-1, world)]]
         """
@@ -686,7 +698,6 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
 
         context['activetab'] = 'history'
         context['hide_item_actions'] = True
-
 
         self.concept = self.get_item(self.request.user)
         self.model =  self.get_model(self.concept)
