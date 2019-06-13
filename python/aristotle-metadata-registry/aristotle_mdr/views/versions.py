@@ -516,8 +516,22 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
 
     hidden_diff_fields = ['modified']
 
-    def get_concept(self):
-        return self.get_item(self.request.user)
+    def get_model(self, concept):
+        return concept.item._meta.model
+
+    def get_user_friendly_field_name(self, model, field: str):
+        # If the field ends with _set we want to remove it
+        postfix = '_set'
+        if field.endswith(postfix):
+            field = field[:-len(postfix)]
+            try:
+                name = model._meta.get_field(field).related_model._meta.verbose_name
+            except AttributeError:
+                name = field
+        else:
+            name = field.title()
+
+        return name
 
     def generate_diff(self, earlier_json, later_json, raw=False):
         """
@@ -552,9 +566,10 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
                         diff = DiffMatchPatch.diff_main(earlier, later)
                         DiffMatchPatch.diff_cleanupSemantic(diff)
 
-                        field_to_diff[field] = {'subitem': False, 'diffs': diff}
+                        field_to_diff[field.title()] = {'subitem': False, 'diffs': diff}
 
                     elif isinstance(earlier_value, list):
+                        field = self.get_user_friendly_field_name(self.model, field)
                         field_to_diff[field] = {'subitem': True,
                                                 'diffs': self.build_diff_of_lists(earlier_value, later_value)}
 
@@ -667,7 +682,9 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
         context = super().get_context_data(**kwargs)
 
         context['activetab'] = 'history'
-        context['object'] = self.get_concept()
+
+        self.concept = self.get_item(self.request.user)
+        self.model =  self.get_model(self.concept)
 
         version_1 = self.request.GET.get('v1')
         version_2 = self.request.GET.get('v2')
@@ -700,8 +717,7 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
     item_action_url = 'aristotle:item_version'
 
     def get_object(self):
-        concept = self.get_item(self.request.user).item  # Versions are now saved on the model rather than the concept
-        return concept
+        return self.get_item(self.request.user).item  # Versions are now saved on the model rather than the concept
 
     def get_queryset(self):
         """Return a queryset of all the versions the user has permission to access as well as associated metadata
