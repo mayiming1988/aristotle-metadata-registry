@@ -42,8 +42,9 @@
                                     {% for item_diff in diff.diffs %}
                                         <tr>
                                             {% for field, differences in item_diff.items %}
+                                                <tr>
                                                 <td>
-                                                    <b>{{ field }}</b>
+                                                    {{ field }}
                                                 </td>
                                                 <td>
                                                     {% for difference in differences %}
@@ -55,14 +56,13 @@
                                                             {# Don't display no change with any special formatting #}
                                                             {{ difference.1 }}
                                                         {% endif %}
-
-
-                                                    {% endfor %}
+                                                    {% endfor %} {# <-- End per field iteration #}
                                                 </td>
+                                                </tr>
                                             {% endfor %}
+                                            <tr><td></td></tr>
                                         </tr>
-
-                                    {% endfor %}
+                                    {% endfor %} {# <-- End per item iteration #}
                                 </table>
 
                             {% else %}

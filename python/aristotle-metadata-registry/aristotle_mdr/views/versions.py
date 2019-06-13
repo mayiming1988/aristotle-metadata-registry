@@ -560,6 +560,7 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
                         field_to_diff[field] = {'subitem': True,
                                                 'diffs': self.build_diff_of_lists(earlier_value, later_value)}
 
+
         return field_to_diff
 
     def build_diff_of_lists(self, earlier_values_list, later_values_list):
@@ -585,8 +586,14 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
             for id in added_ids:
                 item = later_items[id]
                 difference_dict = {}
-                for field, value in item:
-                    difference_dict[field] = (1, value)
+                for field, value in item.items():
+                    if field == 'id':
+                        # We don't need a diff for id
+                        pass
+                    else:
+                        # Because diffmatchpatch returns a list of tuples of diffs
+                        # for consistent display we also return a list of tuples of diffs
+                        difference_dict[field] = [(1, value)]
 
                 differences.append(difference_dict)
 
@@ -595,8 +602,12 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
             for id in removed_ids:
                 item = earlier_items[id]
                 difference_dict = {}
-                for field, value in item:
-                    difference_dict[field] = (-1, value)
+                for field, value in item.items():
+                    if field == 'id':
+                        # We don't need a diff for id
+                        pass
+                    else:
+                        difference_dict[field] = [(-1, value)]
 
                 differences.append(difference_dict)
 
@@ -610,14 +621,16 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
                 difference_dict = {}
 
                 for field, earlier_value in earlier_item.items():
-                    later_value = later_item[field]
-                    diff = DiffMatchPatch.diff_main(str(earlier_value), str(later_value))
-                    DiffMatchPatch.diff_cleanupSemantic(diff)
+                    if field == 'id':
+                        pass
+                    else:
+                        later_value = later_item[field]
+                        diff = DiffMatchPatch.diff_main(str(earlier_value), str(later_value))
+                        DiffMatchPatch.diff_cleanupSemantic(diff)
 
-                    difference_dict[field] = diff
+                        difference_dict[field] = diff
 
                 differences.append(difference_dict)
-
 
             return differences
 
@@ -687,3 +700,4 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
                    'versions': self.get_queryset()}
 
         return context
+

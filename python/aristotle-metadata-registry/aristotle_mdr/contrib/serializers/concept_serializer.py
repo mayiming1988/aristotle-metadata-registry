@@ -58,7 +58,7 @@ class OrganisationRecordsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RecordRelation
-        fields = ['organization_record', 'type']
+        fields = ['organization_record', 'type', 'id']
 
     def get_id(self, org_record):
         return org_record.pk
