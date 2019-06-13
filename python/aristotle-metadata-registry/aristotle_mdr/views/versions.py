@@ -523,21 +523,23 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
         fieldobj = model._meta.get_field(field)
         return issubclass(type(fieldobj), RichTextField)
 
-    def get_user_friendly_field_name(self, field: str):
-        # If the field ends with _set we want to remove it
-        # TODO: refactor above function into this function
+    def clean_field(self, field):
         postfix = '_set'
         if field.endswith(postfix):
-            field = field[:-len(postfix)]
-            try:
-                name = self.model._meta.get_field(field).related_model._meta.verbose_name
-                if name[0].islower():
-                    # If it doesn't start with a capital, we want to capitalize it
-                    name = name.title()
-            except AttributeError:
-                name = field
-        else:
-            name = field.title()
+            return field[:-len(postfix)]
+        return field
+
+    def get_user_friendly_field_name(self, field: str):
+        # If the field ends with _set we want to remove it
+        postfix = '_set'
+        name = self.clean_field(field)
+        try:
+            name = self.model._meta.get_field(field).related_model._meta.verbose_name
+            if name[0].islower():
+                # If it doesn't start with a capital, we want to capitalize it
+                name = name.title()
+        except AttributeError:
+            name = field
 
         return name
 
@@ -580,7 +582,7 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
                         DiffMatchPatch.diff_cleanupSemantic(diff)
 
                         field_to_diff[field.title()] = {'subitem': False,
-                                                        'is_html' : is_html_field,
+                                                        'is_html': is_html_field,
                                                         'diffs': diff,}
 
                     elif isinstance(earlier_value, list):
@@ -744,10 +746,8 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
         version_list = []
 
         version_to_permission = VersionPermissions.objects.in_bulk(versions)
-
         for version in versions:
             version_permission = version_to_permission[version.id]
-
             if version_permission is None:
                 # Default to displaying workgroup level permissions
                 version_permission_code = 0
@@ -778,5 +778,5 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
 
         return context
 
-class CompareHTMLFieldsView():
+class CompareHTMLFieldsView(SimpleItemGet, TemplateView):
     pass
