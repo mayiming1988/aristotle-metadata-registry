@@ -3,7 +3,8 @@ Serializer for concept and all attached fields
 """
 from rest_framework import serializers
 
-from django.core.serializers.base import Serializer, DeserializedObject, build_instance
+from django.core.serializers.base import Serializer as BaseDjangoSerializer
+from django.core.serializers.base import DeserializedObject, build_instance
 from django.apps import apps
 from django.db import DEFAULT_DB_ALIAS
 
@@ -186,9 +187,9 @@ class ConceptSerializerFactory():
         return Deserializer
 
 
-class Serializer(Serializer):
+class Serializer(BaseDjangoSerializer):
     """This is a django serializer that has a 'composed' DRF Serializer inside. """
-    data = {}
+    data: dict = {}
 
     def serialize(self, queryset, stream=None, fields=None, use_natural_foreign_keys=False,
                   use_natural_primary_keys=False, progress_output=None, **options):

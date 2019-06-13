@@ -201,8 +201,7 @@ class ConceptVersionView(ConceptRenderView):
         else:
             return False
 
-        self.concept_version_data = json.loads(self.concept_version.serialized_data)[0]
-        self.item_version_data = json.loads(self.item_version.serialized_data)[0]
+        self.item_version_data = json.loads(self.item_version.serialized_data)
         self.item_model = self.item_version.content_type.model_class()
 
         return True
@@ -427,7 +426,7 @@ class ConceptVersionView(ConceptRenderView):
                 # Keys under item_data are used as headings
                 version_dict['item_data']['Names & References'][fieldobj.verbose_name.title()] = field
 
-        # Add some extra data the temlate expects from a regular item object
+        # Add some extra data the template expects from a regular item object
         version_dict['meta'] = {
             'app_label': self.item_version.content_type.app_label,
             'model_name': self.item_version.content_type.model
@@ -712,7 +711,6 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
 
         version_list = []
         for version in versions:
-            # TODO: move to bulk lookup for performance
             version_permission = VersionPermissions.objects.get_object_or_none(version=version)
 
             if version_permission is None:
