@@ -28,8 +28,14 @@
             <table class="table table-striped">
                 <caption>Differences
                     <div class="btn-group pull-right">
-                        <a type="button" class="btn btn-primary">Rendered</a>
-                        <a type="button" href="{{ request.get_full_path }}&raw=true" class="btn btn-default">Raw</a>
+                        {% if raw %}
+                            <a type="button" href="{{ request.path }}?v1={{ version_1_id }}&v2={{ version_2_id }}" class="btn btn-default">Rendered</a>
+                            <a type="button" class = "btn btn-primary" class="btn btn-default">Raw</a>
+                        {% else %}
+                            <a type="button" class="btn btn-primary">Rendered</a>
+                            <a type="button" href="{{ request.get_full_path }}&raw=true" class="btn btn-default">Raw</a>
+
+                        {% endif %}
                     </div>
                 </caption>
                 <tbody>
@@ -58,7 +64,6 @@
                                                             {{ field }}
                                                         </td>
                                                         <td>
-
                                                             {% for difference in differences %}
                                                                 {% if difference.0 == 1 %}
                                                                     <ins>{{ difference.1 }}</ins>
@@ -68,7 +73,6 @@
                                                                     {# Don't display no change with any special formatting #}
                                                                     {{ difference.1 }}
                                                                 {% endif %}
-
                                                             {% endfor %} {# <-- End per field iteration #}
                                                         </td>
                                                     </tr>

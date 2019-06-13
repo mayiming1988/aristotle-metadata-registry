@@ -17,6 +17,7 @@ from aristotle_mdr.perms import user_can_view, user_can_edit
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
 from aristotle_mdr.views.utils import SimpleItemGet
+from aristotle_mdr.utils.utils import strip_tags
 
 import json
 import reversion
@@ -531,7 +532,6 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
         DiffMatchPatch = diff_match_patch.diff_match_patch()
         field_to_diff = {}
 
-        # TODO: deal with fields changing between revisions
         for field in earlier_json:
             # Iterate through all fields in the JSON
             if field not in self.hidden_diff_fields:
@@ -543,7 +543,14 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
                     # No point doing diffs if there is no difference
                     if isinstance(earlier_value, str) or isinstance(earlier_value, int):
                         # No special treatment required for strings and int
-                        diff = DiffMatchPatch.diff_main(str(earlier_value), str(later_value))
+                        earlier = str(earlier_value)
+                        later = str(later_value)
+
+                        if not raw:
+                            earlier = strip_tags(earlier)
+                            later = strip_tags(later)
+
+                        diff = DiffMatchPatch.diff_main(earlier, later)
                         DiffMatchPatch.diff_cleanupSemantic(diff)
 
                         field_to_diff[field] = {'subitem': False, 'diffs': diff}
@@ -582,7 +589,9 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
                         # We don't need a diff for id
                         pass
                     else:
-                        # Because diffmatchpatch returns a list of tuples of diffs
+                        if not raw:
+                            value = strip_tags(str(value))
+                        # Because DiffMatchPatch returns a list of tuples of diffs
                         # for consistent display we also return a list of tuples of diffs
                         difference_dict[field] = [(1, value)]
 
@@ -598,6 +607,8 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
                         # We don't need a diff for id
                         pass
                     else:
+                        if not raw:
+                            value = strip_tags(str(value))
                         difference_dict[field] = [(-1, value)]
 
                 differences.append(difference_dict)
@@ -616,7 +627,12 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
                         pass
                     else:
                         later_value = later_item[field]
-                        diff = DiffMatchPatch.diff_main(str(earlier_value), str(later_value))
+
+                        if not raw:
+                            earlier_value = strip_tags(str(earlier_value))
+                            later_value = strip_tags(str(later_value))
+
+                        diff = DiffMatchPatch.diff_main(earlier_value, later_value)
                         DiffMatchPatch.diff_cleanupSemantic(diff)
 
                         difference_dict[field] = diff
@@ -658,6 +674,10 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
         version_1 = self.request.GET.get('v1')
         version_2 = self.request.GET.get('v2')
 
+        # Need to pass this context to rebuild query parameters in template
+        context['version_1_id'] = version_1
+        context['version_2_id'] = version_2
+
         if not version_1 or not version_2:
             context['not_all_versions_selected'] = True
             return context
@@ -666,9 +686,10 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
 
         raw = self.request.GET.get('raw')
         if raw:
+            context['raw'] = True
             context['diffs'] = self.generate_diff(earlier_json, later_json, raw=True)
-
-        context['diffs'] = self.generate_diff(earlier_json, later_json)
+        else:
+            context['diffs'] = self.generate_diff(earlier_json, later_json)
 
         return context
 
