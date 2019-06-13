@@ -526,6 +526,9 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
             field = field[:-len(postfix)]
             try:
                 name = model._meta.get_field(field).related_model._meta.verbose_name
+                if name[0].islower():
+                    # If it doesn't start with a capital
+                    name = name.title()
             except AttributeError:
                 name = field
         else:
