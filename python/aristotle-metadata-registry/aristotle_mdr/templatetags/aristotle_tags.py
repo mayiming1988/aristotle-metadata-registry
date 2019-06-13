@@ -462,6 +462,19 @@ def doc(item, field=None):
             # return _("No help text for the field '%(field)s' found on the model '%(model)s' in the app '%(app)s'") % {'app':app_label,'model':model_name,'field':field}
             return _("No help text for the field '%(field)s' found for the model '%(model)s'") % {'model': item.get_verbose_name(), 'field': field}
 
+@register.filter
+def render_difference(difference):
+
+    change_code = difference[0]
+    content = difference[1]
+
+    if change_code == 1:
+        return '<ins>' + content + '</ins>'
+    elif change_code == -1:
+        return '<del>' + content + '</del>'
+    else:
+        return content
+
 
 @register.filter
 def can_use_action(user, bulk_action, *args):

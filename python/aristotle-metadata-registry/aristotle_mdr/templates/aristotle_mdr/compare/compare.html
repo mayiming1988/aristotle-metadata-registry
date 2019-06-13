@@ -75,14 +75,7 @@
                                                             </td>
                                                             <td>
                                                                 {% for difference in differences %}
-                                                                    {% if difference.0 == 1 %}
-                                                                        <ins>{{ difference.1 }}</ins>
-                                                                    {% elif difference.0 == -1 %}
-                                                                        <del>{{ difference.1 }}</del>
-                                                                    {% else %}
-                                                                        {# Don't display no change with any special formatting #}
-                                                                        {{ difference.1 }}
-                                                                    {% endif %}
+                                                                    {{ difference|render_difference|safe }}
                                                                 {% endfor %} {# <-- End per field iteration #}
                                                             </td>
                                                         </tr>
@@ -96,14 +89,7 @@
                                     {% else %}
                                         {# Not a subitem, no special treatment required #}
                                         {% for difference in diff.diffs %}
-                                            {% if difference.0 == 1 %}
-                                                <ins>{{ difference.1 }}</ins>
-                                            {% elif difference.0 == -1 %}
-                                                <del>{{ difference.1 }}</del>
-                                            {% else %}
-                                                {# Don't display no change with any special formatting #}
-                                                {{ difference.1 }}
-                                            {% endif %}
+                                            {{ difference|render_difference|safe }}
                                         {% endfor %}
                                         </td>
                                     {% endif %}
