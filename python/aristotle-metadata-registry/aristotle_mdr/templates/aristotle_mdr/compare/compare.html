@@ -29,10 +29,10 @@
                 <caption>Differences
                     <div class="btn-group pull-right">
                         {% if raw %}
-                            <a type="button" href="{{ request.path }}?v1={{ version_1_id }}&v2={{ version_2_id }}" class="btn btn-default">Rendered</a>
+                            <a type="button" href="{{ request.path }}?v1={{ version_1_id }}&v2={{ version_2_id }}" class="btn btn-default">Text Only</a>
                             <a type="button" class = "btn btn-primary" class="btn btn-default">Raw</a>
                         {% else %}
-                            <a type="button" class="btn btn-primary">Rendered</a>
+                            <a type="button" class="btn btn-primary">Text only</a>
                             <a type="button" href="{{ request.get_full_path }}&raw=true" class="btn btn-default">Raw</a>
                         {% endif %}
                     </div>
@@ -83,6 +83,7 @@
                                         {% endfor %} {# <-- End per item iteration #}
                                     </table>
                                 {% else %}
+                                    {# Not a subitem, no special treatment required #}
                                     {% for difference in diff.diffs %}
                                         {% if difference.0 == 1 %}
                                             <ins>{{ difference.1 }}</ins>

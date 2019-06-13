@@ -731,8 +731,11 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
         versions = self.get_versions(metadata_item)
 
         version_list = []
+
+        version_to_permission = VersionPermissions.objects.in_bulk(versions)
+
         for version in versions:
-            version_permission = VersionPermissions.objects.get_object_or_none(version=version)
+            version_permission = version_to_permission[version.id]
 
             if version_permission is None:
                 # Default to displaying workgroup level permissions
@@ -763,3 +766,6 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
                    "hide_item_actions": True}
 
         return context
+
+class CompareHTMLFieldsView():
+    pass
