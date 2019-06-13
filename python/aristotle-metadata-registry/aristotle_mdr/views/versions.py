@@ -529,12 +529,11 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
             return field[:-len(postfix)]
         return field
 
-    def get_user_friendly_field_name(self, field: str):
+    def get_user_friendly_field_name(self, field):
         # If the field ends with _set we want to remove it
-        postfix = '_set'
         name = self.clean_field(field)
         try:
-            name = self.model._meta.get_field(field).related_model._meta.verbose_name
+            name = self.model._meta.get_field(name).related_model._meta.verbose_name
             if name[0].islower():
                 # If it doesn't start with a capital, we want to capitalize it
                 name = name.title()
@@ -567,19 +566,19 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
                     if isinstance(earlier_value, str) or isinstance(earlier_value, int):
                         # No special treatment required for strings and int
 
-                        # Determine if field is HTML
-
-                        is_html_field = self.is_field_html(field, self.model)
-
                         earlier = str(earlier_value)
                         later = str(later_value)
 
                         if not raw:
+                            # Strip tags if it's not raw
                             earlier = strip_tags(earlier)
                             later = strip_tags(later)
 
+                        # Do the diff
                         diff = DiffMatchPatch.diff_main(earlier, later)
                         DiffMatchPatch.diff_cleanupSemantic(diff)
+
+                        is_html_field = self.is_field_html(field, self.model)
 
                         field_to_diff[field.title()] = {'subitem': False,
                                                         'is_html': is_html_field,
