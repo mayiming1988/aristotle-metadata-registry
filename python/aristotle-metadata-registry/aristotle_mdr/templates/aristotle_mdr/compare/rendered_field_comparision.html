@@ -1,6 +1,6 @@
 {% extends 'aristotle_mdr/concepts/contentInfoBase.html' %}
 
-{% load aristotle_tags i18n l10n %}
+{% load aristotle_tags i18n l10n util_tags %}
 {% load render_bundle from webpack_loader %}
 
 {% block webpack_bundle %}
@@ -12,5 +12,18 @@
 {% endblock %}
 
 {% block infoContent %}
-Hello
+<table class="table table-striped">
+<caption>Rendered {{ definition }} for versions of {{ item.name }}</caption>
+<tr>
+    <th>Version 1</th>
+    <th>Version 2</th>
+</tr>
+<tr>
+    {% for field in html_fields %}
+        <td>{{ field|bleach }}</td>
+    {% endfor %}
+</tr>
+
+
+</table>
 {% endblock %}
