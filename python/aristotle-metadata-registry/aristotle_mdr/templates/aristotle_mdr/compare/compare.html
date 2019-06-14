@@ -47,7 +47,7 @@
                         <th scope="col">Field</th>
                         <th scope="col">Differences</th>
                     </tr>
-                    {% for field, diff in diffs.items %}
+                    {% for parent_field, diff in diffs.items %}
                         <tr>
                             {% if not diff %}
                                 {# If there's no difference don't display it #}
@@ -57,7 +57,7 @@
                                         {# If the diff for the field is HTML then we want to provide a link to a side #}
                                         {# by side comparision #}
                                         {{ diff.user_friendly_name }}
-                                        <a href={% url 'aristotle:compare_fields' item.id %}?v1={{ version_1_id }}&v2={{ version_2_id }}&field={{ field }}>
+                                        <a href="{% url 'aristotle:compare_fields' item.id %}?v1={{ version_1_id }}&v2={{ version_2_id }}&field={{ parent_field }}">
                                             <i class="fa fa-columns"></i></a>
                                     {% else %}
                                         {{ diff.user_friendly_name }}
@@ -69,19 +69,22 @@
                                         <table class="table table-striped">
                                             <caption></caption>
                                             {% for item_diff in diff.diffs %} {# <-- List of the subitems for a particular field #}
+
                                                 <tr>
                                                     {% for field, differences in item_diff.items %}
                                                         {# <-- The fields and tuple differences for a field in a particular subitem #}
                                                         <tr>
                                                             <td>
                                                                 {% if differences.is_html %}
-                                                                    {{ field|title }} <a href="https://google.com"><i class="fa fa-columns"></i></a>
+                                                                    {{ field|title }}
+                                                                    <a href="{% url 'aristotle:compare_fields' item.id %}?v1={{ version_1_id }}&v2={{ version_2_id }}&field={{ parent_field }}.{{ forloop.parentloop.counter0 }}.{{ field }}">
+                                                                        <i class="fa fa-columns"></i></a>
                                                                 {% else %}
-                                                                {{ field|title }}
+                                                                    {{ field|title }}
                                                                 {% endif %}
                                                             </td>
                                                             <td>
-                                                                {% for difference in differences.diff %} {# <-- Tuple #}
+                                                                {% for difference in differences.diff %} {# <-- Tuple of differences #}
                                                                     {% render_difference difference %}
                                                                 {% endfor %} {# <-- End per field iteration #}
                                                             </td>

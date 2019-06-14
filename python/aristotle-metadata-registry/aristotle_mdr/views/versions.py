@@ -501,7 +501,6 @@ class ViewableVersionsMixin:
                 # Visibility is public, don't exclude
                 return True
 
-
     def get_versions(self, metadata_item):
         """ Get versions and apply permission checking so that only versions where there is permission are shown"""
         versions = reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
@@ -817,20 +816,34 @@ class CompareHTMLFieldsView(SimpleItemGet, ViewableVersionsMixin, TemplateView):
     def get_object(self):
         return self.get_item(self.request.user).item  # Versions are now saved on the model rather than the concept
 
-    def get_html_fields(self, version_1, version_2, field):
+    def get_html_fields(self, version_1, version_2, field_query):
         """Cleans and returns the content for the two versions of a HTML field """
+        html_values = []
+        fields = tuple(field_query.split('.'))
+
 
         versions = [json.loads(version_1.serialized_data),
                     json.loads(version_2.serialized_data)]
-
-        values = []
         for version in versions:
-            if field in version:
-                html_value = version[field]
+            version_data = version
+            for field in fields:
+                if version_data is None:
+                    pass
+                # Dynamically traverse data structure
+                if isinstance(version_data, dict):
+                    if field in version_data:
+                        version_data = version_data[field]
+                    else:
+                        version_data = None
 
-            values.append(html_value)
+                elif isinstance(version_data, list):
+                    try:
+                        version_data = version_data[int(field)]
+                    except IndexError:
+                        version_data = None
+            html_values.append(version_data)
 
-        return values
+        return html_values
 
     def get_context_data(self, **kwargs):
 
@@ -857,9 +870,9 @@ class CompareHTMLFieldsView(SimpleItemGet, ViewableVersionsMixin, TemplateView):
                 metadata_item, version_permission_2):
             raise PermissionDenied
 
-        field = self.request.GET.get('field')
+        field_query = self.request.GET.get('field')
 
-        context['html_fields'] = self.get_html_fields(first_version, second_version, field)
+        context['html_fields'] = self.get_html_fields(first_version, second_version, field_query)
 
 
         return context
