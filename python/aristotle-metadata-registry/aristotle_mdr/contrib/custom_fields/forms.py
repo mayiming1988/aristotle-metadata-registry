@@ -86,8 +86,9 @@ class CustomValueFormMixin:
                 # Flatten into list of values
                 choice_values = itertools.chain(*choice_lists)
                 # Make into 2 tuple
-                choices = [(v, v) for v in choice_values]
-                choices.append(('', '------'))
+                choices = [('', '------')]
+                for val in choice_values:
+                    choices.append((val, val))
                 field_default_args['choices'] = choices
 
             if custom_field.state == CUSTOM_FIELD_STATES.inactive:
