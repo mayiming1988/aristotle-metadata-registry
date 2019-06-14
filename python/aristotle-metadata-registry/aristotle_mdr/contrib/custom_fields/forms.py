@@ -1,4 +1,4 @@
-from typing import Iterable, List, Dict
+from typing import Iterable, List, Dict, Set
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 
@@ -55,7 +55,7 @@ class CustomValueFormMixin:
 
     def __init__(self, custom_fields: Iterable[CustomField] = [], **kwargs):
         # This is immediately overridden by __init__ but python type checking demands it
-        self.bad_value_custom_fields = set()
+        self.bad_value_custom_fields: Set = set()
         self.initial: Dict
 
         super().__init__(**kwargs)  # type: ignore
