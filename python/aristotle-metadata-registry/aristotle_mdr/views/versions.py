@@ -473,12 +473,13 @@ class ViewableVersionsMixin:
 
         versions = reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
 
-        in_workgroup = (metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list)
-        authenticated_user = (not self.request.user.is_anonymous())
+        in_workgroup = metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list
+        authenticated_user = not self.request.user.is_anonymous()
 
         # Determine the viewing permissions of the users
         if not self.request.user.is_superuser:
             # Superusers can see everything
+            # TODO: refactor into bulk lookup
             for version in versions:
                 version_permission = VersionPermissions.objects.get_object_or_none(version=version)
 
@@ -643,7 +644,7 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
 
                 differences.append(difference_dict)
 
-            # Items with IDs that are present in both have been changed,
+            # Items with IDs that are present in both earlier and later data have been changed,
             # so we want to perform a field-by-field dict comparision
             changed_ids = set(earlier_items).intersection(set(later_items))
             for id in changed_ids:
@@ -780,4 +781,11 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
 
 class CompareHTMLFieldsView(SimpleItemGet, TemplateView):
     """ A view to render two HTML fields side by side so that they can be compared visually"""
-    pass
+    template_name = 'aristotle_mdr/compare/rendered_field_comparision.html'
+
+    def get_context_data(self, **kwargs):
+        version_1 = self.request.GET.get('v1')
+        version_2 = self.request.GET.get('v2')
+
+        field = self.request.GET.get('field')
+
