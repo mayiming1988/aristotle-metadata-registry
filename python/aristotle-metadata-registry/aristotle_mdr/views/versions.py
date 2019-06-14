@@ -22,6 +22,7 @@ from aristotle_mdr.utils.utils import strip_tags
 import json
 import reversion
 import diff_match_patch
+import bleach
 
 from collections import defaultdict
 from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
@@ -469,47 +470,59 @@ class ConceptVersionView(ConceptRenderView):
 
 
 class ViewableVersionsMixin:
-    def get_versions(self, metadata_item):
-
-        versions = reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
-
+    def user_can_view_version(self, metadata_item, version_permission):
+        """ Determine whether or not user can view the specific version """
         in_workgroup = metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list
         authenticated_user = not self.request.user.is_anonymous()
 
+        if self.request.user.is_superuser:
+            return True
+
+        if version_permission is None:
+            # Default to applying workgroup permissions
+            in_workgroup = metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list
+            if not in_workgroup:
+                return False
+
+        else:
+            visibility = int(version_permission.visibility)
+
+            if visibility == VISIBILITY_PERMISSION_CHOICES.workgroup:
+                # Apply workgroup permissions
+                if not in_workgroup:
+                    return False
+
+            elif visibility == VISIBILITY_PERMISSION_CHOICES.auth:
+                # Exclude anonymous users
+                if not authenticated_user:
+                    return False
+
+            else:
+                # Visibility is public, don't exclude
+                return True
+
+
+    def get_versions(self, metadata_item):
+        """ Get versions and apply permission checking so that only versions where there is permission are shown"""
+        versions = reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
+
         # Determine the viewing permissions of the users
         if not self.request.user.is_superuser:
-            # Superusers can see everything
-            # TODO: refactor into bulk lookup
+            # Superusers can see everything, for performance we won't look up version permission objs
+
+            version_to_permission = VersionPermissions.objects.in_bulk(versions)
+
             for version in versions:
-                version_permission = VersionPermissions.objects.get_object_or_none(version=version)
-
-                if version_permission is None:
-                    # Default to applying workgroup permissions
-                    if not in_workgroup:
-                        versions = versions.exclude(pk=version.pk)
-                else:
-                    visibility = int(version_permission.visibility)
-
-                    if visibility == VISIBILITY_PERMISSION_CHOICES.workgroup:
-                        # Apply workgroup permissions
-                        if not in_workgroup:
-                            versions = versions.exclude(pk=version.pk)
-
-                    elif visibility == VISIBILITY_PERMISSION_CHOICES.auth:
-                        # Exclude anonymous users
-                        if not authenticated_user:
-                            versions = versions.exclude(pk=version.pk)
-
-                    else:
-                        # Visibility is public, don't exclude this version
-                        pass
+                version_permission = version_to_permission[version.id]
+                if not self.user_can_view_version(version_permission, metadata_item):
+                    versions = versions.exclude(pk=version)
 
         versions = versions.order_by('-revision__date_created')
 
         return versions
 
 
-class ConceptVersionCompareView(SimpleItemGet, TemplateView):
+class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateView):
     """
     View that performs the historical comparision between two different versions of the same concept
     """
@@ -672,15 +685,12 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
 
             return differences
 
-    def get_version_jsons(self, version_1, version_2):
+    def get_version_jsons(self, first_version, second_version):
         """
         Diffing is order sensitive, so date comparision is performed to ensure that the versions are compared with
         correct chronology.
         """
-        first_version = reversion.models.Version.objects.get(pk=version_1)
         first_version_created = first_version.revision.date_created
-
-        second_version = reversion.models.Version.objects.get(pk=version_2)
         second_version_created = second_version.revision.date_created
 
         if first_version_created > second_version_created:
@@ -707,15 +717,25 @@ class ConceptVersionCompareView(SimpleItemGet, TemplateView):
         version_1 = self.request.GET.get('v1')
         version_2 = self.request.GET.get('v2')
 
-        # Need to pass this context to rebuild query parameters in template
-        context['version_1_id'] = version_1
-        context['version_2_id'] = version_2
-
         if not version_1 or not version_2:
             context['not_all_versions_selected'] = True
             return context
 
-        earlier_json, later_json = self.get_version_jsons(version_1, version_2)
+        first_version = reversion.models.Version.objects.get(pk=version_1)
+        second_version = reversion.models.Version.objects.get(pk=version_2)
+
+        version_permission_1 = VersionPermissions.objects.get_object_or_none(pk=version_1)
+        version_permission_2 = VersionPermissions.objects.get_object_or_none(pk=version_2)
+
+        if not self.user_can_view_version(self.concept, version_permission_1) and self.user_can_view_version(
+                self.concept, version_permission_2):
+            raise PermissionDenied
+
+        # Need to pass this context to rebuild query parameters in template
+        context['version_1_id'] = version_1
+        context['version_2_id'] = version_2
+
+        earlier_json, later_json = self.get_version_jsons(first_version, second_version)
 
         raw = self.request.GET.get('raw')
         if raw:
@@ -745,6 +765,7 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
 
         version_list = []
 
+        # For display
         version_to_permission = VersionPermissions.objects.in_bulk(versions)
         for version in versions:
             version_permission = version_to_permission[version.id]
@@ -779,13 +800,54 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
         return context
 
 
-class CompareHTMLFieldsView(SimpleItemGet, TemplateView):
+class CompareHTMLFieldsView(SimpleItemGet, ViewableVersionsMixin, TemplateView):
     """ A view to render two HTML fields side by side so that they can be compared visually"""
     template_name = 'aristotle_mdr/compare/rendered_field_comparision.html'
 
+    def get_object(self):
+        return self.get_item(self.request.user).item  # Versions are now saved on the model rather than the concept
+
+    def get_html_fields(self, version_1, version_2, field):
+        """Cleans and returns the content for the two versions of a HTML field """
+
+        versions = [json.loads(version_1.serialized_data),
+                    json.loads(version_2.serialized_data)]
+
+        values = []
+        for version in versions:
+            html_value = bleach.clean(version[field])
+            values.append(html_value)
+
+        return values
+
+
     def get_context_data(self, **kwargs):
+        context = {'activetab': 'history',
+                   'hide_item_actions': True}
+
         version_1 = self.request.GET.get('v1')
         version_2 = self.request.GET.get('v2')
 
+        if not version_1 or not version_2:
+            context['not_all_versions_selected'] = True
+            return context
+
+        metadata_item = self.get_item(self.request.user).item
+
+        first_version = reversion.models.Version.objects.get(pk=version_1)
+        second_version = reversion.models.Version.objects.get(pk=version_2)
+
+        version_permission_1 = VersionPermissions.objects.get_object_or_none(pk=version_1)
+        version_permission_2 = VersionPermissions.objects.get_object_or_none(pk=version_2)
+
+        if not self.user_can_view_version(metadata_item, version_permission_1) and self.user_can_view_version(
+                metadata_item, version_permission_2):
+            raise PermissionDenied
+
         field = self.request.GET.get('field')
+
+        context['html_fields'] = self.get_html_fields(version_1, version_2, field)
+
+
+        return context
 
