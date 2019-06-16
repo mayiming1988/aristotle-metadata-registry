@@ -1777,7 +1777,6 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertEqual(response.status_code, 404)
 
     def test_weak_editing_in_advanced_editor_dynamic(self, updating_field=None, default_fields={}):
-
         if hasattr(self.item1, 'serialize_weak_entities'):
             self.login_editor()
             value_url = 'aristotle:edit_item'
@@ -1841,7 +1840,8 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
                 self.assertIsNotNone(updating_field)
                 # no string was found to update
-                # if this happends the test needs to be passed an updating_field or changed to support more than text updates
+                # if this happens the test needs to be passed an updating_field or changed to support more
+                # than text updates
 
                 i = 0
                 data.update({"%s-%d-DELETE" % (pre, i): 'checked', "%s-%d-%s" % (pre, i, updating_field): getattr(v, updating_field) + " - deleted"})  # delete the last one.

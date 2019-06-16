@@ -37,10 +37,6 @@ register_concept(
         ),
     ],
     extra_inlines=[DSSDEInclusionInline, DSSClusterInclusionInline],
-    reversion={
-        'follow': ['dssdeinclusion_set', 'dssclusterinclusion_set'],
-        'follow_classes': [models.DSSClusterInclusion, models.DSSDEInclusion, models.DSSGrouping]
-    },
 )
 
 
@@ -86,3 +82,6 @@ register_concept(
         'follow_classes': [models.DistributionDataElementPath]
     }
 )
+
+# Temporary fix
+

@@ -66,7 +66,7 @@ class CustomField(TimeStampedModel):
 
 class CustomValue(TimeStampedModel):
     field = models.ForeignKey(CustomField, related_name='values')
-    content = models.TextField()
+    content = models.TextField(blank=True)
     concept = ConceptForeignKey(_concept)
 
     objects = CustomValueManager()

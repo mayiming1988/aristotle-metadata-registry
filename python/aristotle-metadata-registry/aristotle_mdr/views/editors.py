@@ -214,11 +214,6 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         if form_invalid or formsets_invalid:
             return self.form_invalid(form, formsets=extra_formsets)
         else:
-            # The form and the formsets were valid
-            # This was removed from the revision below due to a bug with saving
-            # long slots, links are still saved due to reversion follows
-            self.save_formsets(extra_formsets)
-
             # Create the revision
             with reversion.revisions.create_revision():
                 if not change_comments:
@@ -230,8 +225,12 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
 
                 # Update the item
                 form.save_m2m()
-                item.save()
                 form.save_custom_fields(item)
+
+                # This is here while we investigate bugs with saving the extra formsets
+                self.save_formsets(extra_formsets)
+
+                item.save()
 
             # Versions are loaded with the most recent version first, so we get the one that was just created
             version = Version.objects.get_for_object(item).first()
@@ -319,9 +318,10 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
                 reversion.revisions.set_comment(change_comments)
 
                 # Save item
-                item.save()
                 form.save_custom_fields(item)
                 form.save_m2m()
+
+                item.save()
 
             # Copied from wizards.py - maybe refactor
             final_formsets = []

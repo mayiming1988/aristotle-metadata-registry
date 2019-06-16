@@ -1,7 +1,5 @@
-import os
 import sys
 import tempfile
-from enum import Enum
 import dj_database_url
 from aristotle_mdr.required_settings import *
 

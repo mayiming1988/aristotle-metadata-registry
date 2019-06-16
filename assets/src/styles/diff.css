@@ -22,3 +22,12 @@ td.diff_header {
 .diff_sub {
     background-color:#ffaaaa;
 }
+
+ins {
+    background-color:#aaffaa;
+}
+
+del {
+    background-color:#ffaaaa;
+
+}
