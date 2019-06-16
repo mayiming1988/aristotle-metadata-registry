@@ -546,7 +546,7 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
         return field
 
     def get_user_friendly_field_name(self, field):
-        # If the field ends with _set we want to remove it
+        # If the field ends with _set we want to remove it, so we can look it up in the _meta.
         name = self.clean_field(field)
         try:
             name = self.model._meta.get_field(name).related_model._meta.verbose_name
@@ -558,7 +558,15 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
 
         return name
 
-    def generate_diff(self, earlier_json, later_json, raw=False):
+    def get_differing_fields(self, earlier_dict, later_dict):
+        # Iterate across the two and find the differing fields
+        earlier_fields = earlier_dict.keys()
+        later_fields = later_dict.keys()
+
+        # Fields that are on the earlier but not the al
+
+
+    def generate_diff(self, earlier_dict, later_dict, raw=False):
         """
         Returns a dictionary containing a list of tuples with the differences per field.
         The first element of the tuple specifies if it is an insertion (1), a deletion (-1), or an equality (0).
@@ -570,12 +578,14 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
         DiffMatchPatch = diff_match_patch.diff_match_patch()
         field_to_diff = {}
 
-        for field in earlier_json:
+        #TODO: deal with added fields
+
+        for field in earlier_dict:
             # Iterate through all fields in the JSON
             if field not in self.hidden_diff_fields:
                 # Don't show fields like modified, which are set by the database
-                earlier_value = earlier_json[field]
-                later_value = later_json[field]
+                earlier_value = earlier_dict[field]
+                later_value = later_dict[field]
 
                 if earlier_value != later_value:
                     # No point doing diffs if there is no difference
@@ -611,6 +621,29 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
 
         return field_to_diff
 
+
+    def generate_diff_for_new_fields(self, ids, values, subitem_model, added=True, raw=False):
+
+        difference_dict = {}
+
+        for id in ids:
+            item = values[id]
+            for field, value in item.items():
+                if field == 'id':
+                    pass
+                else:
+                    if not raw:
+                        value = strip_tags(str(value))
+                    # Because DiffMatchPatch returns a list of tuples of diffs
+                    # for consistent display we also return a list of tuples of diffs
+                    if added:
+                        difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
+                                                  'diff': [(1, value)]}
+                    else:
+                        difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
+                                                      'diff': [(-1, value)]}
+        return difference_dict
+
     def build_diff_of_lists(self, earlier_values_list, later_values_list, subitem_model, raw=False):
         """
         Given a list of dictionaries containing representations of objects, iterates through and returns a list of
@@ -623,6 +656,7 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
         # Blame Google for this unpythonic variable
         DiffMatchPatch = diff_match_patch.diff_match_patch()
 
+        # TODO: this could really be one function
         both_empty = earlier_values_list == [] and later_values_list == []
         if not both_empty:
 
@@ -631,39 +665,13 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
 
             # Items that are in the later items but not the earlier items have been 'added'
             added_ids = set(later_items.keys()) - set(earlier_items.keys())
-            for id in added_ids:
-                item = later_items[id]
-                difference_dict = {}
-                for field, value in item.items():
-                    if field == 'id':
-                        # We don't need a diff for id
-                        pass
-                    else:
-                        if not raw:
-                            value = strip_tags(str(value))
-                        # Because DiffMatchPatch returns a list of tuples of diffs
-                        # for consistent display we also return a list of tuples of diffs
-                        difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
-                                                      'diff': [(1, value)]}
-
-                differences.append(difference_dict)
+            differences.append(
+                self.generate_diff_for_new_fields(added_ids, later_items, subitem_model, added=True, raw=raw))
 
             # Items that are in the earlier items but not the later items have been 'removed'
             removed_ids = set(earlier_items.keys()) - set(later_items.keys())
-            for id in removed_ids:
-                item = earlier_items[id]
-                difference_dict = {}
-                for field, value in item.items():
-                    if field == 'id':
-                        # We don't need a diff for id
-                        pass
-                    else:
-                        if not raw:
-                            value = strip_tags(str(value))
-
-                        difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
-                                                      'diff': [(-1, value)]}
-                differences.append(difference_dict)
+            differences.append(
+                self.generate_diff_for_new_fields(removed_ids, earlier_items, subitem_model,added=False, raw=raw))
 
             # Items with IDs that are present in both earlier and later data have been changed,
             # so we want to perform a field-by-field dict comparision
@@ -773,8 +781,6 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
         versions = self.get_versions(metadata_item)
 
         version_list = []
-
-        # For display
         version_to_permission = VersionPermissions.objects.in_bulk(versions)
         for version in versions:
             version_permission = version_to_permission[version.id]
@@ -821,7 +827,6 @@ class CompareHTMLFieldsView(SimpleItemGet, ViewableVersionsMixin, TemplateView):
         html_values = []
         fields = tuple(field_query.split('.'))
 
-
         versions = [json.loads(version_1.serialized_data),
                     json.loads(version_2.serialized_data)]
         for version in versions:
@@ -851,8 +856,8 @@ class CompareHTMLFieldsView(SimpleItemGet, ViewableVersionsMixin, TemplateView):
                    'hide_item_actions': True,
                    'item': self.get_object()}
 
-        version_1 = self.request.GET.get('v1')
-        version_2 = self.request.GET.get('v2')
+        version_1 = self.request.GET.get('v1', None)
+        version_2 = self.request.GET.get('v2', None)
 
         if not version_1 or not version_2:
             context['not_all_versions_selected'] = True
@@ -866,14 +871,13 @@ class CompareHTMLFieldsView(SimpleItemGet, ViewableVersionsMixin, TemplateView):
         version_permission_1 = VersionPermissions.objects.get_object_or_none(pk=version_1)
         version_permission_2 = VersionPermissions.objects.get_object_or_none(pk=version_2)
 
-        if not self.user_can_view_version(metadata_item, version_permission_1) and self.user_can_view_version(
-                metadata_item, version_permission_2):
+        if not (self.user_can_view_version(metadata_item, version_permission_1) and self.user_can_view_version(
+                metadata_item, version_permission_2)):
             raise PermissionDenied
 
         field_query = self.request.GET.get('field')
 
         context['html_fields'] = self.get_html_fields(first_version, second_version, field_query)
-
 
         return context
 

@@ -12,18 +12,24 @@
 {% endblock %}
 
 {% block infoContent %}
-<table class="table table-striped">
-<caption>Rendered {{ definition }} for versions of {{ item.name }}</caption>
-<tr>
-    <th>Version 1</th>
-    <th>Version 2</th>
-</tr>
-<tr>
-    {% for field in html_fields %}
-        <td>{{ field|bleach }}</td>
-    {% endfor %}
-</tr>
+    <table class="table table-striped">
+        {% if not_all_versions_selected %}
+            <div class="well">
+                Both versions need to be selected in order to compare
+            </div>
+        {% else %}
+            <caption>Rendered {{ definition }} for versions of {{ item.name }}</caption>
+            <tr>
+                <th>Version 1</th>
+                <th>Version 2</th>
+            </tr>
+            <tr>
+                {% for field in html_fields %}
+                    <td>{{ field|bleach }}</td>
+                {% endfor %}
+            </tr>
 
 
-</table>
+            </table>
+        {% endif %}
 {% endblock %}
