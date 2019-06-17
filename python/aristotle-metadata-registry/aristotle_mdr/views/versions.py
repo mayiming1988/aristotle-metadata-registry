@@ -501,7 +501,8 @@ class ViewableVersionsMixin:
                 return True
 
     def get_versions(self, metadata_item):
-        """ Get versions and apply permission checking so that only versions that the user is allowed to see are shown"""
+        """ Get versions and apply permission checking so that only versions that the user is allowed to see are
+        shown"""
         versions = reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
 
         # Determine the viewing permissions of the users

@@ -89,6 +89,7 @@ INSTALLED_APPS = (
     'aristotle_mdr.contrib.links',
     'templatetags',
     'extension_test',
+    'aristotle_dse'
 ) + INSTALLED_APPS
 
 

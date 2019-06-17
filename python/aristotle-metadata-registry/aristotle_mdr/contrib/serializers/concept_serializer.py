@@ -7,11 +7,11 @@ from django.core.serializers.base import Serializer as BaseDjangoSerializer
 from django.core.serializers.base import DeserializedObject, build_instance
 from django.apps import apps
 from django.db import DEFAULT_DB_ALIAS
+from django.conf import settings
 
 from aristotle_mdr.contrib.custom_fields.models import CustomValue
 from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.identifiers.models import ScopedIdentifier
-from aristotle_dse.models import DSSClusterInclusion, DSSDEInclusion, DSSGrouping
 from aristotle_mdr.models import RecordRelation, ValueDomain, DataElementConcept
 
 import json as JSON
@@ -19,7 +19,6 @@ import json as JSON
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 class IdentifierSerializer(serializers.ModelSerializer):
     id = serializers.SerializerMethodField(method_name='get_id')
@@ -29,7 +28,7 @@ class IdentifierSerializer(serializers.ModelSerializer):
         fields = ['namespace', 'identifier', 'version', 'order']
 
     def get_id(self, identifier):
-        return None
+        return identifier.pk
 
 
 class CustomValuesSerializer(serializers.ModelSerializer):
@@ -63,28 +62,6 @@ class OrganisationRecordsSerializer(serializers.ModelSerializer):
 
     def get_id(self, org_record):
         return org_record.pk
-
-
-excluded_fields = ('dss',)
-
-
-class DSSClusterInclusionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DSSClusterInclusion
-        exclude = excluded_fields
-
-
-class DSSDEInclusionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DSSDEInclusion
-        exclude = excluded_fields
-
-
-class DSSGroupingSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DSSGrouping
-        exclude = excluded_fields
-
 
 class ValueDomainSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
@@ -127,11 +104,19 @@ class BaseSerializer(serializers.ModelSerializer):
 
 class ConceptSerializerFactory():
     """ Generalized serializer factory to dynamically set form fields for simpler concepts """
-    FIELD_SUBSERIALIZER_MAPPING = {'dssdeinclusion_set': DSSDEInclusionSerializer(many=True),
-                                   'dssclusterinclusion_set': DSSClusterInclusionSerializer(many=True),
-                                   'groups': DSSGroupingSerializer(many=True),
-                                   'valueDomain': ValueDomainSerializer(),
-                                   'dataElementConcept': DataElementConceptSerializer()}
+    FIELD_SUBSERIALIZER_MAPPING = {
+        'valueDomain': ValueDomainSerializer(),
+        'dataElementConcept': DataElementConceptSerializer()}
+
+    if 'aristotle_dse' in settings.INSTALLED_APPS:
+        # Add extra serializers if DSE is installed
+        from aristotle_mdr.contrib.serializers.dse_serializers import (
+            DSSGroupingSerializer, DSSClusterInclusionSerializer, DSSDEInclusionSerializer
+        )
+
+        FIELD_SUBSERIALIZER_MAPPING.update({'dssdeinclusion_set': DSSDEInclusionSerializer(many=True),
+     'dssclusterinclusion_set': DSSClusterInclusionSerializer(many=True),
+     'groups': DSSGroupingSerializer(many=True),})
 
     def _get_concept_fields(self, model_class):
         """Internal helper function to get fields that are actually **on** the model.

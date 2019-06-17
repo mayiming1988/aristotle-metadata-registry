@@ -1,10 +1,11 @@
-from django.test import TestCase
+from django.test import TestCase, modify_settings
 
-import aristotle_dse.models as DSE
 from aristotle_mdr.tests.utils import AristotleTestUtils, model_to_dict_with_change_time
 from aristotle_mdr.contrib.custom_fields.models import CustomValue, CustomField
 from aristotle_mdr.contrib.custom_fields.types import type_choices as TYPE_CHOICES
 import aristotle_mdr.models as MDR
+
+from django.conf import settings
 
 import reversion
 import json
@@ -12,6 +13,9 @@ import json
 
 class SerializerTestCase(AristotleTestUtils, TestCase):
     def setUp(self):
+        import aristotle_dse.models as DSE
+        settings.ARISTOTLE_SETTINGS["CONTENT_EXTENSIONS"] = ['aristotle_dse']
+
         super().setUp()
 
         self.object_class = MDR.ObjectClass.objects.create(
