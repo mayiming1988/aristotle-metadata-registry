@@ -270,7 +270,7 @@ def fetch_metadata_apps():
     aristotle_apps += ["aristotle_mdr"]
     aristotle_apps += ["aristotle_mdr_stewards"]
     aristotle_apps = list(set(aristotle_apps))
-    logger.debug("APPS" + str(aristotle_apps))
+
     return aristotle_apps
 
 
