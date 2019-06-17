@@ -513,8 +513,8 @@ class ViewableVersionsMixin:
 
             for version in versions:
                 version_permission = version_to_permission[version.id]
-                if not self.user_can_view_version(version_permission, metadata_item):
-                    versions = versions.exclude(pk=version)
+                if not self.user_can_view_version(metadata_item, version_permission):
+                    versions = versions.exclude(pk=version.pk)
 
         versions = versions.order_by('-revision__date_created')
 
