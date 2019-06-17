@@ -1420,12 +1420,6 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         response = self.client.get(reverse('aristotle:item_history', args=[self.item2.id]))
         self.assertEqual(response.status_code, 403)
 
-        # # Viewers shouldn't even have the link to history on items they arent in the workgroup for
-        # This check makes no sense - a user can't see the page to begin with.
-        # Keeping for posterity
-        # response = self.client.get(self.item2.get_absolute_url())
-        # self.assertNotContains(response, reverse('aristotle:item_history',args=[self.item2.id]))
-
         # Viewers will even have the link to history on items they are in the workgroup for
         response = self.client.get(self.item1.get_absolute_url())
         self.assertContains(response, reverse('aristotle:item_history', args=[self.item1.id]))
@@ -1436,7 +1430,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         #from reversion import revisions as reversion
         import reversion
 
-        # Creat a revision
+        # Create a revision
         with reversion.revisions.create_revision():
             self.item1.name = "change 1"
             reversion.set_comment("change 1")

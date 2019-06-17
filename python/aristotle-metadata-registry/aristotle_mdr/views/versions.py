@@ -508,11 +508,13 @@ class ViewableVersionsMixin:
         # Determine the viewing permissions of the users
         if not self.request.user.is_superuser:
             # Superusers can see everything, for performance we won't look up version permission objs
-
             version_to_permission = VersionPermissions.objects.in_bulk(versions)
 
             for version in versions:
-                version_permission = version_to_permission[version.id]
+                if version.id in version_to_permission:
+                    version_permission = version_to_permission[version.id]
+                else:
+                    version_permission = None
                 if not self.user_can_view_version(metadata_item, version_permission):
                     versions = versions.exclude(pk=version.pk)
 
