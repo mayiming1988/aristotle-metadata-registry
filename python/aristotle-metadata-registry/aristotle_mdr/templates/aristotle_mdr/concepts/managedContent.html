@@ -21,13 +21,12 @@
         {% block objSpecific %}{% endblock %}
 
         {% if item.comments %}
-            <h2>Comments</h2>
+            <h2>Comments {% field_help_icon item 'comments' %}</h2>
             {{ item.comments|bleach }}
-            {% field_help_icon item 'comments' %}
         {% endif %}
 
         {% if item.origin %}
-            <h2>Origin</h2>
+            <h2>Origin {% field_help_icon item 'origin' %}</h2>
             {{ item.origin|bleach }}
         {% endif %}
 
