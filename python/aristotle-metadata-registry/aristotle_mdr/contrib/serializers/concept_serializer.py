@@ -101,7 +101,8 @@ class BaseSerializer(serializers.ModelSerializer):
 class ConceptSerializerFactory():
     """ Generalized serializer factory to dynamically set form fields for simpler concepts """
     FIELD_SUBSERIALIZER_MAPPING = {'dssdeinclusion_set': DSSDEInclusionSerializer(many=True),
-                                   'dssclusterinclusion_set': DSSClusterInclusionSerializer(many=True)}
+                                   'dssclusterinclusion_set': DSSClusterInclusionSerializer(many=True),
+                                   'groups': DSSGroupingSerializer(many=True)}
 
     def _get_concept_fields(self, model_class):
         """Internal helper function to get fields that are actually **on** the model.
@@ -125,7 +126,8 @@ class ConceptSerializerFactory():
                               'indicatordenominatordefinition_set',
                               'indicatordisaggregationdefinition_set',
                               'statistical_unit',
-                              'dssgrouping_set']
+                              'dssgrouping_set',
+                              'groups']
         related_fields = []
         for field in model_class._meta.get_fields():
             if not field.name.startswith('_'):

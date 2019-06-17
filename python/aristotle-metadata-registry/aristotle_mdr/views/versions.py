@@ -22,7 +22,6 @@ from aristotle_mdr.utils.utils import strip_tags
 import json
 import reversion
 import diff_match_patch
-import bleach
 
 from collections import defaultdict
 from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
@@ -560,11 +559,7 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
 
     def get_differing_fields(self, earlier_dict, later_dict):
         # Iterate across the two and find the differing fields
-        earlier_fields = earlier_dict.keys()
-        later_fields = later_dict.keys()
-
-        # Fields that are on the earlier but not the al
-
+        pass
 
     def generate_diff(self, earlier_dict, later_dict, raw=False):
         """
@@ -577,8 +572,6 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
         """
         DiffMatchPatch = diff_match_patch.diff_match_patch()
         field_to_diff = {}
-
-        #TODO: deal with added fields
 
         for field in earlier_dict:
             # Iterate through all fields in the JSON
@@ -618,12 +611,11 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
                                                 'diffs': self.build_diff_of_lists(earlier_value, later_value,
                                                                                   subitem_model, raw=raw)}
 
-
         return field_to_diff
 
 
     def generate_diff_for_new_fields(self, ids, values, subitem_model, added=True, raw=False):
-
+        """ Generates the diff for fields that have been added/removed from a concept comparision"""
         difference_dict = {}
 
         for id in ids:
@@ -656,7 +648,6 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
         # Blame Google for this unpythonic variable
         DiffMatchPatch = diff_match_patch.diff_match_patch()
 
-        # TODO: this could really be one function
         both_empty = earlier_values_list == [] and later_values_list == []
         if not both_empty:
 
@@ -783,12 +774,15 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
         version_list = []
         version_to_permission = VersionPermissions.objects.in_bulk(versions)
         for version in versions:
-            version_permission = version_to_permission[version.id]
-            if version_permission is None:
-                # Default to displaying workgroup level permissions
-                version_permission_code = 0
+            if version.id in version_to_permission:
+                version_permission = version_to_permission[version.id]
+                if version_permission is None:
+                    # Default to displaying workgroup level permissions
+                    version_permission_code = 0
+                else:
+                    version_permission_code = version_permission.visibility
             else:
-                version_permission_code = version_permission.visibility
+                version_permission_code = 0
 
             version_list.append({
                 'permission': int(version_permission_code),
