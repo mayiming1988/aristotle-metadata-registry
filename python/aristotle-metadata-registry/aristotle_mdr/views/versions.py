@@ -610,7 +610,7 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
                       field_to_diff[field] = {
                                        'user_friendly_name': self.get_user_friendly_field_name(field),
                                        'subitem': True,
-                                       'diffs': self.build_diff_of_subitems(earlier_value, later_value,
+                                       'diffs': self.build_diff_of_subitem_dict(earlier_value, later_value,
                                                                             subitem_model, raw=raw)
                       }
                     elif isinstance(earlier_value, list):
@@ -645,6 +645,34 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
                                                   'diff': [(-1, value)]}
         return difference_dict
 
+
+    def build_diff_of_subitem_dict(self, earlier_item, later_item, subitem_model, raw=False):
+        differences = []
+        DiffMatchPatch = diff_match_patch.diff_match_patch()
+        difference_dict = {}
+
+        for field, earlier_value in earlier_item.items():
+            later_value = later_item[field]
+            if not raw:
+                earlier_value = strip_tags(str(earlier_value))
+                later_value = strip_tags(str(later_value))
+
+            if earlier_value is None:
+                # Can't perform a diff on a null value
+                earlier_value = 'None'
+
+            if later_value is None:
+                later_value = 'None'
+
+            diff = DiffMatchPatch.diff_main(earlier_value, later_value)
+            DiffMatchPatch.diff_cleanupSemantic(diff)
+
+            difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
+                                      'diff': diff}
+
+        differences.append(difference_dict)
+        return differences
+
     def build_diff_of_subitems(self, earlier_values, later_values, subitem_model, raw=False):
         """
         Given a list of dictionaries containing representations of objects, iterates through and returns a list of
@@ -657,75 +685,48 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
         # Blame Google for this unpythonic variable
         DiffMatchPatch = diff_match_patch.diff_match_patch()
 
-        if isinstance(earlier_values, dict):
-            difference_dict = {}
+        both_empty = earlier_values == [] and later_values == []
+        if not both_empty:
 
-            for field, earlier_value in earlier_values.items():
-                if field == 'id':
-                    pass
-                else:
-                    later_value = later_values[field]
-                    if not raw:
+            earlier_items = {item['id']: item for item in earlier_values}
+            later_items = {item['id']: item for item in later_values}
+
+            # Items that are in the later items but not the earlier items have been 'added'
+            added_ids = set(later_items.keys()) - set(earlier_items.keys())
+            differences.append(
+                self.generate_diff_for_added_removed_fields(added_ids, later_items, subitem_model, added=True,
+                                                            raw=raw))
+
+            # Items that are in the earlier items but not the later items have been 'removed'
+            removed_ids = set(earlier_items.keys()) - set(later_items.keys())
+            differences.append(
+                self.generate_diff_for_added_removed_fields(removed_ids, earlier_items, subitem_model, added=False,
+                                                            raw=raw))
+
+            # Items with IDs that are present in both earlier and later data have been changed,
+            # so we want to perform a field-by-field dict comparision
+            changed_ids = set(earlier_items).intersection(set(later_items))
+            for id in changed_ids:
+                earlier_item = earlier_items[id]
+                later_item = later_items[id]
+
+                difference_dict = {}
+
+                for field, earlier_value in earlier_item.items():
+                        later_value = later_item[field]
+
+                        if not raw:
                             earlier_value = strip_tags(str(earlier_value))
                             later_value = strip_tags(str(later_value))
 
-                    if earlier_value == None:
-                        earlier_value = 'None'
+                        diff = DiffMatchPatch.diff_main(earlier_value, later_value)
+                        DiffMatchPatch.diff_cleanupSemantic(diff)
 
-                    if later_value == None:
-                        later_value = 'None'
+                        difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
+                                                  'diff': diff}
+                differences.append(difference_dict)
 
-                    diff = DiffMatchPatch.diff_main(earlier_value, later_value)
-                    DiffMatchPatch.diff_cleanupSemantic(diff)
-
-                    difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
-                                              'diff': diff}
-            differences.append(difference_dict)
-            return differences
-
-        else:
-            both_empty = earlier_values == [] and later_values == []
-            if not both_empty:
-
-                earlier_items = {item['id']: item for item in earlier_values}
-                later_items = {item['id']: item for item in later_values}
-
-                # Items that are in the later items but not the earlier items have been 'added'
-                added_ids = set(later_items.keys()) - set(earlier_items.keys())
-                differences.append(
-                    self.generate_diff_for_added_removed_fields(added_ids, later_items, subitem_model, added=True,
-                                                                raw=raw))
-
-                # Items that are in the earlier items but not the later items have been 'removed'
-                removed_ids = set(earlier_items.keys()) - set(later_items.keys())
-                differences.append(
-                    self.generate_diff_for_added_removed_fields(removed_ids, earlier_items, subitem_model, added=False,
-                                                                raw=raw))
-
-                # Items with IDs that are present in both earlier and later data have been changed,
-                # so we want to perform a field-by-field dict comparision
-                changed_ids = set(earlier_items).intersection(set(later_items))
-                for id in changed_ids:
-                    earlier_item = earlier_items[id]
-                    later_item = later_items[id]
-
-                    difference_dict = {}
-
-                    for field, earlier_value in earlier_item.items():
-                            later_value = later_item[field]
-
-                            if not raw:
-                                earlier_value = strip_tags(str(earlier_value))
-                                later_value = strip_tags(str(later_value))
-
-                            diff = DiffMatchPatch.diff_main(earlier_value, later_value)
-                            DiffMatchPatch.diff_cleanupSemantic(diff)
-
-                            difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
-                                                      'diff': diff}
-                    differences.append(difference_dict)
-
-            return differences
+        return differences
 
     def get_version_jsons(self, first_version, second_version):
         """
