@@ -605,13 +605,13 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
 
                     elif isinstance(earlier_value, dict):
                         # It's a single subitem
-                      subitem_model = self.get_model_from_foreign_key_field(self.model, self.clean_field(field))
-                      field_to_diff[field] = {
-                                       'user_friendly_name': self.get_user_friendly_field_name(field),
-                                       'subitem': True,
-                                       'diffs': self.build_diff_of_subitem_dict(earlier_value, later_value,
-                                                                            subitem_model, raw=raw)
-                      }
+                        subitem_model = self.get_model_from_foreign_key_field(self.model, self.clean_field(field))
+                        field_to_diff[field] = {
+                            'user_friendly_name': self.get_user_friendly_field_name(field),
+                            'subitem': True,
+                            'diffs': self.build_diff_of_subitem_dict(earlier_value, later_value,
+                                                                     subitem_model, raw=raw)
+                        }
                     elif isinstance(earlier_value, list):
                         # It's a list of subitems
                         subitem_model = self.get_model_from_foreign_key_field(self.model, self.clean_field(field))
@@ -621,7 +621,6 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
                             'diffs': self.build_diff_of_subitems(earlier_value, later_value, subitem_model, raw=raw)}
 
         return field_to_diff
-
 
     def generate_diff_for_added_removed_fields(self, ids, values, subitem_model, added=True, raw=False):
         """ Generates the diff for fields that have been added/removed from a concept comparision"""
@@ -644,7 +643,6 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
                         difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
                                                   'diff': [(-1, value)]}
         return difference_dict
-
 
     def build_diff_of_subitem_dict(self, earlier_item, later_item, subitem_model, raw=False):
         differences = []
@@ -713,17 +711,17 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
                 difference_dict = {}
 
                 for field, earlier_value in earlier_item.items():
-                        later_value = later_item[field]
+                    later_value = later_item[field]
 
-                        if not raw:
-                            earlier_value = strip_tags(str(earlier_value))
-                            later_value = strip_tags(str(later_value))
+                    if not raw:
+                        earlier_value = strip_tags(str(earlier_value))
+                        later_value = strip_tags(str(later_value))
 
-                        diff = DiffMatchPatch.diff_main(earlier_value, later_value)
-                        DiffMatchPatch.diff_cleanupSemantic(diff)
+                    diff = DiffMatchPatch.diff_main(earlier_value, later_value)
+                    DiffMatchPatch.diff_cleanupSemantic(diff)
 
-                        difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
-                                                  'diff': diff}
+                    difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
+                                              'diff': diff}
                 differences.append(difference_dict)
 
         return differences
@@ -755,7 +753,7 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
         context['hide_item_actions'] = True
 
         self.concept = self.get_item(self.request.user)
-        self.model =  self.get_model(self.concept)
+        self.model = self.get_model(self.concept)
 
         version_1 = self.request.GET.get('v1')
         version_2 = self.request.GET.get('v2')
@@ -908,4 +906,3 @@ class CompareHTMLFieldsView(SimpleItemGet, ViewableVersionsMixin, TemplateView):
         context['html_fields'] = self.get_html_fields(first_version, second_version, field_query)
 
         return context
-

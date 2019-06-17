@@ -97,7 +97,6 @@ class ValueDomainSerializer(serializers.ModelSerializer):
         return value_domain.name
 
 
-
 class DataElementConceptSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
 
@@ -107,6 +106,7 @@ class DataElementConceptSerializer(serializers.ModelSerializer):
 
     def get_name(self, data_element_concept):
         return data_element_concept.name
+
 
 class BaseSerializer(serializers.ModelSerializer):
     slots = SlotsSerializer(many=True)
@@ -119,11 +119,11 @@ class BaseSerializer(serializers.ModelSerializer):
         pk_field=serializers.UUIDField(format='hex'),
         read_only=True)
 
-
 # To begin serializing an added subitem:
 #   1. Add a ModelSerializer for your subitem
 #   2. Add to whitelisted relation_fields
 #   3. Add to FIELD_SUBSERIALIZER_MAPPING
+
 
 class ConceptSerializerFactory():
     """ Generalized serializer factory to dynamically set form fields for simpler concepts """
@@ -156,7 +156,7 @@ class ConceptSerializerFactory():
                               'indicatordisaggregationdefinition_set',
                               'statistical_unit',
                               'dssgrouping_set',
-                              'groups', # Related name for DSS Groupings
+                              'groups',  # Related name for DSS Groupings
                               'valueDomain',
                               'dataElementConcept']
         related_fields = []
