@@ -145,3 +145,8 @@ def get_custom_values_for_item(item, user):
         if value.content:
             not_empty_custom_values.append(value)
     return not_empty_custom_values
+
+
+@register.filter
+def is_list(item):
+    return type(item) == list
