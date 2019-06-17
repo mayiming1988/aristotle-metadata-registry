@@ -16,11 +16,11 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        print('Updating caches!...')
+        print('Updating search for object...')
 
         from aristotle_mdr.models import _concept
         instance = _concept.objects.get(pk=options['id']).item
         sender = instance.__class__
         # Pass to haystack signal processor
         processor = apps.get_app_config('haystack').signal_processor
-        processor.handle_save(sender, instance) #, **kwargs)
+        processor.handle_save(sender, instance)
