@@ -20,6 +20,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class IdentifierSerializer(serializers.ModelSerializer):
     id = serializers.SerializerMethodField(method_name='get_id')
 
@@ -62,6 +63,7 @@ class OrganisationRecordsSerializer(serializers.ModelSerializer):
 
     def get_id(self, org_record):
         return org_record.pk
+
 
 class ValueDomainSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
@@ -115,8 +117,8 @@ class ConceptSerializerFactory():
         )
 
         FIELD_SUBSERIALIZER_MAPPING.update({'dssdeinclusion_set': DSSDEInclusionSerializer(many=True),
-     'dssclusterinclusion_set': DSSClusterInclusionSerializer(many=True),
-     'groups': DSSGroupingSerializer(many=True),})
+                                            'dssclusterinclusion_set': DSSClusterInclusionSerializer(many=True),
+                                            'groups': DSSGroupingSerializer(many=True)})
 
     def _get_concept_fields(self, model_class):
         """Internal helper function to get fields that are actually **on** the model.
