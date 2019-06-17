@@ -1,3 +1,4 @@
+from typing import Dict
 from django.apps import apps
 from django.http import Http404, HttpResponseRedirect
 from django.core.exceptions import PermissionDenied
@@ -9,6 +10,7 @@ from django.db.models import Q
 from django.utils.dateparse import parse_datetime
 from django.urls import reverse
 from django.core.exceptions import FieldDoesNotExist
+from django.shortcuts import get_object_or_404
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils.text import pretify_camel_case
@@ -30,6 +32,84 @@ from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+class VersionsMixin:
+    def user_can_view_version(self, metadata_item, version_permission):
+        """ Determine whether or not user can view the specific version """
+        in_workgroup = metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list
+        authenticated_user = not self.request.user.is_anonymous()
+
+        if self.request.user.is_superuser:
+            return True
+
+        if version_permission is None:
+            # Default to applying workgroup permissions
+            in_workgroup = metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list
+            if not in_workgroup:
+                return False
+
+        else:
+            visibility = int(version_permission.visibility)
+
+            if visibility == VISIBILITY_PERMISSION_CHOICES.workgroup:
+                # Apply workgroup permissions
+                if not in_workgroup:
+                    return False
+
+            elif visibility == VISIBILITY_PERMISSION_CHOICES.auth:
+                # Exclude anonymous users
+                if not authenticated_user:
+                    return False
+
+            else:
+                # Visibility is public, don't exclude
+                return True
+
+    def get_versions(self, metadata_item):
+        """ Get versions and apply permission checking so that only versions where there is permission are shown"""
+        versions = reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
+
+        # Determine the viewing permissions of the users
+        if not self.request.user.is_superuser:
+            # Superusers can see everything, for performance we won't look up version permission objs
+
+            version_to_permission = VersionPermissions.objects.in_bulk(versions)
+
+            for version in versions:
+                version_permission = version_to_permission[version.id]
+                if not self.user_can_view_version(version_permission, metadata_item):
+                    versions = versions.exclude(pk=version)
+
+        versions = versions.order_by('-revision__date_created')
+
+        return versions
+
+    def is_field_html(self, field, model):
+        fieldobj = model._meta.get_field(field)
+        return issubclass(type(fieldobj), RichTextField)
+
+    def get_model_from_foreign_key_field(self, parent_model, field):
+        return parent_model._meta.get_field(field).related_model
+
+    def clean_field(self, field):
+        postfix = '_set'
+        if field.endswith(postfix):
+            return field[:-len(postfix)]
+        return field
+
+    def get_user_friendly_field_name(self, field):
+        # If the field ends with _set we want to remove it, so we can look it up in the _meta.
+        name = self.clean_field(field)
+        try:
+            name = self.model._meta.get_field(name).related_model._meta.verbose_name
+            if name[0].islower():
+                # If it doesn't start with a capital, we want to capitalize it
+                name = name.title()
+        except AttributeError:
+            name = field
+
+        return name
 
 
 class VersionField:
@@ -135,113 +215,27 @@ class ConceptVersionView(ConceptRenderView):
         'aristotle_mdr_identifiers.scopedidentifier': 'concept'
     }
 
+    def dispatch(self, request, *args, **kwargs):
+        # Dict mapping models to a list of ids
+        self.obj_ids = defaultdict(list)
+        # Dict mapping model -> id -> object
+        self.fetched_objects = {}
+
+        self.version = self.get_version()
+
+        return super().dispatch(request, *args, **kwargs)
+
     def check_item(self, item):
         # Will 403 Forbidden when user can't view the item
         return user_can_view(self.request.user, item)
 
     def get_item(self):
         # Gets the current item
-        return self.item_version.object
+        return self.version.object
 
-    def get_matching_object_from_revision(self, revision, current_version, target_ct=None):
-        # Finds another version in the same revision with same id
-        current_ct_id = current_version.content_type_id
-        version_filter = Q(revision=revision) &\
-            Q(object_id=current_version.object_id) &\
-            ~Q(content_type_id=current_ct_id)
-
-        # Other versions in the revision could have the same id
-        versions = reversion.models.Version.objects.filter(
-            version_filter
-        )
-
-        target_version = None
-        for sub_version in versions:
-            if target_ct is not None:
-                ctid = sub_version.content_type_id
-                if ctid == target_ct.id:
-                    target_version = sub_version
-                    break
-            else:
-                ct = sub_version.content_type
-                if issubclass(ct.model_class(), MDR._concept):
-                    # Find version that is a _concept subclass
-                    # Since the pk is the _concept_ptr this is fine
-                    target_version = sub_version
-                    break
-
-        return target_version
-
-    def get_version(self):
-        # Get the version of a concept and its matching subclass
-        try:
-            version = reversion.models.Version.objects.get(id=self.kwargs[self.version_arg])
-        except reversion.models.Version.DoesNotExist:
-            return False
-
-        self.revision = version.revision
-        concept_ct = ContentType.objects.get_for_model(MDR._concept)
-
-        # If we got a concept version id
-        if version.content_type_id == concept_ct.id:
-            self.concept_version = version
-            self.item_version = self.get_matching_object_from_revision(
-                self.revision,
-                version
-            )
-            if self.item_version is None:
-                return False
-        # If we got a concept subclass's version id
-        elif issubclass(version.content_type.model_class(), MDR._concept):
-            self.item_version = version
-            self.concept_version = self.get_matching_object_from_revision(
-                self.revision,
-                version,
-                concept_ct
-            )
-        else:
-            return False
-
-        self.item_version_data = json.loads(self.item_version.serialized_data)
-        self.item_model = self.item_version.content_type.model_class()
-
-        return True
-
-    def get_weak_versions(self, model):
-        # Get version data for weak entities (reverse relations to an
-        # aristotleComponent)
-
-        pk = self.item_version_data['pk']
-
-        # Find weak models create mapping of model labels to link fields
-        weak_map = self.default_weak_map
-        for field in model._meta.get_fields():
-            if field.is_relation and field.one_to_many and \
-                    issubclass(field.related_model, MDR.aristotleComponent):
-                weak_map[field.related_model._meta.label_lower] = field.field.name
-
-        if len(weak_map) == 0:
-            return []
-
-        # Get any models found before in the same revision to dict
-        weak_items = self.get_related_versions(pk, weak_map)
-
-        # Process into template friendly version
-        template_weak_models = []
-        for label, item_dict in weak_items.items():
-            model = apps.get_model(label)
-
-            if 'headers' in item_dict:
-                headers = item_dict['headers']
-            else:
-                headers = []
-            template_weak_models.append({
-                'model': pretify_camel_case(model.__name__),
-                'headers': item_dict.get('headers', []),
-                'items': item_dict['items']
-            })
-
-        return template_weak_models
+    def get_version(self) -> reversion.models.Version:
+        # Get the version objet
+        return get_object_or_404(reversion.models.Version, id=self.kwargs[self.version_arg])
 
     def process_dict(self, fields, model):
         # Process fields dict, updating field names and links
@@ -280,101 +274,6 @@ class ConceptVersionView(ConceptRenderView):
 
         return updated_fields
 
-    def lookup_object(self, pk_list, sub_model, field):
-
-        if issubclass(sub_model, MDR._concept):
-            label = MDR._concept._meta.label_lower
-        else:
-            label = sub_model._meta.label_lower
-
-        self.obj_ids[label] += pk_list
-
-        ver_field = VersionField(
-            help_text=field.help_text,
-            obj=pk_list,
-            reference_label=label
-        )
-
-        return ver_field
-
-    def lookup_object_refs(self):
-        for label, id_list in self.obj_ids.items():
-            model = apps.get_model(label)
-
-            if issubclass(model, MDR._concept):
-                object_qs = model.objects.visible(self.request.user).filter(id__in=id_list)
-            else:
-                object_qs = model.objects.filter(id__in=id_list)
-
-            object_map = {}
-            for obj in object_qs:
-                object_map[obj.id] = obj
-
-            self.fetched_objects[label] = object_map
-
-    def replace_object_refs(self, field_dict):
-        # Don't need to return the dict, passed as reference
-        for key in field_dict.keys():
-            field_dict[key].dereference(self.fetched_objects)
-
-    def get_related_versions(self, pk, mapping):
-        # mapping should be a mapping of model labels to fields on item
-
-        related = {}
-        # Add any models found before in the same revision to dict
-        for version in self.revision.version_set.all():
-            data = json.loads(version.serialized_data)[0]
-            if data['model'] in mapping:
-
-                if data['model'] not in related:
-                    related[data['model']] = {
-                        'items': []
-                    }
-
-                # There is a version in the revision that is of the correct
-                # type. Need to check whether it links to the correct item
-                related_model = apps.get_model(data['model'])
-
-                # Find the field that links the weak model back to our model
-                link_field = mapping[data['model']]
-
-                if link_field and link_field in data['fields']:
-                    # If it links back to the correct pk
-                    if data['fields'][link_field] == pk:
-                        # Add to weak models
-                        del data['fields'][link_field]
-                        final_fields = self.process_dict(data['fields'], related_model)
-
-                        if 'headers' not in related[data['model']]:
-                            headers = []
-                            for header, item in final_fields.items():
-                                headers.append({
-                                    'text': header,
-                                    'help_text': item.help_text
-                                })
-                            related[data['model']]['headers'] = headers
-
-                        related[data['model']]['items'].append(final_fields)
-
-        return related
-
-    def dispatch(self, request, *args, **kwargs):
-        # Dict mapping models to a list of ids
-        self.obj_ids = defaultdict(list)
-        # Dict mapping model -> id -> object
-        self.fetched_objects = {}
-
-        try:
-            exists = self.get_version()
-        except json.JSONDecodeError:
-            # Handle invalid json
-            return self.invalid_version(request, *args, **kwargs)
-
-        if not exists:
-            raise Http404
-
-        return super().dispatch(request, *args, **kwargs)
-
     def invalid_version(self, request, *args, **kwargs):
         # What to do when the version could not be deserialized
         logger.error('Version could not be loaded')
@@ -393,64 +292,38 @@ class ConceptVersionView(ConceptRenderView):
             reverse('aristotle:item_history', args=[current.id])
         )
 
-    def get_version_context_data(self):
+    def get_version_context_data(self) -> Dict:
         # Get the context data for this complete version
+        context = {}
 
-        version_dict = self.concept_version_data['fields']
-        # Keys under item_data are used as headings
-        version_dict['item_data'] = {'Names & References': {}}
+        try:
+            version_dict = json.loads(self.version.serialized_data)
+        except json.JSONDecodeError:
+            # 404 if bad serialized data
+            raise Http404
 
-        # Replace workgroup reference with wg object
+        context['item_data'] = version_dict
+
+        # Set workgroup object
         if version_dict['workgroup']:
             try:
                 workgroup = MDR.Workgroup.objects.get(pk=version_dict['workgroup'])
             except MDR.Workgroup.DoesNotExist:
                 workgroup = None
 
-            version_dict['workgroup'] = workgroup
-
-        # Add concept fields as "Names & References"
-        for field in self.concept_fields:
-            if field in self.concept_version_data['fields']:
-                try:
-                    fieldobj = MDR._concept._meta.get_field(field)
-                except FieldDoesNotExist:
-                    # The field doesn't exist on the new version, don't do anything
-                    pass
-                is_html = (issubclass(type(fieldobj), RichTextField))
-                field = VersionField(
-                    value=self.concept_version_data['fields'][field],
-                    help_text=fieldobj.help_text,
-                    html=is_html
-                )
-
-                # Keys under item_data are used as headings
-                version_dict['item_data']['Names & References'][fieldobj.verbose_name.title()] = field
+            context['workgroup'] = workgroup
 
         # Add some extra data the template expects from a regular item object
-        version_dict['meta'] = {
-            'app_label': self.item_version.content_type.app_label,
-            'model_name': self.item_version.content_type.model
+        context['meta'] = {
+            'app_label': self.version.content_type.app_label,
+            'model_name': self.version.content_type.model
         }
-        version_dict['id'] = self.item_version_data['pk']
-        version_dict['pk'] = self.item_version_data['pk']
-        version_dict['get_verbose_name'] = self.item_version.content_type.name.title()
-        version_dict['created'] = parse_datetime(self.concept_version_data['fields']['created'])
+        context['id'] = self.version.object_id
+        context['pk'] = self.version.object_id
+        context['get_verbose_name'] = self.version.content_type.name.title()
+        context['created'] = parse_datetime(version_dict['created'])
 
-        # Add weak entities and components
-        weak = self.get_weak_versions(self.item_model)
-        components = self.process_dict(self.item_version_data['fields'], self.item_model)
-        self.lookup_object_refs()
-        self.replace_object_refs(components)
-
-        for i in range(len(weak)):
-            for j in range(len(weak[i]['items'])):
-                self.replace_object_refs(weak[i]['items'][j])
-
-        version_dict['weak'] = weak
-        version_dict['item_data']['Components'] = components
-
-        return version_dict
+        return context
 
     def get_context_data(self, *args, **kwargs):
         context = kwargs
@@ -459,66 +332,14 @@ class ConceptVersionView(ConceptRenderView):
         context['hide_item_supersedes'] = True
         context['hide_item_help'] = True
         context['hide_item_related'] = True
+        context['item_is_version'] = True
         context['item'] = self.get_version_context_data()
         context['current_item'] = self.item
-        context['revision'] = self.revision
-        context['item_is_version'] = True
+        # context['revision'] = self.revision
         return context
 
     def get_template_names(self):
         return [self.template_name]
-
-
-class ViewableVersionsMixin:
-    def user_can_view_version(self, metadata_item, version_permission):
-        """ Determine whether or not user can view the specific version """
-        in_workgroup = metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list
-        authenticated_user = not self.request.user.is_anonymous()
-
-        if self.request.user.is_superuser:
-            return True
-
-        if version_permission is None:
-            # Default to applying workgroup permissions
-            in_workgroup = metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list
-            if not in_workgroup:
-                return False
-
-        else:
-            visibility = int(version_permission.visibility)
-
-            if visibility == VISIBILITY_PERMISSION_CHOICES.workgroup:
-                # Apply workgroup permissions
-                if not in_workgroup:
-                    return False
-
-            elif visibility == VISIBILITY_PERMISSION_CHOICES.auth:
-                # Exclude anonymous users
-                if not authenticated_user:
-                    return False
-
-            else:
-                # Visibility is public, don't exclude
-                return True
-
-    def get_versions(self, metadata_item):
-        """ Get versions and apply permission checking so that only versions where there is permission are shown"""
-        versions = reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
-
-        # Determine the viewing permissions of the users
-        if not self.request.user.is_superuser:
-            # Superusers can see everything, for performance we won't look up version permission objs
-
-            version_to_permission = VersionPermissions.objects.in_bulk(versions)
-
-            for version in versions:
-                version_permission = version_to_permission[version.id]
-                if not self.user_can_view_version(version_permission, metadata_item):
-                    versions = versions.exclude(pk=version)
-
-        versions = versions.order_by('-revision__date_created')
-
-        return versions
 
 
 class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateView):
@@ -532,31 +353,6 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
     def get_model(self, concept):
         return concept.item._meta.model
 
-    def is_field_html(self, field, model):
-        fieldobj = model._meta.get_field(field)
-        return issubclass(type(fieldobj), RichTextField)
-
-    def get_model_from_foreign_key_field(self, parent_model, field):
-        return parent_model._meta.get_field(field).related_model
-
-    def clean_field(self, field):
-        postfix = '_set'
-        if field.endswith(postfix):
-            return field[:-len(postfix)]
-        return field
-
-    def get_user_friendly_field_name(self, field):
-        # If the field ends with _set we want to remove it, so we can look it up in the _meta.
-        name = self.clean_field(field)
-        try:
-            name = self.model._meta.get_field(name).related_model._meta.verbose_name
-            if name[0].islower():
-                # If it doesn't start with a capital, we want to capitalize it
-                name = name.title()
-        except AttributeError:
-            name = field
-
-        return name
 
     def get_differing_fields(self, earlier_dict, later_dict):
         # Iterate across the two and find the differing fields
@@ -623,7 +419,6 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
 
 
     def generate_diff_for_new_fields(self, ids, values, subitem_model, added=True, raw=False):
-
         difference_dict = {}
 
         for id in ids:
@@ -783,7 +578,9 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
         version_list = []
         version_to_permission = VersionPermissions.objects.in_bulk(versions)
         for version in versions:
-            version_permission = version_to_permission[version.id]
+            if version.id in version_to_permission:
+                version_permission = version_to_permission[version.id]
+
             if version_permission is None:
                 # Default to displaying workgroup level permissions
                 version_permission_code = 0
