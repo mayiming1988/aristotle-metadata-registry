@@ -780,11 +780,11 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
                 version_permission = version_to_permission[version.id]
                 if version_permission is None:
                     # Default to displaying workgroup level permissions
-                    version_permission_code = 0
+                    version_permission_code = VISIBILITY_PERMISSION_CHOICES.workgroup
                 else:
                     version_permission_code = version_permission.visibility
             else:
-                version_permission_code = 0
+                version_permission_code = VISIBILITY_PERMISSION_CHOICES.workgroup
 
             version_list.append({
                 'permission': int(version_permission_code),
