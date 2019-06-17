@@ -468,7 +468,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     @tag('version')
     def test_version_item_metadata(self):
-        # Does this make it meta meta data
+        # Does this make it meta meta data?
 
         with reversion.create_revision():
             self.item.save()
