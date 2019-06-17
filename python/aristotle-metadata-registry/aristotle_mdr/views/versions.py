@@ -604,13 +604,15 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
                                                 'is_html': is_html_field,
                                                 'diffs': diff}
 
+                    elif isinstance(earlier_value, dict):
+                        pass
+
                     elif isinstance(earlier_value, list):
                         subitem_model = self.get_model_from_foreign_key_field(self.model, self.clean_field(field))
                         field_to_diff[field] = {'user_friendly_name': self.get_user_friendly_field_name(field),
                                                 'subitem': True,
-                                                'diffs': self.build_diff_of_lists(earlier_value, later_value,
-                                                                                  subitem_model, raw=raw)}
-
+                                                'diffs': self.build_diff_of_subitems(earlier_value, later_value,
+                                                                                     subitem_model, raw=raw)}
         return field_to_diff
 
 
@@ -633,10 +635,10 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
                                                   'diff': [(1, value)]}
                     else:
                         difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
-                                                      'diff': [(-1, value)]}
+                                                  'diff': [(-1, value)]}
         return difference_dict
 
-    def build_diff_of_lists(self, earlier_values_list, later_values_list, subitem_model, raw=False):
+    def build_diff_of_subitems(self, earlier_values, later_values, subitem_model, raw=False):
         """
         Given a list of dictionaries containing representations of objects, iterates through and returns a list of
         difference dictionaries per field
@@ -648,11 +650,11 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
         # Blame Google for this unpythonic variable
         DiffMatchPatch = diff_match_patch.diff_match_patch()
 
-        both_empty = earlier_values_list == [] and later_values_list == []
+        both_empty = earlier_values == [] and later_values == []
         if not both_empty:
 
-            earlier_items = {item['id']: item for item in earlier_values_list}
-            later_items = {item['id']: item for item in later_values_list}
+            earlier_items = {item['id']: item for item in earlier_values}
+            later_items = {item['id']: item for item in later_values}
 
             # Items that are in the later items but not the earlier items have been 'added'
             added_ids = set(later_items.keys()) - set(earlier_items.keys())

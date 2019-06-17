@@ -12,7 +12,7 @@ from aristotle_mdr.contrib.custom_fields.models import CustomValue
 from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.identifiers.models import ScopedIdentifier
 from aristotle_dse.models import DSSClusterInclusion, DSSDEInclusion, DSSGrouping
-from aristotle_mdr.models import RecordRelation
+from aristotle_mdr.models import RecordRelation, ValueDomain
 
 import json as JSON
 
@@ -85,6 +85,12 @@ class DSSGroupingSerializer(serializers.ModelSerializer):
         model = DSSGrouping
         exclude = excluded_fields
 
+class ValueDomainSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ValueDomain
+        fields = ['data_type', 'format', 'unit_of_measure',
+                  'conceptual_domain', 'classification_scheme',
+                  'representation_class', 'description']
 
 class BaseSerializer(serializers.ModelSerializer):
     slots = SlotsSerializer(many=True)
@@ -102,7 +108,8 @@ class ConceptSerializerFactory():
     """ Generalized serializer factory to dynamically set form fields for simpler concepts """
     FIELD_SUBSERIALIZER_MAPPING = {'dssdeinclusion_set': DSSDEInclusionSerializer(many=True),
                                    'dssclusterinclusion_set': DSSClusterInclusionSerializer(many=True),
-                                   'groups': DSSGroupingSerializer(many=True)}
+                                   'groups': DSSGroupingSerializer(many=True),
+                                   'valueDomain': ValueDomainSerializer()}
 
     def _get_concept_fields(self, model_class):
         """Internal helper function to get fields that are actually **on** the model.
@@ -127,7 +134,8 @@ class ConceptSerializerFactory():
                               'indicatordisaggregationdefinition_set',
                               'statistical_unit',
                               'dssgrouping_set',
-                              'groups']
+                              'groups',
+                              'valueDomain']
         related_fields = []
         for field in model_class._meta.get_fields():
             if not field.name.startswith('_'):
