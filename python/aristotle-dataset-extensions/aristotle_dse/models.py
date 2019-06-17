@@ -55,6 +55,7 @@ class Dataset(aristotle.models.concept):
     for access or download in one or more formats.
     """
     template = "aristotle_dse/concepts/dataset.html"
+
     # Themes = slots with name 'theme'
     # Keywords = slots with name 'keyword'
     issued = models.DateField(

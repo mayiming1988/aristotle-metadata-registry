@@ -71,11 +71,29 @@
             {% include "aristotle_mdr/slots/slots_display.html" %}
         {% endif %}
 
+        <div class="clearfix"></div>
+        <h2>Related content</h2>
+
+        <table class="table">
+            <tr>
+                <th>Relation</th>
+                <th>Count</th>
+            </tr>
+        {% for name, data in item.relational_attributes.items %}
+            <tr>
+                <td>
+                    <a href="{% url 'aristotle_mdr:item_related' item.pk name %}">
+                    {{data.all}}
+                    </a>
+                </td>
+                <td>{{data.qs.count}}</td>
+            </tr>
+        {% endfor %}
+        </table>
+
         {% if 'aristotle_mdr_links'|is_active_extension and links %}
             {% include "aristotle_mdr/links/links_display.html" with links=links %}
         {% endif %}
-
-        <h2>Related content</h2>
 
         {% block relationships %}
         {% endblock %}
