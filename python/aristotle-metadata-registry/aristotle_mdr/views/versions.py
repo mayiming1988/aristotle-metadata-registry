@@ -501,7 +501,7 @@ class ViewableVersionsMixin:
                 return True
 
     def get_versions(self, metadata_item):
-        """ Get versions and apply permission checking so that only versions where there is permission are shown"""
+        """ Get versions and apply permission checking so that only versions that the user is allowed to see are shown"""
         versions = reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
 
         # Determine the viewing permissions of the users
@@ -584,7 +584,6 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
                     # No point doing diffs if there is no difference
                     if isinstance(earlier_value, str) or isinstance(earlier_value, int):
                         # No special treatment required for strings and int
-
                         earlier = str(earlier_value)
                         later = str(later_value)
 
@@ -620,6 +619,7 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
                             'user_friendly_name': self.get_user_friendly_field_name(field),
                             'subitem': True,
                             'diffs': self.build_diff_of_subitems(earlier_value, later_value, subitem_model, raw=raw)}
+
         return field_to_diff
 
 

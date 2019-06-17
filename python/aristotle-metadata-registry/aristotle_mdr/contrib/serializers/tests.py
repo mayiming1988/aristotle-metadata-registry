@@ -1,5 +1,3 @@
-""" Don't run with default aristotle_mdr test settings """
-
 from django.test import TestCase
 
 import aristotle_dse.models as DSE

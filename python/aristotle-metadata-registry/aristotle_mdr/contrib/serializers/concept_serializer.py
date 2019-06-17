@@ -12,7 +12,7 @@ from aristotle_mdr.contrib.custom_fields.models import CustomValue
 from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.identifiers.models import ScopedIdentifier
 from aristotle_dse.models import DSSClusterInclusion, DSSDEInclusion, DSSGrouping
-from aristotle_mdr.models import RecordRelation, ValueDomain
+from aristotle_mdr.models import RecordRelation, ValueDomain, DataElementConcept
 
 import json as JSON
 
@@ -85,12 +85,28 @@ class DSSGroupingSerializer(serializers.ModelSerializer):
         model = DSSGrouping
         exclude = excluded_fields
 
+
 class ValueDomainSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+
     class Meta:
         model = ValueDomain
-        fields = ['data_type', 'format', 'unit_of_measure',
-                  'conceptual_domain', 'classification_scheme',
-                  'representation_class', 'description']
+        fields = ['name']
+
+    def get_name(self, value_domain):
+        return value_domain.name
+
+
+
+class DataElementConceptSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DataElementConcept
+        fields = ['name']
+
+    def get_name(self, data_element_concept):
+        return data_element_concept.name
 
 class BaseSerializer(serializers.ModelSerializer):
     slots = SlotsSerializer(many=True)
@@ -104,12 +120,18 @@ class BaseSerializer(serializers.ModelSerializer):
         read_only=True)
 
 
+# To begin serializing an added subitem:
+#   1. Add a ModelSerializer for your subitem
+#   2. Add to whitelisted relation_fields
+#   3. Add to FIELD_SUBSERIALIZER_MAPPING
+
 class ConceptSerializerFactory():
     """ Generalized serializer factory to dynamically set form fields for simpler concepts """
     FIELD_SUBSERIALIZER_MAPPING = {'dssdeinclusion_set': DSSDEInclusionSerializer(many=True),
                                    'dssclusterinclusion_set': DSSClusterInclusionSerializer(many=True),
                                    'groups': DSSGroupingSerializer(many=True),
-                                   'valueDomain': ValueDomainSerializer()}
+                                   'valueDomain': ValueDomainSerializer(),
+                                   'dataElementConcept': DataElementConceptSerializer()}
 
     def _get_concept_fields(self, model_class):
         """Internal helper function to get fields that are actually **on** the model.
@@ -134,8 +156,9 @@ class ConceptSerializerFactory():
                               'indicatordisaggregationdefinition_set',
                               'statistical_unit',
                               'dssgrouping_set',
-                              'groups',
-                              'valueDomain']
+                              'groups', # Related name for DSS Groupings
+                              'valueDomain',
+                              'dataElementConcept']
         related_fields = []
         for field in model_class._meta.get_fields():
             if not field.name.startswith('_'):
@@ -211,7 +234,7 @@ class Serializer(BaseDjangoSerializer):
         # Instantiate the serializer
         serializer = ModelSerializer(concept)
 
-        # Add the app label as a key to the json so that the deserializer can be instantiated
+        # Add the app label as a key to the json so that the deserializer can be generated
         data = serializer.data
         data['serialized_model'] = concept._meta.label_lower
 
