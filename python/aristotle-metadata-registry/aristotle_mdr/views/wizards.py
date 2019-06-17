@@ -134,7 +134,7 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             return MDRForms.wizards.subclassed_wizard_2_Results(self.model)(**kwargs)
         return super().get_form(step, data, files)
 
-    def get_extra_formsets(self, item=None, postdata=None):
+    def get_extra_formsets(self, item=None, postdata=None, clone_item=False):
         extra_formsets = super().get_extra_formsets(item, postdata)
 
         if self.slots_active:
