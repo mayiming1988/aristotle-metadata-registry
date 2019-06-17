@@ -26,7 +26,7 @@ class IdentifierSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ScopedIdentifier
-        fields = ['namespace', 'identifier', 'version', 'order']
+        fields = ['namespace', 'identifier', 'version', 'order', 'id']
 
     def get_id(self, identifier):
         return identifier.pk
