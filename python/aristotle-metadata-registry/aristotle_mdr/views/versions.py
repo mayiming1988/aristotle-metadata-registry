@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List, Optional, Tuple, Any
 from django.apps import apps
 from django.http import Http404, HttpResponseRedirect
 from django.core.exceptions import PermissionDenied
@@ -6,7 +6,7 @@ from django.views.generic.list import ListView
 from django.views.generic import TemplateView
 from django.contrib.contenttypes.models import ContentType
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Q, Model, Field
 from django.utils.dateparse import parse_datetime
 from django.urls import reverse
 from django.core.exceptions import FieldDoesNotExist
@@ -30,7 +30,6 @@ from collections import defaultdict
 from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
 
 import logging
-
 logger = logging.getLogger(__name__)
 
 
@@ -85,9 +84,12 @@ class VersionsMixin:
 
         return versions
 
-    def is_field_html(self, field, model):
+    def is_field_html(self, fieldname: str, model: Model):
         fieldobj = model._meta.get_field(field)
-        return issubclass(type(fieldobj), RichTextField)
+        return is_field_obj_html(fieldobj)
+
+    def is_field_obj_html(self, field: Field):
+        return issubclass(type(field), RichTextField)
 
     def get_model_from_foreign_key_field(self, parent_model, field):
         return parent_model._meta.get_field(field).related_model
@@ -98,18 +100,24 @@ class VersionsMixin:
             return field[:-len(postfix)]
         return field
 
-    def get_user_friendly_field_name(self, field):
+    def get_user_friendly_field_name(self, field: str):
         # If the field ends with _set we want to remove it, so we can look it up in the _meta.
         name = self.clean_field(field)
+        fieldobj = self.model._meta.get_field(name)
         try:
-            name = self.model._meta.get_field(name).related_model._meta.verbose_name
-            if name[0].islower():
-                # If it doesn't start with a capital, we want to capitalize it
-                name = name.title()
+            self.get_verbose_name(fieldobj)
         except AttributeError:
             name = field
 
         return name
+
+    def get_verbose_name(self, field: Field):
+        name: str
+        if field.is_relation:
+            name = field.related_model._meta.verbose_name
+        else:
+            name = field.name
+        return name.title()
 
 
 class VersionField:
@@ -117,117 +125,92 @@ class VersionField:
     Field for use in previous version display
     With fancy dereferencing
     Template to render in helpers/version_field.html
-
-    Doesn't deal with lists of components (no many to many's for those)
     """
 
-    perm_message = 'Linked to object(s) you do not have permission to view'
+    link: bool = False
+    group: bool = False
 
-    def __init__(self, value='', obj=None, help_text='', html=False, reference_label=''):
-        if not value:
-            self.value = ''
-        else:
-            self.value = str(value)
-
-        if type(obj) == list and len(obj) == 1:
-            self.obj = obj[0]
-        else:
-            self.obj = obj
-
-        self.help_text = help_text
+    def __init__(self, fname: str, value, html=False):
+        self.fname = fname
+        self.value = str(value)
         self.is_html = html
-        self.reference_label = reference_label
-
-    def dereference(self, lookup):
-        # Lookup ids in a given dictionary
-        if self.is_reference:
-            replaced = False
-            if self.reference_label in lookup:
-                id_lookup = lookup[self.reference_label]
-                if self.is_list:
-                    # No perm message for these
-                    deref_list = []
-                    for pk in self.obj:
-                        if pk in id_lookup:
-                            deref_list.append(id_lookup[pk])
-                    self.obj = deref_list
-                    replaced = True
-                else:
-                    if self.obj in id_lookup:
-                        self.obj = id_lookup[self.obj]
-                        replaced = True
-
-            if not replaced:
-                self.obj = None
-                self.value = self.perm_message
-
-            self.reference_label = ''
-
-    @property
-    def is_reference(self):
-        return self.reference_label != ''
 
     @property
     def is_link(self):
-        return (not self.is_reference and bool(self.obj))
+        return self.link
 
     @property
-    def is_list(self):
-        return (type(self.obj) == list)
+    def is_group(self):
+        return self.group
 
     @property
-    def object_list(self):
-        if self.is_list:
-            return self.obj
-        else:
-            return []
-
-    @property
-    def link_id(self):
-        if not self.is_link or self.is_list:
-            return None
-
-        if issubclass(self.obj.__class__, MDR.aristotleComponent):
-            return self.obj.parentItemId
-        else:
-            return self.obj.id
+    def heading(self):
+        return self.fname
 
     def __str__(self):
-        if self.is_link:
-            if hasattr(self.obj, 'name'):
-                return self.obj.name
-            else:
-                # Shouldn't actually happen, but just in case
-                return str(self.obj)
+        return self.value or 'None'
+
+
+class VersionGroupField(VersionField):
+    """Field with groups of subfields"""
+    link = False
+    group = True
+    is_html = False
+
+    def __init__(self, fname: str, subfields: List[List[VersionField]]):
+        self.fname = fname
+        self.subfields = subfields
+
+    def __str__(self):
+        return '{} sub items'.format(len(self.subfields))
+
+
+class VersionLinkField(VersionField):
+    """Version field that links to a concept or concept subclass"""
+
+    link = True
+    group = False
+    is_html = False
+    perm_message = 'Linked to object you do not have permission to view'
+    subfields = []
+
+    def __init__(self, fname: str, concept):
+        self.fname = fname
+        self.id = None
+        if concept:
+            self.value = concept.name
+            self.id = concept.id
         else:
-            return self.value or 'None'
+            self.value = self.perm_message
+
+    @property
+    def url(self):
+        if self.id:
+            return reverse()
+        return ''
 
 
-class ConceptVersionView(ConceptRenderView):
+class ConceptVersionView(VersionsMixin, ConceptRenderView):
     """ Display the version of a concept at a particular point"""
     slug_redirect = False
     version_arg = 'verid'
     template_name = 'aristotle_mdr/concepts/managedContentVersion.html'
-    concept_fields = ['references', 'submitting_organisation', 'responsible_organisation',
-                      'origin', 'origin_URI', 'comments']
-    default_weak_map = {
-        'aristotle_mdr_slots.slot': 'concept',
-        'aristotle_mdr_identifiers.scopedidentifier': 'concept'
-    }
+
+    excluded_fields = ['id', 'uuid', 'submitter', 'created', 'modified', 'serialized_model']
 
     def dispatch(self, request, *args, **kwargs):
-        # Dict mapping models to a list of ids
-        self.obj_ids = defaultdict(list)
-        # Dict mapping model -> id -> object
-        self.fetched_objects = {}
-
+        # Get version and permission
         self.version = self.get_version()
+        try:
+            self.version_permission = VersionPermissions.objects.get(pk=self.version.pk)
+        except VersionPermissions.DoesNotExist:
+            self.version_permission = None
 
         return super().dispatch(request, *args, **kwargs)
 
     def check_item(self, item):
         # Will 403 Forbidden when user can't view the item
-        return user_can_view(self.request.user, item)
+        return self.user_can_view_version(item, self.version_permission)
 
     def get_item(self):
         # Gets the current item
@@ -237,45 +220,76 @@ class ConceptVersionView(ConceptRenderView):
         # Get the version objet
         return get_object_or_404(reversion.models.Version, id=self.kwargs[self.version_arg])
 
-    def process_dict(self, fields, model):
-        # Process fields dict, updating field names and links
+    def is_concept_fk(self, field):
+        return field.many_to_one and issubclass(field.related_model, MDR._concept)
 
-        # Create replacement mapping fields to models
-        replacements = {}
-        for field in model._meta.get_fields():
-            if field.is_relation and (field.many_to_one or field.many_to_many) and \
-                    (issubclass(field.related_model, MDR._concept) or
-                     issubclass(field.related_model, MDR.aristotleComponent)):
-                replacements[field.name] = field.related_model
+    def get_field_data(self, version_data: Dict, model) -> List[Tuple[Field, Any]]:
+        """Get dict as list of tuples of field and it's data (recursively)"""
+        field_data = []
+        for name, data in version_data.items():
+            # If field name isnt excluded
+            if name not in self.excluded_fields:
+                field: Field = model._meta.get_field(self.clean_field(name))
+                # If field is subserialized
+                if type(data) == list:
+                    sub_field_data = []
+                    submodel = self.get_model_from_foreign_key_field(model, self.clean_field(name))
+                    # Recursively resolve sub dicts
+                    for subdata in data:
+                        if type(subdata) == dict:
+                            sub_field_data.append(
+                                self.get_field_data(subdata, submodel)
+                            )
+                    # Add back as a list
+                    field_data.append((field, sub_field_data))
+                else:
+                    field_data.append((field, data))
 
-        # Create new mapping with user friendly keys and replaced models
-        updated_fields = {}
-        for key, value in fields.items():
-            field = model._meta.get_field(key)
-            header = field.verbose_name.title()
+        return field_data
 
-            replaced = False
-            if key in replacements:
+    def get_viewable_concepts(self, field_data: List) -> Dict[int, MDR._concept]:
+        """Get all concepts linked from this version that are viewable by the user"""
+        ids = []
+        for field, data in field_data:
+            # If foreign key to concept
+            if self.is_concept_fk(field):
+                ids.append(data)
 
-                sub_model = replacements[key]
+            if type(data) == list:
+                for subdata in data:
+                    for field, subvalue in subdata:
+                        if self.is_concept_fk(field):
+                            ids.append(subvalue)
 
-                if type(value) == int and field.many_to_one:
-                    updated_fields[header] = self.lookup_object([value], sub_model, field)
-                    replaced = True
-                elif type(value) == list and field.many_to_many and value:
-                    updated_fields[header] = self.lookup_object(value, sub_model, field)
-                    replaced = True
+        return MDR._concept.objects.filter(id__in=ids).visible(self.request.user).in_bulk()
 
-            if not replaced:
-                updated_fields[header] = VersionField(
-                    value=value,
-                    help_text=field.help_text
+    def get_version_fields(self, field_data, concepts: Dict[int, MDR._concept]) -> List[VersionField]:
+        fields = []
+        for field, data in field_data:
+            if self.is_concept_fk(field):
+                fields.append(
+                    VersionLinkField(self.get_verbose_name(field), concepts.get(data, None))
                 )
-
-        return updated_fields
+            elif type(data) == list:
+                # If field groups other items get their fields
+                sub_fields: List[List[Field]] = []
+                for subdata in data:
+                    sub_fields.append(
+                        self.get_version_fields(subdata, concepts)
+                    )
+                # Add group field
+                fields.append(
+                    VersionGroupField(self.get_verbose_name(field), sub_fields)
+                )
+            else:
+                # If not fk or group
+                fields.append(
+                    VersionField(self.get_verbose_name(field), data, self.is_field_obj_html(field))
+                )
+        return fields
 
     def invalid_version(self, request, *args, **kwargs):
-        # What to do when the version could not be deserialized
+        """What to do when the version could not be deserialized"""
         logger.error('Version could not be loaded')
         try:
             version = reversion.models.Version.objects.get(id=self.kwargs[self.version_arg])
@@ -302,7 +316,15 @@ class ConceptVersionView(ConceptRenderView):
             # 404 if bad serialized data
             raise Http404
 
-        context['item_data'] = version_dict
+
+        # Get field data
+        model = self.version.content_type.model_class()
+        field_data = self.get_field_data(version_dict, model)
+                                                                
+        # Build item data
+        viewable_concepts = self.get_viewable_concepts(field_data)
+        # context['item_data'] = version_dict
+        context['item_fields'] = self.get_version_fields(field_data, viewable_concepts)
 
         # Set workgroup object
         if version_dict['workgroup']:
@@ -342,7 +364,7 @@ class ConceptVersionView(ConceptRenderView):
         return [self.template_name]
 
 
-class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateView):
+class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
     """
     View that performs the historical comparision between two different versions of the same concept
     """
@@ -559,7 +581,7 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
         return context
 
 
-class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
+class ConceptVersionListView(SimpleItemGet, VersionsMixin, ListView):
     """
     View  that lists all the specific versions of a particular concept
     """
@@ -612,7 +634,7 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
         return context
 
 
-class CompareHTMLFieldsView(SimpleItemGet, ViewableVersionsMixin, TemplateView):
+class CompareHTMLFieldsView(SimpleItemGet, VersionsMixin, TemplateView):
     """ A view to render two HTML fields side by side so that they can be compared visually"""
     template_name = 'aristotle_mdr/compare/rendered_field_comparision.html'
 
