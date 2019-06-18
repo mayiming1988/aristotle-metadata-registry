@@ -17,7 +17,8 @@ class SerializerTestCase(utils.AristotleTestUtils, TestCase):
         super().setUp()
 
         aristotle_settings = settings.ARISTOTLE_SETTINGS
-        aristotle_settings['CONTEXT_EXTENSIONS'].append('aristotle_dse')
+
+        aristotle_settings['CONTENT_EXTENSIONS'].append('aristotle_dse')
 
         with override_settings(ARISTOTLE_SETTINGS=aristotle_settings):
 
