@@ -1,10 +1,10 @@
 from django.test import TestCase
 
-from aristotle_mdr.tests.utils import AristotleTestUtils
+from aristotle_mdr.tests import utils
 import aristotle_mdr.models as MDR
 
 
-class VersionComparisionTestCase(AristotleTestUtils, TestCase):
+class VersionComparisionTestCase(TestCase, utils.AristotleTestUtils):
     """Class to test the version comparision view"""
     def setUp(self):
         self.object_class = MDR.ObjectClass.objects.create(
@@ -16,7 +16,6 @@ class VersionComparisionTestCase(AristotleTestUtils, TestCase):
     def test_altered_on_concept_field_displayed(self):
         """Test that field that is **on** the concept, and has
         had content altered between the saves is displayed"""
-        pass
 
     def test_added_subitem_displayed(self):
         """Test that a subitem (ex. custom fields) added to a concept between versions is displayed """
