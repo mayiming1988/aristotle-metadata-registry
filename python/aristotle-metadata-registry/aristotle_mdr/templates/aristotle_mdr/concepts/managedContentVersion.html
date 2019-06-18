@@ -19,13 +19,6 @@
     {% include "aristotle_mdr/concepts/versionInfobox.html" %}
     {% include "aristotle_mdr/concepts/visibilityInfoBar.html" %}
 
-    {% comment %}
-    <h2>{% trans 'Definition'%}</h2>
-    <div id="definition" class="definition">
-        {{ item.definition|striptags }}
-    </div>
-    {% endcomment %}
-
     {# Render version data #}
     {% for field in item.item_fields %}
       {% include 'aristotle_mdr/helpers/version_field.html' with field=field only %}
