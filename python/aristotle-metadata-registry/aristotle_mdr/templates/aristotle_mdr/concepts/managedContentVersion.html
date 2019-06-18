@@ -27,18 +27,8 @@
     {% endcomment %}
 
     {# Render version data #}
-    {% for field, data in item.item_data.items %}
-      <h2>{{ field }}</h2>
-      {% if data|is_list %}
-        {% for subdata in data %}
-          {% for subfield, subvalue in subdata.items %}
-            <h3>{{ subfield }}</h3>
-            {{ subvalue }}
-          {% endfor %}
-        {% endfor %}
-      {% else %}
-        {{ data }}
-      {% endif %}
+    {% for field in item.item_fields %}
+      {% include 'aristotle_mdr/helpers/version_field.html' with field=field only %}
     {% endfor %}
 
 
