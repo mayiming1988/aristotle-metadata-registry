@@ -99,7 +99,7 @@
         {{ concept.item.get_verbose_name }}
     </td>
     <td>
-        {{ concept.short_definition }}
+        {{ concept.short_definition | safe }}
     </td>
     <td>
         {{ status.registrationDate }}
