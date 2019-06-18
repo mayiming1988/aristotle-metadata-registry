@@ -195,8 +195,8 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
     slug_redirect = False
     version_arg = 'verid'
     template_name = 'aristotle_mdr/concepts/managedContentVersion.html'
-
-    excluded_fields = ['id', 'uuid', 'submitter', 'created', 'modified', 'serialized_model']
+    # Top level fields to exclude
+    excluded_fields = ['id', 'uuid', 'name', 'version', 'submitter', 'created', 'modified', 'serialized_model']
 
     def dispatch(self, request, *args, **kwargs):
         # Get version and permission
@@ -223,12 +223,12 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
     def is_concept_fk(self, field):
         return field.many_to_one and issubclass(field.related_model, MDR._concept)
 
-    def get_field_data(self, version_data: Dict, model) -> List[Tuple[Field, Any]]:
+    def get_field_data(self, version_data: Dict, model, exclude=True) -> List[Tuple[Field, Any]]:
         """Get dict as list of tuples of field and it's data (recursively)"""
         field_data = []
         for name, data in version_data.items():
-            # If field name isnt excluded
-            if name not in self.excluded_fields:
+            # If field name isnt excluded or we are not excluding
+            if name not in self.excluded_fields or not exclude:
                 field: Field = model._meta.get_field(self.clean_field(name))
                 # If field is subserialized
                 if type(data) == list:
@@ -238,7 +238,7 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
                     for subdata in data:
                         if type(subdata) == dict:
                             sub_field_data.append(
-                                self.get_field_data(subdata, submodel)
+                                self.get_field_data(subdata, submodel, False)
                             )
                     # Add back as a list
                     field_data.append((field, sub_field_data))
@@ -340,23 +340,31 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
             'app_label': self.version.content_type.app_label,
             'model_name': self.version.content_type.model
         }
-        context['id'] = self.version.object_id
-        context['pk'] = self.version.object_id
-        context['get_verbose_name'] = self.version.content_type.name.title()
-        context['created'] = parse_datetime(version_dict['created'])
+        context.update({
+            'id': self.version.object_id,
+            'pk': self.version.object_id,
+            'uuid': version_dict.get('uuid', ''),
+            'name': version_dict.get('name', ''),
+            'get_verbose_name': self.version.content_type.name.title(),
+            'created': parse_datetime(version_dict['created']),
+        })
 
         return context
 
     def get_context_data(self, *args, **kwargs):
         context = kwargs
-        context['view'] = self
-        context['hide_item_actions'] = True
-        context['hide_item_supersedes'] = True
-        context['hide_item_help'] = True
-        context['hide_item_related'] = True
-        context['item_is_version'] = True
-        context['item'] = self.get_version_context_data()
-        context['current_item'] = self.item
+        context.update({
+            'view': self,
+            'hide_item_actions': True,
+            'hide_item_supersedes': True,
+            'hide_item_help': True,
+            'hide_item_related': True,
+            'item_is_version': True,
+            'item': self.get_version_context_data(),
+            'current_item': self.item,
+            'version': self.version,
+            'revision': self.version.revision,
+        })
         # context['revision'] = self.revision
         return context
 
