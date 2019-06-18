@@ -13,7 +13,17 @@
               {% for flist in field.subfields %}
                 <tr>
                 {% for subfield in flist %}
-                  <td>{{ subfield }}</td>
+                  {% comment %}
+                  Some duplication here could render the template again but it's
+                  not needed right now since depth is only 1
+                  {% endcomment %}
+                  <td>
+                  {% if subfield.is_link %}
+                    <a href="{{ field.url }}">{{ field }}<span class="text-danger">*</span></a>
+                  {% else %}
+                      {{ subfield }}
+                  {% endif %}
+                  </td>
                 {% endfor %}
                 </tr>
               {% endfor %}
@@ -23,7 +33,7 @@
         <p>Empty</p>
     {% endif %}
 {% elif field.is_link %}
-    <a href="{% url 'aristotle:item' field.id %}">{{ field }}<span class="text-danger">*</span></a>
+    <a href="{{ field.url }}">{{ field }}<span class="text-danger">*</span></a>
 {% else %}
     {% if field.is_html %}
         {{ field }}
