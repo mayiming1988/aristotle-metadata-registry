@@ -20,7 +20,7 @@
       {% endif %}
     </dd>
     <hr>
-      <dt>{% trans 'Current Version' %}</dt>
+      <dt>{% trans 'Current Item' %}</dt>
       <dd><a href="{% url 'aristotle:item' current_item.id %}">{{ current_item.name }}</a></dd>
       <dt>{% trans 'Registration' %}</dt>
       <dd><a href="{% url 'aristotle:registrationHistory' item.id %}">{% trans 'View registration history'%}</a></dd>
