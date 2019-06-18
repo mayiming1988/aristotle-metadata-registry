@@ -2,6 +2,8 @@ import sys
 import tempfile
 import dj_database_url
 from aristotle_mdr.required_settings import *
+import os
+
 
 BASE = os.path.join(os.path.dirname(os.path.dirname(__file__)),'..')
 
