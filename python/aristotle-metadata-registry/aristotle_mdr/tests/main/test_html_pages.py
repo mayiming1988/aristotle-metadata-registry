@@ -347,7 +347,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             submitter=self.editor
         )
 
-        dec = models.DataElementConcept.objects.create(
+        data_element_concept = models.DataElementConcept.objects.create(
             name='Test DEC',
             definition='Just a test',
             objectClass=oc,
@@ -355,7 +355,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             submitter=self.editor
         )
 
-        data = utils.model_to_dict_with_change_time(dec)
+        data = utils.model_to_dict_with_change_time(data_element_concept)
         data.update({
             'definition': 'More than a test',
             'change_comments': 'A change was made'
@@ -369,27 +369,21 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             'aristotle:edit_item',
             data=data,
             status_code=302,
-            reverse_args=[dec.id]
+            reverse_args=[data_element_concept.id]
         )
 
-        dec = models.DataElementConcept.objects.get(pk=dec.pk)
-        self.assertEqual(dec.definition, 'More than a test')
+        data_element_concept = models.DataElementConcept.objects.get(pk=data_element_concept.pk)
+        self.assertEqual(data_element_concept.definition, 'More than a test')
 
-        # Should be 2 version, one for the _concept,
-        # one for the data element concept
-        self.assertEqual(revmodels.Version.objects.count(), 2)
+        # There is only one version being saved right now, on the item
+        self.assertEqual(revmodels.Version.objects.count(), 1)
 
-        concept_ct = ContentType.objects.get_for_model(models._concept)
         dec_ct = ContentType.objects.get_for_model(models.DataElementConcept)
 
-        concept_version = revmodels.Version.objects.get(content_type=concept_ct)
         dec_version = revmodels.Version.objects.get(content_type=dec_ct)
 
-        # check concept version
-        self.assertEqual(int(concept_version.object_id), dec._concept_ptr.id)
-
         # check dec version
-        self.assertEqual(int(dec_version.object_id), dec.id)
+        self.assertEqual(int(dec_version.object_id), data_element_concept.id)
 
     @tag('version')
     def test_display_version_concept_info(self):
