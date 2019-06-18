@@ -656,7 +656,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         updated = models.ObjectClass.objects.get(id=self.item.id)
         self.assertEqual(updated.workgroup, self.wg1)
 
-    def test_non_existant_item_404(self):
+    def test_non_existent_item_404(self):
         response = self.reverse_get(
             'aristotle:item',
             reverse_args=[55555]
@@ -664,21 +664,26 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_history_compare_with_bad_version_data(self):
+        """ Test that if the version compare view is passed garbled serialized data that the view does not attempt
+        to """
         versions = self.create_versions()
-        # Mangle the last versions serialized data
+
         first_version = versions.first()
+
+        # Mangle the last version's serialized data
         last_version = versions.order_by('-revision__date_created').first()
         last_version.serialized_data = '{"""}{,,}}}}'
         last_version.save()
 
-        qparams = '?version_id1={}&version_id2={}'.format(first_version.id, last_version.id)
+        # Look at the particular view
 
+        qparams = '?v1={}&v2={}'.format(first_version.id, last_version.id)
         self.login_editor()
         response = self.client.get(
-            reverse('aristotle:item_history', args=[self.item.id]) + qparams
+            reverse('aristotle:compare_versions', args=[self.item.id]) + qparams
         )
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(response.context['failed'])
+        self.assertTrue(response.context['cannot_compare'])
         self.assertContains(response, 'Those versions could not be compared')
 
     def test_view_item_version_with_bad_data(self):

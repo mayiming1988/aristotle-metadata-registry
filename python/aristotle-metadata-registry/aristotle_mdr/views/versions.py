@@ -748,8 +748,7 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
             later_version = second_version
             earlier_version = first_version
 
-        return (json.loads(earlier_version.serialized_data),
-                json.loads(later_version.serialized_data))
+        return (json.loads(earlier_version.serialized_data), json.loads(later_version.serialized_data))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -780,7 +779,11 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
         context['version_1_id'] = version_1
         context['version_2_id'] = version_2
 
-        earlier_json, later_json = self.get_version_jsons(first_version, second_version)
+        try:
+            earlier_json, later_json = self.get_version_jsons(first_version, second_version)
+        except json.JSONDecodeError:
+            context['cannot_compare'] = True
+            return context
 
         raw = self.request.GET.get('raw')
         if raw:
