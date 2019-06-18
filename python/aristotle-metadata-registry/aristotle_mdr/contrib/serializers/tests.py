@@ -9,6 +9,7 @@ from aristotle_mdr.tests import utils
 import reversion
 import json
 
+
 @override_settings()
 class SerializerTestCase(utils.AristotleTestUtils, TestCase):
     def setUp(self):
@@ -56,7 +57,7 @@ class SerializerTestCase(utils.AristotleTestUtils, TestCase):
                 field=self.custom_field,
                 concept=self.object_class,
                 content="Custom values"
-        )
+            )
 
     def create_version(self):
         with reversion.create_revision():
