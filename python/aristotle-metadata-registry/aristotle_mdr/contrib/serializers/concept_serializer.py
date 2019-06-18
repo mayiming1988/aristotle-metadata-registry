@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class IdentifierSerializer(serializers.ModelSerializer):
-    id = serializers.SerializerMethodField(method_name='get_id')
+    id = serializers.SerializerMethodField()
 
     class Meta:
         model = ScopedIdentifier
