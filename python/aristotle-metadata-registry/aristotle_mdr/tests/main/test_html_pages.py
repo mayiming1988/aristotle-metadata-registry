@@ -919,10 +919,12 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertEqual(self.item1.workgroup, None)
 
     def test_submitter_can_save_via_edit_page_with_change_comment(self):
+
         self.login_editor()
         response = self.client.get(reverse('aristotle:edit_item', args=[self.item1.id]))
         self.assertEqual(response.status_code, 200)
 
+        # Edit the item
         updated_item = utils.model_to_dict_with_change_time(response.context['item'])
         updated_name = updated_item['name'] + " updated!"
         updated_item['name'] = updated_name
@@ -934,14 +936,17 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertRedirects(response, url_slugify_concept(self.item1))
         self.assertEqual(self.item1.name, updated_name)
 
+        # Assert that the change comment is displayed
         response = self.client.get(reverse('aristotle:item_history', args=[self.item1.id]))
+
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, change_comment)
 
+
+        # Logout, and assert that the page is not displayed
         self.logout()
         response = self.client.get(reverse('aristotle:item_history', args=[self.item1.id]))
         self.assertEqual(response.status_code, 403)
-        # self.assertNotContains(response, change_comment)
 
         models.Status.objects.create(
             concept=self.item1,
@@ -1424,10 +1429,13 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         response = self.client.get(self.item1.get_absolute_url())
         self.assertContains(response, reverse('aristotle:item_history', args=[self.item1.id]))
 
+    @skip("We are not serializing statuses for the time being")
     def test_editor_can_view_item_history__and__compare(self):
+        """
+        Test that an editor can view item history, and compare the two versions.
+        When they compare the two versions, they are able to see the difference
+        """
         self.login_editor()
-
-        #from reversion import revisions as reversion
         import reversion
 
         # Create a revision

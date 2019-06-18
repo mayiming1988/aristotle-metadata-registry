@@ -479,10 +479,8 @@ class ViewableVersionsMixin:
 
         if version_permission is None:
             # Default to applying workgroup permissions
-            in_workgroup = metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list
             if not in_workgroup:
                 return False
-
         else:
             visibility = int(version_permission.visibility)
 
@@ -490,11 +488,15 @@ class ViewableVersionsMixin:
                 # Apply workgroup permissions
                 if not in_workgroup:
                     return False
+                else:
+                    return True
 
             elif visibility == VISIBILITY_PERMISSION_CHOICES.auth:
                 # Exclude anonymous users
                 if not authenticated_user:
                     return False
+                else:
+                    return True
 
             else:
                 # Visibility is public, don't exclude
