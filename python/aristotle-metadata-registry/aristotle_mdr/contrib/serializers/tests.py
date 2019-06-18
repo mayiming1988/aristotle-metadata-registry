@@ -13,9 +13,9 @@ import json
 class SerializerTestCase(AristotleTestUtils, TestCase):
     def setUp(self):
         import aristotle_dse.models as DSE
-        settings.ARISTOTLE_SETTINGS["CONTENT_EXTENSIONS"] = ['aristotle_dse']
 
         super().setUp()
+        settings.ARISTOTLE_SETTINGS["CONTENT_EXTENSIONS"] = ['aristotle_dse']
 
         self.object_class = MDR.ObjectClass.objects.create(
             name='Person',
