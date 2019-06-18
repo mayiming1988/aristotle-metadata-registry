@@ -711,6 +711,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(second_message.message, 'Version could not be loaded')
 
     def test_comparator_with_bad_version_data(self):
+        """Test that the comparator still works with garbled version data"""
         versions = self.create_versions()
         # Mangle the last versions serialized data
         last_version = versions.order_by('-revision__date_created').first()
@@ -731,6 +732,8 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             reverse('aristotle:compare_concepts') + qparams
         )
         self.assertEqual(response.status_code, 200)
+
+        # TODO: seems like there should be more than just checking that the page loads
 
 
 # These are run by all item types
