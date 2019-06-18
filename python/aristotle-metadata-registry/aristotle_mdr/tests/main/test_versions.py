@@ -2,15 +2,20 @@ from django.test import TestCase
 
 from aristotle_mdr.tests import utils
 import aristotle_mdr.models as MDR
+from aristotle_mdr.tests import utils
 
 
-class VersionComparisionTestCase(TestCase, utils.AristotleTestUtils):
+class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
     """Class to test the version comparision view"""
+
     def setUp(self):
-        self.object_class = MDR.ObjectClass.objects.create(
-            name='Person',
-            definition='A human being',
-            submitter=self.editor
+        super().setUp()
+
+        self.item = MDR.ObjectClass.objects.create(
+            name='Test Item',
+            definition='Test Item Description',
+            submitter=self.editor,
+            workgroup=self.wg1,
         )
 
     def test_altered_on_concept_field_displayed(self):
@@ -30,18 +35,11 @@ class VersionComparisionTestCase(TestCase, utils.AristotleTestUtils):
         """Test that the versions are compared with the correct chronology"""
 
 
-class DataElementComparisionTestCase(AristotleTestUtils, TestCase):
+class DataElementComparisionTestCase(utils.AristotleTestUtils, TestCase):
     """Class to test the comparision of Value Domain specific fields"""
+    def setUp(self):
+        super().setUp()
+
     def test_value_domain_changes_displayed(self):
         """Test that values displayed are """
-        pass
-
-
-class HTMLFieldComparisionTestCase(AristotleTestUtils, TestCase):
-    def setUp(self):
-        pass
-
-
-class ListVersionsTestCase(AristotleTestUtils, TestCase):
-    def setUp(self):
         pass

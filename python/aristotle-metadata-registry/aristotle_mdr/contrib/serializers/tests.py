@@ -1,56 +1,61 @@
-from django.test import TestCase, modify_settings
+from django.test import TestCase, override_settings
 from django.conf import settings
 
 from aristotle_mdr.tests.utils import AristotleTestUtils, model_to_dict_with_change_time
 from aristotle_mdr.contrib.custom_fields.models import CustomValue, CustomField
 from aristotle_mdr.contrib.custom_fields.types import type_choices as TYPE_CHOICES
 import aristotle_mdr.models as MDR
-
+from aristotle_mdr.tests import utils
 import reversion
 import json
 
-
-class SerializerTestCase(AristotleTestUtils, TestCase):
+@override_settings()
+class SerializerTestCase(utils.AristotleTestUtils, TestCase):
     def setUp(self):
         import aristotle_dse.models as DSE
         super().setUp()
 
-        self.object_class = MDR.ObjectClass.objects.create(
-            name='Person',
-            definition='A human being',
-            submitter=self.editor
-        )
+        aristotle_settings = settings.ARISTOTLE_SETTINGS
+        aristotle_settings['CONTEXT_EXTENSIONS'].append('aristotle_dse')
 
-        self.data_set_specification = DSE.DataSetSpecification.objects.create(
-            name='Person DSS',
-            definition='A data set specification about people',
-            submitter=self.editor
-        )
+        with override_settings(ARISTOTLE_SETTINGS=aristotle_settings):
 
-        self.data_element = MDR.DataElement.objects.create(
-            name='Data Element',
-            definition='This is a data element'
-        )
+            self.object_class = MDR.ObjectClass.objects.create(
+                name='Person',
+                definition='A human being',
+                submitter=self.editor
+            )
 
-        self.dss_de_inclusion = DSE.DSSDEInclusion(
-            data_element=self.data_element,
-            specific_information="Specific information",
-            conditional_obligation="Conditional",
-            order=1,
-            dss=self.data_set_specification
+            self.data_set_specification = DSE.DataSetSpecification.objects.create(
+                name='Person DSS',
+                definition='A data set specification about people',
+                submitter=self.editor
+            )
 
-        )
+            self.data_element = MDR.DataElement.objects.create(
+                name='Data Element',
+                definition='This is a data element'
+            )
 
-        self.custom_field = CustomField.objects.create(
-            order=1,
-            name='A Custom Field',
-            type=TYPE_CHOICES.str
-        )
+            self.dss_de_inclusion = DSE.DSSDEInclusion(
+                data_element=self.data_element,
+                specific_information="Specific information",
+                conditional_obligation="Conditional",
+                order=1,
+                dss=self.data_set_specification
 
-        self.custom_value = CustomValue.objects.create(
-            field=self.custom_field,
-            concept=self.object_class,
-            content="Custom values"
+            )
+
+            self.custom_field = CustomField.objects.create(
+                order=1,
+                name='A Custom Field',
+                type=TYPE_CHOICES.str
+            )
+
+            self.custom_value = CustomValue.objects.create(
+                field=self.custom_field,
+                concept=self.object_class,
+                content="Custom values"
         )
 
     def create_version(self):
