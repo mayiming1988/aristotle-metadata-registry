@@ -66,4 +66,3 @@ class ConceptRelatedListView(SimpleItemGet, ListView):
         context['item'] = self.item.item
         context['sort'] = self.get_sort()
         return context
-

@@ -1608,13 +1608,12 @@ class DataElement(concept):
             items += self.dataElementConcept.get_download_items()
         return items
 
-
     @property
     def relational_attributes(self):
         rels = {}
         if "aristotle_dse" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
             from aristotle_dse.models import DataSetSpecification
-            
+
             rels.update({
                 "dss": {
                     "all": _("Inclusion in Data Set Specifications"),
@@ -1633,7 +1632,7 @@ class DataElement(concept):
             })
         if "comet" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
             from comet.models import Indicator
-            
+
             rels.update({
                 "as_numerator": {
                     "all": _("As a numerator in an Indicator"),
@@ -1655,6 +1654,7 @@ class DataElement(concept):
                 },
             })
         return rels
+
 
 class DataElementDerivation(concept):
     r"""
