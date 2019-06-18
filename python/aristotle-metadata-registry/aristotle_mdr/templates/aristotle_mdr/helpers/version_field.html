@@ -1,3 +1,5 @@
+{% load util_tags %}
+
 <h1>{{ field.heading }}</h1>
 {% if field.is_group %}
     {% if field.subfields %}
@@ -36,7 +38,7 @@
     <a href="{{ field.url }}">{{ field }}<span class="text-danger">*</span></a>
 {% else %}
     {% if field.is_html %}
-        {{ field }}
+        {{ field|as_str|bleach }}
     {% else %}
         {{ field }}
     {% endif %}

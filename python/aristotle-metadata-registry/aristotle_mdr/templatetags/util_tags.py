@@ -148,5 +148,5 @@ def get_custom_values_for_item(item, user):
 
 
 @register.filter
-def is_list(item):
-    return type(item) == list
+def as_str(item):
+    return str(item)
