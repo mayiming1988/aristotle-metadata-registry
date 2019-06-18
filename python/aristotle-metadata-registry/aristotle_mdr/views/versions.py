@@ -186,7 +186,7 @@ class VersionLinkField(VersionField):
     @property
     def url(self):
         if self.id:
-            return reverse()
+            return reverse('aristotle:item', args=[self.id])
         return ''
 
 
