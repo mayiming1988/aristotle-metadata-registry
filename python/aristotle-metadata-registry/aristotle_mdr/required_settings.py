@@ -353,6 +353,16 @@ SERIALIZATION_MODULES = {'mdrjson': 'aristotle_mdr_api.serializers.idjson',
                          # Override django-reversion serializer
                          'aristotle_mdr_json': 'aristotle_mdr.contrib.serializers.concept_serializer'}
 
+# Set an environment variable as the default email address to send backend emails for notifications.
+ARISTOTLE_EMAIL_NOTIFICATIONS = os.getenv('ARISTOTLE_EMAIL_NOTIFICATIONS', None)
+
+# Set an environment variable as the default email address to send backend emails for sandbox invitation notifications.
+ARISTOTLE_EMAIL_SANDBOX_NOTIFICATIONS = os.getenv('ARISTOTLE_EMAIL_SANDBOX_NOTIFICATIONS', None)
+
+# Set an environment variable as the default email address to send backend emails for account recovery (password reset).
+ARISTOTLE_EMAIL_ACCOUNT_RECOVERY = os.getenv('ARISTOTLE_EMAIL_ACCOUNT_RECOVERY', None)
+
+
 # API
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
