@@ -769,7 +769,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
             self.item1.definition = new_defn
             self.item1.save()
 
-        item1_concept = self.item1._concept_ptr
+        item1_concept = self.item1.item
 
         concept_versions = reversion.models.Version.objects.get_for_object(item1_concept)
         self.assertEqual(concept_versions.count(), 2)
@@ -1901,7 +1901,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
         self.update_defn_with_versions()
 
-        item1_concept = self.item1._concept_ptr
+        item1_concept = self.item1.item
         versions = reversion.models.Version.objects.get_for_object(item1_concept)
         self.assertEqual(versions.count(), 2)
         oldest_version = versions.last()
