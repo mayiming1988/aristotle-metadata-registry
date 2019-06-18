@@ -409,21 +409,6 @@ def downloadMenu(item):
     return {'item': item, 'download_options': dlOptionsForItem, }
 
 
-@register.simple_tag(takes_context=True)
-def extra_content(context, extension, item):
-    try:
-        from django.template.loader import get_template
-        s = item._meta.object_name
-        s = s[0].lower() + s[1:]
-
-        return get_template(extension + "/extra_content/" + s + ".html").render(
-            {'item': item, 'user': context['request'].user, 'viewable_ids': context.get('viewable_ids', [])}
-        )
-    except template.TemplateDoesNotExist:
-        # there is no extra content for this item, and thats ok.
-        return ""
-
-
 @register.simple_tag
 def bootstrap_modal(_id, size=None):
     size_class = ""

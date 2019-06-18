@@ -1612,17 +1612,48 @@ class DataElement(concept):
     @property
     def relational_attributes(self):
         rels = {}
-        # if "aristotle_dse" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
-        #     from aristotle_dse.models import DataSetSpecification
+        if "aristotle_dse" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
+            from aristotle_dse.models import DataSetSpecification
             
-        #     rels.update({
-        #         "dss": {
-        #             "all": _("Inclusion in Data Set Specifications"),
-        #             "qs": DataSetSpecification.objects.filter(
-                        
-        #             )
-        #         },
-        #     })
+            rels.update({
+                "dss": {
+                    "all": _("Inclusion in Data Set Specifications"),
+                    "qs": DataSetSpecification.objects.filter(
+                        dssdeinclusion__data_element=self
+                    ).distinct()
+                },
+            })
+        if "mallard_qr" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
+
+            rels.update({
+                "dss": {
+                    "all": _("Use within a Question"),
+                    "qs": self.questions.all(),
+                },
+            })
+        if "comet" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
+            from comet.models import Indicator
+            
+            rels.update({
+                "as_numerator": {
+                    "all": _("As a numerator in an Indicator"),
+                    "qs": Indicator.objects.filter(
+                        indicatornumeratordefinition__data_element=self
+                    ).distinct()
+                },
+                "as_denominator": {
+                    "all": _("As a denominator in an Indicator"),
+                    "qs": Indicator.objects.filter(
+                        indicatordenominatordefinition__data_element=self
+                    ).distinct()
+                },
+                "as_disaggregator": {
+                    "all": _("As a disaggregation in an Indicator"),
+                    "qs": Indicator.objects.filter(
+                        indicatordisaggregationdefinition__data_element=self
+                    ).distinct()
+                },
+            })
         return rels
 
 class DataElementDerivation(concept):
