@@ -16,7 +16,9 @@
 {% block infoContent %}
     <h1>Version Comparator for {{ item.name }}</h1>
     <p>Comparing differences between versions of {{ item.name }}.
-        Only fields where there is a difference between saves are displayed.
+        Only fields where there is a difference between saves are displayed. <br> Comparisions are performed chronologically.
+        Green highlighting indicates that is has been added in the newer item, and red text indicates it has been removed
+        the newer item.
     <div class="well well-sm">
         <em>The <i class="fa fa-columns"></i> icon indicates that a side-by-side rendered HTML comparison exists for
         this field.</em>
@@ -24,6 +26,10 @@
     {% if not_all_versions_selected %}
         <div class="well">
             Both versions must be selected
+        </div>
+    {% elif cannot_compare %}
+        <div class="well">
+            Those versions could not be compared
         </div>
     {% else %}
         <div class="container">

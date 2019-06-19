@@ -7,12 +7,12 @@ from django.core.serializers.base import Serializer as BaseDjangoSerializer
 from django.core.serializers.base import DeserializedObject, build_instance
 from django.apps import apps
 from django.db import DEFAULT_DB_ALIAS
+from django.conf import settings
 
 from aristotle_mdr.contrib.custom_fields.models import CustomValue
 from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.identifiers.models import ScopedIdentifier
-from aristotle_dse.models import DSSClusterInclusion, DSSDEInclusion, DSSGrouping
-from aristotle_mdr.models import RecordRelation
+from aristotle_mdr.models import RecordRelation, ValueDomain, DataElementConcept, SupplementaryValue, PermissibleValue
 
 import json as JSON
 
@@ -22,14 +22,14 @@ logger = logging.getLogger(__name__)
 
 
 class IdentifierSerializer(serializers.ModelSerializer):
-    id = serializers.SerializerMethodField(method_name='get_id')
+    id = serializers.SerializerMethodField()
 
     class Meta:
         model = ScopedIdentifier
-        fields = ['namespace', 'identifier', 'version', 'order']
+        fields = ['namespace', 'identifier', 'version', 'order', 'id']
 
     def get_id(self, identifier):
-        return None
+        return identifier.pk
 
 
 class CustomValuesSerializer(serializers.ModelSerializer):
@@ -65,25 +65,48 @@ class OrganisationRecordsSerializer(serializers.ModelSerializer):
         return org_record.pk
 
 
-excluded_fields = ('dss',)
+class ValueDomainSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
 
-
-class DSSClusterInclusionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = DSSClusterInclusion
-        exclude = excluded_fields
+        model = ValueDomain
+        fields = ['name']
+
+    def get_name(self, value_domain):
+        return value_domain.name
 
 
-class DSSDEInclusionSerializer(serializers.ModelSerializer):
+class SupplementaryValueSerializer(serializers.ModelSerializer):
+    id = serializers.SerializerMethodField()
+
     class Meta:
-        model = DSSDEInclusion
-        exclude = excluded_fields
+        model = SupplementaryValue
+        fields = ['value', 'meaning', 'order', 'start_date', 'end_date', 'id']
+
+    def get_id(self, supplementary_value):
+        return supplementary_value.pk
 
 
-class DSSGroupingSerializer(serializers.ModelSerializer):
+class PermissibleValueSerializer(serializers.ModelSerializer):
+    id = serializers.SerializerMethodField()
+
     class Meta:
-        model = DSSGrouping
-        exclude = excluded_fields
+        model = PermissibleValue
+        fields = ['value', 'meaning', 'order', 'start_date', 'end_date', 'id']
+
+    def get_id(self, permissible_value):
+        return permissible_value.pk
+
+
+class DataElementConceptSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DataElementConcept
+        fields = ['name']
+
+    def get_name(self, data_element_concept):
+        return data_element_concept.name
 
 
 class BaseSerializer(serializers.ModelSerializer):
@@ -97,11 +120,30 @@ class BaseSerializer(serializers.ModelSerializer):
         pk_field=serializers.UUIDField(format='hex'),
         read_only=True)
 
+# To begin serializing an added subitem:
+#   1. Add a ModelSerializer for your subitem
+#   2. Add to whitelisted relation_fields
+#   3. Add to FIELD_SUBSERIALIZER_MAPPING
+
 
 class ConceptSerializerFactory():
     """ Generalized serializer factory to dynamically set form fields for simpler concepts """
-    FIELD_SUBSERIALIZER_MAPPING = {'dssdeinclusion_set': DSSDEInclusionSerializer(many=True),
-                                   'dssclusterinclusion_set': DSSClusterInclusionSerializer(many=True)}
+    FIELD_SUBSERIALIZER_MAPPING = {
+        'valueDomain': ValueDomainSerializer(),
+        'dataElementConcept': DataElementConceptSerializer(),
+        'permissiblevalue_set': PermissibleValueSerializer(many=True),
+        'supplementaryvalue_set': SupplementaryValueSerializer(many=True)}
+
+    if 'aristotle_dse' in settings.INSTALLED_APPS:
+        # Add extra serializers if DSE is installed
+        from aristotle_mdr.contrib.serializers.dse_serializers import (
+            DSSGroupingSerializer, DSSClusterInclusionSerializer, DSSDEInclusionSerializer
+        )
+
+        FIELD_SUBSERIALIZER_MAPPING.update({'dssdeinclusion_set': DSSDEInclusionSerializer(many=True),
+                                            'dssclusterinclusion_set': DSSClusterInclusionSerializer(many=True),
+                                            'groups': DSSGroupingSerializer(many=True)
+                                            })
 
     def _get_concept_fields(self, model_class):
         """Internal helper function to get fields that are actually **on** the model.
@@ -125,7 +167,13 @@ class ConceptSerializerFactory():
                               'indicatordenominatordefinition_set',
                               'indicatordisaggregationdefinition_set',
                               'statistical_unit',
-                              'dssgrouping_set']
+                              'dssgrouping_set',
+                              'groups',  # Related name for DSS Groupings
+                              'valueDomain',
+                              'permissiblevalue_set',
+                              'supplementaryvalue_set'
+                              'dataElementConcept']
+
         related_fields = []
         for field in model_class._meta.get_fields():
             if not field.name.startswith('_'):
@@ -201,7 +249,7 @@ class Serializer(BaseDjangoSerializer):
         # Instantiate the serializer
         serializer = ModelSerializer(concept)
 
-        # Add the app label as a key to the json so that the deserializer can be instantiated
+        # Add the app label as a key to the json so that the deserializer can be generated
         data = serializer.data
         data['serialized_model'] = concept._meta.label_lower
 

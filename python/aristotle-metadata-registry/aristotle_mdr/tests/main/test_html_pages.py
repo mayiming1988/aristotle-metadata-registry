@@ -347,7 +347,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             submitter=self.editor
         )
 
-        dec = models.DataElementConcept.objects.create(
+        data_element_concept = models.DataElementConcept.objects.create(
             name='Test DEC',
             definition='Just a test',
             objectClass=oc,
@@ -355,7 +355,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             submitter=self.editor
         )
 
-        data = utils.model_to_dict_with_change_time(dec)
+        data = utils.model_to_dict_with_change_time(data_element_concept)
         data.update({
             'definition': 'More than a test',
             'change_comments': 'A change was made'
@@ -369,27 +369,21 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             'aristotle:edit_item',
             data=data,
             status_code=302,
-            reverse_args=[dec.id]
+            reverse_args=[data_element_concept.id]
         )
 
-        dec = models.DataElementConcept.objects.get(pk=dec.pk)
-        self.assertEqual(dec.definition, 'More than a test')
+        data_element_concept = models.DataElementConcept.objects.get(pk=data_element_concept.pk)
+        self.assertEqual(data_element_concept.definition, 'More than a test')
 
-        # Should be 2 version, one for the _concept,
-        # one for the data element concept
-        self.assertEqual(revmodels.Version.objects.count(), 2)
+        # There is only one version being saved right now, on the item
+        self.assertEqual(revmodels.Version.objects.count(), 1)
 
-        concept_ct = ContentType.objects.get_for_model(models._concept)
         dec_ct = ContentType.objects.get_for_model(models.DataElementConcept)
 
-        concept_version = revmodels.Version.objects.get(content_type=concept_ct)
         dec_version = revmodels.Version.objects.get(content_type=dec_ct)
 
-        # check concept version
-        self.assertEqual(int(concept_version.object_id), dec._concept_ptr.id)
-
         # check dec version
-        self.assertEqual(int(dec_version.object_id), dec.id)
+        self.assertEqual(int(dec_version.object_id), data_element_concept.id)
 
     @tag('version')
     def test_display_version_concept_info(self):
@@ -470,7 +464,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     @tag('version')
     def test_version_item_metadata(self):
-        # Does this make it meta meta data
+        # Does this make it meta meta data?
 
         with reversion.create_revision():
             self.item.save()
@@ -659,7 +653,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         updated = models.ObjectClass.objects.get(id=self.item.id)
         self.assertEqual(updated.workgroup, self.wg1)
 
-    def test_non_existant_item_404(self):
+    def test_non_existent_item_404(self):
         response = self.reverse_get(
             'aristotle:item',
             reverse_args=[55555]
@@ -667,21 +661,26 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_history_compare_with_bad_version_data(self):
+        """ Test that if the version compare view is passed garbled serialized data that the view does not attempt
+        to """
         versions = self.create_versions()
-        # Mangle the last versions serialized data
+
         first_version = versions.first()
+
+        # Mangle the last version's serialized data
         last_version = versions.order_by('-revision__date_created').first()
         last_version.serialized_data = '{"""}{,,}}}}'
         last_version.save()
 
-        qparams = '?version_id1={}&version_id2={}'.format(first_version.id, last_version.id)
+        # Look at the particular view
 
+        qparams = '?v1={}&v2={}'.format(first_version.id, last_version.id)
         self.login_editor()
         response = self.client.get(
-            reverse('aristotle:item_history', args=[self.item.id]) + qparams
+            reverse('aristotle:compare_versions', args=[self.item.id]) + qparams
         )
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(response.context['failed'])
+        self.assertTrue(response.context['cannot_compare'])
         self.assertContains(response, 'Those versions could not be compared')
 
     def test_view_item_version_with_bad_data(self):
@@ -698,6 +697,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_comparator_with_bad_version_data(self):
+        """Test that the comparator still works with garbled version data"""
         versions = self.create_versions()
         # Mangle the last versions serialized data
         last_version = versions.order_by('-revision__date_created').first()
@@ -718,6 +718,8 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             reverse('aristotle:compare_concepts') + qparams
         )
         self.assertEqual(response.status_code, 200)
+
+        # TODO: seems like there should be more than just checking that the page loads
 
 
 # These are run by all item types
@@ -760,6 +762,11 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         with reversion.create_revision():
             self.item1.definition = new_defn
             self.item1.save()
+
+        item1_concept = self.item1.item
+
+        concept_versions = reversion.models.Version.objects.get_for_object(item1_concept)
+        self.assertEqual(concept_versions.count(), 2)
 
         item_versions = reversion.models.Version.objects.get_for_object(self.item1)
         self.assertEqual(item_versions.count(), 2)
@@ -906,10 +913,12 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertEqual(self.item1.workgroup, None)
 
     def test_submitter_can_save_via_edit_page_with_change_comment(self):
+
         self.login_editor()
         response = self.client.get(reverse('aristotle:edit_item', args=[self.item1.id]))
         self.assertEqual(response.status_code, 200)
 
+        # Edit the item
         updated_item = utils.model_to_dict_with_change_time(response.context['item'])
         updated_name = updated_item['name'] + " updated!"
         updated_item['name'] = updated_name
@@ -921,14 +930,17 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertRedirects(response, url_slugify_concept(self.item1))
         self.assertEqual(self.item1.name, updated_name)
 
+        # Assert that the change comment is displayed
         response = self.client.get(reverse('aristotle:item_history', args=[self.item1.id]))
+
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, change_comment)
 
+
+        # Logout, and assert that the page is not displayed
         self.logout()
         response = self.client.get(reverse('aristotle:item_history', args=[self.item1.id]))
         self.assertEqual(response.status_code, 403)
-        # self.assertNotContains(response, change_comment)
 
         models.Status.objects.create(
             concept=self.item1,
@@ -1407,23 +1419,20 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         response = self.client.get(reverse('aristotle:item_history', args=[self.item2.id]))
         self.assertEqual(response.status_code, 403)
 
-        # # Viewers shouldn't even have the link to history on items they arent in the workgroup for
-        # This check makes no sense - a user can't see the page to begin with.
-        # Keeping for posterity
-        # response = self.client.get(self.item2.get_absolute_url())
-        # self.assertNotContains(response, reverse('aristotle:item_history',args=[self.item2.id]))
-
         # Viewers will even have the link to history on items they are in the workgroup for
         response = self.client.get(self.item1.get_absolute_url())
         self.assertContains(response, reverse('aristotle:item_history', args=[self.item1.id]))
 
+    @skip("We are not serializing statuses for the time being")
     def test_editor_can_view_item_history__and__compare(self):
+        """
+        Test that an editor can view item history, and compare the two versions.
+        When they compare the two versions, they are able to see the difference
+        """
         self.login_editor()
-
-        #from reversion import revisions as reversion
         import reversion
 
-        # Creat a revision
+        # Create a revision
         with reversion.revisions.create_revision():
             self.item1.name = "change 1"
             reversion.set_comment("change 1")
@@ -1465,7 +1474,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
                 response,
                 '%s is %s' % (self.item1.name, s.get_state_display())
             )
-
+    @skip("We are no longer providing functionality for reverting items for the time being")
     def test_editor_can_revert_item_and_status_goes_back_too(self):
         self.login_editor()
 

@@ -26,19 +26,5 @@
     </div>
     {% endif %}
 
-
-    {% comment %}
-    {# TODO: this loads too slow on big sets #}
-    {% if item.valuedomain_set.all %}
-        <h3>Value Domains using this measure</h3>
-        <ul>
-        {% for vd in item.valuedomain_set.all|can_view_iter:request.user %}
-            <li>
-                {% include "aristotle_mdr/helpers/inlineDetails.html" with item=vd skip_can_view=True %}
-            </li>
-        {% endfor %}
-        </ul>
-    {% endif %}
-    {% endcomment %}
 {% endblock %}
 
