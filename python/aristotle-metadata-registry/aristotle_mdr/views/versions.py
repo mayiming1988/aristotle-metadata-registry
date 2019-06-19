@@ -542,7 +542,14 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
         return issubclass(type(fieldobj), RichTextField)
 
     def get_model_from_foreign_key_field(self, parent_model, field):
-        return parent_model._meta.get_field(field).related_model
+        try:
+            return parent_model._meta.get_field(field).related_model
+        except FieldDoesNotExist:
+            return parent_model._meta.get_field(self.clean_field(field)).related_model
+
+    def handle_compare_failure(self):
+        self.context['cannot_compare'] = True
+        return self.context
 
     def clean_field(self, field):
         postfix = '_set'
@@ -552,14 +559,19 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
 
     def get_user_friendly_field_name(self, field):
         # If the field ends with _set we want to remove it, so we can look it up in the _meta.
-        name = self.clean_field(field)
         try:
-            name = self.model._meta.get_field(name).related_model._meta.verbose_name
+            related_model = self.model._meta.get_field(field).related_model
+
+        except FieldDoesNotExist:
+            related_model = self.model._meta.get_field(self.clean_field(field)).related_model
+
+        if hasattr(related_model._meta, 'verbose_name'):
+            name = related_model._meta.verbose_name
             if name[0].islower():
-                # If it doesn't start with a capital, we want to capitalize it
+                # If the name does not start with a capital
                 name = name.title()
-        except AttributeError:
-            name = field
+        else:
+            name = self.clean_field(field).title()
 
         return name
 
@@ -620,7 +632,7 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
                         }
                     elif isinstance(earlier_value, list):
                         # It's a list of subitems
-                        subitem_model = self.get_model_from_foreign_key_field(self.model, self.clean_field(field))
+                        subitem_model = self.get_model_from_foreign_key_field(self.model, field)
                         field_to_diff[field] = {
                             'user_friendly_name': self.get_user_friendly_field_name(field),
                             'subitem': True,
@@ -656,25 +668,28 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
         difference_dict = {}
 
         for field, earlier_value in earlier_item.items():
-            later_value = later_item[field]
-            if not raw:
-                earlier_value = strip_tags(str(earlier_value))
-                later_value = strip_tags(str(later_value))
+            if field == 'id':
+                pass
+            else:
+                later_value = later_item[field]
+                if not raw:
+                    earlier_value = strip_tags(str(earlier_value))
+                    later_value = strip_tags(str(later_value))
 
-            if earlier_value is None:
-                # Can't perform a diff on a null value
-                earlier_value = 'None'
+                if earlier_value is None:
+                    # Can't perform a diff on a null value
+                    earlier_value = 'None'
 
-            if later_value is None:
-                later_value = 'None'
+                if later_value is None:
+                    later_value = 'None'
 
-            diff = DiffMatchPatch.diff_main(earlier_value, later_value)
-            DiffMatchPatch.diff_cleanupSemantic(diff)
+                diff = DiffMatchPatch.diff_main(earlier_value, later_value)
+                DiffMatchPatch.diff_cleanupSemantic(diff)
 
-            difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
+                difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
                                       'diff': diff}
 
-        differences.append(difference_dict)
+            differences.append(difference_dict)
         return differences
 
     def build_diff_of_subitems(self, earlier_values, later_values, subitem_model, raw=False):
