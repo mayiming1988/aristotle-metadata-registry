@@ -93,8 +93,8 @@ class VersionsMixin:
         return versions
 
     def is_field_html(self, fieldname: str, model: Model):
-        fieldobj = model._meta.get_field(field)
-        return is_field_obj_html(fieldobj)
+        fieldobj = model._meta.get_field(fieldname)
+        return self.is_field_obj_html(fieldobj)
 
     def is_field_obj_html(self, field: Field):
         return issubclass(type(field), RichTextField)
@@ -123,7 +123,7 @@ class VersionsMixin:
         # If the field ends with _set we want to remove it, so we can look it up in the _meta.
         fieldobj = self.get_field(field)
         try:
-            self.get_verbose_name(fieldobj)
+            name = self.get_verbose_name(fieldobj)
         except AttributeError:
             name = field
 
