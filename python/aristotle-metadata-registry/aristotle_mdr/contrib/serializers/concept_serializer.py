@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class SubSerializer(serializers.ModelSerializer):
     """Base class for subserializers"""
+    id = serializers.SerializerMethodField()
 
     def get_id(self, item):
         """Get pk here in case we are not using the auto id field"""
