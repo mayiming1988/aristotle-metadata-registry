@@ -2566,15 +2566,13 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
             status_code=200
         )
 
-        item_context = response.context['item']
-        components = item_context['item_data']['Components']
+        fields = {f.heading: f for f in response.context['item']['item_fields']}
+        self.assertTrue('Data Element Concept' in fields)
+        cfield = fields['Data Element Concept']
 
-        dec_ht = models.DataElement._meta.get_field('dataElementConcept').help_text
-
-        self.assertTrue(components['Data Element Concept'].is_link)
-        self.assertEqual(components['Data Element Concept'].obj, self.item1.dataElementConcept._concept_ptr)
-        self.assertEqual(components['Data Element Concept'].link_id, self.item1.dataElementConcept.id)
-        self.assertEqual(components['Data Element Concept'].help_text, dec_ht)
+        self.assertTrue(cfield.is_link)
+        self.assertEqual(cfield.value, self.item1.dataElementConcept.name)
+        self.assertEqual(cfield.id, self.item1.dataElementConcept.id)
 
     @tag('version')
     def test_version_display_component_from_multi_revision(self):
@@ -2600,7 +2598,7 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
 
         latest = reversion.models.Version.objects.get_for_object(self.item1).first()
 
-        self.login_viewer()
+        self.login_editor()
         response = self.reverse_get(
             'aristotle:item_version',
             reverse_args=[latest.id],
@@ -2611,8 +2609,13 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
         self.assertTrue('Data Element Concept' in fields)
         cfield = fields['Data Element Concept']
 
+        self.assertTrue(cfield.is_link)
+        self.assertEqual(cfield.value, self.item1.dataElementConcept.name)
+        self.assertEqual(cfield.id, self.item1.dataElementConcept.id)
+
     @tag('version')
     def test_version_display_component_permission(self):
+        """Test that linked objects that are not visible to the user are not displayed"""
         self.add_dec(None)
         self.update_defn_with_versions()
 
@@ -2624,10 +2627,13 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
             status_code=200
         )
 
-        components = response.context['item']['item_data']['Components']
+        fields = {f.heading: f for f in response.context['item']['item_fields']}
+        self.assertTrue('Data Element Concept' in fields)
+        cfield = fields['Data Element Concept']
 
-        self.assertFalse(components['Data Element Concept'].is_link, False)
-        self.assertTrue(components['Data Element Concept'].value.startswith('Linked to object'))
+        self.assertTrue(cfield.is_link)
+        self.assertEqual(cfield.id, None)
+        self.assertTrue(cfield.value.startswith('Linked to object'))
 
 
 class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):
