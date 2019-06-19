@@ -32,6 +32,7 @@ urlpatterns=[
     url(r'^steward', include('aristotle_mdr.contrib.stewards.urls', namespace="stewards")),
 
     # all the below take on the same form:
+    # all the below take on the same form:
     # url(r'^itemType/(?P<iid>\d+)?/?
     # Allowing for a blank ItemId (iid) allows aristotle to redirect to /about/itemtype instead of 404ing
 

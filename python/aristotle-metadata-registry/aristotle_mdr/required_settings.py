@@ -133,7 +133,7 @@ INSTALLED_APPS = (
 
     'bootstrap3',
     'reversion',  # https://github.com/etianen/django-reversion
-    'reversion_compare',  # https://github.com/jedie/django-reversion-compare
+    # 'reversion_compare',  # https://github.com/jedie/django-reversion-compare
 
     'notifications',
     'organizations',
@@ -197,7 +197,6 @@ BOOTSTRAP3 = {
     'base_url': '/static/aristotle_mdr/bootstrap/',
 }
 
-ADD_REVERSION_ADMIN = True
 
 # We need this to make sure users can see all extensions.
 AUTHENTICATION_BACKENDS = ('aristotle_mdr.backends.AristotleBackend',)
