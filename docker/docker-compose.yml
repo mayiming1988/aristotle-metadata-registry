@@ -5,11 +5,13 @@ services:
     image: redis
     ports:
       - "6379"
+    volumes:
+      - cache_data:/data
 
   db:
-    image: postgres:10.6
+    image: postgres:10
     volumes:
-      - ../../data/db/:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data
 
   mailhog:
     image: mailhog/mailhog:v1.0.0
@@ -40,7 +42,7 @@ services:
           # cpus: '0.50'
           memory: 1024M
     volumes:
-      - esdata1:/usr/share/elasticsearch/data
+      - es_data:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
 
@@ -92,5 +94,9 @@ services:
         - ../:/usr/src/app
 
 volumes:
-  esdata1:
+  es_data:
+    driver: local
+  cache_data:
+    driver: local
+  db_data:
     driver: local
