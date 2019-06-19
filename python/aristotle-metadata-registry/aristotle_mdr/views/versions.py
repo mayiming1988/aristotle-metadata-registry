@@ -42,6 +42,10 @@ class VersionsMixin:
         if self.request.user.is_superuser:
             return True
 
+        if metadata_item.stewardship_organisation is None \
+                and metadata_item.workgroup is None and metadata_item.submitter_id == self.request.user.id:
+            return True
+
         if version_permission is None:
             # Default to applying workgroup permissions
             in_workgroup = metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list
@@ -206,10 +210,17 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
         except VersionPermissions.DoesNotExist:
             self.version_permission = None
 
+        try:
+            self.version_dict = json.loads(self.version.serialized_data)
+        except json.JSONDecodeError:
+            # Handle bad serialized data
+            raise Http404
+        import pdb; pdb.set_trace()
+
         return super().dispatch(request, *args, **kwargs)
 
     def check_item(self, item):
-        # Will 403 Forbidden when user can't view the item
+        # Will 403 Forbidden when user can't view the version
         return self.user_can_view_version(item, self.version_permission)
 
     def get_item(self):
@@ -288,48 +299,23 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
                 )
         return fields
 
-    def invalid_version(self, request, *args, **kwargs):
-        """What to do when the version could not be deserialized"""
-        logger.error('Version could not be loaded')
-        try:
-            version = reversion.models.Version.objects.get(id=self.kwargs[self.version_arg])
-        except reversion.models.Version.DoesNotExist:
-            raise Http404
-
-        current = version.object
-        if not self.check_item(current):
-            raise PermissionDenied
-
-        messages.warning(request, 'Version could not be loaded')
-
-        return HttpResponseRedirect(
-            reverse('aristotle:item_history', args=[current.id])
-        )
-
     def get_version_context_data(self) -> Dict:
         # Get the context data for this complete version
         context = {}
 
-        try:
-            version_dict = json.loads(self.version.serialized_data)
-        except json.JSONDecodeError:
-            # 404 if bad serialized data
-            raise Http404
-
 
         # Get field data
         model = self.version.content_type.model_class()
-        field_data = self.get_field_data(version_dict, model)
-                                                                
+        field_data = self.get_field_data(self.version_dict, model)
+
         # Build item data
         viewable_concepts = self.get_viewable_concepts(field_data)
-        # context['item_data'] = version_dict
         context['item_fields'] = self.get_version_fields(field_data, viewable_concepts)
 
         # Set workgroup object
-        if version_dict['workgroup']:
+        if self.version_dict['workgroup']:
             try:
-                workgroup = MDR.Workgroup.objects.get(pk=version_dict['workgroup'])
+                workgroup = MDR.Workgroup.objects.get(pk=self.version_dict['workgroup'])
             except MDR.Workgroup.DoesNotExist:
                 workgroup = None
 
@@ -343,10 +329,10 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
         context.update({
             'id': self.version.object_id,
             'pk': self.version.object_id,
-            'uuid': version_dict.get('uuid', ''),
-            'name': version_dict.get('name', ''),
+            'uuid': self.version_dict.get('uuid', ''),
+            'name': self.version_dict.get('name', ''),
             'get_verbose_name': self.version.content_type.name.title(),
-            'created': parse_datetime(version_dict['created']),
+            'created': parse_datetime(self.version_dict['created']),
         })
 
         return context
