@@ -229,7 +229,6 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
         except json.JSONDecodeError:
             # Handle bad serialized data
             raise Http404
-        import pdb; pdb.set_trace()
 
         return super().dispatch(request, *args, **kwargs)
 
