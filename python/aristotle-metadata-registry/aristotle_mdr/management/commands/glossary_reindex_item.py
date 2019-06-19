@@ -26,11 +26,11 @@ class Command(BaseCommand):
 
         if options['id']:
             print('Updating glossary index for object...')
-    
+
             instance = _concept.objects.get(pk=options['id']).item
             glossary_set = reindex_metadata_item(instance)
             related_list = list(glossary_set.values_list("pk", flat=True))
-    
+
             print(f"item {instance} is now linked to items {related_list}")
         elif options['all']:
             print("Processing all")
@@ -38,10 +38,11 @@ class Command(BaseCommand):
             total = _concept.objects.count()
             for i, instance in enumerate(_concept.objects.all()):
                 if i % 1000 == 0:
-                    percent = int(i/total*100)
-                    print('\r'+' '*70, end="", flush=True)
+                    percent = int(i / total * 100)
+                    print('\r' + (' ' * 70), end="", flush=True)
                     print(f'\r{percent}% ', end="", flush=True)
                 if i % 25 == 0:
                     print(".", end="", flush=True)
                 reindex_metadata_item(instance)
-            
+            print('\r' + (' ' * 70), end="", flush=True)
+            print(f'\r100% ... done!')
