@@ -1,5 +1,5 @@
 {% load util_tags %}
-{% for qs in item.relational_attributes %}
-  <p>{{ qs.model|class_name }}s implementing this {{ item|class_name }}</p>
-  {% include 'aristotle_mdr/downloads/html/helpers/relational_attrs_list.html' with qs=qs %}
+{% for data in item.relational_attributes.values %}
+  <p>{{ data.all }}</p>
+  {% include 'aristotle_mdr/downloads/html/helpers/relational_attrs_list.html' with qs=data.qs %}
 {% endfor %}

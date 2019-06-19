@@ -120,14 +120,15 @@ class GeneralGraphicalConceptView(ObjectAPIView):
         nodes.append(source_item)
 
         if hasattr(item, 'relational_attributes'):
-            for rel_attr in item.relational_attributes[0]:
-                if perms.user_can_view(self.request.user, rel_attr):
-                    serialised_rel_attr = ConceptSerializer(rel_attr).data
-                    serialised_rel_attr["type"] = self.camel_case_split(rel_attr.__class__.__name__)
-                    if serialised_rel_attr["id"] not in seen_items_ids and len(nodes) < settings.MAXIMUM_NUMBER_OF_NODES_IN_GENERAL_GRAPHICAL_REPRESENTATION:
-                        nodes.append(serialised_rel_attr)
-                        edges.append(({"from": serialised_rel_attr["id"], "to": item.id}))
-                        seen_items_ids.add(serialised_rel_attr["id"])
+            for d in item.relational_attributes.values():
+                for rel_attr in d['qs']:
+                    if perms.user_can_view(self.request.user, rel_attr):
+                        serialised_rel_attr = ConceptSerializer(rel_attr).data
+                        serialised_rel_attr["type"] = self.camel_case_split(rel_attr.__class__.__name__)
+                        if serialised_rel_attr["id"] not in seen_items_ids and len(nodes) < settings.MAXIMUM_NUMBER_OF_NODES_IN_GENERAL_GRAPHICAL_REPRESENTATION:
+                            nodes.append(serialised_rel_attr)
+                            edges.append(({"from": serialised_rel_attr["id"], "to": item.id}))
+                            seen_items_ids.add(serialised_rel_attr["id"])
 
         for field in item._meta.get_fields():
             if field.is_relation and field.many_to_one and issubclass(field.related_model, concept):

@@ -12,4 +12,4 @@ from . import sitemaps
 from . import registrationauthority
 from . import notify
 from . import versions
-from . import graphs
+from . import tools
