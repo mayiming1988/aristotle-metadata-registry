@@ -407,9 +407,9 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             status_code=200
         )
 
-        fields = filter(lambda i: i.heading == 'References', response.context['item']['item_fields'])
-        references = next(fields)
-
+        fields = {f.heading: f for f in response.context['item']['item_fields']}
+        self.assertTrue('References' in fields)
+        references = fields['References']
         self.assertFalse(references.is_link)
         self.assertTrue(references.is_html)
         self.assertEqual(str(references), '<p>refs</p>')
