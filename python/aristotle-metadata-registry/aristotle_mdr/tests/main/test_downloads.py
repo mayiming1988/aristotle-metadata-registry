@@ -423,7 +423,7 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
         self.assertFalse('You dont have permission' in html)
 
 
-@override_settings(ARISTOTLE_SETTINGS={'DOWNLOAD_OPTIONS': 'DOWNLOADERS': ['aristotle_mdr.downloaders.DocxDownloader']}})
+@override_settings(ARISTOTLE_SETTINGS={'DOWNLOAD_OPTIONS': {'DOWNLOADERS': ['aristotle_mdr.downloaders.DocxDownloader']}})
 class DocxDownloaderTestCase(AristotleTestUtils, TestCase):
 
     def setUp(self):
