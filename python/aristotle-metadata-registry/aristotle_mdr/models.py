@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union, Iterable, Optional
+from typing import List, Tuple, Union, Iterable, Optional, Dict
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ImproperlyConfigured
@@ -760,7 +760,7 @@ class _concept(baseAristotleObject):
     # enabled
     backwards_compatible_fields: List[str] = []
     registerable = True
-    relational_attributes: List[QuerySet]
+    relational_attributes: Dict[str, Dict]
     # Used by concept manager with_related in a select_related
     related_objects: List[str] = []
     # Fields to build the name from
@@ -1194,9 +1194,27 @@ class ObjectClass(concept):
 
     @property
     def relational_attributes(self):
-        return [
-            self.dataelementconcept_set.all(),
-        ]
+        rels = {
+            "data_element_concepts": {
+                "all": _("Data Element Concepts implementing this Object Class"),
+                "qs": self.dataelementconcept_set.all()
+            },
+        }
+        if "aristotle_ontology" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
+            from aristotle_ontology.models import ObjectClassSpecialisation
+            rels.update({
+                'broader_specialisations': {
+                    "all": _("As a broader class of"),
+                    "qs": self.oc_as_broader.all()
+                },
+                'narrower_specialisations': {
+                    "all": _("As a specialisation class of"),
+                    "qs": ObjectClassSpecialisation.objects.filter(
+                        objectclassspecialisationnarrowerclass__narrower_class=self
+                    ).all()
+                },
+            })
+        return rels
 
 
 class Property(concept):
@@ -1211,9 +1229,13 @@ class Property(concept):
 
     @property
     def relational_attributes(self):
-        return [
-            self.dataelementconcept_set.all(),
-        ]
+        rels = {
+            "data_element_concepts": {
+                "all": _("Data Element Concepts implementing this Property"),
+                "qs": self.dataelementconcept_set.all()
+            },
+        }
+        return rels
 
 
 class Measure(ManagedItem):
@@ -1248,6 +1270,15 @@ class UnitOfMeasure(concept):
                               blank=True,
                               )
 
+    @property
+    def relational_attributes(self):
+        return {
+            "value_domains": {
+                "all": _("Value Domains implementing this Unit of Measure"),
+                "qs": self.valuedomain_set.all()
+            },
+        }
+
 
 class DataType(concept):
     """
@@ -1255,6 +1286,15 @@ class DataType(concept):
     by operations on those values (3.1.9)
     """
     template = "aristotle_mdr/concepts/dataType.html"
+
+    @property
+    def relational_attributes(self):
+        return {
+            "value_domains": {
+                "all": _("Value Domains implementing this Data Type"),
+                "qs": self.valuedomain_set.all()
+            },
+        }
 
 
 class ConceptualDomain(concept):
@@ -1281,10 +1321,16 @@ class ConceptualDomain(concept):
 
     @property
     def relational_attributes(self):
-        return [
-            self.dataelementconcept_set.all(),
-            self.valuedomain_set.all()
-        ]
+        return {
+            "data_element_concepts": {
+                "all": _("Data Element Concepts implementing this Conceptual Domain"),
+                "qs": self.dataelementconcept_set.all()
+            },
+            "value_domains": {
+                "all": _("Value Domains Concepts implementing this Conceptual Domain"),
+                "qs": self.valuedomain_set.all()
+            },
+        }
 
 
 class ValueMeaning(aristotleComponent):
@@ -1428,9 +1474,12 @@ class ValueDomain(concept):
 
     @property
     def relational_attributes(self):
-        return [
-            self.dataelement_set.all(),
-        ]
+        return {
+            "data_elements": {
+                "all": _("Data Elements implementing this Value Domain"),
+                "qs": self.dataelement_set.all()
+            },
+        }
 
 
 class PermissibleValue(AbstractValue):
@@ -1498,9 +1547,12 @@ class DataElementConcept(concept):
 
     @property_
     def relational_attributes(self):
-        return [
-            self.dataelement_set.all(),
-        ]
+        return {
+            "data_elements": {
+                "all": _("Data Elements implementing this Data Element Concept"),
+                "qs": self.dataelement_set.all()
+            },
+        }
 
 
 # Yes this name looks bad - blame 11179:3:2013 for renaming "administered item"
@@ -1555,6 +1607,53 @@ class DataElement(concept):
         if self.dataElementConcept:
             items += self.dataElementConcept.get_download_items()
         return items
+
+    @property
+    def relational_attributes(self):
+        rels = {}
+        if "aristotle_dse" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
+            from aristotle_dse.models import DataSetSpecification
+
+            rels.update({
+                "dss": {
+                    "all": _("Inclusion in Data Set Specifications"),
+                    "qs": DataSetSpecification.objects.filter(
+                        dssdeinclusion__data_element=self
+                    ).distinct()
+                },
+            })
+        if "mallard_qr" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
+
+            rels.update({
+                "dss": {
+                    "all": _("Use within a Question"),
+                    "qs": self.questions.all(),
+                },
+            })
+        if "comet" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
+            from comet.models import Indicator
+
+            rels.update({
+                "as_numerator": {
+                    "all": _("As a numerator in an Indicator"),
+                    "qs": Indicator.objects.filter(
+                        indicatornumeratordefinition__data_element=self
+                    ).distinct()
+                },
+                "as_denominator": {
+                    "all": _("As a denominator in an Indicator"),
+                    "qs": Indicator.objects.filter(
+                        indicatordenominatordefinition__data_element=self
+                    ).distinct()
+                },
+                "as_disaggregator": {
+                    "all": _("As a disaggregation in an Indicator"),
+                    "qs": Indicator.objects.filter(
+                        indicatordisaggregationdefinition__data_element=self
+                    ).distinct()
+                },
+            })
+        return rels
 
 
 class DataElementDerivation(concept):

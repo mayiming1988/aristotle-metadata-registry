@@ -329,20 +329,6 @@ class ObjectClassView(ConceptRenderView):
         ]
         return model.objects.prefetch_related(*prefetch_objects)
 
-    def get_context_data(self, *args, **kwargs):
-        oc = self.get_item()
-        dec_qs = MDR.DataElementConcept.objects.filter(objectClass=oc)
-        dec_count = dec_qs.all().visible(self.request.user).count()
-
-        ctx = super().get_context_data(*args, **kwargs)
-        dec_qs = dec_qs.filter(statuses__state=MDR.STATES.standard).order_by("name")
-
-        decs = list(dec_qs[:51])
-        ctx['data_element_concepts'] = decs
-        ctx['total_data_element_concept_count'] = dec_count
-        ctx['excess_data_element_concepts'] = (len(decs) > 50)
-        return ctx
-
 
 class DataElementView(ConceptRenderView):
 

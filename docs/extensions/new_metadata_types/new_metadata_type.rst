@@ -34,10 +34,8 @@ such as a ``ForeignKey`` or ``ManyToManyField``, like so:
 This code, extends our Question model from the previous example and adds an optional
 link to the ISO 11179 Data Element model managed by Aristotle-MDR and even adds a new property
 on to Data Elements, so that ``myDataElement.questions`` would return of all Questions
-that are used to collect information for that Data Element. Its also possible to
-:doc:`include content from objects across relations on other pages </extensions/including_extra_content>`
-without having to alter the templates of other content types. For example, this would allow
-pertinant information about questions to appear on data elements, and vice versa.
+that are used to collect information for that Data Element.
+
 
 Customising the edit page for a new type
 ----------------------------------------
