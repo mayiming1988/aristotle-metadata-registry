@@ -129,10 +129,9 @@ class BaseSerializer(serializers.ModelSerializer):
 class ConceptSerializerFactory():
     """ Generalized serializer factory to dynamically set form fields for simpler concepts """
     FIELD_SUBSERIALIZER_MAPPING = {
-        'valueDomain': ValueDomainSerializer(),
-        'dataElementConcept': DataElementConceptSerializer(),
         'permissiblevalue_set': PermissibleValueSerializer(many=True),
-        'supplementaryvalue_set': SupplementaryValueSerializer(many=True)}
+        'supplementaryvalue_set': SupplementaryValueSerializer(many=True)
+    }
 
     if 'aristotle_dse' in settings.INSTALLED_APPS:
         # Add extra serializers if DSE is installed
@@ -150,7 +149,8 @@ class ConceptSerializerFactory():
            Returns a tuple of fields"""
         fields = []
         for field in model_class._meta.get_fields():
-            if not field.is_relation:
+            # If data field or foreign key field
+            if not field.is_relation or field.many_to_one:
                 if not field.name.startswith('_'):
                     # Don't serialize internal fields
                     fields.append(field.name)
@@ -160,19 +160,19 @@ class ConceptSerializerFactory():
     def _get_relation_fields(self, model_class):
         """ Internal helper function to get related fields
             Returns a tuple of fields"""
-        whitelisted_fields = ['dssdeinclusion_set',
-                              'dssclusterinclusion_set',
-                              'parent_dss',
-                              'indicatornumeratordefinition_set',
-                              'indicatordenominatordefinition_set',
-                              'indicatordisaggregationdefinition_set',
-                              'statistical_unit',
-                              'dssgrouping_set',
-                              'groups',  # Related name for DSS Groupings
-                              'valueDomain',
-                              'permissiblevalue_set',
-                              'supplementaryvalue_set'
-                              'dataElementConcept']
+        whitelisted_fields = [
+            'dssdeinclusion_set',
+            'dssclusterinclusion_set',
+            'parent_dss',
+            'indicatornumeratordefinition_set',
+            'indicatordenominatordefinition_set',
+            'indicatordisaggregationdefinition_set',
+            'statistical_unit',
+            'dssgrouping_set',
+            'groups',  # Related name for DSS Groupings
+            'permissiblevalue_set',
+            'supplementaryvalue_set'
+        ]
 
         related_fields = []
         for field in model_class._meta.get_fields():
