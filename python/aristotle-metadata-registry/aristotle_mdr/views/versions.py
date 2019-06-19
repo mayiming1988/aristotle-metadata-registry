@@ -39,36 +39,35 @@ class VersionsMixin:
         authenticated_user = not self.request.user.is_anonymous()
 
         if self.request.user.is_superuser:
+            # Superusers can see everything
             return True
 
         if metadata_item.stewardship_organisation is None \
                 and metadata_item.workgroup is None and metadata_item.submitter_id == self.request.user.id:
+            # If you submitted the item and it has not been passed onto a workgroup or stewardship organisation
             return True
 
         if version_permission is None:
             # Default to applying workgroup permissions
-            if not in_workgroup:
-                return False
+            if in_workgroup:
+                return True
         else:
             visibility = int(version_permission.visibility)
 
             if visibility == VISIBILITY_PERMISSION_CHOICES.workgroup:
                 # Apply workgroup permissions
-                if not in_workgroup:
-                    return False
-                else:
+                if in_workgroup:
                     return True
 
             elif visibility == VISIBILITY_PERMISSION_CHOICES.auth:
                 # Exclude anonymous users
-                if not authenticated_user:
-                    return False
-                else:
+                if authenticated_user:
                     return True
-
             else:
                 # Visibility is public, don't exclude
                 return True
+
+        return False
 
     def get_versions(self, metadata_item):
         """ Get versions and apply permission checking so that only versions that the user is allowed to see are
