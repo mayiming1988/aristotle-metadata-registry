@@ -240,7 +240,6 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
 
                     saved_item.save()
 
-
         if 'results_postdata' in self.request.session:
             extra_formsets = self.get_extra_formsets(item=self.model, postdata=self.request.session['results_postdata'])
             formsets_invalid = self.validate_formsets(extra_formsets)

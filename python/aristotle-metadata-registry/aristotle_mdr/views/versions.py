@@ -315,7 +315,6 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
         # Get the context data for this complete version
         context = {}
 
-
         # Get field data
         model = self.version.content_type.model_class()
         field_data = self.get_field_data(self.version_dict, model)
@@ -496,8 +495,7 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
                 diff = DiffMatchPatch.diff_main(earlier_value, later_value)
                 DiffMatchPatch.diff_cleanupSemantic(diff)
 
-                difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
-                                      'diff': diff}
+                difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model), 'diff': diff}
 
             differences.append(difference_dict)
         return differences
