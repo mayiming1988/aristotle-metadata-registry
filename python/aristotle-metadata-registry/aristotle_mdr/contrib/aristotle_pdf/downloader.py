@@ -95,7 +95,6 @@ def render_to_pdf(template_src, context_dict,
         base_url=PDF_STATIC_PATH
     ).render()
 
-
     for i, table_of_contents_page in enumerate(table_of_contents_document.pages):
         document.pages.insert(i, table_of_contents_page)
 
