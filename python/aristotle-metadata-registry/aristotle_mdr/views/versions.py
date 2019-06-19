@@ -9,6 +9,7 @@ from django.db.models import Q
 from django.utils.dateparse import parse_datetime
 from django.urls import reverse
 from django.core.exceptions import FieldDoesNotExist
+from django.shortcuts import get_object_or_404
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils.text import pretify_camel_case
@@ -530,7 +531,7 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
     View that performs the historical comparision between two different versions of the same concept
     """
     template_name = 'aristotle_mdr/compare/compare.html'
-
+    context = {}
     hidden_diff_fields = ['modified']
 
     def get_model(self, concept):
@@ -751,10 +752,10 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
         return (json.loads(earlier_version.serialized_data), json.loads(later_version.serialized_data))
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+        self.context = super().get_context_data(**kwargs)
 
-        context['activetab'] = 'history'
-        context['hide_item_actions'] = True
+        self.context['activetab'] = 'history'
+        self.context['hide_item_actions'] = True
 
         self.concept = self.get_item(self.request.user)
         self.model = self.get_model(self.concept)
@@ -763,8 +764,8 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
         version_2 = self.request.GET.get('v2')
 
         if not version_1 or not version_2:
-            context['not_all_versions_selected'] = True
-            return context
+            self.context['not_all_versions_selected'] = True
+            return self.context
 
         first_version = reversion.models.Version.objects.get(pk=version_1)
         second_version = reversion.models.Version.objects.get(pk=version_2)
@@ -776,23 +777,23 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
             raise PermissionDenied
 
         # Need to pass this context to rebuild query parameters in template
-        context['version_1_id'] = version_1
-        context['version_2_id'] = version_2
+        self.context['version_1_id'] = version_1
+        self.context['version_2_id'] = version_2
 
         try:
             earlier_json, later_json = self.get_version_jsons(first_version, second_version)
         except json.JSONDecodeError:
-            context['cannot_compare'] = True
-            return context
+            self.context['cannot_compare'] = True
+            return self.context
 
         raw = self.request.GET.get('raw')
         if raw:
-            context['raw'] = True
-            context['diffs'] = self.generate_diff(earlier_json, later_json, raw=True)
+            self.context['raw'] = True
+            self.context['diffs'] = self.generate_diff(earlier_json, later_json, raw=True)
         else:
-            context['diffs'] = self.generate_diff(earlier_json, later_json)
+            self.context['diffs'] = self.generate_diff(earlier_json, later_json)
 
-        return context
+        return self.context
 
 
 class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
@@ -853,6 +854,10 @@ class CompareHTMLFieldsView(SimpleItemGet, ViewableVersionsMixin, TemplateView):
     """ A view to render two HTML fields side by side so that they can be compared visually"""
     template_name = 'aristotle_mdr/compare/rendered_field_comparision.html'
 
+    def get_versions(self, version1, version2):
+        return (get_object_or_404(reversion.models.Version, pk=version1),
+                get_object_or_404(reversion.models.Version, pk=version2))
+
     def get_object(self):
         return self.get_item(self.request.user).item  # Versions are now saved on the model rather than the concept
 
@@ -884,7 +889,13 @@ class CompareHTMLFieldsView(SimpleItemGet, ViewableVersionsMixin, TemplateView):
 
         return html_values
 
+    def apply_permission_checking(self, version_permission_1, version_permission_2):
+        if not (self.user_can_view_version(self.metadata_item, version_permission_1) and self.user_can_view_version(
+                self.metadata_item, version_permission_2)):
+            raise PermissionDenied
+
     def get_context_data(self, **kwargs):
+        self.metadata_item = self.get_item(self.request.user).item
 
         context = {'activetab': 'history',
                    'hide_item_actions': True,
@@ -897,20 +908,14 @@ class CompareHTMLFieldsView(SimpleItemGet, ViewableVersionsMixin, TemplateView):
             context['not_all_versions_selected'] = True
             return context
 
-        metadata_item = self.get_item(self.request.user).item
-
-        first_version = reversion.models.Version.objects.get(pk=version_1)
-        second_version = reversion.models.Version.objects.get(pk=version_2)
+        first_version, second_version = self.get_versions(version_1, version_2)
 
         version_permission_1 = VersionPermissions.objects.get_object_or_none(pk=version_1)
         version_permission_2 = VersionPermissions.objects.get_object_or_none(pk=version_2)
 
-        if not (self.user_can_view_version(metadata_item, version_permission_1) and self.user_can_view_version(
-                metadata_item, version_permission_2)):
-            raise PermissionDenied
+        self.apply_permission_checking(version_permission_1, version_permission_2)
 
         field_query = self.request.GET.get('field')
-
         context['html_fields'] = self.get_html_fields(first_version, second_version, field_query)
 
         return context
