@@ -59,8 +59,8 @@ def register_concept_reversions(concept_class, *args, **kwargs):
     reversion.register(concept_class, follow=follows, format='aristotle_mdr_json')
 
     follow_classes = kwargs.get('reversion', {}).get('follow_classes', [])
-    # for cls in follow_classes:
-    #     reversion.register(cls)
+    for cls in follow_classes:
+        reversion.register(cls)
 
 
 def register_concept_search_index(concept_class, *args, **kwargs):

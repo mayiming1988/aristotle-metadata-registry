@@ -9,6 +9,7 @@ from django.db.models import Q
 from django.utils.dateparse import parse_datetime
 from django.urls import reverse
 from django.core.exceptions import FieldDoesNotExist
+from django.shortcuts import get_object_or_404
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils.text import pretify_camel_case
@@ -22,7 +23,6 @@ from aristotle_mdr.utils.utils import strip_tags
 import json
 import reversion
 import diff_match_patch
-import bleach
 
 from collections import defaultdict
 from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
@@ -480,10 +480,8 @@ class ViewableVersionsMixin:
 
         if version_permission is None:
             # Default to applying workgroup permissions
-            in_workgroup = metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list
             if not in_workgroup:
                 return False
-
         else:
             visibility = int(version_permission.visibility)
 
@@ -491,30 +489,37 @@ class ViewableVersionsMixin:
                 # Apply workgroup permissions
                 if not in_workgroup:
                     return False
+                else:
+                    return True
 
             elif visibility == VISIBILITY_PERMISSION_CHOICES.auth:
                 # Exclude anonymous users
                 if not authenticated_user:
                     return False
+                else:
+                    return True
 
             else:
                 # Visibility is public, don't exclude
                 return True
 
     def get_versions(self, metadata_item):
-        """ Get versions and apply permission checking so that only versions where there is permission are shown"""
+        """ Get versions and apply permission checking so that only versions that the user is allowed to see are
+        shown"""
         versions = reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
 
         # Determine the viewing permissions of the users
         if not self.request.user.is_superuser:
             # Superusers can see everything, for performance we won't look up version permission objs
-
             version_to_permission = VersionPermissions.objects.in_bulk(versions)
 
             for version in versions:
-                version_permission = version_to_permission[version.id]
-                if not self.user_can_view_version(version_permission, metadata_item):
-                    versions = versions.exclude(pk=version)
+                if version.id in version_to_permission:
+                    version_permission = version_to_permission[version.id]
+                else:
+                    version_permission = None
+                if not self.user_can_view_version(metadata_item, version_permission):
+                    versions = versions.exclude(pk=version.pk)
 
         versions = versions.order_by('-revision__date_created')
 
@@ -526,7 +531,7 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
     View that performs the historical comparision between two different versions of the same concept
     """
     template_name = 'aristotle_mdr/compare/compare.html'
-
+    context = {}
     hidden_diff_fields = ['modified']
 
     def get_model(self, concept):
@@ -537,7 +542,14 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
         return issubclass(type(fieldobj), RichTextField)
 
     def get_model_from_foreign_key_field(self, parent_model, field):
-        return parent_model._meta.get_field(field).related_model
+        try:
+            return parent_model._meta.get_field(field).related_model
+        except FieldDoesNotExist:
+            return parent_model._meta.get_field(self.clean_field(field)).related_model
+
+    def handle_compare_failure(self):
+        self.context['cannot_compare'] = True
+        return self.context
 
     def clean_field(self, field):
         postfix = '_set'
@@ -547,24 +559,25 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
 
     def get_user_friendly_field_name(self, field):
         # If the field ends with _set we want to remove it, so we can look it up in the _meta.
-        name = self.clean_field(field)
         try:
-            name = self.model._meta.get_field(name).related_model._meta.verbose_name
+            related_model = self.model._meta.get_field(field).related_model
+
+        except FieldDoesNotExist:
+            related_model = self.model._meta.get_field(self.clean_field(field)).related_model
+
+        if hasattr(related_model._meta, 'verbose_name'):
+            name = related_model._meta.verbose_name
             if name[0].islower():
-                # If it doesn't start with a capital, we want to capitalize it
+                # If the name does not start with a capital
                 name = name.title()
-        except AttributeError:
-            name = field
+        else:
+            name = self.clean_field(field).title()
 
         return name
 
     def get_differing_fields(self, earlier_dict, later_dict):
         # Iterate across the two and find the differing fields
-        earlier_fields = earlier_dict.keys()
-        later_fields = later_dict.keys()
-
-        # Fields that are on the earlier but not the al
-
+        pass
 
     def generate_diff(self, earlier_dict, later_dict, raw=False):
         """
@@ -578,8 +591,6 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
         DiffMatchPatch = diff_match_patch.diff_match_patch()
         field_to_diff = {}
 
-        #TODO: deal with added fields
-
         for field in earlier_dict:
             # Iterate through all fields in the JSON
             if field not in self.hidden_diff_fields:
@@ -591,7 +602,6 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
                     # No point doing diffs if there is no difference
                     if isinstance(earlier_value, str) or isinstance(earlier_value, int):
                         # No special treatment required for strings and int
-
                         earlier = str(earlier_value)
                         later = str(later_value)
 
@@ -611,19 +621,27 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
                                                 'is_html': is_html_field,
                                                 'diffs': diff}
 
-                    elif isinstance(earlier_value, list):
+                    elif isinstance(earlier_value, dict):
+                        # It's a single subitem
                         subitem_model = self.get_model_from_foreign_key_field(self.model, self.clean_field(field))
-                        field_to_diff[field] = {'user_friendly_name': self.get_user_friendly_field_name(field),
-                                                'subitem': True,
-                                                'diffs': self.build_diff_of_lists(earlier_value, later_value,
-                                                                                  subitem_model, raw=raw)}
-
+                        field_to_diff[field] = {
+                            'user_friendly_name': self.get_user_friendly_field_name(field),
+                            'subitem': True,
+                            'diffs': self.build_diff_of_subitem_dict(earlier_value, later_value,
+                                                                     subitem_model, raw=raw)
+                        }
+                    elif isinstance(earlier_value, list):
+                        # It's a list of subitems
+                        subitem_model = self.get_model_from_foreign_key_field(self.model, field)
+                        field_to_diff[field] = {
+                            'user_friendly_name': self.get_user_friendly_field_name(field),
+                            'subitem': True,
+                            'diffs': self.build_diff_of_subitems(earlier_value, later_value, subitem_model, raw=raw)}
 
         return field_to_diff
 
-
-    def generate_diff_for_new_fields(self, ids, values, subitem_model, added=True, raw=False):
-
+    def generate_diff_for_added_removed_fields(self, ids, values, subitem_model, added=True, raw=False):
+        """ Generates the diff for fields that have been added/removed from a concept comparision"""
         difference_dict = {}
 
         for id in ids:
@@ -641,10 +659,40 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
                                                   'diff': [(1, value)]}
                     else:
                         difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
-                                                      'diff': [(-1, value)]}
+                                                  'diff': [(-1, value)]}
         return difference_dict
 
-    def build_diff_of_lists(self, earlier_values_list, later_values_list, subitem_model, raw=False):
+    def build_diff_of_subitem_dict(self, earlier_item, later_item, subitem_model, raw=False):
+        differences = []
+        DiffMatchPatch = diff_match_patch.diff_match_patch()
+        difference_dict = {}
+
+        for field, earlier_value in earlier_item.items():
+            if field == 'id':
+                pass
+            else:
+                later_value = later_item[field]
+                if not raw:
+                    earlier_value = strip_tags(str(earlier_value))
+                    later_value = strip_tags(str(later_value))
+
+                if earlier_value is None:
+                    # Can't perform a diff on a null value
+                    earlier_value = 'None'
+
+                if later_value is None:
+                    later_value = 'None'
+
+                diff = DiffMatchPatch.diff_main(earlier_value, later_value)
+                DiffMatchPatch.diff_cleanupSemantic(diff)
+
+                difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
+                                      'diff': diff}
+
+            differences.append(difference_dict)
+        return differences
+
+    def build_diff_of_subitems(self, earlier_values, later_values, subitem_model, raw=False):
         """
         Given a list of dictionaries containing representations of objects, iterates through and returns a list of
         difference dictionaries per field
@@ -656,22 +704,23 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
         # Blame Google for this unpythonic variable
         DiffMatchPatch = diff_match_patch.diff_match_patch()
 
-        # TODO: this could really be one function
-        both_empty = earlier_values_list == [] and later_values_list == []
+        both_empty = earlier_values == [] and later_values == []
         if not both_empty:
 
-            earlier_items = {item['id']: item for item in earlier_values_list}
-            later_items = {item['id']: item for item in later_values_list}
+            earlier_items = {item['id']: item for item in earlier_values}
+            later_items = {item['id']: item for item in later_values}
 
             # Items that are in the later items but not the earlier items have been 'added'
             added_ids = set(later_items.keys()) - set(earlier_items.keys())
             differences.append(
-                self.generate_diff_for_new_fields(added_ids, later_items, subitem_model, added=True, raw=raw))
+                self.generate_diff_for_added_removed_fields(added_ids, later_items, subitem_model, added=True,
+                                                            raw=raw))
 
             # Items that are in the earlier items but not the later items have been 'removed'
             removed_ids = set(earlier_items.keys()) - set(later_items.keys())
             differences.append(
-                self.generate_diff_for_new_fields(removed_ids, earlier_items, subitem_model,added=False, raw=raw))
+                self.generate_diff_for_added_removed_fields(removed_ids, earlier_items, subitem_model, added=False,
+                                                            raw=raw))
 
             # Items with IDs that are present in both earlier and later data have been changed,
             # so we want to perform a field-by-field dict comparision
@@ -683,24 +732,20 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
                 difference_dict = {}
 
                 for field, earlier_value in earlier_item.items():
-                    if field == 'id':
-                        pass
-                    else:
-                        later_value = later_item[field]
+                    later_value = later_item[field]
 
-                        if not raw:
-                            earlier_value = strip_tags(str(earlier_value))
-                            later_value = strip_tags(str(later_value))
+                    if not raw:
+                        earlier_value = strip_tags(str(earlier_value))
+                        later_value = strip_tags(str(later_value))
 
-                        diff = DiffMatchPatch.diff_main(earlier_value, later_value)
-                        DiffMatchPatch.diff_cleanupSemantic(diff)
+                    diff = DiffMatchPatch.diff_main(earlier_value, later_value)
+                    DiffMatchPatch.diff_cleanupSemantic(diff)
 
-                        difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
-                                                  'diff': diff}
-
+                    difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
+                                              'diff': diff}
                 differences.append(difference_dict)
 
-            return differences
+        return differences
 
     def get_version_jsons(self, first_version, second_version):
         """
@@ -719,28 +764,26 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
             later_version = second_version
             earlier_version = first_version
 
-        return (json.loads(earlier_version.serialized_data),
-                json.loads(later_version.serialized_data))
+        return (json.loads(earlier_version.serialized_data), json.loads(later_version.serialized_data))
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+        self.context = super().get_context_data(**kwargs)
 
-        context['activetab'] = 'history'
-        context['hide_item_actions'] = True
+        self.context['activetab'] = 'history'
+        self.context['hide_item_actions'] = True
 
         self.concept = self.get_item(self.request.user)
-        self.model =  self.get_model(self.concept)
+        self.model = self.get_model(self.concept)
 
         version_1 = self.request.GET.get('v1')
         version_2 = self.request.GET.get('v2')
 
         if not version_1 or not version_2:
-            context['not_all_versions_selected'] = True
-            return context
+            self.context['not_all_versions_selected'] = True
+            return self.context
 
         first_version = reversion.models.Version.objects.get(pk=version_1)
         second_version = reversion.models.Version.objects.get(pk=version_2)
-
         version_permission_1 = VersionPermissions.objects.get_object_or_none(pk=version_1)
         version_permission_2 = VersionPermissions.objects.get_object_or_none(pk=version_2)
 
@@ -749,19 +792,23 @@ class ConceptVersionCompareView(SimpleItemGet, ViewableVersionsMixin, TemplateVi
             raise PermissionDenied
 
         # Need to pass this context to rebuild query parameters in template
-        context['version_1_id'] = version_1
-        context['version_2_id'] = version_2
+        self.context['version_1_id'] = version_1
+        self.context['version_2_id'] = version_2
 
-        earlier_json, later_json = self.get_version_jsons(first_version, second_version)
+        try:
+            earlier_json, later_json = self.get_version_jsons(first_version, second_version)
+        except json.JSONDecodeError:
+            self.context['cannot_compare'] = True
+            return self.context
 
         raw = self.request.GET.get('raw')
         if raw:
-            context['raw'] = True
-            context['diffs'] = self.generate_diff(earlier_json, later_json, raw=True)
+            self.context['raw'] = True
+            self.context['diffs'] = self.generate_diff(earlier_json, later_json, raw=True)
         else:
-            context['diffs'] = self.generate_diff(earlier_json, later_json)
+            self.context['diffs'] = self.generate_diff(earlier_json, later_json)
 
-        return context
+        return self.context
 
 
 class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
@@ -783,12 +830,15 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
         version_list = []
         version_to_permission = VersionPermissions.objects.in_bulk(versions)
         for version in versions:
-            version_permission = version_to_permission[version.id]
-            if version_permission is None:
-                # Default to displaying workgroup level permissions
-                version_permission_code = 0
+            if version.id in version_to_permission:
+                version_permission = version_to_permission[version.id]
+                if version_permission is None:
+                    # Default to displaying workgroup level permissions
+                    version_permission_code = VISIBILITY_PERMISSION_CHOICES.workgroup
+                else:
+                    version_permission_code = version_permission.visibility
             else:
-                version_permission_code = version_permission.visibility
+                version_permission_code = VISIBILITY_PERMISSION_CHOICES.workgroup
 
             version_list.append({
                 'permission': int(version_permission_code),
@@ -818,6 +868,10 @@ class ConceptVersionListView(SimpleItemGet, ViewableVersionsMixin, ListView):
 class CompareHTMLFieldsView(SimpleItemGet, ViewableVersionsMixin, TemplateView):
     """ A view to render two HTML fields side by side so that they can be compared visually"""
     template_name = 'aristotle_mdr/compare/rendered_field_comparision.html'
+
+    def get_versions(self, version1, version2):
+        return (get_object_or_404(reversion.models.Version, pk=version1),
+                get_object_or_404(reversion.models.Version, pk=version2))
 
     def get_object(self):
         return self.get_item(self.request.user).item  # Versions are now saved on the model rather than the concept
@@ -850,7 +904,13 @@ class CompareHTMLFieldsView(SimpleItemGet, ViewableVersionsMixin, TemplateView):
 
         return html_values
 
+    def apply_permission_checking(self, version_permission_1, version_permission_2):
+        if not (self.user_can_view_version(self.metadata_item, version_permission_1) and self.user_can_view_version(
+                self.metadata_item, version_permission_2)):
+            raise PermissionDenied
+
     def get_context_data(self, **kwargs):
+        self.metadata_item = self.get_item(self.request.user).item
 
         context = {'activetab': 'history',
                    'hide_item_actions': True,
@@ -863,21 +923,14 @@ class CompareHTMLFieldsView(SimpleItemGet, ViewableVersionsMixin, TemplateView):
             context['not_all_versions_selected'] = True
             return context
 
-        metadata_item = self.get_item(self.request.user).item
-
-        first_version = reversion.models.Version.objects.get(pk=version_1)
-        second_version = reversion.models.Version.objects.get(pk=version_2)
+        first_version, second_version = self.get_versions(version_1, version_2)
 
         version_permission_1 = VersionPermissions.objects.get_object_or_none(pk=version_1)
         version_permission_2 = VersionPermissions.objects.get_object_or_none(pk=version_2)
 
-        if not (self.user_can_view_version(metadata_item, version_permission_1) and self.user_can_view_version(
-                metadata_item, version_permission_2)):
-            raise PermissionDenied
+        self.apply_permission_checking(version_permission_1, version_permission_2)
 
         field_query = self.request.GET.get('field')
-
         context['html_fields'] = self.get_html_fields(first_version, second_version, field_query)
 
         return context
-

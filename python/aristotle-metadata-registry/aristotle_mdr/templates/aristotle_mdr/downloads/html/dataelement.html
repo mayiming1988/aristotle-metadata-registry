@@ -10,7 +10,6 @@
     </dt>
     <dd>
         {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=item.dataElementConcept %}
-        {% if options.include_supporting %}
         <dl class="additionaldetails">
             <dt>Object Class</dt>
             <dd>
@@ -21,7 +20,6 @@
                 {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=item.dataElementConcept.property %}
             </dd>
         </dl>
-        {% endif %}
     </dd>
     <dt>Value Domain -
         {% include "aristotle_mdr/helpers/itemLink.html" with item=item.valueDomain %}
