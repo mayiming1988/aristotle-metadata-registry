@@ -13,6 +13,7 @@ from django.utils.decorators import method_decorator
 from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+from django.db import transaction
 
 from aristotle_mdr.contrib.custom_fields.models import CustomField
 from aristotle_mdr.contrib.help.models import ConceptHelp
@@ -220,10 +221,8 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
 
         return super().post(*args, **kwargs)
 
-    @reversion.create_revision()
+    @transaction.atomic()
     def done(self, form_list, **kwargs):
-        reversion.set_user(self.request.user)
-        reversion.set_comment("Added via concept wizard")
         saved_item = None
 
         for form in form_list:
@@ -231,8 +230,16 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             if saved_item is not None:
                 saved_item.submitter = self.request.user
                 saved_item.save()
-                form.save_custom_fields(saved_item)
-                form.save_m2m()
+
+                with reversion.create_revision():
+                    reversion.set_user(self.request.user)
+                    reversion.set_comment("Added via concept wizard")
+
+                    form.save_custom_fields(saved_item)
+                    form.save_m2m()
+
+                    saved_item.save()
+
 
         if 'results_postdata' in self.request.session:
             extra_formsets = self.get_extra_formsets(item=self.model, postdata=self.request.session['results_postdata'])
