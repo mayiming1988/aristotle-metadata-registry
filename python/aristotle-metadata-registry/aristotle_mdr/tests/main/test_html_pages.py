@@ -400,17 +400,19 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
         latest = reversion.models.Version.objects.get_for_object(self.item).first()
 
-        self.login_viewer()
+        self.login_editor()
         response = self.reverse_get(
             'aristotle:item_version',
             reverse_args=[latest.id],
             status_code=200
         )
 
-        names_and_refs = response.context['item']['item_data']['Names & References']
-        self.assertFalse(names_and_refs['References'].is_link)
-        self.assertTrue(names_and_refs['References'].is_html)
-        self.assertEqual(names_and_refs['References'].value, '<p>refs</p>')
+        fields = filter(lambda i: i.heading == 'References', response.context['item']['item_fields'])
+        references = next(fields)
+
+        self.assertFalse(references.is_link)
+        self.assertTrue(references.is_html)
+        self.assertEqual(str(references), '<p>refs</p>')
 
     def test_display_item_histroy_without_wg(self):
         self.item.workgroup = None
