@@ -3,55 +3,6 @@
 {% load aristotle_tags %}
 
 {% block type %}objectclass{% endblock %}
-{% block includes %}
-    <dd>
-        {% with total=item.dataelementconcept_set.count %}
-            {% if total > 10 %}
-                <a href="{{ request.path }}/related">
-            {% endif %}
-        {{ total }} Data Element Concept{{ total|pluralize }}
-        {% if total > 10 %}
-            </a>
-        {% endif %}
-        {% endwith %}
-    </dd>
-{% endblock %}
 
 {% block objSpecific %}
 {% endblock %}
-
-{% block relationships %}
-    <h3>Data Element Concepts implementing this Object Class</h3>
-    {% if excess_data_element_concepts %}
-    <div class="alert alert-info">
-        <strong>This Object Class is implemented by {{total_data_element_concept_count}}
-        items.</strong>
-        <br>
-        This list of Data Element Concepts is to large display on this page.
-            <em>Only the first 50 Data Element Concepts have been shown.</em>
-        <br>
-        <a href="{% url 'aristotle_mdr:search' %}?f=object_class%3A%3A{{item.name}}&models=aristotle_mdr.dataelementconcept">Click here to search for all data element concepts related to this Object Class</a>
-    </div>
-    {% endif %}
-    <ul>
-        {% for dec in data_element_concepts %}
-            <li>
-                {% include "aristotle_mdr/helpers/inlineDetails.html" with item=dec skip_can_view=True %}
-            </li>
-        {% endfor %}
-    </ul>
-    {% if excess_data_element_concepts %}
-    <div class="alert alert-info">
-        <strong>This Object Class is implemented by {{total_data_element_concept_count}}
-        items.</strong>
-        <br>
-        This list of Data Element Concepts is to large display on this page.
-            <em>Only the first 50 Data Element Concepts have been shown.</em>
-        <br>
-        <a href="{% url 'aristotle_mdr:search' %}?f=object_class%3A%3A{{item.name}}&models=aristotle_mdr.dataelementconcept">Click here to search for all data element concepts related to this Object Class</a>
-    </div>
-    {% endif %}
-
-
-{% endblock %}
-

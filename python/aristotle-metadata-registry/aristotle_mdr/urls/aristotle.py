@@ -79,7 +79,8 @@ urlpatterns=[
     url(r'^item/(?P<iid>\d+)/edit/?$', views.editors.EditItemView.as_view(), name='edit_item'),
     url(r'^item/(?P<iid>\d+)/clone/?$', views.editors.CloneItemView.as_view(), name='clone_item'),
     url(r'^item/(?P<iid>\d+)/history/?$', views.versions.ConceptHistoryCompareView.as_view(), name='item_history'),
-    url(r'^item/(?P<iid>\d+)/graphs/?$', views.graphs.ItemGraphView.as_view(), name='item_graphs'),
+    url(r'^item/(?P<iid>\d+)/graphs/?$', views.tools.ItemGraphView.as_view(), name='item_graphs'),
+    url(r'^item/(?P<iid>\d+)/related/(?P<relation>.+)?$', views.tools.ConceptRelatedListView.as_view(), name='item_related'),
     url(r'^item/(?P<iid>\d+)/registrationHistory/?$', views.registrationHistory, name='registrationHistory'),
     url(r'^item/(?P<iid>\d+)/child_states/?$', views.actions.CheckCascadedStates.as_view(), name='check_cascaded_states'),
 
