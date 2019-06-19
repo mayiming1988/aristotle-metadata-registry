@@ -21,92 +21,55 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class IdentifierSerializer(serializers.ModelSerializer):
+class SubSerializer(serializers.ModelSerializer):
+    """Base class for subserializers"""
     id = serializers.SerializerMethodField()
+
+    def get_id(self, item):
+        """Get pk here in case we are not using the auto id field"""
+        return item.pk
+
+
+class IdentifierSerializer(SubSerializer):
 
     class Meta:
         model = ScopedIdentifier
         fields = ['namespace', 'identifier', 'version', 'order', 'id']
 
-    def get_id(self, identifier):
-        return identifier.pk
 
-
-class CustomValuesSerializer(serializers.ModelSerializer):
-    id = serializers.SerializerMethodField()
+class CustomValuesSerializer(SubSerializer):
 
     class Meta:
         model = CustomValue
         fields = ['field', 'content', 'id']
 
-    def get_id(self, custom_value):
-        return custom_value.field.id
 
-
-class SlotsSerializer(serializers.ModelSerializer):
-    id = serializers.SerializerMethodField()
+class SlotsSerializer(SubSerializer):
 
     class Meta:
         model = Slot
         fields = ['name', 'value', 'order', 'permission', 'id']
 
-    def get_id(self, slot):
-        return slot.pk
 
-
-class OrganisationRecordsSerializer(serializers.ModelSerializer):
-    id = serializers.SerializerMethodField()
+class OrganisationRecordsSerializer(SubSerializer):
 
     class Meta:
         model = RecordRelation
         fields = ['organization_record', 'type', 'id']
 
-    def get_id(self, org_record):
-        return org_record.pk
 
-
-class ValueDomainSerializer(serializers.ModelSerializer):
-    name = serializers.SerializerMethodField()
-
-    class Meta:
-        model = ValueDomain
-        fields = ['name']
-
-    def get_name(self, value_domain):
-        return value_domain.name
-
-
-class SupplementaryValueSerializer(serializers.ModelSerializer):
-    id = serializers.SerializerMethodField()
+class SupplementaryValueSerializer(SubSerializer):
 
     class Meta:
         model = SupplementaryValue
         fields = ['value', 'meaning', 'order', 'start_date', 'end_date', 'id']
 
-    def get_id(self, supplementary_value):
-        return supplementary_value.pk
 
-
-class PermissibleValueSerializer(serializers.ModelSerializer):
-    id = serializers.SerializerMethodField()
+class PermissibleValueSerializer(SubSerializer):
 
     class Meta:
         model = PermissibleValue
         fields = ['value', 'meaning', 'order', 'start_date', 'end_date', 'id']
-
-    def get_id(self, permissible_value):
-        return permissible_value.pk
-
-
-class DataElementConceptSerializer(serializers.ModelSerializer):
-    name = serializers.SerializerMethodField()
-
-    class Meta:
-        model = DataElementConcept
-        fields = ['name']
-
-    def get_name(self, data_element_concept):
-        return data_element_concept.name
 
 
 class BaseSerializer(serializers.ModelSerializer):
@@ -129,10 +92,9 @@ class BaseSerializer(serializers.ModelSerializer):
 class ConceptSerializerFactory():
     """ Generalized serializer factory to dynamically set form fields for simpler concepts """
     FIELD_SUBSERIALIZER_MAPPING = {
-        'valueDomain': ValueDomainSerializer(),
-        'dataElementConcept': DataElementConceptSerializer(),
         'permissiblevalue_set': PermissibleValueSerializer(many=True),
-        'supplementaryvalue_set': SupplementaryValueSerializer(many=True)}
+        'supplementaryvalue_set': SupplementaryValueSerializer(many=True)
+    }
 
     if 'aristotle_dse' in settings.INSTALLED_APPS:
         # Add extra serializers if DSE is installed
@@ -150,7 +112,8 @@ class ConceptSerializerFactory():
            Returns a tuple of fields"""
         fields = []
         for field in model_class._meta.get_fields():
-            if not field.is_relation:
+            # If data field or foreign key field
+            if not field.is_relation or field.many_to_one:
                 if not field.name.startswith('_'):
                     # Don't serialize internal fields
                     fields.append(field.name)
@@ -160,19 +123,19 @@ class ConceptSerializerFactory():
     def _get_relation_fields(self, model_class):
         """ Internal helper function to get related fields
             Returns a tuple of fields"""
-        whitelisted_fields = ['dssdeinclusion_set',
-                              'dssclusterinclusion_set',
-                              'parent_dss',
-                              'indicatornumeratordefinition_set',
-                              'indicatordenominatordefinition_set',
-                              'indicatordisaggregationdefinition_set',
-                              'statistical_unit',
-                              'dssgrouping_set',
-                              'groups',  # Related name for DSS Groupings
-                              'valueDomain',
-                              'permissiblevalue_set',
-                              'supplementaryvalue_set'
-                              'dataElementConcept']
+        whitelisted_fields = [
+            'dssdeinclusion_set',
+            'dssclusterinclusion_set',
+            'parent_dss',
+            'indicatornumeratordefinition_set',
+            'indicatordenominatordefinition_set',
+            'indicatordisaggregationdefinition_set',
+            'statistical_unit',
+            'dssgrouping_set',
+            'groups',  # Related name for DSS Groupings
+            'permissiblevalue_set',
+            'supplementaryvalue_set'
+        ]
 
         related_fields = []
         for field in model_class._meta.get_fields():
