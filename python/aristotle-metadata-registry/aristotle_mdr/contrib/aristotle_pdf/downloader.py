@@ -19,7 +19,7 @@ logger.debug("Logging started for " + __name__)
 class PDFDownloader(HTMLDownloader):
     download_type = "pdf"
     file_extension = 'pdf'
-    metadata_register = '__template__'
+    metadata_register = '__all__'
     label = "PDF"
     mime_type = 'application/pdf'
     icon_class = "fa-file-pdf-o"
