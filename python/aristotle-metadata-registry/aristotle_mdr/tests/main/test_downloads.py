@@ -17,7 +17,7 @@ from unittest import skip
 
 @override_settings(
     ARISTOTLE_SETTINGS={
-        'DOWNLOADERS': ['aristotle_mdr.tests.utils.FakeDownloader'],
+        'DOWNLOAD_OPTIONS': {'DOWNLOADERS': ['aristotle_mdr.tests.utils.FakeDownloader']},
         'BULK_ACTIONS': ['aristotle_mdr.forms.bulk_actions.BulkDownloadForm']
     }
 )
@@ -289,7 +289,7 @@ class DownloderTestCase(AristotleTestUtils, TestCase):
         self.assertTrue(expected_regen_url in message.body)
 
 
-@override_settings(ARISTOTLE_SETTINGS={'DOWNLOADERS': ['aristotle_mdr.downloaders.HTMLDownloader']})
+@override_settings(ARISTOTLE_SETTINGS={'DOWNLOAD_OPTIONS': {'DOWNLOADERS': ['aristotle_mdr.downloaders.HTMLDownloader']}})
 class TestHTMLDownloader(AristotleTestUtils, TestCase):
 
     def setUp(self):
@@ -423,7 +423,7 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
         self.assertFalse('You dont have permission' in html)
 
 
-@override_settings(ARISTOTLE_SETTINGS={'DOWNLOADERS': ['aristotle_mdr.downloaders.DocxDownloader']})
+@override_settings(ARISTOTLE_SETTINGS={'DOWNLOAD_OPTIONS': 'DOWNLOADERS': ['aristotle_mdr.downloaders.DocxDownloader']}})
 class DocxDownloaderTestCase(AristotleTestUtils, TestCase):
 
     def setUp(self):

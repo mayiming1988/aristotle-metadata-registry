@@ -95,14 +95,16 @@ def render_to_pdf(template_src, context_dict,
         base_url=PDF_STATIC_PATH
     ).render()
 
-    if preamble_template:
-        title_page = weasyprint.HTML(
-            string=get_template(preamble_template).render(context_dict),
-            base_url=PDF_STATIC_PATH
-        ).render().pages[0]
-        document.pages.insert(0, title_page)
 
     for i, table_of_contents_page in enumerate(table_of_contents_document.pages):
-        document.pages.insert(i + 1, table_of_contents_page)
+        document.pages.insert(i, table_of_contents_page)
+
+    if preamble_template:
+        title_pages = weasyprint.HTML(
+            string=get_template(preamble_template).render(context_dict),
+            base_url=PDF_STATIC_PATH
+        ).render().pages
+        for i, page in enumerate(title_pages):
+            document.pages.insert(i, page)
 
     return document.write_pdf()

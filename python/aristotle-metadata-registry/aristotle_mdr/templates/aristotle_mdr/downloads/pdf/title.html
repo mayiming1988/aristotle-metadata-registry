@@ -39,6 +39,20 @@
             {% endif %}
             </div>
        </div>
+
+      <div class="copyright">
+         <table class="full-page">
+            <tr>
+               <td>
+                  <div style="white-space: pre-line">
+{{ config.DOWNLOAD_OPTIONS.COPYRIGHT_PAGE_CONTENT }}
+                  </div>
+                  {% include "aristotle_mdr/downloads/html/preamble/copyright_page_aristotle_insert.html" %}
+               </td>
+            </tr>
+         </table>
+      </div>
+      
     {% endif %}
    </body>
 </html>

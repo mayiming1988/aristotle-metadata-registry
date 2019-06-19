@@ -308,8 +308,13 @@ def fetch_aristotle_downloaders() -> List:
     imports = cache.get(settings.DOWNLOADERS_CACHE_KEY)
     if imports is None:
         installed = pandoc_installed()
-        enabled_downloaders = fetch_aristotle_settings().get('DOWNLOADERS', [])
+        downloaders = fetch_aristotle_settings().get('DOWNLOAD_OPTIONS', {}).get('DOWNLOADERS', [])
         unusable_imports = []
+        enabled_downloaders = []
+        if type(downloaders) is dict:
+            enabled_downloaders = [k for k, v in downloaders.items() if v]
+        elif type(downloaders) is list:
+            enabled_downloaders = downloaders
         for imp in enabled_downloaders:
             downloader = import_string(imp)
             if (downloader.requires_pandoc and not installed):
