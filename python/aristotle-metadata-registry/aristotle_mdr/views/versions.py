@@ -1,11 +1,8 @@
 from typing import Dict, List, Optional, Tuple, Any
-from django.apps import apps
 from django.http import Http404, HttpResponseRedirect
 from django.core.exceptions import PermissionDenied
 from django.views.generic.list import ListView
 from django.views.generic import TemplateView
-from django.contrib.contenttypes.models import ContentType
-from django.contrib import messages
 from django.db.models import Q, Model, Field
 from django.utils.dateparse import parse_datetime
 from django.urls import reverse
@@ -13,13 +10,14 @@ from django.core.exceptions import FieldDoesNotExist
 from django.shortcuts import get_object_or_404
 
 from aristotle_mdr import models as MDR
-from aristotle_mdr.utils.text import pretify_camel_case
 from aristotle_mdr.views.views import ConceptRenderView
 from aristotle_mdr.perms import user_can_view, user_can_edit
-from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
 from aristotle_mdr.views.utils import SimpleItemGet
 from aristotle_mdr.utils.utils import strip_tags
+
+from aristotle_mdr.contrib.publishing.models import VersionPermissions
+from aristotle_mdr.contrib.custom_fields.models import
 
 import json
 import reversion
@@ -135,6 +133,10 @@ class VersionsMixin:
         else:
             name = field.name
         return name.title()
+
+
+    def user_can_view_custom_field(self, custom_field: Custo) -> :
+        pass
 
 
 class VersionField:
