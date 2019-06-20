@@ -376,7 +376,7 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
     context: dict = {}
     hidden_diff_fields = ['modified']
 
-    def get_model(self, concept):
+    def get_model(self, concept) -> Model:
         return concept.item._meta.model
 
     def handle_compare_failure(self):
@@ -387,7 +387,7 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
         # Iterate across the two and find the differing fields
         pass
 
-    def generate_diff(self, earlier_dict, later_dict, raw=False) -> Dict:
+    def generate_diff(self, earlier_dict, later_dict, raw=False) -> Dict[str, List[Tuple]]:
         """
         Returns a dictionary containing a list of tuples with the differences per field.
         The first element of the tuple specifies if it is an insertion (1), a deletion (-1), or an equality (0).
@@ -470,7 +470,7 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
                                                   'diff': [(-1, value)]}
         return difference_dict
 
-    def build_diff_of_subitem_dict(self, earlier_item, later_item, subitem_model, raw=False):
+    def build_diff_of_subitem_dict(self, earlier_item, later_item, subitem_model, raw=False) -> List[Dict]:
         differences = []
         DiffMatchPatch = diff_match_patch.diff_match_patch()
         difference_dict = {}
@@ -530,7 +530,7 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
                                                             raw=raw))
 
             # Items with IDs that are present in both earlier and later data have been changed,
-            # so we want to perform a field-by-field dict comparision
+            # so we waFnt to perform a field-by-field dict comparision
             changed_ids = set(earlier_items).intersection(set(later_items))
             for id in changed_ids:
                 earlier_item = earlier_items[id]
@@ -659,7 +659,7 @@ class ConceptVersionListView(SimpleItemGet, VersionsMixin, ListView):
 
         return version_list
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> Dict:
         # Determine the editing permissions of the user
         metadata_item = self.get_object()
         USER_CAN_EDIT = user_can_edit(self.request.user, metadata_item)
@@ -679,14 +679,14 @@ class CompareHTMLFieldsView(SimpleItemGet, VersionsMixin, TemplateView):
     """ A view to render two HTML fields side by side so that they can be compared visually"""
     template_name = 'aristotle_mdr/compare/rendered_field_comparision.html'
 
-    def get_versions(self, version1, version2):
+    def get_versions(self, version1, version2) -> Tuple:
         return (get_object_or_404(reversion.models.Version, pk=version1),
                 get_object_or_404(reversion.models.Version, pk=version2))
 
     def get_object(self):
         return self.get_item(self.request.user).item  # Versions are now saved on the model rather than the concept
 
-    def get_html_fields(self, version_1, version_2, field_query):
+    def get_html_fields(self, version_1, version_2, field_query) -> List[str]:
         """Cleans and returns the content for the two versions of a HTML field """
         html_values = []
         fields = tuple(field_query.split('.'))
@@ -695,6 +695,7 @@ class CompareHTMLFieldsView(SimpleItemGet, VersionsMixin, TemplateView):
                     json.loads(version_2.serialized_data)]
         for version in versions:
             version_data = version
+            logger.debug("VERSION DATA" +  str(version_data))
             for field in fields:
                 if version_data is None:
                     pass
