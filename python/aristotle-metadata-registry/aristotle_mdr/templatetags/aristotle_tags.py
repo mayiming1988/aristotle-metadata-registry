@@ -399,9 +399,6 @@ def downloadMenu(item):
                     downloadsForItem.append(d)
                 except template.TemplateDoesNotExist:
                     pass  # This is ok.
-                except:
-                    # TODO: Should probably do something with this error
-                    pass  # Something very bad has happened in the template.
 
     dlOptionsForItem = []
     for dl_class in downloadsForItem:
