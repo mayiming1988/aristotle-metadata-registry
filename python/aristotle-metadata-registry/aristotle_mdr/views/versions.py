@@ -134,11 +134,9 @@ class VersionsMixin:
         return name.title()
 
     def remove_disallowed_custom_fields(self, serialized_data, concept) -> Dict:
-
+        """ Remove disallowed/deactivated custom fields from data structure """
         allowed_custom_fields = CustomField.objects.get_allowed_fields(concept, self.request.user)
         allowed_ids = [custom_field.id for custom_field in allowed_custom_fields]
-
-        logger.debug('ALLOWED_IDS' + str(allowed_ids))
 
         if not 'customvalue_set' in serialized_data:
             return serialized_data
