@@ -20,7 +20,7 @@ from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
 from aristotle_mdr.views.utils import SimpleItemGet
 from aristotle_mdr.utils.utils import strip_tags
-from aristotle_mdr.contrib.custom_fields.models import CustomField
+from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 
 import json
 import reversion
@@ -248,6 +248,8 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
             # Handle bad serialized data
             raise Http404
 
+        self.html_custom_field_ids = self.get_html_custom_field_ids()
+
         return super().dispatch(request, *args, **kwargs)
 
     def check_item(self, item):
@@ -265,9 +267,9 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
     def is_concept_fk(self, field):
         return field.many_to_one and issubclass(field.related_model, MDR._concept)
 
-    def get_field_data(self, version_data: Dict, model, exclude=True) -> List[Tuple[Field, Any]]:
-        """Get dict as list of tuples of field and it's data (recursively)"""
-        field_data = []
+    def get_field_data(self, version_data: Dict, model, exclude=True) -> Dict:
+        """Replace data with (field, data) tuples"""
+        field_data = {}
         for name, data in version_data.items():
             # If field name isnt excluded or we are not excluding
             if name not in self.excluded_fields or not exclude:
@@ -283,24 +285,24 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
                                 self.get_field_data(subdata, submodel, False)
                             )
                     # Add back as a list
-                    field_data.append((field, sub_field_data))
+                    field_data[name] = (field, sub_field_data)
                 else:
-                    field_data.append((field, data))
+                    field_data[name] = (field, data)
 
         return field_data
 
     def get_viewable_concepts(self, field_data: List) -> Dict[int, MDR._concept]:
         """Get all concepts linked from this version that are viewable by the user"""
         ids = []
-        for field, data in field_data:
+        for field, data in field_data.values():
             # If foreign key to concept
             if self.is_concept_fk(field):
                 ids.append(data)
 
             if type(data) == list:
                 for subdata in data:
-                    for field, subvalue in subdata:
-                        if self.is_concept_fk(field):
+                    for subfield, subvalue in subdata.values():
+                        if self.is_concept_fk(subfield):
                             ids.append(subvalue)
 
         return MDR._concept.objects.filter(id__in=ids).visible(self.request.user).in_bulk()
@@ -308,7 +310,7 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
     def get_version_fields(self, field_data, concepts: Dict[int, MDR._concept]) -> List[VersionField]:
         """Get a list of VersionField objects to render"""
         fields: List[VersionField] = []
-        for field, data in field_data:
+        for field, data in field_data.values():
             if self.is_concept_fk(field):
                 fields.append(
                     VersionLinkField(self.get_verbose_name(field), data, concepts.get(data, None))
@@ -326,8 +328,14 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
                 )
             else:
                 # If not foreign key or group
+                is_html: bool
+                if field.model == CustomValue and 'field' in field_data:
+                    is_html = field_data['field'][1] in self.html_custom_field_ids
+                else:
+                    is_html = self.is_field_obj_html(field)
+
                 fields.append(
-                    VersionField(self.get_verbose_name(field), data, self.is_field_obj_html(field))
+                    VersionField(self.get_verbose_name(field), data, is_html)
                 )
         return fields
 
