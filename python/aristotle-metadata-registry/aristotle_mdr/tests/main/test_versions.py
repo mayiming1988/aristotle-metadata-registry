@@ -1,8 +1,13 @@
-from django.test import TestCase
+import aristotle_mdr.models as mdr_models
+from aristotle_mdr.tests import utils
+from aristotle_mdr.contrib.publishing.models import VersionPermissions
+from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
 
-from aristotle_mdr.tests import utils
-import aristotle_mdr.models as MDR
-from aristotle_mdr.tests import utils
+from django.test import TestCase
+from django.utils import timezone
+
+import reversion
+from reversion.models import Version
 
 
 class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
@@ -11,7 +16,7 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
     def setUp(self):
         super().setUp()
 
-        self.item = MDR.ObjectClass.objects.create(
+        self.item = mdr_models.ObjectClass.objects.create(
             name='Test Item',
             definition='Test Item Description',
             submitter=self.editor,
@@ -43,3 +48,56 @@ class DataElementComparisionTestCase(utils.AristotleTestUtils, TestCase):
     def test_value_domain_changes_displayed(self):
         """Test that values displayed are """
         pass
+
+
+class TestViewingVersionPermissions(utils.AristotleTestUtils, TestCase):
+    """ Class to test the version permissions  """
+    def setUp(self):
+        super().setUp()
+
+        # Create a new item without version permissions
+        with reversion.revisions.create_revision():
+            self.reversion_item_without_permissions = mdr_models.ObjectClass.objects.create(
+                name="A concept without permissions",
+                definition="Concept with no permissions",
+                submitter=self.user
+            )
+            reversion.revisions.set_comment("First edit")
+
+        self.version_without_permission = Version.objects.get_for_object(
+            self.reversion_item_without_permissions).first()
+
+        # Item with workgroup version permissions
+        with reversion.revisions.create_revision():
+            self.reversion_item_with_workgroup_permission = mdr_models.ObjectClass.objects.create(
+                name="A published item",
+                definition="Concept with no permissions",
+                submitter=self.user,
+                workgroup=self.wg1
+            )
+        self.version_with_workgroup_permission = Version.objects.get_for_object(self.reversion_item_with_permission).first()
+        VersionPermissions.objects.create(version=self.version_with_workgroup_permission,
+                                          visibility=VISIBILITY_PERMISSION_CHOICES.workgroup)
+
+        # Item with authenticated user version permissions
+        with reversion.revisions.create_revision():
+            self.reversion_item_with_authenticated_user_permissions = mdr_models.ObjectClass.objects.create(
+                name='A item for authenticated users only',
+                definition="Authenticated user permission",
+                submitter=self.user,
+            )
+        self.version_with_auth_user_permission = Version.objects.get_for_object(
+            self.reversion_item_with_authenticated_user_permissions).first()
+        VersionPermissions.objects.create(version=self.version_with_auth_user_permission,
+                                          visibility=VISIBILITY_PERMISSION_CHOICES.auth)
+
+        # Item with public version permissions
+        with reversion.revisions.create_revision():
+            self.reversion_item_with_public_permissions = mdr_models.ObjectClass.objects.create(
+                name='A item for authenticated users only',
+                definition="Authenticated user permission",
+                submitter=self.user)
+        self.version_with_public_user_permission = Version.objects.get_for_object(
+            self.reversion
+        )
+        VersionPermissions.objects.create(version=self.version_with_public_user_permission)

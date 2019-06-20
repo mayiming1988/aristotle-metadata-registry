@@ -39,36 +39,35 @@ class VersionsMixin:
         authenticated_user = not self.request.user.is_anonymous()
 
         if self.request.user.is_superuser:
+            # Superusers can see everything
             return True
 
         if metadata_item.stewardship_organisation is None \
                 and metadata_item.workgroup is None and metadata_item.submitter_id == self.request.user.id:
+            # If you submitted the item and it has not been passed onto a workgroup or stewardship organisation
             return True
 
         if version_permission is None:
             # Default to applying workgroup permissions
-            if not in_workgroup:
-                return False
+            if in_workgroup:
+                return True
         else:
             visibility = int(version_permission.visibility)
 
             if visibility == VISIBILITY_PERMISSION_CHOICES.workgroup:
                 # Apply workgroup permissions
-                if not in_workgroup:
-                    return False
-                else:
+                if in_workgroup:
                     return True
 
             elif visibility == VISIBILITY_PERMISSION_CHOICES.auth:
                 # Exclude anonymous users
-                if not authenticated_user:
-                    return False
-                else:
+                if authenticated_user:
                     return True
-
             else:
                 # Visibility is public, don't exclude
                 return True
+
+        return False
 
     def get_versions(self, metadata_item):
         """ Get versions and apply permission checking so that only versions that the user is allowed to see are
@@ -99,29 +98,29 @@ class VersionsMixin:
     def is_field_obj_html(self, field: Field):
         return issubclass(type(field), RichTextField)
 
-    def get_model_from_foreign_key_field(self, parent_model, field):
+    def get_model_from_foreign_key_field(self, parent_model: Model, field):
         try:
             return parent_model._meta.get_field(field).related_model
         except FieldDoesNotExist:
             return parent_model._meta.get_field(self.clean_field(field)).related_model
 
-    def clean_field(self, field):
+    def clean_field(self, field: str):
         postfix = '_set'
         if field.endswith(postfix):
             return field[:-len(postfix)]
         return field
 
-    def get_field(self, field_name: str):
+    def get_field(self, field_name: str, model):
         try:
-            field = self.model._meta.get_field(field_name)
+            field = model._meta.get_field(field_name)
         except FieldDoesNotExist:
-            field = self.model._meta.get_field(self.clean_field(field_name))
+            field = model._meta.get_field(self.clean_field(field_name))
 
         return field
 
-    def get_user_friendly_field_name(self, field: str):
+    def get_user_friendly_field_name(self, field: str, model):
         # If the field ends with _set we want to remove it, so we can look it up in the _meta.
-        fieldobj = self.get_field(field)
+        fieldobj = self.get_field(field, model)
         try:
             name = self.get_verbose_name(fieldobj)
         except AttributeError:
@@ -190,7 +189,7 @@ class VersionLinkField(VersionField):
     group = False
     is_html = False
     perm_message = 'Linked to object you do not have permission to view'
-    subfields = []
+    subfields: List[Field] = []
 
     def __init__(self, fname: str, concept):
         self.fname = fname
@@ -287,8 +286,8 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
 
         return MDR._concept.objects.filter(id__in=ids).visible(self.request.user).in_bulk()
 
-    def get_version_fields(self, field_data, concepts: Dict[int, MDR._concept]) -> List[VersionField]:
-        fields = []
+    def get_version_fields(self, field_data, concepts: Dict[int, MDR._concept]) -> List:
+        fields: List = []
         for field, data in field_data:
             if self.is_concept_fk(field):
                 fields.append(
@@ -306,7 +305,7 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
                     VersionGroupField(self.get_verbose_name(field), sub_fields)
                 )
             else:
-                # If not fk or group
+                # If not foreign key or group
                 fields.append(
                     VersionField(self.get_verbose_name(field), data, self.is_field_obj_html(field))
                 )
@@ -314,8 +313,7 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
 
     def get_version_context_data(self) -> Dict:
         # Get the context data for this complete version
-        context = {}
-
+        context: dict = {}
 
         # Get field data
         model = self.version.content_type.model_class()
@@ -364,7 +362,6 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
             'version': self.version,
             'revision': self.version.revision,
         })
-        # context['revision'] = self.revision
         return context
 
     def get_template_names(self):
@@ -376,7 +373,7 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
     View that performs the historical comparision between two different versions of the same concept
     """
     template_name = 'aristotle_mdr/compare/compare.html'
-    context = {}
+    context: dict = {}
     hidden_diff_fields = ['modified']
 
     def get_model(self, concept):
@@ -390,7 +387,7 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
         # Iterate across the two and find the differing fields
         pass
 
-    def generate_diff(self, earlier_dict, later_dict, raw=False):
+    def generate_diff(self, earlier_dict, later_dict, raw=False) -> Dict:
         """
         Returns a dictionary containing a list of tuples with the differences per field.
         The first element of the tuple specifies if it is an insertion (1), a deletion (-1), or an equality (0).
@@ -436,7 +433,7 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
                         # It's a single subitem
                         subitem_model = self.get_model_from_foreign_key_field(self.model, self.clean_field(field))
                         field_to_diff[field] = {
-                            'user_friendly_name': self.get_user_friendly_field_name(field),
+                            'user_friendly_name': self.get_user_friendly_field_name(field, self.model),
                             'subitem': True,
                             'diffs': self.build_diff_of_subitem_dict(earlier_value, later_value,
                                                                      subitem_model, raw=raw)
@@ -445,7 +442,7 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
                         # It's a list of subitems
                         subitem_model = self.get_model_from_foreign_key_field(self.model, field)
                         field_to_diff[field] = {
-                            'user_friendly_name': self.get_user_friendly_field_name(field),
+                            'user_friendly_name': self.get_user_friendly_field_name(field, self.model),
                             'subitem': True,
                             'diffs': self.build_diff_of_subitems(earlier_value, later_value, subitem_model, raw=raw)}
 
@@ -497,13 +494,12 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
                 diff = DiffMatchPatch.diff_main(earlier_value, later_value)
                 DiffMatchPatch.diff_cleanupSemantic(diff)
 
-                difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
-                                      'diff': diff}
+                difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model), 'diff': diff}
 
             differences.append(difference_dict)
         return differences
 
-    def build_diff_of_subitems(self, earlier_values, later_values, subitem_model, raw=False):
+    def build_diff_of_subitems(self, earlier_values, later_values, subitem_model, raw=False) -> List[Dict]:
         """
         Given a list of dictionaries containing representations of objects, iterates through and returns a list of
         difference dictionaries per field
@@ -545,9 +541,12 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
                 for field, earlier_value in earlier_item.items():
                     later_value = later_item[field]
 
+                    earlier_value = str(earlier_value)
+                    later_value = str(later_value)
+
                     if not raw:
-                        earlier_value = strip_tags(str(earlier_value))
-                        later_value = strip_tags(str(later_value))
+                        earlier_value = strip_tags(earlier_value)
+                        later_value = strip_tags(later_value)
 
                     diff = DiffMatchPatch.diff_main(earlier_value, later_value)
                     DiffMatchPatch.diff_cleanupSemantic(diff)
@@ -558,7 +557,7 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
 
         return differences
 
-    def get_version_jsons(self, first_version, second_version):
+    def get_version_jsons(self, first_version, second_version) -> Tuple:
         """
         Diffing is order sensitive, so date comparision is performed to ensure that the versions are compared with
         correct chronology.
@@ -575,7 +574,7 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
             later_version = second_version
             earlier_version = first_version
 
-        return (json.loads(earlier_version.serialized_data), json.loads(later_version.serialized_data))
+        return json.loads(earlier_version.serialized_data), json.loads(later_version.serialized_data)
 
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
@@ -632,7 +631,7 @@ class ConceptVersionListView(SimpleItemGet, VersionsMixin, ListView):
     def get_object(self):
         return self.get_item(self.request.user).item  # Versions are now saved on the model rather than the concept
 
-    def get_queryset(self):
+    def get_queryset(self) -> List[Dict]:
         """Return a queryset of all the versions the user has permission to access as well as associated metadata
          involved in template rendering"""
         metadata_item = self.get_object()

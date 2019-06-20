@@ -15,7 +15,11 @@ setup_aristotle_test_environment()
 
 
 class SuperuserPermissions(TestCase):
-    # All of the below are called with None as a Superuser, by definition *must* be able to edit, view and managed everything. Since a is_superuser chcek is cheap is should be called first, so calling with None checks that there is no other database calls going on.
+    """
+    All of the below are called with None as a Superuser, by definition *must* be able to edit, view and managed everything.
+    Since a is_superuser check is cheap is should be called first, so calling with None
+    checks that there is no other database calls going on.
+    """
     def setUp(self):
         super().setUp()
         self.su=get_user_model().objects.create_superuser('super@example.com','user')
@@ -23,42 +27,58 @@ class SuperuserPermissions(TestCase):
 
     def test_user_can_alter_comment(self):
         self.assertTrue(perms.user_can_alter_comment(self.su,None))
+
     def test_user_can_alter_post(self):
         self.assertTrue(perms.user_can_alter_post(self.su,None))
+
     def test_can_view(self):
         self.assertTrue(perms.user_can_view(self.su,None))
+
     def test_is_editor(self):
         self.assertTrue(perms.user_is_editor(self.su))
+
     def test_is_registrar(self):
         self.assertTrue(perms.user_is_registrar(self.su))
+
         ra = models.RegistrationAuthority.objects.create(name="Test RA", stewardship_organisation=self.steward_org_1)
         self.assertTrue(perms.user_is_registrar(self.su,ra))
+
     def test_is_workgroup_manager(self):
         wg = models.Workgroup.objects.create(name="Test WG", stewardship_organisation=self.steward_org_1)
         self.assertTrue(perms.user_is_workgroup_manager(self.su,wg))
+
     def test_can_change_status(self):
         self.assertTrue(perms.user_can_add_status(self.su,None))
+
     def test_can_edit(self):
         self.assertTrue(perms.user_can_edit(self.su,None))
+
     def test_in_workgroup(self):
         self.assertTrue(perms.user_in_workgroup(self.su,None))
+
     def test_can_edit_registration_authority(self):
         ra = models.RegistrationAuthority.objects.create(name="Test RA", stewardship_organisation=self.steward_org_1)
         self.assertTrue(ra.can_edit(self.su))
+
 
 class UnitOfMeasureVisibility(utils.ManagedObjectVisibility,TestCase):
     def setUp(self):
         super().setUp()
         self.item = models.UnitOfMeasure.objects.create(name="Test UOM",workgroup=self.wg)
 
+
 class ObjectClassVisibility(utils.ManagedObjectVisibility,TestCase):
     def setUp(self):
         super().setUp()
         self.item = models.ObjectClass.objects.create(name="Test OC",workgroup=self.wg)
+
+
 class PropertyVisibility(utils.ManagedObjectVisibility,TestCase):
     def setUp(self):
         super().setUp()
         self.item = models.Property.objects.create(name="Test P",workgroup=self.wg)
+
+
 class ValueDomainVisibility(utils.ManagedObjectVisibility,TestCase):
     def setUp(self):
         super().setUp()
@@ -69,6 +89,8 @@ class ValueDomainVisibility(utils.ManagedObjectVisibility,TestCase):
             maximum_length=3,
             data_type=models.DataType.objects.create(name="Test DT", workgroup=self.wg)
         )
+
+
 class DataElementConceptVisibility(utils.ManagedObjectVisibility,TestCase):
     def setUp(self):
         super().setUp()
@@ -76,6 +98,8 @@ class DataElementConceptVisibility(utils.ManagedObjectVisibility,TestCase):
             name="Test DEC",
             workgroup=self.wg,
         )
+
+
 class DataElementVisibility(utils.ManagedObjectVisibility,TestCase):
     def setUp(self):
         super().setUp()
@@ -83,6 +107,8 @@ class DataElementVisibility(utils.ManagedObjectVisibility,TestCase):
             name="Test DE",
             workgroup=self.wg,
         )
+
+
 class DataTypeVisibility(utils.ManagedObjectVisibility,TestCase):
     def setUp(self):
         super().setUp()
@@ -90,6 +116,7 @@ class DataTypeVisibility(utils.ManagedObjectVisibility,TestCase):
             name="Test DT",
             workgroup=self.wg,
         )
+
 
 class WorkgroupPermissions(TestCase):
     def setUp(self):
@@ -119,6 +146,7 @@ class WorkgroupPermissions(TestCase):
         self.assertTrue(wg.has_role('steward', user))
         wg.removeRoleFromUser('steward',user)
         self.assertFalse(wg.has_role('steward', user))
+
 
 class RegistryGroupPermissions(TestCase):
     def setUp(self):
@@ -168,6 +196,7 @@ class RegistryGroupPermissions(TestCase):
         # Caching issue, refresh from DB with correct permissions
         user = get_user_model().objects.get(pk=user.pk)
         self.assertFalse(perms.user_is_registrar(user,ra))
+
 
 class UserEditTesting(TestCase):
     def test_canViewProfile(self):
@@ -230,6 +259,7 @@ class CustomConceptQuerySetTest(TestCase):
         # Assert no public items
         self.assertTrue(oc1 not in models.ValueDomain.objects.all().public())
         self.assertEqual(len(models.ValueDomain.objects.all().public()),0)
+
 
 class RegistryCascadeTest(TestCase):
     def setUp(self):
