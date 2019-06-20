@@ -22,6 +22,7 @@ from aristotle_mdr.forms.creation_wizards import (
 )
 from aristotle_mdr.tests import utils
 from aristotle_mdr.views import ConceptRenderView
+from aristotle_mdr.views.versions import VersionLinkField
 from aristotle_mdr.downloader import HTMLDownloader
 import datetime
 from unittest import mock, skip
@@ -1917,7 +1918,8 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
         fields = {f.heading: f for f in response.context['item']['item_fields']}
         self.assertTrue('Definition' in fields)
-        self.assertEqual(str(definition), old_definition)
+        dfn_field = fields['Definition']
+        self.assertEqual(str(dfn_field), old_definition)
 
     @tag('download')
     @override_settings(ARISTOTLE_SETTINGS={'DOWNLOADERS': ['aristotle_mdr.downloaders.HTMLDownloader']})
@@ -2609,7 +2611,7 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
     @tag('version')
     def test_version_display_component_permission(self):
         """Test that linked objects that are not visible to the user are not displayed"""
-        self.add_dec(None)
+        self.add_dec(wg=None)
         self.update_defn_with_versions()
 
         latest = reversion.models.Version.objects.get_for_object(self.item1).first()
@@ -2625,8 +2627,8 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
         cfield = fields['Data Element Concept']
 
         self.assertTrue(cfield.is_link)
-        self.assertEqual(cfield.id, None)
-        self.assertTrue(cfield.value.startswith('Linked to object'))
+        self.assertEqual(cfield.id, self.item1.dataElementConcept.id)
+        self.assertEqual(str(cfield), VersionLinkField.perm_message)
 
 
 class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):
