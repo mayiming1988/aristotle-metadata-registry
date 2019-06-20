@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # pipenv lock
 # pipenv graph
 # pipenv install --dev --system
