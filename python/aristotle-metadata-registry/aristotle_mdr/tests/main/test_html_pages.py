@@ -409,6 +409,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertTrue(references.is_html)
         self.assertEqual(str(references), '<p>refs</p>')
 
+    @tag('version')
     def test_version_display_custom_value_html(self):
         field = CustomField.objects.create(
             order=0,
