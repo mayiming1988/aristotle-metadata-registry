@@ -120,6 +120,7 @@ class UtilsTests(TestCase):
     def test_version_field_link(self):
         field = VersionLinkField(
             fname='Linking field',
+            id=self.oc1.concept.id,
             concept=self.oc1.concept
         )
 
@@ -131,18 +132,26 @@ class UtilsTests(TestCase):
         self.assertEqual(str(field), self.oc1.name)
 
     @tag('version')
-    def test_version_field_none_display(self):
+    def test_version_field_link_to_none(self):
         field = VersionLinkField(
             fname='Linking field',
+            id=None,
             concept=None
         )
 
-        self.assertTrue(field.is_link)
-        self.assertFalse(field.is_group)
-        self.assertFalse(field.is_html)
+        self.assertEqual(str(field), 'None')
+        self.assertEqual(field.id, None)
+
+    @tag('version')
+    def test_version_field_link_to_item_no_perm(self):
+        field = VersionLinkField(
+            fname='Linking field',
+            id=2,
+            concept=None
+        )
 
         self.assertEqual(str(field), VersionLinkField.perm_message)
-        self.assertEqual(field.id, None)
+        self.assertEqual(field.id, 2)
 
     def test_get_concept_models(self):
         cm = utils.utils.get_concept_models()
