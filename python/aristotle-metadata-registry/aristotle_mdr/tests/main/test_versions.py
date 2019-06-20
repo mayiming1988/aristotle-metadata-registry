@@ -5,6 +5,7 @@ from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_
 
 from django.test import TestCase
 from django.utils import timezone
+from django.urls import reverse
 
 import reversion
 from reversion.models import Version
@@ -60,7 +61,8 @@ class TestViewingVersionPermissions(utils.AristotleTestUtils, TestCase):
             self.reversion_item_without_permissions = mdr_models.ObjectClass.objects.create(
                 name="A concept without permissions",
                 definition="Concept with no permissions",
-                submitter=self.user
+                submitter=self.editor,
+                workgroup=self.wg1
             )
             reversion.revisions.set_comment("First edit")
 
@@ -72,10 +74,13 @@ class TestViewingVersionPermissions(utils.AristotleTestUtils, TestCase):
             self.reversion_item_with_workgroup_permission = mdr_models.ObjectClass.objects.create(
                 name="A published item",
                 definition="Concept with no permissions",
-                submitter=self.user,
+                submitter=self.editor,
                 workgroup=self.wg1
             )
-        self.version_with_workgroup_permission = Version.objects.get_for_object(self.reversion_item_with_permission).first()
+
+        self.version_with_workgroup_permission = Version.objects.get_for_object(
+            self.reversion_item_with_workgroup_permission).first()
+
         VersionPermissions.objects.create(version=self.version_with_workgroup_permission,
                                           visibility=VISIBILITY_PERMISSION_CHOICES.workgroup)
 
@@ -84,10 +89,12 @@ class TestViewingVersionPermissions(utils.AristotleTestUtils, TestCase):
             self.reversion_item_with_authenticated_user_permissions = mdr_models.ObjectClass.objects.create(
                 name='A item for authenticated users only',
                 definition="Authenticated user permission",
-                submitter=self.user,
+                submitter=self.editor,
+                workgroup=self.wg1
             )
         self.version_with_auth_user_permission = Version.objects.get_for_object(
             self.reversion_item_with_authenticated_user_permissions).first()
+
         VersionPermissions.objects.create(version=self.version_with_auth_user_permission,
                                           visibility=VISIBILITY_PERMISSION_CHOICES.auth)
 
@@ -96,8 +103,119 @@ class TestViewingVersionPermissions(utils.AristotleTestUtils, TestCase):
             self.reversion_item_with_public_permissions = mdr_models.ObjectClass.objects.create(
                 name='A item for authenticated users only',
                 definition="Authenticated user permission",
-                submitter=self.user)
+                submitter=self.editor,
+                workgroup=self.wg1)
+
         self.version_with_public_user_permission = Version.objects.get_for_object(
-            self.reversion
+            self.reversion_item_with_public_permissions
+        ).first()
+        VersionPermissions.objects.create(version=self.version_with_public_user_permission,
+                                          visibility=VISIBILITY_PERMISSION_CHOICES.public)
+
+    def test_superuser_can_view_version_with_no_permissions(self):
+        """ Test that a superuser can view a version with no permission"""
+        self.login_superuser()
+
+        response = self.client.get(reverse('aristotle:item_history', args=[self.reversion_item_without_permissions.id]))
+        self.assertEqual(len(response.context['versions']), 1)
+
+    def test_user_in_workgroup_can_view_version_with_no_permissions(self):
+        self.login_viewer()
+
+        response = self.client.get(reverse('aristotle:item_history', args=[self.reversion_item_without_permissions.id]))
+        self.assertEqual(len(response.context['versions']), 1)
+
+    def test_user_not_in_workgroup_cant_view_version_with_no_permissions(self):
+        self.login_regular_user()  # Regular user is not in workgroup
+
+        with reversion.revisions.create_revision():
+            item_without_permissions = mdr_models.ObjectClass.objects.create(
+                name="A concept without permissions",
+                definition="Concept with no permissions",
+                submitter=self.editor,
+                workgroup=self.wg1
+            )
+            reversion.revisions.set_comment("First edit")
+
+        self.so = mdr_models.StewardOrganisation.objects.create(
+            name='Best Stewardship Organisation',
         )
-        VersionPermissions.objects.create(version=self.version_with_public_user_permission)
+
+        self.ra = mdr_models.RegistrationAuthority.objects.create(
+            name='First RA',
+            definition='First',
+            stewardship_organisation=self.so
+        )
+        # Register the ObjectClass as public, but not the version
+        self.status = mdr_models.Status.objects.create(
+            concept=item_without_permissions,
+            registrationAuthority=self.ra,
+            registrationDate=timezone.now(),
+            state=self.ra.public_state
+        )
+
+        response = self.client.get(reverse('aristotle:item_history', args=[item_without_permissions.id]))
+        self.assertEqual((len(response.context['versions'])), 0)
+
+    def test_user_can_see_own_version_if_item_still_in_sandbox(self):
+        self.login_regular_user()
+
+        with reversion.revisions.create_revision():
+            self.sandbox_item = mdr_models.ObjectClass.objects.create(
+                name="A published item",
+                definition="Concept with no permissions",
+                submitter=self.regular)
+
+        response = self.client.get(reverse('aristotle:item_history', args=[self.sandbox_item.id]))
+        self.assertEqual((len(response.context['versions'])), 1 )
+
+
+class CreationOfVersionTests(utils.AristotleTestUtils, TestCase):
+    def test_newly_created_version_permissions_default_to_workgroup(self):
+        # ///Arrange
+        self.login_editor()
+
+        object_class = mdr_models.ObjectClass.objects.create(
+            name="A published item",
+            definition="I wonder what the version permission for this is",
+            submitter=self.editor
+        )
+
+        # ///Act
+
+        # Load the EditItem page
+        response = self.client.get(reverse('aristotle:edit_item', args=[object_class.id]))
+        self.assertEqual(response.status_code, 200)
+
+        # Edit the item
+        updated_item = utils.model_to_dict_with_change_time(response.context['item'])
+        updated_name = updated_item['name'] + " updated!"
+        updated_item['name'] = updated_name
+        change_comment = "I changed this because I can"
+        updated_item['change_comments'] = change_comment
+        response = self.client.post(reverse('aristotle:edit_item', args=[object_class.id]), updated_item)
+
+        # Decache
+        object_class = mdr_models.ObjectClass.objects.get(pk=object_class.pk)
+
+        #///Assert
+
+        self.assertEqual(object_class.name, updated_name)
+
+        # Load the version
+        version = Version.objects.get_for_object(
+            object_class).first()
+
+        # Load the associated VersionPermission object
+        version_permission = VersionPermissions.objects.get_object_or_none(version=version)
+
+        # Check that it defaults to 2
+        self.assertEqual(version_permission.visibility, VISIBILITY_PERMISSION_CHOICES.workgroup)
+
+
+
+
+
+
+
+
