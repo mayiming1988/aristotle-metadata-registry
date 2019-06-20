@@ -98,7 +98,7 @@ class Downloader:
 
     def create_file(self) -> File:
         """
-        Create the file object, should be overwitten by subclasses
+        Create the file object, should be overwritten by subclasses
         See below for examples
         """
         raise NotImplementedError
@@ -200,7 +200,7 @@ class Downloader:
         email.send(fail_silently=True)
 
     def download(self) -> str:
-        """Get the url for this downloads file, creating it if neccesary"""
+        """Get the url for this downloads file, creating it if necessary"""
         filepath = self.get_filepath()
 
         if settings.DOWNLOAD_CACHING:
@@ -375,13 +375,14 @@ class HTMLDownloader(Downloader):
             context = self.get_bulk_download_context()
         else:
             context = self.get_download_context()
+
         context.update({"is_bulk_download": self.bulk})
 
         return context
 
     def get_template(self) -> str:
         """
-        Gets the template contex
+        Gets the template context
         Can be used by subclasses
         """
         if self.bulk:
