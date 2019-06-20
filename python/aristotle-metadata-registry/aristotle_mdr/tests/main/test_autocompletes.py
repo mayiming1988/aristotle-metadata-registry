@@ -7,9 +7,6 @@ from aristotle_mdr.tests.utils import get_json_from_response
 
 from aristotle_mdr.tests import utils
 
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-setup_aristotle_test_environment()
 
 
 class LoggedInConceptAutocompletes(utils.LoggedInViewPages, TestCase):

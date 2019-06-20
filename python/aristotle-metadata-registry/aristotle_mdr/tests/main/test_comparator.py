@@ -8,11 +8,6 @@ from django.utils import timezone
 from reversion import revisions as reversion
 from unittest import skip
 
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-
-setup_aristotle_test_environment()
-
 
 class ComparatorTester(utils.LoggedInViewPages):
 

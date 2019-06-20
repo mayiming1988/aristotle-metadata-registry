@@ -9,10 +9,6 @@ import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
 import aristotle_mdr.tests.utils as utils
 from unittest import skip
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-
-setup_aristotle_test_environment()
 
 
 class AdminPage(utils.LoggedInViewPages,TestCase):

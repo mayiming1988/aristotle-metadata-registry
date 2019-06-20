@@ -3,9 +3,7 @@ from django.test import TestCase, Client
 
 from django.core.management import call_command
 from aristotle_mdr.contrib.help import models
-from aristotle_mdr.utils import fetch_aristotle_settings, setup_aristotle_test_environment
-
-setup_aristotle_test_environment()
+from aristotle_mdr.utils import fetch_aristotle_settings
 
 
 def setUpModule():

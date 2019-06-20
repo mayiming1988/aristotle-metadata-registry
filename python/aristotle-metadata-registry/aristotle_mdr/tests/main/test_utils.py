@@ -1,16 +1,12 @@
 from django.test import TestCase, tag
 
 from aristotle_mdr import models
-from aristotle_mdr.utils import setup_aristotle_test_environment
 from aristotle_mdr import utils
 from aristotle_mdr.views.versions import VersionField, VersionGroupField, VersionLinkField
 from aristotle_mdr.contrib.reviews.models import ReviewRequest
 
 from django.contrib.auth import get_user_model
 from django.urls import reverse
-
-
-setup_aristotle_test_environment()
 
 
 class UtilsTests(TestCase):

@@ -7,8 +7,7 @@ from aristotle_mdr.tests.main.test_html_pages import LoggedInViewConceptPages
 from aristotle_mdr.tests.main.test_admin_pages import AdminPageForConcept
 from aristotle_mdr.tests.main.test_wizards import ConceptWizardPage
 
-from aristotle_mdr.utils import setup_aristotle_test_environment, url_slugify_concept
-setup_aristotle_test_environment()
+from aristotle_mdr.utils import url_slugify_concept
 
 from aristotle_dse import models
 from unittest import skip
