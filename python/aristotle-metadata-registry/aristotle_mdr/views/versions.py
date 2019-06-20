@@ -100,7 +100,7 @@ class VersionsMixin:
         return issubclass(type(field), RichTextField)
 
     def get_html_custom_field_ids(self) -> Set[int]:
-        ids_qs = CustomField.objects.flter(type='html').values_list('id', flat=True)
+        ids_qs = CustomField.objects.filter(type='html').values_list('id', flat=True)
         return set(ids_qs)
 
     def get_model_from_foreign_key_field(self, parent_model: Model, field):
