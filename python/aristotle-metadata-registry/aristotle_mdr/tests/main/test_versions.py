@@ -122,9 +122,8 @@ class TestViewingVersionPermissions(utils.AristotleTestUtils, TestCase):
         response = self.client.get(reverse('aristotle:item_history', args=[self.reversion_item_without_permissions.id]))
         self.assertEqual(len(response.context['versions']), 1)
 
-
     def test_user_not_in_workgroup_cant_view_version_with_no_permissions(self):
-        # Make the Object Class without an associated VersionPermission object public, but not the version
+        self.login_regular_user()  # Regular user is not in workgroup
 
         self.so = mdr_models.StewardOrganisation.objects.create(
             name='Best Stewardship Organisation',
@@ -135,12 +134,18 @@ class TestViewingVersionPermissions(utils.AristotleTestUtils, TestCase):
             definition='First',
             stewardship_organisation=self.so
         )
-        # Make the public_concept public
+        # Register the ObjectClass as public, but not the version
         self.status = mdr_models.Status.objects.create(
-            concept=self.public_concept,
+            concept=self.reversion_item_without_permissions,
             registrationAuthority=self.ra,
             registrationDate=timezone.now(),
             state=self.ra.public_state
         )
+        response = self.client.get(reverse('aristotle:item_history', args=[self.reversion_item_without_permissions.id]))
+        self.assertEqual((len(response.context['versions'])), 0)
+
+
+
+
 
 

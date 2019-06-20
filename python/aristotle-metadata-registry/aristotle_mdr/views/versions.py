@@ -91,20 +91,20 @@ class VersionsMixin:
 
         return versions
 
-    def is_field_html(self, fieldname: str, model: Model):
+    def is_field_html(self, fieldname: str, model: Model) -> bool:
         fieldobj = model._meta.get_field(fieldname)
         return self.is_field_obj_html(fieldobj)
 
-    def is_field_obj_html(self, field: Field):
+    def is_field_obj_html(self, field: Field) -> bool:
         return issubclass(type(field), RichTextField)
 
-    def get_model_from_foreign_key_field(self, parent_model: Model, field):
+    def get_model_from_foreign_key_field(self, parent_model: Model, field) -> Model:
         try:
             return parent_model._meta.get_field(field).related_model
         except FieldDoesNotExist:
             return parent_model._meta.get_field(self.clean_field(field)).related_model
 
-    def clean_field(self, field: str):
+    def clean_field(self, field: str) -> str:
         postfix = '_set'
         if field.endswith(postfix):
             return field[:-len(postfix)]
