@@ -22,6 +22,7 @@ from aristotle_mdr.forms.creation_wizards import (
 )
 from aristotle_mdr.tests import utils
 from aristotle_mdr.views import ConceptRenderView
+from aristotle_mdr.views.versions import VersionLinkField
 from aristotle_mdr.downloader import HTMLDownloader
 import datetime
 from unittest import mock, skip
@@ -1917,7 +1918,8 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
         fields = {f.heading: f for f in response.context['item']['item_fields']}
         self.assertTrue('Definition' in fields)
-        self.assertEqual(str(definition), old_definition)
+        dfn_field = fields['Definition']
+        self.assertEqual(str(dfn_field), old_definition)
 
     @tag('download')
     @override_settings(ARISTOTLE_SETTINGS={'DOWNLOADERS': ['aristotle_mdr.downloaders.HTMLDownloader']})
@@ -2158,23 +2160,16 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         self.assertTrue(permval_field.is_group)
 
         first_pval = {f.heading: f for f in permval_field.subfields[0]}
+        first_sval = {f.heading: f for f in subval_field.subfields[0]}
 
         # Check supplementary values are being displayed
-        self.assertEqual(supp_values['items'][0]['Meaning'].value, 'test supplementary meaning 3')
-        self.assertEqual(supp_values['items'][0]['Meaning'].help_text, meaning_ht)
-        self.assertEqual(supp_values['items'][0]['Meaning'].is_link, False)
+        self.assertEqual(first_sval['Meaning'].value, 'test supplementary meaning 0')
+        self.assertEqual(first_sval['Meaning'].is_link, False)
 
-        # Check permissible values are being displayed
-        perm_values = item_context['weak'][1]
-        self.assertEqual(perm_values['model'], 'Permissible Value')
+        self.assertEqual(first_pval['Meaning'].value, 'test permissible meaning 0')
+        self.assertEqual(first_pval['Meaning'].is_link, False)
 
-        self.assertEqual(len(perm_values['headers']), 6)
-        self.assertFalse('Value Domain' in perm_values['headers'])
-        self.assertEqual(len(perm_values['items']), 4)
-        self.assertEqual(perm_values['items'][0]['Meaning'].value, 'test permissible meaning 3')
-        self.assertEqual(perm_values['items'][0]['Meaning'].help_text, meaning_ht)
-        self.assertEqual(perm_values['items'][0]['Meaning'].is_link, False)
-
+    @skip('Currently no serializing value meanings')
     @tag('version')
     def test_version_display_of_value_meanings(self):
 
@@ -2566,15 +2561,13 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
             status_code=200
         )
 
-        item_context = response.context['item']
-        components = item_context['item_data']['Components']
+        fields = {f.heading: f for f in response.context['item']['item_fields']}
+        self.assertTrue('Data Element Concept' in fields)
+        cfield = fields['Data Element Concept']
 
-        dec_ht = models.DataElement._meta.get_field('dataElementConcept').help_text
-
-        self.assertTrue(components['Data Element Concept'].is_link)
-        self.assertEqual(components['Data Element Concept'].obj, self.item1.dataElementConcept._concept_ptr)
-        self.assertEqual(components['Data Element Concept'].link_id, self.item1.dataElementConcept.id)
-        self.assertEqual(components['Data Element Concept'].help_text, dec_ht)
+        self.assertTrue(cfield.is_link)
+        self.assertEqual(cfield.value, self.item1.dataElementConcept.name)
+        self.assertEqual(cfield.id, self.item1.dataElementConcept.id)
 
     @tag('version')
     def test_version_display_component_from_multi_revision(self):
@@ -2600,6 +2593,28 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
 
         latest = reversion.models.Version.objects.get_for_object(self.item1).first()
 
+        self.login_editor()
+        response = self.reverse_get(
+            'aristotle:item_version',
+            reverse_args=[latest.id],
+            status_code=200
+        )
+
+        fields = {f.heading: f for f in response.context['item']['item_fields']}
+        self.assertTrue('Data Element Concept' in fields)
+        cfield = fields['Data Element Concept']
+
+        self.assertTrue(cfield.is_link)
+        self.assertEqual(cfield.value, self.item1.dataElementConcept.name)
+        self.assertEqual(cfield.id, self.item1.dataElementConcept.id)
+
+    @tag('version')
+    def test_version_display_component_permission(self):
+        """Test that linked objects that are not visible to the user are not displayed"""
+        self.add_dec(wg=None)
+        self.update_defn_with_versions()
+
+        latest = reversion.models.Version.objects.get_for_object(self.item1).first()
         self.login_viewer()
         response = self.reverse_get(
             'aristotle:item_version',
@@ -2611,23 +2626,9 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
         self.assertTrue('Data Element Concept' in fields)
         cfield = fields['Data Element Concept']
 
-    @tag('version')
-    def test_version_display_component_permission(self):
-        self.add_dec(None)
-        self.update_defn_with_versions()
-
-        latest = reversion.models.Version.objects.get_for_object(self.item1).first()
-        self.login_viewer()
-        response = self.reverse_get(
-            'aristotle:item_version',
-            reverse_args=[latest.id],
-            status_code=200
-        )
-
-        components = response.context['item']['item_data']['Components']
-
-        self.assertFalse(components['Data Element Concept'].is_link, False)
-        self.assertTrue(components['Data Element Concept'].value.startswith('Linked to object'))
+        self.assertTrue(cfield.is_link)
+        self.assertEqual(cfield.id, self.item1.dataElementConcept.id)
+        self.assertEqual(str(cfield), VersionLinkField.perm_message)
 
 
 class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):
