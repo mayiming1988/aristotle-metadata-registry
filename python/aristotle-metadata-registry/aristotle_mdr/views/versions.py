@@ -242,6 +242,8 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
     template_name = 'aristotle_mdr/concepts/managedContentVersion.html'
     # Top level fields to exclude
     excluded_fields = ['id', 'uuid', 'name', 'version', 'submitter', 'created', 'modified', 'serialized_model']
+    # Excluded fields on subserialized items
+    excluded_subfields = ['id']
 
     def dispatch(self, request, *args, **kwargs):
         self.version = self.get_version()
@@ -283,7 +285,7 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
     def is_concept_fk(self, field):
         return field.many_to_one and issubclass(field.related_model, MDR._concept)
 
-    def get_field_data(self, version_data: Dict, model, exclude=True) -> Dict:
+    def get_field_data(self, version_data: Dict, model, exclude: List[str]=[]) -> Dict:
         """Replace data with (field, data) tuples"""
         field_data = {}
         for name, data in version_data.items():
@@ -298,7 +300,7 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
                     for subdata in data:
                         if type(subdata) == dict:
                             sub_field_data.append(
-                                self.get_field_data(subdata, submodel, False)
+                                self.get_field_data(subdata, submodel, self.excluded_subfields)
                             )
                     # Add back as a list
                     field_data[name] = (field, sub_field_data)
@@ -307,7 +309,7 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
 
         return field_data
 
-    def get_viewable_concepts(self, field_data: List) -> Dict[int, MDR._concept]:
+    def get_viewable_concepts(self, field_data: Dict) -> Dict[int, MDR._concept]:
         """Get all concepts linked from this version that are viewable by the user"""
         ids = []
         for field, data in field_data.values():
@@ -360,7 +362,7 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
         context: dict = {}
 
         # Get field data
-        field_data = self.get_field_data(self.version_dict, self.model)
+        field_data = self.get_field_data(self.version_dict, self.model, self.excluded_fields)
 
         # Build item data
         viewable_concepts = self.get_viewable_concepts(field_data)
