@@ -40,6 +40,10 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
     def test_version_chronology_correct(self):
         """Test that the versions are compared with the correct chronology"""
 
+    def test_view_rendered_html_field_for_subitem(self):
+        """Test that the CompareFieldsHTMLView """
+
+
 
 class DataElementComparisionTestCase(utils.AristotleTestUtils, TestCase):
     """Class to test the comparision of Value Domain specific fields"""
