@@ -2167,6 +2167,7 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         self.assertEqual(first_pval['Meaning'].value, 'test permissible meaning 0')
         self.assertEqual(first_pval['Meaning'].is_link, False)
 
+    @skip('Currently no serializing value meanings')
     @tag('version')
     def test_version_display_of_value_meanings(self):
 
