@@ -8,6 +8,7 @@ from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 
 from aristotle_mdr import models as MDR
+from aristotle_mdr.contrib.async_signals.utils import fire
 import reversion
 
 
@@ -39,17 +40,23 @@ class GlossaryAdditionalDefinition(MDR.aristotleComponent):
         unique_together = ('glossaryItem', 'registrationAuthority',)
 
 
+# @receiver(post_save)
+# def add_concepts_to_glossary_index(sender, instance, created, **kwargs):
+#     if not issubclass(sender, MDR._concept):
+#         return
+#     if 'data-aristotle_glossary_id' in instance.definition:
+#         glossary_id = 1 # TODO: write code to find the id of the glossary item being inserted
+#         try:
+#             g = GlossaryItem.objects.get(pk=glossary_id)
+#         except GlossaryItem.DoesNotExist:
+#             pass # there is no glossary with that ID
+#             #TODO: Perhaps pass a friendly message - https://docs.djangoproject.com/en/1.7/ref/contrib/messages/
+
 @receiver(post_save)
 def add_concepts_to_glossary_index(sender, instance, created, **kwargs):
     if not issubclass(sender, MDR._concept):
         return
-    if 'data-aristotle_glossary_id' in instance.definition:
-        glossary_id = 1 # TODO: write code to find the id of the glossary item being inserted
-        try:
-            g = GlossaryItem.objects.get(pk=glossary_id)
-        except GlossaryItem.DoesNotExist:
-            pass # there is no glossary with that ID
-            #TODO: Perhaps pass a friendly message - https://docs.djangoproject.com/en/1.7/ref/contrib/messages/
+    fire("aristotle_glossary.async_signals.reindex_metadata_item", obj=post, **kwargs)
 
 
 def reindex_metadata_item(item):
