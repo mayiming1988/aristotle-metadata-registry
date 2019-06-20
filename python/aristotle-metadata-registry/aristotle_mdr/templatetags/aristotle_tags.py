@@ -14,6 +14,7 @@ Available tags and filters
 --------------------------
 """
 from django import template
+from django.template.loader import get_template
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.utils.html import mark_safe
@@ -404,21 +405,6 @@ def downloadMenu(item):
     for dl_class in downloadsForItem:
         dlOptionsForItem.append(dl_class.get_class_info())
     return {'item': item, 'download_options': dlOptionsForItem, }
-
-
-@register.simple_tag(takes_context=True)
-def extra_content(context, extension, item):
-    try:
-        from django.template.loader import get_template
-        s = item._meta.object_name
-        s = s[0].lower() + s[1:]
-
-        return get_template(extension + "/extra_content/" + s + ".html").render(
-            {'item': item, 'user': context['request'].user, 'viewable_ids': context.get('viewable_ids', [])}
-        )
-    except template.TemplateDoesNotExist:
-        # there is no extra content for this item, and thats ok.
-        return ""
 
 
 @register.simple_tag

@@ -10,18 +10,16 @@
         </dt>
         <dd>
             {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=item.dataElementConcept %}
-            {% if options.include_supporting %}
-                <dl class="additionaldetails">
-                    <dt>Object Class</dt>
-                    <dd>
-                        {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=item.dataElementConcept.objectClass %}
-                    </dd>
-                    <dt>Property</dt>
-                    <dd>
-                        {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=item.dataElementConcept.property %}
-                    </dd>
-                </dl>
-            {% endif %}
+            <dl class="additionaldetails">
+                <dt>Object Class</dt>
+                <dd>
+                    {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=item.dataElementConcept.objectClass %}
+                </dd>
+                <dt>Property</dt>
+                <dd>
+                    {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=item.dataElementConcept.property %}
+                </dd>
+            </dl>
         </dd>
         <dt>Value Domain -
             {% include "aristotle_mdr/helpers/itemLink.html" with item=item.valueDomain %}
