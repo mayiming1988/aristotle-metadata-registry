@@ -8,11 +8,6 @@ import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
 from aristotle_mdr.tests import utils
 
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-
-setup_aristotle_test_environment()
-
 
 class SuperuserPermissions(TestCase):
     """

@@ -6,7 +6,6 @@ from aristotle_mdr.tests.main.test_html_pages import LoggedInViewConceptPages
 from aristotle_mdr.tests.main.test_admin_pages import AdminPageForConcept
 
 from aristotle_mdr import models as MDR
-from aristotle_mdr.utils import setup_aristotle_test_environment
 from comet import models
 
 

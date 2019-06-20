@@ -409,6 +409,40 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertTrue(references.is_html)
         self.assertEqual(str(references), '<p>refs</p>')
 
+    @tag('version')
+    def test_version_display_custom_value_html(self):
+        field = CustomField.objects.create(
+            order=0,
+            name='Some random html',
+            type='html',
+        )
+        value = CustomValue.objects.create(
+            field=field,
+            concept=self.item.concept,
+            content='<p>This is html</p>'
+        )
+
+        self.assertGreater(self.item.concept.customvalue_set.all().count(), 0)
+
+        with reversion.create_revision():
+            self.item.save()
+        latest = reversion.models.Version.objects.get_for_object(self.item).first()
+
+        self.login_editor()
+        response = self.reverse_get(
+            'aristotle:item_version',
+            reverse_args=[latest.id],
+            status_code=200
+        )
+
+        fields = {f.heading: f for f in response.context['item']['item_fields']}
+        cv_field = fields['Custom Value']
+        self.assertGreater(len(cv_field.subfields), 0)
+
+        first_cv = {f.heading: f for f in cv_field.subfields[0]}
+        self.assertEqual(first_cv['Custom Field'].value, str(field.id))
+        self.assertTrue(first_cv['Content'].is_html)
+
     def test_display_item_histroy_without_wg(self):
         self.item.workgroup = None
         with reversion.create_revision():
@@ -697,6 +731,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         )
         self.assertEqual(response.status_code, 404)
 
+    @skip('Concept comparator temporarily disabled')
     def test_comparator_with_bad_version_data(self):
         """Test that the comparator still works with garbled version data"""
         versions = self.create_versions()

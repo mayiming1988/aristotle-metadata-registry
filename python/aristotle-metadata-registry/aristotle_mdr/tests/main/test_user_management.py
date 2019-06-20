@@ -7,10 +7,6 @@ from unittest.mock import patch, MagicMock
 
 import aristotle_mdr.tests.utils as utils
 
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-setup_aristotle_test_environment()
-
 
 class UserManagementPages(utils.LoggedInViewPages, TestCase):
     def setUp(self):

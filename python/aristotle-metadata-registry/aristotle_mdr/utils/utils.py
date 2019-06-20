@@ -328,18 +328,6 @@ def fetch_aristotle_downloaders() -> List:
         ]
 
 
-def setup_aristotle_test_environment():
-    from django.test.utils import setup_test_environment
-    try:
-        setup_test_environment()
-    except RuntimeError as err:
-        if "setup_test_environment() was already called" in err.args[0]:
-            # The environment is setup, its all good.
-            pass
-        else:
-            raise
-
-
 # Given a models label, id and name, Return a url to that objects page
 # Used to avoid a database hit just to use get_absolute_url
 def get_aristotle_url(label, obj_id, obj_name=None):

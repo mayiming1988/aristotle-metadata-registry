@@ -16,14 +16,11 @@ from aristotle_mdr.contrib.publishing import models as pub
 from aristotle_mdr.forms.search import get_permission_sqs
 from aristotle_mdr.models import ObjectClass, _concept
 from aristotle_mdr.tests import utils
-from aristotle_mdr.utils import setup_aristotle_test_environment
 from aristotle_mdr import perms
 
 from aristotle_mdr.constants import visibility_permission_choices
 
 from django.contrib.auth.models import AnonymousUser
-
-setup_aristotle_test_environment()
 
 
 class TestPublishing(utils.AristotleTestUtils, TestCase):
