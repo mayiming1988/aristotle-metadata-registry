@@ -47,7 +47,7 @@ class Downloader:
       * the string "__template__" indicating the downloader supports any metadata type with a matching download template
     """
     metadata_register: Union[Dict[str, List], str] = '__all__'
-    # Font awsome icon to use
+    # Fontawesome icon to use
     icon_class: str = 'fa-file-text-o'
     description: str = ''
     filename: str = 'download'
