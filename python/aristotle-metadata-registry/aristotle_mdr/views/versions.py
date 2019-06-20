@@ -286,8 +286,9 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
 
         return MDR._concept.objects.filter(id__in=ids).visible(self.request.user).in_bulk()
 
-    def get_version_fields(self, field_data, concepts: Dict[int, MDR._concept]) -> List:
-        fields: List = []
+    def get_version_fields(self, field_data, concepts: Dict[int, MDR._concept]) -> List[VersionField]:
+        """Get a list of VersionField objects to render"""
+        fields: List[VersionField] = []
         for field, data in field_data:
             if self.is_concept_fk(field):
                 fields.append(
