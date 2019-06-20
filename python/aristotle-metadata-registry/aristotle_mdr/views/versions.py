@@ -191,14 +191,21 @@ class VersionLinkField(VersionField):
     perm_message = 'Linked to object you do not have permission to view'
     subfields: List[Field] = []
 
-    def __init__(self, fname: str, concept):
+    def __init__(self, fname: str, id: Optional[int], concept):
         self.fname = fname
-        self.id = None
-        if concept:
-            self.value = concept.name
-            self.id = concept.id
+        self.id = id
+
+        if id is not None:
+            if concept:
+                # If field is set and we got a concept
+                self.value = concept.name
+                self.id = concept.id
+            else:
+                # If field is set but concept is None no perm
+                self.value = self.perm_message
         else:
-            self.value = self.perm_message
+            # Set value empty if id is None
+            self.value = ''
 
     @property
     def url(self):
@@ -216,13 +223,20 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
     excluded_fields = ['id', 'uuid', 'name', 'version', 'submitter', 'created', 'modified', 'serialized_model']
 
     def dispatch(self, request, *args, **kwargs):
-        # Get version and permission
         self.version = self.get_version()
+        self.model = self.version.content_type.model_class()
+
+        # Check it's a concept version
+        if not issubclass(self.model, MDR._concept):
+            raise Http404
+
+        # Get version permission
         try:
             self.version_permission = VersionPermissions.objects.get(pk=self.version.pk)
         except VersionPermissions.DoesNotExist:
             self.version_permission = None
 
+        # Deserialize version data
         try:
             self.version_dict = json.loads(self.version.serialized_data)
         except json.JSONDecodeError:
@@ -252,11 +266,11 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
         for name, data in version_data.items():
             # If field name isnt excluded or we are not excluding
             if name not in self.excluded_fields or not exclude:
-                field: Field = model._meta.get_field(self.clean_field(name))
+                field: Field = self.get_field(name, model)
                 # If field is subserialized
-                if type(data) == list:
+                if type(data) == list and field.is_relation:
                     sub_field_data = []
-                    submodel = self.get_model_from_foreign_key_field(model, self.clean_field(name))
+                    submodel = field.related_model
                     # Recursively resolve sub dicts
                     for subdata in data:
                         if type(subdata) == dict:
@@ -286,12 +300,13 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
 
         return MDR._concept.objects.filter(id__in=ids).visible(self.request.user).in_bulk()
 
-    def get_version_fields(self, field_data, concepts: Dict[int, MDR._concept]) -> List:
-        fields: List = []
+    def get_version_fields(self, field_data, concepts: Dict[int, MDR._concept]) -> List[VersionField]:
+        """Get a list of VersionField objects to render"""
+        fields: List[VersionField] = []
         for field, data in field_data:
             if self.is_concept_fk(field):
                 fields.append(
-                    VersionLinkField(self.get_verbose_name(field), concepts.get(data, None))
+                    VersionLinkField(self.get_verbose_name(field), data, concepts.get(data, None))
                 )
             elif type(data) == list:
                 # If field groups other items get their fields
@@ -316,8 +331,7 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
         context: dict = {}
 
         # Get field data
-        model = self.version.content_type.model_class()
-        field_data = self.get_field_data(self.version_dict, model)
+        field_data = self.get_field_data(self.version_dict, self.model)
 
         # Build item data
         viewable_concepts = self.get_viewable_concepts(field_data)
