@@ -2158,22 +2158,14 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         self.assertTrue(permval_field.is_group)
 
         first_pval = {f.heading: f for f in permval_field.subfields[0]}
+        first_sval = {f.heading: f for f in subval_field.subfields[0]}
 
         # Check supplementary values are being displayed
-        self.assertEqual(supp_values['items'][0]['Meaning'].value, 'test supplementary meaning 3')
-        self.assertEqual(supp_values['items'][0]['Meaning'].help_text, meaning_ht)
-        self.assertEqual(supp_values['items'][0]['Meaning'].is_link, False)
+        self.assertEqual(first_sval['Meaning'].value, 'test supplementary meaning 0')
+        self.assertEqual(first_sval['Meaning'].is_link, False)
 
-        # Check permissible values are being displayed
-        perm_values = item_context['weak'][1]
-        self.assertEqual(perm_values['model'], 'Permissible Value')
-
-        self.assertEqual(len(perm_values['headers']), 6)
-        self.assertFalse('Value Domain' in perm_values['headers'])
-        self.assertEqual(len(perm_values['items']), 4)
-        self.assertEqual(perm_values['items'][0]['Meaning'].value, 'test permissible meaning 3')
-        self.assertEqual(perm_values['items'][0]['Meaning'].help_text, meaning_ht)
-        self.assertEqual(perm_values['items'][0]['Meaning'].is_link, False)
+        self.assertEqual(first_pval['Meaning'].value, 'test permissible meaning 0')
+        self.assertEqual(first_pval['Meaning'].is_link, False)
 
     @tag('version')
     def test_version_display_of_value_meanings(self):
