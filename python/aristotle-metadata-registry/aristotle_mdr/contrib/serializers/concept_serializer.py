@@ -216,7 +216,6 @@ class Serializer(BaseDjangoSerializer):
         data = serializer.data
         data['serialized_model'] = concept._meta.label_lower
 
-        logger.debug("Data" + str(data))
         self.data = JSON.dumps(data)
 
     def getvalue(self):
