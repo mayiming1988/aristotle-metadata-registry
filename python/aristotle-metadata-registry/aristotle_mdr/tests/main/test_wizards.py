@@ -9,11 +9,6 @@ from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 import aristotle_mdr.tests.utils as utils
 from aristotle_mdr.utils import url_slugify_concept
 
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-
-setup_aristotle_test_environment()
-
 
 class HaystackReindexMixin(object):
     def tearDown(self):

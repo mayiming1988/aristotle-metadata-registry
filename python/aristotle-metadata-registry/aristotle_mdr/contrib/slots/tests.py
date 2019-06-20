@@ -5,11 +5,7 @@ from aristotle_mdr.contrib.slots import models
 from aristotle_mdr.models import ObjectClass, Workgroup
 from aristotle_mdr.tests import utils
 from aristotle_mdr.tests.main.test_bulk_actions import BulkActionsTest
-from aristotle_mdr.utils import setup_aristotle_test_environment
 from aristotle_mdr.contrib.slots.utils import concepts_with_similar_slots
-
-
-setup_aristotle_test_environment()
 
 
 class BaseSlotsTestCase(utils.AristotleTestUtils):

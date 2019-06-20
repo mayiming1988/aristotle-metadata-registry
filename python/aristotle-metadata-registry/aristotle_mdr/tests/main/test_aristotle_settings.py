@@ -4,9 +4,6 @@ from django.test import TestCase, override_settings
 from django.core.exceptions import ImproperlyConfigured
 
 from aristotle_mdr.utils import fetch_aristotle_settings, error_messages
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-setup_aristotle_test_environment()
 
 
 from unittest.mock import patch
