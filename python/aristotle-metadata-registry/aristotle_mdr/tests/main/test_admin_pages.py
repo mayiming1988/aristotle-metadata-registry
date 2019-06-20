@@ -8,6 +8,7 @@ from django.test import TestCase
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
 import aristotle_mdr.tests.utils as utils
+from unittest import skip
 from aristotle_mdr.utils import setup_aristotle_test_environment
 
 
@@ -401,6 +402,7 @@ class AdminPageForConcept(utils.AristotleTestUtils):
         self.item1 = self.itemType.objects.get(pk=self.item1.pk)
         self.assertEqual(self.item1.name,updated_name)
 
+    @skip('Admin reversion views disabled')
     def test_history_page_loads(self):
         self.login_editor()
         response = self.client.get(
@@ -409,6 +411,7 @@ class AdminPageForConcept(utils.AristotleTestUtils):
             )
         self.assertResponseStatusCodeEqual(response,200)
 
+    @skip('Admin reversion views disabled')
     def test_prior_version_page_loads(self):
         # Not going to let this issue crop up again!
         from reversion import revisions as reversion

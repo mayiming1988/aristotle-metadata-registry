@@ -3,10 +3,10 @@ from django.test import TestCase
 import aristotle_mdr.models as models
 import aristotle_mdr.tests.utils as utils
 from django.urls import reverse
-
 from django.utils import timezone
 
 from reversion import revisions as reversion
+from unittest import skip
 
 from aristotle_mdr.utils import setup_aristotle_test_environment
 
@@ -24,6 +24,7 @@ class ComparatorTester(utils.LoggedInViewPages):
         self.item1 = self.itemType.objects.create(name="Item with a name", workgroup=self.wg)
         self.item2 = self.itemType.objects.create(name="Item wit a different name", workgroup=self.wg)
 
+    @skip('Concept comparator temporarily disabled')
     def test_compare_page_loads(self):
         self.logout()
         item1 = self.item1

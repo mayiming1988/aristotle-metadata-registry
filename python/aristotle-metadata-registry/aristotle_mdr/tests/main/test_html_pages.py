@@ -730,6 +730,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         )
         self.assertEqual(response.status_code, 404)
 
+    @skip('Concept comparator temporarily disabled')
     def test_comparator_with_bad_version_data(self):
         """Test that the comparator still works with garbled version data"""
         versions = self.create_versions()
