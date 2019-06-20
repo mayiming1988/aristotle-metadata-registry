@@ -191,14 +191,21 @@ class VersionLinkField(VersionField):
     perm_message = 'Linked to object you do not have permission to view'
     subfields: List[Field] = []
 
-    def __init__(self, fname: str, concept):
+    def __init__(self, fname: str, id: Optional[int], concept):
         self.fname = fname
-        self.id = None
-        if concept:
-            self.value = concept.name
-            self.id = concept.id
+        self.id = id
+
+        if id is not None:
+            if concept:
+                # If field is set and we got a concept
+                self.value = concept.name
+                self.id = concept.id
+            else:
+                # If field is set but concept is None no perm
+                self.value = self.perm_message
         else:
-            self.value = self.perm_message
+            # Set value empty if id is None
+            self.value = ''
 
     @property
     def url(self):
@@ -292,7 +299,7 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
         for field, data in field_data:
             if self.is_concept_fk(field):
                 fields.append(
-                    VersionLinkField(self.get_verbose_name(field), concepts.get(data, None))
+                    VersionLinkField(self.get_verbose_name(field), data, concepts.get(data, None))
                 )
             elif type(data) == list:
                 # If field groups other items get their fields
