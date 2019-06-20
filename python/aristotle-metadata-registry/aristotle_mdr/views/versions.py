@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Tuple, Any, Set
 from django.apps import apps
 from django.http import Http404, HttpResponseRedirect
 from django.core.exceptions import PermissionDenied
@@ -20,6 +20,7 @@ from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
 from aristotle_mdr.views.utils import SimpleItemGet
 from aristotle_mdr.utils.utils import strip_tags
+from aristotle_mdr.contrib.custom_fields.models import CustomField
 
 import json
 import reversion
@@ -97,6 +98,10 @@ class VersionsMixin:
 
     def is_field_obj_html(self, field: Field):
         return issubclass(type(field), RichTextField)
+
+    def get_html_custom_field_ids(self) -> Set[int]:
+        ids_qs = CustomField.objects.flter(type='html').values_list('id', flat=True)
+        return set(ids_qs)
 
     def get_model_from_foreign_key_field(self, parent_model: Model, field):
         try:
