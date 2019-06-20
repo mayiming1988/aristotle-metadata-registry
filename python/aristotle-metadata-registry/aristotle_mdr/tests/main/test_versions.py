@@ -198,7 +198,7 @@ class CreationOfVersionTests(utils.AristotleTestUtils, TestCase):
         # Decache
         object_class = mdr_models.ObjectClass.objects.get(pk=object_class.pk)
 
-        # // Assert
+        #///Assert
 
         self.assertEqual(object_class.name, updated_name)
 
@@ -211,9 +211,6 @@ class CreationOfVersionTests(utils.AristotleTestUtils, TestCase):
 
         # Check that it defaults to 2
         self.assertEqual(version_permission.visibility, VISIBILITY_PERMISSION_CHOICES.workgroup)
-
-        # Check that the page display is 2
-
 
 
 

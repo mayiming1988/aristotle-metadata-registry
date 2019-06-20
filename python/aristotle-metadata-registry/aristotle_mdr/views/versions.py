@@ -17,21 +17,20 @@ from aristotle_mdr.views.utils import SimpleItemGet
 from aristotle_mdr.utils.utils import strip_tags
 
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
-from aristotle_mdr.contrib.custom_fields.models import
+from aristotle_mdr.contrib.custom_fields.models import CustomField
+
+from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
 
 import json
 import reversion
 import diff_match_patch
-
-from collections import defaultdict
-from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
 
 import logging
 logger = logging.getLogger(__name__)
 
 
 class VersionsMixin:
-    def user_can_view_version(self, metadata_item, version_permission):
+    def user_can_view_version(self, metadata_item, version_permission: VersionPermissions) -> bool:
         """ Determine whether or not user can view the specific version """
         in_workgroup = metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list
         authenticated_user = not self.request.user.is_anonymous()
@@ -67,10 +66,10 @@ class VersionsMixin:
 
         return False
 
-    def get_versions(self, metadata_item):
+    def get_versions(self, concept):
         """ Get versions and apply permission checking so that only versions that the user is allowed to see are
         shown"""
-        versions = reversion.models.Version.objects.get_for_object(metadata_item).select_related("revision__user")
+        versions = reversion.models.Version.objects.get_for_object(concept).select_related("revision__user")
 
         # Determine the viewing permissions of the users
         if not self.request.user.is_superuser:
@@ -82,7 +81,7 @@ class VersionsMixin:
                     version_permission = version_to_permission[version.id]
                 else:
                     version_permission = None
-                if not self.user_can_view_version(metadata_item, version_permission):
+                if not self.user_can_view_version(concept, version_permission):
                     versions = versions.exclude(pk=version.pk)
 
         versions = versions.order_by('-revision__date_created')
@@ -108,7 +107,7 @@ class VersionsMixin:
             return field[:-len(postfix)]
         return field
 
-    def get_field(self, field_name: str, model):
+    def get_field(self, field_name: str, model) -> Field:
         try:
             field = model._meta.get_field(field_name)
         except FieldDoesNotExist:
@@ -116,7 +115,7 @@ class VersionsMixin:
 
         return field
 
-    def get_user_friendly_field_name(self, field: str, model):
+    def get_user_friendly_field_name(self, field: str, model) -> str:
         # If the field ends with _set we want to remove it, so we can look it up in the _meta.
         fieldobj = self.get_field(field, model)
         try:
@@ -126,7 +125,7 @@ class VersionsMixin:
 
         return name
 
-    def get_verbose_name(self, field: Field):
+    def get_verbose_name(self, field: Field) -> str:
         name: str
         if field.is_relation:
             name = field.related_model._meta.verbose_name
@@ -134,9 +133,25 @@ class VersionsMixin:
             name = field.name
         return name.title()
 
+    def remove_disallowed_custom_fields(self, serialized_data, concept) -> Dict:
 
-    def user_can_view_custom_field(self, custom_field: Custo) -> :
-        pass
+        allowed_custom_fields = CustomField.objects.get_allowed_fields(concept, self.request.user)
+        allowed_ids = [custom_field.id for custom_field in allowed_custom_fields]
+
+        logger.debug('ALLOWED_IDS' + str(allowed_ids))
+
+        if not 'customvalue_set' in serialized_data:
+            return serialized_data
+
+        custom_values = serialized_data['customvalue_set']
+        serialized_custom_values = []
+        for value in custom_values:
+            if value['field'] in allowed_ids:
+                serialized_custom_values.append(value)
+
+        serialized_data['customvalue_set'] = serialized_custom_values
+
+        return serialized_data
 
 
 class VersionField:
@@ -590,7 +605,17 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
             later_version = second_version
             earlier_version = first_version
 
-        return json.loads(earlier_version.serialized_data), json.loads(later_version.serialized_data)
+        try:
+            return json.loads(earlier_version.serialized_data), json.loads(later_version.serialized_data)
+        except json.JSONDecodeError:
+            self.context['cannot_compare'] = True
+            return self.context
+
+
+    def apply_permission_checking(self, version_permission_1, version_permission_2):
+        if not self.user_can_view_version(self.concept, version_permission_1) and self.user_can_view_version(
+                self.concept, version_permission_2):
+            raise PermissionDenied
 
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
@@ -598,7 +623,7 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
         self.context['activetab'] = 'history'
         self.context['hide_item_actions'] = True
 
-        self.concept = self.get_item(self.request.user)
+        self.concept: MDR._concept = self.get_item(self.request.user).item
         self.model = self.get_model(self.concept)
 
         version_1 = self.request.GET.get('v1')
@@ -613,19 +638,16 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
         version_permission_1 = VersionPermissions.objects.get_object_or_none(pk=version_1)
         version_permission_2 = VersionPermissions.objects.get_object_or_none(pk=version_2)
 
-        if not self.user_can_view_version(self.concept, version_permission_1) and self.user_can_view_version(
-                self.concept, version_permission_2):
-            raise PermissionDenied
+        self.apply_permission_checking(version_permission_1, version_permission_2)
 
         # Need to pass this context to rebuild query parameters in template
         self.context['version_1_id'] = version_1
         self.context['version_2_id'] = version_2
 
-        try:
-            earlier_json, later_json = self.get_version_jsons(first_version, second_version)
-        except json.JSONDecodeError:
-            self.context['cannot_compare'] = True
-            return self.context
+        earlier_json, later_json = self.get_version_jsons(first_version, second_version)
+
+        earlier_json = self.remove_disallowed_custom_fields(earlier_json, self.concept)
+        later_json = self.remove_disallowed_custom_fields(later_json, self.concept)
 
         raw = self.request.GET.get('raw')
         if raw:
@@ -678,10 +700,10 @@ class ConceptVersionListView(SimpleItemGet, VersionsMixin, ListView):
     def get_context_data(self, **kwargs):
         # Determine the editing permissions of the user
         metadata_item = self.get_object()
-        USER_CAN_EDIT = user_can_edit(self.request.user, metadata_item)
+        can_edit = user_can_edit(self.request.user, metadata_item)
 
         context = {'activetab': 'history',
-                   'user_can_edit': USER_CAN_EDIT,
+                   'user_can_edit': can_edit,
                    'object': self.get_object(),
                    'item': self.get_object(),
                    'versions': self.get_queryset(),
