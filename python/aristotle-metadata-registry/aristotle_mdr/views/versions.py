@@ -223,13 +223,20 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
     excluded_fields = ['id', 'uuid', 'name', 'version', 'submitter', 'created', 'modified', 'serialized_model']
 
     def dispatch(self, request, *args, **kwargs):
-        # Get version and permission
         self.version = self.get_version()
+        self.model = self.version.content_type.model_class()
+
+        # Check it's a concept version
+        if not issubclass(self.model, MDR._concept):
+            raise Http404
+
+        # Get version permission
         try:
             self.version_permission = VersionPermissions.objects.get(pk=self.version.pk)
         except VersionPermissions.DoesNotExist:
             self.version_permission = None
 
+        # Deserialize version data
         try:
             self.version_dict = json.loads(self.version.serialized_data)
         except json.JSONDecodeError:
@@ -324,8 +331,7 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
         context: dict = {}
 
         # Get field data
-        model = self.version.content_type.model_class()
-        field_data = self.get_field_data(self.version_dict, model)
+        field_data = self.get_field_data(self.version_dict, self.model)
 
         # Build item data
         viewable_concepts = self.get_viewable_concepts(field_data)
