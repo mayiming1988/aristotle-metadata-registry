@@ -252,11 +252,11 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
         for name, data in version_data.items():
             # If field name isnt excluded or we are not excluding
             if name not in self.excluded_fields or not exclude:
-                field: Field = model._meta.get_field(self.clean_field(name))
+                field: Field = self.get_field(name, model)
                 # If field is subserialized
-                if type(data) == list:
+                if type(data) == list and field.is_relation:
                     sub_field_data = []
-                    submodel = self.get_model_from_foreign_key_field(model, self.clean_field(name))
+                    submodel = field.related_model
                     # Recursively resolve sub dicts
                     for subdata in data:
                         if type(subdata) == dict:
