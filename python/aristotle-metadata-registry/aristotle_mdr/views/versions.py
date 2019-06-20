@@ -541,9 +541,12 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
                 for field, earlier_value in earlier_item.items():
                     later_value = later_item[field]
 
+                    earlier_value = str(earlier_value)
+                    later_value = str(later_value)
+
                     if not raw:
-                        earlier_value = strip_tags(str(earlier_value))
-                        later_value = strip_tags(str(later_value))
+                        earlier_value = strip_tags(earlier_value)
+                        later_value = strip_tags(later_value)
 
                     diff = DiffMatchPatch.diff_main(earlier_value, later_value)
                     DiffMatchPatch.diff_cleanupSemantic(diff)
