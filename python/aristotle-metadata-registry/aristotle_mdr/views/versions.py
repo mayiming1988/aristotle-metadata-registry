@@ -401,7 +401,7 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
         # Iterate across the two and find the differing fields
         pass
 
-    def generate_diff(self, earlier_dict, later_dict, raw=False) -> Dict[str, List[Tuple]]:
+    def generate_diff(self, earlier_dict, later_dict, raw=False):
         """
         Returns a dictionary containing a list of tuples with the differences per field.
         The first element of the tuple specifies if it is an insertion (1), a deletion (-1), or an equality (0).
@@ -673,7 +673,7 @@ class ConceptVersionListView(SimpleItemGet, VersionsMixin, ListView):
 
         return version_list
 
-    def get_context_data(self, **kwargs) -> Dict:
+    def get_context_data(self, **kwargs):
         # Determine the editing permissions of the user
         metadata_item = self.get_object()
         USER_CAN_EDIT = user_can_edit(self.request.user, metadata_item)
@@ -693,7 +693,7 @@ class CompareHTMLFieldsView(SimpleItemGet, VersionsMixin, TemplateView):
     """ A view to render two HTML fields side by side so that they can be compared visually"""
     template_name = 'aristotle_mdr/compare/rendered_field_comparision.html'
 
-    def get_versions(self, version1, version2) -> Tuple:
+    def get_version_json(self, version1, version2) -> Tuple:
         return (get_object_or_404(reversion.models.Version, pk=version1),
                 get_object_or_404(reversion.models.Version, pk=version2))
 
@@ -709,7 +709,6 @@ class CompareHTMLFieldsView(SimpleItemGet, VersionsMixin, TemplateView):
                     json.loads(version_2.serialized_data)]
         for version in versions:
             version_data = version
-            logger.debug("VERSION DATA" +  str(version_data))
             for field in fields:
                 if version_data is None:
                     pass
@@ -748,7 +747,7 @@ class CompareHTMLFieldsView(SimpleItemGet, VersionsMixin, TemplateView):
             context['not_all_versions_selected'] = True
             return context
 
-        first_version, second_version = self.get_versions(version_1, version_2)
+        first_version, second_version = self.get_version_json(version_1, version_2)
 
         version_permission_1 = VersionPermissions.objects.get_object_or_none(pk=version_1)
         version_permission_2 = VersionPermissions.objects.get_object_or_none(pk=version_2)
