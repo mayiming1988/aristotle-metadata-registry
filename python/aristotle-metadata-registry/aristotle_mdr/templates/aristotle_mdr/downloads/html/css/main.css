@@ -1,13 +1,6 @@
 @page {
-    size: {{ page_size }};
     @bottom-right {
         content: "Page " counter(page)
                  " of " counter(pages)
     }
-
-    @bottom-center {
-        font-size: 80%;
-        content: "";
-    }
-
 }

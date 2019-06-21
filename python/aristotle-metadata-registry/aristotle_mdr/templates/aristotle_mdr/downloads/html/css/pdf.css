@@ -141,6 +141,8 @@ dd.dss_inclusions {
 }
 
 @page {
+    size: {{ page_size }};
+
     margin: 1cm;
     margin-bottom: 2cm;
     padding: 0.5cm;
