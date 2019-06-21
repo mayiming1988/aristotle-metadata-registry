@@ -91,7 +91,7 @@ def download(download_type: str, item_ids: List[int], user_id: int, options={}) 
     dl_class = get_download_class(download_type)
 
     if dl_class is not None:
-        # Instanciate downloader class
+        # Instantiate downloader class
         downloader = dl_class(item_ids, user_id, options)
         # Get file url
         return downloader.download()

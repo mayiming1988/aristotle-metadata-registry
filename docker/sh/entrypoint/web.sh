@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 set -e # Errors will cause the script to stop
 # tail -f /dev/null # If things go wrong use this to get the container up
 # pip install django-impersonate psycopg2 django-improved-user==1.0.0 dj-database-url
