@@ -18,7 +18,7 @@
     <p>Comparing differences between versions of {{ item.name }}.
         Only fields where there is a difference between saves are displayed. <br> Comparisions are performed chronologically.
         Green highlighting indicates that is has been added in the newer item, and red text indicates it has been removed
-        the newer item.
+        in the newer item.
     <div class="well well-sm">
         <em>The <i class="fa fa-columns"></i> icon indicates that a side-by-side rendered HTML comparison exists for
         this field.</em>
@@ -75,8 +75,8 @@
                                         <table class="table table-striped">
                                             <caption></caption>
                                             {% for item_diff in diff.diffs %} {# <-- List of the subitems for a particular field #}
-
                                                 <tr>
+
                                                     {% for field, differences in item_diff.items %}
                                                         {# <-- The fields and tuple differences for a field in a particular subitem #}
                                                         <tr>

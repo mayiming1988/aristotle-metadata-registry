@@ -17,13 +17,4 @@
             {% endfor %}
         </ul>
     {% endif %}
-    {% if item.index.count > 0 %}
-        <h3>Concepts that refer to this glossary item</h3>
-        <ul>
-            {% for entry in item.index.all %}
-                <li><em>{{ entry.name }}</em>:
-                </li>
-            {% endfor %}
-        </ul>
-    {% endif %}
 {% endblock %}

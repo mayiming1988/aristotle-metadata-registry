@@ -1,5 +1,5 @@
 from typing import Dict, List, Optional, Tuple, Any, Set
-from django.apps import apps
+from django.db.models.query import QuerySet
 from django.http import Http404, HttpResponseRedirect
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist
 from django.views.generic.list import ListView
@@ -70,7 +70,7 @@ class VersionsMixin:
 
         return False
 
-    def get_versions(self, concept):
+    def get_versions(self, concept) -> QuerySet:
         """ Get versions and apply permission checking so that only versions that the user is allowed to see are
         shown"""
         versions = reversion.models.Version.objects.get_for_object(concept).select_related("revision__user")
@@ -93,7 +93,10 @@ class VersionsMixin:
         return versions
 
     def is_field_html(self, fieldname: str, model: Model) -> bool:
-        fieldobj = model._meta.get_field(fieldname)
+        try:
+            fieldobj = model._meta.get_field(fieldname)
+        except FieldDoesNotExist:
+            return False
         return self.is_field_obj_html(fieldobj)
 
     def is_field_obj_html(self, field: Field) -> bool:
@@ -156,7 +159,7 @@ class VersionsMixin:
         allowed_custom_fields = CustomField.objects.get_allowed_fields(concept, user)
         allowed_ids = [custom_field.id for custom_field in allowed_custom_fields]
 
-        if not 'customvalue_set' in serialized_data:
+        if not ('customvalue_set' in serialized_data):
             return serialized_data
 
         custom_values = serialized_data['customvalue_set']
@@ -475,11 +478,20 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
                         value = strip_tags(str(value))
                     # Because DiffMatchPatch returns a list of tuples of diffs
                     # for consistent display we also return a list of tuples of diffs
+
+                    is_html = False
+                    if subitem_model is CustomValue:
+                        custom_field_id = item['field']
+                        if custom_field_id in self.get_html_custom_field_ids() and field == 'content':
+                            is_html = True
+                    else:
+                        is_html = self.is_field_html(field, subitem_model)
+
                     if added:
-                        difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
+                        difference_dict[field] = {'is_html': is_html,
                                                   'diff': [(1, value)]}
                     else:
-                        difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
+                        difference_dict[field] = {'is_html': is_html,
                                                   'diff': [(-1, value)]}
         return difference_dict
 
@@ -532,18 +544,20 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
 
             # Items that are in the later items but not the earlier items have been 'added'
             added_ids = set(later_items.keys()) - set(earlier_items.keys())
-            differences.append(
-                self.generate_diff_for_added_removed_fields(added_ids, later_items, subitem_model, added=True,
-                                                            raw=raw))
+            added_items = self.generate_diff_for_added_removed_fields(added_ids, later_items,
+                                                                      subitem_model, added=True, raw=raw)
+            if added_items:
+                differences.append(added_items)
 
             # Items that are in the earlier items but not the later items have been 'removed'
             removed_ids = set(earlier_items.keys()) - set(later_items.keys())
-            differences.append(
-                self.generate_diff_for_added_removed_fields(removed_ids, earlier_items, subitem_model, added=False,
-                                                            raw=raw))
+            removed_items = self.generate_diff_for_added_removed_fields(removed_ids, earlier_items,
+                                                                        subitem_model, added=False, raw=raw)
+            if removed_items:
+                differences.append(removed_items)
 
             # Items with IDs that are present in both earlier and later data have been changed,
-            # so we waFnt to perform a field-by-field dict comparision
+            # so we want to perform a field-by-field dict comparision
             changed_ids = set(earlier_items).intersection(set(later_items))
             for id in changed_ids:
                 earlier_item = earlier_items[id]
@@ -552,21 +566,34 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
                 difference_dict = {}
 
                 for field, earlier_value in earlier_item.items():
-                    later_value = later_item[field]
+                    if field == 'id':
+                        pass
+                    else:
+                        later_value = later_item[field]
 
-                    earlier_value = str(earlier_value)
-                    later_value = str(later_value)
+                        earlier_value = str(earlier_value)
+                        later_value = str(later_value)
 
-                    if not raw:
-                        earlier_value = strip_tags(earlier_value)
-                        later_value = strip_tags(later_value)
+                        if not raw:
+                            earlier_value = strip_tags(earlier_value)
+                            later_value = strip_tags(later_value)
 
-                    diff = DiffMatchPatch.diff_main(earlier_value, later_value)
-                    DiffMatchPatch.diff_cleanupSemantic(diff)
+                        diff = DiffMatchPatch.diff_main(earlier_value, later_value)
+                        DiffMatchPatch.diff_cleanupSemantic(diff)
 
-                    difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
-                                              'diff': diff}
-                differences.append(difference_dict)
+                        # Custom logic to determine if CustomValue field is HTML
+                        is_html = False
+                        if subitem_model is CustomValue:
+                            custom_field_id = later_item['field']
+                            if custom_field_id in self.get_html_custom_field_ids() and field == 'content':
+                                is_html = True
+                        else:
+                            is_html = self.is_field_html(field, subitem_model)
+
+                        difference_dict[field] = {'is_html': is_html,
+                                                  'diff': diff}
+                if difference_dict:
+                    differences.append(difference_dict)
 
         return differences
 
@@ -588,7 +615,7 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
             earlier_version = first_version
 
         try:
-            return json.loads(earlier_version.serialized_data), json.loads(later_version.serialized_data)
+            return (json.loads(earlier_version.serialized_data), json.loads(later_version.serialized_data))
         except json.JSONDecodeError:
             self.context['cannot_compare'] = True
             return self.context
@@ -712,6 +739,7 @@ class CompareHTMLFieldsView(SimpleItemGet, VersionsMixin, TemplateView):
 
         versions = [json.loads(version_1.serialized_data),
                     json.loads(version_2.serialized_data)]
+
         for version in versions:
             version_data = version
             for field in fields:
@@ -723,13 +751,13 @@ class CompareHTMLFieldsView(SimpleItemGet, VersionsMixin, TemplateView):
                         version_data = version_data[field]
                     else:
                         version_data = None
-
                 elif isinstance(version_data, list):
                     try:
                         version_data = version_data[int(field)]
                     except IndexError:
                         version_data = None
-            html_values.append(version_data)
+            if version_data:
+                html_values.append(version_data)
 
         return html_values
 
