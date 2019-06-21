@@ -53,7 +53,7 @@ class VersionLinkField(VersionField):
     group = False
     is_html = False
     perm_message = 'Linked to object you do not have permission to view'
-    subfields = []
+    subfields: List = []
 
     def __init__(self, fname: str, id: Optional[int], concept):
         self.fname = fname

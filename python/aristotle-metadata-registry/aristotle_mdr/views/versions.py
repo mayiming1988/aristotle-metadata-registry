@@ -32,17 +32,17 @@ logger = logging.getLogger(__name__)
 class VersionsMixin:
     """Mixin providing helper functionality to views handling version data"""
 
-    def user_can_view_version(self, metadata_item, version_permission: VersionPermissions) -> bool:
+    def user_can_view_version(self, user, metadata_item, version_permission: VersionPermissions) -> bool:
         """ Determine whether or not user can view the specific version """
-        in_workgroup = metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list
-        authenticated_user = not self.request.user.is_anonymous()
+        in_workgroup = metadata_item.workgroup and user in metadata_item.workgroup.member_list
+        authenticated_user = not user.is_anonymous()
 
-        if self.request.user.is_superuser:
+        if user.is_superuser:
             # Superusers can see everything
             return True
 
         if metadata_item.stewardship_organisation is None \
-                and metadata_item.workgroup is None and metadata_item.submitter_id == self.request.user.id:
+                and metadata_item.workgroup is None and metadata_item.submitter_id == user.id:
             # If you submitted the item and it has not been passed onto a workgroup or stewardship organisation
             return True
 
@@ -83,7 +83,7 @@ class VersionsMixin:
                     version_permission = version_to_permission[version.id]
                 else:
                     version_permission = None
-                if not self.user_can_view_version(concept, version_permission):
+                if not self.user_can_view_version(self.request.user, concept, version_permission):
                     versions = versions.exclude(pk=version.pk)
 
         versions = versions.order_by('-revision__date_created')
@@ -139,9 +139,9 @@ class VersionsMixin:
             name = field.name
         return name.title()
 
-    def remove_disallowed_custom_fields(self, serialized_data, concept) -> Dict:
+    def remove_disallowed_custom_fields(self, user, serialized_data, concept) -> Dict:
         """ Remove disallowed/deactivated custom fields from data structure """
-        allowed_custom_fields = CustomField.objects.get_allowed_fields(concept, self.request.user)
+        allowed_custom_fields = CustomField.objects.get_allowed_fields(concept, user)
         allowed_ids = [custom_field.id for custom_field in allowed_custom_fields]
 
         if not 'customvalue_set' in serialized_data:
@@ -198,7 +198,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
     def check_item(self, item, version_permission):
         """Permissions checking on version"""
         # Will 403 Forbidden when user can't view the version
-        return self.user_can_view_version(item, version_permission)
+        return self.user_can_view_version(self.request.user, item, version_permission)
 
     def get_item(self, version):
         """Get current item from version"""
@@ -210,14 +210,14 @@ class ConceptVersionView(VersionsMixin, TemplateView):
 
     def get_version_data(self, version_json: str, item: MDR._concept):
         """Deserialize and filter version data"""
-        version_dict = {}
+        version_dict: Dict = {}
         try:
             version_dict = json.loads(version_json)
         except json.JSONDecodeError:
             # Handle bad serialized data
             raise Http404
 
-        return self.remove_disallowed_custom_fields(version_dict, item)
+        return self.remove_disallowed_custom_fields(self.request.user, version_dict, item)
 
     def is_concept_fk(self, field):
         """Check whether field is a foreign key to a concept"""
@@ -560,10 +560,9 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
             self.context['cannot_compare'] = True
             return self.context
 
-
     def apply_permission_checking(self, version_permission_1, version_permission_2):
-        if not self.user_can_view_version(self.concept, version_permission_1) and self.user_can_view_version(
-                self.concept, version_permission_2):
+        if not self.user_can_view_version(self.request.user, self.concept, version_permission_1) and \
+                self.user_can_view_version(self.request.user, self.concept, version_permission_2):
             raise PermissionDenied
 
     def get_context_data(self, **kwargs):
@@ -595,8 +594,8 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
 
         earlier_json, later_json = self.get_version_jsons(first_version, second_version)
 
-        earlier_json = self.remove_disallowed_custom_fields(earlier_json, self.concept)
-        later_json = self.remove_disallowed_custom_fields(later_json, self.concept)
+        earlier_json = self.remove_disallowed_custom_fields(self.request.user, earlier_json, self.concept)
+        later_json = self.remove_disallowed_custom_fields(self.request.user, later_json, self.concept)
 
         raw = self.request.GET.get('raw')
         if raw:
@@ -702,8 +701,8 @@ class CompareHTMLFieldsView(SimpleItemGet, VersionsMixin, TemplateView):
         return html_values
 
     def apply_permission_checking(self, version_permission_1, version_permission_2):
-        if not (self.user_can_view_version(self.metadata_item, version_permission_1) and self.user_can_view_version(
-                self.metadata_item, version_permission_2)):
+        if not self.user_can_view_version(self.request.user, self.concept, version_permission_1) and \
+                self.user_can_view_version(self.request.user, self.concept, version_permission_2):
             raise PermissionDenied
 
     def get_context_data(self, **kwargs):
