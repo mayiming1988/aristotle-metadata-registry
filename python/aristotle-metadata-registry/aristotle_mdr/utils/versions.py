@@ -1,6 +1,8 @@
 from typing import List, Optional
 from django.urls import reverse
 
+from aristotle_mdr.templatetags.util_tags import bleach_filter
+
 
 class VersionField:
     """
@@ -8,6 +10,7 @@ class VersionField:
     Template to render in helpers/version_field.html
     """
 
+    empty_text: str = 'None'
     link: bool = False
     group: bool = False
 
@@ -33,7 +36,15 @@ class VersionField:
         return self.fname
 
     def __str__(self):
-        return self.value or 'None'
+        raw = self.value
+
+        if not raw:
+            raw = self.empty_text
+
+        if self.html:
+            # Automatically bleach result if html
+            return bleach_filter(raw)
+        return raw
 
 
 class VersionLinkField(VersionField):

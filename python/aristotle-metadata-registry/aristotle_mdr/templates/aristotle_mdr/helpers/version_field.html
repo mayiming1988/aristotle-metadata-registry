@@ -21,13 +21,9 @@
                   {% endcomment %}
                   <td>
                   {% if subfield.is_link %}
-                    <a href="{{ field.url }}">{{ field }}<span class="text-danger">*</span></a>
+                      <a href="{{ field.url }}">{{ field }}<span class="text-danger">*</span></a>
                   {% else %}
-                      {% if subfield.is_html %}
-                        {{ subfield|as_str|bleach }}
-                      {% else %}
-                        {{ subfield }}
-                      {% endif %}
+                      {{ subfield }}
                   {% endif %}
                   </td>
                 {% endfor %}
@@ -41,9 +37,5 @@
 {% elif field.is_link %}
     <a href="{{ field.url }}">{{ field }}<span class="text-danger">*</span></a>
 {% else %}
-    {% if field.is_html %}
-        {{ field|as_str|bleach }}
-    {% else %}
-        {{ field }}
-    {% endif %}
+    {{ field }}
 {% endif %}
