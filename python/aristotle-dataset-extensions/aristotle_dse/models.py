@@ -385,7 +385,7 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         blank=True,
         help_text=_("Any additional information on the inclusion of a data element or cluster in a dataset.")
         )
-    conditional_obligation = models.TextField(
+    conditional_obligation = RichTextField(
         blank=True,
         help_text=_("If an item is present conditionally, this field defines the conditions under which an item will appear.")
         )
