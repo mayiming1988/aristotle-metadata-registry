@@ -70,13 +70,14 @@ class VersionsMixin:
 
         return False
 
-    def get_versions(self, concept) -> QuerySet:
+    def get_versions(self, concept, user) -> QuerySet:
         """ Get versions and apply permission checking so that only versions that the user is allowed to see are
-        shown"""
+        shown """
+
         versions = reversion.models.Version.objects.get_for_object(concept).select_related("revision__user")
 
         # Determine the viewing permissions of the users
-        if not self.request.user.is_superuser:
+        if not user.is_superuser:
             # Superusers can see everything, for performance we won't look up version permission objs
             version_to_permission = VersionPermissions.objects.in_bulk(versions)
 
@@ -85,7 +86,7 @@ class VersionsMixin:
                     version_permission = version_to_permission[version.id]
                 else:
                     version_permission = None
-                if not self.user_can_view_version(self.request.user, concept, version_permission):
+                if not self.user_can_view_version(user, concept, version_permission):
                     versions = versions.exclude(pk=version.pk)
 
         versions = versions.order_by('-revision__date_created')
@@ -245,7 +246,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
             return issubclass(related, MDR._concept) or related == CustomField
         return False
 
-    def get_field_data(self, version_data: Dict, model, exclude: List[str]=[]) -> Dict:
+    def get_field_data(self, version_data: Dict, model, exclude: List[str] = []) -> Dict:
         """Replace data with (field, data) tuples"""
         field_data = {}
         for name, data in version_data.items():
@@ -597,7 +598,7 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
 
         return differences
 
-    def get_version_jsons(self, first_version, second_version) -> Tuple:
+    def get_version_jsons(self, first_version, second_version):
         """
         Diffing is order sensitive, so date comparision is performed to ensure that the versions are compared with
         correct chronology.
@@ -681,7 +682,7 @@ class ConceptVersionListView(SimpleItemGet, VersionsMixin, ListView):
         """Return a queryset of all the versions the user has permission to access as well as associated metadata
          involved in template rendering"""
         metadata_item = self.get_object()
-        versions = self.get_versions(metadata_item)
+        versions = self.get_versions(metadata_item, self.request.user)
 
         version_list = []
         version_to_permission = VersionPermissions.objects.in_bulk(versions)
@@ -762,8 +763,8 @@ class CompareHTMLFieldsView(SimpleItemGet, VersionsMixin, TemplateView):
         return html_values
 
     def apply_permission_checking(self, version_permission_1, version_permission_2):
-        if not self.user_can_view_version(self.request.user, self.concept, version_permission_1) and \
-                self.user_can_view_version(self.request.user, self.concept, version_permission_2):
+        if not self.user_can_view_version(self.request.user, self.metadata_item, version_permission_1) and \
+                self.user_can_view_version(self.request.user, self.metadata_item, version_permission_2):
             raise PermissionDenied
 
     def get_context_data(self, **kwargs):
