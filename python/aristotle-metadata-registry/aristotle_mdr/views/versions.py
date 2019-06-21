@@ -28,6 +28,9 @@ import diff_match_patch
 import logging
 logger = logging.getLogger(__name__)
 
+# Type alias
+LookupDict = Dict[str, Dict[int, Any]]
+
 
 class VersionsMixin:
     """Mixin providing helper functionality to views handling version data"""
@@ -223,6 +226,13 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         """Check whether field is a foreign key to a concept"""
         return field.many_to_one and issubclass(field.related_model, MDR._concept)
 
+    def is_link_field(self, field) -> bool:
+        """Check whether field is a foreign key to an item we want to display lookup value for"""
+        if field.many_to_one:
+            related = field.related_model
+            return issubclass(related, MDR._concept) or related == CustomField
+        return False
+
     def get_field_data(self, version_data: Dict, model, exclude: List[str]=[]) -> Dict:
         """Replace data with (field, data) tuples"""
         field_data = {}
@@ -263,20 +273,34 @@ class ConceptVersionView(VersionsMixin, TemplateView):
 
         return MDR._concept.objects.filter(id__in=ids).visible(self.request.user).in_bulk()
 
-    def get_version_fields(self, field_data, concepts: Dict[int, MDR._concept]) -> List[VersionField]:
+    def get_lookup_dict(self, field_data) -> LookupDict:
+        lookup = {}
+        lookup[MDR._concept._meta.label_lower] = self.get_viewable_concepts(field_data)
+        # Get all customFields since already filtered
+        lookup[CustomField._meta.label_lower] = CustomField.objects.in_bulk()
+        return lookup
+
+    def get_version_fields(self, field_data, items: LookupDict) -> List[VersionField]:
         """Get a list of VersionField objects to render"""
         fields: List[VersionField] = []
         for field, data in field_data.values():
-            if self.is_concept_fk(field):
+            if self.is_link_field(field):
+                # Get lookup dict for model this field links to
+                related = field.related_model
+                if issubclass(related, MDR._concept):
+                    related = MDR._concept
+                lookup: Dict = items.get(related._meta.label_lower, {})
+                # Add version link field for this data
                 fields.append(
-                    VersionLinkField(self.get_verbose_name(field), data, concepts.get(data, None))
+                    VersionLinkField(self.get_verbose_name(field), data, lookup.get(data, None))
                 )
             elif type(data) == list:
+                logger.debug('Creating group field for {} with data {}'.format(field, data))
                 # If field groups other items get their fields
-                sub_fields: List[List[Field]] = []
+                sub_fields: List[List[VersionField]] = []
                 for subdata in data:
                     sub_fields.append(
-                        self.get_version_fields(subdata, concepts)
+                        self.get_version_fields(subdata, items)
                     )
                 # Add group field
                 fields.append(
@@ -303,8 +327,8 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         field_data = self.get_field_data(self.version_dict, self.model, self.excluded_fields)
 
         # Build item data
-        viewable_concepts = self.get_viewable_concepts(field_data)
-        context['item_fields'] = self.get_version_fields(field_data, viewable_concepts)
+        items = self.get_lookup_dict(field_data)
+        context['item_fields'] = self.get_version_fields(field_data, items)
 
         # Set workgroup object
         if self.version_dict['workgroup']:

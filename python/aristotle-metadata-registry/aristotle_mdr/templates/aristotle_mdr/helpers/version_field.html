@@ -20,8 +20,8 @@
                   not needed right now since depth is only 1
                   {% endcomment %}
                   <td>
-                  {% if subfield.is_link %}
-                      <a href="{{ field.url }}">{{ field }}<span class="text-danger">*</span></a>
+                  {% if subfield.is_link and subfield.url %}
+                      <a href="{{ subfield.url }}">{{ subfield }}<span class="text-danger">*</span></a>
                   {% else %}
                       {{ subfield }}
                   {% endif %}
@@ -34,7 +34,7 @@
     {% else %}
       <p>{{ field.empty_text }}</p>
     {% endif %}
-{% elif field.is_link %}
+{% elif field.is_link and field.url %}
     <a href="{{ field.url }}">{{ field }}<span class="text-danger">*</span></a>
 {% else %}
     {{ field }}
