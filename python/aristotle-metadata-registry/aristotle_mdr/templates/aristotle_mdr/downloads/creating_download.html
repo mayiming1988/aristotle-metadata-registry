@@ -4,47 +4,47 @@
 {% block title %} Preparing download{% endblock %}
 
 {% block webpack_bundle %}
-  {% render_bundle 'download' 'js' %}
+    {% render_bundle 'download' 'js' %}
 {% endblock %}
 
 {% block webpack_css_bundle %}
-  {% render_bundle 'download' 'css' %}
+    {% render_bundle 'download' 'css' %}
 {% endblock %}
 
 {% block content %}
-<div style="height: 400px;">
-    <div id="download-wrapper" >
-        <div class="row">
-            <div class="col-md-1" id="download-nav-controls"></div>
-            <div class="col-md-3 text-right">
-              <i style="font-size: 10em;" class="fa {{ file_details.icon_class }}"></i>
-            </div>
-            <div class="col-md-8">
-                <div class="row">
-                    <div class="col-md-12">
-                        <h3>{{ file_details.title }}</h3>
-                    </div>
+    <div style="height: 400px;">
+        <div id="download-wrapper" >
+            <div class="row">
+                <div class="col-md-1" id="download-nav-controls"></div>
+                <div class="col-md-3 text-right">
+                    <i style="font-size: 10em;" class="fa {{ file_details.icon_class }}"></i>
                 </div>
-                <div class="row">
-                    <div class="col-md-12">
-                      <div id="vue-container">
-                        <download status_url="{% url 'aristotle:download_status' task_id %}">
-                        </download>
-                      </div>
+                <div class="col-md-8">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h3>{{ file_details.title }}</h3>
+                        </div>
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <h3>File details</h3>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div id="vue-container">
+                                <download status_url="{% url 'aristotle:download_status' task_id %}">
+                                </download>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-3">Items</div>
-                    <div class="col-md-9">{{ file_details.items }}</div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h3>File details</h3>
+                        </div>
+                        <div class="col-md-3">Items</div>
+                        <div class="col-md-9">{{ file_details.items }}</div>
 
-                    <div class="col-md-3">File format</div>
-                    <div class="col-md-9">{{ file_details.download_type }}</div>
+                        <div class="col-md-3">File format</div>
+                        <div class="col-md-9">{{ file_details.download_type }}</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock %}
