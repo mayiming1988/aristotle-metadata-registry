@@ -615,11 +615,7 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
             later_version = second_version
             earlier_version = first_version
 
-        try:
-            return (json.loads(earlier_version.serialized_data), json.loads(later_version.serialized_data))
-        except json.JSONDecodeError:
-            self.context['cannot_compare'] = True
-            return self.context
+        return (json.loads(earlier_version.serialized_data), json.loads(later_version.serialized_data))
 
     def apply_permission_checking(self, version_permission_1, version_permission_2):
         if not self.user_can_view_version(self.request.user, self.concept, version_permission_1) and \
@@ -653,7 +649,11 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
         self.context['version_1_id'] = version_1
         self.context['version_2_id'] = version_2
 
-        earlier_json, later_json = self.get_version_jsons(first_version, second_version)
+        try:
+            earlier_json, later_json = self.get_version_jsons(first_version, second_version)
+        except json.JSONDecodeError:
+            self.context['cannot_compare'] = True
+            return self.context
 
         earlier_json = self.remove_disallowed_custom_fields(self.request.user, earlier_json, self.concept)
         later_json = self.remove_disallowed_custom_fields(self.request.user, later_json, self.concept)
@@ -736,6 +736,7 @@ class CompareHTMLFieldsView(SimpleItemGet, VersionsMixin, TemplateView):
     def get_html_fields(self, version_1, version_2, field_query) -> List[str]:
         """Cleans and returns the content for the two versions of a HTML field """
         html_values = []
+
         fields = tuple(field_query.split('.'))
 
         versions = [json.loads(version_1.serialized_data),
@@ -757,6 +758,7 @@ class CompareHTMLFieldsView(SimpleItemGet, VersionsMixin, TemplateView):
                         version_data = version_data[int(field)]
                     except IndexError:
                         version_data = None
+
             if version_data:
                 html_values.append(version_data)
 

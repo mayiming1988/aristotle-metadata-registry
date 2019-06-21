@@ -337,6 +337,9 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
         # Check the content of the fields
         self.assertEqual(response.context['html_fields'], ['This is an updated DSS Grouping', 'This is a DSS Grouping'])
 
+    def version_comparator_handles_added_fields_on_model(self):
+        pass2
+
 
 class DataElementComparisionTestCase(utils.AristotleTestUtils, TestCase):
     """Class to test the comparision of Value Domain specific fields"""
