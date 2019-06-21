@@ -80,6 +80,8 @@ class VersionLinkField(VersionField):
 
 class VersionGroupField(VersionField):
     """Field with groups of subfields"""
+
+    empty_text = 'Empty'
     link = False
     group = True
     html = False

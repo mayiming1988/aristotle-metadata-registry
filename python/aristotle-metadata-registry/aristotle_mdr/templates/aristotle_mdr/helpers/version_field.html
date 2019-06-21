@@ -32,7 +32,7 @@
             </tbody>
         </table>
     {% else %}
-        <p>Empty</p>
+      <p>{{ field.empty_text }}</p>
     {% endif %}
 {% elif field.is_link %}
     <a href="{{ field.url }}">{{ field }}<span class="text-danger">*</span></a>
