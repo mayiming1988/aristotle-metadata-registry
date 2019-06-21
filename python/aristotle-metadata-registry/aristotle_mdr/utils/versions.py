@@ -80,7 +80,7 @@ class VersionLinkField(VersionField):
                 return str(self.obj)
             else:
                 # If field is set but object is None no perm
-                self.value = self.perm_message
+                return self.perm_message
         # Empty value if no id
         return self.empty_text
 
