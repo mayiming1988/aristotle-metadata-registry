@@ -98,6 +98,13 @@ class VersionGroupField(VersionField):
         self.sub_fields = sub_fields
 
     @property
+    def heading(self):
+        # Pluralize names for grouped field
+        if self.fname and self.fname[-1] != 's':
+            return self.fname + 's'
+        return self.fname
+
+    @property
     def headings(self) -> List[str]:
         headings = []
         if self.sub_fields:
