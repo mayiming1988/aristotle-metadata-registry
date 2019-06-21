@@ -22,7 +22,7 @@ from aristotle_mdr.forms.creation_wizards import (
 )
 from aristotle_mdr.tests import utils
 from aristotle_mdr.views import ConceptRenderView
-from aristotle_mdr.views.versions import VersionLinkField
+from aristotle_mdr.utils.versions import VersionLinkField
 from aristotle_mdr.downloader import HTMLDownloader
 import datetime
 from unittest import mock, skip
