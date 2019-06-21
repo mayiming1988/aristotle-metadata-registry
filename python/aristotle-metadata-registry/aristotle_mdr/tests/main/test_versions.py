@@ -46,6 +46,19 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
             stewardship_organisation=self.so
         )
 
+        self.custom_field = CustomField.objects.create(
+            order=0,
+            name='Bad Word',
+            type='str',
+            help_text='A real bad word'
+        )
+
+        self.html_custom_field = CustomField.objects.create(
+            order=1,
+            name='Very Bad Word',
+            type='html',
+            help_text='An extremely bad word'
+        )
 
         aristotle_settings = settings.ARISTOTLE_SETTINGS
         aristotle_settings['CONTENT_EXTENSIONS'].append('aristotle_dse')
@@ -90,24 +103,73 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
 
     def test_added_subitem_displayed(self):
         """Test that a subitem (ex. custom fields) added to a concept between versions is displayed """
+        self.login_viewer()
 
+        # Create and attach a CustomValue to the Object Class
+
+        with reversion.revisions.create_revision():
+            # Don't really need to do anything here, just need a version
+            self.object_class.save()
+
+        with reversion.revisions.create_revision():
+            CustomValue.objects.create(
+                field=self.custom_field,
+                concept=self.object_class,
+                content="Freshly created and served"
+            )
+            self.object_class.save()
+
+        versions = Version.objects.get_for_object(self.object_class)
+        self.assertEqual(versions.count(), 2)
+
+        # Compare the versions
+        url = reverse('aristotle:compare_versions', args=[self.object_class.id])
+        query_url = url + '?v1={}&v2={}'.format(versions[0].id, versions[1].id)
+
+        response = self.client.get(query_url)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertContainsHtml(response, 'Freshly created and served')
 
     def test_removed_subitem_displayed(self):
         """Test that a subitem (ex. custom fields) removed from a concept between versions is displayed"""
+        self.login_viewer()
+
+        # Create and attach a CustomValue to the Object Class
+        custom_value = CustomValue.objects.create(
+            field=self.custom_field,
+            concept=self.object_class,
+            content='Heck'
+        )
+
+        with reversion.revisions.create_revision():
+            custom_value.content = 'More Heck'
+            custom_value.save()
+            self.object_class.save()
+
+        with reversion.revisions.create_revision():
+            custom_value.delete()
+            self.object_class.save()
+
+        versions = Version.objects.get_for_object(self.object_class)
+        self.assertEqual(versions.count(), 2)
+
+        # Compare the versions
+        url = reverse('aristotle:compare_versions', args=[self.object_class.id])
+        query_url = url + '?v1={}&v2={}'.format(versions[0].id, versions[1].id)
+
+        response = self.client.get(query_url)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertContainsHtml(response, 'Bad Word')
 
     def test_changed_subitem_displayed(self):
         """Test that a subitem (ex. custom fields) that has had content on it altered is displayed """
         self.login_viewer()
 
         # Create and attach a CustomValue to the Object Class
-        custom_field = CustomField.objects.create(
-            order=0,
-            name='Bad Word',
-            type='str',
-            help_text='A real bad word'
-        )
         custom_value = CustomValue.objects.create(
-            field=custom_field,
+            field=self.custom_field,
             concept=self.object_class,
             content='Heck'
         )
@@ -153,15 +215,17 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
         response = self.client.get(query_url)
         self.assertEqual(response.status_code, 200)
 
-        # -1 is a delete, 1 is an insert. Out with the old, in with the new
+        # -1 is a delete, 1 is an insert
+        failure_message = 'Older item should be deleted, newer item should be added'
+
         deleted_tuple = (-1, 'Old')
-        self.assertTrue(str(deleted_tuple) in str(response.context), msg="Older item should be deleted,"
-                                                                         "newer item should be added")
+        self.assertTrue(str(deleted_tuple) in str(response.context), msg=failure_message)
+
         # Should be the same when we reverse the query
         query_url = url + '?v1={}&v2={}'.format(versions[0].id, versions[1].id)
         response = self.client.get(query_url)
 
-        self.assertTrue(str(deleted_tuple) in str(response.context))
+        self.assertTrue(str(deleted_tuple) in str(response.context), msg=failure_message)
 
     def test_html_fields_of_custom_values_detected_as_html_fields(self):
         """Test that the HTML fields of custom values are correctly detected as HTML fields. A test is written
@@ -169,14 +233,8 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
         self.login_viewer()
 
         # Create and attach a CustomValue to the Object Class
-        custom_field = CustomField.objects.create(
-            order=0,
-            name='Bad Word',
-            type='html',
-            help_text='A real bad word'
-        )
         custom_value = CustomValue.objects.create(
-            field=custom_field,
+            field=self.html_custom_field,
             concept=self.object_class,
             content='<em>HECK</em>'
         )

@@ -1,5 +1,5 @@
 from typing import Dict, List, Optional, Tuple, Any, Set
-from django.apps import apps
+from django.db.models.query import QuerySet
 from django.http import Http404, HttpResponseRedirect
 from django.core.exceptions import PermissionDenied
 from django.views.generic.list import ListView
@@ -68,7 +68,7 @@ class VersionsMixin:
 
         return False
 
-    def get_versions(self, concept):
+    def get_versions(self, concept) -> QuerySet:
         """ Get versions and apply permission checking so that only versions that the user is allowed to see are
         shown"""
         versions = reversion.models.Version.objects.get_for_object(concept).select_related("revision__user")
@@ -508,11 +508,20 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
                         value = strip_tags(str(value))
                     # Because DiffMatchPatch returns a list of tuples of diffs
                     # for consistent display we also return a list of tuples of diffs
+
+                    is_html = False
+                    if subitem_model is CustomValue:
+                        custom_field_id = item['field']
+                        if custom_field_id in self.get_html_custom_field_ids() and field == 'content':
+                            is_html = True
+                    else:
+                        is_html = self.is_field_html(field, subitem_model)
+
                     if added:
-                        difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
+                        difference_dict[field] = {'is_html': is_html,
                                                   'diff': [(1, value)]}
                     else:
-                        difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
+                        difference_dict[field] = {'is_html': is_html,
                                                   'diff': [(-1, value)]}
         return difference_dict
 
@@ -565,7 +574,6 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
 
             # Items that are in the later items but not the earlier items have been 'added'
             added_ids = set(later_items.keys()) - set(earlier_items.keys())
-
             added_items = self.generate_diff_for_added_removed_fields(added_ids, later_items,
                                                                       subitem_model, added=True, raw=raw)
             if added_items:
@@ -573,7 +581,6 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
 
             # Items that are in the earlier items but not the later items have been 'removed'
             removed_ids = set(earlier_items.keys()) - set(later_items.keys())
-
             removed_items = self.generate_diff_for_added_removed_fields(removed_ids, earlier_items,
                                                                         subitem_model, added=False, raw=raw)
             if removed_items:
@@ -589,21 +596,34 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
                 difference_dict = {}
 
                 for field, earlier_value in earlier_item.items():
-                    later_value = later_item[field]
+                    if field == 'id':
+                        pass
+                    else:
+                        later_value = later_item[field]
 
-                    earlier_value = str(earlier_value)
-                    later_value = str(later_value)
+                        earlier_value = str(earlier_value)
+                        later_value = str(later_value)
 
-                    if not raw:
-                        earlier_value = strip_tags(earlier_value)
-                        later_value = strip_tags(later_value)
+                        if not raw:
+                            earlier_value = strip_tags(earlier_value)
+                            later_value = strip_tags(later_value)
 
-                    diff = DiffMatchPatch.diff_main(earlier_value, later_value)
-                    DiffMatchPatch.diff_cleanupSemantic(diff)
+                        diff = DiffMatchPatch.diff_main(earlier_value, later_value)
+                        DiffMatchPatch.diff_cleanupSemantic(diff)
 
-                    difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
-                                              'diff': diff}
-                differences.append(difference_dict)
+                        # Custom logic to determine if CustomValue field is HTML
+                        is_html = False
+                        if subitem_model is CustomValue:
+                            custom_field_id = later_item['field']
+                            if custom_field_id in self.get_html_custom_field_ids() and field == 'content':
+                                is_html = True
+                        else:
+                            is_html = self.is_field_html(field, subitem_model)
+
+                        difference_dict[field] = {'is_html': is_html,
+                                                  'diff': diff}
+                if difference_dict:
+                    differences.append(difference_dict)
 
         return differences
 
@@ -761,7 +781,6 @@ class CompareHTMLFieldsView(SimpleItemGet, VersionsMixin, TemplateView):
                         version_data = version_data[field]
                     else:
                         version_data = None
-
                 elif isinstance(version_data, list):
                     try:
                         version_data = version_data[int(field)]
