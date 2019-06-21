@@ -697,7 +697,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     def test_history_compare_with_bad_version_data(self):
         """ Test that if the version compare view is passed garbled serialized data that the view does not attempt
-        to """
+        to load it  """
         versions = self.create_versions()
 
         first_version = versions.first()
@@ -709,6 +709,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
         # Look at the particular view
 
+        import pdb; pdb.set_trace()
         qparams = '?v1={}&v2={}'.format(first_version.id, last_version.id)
         self.login_editor()
         response = self.client.get(
