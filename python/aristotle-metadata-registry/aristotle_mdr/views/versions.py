@@ -30,6 +30,8 @@ logger = logging.getLogger(__name__)
 
 
 class VersionsMixin:
+    """Mixin providing helper functionality to views handling version data"""
+
     def user_can_view_version(self, metadata_item, version_permission: VersionPermissions) -> bool:
         """ Determine whether or not user can view the specific version """
         in_workgroup = metadata_item.workgroup and self.request.user in metadata_item.workgroup.member_list
