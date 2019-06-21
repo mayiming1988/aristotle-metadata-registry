@@ -25,9 +25,9 @@
                 <form id="helpSearch" action="{% url 'aristotle:search' %}" method="get"
                       role="search">
                     <label style="display:none" for="searchHelp">{% trans 'Search help' %}</label>
-                    <input type="hidden" name="models" value="aristotle_mdr_help.concepthelp"></input>
-                    <input type="hidden" name="models" value="aristotle_mdr_help.helppage"></input>
-                    <input type="text" class="form-control" id="searchHelp" name="q" accesskey="h"></input>
+                    <input type="hidden" name="models" value="aristotle_mdr_help.concepthelp"/>
+                    <input type="hidden" name="models" value="aristotle_mdr_help.helppage"/>
+                    <input type="text" class="form-control" id="searchHelp" name="q" accesskey="h"/>
                     <button style="margin:2px auto" class="center-block btn btn-sm btn-primary" type="submit" title="{% trans 'Search' %}">
                         Search Help <i class="fa fa-search"></i>
                     </button>
