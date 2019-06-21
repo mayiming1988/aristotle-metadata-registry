@@ -147,7 +147,7 @@ class VersionsMixin:
         allowed_custom_fields = CustomField.objects.get_allowed_fields(concept, self.request.user)
         allowed_ids = [custom_field.id for custom_field in allowed_custom_fields]
 
-        if not 'customvalue_set' in serialized_data:
+        if not ('customvalue_set' in serialized_data):
             return serialized_data
 
         custom_values = serialized_data['customvalue_set']
@@ -629,7 +629,6 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
         except json.JSONDecodeError:
             self.context['cannot_compare'] = True
             return self.context
-
 
     def apply_permission_checking(self, version_permission_1, version_permission_2):
         if not self.user_can_view_version(self.concept, version_permission_1) and self.user_can_view_version(

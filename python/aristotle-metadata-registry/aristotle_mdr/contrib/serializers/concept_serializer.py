@@ -55,7 +55,6 @@ class SlotsSerializer(SubSerializer):
 
 
 class OrganisationRecordsSerializer(SubSerializer):
-
     class Meta:
         model = RecordRelation
         fields = ['organization_record', 'type', 'id']

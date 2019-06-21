@@ -33,7 +33,19 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
             definition="definition",
             submitter=self.editor,
             workgroup=self.wg1
+
         )
+
+        self.so = MDR.StewardOrganisation.objects.create(
+            name='Best Stewardship Organisation',
+        )
+
+        self.ra = MDR.RegistrationAuthority.objects.create(
+            name='First RA',
+            definition='First',
+            stewardship_organisation=self.so
+        )
+
 
         aristotle_settings = settings.ARISTOTLE_SETTINGS
         aristotle_settings['CONTENT_EXTENSIONS'].append('aristotle_dse')
@@ -154,10 +166,85 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
     def test_html_fields_of_custom_values_detected_as_html_fields(self):
         """Test that the HTML fields of custom values are correctly detected as HTML fields. A test is written
         for this because CustomFields store HTML fields as TextFields so we have custom logic to handle this"""
+        self.login_viewer()
+
+        # Create and attach a CustomValue to the Object Class
+        custom_field = CustomField.objects.create(
+            order=0,
+            name='Bad Word',
+            type='html',
+            help_text='A real bad word'
+        )
+        custom_value = CustomValue.objects.create(
+            field=custom_field,
+            concept=self.object_class,
+            content='<em>HECK</em>'
+        )
+        # Create two versions of this CustomValue
+        with reversion.revisions.create_revision():
+            custom_value.content = '<b>HECK</b>'
+            custom_value.save()
+            self.object_class.save()
+
+        with reversion.revisions.create_revision():
+            custom_value.content = '<i>heck</i>'
+            custom_value.save()
+            self.object_class.save()
+
+        # Assert that only two versions were created
+        versions = Version.objects.get_for_object(self.object_class)
+        self.assertEqual(versions.count(), 2)
+
+        url = reverse('aristotle:compare_versions', args=[self.object_class.id])
+        query = url + '?v1={}&v2={}'.format(versions[0].id, versions[1].id)
+
+        response = self.client.get(query)
+        self.assertEqual(response.status_code, 200)
+
+        diffs = response.context['diffs']
+        self.assertEqual(diffs['customvalue_set']['diffs'][0]['content']['is_html'], True)
 
     def test_compare_view_403s_when_viewer_doesnt_have_permission_to_view_both_versions(self):
-        """Test that the """
+        """Test that the compare view 403s when the viewer doesn't have permission to view both versions """
+        # Login in a regular user
+        self.login_regular_user()
 
+        # Create two versions
+        with reversion.revisions.create_revision():
+            self.object_class.name = 'An older Object Class'
+            self.object_class.save()
+
+        with reversion.revisions.create_revision():
+            self.object_class.name = ' A newer Object Class'
+            self.object_class.save()
+
+        # Assert that only two versions were created
+        self.assertEqual(Version.objects.get_for_object(self.object_class).count(), 2)
+
+        # Create VersionPermission objects for the two versions
+        versions = Version.objects.get_for_object(self.object_class)
+
+        VersionPermissions.objects.create(version=versions[0],
+                                          visibility=VISIBILITY_PERMISSION_CHOICES.public)
+
+        VersionPermissions.objects.create(version=versions[1],
+                                          visibility=VISIBILITY_PERMISSION_CHOICES.workgroup)
+
+        # Register the ObjectClass as public, but not the versions
+        self.status = MDR.Status.objects.create(
+            concept=self.object_class,
+            registrationAuthority=self.ra,
+            registrationDate=timezone.now(),
+            state=self.ra.public_state
+        )
+
+        # Assert that the CompareVersions view 403s
+        url = reverse('aristotle:compare_fields', args=[self.data_set_specification.id])
+        query_url = url + '?v1={}&v2={}&field=groups.0.definition'.format(versions[0].id, versions[1].id)
+
+        response = self.client.get(query_url)
+
+        self.assertEqual(response.status_code, 403)
 
     def test_view_rendered_html_field_for_subitem(self):
         """Test that the CompareFieldsHTMLView renders the value of a subitem's HTML field. Using the definition
@@ -351,7 +438,6 @@ class CreationOfVersionTests(utils.AristotleTestUtils, TestCase):
         object_class = MDR.ObjectClass.objects.get(pk=object_class.pk)
 
         # ///Assert
-
         self.assertEqual(object_class.name, updated_name)
 
         # Load the version
