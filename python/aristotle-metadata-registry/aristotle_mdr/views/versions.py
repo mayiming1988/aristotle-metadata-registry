@@ -385,16 +385,6 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         return context
 
 
-class Field:
-    def __init__(self, subitems: List, is_html: bool, user_friendly_name: str):
-        subitems  = subitems
-        is_html = is_html
-        user_friendly_name = user_friendly_name
-
-class Subitem:
-    def __init__(self, ):
-        pass
-
 class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
     """
     View that performs the historical comparision between two different versions of the same concept
@@ -625,9 +615,7 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
             later_version = second_version
             earlier_version = first_version
 
-
         return (json.loads(earlier_version.serialized_data), json.loads(later_version.serialized_data))
-
 
     def apply_permission_checking(self, version_permission_1, version_permission_2):
         if not self.user_can_view_version(self.request.user, self.concept, version_permission_1) and \
