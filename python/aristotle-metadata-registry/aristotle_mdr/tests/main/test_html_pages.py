@@ -407,7 +407,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         references = fields['References']
         self.assertFalse(references.is_link)
         self.assertTrue(references.is_html)
-        self.assertEqual(str(references), '<p>refs</p>')
+        self.assertEqual(references.value, '<p>refs</p>')
 
     @tag('version')
     def test_version_display_custom_value_html(self):
@@ -436,11 +436,11 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         )
 
         fields = {f.heading: f for f in response.context['item']['item_fields']}
-        cv_field = fields['Custom Value']
-        self.assertGreater(len(cv_field.subfields), 0)
+        cv_field = fields['Custom Values']
+        self.assertGreater(len(cv_field.sub_fields), 0)
 
-        first_cv = {f.heading: f for f in cv_field.subfields[0]}
-        self.assertEqual(first_cv['Custom Field'].value, str(field.id))
+        first_cv = {f.heading: f for f in cv_field.sub_fields[0]}
+        self.assertEqual(first_cv['Custom Field'].obj, field)
         self.assertTrue(first_cv['Content'].is_html)
 
     def test_display_item_histroy_without_wg(self):
@@ -1954,7 +1954,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         fields = {f.heading: f for f in response.context['item']['item_fields']}
         self.assertTrue('Definition' in fields)
         dfn_field = fields['Definition']
-        self.assertEqual(str(dfn_field), old_definition)
+        self.assertEqual(dfn_field.value, old_definition)
 
     @tag('download')
     @override_settings(ARISTOTLE_SETTINGS={'DOWNLOADERS': ['aristotle_mdr.downloaders.HTMLDownloader']})
@@ -2185,17 +2185,17 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
         )
 
         fields = {f.heading: f for f in response.context['item']['item_fields']}
-        self.assertTrue('Supplementary Value' in fields)
-        self.assertTrue('Permissible Value' in fields)
+        self.assertTrue('Supplementary Values' in fields)
+        self.assertTrue('Permissible Values' in fields)
 
-        subval_field = fields['Supplementary Value']
-        permval_field = fields['Permissible Value']
+        subval_field = fields['Supplementary Values']
+        permval_field = fields['Permissible Values']
 
         self.assertTrue(subval_field.is_group)
         self.assertTrue(permval_field.is_group)
 
-        first_pval = {f.heading: f for f in permval_field.subfields[0]}
-        first_sval = {f.heading: f for f in subval_field.subfields[0]}
+        first_pval = {f.heading: f for f in permval_field.sub_fields[0]}
+        first_sval = {f.heading: f for f in subval_field.sub_fields[0]}
 
         # Check supplementary values are being displayed
         self.assertEqual(first_sval['Meaning'].value, 'test supplementary meaning 0')
@@ -2601,7 +2601,7 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
         cfield = fields['Data Element Concept']
 
         self.assertTrue(cfield.is_link)
-        self.assertEqual(cfield.value, self.item1.dataElementConcept.name)
+        self.assertEqual(str(cfield), self.item1.dataElementConcept.name)
         self.assertEqual(cfield.id, self.item1.dataElementConcept.id)
 
     @tag('version')
@@ -2640,7 +2640,7 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
         cfield = fields['Data Element Concept']
 
         self.assertTrue(cfield.is_link)
-        self.assertEqual(cfield.value, self.item1.dataElementConcept.name)
+        self.assertEqual(str(cfield), self.item1.dataElementConcept.name)
         self.assertEqual(cfield.id, self.item1.dataElementConcept.id)
 
     @tag('version')

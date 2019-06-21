@@ -305,7 +305,6 @@ class ConceptVersionView(VersionsMixin, TemplateView):
                     VersionLinkField(self.get_verbose_name(field), data, lookup.get(data, None))
                 )
             elif type(data) == list:
-                logger.debug('Creating group field for {} with data {}'.format(field, data))
                 # If field groups other items get their fields
                 sub_fields: List[List[VersionField]] = []
                 for subdata in data:

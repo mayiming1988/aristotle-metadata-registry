@@ -117,7 +117,7 @@ class UtilsTests(TestCase):
         field = VersionLinkField(
             fname='Linking field',
             id=self.oc1.concept.id,
-            concept=self.oc1.concept
+            obj=self.oc1.concept
         )
 
         self.assertTrue(field.is_link)
@@ -132,7 +132,7 @@ class UtilsTests(TestCase):
         field = VersionLinkField(
             fname='Linking field',
             id=None,
-            concept=None
+            obj=None
         )
 
         self.assertEqual(str(field), 'None')
@@ -143,7 +143,7 @@ class UtilsTests(TestCase):
         field = VersionLinkField(
             fname='Linking field',
             id=2,
-            concept=None
+            obj=None
         )
 
         self.assertEqual(str(field), VersionLinkField.perm_message)
