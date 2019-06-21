@@ -150,3 +150,12 @@ def get_custom_values_for_item(item, user):
 @register.filter
 def as_str(item):
     return str(item)
+
+
+@register.simple_tag
+def timetag(dt: Union[datetime, date, None]):
+    isotime = iso_time(dt)
+    return format_html(
+        '<time datetime="{isotime}">{isotime}</time>',
+        isotime=isotime
+    )
