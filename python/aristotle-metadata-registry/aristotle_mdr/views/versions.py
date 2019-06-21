@@ -272,18 +272,20 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         return super().dispatch(request, *args, **kwargs)
 
     def check_item(self, item, version_permission):
+        """Permissions checking on version"""
         # Will 403 Forbidden when user can't view the version
         return self.user_can_view_version(item, version_permission)
 
     def get_item(self, version):
-        # Gets the current item
+        """Get current item from version"""
         return version.object
 
     def get_version(self) -> reversion.models.Version:
-        # Get the version objet
+        """Lookup version object"""
         return get_object_or_404(reversion.models.Version, id=self.kwargs[self.version_arg])
 
     def get_version_data(self, version_json: str, item: MDR._concept):
+        """Deserialize and filter version data"""
         version_dict = {}
         try:
             version_dict = json.loads(version_json)
@@ -294,6 +296,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         return self.remove_disallowed_custom_fields(version_dict, item)
 
     def is_concept_fk(self, field):
+        """Check whether field is a foreign key to a concept"""
         return field.many_to_one and issubclass(field.related_model, MDR._concept)
 
     def get_field_data(self, version_data: Dict, model, exclude: List[str]=[]) -> Dict:
@@ -369,7 +372,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         return fields
 
     def get_version_context_data(self) -> Dict:
-        # Get the context data for this complete version
+        """Get context data for rendering version fields"""
         context: dict = {}
 
         # Get field data
@@ -405,7 +408,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         return context
 
     def get_context_data(self, *args, **kwargs):
-        context = kwargs
+        context = super().get_context_data(*args, **kwargs)
         context.update({
             'view': self,
             'hide_item_actions': True,
@@ -419,9 +422,6 @@ class ConceptVersionView(VersionsMixin, TemplateView):
             'revision': self.version.revision,
         })
         return context
-
-    def get_template_names(self):
-        return [self.template_name]
 
 
 class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
