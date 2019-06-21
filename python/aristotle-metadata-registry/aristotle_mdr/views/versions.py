@@ -562,18 +562,22 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
 
             # Items that are in the later items but not the earlier items have been 'added'
             added_ids = set(later_items.keys()) - set(earlier_items.keys())
-            differences.append(
-                self.generate_diff_for_added_removed_fields(added_ids, later_items, subitem_model, added=True,
-                                                            raw=raw))
+
+            added_items = self.generate_diff_for_added_removed_fields(added_ids, later_items,
+                                                                      subitem_model, added=True, raw=raw)
+            if added_items:
+                differences.append(added_items)
 
             # Items that are in the earlier items but not the later items have been 'removed'
             removed_ids = set(earlier_items.keys()) - set(later_items.keys())
-            differences.append(
-                self.generate_diff_for_added_removed_fields(removed_ids, earlier_items, subitem_model, added=False,
-                                                            raw=raw))
+
+            removed_items = self.generate_diff_for_added_removed_fields(removed_ids, earlier_items,
+                                                                        subitem_model, added=False, raw=raw)
+            if removed_items:
+                differences.append(removed_items)
 
             # Items with IDs that are present in both earlier and later data have been changed,
-            # so we waFnt to perform a field-by-field dict comparision
+            # so we want to perform a field-by-field dict comparision
             changed_ids = set(earlier_items).intersection(set(later_items))
             for id in changed_ids:
                 earlier_item = earlier_items[id]
@@ -618,7 +622,7 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
             earlier_version = first_version
 
         try:
-            return json.loads(earlier_version.serialized_data), json.loads(later_version.serialized_data)
+            return (json.loads(earlier_version.serialized_data), json.loads(later_version.serialized_data))
         except json.JSONDecodeError:
             self.context['cannot_compare'] = True
             return self.context
@@ -743,6 +747,7 @@ class CompareHTMLFieldsView(SimpleItemGet, VersionsMixin, TemplateView):
 
         versions = [json.loads(version_1.serialized_data),
                     json.loads(version_2.serialized_data)]
+
         for version in versions:
             version_data = version
             for field in fields:
@@ -760,7 +765,8 @@ class CompareHTMLFieldsView(SimpleItemGet, VersionsMixin, TemplateView):
                         version_data = version_data[int(field)]
                     except IndexError:
                         version_data = None
-            html_values.append(version_data)
+            if version_data:
+                html_values.append(version_data)
 
         return html_values
 
