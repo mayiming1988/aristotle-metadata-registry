@@ -665,7 +665,7 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
             earlier_json, later_json = self.get_version_jsons(first_version, second_version)
         except json.JSONDecodeError:
             self.context['cannot_compare'] = True
-
+            return self.context
 
         earlier_json = self.remove_disallowed_custom_fields(self.request.user, earlier_json, self.concept)
         later_json = self.remove_disallowed_custom_fields(self.request.user, later_json, self.concept)

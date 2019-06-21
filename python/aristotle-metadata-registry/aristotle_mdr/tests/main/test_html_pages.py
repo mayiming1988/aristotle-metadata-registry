@@ -708,8 +708,6 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         last_version.save()
 
         # Look at the particular view
-
-        import pdb; pdb.set_trace()
         qparams = '?v1={}&v2={}'.format(first_version.id, last_version.id)
         self.login_editor()
         response = self.client.get(
