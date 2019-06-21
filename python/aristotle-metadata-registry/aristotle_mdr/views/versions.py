@@ -139,7 +139,10 @@ class VersionsMixin:
         if field.is_relation:
             name = field.related_model._meta.verbose_name
         else:
-            name = field.name
+            name = field.verbose_name
+
+        if '_' in name:
+            name = name.replace('_', ' ')
         return name.title()
 
     def remove_disallowed_custom_fields(self, user, serialized_data, concept) -> Dict:

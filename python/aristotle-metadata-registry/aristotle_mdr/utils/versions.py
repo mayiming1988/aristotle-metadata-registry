@@ -51,7 +51,7 @@ class VersionField:
 class VersionLinkField(VersionField):
     """Version field that links to a concept"""
 
-    empty_text = ''
+    empty_text = 'None'
     perm_message = 'Linked to object you do not have permission to view'
 
     link = True
