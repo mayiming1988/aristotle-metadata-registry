@@ -91,7 +91,10 @@ class VersionsMixin:
         return versions
 
     def is_field_html(self, fieldname: str, model: Model) -> bool:
-        fieldobj = model._meta.get_field(fieldname)
+        try:
+            fieldobj = model._meta.get_field(fieldname)
+        except FieldDoesNotExist:
+            return False
         return self.is_field_obj_html(fieldobj)
 
     def is_field_obj_html(self, field: Field) -> bool:

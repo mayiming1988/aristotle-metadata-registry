@@ -38,14 +38,17 @@ class IdentifierSerializer(SubSerializer):
 
 
 class CustomValuesSerializer(SubSerializer):
+    name = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomValue
-        fields = ['field', 'content', 'id']
+        fields = ['field', 'name', 'content', 'id']
+
+    def get_name(self, custom_value):
+        return custom_value.field.name
 
 
 class SlotsSerializer(SubSerializer):
-
     class Meta:
         model = Slot
         fields = ['name', 'value', 'order', 'permission', 'id']

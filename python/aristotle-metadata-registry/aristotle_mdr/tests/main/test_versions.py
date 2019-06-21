@@ -1,14 +1,16 @@
+from django.test import TestCase, override_settings
+from django.utils import timezone
+from django.urls import reverse
+from django.conf import settings
+
 import aristotle_mdr.models as MDR
 import aristotle_dse.models as DSE
 from aristotle_mdr.tests import utils
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
+from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
+from aristotle_mdr.contrib.custom_fields.types import type_choices
 from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
 
-from django.test import TestCase
-from django.utils import timezone
-from django.urls import reverse
-from django.test import override_settings
-from django.conf import settings
 import reversion
 from reversion.models import Version
 
@@ -43,46 +45,118 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
                 workgroup=self.wg1
             )
 
+    def create_two_versions(self, concept):
+        with reversion.revisions.create_revision():
+            concept.name = "Older Version of a Concept"
+            concept.save()
+
+        with reversion.revisions.create_revision():
+            concept.name = "Newer Version of a Concept"
+            concept.save()
+
+        versions = Version.objects.get_for_object(concept)
+        self.assertEqual(versions.count(), 2)
+
 
     def test_altered_on_concept_field_displayed(self):
         """Test that field that is **on** the concept, and has
-        had content altered between the saves is displayed"""
+        had content altered between the saves is displayed in the compare versions view"""
+        self.login_viewer()
+
+        self.create_two_versions(self.object_class)
+
+        # Go to the view
+        versions = Version.objects.get_for_object(self.object_class)
+        url = reverse('aristotle:compare_versions', args=[self.data_set_specification.id])
+        query_url = url + '?v1={}&v2={}'.format(versions[0].id, versions[1].id)
+
+        response = self.client.get(query_url)
+
+        # Check that the response contains 'Name'
+        self.assertContainsHtml(response, 'Name')
+
 
     def test_added_subitem_displayed(self):
         """Test that a subitem (ex. custom fields) added to a concept between versions is displayed """
+
 
     def test_removed_subitem_displayed(self):
         """Test that a subitem (ex. custom fields) removed from a concept between versions is displayed"""
 
     def test_changed_subitem_displayed(self):
         """Test that a subitem (ex. custom fields) that has had content on it altered is displayed """
+        self.login_viewer()
+
+        # Create and attach a CustomValue to the Object Class
+        custom_field = CustomField.objects.create(
+            order=0,
+            name='Bad Word',
+            type='str',
+            help_text='A real bad word'
+        )
+        custom_value = CustomValue.objects.create(
+            field=custom_field,
+            concept=self.object_class,
+            content='Heck'
+        )
+
+        with reversion.revisions.create_revision():
+            custom_value.content = 'More Heck'
+            custom_value.save()
+            self.object_class.save()
+
+        with reversion.revisions.create_revision():
+            custom_value.content = 'Even More Heck'
+            custom_value.save()
+            self.object_class.save()
+
+        versions = Version.objects.get_for_object(self.object_class)
+        self.assertEqual(versions.count(), 2)
+
+        # Compare the versions
+        url = reverse('aristotle:compare_versions', args=[self.object_class.id])
+        query_url = url + '?v1={}&v2={}'.format(versions[1].id, versions[0].id)
+
+        response = self.client.get(query_url)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertContainsHtml(response, 'Bad Word')
 
     def test_version_compare_chronology_correct(self):
         """Test that the versions are compared with the correct chronology. We want the earlier item to be version 1
         and the older item to be version 2"""
+        self.login_viewer()
 
         # Create two versions of an Object Class
-        with reversion.revisions.create_revision():
-            self.object_class.name = "Older Version of a Person"
-            self.object_class.save()
-
-        with reversion.revisions.create_revision():
-            self.object_class.name = "Newer Version of a Person"
-            self.object_class.save()
+        self.create_two_versions(self.object_class)
 
         # Confirm that two versions were created
         versions = reversion.models.Version.objects.get_for_object(self.object_class)
-        self.assertEqual(versions.count(), 2)
 
         # Build query in the wrong order
-        url = reverse('aristotle:compare', args=[self.object_class])
-        query_url = url + '?v1={}&v2={}'.format()
-        # Assert that they have been correctly rearranged
+        url = reverse('aristotle:compare_versions', args=[self.object_class.id])
+        query_url = url + '?v1={}&v2={}'.format(versions[1].id, versions[0].id)
 
+        # Assert that they have been correctly rearranged
+        response = self.client.get(query_url)
+        self.assertEqual(response.status_code, 200)
+
+        # -1 is a delete, 1 is an insert. Out with the old, in with the new
+        deleted_tuple = (-1, 'Old')
+        self.assertTrue(str(deleted_tuple) in str(response.context), msg="Older item should be deleted,"
+                                                                         "newer item should be added")
+        # Should be the same when we reverse the query
+        query_url = url + '?v1={}&v2={}'.format(versions[0].id, versions[1].id)
+        response = self.client.get(query_url)
+
+        self.assertTrue(str(deleted_tuple) in str(response.context))
 
     def test_html_fields_of_custom_values_detected_as_html_fields(self):
         """Test that the HTML fields of custom values are correctly detected as HTML fields. A test is written
-        for this because CustomFields store HTML fields as TextFields so we have custom logic to deal with that"""
+        for this because CustomFields store HTML fields as TextFields so we have custom logic to handle this"""
+
+    def test_compare_view_403s_when_viewer_doesnt_have_permission_to_view_both_versions(self):
+        """Test that the """
 
 
     def test_view_rendered_html_field_for_subitem(self):
@@ -251,6 +325,7 @@ class TestViewingVersionPermissions(utils.AristotleTestUtils, TestCase):
 class CreationOfVersionTests(utils.AristotleTestUtils, TestCase):
     def test_newly_created_version_permissions_default_to_workgroup(self):
         # ///Arrange
+
         self.login_editor()
 
         object_class = MDR.ObjectClass.objects.create(
@@ -258,7 +333,6 @@ class CreationOfVersionTests(utils.AristotleTestUtils, TestCase):
             definition="I wonder what the version permission for this is",
             submitter=self.editor
         )
-
         # ///Act
 
         # Load the EditItem page
@@ -276,7 +350,7 @@ class CreationOfVersionTests(utils.AristotleTestUtils, TestCase):
         # Decache
         object_class = MDR.ObjectClass.objects.get(pk=object_class.pk)
 
-        #///Assert
+        # ///Assert
 
         self.assertEqual(object_class.name, updated_name)
 
