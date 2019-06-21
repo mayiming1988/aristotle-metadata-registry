@@ -1,7 +1,8 @@
-from typing import List, Optional
+from typing import List, Optional, Any
 from django.urls import reverse
 
 from aristotle_mdr.templatetags.util_tags import bleach_filter
+from aristotle_mdr.models import _concept
 
 
 class VersionField:
@@ -50,32 +51,38 @@ class VersionField:
 class VersionLinkField(VersionField):
     """Version field that links to a concept"""
 
+    empty_text = ''
+    perm_message = 'Linked to object you do not have permission to view'
+
     link = True
     group = False
     html = False
-    perm_message = 'Linked to object you do not have permission to view'
 
-    def __init__(self, fname: str, id: Optional[int], concept):
+    def __init__(self, fname: str, id: Optional[int], obj: Optional[Any]):
         self.fname = fname
         self.id = id
+        self.obj = obj
 
-        if id is not None:
-            if concept:
-                # If field is set and we got a concept
-                self.value = concept.name
-                self.id = concept.id
-            else:
-                # If field is set but concept is None no perm
-                self.value = self.perm_message
-        else:
-            # Set value empty if id is None
-            self.value = ''
+        self.is_concept = isinstance(obj, _concept)
 
     @property
     def url(self):
-        if self.id:
-            return reverse('aristotle:item', args=[self.id])
+        if self.obj and self.is_concept:
+            return reverse('aristotle:item', args=[self.obj.id])
         return ''
+
+    def __str__(self):
+        if self.id is not None:
+            if self.obj:
+                # Get a nice name for object
+                if hasattr(self.obj, 'name'):
+                    return self.obj.name
+                return str(self.obj)
+            else:
+                # If field is set but object is None no perm
+                self.value = self.perm_message
+        # Empty value if no id
+        return self.empty_text
 
 
 class VersionGroupField(VersionField):
