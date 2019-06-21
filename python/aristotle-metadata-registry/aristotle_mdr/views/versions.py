@@ -159,7 +159,7 @@ class VersionsMixin:
 
 
 class ConceptVersionView(VersionsMixin, TemplateView):
-    """ Display the version of a concept at a particular point"""
+    """Display the version of a concept at a particular point"""
 
     template_name = 'aristotle_mdr/concepts/managedContentVersion.html'
     version_arg = 'verid'

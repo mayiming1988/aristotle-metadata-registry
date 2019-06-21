@@ -2,17 +2,17 @@
 
 <h1>{{ field.heading }}</h1>
 {% if field.is_group %}
-    {% if field.subfields %}
+    {% if field.sub_fields %}
         <table class="table">
             <thead>
               <tr>
-                {% for subfield in field.subfields.0 %}
-                  <th>{{ subfield.heading }}</th>
+                {% for sub_heading in field.headings %}
+                  <th>{{ sub_heading }}</th>
                 {% endfor %}
               </tr>
             </thead>
             <tbody>
-              {% for flist in field.subfields %}
+              {% for flist in field.sub_fields %}
                 <tr>
                 {% for subfield in flist %}
                   {% comment %}
@@ -23,7 +23,11 @@
                   {% if subfield.is_link %}
                     <a href="{{ field.url }}">{{ field }}<span class="text-danger">*</span></a>
                   {% else %}
-                      {{ subfield }}
+                      {% if subfield.is_html %}
+                        {{ subfield|as_str|bleach }}
+                      {% else %}
+                        {{ subfield }}
+                      {% endif %}
                   {% endif %}
                   </td>
                 {% endfor %}
