@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional, Tuple, Any, Set
 from django.apps import apps
 from django.http import Http404, HttpResponseRedirect
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, FieldDoesNotExist
 from django.views.generic.list import ListView
 from django.views.generic import TemplateView
 from django.db.models import Q, Model, Field
@@ -124,6 +124,13 @@ class VersionsMixin:
 
         return field
 
+    def get_field_or_none(self, field_name: str, model) -> Optional[Field]:
+        try:
+            field = self.get_field(field_name, model)
+        except FieldDoesNotExist:
+            field = None
+        return field
+
     def get_user_friendly_field_name(self, field: str, model) -> str:
         # If the field ends with _set we want to remove it, so we can look it up in the _meta.
         fieldobj = self.get_field(field, model)
@@ -242,21 +249,22 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         for name, data in version_data.items():
             # If field name isnt excluded or we are not excluding
             if name not in self.excluded_fields or not exclude:
-                field: Field = self.get_field(name, model)
-                # If field is subserialized
-                if type(data) == list and field.is_relation:
-                    sub_field_data = []
-                    submodel = field.related_model
-                    # Recursively resolve sub dicts
-                    for subdata in data:
-                        if type(subdata) == dict:
-                            sub_field_data.append(
-                                self.get_field_data(subdata, submodel, self.excluded_subfields)
-                            )
-                    # Add back as a list
-                    field_data[name] = (field, sub_field_data)
-                else:
-                    field_data[name] = (field, data)
+                field = self.get_field_or_none(name, model)
+                if field:
+                    # If field is subserialized
+                    if type(data) == list and field.is_relation:
+                        sub_field_data = []
+                        submodel = field.related_model
+                        # Recursively resolve sub dicts
+                        for subdata in data:
+                            if type(subdata) == dict:
+                                sub_field_data.append(
+                                    self.get_field_data(subdata, submodel, self.excluded_subfields)
+                                )
+                        # Add back as a list
+                        field_data[name] = (field, sub_field_data)
+                    else:
+                        field_data[name] = (field, data)
 
         return field_data
 
@@ -279,7 +287,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
     def get_lookup_dict(self, field_data) -> LookupDict:
         lookup = {}
         lookup[MDR._concept._meta.label_lower] = self.get_viewable_concepts(field_data)
-        # Get all customFields since already filtered
+        # Get all custom fields since values already filtered
         lookup[CustomField._meta.label_lower] = CustomField.objects.in_bulk()
         return lookup
 
