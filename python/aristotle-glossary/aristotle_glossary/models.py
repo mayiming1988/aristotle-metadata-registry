@@ -52,6 +52,7 @@ def reindex_metadata_item(item):
         return
 
     import lxml.html
+    from lxml import etree
 
     fields = [
         field.value_from_object(item)
@@ -64,19 +65,20 @@ def reindex_metadata_item(item):
         if cv.is_html
     ]
 
-    item.related_glossary_items.clear()
-    related_list = []
+    links = etree.XPath("//a[@data-aristotle-concept-id]")
+    glossary_ids = []
     for field in fields + custom_fields:
         if 'data-aristotle-concept-id' in field:
             doc = lxml.html.fragment_fromstring(field, create_parent=True)
-            links = doc.xpath('.//a')
+            # links = find(doc)
 
-            glossary_ids = [
+            glossary_ids.extend([
                 link.get('data-aristotle-concept-id')
-                for link in links
-                if link.get('data-aristotle-concept-id')
-            ]
-            item.related_glossary_items = GlossaryItem.objects.filter(pk__in=glossary_ids) 
-            related_list = list(item.related_glossary_items.values_list("pk", flat=True))
+                for link in links(doc)
+            ])
+
+    item.related_glossary_items.set(
+        GlossaryItem.objects.filter(pk__in=glossary_ids), clear=True
+    )
 
     return item.related_glossary_items.all()
