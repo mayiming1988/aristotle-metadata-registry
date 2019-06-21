@@ -2,17 +2,17 @@
 
 <h1>{{ field.heading }}</h1>
 {% if field.is_group %}
-    {% if field.subfields %}
+    {% if field.sub_fields %}
         <table class="table">
             <thead>
               <tr>
-                {% for subfield in field.subfields.0 %}
-                  <th>{{ subfield.heading }}</th>
+                {% for sub_heading in field.headings %}
+                  <th>{{ sub_heading }}</th>
                 {% endfor %}
               </tr>
             </thead>
             <tbody>
-              {% for flist in field.subfields %}
+              {% for flist in field.sub_fields %}
                 <tr>
                 {% for subfield in flist %}
                   {% comment %}
@@ -20,8 +20,8 @@
                   not needed right now since depth is only 1
                   {% endcomment %}
                   <td>
-                  {% if subfield.is_link %}
-                    <a href="{{ field.url }}">{{ field }}<span class="text-danger">*</span></a>
+                  {% if subfield.is_link and subfield.url %}
+                      <a href="{{ subfield.url }}">{{ subfield }}<span class="text-danger">*</span></a>
                   {% else %}
                       {{ subfield }}
                   {% endif %}
@@ -32,14 +32,10 @@
             </tbody>
         </table>
     {% else %}
-        <p>Empty</p>
+      <p>{{ field.empty_text }}</p>
     {% endif %}
-{% elif field.is_link %}
+{% elif field.is_link and field.url %}
     <a href="{{ field.url }}">{{ field }}<span class="text-danger">*</span></a>
 {% else %}
-    {% if field.is_html %}
-        {{ field|as_str|bleach }}
-    {% else %}
-        {{ field }}
-    {% endif %}
+    {{ field }}
 {% endif %}
