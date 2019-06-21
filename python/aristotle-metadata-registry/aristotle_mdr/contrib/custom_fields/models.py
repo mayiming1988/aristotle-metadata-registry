@@ -40,7 +40,7 @@ class CustomField(TimeStampedModel):
         ordering = ['order']
 
     def __str__(self):
-        return self.name
+        return "CustomField with name: {} and allowed_model: {}".format(self.name, self.allowed_model)
 
     @property
     def hr_type(self):
