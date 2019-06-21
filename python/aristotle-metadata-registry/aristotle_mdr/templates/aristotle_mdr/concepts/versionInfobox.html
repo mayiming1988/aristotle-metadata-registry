@@ -7,9 +7,9 @@
     <dt>UUID</dt>
     <dd><span title='{{ item.uuid }}'>{{ item.uuid }}</span></dd>
     <dt>{% trans 'Version Created' %}</dt>
-    <dd>{{ revision.date_created|date:'o-m-d H:i e' }}</dd>
+    <dd>{% timetag revision.date_created %}</dd>
     <dt>{% trans 'Item Created' %}</dt>
-    <dd><time title="{{ item.created|date:'o-m-d' }}" datetime="{{ item.created|isotime }}">{{ item.created|date:'o-m-d' }}</time></dd>
+    <dd>{% timetag item.created %}</dd>
     <dt>{% trans 'Workgroup' %}</dt>
     <dd>
       {% if item.workgroup %}

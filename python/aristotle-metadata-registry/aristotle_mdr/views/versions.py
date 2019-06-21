@@ -5,7 +5,6 @@ from django.core.exceptions import PermissionDenied, FieldDoesNotExist
 from django.views.generic.list import ListView
 from django.views.generic import TemplateView
 from django.db.models import Q, Model, Field
-from django.utils.dateparse import parse_datetime
 from django.urls import reverse
 from django.core.exceptions import FieldDoesNotExist
 from django.shortcuts import get_object_or_404
@@ -361,7 +360,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
             'uuid': self.version_dict.get('uuid', ''),
             'name': self.version_dict.get('name', ''),
             'get_verbose_name': self.version.content_type.name.title(),
-            'created': parse_datetime(self.version_dict['created']),
+            'created': self.version_dict['created'],
         })
 
         return context
