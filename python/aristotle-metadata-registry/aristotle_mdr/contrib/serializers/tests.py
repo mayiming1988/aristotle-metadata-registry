@@ -16,27 +16,36 @@ class SerializerTestCase(utils.AristotleTestUtils, TestCase):
         import aristotle_dse.models as DSE
         super().setUp()
 
+        self.object_class = MDR.ObjectClass.objects.create(
+            name='Person',
+            definition='A human being',
+            submitter=self.editor
+        )
+
+        self.data_element = MDR.DataElement.objects.create(
+            name='Data Element',
+            definition='This is a data element'
+        )
+
+        self.custom_field = CustomField.objects.create(
+            order=1,
+            name='A Custom Field',
+            type=TYPE_CHOICES.str
+        )
+
+        self.custom_value = CustomValue.objects.create(
+            field=self.custom_field,
+            concept=self.object_class,
+            content="Custom values"
+        )
+
         aristotle_settings = settings.ARISTOTLE_SETTINGS
-
         aristotle_settings['CONTENT_EXTENSIONS'].append('aristotle_dse')
-
         with override_settings(ARISTOTLE_SETTINGS=aristotle_settings):
-
-            self.object_class = MDR.ObjectClass.objects.create(
-                name='Person',
-                definition='A human being',
-                submitter=self.editor
-            )
-
             self.data_set_specification = DSE.DataSetSpecification.objects.create(
                 name='Person DSS',
                 definition='A data set specification about people',
                 submitter=self.editor
-            )
-
-            self.data_element = MDR.DataElement.objects.create(
-                name='Data Element',
-                definition='This is a data element'
             )
 
             self.dss_de_inclusion = DSE.DSSDEInclusion(
@@ -45,19 +54,6 @@ class SerializerTestCase(utils.AristotleTestUtils, TestCase):
                 conditional_obligation="Conditional",
                 order=1,
                 dss=self.data_set_specification
-
-            )
-
-            self.custom_field = CustomField.objects.create(
-                order=1,
-                name='A Custom Field',
-                type=TYPE_CHOICES.str
-            )
-
-            self.custom_value = CustomValue.objects.create(
-                field=self.custom_field,
-                concept=self.object_class,
-                content="Custom values"
             )
 
     def create_version(self):
