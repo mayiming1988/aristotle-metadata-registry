@@ -250,7 +250,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         field_data = {}
         for name, data in version_data.items():
             # If field name isnt excluded or we are not excluding
-            if name not in self.excluded_fields or not exclude:
+            if name not in exclude or not exclude:
                 field = self.get_field_or_none(name, model)
                 if field:
                     # If field is subserialized
