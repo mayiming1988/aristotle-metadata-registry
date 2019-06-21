@@ -11,7 +11,6 @@ from django.core.exceptions import FieldDoesNotExist
 from django.shortcuts import get_object_or_404
 
 from aristotle_mdr import models as MDR
-from aristotle_mdr.views.views import ConceptRenderView
 from aristotle_mdr.perms import user_can_view, user_can_edit
 from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
 from aristotle_mdr.views.utils import SimpleItemGet
@@ -235,11 +234,11 @@ class VersionLinkField(VersionField):
         return ''
 
 
-class ConceptVersionView(VersionsMixin, ConceptRenderView):
+class ConceptVersionView(VersionsMixin, TemplateView):
     """ Display the version of a concept at a particular point"""
-    slug_redirect = False
-    version_arg = 'verid'
+
     template_name = 'aristotle_mdr/concepts/managedContentVersion.html'
+    version_arg = 'verid'
     # Top level fields to exclude
     excluded_fields = ['id', 'uuid', 'name', 'version', 'submitter', 'created', 'modified', 'serialized_model']
     # Excluded fields on subserialized items
@@ -248,6 +247,7 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
     def dispatch(self, request, *args, **kwargs):
         self.version = self.get_version()
         self.model = self.version.content_type.model_class()
+        self.item = self.get_item(self.version)
 
         # Check it's a concept version
         if not issubclass(self.model, MDR._concept):
@@ -259,28 +259,39 @@ class ConceptVersionView(VersionsMixin, ConceptRenderView):
         except VersionPermissions.DoesNotExist:
             self.version_permission = None
 
-        # Deserialize version data
-        try:
-            self.version_dict = json.loads(self.version.serialized_data)
-        except json.JSONDecodeError:
-            # Handle bad serialized data
-            raise Http404
+        # Check if version can be viewed
+        if not self.check_item(self.item, self.version_permission):
+            raise PermissionDenied
 
-        self.html_custom_field_ids = self.get_html_custom_field_ids()
+        # Deserialize version data
+        self.version_dict = self.get_version_data(self.version.serialized_data, self.item)
+
+        # Fetch html custom field ids
+        self.html_custom_field_ids: Set[int] = self.get_html_custom_field_ids()
 
         return super().dispatch(request, *args, **kwargs)
 
-    def check_item(self, item):
+    def check_item(self, item, version_permission):
         # Will 403 Forbidden when user can't view the version
-        return self.user_can_view_version(item, self.version_permission)
+        return self.user_can_view_version(item, version_permission)
 
-    def get_item(self):
+    def get_item(self, version):
         # Gets the current item
-        return self.version.object
+        return version.object
 
     def get_version(self) -> reversion.models.Version:
         # Get the version objet
         return get_object_or_404(reversion.models.Version, id=self.kwargs[self.version_arg])
+
+    def get_version_data(self, version_json: str, item: MDR._concept):
+        version_dict = {}
+        try:
+            version_dict = json.loads(version_json)
+        except json.JSONDecodeError:
+            # Handle bad serialized data
+            raise Http404
+
+        return self.remove_disallowed_custom_fields(version_dict, item)
 
     def is_concept_fk(self, field):
         return field.many_to_one and issubclass(field.related_model, MDR._concept)
