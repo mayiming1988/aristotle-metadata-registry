@@ -21,10 +21,12 @@ from aristotle_mdr.widgets.bootstrap import (
     BootstrapDropdownSelectMultiple,
     BootstrapDropdownIntelligentDate,
     BootstrapDropdownSelect,
-    BootstrapDateTimePicker
+    BootstrapDateTimePicker,
+    BootstrapDropdownSearchCategoriesSelect
 )
 
 from aristotle_mdr.utils import fetch_metadata_apps
+from aristotle_mdr.search_indexes import SEARCH_CATEGORIES
 
 import logging
 logger = logging.getLogger(__name__)
@@ -444,6 +446,11 @@ class PermissionSearchForm(TokenSearchForm):
         required=False,
         label="Only show items in my workgroups"
     )
+    category = forms.ChoiceField(
+        choices=SEARCH_CATEGORIES,
+        required=False, label=_('Categories'),
+        widget=BootstrapDropdownSelect
+    )
     models = forms.MultipleChoiceField(
         choices=[],  # model_choices(),
         required=False, label=_('Item type'),
@@ -535,6 +542,7 @@ class PermissionSearchForm(TokenSearchForm):
         states = self.cleaned_data.get('state', None)
         ras = self.cleaned_data.get('ra', None)
         restriction = self.cleaned_data['res']
+        search_category = self.cleaned_data['category']
         workgroup = self.cleaned_data.get('wg', None)
         stewardship_organisation = self.cleaned_data.get('sa', None)
 
@@ -542,6 +550,9 @@ class PermissionSearchForm(TokenSearchForm):
         sqs = sqs.apply_registration_status_filters(states, ras)
         if restriction:
             sqs = sqs.filter(restriction=restriction)
+
+        if search_category != SEARCH_CATEGORIES.all:
+            sqs = sqs.filter(category=search_category)
 
         sqs = self.apply_date_filtering(sqs)
         sqs = sqs.apply_permission_checks(
