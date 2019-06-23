@@ -192,15 +192,12 @@ $('.rpp').click(function() {
 
 
 $(document).ready(function() {
-    var cat_map = JSON.parse(document.getElementById('search-category-map').textContent);
     $('.category_selector li input').on('click', function() {
         var cat_map = JSON.parse(document.getElementById('search-category-map').textContent);
-        console.log(this.value);
-        console.log(cat_map[this.value])
 
-        $('ul#id_models li').each(function(i) {
+        $('ul#id_models li').each(function() {
             $(this).hide()
-            $(this).find("input").each(function(i) {
+            $(this).find("input").each(function() {
                 $(this).prop('checked', false);
             })
         });
