@@ -502,19 +502,10 @@ class CreationOfVersionTests(utils.AristotleTestUtils, TestCase):
         self.assertEqual(object_class.name, updated_name)
 
         # Load the version
-        version = Version.objects.get_for_object(
-            object_class).first()
+        version = Version.objects.get_for_object(object_class).first()
 
         # Load the associated VersionPermission object
         version_permission = VersionPermissions.objects.get_object_or_none(version=version)
 
         # Check that it defaults to 2
         self.assertEqual(version_permission.visibility, VISIBILITY_PERMISSION_CHOICES.workgroup)
-
-
-
-
-
-
-
-
