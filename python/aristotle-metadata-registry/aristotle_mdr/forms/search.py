@@ -551,7 +551,7 @@ class PermissionSearchForm(TokenSearchForm):
         if restriction:
             sqs = sqs.filter(restriction=restriction)
 
-        if search_category != SEARCH_CATEGORIES.all:
+        if search_category and search_category != SEARCH_CATEGORIES.all:
             sqs = sqs.filter(category=search_category)
 
         sqs = self.apply_date_filtering(sqs)
