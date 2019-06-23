@@ -658,7 +658,7 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
         earlier_json = self.remove_disallowed_custom_fields(self.request.user, earlier_json, self.concept)
         later_json = self.remove_disallowed_custom_fields(self.request.user, later_json, self.concept)
 
-        raw = self.request.GET.gemlt('raw')
+        raw = self.request.GET.get('raw')
         if raw:
             self.context['raw'] = True
             self.context['diffs'] = self.generate_diff(earlier_json, later_json, raw=True)
