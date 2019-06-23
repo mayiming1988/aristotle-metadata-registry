@@ -119,7 +119,7 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
             status_code=200
         )
 
-        mock_task_creator.assert_called_once_with('fake', [self.item.id], None, {})
+        mock_task_creator.assert_called_once_with('fake', [self.item.id], None, {'CURRENT_HOST': 'http://testserver'})
 
     @patch('aristotle_mdr.views.downloads.download.delay')
     def test_bulk_download_view_starts_task(self, mock_task_creator):
@@ -130,7 +130,7 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 200)
 
         id_list = [self.item.id, self.item2.id, self.item3.id]
-        mock_task_creator.assert_called_once_with('fake', id_list, None, {})
+        mock_task_creator.assert_called_once_with('fake', id_list, None, {'CURRENT_HOST': 'http://testserver'})
 
     def test_download_404_when_invalid_type(self):
         self.reverse_get(
@@ -144,7 +144,8 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
         self.setupFakeTaskCreator(mock_task_creator)
         options = {
             'include_supporting': True,
-            'email_copy': True
+            'email_copy': True,
+            'CURRENT_HOST': 'http://testserver',
         }
 
         session = self.client.session
