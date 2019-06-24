@@ -330,6 +330,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
                 sub_fields: List[List[VersionField]] = []
                 for subdata in data:
                     if type(subdata) == dict:
+                        # If dict item was sub-serialized. Make recursive call
                         sub_fields.append(
                             self.get_version_fields(subdata, items)
                         )
