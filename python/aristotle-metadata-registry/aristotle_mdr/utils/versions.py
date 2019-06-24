@@ -72,28 +72,31 @@ class VersionLinkField(VersionField):
             return reverse('aristotle:item', args=[self.obj.id])
         return ''
 
+    @property
+    def obj_name(self):
+        if self.obj:
+            if hasattr(self.obj, 'name'):
+                return self.obj.name
+            else:
+                return str(self.obj)
+        return ''
+
     def __str__(self):
         if self.id is not None:
             if self.obj:
                 url = self.url
                 # Get a nice name for object
-                name: str
-                if hasattr(self.obj, 'name'):
-                    name = self.obj.name
-                else:
-                    name = str(self.obj)
-
                 if url:
                     # Build link
                     return format_html(
                         '<a href="{url}">{name}</a> <span class="text-danger">*</span>',
                         url=url,
-                        name=name
+                        name=self.obj_name
                     )
 
                 else:
                     # Return plain name
-                    return name
+                    return self.obj_name
             else:
                 # If field is set but object is None no perm
                 return self.perm_message

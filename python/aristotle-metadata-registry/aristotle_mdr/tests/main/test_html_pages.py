@@ -2600,7 +2600,7 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
         cfield = fields['Data Element Concept']
 
         self.assertTrue(cfield.is_link)
-        self.assertEqual(str(cfield), self.item1.dataElementConcept.name)
+        self.assertEqual(cfield.obj_name, self.item1.dataElementConcept.name)
         self.assertEqual(cfield.id, self.item1.dataElementConcept.id)
 
     @tag('version')
@@ -2639,7 +2639,7 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
         cfield = fields['Data Element Concept']
 
         self.assertTrue(cfield.is_link)
-        self.assertEqual(str(cfield), self.item1.dataElementConcept.name)
+        self.assertEqual(cfield.obj_name, self.item1.dataElementConcept.name)
         self.assertEqual(cfield.id, self.item1.dataElementConcept.id)
 
     @tag('version')
