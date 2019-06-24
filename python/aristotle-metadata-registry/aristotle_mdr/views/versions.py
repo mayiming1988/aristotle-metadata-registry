@@ -17,7 +17,7 @@ from aristotle_mdr.utils.utils import strip_tags
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.contrib.custom_fields.models import CustomField
-from aristotle_mdr.utils.versions import VersionField, VersionLinkField, VersionGroupField
+from aristotle_mdr.utils.versions import VersionField, VersionLinkField, VersionGroupField, VersionMultiLinkField
 
 from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
 import json
@@ -329,6 +329,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
             elif type(data) == list:
                 # If field groups other items get their fields
                 sub_fields: List[List[VersionField]] = []
+                sub_links: List[VersionLinkField] = []
                 for subdata in data:
                     if type(subdata) == dict:
                         # If dict item was sub-serialized. Make recursive call
@@ -337,13 +338,19 @@ class ConceptVersionView(VersionsMixin, TemplateView):
                         )
                     elif type(subdata) == int:
                         # If list has an int, assume id and add link field
-                        sub_fields.append(
+                        sub_links.append(
                             VersionLinkField(self.get_verbose_name(field), subdata, lookup.get(subdata, None))
                         )
-                # Add group field
-                fields.append(
-                    VersionGroupField(self.get_verbose_name(field), sub_fields)
-                )
+
+                # Group field take priority if there were both (this shouldnt happen though)
+                if len(sub_fields) == 0 and len(sub_links) > 0:
+                    fields.append(
+                        VersionMultiLinkField(self.get_verbose_name(field), sub_links)
+                    )
+                else:
+                    fields.append(
+                        VersionGroupField(self.get_verbose_name(field), sub_fields)
+                    )
             else:
                 # If not foreign key or group
                 is_html: bool

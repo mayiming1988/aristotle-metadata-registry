@@ -102,7 +102,7 @@ class VersionLinkField(VersionField):
 
 
 class VersionGroupField(VersionField):
-    """Field with groups of subfields"""
+    """Field with groups of subfields (used for subserialized items)"""
 
     empty_text = 'Empty'
     link = False
@@ -129,8 +129,26 @@ class VersionGroupField(VersionField):
         return headings
 
     def __str__(self):
+        if len(self.sub_fields) > 0:
+            return '{} items'.format(len(self.sub_fields))
+        return self.empty_text
+
+
+class VersionMultiLinkField(VersionField):
+    """Field containing a group of link fields (used for reverse fk or m2m)"""
+
+    empty_text = 'Empty'
+    link = True
+    group = False
+    html = False
+
+    def __init__(self, fname, sub_links: List[VersionLinkField]):
+        self.fname = fname
+        self.sub_links = sub_links
+
+    def __str__(self):
         # Get str of sub fields
-        sub_strings = [str(f) for f in self.sub_fields]
+        sub_strings = [str(f) for f in self.sub_links]
         result = ', '.join(sub_strings)
 
         if result:
