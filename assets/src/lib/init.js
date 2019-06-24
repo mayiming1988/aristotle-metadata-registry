@@ -99,11 +99,23 @@ export function initModalScrap() {
     })
 }
 
+
+export function initSearchBar() {
+    // Needs to be run on document ready
+    $(document).ready(function() {
+        $('.category_selector li').on('click', function() {
+            document.getElementById('category-button-face').innerText = this.innerText
+        });
+    })
+}
+
+
 // This should be run on most pages
 export function initCore() {
     initNotifications()
     initMessages()
     initTime()
+    initSearchBar()
 }
 
 // Init all function, only use if the page actually needs all this

@@ -1,5 +1,5 @@
 {% extends 'aristotle_mdr/base.html' %}
-{% load i18n %}
+{% load i18n util_tags %}
 {% load humanize %}
 {% load bootstrap3 %}
 {% load static from staticfiles %}
@@ -17,20 +17,18 @@
 {% block header %}
     {% include 'aristotle_mdr/header.html' with hide_search=True %}
 {% endblock %}
+
+{% block extra_head_scripts %}
+    {{ category_map|json_script:"search-category-map" }}
+{% endblock %}
+
+
 {% block title %}{% trans "Search" %}{% if query %} {% trans "results" context 'Search results' %} - {{ query }}{% endif %}{% endblock %}
 {% block content %}
     <form method="get" class="row" id="search_form"> {# open main_search_form #}
         <div id="searchbar" class="row">
             <div class="col-sm-8 col-sm-offset-2">
-                <div class="input-group">
-                    <input type="text" class="form-control" value="{% ternary form.q.value form.q.value "" %}" name="q"
-                           accesskey="q">
-                    <span class="input-group-btn">
-                    <button class="btn btn-primary" type="submit">
-                        {% trans "Search" %} {% bootstrap_icon "search" %}
-                    </button>
-                    </span>
-                </div>
+                {% include "search/search_bar.html" with search_page=True %}
             </div>
         </div>
         <div id="userSearchTools" class="row text-center">
@@ -106,7 +104,7 @@
                                 {% trans 'Modified' context 'Modified date' %} <span class="caret"></span>
                                 <small class="details"></small>
                             </a>
-                            <ul class="dropdown-menu" role="menu">
+                            <ul class="dropdown-menu fancy_checkbox_list" role="menu">
                                 {{ form.mq }}
                                 <li role="presentation" class="divider"></li>
                                 <li role="presentation">
@@ -126,7 +124,7 @@
                                 {% trans 'Created' context 'Created date' %} <span class="caret"></span>
                                 <small class="details"></small>
                             </a>
-                            <ul class="dropdown-menu" role="menu">
+                            <ul class="dropdown-menu fancy_checkbox_list" role="menu">
                                 {{ form.cq }}
                                 <li role="presentation" class="divider"></li>
                                 <li role="presentation">

@@ -1,14 +1,17 @@
 import haystack.indexes as indexes
 
-import aristotle_mdr.models as models
-import aristotle_mdr.contrib.stewards.models as contrib_models
 from django.db.models import Q
 from django.template import TemplateDoesNotExist, loader
-from django.utils import timezone
 from django.template import loader
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
+
+from model_utils import Choices
 
 from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
+import aristotle_mdr.contrib.stewards.models as contrib_models
 from aristotle_mdr.constants import visibility_permission_choices
+import aristotle_mdr.models as models
 
 import logging
 logger = logging.getLogger(__name__)
@@ -27,6 +30,16 @@ RESTRICTION.update([(v, k) for k, v in BASE_RESTRICTION.items()])
 
 registered_indexes: list = []
 
+SEARCH_CATEGORIES = Choices(
+    ('all', _("All")),
+    ('collaboration', _("Issues & Discussions")),
+    ('data', _("Data")),
+    ('help', _("Help")),
+    ('metadata', _("Metadata")),
+    ('references', _("References")),
+    # ('other', _("Other")),
+)
+
 
 class ConceptFallbackCharField(indexes.CharField):
     def prepare_template(self, obj):
@@ -40,6 +53,7 @@ class ConceptFallbackCharField(indexes.CharField):
 
 class BaseObjectIndex(indexes.SearchIndex):
     text = indexes.CharField(document=True, use_template=True)
+    category = indexes.CharField()
     modified = indexes.DateTimeField(model_attr='modified')
     created = indexes.DateTimeField(model_attr='created')
     name = indexes.CharField(model_attr='name', boost=1)
@@ -54,9 +68,13 @@ class BaseObjectIndex(indexes.SearchIndex):
     rendered_search_result = indexes.CharField(indexed=False)
 
     badge_template_name = "search/badges/base.html"
+    search_category = SEARCH_CATEGORIES.all
 
     def prepare_django_ct_app_label(self, obj):
         return obj._meta.app_label
+
+    def prepare_category(self, obj):
+        return self.search_category
 
     def prepare_rendered_badge(self, obj):
         t = loader.get_template(self.badge_template_name)
@@ -101,6 +119,7 @@ class ConceptIndex(BaseObjectIndex):
     badge_template_name = "search/badges/metadata.html"
 
     rendered_badge = indexes.CharField(indexed=False)
+    search_category = SEARCH_CATEGORIES.metadata
 
     # Preparation functions for conceptIndex
 
@@ -188,6 +207,7 @@ class DiscussionIndex(BaseObjectIndex, indexes.Indexable):
     rendered_search_result = indexes.CharField(indexed=False)
 
     template_name = "search/searchDiscussion.html"
+    search_category = SEARCH_CATEGORIES.collaboration
 
     def prepare_rendered_search_result(self, discussion_post):
         """
@@ -219,6 +239,7 @@ class CollectionIndex(BaseObjectIndex, indexes.Indexable):
 
     rendered_search_result = indexes.CharField(indexed=False)
     template_name = "search/searchCollection.html"
+    search_category = SEARCH_CATEGORIES.references
 
     def get_model(self):
         return contrib_models.Collection
