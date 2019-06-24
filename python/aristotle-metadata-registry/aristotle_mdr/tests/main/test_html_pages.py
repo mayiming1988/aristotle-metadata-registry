@@ -1956,7 +1956,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertEqual(dfn_field.value, old_definition)
 
     @tag('download')
-    @override_settings(ARISTOTLE_SETTINGS={'DOWNLOADERS': ['aristotle_mdr.downloaders.HTMLDownloader']})
+    @override_settings(ARISTOTLE_SETTINGS={"DOWNLOAD_OPTIONS": {'DOWNLOADERS': ['aristotle_mdr.downloaders.HTMLDownloader']}})
     def test_download_content(self):
         downloader = HTMLDownloader([self.item1.id], self.editor.id, {})
         html = downloader.get_html().decode()

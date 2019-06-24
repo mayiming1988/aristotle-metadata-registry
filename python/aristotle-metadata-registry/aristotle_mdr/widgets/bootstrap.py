@@ -27,6 +27,12 @@ class BootstrapDropdownSelectMultiple(CheckboxSelectMultiple):
     option_template_name = 'search/forms/widgets/checkbox_option.html'
 
 
+class BootstrapDropdownSearchCategoriesSelect(RadioSelect):
+    allow_multiple_selected = True
+    template_name = "search/forms/widgets/search_radio.html"
+    option_template_name = 'search/forms/widgets/checkbox_option.html'
+
+
 # Lovingly upgraded from the link below to support Django1.11
 # https://github.com/tutorcruncher/django-bootstrap3-datetimepicker
 
