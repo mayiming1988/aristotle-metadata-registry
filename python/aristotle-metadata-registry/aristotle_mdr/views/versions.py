@@ -181,7 +181,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
     # Top level fields to exclude
     excluded_fields = ['id', 'uuid', 'name', 'version', 'submitter', 'created', 'modified', 'serialized_model']
     # Excluded fields on subserialized items
-    excluded_subfields = ['id']
+    excluded_subfields = ['id', 'group']
 
     def dispatch(self, request, *args, **kwargs):
         self.version = self.get_version()
@@ -238,6 +238,10 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         """Check whether field is a foreign key to a concept"""
         return field.many_to_one and issubclass(field.related_model, MDR._concept)
 
+    def is_concept_multiple(self, field):
+        """Check whether field is a link to multiple concepts"""
+        return (field.many_to_many or field.one_to_many) and issubclass(field.related_model, MDR._concept)
+
     def is_link_field(self, field) -> bool:
         """Check whether field is a foreign key to an item we want to display lookup value for"""
         if field.many_to_one:
@@ -260,9 +264,13 @@ class ConceptVersionView(VersionsMixin, TemplateView):
                         # Recursively resolve sub dicts
                         for subdata in data:
                             if type(subdata) == dict:
+                                # If subdata is dict item was subserialized
                                 sub_field_data.append(
                                     self.get_field_data(subdata, submodel, self.excluded_subfields)
                                 )
+                            else:
+                                # If subdata is not a dict add it directly
+                                sub_field_data.append(subdata)
                         # Add back as a list
                         field_data[name] = (field, sub_field_data)
                     else:
@@ -278,11 +286,18 @@ class ConceptVersionView(VersionsMixin, TemplateView):
             if self.is_concept_fk(field):
                 ids.append(data)
 
+            # If reverse fk or many to many of concept
+            if self.is_concept_multiple(field) and type(data) == list:
+                ids.extend(data)
+
             if type(data) == list:
                 for subdata in data:
-                    for subfield, subvalue in subdata.values():
-                        if self.is_concept_fk(subfield):
-                            ids.append(subvalue)
+                    if type(subdata) == dict:
+                        for subfield, subvalue in subdata.values():
+                            if self.is_concept_fk(subfield):
+                                ids.append(subvalue)
+                            elif self.is_concept_multiple(subfield) and type(subvalue) == list:
+                                ids.extend(subvalue)
 
         return MDR._concept.objects.filter(id__in=ids).visible(self.request.user).in_bulk()
 
@@ -297,12 +312,15 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         """Get a list of VersionField objects to render"""
         fields: List[VersionField] = []
         for field, data in field_data.values():
-            if self.is_link_field(field):
-                # Get lookup dict for model this field links to
+            # Get lookup dict for specific model this field links to (if required)
+            lookup: Dict = {}
+            if field.is_relation:
                 related = field.related_model
                 if issubclass(related, MDR._concept):
                     related = MDR._concept
-                lookup: Dict = items.get(related._meta.label_lower, {})
+                lookup = items.get(related._meta.label_lower, {})
+
+            if self.is_link_field(field):
                 # Add version link field for this data
                 fields.append(
                     VersionLinkField(self.get_verbose_name(field), data, lookup.get(data, None))
@@ -311,9 +329,15 @@ class ConceptVersionView(VersionsMixin, TemplateView):
                 # If field groups other items get their fields
                 sub_fields: List[List[VersionField]] = []
                 for subdata in data:
-                    sub_fields.append(
-                        self.get_version_fields(subdata, items)
-                    )
+                    if type(subdata) == dict:
+                        sub_fields.append(
+                            self.get_version_fields(subdata, items)
+                        )
+                    elif type(subdata) == int:
+                        # If list has an int, assume id and add link field
+                        sub_fields.append(
+                            VersionLinkField(self.get_verbose_name(field), subdata, lookup.get(subdata, None))
+                        )
                 # Add group field
                 fields.append(
                     VersionGroupField(self.get_verbose_name(field), sub_fields)
