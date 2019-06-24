@@ -1,5 +1,6 @@
 from typing import List, Optional, Any
 from django.urls import reverse
+from django.utils.html import format_html
 
 from aristotle_mdr.templatetags.util_tags import bleach_filter
 from aristotle_mdr.models import _concept
@@ -74,10 +75,25 @@ class VersionLinkField(VersionField):
     def __str__(self):
         if self.id is not None:
             if self.obj:
+                url = self.url
                 # Get a nice name for object
+                name: str
                 if hasattr(self.obj, 'name'):
-                    return self.obj.name
-                return str(self.obj)
+                    name = self.obj.name
+                else:
+                    name = str(self.obj)
+
+                if url:
+                    # Build link
+                    return format_html(
+                        '<a href="{url}">{name}</a> <span class="text-danger">*</span>',
+                        url=url,
+                        name=name
+                    )
+
+                else:
+                    # Return plain name
+                    return name
             else:
                 # If field is set but object is None no perm
                 return self.perm_message
@@ -86,7 +102,7 @@ class VersionLinkField(VersionField):
 
 
 class VersionGroupField(VersionField):
-    """Field with groups of subfields"""
+    """Field with groups of subfields (used for subserialized items)"""
 
     empty_text = 'Empty'
     link = False
@@ -113,4 +129,31 @@ class VersionGroupField(VersionField):
         return headings
 
     def __str__(self):
-        return '{} sub items'.format(len(self.sub_fields))
+        if len(self.sub_fields) > 0:
+            return '{} items'.format(len(self.sub_fields))
+        return self.empty_text
+
+
+class VersionMultiLinkField(VersionField):
+    """Field containing a group of link fields (used for reverse fk or m2m)"""
+
+    empty_text = 'Empty'
+    link = True
+    group = False
+    html = False
+
+    def __init__(self, fname, sub_links: List[VersionLinkField]):
+        self.fname = fname
+        self.sub_links = sub_links
+
+    def __str__(self):
+        # Get str of sub fields
+        sub_strings = [str(f) for f in self.sub_links]
+        result = ', '.join(sub_strings)
+
+        if result:
+            # Result can contain html links along with user data
+            # so bleaching is required here
+            return bleach_filter(result)
+
+        return self.empty_text
