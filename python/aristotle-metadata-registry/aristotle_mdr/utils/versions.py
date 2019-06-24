@@ -1,5 +1,6 @@
 from typing import List, Optional, Any
 from django.urls import reverse
+from django.utils.html import format_html
 
 from aristotle_mdr.templatetags.util_tags import bleach_filter
 from aristotle_mdr.models import _concept
@@ -74,10 +75,25 @@ class VersionLinkField(VersionField):
     def __str__(self):
         if self.id is not None:
             if self.obj:
+                url = self.url
                 # Get a nice name for object
+                name: str
                 if hasattr(self.obj, 'name'):
-                    return self.obj.name
-                return str(self.obj)
+                    name = self.obj.name
+                else:
+                    name = str(self.obj)
+
+                if url:
+                    # Build link
+                    return format_html(
+                        '<a href="{url}">{name}</a> <span class="text-danger">*</span>',
+                        url=url,
+                        name=name
+                    )
+
+                else:
+                    # Return plain name
+                    return name
             else:
                 # If field is set but object is None no perm
                 return self.perm_message
@@ -118,6 +134,8 @@ class VersionGroupField(VersionField):
         result = ', '.join(sub_strings)
 
         if result:
-            return result
+            # Result can contain html links along with user data
+            # so bleaching is required here
+            return bleach_filter(result)
 
         return self.empty_text
