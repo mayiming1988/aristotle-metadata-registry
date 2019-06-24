@@ -2,9 +2,11 @@ import haystack.indexes as indexes
 
 from aristotle_mdr.contrib.help import models
 from django.utils import timezone
-from aristotle_mdr.search_indexes import RESTRICTION
-
-from aristotle_mdr.search_indexes import BaseObjectIndex
+from aristotle_mdr.search_indexes import (
+    BaseObjectIndex,
+    RESTRICTION,
+    SEARCH_CATEGORIES,
+)
 
 
 class HelpObjectIndex(BaseObjectIndex):
@@ -13,6 +15,7 @@ class HelpObjectIndex(BaseObjectIndex):
     is_public = indexes.BooleanField(model_attr='is_public')
 
     restriction = indexes.IntegerField(faceted=True)
+    search_category = SEARCH_CATEGORIES.help
 
     def get_model(self):
         raise NotImplementedError  # pragma: no cover -- This should always be overridden

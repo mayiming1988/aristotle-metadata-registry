@@ -2,6 +2,7 @@ from django.contrib import admin
 from aristotle_dse import models
 
 from aristotle_mdr.register import register_concept
+from aristotle_mdr.search_indexes import SEARCH_CATEGORIES
 
 
 class DSSDEInclusionInline(admin.TabularInline):
@@ -46,6 +47,7 @@ register_concept(
 
 register_concept(
     models.DataCatalog,
+    search_category=SEARCH_CATEGORIES.data,
     extra_fieldsets=[
         ('Data Source',
             {'fields': ['issued', 'homepage', 'spatial', 'license']}),
@@ -55,6 +57,7 @@ register_concept(
 
 register_concept(
     models.Dataset,
+    search_category=SEARCH_CATEGORIES.data,
     extra_fieldsets=[
         ('Coverage',
             {'fields': ['spatial', 'temporal']}),
@@ -69,6 +72,7 @@ register_concept(
 
 register_concept(
     models.Distribution,
+    search_category=SEARCH_CATEGORIES.data,
     extra_fieldsets=[
         ('File details',
             {'fields': [

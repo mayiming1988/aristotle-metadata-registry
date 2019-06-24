@@ -189,3 +189,26 @@ $('.rpp').click(function() {
     $('#id_rpp').val(new_rpp);
     $('#search_form').submit();
 });
+
+
+$(document).ready(function() {
+    $('.category_selector li input').on('click', function() {
+        var cat_map = JSON.parse(document.getElementById('search-category-map').textContent);
+
+        $('ul#id_models li').each(function() {
+            $(this).hide()
+            $(this).find("input").each(function() {
+                $(this).prop('checked', false);
+            })
+        });
+        
+        for (let model of cat_map[this.value]) {
+            $('ul#id_models input[value="'+model+'"]').parent().show();
+        }
+        
+        if (this.value == "all") {
+            $('ul#id_models li').show();
+        }
+        
+    });
+})
