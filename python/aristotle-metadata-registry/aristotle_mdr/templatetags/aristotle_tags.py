@@ -299,16 +299,16 @@ def ternary(condition, a, b):
 @register.filter
 def paginator_range(page, mode):
     page_range = list(page.paginator.page_range)
-    if mode=="start":
+    if mode == "start":
         if page.number <= 5:
             # show 4,5,6 if page is 4, 5,6,7 if page is 5...
             return page_range[:max(5, page.number + 2)]
         else:
             return page_range[:3]
-    if mode=="middle":
-        if page.number > 5 and page.number < page.paginator.num_pages - 5:
+    if mode == "middle":
+        if 5 < page.number < page.paginator.num_pages - 5:
             return page_range[page.number - 3:page.number + 2]
-    if mode=="end":
+    if mode == "end":
         if page.number > page.paginator.num_pages - 5:
             return page_range[-5:]
         else:

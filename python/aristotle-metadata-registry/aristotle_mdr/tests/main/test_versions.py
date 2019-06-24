@@ -337,6 +337,9 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
         # Check the content of the fields
         self.assertEqual(response.context['html_fields'], ['This is an updated DSS Grouping', 'This is a DSS Grouping'])
 
+    def version_comparator_handles_added_fields_on_model(self):
+        pass2
+
 
 class DataElementComparisionTestCase(utils.AristotleTestUtils, TestCase):
     """Class to test the comparision of Value Domain specific fields"""
@@ -499,19 +502,10 @@ class CreationOfVersionTests(utils.AristotleTestUtils, TestCase):
         self.assertEqual(object_class.name, updated_name)
 
         # Load the version
-        version = Version.objects.get_for_object(
-            object_class).first()
+        version = Version.objects.get_for_object(object_class).first()
 
         # Load the associated VersionPermission object
         version_permission = VersionPermissions.objects.get_object_or_none(version=version)
 
         # Check that it defaults to 2
         self.assertEqual(version_permission.visibility, VISIBILITY_PERMISSION_CHOICES.workgroup)
-
-
-
-
-
-
-
-

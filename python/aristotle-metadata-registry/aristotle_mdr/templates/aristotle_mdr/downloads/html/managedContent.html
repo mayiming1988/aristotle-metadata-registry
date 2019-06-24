@@ -2,153 +2,153 @@
 {% load i18n aristotle_tags aristotle_help util_tags %}
 
 {% block title %}
-{% if options.title %}
-  {{ options.title }}
-{% else %}
-  {{ item.name }} {% if item.status %}({{item.status}}){% endif %}
-{% endif %}
+    {% if options.title %}
+        {{ options.title }}
+    {% else %}
+        {{ item.name }} {% if item.status %}({{item.status}}){% endif %}
+    {% endif %}
 {% endblock %}
 
 {% block content %}
-<section style="page-break-after:always;">
-    <header>
-    {% if not tableOfContents and options.title %}
-      {# If there was no table of contents the user submitted title should go here #}
-      <h1>{{ options.title }}</h1>
-    {% else %}
-    <{% firstof header "h1" %} id="objectTitle">
-        {{ item.name }}
-    </{% firstof header "h1" %}>
-    {% endif %}
-  </header>
-  <dl>
-    <dt class="small">
-      {% firstof infobox_identifier_name "Item ID" %}
-    </dt>
-    <dd>
-      {{item.id}}
-      {% if item.version %}v {{item.version}}{% endif %}
-    </dd>
-    <dt>Metadata Type</dt>
-    <dd>{{ item.get_verbose_name }}</dd>
-    <dt>Definition</dt>
-    <dd>
-      <div class="definition">
-        {{ item.definition|bleach }}
-      </div>
-    </dd>
-
-    {% if item.references %}
-    <dt>References</dt>
-    <dd>{{ item.references|bleach }}</dd>
-    {% endif %}
-
-    {% if item.origin %}
-    <dt>Origin</dt>
-    <dd>{{ item.origin|bleach }}</dd>
-    {% endif %}
-
-    {% if item.comments %}
-    <dt>Comments</dt>
-    <dd>{{ item.comments|bleach }}</dd>
-    {% endif %}
-    
-    <dt>{% trans 'Endorsed by' %}</dt>
-    <dd>
-      <div class="">
-          {% include "aristotle_mdr/downloads/html/helpers/statuses.html" with statuses=item.current_statuses only %}
-      </div>
-    </dd>
-    <dt>Supersedes</dt>
-    <dd>
-      <ul>
-          {# This is inefficient - % for suprel in item.superseded_items_relation_set.all %#}
-          {% for suprel in item|visible_supersedes_items:user %}
-              <li>
-                  <a href="{% url 'aristotle:item' iid=suprel.older_item.id %}">
-                      {{ suprel.older_item.name }}
-                  </a>
-                  <ul>
-                      {% for rel in suprel.rels %}
-                          <li>
-            <span title="{% trans 'The registration authority that applied this relationship' %}">
-              {{ rel.registration_authority.name }}
-            </span>,
-                              <time datetime="{{ rel.date_effective|isotime }}">{{ rel.date_effective }}</time> -
-                              {{ rel.message }}
-                          </li>
-                      {% endfor %}
-                  </ul>
-              </li>
-          {% empty %}
-              <li><em>{% trans 'None' context 'No older objects' %}</em></li>
-          {% endfor %}
-      </ul>
-    </dd>
-    <dt>Superseded by</dt>
-    <dd>
-      <ul>
-          {% for suprel in item|visible_superseded_by_items:user %}
-              <li>
-                  <a href="{% url 'aristotle:item' iid=suprel.newer_item.id %}">
-                      {{ suprel.newer_item.name }}
-                  </a>
-                  <ul>
-                      {% for rel in suprel.rels %}
-                          <li>
-            <span title="{% trans 'The registration authority that applied this relationship' %}">
-              {{ rel.registration_authority.name }}
-            </span>,
-                              <time datetime="{{ rel.date_effective|isotime }}">{{ rel.date_effective }}</time>
-                              {% if rel.message %} - {{ rel.message }} {% endif %}
-                          </li>
-                      {% endfor %}
-                  </ul>
-              </li>
-          {% empty %}
-              <li><em>{% trans 'None' context 'No newer objects' %}</em></li>
-          {% endfor %}
-      </ul>
-    </dd>
-
-    {% block objSpecific %}
-    {% endblock %}
-
-    {% comment %}  
-    <dt>
-      Related items
-    </dt>
-    <dd>
-    </dd>
-    {% endcomment %}  
-  </dl>
-
-  {% include "aristotle_mdr/downloads/html/slots/slots_display.html" %}
-  {% include "aristotle_mdr/downloads/html/component/custom_fields_display.html" %}
-
-  {% if subitems %}
-      <div style="page-break-before:always">
-
-      {% if is_bulk_download %}
-        <header>Supporting Items</header>
-      {% else %}
-          <h1>Supporting Items</h1>
-      {% endif %}
-
-      {% for l,dict in subitems.items %}
-        <div style="page-break-before:always;">
-            <h2>{{ dict.verbose_name_plural }}</h2>
-            {% if dict.help %}<p>{% relink dict.help 'brief' %}</p>{% endif %}
-            {% for i in dict.items %} 
-                <div id='{{i.id}}'  style="page-break-before:always;">
-                    {% include i|template_path:'html,inline' with item=i header='h3' user=user only %}
+    <section style="page-break-after:always;">
+        <header>
+            {% if not tableOfContents and options.title %}
+                {# If there was no table of contents the user submitted title should go here #}
+                <h1>{{ options.title }}</h1>
+            {% else %}
+                <{% firstof header "h1" %} id="objectTitle">
+                {{ item.name }}
+                </{% firstof header "h1" %}>
+            {% endif %}
+        </header>
+        <dl>
+            <dt class="small">
+                {% firstof infobox_identifier_name "Item ID" %}
+            </dt>
+            <dd>
+                {{item.id}}
+                {% if item.version %}v {{item.version}}{% endif %}
+            </dd>
+            <dt>Metadata Type</dt>
+            <dd>{{ item.get_verbose_name }}</dd>
+            <dt>Definition</dt>
+            <dd>
+                <div class="definition">
+                    {{ item.definition|bleach }}
                 </div>
-            {% endfor %}
-        </div>
-      {% endfor %}
-      </div>
-  {% endif %}
+            </dd>
 
-</section>
+            {% if item.references %}
+                <dt>References</dt>
+                <dd>{{ item.references|bleach }}</dd>
+            {% endif %}
+
+            {% if item.origin %}
+                <dt>Origin</dt>
+                <dd>{{ item.origin|bleach }}</dd>
+            {% endif %}
+
+            {% if item.comments %}
+                <dt>Comments</dt>
+                <dd>{{ item.comments|bleach }}</dd>
+            {% endif %}
+
+            <dt>{% trans 'Endorsed by' %}</dt>
+            <dd>
+                <div class="">
+                    {% include "aristotle_mdr/downloads/html/helpers/statuses.html" with statuses=item.current_statuses only %}
+                </div>
+            </dd>
+            <dt>Supersedes</dt>
+            <dd>
+                <ul>
+                    {# This is inefficient - % for suprel in item.superseded_items_relation_set.all %#}
+                    {% for suprel in item|visible_supersedes_items:user %}
+                        <li>
+                            <a href="{% url 'aristotle:item' iid=suprel.older_item.id %}">
+                                {{ suprel.older_item.name }}
+                            </a>
+                            <ul>
+                                {% for rel in suprel.rels %}
+                                    <li>
+            <span title="{% trans 'The registration authority that applied this relationship' %}">
+              {{ rel.registration_authority.name }}
+            </span>,
+                                        <time datetime="{{ rel.date_effective|isotime }}">{{ rel.date_effective }}</time> -
+                                        {{ rel.message }}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                    {% empty %}
+                        <li><em>{% trans 'None' context 'No older objects' %}</em></li>
+                    {% endfor %}
+                </ul>
+            </dd>
+            <dt>Superseded by</dt>
+            <dd>
+                <ul>
+                    {% for suprel in item|visible_superseded_by_items:user %}
+                        <li>
+                            <a href="{% url 'aristotle:item' iid=suprel.newer_item.id %}">
+                                {{ suprel.newer_item.name }}
+                            </a>
+                            <ul>
+                                {% for rel in suprel.rels %}
+                                    <li>
+            <span title="{% trans 'The registration authority that applied this relationship' %}">
+              {{ rel.registration_authority.name }}
+            </span>,
+                                        <time datetime="{{ rel.date_effective|isotime }}">{{ rel.date_effective }}</time>
+                                        {% if rel.message %} - {{ rel.message }} {% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                    {% empty %}
+                        <li><em>{% trans 'None' context 'No newer objects' %}</em></li>
+                    {% endfor %}
+                </ul>
+            </dd>
+
+            {% block objSpecific %}
+            {% endblock %}
+
+            {% comment %}
+            <dt>
+                Related items
+            </dt>
+            <dd>
+            </dd>
+            {% endcomment %}
+        </dl>
+
+        {% include "aristotle_mdr/downloads/html/slots/slots_display.html" %}
+        {% include "aristotle_mdr/downloads/html/component/custom_fields_display.html" %}
+
+        {% if subitems %}
+            <div style="page-break-before:always">
+
+                {% if is_bulk_download %}
+                    <header>Supporting Items</header>
+                {% else %}
+                    <h1>Supporting Items</h1>
+                {% endif %}
+
+                {% for l,dict in subitems.items %}
+                    <div style="page-break-before:always;">
+                        <h2>{{ dict.verbose_name_plural }}</h2>
+                        {% if dict.help %}<p>{% relink dict.help 'brief' %}</p>{% endif %}
+                        {% for i in dict.items %}
+                            <div id='{{i.id}}'  style="page-break-before:always;">
+                                {% include i|template_path:'html,inline' with item=i header='h3' user=user only %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+    </section>
 
 {% endblock %}

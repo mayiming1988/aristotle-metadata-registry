@@ -229,7 +229,7 @@ class DistributionViewPage(LoggedInViewConceptPages,TestCase):
 
         super().test_weak_editing_in_advanced_editor_dynamic(updating_field='logical_path', default_fields=default_fields)
 
-    @tag('version')
+    @skip("Rewrite of versioning, skipping for now")
     def test_version_display_many_to_many(self):
 
         de = MDR.DataElement.objects.create(
