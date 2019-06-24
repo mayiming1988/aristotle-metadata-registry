@@ -125,7 +125,7 @@ class UtilsTests(TestCase):
         self.assertFalse(field.is_html)
 
         self.assertEqual(field.id, self.oc1.id)
-        self.assertEqual(str(field), self.oc1.name)
+        self.assertEqual(field.obj_name, self.oc1.name)
 
     @tag('version')
     def test_version_field_link_to_none(self):
