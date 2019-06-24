@@ -113,4 +113,11 @@ class VersionGroupField(VersionField):
         return headings
 
     def __str__(self):
-        return '{} sub items'.format(len(self.sub_fields))
+        # Get str of sub fields
+        sub_strings = [str(f) for f in self.sub_fields]
+        result = ', '.join(sub_strings)
+
+        if result:
+            return result
+
+        return self.empty_text
