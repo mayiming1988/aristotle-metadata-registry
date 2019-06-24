@@ -6,8 +6,8 @@ from aristotle_mdr.contrib.aristotle_pdf.downloader import PDFDownloader
 
 
 @override_settings(ARISTOTLE_SETTINGS={
-    'DOWNLOADERS': ['aristotle_mdr.contrib.aristotle_pdf.downloaders.PDFDownloader']}
-)
+    'DOWNLOAD_OPTIONS': {'DOWNLOADERS': ['aristotle_mdr.contrib.aristotle_pdf.downloaders.PDFDownloader']}
+})
 class PDFDownloaderTestCase(AristotleTestUtils, TestCase):
 
     def setUp(self):

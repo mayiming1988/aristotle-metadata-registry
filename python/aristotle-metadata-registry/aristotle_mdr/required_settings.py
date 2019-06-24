@@ -215,7 +215,6 @@ ARISTOTLE_SETTINGS = {
     'INFOBOX_IDENTIFIER_NAME': '',  # Identifier name used in Metadata Infobox Template.
     'SITE_DESCRIPTION': 'About this site',  # 'The main title for the site.'
     'CONTENT_EXTENSIONS': [],
-    'PDF_PAGE_SIZE': 'A4',
     'WORKGROUP_CHANGES': [],  # ['admin'] # or manager or submitter,
     'BULK_ACTIONS': [
         'aristotle_mdr.forms.bulk_actions.AddFavouriteForm',
@@ -241,10 +240,13 @@ ARISTOTLE_SETTINGS = {
             'link': 'create/wizard/aristotle_mdr/dataelementconcept',
         }
     ],
-    "DOWNLOADERS": [
-        'aristotle_mdr.contrib.aristotle_pdf.downloader.PDFDownloader'
-    ],
-
+    "DOWNLOAD_OPTIONS": {
+        'PDF_PAGE_SIZE': 'A4',
+        'COPYRIGHT_PAGE_CONTENT': '',
+        "DOWNLOADERS": [
+            'aristotle_mdr.contrib.aristotle_pdf.downloader.PDFDownloader'
+        ],
+    },
     # These settings aren't active yet.
     # "USER_EMAIL_RESTRICTIONS": None,
     "USER_VISIBILITY": ['owner', 'workgroup_manager', 'registation_authority_manager'],
