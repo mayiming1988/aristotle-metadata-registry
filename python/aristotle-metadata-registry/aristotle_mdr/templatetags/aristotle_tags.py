@@ -549,17 +549,6 @@ def field_help_icon(context, item_or_model, field_name):
     }
 
 
-@register.inclusion_tag('aristotle_mdr_help/helpers/custom_field_icon.html', takes_context=True)
-def custom_field_help_icon(context, item_or_model, custom_field_name):
-    kls = item_or_model.__class__
-    return {
-        'app': kls._meta.app_label,
-        'model_name': kls._meta.model_name,
-        'custom_field_name': custom_field_name,
-        'model_class': kls,
-    }
-
-
 @register.filter()
 def get_field(content_type, field_name):
     return content_type.model_class()._meta.get_field(field_name)

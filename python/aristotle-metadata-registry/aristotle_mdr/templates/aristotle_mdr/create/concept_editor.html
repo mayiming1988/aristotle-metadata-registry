@@ -267,7 +267,7 @@
                         <span>
                             {{ custom_field.label_tag }} {{ custom_field.help_text }}
 {#                            {% custom_field_help_icon model_class custom_field %}#}
-                            {% custom_field_help_icon model_class custom_field.name %}
+                            {% field_help_icon model_class custom_field.label %}
                         </span>
                         {% if custom_field.errors %}
                             <span class="alert alert-danger">
