@@ -159,6 +159,8 @@ urlpatterns=[
     url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/remove/(?P<user_pk>\d+)/?$', views.registrationauthority.RemoveUser.as_view(), name='registrationauthority_member_remove'),
     url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/', views.registrationauthority.RegistrationAuthorityView.as_view(), name='registrationAuthority'),
 
+    url(r'^reportingtool/', views.tools.ReportingTool.as_view(), name='reportingTool'),
+
     url(r'^organization/(?P<iid>\d+)?(?:\/(?P<name_slug>.+))?/?$', views.registrationauthority.organization, name='organization'),
     url(r'^organizations/?$', views.registrationauthority.all_organizations, name='all_organizations'),
     url(r'^registrationauthorities/?$', views.registrationauthority.all_registration_authorities, name='all_registration_authorities'),

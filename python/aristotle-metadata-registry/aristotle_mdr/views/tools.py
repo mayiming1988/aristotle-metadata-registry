@@ -66,3 +66,7 @@ class ConceptRelatedListView(SimpleItemGet, ListView):
         context['item'] = self.item.item
         context['sort'] = self.get_sort()
         return context
+
+
+class ReportingTool(TemplateView):
+    template_name = "aristotle_mdr/concepts/tools/reporting_tool.html"
