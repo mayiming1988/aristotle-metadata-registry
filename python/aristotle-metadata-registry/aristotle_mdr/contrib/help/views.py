@@ -122,12 +122,12 @@ class ConceptFieldHelpView(TemplateView):
         except FieldDoesNotExist:
             # If the field does not exist, then this must be a CustomField...
             from aristotle_mdr.contrib.custom_fields.models import CustomField
-            # custom_field_name = field_name.replace("-", " ")
             try:
                 field = CustomField.objects.get(allowed_model=ct, name=field_name)
                 kwargs.update({
                     'custom_help': field.help_text_long,
-                    'field': field_name
+                    'field': field_name,
+                    'this_is_a_custom_field': True,
                 })
             except CustomField.DoesNotExist:
                 raise Http404
