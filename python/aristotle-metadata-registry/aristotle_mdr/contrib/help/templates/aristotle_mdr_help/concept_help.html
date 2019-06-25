@@ -63,11 +63,13 @@
         <ul>
             {% for field_name, field_help in custom_help.field_help.items %}
                 {% if field_help %}
-                    <li><a href="#field_is_{{field_name}}">
+                    <li>
+                        <a href="#field_is_{{field_name}}">
                         {% with field=custom_help.content_type|get_field:field_name %}
                             {{ field.verbose_name.title }}
                         {% endwith %}
-                    </a></li>
+                        </a>
+                    </li>
                 {% endif %}
             {% endfor %}
         </ul>
@@ -88,4 +90,34 @@
             {% endfor %}
         </dl>
     {% endif %}
+
+    {% if custom_fields %}
+        <h3>Custom Fields</h3>
+        <ul>
+            {% for custom_field in custom_fields %}
+                <li>
+                    <a href="#field_is_{{ custom_field.name }}">
+                        {{ custom_field.name }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+        <dl>
+            {% for custom_field in custom_fields %}
+                <dt id="field_is_{{ custom_field.name }}">
+                    <a href="#field_is_{{ custom_field.name }}">
+                        {{ custom_field.name }}
+                    </a>
+                </dt>
+                <dd>
+                    <div class="well">
+                        {{ custom_field.help_text_long | bleach }}
+                    </div>
+                </dd>
+            {% endfor %}
+        </dl>
+    {% endif %}
+
+
+
 {% endblock %}
