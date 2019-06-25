@@ -22,6 +22,7 @@ from aristotle_mdr.forms.creation_wizards import (
 )
 from aristotle_mdr.tests import utils
 from aristotle_mdr.views import ConceptRenderView
+from aristotle_mdr.utils.versions import VersionLinkField
 from aristotle_mdr.downloader import HTMLDownloader
 import datetime
 from unittest import mock, skip
@@ -347,7 +348,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             submitter=self.editor
         )
 
-        dec = models.DataElementConcept.objects.create(
+        data_element_concept = models.DataElementConcept.objects.create(
             name='Test DEC',
             definition='Just a test',
             objectClass=oc,
@@ -355,7 +356,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             submitter=self.editor
         )
 
-        data = utils.model_to_dict_with_change_time(dec)
+        data = utils.model_to_dict_with_change_time(data_element_concept)
         data.update({
             'definition': 'More than a test',
             'change_comments': 'A change was made'
@@ -369,27 +370,21 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             'aristotle:edit_item',
             data=data,
             status_code=302,
-            reverse_args=[dec.id]
+            reverse_args=[data_element_concept.id]
         )
 
-        dec = models.DataElementConcept.objects.get(pk=dec.pk)
-        self.assertEqual(dec.definition, 'More than a test')
+        data_element_concept = models.DataElementConcept.objects.get(pk=data_element_concept.pk)
+        self.assertEqual(data_element_concept.definition, 'More than a test')
 
-        # Should be 2 version, one for the _concept,
-        # one for the data element concept
-        self.assertEqual(revmodels.Version.objects.count(), 2)
+        # There is only one version being saved right now, on the item
+        self.assertEqual(revmodels.Version.objects.count(), 1)
 
-        concept_ct = ContentType.objects.get_for_model(models._concept)
         dec_ct = ContentType.objects.get_for_model(models.DataElementConcept)
 
-        concept_version = revmodels.Version.objects.get(content_type=concept_ct)
         dec_version = revmodels.Version.objects.get(content_type=dec_ct)
 
-        # check concept version
-        self.assertEqual(int(concept_version.object_id), dec._concept_ptr.id)
-
         # check dec version
-        self.assertEqual(int(dec_version.object_id), dec.id)
+        self.assertEqual(int(dec_version.object_id), data_element_concept.id)
 
     @tag('version')
     def test_display_version_concept_info(self):
@@ -400,17 +395,53 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
         latest = reversion.models.Version.objects.get_for_object(self.item).first()
 
-        self.login_viewer()
+        self.login_editor()
         response = self.reverse_get(
             'aristotle:item_version',
             reverse_args=[latest.id],
             status_code=200
         )
 
-        names_and_refs = response.context['item']['item_data']['Names & References']
-        self.assertFalse(names_and_refs['References'].is_link)
-        self.assertTrue(names_and_refs['References'].is_html)
-        self.assertEqual(names_and_refs['References'].value, '<p>refs</p>')
+        fields = {f.heading: f for f in response.context['item']['item_fields']}
+        self.assertTrue('References' in fields)
+        references = fields['References']
+        self.assertFalse(references.is_link)
+        self.assertTrue(references.is_html)
+        self.assertEqual(references.value, '<p>refs</p>')
+
+    @tag('version')
+    def test_version_display_custom_value_html(self):
+        field = CustomField.objects.create(
+            order=0,
+            name='Some random html',
+            type='html',
+        )
+        value = CustomValue.objects.create(
+            field=field,
+            concept=self.item.concept,
+            content='<p>This is html</p>'
+        )
+
+        self.assertGreater(self.item.concept.customvalue_set.all().count(), 0)
+
+        with reversion.create_revision():
+            self.item.save()
+        latest = reversion.models.Version.objects.get_for_object(self.item).first()
+
+        self.login_editor()
+        response = self.reverse_get(
+            'aristotle:item_version',
+            reverse_args=[latest.id],
+            status_code=200
+        )
+
+        fields = {f.heading: f for f in response.context['item']['item_fields']}
+        cv_field = fields['Custom Values']
+        self.assertGreater(len(cv_field.sub_fields), 0)
+
+        first_cv = {f.heading: f for f in cv_field.sub_fields[0]}
+        self.assertEqual(first_cv['Custom Field'].obj, field)
+        self.assertTrue(first_cv['Content'].is_html)
 
     def test_display_item_histroy_without_wg(self):
         self.item.workgroup = None
@@ -468,7 +499,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
 
     @tag('version')
     def test_version_item_metadata(self):
-        # Does this make it meta meta data
+        # Does this make it meta meta data?
 
         with reversion.create_revision():
             self.item.save()
@@ -482,8 +513,9 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             status_code=200
         )
 
-        self.assertEqual(response.context['item']['id'], self.item.id)
-        self.assertEqual(response.context['item']['pk'], self.item.id)
+        idstr = str(self.item.id)
+        self.assertEqual(response.context['item']['id'], idstr)
+        self.assertEqual(response.context['item']['pk'], idstr)
         self.assertEqual(response.context['item']['meta']['app_label'], 'aristotle_mdr')
         self.assertEqual(response.context['item']['meta']['model_name'], 'objectclass')
         self.assertEqual(response.context['item']['get_verbose_name'], 'Object Class')
@@ -656,7 +688,7 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         updated = models.ObjectClass.objects.get(id=self.item.id)
         self.assertEqual(updated.workgroup, self.wg1)
 
-    def test_non_existant_item_404(self):
+    def test_non_existent_item_404(self):
         response = self.reverse_get(
             'aristotle:item',
             reverse_args=[55555]
@@ -664,21 +696,25 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_history_compare_with_bad_version_data(self):
+        """ Test that if the version compare view is passed garbled serialized data that the view does not attempt
+        to load it  """
         versions = self.create_versions()
-        # Mangle the last versions serialized data
+
         first_version = versions.first()
+
+        # Mangle the last version's serialized data
         last_version = versions.order_by('-revision__date_created').first()
         last_version.serialized_data = '{"""}{,,}}}}'
         last_version.save()
 
-        qparams = '?version_id1={}&version_id2={}'.format(first_version.id, last_version.id)
-
+        # Look at the particular view
+        qparams = '?v1={}&v2={}'.format(first_version.id, last_version.id)
         self.login_editor()
         response = self.client.get(
-            reverse('aristotle:item_history', args=[self.item.id]) + qparams
+            reverse('aristotle:compare_versions', args=[self.item.id]) + qparams
         )
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(response.context['failed'])
+        self.assertTrue(response.context['cannot_compare'])
         self.assertContains(response, 'Those versions could not be compared')
 
     def test_view_item_version_with_bad_data(self):
@@ -692,20 +728,11 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
         response = self.client.get(
             reverse('aristotle:item_version', args=[last_version.id])
         )
-        self.assertRedirects(
-            response,
-            reverse('aristotle:item_history', args=[self.item.id])
-        )
-        messages = get_messages(response.wsgi_request)
-        self.assertEqual(len(messages), 2)
+        self.assertEqual(response.status_code, 404)
 
-        messages = iter(messages)
-        first_message = next(messages)
-        second_message = next(messages)
-        self.assertEqual(first_message.message, 'You have been logged out')
-        self.assertEqual(second_message.message, 'Version could not be loaded')
-
+    @skip('Concept comparator temporarily disabled')
     def test_comparator_with_bad_version_data(self):
+        """Test that the comparator still works with garbled version data"""
         versions = self.create_versions()
         # Mangle the last versions serialized data
         last_version = versions.order_by('-revision__date_created').first()
@@ -726,6 +753,8 @@ class GeneralItemPageTestCase(utils.AristotleTestUtils, TestCase):
             reverse('aristotle:compare_concepts') + qparams
         )
         self.assertEqual(response.status_code, 200)
+
+        # TODO: seems like there should be more than just checking that the page loads
 
 
 # These are run by all item types
@@ -769,7 +798,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
             self.item1.definition = new_defn
             self.item1.save()
 
-        item1_concept = self.item1._concept_ptr
+        item1_concept = self.item1.item
 
         concept_versions = reversion.models.Version.objects.get_for_object(item1_concept)
         self.assertEqual(concept_versions.count(), 2)
@@ -919,10 +948,12 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertEqual(self.item1.workgroup, None)
 
     def test_submitter_can_save_via_edit_page_with_change_comment(self):
+
         self.login_editor()
         response = self.client.get(reverse('aristotle:edit_item', args=[self.item1.id]))
         self.assertEqual(response.status_code, 200)
 
+        # Edit the item
         updated_item = utils.model_to_dict_with_change_time(response.context['item'])
         updated_name = updated_item['name'] + " updated!"
         updated_item['name'] = updated_name
@@ -934,14 +965,17 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertRedirects(response, url_slugify_concept(self.item1))
         self.assertEqual(self.item1.name, updated_name)
 
+        # Assert that the change comment is displayed
         response = self.client.get(reverse('aristotle:item_history', args=[self.item1.id]))
+
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, change_comment)
 
+
+        # Logout, and assert that the page is not displayed
         self.logout()
         response = self.client.get(reverse('aristotle:item_history', args=[self.item1.id]))
         self.assertEqual(response.status_code, 403)
-        # self.assertNotContains(response, change_comment)
 
         models.Status.objects.create(
             concept=self.item1,
@@ -1420,23 +1454,20 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         response = self.client.get(reverse('aristotle:item_history', args=[self.item2.id]))
         self.assertEqual(response.status_code, 403)
 
-        # # Viewers shouldn't even have the link to history on items they arent in the workgroup for
-        # This check makes no sense - a user can't see the page to begin with.
-        # Keeping for posterity
-        # response = self.client.get(self.item2.get_absolute_url())
-        # self.assertNotContains(response, reverse('aristotle:item_history',args=[self.item2.id]))
-
         # Viewers will even have the link to history on items they are in the workgroup for
         response = self.client.get(self.item1.get_absolute_url())
         self.assertContains(response, reverse('aristotle:item_history', args=[self.item1.id]))
 
+    @skip("We are not serializing statuses for the time being")
     def test_editor_can_view_item_history__and__compare(self):
+        """
+        Test that an editor can view item history, and compare the two versions.
+        When they compare the two versions, they are able to see the difference
+        """
         self.login_editor()
-
-        #from reversion import revisions as reversion
         import reversion
 
-        # Creat a revision
+        # Create a revision
         with reversion.revisions.create_revision():
             self.item1.name = "change 1"
             reversion.set_comment("change 1")
@@ -1478,7 +1509,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
                 response,
                 '%s is %s' % (self.item1.name, s.get_state_display())
             )
-
+    @skip("We are no longer providing functionality for reverting items for the time being")
     def test_editor_can_revert_item_and_status_goes_back_too(self):
         self.login_editor()
 
@@ -1808,7 +1839,6 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
         self.assertEqual(response.status_code, 404)
 
     def test_weak_editing_in_advanced_editor_dynamic(self, updating_field=None, default_fields={}):
-
         if hasattr(self.item1, 'serialize_weak_entities'):
             self.login_editor()
             value_url = 'aristotle:edit_item'
@@ -1872,7 +1902,8 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
                 self.assertIsNotNone(updating_field)
                 # no string was found to update
-                # if this happends the test needs to be passed an updating_field or changed to support more than text updates
+                # if this happens the test needs to be passed an updating_field or changed to support more
+                # than text updates
 
                 i = 0
                 data.update({"%s-%d-DELETE" % (pre, i): 'checked', "%s-%d-%s" % (pre, i, updating_field): getattr(v, updating_field) + " - deleted"})  # delete the last one.
@@ -1902,27 +1933,6 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
                 self.assertTrue(new_value_seen)
 
     @tag('version')
-    def test_view_previous_version_from_concept(self):
-        old_definition = self.item1.definition
-
-        self.update_defn_with_versions()
-
-        item1_concept = self.item1._concept_ptr
-        versions = reversion.models.Version.objects.get_for_object(item1_concept)
-        self.assertEqual(versions.count(), 2)
-        oldest_version = versions.last()
-
-        self.login_viewer()
-        response = self.reverse_get(
-            'aristotle:item_version',
-            reverse_args=[oldest_version.id],
-            status_code=200
-        )
-
-        item_context = response.context['item']
-        self.assertEqual(item_context['definition'], old_definition)
-
-    @tag('version')
     def test_view_previous_version_from_item_version(self):
 
         old_definition = self.item1.definition
@@ -1940,8 +1950,10 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
             status_code=200
         )
 
-        item_context = response.context['item']
-        self.assertEqual(item_context['definition'], old_definition)
+        fields = {f.heading: f for f in response.context['item']['item_fields']}
+        self.assertTrue('Definition' in fields)
+        dfn_field = fields['Definition']
+        self.assertEqual(dfn_field.value, old_definition)
 
     @tag('download')
     @override_settings(ARISTOTLE_SETTINGS={"DOWNLOAD_OPTIONS": {'DOWNLOADERS': ['aristotle_mdr.downloaders.HTMLDownloader']}})
@@ -2171,34 +2183,27 @@ class ValueDomainViewPage(LoggedInViewConceptPages, TestCase):
             status_code=200
         )
 
-        item_context = response.context['item']
+        fields = {f.heading: f for f in response.context['item']['item_fields']}
+        self.assertTrue('Supplementary Values' in fields)
+        self.assertTrue('Permissible Values' in fields)
 
-        self.assertEqual(len(item_context['weak']), 2)
+        subval_field = fields['Supplementary Values']
+        permval_field = fields['Permissible Values']
+
+        self.assertTrue(subval_field.is_group)
+        self.assertTrue(permval_field.is_group)
+
+        first_pval = {f.heading: f for f in permval_field.sub_fields[0]}
+        first_sval = {f.heading: f for f in subval_field.sub_fields[0]}
 
         # Check supplementary values are being displayed
-        supp_values = item_context['weak'][0]
-        self.assertEqual(supp_values['model'], 'Supplementary Value')
+        self.assertEqual(first_sval['Meaning'].value, 'test supplementary meaning 0')
+        self.assertEqual(first_sval['Meaning'].is_link, False)
 
-        meaning_ht = models.AbstractValue._meta.get_field('meaning').help_text
+        self.assertEqual(first_pval['Meaning'].value, 'test permissible meaning 0')
+        self.assertEqual(first_pval['Meaning'].is_link, False)
 
-        self.assertEqual(len(supp_values['headers']), 6)
-        self.assertFalse('Value Domain' in supp_values['headers'])
-        self.assertEqual(len(supp_values['items']), 4)
-        self.assertEqual(supp_values['items'][0]['Meaning'].value, 'test supplementary meaning 3')
-        self.assertEqual(supp_values['items'][0]['Meaning'].help_text, meaning_ht)
-        self.assertEqual(supp_values['items'][0]['Meaning'].is_link, False)
-
-        # Check permissible values are being displayed
-        perm_values = item_context['weak'][1]
-        self.assertEqual(perm_values['model'], 'Permissible Value')
-
-        self.assertEqual(len(perm_values['headers']), 6)
-        self.assertFalse('Value Domain' in perm_values['headers'])
-        self.assertEqual(len(perm_values['items']), 4)
-        self.assertEqual(perm_values['items'][0]['Meaning'].value, 'test permissible meaning 3')
-        self.assertEqual(perm_values['items'][0]['Meaning'].help_text, meaning_ht)
-        self.assertEqual(perm_values['items'][0]['Meaning'].is_link, False)
-
+    @skip('Currently no serializing value meanings')
     @tag('version')
     def test_version_display_of_value_meanings(self):
 
@@ -2590,15 +2595,13 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
             status_code=200
         )
 
-        item_context = response.context['item']
-        components = item_context['item_data']['Components']
+        fields = {f.heading: f for f in response.context['item']['item_fields']}
+        self.assertTrue('Data Element Concept' in fields)
+        cfield = fields['Data Element Concept']
 
-        dec_ht = models.DataElement._meta.get_field('dataElementConcept').help_text
-
-        self.assertTrue(components['Data Element Concept'].is_link)
-        self.assertEqual(components['Data Element Concept'].obj, self.item1.dataElementConcept._concept_ptr)
-        self.assertEqual(components['Data Element Concept'].link_id, self.item1.dataElementConcept.id)
-        self.assertEqual(components['Data Element Concept'].help_text, dec_ht)
+        self.assertTrue(cfield.is_link)
+        self.assertEqual(cfield.obj_name, self.item1.dataElementConcept.name)
+        self.assertEqual(cfield.id, self.item1.dataElementConcept.id)
 
     @tag('version')
     def test_version_display_component_from_multi_revision(self):
@@ -2624,19 +2627,25 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
 
         latest = reversion.models.Version.objects.get_for_object(self.item1).first()
 
-        self.login_viewer()
+        self.login_editor()
         response = self.reverse_get(
             'aristotle:item_version',
             reverse_args=[latest.id],
             status_code=200
         )
 
-        components = response.context['item']['item_data']['Components']
-        self.assertEqual(components['Data Element Concept'].obj, self.item1.dataElementConcept._concept_ptr)
+        fields = {f.heading: f for f in response.context['item']['item_fields']}
+        self.assertTrue('Data Element Concept' in fields)
+        cfield = fields['Data Element Concept']
+
+        self.assertTrue(cfield.is_link)
+        self.assertEqual(cfield.obj_name, self.item1.dataElementConcept.name)
+        self.assertEqual(cfield.id, self.item1.dataElementConcept.id)
 
     @tag('version')
     def test_version_display_component_permission(self):
-        self.add_dec(None)
+        """Test that linked objects that are not visible to the user are not displayed"""
+        self.add_dec(wg=None)
         self.update_defn_with_versions()
 
         latest = reversion.models.Version.objects.get_for_object(self.item1).first()
@@ -2647,10 +2656,13 @@ class DataElementViewPage(LoggedInViewConceptPages, TestCase):
             status_code=200
         )
 
-        components = response.context['item']['item_data']['Components']
+        fields = {f.heading: f for f in response.context['item']['item_fields']}
+        self.assertTrue('Data Element Concept' in fields)
+        cfield = fields['Data Element Concept']
 
-        self.assertFalse(components['Data Element Concept'].is_link, False)
-        self.assertTrue(components['Data Element Concept'].value.startswith('Linked to object'))
+        self.assertTrue(cfield.is_link)
+        self.assertEqual(cfield.id, self.item1.dataElementConcept.id)
+        self.assertEqual(str(cfield), VersionLinkField.perm_message)
 
 
 class DataElementDerivationViewPage(LoggedInViewConceptPages, TestCase):

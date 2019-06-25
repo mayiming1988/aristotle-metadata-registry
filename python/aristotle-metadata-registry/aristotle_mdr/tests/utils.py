@@ -420,9 +420,6 @@ class ManagedObjectVisibility(object):
         e2 = get_user_model().objects.create_user('editor2@example.com', 'editor2')
         wg2.giveRoleToUser('submitter', e2)
 
-        #RAFIX wg1.registrationAuthorities.add(self.ra)
-        #RAFIX wg2.registrationAuthorities.add(self.ra)
-
         # ensure object is in wg1
         self.item.workgroup = wg1
         self.item.save()
@@ -470,9 +467,6 @@ class ManagedObjectVisibility(object):
         e2 = get_user_model().objects.create_user('editor2@example.com', 'editor2')
         wg2.giveRoleToUser('submitter', e2)
 
-        #RAFIX wg1.registrationAuthorities.add(self.ra)
-        #RAFIX wg2.registrationAuthorities.add(self.ra)
-
         # ensure object is in wg1
         self.item.workgroup = wg1
         self.item.save()
@@ -514,7 +508,6 @@ class LoggedInViewPages(object):
         self.wg1 = models.Workgroup.objects.create(name="Test WG 1", definition="My WG", stewardship_organisation=self.steward_org_1)  # Editor is member
         self.wg2 = models.Workgroup.objects.create(name="Test WG 2", definition="My WG", stewardship_organisation=self.steward_org_1)
         self.ra = models.RegistrationAuthority.objects.create(name="Test RA", definition="My WG", stewardship_organisation=self.steward_org_1)
-        #RAFIX self.wg1.registrationAuthorities.add(self.ra)
         self.wg1.save()
 
         self.su = get_user_model().objects.create_superuser('super@example.com', 'user')
@@ -673,6 +666,23 @@ class LoggedInViewPages(object):
 
 class FormsetTestUtils:
     """Utilities to help create formset post data"""
+    def instantiate_formset(self, formset_class, data, instance=None, initial=None):
+        prefix = formset_class().prefix
+        formset_data = {}
+        for i, form_data in enumerate(data):
+            for name, value in form_data.items():
+                if instance(value, list):
+                    for j, inner in enumerate(value):
+                        formset_data["{}-{}-{}_{}".format(prefix, i, name, j)] = inner
+                else:
+                    formset_data['{}-{}-{}'.format(prefix, i, name)] = value
+        formset_data['{}-TOTAL_FORMS'.format(prefix)] = len(data)
+        formset_data['{}-INITIAL_FORMS'.format(prefix)] = 0
+
+        if instance:
+            return formset_class(formset_data, instance=instance, initial=initial)
+        else:
+            return formset_class(formset_data, initial=initial)
 
     def get_formset_postdata(self, datalist: List[Dict], prefix: str='form', initialforms: int=0):
         """

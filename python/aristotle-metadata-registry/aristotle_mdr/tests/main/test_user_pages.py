@@ -10,11 +10,6 @@ from aristotle_bg_workers.tasks import send_sandbox_notification_emails
 from aristotle_mdr import models
 import datetime, json, os, ast
 
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-
-setup_aristotle_test_environment()
-
 
 class UserHomePages(utils.AristotleTestUtils, TestCase):
     def setUp(self):

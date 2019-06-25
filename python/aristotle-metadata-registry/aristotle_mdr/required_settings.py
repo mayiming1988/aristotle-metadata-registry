@@ -133,8 +133,6 @@ INSTALLED_APPS = (
 
     'bootstrap3',
     'reversion',  # https://github.com/etianen/django-reversion
-    'reversion_compare',  # https://github.com/jedie/django-reversion-compare
-
     'notifications',
     'organizations',
 
@@ -197,7 +195,6 @@ BOOTSTRAP3 = {
     'base_url': '/static/aristotle_mdr/bootstrap/',
 }
 
-ADD_REVERSION_ADMIN = True
 
 # We need this to make sure users can see all extensions.
 AUTHENTICATION_BACKENDS = ('aristotle_mdr.backends.AristotleBackend',)
@@ -351,7 +348,19 @@ ARISTOTLE_VALIDATORS = {
 }
 
 # Serialization
-SERIALIZATION_MODULES = {'mdrjson': 'aristotle_mdr_api.serializers.idjson'}
+SERIALIZATION_MODULES = {'mdrjson': 'aristotle_mdr_api.serializers.idjson',
+                         # Override django-reversion serializer
+                         'aristotle_mdr_json': 'aristotle_mdr.contrib.serializers.concept_serializer'}
+
+# Set an environment variable as the default email address to send backend emails for notifications.
+ARISTOTLE_EMAIL_NOTIFICATIONS = os.getenv('ARISTOTLE_EMAIL_NOTIFICATIONS', None)
+
+# Set an environment variable as the default email address to send backend emails for sandbox invitation notifications.
+ARISTOTLE_EMAIL_SANDBOX_NOTIFICATIONS = os.getenv('ARISTOTLE_EMAIL_SANDBOX_NOTIFICATIONS', None)
+
+# Set an environment variable as the default email address to send backend emails for account recovery (password reset).
+ARISTOTLE_EMAIL_ACCOUNT_RECOVERY = os.getenv('ARISTOTLE_EMAIL_ACCOUNT_RECOVERY', None)
+
 
 # API
 REST_FRAMEWORK = {
@@ -398,12 +407,3 @@ MAXIMUM_NUMBER_OF_NODES_IN_GENERAL_GRAPHICAL_REPRESENTATION = 200
 # the Django app label and the model name.
 # E.g. [("app_label", "model_name"), ...]
 EXTRA_GRAPHQL_SCHEMA_MODELS: list = []
-
-# Set an environment variable as the default email address to send backend emails for notifications.
-ARISTOTLE_EMAIL_NOTIFICATIONS = os.getenv('ARISTOTLE_EMAIL_NOTIFICATIONS', None)
-
-# Set an environment variable as the default email address to send backend emails for sandbox invitation notifications.
-ARISTOTLE_EMAIL_SANDBOX_NOTIFICATIONS = os.getenv('ARISTOTLE_EMAIL_SANDBOX_NOTIFICATIONS', None)
-
-# Set an environment variable as the default email address to send backend emails for account recovery (password reset).
-ARISTOTLE_EMAIL_ACCOUNT_RECOVERY = os.getenv('ARISTOTLE_EMAIL_ACCOUNT_RECOVERY', None)

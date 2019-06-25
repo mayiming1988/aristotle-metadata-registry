@@ -7,17 +7,18 @@ from aristotle_mdr.tests.main.test_html_pages import LoggedInViewConceptPages
 from aristotle_mdr.tests.main.test_admin_pages import AdminPageForConcept
 from aristotle_mdr.tests.main.test_wizards import ConceptWizardPage
 
-from aristotle_mdr.utils import setup_aristotle_test_environment, url_slugify_concept
-setup_aristotle_test_environment()
+from aristotle_mdr.utils import url_slugify_concept
 
 from aristotle_dse import models
 from unittest import skip
 
 import reversion
 
+
 def setUpModule():
     from django.core.management import call_command
     call_command('load_aristotle_help', verbosity=0, interactive=False)
+
 
 class DataSetSpecificationVisibility(ManagedObjectVisibility,TestCase):
     def setUp(self):
@@ -25,6 +26,7 @@ class DataSetSpecificationVisibility(ManagedObjectVisibility,TestCase):
         self.item = models.DataSetSpecification.objects.create(name="Test DSS",
             workgroup=self.wg,
             )
+
 
 class DataSetSpecificationAdmin(AdminPageForConcept,TestCase):
     itemType=models.DataSetSpecification
@@ -77,9 +79,6 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages,TestCase):
                 dss=self.item1,
                 child=self.item1
             )
-
-
-        #self.item1.addCluster(child=self.item3)
         default_fields = {
             'specialisation_classes': oc.id,
             'data_element': de.id,
@@ -100,7 +99,6 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages,TestCase):
         check_url = reverse('aristotle:check_cascaded_states', args=[self.item1.pk])
         response = self.client.get(self.get_page(self.item1))
         self.assertEqual(response.status_code,302)
-        # self.assertNotContains(response, check_url)  # No content on the page as the user was redirected to a login page
 
         response = self.client.get(check_url)
         self.assertTrue(response.status_code,403)
@@ -231,7 +229,7 @@ class DistributionViewPage(LoggedInViewConceptPages,TestCase):
 
         super().test_weak_editing_in_advanced_editor_dynamic(updating_field='logical_path', default_fields=default_fields)
 
-    @tag('version')
+    @skip("Rewrite of versioning, skipping for now")
     def test_version_display_many_to_many(self):
 
         de = MDR.DataElement.objects.create(

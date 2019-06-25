@@ -1,17 +1,31 @@
-{% if field.is_link %}
-    {% if field.is_list %}
-        <ul>
-            {% for item in field.object_list %}
-                <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}<span class="text-danger">*</span></a></li>
-            {% endfor %}
-        </ul>
+{% load util_tags %}
+
+<h1>{{ field.heading }}</h1>
+{% if field.is_group %}
+    {% if field.sub_fields %}
+        <table class="table">
+            <thead>
+              <tr>
+                {% for sub_heading in field.headings %}
+                  <th>{{ sub_heading }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for flist in field.sub_fields %}
+                <tr>
+                {% for subfield in flist %}
+                  <td>
+                      {{ subfield }}
+                  </td>
+                {% endfor %}
+                </tr>
+              {% endfor %}
+            </tbody>
+        </table>
     {% else %}
-        <a href="{% url 'aristotle:item' field.link_id %}">{{ field }}<span class="text-danger">*</span></a>
+      <p>{{ field.empty_text }}</p>
     {% endif %}
 {% else %}
-    {% if field.is_html %}
-        {{ field|striptags }}
-    {% else %}
-        {{ field }}
-    {% endif %}
+    {{ field }}
 {% endif %}

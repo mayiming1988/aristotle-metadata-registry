@@ -484,7 +484,6 @@ class PermissionSearchForm(TokenSearchForm):
         self.fields['ra'].choices = [(ra.id, ra.name) for ra in MDR.RegistrationAuthority.objects.filter(active__in=[0, 1]).order_by('active', 'name')]
 
         # List of models that you can search for
-        # TODO: ensure that this includes collections
 
         self.default_models = [
             m[0] for m in model_choices()
@@ -514,7 +513,7 @@ class PermissionSearchForm(TokenSearchForm):
     @property
     def applied_filters(self):
         """
-        :return: The filters appearing in the URL that are applied
+        Returns the filters appearing in the URL that are applied
         """
         if not hasattr(self, 'cleaned_data'):
             return []
@@ -532,7 +531,7 @@ class PermissionSearchForm(TokenSearchForm):
         if not has_filter and not self.query_text:
             return self.no_query_found()
 
-        if self.applied_filters and not self.query_text:  # and not self.kwargs:
+        if self.applied_filters and not self.query_text:
             # If there is a filter, but no query, then we'll force some results.
             sqs = self.searchqueryset.order_by('-modified')
             self.filter_search = True
@@ -633,10 +632,8 @@ class PermissionSearchForm(TokenSearchForm):
         for facet in additional_hardcoded_facets:
             sqs = sqs.facet(facet)
 
-        """
-        Generate details about facets from ``concepts`` registered (as facetable) with a Haystack search index that conforms
-        to Aristotle permissions. Excludes facets that have been previously been added.
-        """
+        # Generate details about facets from ``concepts`` registered (as facetable) with a Haystack search index that conforms
+        # to Aristotle permissions. Excludes facets that have been previously been added.
         extra_facets = []
         from aristotle_mdr.search_indexes import registered_indexes
         for model_index in registered_indexes:

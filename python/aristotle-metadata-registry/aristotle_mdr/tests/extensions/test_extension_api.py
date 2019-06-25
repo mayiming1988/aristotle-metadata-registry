@@ -9,8 +9,6 @@ from aristotle_mdr.tests.main.test_admin_pages import AdminPageForConcept
 
 from extension_test.models import Question, Questionnaire
 
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
 
 class QuestionVisibility(utils.ManagedObjectVisibility, TestCase):
     def setUp(self):
