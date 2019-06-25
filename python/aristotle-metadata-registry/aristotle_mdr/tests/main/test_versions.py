@@ -60,6 +60,11 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
             help_text='An extremely bad word'
         )
 
+        self.data_element = MDR.DataElement.objects.create(
+            name="test name",
+            definition="test definition",
+        )
+
         aristotle_settings = settings.ARISTOTLE_SETTINGS
         aristotle_settings['CONTENT_EXTENSIONS'].append('aristotle_dse')
         with override_settings(ARISTOTLE_SETTINGS=aristotle_settings):
@@ -298,7 +303,7 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
 
         # Assert that the CompareVersions view 403s
         url = reverse('aristotle:compare_fields', args=[self.data_set_specification.id])
-        query_url = url + '?v1={}&v2={}&field=groups.0.definition'.format(versions[0].id, versions[1].id)
+        query_url = url + '?v1={}&v2={}'.format(versions[0].id, versions[1].id)
 
         response = self.client.get(query_url)
 
@@ -338,7 +343,69 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.context['html_fields'], ['This is an updated DSS Grouping', 'This is a DSS Grouping'])
 
     def version_comparator_handles_added_fields_on_model(self):
-        pass2
+        pass
+
+    def test_all_added_data_elements_appear_in_comparision_view(self):
+        self.login_viewer()
+
+        with reversion.revisions.create_revision():
+            self.name = "New Data Set Specification"
+            self.data_set_specification.save()
+
+
+        with reversion.revisions.create_revision():
+            # Create 4 DSS Data Elements
+            DSE.DSSDEInclusion.objects.create(
+                data_element=self.data_element,
+                reference="Hello",
+                conditional_obligation="Test Obligation",
+                order=0,
+                dss=self.data_set_specification
+            )
+            DSE.DSSDEInclusion.objects.create(
+                data_element=self.data_element,
+                reference="Hola",
+                conditional_obligation="Test Obligation",
+                order=0,
+                dss=self.data_set_specification
+            )
+            DSE.DSSDEInclusion.objects.create(
+                data_element=self.data_element,
+                reference="Hallo",
+                conditional_obligation="Test Obligation",
+                order=0,
+                dss=self.data_set_specification
+            )
+            DSE.DSSDEInclusion.objects.create(
+                data_element=self.data_element,
+                reference="Hoi",
+                conditional_obligation="Test Obligation",
+                order=0,
+                dss=self.data_set_specification
+            )
+            self.data_set_specification.name = "Updated DSS"
+            self.data_set_specification.save()
+
+        # Confirm that two versions were created
+        versions = reversion.models.Version.objects.get_for_object(self.data_set_specification)
+        self.assertEqual(versions.count(), 2)
+
+        # Build the get query parameter. Format is parent_field.{{ number of subitem indexed from 0}}.field
+        url = reverse('aristotle:compare_versions', args=[self.data_set_specification.id])
+        query = url + '?v1={}&v2={}&field=groups.0.definition'.format(versions[0].id, versions[1].id)
+
+        response = self.client.get(query)
+        self.assertEqual(response.status_code, 200)
+
+        # Assert that all the versions are showing up
+        self.assertContainsHtml(response, 'Hello')
+        self.assertContainsHtml(response, 'Hola')
+        self.assertContainsHtml(response, 'Hallo')
+        self.assertContainsHtml(response, 'Hoi')
+
+
+
+
 
 
 class DataElementComparisionTestCase(utils.AristotleTestUtils, TestCase):
