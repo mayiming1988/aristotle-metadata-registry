@@ -21,7 +21,8 @@ def download(request, dtype):
         'subclasses': None,
         'front_page': None,
         'back_page': None,
-        'email_copy': False
+        'email_copy': False,
+        "CURRENT_HOST": request.scheme + "://" +request.get_host(),
     }
 
     item_list = request.GET.getlist('iid')

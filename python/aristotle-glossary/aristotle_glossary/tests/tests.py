@@ -137,3 +137,41 @@ class GlossaryViewPage(LoggedInViewConceptPages,TestCase):
         data = utils.get_json_from_response(response)
         self.assertEqual(data.get('data',None),None)
         self.assertEqual(data['error'],"Glossary IDs must be integers")
+
+
+class GlossaryUnitTest(TestCase):
+
+    def test_glossary_signal_method_works(self):
+        gitem = gmodels.GlossaryItem.objects.create(name="Glossary item", workgroup=None)
+        ocitem = models.ObjectClass.objects.create(name="An Item", workgroup=None)
+        self.assertEqual(gitem.index.count(), 0)
+        self.assertEqual(ocitem.related_glossary_items.count(), 0)
+        ocitem.definition = "<a data-aristotle-concept-id='{gid}'>My link</a>".format(
+            gid=gitem.pk
+        )
+        ocitem.save()
+        gmodels.reindex_metadata_item(ocitem)
+        self.assertEqual(gitem.index.count(), 1)
+        self.assertEqual(gitem.index.first().pk, ocitem.pk)
+        self.assertEqual(ocitem.related_glossary_items.count(), 1)
+        self.assertEqual(ocitem.related_glossary_items.first().pk, gitem.pk)
+
+    def test_reindex_metadata_item_async_fires(self):
+        gitem = gmodels.GlossaryItem.objects.create(name="Glossary item", workgroup=None)
+        ocitem = models.ObjectClass.objects.create(name="An Item", workgroup=None)
+        self.assertEqual(gitem.index.count(), 0)
+        self.assertEqual(ocitem.related_glossary_items.count(), 0)
+        ocitem.definition = "<a data-aristotle-concept-id='{gid}'>My link</a>".format(
+            gid=gitem.pk
+        )
+        ocitem.save()
+
+        gitem.refresh_from_db()
+        # EXACTLY THE SAME AS ABOVE, BUT HERE WE'RE HOPING THE SIGNAL DOES
+        # THE REINDEX FOR US
+        # gmodels.reindex_metadata_item(ocitem)
+        self.assertEqual(gitem.index.count(), 1)
+        self.assertEqual(gitem.index.first().pk, ocitem.pk)
+        self.assertEqual(ocitem.related_glossary_items.count(), 1)
+        self.assertEqual(ocitem.related_glossary_items.first().pk, gitem.pk)
+

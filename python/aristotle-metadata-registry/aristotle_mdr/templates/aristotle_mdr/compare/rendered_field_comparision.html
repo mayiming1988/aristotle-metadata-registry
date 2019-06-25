@@ -1,0 +1,35 @@
+{% extends 'aristotle_mdr/concepts/contentInfoBase.html' %}
+
+{% load aristotle_tags i18n l10n util_tags %}
+{% load render_bundle from webpack_loader %}
+
+{% block webpack_bundle %}
+    {% render_bundle 'compare_versions' 'js' %}
+{% endblock %}
+
+{% block webpack_css_bundle %}
+    {% render_bundle 'compare_versions' 'css' %}
+{% endblock %}
+
+{% block infoContent %}
+    <table class="table table-striped">
+        {% if not_all_versions_selected %}
+            <div class="well">
+                Both versions need to be selected in order to compare
+            </div>
+        {% else %}
+            <caption>Rendered {{ definition }} for versions of {{ item.name }}</caption>
+            <tr>
+                <th>Version 1</th>
+                <th>Version 2</th>
+            </tr>
+            <tr>
+                {% for field in html_fields %}
+                    <td>{{ field|bleach }}</td>
+                {% endfor %}
+            </tr>
+
+
+            </table>
+        {% endif %}
+{% endblock %}

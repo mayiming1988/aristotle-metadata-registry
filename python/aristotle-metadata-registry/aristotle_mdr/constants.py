@@ -10,7 +10,6 @@ FILE_FORMAT = {
     'txt': 'txt'
 }
 
-
 visibility_permission_choices = Choices(
     (0, 'public', 'Public'),
     (1, 'auth', 'Authenticated'),

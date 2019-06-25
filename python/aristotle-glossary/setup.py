@@ -31,6 +31,7 @@ setup(
     ],
     install_requires = [
         # 'aristotle-metadata-registry>=1.6.2'
+        'lxml',
     ]
 
 )

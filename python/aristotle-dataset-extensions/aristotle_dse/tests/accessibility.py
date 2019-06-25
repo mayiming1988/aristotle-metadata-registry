@@ -6,10 +6,6 @@ from django.core.urlresolvers import reverse
 
 import aristotle_dse.models as models
 
-
-from aristotle_mdr.utils import setup_aristotle_test_environment
-setup_aristotle_test_environment()
-
 from aristotle_mdr.tests.accessibility import TestWebPageAccessibilityBase
 
 

@@ -8,6 +8,7 @@ from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 
 from aristotle_mdr import models as MDR
+from aristotle_mdr.contrib.async_signals.utils import fire
 import reversion
 
 
@@ -43,13 +44,7 @@ class GlossaryAdditionalDefinition(MDR.aristotleComponent):
 def add_concepts_to_glossary_index(sender, instance, created, **kwargs):
     if not issubclass(sender, MDR._concept):
         return
-    if 'data-aristotle_glossary_id' in instance.definition:
-        glossary_id = 1 # TODO: write code to find the id of the glossary item being inserted
-        try:
-            g = GlossaryItem.objects.get(pk=glossary_id)
-        except GlossaryItem.DoesNotExist:
-            pass # there is no glossary with that ID
-            #TODO: Perhaps pass a friendly message - https://docs.djangoproject.com/en/1.7/ref/contrib/messages/
+    fire("reindex_metadata_item_async", obj=instance, **kwargs, namespace="aristotle_glossary.async_signals")
 
 
 def reindex_metadata_item(item):
@@ -57,6 +52,7 @@ def reindex_metadata_item(item):
         return
 
     import lxml.html
+    from lxml import etree
 
     fields = [
         field.value_from_object(item)
@@ -69,19 +65,20 @@ def reindex_metadata_item(item):
         if cv.is_html
     ]
 
-    item.related_glossary_items.clear()
-    related_list = []
+    links = etree.XPath("//a[@data-aristotle-concept-id]")
+    glossary_ids = []
     for field in fields + custom_fields:
         if 'data-aristotle-concept-id' in field:
             doc = lxml.html.fragment_fromstring(field, create_parent=True)
-            links = doc.xpath('.//a')
+            # links = find(doc)
 
-            glossary_ids = [
+            glossary_ids.extend([
                 link.get('data-aristotle-concept-id')
-                for link in links
-                if link.get('data-aristotle-concept-id')
-            ]
-            item.related_glossary_items = GlossaryItem.objects.filter(pk__in=glossary_ids) 
-            related_list = list(item.related_glossary_items.values_list("pk", flat=True))
+                for link in links(doc)
+            ])
+
+    item.related_glossary_items.set(
+        GlossaryItem.objects.filter(pk__in=glossary_ids), clear=True
+    )
 
     return item.related_glossary_items.all()

@@ -53,14 +53,12 @@ def register_concept(concept_class, *args, **kwargs):
 
 def register_concept_reversions(concept_class, *args, **kwargs):
     from reversion import revisions as reversion
+
     follows = kwargs.get('reversion', {}).get('follow', [])
-    follows += [
-        '_concept_ptr',
-    ]
+    # Register the concept with reversion
+    reversion.register(concept_class, follow=follows, format='aristotle_mdr_json')
+
     follow_classes = kwargs.get('reversion', {}).get('follow_classes', [])
-
-    reversion.register(concept_class, follow=follows)
-
     for cls in follow_classes:
         reversion.register(cls)
 
@@ -73,9 +71,9 @@ def register_concept_search_index(concept_class, *args, **kwargs):
 
     :param concept concept_class: The model that is to be registered for searching.
     """
-
+    search_category = kwargs.get('search_category', None)
     class_name = "%s_%sSearchIndex" % (concept_class._meta.app_label, concept_class.__name__)
-    model_index = kwargs.get('custom_search_index', create(concept_class))
+    model_index = kwargs.get('custom_search_index', create(concept_class, search_category))
     setattr(search_index, class_name, model_index)
 
     search_index.registered_indexes.append(model_index)
@@ -84,7 +82,8 @@ def register_concept_search_index(concept_class, *args, **kwargs):
     connections[DEFAULT_ALIAS]._index = None
 
 
-def create(cls):
+def create(cls, set_search_category=None):
+    from aristotle_mdr.search_indexes import SEARCH_CATEGORIES
 
     if hasattr(settings, 'HAYSTACK_BASE_INDEX_CLASS'):
         base_index_class = import_string(settings.HAYSTACK_BASE_INDEX_CLASS)
@@ -92,6 +91,9 @@ def create(cls):
         base_index_class = ConceptIndex
 
     class SubclassedConceptIndex(base_index_class, indexes.Indexable):
+        if set_search_category is not None:
+            search_category = set_search_category
+
         def get_model(self):
             return cls
     return SubclassedConceptIndex

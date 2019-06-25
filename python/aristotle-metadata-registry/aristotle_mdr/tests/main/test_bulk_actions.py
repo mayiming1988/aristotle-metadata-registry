@@ -10,11 +10,7 @@ import aristotle_mdr.tests.utils as utils
 
 import datetime
 
-from aristotle_mdr.utils import setup_aristotle_test_environment
 from aristotle_mdr.models import STATES
-
-
-setup_aristotle_test_environment()
 
 
 class BulkActionsTest(utils.AristotleTestUtils):

@@ -221,7 +221,7 @@ class AbstractValue(aristotleComponent):
 
 class DedBaseThrough(aristotleComponent):
     """
-    Abstract Class for Data Element Derivation Manay to Many through tables with ordering
+    Abstract Class for Data Element Derivation Many to Many through tables with ordering
     """
 
     data_element_derivation = models.ForeignKey('DataElementDerivation', on_delete=models.CASCADE)
