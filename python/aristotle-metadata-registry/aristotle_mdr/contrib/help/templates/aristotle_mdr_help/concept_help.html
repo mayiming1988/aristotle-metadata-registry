@@ -11,82 +11,113 @@
 {% block title %}Concept help - {{ model.get_verbose_name }}{% endblock %}
 
 {% block help_content %}
-<div class="well">{% relink object 'brief' %}</div>
+    <div class="well">{% relink object 'brief' %}</div>
 
-{% if object.offical_definition %}
-<blockquote>{% relink object 'offical_definition' %}
-    {% if object.official_reference %}
-        {% if object.official_link %}
-        <small>
-            <a href="{{object.official_link}}" title="{% trans 'Click to view the official source'%}">
-            {{ object.official_reference }}
-            <i class="fa fa-external-link-square" ></i>
-            </a>
-        </small>
-        {% else %}
-        <small>{{ object.official_reference }}</small>
+    {% if object.offical_definition %}
+        <blockquote>{% relink object 'offical_definition' %}
+            {% if object.official_reference %}
+                {% if object.official_link %}
+                    <small>
+                        <a href="{{object.official_link}}" title="{% trans 'Click to view the official source'%}">
+                            {{ object.official_reference }}
+                            <i class="fa fa-external-link-square" ></i>
+                        </a>
+                    </small>
+                {% else %}
+                    <small>{{ object.official_reference }}</small>
+                {% endif %}
+            {% endif %}
+        </blockquote>
+    {% endif %}
+
+    <p>
+        {% relink object 'body' %}
+    </p>
+
+
+    {% with creation_tip=object|relinked:"creation_tip" %}
+        {% if custom_help.creation_tip or creation_tip %}
+            <h2>Creation Tips</h2>
+            <header class='editor'>Tips for creating {{model_name_plural}}</header>
+            {% if custom_help.creation_tip %}
+                <div>
+                    {{ custom_help.creation_tip | bleach }}
+                </div>
+            {% else %}
+                <div>
+                    {{ creation_tip }}
+                </div>
+            {% endif %}
         {% endif %}
+    {% endwith %}
+
+    {% if custom_help.extra_help %}
+        <h3>Registry specific help</h3>
+        <p>
+            {{ custom_help.extra_help | bleach }}
+        </p>
     {% endif %}
-</blockquote>
-{% endif %}
 
-<p>
-    {% relink object 'body' %}
-</p>
-
-
-{% with creation_tip=object|relinked:"creation_tip" %}
-{% if custom_help.creation_tip or creation_tip %}
-    <h2>Creation Tips</h2>
-    <header class='editor'>Tips for creating {{model_name_plural}}</header>
-    {% if custom_help.creation_tip %}
-        <div>
-            {{ custom_help.creation_tip | bleach }}
-        </div>
-    {% else %}
-        <div>
-            {{ creation_tip }}
-        </div>
+    {% if custom_help.field_help %}
+        <h3>Registry defined field help</h3>
+        <ul>
+            {% for field_name, field_help in custom_help.field_help.items %}
+                {% if field_help %}
+                    <li>
+                        <a href="#field_is_{{field_name}}">
+                        {% with field=custom_help.content_type|get_field:field_name %}
+                            {{ field.verbose_name.title }}
+                        {% endwith %}
+                        </a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+        <dl>
+            {% for field_name, field_help in custom_help.field_help.items %}
+                <dt id="field_is_{{field_name}}">
+                    <a href="#field_is_{{field_name}}">
+                        {% with field=custom_help.content_type|get_field:field_name %}
+                            {{ field.verbose_name.title }}
+                        {% endwith %}
+                    </a>
+                </dt>
+                <dd>
+                    <div class="well">
+                        {{ field_help | bleach }}
+                    </div>
+                </dd>
+            {% endfor %}
+        </dl>
     {% endif %}
-{% endif %}
-{% endwith %}
 
-{% if custom_help.extra_help %}
-<h3>Registry specific help</h3>
-<p>
-    {{ custom_help.extra_help | bleach }}
-</p>
-{% endif %}
-
-{% if custom_help.field_help %}
-<h3>Registry defined field help</h3>
-    <ul>
-    {% for field_name, field_help in custom_help.field_help.items %}
-    {% if field_help %}
-        <li><a href="#field_is_{{field_name}}">
-        {% with field=custom_help.content_type|get_field:field_name %}
-            {{ field.verbose_name.title }}
-        {% endwith %}
-        </a></li>
+    {% if custom_fields %}
+        <h3>Custom Fields</h3>
+        <ul>
+            {% for custom_field in custom_fields %}
+                <li>
+                    <a href="#field_is_{{ custom_field.name }}">
+                        {{ custom_field.name }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+        <dl>
+            {% for custom_field in custom_fields %}
+                <dt id="field_is_{{ custom_field.name }}">
+                    <a href="#field_is_{{ custom_field.name }}">
+                        {{ custom_field.name }}
+                    </a>
+                </dt>
+                <dd>
+                    <div class="well">
+                        {{ custom_field.help_text_long | bleach }}
+                    </div>
+                </dd>
+            {% endfor %}
+        </dl>
     {% endif %}
-    {% endfor %}
-    </ul>
-<dl>
-    {% for field_name, field_help in custom_help.field_help.items %}
-    <dt id="field_is_{{field_name}}">
-        <a href="#field_is_{{field_name}}">
-        {% with field=custom_help.content_type|get_field:field_name %}
-            {{ field.verbose_name.title }}   
-        {% endwith %}
-        </a>
-    </dt>
-    <dd>
-        <div class="well">
-        {{ field_help | bleach }}
-        </div>
-    </dd>
-    {% endfor %}
-</dl>
-{% endif %}
+
+
 
 {% endblock %}

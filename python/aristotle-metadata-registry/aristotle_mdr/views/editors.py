@@ -128,7 +128,7 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
             extra_mixins=[CustomValueFormMixin]
         )
 
-    def get_extra_formsets(self, item=None, postdata=None):
+    def get_extra_formsets(self, item=None, postdata=None, clone_item=False):
         extra_formsets = super().get_extra_formsets(item, postdata)
 
         if self.slots_active:
