@@ -40,7 +40,6 @@
                 <button type="submit" class="btn btn-primary">Filter</button>
             </div>
         </div>
-        </div>
 
         {% if not_all_selected %}
             <div class="well">
@@ -89,27 +88,27 @@
                             Registered until
                         </th>
                     </tr>
-                </form>
-                {% for concept, status in concepts.items %}
-                    <tr>
-                        <td>
-                            <a href="{% url 'aristotle:item' concept.id %}">{{ concept.name }}</a>
-                        </td>
-                        <td>
-                            {{ concept.item.get_verbose_name }}
-                        </td>
-                        <td>
-                            {{ concept.short_definition | safe }}
-                        </td>
-                        <td>
-                            {{ status.registrationDate }}
-                        </td>
-                        <td>
-                            {{ status.until_date|default_if_none:"--" }}
-                        </td>
-                    </tr>
-                {% endfor %}
-                </tbody>
+
+                    {% for concept, status in concepts.items %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'aristotle:item' concept.id %}">{{ concept.name }}</a>
+                            </td>
+                            <td>
+                                {{ concept.item.get_verbose_name }}
+                            </td>
+                            <td>
+                                {{ concept.short_definition | safe }}
+                            </td>
+                            <td>
+                                {{ status.registrationDate }}
+                            </td>
+                            <td>
+                                {{ status.until_date|default_if_none:"--" }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
                 </table>
                 {% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
             {% else %}
@@ -118,4 +117,5 @@
                 </div>
             {% endif %}
         {% endif %}
+    </form>
 {% endblock %}
