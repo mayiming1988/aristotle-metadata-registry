@@ -9,10 +9,8 @@ from aristotle_mdr import perms
 from aristotle_mdr import models
 from aristotle_mdr.models import StewardOrganisation
 from aristotle_mdr.tests import utils
-from aristotle_mdr.utils import setup_aristotle_test_environment
 
 User = get_user_model()
-setup_aristotle_test_environment()
 
 
 class BaseStewardOrgsTestCase(utils.AristotleTestUtils):

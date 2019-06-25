@@ -8,10 +8,7 @@ from django.test import TestCase
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
 import aristotle_mdr.tests.utils as utils
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-
-setup_aristotle_test_environment()
+from unittest import skip
 
 
 class AdminPage(utils.LoggedInViewPages,TestCase):
@@ -401,6 +398,7 @@ class AdminPageForConcept(utils.AristotleTestUtils):
         self.item1 = self.itemType.objects.get(pk=self.item1.pk)
         self.assertEqual(self.item1.name,updated_name)
 
+    @skip('Admin reversion views disabled')
     def test_history_page_loads(self):
         self.login_editor()
         response = self.client.get(
@@ -409,6 +407,7 @@ class AdminPageForConcept(utils.AristotleTestUtils):
             )
         self.assertResponseStatusCodeEqual(response,200)
 
+    @skip('Admin reversion views disabled')
     def test_prior_version_page_loads(self):
         # Not going to let this issue crop up again!
         from reversion import revisions as reversion
@@ -426,57 +425,6 @@ class AdminPageForConcept(utils.AristotleTestUtils):
             )
         self.assertResponseStatusCodeEqual(response,200)
         self.assertTrue(response.context['adminform'].form.initial['name'],new_name)
-
-    def test_admin_user_can_compare_statuses(self):
-        self.login_editor()
-
-        from reversion import revisions as reversion
-
-        with reversion.create_revision():
-            self.item1.name = "change 1"
-            reversion.set_comment("change 1")
-            self.item1.save()
-
-        old_count = self.item1.statuses.count()
-
-        self.make_review_request(self.item1, self.registrar)
-
-        with reversion.create_revision():
-            self.item1.name = "change 2"
-            reversion.set_comment("change 2")
-            self.ra.register(
-                item=self.item1,
-                state=models.STATES.incomplete,
-                user=self.registrar
-            )
-            self.item1.save()
-        self.assertTrue(self.item1.statuses.count() == old_count + 1)
-
-        from reversion.models import Version
-        revisions = Version.objects.get_for_object(self.item1)
-
-        response = self.client.get(
-            reverse(
-                "admin:%s_%s_compare"%(
-                    self.itemType._meta.app_label,self.itemType._meta.model_name
-                ),
-                args=[self.item1.pk]
-            ),
-            {'version_id1' : revisions.first().pk,
-            'version_id2' : revisions.last().pk
-            }
-        )
-        self.assertResponseStatusCodeEqual(response,200)
-        self.assertContains(response, "change 2")
-        self.assertContains(response, 'statuses')
-
-        self.item1 = self.itemType.objects.get(pk=self.item1.pk) #decache
-        self.assertTrue(self.item1.name == "change 2")
-        for s in self.item1.statuses.all():
-            self.assertContains(
-                response,
-                '%s is %s'%(self.item1.name,s.get_state_display())
-            )
 
     def test_editor_make_item_has_submitter(self):
         # Fixes #595

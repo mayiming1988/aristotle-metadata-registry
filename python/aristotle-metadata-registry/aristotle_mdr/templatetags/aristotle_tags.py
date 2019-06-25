@@ -549,6 +549,11 @@ def field_help_icon(context, item_or_model, field_name):
     }
 
 
+@register.inclusion_tag('aristotle_mdr/helpers/styled_difference.html')
+def render_difference(difference):
+    return {'difference': difference}
+
+
 @register.filter()
 def get_field(content_type, field_name):
     return content_type.model_class()._meta.get_field(field_name)

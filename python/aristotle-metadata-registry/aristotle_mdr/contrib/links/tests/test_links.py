@@ -5,13 +5,11 @@ from django.test import TestCase, tag
 from aristotle_mdr.contrib.links import models, perms
 from aristotle_mdr.models import ObjectClass, STATES
 from aristotle_mdr.tests import utils
-from aristotle_mdr.utils import setup_aristotle_test_environment, url_slugify_concept
+from aristotle_mdr.utils import url_slugify_concept
 
 from aristotle_mdr.tests.main.test_admin_pages import AdminPageForConcept
 from aristotle_mdr.tests.main.test_html_pages import LoggedInViewConceptPages
 from aristotle_mdr.tests.main.test_wizards import ConceptWizardPage
-
-setup_aristotle_test_environment()
 
 
 def setUpModule():

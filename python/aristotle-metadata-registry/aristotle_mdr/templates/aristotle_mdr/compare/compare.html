@@ -1,0 +1,122 @@
+{% extends 'aristotle_mdr/concepts/contentInfoBase.html' %}
+
+{% load aristotle_tags i18n l10n %}
+{% load render_bundle from webpack_loader %}
+
+{% block webpack_bundle %}
+    {% render_bundle 'compare_versions' 'js' %}
+{% endblock %}
+
+{% block webpack_css_bundle %}
+    {% render_bundle 'compare_versions' 'css' %}
+{% endblock %}
+
+{% block title %}Version history of {{ item.name }}{% endblock %}
+
+{% block infoContent %}
+    <h1>Version Comparator for {{ item.name }}</h1>
+    <p>Comparing differences between versions of {{ item.name }}.
+        Only fields where there is a difference between saves are displayed. <br> Comparisions are performed chronologically.
+        Green highlighting indicates that is has been added in the newer item, and red text indicates it has been removed
+        in the newer item.
+    <div class="well well-sm">
+        <em>The <i class="fa fa-columns"></i> icon indicates that a side-by-side rendered HTML comparison exists for
+        this field.</em>
+    </div>
+    {% if not_all_versions_selected %}
+        <div class="well">
+            Both versions must be selected
+        </div>
+    {% elif cannot_compare %}
+        <div class="well">
+            Those versions could not be compared
+        </div>
+    {% else %}
+        <div class="container">
+            {% if diffs %}
+                <table class="table">
+                    <caption>Differences
+                        <div class="btn-group pull-right">
+                            {% if raw %}
+                                <a type="button" href="{{ request.path }}?v1={{ version_1_id }}&v2={{ version_2_id }}"
+                                   class="btn btn-default">Text-Only</a>
+                                <a type="button" class="btn btn-primary" class="btn btn-default">Raw</a>
+                            {% else %}
+                                <a type="button" class="btn btn-primary">Text-Only</a>
+                                <a type="button" href="{{ request.get_full_path }}&raw=true"
+                                   class="btn btn-default">Raw</a>
+                            {% endif %}
+                        </div>
+                    </caption>
+                    <tbody>
+                    <tr>
+                        <th scope="col">Field</th>
+                        <th scope="col">Differences</th>
+                    </tr>
+                    {% for parent_field, diff in diffs.items %}
+                        <tr>
+                            {% if not diff %}
+                                {# If there's no difference don't display it #}
+                            {% else %}
+                                <td>
+                                    {% if diff.is_html %}
+                                        {# If the diff for the field is HTML then we want to provide a link to a side #}
+                                        {# by side comparision #}
+                                        {{ diff.user_friendly_name }}
+                                        <a href="{% url 'aristotle:compare_fields' item.id %}?v1={{ version_1_id }}&v2={{ version_2_id }}&field={{ parent_field }}">
+                                            <i class="fa fa-columns"></i></a>
+                                    {% else %}
+                                        {{ diff.user_friendly_name }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if diff.subitem %}
+                                        {# It's a subitem so we need to display it in a special way #}
+                                        <table class="table table-striped">
+                                            <caption></caption>
+                                            {% for item_diff in diff.diffs %} {# <-- List of the subitems for a particular field #}
+                                                <tr>
+
+                                                    {% for field, differences in item_diff.items %}
+                                                        {# <-- The fields and tuple differences for a field in a particular subitem #}
+                                                        <tr>
+                                                            <td>
+                                                                {% if differences.is_html %}
+                                                                    {{ field|title }}
+                                                                    <a href="{% url 'aristotle:compare_fields' item.id %}?v1={{ version_1_id }}&v2={{ version_2_id }}&field={{ parent_field }}.{{ forloop.parentloop.counter0 }}.{{ field }}">
+                                                                        <i class="fa fa-columns"></i></a>
+                                                                {% else %}
+                                                                    {{ field|title }}
+                                                                {% endif %}
+                                                            </td>
+                                                            <td>
+                                                                {% for difference in differences.diff %} {# <-- Tuple of differences #}
+                                                                    {% render_difference difference %}
+                                                                {% endfor %} {# <-- End per field iteration #}
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                <tr>
+                                                    <td></td>
+                                                </tr>
+                                                </tr>
+                                            {% endfor %} {# <-- End per item iteration #}
+                                        </table>
+                                    {% else %}
+                                        {# Not a subitem, no special treatment required #}
+                                        {% for difference in diff.diffs %}
+                                            {% render_difference difference %}
+                                        {% endfor %}
+                                        </td>
+                                    {% endif %}
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+    {% endif %} {# <-- End not all versions selected #}
+
+
+{% endblock %}

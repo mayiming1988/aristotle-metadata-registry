@@ -20,7 +20,6 @@ from .utils import (
     is_active_extension,
     pandoc_installed,
     fetch_aristotle_downloaders,
-    setup_aristotle_test_environment,
     get_aristotle_url,
     strip_tags,
     get_concept_models,

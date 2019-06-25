@@ -13,6 +13,8 @@ from aristotle_mdr.fields import (
 )
 from aristotle_mdr.utils import fetch_aristotle_settings
 
+import reversion
+
 
 class DataCatalog(aristotle.models.concept):
     """
@@ -382,8 +384,8 @@ class DSSInclusion(aristotle.models.aristotleComponent):
     specific_information = RichTextField(
         blank=True,
         help_text=_("Any additional information on the inclusion of a data element or cluster in a dataset.")
-        )  # may need to become HTML field.
-    conditional_obligation = models.TextField(
+        )
+    conditional_obligation = RichTextField(
         blank=True,
         help_text=_("If an item is present conditionally, this field defines the conditions under which an item will appear.")
         )
