@@ -399,7 +399,7 @@ def get_concept_content_types() -> Dict[Model, ContentType]:
 
 def get_managed_item_models() -> List[Model]:
     """Returns models for any managed item subclass"""
-    from aristotle_mdr.util.model_utils import ManagedItem
+    from aristotle_mdr.utils.model_utils import ManagedItem
     models = []
     for app_config in apps.get_app_configs():
         for model in app_config.get_models():
