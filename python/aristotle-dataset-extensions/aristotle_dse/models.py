@@ -376,6 +376,7 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         help_text=_("The maximum number of times a item can be included in a dataset")
         )
     cardinality = models.CharField(
+        "Inclusion",
         choices=CARDINALITY,
         default=CARDINALITY.conditional,
         max_length=20,
@@ -386,6 +387,7 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         help_text=_("Any additional information on the inclusion of a data element or cluster in a dataset.")
         )
     conditional_obligation = RichTextField(
+        "Conditional Inclusion",
         blank=True,
         help_text=_("If an item is present conditionally, this field defines the conditions under which an item will appear.")
         )
