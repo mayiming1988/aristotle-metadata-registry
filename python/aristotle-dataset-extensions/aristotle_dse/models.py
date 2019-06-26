@@ -375,7 +375,7 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         verbose_name=_("Maximum Occurrences"),
         help_text=_("The maximum number of times a item can be included in a dataset")
         )
-    cardinality = models.CharField(
+    inclusion = models.CharField(
         "Inclusion",
         choices=CARDINALITY,
         default=CARDINALITY.conditional,
@@ -451,7 +451,7 @@ class DSSDEInclusion(DSSInclusion):
     inline_field_layout = 'list'
     inline_field_order = [
         "order", "dss",
-        "data_element", "reference", "cardinality", "maximum_occurrences",
+        "data_element", "reference", "inclusion", "maximum_occurrences",
         "conditional_inclusion", "specific_information", "group", "specialisation_classes"
     ]
 
@@ -489,7 +489,7 @@ class DSSClusterInclusion(DSSInclusion):
     inline_field_layout = 'list'
     inline_field_order = [
         "order", "dss", "child",
-        "reference", "cardinality", "maximum_occurrences",
+        "reference", "inclusion", "maximum_occurrences",
         "conditional_inclusion", "specific_information"
     ]
 

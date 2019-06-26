@@ -94,7 +94,7 @@
                             </ul>
                         </td>
                         <td>
-                            {{ deinc.cardinality }}
+                            {{ deinc.inclusion }}
                         </td>
                         <td>
                             {{ deinc.maximum_occurrences }}
@@ -177,7 +177,7 @@
                 {% if parent.dss.id in viewable_ids %}
                     <li>
                         {% include "aristotle_mdr/helpers/inlineDetails.html" with item=parent.dss skip_can_view=True %}
-                        ({{ parent.cardinality }})
+                        ({{ parent.inclusion }})
                     </li>
                 {% endif %}
             {% endfor %}
