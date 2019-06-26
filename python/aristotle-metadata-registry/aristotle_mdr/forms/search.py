@@ -339,9 +339,14 @@ class TokenSearchForm(FacetedSearchForm):
         if self.query_text:
             # If there is query text
             # Search on text (which is the document) and name fields (so name can be boosted)
-            sqs = self.searchqueryset.filter(
-                SQ(text=AutoQuery(self.query_text)) | SQ(name=AutoQuery(self.query_text))
-            )
+            if self.title_only:
+                sqs = self.searchqueryset.filter(
+                    SQ(name=AutoQuery(self.query_text))
+                )
+            else:
+                sqs = self.searchqueryset.filter(
+                    SQ(text=AutoQuery(self.query_text)) | SQ(name=AutoQuery(self.query_text))
+                )
 
         else:
             # Don't search
@@ -442,6 +447,10 @@ class PermissionSearchForm(TokenSearchForm):
         required=False,
         label="Only show public items"
     )
+    title_only = forms.BooleanField(
+        required=False,
+        label="Search titles only"
+    )
     myWorkgroups_only = forms.BooleanField(
         required=False,
         label="Only show items in my workgroups"
@@ -521,6 +530,7 @@ class PermissionSearchForm(TokenSearchForm):
 
     def search(self, repeat_search=False):
         # First, store the SearchQuerySet received from other processing.
+        self.title_only = self.cleaned_data['title_only']
         sqs = super().search()
         if not self.token_models and self.get_models():
             sqs = sqs.models(*self.get_models())
