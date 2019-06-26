@@ -1344,7 +1344,6 @@ class ValueMeaning(aristotleComponent):
 
     name = models.CharField(  # 3.2.141
         max_length=255,
-        blank=True,
         help_text=_('The semantic content of a possible value (3.2.141)')
     )
     definition = models.TextField(
@@ -1997,9 +1996,13 @@ def check_concept_app_label(sender, instance, **kwargs):
         return
     if instance._meta.app_label not in fetch_metadata_apps():
         raise ImproperlyConfigured(
-            "Trying to save item <{instance_name}> when app_label <{app_label}> is not enabled".format(
+            (
+                "Trying to save item <{instance_name}> when app_label <{app_label}> "
+                "is not enabled. Metadata apps at this point were <{metadata_apps}>."
+            ).format(
                 app_label=instance._meta.app_label,
-                instance_name=instance.name
+                instance_name=instance.name,
+                metadata_apps=str(fetch_metadata_apps())
             )
         )
 

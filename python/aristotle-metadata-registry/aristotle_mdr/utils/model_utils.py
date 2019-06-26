@@ -171,7 +171,6 @@ class AbstractValue(aristotleComponent):
         ordering = ['order']
 
     value = ShortTextField(  # 11.3.2.7.2.1 - Renamed from permitted value for abstracts
-        blank=True,
         help_text=_("the actual value of the Value")
     )
     meaning = ShortTextField(  # 11.3.2.7.1
