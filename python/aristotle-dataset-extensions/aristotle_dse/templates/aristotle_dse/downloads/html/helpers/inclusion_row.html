@@ -13,10 +13,10 @@
                     {{ inc.specific_information|bleach }}
                 </div>
             {% endif %}
-            {% if inc.conditional_obligation %}
+            {% if inc.conditional_inclusion %}
                 <strong>Conditional Inclusion:</strong>
                 <div>
-                    {{ inc.conditional_obligation|bleach }}
+                    {{ inc.conditional_inclusion|bleach }}
                 </div>
             {% endif %}
     </td>

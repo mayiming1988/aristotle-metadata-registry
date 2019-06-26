@@ -358,28 +358,28 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
             DSE.DSSDEInclusion.objects.create(
                 data_element=self.data_element,
                 reference="Hello",
-                conditional_obligation="Test Obligation",
+                conditional_inclusion="Test Obligation",
                 order=0,
                 dss=self.data_set_specification
             )
             DSE.DSSDEInclusion.objects.create(
                 data_element=self.data_element,
                 reference="Hola",
-                conditional_obligation="Test Obligation",
+                conditional_inclusion="Test Obligation",
                 order=0,
                 dss=self.data_set_specification
             )
             DSE.DSSDEInclusion.objects.create(
                 data_element=self.data_element,
                 reference="Hallo",
-                conditional_obligation="Test Obligation",
+                conditional_inclusion="Test Obligation",
                 order=0,
                 dss=self.data_set_specification
             )
             DSE.DSSDEInclusion.objects.create(
                 data_element=self.data_element,
                 reference="Hoi",
-                conditional_obligation="Test Obligation",
+                conditional_inclusion="Test Obligation",
                 order=0,
                 dss=self.data_set_specification
             )

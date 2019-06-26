@@ -11,9 +11,9 @@
                     {{ deinc.specific_information|bleach }}
                 </div>
             {% endif %}
-            {% if deinc.conditional_obligation %}
+            {% if deinc.conditional_inclusion %}
                 <div>
-                    <strong>Conditional Inclusion:</strong>{{ deinc.conditional_obligation|bleach }}
+                    <strong>Conditional Inclusion:</strong>{{ deinc.conditional_inclusion|bleach }}
                 </div>
             {% endif %}
         </td>
