@@ -23,16 +23,16 @@
 
 {% block help_content %}
     {% if not this_is_a_custom_field %}
-        <h1>
-            Help text of "{{ field.verbose_name.title }}"
-        </h1>
+        <h2>
+            Help text for field <em>{{ field.verbose_name.title }}</em>
+        </h2>
         <div class="panel">
             {% firstof field.help_text "No help text available" %}
         </div>
     {% endif %}
     {% if custom_help %}
-        <h1>Registry specific help</h1>
-        <div>
+        <h2>Registry specific help</h2>
+        <div class="panel">
             {{ custom_help|bleach }}
         </div>
     {% endif %}
