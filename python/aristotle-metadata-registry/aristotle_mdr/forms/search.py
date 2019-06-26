@@ -339,7 +339,8 @@ class TokenSearchForm(FacetedSearchForm):
         if self.query_text:
             # If there is query text
             # Search on text (which is the document) and name fields (so name can be boosted)
-            if self.title_only:
+            title_only = self.cleaned_data.get('title_only', None)
+            if title_only:
                 sqs = self.searchqueryset.filter(
                     SQ(name=AutoQuery(self.query_text))
                 )
@@ -530,7 +531,6 @@ class PermissionSearchForm(TokenSearchForm):
 
     def search(self, repeat_search=False):
         # First, store the SearchQuerySet received from other processing.
-        self.title_only = self.cleaned_data['title_only']
         sqs = super().search()
         if not self.token_models and self.get_models():
             sqs = sqs.models(*self.get_models())
