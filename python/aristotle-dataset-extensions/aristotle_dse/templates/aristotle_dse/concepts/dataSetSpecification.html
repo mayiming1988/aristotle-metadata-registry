@@ -50,8 +50,8 @@
                 <th>Statuses</th>
                 <th>
                     <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-placement="left" data-html="true"
-                       title="Cardinality" data-content="Specifies if a field is required, optional or conditional within a dataset based on this specification.">
-                        Cardinality
+                       title="Inclusion" data-content="Specifies if a field is required, optional or conditional within a dataset based on this specification.">
+                        Inclusion
                     </a>
                 </th>
                 <th class="maxOccurs">
@@ -77,10 +77,10 @@
                                     {{ deinc.specific_information|bleach }}
                                 </div>
                             {% endif %}
-                            {% if deinc.conditional_obligation %}
+                            {% if deinc.conditional_inclusion %}
                                 <div>
-                                    <strong>Conditional Obligation:</strong>
-                                    {{ deinc.conditional_obligation|bleach }}
+                                    <strong>Conditional Inclusion:</strong>
+                                    {{ deinc.conditional_inclusion|bleach }}
                                 </div>
                             {% endif %}
                         </td>
@@ -94,7 +94,7 @@
                             </ul>
                         </td>
                         <td>
-                            {{ deinc.cardinality }}
+                            {{ deinc.inclusion }}
                         </td>
                         <td>
                             {{ deinc.maximum_occurrences }}
@@ -177,7 +177,7 @@
                 {% if parent.dss.id in viewable_ids %}
                     <li>
                         {% include "aristotle_mdr/helpers/inlineDetails.html" with item=parent.dss skip_can_view=True %}
-                        ({{ parent.cardinality }})
+                        ({{ parent.inclusion }})
                     </li>
                 {% endif %}
             {% endfor %}

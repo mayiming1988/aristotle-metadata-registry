@@ -29,24 +29,6 @@ class Migration(migrations.Migration):
             model_name='distribution',
             name='publisher',
         ),
-        migrations.RemoveField(
-            model_name='dssclusterinclusion',
-            name='maximum_occurances',
-        ),
-        migrations.RemoveField(
-            model_name='dssdeinclusion',
-            name='maximum_occurances',
-        ),
-        migrations.AddField(
-            model_name='dssclusterinclusion',
-            name='maximum_occurrences',
-            field=models.PositiveIntegerField(default=1, help_text='The maximum number of times a item can be included in a dataset', verbose_name='Maximum Occurrences'),
-        ),
-        migrations.AddField(
-            model_name='dssdeinclusion',
-            name='maximum_occurrences',
-            field=models.PositiveIntegerField(default=1, help_text='The maximum number of times a item can be included in a dataset', verbose_name='Maximum Occurrences'),
-        ),
         migrations.AlterField(
             model_name='dataset',
             name='dct_modified',
@@ -56,5 +38,29 @@ class Migration(migrations.Migration):
             model_name='distribution',
             name='dct_modified',
             field=models.DateTimeField(blank=True, help_text='Most recent date on which the catalog was changed, updated or modified.', null=True, verbose_name='Modification date'),
+        ),
+
+
+        migrations.RenameField(
+            model_name='dssclusterinclusion',
+            old_name='maximum_occurances',
+            new_name='maximum_occurrences',
+        ),
+        migrations.RenameField(
+            model_name='dssdeinclusion',
+            old_name='maximum_occurances',
+            new_name='maximum_occurrences',
+        ),
+        migrations.AlterField(
+            model_name='dssclusterinclusion',
+            name='maximum_occurrences',
+            field=models.PositiveIntegerField(default=1, help_text='The maximum number of times a item can be included in a dataset', verbose_name='Maximum Occurrences'),
+            preserve_default=False,
+        ),
+        migrations.AlterField(
+            model_name='dssdeinclusion',
+            name='maximum_occurrences',
+            field=models.PositiveIntegerField(default=1, help_text='The maximum number of times a item can be included in a dataset', verbose_name='Maximum Occurrences'),
+            preserve_default=False,
         ),
     ]

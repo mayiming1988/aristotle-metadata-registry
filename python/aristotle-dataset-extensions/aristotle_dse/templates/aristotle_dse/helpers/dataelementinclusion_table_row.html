@@ -11,9 +11,9 @@
                     {{ deinc.specific_information|bleach }}
                 </div>
             {% endif %}
-            {% if deinc.conditional_obligation %}
+            {% if deinc.conditional_inclusion %}
                 <div>
-                    <strong>Conditional Obligation:</strong>{{ deinc.conditional_obligation|bleach }}
+                    <strong>Conditional Inclusion:</strong>{{ deinc.conditional_inclusion|bleach }}
                 </div>
             {% endif %}
         </td>
@@ -37,7 +37,7 @@
             </ul>
         </td>
         {% endcomment %}
-        <td>{{ deinc.cardinality }}</td>
+        <td>{{ deinc.inclusion }}</td>
         <td>{{ deinc.maximum_occurrences }}</td>
     </tr>
 {% else %}

@@ -5,7 +5,7 @@ from aristotle_mdr.contrib.autocomplete import widgets
 
 
 class AddDataElementsToDSSForm(forms.Form):
-    cardinality = forms.ChoiceField(choices=models.CARDINALITY, widget=forms.RadioSelect)
+    inclusion = forms.ChoiceField(choices=models.CARDINALITY, widget=forms.RadioSelect)
     maximum_occurrences = forms.IntegerField(min_value=1, initial=1)
     # widget=forms.CheckboxSelectMultiple)
 
@@ -30,17 +30,17 @@ class AddDataElementsToDSSForm(forms.Form):
 class EditDataElementInclusionForm(forms.ModelForm):
     class Meta:
         model = models.DSSDEInclusion
-        fields = ['maximum_occurrences', 'group', 'cardinality', 'specific_information', 'conditional_obligation']
+        fields = ['maximum_occurrences', 'group', 'inclusion', 'specific_information', 'conditional_inclusion']
 
 
 class EditClusterInclusionForm(forms.ModelForm):
     class Meta:
         model = models.DSSClusterInclusion
-        fields = ['maximum_occurrences', 'cardinality', 'specific_information', 'conditional_obligation']
+        fields = ['maximum_occurrences', 'inclusion', 'specific_information', 'conditional_inclusion']
 
 
 class AddClustersToDSSForm(forms.Form):
-    cardinality = forms.ChoiceField(choices=models.CARDINALITY, widget=forms.RadioSelect)
+    inclusion = forms.ChoiceField(choices=models.CARDINALITY, widget=forms.RadioSelect)
     maximum_occurrences = forms.IntegerField(min_value=1, initial=1)
 
     def __init__(self, *args, **kwargs):

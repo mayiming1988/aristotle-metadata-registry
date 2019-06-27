@@ -1,9 +1,9 @@
 {% with formset.filtered_empty_form as form %}
     {% if not disable_ordering %}<td title="Drag to reorder"><i class="fa fa-bars grabber"></i>{% endif %}
-    {% for hidden in form.hidden_fields %}
-        {{ hidden }}
-    {% endfor %}
-    </td>
+{% for hidden in form.hidden_fields %}
+    {{ hidden }}
+{% endfor %}
+</td>
     <td>
         <div>
             <header class="h5">

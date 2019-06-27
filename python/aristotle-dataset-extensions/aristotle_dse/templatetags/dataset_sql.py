@@ -26,7 +26,7 @@ def column_data_type(dataelementinclusion):
     fallback_column = "VARCHAR(4096)"
     if not dataelementinclusion.dataElement.valueDomain:
         column_definition = fallback_column
-        if dataelementinclusion.cardinality is not CARDINALITY.mandatory:
+        if dataelementinclusion.inclusion is not CARDINALITY.mandatory:
             # if its optional, it must be nullable.
             column_definition += " NULL "
         return column_definition
@@ -57,7 +57,7 @@ def column_data_type(dataelementinclusion):
     else:  # Catch all.
         column_definition = fallback_column
 
-    if dataelementinclusion.cardinality is not CARDINALITY.mandatory:
+    if dataelementinclusion.inclusion is not CARDINALITY.mandatory:
         # if its optional, it must be nullable.
         column_definition += " NULL "
 
