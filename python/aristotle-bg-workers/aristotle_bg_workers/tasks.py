@@ -46,6 +46,14 @@ def reindex_task(self, *args, **kwargs):
     return meta
 
 
+@shared_task(base=AristotleTask, bind=True, name='long__recache_visibility')
+def recache_visibility(self, *args, **kwargs):
+    meta = {"requester": kwargs['requester'], "start_date": datetime.datetime.now()}
+    self.update_state(meta=meta, state="STARTED")
+    meta.update({"result": run_django_command('recache_registration_authority_item_visibility', interactive=False)})
+    return meta
+
+
 @shared_task(base=AristotleTask, bind=True, name='long__load_help')
 def loadhelp_task(self, *args, **kwargs):
     meta = {"requester": kwargs['requester'], "start_date": datetime.datetime.now()}
