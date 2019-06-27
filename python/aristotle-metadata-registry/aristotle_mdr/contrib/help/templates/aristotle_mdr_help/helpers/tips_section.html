@@ -8,19 +8,17 @@
         </a>
     </p>
 
-    {% with creation_tip=help|relinked:"creation_tip" %}
-        {% if custom_help.creation_tip or creation_tip %}
-            <header class='editor'>Tips for creating {{model_name_plural}}</header>
-            {% if custom_help.creation_tip %}
-                <div>
-                    {{ custom_help.creation_tip | bleach }}
-                </div>
-            {% else %}
-                <div>
-                    {{ creation_tip }}
-                </div>
-            {% endif %}
+    {% if custom_help.creation_tip or help.creation_tip %}
+        <header class='editor'>Tips for creating {{model_name_plural}}</header>
+        {% if custom_help.creation_tip %}
+            <div>
+                {{ custom_help.creation_tip | bleach }}
+            </div>
+        {% else %}
+            <div>
+                {{ help|relinked:"creation_tip" }}
+            </div>
         {% endif %}
-    {% endwith %}
+    {% endif %}
 
 {% endif %}

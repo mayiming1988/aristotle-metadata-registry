@@ -87,6 +87,11 @@ class ConceptHelpView(AppHelpViewer):
             custom_help = CustomHelp.objects.filter(content_type=ct).first()
 
         context['custom_help'] = custom_help
+
+        from aristotle_mdr.contrib.custom_fields.models import CustomField
+
+        context['custom_fields'] = CustomField.objects.filter(allowed_model=ct)
+
         return context
 
 
@@ -104,24 +109,33 @@ class ConceptFieldHelpView(TemplateView):
 
         try:
             field = ct.model_class()._meta.get_field(field_name)
-        except FieldDoesNotExist:
-            raise Http404
+            kwargs.update({'field': field})
+            custom_help = None
+            if cloud_enabled():
+                from aristotle_cloud.contrib.custom_help.models import CustomHelp
+                try:
+                    custom_help = ct.custom_help.field_help.get(field_name, None)
+                except CustomHelp.DoesNotExist:
+                    pass
+                kwargs.update({'custom_help': custom_help})
 
-        custom_help = None
-        if cloud_enabled():
-            from aristotle_cloud.contrib.custom_help.models import CustomHelp
+        except FieldDoesNotExist:
+            # If the field does not exist, then this must be a CustomField...
+            from aristotle_mdr.contrib.custom_fields.models import CustomField
             try:
-                custom_help = ct.custom_help
-                custom_help = custom_help.field_help.get(field_name, None)
-            except CustomHelp.DoesNotExist:
-                pass
+                field = CustomField.objects.get(allowed_model=ct, name=field_name)
+                kwargs.update({
+                    'custom_help': field,
+                    'field': field_name,
+                    'this_is_a_custom_field': True,
+                })
+            except CustomField.DoesNotExist:
+                raise Http404
 
         kwargs.update({
             'app': apps.get_app_config(app),
             'model_name': model,
             'model': ct.model_class(),
-            'field': field,
             'content_type': ct,
-            'custom_help': custom_help,
         })
         return super().get_context_data(**kwargs)
