@@ -455,8 +455,6 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
                 # Don't show fields like modified, which are set by the database
                 earlier_value = earlier_dict[field]
                 later_value = later_dict[field]
-                # if field == "comments":
-                #     raise ValueError([earlier_value,later_value])
 
                 if earlier_value != later_value:
                     # No point doing diffs if there is no difference

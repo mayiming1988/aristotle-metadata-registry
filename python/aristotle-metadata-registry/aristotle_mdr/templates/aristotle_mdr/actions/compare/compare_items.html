@@ -25,7 +25,6 @@
         <table class="table table-bordered compare">
             <thead>
             <tr>
-                <th>Field</th>
                 <th>
                     {{ form.item_a.label }}<br>
                     {{ form.item_a }}
@@ -41,7 +40,6 @@
             {% if item_a and item_b %}
             <tbody>
                 <tr>
-                    <td></td>
                     <td><a href="{{item_a.get_absolute_url}}">{{item_a}}</a></td>
                     <td>To</td>
                     <td><a href="{{item_b.get_absolute_url}}">{{item_b}}</a></td>
