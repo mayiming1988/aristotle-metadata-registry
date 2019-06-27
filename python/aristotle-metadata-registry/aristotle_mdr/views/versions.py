@@ -420,7 +420,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
 class ConceptVersionCompareBase(VersionsMixin, TemplateView):
     template_name = 'aristotle_mdr/compare/compare.html'
     context: dict = {}
-    hidden_diff_fields = ['modified']
+    hidden_diff_fields = ['modified', 'created', 'uuid']
 
     def handle_compare_failure(self):
         self.context['cannot_compare'] = True
@@ -429,7 +429,6 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
     def get_differing_fields(self, earlier_dict, later_dict):
         # Iterate across the two and find the differing fields
         pass
-
 
     def generate_diff(self, earlier_dict, later_dict, raw=False):
         """
@@ -443,13 +442,21 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
 
         DiffMatchPatch = diff_match_patch.diff_match_patch()
         field_to_diff = {}
+        field_names = [
+            f.name for f in self.model._meta.get_fields()
+        ] + [
+            'customvalue_set', 'slots', 'identifiers', 'org_records',
+        ]
 
         for field in earlier_dict:
             # Iterate through all fields in the JSON
-            if field not in self.hidden_diff_fields:
+            show_field = field not in self.hidden_diff_fields and field in field_names
+            if show_field:
                 # Don't show fields like modified, which are set by the database
                 earlier_value = earlier_dict[field]
                 later_value = later_dict[field]
+                # if field == "comments":
+                #     raise ValueError([earlier_value,later_value])
 
                 if earlier_value != later_value:
                     # No point doing diffs if there is no difference
@@ -557,6 +564,9 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
             differences.append(difference_dict)
         return differences
 
+    def get_subitem_key(self, subitem_model):
+        return 'id'
+
     def build_diff_of_subitems(self, earlier_values, later_values, subitem_model, raw=False) -> List[Dict]:
         """
         Given a list of dictionaries containing representations of objects, iterates through and returns a list of
@@ -571,9 +581,10 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
 
         both_empty = earlier_values == [] and later_values == []
         if not both_empty:
+            key = self.get_subitem_key(subitem_model)
 
-            earlier_items = {item['id']: item for item in earlier_values}
-            later_items = {item['id']: item for item in later_values}
+            earlier_items = {item[key]: item for item in earlier_values}
+            later_items = {item[key]: item for item in later_values}
 
             # Items that are in the later items but not the earlier items have been 'added'
             added_ids = set(later_items.keys()) - set(earlier_items.keys())
@@ -649,7 +660,6 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
             later_version = second_version
             earlier_version = first_version
 
-        print(earlier_version.serialized_data)
         return (
             json.loads(earlier_version.serialized_data),
             json.loads(later_version.serialized_data),
@@ -706,12 +716,6 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
             self.context['cannot_compare'] = True
             return self.context
 
-        logger.critical("**************************************************")
-        print(earlier_json)
-        logger.critical(earlier_json)
-        logger.critical("**************************************************")
-        # 1/0
-
         if not reordered:
             earlier_concept = self.get_version_1_concept()
             later_concept = self.get_version_2_concept()
@@ -742,7 +746,6 @@ class ConceptVersionCompareView(SimpleItemGet, ConceptVersionCompareBase):
     """
     template_name = 'aristotle_mdr/compare/compare.html'
     context: dict = {}
-    hidden_diff_fields = ['modified']
 
     def get_version_1_concept(self):
         return self.get_item(self.request.user).item
@@ -754,7 +757,6 @@ class ConceptVersionCompareView(SimpleItemGet, ConceptVersionCompareBase):
         version_1 = self.request.GET.get('v1')
         version_2 = self.request.GET.get('v2')
         return (version_1, version_2)
-
 
 
 class ConceptVersionListView(SimpleItemGet, VersionsMixin, ListView):
