@@ -440,6 +440,7 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
         {field: [(0, hello), (1, world)]}
 
         """
+
         DiffMatchPatch = diff_match_patch.diff_match_patch()
         field_to_diff = {}
 
@@ -494,10 +495,13 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
 
     def generate_diff_for_added_removed_fields(self, ids, values, subitem_model, added=True, raw=False):
         """ Generates the diff for fields that have been added/removed from a concept comparision"""
-        difference_dict = {}
+
+        differences = []
 
         for id in ids:
             item = values[id]
+            difference_dict = {}
+
             for field, value in item.items():
                 if field == 'id':
                     pass
@@ -521,7 +525,8 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
                     else:
                         difference_dict[field] = {'is_html': is_html,
                                                   'diff': [(-1, value)]}
-        return difference_dict
+            differences.append(difference_dict)
+        return differences
 
     def build_diff_of_subitem_dict(self, earlier_item, later_item, subitem_model, raw=False) -> List[Dict]:
         differences = []
@@ -559,7 +564,7 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
         Example:
             [{'field': [(0, hello), (1, world)], 'other_field': [(0, goodbye), (-1, world)]]
         """
-        differences = []
+        differences: list = []
 
         # Blame Google for this unpythonic variable
         DiffMatchPatch = diff_match_patch.diff_match_patch()
@@ -575,14 +580,14 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
             added_items = self.generate_diff_for_added_removed_fields(added_ids, later_items,
                                                                       subitem_model, added=True, raw=raw)
             if added_items:
-                differences.append(added_items)
+                differences.extend(added_items)
 
             # Items that are in the earlier items but not the later items have been 'removed'
             removed_ids = set(earlier_items.keys()) - set(later_items.keys())
             removed_items = self.generate_diff_for_added_removed_fields(removed_ids, earlier_items,
                                                                         subitem_model, added=False, raw=raw)
             if removed_items:
-                differences.append(removed_items)
+                differences.extend(removed_items)
 
             # Items with IDs that are present in both earlier and later data have been changed,
             # so we want to perform a field-by-field dict comparision
