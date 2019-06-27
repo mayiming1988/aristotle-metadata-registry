@@ -417,16 +417,10 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         return context
 
 
-class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
-    """
-    View that performs the historical comparision between two different versions of the same concept
-    """
+class ConceptVersionCompareBase(VersionsMixin, TemplateView):
     template_name = 'aristotle_mdr/compare/compare.html'
     context: dict = {}
     hidden_diff_fields = ['modified']
-
-    def get_model(self, concept) -> Model:
-        return concept.item._meta.model
 
     def handle_compare_failure(self):
         self.context['cannot_compare'] = True
@@ -435,6 +429,7 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
     def get_differing_fields(self, earlier_dict, later_dict):
         # Iterate across the two and find the differing fields
         pass
+
 
     def generate_diff(self, earlier_dict, later_dict, raw=False):
         """
@@ -637,22 +632,41 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
         """
         first_version_created = first_version.revision.date_created
         second_version_created = second_version.revision.date_created
+        reordered = False
 
         if first_version_created > second_version_created:
             # If the first version is after the second version
             later_version = first_version
             earlier_version = second_version
+            reordered = True
         else:
             # The first version is before the second version
             later_version = second_version
             earlier_version = first_version
 
-        return (json.loads(earlier_version.serialized_data), json.loads(later_version.serialized_data))
+        print(earlier_version.serialized_data)
+        return (
+            json.loads(earlier_version.serialized_data),
+            json.loads(later_version.serialized_data),
+            reordered
+        )
+
+    def get_model(self, concept) -> Model:
+        return concept.item._meta.model
+
+    def get_version_1_concept(self):
+        raise NotImplementedError
+
+    def get_version_2_concept(self):
+        raise NotImplementedError
 
     def apply_permission_checking(self, version_permission_1, version_permission_2):
-        if not self.user_can_view_version(self.request.user, self.concept, version_permission_1) and \
-                self.user_can_view_version(self.request.user, self.concept, version_permission_2):
+        if not self.user_can_view_version(self.request.user, self.get_version_1_concept(), version_permission_1) and \
+                self.user_can_view_version(self.request.user, self.get_version_2_concept(), version_permission_2):
             raise PermissionDenied
+
+    def get_compare_versions(self):
+        raise NotImplementedError
 
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
@@ -660,15 +674,15 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
         self.context['activetab'] = 'history'
         self.context['hide_item_actions'] = True
 
-        self.concept: MDR._concept = self.get_item(self.request.user).item
-        self.model = self.get_model(self.concept)
+        # self.concept: MDR._concept = self.get_item(self.request.user).item
 
-        version_1 = self.request.GET.get('v1')
-        version_2 = self.request.GET.get('v2')
+        version_1, version_2 = self.get_compare_versions()
 
         if not version_1 or not version_2:
             self.context['not_all_versions_selected'] = True
             return self.context
+
+        self.model = self.get_model(self.get_version_1_concept())
 
         first_version = reversion.models.Version.objects.get(pk=version_1)
         second_version = reversion.models.Version.objects.get(pk=version_2)
@@ -682,13 +696,30 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
         self.context['version_2_id'] = version_2
 
         try:
-            earlier_json, later_json = self.get_version_jsons(first_version, second_version)
+            earlier_json, later_json, reordered = self.get_version_jsons(first_version, second_version)
         except json.JSONDecodeError:
             self.context['cannot_compare'] = True
             return self.context
 
-        earlier_json = self.remove_disallowed_custom_fields(self.request.user, earlier_json, self.concept)
-        later_json = self.remove_disallowed_custom_fields(self.request.user, later_json, self.concept)
+        logger.critical("**************************************************")
+        print(earlier_json)
+        logger.critical(earlier_json)
+        logger.critical("**************************************************")
+        # 1/0
+
+        if not reordered:
+            earlier_concept = self.get_version_1_concept()
+            later_concept = self.get_version_2_concept()
+        else:
+            earlier_concept = self.get_version_2_concept()
+            later_concept = self.get_version_1_concept()
+
+        earlier_json = self.remove_disallowed_custom_fields(
+            self.request.user, earlier_json, earlier_concept
+        )
+        later_json = self.remove_disallowed_custom_fields(
+            self.request.user, later_json, later_concept
+        )
 
         raw = self.request.GET.get('raw')
         if raw:
@@ -698,6 +729,27 @@ class ConceptVersionCompareView(SimpleItemGet, VersionsMixin, TemplateView):
             self.context['diffs'] = self.generate_diff(earlier_json, later_json)
 
         return self.context
+
+
+class ConceptVersionCompareView(SimpleItemGet, ConceptVersionCompareBase):
+    """
+    View that performs the historical comparision between two different versions of the same concept
+    """
+    template_name = 'aristotle_mdr/compare/compare.html'
+    context: dict = {}
+    hidden_diff_fields = ['modified']
+
+    def get_version_1_concept(self):
+        return self.get_item(self.request.user).item
+
+    def get_version_2_concept(self):
+        return self.get_item(self.request.user).item
+
+    def get_compare_versions(self):
+        version_1 = self.request.GET.get('v1')
+        version_2 = self.request.GET.get('v2')
+        return (version_1, version_2)
+
 
 
 class ConceptVersionListView(SimpleItemGet, VersionsMixin, ListView):
