@@ -31,6 +31,7 @@ class MetadataComparison(ConceptVersionCompareBase, AristotleMetadataToolView):
     def has_same_base_model(self):
         concept_1 = self.get_version_1_concept()
         concept_2 = self.get_version_2_concept()
+
         return concept_1._meta.model == concept_2._meta.model
 
     def get_subitem_key(self, subitem_model):
@@ -74,10 +75,17 @@ class MetadataComparison(ConceptVersionCompareBase, AristotleMetadataToolView):
 
         version_1 = Version.objects.get_for_object(concept_1).order_by('-revision__date_created').first().pk
         version_2 = Version.objects.get_for_object(concept_2).order_by('-revision__date_created').first().pk
+
         return (version_1, version_2)
 
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
+
+        if self.get_version_1_concept() is None and self.get_version_2_concept() is None:
+            # Not all concepts selected
+            self.context['form']  = self.get_form()
+            return self.context
+
         self.context.update({
             "form": self.get_form(),
             "has_same_base_model": self.has_same_base_model,
