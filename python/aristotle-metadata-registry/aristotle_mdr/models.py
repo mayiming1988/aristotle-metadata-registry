@@ -41,7 +41,6 @@ from aristotle_mdr.utils import (
     strip_tags,
 )
 from aristotle_mdr.utils.text import truncate_words
-from aristotle_mdr import comparators
 
 from jsonfield import JSONField
 from .fields import (
@@ -753,7 +752,6 @@ class _concept(baseAristotleObject):
 
     tracker = FieldTracker()
 
-    comparator = comparators.Comparator
     edit_page_excludes: List[str] = []
     admin_page_excludes: List[str] = []
     # List of fields that will only be displayed if 'aristotle_backwards' is
@@ -1394,7 +1392,6 @@ class ValueDomain(concept):
 
     template = "aristotle_mdr/concepts/valueDomain.html"
     list_details_template = "aristotle_mdr/concepts/list_details/value_domain.html"
-    comparator = comparators.ValueDomainComparator
     serialize_weak_entities = [
         ('permissible_values', 'permissiblevalue_set'),
         ('supplementary_values', 'supplementaryvalue_set'),
