@@ -60,7 +60,7 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages,TestCase):
             models.DSSDEInclusion.objects.create(
                 data_element=de,
                 specific_information="test info",
-                conditional_obligation="test obligation",
+                conditional_inclusion="test obligation",
                 order=i,
                 dss=self.item1
             )
@@ -68,13 +68,13 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages,TestCase):
             inc = models.DSSDEInclusion.objects.create(
                 data_element=de,
                 specific_information="test info",
-                conditional_obligation="test obligation",
+                conditional_inclusion="test obligation",
                 order=i,
                 dss=self.item1
             )
             clust = models.DSSClusterInclusion.objects.create(
                 specific_information="test info",
-                conditional_obligation="test obligation",
+                conditional_inclusion="test obligation",
                 order=i,
                 dss=self.item1,
                 child=self.item1

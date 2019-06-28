@@ -1,0 +1,77 @@
+{% load aristotle_tags i18n l10n %}
+
+<table class="table compare">
+    <caption>Differences
+        <div class="btn-group pull-right">
+            {% if raw %}
+                <a type="button" href="{{ request.path }}?v1={{ version_1_id }}&v2={{ version_2_id }}"
+                   class="btn btn-default">Text-Only</a>
+                <a type="button" class="btn btn-primary" class="btn btn-default">Raw</a>
+            {% else %}
+                <a type="button" class="btn btn-primary">Text-Only</a>
+                <a type="button" href="{{ request.get_full_path }}&raw=true"
+                   class="btn btn-default">Raw</a>
+            {% endif %}
+        </div>
+    </caption>
+    <tbody>
+    <tr>
+        <th scope="col">Field</th>
+        <th scope="col">Differences</th>
+    </tr>
+    {% for parent_field, diff in diffs.items %}
+        <tr>
+            {% if not diff %}
+                {# If there's no difference don't display it #}
+            {% else %}
+                <td>
+                    {% if diff.is_html and allow_html_comparison %}
+                        {# If the diff for the field is HTML then we want to provide a link to a side #}
+                        {# by side comparision #}
+                        {{ diff.user_friendly_name }}
+                        <a href="{% url 'aristotle:compare_fields' item.id %}?v1={{ version_1_id }}&v2={{ version_2_id }}&field={{ parent_field }}">
+                            <i class="fa fa-columns"></i></a>
+                    {% else %}
+                        {{ diff.user_friendly_name }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if diff.subitem %}
+                        {# It's a subitem so we need to display it in a special way #}
+                        <table class="table table-striped version-table">
+                            {% for item_diff in diff.diffs %} {# <!-- List of the subitems for a particular field --> #}
+                                <tbody>
+                                    {% for field, differences in item_diff.items %}
+                                        {# <!-- The fields and tuple differences for a field in a particular subitem --> #}
+                                        <tr>
+                                            <td>
+                                                {% if differences.is_html and allow_html_comparison %}
+                                                    {{ field|title }}
+                                                    <a href="{% url 'aristotle:compare_fields' item.id %}?v1={{ version_1_id }}&v2={{ version_2_id }}&field={{ parent_field }}.{{ forloop.parentloop.counter0 }}.{{ field }}">
+                                                        <i class="fa fa-columns"></i></a>
+                                                {% else %}
+                                                    {{ field|title }}
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% for difference in differences.diff %} {# <!-- Tuple of differences --> #}
+                                                    {% render_difference difference %}
+                                                {% endfor %} {# <!-- End per field iteration --> #}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            {% endfor %} {# <!-- End per item iteration --> #}
+                        </table>
+                    {% else %}
+                        {# Not a subitem, no special treatment required #}
+                        {% for difference in diff.diffs %}
+                            {% render_difference difference %}
+                        {% endfor %}
+                    {% endif %}
+                </td>
+            {% endif %}
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

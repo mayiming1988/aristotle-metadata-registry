@@ -51,7 +51,7 @@ class SerializerTestCase(utils.AristotleTestUtils, TestCase):
             self.dss_de_inclusion = DSE.DSSDEInclusion(
                 data_element=self.data_element,
                 specific_information="Specific information",
-                conditional_obligation="Conditional",
+                conditional_inclusion="Conditional",
                 order=1,
                 dss=self.data_set_specification
             )
