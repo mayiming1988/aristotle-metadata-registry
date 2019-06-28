@@ -443,9 +443,8 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
 
         DiffMatchPatch = diff_match_patch.diff_match_patch()
         field_to_diff = {}
-        field_names = [
-            f.name for f in self.model._meta.get_fields()
-        ] + [
+
+        field_names = [f.name for f in self.model._meta.get_fields()] + [
             'customvalue_set', 'slots', 'identifiers', 'org_records',
         ]
 
@@ -687,8 +686,6 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
 
         self.context['activetab'] = 'history'
         self.context['hide_item_actions'] = True
-
-        # self.concept: MDR._concept = self.get_item(self.request.user).item
 
         version_1, version_2 = self.get_compare_versions()
 

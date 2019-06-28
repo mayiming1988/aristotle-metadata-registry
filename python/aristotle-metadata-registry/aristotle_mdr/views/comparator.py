@@ -79,7 +79,8 @@ class MetadataComparison(ConceptVersionCompareBase, AristotleMetadataToolView):
 
     def apply_permission_checking(self, version_permission_1, version_permission_2):
         # We're not checking the version permissions because we are getting the most recent version and we have already
-        # checked that the user can view the item so the 'content' viewed is the same
+        # checked that the user can view the item so the 'content' viewed is the same.
+        # TODO: rethink how VersionPermissions work
         pass
 
     def get_compare_versions(self):
@@ -89,10 +90,14 @@ class MetadataComparison(ConceptVersionCompareBase, AristotleMetadataToolView):
         if not concept_1 or not concept_2:
             return None, None
 
-        version_1 = Version.objects.get_for_object(concept_1).order_by('-revision__date_created').first().pk
-        version_2 = Version.objects.get_for_object(concept_2).order_by('-revision__date_created').first().pk
+        try:
+            version_1 = Version.objects.get_for_object(concept_1).order_by('-revision__date_created').first().pk
+            version_2 = Version.objects.get_for_object(concept_2).order_by('-revision__date_created').first().pk
+        except AttributeError:
+            self.context['cannot_compare'] = True
+            return None, None
 
-        return (version_1, version_2)
+        return version_1, version_2
 
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
