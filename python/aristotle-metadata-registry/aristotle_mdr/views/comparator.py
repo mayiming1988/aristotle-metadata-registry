@@ -83,7 +83,7 @@ class MetadataComparison(ConceptVersionCompareBase, AristotleMetadataToolView):
 
         if self.get_version_1_concept() is None and self.get_version_2_concept() is None:
             # Not all concepts selected
-            self.context['form']  = self.get_form()
+            self.context['form'] = self.get_form()
             return self.context
 
         self.context.update({
