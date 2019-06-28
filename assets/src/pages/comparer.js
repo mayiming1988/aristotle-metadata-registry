@@ -2,6 +2,7 @@ import { initCore, initWidgets } from 'src/lib/init.js'
 import {addHeaderMessage, initMessages} from 'src/lib/messages.js'
 
 import 'src/styles/diff.css'
+import 'src/styles/aristotle.comparisons.less'
 
 initCore();
 initWidgets();
