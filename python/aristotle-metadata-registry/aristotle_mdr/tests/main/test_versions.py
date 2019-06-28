@@ -392,7 +392,7 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
 
         # Build the get query parameter. Format is parent_field.{{ number of subitem indexed from 0}}.field
         url = reverse('aristotle:compare_versions', args=[self.data_set_specification.id])
-        query = url + '?v1={}&v2={}&field=groups.0.definition'.format(versions[0].id, versions[1].id)
+        query = url + '?v1={}&v2={}'.format(versions[0].id, versions[1].id)
 
         response = self.client.get(query)
         self.assertEqual(response.status_code, 200)
@@ -402,10 +402,6 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
         self.assertContainsHtml(response, 'Hola')
         self.assertContainsHtml(response, 'Hallo')
         self.assertContainsHtml(response, 'Hoi')
-
-
-
-
 
 
 class DataElementComparisionTestCase(utils.AristotleTestUtils, TestCase):
