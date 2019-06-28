@@ -2,9 +2,12 @@ import json
 
 from django.db.models import Model
 from django.utils.functional import cached_property
+from django.core.exceptions import PermissionDenied
 
 from aristotle_mdr.forms import CompareConceptsForm
 from aristotle_mdr.models import _concept
+from aristotle_mdr.perms import user_can_view
+
 from reversion.models import Version
 
 from .tools import AristotleMetadataToolView
@@ -56,15 +59,28 @@ class MetadataComparison(ConceptVersionCompareBase, AristotleMetadataToolView):
         form = self.get_form()
         if form.is_valid():
             # Get items from form
-            return form.cleaned_data['item_a'].item
+            item = form.cleaned_data['item_a'].item
+            if user_can_view(self.request.user, item):
+                return item
+            else:
+                raise PermissionDenied
         return None
 
     def get_version_2_concept(self):
         form = self.get_form()
         if form.is_valid():
             # Get items from form
-            return form.cleaned_data['item_b'].item
+            item = form.cleaned_data['item_b'].item
+            if user_can_view(self.request.user, item):
+                return item
+            else:
+                raise PermissionDenied
         return None
+
+    def apply_permission_checking(self, version_permission_1, version_permission_2):
+        # We're not checking the version permissions because we are getting the most recent version and we have already
+        # checked that the user can view the item so the 'content' viewed is the same
+        pass
 
     def get_compare_versions(self):
         concept_1 = self.get_version_1_concept()

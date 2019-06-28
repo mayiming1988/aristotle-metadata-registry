@@ -36,6 +36,7 @@ class VersionsMixin:
 
     def user_can_view_version(self, user, metadata_item, version_permission: VersionPermissions) -> bool:
         """ Determine whether or not user can view the specific version """
+
         in_workgroup = metadata_item.workgroup and user in metadata_item.workgroup.member_list
         authenticated_user = not user.is_anonymous()
 
