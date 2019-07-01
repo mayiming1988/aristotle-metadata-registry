@@ -20,6 +20,8 @@ class SimplePermsQueryset(QuerySet):
                 return self
             elif workgroup in user.profile.workgroups:
                 perms.append(permission_choices.workgroup)
+            elif workgroup is None:
+                perms.append(permission_choices.workgroup)
         return self.filter(**{
             self.perm_field_in: perms
         })
