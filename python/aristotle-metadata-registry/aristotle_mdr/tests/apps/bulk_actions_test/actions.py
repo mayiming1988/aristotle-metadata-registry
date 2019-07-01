@@ -8,7 +8,7 @@ class StaffDeleteActionForm(BulkActionForm):
     action_text = _('Delete')
     classes = "fa-trash"
     confirm_page = "confirm_delete.html"
-    items_label="Items to delete",
+    items_label = "Items to delete",
 
     safe_to_delete = forms.BooleanField(required=True, label="Tick to confirm deletion")
 
