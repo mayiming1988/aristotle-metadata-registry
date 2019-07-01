@@ -6,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 
 class StaffDeleteActionForm(BulkActionForm):
     action_text = _('Delete')
-    classes="fa-trash"
+    classes = "fa-trash"
     confirm_page = "confirm_delete.html"
     items_label="Items to delete",
 
