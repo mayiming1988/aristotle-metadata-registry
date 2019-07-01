@@ -47,7 +47,7 @@ def make_relink(text, app_label=None):
     import re
     text = re.sub(
         r'\{static\}',
-        "%saristotle_help" % settings.STATIC_URL, text
+        "%s" % settings.STATIC_URL, text
     )
 
     def make_concept_link(match):

@@ -58,7 +58,7 @@
             <div class="fancy_name_version">
                 <div class="wizard_field name">
                     <span>
-                        {{ form.name.label_tag }} {{ form.name.help_text }}
+                        {{ form.name.label_tag }}
                         {% field_help_icon model_class 'name' %}
                     </span>
                     {% if form.name.errors %}
@@ -72,7 +72,7 @@
                 </div>
                 <div class="wizard_field version">
                     <span>
-                        {{ form.version.label_tag }} {{ form.version.help_text }}
+                        {{ form.version.label_tag }}
                         {% field_help_icon model_class 'version' %}
                     </span>
                     {% if form.version.errors %}
@@ -80,9 +80,6 @@
                         {{ form.version.errors }}
                     {% endif %}
                     {{ form.version }}
-                    <div>
-                     {{ form.version.help_text }}
-                    </div>
                     {% if form.version.errors %}
                         </span>
                     {% endif %}
@@ -90,7 +87,6 @@
             </div>
             <div class="wizard_field">
                 <span>{{ form.workgroup.label_tag }}
-                {{ form.workgroup.help_text }}
                 The workgroup responsible for maintaining this metadata item.
                 Leave this blank to save this metadata to your Sandbox.
                 </span>
@@ -105,7 +101,7 @@
             </div>
             <div class="wizard_field">
                 <span>
-                    {{ form.definition.label_tag }} {{ form.definition.help_text }}
+                    {{ form.definition.label_tag }}
                     {% field_help_icon model_class 'definition' %}
                 </span>
                 {% if form.definition.errors %}
@@ -126,7 +122,7 @@
             {% for field in form.concept_fields %}
                 <div class="wizard_field">
                     <span>
-                        {{ field.label_tag }} {{ field.help_text }}
+                        {{ field.label_tag }}
                         {% field_help_icon model_class field.name %}
                     </span>
                     {% if field.errors %}
@@ -232,7 +228,7 @@
                     {% endif %}
                     <div class="wizard_field">
                         <span>
-                            {{ field.label_tag }} {{ field.help_text }}
+                            {{ field.label_tag }}
                             {% field_help_icon model_class field.name %}
                         </span>
                         {% if field.errors %}
@@ -265,7 +261,7 @@
                 {% for custom_field in form.custom_fields %}
                     <div class="wizard_field">
                         <span>
-                            {{ custom_field.label_tag }} {{ custom_field.help_text }}
+                            {{ custom_field.label_tag }}
 {#                            {% custom_field_help_icon model_class custom_field %}#}
                             {% field_help_icon model_class custom_field.label %}
                         </span>

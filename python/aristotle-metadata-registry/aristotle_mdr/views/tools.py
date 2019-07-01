@@ -1,5 +1,5 @@
 from django.views.generic import (
-    TemplateView, ListView
+    TemplateView, ListView, View
 )
 from aristotle_mdr import models as MDR
 from aristotle_mdr.views.utils import SimpleItemGet, paginate_sort_opts
@@ -10,11 +10,6 @@ class ItemGraphView(SimpleItemGet, TemplateView):
     model = MDR._concept
     template_name = "aristotle_mdr/graphs/item_graphs.html"
     pk_url_kwarg = 'iid'
-
-    # def get(self, request, *args, **kwargs):
-    #     item = self.get_item(request.user)
-    #     self.item = item
-    #     return super(ItemGraphView, self).get(request, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -68,5 +63,10 @@ class ConceptRelatedListView(SimpleItemGet, ListView):
         return context
 
 
-class ReportingTool(TemplateView):
-    template_name = "aristotle_mdr/concepts/tools/reporting_tool.html"
+class AristotleMetadataToolView(TemplateView):
+    pass
+
+
+# I need to check this:
+# class ReportingTool(TemplateView):
+#     template_name = "aristotle_mdr/concepts/tools/reporting_tool.html"

@@ -33,14 +33,14 @@ def addDataElementsToDSS(request, dss_id):
     if request.method == 'POST':
         form = forms.AddDataElementsToDSSForm(request.POST, user=request.user, qs=qs, dss=dss)
         if form.is_valid():
-            cardinality = form.cleaned_data['cardinality']
+            inclusion = form.cleaned_data['inclusion']
             maxOccurs = form.cleaned_data['maximum_occurrences']
             with reversion.revisions.create_revision():
                 for de in form.cleaned_data['dataElements']:
                     dss.addDataElement(
                         data_element=de,
                         maximum_occurrences=maxOccurs,
-                        cardinality=cardinality
+                        inclusion=inclusion
                     )
                 dss.save()
                 reversion.set_comment('Added data elements')
@@ -66,14 +66,14 @@ def addClustersToDSS(request, dss_id):
     if request.method == 'POST':
         form = forms.AddClustersToDSSForm(request.POST, user=request.user, qs=qs, dss=dss)
         if form.is_valid():
-            cardinality = form.cleaned_data['cardinality']
+            inclusion = form.cleaned_data['inclusion']
             maxOccurs = form.cleaned_data['maximum_occurrences']
             with reversion.revisions.create_revision():
                 for child_dss in form.cleaned_data['clusters']:
                     dss.addCluster(
                         child=child_dss,
                         maximum_occurrences=maxOccurs,
-                        cardinality=cardinality
+                        inclusion=inclusion
                     )
                 dss.save()
                 reversion.set_comment('Added clusters')

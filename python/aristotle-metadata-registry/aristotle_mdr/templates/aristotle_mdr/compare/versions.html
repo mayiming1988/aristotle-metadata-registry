@@ -5,11 +5,11 @@
 {% block title %}Version history of {{ object.item.name }}{% endblock %}
 
 {% block webpack_css_bundle %}
-    {% render_bundle 'compare' 'css' %}
+    {% render_bundle 'versions' 'css' %}
 {% endblock %}
 
 {% block webpack_bundle %}
-    {% render_bundle 'compare' 'js' %}
+    {% render_bundle 'versions' 'js' %}
 {% endblock %}
 
 {% block infoContent %}

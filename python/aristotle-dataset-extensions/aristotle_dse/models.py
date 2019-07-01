@@ -375,7 +375,8 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         verbose_name=_("Maximum Occurrences"),
         help_text=_("The maximum number of times a item can be included in a dataset")
         )
-    cardinality = models.CharField(
+    inclusion = models.CharField(
+        "Inclusion",
         choices=CARDINALITY,
         default=CARDINALITY.conditional,
         max_length=20,
@@ -385,7 +386,8 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         blank=True,
         help_text=_("Any additional information on the inclusion of a data element or cluster in a dataset.")
         )
-    conditional_obligation = RichTextField(
+    conditional_inclusion = RichTextField(
+        "Conditional Inclusion",
         blank=True,
         help_text=_("If an item is present conditionally, this field defines the conditions under which an item will appear.")
         )
@@ -449,8 +451,8 @@ class DSSDEInclusion(DSSInclusion):
     inline_field_layout = 'list'
     inline_field_order = [
         "order", "dss",
-        "data_element", "reference", "cardinality", "maximum_occurrences",
-        "conditional_obligation", "specific_information", "group", "specialisation_classes"
+        "data_element", "reference", "inclusion", "maximum_occurrences",
+        "conditional_inclusion", "specific_information", "group", "specialisation_classes"
     ]
 
     class Meta(DSSInclusion.Meta):
@@ -487,8 +489,8 @@ class DSSClusterInclusion(DSSInclusion):
     inline_field_layout = 'list'
     inline_field_order = [
         "order", "dss", "child",
-        "reference", "cardinality", "maximum_occurrences",
-        "conditional_obligation", "specific_information"
+        "reference", "inclusion", "maximum_occurrences",
+        "conditional_inclusion", "specific_information"
     ]
 
     class Meta(DSSInclusion.Meta):

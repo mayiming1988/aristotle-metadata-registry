@@ -125,7 +125,7 @@ class ConceptFieldHelpView(TemplateView):
             try:
                 field = CustomField.objects.get(allowed_model=ct, name=field_name)
                 kwargs.update({
-                    'custom_help': field.help_text_long,
+                    'custom_help': field,
                     'field': field_name,
                     'this_is_a_custom_field': True,
                 })

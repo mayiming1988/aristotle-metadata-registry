@@ -32,6 +32,11 @@
             </div>
         </div>
         <div id="userSearchTools" class="row text-center">
+            <label>
+                <i class="fa fa-quote-left fa-fw"></i>
+                {{ form.title_only }}
+                {{ form.title_only.label }}
+            </label>
             {% if user.is_active %}
                 {% comment %}
                 Only logged in users have workgroups.

@@ -110,7 +110,7 @@ class TaskRunnerView(IsSuperUserMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
 
-        tasks = ['long__reindex', 'long__load_help']
+        tasks = ['long__reindex', 'long__load_help', 'long__recache_visibility']
         task_buttons = []
         from aristotle_bg_workers.helpers import get_pretty_name
 

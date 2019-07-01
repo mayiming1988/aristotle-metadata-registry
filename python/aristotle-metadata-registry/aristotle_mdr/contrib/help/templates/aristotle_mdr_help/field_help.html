@@ -22,18 +22,30 @@
 {% endblock %}
 
 {% block help_content %}
+    <h2>
+        Help text for field <em>{{ field.verbose_name.title }}</em>
+    </h2>
     {% if not this_is_a_custom_field %}
-        <h1>
-            Help text of "{{ field.verbose_name.title }}"
-        </h1>
-        <div class="panel">
-            {% firstof field.help_text "No help text available" %}
+        <div class="panel panel-default">
+            <div class="panel-heading">ISO 11179 help definition</div>
+            <div class="panel-body">
+                {% firstof field.help_text "No help text available" %}
+            </div>
+        </div>
+    {% elif custom_help.help_text %}
+        <div class="panel panel-default">
+            <div class="panel-heading">Short help</div>
+            <div class="panel-body">
+                {% firstof custom_help.help_text "No help text available" %}
+            </div>
         </div>
     {% endif %}
-    {% if custom_help %}
-        <h1>Registry specific help</h1>
-        <div>
-            {{ custom_help|bleach }}
+    {% if custom_help.help_text_long %}
+        <div class="panel panel-default">
+            <div class="panel-heading">Registry specific help</div>
+            <div class="panel-body">
+                {{ custom_help.help_text_long|bleach }}
+            </div>
         </div>
     {% endif %}
 {% endblock %}

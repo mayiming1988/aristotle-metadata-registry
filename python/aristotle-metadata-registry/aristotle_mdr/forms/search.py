@@ -339,9 +339,15 @@ class TokenSearchForm(FacetedSearchForm):
         if self.query_text:
             # If there is query text
             # Search on text (which is the document) and name fields (so name can be boosted)
-            sqs = self.searchqueryset.filter(
-                SQ(text=AutoQuery(self.query_text)) | SQ(name=AutoQuery(self.query_text))
-            )
+            title_only = self.cleaned_data.get('title_only', None)
+            if title_only:
+                sqs = self.searchqueryset.filter(
+                    SQ(name=AutoQuery(self.query_text))
+                )
+            else:
+                sqs = self.searchqueryset.filter(
+                    SQ(text=AutoQuery(self.query_text)) | SQ(name=AutoQuery(self.query_text))
+                )
 
         else:
             # Don't search
@@ -441,6 +447,10 @@ class PermissionSearchForm(TokenSearchForm):
     public_only = forms.BooleanField(
         required=False,
         label="Only show public items"
+    )
+    title_only = forms.BooleanField(
+        required=False,
+        label="Search titles only"
     )
     myWorkgroups_only = forms.BooleanField(
         required=False,
