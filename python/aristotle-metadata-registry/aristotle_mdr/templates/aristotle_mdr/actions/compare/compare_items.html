@@ -17,11 +17,11 @@
 {% block content %}
     <h1>Concept comparator</h1>
     <form method="get" action="">
-        <p>
-            This form allows you to compare items.
+        <div class="well well-sm">
+            <em>This tool allows you to compare items.</em>
             Text in green below is present only in the item in that column, text in red is
             present only in the opposite column and text in white is similar across both items.
-        </p>
+        </div>
         <table class="table table-bordered compare">
             <thead>
             <tr>
@@ -37,6 +37,7 @@
                 <th></th>
             </tr>
             </thead>
+
             {% if item_a and item_b %}
             <tbody>
                 <tr>
@@ -48,11 +49,14 @@
                         </a>
                     </td>
                 </tr>
-            </tbody>
             {% endif %}
+            </tbody>
         </table>
-        <input id="compare" type="submit" class="btn btn-primary" value="Compare" />
+        <div class="container text-center">
+            <input id="compare" type="submit" class="btn btn-primary text-center" value="Compare" />
+        </div>
     </form>
+    <hr>
     {% if not_all_versions_selected %}
         <div class="well">
             Both versions must be selected
