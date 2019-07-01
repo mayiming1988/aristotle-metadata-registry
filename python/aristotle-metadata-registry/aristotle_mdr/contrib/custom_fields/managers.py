@@ -66,7 +66,7 @@ class CustomFieldManager(Manager):
             if user.is_superuser:
                 return queryset
             else:
-                return queryset.exclude(state=CUSTOM_FIELD_STATES.hidden)
+                return queryset.visible(user).exclude(state=CUSTOM_FIELD_STATES.hidden)
         else:
             # Filter out the custom fields that are 'Hidden'
-            return queryset.exclude(state=CUSTOM_FIELD_STATES.hidden)
+            return queryset.visible(user).exclude(state=CUSTOM_FIELD_STATES.hidden)

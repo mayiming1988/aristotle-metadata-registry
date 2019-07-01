@@ -91,7 +91,7 @@ class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
 
     def get_custom_values(self):
         # If we are editing, must be able to see the content added to a custom value
-        return CustomValue.objects.get_for_item(self.item.concept)
+        return CustomValue.objects.get_item_allowed(self.item.concept, self.request.user)
 
     def get_initial(self):
         initial = super().get_initial()
