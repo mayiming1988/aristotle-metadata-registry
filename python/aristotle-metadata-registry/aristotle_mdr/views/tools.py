@@ -64,9 +64,5 @@ class ConceptRelatedListView(SimpleItemGet, ListView):
 
 
 class AristotleMetadataToolView(TemplateView):
-    pass
+    template_name = "aristotle_mdr/concepts/tools/reporting_tool.html"
 
-
-# I need to check this:
-# class ReportingTool(TemplateView):
-#     template_name = "aristotle_mdr/concepts/tools/reporting_tool.html"

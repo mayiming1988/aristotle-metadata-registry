@@ -78,6 +78,7 @@ urlpatterns = [
     url(r'^item/(?P<iid>\d+)/clone/?$', views.editors.CloneItemView.as_view(), name='clone_item'),
     url(r'^item/(?P<iid>\d+)/graphs/?$', views.tools.ItemGraphView.as_view(), name='item_graphs'),
     url(r'^item/(?P<iid>\d+)/related/(?P<relation>.+)?$', views.tools.ConceptRelatedListView.as_view(), name='item_related'),
+    url(r'^reportingtool/(?P<iid>\d+)(?:/(?P<name_slug>.+))?', views.tools.AristotleMetadataToolView.as_view(), name='reportingTool'),
     url(r'^item/(?P<iid>\d+)/compare_fields/?$', views.versions.CompareHTMLFieldsView.as_view(), name='compare_fields'),
     url(r'^item/(?P<iid>\d+)/history/$', views.versions.ConceptVersionListView.as_view(), name='item_history'),
     url(r'^item/(?P<iid>\d+)/compare/?$', views.versions.ConceptVersionCompareView.as_view(), name='compare_versions'),
@@ -155,8 +156,6 @@ urlpatterns = [
     url(r'^registrationauthority/(?P<iid>\d+)(?:/(?P<name_slug>.+))?/change_roles/(?P<user_pk>\d+)?/?$', views.registrationauthority.ChangeUserRoles.as_view(), name='registrationauthority_change_user_roles'),
     url(r'^registrationauthority/(?P<iid>\d+)(?:/(?P<name_slug>.+))?/remove/(?P<user_pk>\d+)/?$', views.registrationauthority.RemoveUser.as_view(), name='registrationauthority_member_remove'),
     url(r'^registrationauthority/(?P<iid>\d+)(?:/(?P<name_slug>.+))?/', views.registrationauthority.RegistrationAuthorityView.as_view(), name='registrationAuthority'),
-
-    url(r'^reportingtool/(?P<iid>\d+)(?:/(?P<name_slug>.+))?', views.tools.ReportingTool.as_view(), name='reportingTool'),
 
     url(r'^organization/(?P<iid>\d+)?(?:/(?P<name_slug>.+))?/?$', views.registrationauthority.organization, name='organization'),
     url(r'^organizations/?$', views.registrationauthority.all_organizations, name='all_organizations'),
