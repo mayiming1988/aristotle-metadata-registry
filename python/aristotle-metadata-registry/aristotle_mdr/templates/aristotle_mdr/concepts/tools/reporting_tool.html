@@ -15,29 +15,21 @@
         <div class="well">
             <div class="h5 text-center">
                 This report allows you to see the Standard Data Elements which have component items which haven't been registered as Standard
-                with the select Registration Authority.<br>
-                Note that you need to be logged in as someone who has permission to see the Data Elements.
+                with the selected Registration Authority.<br>
+                Note that you need to be logged in as someone who has permission to see the Data Elements and their components.
             </div>
             <br>
             <br>
             <div class="row text-center">
-                <div class="form-group col-sm-5 col-md-5">
-                    {{ form.registration_authority.label }}
-                    {{ form.registration_authority }}
-                    {{ form.registration_authority.errors }}
-
+                <div class="form-group col-sm-12 col-md-6">
+                    {{ form.ra.label }}
+                    {{ form.ra }}
+                    {{ form.ra.errors }}
                 </div>
-                <div class="form-group col-sm-5 col-md-5">
-                    {{ form.data_type.label }}
-                    {{ form.data_type }}
-                    {{ form.data_type.errors }}
-
-                </div>
-                <div class="form-group col-sm-2 col-md-2">
+                <div class="form-group col-sm-12 col-md-6">
                     {{ form.status.label }}
                     {{ form.status }}
                     {{ form.status.errors }}
-
                 </div>
             </div>
             <div class="row text-center">
@@ -74,7 +66,9 @@
                         {{ concept.name }}
                     </td>
                     <td>
-                        HERE ARE THE COMPONENTS
+{#                        {% if concept.valueDomain and concept.valueDomain. %}#}
+                            HEllo world
+{#                        {% endif %}#}
                     </td>
                 </tr>
             {% endfor %}

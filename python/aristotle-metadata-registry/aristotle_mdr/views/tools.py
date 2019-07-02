@@ -73,8 +73,8 @@ class ConceptRelatedListView(SimpleItemGet, ListView):
 
 class AristotleMetadataToolView(TemplateView, FormView):
     template_name = "aristotle_mdr/concepts/tools/reporting_tool.html"
-
     form_class = ReportingToolForm
+    paginate_by = 20
 
     def form_invalid(self, form):
         # Do something if the form is invalid.
@@ -98,53 +98,56 @@ class AristotleMetadataToolView(TemplateView, FormView):
         return super().get_context_data(**kwargs)
 
     def form_valid(self, form):
-        from aristotle_mdr.models import RegistrationAuthority, ObjectClass, DataElementConcept, DataElement, Status, ValueDomain, Property, _concept
-        from django.db.models import Subquery, Q, Exists
-        from django.contrib.contenttypes.models import ContentType
+        from aristotle_mdr.models import RegistrationAuthority, ObjectClass, DataElementConcept, DataElement, Status, ValueDomain, Property
+        from django.db.models import Q
 
-        registration_authority_id = form.cleaned_data['registration_authority']
-        data_type = form.cleaned_data['data_type']
+        registration_authority_id = form.cleaned_data['ra']
         status = form.cleaned_data['status']
 
         ra = RegistrationAuthority.objects.get(id=registration_authority_id)
 
-        statuses = Status.objects.current().filter(registrationAuthority=ra, state=status)
+        non_standard_statuses = Status.objects.current().filter(registrationAuthority=ra).exclude(state=status)
 
-        if data_type == "0":
-            # It's a Data Element
-            non_standard_statuses = Status.objects.current().filter(registrationAuthority=ra).exclude(state=status)
+        standard_statuses = Status.objects.current().filter(
+            registrationAuthority=registration_authority_id,
+            state=status
+        )
 
-            statuses_queryset = Status.objects.current().filter(
-                registrationAuthority=registration_authority_id,
-                state=status
-            )
+        data_elements = DataElement.objects.filter(
+            statuses__in=standard_statuses
+        )
 
-            data_elements = DataElement.objects.filter(
-                statuses__in=statuses_queryset
-            )
-            data_elements = data_elements.filter(
-                valueDomain__statuses__in=Subquery(non_standard_statuses.values('pk')),
-            )
+        value_domains_query = ValueDomain.objects.filter(
+            dataelement__in=data_elements,
+            statuses__in=non_standard_statuses
+        )
 
-            logger.critical("#2")
-            data_elements = data_elements.filter(
-                dataElementConcept__statuses__in=Subquery(non_standard_statuses.values('pk')),
-            )
+        data_elements_concepts_query = DataElementConcept.objects.filter(
+            dataelement__in=data_elements,
+        )
 
-            logger.critical("#3")
-            data_elements = data_elements.filter(
-                dataElementConcept__objectClass__statuses__in=Subquery(non_standard_statuses.values('id')),
-            )
+        object_class_query = ObjectClass.objects.filter(
+            dataelementconcept__in=data_elements_concepts_query,
+            statuses__in=non_standard_statuses
+        )
 
-            logger.critical("#4")
-            data_elements = data_elements.filter(
-                dataElementConcept__property__statuses__in=Subquery(non_standard_statuses.values('pk')),
-            )
-            logger.critical('#5')
+        properties_query = Property.objects.filter(
+            dataelementconcept__in=data_elements_concepts_query,
+            statuses__in=non_standard_statuses
+        )
 
-        # DataElementConcept
-        else:
-            data_elements = DataElementConcept.objects.filter(statuses__in=Subquery(statuses.values('pk'))).order_by('name')
+        # Get all the DEC with non standard statuses or components with non standard statuses
+        data_elements_concepts_query = data_elements_concepts_query.filter(
+            Q(statuses__in=non_standard_statuses) |
+            Q(property__in=properties_query) |
+            Q(objectClass__in=object_class_query)
+        )
+
+        # Return all the filtered Data Elements with non standard DEC or non standard ValueDomains
+        data_elements = data_elements.filter(
+            Q(dataElementConcept__in=data_elements_concepts_query) |
+            Q(valueDomain__in=value_domains_query)
+        )
 
         context = {
             'form': form,
