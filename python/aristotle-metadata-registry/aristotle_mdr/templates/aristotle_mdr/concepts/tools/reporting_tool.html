@@ -63,12 +63,12 @@
                         <a href="{% url 'aristotle:item' concept.id %}">
                             {{ concept }}
                         </a>
-                        {{ concept.name }}
                     </td>
                     <td>
-{#                        {% if concept.valueDomain and concept.valueDomain. %}#}
-                            HEllo world
-{#                        {% endif %}#}
+                        {% if concept.valueDomain %}
+                            {{ concept.valueDomain }}
+                        {% endif %}
+
                     </td>
                 </tr>
             {% endfor %}
