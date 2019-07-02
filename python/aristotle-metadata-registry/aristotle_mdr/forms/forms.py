@@ -357,30 +357,20 @@ class NotificationPermissionsForm(forms.Form):
 
 
 class ShareLinkForm(forms.Form):
+
     emails = MultipleEmailField(required=False)
     notify_new_users_checkbox = BooleanField(label="Notify new people", initial=True, required=False)
 
 
 class ReportingToolForm(forms.Form):
+
     from aristotle_mdr.models import RegistrationAuthority
-    from aristotle_mdr.models import DataElement, DataElementConcept
 
     registration_authorities_choices = RegistrationAuthority.objects.values_list('pk', 'name').order_by('name')
 
-    types_choices = [
-        (0, DataElement.get_verbose_name()),
-        (1, DataElementConcept.get_verbose_name()),
-    ]
-
-    registration_authority = forms.ChoiceField(
+    ra = forms.ChoiceField(
         label="Registration Authority",
         choices=registration_authorities_choices,
-        widget=forms.Select(attrs={'class': 'form-control'}),
-    )
-
-    data_type = forms.ChoiceField(
-        label="Data Type",
-        choices=types_choices,
         widget=forms.Select(attrs={'class': 'form-control'}),
     )
 
