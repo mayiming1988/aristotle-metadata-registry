@@ -16,22 +16,66 @@ class AristotleReportingToolsPage(AristotleTestUtils, TestCase):
 
         self.login_superuser()
 
-        # Create a ValueDomain.
-        self.vd_std = models.ValueDomain.objects.create(
+        self.property_non_std = models.Property.objects.create(
+            name="My PROPERTY NON STANDARD",
+            definition="My prop",
+            workgroup=self.wg1,
+        )
+
+        self.status_prop_non_standard = models.Status.objects.create(
+            concept=self.property_non_std,
+            registrationAuthority=self.ra,
+            registrationDate=timezone.now(),
+            state=models.STATES.qualified,
+        )
+
+        self.object_class_non_std = models.Property.objects.create(
+            name="My OBJECT CLASS NON STANDARD",
+            definition="My oc...",
+            workgroup=self.wg1,
+        )
+
+        self.status_oc_non_standard = models.Status.objects.create(
+            concept=self.object_class_non_std,
+            registrationAuthority=self.ra,
+            registrationDate=timezone.now(),
+            state=models.STATES.qualified,
+        )
+
+        self.dec_non_std = models.DataElementConcept.objects.create(
+            name="My DEC",
+            definition="MY dec...",
+            workgroup=self.wg1,
+            property=self.property_non_std
+        )
+
+        self.status_dec_non_standard = models.Status.objects.create(
+            concept=self.property_non_std,
+            registrationAuthority=self.ra,
+            registrationDate=timezone.now(),
+            state=models.STATES.qualified,
+        )
+
+        self.vd_non_std = models.ValueDomain.objects.create(
             name="My Value Domain",
             definition="My vd...",
             workgroup=self.wg1,
         )
 
-        # Create a DataElement "connected" to the previous ValueDomain.
+        self.status_vd_non_standard = models.Status.objects.create(
+            concept=self.vd_non_std,
+            registrationAuthority=self.ra,
+            registrationDate=timezone.now(),
+            state=models.STATES.qualified,
+        )
+
         self.de_std = models.DataElement.objects.create(
             name="My Data Element",
             definition="My data elem...",
             workgroup=self.wg1,
-            valueDomain=self.vd_std,
+            valueDomain=self.vd_non_std,
         )
 
-        # Create a "Standard" Status object for the RA and DataElement.
         self.status_de_standard = models.Status.objects.create(
             concept=self.de_std,
             registrationAuthority=self.ra,
@@ -39,13 +83,9 @@ class AristotleReportingToolsPage(AristotleTestUtils, TestCase):
             state=models.STATES.standard,
         )
 
-        # Create a "Standard" Status object for the RA and ValueDomain.
-        self.status_vd_std = models.Status.objects.create(
-            concept=self.vd_std,
-            registrationAuthority=self.ra,
-            registrationDate=timezone.now(),
-            state=models.STATES.standard,
-        )
+        # self.logout()
+
+    def test_it_works(self):
 
         standard_status = '5'
 
@@ -53,14 +93,16 @@ class AristotleReportingToolsPage(AristotleTestUtils, TestCase):
 
         # Data Element query
         response = self.client.get(
-            reverse('aristotle:reportingTool') + '?registration_authorities_select' + ra_id + '&data_types_select=0&statuses_select=' + standard_status
+            reverse(
+                'aristotle:reportingTool') + '?registration_authorities_select=' + ra_id + '&data_types_select=0&statuses_select=' + standard_status
         )
 
-        object = models.Status.objects.current().filter(registrationAuthority=self.ra, state=standard_status)
-
-        empty_queryset = models.Status.objects.current().filter(registrationAuthority=self.ra).exclude(state=standard_status)
+        # qs = response.context['data_elements']
 
         import pdb
         pdb.set_trace()
 
-        self.logout()
+        # self.assertEqual(qs.count(), 1)
+
+        import pdb
+        pdb.set_trace()

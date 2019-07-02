@@ -99,42 +99,81 @@ class AristotleMetadataToolView(TemplateView, FormView):
 
     def form_valid(self, form):
         from aristotle_mdr.models import RegistrationAuthority, ObjectClass, DataElementConcept, DataElement, Status, ValueDomain, Property, _concept
-        from django.db.models import Subquery, Q
+        from django.db.models import Subquery, Q, Exists
         from django.contrib.contenttypes.models import ContentType
 
         registration_authority_id = form.cleaned_data['registration_authorities_select']
         data_type = form.cleaned_data['data_types_select']
         status = form.cleaned_data['statuses_select']
 
-        logger.critical("THIS IS WHAT I AM LOOKING FOR:")
-        logger.critical(registration_authority_id)
-        logger.critical(data_type)
-        logger.critical(status)
-
         ra = RegistrationAuthority.objects.get(id=registration_authority_id)
 
         statuses = Status.objects.current().filter(registrationAuthority=ra, state=status)
-
-        logger.critical(statuses)
+        logger.critical("THESE ARE THE ONES:")
+        logger.critical(statuses.values('pk'))
 
         # DataElement
         if data_type == "0":
 
             non_standard_statuses = Status.objects.current().filter(registrationAuthority=ra).exclude(state=status)
 
-            logger.critical("THESE ARE THE STATUSES:")
-            logger.critical(statuses)
+            logger.critical("THESE ARE THE NON STANDARD STATUSES:")
+            logger.critical(non_standard_statuses)
 
             non_standard_vd = ValueDomain.objects.filter(statuses__in=Subquery(non_standard_statuses.values('pk')))
+            # non_standard_dec = DataElementConcept.objects.filter(statuses__in=Subquery(non_standard_statuses))
+            # non_standard_oc = ObjectClass.objects.filter(statuses__in=Subquery(non_standard_statuses))
+            # non_standard_prop = Property.objects.filter(statuses__in=Subquery(non_standard_statuses))
+
+            logger.critical("THIS IS THE VD:")
+            # logger.critical(non_standard_vd.values('pk'))
+
+            logger.critical("THIS IS THE LIST")
+            logger.critical(non_standard_vd)
 
             data_elements = DataElement.objects.filter(
                 statuses__in=Subquery(statuses.values('pk')),
-                valueDomain__in=Subquery(non_standard_vd.values('pk')),
-                # valueDomain__statuses__in=Subquery(non_standard_statuses.values_list('pk', flat=True)),
-                # dataElementConcept__statuses__in=Subquery(non_standard_statuses.values('pk')),
-                # dataElementConcept__objectClass__statuses__in=Subquery(non_standard_statuses.values('pk')),
-                # dataElementConcept__property__statuses__in=Subquery(non_standard_statuses.values('pk')),
+
+                # valueDomain_id__in=non_standard_vd,
+                # dataElementConcept__pk__in=Subquery(non_standard_dec.values('pk'))
+
+                valueDomain__statuses__in=Subquery(non_standard_statuses.values('pk')),
+                dataElementConcept__statuses__in=Subquery(non_standard_statuses.values('pk')),
+                dataElementConcept__objectClass__statuses__in=Subquery(non_standard_statuses.values('id')),
+                dataElementConcept__property__statuses__in=Subquery(non_standard_statuses.values('pk')),
             ).order_by('name')[:50]
+
+
+            # THIS IS NOT WORKING:
+
+            # data_elements_standard_q = Q(statuses__in=Subquery(statuses.values('pk')))
+            # value_domains_non_standard_q = Q(valueDomain__statuses__in=Subquery(non_standard_statuses.values('pk')))
+            # dec_non_standard_q = Q(dataElementConcept__statuses__in=Subquery(non_standard_statuses.values('pk')))
+            # dec_oc_non_standard_q = Q(dataElementConcept__objectClass__statuses__in=Subquery(non_standard_statuses.values('id')))
+            # dec_p_non_standard_q = Q(dataElementConcept__property__statuses__in=Subquery(non_standard_statuses.values('pk')))
+            #
+            # data_elements = Q(
+            #     data_elements_standard_q & Q(
+            #         value_domains_non_standard_q |
+            #         dec_non_standard_q |
+            #         dec_oc_non_standard_q |
+            #         dec_p_non_standard_q
+            #     )
+            # )
+            #
+            # data_elements = DataElement.objects.filter(data_elements)
+
+            # data_elements = DataElement.objects.filter(
+            #     Q(statuses__in=Subquery(statuses.values('pk'))) &
+            #     Q(valueDomain__statuses__in=Subquery(non_standard_statuses.values('pk'))) &
+            #     Q(dataElementConcept__statuses__in=Subquery(non_standard_statuses.values('pk'))) &
+            #     # Q(dataElementConcept__objectClass__statuses__in=Subquery(non_standard_statuses.values('id'))) &
+            #     Q(dataElementConcept__property__statuses__in=Subquery(non_standard_statuses.values('pk')))
+            # )
+
+            logger.critical("THIS IS THE RESULT:")
+            # logger.critical(data_elements)
+            logger.critical(data_elements)
 
             # data_elements = DataElement.objects.filter(statuses__in=Subquery(statuses.values('pk')))
 
