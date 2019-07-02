@@ -102,35 +102,16 @@ class AristotleMetadataToolView(TemplateView, FormView):
         from django.db.models import Subquery, Q, Exists
         from django.contrib.contenttypes.models import ContentType
 
-        registration_authority_id = form.cleaned_data['registration_authorities_select']
-        data_type = form.cleaned_data['data_types_select']
-        status = form.cleaned_data['statuses_select']
+        registration_authority_id = form.cleaned_data['registration_authority']
+        data_type = form.cleaned_data['data_type']
+        status = form.cleaned_data['status']
 
         ra = RegistrationAuthority.objects.get(id=registration_authority_id)
 
         statuses = Status.objects.current().filter(registrationAuthority=ra, state=status)
-        logger.critical("THESE ARE THE ONES:")
-        logger.critical(statuses.values('pk'))
 
-        # DataElement
         if data_type == "0":
-
-            non_standard_statuses = Status.objects.current().filter(registrationAuthority=ra).exclude(state=status)
-
-            logger.critical("THESE ARE THE NON STANDARD STATUSES:")
-            logger.critical(non_standard_statuses)
-
-            non_standard_vd = ValueDomain.objects.filter(statuses__in=Subquery(non_standard_statuses.values('pk')))
-            # non_standard_dec = DataElementConcept.objects.filter(statuses__in=Subquery(non_standard_statuses))
-            # non_standard_oc = ObjectClass.objects.filter(statuses__in=Subquery(non_standard_statuses))
-            # non_standard_prop = Property.objects.filter(statuses__in=Subquery(non_standard_statuses))
-
-            logger.critical("THIS IS THE VD:")
-            # logger.critical(non_standard_vd.values('pk'))
-
-            logger.critical("THIS IS THE LIST")
-            logger.critical(non_standard_vd)
-
+            # It's a Data Element
             non_standard_statuses = Status.objects.current().filter(registrationAuthority=ra).exclude(state=status)
 
             statuses_queryset = Status.objects.current().filter(
@@ -141,15 +122,6 @@ class AristotleMetadataToolView(TemplateView, FormView):
             data_elements = DataElement.objects.filter(
                 statuses__in=statuses_queryset
             )
-
-            # data_elements = data_elements.filter(
-            #     valueDomain__statuses__in=Subquery(non_standard_statuses.values('pk')),
-            #     dataElementConcept__statuses__in=Subquery(non_standard_statuses.values('pk')),
-            #     dataElementConcept__objectClass__statuses__in=Subquery(non_standard_statuses.values('id')),
-            #     dataElementConcept__property__statuses__in=Subquery(non_standard_statuses.values('pk')),
-            # )
-
-            logger.critical("#1")
             data_elements = data_elements.filter(
                 valueDomain__statuses__in=Subquery(non_standard_statuses.values('pk')),
             )
@@ -165,12 +137,10 @@ class AristotleMetadataToolView(TemplateView, FormView):
             )
 
             logger.critical("#4")
-            raise ValueError(data_elements)
             data_elements = data_elements.filter(
                 dataElementConcept__property__statuses__in=Subquery(non_standard_statuses.values('pk')),
             )
             logger.critical('#5')
-            raise ValueError(data_elements)
 
         # DataElementConcept
         else:
