@@ -365,27 +365,16 @@ class ShareLinkForm(forms.Form):
 class ReportingToolForm(forms.Form):
 
     from aristotle_mdr.models import RegistrationAuthority
-    from aristotle_mdr.models import DataElement, DataElementConcept
 
     registration_authorities_choices = RegistrationAuthority.objects.values_list('pk', 'name').order_by('name')
-    types_choices = [
-        (0, DataElement.get_verbose_name()),
-        (1, DataElementConcept.get_verbose_name()),
-    ]
 
-    registration_authorities_select = forms.ChoiceField(
+    ra = forms.ChoiceField(
         label="Registration Authority",
         choices=registration_authorities_choices,
         widget=forms.Select(attrs={'class': 'form-control'}),
     )
 
-    data_types_select = forms.ChoiceField(
-        label="Data Type",
-        choices=types_choices,
-        widget=forms.Select(attrs={'class': 'form-control'}),
-    )
-
-    statuses_select = forms.ChoiceField(
+    status = forms.ChoiceField(
         label="Status",
         choices=MDR.STATES,
         widget=forms.Select(attrs={'class': 'form-control'}),

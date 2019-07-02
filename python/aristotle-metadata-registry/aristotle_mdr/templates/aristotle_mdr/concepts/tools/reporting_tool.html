@@ -14,26 +14,22 @@
         </div>
         <div class="well">
             <div class="h5 text-center">
-                This report allows you to see the Standard Data Elements which have component items which aren't Standards.<br>
-                Note that you need to be logged in as someone who has permission to see the Data Elements and non-Standard components.
+                This report allows you to see the Standard Data Elements which have component items which haven't been registered as Standard
+                with the selected Registration Authority.<br>
+                Note that you need to be logged in as someone who has permission to see the Data Elements and their components.
             </div>
             <br>
             <br>
             <div class="row text-center">
-                <div class="form-group col-sm-5 col-md-5">
-                    {{ form.registration_authorities_select.errors }}
-                    {{ form.registration_authorities_select.label }}
-                    {{ form.registration_authorities_select }}
+                <div class="form-group col-sm-12 col-md-6">
+                    {{ form.ra.label }}
+                    {{ form.ra }}
+                    {{ form.ra.errors }}
                 </div>
-                <div class="form-group col-sm-5 col-md-5">
-                    {{ form.data_types_select.errors }}
-                    {{ form.data_types_select.label }}
-                    {{ form.data_types_select }}
-                </div>
-                <div class="form-group col-sm-2 col-md-2">
-                    {{ form.statuses_select.errors }}
-                    {{ form.statuses_select.label }}
-                    {{ form.statuses_select }}
+                <div class="form-group col-sm-12 col-md-6">
+                    {{ form.status.label }}
+                    {{ form.status }}
+                    {{ form.status.errors }}
                 </div>
             </div>
             <div class="row text-center">
@@ -70,7 +66,9 @@
                         {{ concept.name }}
                     </td>
                     <td>
-                        HERE ARE THE COMPONENTS
+{#                        {% if concept.valueDomain and concept.valueDomain. %}#}
+                            HEllo world
+{#                        {% endif %}#}
                     </td>
                 </tr>
             {% endfor %}
