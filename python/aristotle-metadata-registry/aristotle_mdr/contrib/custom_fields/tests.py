@@ -132,11 +132,17 @@ class CustomFieldManagerTestCase(AristotleTestUtils, TestCase):
             type='str',
             visibility=permission_choices.workgroup
         )
+        self.rafield = CustomField.objects.create(
+            order=3,
+            name='WgField',
+            type='str',
+            visibility=permission_choices.administrators
+        )
 
     def make_restricted_field(self, model):
         ct = ContentType.objects.get_for_model(model)
         restricted = CustomField.objects.create(
-            order=3,
+            order=4,
             name='Restricted',
             type='str',
             allowed_model=ct
@@ -156,14 +162,24 @@ class CustomFieldManagerTestCase(AristotleTestUtils, TestCase):
         af = CustomField.objects.get_allowed_fields(self.item, anon)
         self.assertCountEqual(af, [self.allfield])
 
-    def test_get_fields_for_model(self):
+    def test_get_fields_for_model_for_super(self):
         rf = self.make_restricted_field(mdr_models.ObjectClass)
-        mf = CustomField.objects.get_for_model(mdr_models.ObjectClass)
+        mf = CustomField.objects.get_for_model(mdr_models.ObjectClass, user=self.su)
+        self.assertCountEqual(mf, [self.authfield, self.allfield, self.wgfield, self.rafield, rf])
+
+    def test_get_fields_for_model_different_model_for_super(self):
+        self.make_restricted_field(mdr_models.ObjectClass)
+        mf = CustomField.objects.get_for_model(mdr_models.DataElement, user=self.su)
+        self.assertCountEqual(mf, [self.authfield, self.allfield, self.wgfield, self.rafield])
+
+    def test_get_fields_for_model_for_editor(self):
+        rf = self.make_restricted_field(mdr_models.ObjectClass)
+        mf = CustomField.objects.get_for_model(mdr_models.ObjectClass, user=self.editor)
         self.assertCountEqual(mf, [self.authfield, self.allfield, self.wgfield, rf])
 
-    def test_get_fields_for_model_different_model(self):
+    def test_get_fields_for_model_different_model_for_editor(self):
         self.make_restricted_field(mdr_models.ObjectClass)
-        mf = CustomField.objects.get_for_model(mdr_models.DataElement)
+        mf = CustomField.objects.get_for_model(mdr_models.DataElement, user=self.editor)
         self.assertCountEqual(mf, [self.authfield, self.allfield, self.wgfield])
 
 

@@ -222,6 +222,7 @@ ARISTOTLE_SETTINGS = {
         'aristotle_mdr.forms.bulk_actions.BulkDownloadForm',
         'aristotle_mdr.contrib.reviews.forms.RequestReviewBulkActionForm',
     ],
+    # Dashboard add-ons will only be rendered for staff
     'DASHBOARD_ADDONS': [],
     'METADATA_CREATION_WIZARDS': [
         {
