@@ -3,6 +3,7 @@ from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.views import PasswordResetView
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
@@ -20,6 +21,10 @@ from aristotle_mdr.views.user_pages import (
     ProfileView
 )
 from . import forms
+
+
+class AristotlePasswordResetView(PasswordResetView):
+    from_email = settings.ARISTOTLE_EMAIL_ACCOUNT_RECOVERY
 
 
 class AnotherUserMixin(LoginRequiredMixin, PermissionRequiredMixin):
