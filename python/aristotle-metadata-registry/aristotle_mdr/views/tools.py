@@ -131,51 +131,46 @@ class AristotleMetadataToolView(TemplateView, FormView):
             logger.critical("THIS IS THE LIST")
             logger.critical(non_standard_vd)
 
+            non_standard_statuses = Status.objects.current().filter(registrationAuthority=ra).exclude(state=status)
+
+            statuses_queryset = Status.objects.current().filter(
+                registrationAuthority=registration_authority_id,
+                state=status
+            )
+
             data_elements = DataElement.objects.filter(
-                statuses__in=Subquery(statuses.values('pk')),
+                statuses__in=statuses_queryset
+            )
 
-                # valueDomain_id__in=non_standard_vd,
-                # dataElementConcept__pk__in=Subquery(non_standard_dec.values('pk'))
+            # data_elements = data_elements.filter(
+            #     valueDomain__statuses__in=Subquery(non_standard_statuses.values('pk')),
+            #     dataElementConcept__statuses__in=Subquery(non_standard_statuses.values('pk')),
+            #     dataElementConcept__objectClass__statuses__in=Subquery(non_standard_statuses.values('id')),
+            #     dataElementConcept__property__statuses__in=Subquery(non_standard_statuses.values('pk')),
+            # )
 
+            logger.critical("#1")
+            data_elements = data_elements.filter(
                 valueDomain__statuses__in=Subquery(non_standard_statuses.values('pk')),
+            )
+
+            logger.critical("#2")
+            data_elements = data_elements.filter(
                 dataElementConcept__statuses__in=Subquery(non_standard_statuses.values('pk')),
+            )
+
+            logger.critical("#3")
+            data_elements = data_elements.filter(
                 dataElementConcept__objectClass__statuses__in=Subquery(non_standard_statuses.values('id')),
+            )
+
+            logger.critical("#4")
+            raise ValueError(data_elements)
+            data_elements = data_elements.filter(
                 dataElementConcept__property__statuses__in=Subquery(non_standard_statuses.values('pk')),
-            ).order_by('name')[:50]
-
-
-            # THIS IS NOT WORKING:
-
-            # data_elements_standard_q = Q(statuses__in=Subquery(statuses.values('pk')))
-            # value_domains_non_standard_q = Q(valueDomain__statuses__in=Subquery(non_standard_statuses.values('pk')))
-            # dec_non_standard_q = Q(dataElementConcept__statuses__in=Subquery(non_standard_statuses.values('pk')))
-            # dec_oc_non_standard_q = Q(dataElementConcept__objectClass__statuses__in=Subquery(non_standard_statuses.values('id')))
-            # dec_p_non_standard_q = Q(dataElementConcept__property__statuses__in=Subquery(non_standard_statuses.values('pk')))
-            #
-            # data_elements = Q(
-            #     data_elements_standard_q & Q(
-            #         value_domains_non_standard_q |
-            #         dec_non_standard_q |
-            #         dec_oc_non_standard_q |
-            #         dec_p_non_standard_q
-            #     )
-            # )
-            #
-            # data_elements = DataElement.objects.filter(data_elements)
-
-            # data_elements = DataElement.objects.filter(
-            #     Q(statuses__in=Subquery(statuses.values('pk'))) &
-            #     Q(valueDomain__statuses__in=Subquery(non_standard_statuses.values('pk'))) &
-            #     Q(dataElementConcept__statuses__in=Subquery(non_standard_statuses.values('pk'))) &
-            #     # Q(dataElementConcept__objectClass__statuses__in=Subquery(non_standard_statuses.values('id'))) &
-            #     Q(dataElementConcept__property__statuses__in=Subquery(non_standard_statuses.values('pk')))
-            # )
-
-            logger.critical("THIS IS THE RESULT:")
-            # logger.critical(data_elements)
-            logger.critical(data_elements)
-
-            # data_elements = DataElement.objects.filter(statuses__in=Subquery(statuses.values('pk')))
+            )
+            logger.critical('#5')
+            raise ValueError(data_elements)
 
         # DataElementConcept
         else:
