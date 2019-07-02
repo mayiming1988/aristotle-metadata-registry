@@ -1,5 +1,3 @@
-# Start of the question model
-
 import aristotle_mdr
 from django.db import models
 
@@ -14,8 +12,6 @@ class Question(aristotle_mdr.models.concept):
         null=True,
         blank=True
     )
-
-# End of the question model
 
 
 class Questionnaire(aristotle_mdr.models.concept):

@@ -5,27 +5,27 @@
 {% block title %}Related items for {{ item.name }}{% endblock %}
 
 {% block infoContent %}
-<div class="container" style="margin-top:10px;">
-    <div class="row">
-        <div class="col-md-3">
-            <div class="list-group">
-            {% for key, rel in relational_attributes.items %}
-                <a href="{% url 'aristotle_mdr:item_related' item.pk key %}"
-                    class="list-group-item {% if key == current_relation %}active{% endif %}">
-                    {{ rel.all }}
-                </a>
-            {% endfor %}
+    <div class="container" style="margin-top:10px;">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="list-group">
+                    {% for key, rel in relational_attributes.items %}
+                        <a href="{% url 'aristotle_mdr:item_related' item.pk key %}"
+                           class="list-group-item {% if key == current_relation %}active{% endif %}">
+                            {{ rel.all }}
+                        </a>
+                    {% endfor %}
+                </div>
             </div>
-        </div>
-        <div class="col-md-9">
-            <div class="well">
-                This table show items related to the item <em>{{ item.name }}</em>.
-                <br>
-                Items shown are based on your current permissions.
+            <div class="col-md-9">
+                <div class="well">
+                    This table show items related to the item <em>{{ item.name }}</em>.
+                    <br>
+                    Items shown are based on your current permissions.
+                </div>
+                {% include "aristotle_mdr/helpers/paginated_list.html" with page=page_obj hide_checkbox=True %}
             </div>
-            {% include "aristotle_mdr/helpers/paginated_list.html" with page=page_obj hide_checkbox=True %}
         </div>
     </div>
-</div>
 
 {% endblock %}
