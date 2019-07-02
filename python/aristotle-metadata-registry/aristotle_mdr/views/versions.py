@@ -599,7 +599,7 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
                 differences.extend(removed_items)
 
             # Items with IDs that are present in both earlier and later data have been changed,
-            # so we want to perform a field-by-field dict comparision
+            # so we want to perform a field-by-field dict comparision.
             changed_ids = set(earlier_items).intersection(set(later_items))
             for id in changed_ids:
                 earlier_item = earlier_items[id]
