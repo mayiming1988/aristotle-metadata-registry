@@ -401,9 +401,6 @@ class ConceptFilter(django_filters.FilterSet):
 
         super().__init__(*args, **kwargs)
 
-        self.form.fields['registration_date'].inital = datetime.date.today()
-        self.form.fields['status'].initial = MDR.STATES.standard
-
         self.queryset = self.queryset.visible(self.request.user)
 
 
