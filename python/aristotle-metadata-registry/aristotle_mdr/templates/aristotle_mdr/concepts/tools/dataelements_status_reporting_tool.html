@@ -1,14 +1,12 @@
 {% extends 'aristotle_mdr/base.html' %}
 {% load render_bundle from webpack_loader %}
-{% load humanize i18n %}
-{% load aristotle_tags util_tags %}
-{% load bootstrap3 %}
+{% load aristotle_tags util_tags i18n humanize bootstrap3 %}
 
 {% block title %}Reporting tool{% endblock %}
 
 {% block content %}
     <form method="get">
-        <div class="h4">Reporting tool</div>
+        <div class="h4">Data Elements and subcomponents Status Report</div>
         <div class="alert-danger">
 
         </div>
@@ -62,16 +60,20 @@
                             <a href="{% url 'aristotle:item' de.id %}">
                                 {{ de }}
                             </a>
+                            <em>
+                                [{% get_status_from_dict statuses_list de.id %}]
+                            </em>
                         </td>
                         <td>
                             {% if de.valueDomain %}
                                 <ul>
                                     <li>
-                                        <em>Value Domain</em>
+                                        Value Domain
                                         <br>
                                         <a href="{% url 'aristotle:item' de.valueDomain.id %}">
                                             {{ de.valueDomain }}
                                         </a>
+                                        <em>[{% get_status_from_dict statuses_list de.valueDomain.id %}]</em>
                                     </li>
                                 </ul>
                             {% endif %}
@@ -83,6 +85,9 @@
                                         <a href="{% url 'aristotle:item' de.dataElementConcept.id %}">
                                             {{ de.dataElementConcept }}
                                         </a>
+                                        <em>
+                                            [{% get_status_from_dict statuses_list de.dataElementConcept.id %}]
+                                        </em>
                                         <ul>
                                             {% if de.dataElementConcept.objectClass %}
                                                 <li>
@@ -93,6 +98,9 @@
                                                             <a href="{% url 'aristotle:item' de.dataElementConcept.objectClass.id %}">
                                                                 {{ de.dataElementConcept.objectClass }}
                                                             </a>
+                                                            <em>
+                                                                [{% get_status_from_dict statuses_list de.dataElementConcept.objectClass.id %}]
+                                                            </em>
                                                         </li>
                                                     </ul>
 
@@ -107,6 +115,9 @@
                                                             <a href="{% url 'aristotle:item' de.dataElementConcept.property.id %}">
                                                                 {{de.dataElementConcept.property }}
                                                             </a>
+                                                            <em>
+                                                                [{% get_status_from_dict statuses_list de.dataElementConcept.objectClass.id %}]
+                                                            </em>
                                                         </li>
                                                     </ul>
                                                 </li>

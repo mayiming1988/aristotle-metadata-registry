@@ -25,6 +25,7 @@ from aristotle_mdr.utils import (
     fetch_metadata_apps,
     fetch_aristotle_downloaders
 )
+from aristotle_mdr.models import STATES
 
 register = template.Library()
 
@@ -557,3 +558,31 @@ def render_difference(difference):
 @register.filter()
 def get_field(content_type, field_name):
     return content_type.model_class()._meta.get_field(field_name)
+
+@register.simple_tag
+def get_value_from_dict(dictionary, key):
+    """
+    Get the value corresponding to the key passed.
+    Can be used in the following way:
+    {% get_value_from_dict dict key %}
+    :param dictionary: Dictionary containing the desired key.
+    :param key: Lookup key.
+    :return: Value of the corresponding key in the dictionary, or "None" type if nothing is found in the dictionary.
+    """
+    return dictionary.get(key, None)
+
+@register.simple_tag
+def get_status_from_dict(dictionary, key):
+    """
+    Get the Status of a particular item from a dictionary mapping.
+    :param dictionary: dictionary mapping that must contain key-value pairs
+    where the key must correspond to the concept_id, and the value must
+    correspond to the state id.
+    :param key: string that represents the concept id to be looked up.
+    :return: String with the name of the corresponding status state.
+    """
+    state_value = dictionary.get(key, None)
+    if state_value:
+        return STATES[state_value]
+    else:
+        return None

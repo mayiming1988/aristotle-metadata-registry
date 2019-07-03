@@ -73,7 +73,7 @@ class ConceptRelatedListView(SimpleItemGet, ListView):
 
 
 class AristotleMetadataToolView(FormMixin, ListView):
-    template_name = "aristotle_mdr/concepts/tools/reporting_tool.html"
+    template_name = "aristotle_mdr/concepts/tools/dataelements_status_reporting_tool.html"
     form_class = ReportingToolForm
     paginate_by = 20
 
@@ -96,7 +96,29 @@ class AristotleMetadataToolView(FormMixin, ListView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
-        return super().get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
+        current_data_elements = context['object_list']
+        registration_authority = context['ra']
+        ids_list = []
+        for de in current_data_elements:
+            ids_list.append(de.id)
+            if de.valueDomain:
+                ids_list.append(de.valueDomain.id)
+            if de.dataElementConcept:
+                ids_list.append(de.dataElementConcept.id)
+            if de.dataElementConcept.objectClass:
+                ids_list.append(de.dataElementConcept.objectClass.id)
+            if de.dataElementConcept.property:
+                ids_list.append(de.dataElementConcept.property.id)
+
+        statuses = dict(Status.objects.current().filter(
+            concept_id__in=ids_list,
+            registrationAuthority=registration_authority
+        ).values_list('concept_id', 'state'))
+
+        context.update({'statuses_list': statuses})
+
+        return context
 
     def form_valid(self, form):
 
@@ -110,9 +132,10 @@ class AristotleMetadataToolView(FormMixin, ListView):
         # We are doing this to improve Query performance.
         data_elements_ids = list(data_elements.values_list('id', flat=True))
 
-        data_elements = self.fetch_components_for_dataelement(data_elements_ids)
+        data_elements = self.fetch_components_for_dataelements(data_elements_ids)
 
         context = {
+            'ra': ra,
             'form': form,
             'data_elements': data_elements
         }
@@ -135,20 +158,20 @@ class AristotleMetadataToolView(FormMixin, ListView):
         :return: Queryset containing Data Elements.
         """
 
-        non_standard_statuses = Status.objects.current().filter(registrationAuthority=ra).exclude(state=status)
+        accepted_statuses = Status.objects.current().filter(registrationAuthority=ra).exclude(state=status)
 
-        standard_statuses = Status.objects.current().filter(
+        not_accepted_statuses = Status.objects.current().filter(
             registrationAuthority=ra,
             state=status
         )
 
         data_elements = DataElement.objects.filter(
-            statuses__in=standard_statuses
+            statuses__in=not_accepted_statuses
         )
 
         value_domains_query = ValueDomain.objects.filter(
             dataelement__in=data_elements,
-            statuses__in=non_standard_statuses
+            statuses__in=accepted_statuses
         )
 
         data_elements_concepts_query = DataElementConcept.objects.filter(
@@ -157,29 +180,29 @@ class AristotleMetadataToolView(FormMixin, ListView):
 
         object_class_query = ObjectClass.objects.filter(
             dataelementconcept__in=data_elements_concepts_query,
-            statuses__in=non_standard_statuses
+            statuses__in=accepted_statuses
         )
 
         properties_query = Property.objects.filter(
             dataelementconcept__in=data_elements_concepts_query,
-            statuses__in=non_standard_statuses
+            statuses__in=accepted_statuses
         )
 
-        # Get all the DEC with non standard statuses or components with non standard statuses
+        # Get all the DEC with accepted statuses or components with not accepted statuses
         data_elements_concepts_query = data_elements_concepts_query.filter(
-            Q(statuses__in=non_standard_statuses) |
+            Q(statuses__in=accepted_statuses) |
             Q(property__in=properties_query) |
             Q(objectClass__in=object_class_query)
         )
 
-        # Return all the filtered Data Elements with non standard DEC or non standard ValueDomains
+        # Return all the filtered Data Elements with not accepted DEC or not accepted ValueDomains
         data_elements = data_elements.filter(
             Q(dataElementConcept__in=data_elements_concepts_query) |
             Q(valueDomain__in=value_domains_query)
         )
         return data_elements
 
-    def fetch_components_for_dataelement(self, dataelement_list_ids):
+    def fetch_components_for_dataelements(self, dataelement_list_ids):
         """
         Given a list of Data Element ids, provide their corresponding subcomponents
         (ValueDomain, DEC's Object Class, and DEC's Property).
