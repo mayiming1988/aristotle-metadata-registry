@@ -412,7 +412,7 @@ class DateFilterView(FilterView, MainPageMixin):
 
     filterset_class = ConceptFilter
     template_name = 'aristotle_mdr/organization/registration_authority/data_dictionary.html'
-    paginate_by = 2
+    paginate_by = 50
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -470,7 +470,6 @@ class DateFilterView(FilterView, MainPageMixin):
         if 'status' not in kwargs['data']:
             kwargs['data'] = kwargs['data'].copy()
             kwargs['data']['status'] = MDR.STATES.standard
-
 
         return kwargs
 
