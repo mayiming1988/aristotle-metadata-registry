@@ -6,7 +6,7 @@
 
 {% block content %}
     <form method="get">
-        <div class="h4">Data Elements and subcomponents Status Report</div>
+        <div class="h4">Data Elements and subcomponents status report</div>
         <div class="alert-danger">
 
         </div>
@@ -40,20 +40,21 @@
     <div>
         {% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
 
-        <table class="table table-striped">
-            <caption>
-                Concepts
-            </caption>
-            <tbody>
-            <tr>
-                <th scope="col">
-                    Data Element
-                </th>
-                <th scope="col">
-                    Components
-                </th>
-            </tr>
-            {% if object_list %}
+
+        {% if object_list %}
+            <table class="table table-striped">
+                <caption>
+                    Concepts
+                </caption>
+                <tbody>
+                <tr>
+                    <th scope="col">
+                        Data Element
+                    </th>
+                    <th scope="col">
+                        Components
+                    </th>
+                </tr>
                 {% for de in object_list %}
                     <tr>
                         <td>
@@ -130,13 +131,14 @@
                         </td>
                     </tr>
                 {% endfor %}
-            {% else %}
-                <div class="well">
-                    <div class="h5 text-center">There were no Data Elements with your chosen filters.</div>
-                </div>
-            {% endif %}
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        {% else %}
+            <div class="well">
+                <div class="h5 text-center">There were no Data Elements with your chosen filters.</div>
+            </div>
+        {% endif %}
+
         {% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
 
     </div>

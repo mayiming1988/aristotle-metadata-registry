@@ -98,7 +98,7 @@ class AristotleMetadataToolView(FormMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         current_data_elements = context['object_list']
-        registration_authority = context['ra']
+        registration_authority = context.get('ra', None)
         ids_list = []
         for de in current_data_elements:
             ids_list.append(de.id)
@@ -158,20 +158,20 @@ class AristotleMetadataToolView(FormMixin, ListView):
         :return: Queryset containing Data Elements.
         """
 
-        accepted_statuses = Status.objects.current().filter(registrationAuthority=ra).exclude(state=status)
-
-        not_accepted_statuses = Status.objects.current().filter(
+        accepted_statuses = Status.objects.current().filter(
             registrationAuthority=ra,
             state=status
         )
 
+        not_accepted_statuses = Status.objects.current().filter(registrationAuthority=ra).exclude(state=status)
+
         data_elements = DataElement.objects.filter(
-            statuses__in=not_accepted_statuses
+            statuses__in=accepted_statuses
         )
 
         value_domains_query = ValueDomain.objects.filter(
             dataelement__in=data_elements,
-            statuses__in=accepted_statuses
+            statuses__in=not_accepted_statuses
         )
 
         data_elements_concepts_query = DataElementConcept.objects.filter(
@@ -180,17 +180,17 @@ class AristotleMetadataToolView(FormMixin, ListView):
 
         object_class_query = ObjectClass.objects.filter(
             dataelementconcept__in=data_elements_concepts_query,
-            statuses__in=accepted_statuses
+            statuses__in=not_accepted_statuses
         )
 
         properties_query = Property.objects.filter(
             dataelementconcept__in=data_elements_concepts_query,
-            statuses__in=accepted_statuses
+            statuses__in=not_accepted_statuses
         )
 
         # Get all the DEC with accepted statuses or components with not accepted statuses
         data_elements_concepts_query = data_elements_concepts_query.filter(
-            Q(statuses__in=accepted_statuses) |
+            Q(statuses__in=not_accepted_statuses) |
             Q(property__in=properties_query) |
             Q(objectClass__in=object_class_query)
         )
