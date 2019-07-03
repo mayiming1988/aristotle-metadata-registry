@@ -6,7 +6,7 @@ from django.views.generic.edit import FormView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from aristotle_mdr import models as MDR
-from aristotle_mdr.views.utils import SimpleItemGet, paginate_sort_opts, SortedListView
+from aristotle_mdr.views.utils import SimpleItemGet, paginate_sort_opts
 from aristotle_mdr.utils import is_active_extension
 from aristotle_mdr.forms.forms import ReportingToolForm
 from aristotle_mdr.models import RegistrationAuthority, ObjectClass, DataElementConcept, DataElement, Status, ValueDomain, Property
@@ -106,48 +106,11 @@ class AristotleMetadataToolView(TemplateView, FormView):
 
         ra = RegistrationAuthority.objects.get(id=registration_authority_id)
 
-        non_standard_statuses = Status.objects.current().filter(registrationAuthority=ra).exclude(state=status)
+        data_elements = self.fetch_dataelements(ra, status)
 
-        standard_statuses = Status.objects.current().filter(
-            registrationAuthority=registration_authority_id,
-            state=status
-        )
+        data_elements_ids = list(data_elements.values_list('id', flat=True))
 
-        data_elements = DataElement.objects.filter(
-            statuses__in=standard_statuses
-        )
-
-        value_domains_query = ValueDomain.objects.filter(
-            dataelement__in=data_elements,
-            statuses__in=non_standard_statuses
-        )
-
-        data_elements_concepts_query = DataElementConcept.objects.filter(
-            dataelement__in=data_elements,
-        )
-
-        object_class_query = ObjectClass.objects.filter(
-            dataelementconcept__in=data_elements_concepts_query,
-            statuses__in=non_standard_statuses
-        )
-
-        properties_query = Property.objects.filter(
-            dataelementconcept__in=data_elements_concepts_query,
-            statuses__in=non_standard_statuses
-        )
-
-        # Get all the DEC with non standard statuses or components with non standard statuses
-        data_elements_concepts_query = data_elements_concepts_query.filter(
-            Q(statuses__in=non_standard_statuses) |
-            Q(property__in=properties_query) |
-            Q(objectClass__in=object_class_query)
-        )
-
-        # Return all the filtered Data Elements with non standard DEC or non standard ValueDomains
-        data_elements = data_elements.filter(
-            Q(dataElementConcept__in=data_elements_concepts_query) |
-            Q(valueDomain__in=value_domains_query)
-        )
+        data_elements = self.fetch_components_for_dataelement(data_elements_ids)
 
         context = {
             'form': form,
