@@ -1,6 +1,6 @@
 import logging
 from django.views.generic import (
-    TemplateView, ListView, View
+    TemplateView, ListView,
 )
 from django.views.generic.edit import FormMixin
 from django.urls import reverse
@@ -107,6 +107,7 @@ class AristotleMetadataToolView(FormMixin, ListView):
 
         data_elements = self.fetch_dataelements(ra, status)
 
+        # We are doing this to improve Query performance.
         data_elements_ids = list(data_elements.values_list('id', flat=True))
 
         data_elements = self.fetch_components_for_dataelement(data_elements_ids)
@@ -131,7 +132,7 @@ class AristotleMetadataToolView(FormMixin, ListView):
         have a different status
         :param ra: Registration Authority.
         :param status: Status corresponding to the Data Element, but not corresponding to subcomponents.
-        :return:
+        :return: Queryset containing Data Elements.
         """
 
         non_standard_statuses = Status.objects.current().filter(registrationAuthority=ra).exclude(state=status)
