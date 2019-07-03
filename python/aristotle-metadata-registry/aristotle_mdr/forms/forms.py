@@ -379,4 +379,3 @@ class ReportingToolForm(forms.Form):
         choices=MDR.STATES,
         widget=forms.Select(attrs={'class': 'form-control'}),
     )
-

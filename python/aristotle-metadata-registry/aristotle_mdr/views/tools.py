@@ -196,4 +196,3 @@ class AristotleMetadataToolView(FormMixin, ListView):
         data_elements = DataElement.objects.filter(id__in=dataelement_list_ids)
 
         return data_elements.select_related(*related_objects)
-
