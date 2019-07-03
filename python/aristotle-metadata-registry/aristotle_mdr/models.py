@@ -771,6 +771,10 @@ class _concept(baseAristotleObject):
     class ReportBuilder:
         exclude = ('_is_public', '_is_locked', '_type')
 
+    @property
+    def aristotle_id(self):
+        return self.id
+
     @classmethod
     def model_to_publish(self):
         return _concept
