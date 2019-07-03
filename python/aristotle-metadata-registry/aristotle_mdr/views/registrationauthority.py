@@ -401,6 +401,9 @@ class ConceptFilter(django_filters.FilterSet):
 
         super().__init__(*args, **kwargs)
 
+        self.form.fields['registration_date'].inital = datetime.date.today()
+        self.form.fields['status'].initial = MDR.STATES.standard
+
         self.queryset = self.queryset.visible(self.request.user)
 
 
@@ -409,7 +412,7 @@ class DateFilterView(FilterView, MainPageMixin):
 
     filterset_class = ConceptFilter
     template_name = 'aristotle_mdr/organization/registration_authority/data_dictionary.html'
-    paginate_by = 50
+    paginate_by = 2
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -459,6 +462,15 @@ class DateFilterView(FilterView, MainPageMixin):
             # If there were no selections made in the form, set defaults
             kwargs["data"] = {"status": MDR.STATES.standard,
                               "registration_date": str(datetime.date.today())}
+
+        if 'registration_date' not in kwargs['data']:
+            kwargs['data'] = kwargs['data'].copy()
+            kwargs['data']['registration_date'] = datetime.date.today()
+
+        if 'status' not in kwargs['data']:
+            kwargs['data'] = kwargs['data'].copy()
+            kwargs['data']['status'] = MDR.STATES.standard
+
 
         return kwargs
 
