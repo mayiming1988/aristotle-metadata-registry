@@ -559,6 +559,7 @@ def render_difference(difference):
 def get_field(content_type, field_name):
     return content_type.model_class()._meta.get_field(field_name)
 
+
 @register.simple_tag
 def get_value_from_dict(dictionary, key):
     """
@@ -570,6 +571,7 @@ def get_value_from_dict(dictionary, key):
     :return: Value of the corresponding key in the dictionary, or "None" type if nothing is found in the dictionary.
     """
     return dictionary.get(key, None)
+
 
 @register.simple_tag
 def get_status_from_dict(dictionary, key):
