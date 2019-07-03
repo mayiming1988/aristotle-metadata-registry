@@ -40,6 +40,7 @@
     </form>
 
     <div>
+        {% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
 
         <table class="table table-striped">
             <caption>
@@ -54,79 +55,78 @@
                     Components
                 </th>
             </tr>
+            {% if object_list %}
+                {% for de in object_list %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'aristotle:item' de.id %}">
+                                {{ de }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if de.valueDomain %}
+                                <ul>
+                                    <li>
+                                        <em>Value Domain</em>
+                                        <br>
+                                        <a href="{% url 'aristotle:item' de.valueDomain.id %}">
+                                            {{ de.valueDomain }}
+                                        </a>
+                                    </li>
+                                </ul>
+                            {% endif %}
+                            {% if de.dataElementConcept %}
+                                <ul>
+                                    <li>
+                                        <em>Data Element Concept</em>
+                                        <br>
+                                        <a href="{% url 'aristotle:item' de.dataElementConcept.id %}">
+                                            {{ de.dataElementConcept }}
+                                        </a>
+                                        <ul>
+                                            {% if de.dataElementConcept.objectClass %}
+                                                <li>
+                                                    <em>Object Class</em>
+                                                    <br>
+                                                    <ul>
+                                                        <li>
+                                                            <a href="{% url 'aristotle:item' de.dataElementConcept.objectClass.id %}">
+                                                                {{ de.dataElementConcept.objectClass }}
+                                                            </a>
+                                                        </li>
+                                                    </ul>
 
-{#            {{ context.data_elements }}#}
+                                                </li>
+                                            {% endif %}
+                                            {% if de.dataElementConcept.property %}
+                                                <li>
+                                                    <em>Property</em>
+                                                    <br>
+                                                    <ul>
+                                                        <li>
+                                                            <a href="{% url 'aristotle:item' de.dataElementConcept.property.id %}">
+                                                                {{de.dataElementConcept.property }}
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                            {% endif %}
 
-            {% for de in data_elements %}
-                <tr>
-                    <td>
-                        <a href="{% url 'aristotle:item' de.id %}">
-                            {{ de }}
-                        </a>
-                    </td>
-                    <td>
-                        {% if de.valueDomain %}
-                            <ul>
-                                <li>
-                                    <em>Value Domain</em>
-                                    <br>
-                                    <a href="{% url 'aristotle:item' de.valueDomain.id %}">
-                                        {{ de.valueDomain }}
-                                    </a>
-                                </li>
-                            </ul>
-                        {% endif %}
-                        {% if de.dataElementConcept %}
-                            <ul>
-                                <li>
-                                    <em>Data Element Concept</em>
-                                    <br>
-                                    <a href="{% url 'aristotle:item' de.dataElementConcept.id %}">
-                                        {{ de.dataElementConcept }}
-                                    </a>
-                                    <ul>
-                                        {% if de.dataElementConcept.objectClass %}
-                                            <li>
-                                                <em>Object Class</em>
-                                                <br>
-                                                <ul>
-                                                    <li>
-                                                        <a href="{% url 'aristotle:item' de.dataElementConcept.objectClass.id %}">
-                                                            {{ de.dataElementConcept.objectClass }}
-                                                        </a>
-                                                    </li>
-                                                </ul>
-
-                                            </li>
-                                        {% endif %}
-                                        {% if de.dataElementConcept.property %}
-                                            <li>
-                                                <em>Property</em>
-                                                <br>
-                                                <ul>
-                                                    <li>
-                                                        <a href="{% url 'aristotle:item' de.dataElementConcept.property.id %}">
-                                                            {{de.dataElementConcept.property }}
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </li>
-                                        {% endif %}
-
-                                    </ul>
-                                </li>
-                            </ul>
-                        {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
+                                        </ul>
+                                    </li>
+                                </ul>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <div class="well">
+                    <div class="h5 text-center">There were no Data Elements with your chosen filters.</div>
+                </div>
+            {% endif %}
             </tbody>
         </table>
         {% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
-
-        <div class="well">
-            <div class="h5 text-center">There were no concepts with your chosen filters.</div>
-        </div>
 
     </div>
 

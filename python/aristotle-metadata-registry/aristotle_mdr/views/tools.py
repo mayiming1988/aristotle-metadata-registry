@@ -2,8 +2,7 @@ import logging
 from django.views.generic import (
     TemplateView, ListView, View
 )
-from django.views.generic.edit import FormView
-from django.shortcuts import render, redirect, get_object_or_404
+from django.views.generic.edit import FormMixin
 from django.urls import reverse
 from aristotle_mdr import models as MDR
 from aristotle_mdr.views.utils import SimpleItemGet, paginate_sort_opts
@@ -73,13 +72,13 @@ class ConceptRelatedListView(SimpleItemGet, ListView):
         return context
 
 
-class AristotleMetadataToolView(TemplateView, FormView):
+class AristotleMetadataToolView(FormMixin, ListView):
     template_name = "aristotle_mdr/concepts/tools/reporting_tool.html"
     form_class = ReportingToolForm
     paginate_by = 20
 
     def form_invalid(self, form):
-        # Do something if the form is invalid.
+        self.object_list = []
         return super().form_invalid(form)
 
     def get_form_kwargs(self):
@@ -116,11 +115,12 @@ class AristotleMetadataToolView(TemplateView, FormView):
             'form': form,
             'data_elements': data_elements
         }
+        self.object_list = data_elements
         return self.render_to_response(self.get_context_data(**context))
 
     def get(self, request, *args, **kwargs):
         form = self.get_form()
-        if self.form_class.is_valid(form):
+        if form.is_valid():
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
