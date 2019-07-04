@@ -106,9 +106,9 @@ class AristotleMetadataToolView(FormMixin, ListView):
                 ids_list.append(de.valueDomain.id)
             if de.dataElementConcept:
                 ids_list.append(de.dataElementConcept.id)
-            if de.dataElementConcept.objectClass:
+            if de.dataElementConcept and de.dataElementConcept.objectClass:
                 ids_list.append(de.dataElementConcept.objectClass.id)
-            if de.dataElementConcept.property:
+            if de.dataElementConcept and de.dataElementConcept.property:
                 ids_list.append(de.dataElementConcept.property.id)
 
         statuses = dict(Status.objects.current().filter(
@@ -127,7 +127,7 @@ class AristotleMetadataToolView(FormMixin, ListView):
 
         ra = RegistrationAuthority.objects.get(id=registration_authority_id)
 
-        data_elements = self.fetch_dataelements(ra, status)
+        data_elements, debugging = self.fetch_dataelements(ra, status)
 
         # We are doing this to improve Query performance.
         data_elements_ids = list(data_elements.values_list('id', flat=True))
@@ -137,7 +137,8 @@ class AristotleMetadataToolView(FormMixin, ListView):
         context = {
             'ra': ra,
             'form': form,
-            'data_elements': data_elements
+            'data_elements': data_elements,
+            'debugging': debugging
         }
         self.object_list = data_elements
         return self.render_to_response(self.get_context_data(**context))
@@ -200,7 +201,7 @@ class AristotleMetadataToolView(FormMixin, ListView):
             Q(dataElementConcept__in=data_elements_concepts_query) |
             Q(valueDomain__in=value_domains_query)
         )
-        return data_elements
+        return data_elements, not_accepted_statuses
 
     def fetch_components_for_dataelements(self, dataelement_list_ids):
         """

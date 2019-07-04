@@ -18,16 +18,22 @@
             </div>
             <br>
             <br>
+            {{ debugging }}
             <div class="row text-center">
                 <div class="form-group col-sm-12 col-md-6">
                     {{ form.ra.label }}
                     {{ form.ra }}
-                    {{ form.ra.errors }}
+                    <div class="alert-danger">
+                        {{ form.ra.errors }}
+                    </div>
+
                 </div>
                 <div class="form-group col-sm-12 col-md-6">
                     {{ form.status.label }}
                     {{ form.status }}
-                    {{ form.status.errors }}
+                    <div class="alert-danger">
+                        {{ form.status.errors }}
+                    </div>
                 </div>
             </div>
             <div class="row text-center">
