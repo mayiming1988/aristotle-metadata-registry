@@ -141,7 +141,6 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
     def get_extra_formsets(self, item=None, postdata=None, clone_item=False):
         extra_formsets = super().get_extra_formsets(item, postdata)
 
-
         if self.slots_active:
             slots_formset = self.get_slots_formset()(
                 queryset=Slot.objects.none(),
