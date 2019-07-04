@@ -428,14 +428,17 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
         self.context['cannot_compare'] = True
         return self.context
 
+    def both_fields_empty(self, earlier_value, later_value):
+        if not earlier_value and not later_value:
+            return True
+        return False
+
     def generate_diff(self, earlier_dict, later_dict, raw=False):
         """
         Returns a dictionary containing a list of tuples with the differences per field.
         The first element of the tuple specifies if it is an insertion (1), a deletion (-1), or an equality (0).
-
         Example:
         {field: [(0, hello), (1, world)]}
-
         """
         field_to_diff = {}
 
@@ -444,51 +447,50 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
 
         for field in earlier_dict:
             # Iterate through all fields in the dictionary
-
             show_field = field not in self.hidden_diff_fields and field in field_names
-
             if show_field:
                 # Don't show fields like modified, which are set by the database
                 earlier_value = earlier_dict[field]
                 later_value = later_dict[field]
 
-                if isinstance(earlier_value, str) or isinstance(earlier_value, int):
-                    # No special treatment required for strings and int
-                    earlier = str(earlier_value)
-                    later = str(later_value)
+                if not self.both_fields_empty(earlier_value, later_value):
+                    if isinstance(earlier_value, str) or isinstance(earlier_value, int):
+                        # No special treatment required for strings and int
+                        earlier = str(earlier_value)
+                        later = str(later_value)
 
-                    if not raw:
-                        # Strip tags if it's not raw
-                        earlier = strip_tags(earlier)
-                        later = strip_tags(later)
+                        if not raw:
+                            # Strip tags if it's not raw
+                            earlier = strip_tags(earlier)
+                            later = strip_tags(later)
 
-                    diff = self.differ.diff_main(earlier, later)
-                    self.differ.diff_cleanupSemantic(diff)
+                        diff = self.differ.diff_main(earlier, later)
+                        self.differ.diff_cleanupSemantic(diff)
 
-                    is_html_field = self.is_field_html(field, self.model)
+                        is_html_field = self.is_field_html(field, self.model)
 
-                    field_to_diff[field] = {'user_friendly_name': field.title(),
-                                            'subitem': False,
-                                            'is_html': is_html_field,
-                                            'diffs': diff}
+                        field_to_diff[field] = {'user_friendly_name': field.title(),
+                                                'subitem': False,
+                                                'is_html': is_html_field,
+                                                'diffs': diff}
 
-                elif isinstance(earlier_value, dict):
-                    # It's a single subitem
-                    subitem_model = self.get_model_from_foreign_key_field(self.model, self.clean_field(field))
-                    field_to_diff[field] = {
-                        'user_friendly_name': self.get_user_friendly_field_name(field, self.model),
-                        'subitem': True,
-                        'diffs': self.build_diff_of_subitem_dict(earlier_value, later_value,
-                                                                 subitem_model, raw=raw)
-                    }
-                elif isinstance(earlier_value, list):
-                    # It's a list of subitems
-                    subitem_model = self.get_model_from_foreign_key_field(self.model, field)
+                    elif isinstance(earlier_value, dict):
+                        # It's a single subitem
+                        subitem_model = self.get_model_from_foreign_key_field(self.model, self.clean_field(field))
+                        field_to_diff[field] = {
+                            'user_friendly_name': self.get_user_friendly_field_name(field, self.model),
+                            'subitem': True,
+                            'diffs': self.build_diff_of_subitem_dict(earlier_value, later_value,
+                                                                     subitem_model, raw=raw)
+                        }
+                    elif isinstance(earlier_value, list):
+                        # It's a list of subitems
+                        subitem_model = self.get_model_from_foreign_key_field(self.model, field)
 
-                    field_to_diff[field] = {
-                        'user_friendly_name': self.get_user_friendly_field_name(field, self.model),
-                        'subitem': True,
-                        'diffs': self.build_diff_of_subitems(earlier_value, later_value, subitem_model, raw=raw)}
+                        field_to_diff[field] = {
+                            'user_friendly_name': self.get_user_friendly_field_name(field, self.model),
+                            'subitem': True,
+                            'diffs': self.build_diff_of_subitems(earlier_value, later_value, subitem_model, raw=raw)}
 
         return field_to_diff
 
