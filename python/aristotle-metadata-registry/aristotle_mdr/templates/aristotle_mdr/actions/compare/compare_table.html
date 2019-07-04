@@ -3,10 +3,17 @@
 <table class="table compare">
     <caption>Differences
         <div class="btn-group pull-right">
+
             {% if raw %}
-                <a type="button" href="{{ request.path }}?v1={{ version_1_id }}&v2={{ version_2_id }}"
+                {% if comparing_concepts %}
+                    <a type="button" href="{{ request.path }}?item_a={{ item_a.id }}&item_b={{ item_b.id }}"
                    class="btn btn-default">Text-Only</a>
-                <a type="button" class="btn btn-primary" class="btn btn-default">Raw</a>
+                    <a type="button" class="btn btn-primary" class="btn btn-default">Raw</a>
+                {% else %}
+                    <a type="button" href="{{ request.path }}?v1={{ version_1_id }}&v2={{ version_2_id }}"
+                   class="btn btn-default">Text-Only</a>
+                    <a type="button" class="btn btn-primary" class="btn btn-default">Raw</a>
+                {% endif %}
             {% else %}
                 <a type="button" class="btn btn-primary">Text-Only</a>
                 <a type="button" href="{{ request.get_full_path }}&raw=true"

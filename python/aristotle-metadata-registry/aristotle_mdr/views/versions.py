@@ -426,11 +426,6 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
     differ = diff_match_patch.diff_match_patch()
     raw = False
 
-
-    def handle_compare_failure(self):
-        self.context['cannot_compare'] = True
-        return self.context
-
     def both_fields_empty(self, earlier_value, later_value):
         if not earlier_value and not later_value:
             return True
