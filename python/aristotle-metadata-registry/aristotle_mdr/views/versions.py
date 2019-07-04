@@ -440,7 +440,6 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
         {field: [(0, hello), (1, world)]}
 
         """
-
         DiffMatchPatch = diff_match_patch.diff_match_patch()
         field_to_diff = {}
 
@@ -449,9 +448,12 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
         ]
 
         for field in earlier_dict:
-            # Iterate through all fields in the JSON
+            # Iterate through all fields in the dictionary
+
             show_field = field not in self.hidden_diff_fields and field in field_names
-            if show_field:
+            fields_shared = field in earlier_dict and field in later_dict
+
+            if show_field and fields_shared:
                 # Don't show fields like modified, which are set by the database
                 earlier_value = earlier_dict[field]
                 later_value = later_dict[field]
