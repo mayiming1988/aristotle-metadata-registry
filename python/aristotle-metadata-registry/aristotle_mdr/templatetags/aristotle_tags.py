@@ -574,17 +574,23 @@ def get_value_from_dict(dictionary, key):
 
 
 @register.simple_tag
-def get_status_from_dict(dictionary, key):
+def get_status_from_dict(dictionary, current_status, key):
     """
     Get the Status of a particular item from a dictionary mapping.
     :param dictionary: dictionary mapping that must contain key-value pairs
     where the key must correspond to the concept_id, and the value must
     correspond to the state id.
+    :param current_status: string that represents the numerical form of
+    the status object that belongs to the Data Element.
     :param key: string that represents the concept id to be looked up.
     :return: String with the name of the corresponding status state.
     """
     state_value = dictionary.get(key, None)
     if state_value:
-        return STATES[state_value]
+        if current_status == str(state_value):
+            element = '<span class=text-success>[%s]</span>'
+        else:
+            element = '<span class=text-danger>[%s]</span>'
+        return mark_safe(element % (STATES[state_value]))
     else:
         return None

@@ -99,6 +99,7 @@ class AristotleMetadataToolView(FormMixin, ListView):
         context = super().get_context_data(**kwargs)
         current_data_elements = context['object_list']
         registration_authority = context.get('ra', None)
+        status_to_lookup = context.get('status', None)
         ids_list = []
         for de in current_data_elements:
             ids_list.append(de.id)
@@ -116,7 +117,10 @@ class AristotleMetadataToolView(FormMixin, ListView):
             registrationAuthority=registration_authority
         ).values_list('concept_id', 'state'))
 
-        context.update({'statuses_list': statuses})
+        context.update({
+            'statuses_list': statuses,
+            'status': status_to_lookup,
+        })
 
         return context
 
@@ -127,7 +131,7 @@ class AristotleMetadataToolView(FormMixin, ListView):
 
         ra = RegistrationAuthority.objects.get(id=registration_authority_id)
 
-        data_elements, debugging = self.fetch_dataelements(ra, status)
+        data_elements = self.fetch_dataelements(ra, status)
 
         # We are doing this to improve Query performance.
         data_elements_ids = list(data_elements.values_list('id', flat=True))
@@ -136,9 +140,8 @@ class AristotleMetadataToolView(FormMixin, ListView):
 
         context = {
             'ra': ra,
+            'status': status,
             'form': form,
-            'data_elements': data_elements,
-            'debugging': debugging
         }
         self.object_list = data_elements
         return self.render_to_response(self.get_context_data(**context))
@@ -159,9 +162,16 @@ class AristotleMetadataToolView(FormMixin, ListView):
         :return: Queryset containing Data Elements.
         """
 
-        accepted_statuses = Status.objects.current().filter(
+        # We have to query statuses in two different steps,
+        # because the Django ORM way to evaluate queries is
+        # not convenient for this query. Thanks Harry and Dylan! :)
+        current_statuses_ids = list(Status.objects.current().filter(
             registrationAuthority=ra,
-            state=status
+        ).values_list('id', flat=True))
+
+        accepted_statuses = Status.objects.current().filter(
+            id__in=current_statuses_ids,
+            state=status,
         )
 
         not_accepted_statuses = Status.objects.current().filter(registrationAuthority=ra).exclude(state=status)
@@ -172,8 +182,7 @@ class AristotleMetadataToolView(FormMixin, ListView):
 
         value_domains_query = ValueDomain.objects.filter(
             dataelement__in=data_elements,
-            statuses__in=not_accepted_statuses
-        )
+        ).exclude(statuses__in=accepted_statuses)
 
         data_elements_concepts_query = DataElementConcept.objects.filter(
             dataelement__in=data_elements,
@@ -181,13 +190,11 @@ class AristotleMetadataToolView(FormMixin, ListView):
 
         object_class_query = ObjectClass.objects.filter(
             dataelementconcept__in=data_elements_concepts_query,
-            statuses__in=not_accepted_statuses
-        )
+        ).exclude(statuses__in=accepted_statuses)
 
         properties_query = Property.objects.filter(
             dataelementconcept__in=data_elements_concepts_query,
-            statuses__in=not_accepted_statuses
-        )
+        ).exclude(statuses__in=accepted_statuses)
 
         # Get all the DEC with accepted statuses or components with not accepted statuses
         data_elements_concepts_query = data_elements_concepts_query.filter(
@@ -201,7 +208,7 @@ class AristotleMetadataToolView(FormMixin, ListView):
             Q(dataElementConcept__in=data_elements_concepts_query) |
             Q(valueDomain__in=value_domains_query)
         )
-        return data_elements, not_accepted_statuses
+        return data_elements
 
     def fetch_components_for_dataelements(self, dataelement_list_ids):
         """
