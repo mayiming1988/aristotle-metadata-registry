@@ -175,7 +175,6 @@ class ConceptSerializerFactory():
             })
 
         self.whitelisted_fields = [
-            'parent_dss',
             'statistical_unit',
             'dssgrouping_set',
         ] + list(self.FIELD_SUBSERIALIZER_MAPPING.keys())
