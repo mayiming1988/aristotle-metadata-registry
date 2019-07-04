@@ -1,0 +1,153 @@
+{% extends 'aristotle_mdr/base.html' %}
+{% load render_bundle from webpack_loader %}
+{% load aristotle_tags util_tags i18n humanize bootstrap3 %}
+
+{% block title %}Reporting tool{% endblock %}
+
+{% block content %}
+    <form method="get">
+        <div class="h4">Data Elements and subcomponents status report</div>
+        <div class="alert-danger">
+
+        </div>
+        <div class="well">
+            <div class="h5 text-center">
+                This report allows you to see the Standard Data Elements which have component items which haven't been registered as Standard
+                with the selected Registration Authority.<br>
+                Note that you need to be logged in as someone who has permission to see the Data Elements and their components.
+            </div>
+            <br>
+            <br>
+            {{ debugging }}
+            <div class="row text-center">
+                <div class="form-group col-sm-12 col-md-6">
+                    {{ form.ra.label }}
+                    {{ form.ra }}
+                    <div class="alert-danger">
+                        {{ form.ra.errors }}
+                    </div>
+
+                </div>
+                <div class="form-group col-sm-12 col-md-6">
+                    {{ form.status.label }}
+                    {{ form.status }}
+                    <div class="alert-danger">
+                        {{ form.status.errors }}
+                    </div>
+                </div>
+            </div>
+            <div class="row text-center">
+                <button type="submit" class="btn btn-primary">Filter</button>
+            </div>
+        </div>
+
+    </form>
+
+    <div>
+        {% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
+
+
+        {% if object_list %}
+            <table class="table table-striped">
+                <caption>
+                    Concepts
+                </caption>
+                <tbody>
+                <tr>
+                    <th scope="col">
+                        Data Element
+                    </th>
+                    <th scope="col">
+                        Components
+                    </th>
+                </tr>
+                {% for de in object_list %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'aristotle:item' de.id %}">
+                                {{ de }}
+                            </a>
+                            <em>
+                                [{% get_status_from_dict statuses_list de.id %}]
+                            </em>
+                        </td>
+                        <td>
+                            {% if de.valueDomain %}
+                                <ul>
+                                    <li>
+                                        Value Domain
+                                        <br>
+                                        <a href="{% url 'aristotle:item' de.valueDomain.id %}">
+                                            {{ de.valueDomain }}
+                                        </a>
+                                        <em>[{% get_status_from_dict statuses_list de.valueDomain.id %}]</em>
+                                    </li>
+                                </ul>
+                            {% endif %}
+                            {% if de.dataElementConcept %}
+                                <ul>
+                                    <li>
+                                        <em>Data Element Concept</em>
+                                        <br>
+                                        <a href="{% url 'aristotle:item' de.dataElementConcept.id %}">
+                                            {{ de.dataElementConcept }}
+                                        </a>
+                                        <em>
+                                            [{% get_status_from_dict statuses_list de.dataElementConcept.id %}]
+                                        </em>
+                                        <ul>
+                                            {% if de.dataElementConcept.objectClass %}
+                                                <li>
+                                                    <em>Object Class</em>
+                                                    <br>
+                                                    <ul>
+                                                        <li>
+                                                            <a href="{% url 'aristotle:item' de.dataElementConcept.objectClass.id %}">
+                                                                {{ de.dataElementConcept.objectClass }}
+                                                            </a>
+                                                            <em>
+                                                                [{% get_status_from_dict statuses_list de.dataElementConcept.objectClass.id %}]
+                                                            </em>
+                                                        </li>
+                                                    </ul>
+
+                                                </li>
+                                            {% endif %}
+                                            {% if de.dataElementConcept.property %}
+                                                <li>
+                                                    <em>Property</em>
+                                                    <br>
+                                                    <ul>
+                                                        <li>
+                                                            <a href="{% url 'aristotle:item' de.dataElementConcept.property.id %}">
+                                                                {{de.dataElementConcept.property }}
+                                                            </a>
+                                                            <em>
+                                                                [{% get_status_from_dict statuses_list de.dataElementConcept.objectClass.id %}]
+                                                            </em>
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                            {% endif %}
+
+                                        </ul>
+                                    </li>
+                                </ul>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="well">
+                <div class="h5 text-center">There were no Data Elements with your chosen filters.</div>
+            </div>
+        {% endif %}
+
+        {% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
+
+    </div>
+
+
+{% endblock %}

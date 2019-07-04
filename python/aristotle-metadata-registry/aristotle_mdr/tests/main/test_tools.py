@@ -83,9 +83,9 @@ class AristotleReportingToolsPage(AristotleTestUtils, TestCase):
             state=models.STATES.standard,
         )
 
-        # self.logout()
+        self.logout()
 
-    def test_it_works(self):
+    def test_there_is_one_standard_data_element_with_four_non_standard_components(self):
 
         standard_status = '5'
 
@@ -94,15 +94,10 @@ class AristotleReportingToolsPage(AristotleTestUtils, TestCase):
         # Data Element query
         response = self.client.get(
             reverse(
-                'aristotle:reportingTool') + '?registration_authorities_select=' + ra_id + '&data_types_select=0&statuses_select=' + standard_status
+                'aristotle:reportingTool') + '?ra=' + ra_id + '&status=' + standard_status
         )
 
-        # qs = response.context['data_elements']
-
-        import pdb
-        pdb.set_trace()
-
-        # self.assertEqual(qs.count(), 1)
+        self.assertEqual(response.context['object_list'].count(), 1)
 
         import pdb
         pdb.set_trace()

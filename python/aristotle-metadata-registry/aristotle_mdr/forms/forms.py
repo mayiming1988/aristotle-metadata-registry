@@ -366,7 +366,7 @@ class ReportingToolForm(forms.Form):
 
     from aristotle_mdr.models import RegistrationAuthority
 
-    registration_authorities_choices = RegistrationAuthority.objects.values_list('pk', 'name').order_by('name')
+    registration_authorities_choices = list(RegistrationAuthority.objects.values_list('pk', 'name').order_by('name'))
 
     ra = forms.ChoiceField(
         label="Registration Authority",
@@ -379,4 +379,3 @@ class ReportingToolForm(forms.Form):
         choices=MDR.STATES,
         widget=forms.Select(attrs={'class': 'form-control'}),
     )
-
