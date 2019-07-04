@@ -12,6 +12,7 @@ from aristotle_mdr.contrib.autocomplete import widgets
 from django_jsonforms.forms import JSONSchemaField
 from aristotle_mdr.forms.utils import RegistrationAuthorityMixin
 
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -364,9 +365,7 @@ class ShareLinkForm(forms.Form):
 
 class ReportingToolForm(forms.Form):
 
-    from aristotle_mdr.models import RegistrationAuthority
-
-    registration_authorities_choices = list(RegistrationAuthority.objects.values_list('pk', 'name').order_by('name'))
+    registration_authorities_choices = MDR.RegistrationAuthority.objects.values_list('pk', 'name').order_by('name')
 
     ra = forms.ChoiceField(
         label="Registration Authority",
