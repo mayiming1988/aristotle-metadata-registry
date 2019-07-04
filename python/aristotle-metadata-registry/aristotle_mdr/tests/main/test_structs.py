@@ -5,17 +5,26 @@ from aristotle_mdr.structs import Tree, Node
 class TestTree(TestCase):
 
     def setUp(self):
-        self.root = Node(identifier=1, data='1')
+        self.root = Node(data='1')
         self.tree = Tree(self.root)
-        left = Node(self.root, 2, data='11')
-        right = Node(self.root, 3, data='12')
-        self.tree.add_node(left)
-        self.tree.add_node(right)
-        self.tree.add_node(Node(left, 4, '111'))
+
+        self.left = Node(self.root, data='11')
+        self.right = Node(self.root, data='12')
+        self.tree.add_node(self.left)
+        self.tree.add_node(self.right)
+
+        self.last = Node(self.left, '111')
+        self.tree.add_node(self.last)
 
     def test_children(self):
-        self.assertCountEqual(self.tree.children[1], [2, 3])
-        self.assertCountEqual(self.tree.children[2], [4])
+        self.assertCountEqual(
+            self.tree.children[self.root.identifier],
+            [self.left.identifier, self.right.identifier]
+        )
+        self.assertCountEqual(
+            self.tree.children[self.left.identifier],
+            [self.last.identifier]
+        )
 
     def test_string(self):
         s = str(self.tree)

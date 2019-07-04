@@ -4,11 +4,8 @@ from collections import defaultdict
 
 class Node:
 
-    def __init__(self, parent=None, identifier=None, data=None):
-        if identifier is None:
-            self.identifier = id(self)
-        else:
-            self.identifier = identifier
+    def __init__(self, parent=None, data=None):
+        self.identifier = id(self)
 
         self.parent: Node = parent
         self.data = data
