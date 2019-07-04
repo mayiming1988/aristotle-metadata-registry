@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
+from typing import List, Tuple
+from collections import defaultdict
 
 from django.db import models
 from django.utils.translation import ugettext as _
+from django.conf import settings
 from model_utils import Choices
 
 import aristotle_mdr as aristotle
@@ -11,6 +14,7 @@ from aristotle_mdr.fields import (
     ConceptManyToManyField,
     ShortTextField,
 )
+from aristotle_mdr.structs import Tree, Node
 from aristotle_mdr.utils import fetch_aristotle_settings
 
 import reversion
@@ -107,7 +111,7 @@ class Dataset(aristotle.models.concept):
         rels = {}
         if "comet" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
             from comet.models import Indicator
-            
+
             rels.update({
                 "as_numerator": {
                     "all": _("As a numerator in an Indicator"),
@@ -326,12 +330,61 @@ class DataSetSpecification(aristotle.models.concept):
             ).distinct(),
         ]
 
+    def get_all_clusters(self) -> List[Tuple[int, int]]:
+        """Get all clusters as parent child tuples (depth limited)"""
+        clusters = []
+        last_level_ids = [self.id]
+        for i in range(settings.CLUSTER_DISPLAY_DEPTH):
+            # get parent, child tuples
+            values = DSSClusterInclusion.objects.filter(
+                dss_id__in=last_level_ids,
+            ).values_list('dss_id', 'child_id')
+            # Update last level ids
+            last_level_ids.clear()
+            for v in values:
+                last_level_ids.append(v[1])
+                clusters.append(v)
+
+        return clusters
+
+    def get_cluster_tree(self):
+        # Build dict mapping parent id's to child id's
+        cluster_dict = defaultdict(list)
+        # Buid set of ids
+        unique_ids = set()
+        for pair in self.get_all_clusters():
+            cluster_dict[pair[0]].append(pair[1])
+            unique_ids.add(pair[0])
+            unique_ids.add(pair[1])
+
+        # Lookup all dss's
+        objects = type(self).objects.in_bulk(unique_ids)
+
+        root = Node(data=self)
+        tree = Tree(root)
+        node_stack = [root]
+
+        # TODO depth limit this aswell
+        while node_stack:
+            # Pop node off stack
+            next_node = node_stack.pop()
+            # Add to tree if not root
+            if next_node != root:
+                tree.add_node(next_node)
+            # Create child nodes and add to stack
+            for child_id in cluster_dict[next_node.data.id]:
+                node_stack.append(
+                    Node(next_node, objects.get(child_id, None))
+                )
+
+        return tree
+
     @property
     def relational_attributes(self):
         rels = {}
         if "comet" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
             from comet.models import Indicator
-            
+
             rels.update({
                 "as_numerator": {
                     "all": _("As a numerator in an Indicator"),
