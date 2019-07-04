@@ -98,6 +98,3 @@ class AristotleReportingToolsPage(AristotleTestUtils, TestCase):
         )
 
         self.assertEqual(response.context['object_list'].count(), 1)
-
-        import pdb
-        pdb.set_trace()
