@@ -283,6 +283,7 @@ class HTMLDownloader(Downloader):
         return context
 
     def _add_to_sub_items(self, items_dict, item):
+        """Adds an item to the sub items dict"""
         item_class = type(item)
 
         label = get_model_label(item_class)
@@ -303,8 +304,7 @@ class HTMLDownloader(Downloader):
         items_dict[label]['items'].append(item)
 
     def get_sub_items_dict(self, include_root=False) -> Dict[str, Dict[str, Any]]:
-        """Function that populates the supporting items in the template. Only populates
-         the """
+        """Function that populates the supporting items in the template"""
         items: Dict[str, Dict[str, Any]] = {}
 
         # Get all items using above method to create dict
@@ -352,7 +352,6 @@ class HTMLDownloader(Downloader):
         _list = "<li>" + "</li><li>".join([item.name for item in self.items if item]) + "</li>"
         subtitle = mark_safe("Generated from the following metadata items:<ul>%s<ul>" % _list)
 
-        # sub_items = self.get_sub_items_dict(include_root=True)
         if self.options['include_supporting']:
             sub_items = self.get_sub_items_dict()
         else:
