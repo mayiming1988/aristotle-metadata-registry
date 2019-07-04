@@ -103,6 +103,7 @@ class PermissionWizard(SessionWizardView):
 
 class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
     widgets: dict = {}
+
     templates = {
         "initial": "aristotle_mdr/create/concept_wizard_1_search.html",
         "results": "aristotle_mdr/create/concept_wizard_2_results.html",
@@ -112,6 +113,8 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
         ("initial", MDRForms.wizards.Concept_1_Search),
         ("results", MDRForms.wizards.Concept_2_Results),
     ]
+
+    additional_records_active = True
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -138,6 +141,7 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
     def get_extra_formsets(self, item=None, postdata=None, clone_item=False):
         extra_formsets = super().get_extra_formsets(item, postdata)
 
+
         if self.slots_active:
             slots_formset = self.get_slots_formset()(
                 queryset=Slot.objects.none(),
@@ -149,6 +153,21 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
                 'type': 'slot',
                 'saveargs': None
             })
+
+        recordrelation_formset = self.get_recordrelations_formset()(
+            data=postdata
+        )
+        # Override the queryset to restrict to the records the user has permission to view
+        for record_relation_form in recordrelation_formset:
+            record_relation_form.fields['organization_record'].queryset = MDR.OrganizationRecord.objects.visible(
+                self.request.user).order_by('name')
+
+        extra_formsets.append({
+            'formset': recordrelation_formset,
+            'title': 'Record Relation',
+            'type': 'record_relation',
+            'saveargs': None
+        })
 
         return extra_formsets
 
@@ -190,6 +209,7 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
                         'template_name': self.template_name,
                         'help_guide': self.help_guide(),
                         'current_step': self.steps.current,
+                        'additional_records_active': self.additional_records_active
                         })
 
         if cloud_enabled():
