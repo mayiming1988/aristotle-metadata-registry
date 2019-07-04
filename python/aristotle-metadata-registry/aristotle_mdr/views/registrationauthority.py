@@ -460,6 +460,14 @@ class DateFilterView(FilterView, MainPageMixin):
             kwargs["data"] = {"status": MDR.STATES.standard,
                               "registration_date": str(datetime.date.today())}
 
+        if 'registration_date' not in kwargs['data']:
+            kwargs['data'] = kwargs['data'].copy()
+            kwargs['data']['registration_date'] = datetime.date.today()
+
+        if 'status' not in kwargs['data']:
+            kwargs['data'] = kwargs['data'].copy()
+            kwargs['data']['status'] = MDR.STATES.standard
+
         return kwargs
 
     def build_downloaders(self, queryset):
