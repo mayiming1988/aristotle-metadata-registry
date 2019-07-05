@@ -98,10 +98,10 @@ class AristotleMetadataToolView(FormMixin, ListView):
         return reverse("aristotle:reportingTool")
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        current_data_elements = context['object_list']
-        registration_authority = context.get('ra', None)
-        status_to_lookup = context.get('status', None)
+        self.context = super().get_context_data(**kwargs)
+        current_data_elements = self.context['object_list']
+        registration_authority = self.context.get('ra', None)
+        status_to_lookup = self.context.get('status', None)
         ids_list = []
         for de in current_data_elements:
             ids_list.append(de.id)
@@ -119,12 +119,12 @@ class AristotleMetadataToolView(FormMixin, ListView):
             registrationAuthority=registration_authority
         ).values_list('concept_id', 'state'))
 
-        context.update({
+        self.context.update({
             'statuses_list': statuses,
             'status': status_to_lookup,
         })
 
-        return context
+        return self.context
 
     def form_valid(self, form):
 
