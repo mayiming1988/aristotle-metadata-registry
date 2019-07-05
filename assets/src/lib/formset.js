@@ -43,7 +43,8 @@ export function addRow(formid, row_selector, urlfunc) {
     // Convert to jquery object
     panelList = $(panelList)
 
-    // Important note: formid is the actual **id** of the formstage not 'formid'
+    // Important note: formid is the actual **id** of the formstage not 'formid'. This is set by django depending
+    // on the model
     let formstage = $('.formstage#' + formid + ' ' + row_selector)
 
     // Clone the formstage

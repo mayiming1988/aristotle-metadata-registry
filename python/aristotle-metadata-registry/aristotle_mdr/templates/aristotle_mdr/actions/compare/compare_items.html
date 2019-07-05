@@ -74,7 +74,7 @@
         {% endif %}
         <div class="container">
             {% if diffs %}
-                {% include "aristotle_mdr/actions/compare/compare_table.html" with allow_html_comparison=False %}
+                {% include "aristotle_mdr/actions/compare/compare_table.html" with allow_html_comparison=False comparing_concepts=True %}
             {% endif %}
         </div>
     {% endif %} {# <!-- End not all versions selected --> #}
