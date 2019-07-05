@@ -11,7 +11,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-
 class ItemGraphView(SimpleItemGet, TemplateView):
     model = MDR._concept
     template_name = "aristotle_mdr/graphs/item_graphs.html"
