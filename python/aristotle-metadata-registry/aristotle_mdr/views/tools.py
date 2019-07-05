@@ -5,11 +5,6 @@ from aristotle_mdr import models as MDR
 from aristotle_mdr.views.utils import SimpleItemGet, paginate_sort_opts
 from aristotle_mdr.utils import is_active_extension
 
-from typing import List
-
-import logging
-logger = logging.getLogger(__name__)
-
 
 class ItemGraphView(SimpleItemGet, TemplateView):
     model = MDR._concept
