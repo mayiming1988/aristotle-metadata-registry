@@ -1,7 +1,6 @@
 from django.views.generic import (
     TemplateView, ListView, View
 )
-
 from aristotle_mdr import models as MDR
 from aristotle_mdr.views.utils import SimpleItemGet, paginate_sort_opts
 from aristotle_mdr.utils import is_active_extension
@@ -30,13 +29,22 @@ class ConceptRelatedListView(SimpleItemGet, ListView):
     def get_current_relation(self):
         item = self.get_item(self.request.user).item
         if self.kwargs['relation'] in item.relational_attributes.keys():
+            # If the URL query arg is set, filter on the selected one
             return self.kwargs['relation']
         else:
+            # No URL query arg set, return the first one
+            if not item.relational_attributes.keys():
+                return None
             return list(item.relational_attributes.keys())[0]
 
     def get_queryset(self):
         item = self.get_item(self.request.user).item
-        queryset = item.relational_attributes[self.get_current_relation()]['qs']
+
+        filtering_relation = self.get_current_relation()
+        if not filtering_relation:
+            return []
+
+        queryset = item.relational_attributes[filtering_relation]['qs']
         queryset = queryset.visible(self.request.user)
 
         ordering = self.get_ordering()
