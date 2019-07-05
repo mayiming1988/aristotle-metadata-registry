@@ -323,20 +323,21 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
                 # Save item
                 form.save_custom_fields(item)
                 form.save_m2m()
+                # Copied from wizards.py - maybe refactor
+                final_formsets = []
+                for info in extra_formsets:
+                    if info['type'] != 'slot':
+                        info['saveargs']['item'] = item
+                    else:
+                        info['formset'].instance = item
+                    final_formsets.append(info)
+
+                # This was removed from the revision below due to a bug with saving
+                # long slots, links are still saved due to reversion follows
+                self.save_formsets(final_formsets)
+
                 item.save()
 
-            # Copied from wizards.py - maybe refactor
-            final_formsets = []
-            for info in extra_formsets:
-                if info['type'] != 'slot':
-                    info['saveargs']['item'] = item
-                else:
-                    info['formset'].instance = item
-                final_formsets.append(info)
-
-            # This was removed from the revision below due to a bug with saving
-            # long slots, links are still saved due to reversion follows
-            self.save_formsets(final_formsets)
 
             return HttpResponseRedirect(url_slugify_concept(item))
 
