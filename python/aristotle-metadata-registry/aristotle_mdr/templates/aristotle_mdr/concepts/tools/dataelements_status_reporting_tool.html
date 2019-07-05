@@ -37,36 +37,34 @@
                 <button type="submit" class="btn btn-primary">Filter</button>
             </div>
         </div>
-
     </form>
 
     <div>
         {% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
-
-
         {% if object_list %}
-            <table class="table table-striped">
+            <table class="table table-striped" style="width: 100%;">
                 <caption>
                     Concepts
                 </caption>
                 <tbody>
                 <tr>
-                    <th scope="col">
+                    <th scope="col" style="width: 50%;">
                         Data Element
                     </th>
-                    <th scope="col">
+                    <th scope="col" style="width: 50%;">
                         Components
                     </th>
                 </tr>
                 {% for de in object_list %}
                     <tr>
-                        <td>
+                        <td style="width: 50%">
                             <a href="{% url 'aristotle:item' de.id %}">
                                 {{ de }}
                             </a>
+                            <br>
                             {% get_status_from_dict statuses_list status de.id False %}
                         </td>
-                        <td>
+                        <td style="width: 50%">
                             {% if de.valueDomain %}
                                 <ul>
                                     <li>
@@ -75,6 +73,7 @@
                                         <a href="{% url 'aristotle:item' de.valueDomain.id %}">
                                             {{ de.valueDomain }}
                                         </a>
+                                        <br>
                                         {% get_status_from_dict statuses_list status de.valueDomain.id %}
                                     </li>
                                 </ul>
@@ -87,38 +86,31 @@
                                         <a href="{% url 'aristotle:item' de.dataElementConcept.id %}">
                                             {{ de.dataElementConcept }}
                                         </a>
+                                        <br>
                                         {% get_status_from_dict statuses_list status de.dataElementConcept.id %}
                                         <ul>
                                             {% if de.dataElementConcept.objectClass %}
                                                 <li>
                                                     Object Class
                                                     <br>
-                                                    <ul>
-                                                        <li>
-                                                            <a href="{% url 'aristotle:item' de.dataElementConcept.objectClass.id %}">
-                                                                {{ de.dataElementConcept.objectClass }}
-                                                            </a>
-                                                            {% get_status_from_dict statuses_list status de.dataElementConcept.objectClass.id %}
-                                                        </li>
-                                                    </ul>
-
+                                                    <a href="{% url 'aristotle:item' de.dataElementConcept.objectClass.id %}">
+                                                        {{ de.dataElementConcept.objectClass }}
+                                                    </a>
+                                                    <br>
+                                                    {% get_status_from_dict statuses_list status de.dataElementConcept.objectClass.id %}
                                                 </li>
                                             {% endif %}
                                             {% if de.dataElementConcept.property %}
                                                 <li>
                                                     Property
                                                     <br>
-                                                    <ul>
-                                                        <li>
-                                                            <a href="{% url 'aristotle:item' de.dataElementConcept.property.id %}">
-                                                                {{de.dataElementConcept.property }}
-                                                            </a>
-                                                            {% get_status_from_dict statuses_list status de.dataElementConcept.property.id %}
-                                                        </li>
-                                                    </ul>
+                                                    <a href="{% url 'aristotle:item' de.dataElementConcept.property.id %}">
+                                                        {{de.dataElementConcept.property }}
+                                                    </a>
+                                                    <br>
+                                                    {% get_status_from_dict statuses_list status de.dataElementConcept.property.id %}
                                                 </li>
                                             {% endif %}
-
                                         </ul>
                                     </li>
                                 </ul>
@@ -133,10 +125,6 @@
                 <div class="h5 text-center">There were no Data Elements with your chosen filters.</div>
             </div>
         {% endif %}
-
         {% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
-
     </div>
-
-
 {% endblock %}
