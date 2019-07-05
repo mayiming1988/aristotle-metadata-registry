@@ -3,6 +3,7 @@
 import aristotle_mdr
 from django.db import models
 
+
 class Question(aristotle_mdr.models.concept):
     template = "extension_test/concepts/question.html"
     questionText = models.TextField(blank=True, null=True)
