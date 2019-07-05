@@ -126,10 +126,10 @@ class AristotleMetadataToolView(FormMixin, ListView):
 
     def form_valid(self, form):
 
-        registration_authority_id = form.cleaned_data['ra']
+        registration_authority = form.cleaned_data['ra']
         status = form.cleaned_data['status']
 
-        ra = RegistrationAuthority.objects.get(id=registration_authority_id)
+        ra = RegistrationAuthority.objects.get(name=registration_authority)
 
         data_elements = self.fetch_dataelements(ra, status)
 

@@ -367,9 +367,10 @@ class ReportingToolForm(forms.Form):
 
     registration_authorities_choices = MDR.RegistrationAuthority.objects.values_list('pk', 'name').order_by('name')
 
-    ra = forms.ChoiceField(
+    ra = forms.ModelChoiceField(
+        queryset=MDR.RegistrationAuthority.objects.all(),
         label="Registration Authority",
-        choices=registration_authorities_choices,
+        empty_label=None,
         widget=forms.Select(attrs={'class': 'form-control'}),
     )
 
