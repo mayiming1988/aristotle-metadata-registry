@@ -574,7 +574,7 @@ def get_value_from_dict(dictionary, key):
 
 
 @register.simple_tag
-def get_status_from_dict(dictionary, current_status, key):
+def get_status_from_dict(dictionary, current_status, key, with_icon=True):
     """
     Get the Status of a particular item from a dictionary mapping.
     :param dictionary: dictionary mapping that must contain key-value pairs
@@ -583,14 +583,20 @@ def get_status_from_dict(dictionary, current_status, key):
     :param current_status: string that represents the numerical form of
     the status object that belongs to the Data Element.
     :param key: string that represents the concept id to be looked up.
-    :return: String with the name of the corresponding status state.
+    :param with_icon: boolean value to add a Fontawesome icon.
+    :return: HTML with the name of the corresponding status state.
     """
     state_value = dictionary.get(key, None)
     if state_value:
-        if current_status == str(state_value):
-            element = '<span class=text-success>[%s]</span>'
+        if with_icon:
+            if current_status == str(state_value):
+                element = '<em><spam style="display:inline-block">[%s]&nbsp;<span class="text-success"><i class="fa fa-check"></i></span></span></em>'
+            else:
+                element = '<em><span class="text-danger">[%s]&nbsp;<i class="fa fa-times"></i></span></em>'
+
         else:
-            element = '<span class=text-danger>[%s]</span>'
+            element = '<em>[%s]&nbsp;<span class="text-success"></span></em>'
         return mark_safe(element % (STATES[state_value]))
+
     else:
-        return None
+        return ""

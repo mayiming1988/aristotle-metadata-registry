@@ -126,10 +126,10 @@ class AristotleMetadataToolView(FormMixin, ListView):
 
     def form_valid(self, form):
 
-        registration_authority_id = form.cleaned_data['ra']
+        registration_authority = form.cleaned_data['ra']
         status = form.cleaned_data['status']
 
-        ra = RegistrationAuthority.objects.get(id=registration_authority_id)
+        ra = RegistrationAuthority.objects.get(name=registration_authority)
 
         data_elements = self.fetch_dataelements(ra, status)
 
@@ -169,12 +169,14 @@ class AristotleMetadataToolView(FormMixin, ListView):
             registrationAuthority=ra,
         ).values_list('id', flat=True))
 
-        accepted_statuses = Status.objects.current().filter(
+        accepted_statuses = Status.objects.filter(
             id__in=current_statuses_ids,
             state=status,
         )
 
-        not_accepted_statuses = Status.objects.current().filter(registrationAuthority=ra).exclude(state=status)
+        not_accepted_statuses = Status.objects.filter(
+            id__in=current_statuses_ids,
+        ).exclude(state=status)
 
         data_elements = DataElement.objects.filter(
             statuses__in=accepted_statuses
