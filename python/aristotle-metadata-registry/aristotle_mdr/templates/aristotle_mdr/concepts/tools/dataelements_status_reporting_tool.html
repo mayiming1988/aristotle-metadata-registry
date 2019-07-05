@@ -12,7 +12,7 @@
         </div>
         <div class="well">
             <div class="h5 text-center">
-                This report allows you to see the Standard Data Elements which have component items which haven't been registered as Standard
+                This report allows you to see Data Elements which have component items with a different status
                 with the selected Registration Authority.<br>
                 Note that you need to be logged in as someone who has permission to see the Data Elements and their components.
             </div>
@@ -66,9 +66,7 @@
                             <a href="{% url 'aristotle:item' de.id %}">
                                 {{ de }}
                             </a>
-                            <em>
-                                {% get_status_from_dict statuses_list status de.id False %}
-                            </em>
+                            {% get_status_from_dict statuses_list status de.id False %}
                         </td>
                         <td>
                             {% if de.valueDomain %}
@@ -79,34 +77,30 @@
                                         <a href="{% url 'aristotle:item' de.valueDomain.id %}">
                                             {{ de.valueDomain }}
                                         </a>
-                                        <em>{% get_status_from_dict statuses_list status de.valueDomain.id %}</em>
+                                        {% get_status_from_dict statuses_list status de.valueDomain.id %}
                                     </li>
                                 </ul>
                             {% endif %}
                             {% if de.dataElementConcept %}
                                 <ul>
                                     <li>
-                                        <em>Data Element Concept</em>
+                                        Data Element Concept
                                         <br>
                                         <a href="{% url 'aristotle:item' de.dataElementConcept.id %}">
                                             {{ de.dataElementConcept }}
                                         </a>
-                                        <em>
-                                            {% get_status_from_dict statuses_list status de.dataElementConcept.id %}
-                                        </em>
+                                        {% get_status_from_dict statuses_list status de.dataElementConcept.id %}
                                         <ul>
                                             {% if de.dataElementConcept.objectClass %}
                                                 <li>
-                                                    <em>Object Class</em>
+                                                    Object Class
                                                     <br>
                                                     <ul>
                                                         <li>
                                                             <a href="{% url 'aristotle:item' de.dataElementConcept.objectClass.id %}">
                                                                 {{ de.dataElementConcept.objectClass }}
                                                             </a>
-                                                            <em>
-                                                                {% get_status_from_dict statuses_list status de.dataElementConcept.objectClass.id %}
-                                                            </em>
+                                                            {% get_status_from_dict statuses_list status de.dataElementConcept.objectClass.id %}
                                                         </li>
                                                     </ul>
 
@@ -114,16 +108,14 @@
                                             {% endif %}
                                             {% if de.dataElementConcept.property %}
                                                 <li>
-                                                    <em>Property</em>
+                                                    Property
                                                     <br>
                                                     <ul>
                                                         <li>
                                                             <a href="{% url 'aristotle:item' de.dataElementConcept.property.id %}">
                                                                 {{de.dataElementConcept.property }}
                                                             </a>
-                                                            <em>
-                                                                {% get_status_from_dict statuses_list status de.dataElementConcept.objectClass.id %}
-                                                            </em>
+                                                            {% get_status_from_dict statuses_list status de.dataElementConcept.objectClass.id %}
                                                         </li>
                                                     </ul>
                                                 </li>
