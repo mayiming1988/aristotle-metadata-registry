@@ -15,6 +15,7 @@
             </div>
             <br>
             <br>
+            {{ STATUSES }}
             <div class="row text-center">
                 <div class="form-group col-sm-12 col-md-6">
                     {{ form.ra.label }}
@@ -112,7 +113,7 @@
                                                             <a href="{% url 'aristotle:item' de.dataElementConcept.property.id %}">
                                                                 {{de.dataElementConcept.property }}
                                                             </a>
-                                                            {% get_status_from_dict statuses_list status de.dataElementConcept.objectClass.id %}
+                                                            {% get_status_from_dict statuses_list status de.dataElementConcept.property.id %}
                                                         </li>
                                                     </ul>
                                                 </li>
