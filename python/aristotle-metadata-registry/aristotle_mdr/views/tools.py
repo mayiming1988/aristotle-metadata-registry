@@ -77,7 +77,7 @@ class ConceptRelatedListView(SimpleItemGet, ListView):
         return context
 
 
-class AristotleMetadataToolView(FormMixin, ListView):
+class AristotleMetadataToolView(ListView, FormMixin):
     template_name = "aristotle_mdr/concepts/tools/dataelements_status_reporting_tool.html"
     form_class = ReportingToolForm
     paginate_by = 20
@@ -98,7 +98,7 @@ class AristotleMetadataToolView(FormMixin, ListView):
         return reverse("aristotle:reportingTool")
 
     def get_context_data(self, **kwargs):
-        self.context = super(AristotleMetadataToolView, self).get_context_data(**kwargs)
+        self.context = super().get_context_data(**kwargs)
         current_data_elements = self.context['object_list']
         registration_authority = self.context.get('ra', None)
         status_to_lookup = self.context.get('status', None)
