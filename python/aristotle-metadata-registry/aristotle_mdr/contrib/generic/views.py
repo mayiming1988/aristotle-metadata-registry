@@ -537,7 +537,6 @@ class ExtraFormsetMixin:
     def save_formsets(self, extra_formsets):
         for formsetinfo in extra_formsets:
             if formsetinfo['saveargs']:
-                logger.debug("Formset info " + str(formsetinfo['saveargs']))
                 ordered_formset_save(**formsetinfo['saveargs'])
             else:
                 formsetinfo['formset'].save()
