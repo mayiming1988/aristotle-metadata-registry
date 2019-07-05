@@ -590,13 +590,13 @@ def get_status_from_dict(dictionary, current_status, key, with_icon=True):
     if state_value:
         if with_icon:
             if current_status == str(state_value):
-                element = '[%s]&nbsp;<span class=text-success><i class="fa fa-check"></i></span>'
+                element = '<em><spam style="display:inline-block">[%s]&nbsp;<span class="text-success"><i class="fa fa-check"></i></span></span></em>'
             else:
-                element = '<span class=text-danger>[%s]&nbsp;<i class="fa fa-times"></i></span>'
+                element = '<em><span class="text-danger">[%s]&nbsp;<i class="fa fa-times"></i></span></em>'
 
         else:
-            element = '[%s]&nbsp;<span class=text-success></span>'
+            element = '<em>[%s]&nbsp;<span class="text-success"></span></em>'
         return mark_safe(element % (STATES[state_value]))
 
     else:
-        return None
+        return ""
