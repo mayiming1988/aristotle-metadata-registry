@@ -77,7 +77,7 @@ Because of this there is a distinction between the Aristotle-MDR model objects
 
 Abstract base classes in Django allow for the easy creation of items that share
 similar properties, without introducing additional fields into the database. They also
-allow for self-referential ForeignKeys that are restricted to the inherited type, rather
+allow for cls-referential ForeignKeys that are restricted to the inherited type, rather
 than to the base type.
 
 .. autoclass:: aristotle_mdr.models._concept
@@ -93,7 +93,7 @@ In this example, the model ``ReallyComplexExampleItem`` inherits from ``concept`
 but also includes a many-to-many relationship that links it to any number of
 registerable concepts, such as Data Element or Objects Classes, additionally
 because of the inheritance, this would allow links to extended models
-such as Questions or even self-referential links to other instances of the
+such as Questions or even cls-referential links to other instances of the
 ``ReallyComplexExampleItem`` model type.
 
 Retrieving the "true item" when you are returned a ``_concept``.
@@ -108,7 +108,7 @@ using the ``get_subclass`` method from ``django-model-utils``.
 .. autoattribute:: aristotle_mdr.models._concept.item
 .. autoattribute:: aristotle_mdr.models.concept.item
 
-On the inherited ``concept`` class this just returns a reference to the original item - ``self``.
+On the inherited ``concept`` class this just returns a reference to the original item - ``cls``.
 So once the true item is retrieved, this property can be called infinitely without a performance hit.
 
 For example, in code or in a template it is always safe to call an item like so::
@@ -219,7 +219,7 @@ all simple cases when searching for new items, like so::
     from aristotle_mdr.search_indexes import conceptIndex
 
     class QuestionIndex(conceptIndex, indexes.Indexable):
-        def get_model(self):
+        def get_model(cls):
             return models.Question
 
 **It is important to import the required models from**  ``aristotle.search_indexes``

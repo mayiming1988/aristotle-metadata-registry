@@ -1,8 +1,8 @@
 =============================================
-Aristotle Metadata Registry - self publishing
+Aristotle Metadata Registry - cls publishing
 =============================================
 
-Enabling this in ``INSTALLED_APPS`` allows users to self-publish
+Enabling this in ``INSTALLED_APPS`` allows users to cls-publish
 content without having to register it.
 
 Research suggests that the ISO/IEC 11179 specification has no rulings on the
