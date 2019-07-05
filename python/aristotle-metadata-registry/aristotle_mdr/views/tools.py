@@ -169,12 +169,14 @@ class AristotleMetadataToolView(FormMixin, ListView):
             registrationAuthority=ra,
         ).values_list('id', flat=True))
 
-        accepted_statuses = Status.objects.current().filter(
+        accepted_statuses = Status.objects.filter(
             id__in=current_statuses_ids,
             state=status,
         )
 
-        not_accepted_statuses = Status.objects.current().filter(registrationAuthority=ra).exclude(state=status)
+        not_accepted_statuses = Status.objects.filter(
+            id__in=current_statuses_ids,
+        ).exclude(state=status)
 
         data_elements = DataElement.objects.filter(
             statuses__in=accepted_statuses
