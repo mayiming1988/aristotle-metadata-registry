@@ -316,7 +316,6 @@ class DataSetSpecification(aristotle.models.concept):
         return [
             type(self).objects.filter(id__in=dss_ids),
             aristotle.models.DataElement.objects.filter(id__in=de_ids),
-            # We need to make these distinct to avoid duplicates being returned
             aristotle.models.DataElementConcept.objects.filter(dataelement__in=de_ids),
             aristotle.models.ObjectClass.objects.filter(dataelementconcept__dataelement__in=de_ids),
             aristotle.models.Property.objects.filter(dataelementconcept__dataelement__in=de_ids),
@@ -357,18 +356,14 @@ class DataSetSpecification(aristotle.models.concept):
 
         return unique_ids
 
-    def get_cluster_tree(self, cluster_relations=None, de_relations=None):
-        if not cluster_relations:
-            cluster_relations = self.get_all_clusters()
-        dss_ids = self.get_unique_ids(cluster_relations)
-
-        if not de_relations:
-            de_relations = self.get_de_relations(dss_ids)
-        de_ids = self.get_unique_ids(de_relations)
+    def get_cluster_tree(self, cluster_relations, de_relations, objects=None):
 
         # Lookup all objects
-        objects = type(self).objects.in_bulk(dss_ids)
-        objects.update(aristotle.models.DataElement.objects.in_bulk(de_ids))
+        if not objects:
+            dss_ids = self.get_unique_ids(cluster_relations)
+            de_ids = self.get_unique_ids(de_relations)
+            objects = type(self).objects.in_bulk(dss_ids)
+            objects.update(aristotle.models.DataElement.objects.in_bulk(de_ids))
 
         all_relations = cluster_relations + de_relations
 

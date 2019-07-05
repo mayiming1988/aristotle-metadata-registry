@@ -25,6 +25,7 @@ from aristotle_mdr.contrib.help.models import ConceptHelp
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils import fetch_aristotle_settings, get_model_label, format_seconds
 from aristotle_mdr.utils.utils import get_download_template_path_for_item
+from aristotle_dse.models import DataSetSpecification
 
 import logging
 logger = logging.getLogger(__name__)
@@ -274,6 +275,12 @@ class HTMLDownloader(Downloader):
         else:
             sub_items = {}
 
+        # Add tree if dss
+        if isinstance(item, DataSetSpecification):
+            prelim = self.prelim.get(item.id, None)
+            if prelim:
+                context['tree'] = item.get_cluster_tree(**prelim)
+
         context.update({
             'title': item.name,
             'item': item,
@@ -316,7 +323,11 @@ class HTMLDownloader(Downloader):
             registration_authority_id = self.options['registration_authority']
             state = self.options['registration_status']
 
-            for download_items in item.get_download_items():
+            # Fetch prelim values, use with get_download item if avaliable
+            prelim = self.prelim.get(item.id, {})
+            all_download_items = item.get_download_items(**prelim)
+
+            for download_items in all_download_items:
 
                 if isinstance(download_items, QuerySet):
                     # It's a queryset with multiple items
@@ -365,11 +376,29 @@ class HTMLDownloader(Downloader):
         })
         return context
 
+    def get_preliminary_values(self) -> Dict:
+        """Fetch prelim values for calculation of download items"""
+        prelim = {}
+        for item in self.items:
+            if isinstance(item, DataSetSpecification):
+                cluster_relations = item.get_all_clusters()
+                dss_ids = item.get_unique_ids(cluster_relations)
+                de_relations = item.get_de_relations(dss_ids)
+
+                prelim[item.id] = {
+                    'cluster_relations': cluster_relations,
+                    'de_relations': de_relations
+                }
+
+        return prelim
+
     def get_context(self) -> Dict[str, Any]:
         """
         Gets the template context
         Can be used by subclasses
         """
+        self.prelim = self.get_preliminary_values()
+
         if self.bulk:
             context = self.get_bulk_download_context()
         else:
