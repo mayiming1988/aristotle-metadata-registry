@@ -347,6 +347,7 @@ class ConceptualDomainWizardPage(ConceptWizardPage, TestCase):
         ]
         step_2_data.update(self.get_formset_postdata(valuemeaning_formset_data, 'value_meaning', 0))
         step_2_data.update(self.get_formset_postdata([], 'slots'))
+        step_2_data.update(self.get_formset_postdata([], 'org_records'))
 
 
         response = self.client.post(self.wizard_url, step_2_data)
@@ -383,6 +384,7 @@ class ConceptualDomainWizardPage(ConceptWizardPage, TestCase):
         ]
         step_2_data.update(self.get_formset_postdata(valuemeaning_formset_data, 'value_meaning', 0))
         step_2_data.update(self.get_formset_postdata([], 'slots'))
+        step_2_data.update(self.get_formset_postdata([], 'org_records'))
 
         response = self.client.post(self.wizard_url, step_2_data)
         self.assertEqual(response.status_code, 200)
@@ -417,6 +419,8 @@ class ValueDomainWizardPage(ConceptWizardPage,TestCase):
             'results-definition':"Test Definition",
         }
         step_2_data.update(self.get_formset_postdata([], 'slots'))
+
+        step_2_data.update(self.get_formset_postdata([], 'org_records'))
 
         permissible_formset_data = [
             {'value': 'Test1', 'meaning': 'Test1', 'start_date': '1999-01-01', 'end_date': '2090-01-01', 'ORDER': 0},
@@ -486,6 +490,7 @@ class DataElementDerivationWizardPage(ConceptWizardPage,TestCase):
             'results-definition':"Test Definition",
         }
         step_2_data.update(self.get_formset_postdata([], 'slots'))
+        step_2_data.update(self.get_formset_postdata([], 'org_records'))
 
         inputs_formset_data = [
             {'data_element': self.de3.pk, 'ORDER': 0},
