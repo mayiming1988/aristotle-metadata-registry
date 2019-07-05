@@ -302,31 +302,25 @@ class DataSetSpecification(aristotle.models.concept):
             list(aristotle.models.DataElementConcept.objects.filter(dataelement__dssInclusions__dss=self))
         )
 
-    def get_download_items(self):
+    def get_download_items(self, cluster_relations=None, de_relations=None):
         from django.db.models import Q
+
+        if not cluster_relations:
+            cluster_relations = self.get_all_clusters()
+        dss_ids = self.get_unique_ids(cluster_relations)
+
+        if not de_relations:
+            de_relations = self.get_de_relations(dss_ids)
+        de_ids = self.get_unique_ids(de_relations)
+
         return [
-            self.clusters.all(),
-            aristotle.models.DataElement.objects.filter(
-                Q(dssInclusions__dss=self) |
-                Q(dssInclusions__dss__in=self.clusters.all())
-            ).distinct(),
+            type(self).objects.filter(id__in=dss_ids),
+            aristotle.models.DataElement.objects.filter(id__in=de_ids),
             # We need to make these distinct to avoid duplicates being returned
-            aristotle.models.DataElementConcept.objects.filter(
-                Q(dataelement__dssInclusions__dss=self) |
-                Q(dataelement__dssInclusions__dss__in=self.clusters.all())
-            ).distinct(),
-            aristotle.models.ObjectClass.objects.filter(
-                Q(dataelementconcept__dataelement__dssInclusions__dss=self) |
-                Q(dataelementconcept__dataelement__dssInclusions__dss__in=self.clusters.all())
-            ).distinct(),
-            aristotle.models.Property.objects.filter(
-                Q(dataelementconcept__dataelement__dssInclusions__dss=self) |
-                Q(dataelementconcept__dataelement__dssInclusions__dss__in=self.clusters.all())
-            ).distinct(),
-            aristotle.models.ValueDomain.objects.filter(
-                Q(dataelement__dssInclusions__dss=self) |
-                Q(dataelement__dssInclusions__dss__in=self.clusters.all())
-            ).distinct(),
+            aristotle.models.DataElementConcept.objects.filter(dataelement__in=de_ids),
+            aristotle.models.ObjectClass.objects.filter(dataelementconcept__dataelement__in=de_ids),
+            aristotle.models.Property.objects.filter(dataelementconcept__dataelement__in=de_ids),
+            aristotle.models.ValueDomain.objects.filter(dataelement__in=de_ids),
         ]
 
     def get_all_clusters(self) -> List[Tuple[int, int]]:
@@ -346,7 +340,7 @@ class DataSetSpecification(aristotle.models.concept):
 
         return clusters
 
-    def _fetch_de_relations(self, dss_ids: List[int]) -> List[Tuple[int, int]]:
+    def get_de_relations(self, dss_ids: List[int]) -> List[Tuple[int, int]]:
         """Helper used to fetch all data element relations for a set of dss's"""
         values = DSSDEInclusion.objects.filter(
             dss__in=dss_ids,
@@ -354,7 +348,7 @@ class DataSetSpecification(aristotle.models.concept):
 
         return list(values)
 
-    def _get_unique_ids(self, relations: List[Tuple[int, int]]) -> Set[int]:
+    def get_unique_ids(self, relations: List[Tuple[int, int]]) -> Set[int]:
         unique_ids = set()
 
         for pair in relations:
@@ -363,14 +357,14 @@ class DataSetSpecification(aristotle.models.concept):
 
         return unique_ids
 
-    def get_cluster_tree(self):
-        cluster_relations = self.get_all_clusters()
-        # Set of dss ids
-        dss_ids = self._get_unique_ids(cluster_relations)
-        # Get de relations
-        de_relations = self._fetch_de_relations(dss_ids)
-        # Get set if de ids
-        de_ids = self._get_unique_ids(de_relations)
+    def get_cluster_tree(self, cluster_relations=None, de_relations=None):
+        if not cluster_relations:
+            cluster_relations = self.get_all_clusters()
+        dss_ids = self.get_unique_ids(cluster_relations)
+
+        if not de_relations:
+            de_relations = self.get_de_relations(dss_ids)
+        de_ids = self.get_unique_ids(de_relations)
 
         # Lookup all objects
         objects = type(self).objects.in_bulk(dss_ids)
