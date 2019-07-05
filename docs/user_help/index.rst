@@ -10,7 +10,7 @@ Creating and deploying user help
 Writing help files
 ------------------
 
-To improve users abilities to cls-help and cls-manage within an instance the
+To improve users abilities to self-help and self-manage within an instance the
 Aristotle Metadata Registry includes a help API that allows system administrators,
 and extension and download developers to write help files that are searchable by
 users.
