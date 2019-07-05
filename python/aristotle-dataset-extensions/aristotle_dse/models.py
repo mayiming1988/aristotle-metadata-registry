@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-from typing import List, Tuple
+from typing import List, Tuple, Set
 from collections import defaultdict
 
 from django.db import models
@@ -197,7 +197,6 @@ class DistributionDataElementPath(aristotle.models.aristotleComponent):
     class Meta:
         ordering = ['order']
 
-
     distribution = models.ForeignKey(
         Distribution,
         blank=True, null=True,
@@ -347,35 +346,42 @@ class DataSetSpecification(aristotle.models.concept):
 
         return clusters
 
-    def get_cluster_tree(self):
-        # Build dict mapping parent id's to child id's
-        cluster_dict = defaultdict(list)
-        # Buid set of ids
+    def _fetch_de_relations(self, dss_ids: List[int]) -> List[Tuple[int, int]]:
+        """Helper used to fetch all data element relations for a set of dss's"""
+        values = DSSDEInclusion.objects.filter(
+            dss__in=dss_ids,
+        ).values_list('dss_id', 'data_element_id')
+
+        return list(values)
+
+    def _get_unique_ids(self, relations: List[Tuple[int, int]]) -> Set[int]:
         unique_ids = set()
-        for pair in self.get_all_clusters():
-            cluster_dict[pair[0]].append(pair[1])
+
+        for pair in relations:
             unique_ids.add(pair[0])
             unique_ids.add(pair[1])
 
-        # Lookup all dss's
-        objects = type(self).objects.in_bulk(unique_ids)
+        return unique_ids
+
+    def get_cluster_tree(self):
+        cluster_relations = self.get_all_clusters()
+        # Set of dss ids
+        dss_ids = self._get_unique_ids(cluster_relations)
+        # Get de relations
+        de_relations = self._fetch_de_relations(dss_ids)
+        # Get set if de ids
+        de_ids = self._get_unique_ids(de_relations)
+
+        # Lookup all objects
+        objects = type(self).objects.in_bulk(dss_ids)
+        objects.update(aristotle.models.DataElement.objects.in_bulk(de_ids))
+
+        all_relations = cluster_relations + de_relations
 
         root = Node(data=self)
         tree = Tree(root)
-        node_stack = [root]
 
-        # TODO depth limit this aswell
-        while node_stack:
-            # Pop node off stack
-            next_node = node_stack.pop()
-            # Add to tree if not root
-            if next_node != root:
-                tree.add_node(next_node)
-            # Create child nodes and add to stack
-            for child_id in cluster_dict[next_node.data.id]:
-                node_stack.append(
-                    Node(next_node, objects.get(child_id, None))
-                )
+        tree.add_bulk_relations(root, all_relations, objects)
 
         return tree
 

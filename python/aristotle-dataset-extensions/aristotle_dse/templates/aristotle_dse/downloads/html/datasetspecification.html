@@ -7,6 +7,9 @@
         <dt>
             <header>Metadata items in this Data Set Specification</header>
         </dt>
+        <dd class="tree">
+          <ul>{{ item.get_cluster_tree.string_list|unordered_list }}</ul>
+        </dd>
         <dd class="dss_inclusions">
             {% include "aristotle_dse/downloads/html/helpers/inclusions.html" with item=item %}
         </dd>

@@ -29,3 +29,10 @@ class TestTree(TestCase):
     def test_string(self):
         s = str(self.tree)
         self.assertEqual(s, '- 1\n - 11\n  - 111\n - 12\n')
+
+    def test_string_list(self):
+        s = self.tree.string_list
+        self.assertCountEqual(
+            s,
+            ['1', ['11', ['111'], '12']]
+        )
