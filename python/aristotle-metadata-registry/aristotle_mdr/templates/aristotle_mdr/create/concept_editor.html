@@ -137,11 +137,8 @@
             {% endfor %}
             {% if additional_records_active %}
                 {% if recordrelation_FormSet %}
-
                     {% with formset=recordrelation_FormSet %}
-
                         {{ formset.management_form }}
-
                         <table class="form table table-hover">
                             <thead>
                             <tr>
@@ -371,5 +368,4 @@
         </div>
     </div>
 </div>
-
 <div v-pre>{% bootstrap_modal "context_help" size='lg' %}</div>
