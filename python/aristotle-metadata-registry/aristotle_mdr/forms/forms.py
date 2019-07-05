@@ -365,8 +365,6 @@ class ShareLinkForm(forms.Form):
 
 class ReportingToolForm(forms.Form):
 
-    registration_authorities_choices = MDR.RegistrationAuthority.objects.values_list('pk', 'name').order_by('name')
-
     ra = forms.ModelChoiceField(
         queryset=MDR.RegistrationAuthority.objects.all(),
         label="Registration Authority",
