@@ -92,9 +92,6 @@ class AristotleMetadataToolView(FormMixin, ListView):
     def get_success_url(self):
         return reverse("aristotle:reportingTool")
 
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         current_data_elements = context['object_list']
