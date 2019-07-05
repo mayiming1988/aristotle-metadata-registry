@@ -338,7 +338,6 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
 
                 item.save()
 
-
             return HttpResponseRedirect(url_slugify_concept(item))
 
     def clone_components(self, clone):
