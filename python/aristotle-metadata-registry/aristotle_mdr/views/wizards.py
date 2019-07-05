@@ -265,7 +265,7 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             if not formsets_invalid:
                 final_formsets = []
                 for info in extra_formsets:
-                    if info['type'] != 'slot':
+                    if info['saveargs'] is not None:
                         info['saveargs']['item'] = saved_item
                     else:
                         info['formset'].instance = saved_item

@@ -73,6 +73,8 @@ class RelationCreationWizard(ConceptWizardPage, TestCase):
         }
         step_2_data.update(self.get_formset_postdata([], 'slots'))
 
+        step_2_data.update(self.get_formset_postdata([], 'org_records'))
+
         role_formset_data = [
             {'name': 'parent', 'definition': 'ok', 'multiplicity': 1, 'ORDER': 0},
             {'name': 'child', 'definition': 'good', 'multiplicity': 1, 'ORDER': 1}
