@@ -11,7 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
 from haystack import connections
-from haystack.constants import DEFAULT_ALIAS
+from haystack.constants import DEFAULT_ALIAS, DJANGO_ID
 from haystack.forms import FacetedSearchForm, model_choices
 from haystack.query import EmptySearchQuerySet, SearchQuerySet, SQ
 from haystack.inputs import AutoQuery
@@ -346,7 +346,9 @@ class TokenSearchForm(FacetedSearchForm):
                 )
             else:
                 sqs = self.searchqueryset.filter(
-                    SQ(text=AutoQuery(self.query_text)) | SQ(name=AutoQuery(self.query_text))
+                    SQ(text=AutoQuery(self.query_text)) |
+                    SQ(name=AutoQuery(self.query_text)) |
+                    SQ(**{DJANGO_ID: self.query_text})
                 )
 
         else:

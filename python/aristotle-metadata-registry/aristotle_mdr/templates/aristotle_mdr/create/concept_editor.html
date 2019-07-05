@@ -185,7 +185,7 @@
                                 <th>{% trans 'Delete' %}</th>
                             </tr>
                             </thead>
-                            <tbody id="org_records" class="draggableTable">
+                            <tbody id="metadatareferencelink_set" class="draggableTable">
                             {% for recordform in formset.forms %}
                                 <tr class="movablerow">
                                     <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
@@ -203,7 +203,7 @@
                             {% endfor %}
                             </tbody>
                         </table>
-                        <a class="btn btn-primary add_code_button" formid="org_records">
+                        <a class="btn btn-primary add_code_button" formid="metadatareferencelink_set">
                             <i class="fa fa-plus-circle"></i> Add a record</a>
                     {% endwith %}
                 {% endif %}

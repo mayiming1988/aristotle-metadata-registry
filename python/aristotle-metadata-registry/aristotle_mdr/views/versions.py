@@ -421,56 +421,49 @@ class ConceptVersionView(VersionsMixin, TemplateView):
 class ConceptVersionCompareBase(VersionsMixin, TemplateView):
     template_name = 'aristotle_mdr/compare/compare.html'
     context: dict = {}
-    hidden_diff_fields = ['modified', 'created', 'uuid']
+    hidden_diff_fields = ['modified', 'created', 'uuid', 'serialized_model', 'parent_dss']
 
-    def handle_compare_failure(self):
-        self.context['cannot_compare'] = True
-        return self.context
+    differ = diff_match_patch.diff_match_patch()
+    raw = False
 
-    def get_differing_fields(self, earlier_dict, later_dict):
-        # Iterate across the two and find the differing fields
-        pass
+    def both_fields_empty(self, earlier_value, later_value):
+        if not earlier_value and not later_value:
+            return True
+        return False
 
-    def generate_diff(self, earlier_dict, later_dict, raw=False):
+    def generate_diff(self, earlier_dict, later_dict):
         """
         Returns a dictionary containing a list of tuples with the differences per field.
         The first element of the tuple specifies if it is an insertion (1), a deletion (-1), or an equality (0).
-
         Example:
         {field: [(0, hello), (1, world)]}
-
         """
-
-        DiffMatchPatch = diff_match_patch.diff_match_patch()
         field_to_diff = {}
 
-        field_names = [f.name for f in self.model._meta.get_fields()] + [
-            'customvalue_set', 'slots', 'identifiers', 'org_records',
-        ]
+        # Only get the shared field names
+        field_names = list(set(earlier_dict.keys()).intersection(set(later_dict.keys())))
 
         for field in earlier_dict:
-            # Iterate through all fields in the JSON
+            # Iterate through all fields in the dictionary
             show_field = field not in self.hidden_diff_fields and field in field_names
             if show_field:
                 # Don't show fields like modified, which are set by the database
                 earlier_value = earlier_dict[field]
                 later_value = later_dict[field]
 
-                if earlier_value != later_value:
-                    # No point doing diffs if there is no difference
+                if not self.both_fields_empty(earlier_value, later_value):
                     if isinstance(earlier_value, str) or isinstance(earlier_value, int):
                         # No special treatment required for strings and int
                         earlier = str(earlier_value)
                         later = str(later_value)
 
-                        if not raw:
+                        if not self.raw:
                             # Strip tags if it's not raw
                             earlier = strip_tags(earlier)
                             later = strip_tags(later)
 
-                        # Do the diff
-                        diff = DiffMatchPatch.diff_main(earlier, later)
-                        DiffMatchPatch.diff_cleanupSemantic(diff)
+                        diff = self.differ.diff_main(earlier, later)
+                        self.differ.diff_cleanupSemantic(diff)
 
                         is_html_field = self.is_field_html(field, self.model)
 
@@ -486,21 +479,21 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
                             'user_friendly_name': self.get_user_friendly_field_name(field, self.model),
                             'subitem': True,
                             'diffs': self.build_diff_of_subitem_dict(earlier_value, later_value,
-                                                                     subitem_model, raw=raw)
+                                                                     subitem_model)
                         }
                     elif isinstance(earlier_value, list):
                         # It's a list of subitems
                         subitem_model = self.get_model_from_foreign_key_field(self.model, field)
+
                         field_to_diff[field] = {
                             'user_friendly_name': self.get_user_friendly_field_name(field, self.model),
                             'subitem': True,
-                            'diffs': self.build_diff_of_subitems(earlier_value, later_value, subitem_model, raw=raw)}
+                            'diffs': self.build_diff_of_subitems(earlier_value, later_value, subitem_model)}
 
         return field_to_diff
 
-    def generate_diff_for_added_removed_fields(self, ids, values, subitem_model, added=True, raw=False):
+    def generate_diff_for_added_removed_fields(self, ids, values, subitem_model, added=True):
         """ Generates the diff for fields that have been added/removed from a concept comparision"""
-
         differences = []
 
         for id in ids:
@@ -511,7 +504,7 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
                 if field == 'id':
                     pass
                 else:
-                    if not raw:
+                    if not self.raw:
                         value = strip_tags(str(value))
                     # Because DiffMatchPatch returns a list of tuples of diffs
                     # for consistent display we also return a list of tuples of diffs
@@ -533,9 +526,8 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
             differences.append(difference_dict)
         return differences
 
-    def build_diff_of_subitem_dict(self, earlier_item, later_item, subitem_model, raw=False) -> List[Dict]:
+    def build_diff_of_subitem_dict(self, earlier_item, later_item, subitem_model) -> List[Dict]:
         differences = []
-        DiffMatchPatch = diff_match_patch.diff_match_patch()
         difference_dict = {}
 
         for field, earlier_value in earlier_item.items():
@@ -543,7 +535,7 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
                 pass
             else:
                 later_value = later_item[field]
-                if not raw:
+                if not self.raw:
                     earlier_value = strip_tags(str(earlier_value))
                     later_value = strip_tags(str(later_value))
 
@@ -554,8 +546,8 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
                 if later_value is None:
                     later_value = 'None'
 
-                diff = DiffMatchPatch.diff_main(earlier_value, later_value)
-                DiffMatchPatch.diff_cleanupSemantic(diff)
+                diff = self.differ.diff_main(earlier_value, later_value)
+                self.differ.diff_cleanupSemantic(diff)
 
                 difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model), 'diff': diff}
 
@@ -565,7 +557,7 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
     def get_subitem_key(self, subitem_model):
         return 'id'
 
-    def build_diff_of_subitems(self, earlier_values, later_values, subitem_model, raw=False) -> List[Dict]:
+    def build_diff_of_subitems(self, earlier_values, later_values, subitem_model) -> List[Dict]:
         """
         Given a list of dictionaries containing representations of objects, iterates through and returns a list of
         difference dictionaries per field
@@ -573,9 +565,6 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
             [{'field': [(0, hello), (1, world)], 'other_field': [(0, goodbye), (-1, world)]]
         """
         differences: list = []
-
-        # Blame Google for this unpythonic variable
-        DiffMatchPatch = diff_match_patch.diff_match_patch()
 
         both_empty = earlier_values == [] and later_values == []
         if not both_empty:
@@ -587,14 +576,14 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
             # Items that are in the later items but not the earlier items have been 'added'
             added_ids = set(later_items.keys()) - set(earlier_items.keys())
             added_items = self.generate_diff_for_added_removed_fields(added_ids, later_items,
-                                                                      subitem_model, added=True, raw=raw)
+                                                                      subitem_model, added=True)
             if added_items:
                 differences.extend(added_items)
 
             # Items that are in the earlier items but not the later items have been 'removed'
             removed_ids = set(earlier_items.keys()) - set(later_items.keys())
             removed_items = self.generate_diff_for_added_removed_fields(removed_ids, earlier_items,
-                                                                        subitem_model, added=False, raw=raw)
+                                                                        subitem_model, added=False)
             if removed_items:
                 differences.extend(removed_items)
 
@@ -616,12 +605,12 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
                         earlier_value = str(earlier_value)
                         later_value = str(later_value)
 
-                        if not raw:
+                        if not self.raw:
                             earlier_value = strip_tags(earlier_value)
                             later_value = strip_tags(later_value)
 
-                        diff = DiffMatchPatch.diff_main(earlier_value, later_value)
-                        DiffMatchPatch.diff_cleanupSemantic(diff)
+                        diff = self.differ.diff_main(earlier_value, later_value)
+                        self.differ.diff_cleanupSemantic(diff)
 
                         # Custom logic to determine if CustomValue field is HTML
                         is_html = False
@@ -726,10 +715,10 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
             self.request.user, later_json, later_concept
         )
 
-        raw = self.request.GET.get('raw')
-        if raw:
+        self.raw = self.request.GET.get('raw')
+        if self.raw:
             self.context['raw'] = True
-            self.context['diffs'] = self.generate_diff(earlier_json, later_json, raw=True)
+            self.context['diffs'] = self.generate_diff(earlier_json, later_json)
         else:
             self.context['diffs'] = self.generate_diff(earlier_json, later_json)
 

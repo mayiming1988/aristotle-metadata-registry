@@ -157,8 +157,6 @@
                         <hr>
                         <dt>{% trans 'Workgroup' %}</dt>
                         <dd><a href="{% url 'aristotle:workgroup' iid=item.workgroup.id %}">{{ item.workgroup.name }}</a></dd>
-                        <dt>{% trans 'History' %}</dt>
-                        <dd><a href="{% url 'aristotle:item_history' iid=item.id %}">{% trans "View history" %}</a></dd>
                         <dt>{% trans 'Discussions' %}</dt>
                         <dd>{% if discussions %}
                             <ul>
