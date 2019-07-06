@@ -77,11 +77,11 @@ class ConceptRelatedListView(SimpleItemGet, ListView):
         return context
 
 
-class AristotleMetadataToolView(ListView, FormMixin):
+class AristotleMetadataToolView:
     pass
 
 
-class DataElementsAndSubcomponentsStatusCheckTool(AristotleMetadataToolView):
+class DataElementsAndSubcomponentsStatusCheckTool(AristotleMetadataToolView, ListView, FormMixin):
     template_name = "aristotle_mdr/concepts/tools/dataelements_status_reporting_tool.html"
     form_class = ReportingToolForm
     paginate_by = 20
