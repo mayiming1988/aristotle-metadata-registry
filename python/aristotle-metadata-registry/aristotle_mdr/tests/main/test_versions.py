@@ -347,7 +347,6 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
     def version_comparator_handles_added_fields_on_model(self):
         pass
 
-    @skip("TODO: Fix this everywhere")
     def test_all_added_data_elements_appear_in_comparision_view(self):
         self.login_viewer()
 
