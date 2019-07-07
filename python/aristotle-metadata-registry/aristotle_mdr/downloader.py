@@ -277,9 +277,15 @@ class HTMLDownloader(Downloader):
 
         # Add tree if dss
         if isinstance(item, DataSetSpecification):
-            prelim = self.prelim.get(item.id, None)
-            if prelim:
-                context['tree'] = item.get_cluster_tree(**prelim)
+            kwargs = self.prelim.get(item.id, None)
+            if kwargs:
+                kwargs['objects'] = None
+                # Reuse sub objects if already avaliable (saves a query)
+                if sub_items:
+                    kwargs['objects'] = {i.id: i for i in sub_items['aristotle_dse.datasetspecification']['items']}
+                    kwargs['objects'].update({i.id: i for i in sub_items['aristotle_mdr.dataelement']['items']})
+
+                context['tree'] = item.get_cluster_tree(**kwargs)
 
         context.update({
             'title': item.name,
