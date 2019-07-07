@@ -257,22 +257,23 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
                     form.save_custom_fields(saved_item)
                     form.save_m2m()
 
+                    if 'results_postdata' in self.request.session:
+                        extra_formsets = self.get_extra_formsets(item=self.model,
+                                                                 postdata=self.request.session['results_postdata'])
+                        formsets_invalid = self.validate_formsets(extra_formsets)
+                        if not formsets_invalid:
+                            final_formsets = []
+                            for info in extra_formsets:
+                                if info['saveargs'] is not None:
+                                    info['saveargs']['item'] = saved_item
+                                else:
+                                    info['formset'].instance = saved_item
+                                final_formsets.append(info)
+
+                            self.save_formsets(final_formsets)
+                        self.request.session.pop('results_postdata')
+
                     saved_item.save()
-
-        if 'results_postdata' in self.request.session:
-            extra_formsets = self.get_extra_formsets(item=self.model, postdata=self.request.session['results_postdata'])
-            formsets_invalid = self.validate_formsets(extra_formsets)
-            if not formsets_invalid:
-                final_formsets = []
-                for info in extra_formsets:
-                    if info['saveargs'] is not None:
-                        info['saveargs']['item'] = saved_item
-                    else:
-                        info['formset'].instance = saved_item
-                    final_formsets.append(info)
-
-                self.save_formsets(final_formsets)
-            self.request.session.pop('results_postdata')
 
         return HttpResponseRedirect(url_slugify_concept(saved_item))
 
