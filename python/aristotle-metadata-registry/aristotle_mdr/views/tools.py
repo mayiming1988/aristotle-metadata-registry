@@ -1,4 +1,3 @@
-import logging
 from django.views.generic import (
     TemplateView, ListView,
 )
@@ -10,9 +9,6 @@ from aristotle_mdr.utils import is_active_extension
 from aristotle_mdr.forms.forms import ReportingToolForm
 from aristotle_mdr.models import RegistrationAuthority, ObjectClass, DataElementConcept, DataElement, Status, ValueDomain, Property
 from django.db.models import Q
-
-logger = logging.getLogger(__name__)
-logger.debug("Logging started for " + __name__)
 
 
 class ItemGraphView(SimpleItemGet, TemplateView):
@@ -38,13 +34,22 @@ class ConceptRelatedListView(SimpleItemGet, ListView):
     def get_current_relation(self):
         item = self.get_item(self.request.user).item
         if self.kwargs['relation'] in item.relational_attributes.keys():
+            # If the URL query arg is set, filter on the selected one
             return self.kwargs['relation']
         else:
+            # No URL query arg set, return the first one
+            if not item.relational_attributes.keys():
+                return None
             return list(item.relational_attributes.keys())[0]
 
     def get_queryset(self):
         item = self.get_item(self.request.user).item
-        queryset = item.relational_attributes[self.get_current_relation()]['qs']
+
+        filtering_relation = self.get_current_relation()
+        if not filtering_relation:
+            return []
+
+        queryset = item.relational_attributes[filtering_relation]['qs']
         queryset = queryset.visible(self.request.user)
 
         ordering = self.get_ordering()
@@ -72,7 +77,11 @@ class ConceptRelatedListView(SimpleItemGet, ListView):
         return context
 
 
-class AristotleMetadataToolView(FormMixin, ListView):
+class AristotleMetadataToolView:
+    pass
+
+
+class DataElementsAndSubcomponentsStatusCheckTool(AristotleMetadataToolView, ListView, FormMixin):
     template_name = "aristotle_mdr/concepts/tools/dataelements_status_reporting_tool.html"
     form_class = ReportingToolForm
     paginate_by = 20
@@ -93,10 +102,10 @@ class AristotleMetadataToolView(FormMixin, ListView):
         return reverse("aristotle:reportingTool")
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        current_data_elements = context['object_list']
-        registration_authority = context.get('ra', None)
-        status_to_lookup = context.get('status', None)
+        self.context = super().get_context_data(**kwargs)
+        current_data_elements = self.context['object_list']
+        registration_authority = self.context.get('ra', None)
+        status_to_lookup = self.context.get('status', None)
         ids_list = []
         for de in current_data_elements:
             ids_list.append(de.id)
@@ -114,12 +123,12 @@ class AristotleMetadataToolView(FormMixin, ListView):
             registrationAuthority=registration_authority
         ).values_list('concept_id', 'state'))
 
-        context.update({
+        self.context.update({
             'statuses_list': statuses,
             'status': status_to_lookup,
         })
 
-        return context
+        return self.context
 
     def form_valid(self, form):
 

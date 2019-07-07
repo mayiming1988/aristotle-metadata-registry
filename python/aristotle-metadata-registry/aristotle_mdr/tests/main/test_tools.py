@@ -9,7 +9,7 @@ from aristotle_mdr import models as MDR
 import datetime
 
 class AristotleReportingToolsPage(AristotleTestUtils, TestCase):
-    url_name = 'reportingTool'
+    url_name = 'data_element_components_tool'
 
     def setUp(self):
         super().setUp()
@@ -91,7 +91,7 @@ class AristotleReportingToolsPage(AristotleTestUtils, TestCase):
 
         response = self.client.get(
             reverse(
-                'aristotle:reportingTool') + '?ra=' + str(self.ra.id) + '&status=' + standard_status
+                'aristotle:data_element_components_tool') + '?ra=' + str(self.ra.id) + '&status=' + standard_status
         )
 
         self.assertEqual(response.context['object_list'].count(), 1)
@@ -115,7 +115,7 @@ class AristotleReportingToolsPage(AristotleTestUtils, TestCase):
 
         response = self.client.get(
             reverse(
-                'aristotle:reportingTool') + '?ra=' + str(self.ra.id) + '&status=' + incomplete_status
+                'aristotle:data_element_components_tool') + '?ra=' + str(self.ra.id) + '&status=' + incomplete_status
         )
 
         self.assertEqual(response.context['object_list'].count(), 0)
@@ -155,7 +155,7 @@ class AristotleReportingToolsPage(AristotleTestUtils, TestCase):
 
         response = self.client.get(
             reverse(
-                'aristotle:reportingTool') + '?ra=' + str(self.ra.id) + '&status=' + qualified_status
+                'aristotle:data_element_components_tool') + '?ra=' + str(self.ra.id) + '&status=' + qualified_status
         )
 
         self.assertEqual(response.context['object_list'].count(), 0)
@@ -192,7 +192,7 @@ class AristotleReportingToolsPage(AristotleTestUtils, TestCase):
 
         response = self.client.get(
             reverse(
-                'aristotle:reportingTool') + '?ra=' + str(another_ra.id) + '&status=' + prefered_status
+                'aristotle:data_element_components_tool') + '?ra=' + str(another_ra.id) + '&status=' + prefered_status
         )
         self.assertEqual(response.context['object_list'].count(), 1)
 

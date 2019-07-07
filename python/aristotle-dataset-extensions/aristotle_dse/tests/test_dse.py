@@ -315,6 +315,7 @@ class DistributionWizardPage(ConceptWizardPage, TestCase):
             'results-definition':"Test Definition",
         }
         step_2_data.update(self.get_formset_postdata([], 'slots'))
+        step_2_data.update(self.get_formset_postdata([], 'org_records'))
 
         ddep_formset_data = [
             {'data_element': self.de1.pk, 'logical_path': '/garbage/file', 'specialisation_classes': [self.oc1.pk, self.oc3.pk], 'ORDER': 0},
