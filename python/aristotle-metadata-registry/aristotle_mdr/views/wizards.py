@@ -298,9 +298,9 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             model = self.model
 
         q = PSQS().models(model).auto_query(
-            self.search_terms['definition'] + " " + self.search_terms['name']).apply_permission_checks(
-            user=self.request.user). filter(
-            statuses__in=[int(s) for s in [MDR.STATES.standard, MDR.STATES.preferred]])
+            self.search_terms['definition'] + " " + self.search_terms['name'])\
+            .apply_permission_checks(user=self.request.user)\
+            .filter(statuses__in=[int(s) for s in [MDR.STATES.standard, MDR.STATES.preferred]])
 
         similar = q
         self.similar_items = similar
