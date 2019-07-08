@@ -293,17 +293,21 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             return self.similar_items
         self.search_terms = self.get_cleaned_data_for_step('initial')
 
-        from aristotle_mdr.forms.search import get_permission_sqs as PSQS
+        from aristotle_mdr.forms.search import get_permission_sqs as PSQS, EmptyPermissionSearchQuerySet
         if model is None:
             model = self.model
 
-        q = PSQS().models(model).auto_query(
-            self.search_terms['definition'] + " " + self.search_terms['name'])\
+
+        query = self.search_terms['definition'] + " " + self.search_terms['name']
+        if query == " ":
+            return EmptyPermissionSearchQuerySet()
+
+        similar = PSQS().models(model).auto_query(query)\
             .apply_permission_checks(user=self.request.user)\
             .filter(statuses__in=[int(s) for s in [MDR.STATES.standard, MDR.STATES.preferred]])[:10]
 
-        similar = q
         self.similar_items = similar
+
         return self.similar_items
 
 
@@ -381,7 +385,6 @@ class MultiStepAristotleWizard(PermissionWizard):
         # If a user is getting more than 10 results they probably haven't named things properly
         # So instead holding everything up, lets return some of what we find and then give them an error message
         # on the wizard template.
-
         similar = PSQS().models(model).auto_query(name + " " + definition).apply_permission_checks(user=self.request.user)[:10]
         self.similar_items[model] = similar
         return similar

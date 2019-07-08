@@ -73,7 +73,6 @@ class ConceptWizardPage(HaystackReindexMixin, utils.AristotleTestUtils):
         # import haystack
         # haystack.connections.reload('default')
 
-
         # Tests against bug #333
         # https://github.com/aristotle-mdr/aristotle-metadata-registry/issues/333
         self.extra_wg = models.Workgroup.objects.create(name="Extra WG for issue 333", stewardship_organisation=self.steward_org_1)
@@ -303,11 +302,10 @@ class ConceptWizardPage(HaystackReindexMixin, utils.AristotleTestUtils):
         self.assertContains(response, self.item_existing.definition)
 
 
-class ObjectClassWizardPage(ConceptWizardPage,TestCase):
+class ObjectClassWizardPage(ConceptWizardPage, TestCase):
     model=models.ObjectClass
 
-
-class PropertyWizardPage(ConceptWizardPage,TestCase):
+class PropertyWizardPage(ConceptWizardPage, TestCase):
     model=models.Property
 
 
@@ -456,8 +454,12 @@ class ValueDomainWizardPage(ConceptWizardPage,TestCase):
 
 class DataElementConceptWizardPage(ConceptWizardPage, TestCase):
     model=models.DataElementConcept
+
+
+
 class DataElementWizardPage(ConceptWizardPage, TestCase):
     model=models.DataElement
+
 
 
 class DataElementDerivationWizardPage(ConceptWizardPage,TestCase):
