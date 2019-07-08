@@ -71,7 +71,6 @@ def create_item(request, app_label=None, model_name=None):
 
 
 class PermissionWizard(SessionWizardView):
-
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         if not user_is_editor(request.user):
@@ -299,10 +298,10 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             model = self.model
 
         q = PSQS().models(model).auto_query(
-            self.search_terms['definition'] + " " + self.search_terms['name']
-        ).filter(statuses__in=[int(s) for s in [MDR.STATES.standard, MDR.STATES.preferred]])
+            self.search_terms['definition'] + " " + self.search_terms['name']).apply_permission_checks(
+            user=self.request.user). filter(
+            statuses__in=[int(s) for s in [MDR.STATES.standard, MDR.STATES.preferred]])
 
-        # .filter(states="Standard")
         similar = q
         self.similar_items = similar
         return self.similar_items
@@ -382,6 +381,7 @@ class MultiStepAristotleWizard(PermissionWizard):
         # If a user is getting more than 10 results they probably haven't named things properly
         # So instead holding everything up, lets return some of what we find and then give them an error message
         # on the wizard template.
+
         similar = PSQS().models(model).auto_query(name + " " + definition).apply_permission_checks(user=self.request.user)[:10]
         self.similar_items[model] = similar
         return similar

@@ -8,13 +8,10 @@ import aristotle_dse.models as DSE
 from aristotle_mdr.tests import utils
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
-from aristotle_mdr.contrib.custom_fields.types import type_choices
 from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
 
 import reversion
 from reversion.models import Version
-
-from unittest import skip
 
 
 class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
