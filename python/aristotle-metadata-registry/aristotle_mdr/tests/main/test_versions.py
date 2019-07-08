@@ -8,13 +8,10 @@ import aristotle_dse.models as DSE
 from aristotle_mdr.tests import utils
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
-from aristotle_mdr.contrib.custom_fields.types import type_choices
 from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
 
 import reversion
 from reversion.models import Version
-
-from unittest import skip
 
 
 class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
@@ -347,7 +344,6 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
     def version_comparator_handles_added_fields_on_model(self):
         pass
 
-    @skip("TODO: Fix this everywhere")
     def test_all_added_data_elements_appear_in_comparision_view(self):
         self.login_viewer()
 

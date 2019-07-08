@@ -541,12 +541,12 @@ def can_edit_label(label, user):
 
 @register.inclusion_tag('aristotle_mdr_help/helpers/field_icon.html', takes_context=True)
 def field_help_icon(context, item_or_model, field_name):
-    kls = item_or_model.__class__
+    klass = item_or_model.__class__
     return {
-        'app': kls._meta.app_label,
-        'model_name': kls._meta.model_name,
+        'app': klass._meta.app_label,
+        'model_name': klass._meta.model_name,
         'field_name': field_name,
-        'model_class': kls,
+        'model_class': klass,
     }
 
 
