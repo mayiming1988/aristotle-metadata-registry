@@ -73,7 +73,6 @@ class ConceptWizardPage(HaystackReindexMixin, utils.AristotleTestUtils):
         # import haystack
         # haystack.connections.reload('default')
 
-
         # Tests against bug #333
         # https://github.com/aristotle-mdr/aristotle-metadata-registry/issues/333
         self.extra_wg = models.Workgroup.objects.create(name="Extra WG for issue 333", stewardship_organisation=self.steward_org_1)
@@ -303,11 +302,10 @@ class ConceptWizardPage(HaystackReindexMixin, utils.AristotleTestUtils):
         self.assertContains(response, self.item_existing.definition)
 
 
-class ObjectClassWizardPage(ConceptWizardPage,TestCase):
+class ObjectClassWizardPage(ConceptWizardPage, TestCase):
     model=models.ObjectClass
 
-
-class PropertyWizardPage(ConceptWizardPage,TestCase):
+class PropertyWizardPage(ConceptWizardPage, TestCase):
     model=models.Property
 
 
@@ -347,6 +345,7 @@ class ConceptualDomainWizardPage(ConceptWizardPage, TestCase):
         ]
         step_2_data.update(self.get_formset_postdata(valuemeaning_formset_data, 'value_meaning', 0))
         step_2_data.update(self.get_formset_postdata([], 'slots'))
+        step_2_data.update(self.get_formset_postdata([], 'org_records'))
 
 
         response = self.client.post(self.wizard_url, step_2_data)
@@ -383,6 +382,7 @@ class ConceptualDomainWizardPage(ConceptWizardPage, TestCase):
         ]
         step_2_data.update(self.get_formset_postdata(valuemeaning_formset_data, 'value_meaning', 0))
         step_2_data.update(self.get_formset_postdata([], 'slots'))
+        step_2_data.update(self.get_formset_postdata([], 'org_records'))
 
         response = self.client.post(self.wizard_url, step_2_data)
         self.assertEqual(response.status_code, 200)
@@ -418,6 +418,8 @@ class ValueDomainWizardPage(ConceptWizardPage,TestCase):
         }
         step_2_data.update(self.get_formset_postdata([], 'slots'))
 
+        step_2_data.update(self.get_formset_postdata([], 'org_records'))
+
         permissible_formset_data = [
             {'value': 'Test1', 'meaning': 'Test1', 'start_date': '1999-01-01', 'end_date': '2090-01-01', 'ORDER': 0},
             {'value': 'Test2', 'meaning': 'Test2', 'start_date': '1999-01-01', 'end_date': '2090-01-01', 'ORDER': 1}
@@ -452,8 +454,12 @@ class ValueDomainWizardPage(ConceptWizardPage,TestCase):
 
 class DataElementConceptWizardPage(ConceptWizardPage, TestCase):
     model=models.DataElementConcept
+
+
+
 class DataElementWizardPage(ConceptWizardPage, TestCase):
     model=models.DataElement
+
 
 
 class DataElementDerivationWizardPage(ConceptWizardPage,TestCase):
@@ -486,6 +492,7 @@ class DataElementDerivationWizardPage(ConceptWizardPage,TestCase):
             'results-definition':"Test Definition",
         }
         step_2_data.update(self.get_formset_postdata([], 'slots'))
+        step_2_data.update(self.get_formset_postdata([], 'org_records'))
 
         inputs_formset_data = [
             {'data_element': self.de3.pk, 'ORDER': 0},

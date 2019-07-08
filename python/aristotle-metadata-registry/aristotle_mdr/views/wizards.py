@@ -1,8 +1,3 @@
-from aristotle_mdr import models as MDR
-from aristotle_mdr import forms as MDRForms
-from aristotle_mdr.perms import user_is_editor
-from aristotle_mdr.utils import url_slugify_concept
-
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist, PermissionDenied
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -15,6 +10,10 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django.db import transaction
 
+from aristotle_mdr import models as MDR
+from aristotle_mdr import forms as MDRForms
+from aristotle_mdr.perms import user_is_editor
+from aristotle_mdr.utils import url_slugify_concept
 from aristotle_mdr.contrib.custom_fields.models import CustomField
 from aristotle_mdr.contrib.help.models import ConceptHelp
 from aristotle_mdr.contrib.slots.models import Slot
@@ -53,17 +52,17 @@ def create_item(request, app_label=None, model_name=None):
     if app_label is None:
         models = ContentType.objects.filter(app_label__in=fetch_metadata_apps()).filter(model=model_name)
         if models.count() == 0:
-            raise Http404  # TODO: Throw better, more descriptive error
+            raise Http404
         elif models.count() == 1:
             mod = models.first().model_class()
-        else:  # models.count() > 1:
-            # TODO: make this template
+        else:
+            # Models count is greater than one
             return render(request, "aristotle_mdr/ambiguous_create_request.html", {'models': models})
     else:
         try:
             mod = ContentType.objects.filter(app_label__in=fetch_metadata_apps()).get(app_label=app_label, model=model_name).model_class()
         except ObjectDoesNotExist:
-            raise Http404  # TODO: Throw better, more descriptive error
+            raise Http404
 
     class DynamicAristotleWizard(ConceptWizard):
         model = mod
@@ -71,7 +70,6 @@ def create_item(request, app_label=None, model_name=None):
 
 
 class PermissionWizard(SessionWizardView):
-
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         if not user_is_editor(request.user):
@@ -102,7 +100,9 @@ class PermissionWizard(SessionWizardView):
 
 
 class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
+    """ Concept Wizard is the simple two stage (search, create) Wizard for all types of metadata """
     widgets: dict = {}
+
     templates = {
         "initial": "aristotle_mdr/create/concept_wizard_1_search.html",
         "results": "aristotle_mdr/create/concept_wizard_2_results.html",
@@ -112,6 +112,8 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
         ("initial", MDRForms.wizards.Concept_1_Search),
         ("results", MDRForms.wizards.Concept_2_Results),
     ]
+
+    additional_records_active = True
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -149,6 +151,21 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
                 'type': 'slot',
                 'saveargs': None
             })
+
+        recordrelation_formset = self.get_recordrelations_formset()(
+            data=postdata
+        )
+        # Override the queryset to restrict to the records the user has permission to view
+        for record_relation_form in recordrelation_formset:
+            record_relation_form.fields['organization_record'].queryset = MDR.OrganizationRecord.objects.visible(
+                self.request.user).order_by('name')
+
+        extra_formsets.append({
+            'formset': recordrelation_formset,
+            'title': 'Record Relation',
+            'type': 'record_relation',
+            'saveargs': None
+        })
 
         return extra_formsets
 
@@ -190,6 +207,7 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
                         'template_name': self.template_name,
                         'help_guide': self.help_guide(),
                         'current_step': self.steps.current,
+                        'additional_records_active': self.additional_records_active
                         })
 
         if cloud_enabled():
@@ -238,22 +256,23 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
                     form.save_custom_fields(saved_item)
                     form.save_m2m()
 
+                    if 'results_postdata' in self.request.session:
+                        extra_formsets = self.get_extra_formsets(item=self.model,
+                                                                 postdata=self.request.session['results_postdata'])
+                        formsets_invalid = self.validate_formsets(extra_formsets)
+                        if not formsets_invalid:
+                            final_formsets = []
+                            for info in extra_formsets:
+                                if info['saveargs'] is not None:
+                                    info['saveargs']['item'] = saved_item
+                                else:
+                                    info['formset'].instance = saved_item
+                                final_formsets.append(info)
+
+                            self.save_formsets(final_formsets)
+                        self.request.session.pop('results_postdata')
+
                     saved_item.save()
-
-        if 'results_postdata' in self.request.session:
-            extra_formsets = self.get_extra_formsets(item=self.model, postdata=self.request.session['results_postdata'])
-            formsets_invalid = self.validate_formsets(extra_formsets)
-            if not formsets_invalid:
-                final_formsets = []
-                for info in extra_formsets:
-                    if info['type'] != 'slot':
-                        info['saveargs']['item'] = saved_item
-                    else:
-                        info['formset'].instance = saved_item
-                    final_formsets.append(info)
-
-                self.save_formsets(final_formsets)
-            self.request.session.pop('results_postdata')
 
         return HttpResponseRedirect(url_slugify_concept(saved_item))
 
@@ -266,25 +285,28 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
         self.duplicate_items = self.model.objects.filter(name__iexact=name).public().all()
         return self.duplicate_items
 
-    """
-        Looks for items of a given item type with the given search terms
-    """
     def find_similar(self, model=None):
+        """Looks for items of a given item type with the given search terms"""
+        from aristotle_mdr.forms.search import get_permission_sqs as PSQS, EmptyPermissionSearchQuerySet
+
         if hasattr(self, 'similar_items'):
             return self.similar_items
+
         self.search_terms = self.get_cleaned_data_for_step('initial')
 
-        from aristotle_mdr.forms.search import get_permission_sqs as PSQS
         if model is None:
             model = self.model
 
-        q = PSQS().models(model).auto_query(
-            self.search_terms['definition'] + " " + self.search_terms['name']
-        ).filter(statuses__in=[int(s) for s in [MDR.STATES.standard, MDR.STATES.preferred]])
+        query = self.search_terms['definition'] + " " + self.search_terms['name']
+        if query == " ":
+            return EmptyPermissionSearchQuerySet()
 
-        # .filter(states="Standard")
-        similar = q
+        similar = PSQS().models(model).auto_query(query)\
+            .apply_permission_checks(user=self.request.user)\
+            .filter(statuses__in=[int(s) for s in [MDR.STATES.standard, MDR.STATES.preferred]])[:10]
+
         self.similar_items = similar
+
         return self.similar_items
 
 
@@ -360,8 +382,6 @@ class MultiStepAristotleWizard(PermissionWizard):
 
         # Limit results to 10, as more than this tends to slow down everything.
         # If a user is getting more than 10 results they probably haven't named things properly
-        # So instead holding everything up, lets return some of what we find and then give them an error message
-        # on the wizard template.
         similar = PSQS().models(model).auto_query(name + " " + definition).apply_permission_checks(user=self.request.user)[:10]
         self.similar_items[model] = similar
         return similar
@@ -467,8 +487,10 @@ class DataElementConceptWizard(MultiStepAristotleWizard):
     def get_data_element_concept(self):
         if hasattr(self, '_data_element_concept'):
             return self._data_element_concept
+
         oc = self.get_object_class()
         pr = self.get_property()
+
         if oc and pr:
             self._data_element_concept = MDR.DataElementConcept.objects.filter(objectClass=oc, property=pr).visible(self.request.user).order_by('-created')[:10]
             return self._data_element_concept
@@ -622,7 +644,7 @@ def has_valid_data_elements_from_components(wizard):
 class DataElementWizard(MultiStepAristotleWizard):
     __doc__ = _(
         "This wizard steps a user through creating a Data Element, "
-        "by reusing or creatng all the components of the Data Element, "
+        "by reusing or creating all the components of the Data Element, "
         "the Value Domain and the Data Element Concept, which is broken down "
         "further as an Object Class and Property."
     )
@@ -813,6 +835,7 @@ class DataElementWizard(MultiStepAristotleWizard):
             },
             }.get(self.steps.current, {}))
 
+        # Order of the steps make oc make p
         if self.steps.current == 'component_results':
             ocp = self.get_cleaned_data_for_step('component_search')
             context.update({
@@ -823,6 +846,19 @@ class DataElementWizard(MultiStepAristotleWizard):
                 'vd_name': ocp.get('vd_name', ""),
                 'vd_definition': ocp.get('vd_desc', "")
             })
+
+        if self.steps.current == "make_oc":
+            context.update({
+                'model_name': MDR.ObjectClass._meta.verbose_name,
+                'model_class': MDR.ObjectClass,
+                })
+
+        if self.steps.current == "make_p":
+            context.update({
+                'model_name': MDR.Property._meta.verbose_name,
+                'model_class': MDR.Property
+            })
+
         if self.steps.current == 'make_vd':
             context.update({
                 'model_name': MDR.ValueDomain._meta.verbose_name,

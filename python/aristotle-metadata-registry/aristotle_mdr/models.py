@@ -758,7 +758,7 @@ class _concept(baseAristotleObject):
     # enabled
     backwards_compatible_fields: List[str] = []
     registerable = True
-    relational_attributes: Dict[str, Dict]
+    relational_attributes: Dict[str, Dict] = {}
     # Used by concept manager with_related in a select_related
     related_objects: List[str] = []
     # Fields to build the name from

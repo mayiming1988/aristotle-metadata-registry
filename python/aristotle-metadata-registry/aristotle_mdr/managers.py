@@ -431,18 +431,17 @@ class StatusQuerySet(models.QuerySet):
         """
         Returns a queryset that returns the most up to date statuses
 
-
         It is **chainable** with other querysets.
         """
         if hasattr(when, 'date'):
             when = when.date()
 
         states = self.valid_at_date(when)
-        states = states.order_by("registrationAuthority", "-registrationDate", "-created")
+        states = states.order_by("registrationAuthority", "concept_id", "-registrationDate", "-created", )
 
         from django.db import connection
         if connection.vendor == 'postgresql':
-            states = states.distinct('registrationAuthority')
+            states = states.distinct('registrationAuthority', 'concept_id')
         else:
             current_ids = []
             seen_ras = []

@@ -49,6 +49,14 @@ class baseAristotleObject(TimeStampedModel):
         # Can't be abstract as we need unique app wide IDs.
         abstract = True
 
+    @property
+    def aristotle_id(self):
+        """
+        Id that can be displayed through infobox and graphql
+        This is a property to allow for easy splitting of display id and internal id
+        """
+        return self.pk
+
     def was_modified_very_recently(self):
         return self.modified >= (
             timezone.now() - datetime.timedelta(seconds=VERY_RECENTLY_SECONDS)

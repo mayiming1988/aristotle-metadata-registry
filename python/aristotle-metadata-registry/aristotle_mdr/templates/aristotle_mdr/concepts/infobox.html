@@ -31,7 +31,7 @@
                     <dt>Identifiers</dt>
                     <dd>UUID - <span title='{{ item.uuid }}'>{{ item.uuid }}</span></dd>
                     {% if infobox_identifier_name %}
-                        <dd>{{ infobox_identifier_name }} - <span title="{{ item.pk }}">{{ item.pk }}</span></dd>
+                        <dd>{{ infobox_identifier_name }} - <span title="{{ item.aristotle_id }}">{{ item.aristotle_id }}</span></dd>
                     {% endif %}
                     {% for ident in item.identifiers.all %}
                         <dd><a href="{{ident.namespace.naming_authority.get_absolute_url}}">{{ ident.prefix }}</a>/{{ ident.identifier }}/{{ ident.version }}</dd>
@@ -157,8 +157,6 @@
                         <hr>
                         <dt>{% trans 'Workgroup' %}</dt>
                         <dd><a href="{% url 'aristotle:workgroup' iid=item.workgroup.id %}">{{ item.workgroup.name }}</a></dd>
-                        <dt>{% trans 'History' %}</dt>
-                        <dd><a href="{% url 'aristotle:item_history' iid=item.id %}">{% trans "View history" %}</a></dd>
                         <dt>{% trans 'Discussions' %}</dt>
                         <dd>{% if discussions %}
                             <ul>

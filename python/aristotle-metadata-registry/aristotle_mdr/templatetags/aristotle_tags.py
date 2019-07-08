@@ -25,6 +25,7 @@ from aristotle_mdr.utils import (
     fetch_metadata_apps,
     fetch_aristotle_downloaders
 )
+from aristotle_mdr.models import STATES
 
 register = template.Library()
 
@@ -540,12 +541,12 @@ def can_edit_label(label, user):
 
 @register.inclusion_tag('aristotle_mdr_help/helpers/field_icon.html', takes_context=True)
 def field_help_icon(context, item_or_model, field_name):
-    kls = item_or_model.__class__
+    klass = item_or_model.__class__
     return {
-        'app': kls._meta.app_label,
-        'model_name': kls._meta.model_name,
+        'app': klass._meta.app_label,
+        'model_name': klass._meta.model_name,
         'field_name': field_name,
-        'model_class': kls,
+        'model_class': klass,
     }
 
 
@@ -557,3 +558,45 @@ def render_difference(difference):
 @register.filter()
 def get_field(content_type, field_name):
     return content_type.model_class()._meta.get_field(field_name)
+
+
+@register.simple_tag
+def get_value_from_dict(dictionary, key):
+    """
+    Get the value corresponding to the key passed.
+    Can be used in the following way:
+    {% get_value_from_dict dict key %}
+    :param dictionary: Dictionary containing the desired key.
+    :param key: Lookup key.
+    :return: Value of the corresponding key in the dictionary, or "None" type if nothing is found in the dictionary.
+    """
+    return dictionary.get(key, None)
+
+
+@register.simple_tag
+def get_status_from_dict(dictionary, current_status, key, with_icon=True):
+    """
+    Get the Status of a particular item from a dictionary mapping.
+    :param dictionary: dictionary mapping that must contain key-value pairs
+    where the key must correspond to the concept_id, and the value must
+    correspond to the state id.
+    :param current_status: string that represents the numerical form of
+    the status object that belongs to the Data Element.
+    :param key: string that represents the concept id to be looked up.
+    :param with_icon: boolean value to add a Fontawesome icon.
+    :return: HTML with the name of the corresponding status state.
+    """
+    state_value = dictionary.get(key, None)
+    if state_value:
+        if with_icon:
+            if current_status == str(state_value):
+                element = '<em><spam style="display:inline-block">[%s]&nbsp;<span class="text-success"><i class="fa fa-check"></i></span></span></em>'
+            else:
+                element = '<em><span class="text-danger">[%s]&nbsp;<i class="fa fa-times"></i></span></em>'
+
+        else:
+            element = '<em>[%s]&nbsp;<span class="text-success"></span></em>'
+        return mark_safe(element % (STATES[state_value]))
+
+    else:
+        return ""
