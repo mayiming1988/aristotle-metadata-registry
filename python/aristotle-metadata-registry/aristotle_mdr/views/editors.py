@@ -1,6 +1,7 @@
 from django.http import HttpResponseRedirect
 from django.views.generic import UpdateView, FormView
 from django.views.generic.detail import SingleObjectMixin
+from django.db import transaction
 
 import reversion
 from reversion.models import Version
@@ -90,7 +91,7 @@ class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
 
     def get_custom_values(self):
         # If we are editing, must be able to see the content added to a custom value
-        return CustomValue.objects.get_for_item(self.item.concept)
+        return CustomValue.objects.get_item_allowed(self.item.concept, self.request.user)
 
     def get_initial(self):
         initial = super().get_initial()
@@ -127,7 +128,7 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
             extra_mixins=[CustomValueFormMixin]
         )
 
-    def get_extra_formsets(self, item=None, postdata=None):
+    def get_extra_formsets(self, item=None, postdata=None, clone_item=False):
         extra_formsets = super().get_extra_formsets(item, postdata)
 
         if self.slots_active:
@@ -214,11 +215,6 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         if form_invalid or formsets_invalid:
             return self.form_invalid(form, formsets=extra_formsets)
         else:
-            # The form and the formsets were valid
-            # This was removed from the revision below due to a bug with saving
-            # long slots, links are still saved due to reversion follows
-            self.save_formsets(extra_formsets)
-
             # Create the revision
             with reversion.revisions.create_revision():
                 if not change_comments:
@@ -230,8 +226,12 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
 
                 # Update the item
                 form.save_m2m()
-                item.save()
                 form.save_custom_fields(item)
+
+                # This is here while we investigate bugs with saving the extra formsets
+                self.save_formsets(extra_formsets)
+
+                item.save()
 
             # Versions are loaded with the most recent version first, so we get the one that was just created
             version = Version.objects.get_for_object(item).first()
@@ -293,6 +293,7 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
         })
         return kwargs
 
+    @transaction.atomic()
     def post(self, request, *args, **kwargs):
         form = self.get_form()
         extra_formsets = self.get_extra_formsets(self.model, request.POST)
@@ -311,6 +312,7 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
         if invalid:
             return self.form_invalid(form, formsets=extra_formsets)
         else:
+            item.save()
             with reversion.revisions.create_revision():
                 if not change_comments:
                     change_comments = construct_change_message_extra_formsets(request, form, extra_formsets)
@@ -319,22 +321,22 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
                 reversion.revisions.set_comment(change_comments)
 
                 # Save item
-                item.save()
                 form.save_custom_fields(item)
                 form.save_m2m()
+                # Copied from wizards.py - maybe refactor
+                final_formsets = []
+                for info in extra_formsets:
+                    if info['type'] != 'slot':
+                        info['saveargs']['item'] = item
+                    else:
+                        info['formset'].instance = item
+                    final_formsets.append(info)
 
-            # Copied from wizards.py - maybe refactor
-            final_formsets = []
-            for info in extra_formsets:
-                if info['type'] != 'slot':
-                    info['saveargs']['item'] = item
-                else:
-                    info['formset'].instance = item
-                final_formsets.append(info)
+                # This was removed from the revision below due to a bug with saving
+                # long slots, links are still saved due to reversion follows
+                self.save_formsets(final_formsets)
 
-            # This was removed from the revision below due to a bug with saving
-            # long slots, links are still saved due to reversion follows
-            self.save_formsets(final_formsets)
+                item.save()
 
             return HttpResponseRedirect(url_slugify_concept(item))
 

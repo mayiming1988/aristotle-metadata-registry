@@ -6,12 +6,8 @@ import aristotle_mdr.tests.utils as utils
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
 import logging
 logger = logging.getLogger(__name__)
-
-setup_aristotle_test_environment()
 
 
 class PostingAndCommentingAtObjectLevel(TestCase):

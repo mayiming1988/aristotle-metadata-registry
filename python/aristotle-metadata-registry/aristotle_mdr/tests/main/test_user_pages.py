@@ -10,11 +10,6 @@ from aristotle_bg_workers.tasks import send_sandbox_notification_emails
 from aristotle_mdr import models
 import datetime, json, os, ast
 
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-
-setup_aristotle_test_environment()
-
 
 class UserHomePages(utils.AristotleTestUtils, TestCase):
     def setUp(self):
@@ -579,6 +574,9 @@ class UserDashRecentItems(utils.AristotleTestUtils, TestCase):
             'results-workgroup': self.wg1.pk
         }
         step_2_data.update(self.get_formset_postdata([], 'slots'))
+        step_2_data.update(self.get_formset_postdata([], 'org_records'))
+
+
         response = self.client.post(wizard_url, step_2_data)
         self.assertTrue(models._concept.objects.filter(name="Test Item").exists())
         self.assertEqual(models._concept.objects.filter(name="Test Item").count(), 1)

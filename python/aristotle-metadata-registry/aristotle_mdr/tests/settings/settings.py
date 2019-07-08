@@ -1,9 +1,9 @@
-import os
 import sys
 import tempfile
-from enum import Enum
 import dj_database_url
 from aristotle_mdr.required_settings import *
+import os
+
 
 BASE = os.path.join(os.path.dirname(os.path.dirname(__file__)),'..')
 
@@ -91,6 +91,7 @@ INSTALLED_APPS = (
     'aristotle_mdr.contrib.links',
     'templatetags',
     'extension_test',
+    'aristotle_dse'
 ) + INSTALLED_APPS
 
 

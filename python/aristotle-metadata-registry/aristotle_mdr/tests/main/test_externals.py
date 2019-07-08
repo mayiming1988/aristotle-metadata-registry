@@ -7,10 +7,6 @@ import aristotle_mdr.tests.utils as utils
 
 import datetime
 
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-
-setup_aristotle_test_environment()
 
 
 """

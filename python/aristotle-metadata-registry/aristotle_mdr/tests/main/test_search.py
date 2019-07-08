@@ -9,7 +9,6 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from reversion import revisions as reversion
-from aristotle_mdr.utils import setup_aristotle_test_environment
 
 import datetime
 from django.utils import timezone
@@ -19,8 +18,6 @@ import random
 
 import unittest
 
-
-setup_aristotle_test_environment()
 
 @tag('search')
 class TestSearch(utils.AristotleTestUtils, TestCase):

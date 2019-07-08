@@ -4,118 +4,117 @@
 {% load bootstrap3 %}
 
 {% block racontent %}
-<form method="get">
-    <div class="h4">Data dictionary</div>
-    <div class="alert-danger">
-        {{ filter.form.errors }}
-    </div>
-    {% if not_all_selected %}
-    <p>
-        Data dictionary for {{item.stewardship_organisation.name}}/{{ item.name }} (Registration Authority).
-    </p>
-    {% else %}
-    <p>
-        Data dictionary for {{item.stewardship_organisation.name}}/{{ item.name }} (Registration Authority)
-        showing concepts registered as {{status|search_state_to_text }} on
-        <time datetime="{{ date|isotime }}"></time>
-        .
-    </p>
-    {% endif %}
-    <div class="well">
-        <div class="h5 text-center">Select a different date or registration status. You can also jump to metadata
-            starting with a certain letter.
+    <form method="get">
+        <div class="h4">Data dictionary</div>
+        <div class="alert-danger">
+            {{ filter.form.errors }}
         </div>
-        <div class="row text-center">
-            <div class="form-group col-sm-5 col-md-5">
-                {{ filter.form.registration_date }}
+        {% if not_all_selected %}
+            <p>
+                Data dictionary for {{item.stewardship_organisation.name}}/{{ item.name }} (Registration Authority).
+            </p>
+        {% else %}
+            <p>
+                Data dictionary for {{item.stewardship_organisation.name}}/{{ item.name }} (Registration Authority)
+                showing concepts registered as {{status|search_state_to_text }} on
+                <time datetime="{{ date|isotime }}"></time>.
+            </p>
+        {% endif %}
+        <div class="well">
+            <div class="h5 text-center">Select a different date or registration status. You can also jump to metadata
+                starting with a certain letter.
             </div>
-            <div class="form-group col-sm-5 col-md-5">
-                {{ filter.form.status }}
+            <div class="row text-center">
+                <div class="form-group col-sm-5 col-md-5">
+                    {{ filter.form.registration_date }}
+                </div>
+                <div class="form-group col-sm-5 col-md-5">
+                    {{ filter.form.status }}
+                </div>
+                <div class="form-group col-sm-2 col-md-2">
+                    {{ filter.form.letter }}
+                </div>
             </div>
-            <div class="form-group col-sm-2 col-md-2">
-                {{ filter.form.letter }}
+            <div class="row text-center">
+                <button type="submit" class="btn btn-primary">Filter</button>
             </div>
         </div>
-        <div class="row text-center">
-            <button type="submit" class="btn btn-primary">Filter</button>
-        </div>
-    </div>
-    </div>
 
-    {% if not_all_selected %}
-    <div class="well">
-        <div class="h5 text-center">Please select both filters.</div>
-    </div>
-    {% else %}
+        {% if not_all_selected %}
+            <div class="well">
+                <div class="h5 text-center">Please select both filters.</div>
+            </div>
+        {% else %}
 
-    {% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
+            {% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
 
-    {% if object_list %}
-    <table class="table table-striped">
-        <caption>Concepts
-            <div class="btn-group pull-right">
-                <button id="metadata_action_menu_download" accesskey="d" class="btn btn-default dropdown-toggle"
-                        data-toggle="dropdown">
-                    <i class="fa fa-download"></i> Download <span class="caret"></span>
-                </button>
-                {% downloadMenu item %}
-                <ul class="dropdown-menu dropdown-menu-right" role="menu">
-                    {% for dl in downloaders %}
-                    <li><a href="{{ dl.url }}">
-                        Download as {{dl.label}}
-                    </a></li>
-                    {% empty %}
-                    <li><a><em>No downloads for this item</em></a></li>
+            {% if object_list %}
+                <table class="table table-striped">
+                    <caption>Concepts
+                        <div class="btn-group pull-right">
+                            <button id="metadata_action_menu_download" accesskey="d" class="btn btn-default dropdown-toggle"
+                                    data-toggle="dropdown">
+                                <i class="fa fa-download"></i> Download <span class="caret"></span>
+                            </button>
+                            {% downloadMenu item %}
+                            <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                                {% for dl in downloaders %}
+                                    <li><a href="{{ dl.url }}">
+                                        Download as {{dl.label}}
+                                    </a></li>
+                                {% empty %}
+                                    <li><a><em>No downloads for this item</em></a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </caption>
+
+                    <tbody>
+                    <tr>
+                        <th scope="col">
+                            Name
+                        </th>
+                        <th>
+                            {{ filter.form.concept_type }}
+                        </th>
+                        <th scope="col">
+                            Definition
+                        </th>
+                        <th scope="col">
+                            Registered from
+                        </th>
+                        <th scope="col">
+                            Registered until
+                        </th>
+                    </tr>
+
+                    {% for concept, status in concepts.items %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'aristotle:item' concept.id %}">{{ concept.name }}</a>
+                            </td>
+                            <td>
+                                {{ concept.item.get_verbose_name }}
+                            </td>
+                            <td>
+                                {{ concept.short_definition | safe }}
+                            </td>
+                            <td>
+                                {{ status.registrationDate }}
+                            </td>
+                            <td>
+                                {{ status.until_date|default_if_none:"--" }}
+                            </td>
+                        </tr>
                     {% endfor %}
-                </ul>
-            </div>
-        </caption>
-
-        <tbody>
-        <tr>
-            <th scope="col">
-                Name
-            </th>
-            <th>
-                {{ filter.form.concept_type }}
-            </th>
-            <th scope="col">
-                Definition
-            </th>
-            <th scope="col">
-                Registered from
-            </th>
-            <th scope="col">
-                Registered until
-            </th>
-        </tr>
-</form>
-{% for concept, status in concepts.items %}
-<tr>
-    <td>
-        <a href="{% url 'aristotle:item' concept.id %}">{{ concept.name }}</a>
-    </td>
-    <td>
-        {{ concept.item.get_verbose_name }}
-    </td>
-    <td>
-        {{ concept.short_definition }}
-    </td>
-    <td>
-        {{ status.registrationDate }}
-    </td>
-    <td>
-        {{ status.until_date|default_if_none:"--" }}
-    </td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
-{% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
-{% else %}
-<div class="well">
-    <div class="h5 text-center">There were no concepts with your chosen filters.</div>
-</div>
-{% endif %}
-{% endif %}
+                    </tbody>
+                </table>
+                {% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
+            {% else %}
+                <div class="well">
+                    <div class="h5 text-center">There were no concepts with your chosen filters.</div>
+                </div>
+            {% endif %}
+        {% endif %}
+    </form>
 {% endblock %}

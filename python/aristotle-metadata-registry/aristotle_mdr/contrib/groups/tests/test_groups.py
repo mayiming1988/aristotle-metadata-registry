@@ -6,7 +6,6 @@ from aristotle_mdr.contrib.groups.base import (
     AbstractGroup
 )
 from aristotle_mdr.models import StewardOrganisation
-from aristotle_mdr.utils import setup_aristotle_test_environment
 from model_utils import Choices
 
 from django.contrib.auth import get_user_model
@@ -22,7 +21,6 @@ from unittest import skip
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
-setup_aristotle_test_environment()
 
 
 class BaseStewardOrgsTestCase(utils.AristotleTestUtils):

@@ -67,6 +67,7 @@ class StatusNode(DjangoObjectType):
 
 
 class AristotleConceptObjectType(DjangoObjectType):
+    aristotle_id = graphene.String()
     metadata_type = graphene.String()
     identifiers = DjangoListFilterField(ScopedIdentifierNode, filterset_class=IdentifierFilterSet)
     statuses = DjangoListFilterField(StatusNode, filterset_class=StatusFilterSet)

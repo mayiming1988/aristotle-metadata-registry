@@ -133,8 +133,6 @@ INSTALLED_APPS = (
 
     'bootstrap3',
     'reversion',  # https://github.com/etianen/django-reversion
-    'reversion_compare',  # https://github.com/jedie/django-reversion-compare
-
     'notifications',
     'organizations',
 
@@ -197,7 +195,6 @@ BOOTSTRAP3 = {
     'base_url': '/static/aristotle_mdr/bootstrap/',
 }
 
-ADD_REVERSION_ADMIN = True
 
 # We need this to make sure users can see all extensions.
 AUTHENTICATION_BACKENDS = ('aristotle_mdr.backends.AristotleBackend',)
@@ -215,7 +212,6 @@ ARISTOTLE_SETTINGS = {
     'INFOBOX_IDENTIFIER_NAME': '',  # Identifier name used in Metadata Infobox Template.
     'SITE_DESCRIPTION': 'About this site',  # 'The main title for the site.'
     'CONTENT_EXTENSIONS': [],
-    'PDF_PAGE_SIZE': 'A4',
     'WORKGROUP_CHANGES': [],  # ['admin'] # or manager or submitter,
     'BULK_ACTIONS': [
         'aristotle_mdr.forms.bulk_actions.AddFavouriteForm',
@@ -226,6 +222,7 @@ ARISTOTLE_SETTINGS = {
         'aristotle_mdr.forms.bulk_actions.BulkDownloadForm',
         'aristotle_mdr.contrib.reviews.forms.RequestReviewBulkActionForm',
     ],
+    # Dashboard add-ons will only be rendered for staff
     'DASHBOARD_ADDONS': [],
     'METADATA_CREATION_WIZARDS': [
         {
@@ -241,10 +238,13 @@ ARISTOTLE_SETTINGS = {
             'link': 'create/wizard/aristotle_mdr/dataelementconcept',
         }
     ],
-    "DOWNLOADERS": [
-        'aristotle_mdr.contrib.aristotle_pdf.downloader.PDFDownloader'
-    ],
-
+    "DOWNLOAD_OPTIONS": {
+        'PDF_PAGE_SIZE': 'A4',
+        'COPYRIGHT_PAGE_CONTENT': '',
+        "DOWNLOADERS": [
+            'aristotle_mdr.contrib.aristotle_pdf.downloader.PDFDownloader'
+        ],
+    },
     # These settings aren't active yet.
     # "USER_EMAIL_RESTRICTIONS": None,
     "USER_VISIBILITY": ['owner', 'workgroup_manager', 'registation_authority_manager'],
@@ -349,7 +349,19 @@ ARISTOTLE_VALIDATORS = {
 }
 
 # Serialization
-SERIALIZATION_MODULES = {'mdrjson': 'aristotle_mdr_api.serializers.idjson'}
+SERIALIZATION_MODULES = {'mdrjson': 'aristotle_mdr_api.serializers.idjson',
+                         # Override django-reversion serializer
+                         'aristotle_mdr_json': 'aristotle_mdr.contrib.serializers.concept_serializer'}
+
+# Set an environment variable as the default email address to send backend emails for notifications.
+ARISTOTLE_EMAIL_NOTIFICATIONS = os.getenv('ARISTOTLE_EMAIL_NOTIFICATIONS', None)
+
+# Set an environment variable as the default email address to send backend emails for sandbox invitation notifications.
+ARISTOTLE_EMAIL_SANDBOX_NOTIFICATIONS = os.getenv('ARISTOTLE_EMAIL_SANDBOX_NOTIFICATIONS', None)
+
+# Set an environment variable as the default email address to send backend emails for account recovery (password reset).
+ARISTOTLE_EMAIL_ACCOUNT_RECOVERY = os.getenv('ARISTOTLE_EMAIL_ACCOUNT_RECOVERY', None)
+
 
 # API
 REST_FRAMEWORK = {
@@ -396,12 +408,3 @@ MAXIMUM_NUMBER_OF_NODES_IN_GENERAL_GRAPHICAL_REPRESENTATION = 200
 # the Django app label and the model name.
 # E.g. [("app_label", "model_name"), ...]
 EXTRA_GRAPHQL_SCHEMA_MODELS: list = []
-
-# Set an environment variable as the default email address to send backend emails for notifications.
-ARISTOTLE_EMAIL_NOTIFICATIONS = os.getenv('ARISTOTLE_EMAIL_NOTIFICATIONS', None)
-
-# Set an environment variable as the default email address to send backend emails for sandbox invitation notifications.
-ARISTOTLE_EMAIL_SANDBOX_NOTIFICATIONS = os.getenv('ARISTOTLE_EMAIL_SANDBOX_NOTIFICATIONS', None)
-
-# Set an environment variable as the default email address to send backend emails for account recovery (password reset).
-ARISTOTLE_EMAIL_ACCOUNT_RECOVERY = os.getenv('ARISTOTLE_EMAIL_ACCOUNT_RECOVERY', None)

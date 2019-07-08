@@ -85,7 +85,7 @@ class TaskListView(IsSuperUserMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context.update({'annotated_list': self.get_annotated_list(context['page_obj'] or context['queryset'])})
+        context.update({'annotated_list': self.get_annotated_list(context['page_obj'])})
         return context
 
     def get_annotated_list(self, qs):
@@ -110,7 +110,7 @@ class TaskRunnerView(IsSuperUserMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
 
-        tasks = ['long__reindex', 'long__load_help']
+        tasks = ['long__reindex', 'long__load_help', 'long__recache_visibility']
         task_buttons = []
         from aristotle_bg_workers.helpers import get_pretty_name
 

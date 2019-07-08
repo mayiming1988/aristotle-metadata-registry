@@ -11,9 +11,6 @@ from wcag_zoo.validators import parade
 import subprocess
 import pprint
 
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-setup_aristotle_test_environment()
 
 # This wont run on test aristotle_mdr.test because it is not prefixed with test_
 
@@ -26,20 +23,21 @@ MEDIA_TYPES = [
     # ['(min-width: 1200px)'],
 ]
 
+
 class TestWebPageAccessibilityBase(utils.LoggedInViewPages):
 
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         super().setUpClass()
-        self.so = models.StewardOrganisation.objects.create(name="Test SO")
-        self.ra = models.RegistrationAuthority.objects.create(name="Test RA", stewardship_organisation=self.so)
-        self.wg = models.Workgroup.objects.create(name="Test WG 1", stewardship_organisation=self.so)
-        self.oc = models.ObjectClass.objects.create(name="Test OC 1")
-        self.pr = models.Property.objects.create(name="Test Property 1")
-        self.dec = models.DataElementConcept.objects.create(name="Test DEC 1", objectClass=self.oc, property=self.pr)
-        self.vd = models.ValueDomain.objects.create(name="Test VD 1")
-        self.cd = models.ConceptualDomain.objects.create(name="Test CD 1")
-        self.de = models.DataElement.objects.create(name="Test DE 1", dataElementConcept=self.dec, valueDomain=self.vd)
+        cls.so = models.StewardOrganisation.objects.create(name="Test SO")
+        cls.ra = models.RegistrationAuthority.objects.create(name="Test RA", stewardship_organisation=cls.so)
+        cls.wg = models.Workgroup.objects.create(name="Test WG 1", stewardship_organisation=cls.so)
+        cls.oc = models.ObjectClass.objects.create(name="Test OC 1")
+        cls.pr = models.Property.objects.create(name="Test Property 1")
+        cls.dec = models.DataElementConcept.objects.create(name="Test DEC 1", objectClass=cls.oc, property=cls.pr)
+        cls.vd = models.ValueDomain.objects.create(name="Test VD 1")
+        cls.cd = models.ConceptualDomain.objects.create(name="Test CD 1")
+        cls.de = models.DataElement.objects.create(name="Test DE 1", dataElementConcept=cls.dec, valueDomain=cls.vd)
 
         call_command('collectstatic', interactive=False, verbosity=0)
 
@@ -67,10 +65,11 @@ class TestWebPageAccessibilityBase(utils.LoggedInViewPages):
 
             for media in media_types:
                 results = parade.Parade(
-                    level='AA', staticpath=settings.BASE_STATICPATH,
+                    level='AA',
+                    staticpath=settings.BASE_STATICPATH,
                     skip_these_classes=['sr-only'],
-                    ignore_hidden = True,
-                    media_types = media
+                    ignore_hidden=True,
+                    media_types=media
                 ).validate_document(html)
                 total_results.append(results)
 
@@ -99,8 +98,8 @@ class TestStaticPageAccessibility(TestWebPageAccessibilityBase, TestCase):
             if hasattr(u, 'name') and u.name is not None and u.regex.groups == 0
         ]
 
-
         self.pages_tester(pages)
+
 
 class TestMetadataItemPageAccessibility(TestWebPageAccessibilityBase, TestCase):
     def test_metadata_object_pages(self):
@@ -117,6 +116,7 @@ class TestMetadataItemPageAccessibility(TestWebPageAccessibilityBase, TestCase):
             ]
         ]
         self.pages_tester(pages)
+
 
 class TestMetadataActionPageAccessibility(TestWebPageAccessibilityBase, TestCase):
     def test_metadata_object_action_pages(self):
@@ -136,7 +136,7 @@ class TestMetadataActionPageAccessibility(TestWebPageAccessibilityBase, TestCase
             for item in items
             for url in [
                 reverse("aristotle:supersede", args=[item.id]),
-#                reverse("aristotle:d--eprecate", args=[item.id]),
+                # reverse("aristotle:d--eprecate", args=[item.id]),
                 reverse("aristotle:edit_item", args=[item.id]),
                 reverse("aristotle:clone_item", args=[item.id]),
                 reverse("aristotle:item_history", args=[item.id]),

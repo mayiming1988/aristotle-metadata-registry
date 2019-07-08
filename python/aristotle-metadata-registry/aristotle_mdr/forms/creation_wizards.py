@@ -194,7 +194,7 @@ class Concept_2_Results(CustomValueFormMixin, ConceptForm):
     make_new_item = forms.BooleanField(
         initial=False,
         label=_("I've reviewed these items, and none of them meet my needs. Make me a new one."),
-        error_messages={'required': 'You must select this to ackowledge you have reviewed the above items.'}
+        error_messages={'required': 'You must select this to acknowledge you have reviewed the above items.'}
     )
 
     def __init__(self, *args, **kwargs):
@@ -429,7 +429,7 @@ class DE_Complete(UserAwareForm):
     make_items = forms.BooleanField(
         initial=False,
         label=_("I've reviewed these items, and wish to create them."),
-        error_messages={'required': 'You must select this to ackowledge you have reviewed the above items.'}
+        error_messages={'required': 'You must select this to acknowledge you have reviewed the above items.'}
     )
 
     def save(self, *args, **kwargs):

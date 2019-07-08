@@ -5,9 +5,6 @@ from django.urls import reverse
 from django.test import TestCase
 from django.test import override_settings
 from aristotle_mdr.tests.utils import get_json_from_response
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-setup_aristotle_test_environment()
 
 cursor_wrapper = mock.Mock()
 cursor_wrapper.side_effect = DatabaseError

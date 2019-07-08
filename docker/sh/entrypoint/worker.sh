@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 set -e # Errors will cause the script to stop
 pip install django-impersonate psycopg2 django-improved-user==1.0.0
 pip install celery django-celery-results

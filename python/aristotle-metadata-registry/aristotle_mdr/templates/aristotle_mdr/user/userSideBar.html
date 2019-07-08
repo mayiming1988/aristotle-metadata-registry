@@ -113,11 +113,12 @@
                 <i class="fa fa-user-md fa-fw"></i> {% trans "Django administration" %}
             </a>
         </li>
-    {% endif %}
     <li role="presentation" class="nav-divider"></li>
     {% for addon in config.DASHBOARD_ADDONS %}
         {% with addon|add:'/dashboard/sidebar.html' as template %}
             {% include template %}
         {% endwith %}
     {% endfor %}
+
+    {% endif %}
 </ul>

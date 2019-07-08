@@ -11,6 +11,9 @@ from aristotle_mdr.fields import (
     ConceptManyToManyField,
     ShortTextField,
 )
+from aristotle_mdr.utils import fetch_aristotle_settings
+
+import reversion
 
 
 class DataCatalog(aristotle.models.concept):
@@ -55,6 +58,7 @@ class Dataset(aristotle.models.concept):
     for access or download in one or more formats.
     """
     template = "aristotle_dse/concepts/dataset.html"
+
     # Themes = slots with name 'theme'
     # Keywords = slots with name 'keyword'
     issued = models.DateField(
@@ -97,6 +101,34 @@ class Dataset(aristotle.models.concept):
         verbose_name="Modification date",
         help_text=_('Most recent date on which the dataset was changed, updated or modified.'),
         )
+
+    @property
+    def relational_attributes(self):
+        rels = {}
+        if "comet" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
+            from comet.models import Indicator
+            
+            rels.update({
+                "as_numerator": {
+                    "all": _("As a numerator in an Indicator"),
+                    "qs": Indicator.objects.filter(
+                        indicatornumeratordefinition__data_set=self
+                    ).distinct()
+                },
+                "as_denominator": {
+                    "all": _("As a denominator in an Indicator"),
+                    "qs": Indicator.objects.filter(
+                        indicatordenominatordefinition__data_set=self
+                    ).distinct()
+                },
+                "as_disaggregator": {
+                    "all": _("As a disaggregation in an Indicator"),
+                    "qs": Indicator.objects.filter(
+                        indicatordisaggregationdefinition__data_set=self
+                    ).distinct()
+                },
+            })
+        return rels
 
 
 class Distribution(aristotle.models.concept):
@@ -294,10 +326,38 @@ class DataSetSpecification(aristotle.models.concept):
             ).distinct(),
         ]
 
+    @property
+    def relational_attributes(self):
+        rels = {}
+        if "comet" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
+            from comet.models import Indicator
+            
+            rels.update({
+                "as_numerator": {
+                    "all": _("As a numerator in an Indicator"),
+                    "qs": Indicator.objects.filter(
+                        indicatornumeratordefinition__data_set_specification=self
+                    ).distinct()
+                },
+                "as_denominator": {
+                    "all": _("As a denominator in an Indicator"),
+                    "qs": Indicator.objects.filter(
+                        indicatordenominatordefinition__data_set_specification=self
+                    ).distinct()
+                },
+                "as_disaggregator": {
+                    "all": _("As a disaggregation in an Indicator"),
+                    "qs": Indicator.objects.filter(
+                        indicatordisaggregationdefinition__data_set_specification=self
+                    ).distinct()
+                },
+            })
+        return rels
+
 
 class DSSInclusion(aristotle.models.aristotleComponent):
     class Meta:
-        abstract=True
+        abstract = True
         ordering = ['order']
 
     inline_field_layout = 'list'
@@ -315,7 +375,8 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         verbose_name=_("Maximum Occurrences"),
         help_text=_("The maximum number of times a item can be included in a dataset")
         )
-    cardinality = models.CharField(
+    inclusion = models.CharField(
+        "Inclusion",
         choices=CARDINALITY,
         default=CARDINALITY.conditional,
         max_length=20,
@@ -324,8 +385,9 @@ class DSSInclusion(aristotle.models.aristotleComponent):
     specific_information = RichTextField(
         blank=True,
         help_text=_("Any additional information on the inclusion of a data element or cluster in a dataset.")
-        )  # may need to become HTML field.
-    conditional_obligation = models.TextField(
+        )
+    conditional_inclusion = RichTextField(
+        "Conditional Inclusion",
         blank=True,
         help_text=_("If an item is present conditionally, this field defines the conditions under which an item will appear.")
         )
@@ -389,8 +451,8 @@ class DSSDEInclusion(DSSInclusion):
     inline_field_layout = 'list'
     inline_field_order = [
         "order", "dss",
-        "data_element", "reference", "cardinality", "maximum_occurrences",
-        "conditional_obligation", "specific_information", "group", "specialisation_classes"
+        "data_element", "reference", "inclusion", "maximum_occurrences",
+        "conditional_inclusion", "specific_information", "group", "specialisation_classes"
     ]
 
     class Meta(DSSInclusion.Meta):
@@ -427,8 +489,8 @@ class DSSClusterInclusion(DSSInclusion):
     inline_field_layout = 'list'
     inline_field_order = [
         "order", "dss", "child",
-        "reference", "cardinality", "maximum_occurrences",
-        "conditional_obligation", "specific_information"
+        "reference", "inclusion", "maximum_occurrences",
+        "conditional_inclusion", "specific_information"
     ]
 
     class Meta(DSSInclusion.Meta):

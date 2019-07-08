@@ -2,9 +2,6 @@ from django.urls import reverse
 from django.test import TestCase
 
 from aristotle_mdr.tests import utils
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-setup_aristotle_test_environment()
 
 
 class TestUserpages(utils.LoggedInViewPages, TestCase):

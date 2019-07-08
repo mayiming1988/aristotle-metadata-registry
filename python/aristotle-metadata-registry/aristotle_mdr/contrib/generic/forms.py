@@ -138,22 +138,25 @@ def get_aristotle_widgets(model, ordering_field=None):
 
     for f in model._meta.fields:
         foreign_model = model._meta.get_field(f.name).related_model
+        widget = None
+
         if foreign_model and issubclass(foreign_model, _concept):
-            _widgets.update({
-                f.name: widgets.ConceptAutocompleteSelect(
-                    model=foreign_model
-                )
-            })
+            widget = widgets.ConceptAutocompleteSelect(
+                model=foreign_model, attrs={"style": "max-width:250px"}
+            )
+        elif foreign_model:
+            widget = forms.Select(attrs={"class": "form-control"})
 
         if isinstance(model._meta.get_field(f.name), DateField):
-            _widgets.update({
-                f.name: BootstrapDateTimePicker(options=datePickerOptions)
-            })
+            widget = BootstrapDateTimePicker(
+                options=datePickerOptions, attrs={"style": "min-width:150px"}
+            )
 
         if ordering_field is not None and f.name == ordering_field:
-            _widgets.update({
-                ordering_field: forms.HiddenInput()
-            })
+            widget = forms.HiddenInput()
+
+        if widget is not None:
+            _widgets[f.name] = widget
 
     for f in model._meta.many_to_many:
         foreign_model = model._meta.get_field(f.name).related_model

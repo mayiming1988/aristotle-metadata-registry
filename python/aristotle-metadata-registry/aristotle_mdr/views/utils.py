@@ -14,9 +14,6 @@ from django.forms.models import model_to_dict
 from django.http import (
     Http404,
     JsonResponse,
-    HttpResponse,
-    HttpResponseNotFound,
-    HttpResponseForbidden
 )
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
@@ -628,7 +625,6 @@ class TagsMixin:
 
 
 class SimpleItemGet:
-
     item_id_arg = 'iid'
 
     def get_item(self, user):
@@ -646,11 +642,11 @@ class SimpleItemGet:
 
         return item
 
-    def get(self, request, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         item = self.get_item(request.user)
 
         self.item = item
-        return super().get(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)

@@ -46,6 +46,14 @@ def reindex_task(self, *args, **kwargs):
     return meta
 
 
+@shared_task(base=AristotleTask, bind=True, name='long__recache_visibility')
+def recache_visibility(self, *args, **kwargs):
+    meta = {"requester": kwargs['requester'], "start_date": datetime.datetime.now()}
+    self.update_state(meta=meta, state="STARTED")
+    meta.update({"result": run_django_command('recache_registration_authority_item_visibility', interactive=False)})
+    return meta
+
+
 @shared_task(base=AristotleTask, bind=True, name='long__load_help')
 def loadhelp_task(self, *args, **kwargs):
     meta = {"requester": kwargs['requester'], "start_date": datetime.datetime.now()}
@@ -91,7 +99,7 @@ def download(download_type: str, item_ids: List[int], user_id: int, options={}) 
     dl_class = get_download_class(download_type)
 
     if dl_class is not None:
-        # Instanciate downloader class
+        # Instantiate downloader class
         downloader = dl_class(item_ids, user_id, options)
         # Get file url
         return downloader.download()
