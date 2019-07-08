@@ -326,12 +326,12 @@ class DataSetSpecification(aristotle.models.concept):
         de_ids = self.get_unique_ids(de_relations)
 
         return [
-            type(self).objects.filter(id__in=dss_ids),
-            aristotle.models.DataElement.objects.filter(id__in=de_ids),
-            aristotle.models.DataElementConcept.objects.filter(dataelement__in=de_ids),
-            aristotle.models.ObjectClass.objects.filter(dataelementconcept__dataelement__in=de_ids),
-            aristotle.models.Property.objects.filter(dataelementconcept__dataelement__in=de_ids),
-            aristotle.models.ValueDomain.objects.filter(dataelement__in=de_ids),
+            type(self).objects.filter(id__in=dss_ids).distinct(),
+            aristotle.models.DataElement.objects.filter(id__in=de_ids).distinct(),
+            aristotle.models.DataElementConcept.objects.filter(dataelement__in=de_ids).distinct(),
+            aristotle.models.ObjectClass.objects.filter(dataelementconcept__dataelement__in=de_ids).distinct(),
+            aristotle.models.Property.objects.filter(dataelementconcept__dataelement__in=de_ids).distinct(),
+            aristotle.models.ValueDomain.objects.filter(dataelement__in=de_ids).distinct(),
         ]
 
     def get_all_clusters(self) -> List[Tuple[int, int]]:
