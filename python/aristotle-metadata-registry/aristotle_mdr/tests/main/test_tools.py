@@ -196,7 +196,7 @@ class AristotleReportingToolsPage(AristotleTestUtils, TestCase):
         )
         self.assertEqual(response.context['object_list'].count(), 1)
 
-    def test_correct_status_for_component_displayed_in_template(self):
+    def test_correct_status_for_component_displayed(self):
         """Test that the correct status is displayed for components in the template"""
         # Create a Value Domain
         value_domain = MDR.ValueDomain.objects.create(
@@ -205,22 +205,36 @@ class AristotleReportingToolsPage(AristotleTestUtils, TestCase):
             workgroup=self.wg1,
         )
 
-        # Create a Data Element Concept
+        # Create a Data Element
         data_element = MDR.DataElement.objects.create(
             name=" Data Element",
             definition="A data element",
             workgroup=self.wg1,
             valueDomain=value_domain,
         )
-        # Register the Value Domain
+        # Register the Data Element as Standard
+        data_element = MDR.Status.objects.create(
+            concept=data_element,
+            registrationAuthority=self.ra,
+            registrationDate=datetime.date(2017, 1, 1)
+        )
+
+        # Register the Value Domain as Standard
         MDR.Status.objects.create(
             concept=value_domain,
             registrationAuthority=self.ra,
-            registrationDate=datetime.datetime("")
+            registrationDate=datetime.date(2017, 1, 1)
         )
-        # Register the Property as Standard
-
         # Retire it later
+        MDR.Status.objects.create(
+            concept=value_domain,
+            registrationAuthority=self.ra,
+            registrationDate=datetime.date(2018, 1, 1)
+        )
 
         # Assert that Retired is displayed
+        query_string = "?ra=" + str(self.ra.id) + '&status=' + str(MDR.STATES.standard)
+        response = self.client.get(reverse('aristotle:data_element_components_tool') + query_string)
+
+        self.assertContainsHtml(response, 'Retired')
 
