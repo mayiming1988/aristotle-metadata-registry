@@ -230,6 +230,57 @@ class Downloader:
         }
 
 
+class ItemList:
+    """Class for storing items of one type (used in sub_dict below)"""
+
+    def __init__(self, model_class, items: List=[]):
+        # Private properties
+        self._cache = {}
+        self._model_class = model_class
+        self._items = {i.id: i for i in items}
+        # Public properties
+        self.app_label = self._model_class._meta.app_label
+        self.model_name = self._model_class._meta.model_name
+        self.verbose_name = self._model_class.get_verbose_name()
+        self.verbose_name_plural = self._model_class.get_verbose_name_plural()
+
+    def __len__(self):
+        return len(self._items)
+
+    def has_item(self, iid):
+        return iid in self._items
+
+    def get_item(self, iid):
+        return self._items[iid]
+
+    def add_item(self, item):
+        self._items[item.id] = item
+
+    def as_dict(self):
+        return self._items.copy()
+
+    @property
+    def items(self):
+        # return list(self._items.values()).sort(key=lambda item: item.name)
+        return self._items.values()
+
+    @property
+    def help(self) -> Optional[ConceptHelp]:
+        if 'help' in self._cache:
+            return self._cache['help']
+
+        try:
+            help_obj = ConceptHelp.objects.get(
+                app_label=self.app_label,
+                concept_type=self.model_name
+            )
+        except ConceptHelp.DoesNotExist:
+            help_obj = None
+
+        self._cache['help'] = help_obj
+        return help_obj
+
+
 class HTMLDownloader(Downloader):
     """
     Generates a html download
@@ -282,8 +333,8 @@ class HTMLDownloader(Downloader):
                 kwargs['objects'] = None
                 # Reuse sub objects if already avaliable (saves a query)
                 if sub_items:
-                    kwargs['objects'] = {i.id: i for i in sub_items['aristotle_dse.datasetspecification']['items']}
-                    kwargs['objects'].update({i.id: i for i in sub_items['aristotle_mdr.dataelement']['items']})
+                    kwargs['objects'] = sub_items['aristotle_dse.datasetspecification'].as_dict()
+                    kwargs['objects'].update(sub_items['aristotle_mdr.dataelement'].as_dict())
 
                 context['tree'] = item.get_cluster_tree(**kwargs)
 
@@ -301,24 +352,16 @@ class HTMLDownloader(Downloader):
 
         label = get_model_label(item_class)
 
+        # Create a new item list if label not in dict
         if label not in items_dict:
-            model_help = ConceptHelp.objects.filter(
-                app_label=item_class._meta.app_label,
-                concept_type=item_class._meta.model_name
-            ).first()
+            items_dict[label] = ItemList(item_class)
 
-            items_dict[label] = {
-                'items': [],
-                'verbose_name': item_class.get_verbose_name(),
-                'verbose_name_plural': item_class.get_verbose_name_plural(),
-                'help': model_help
-            }
+        # Add item to itemlist
+        items_dict[label].add_item(item)
 
-        items_dict[label]['items'].append(item)
-
-    def get_sub_items_dict(self, include_root=False) -> Dict[str, Dict[str, Any]]:
+    def get_sub_items_dict(self, include_root=False) -> Dict[str, ItemList]:
         """Function that populates the supporting items in the template"""
-        items: Dict[str, Dict[str, Any]] = {}
+        items: Dict[str, ItemList] = {}
 
         # Get all items using above method to create dict
         for item in self.items:
@@ -344,7 +387,8 @@ class HTMLDownloader(Downloader):
                     if state is not None:
                         download_items = download_items.filter(statuses__state=state)
 
-                    sub_list = list(download_items.visible(self.user))
+                    sub_query = download_items.visible(self.user)
+                    sub_list = list(sub_query)
 
                 else:
                     raise AssertionError("Must be a QuerySet")
@@ -353,10 +397,6 @@ class HTMLDownloader(Downloader):
                     # Can be none for components
                     if sub_item is not None:
                         self._add_to_sub_items(items, sub_item)
-
-        # Sort the items lists by name
-        for label, data in items.items():
-            data['items'].sort(key=lambda item: item.name)
 
         return items
 

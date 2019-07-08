@@ -135,11 +135,11 @@
                     <h1>Supporting Items</h1>
                 {% endif %}
 
-                {% for l,dict in subitems.items %}
+                {% for l, itemlist in subitems.items %}
                     <div style="page-break-before:always;">
-                        <h2>{{ dict.verbose_name_plural }}</h2>
-                        {% if dict.help %}<p>{% relink dict.help 'brief' %}</p>{% endif %}
-                        {% for i in dict.items %}
+                        <h2>{{ itemlist.verbose_name_plural }}</h2>
+                        {% if itemlist.help %}<p>{% relink itemlist.help 'brief' %}</p>{% endif %}
+                        {% for i in itemlist.items %}
                             <div id='{{i.id}}'  style="page-break-before:always;">
                                 {% include i|template_path:'html,inline' with item=i header='h3' user=user only %}
                             </div>
