@@ -8,6 +8,7 @@ from aristotle_mdr import models as MDR
 
 import datetime
 
+
 class AristotleReportingToolsPage(AristotleTestUtils, TestCase):
     url_name = 'data_element_components_tool'
 
