@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 echo "preparing mysql"
 
 mysql -e 'create database aristotle_test_db;' -u root
