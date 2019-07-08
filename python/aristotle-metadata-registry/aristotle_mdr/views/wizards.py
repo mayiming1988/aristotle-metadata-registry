@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 def make_it_clean(string):
     return str(strip_tags(string)).replace("&nbsp;", " ").strip()  # Clean it up
 
+
 def create_item(request, app_label=None, model_name=None):
     """
     This allows use to perform an inspection of the registered items
@@ -283,7 +284,6 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
         name = name.strip()
         self.duplicate_items = self.model.objects.filter(name__iexact=name).public().all()
         return self.duplicate_items
-
 
     def find_similar(self, model=None):
         """Looks for items of a given item type with the given search terms"""
