@@ -487,8 +487,10 @@ class DataElementConceptWizard(MultiStepAristotleWizard):
     def get_data_element_concept(self):
         if hasattr(self, '_data_element_concept'):
             return self._data_element_concept
+
         oc = self.get_object_class()
         pr = self.get_property()
+
         if oc and pr:
             self._data_element_concept = MDR.DataElementConcept.objects.filter(objectClass=oc, property=pr).visible(self.request.user).order_by('-created')[:10]
             return self._data_element_concept
