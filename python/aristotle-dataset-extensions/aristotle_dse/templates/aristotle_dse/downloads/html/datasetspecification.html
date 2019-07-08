@@ -3,7 +3,7 @@
 
 {% block title %}{{ item.name }} ({{item.status}}){% endblock %}
 {% block objSpecific %}
-    {% if item.data_elements.all or item.clusters.all %}
+    {% if item.data_elements.exists or item.clusters.exists %}
         <dt>
             <header>Metadata items in this Data Set Specification</header>
         </dt>
