@@ -17,6 +17,7 @@ from django.utils.safestring import mark_safe
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
+from operator import attrgetter
 from hashlib import sha256
 import pickle
 import pypandoc
@@ -261,8 +262,8 @@ class ItemList:
 
     @property
     def items(self):
-        # return list(self._items.values()).sort(key=lambda item: item.name)
-        return self._items.values()
+        items_list = list(self._items.values())
+        return sorted(items_list, key=attrgetter('name'))
 
     @property
     def help(self) -> Optional[ConceptHelp]:
