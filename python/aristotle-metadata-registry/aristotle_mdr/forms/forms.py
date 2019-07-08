@@ -12,6 +12,7 @@ from aristotle_mdr.contrib.autocomplete import widgets
 from django_jsonforms.forms import JSONSchemaField
 from aristotle_mdr.forms.utils import RegistrationAuthorityMixin
 
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -360,3 +361,19 @@ class ShareLinkForm(forms.Form):
 
     emails = MultipleEmailField(required=False)
     notify_new_users_checkbox = BooleanField(label="Notify new people", initial=True, required=False)
+
+
+class ReportingToolForm(forms.Form):
+
+    ra = forms.ModelChoiceField(
+        queryset=MDR.RegistrationAuthority.objects.all(),
+        label="Registration Authority",
+        empty_label=None,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+    )
+
+    status = forms.ChoiceField(
+        label="Status",
+        choices=MDR.STATES,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+    )

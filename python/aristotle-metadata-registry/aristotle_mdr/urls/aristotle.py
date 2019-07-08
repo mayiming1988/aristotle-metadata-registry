@@ -18,7 +18,7 @@ from aristotle_mdr.contrib.generic.views import (
 
 from django.utils.translation import ugettext_lazy as _
 
-urlpatterns=[
+urlpatterns = [
     url(r'^$', views.SmartRoot.as_view(
         unauthenticated_pattern='aristotle_mdr:home',
         authenticated_pattern='aristotle_mdr:userHome'
@@ -51,7 +51,6 @@ urlpatterns=[
         generic_foreign_key_factory_view,
         name='generic_foreign_key_editor'),
 
-
     url(r'^workgroup/(?P<iid>\d+)(?:-(?P<name_slug>[A-Za-z0-9\-_]+))?/?$', views.workgroups.WorkgroupView.as_view(), name='workgroup'),
     url(r'^workgroup/(?P<iid>\d+)/members/?$', views.workgroups.MembersView.as_view(), name='workgroupMembers'),
     url(r'^workgroup/(?P<iid>\d+)/items/?$', views.workgroups.ItemsView.as_view(), name='workgroupItems'),
@@ -63,7 +62,6 @@ urlpatterns=[
     url(r'^workgroup/(?P<iid>\d+)/edit$', views.workgroups.EditWorkgroup.as_view(), name='workgroup_edit'),
     url(r'^workgroups/create/?$', views.workgroups.CreateWorkgroup.as_view(), name='workgroup_create'),
     url(r'^workgroups/all/?$', views.workgroups.ListWorkgroup.as_view(), name='workgroup_list'),
-
 
     url(r'^discussions/?$', views.discussions.All.as_view(), name='discussions'),
     url(r'^discussions/new/?$', views.discussions.New.as_view(), name='discussionsNew'),
@@ -89,11 +87,11 @@ urlpatterns=[
     # Concept page overrides
     url(r'^item/(?P<iid>\d+)/dataelement/(?P<name_slug>.+)/?$', views.DataElementView.as_view(), name='dataelement'),
     url(r'^item/(?P<iid>\d+)/objectclass/(?P<name_slug>.+)/?$', views.ObjectClassView.as_view(), name='objectclass_view'),
-    url(r'^item/(?P<iid>\d+)(?:\/(?P<model_slug>\w+)\/(?P<name_slug>.+))?/?$', views.ConceptView.as_view(), name='item'),
-    url(r'^item/(?P<iid>\d+)(?:\/.*)?$', views.ConceptView.as_view(), name='item_short'),  # Catch every other 'item' URL and throw it for a redirect
+    url(r'^item/(?P<iid>\d+)(?:/(?P<model_slug>\w+)/(?P<name_slug>.+))?/?$', views.ConceptView.as_view(), name='item'),
+    url(r'^item/(?P<iid>\d+)(?:/.*)?$', views.ConceptView.as_view(), name='item_short'),  # Catch every other 'item' URL and throw it for a redirect
     url(r'^item/(?P<uuid>[\w-]+)/?(.*)?$', views.concept_by_uuid, name='item_uuid'),
 
-    url(r'^unmanaged/measure/(?P<iid>\d+)(?:\/(?P<model_slug>\w+)\/(?P<name_slug>.+))?/?$', views.measure, name='measure'),
+    url(r'^unmanaged/measure/(?P<iid>\d+)(?:/(?P<model_slug>\w+)/(?P<name_slug>.+))?/?$', views.measure, name='measure'),
     url(r"^managed_items/(?P<model_slug>.+)/(?P<iid>.+)?$", view=views.managed_item, name="view_managed_item"),
 
     # url(r'^create/?$', views.item, name='item'),
@@ -116,8 +114,8 @@ urlpatterns=[
 
     url(r'^action/bulkaction/?$', views.bulk_actions.BulkAction.as_view(), name='bulk_action'),
     url(r'^action/bulkaction/state/?$', views.bulk_actions.ChangeStatusBulkActionView.as_view(), name='change_state_bulk_action'),
-    # TODO add new comparator view
     url(r'^toolbox/compare/?$', views.comparator.MetadataComparison.as_view(), name='compare_concepts'),
+    url(r'^toolbox/dataelementcomponents/?$', views.tools.DataElementsAndSubcomponentsStatusCheckTool.as_view(), name='data_element_components_tool'),
 
     url(r'^action/changestatus/(?P<iid>\d+)$', views.ChangeStatusView.as_view(), name='changeStatus'),
     url(r'^action/deletestatus/(?P<sid>\d+)/(?P<iid>\d+)$', views.DeleteStatus.as_view(), name='deleteStatus'),
@@ -148,18 +146,17 @@ urlpatterns=[
     url(r'^registrationauthority/create/?$', views.registrationauthority.CreateRegistrationAuthority.as_view(), name='registrationauthority_create'),
     url(r'^account/admin/registrationauthority/all/?$', views.registrationauthority.ListRegistrationAuthorityAll.as_view(), name='registrationauthority_list'),
 
+    url(r'^registrationauthority/(?P<iid>\d+)(?:/(?P<name_slug>.+))?/data_dictionary', views.registrationauthority.DateFilterView.as_view(), name='registrationauthority_data_dictionary'),
+    url(r'^registrationauthority/(?P<iid>\d+)(?:/(?P<name_slug>.+))?/members', views.registrationauthority.MembersRegistrationAuthority.as_view(), name='registrationauthority_members'),
+    url(r'^registrationauthority/(?P<iid>\d+)(?:/(?P<name_slug>.+))?/edit', views.registrationauthority.EditRegistrationAuthority.as_view(), name='registrationauthority_edit'),
+    url(r'^registrationauthority/(?P<iid>\d+)(?:/(?P<name_slug>.+))?/states', views.registrationauthority.EditRegistrationAuthorityStates.as_view(), name='registrationauthority_edit_states'),
+    url(r'^registrationauthority/(?P<iid>\d+)(?:/(?P<name_slug>.+))?/rules', views.registrationauthority.RAValidationRuleEditView.as_view(), name='registrationauthority_rules'),
+    url(r'^registrationauthority/(?P<iid>\d+)(?:/(?P<name_slug>.+))?/add_user/?$', views.registrationauthority.AddUser.as_view(), name='registrationauthority_add_user'),
+    url(r'^registrationauthority/(?P<iid>\d+)(?:/(?P<name_slug>.+))?/change_roles/(?P<user_pk>\d+)?/?$', views.registrationauthority.ChangeUserRoles.as_view(), name='registrationauthority_change_user_roles'),
+    url(r'^registrationauthority/(?P<iid>\d+)(?:/(?P<name_slug>.+))?/remove/(?P<user_pk>\d+)/?$', views.registrationauthority.RemoveUser.as_view(), name='registrationauthority_member_remove'),
+    url(r'^registrationauthority/(?P<iid>\d+)(?:/(?P<name_slug>.+))?/', views.registrationauthority.RegistrationAuthorityView.as_view(), name='registrationAuthority'),
 
-    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/data_dictionary', views.registrationauthority.DateFilterView.as_view(), name='registrationauthority_data_dictionary'),
-    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/members', views.registrationauthority.MembersRegistrationAuthority.as_view(), name='registrationauthority_members'),
-    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/edit', views.registrationauthority.EditRegistrationAuthority.as_view(), name='registrationauthority_edit'),
-    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/states', views.registrationauthority.EditRegistrationAuthorityStates.as_view(), name='registrationauthority_edit_states'),
-    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/rules', views.registrationauthority.RAValidationRuleEditView.as_view(), name='registrationauthority_rules'),
-    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/add_user/?$', views.registrationauthority.AddUser.as_view(), name='registrationauthority_add_user'),
-    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/change_roles/(?P<user_pk>\d+)?/?$', views.registrationauthority.ChangeUserRoles.as_view(), name='registrationauthority_change_user_roles'),
-    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/remove/(?P<user_pk>\d+)/?$', views.registrationauthority.RemoveUser.as_view(), name='registrationauthority_member_remove'),
-    url(r'^registrationauthority/(?P<iid>\d+)(?:\/(?P<name_slug>.+))?/', views.registrationauthority.RegistrationAuthorityView.as_view(), name='registrationAuthority'),
-
-    url(r'^organization/(?P<iid>\d+)?(?:\/(?P<name_slug>.+))?/?$', views.registrationauthority.organization, name='organization'),
+    url(r'^organization/(?P<iid>\d+)?(?:/(?P<name_slug>.+))?/?$', views.registrationauthority.organization, name='organization'),
     url(r'^organizations/?$', views.registrationauthority.all_organizations, name='all_organizations'),
     url(r'^registrationauthorities/?$', views.registrationauthority.all_registration_authorities, name='all_registration_authorities'),
 
