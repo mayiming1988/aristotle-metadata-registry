@@ -280,13 +280,25 @@ class DataSetSpecification(aristotle.models.concept):
 
     @property
     def clusters(self):
+        """Fetch all child dss's elements on this dss directly"""
         ids = self.dssclusterinclusion_set.all().values_list('child', flat=True)
         return self.__class__.objects.filter(id__in=ids)
 
     @property
     def data_elements(self):
+        """Fetch all included data elements on this dss directly"""
         ids = self.dssdeinclusion_set.all().values_list('data_element', flat=True)
         return aristotle.models.DataElement.objects.filter(id__in=ids)
+
+    @property
+    def cluster_inclusions(self):
+        """Fetch cluster inclustions (with child pre-fetched)"""
+        return self.dssclusterinclusion_set.all().select_related('child')
+
+    @property
+    def data_element_inclusions(self):
+        """Fetch data elemen inclustions (with de pre-fetched)"""
+        return self.dssdeinclusion_set.all().select_related('data_element')
 
     def ungrouped_data_element_inclusions(self):
         return self.dssdeinclusion_set.filter(group=None)
