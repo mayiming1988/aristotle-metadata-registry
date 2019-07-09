@@ -13,10 +13,10 @@
     {{ item.definition|bleach }}
 </div>
 <div class="status">
-    {% include "aristotle_mdr/downloads/html/component/statuses.html" with statuses=item.current_statuses only %}
+    {% include "aristotle_mdr/downloads/html/helpers/statuses.html" with current_statuses=current_statuses item=item only %}
 </div>
 
-  {% include "aristotle_mdr/downloads/html/slots/slots_display.html" %}
+  {# {% include "aristotle_mdr/downloads/html/slots/slots_display.html" %} #}
   {% include "aristotle_mdr/downloads/html/component/custom_fields_display.html" %}
 
 <div class="objectSpecific">

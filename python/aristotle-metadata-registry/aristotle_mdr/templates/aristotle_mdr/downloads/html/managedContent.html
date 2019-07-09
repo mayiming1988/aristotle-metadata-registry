@@ -56,7 +56,7 @@
             <dt>{% trans 'Endorsed by' %}</dt>
             <dd>
                 <div class="">
-                    {% include "aristotle_mdr/downloads/html/helpers/statuses.html" with statuses=item.current_statuses only %}
+                    {% include "aristotle_mdr/downloads/html/helpers/statuses.html" with statuses=item.current_statuses current_statuses=current_statuses only %}
                 </div>
             </dd>
             <dt>Supersedes</dt>
@@ -113,17 +113,9 @@
 
             {% block objSpecific %}
             {% endblock %}
-
-            {% comment %}
-            <dt>
-                Related items
-            </dt>
-            <dd>
-            </dd>
-            {% endcomment %}
         </dl>
 
-        {% include "aristotle_mdr/downloads/html/slots/slots_display.html" %}
+        {# {% include "aristotle_mdr/downloads/html/slots/slots_display.html" %} #}
         {% include "aristotle_mdr/downloads/html/component/custom_fields_display.html" %}
 
         {% if subitems %}
@@ -137,11 +129,12 @@
 
                 {% for l, itemlist in subitems.items %}
                     <div style="page-break-before:always;">
-                        <h2>{{ itemlist.verbose_name_plural }}</h2>
+                        <h2>{{ itemlist.model_pluralized }}</h2>
                         {% if itemlist.help %}<p>{% relink itemlist.help 'brief' %}</p>{% endif %}
                         {% for i in itemlist.items %}
-                            <div id='{{i.id}}'  style="page-break-before:always;">
-                                {% include i|template_path:'html,inline' with item=i header='h3' user=user only %}
+                            <div id='{{i.id}}' style="page-break-before:always;">
+                              {% include i|template_path:'html,inline' with item=i header='h3' user=user current_statuses=current_statuses only %}
+                              {# {% include "aristotle_mdr/downloads/html/inline/managedContent.html" with item=i header='h3' user=user only %} #}
                             </div>
                         {% endfor %}
                     </div>
