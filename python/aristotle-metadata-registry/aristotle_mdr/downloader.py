@@ -481,7 +481,8 @@ class HTMLDownloader(Downloader):
         concept_id_field_name = concept_field_name + '_id'
         object_dict = defaultdict(list)
         for o in qs:
-            object_dict[concept_id_field_name].append(o)
+            concept_id = getattr(o, concept_id_field_name)
+            object_dict[concept_id].append(o)
 
         return object_dict
 
