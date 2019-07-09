@@ -247,42 +247,29 @@ class ItemList:
         self.verbose_name = self._model_class.get_verbose_name()
         self.verbose_name_plural = self._model_class.get_verbose_name_plural()
 
-    def has_item(self, iid):
-        return iid in self._items
-
-    def get_item(self, iid):
-        return self._items[iid]
-
-    def __getitem__(self, key):
-        """Support idexing the object"""
-        return self.get_item(key)
-
-    def add_item(self, item):
-        self._items[item.id] = item
-
-    def as_dict(self):
-        return self._items.copy()
-
-    def __len__(self):
-        return len(self._items)
-
     @property
     def model_pluralized(self):
+        """Get model name as plural if more than one"""
         if len(self) > 1:
             return self.verbose_name_plural
         return self.verbose_name
 
     @property
     def ids(self) -> List[int]:
+        """List of item ids in list"""
         return [i.id for i in self._items.values()]
 
     @property
     def items(self):
-        items_list = list(self._items.values())
-        return sorted(items_list, key=attrgetter('name'))
+        """Iterator of items"""
+        return self._items.values()
 
     @property
     def help(self) -> Optional[ConceptHelp]:
+        """
+        Help object for the model (None if not found)
+        This is cached so repeated calls are ok
+        """
         if 'help' in self._cache:
             return self._cache['help']
 
@@ -296,6 +283,35 @@ class ItemList:
 
         self._cache['help'] = help_obj
         return help_obj
+
+    def has_item(self, iid):
+        """Whether the list contins item with this id"""
+        return iid in self._items
+
+    def get_item(self, iid):
+        """Get item by id"""
+        return self._items[iid]
+
+    def __getitem__(self, key):
+        """Support indexing the itemlist to get an item"""
+        return self.get_item(key)
+
+    def add_item(self, item):
+        """Add item to list"""
+        self._items[item.id] = item
+
+    def as_dict(self):
+        """Return copy of internal dictionary"""
+        return self._items.copy()
+
+    def __len__(self):
+        """Support len()"""
+        return len(self._items)
+
+    def sorted_items(self):
+        """Items sorted by name"""
+        items_list = list(self.items)
+        return sorted(items_list, key=attrgetter('name'))
 
 
 class HTMLDownloader(Downloader):
