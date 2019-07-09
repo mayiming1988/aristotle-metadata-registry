@@ -1,4 +1,4 @@
-from typing import Any, List, Dict, Optional, Union, AnyStr
+from typing import Any, List, Dict, Optional, Union, AnyStr, Set
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -19,6 +19,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from operator import attrgetter
 from hashlib import sha256
+from collections import defaultdict
 import pickle
 import pypandoc
 
@@ -232,7 +233,7 @@ class Downloader:
 
 
 class ItemList:
-    """Class for storing items of one type (used in sub_dict below)"""
+    """Class for storing items of one type along with model information (used in sub_dict below)"""
 
     def __init__(self, model_class, items: List=[]):
         # Private properties
@@ -245,9 +246,6 @@ class ItemList:
         self.verbose_name = self._model_class.get_verbose_name()
         self.verbose_name_plural = self._model_class.get_verbose_name_plural()
 
-    def __len__(self):
-        return len(self._items)
-
     def has_item(self, iid):
         return iid in self._items
 
@@ -259,6 +257,19 @@ class ItemList:
 
     def as_dict(self):
         return self._items.copy()
+
+    def __len__(self):
+        return len(self._items)
+
+    @property
+    def model_pluralized(self):
+        if len(self) > 1:
+            return self.verbose_name_plural
+        return self.verbose_name
+
+    @property
+    def ids(self) -> List[int]:
+        return [i.id for i in self._items.values()]
 
     @property
     def items(self):
@@ -439,6 +450,26 @@ class HTMLDownloader(Downloader):
 
         return prelim
 
+    def get_caches(self, context: Dict) -> Dict:
+        # Build set of all items & subitem id's
+        all_ids: Set = {i.id for i in self.items}
+
+        if 'subitems' in context:
+            subitems = context['subitems']
+            # Add to all_ids
+            for label, itemlist in subitems.items():
+                for iid in itemlist.ids:
+                    all_ids.add(iid)
+
+        # Bulk lookup current status
+        status_objs = MDR.Status.objects.filter(concept__in=all_ids).current().all()
+        current_status_dict: Dict[int, List[MDR.Status]] = defaultdict(list)
+        for s in status_objs:
+            current_status_dict[s.concept_id].append(s)
+
+        context['current_statuses'] = current_status_dict
+        return context
+
     def get_context(self) -> Dict[str, Any]:
         """
         Gets the template context
@@ -451,6 +482,7 @@ class HTMLDownloader(Downloader):
         else:
             context = self.get_download_context()
 
+        context = self.get_caches(context)
         context.update({"is_bulk_download": self.bulk})
 
         return context
