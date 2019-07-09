@@ -253,6 +253,10 @@ class ItemList:
     def get_item(self, iid):
         return self._items[iid]
 
+    def __getitem__(self, key):
+        """Support idexing the object"""
+        return self.get_item(key)
+
     def add_item(self, item):
         self._items[item.id] = item
 
@@ -451,7 +455,7 @@ class HTMLDownloader(Downloader):
 
         return prelim
 
-    def qs_as_dict(self, qs, concept_field_name='concept') -> Dict[int, List[Any]]:
+    def qs_as_dict(self, qs, concept_field_name='concept') -> Dict[int, List]:
         """Get queryset as dict mapping ids to lists of objects"""
         concept_id_field_name = concept_field_name + '_id'
         object_dict = defaultdict(list)
