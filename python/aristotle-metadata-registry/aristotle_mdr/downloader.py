@@ -502,8 +502,8 @@ class HTMLDownloader(Downloader):
         status_objs = MDR.Status.objects.filter(concept__in=all_ids).current().all()
         # Bulk lookup custom values (with non empty content)
         custom_values = CustomValue.objects.filter(
-            Q(concept__in=all_ids) & ~Q(content="")
-        ).visible(self.user).select_related('field')
+            concept__in=all_ids
+        ).with_content().visible(self.user).select_related('field')
 
         context.update({
             'current_statuses': self.qs_as_dict(status_objs),
