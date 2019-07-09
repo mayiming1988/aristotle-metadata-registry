@@ -4,15 +4,19 @@
 {% block objSpecific %}
 <strong>Components</strong>
     <dl>
-        <dt>Object Class:</dt>
-        <dd>
-            {% lookup sub_items "aristotle_mdr.objectclass" item.objectClass_id as oc %}
-            {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=oc name=False %}
-        </dd>
-        <dt>Property:</dt>
-        <dd>
-            {% lookup sub_items "aristotle_mdr.property" item.property_id as prop %}
-            {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=prop name=False %}
-        </dd>
+        {% if item.objectClass.id %}
+          <dt>Object Class:</dt>
+          <dd>
+              {% lookup subitems "aristotle_mdr.objectclass" item.objectClass_id as oc %}
+              {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=oc name=False %}
+          </dd>
+        {% endif %}
+        {% if item.property_id %}
+          <dt>Property:</dt>
+          <dd>
+              {% lookup subitems "aristotle_mdr.property" item.property_id as prop %}
+              {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=prop name=False %}
+          </dd>
+        {% endif %}
     </dl>
 {% endblock %}
