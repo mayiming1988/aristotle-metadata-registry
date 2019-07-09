@@ -405,6 +405,15 @@ class HTMLDownloader(Downloader):
                         download_items = download_items.filter(statuses__state=state)
 
                     sub_query = download_items.visible(self.user)
+
+                    # Prefetch all sub objects on a value domain
+                    if sub_query.model == MDR.ValueDomain:
+                        sub_query = sub_query.select_related(
+                            'unit_of_measure', 'conceptual_domain', 'data_type'
+                        ).prefetch_related(
+                            'permissiblevalue_set', 'supplementaryvalue_set'
+                        )
+
                     sub_list = list(sub_query)
 
                 else:
