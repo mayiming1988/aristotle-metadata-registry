@@ -432,16 +432,12 @@ class HTMLDownloader(Downloader):
         """
         context = self.get_base_download_context()
 
-        _list = "<li>" + "</li><li>".join([item.name for item in self.items if item]) + "</li>"
-        subtitle = mark_safe("Generated from the following metadata items:<ul>%s<ul>" % _list)
-
         if self.options['include_supporting']:
             sub_items = self.get_sub_items_dict()
         else:
             sub_items = {}
 
         context.update({
-            'subtitle': subtitle,
             'tableOfContents': True,
             'items': self.items,
             'included_items': sub_items
