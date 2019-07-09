@@ -360,12 +360,12 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
 
         context = downloader.get_context()
         self.assertCountEqual(
-            context['subitems']['aristotle_mdr.objectclass']['items'],
+            context['subitems']['aristotle_mdr.objectclass'].items,
             [self.animal]
         )
 
         self.assertCountEqual(
-            context['subitems']['aristotle_mdr.property']['items'],
+            context['subitems']['aristotle_mdr.property'].items,
             [self.speed]
         )
 
