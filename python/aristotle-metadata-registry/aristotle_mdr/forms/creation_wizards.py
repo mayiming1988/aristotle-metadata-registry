@@ -8,6 +8,7 @@ import aristotle_mdr.models as MDR
 from aristotle_mdr.contrib.autocomplete import widgets
 from aristotle_mdr.exceptions import NoUserGivenForUserForm
 from aristotle_mdr.managers import ConceptQuerySet
+from comet.managers import FrameworkDimensionQuerySet
 from aristotle_mdr.perms import user_can_remove_from_workgroup, user_can_move_to_workgroup
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 from aristotle_mdr.widgets.widgets import NameSuggestInput
@@ -140,6 +141,11 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
                     self.fields[f].queryset = self.fields[f].queryset.all().visible(self.user)
                     self.fields[f].widget = field_widget(model=self.fields[f].queryset.model)
                     self.fields[f].widget.choices = self.fields[f].choices
+            elif hasattr(self.fields[f], 'queryset') and type(self.fields[f].queryset) == FrameworkDimensionQuerySet:
+                if f in [m2m.name for m2m in self._meta.model._meta.many_to_many]:
+                    field_widget = widgets.FrameworkDimensionAutocompleteSelectMultiple
+                    self.fields[f].widget = field_widget(model=self.fields[f].queryset.model)
+                    self.fields[f].queryset = self.fields[f].queryset.all()
             elif type(self.fields[f]) == forms.fields.DateField:
                 self.fields[f].widget = BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"})
             elif type(self.fields[f]) == forms.fields.DateTimeField:
