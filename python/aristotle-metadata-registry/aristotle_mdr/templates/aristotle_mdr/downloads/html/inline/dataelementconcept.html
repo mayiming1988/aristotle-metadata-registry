@@ -4,7 +4,7 @@
 {% block objSpecific %}
 <strong>Components</strong>
     <dl>
-        {% if item.objectClass.id %}
+        {% if item.objectClass_id %}
           <dt>Object Class:</dt>
           <dd>
               {% lookup subitems "aristotle_mdr.objectclass" item.objectClass_id as oc %}
