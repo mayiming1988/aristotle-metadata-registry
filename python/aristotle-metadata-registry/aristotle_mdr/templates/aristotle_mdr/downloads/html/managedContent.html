@@ -133,7 +133,7 @@
                         {% if itemlist.help %}<p>{% relink itemlist.help 'brief' %}</p>{% endif %}
                         {% for i in itemlist.items %}
                             <div id='{{i.id}}' style="page-break-before:always;">
-                              {% include i|template_path:'html,inline' with item=i header='h3' user=user current_statuses=current_statuses only %}
+                              {% include i|template_path:'html,inline' with item=i header='h3' user=user current_statuses=current_statuses custom_values=custom_values only %}
                               {# {% include "aristotle_mdr/downloads/html/inline/managedContent.html" with item=i header='h3' user=user only %} #}
                             </div>
                         {% endfor %}

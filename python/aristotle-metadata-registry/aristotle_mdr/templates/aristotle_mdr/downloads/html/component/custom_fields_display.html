@@ -1,12 +1,12 @@
 {% load util_tags %}
 
-{% with custom_values=item|get_custom_values_for_item:user %}
-{% if custom_values %}
+{% lookup custom_values item.id as item_values %}
+{% if item_values %}
 <dl class="custom_fields">
 <dt class="main_heading">Custom Fields</dt>
 <dd>
     <dl>
-        {% for cv in custom_values %}
+        {% for cv in item_values %}
             <dt>
                 {{ cv.field.name }}
             </dt>
@@ -22,4 +22,3 @@
 </dd>
 </dl>
 {% endif %}
-{% endwith %}

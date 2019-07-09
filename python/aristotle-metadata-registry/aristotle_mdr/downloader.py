@@ -25,6 +25,7 @@ import pypandoc
 
 from aristotle_mdr.contrib.help.models import ConceptHelp
 from aristotle_mdr import models as MDR
+from aristotle_mdr.contrib.custom_fields.models import CustomValue
 from aristotle_mdr.utils import fetch_aristotle_settings, get_model_label, format_seconds
 from aristotle_mdr.utils.utils import get_download_template_path_for_item
 from aristotle_dse.models import DataSetSpecification
@@ -450,6 +451,15 @@ class HTMLDownloader(Downloader):
 
         return prelim
 
+    def qs_as_dict(self, qs, concept_field_name='concept') -> Dict[int, List[Any]]:
+        """Get queryset as dict mapping ids to lists of objects"""
+        concept_id_field_name = concept_field_name + '_id'
+        object_dict = defaultdict(list)
+        for o in qs:
+            object_dict[concept_id_field_name].append(o)
+
+        return object_dict
+
     def get_caches(self, context: Dict) -> Dict:
         # Build set of all items & subitem id's
         all_ids: Set = {i.id for i in self.items}
@@ -463,11 +473,13 @@ class HTMLDownloader(Downloader):
 
         # Bulk lookup current status
         status_objs = MDR.Status.objects.filter(concept__in=all_ids).current().all()
-        current_status_dict: Dict[int, List[MDR.Status]] = defaultdict(list)
-        for s in status_objs:
-            current_status_dict[s.concept_id].append(s)
+        # Bulk lookup custom values
+        custom_values = CustomValue.objects.filter(concept__in=all_ids).select_related('field')
 
-        context['current_statuses'] = current_status_dict
+        context.update({
+            'current_statuses': self.qs_as_dict(status_objs),
+            'custom_values': self.qs_as_dict(custom_values)
+        })
         return context
 
     def get_context(self) -> Dict[str, Any]:
