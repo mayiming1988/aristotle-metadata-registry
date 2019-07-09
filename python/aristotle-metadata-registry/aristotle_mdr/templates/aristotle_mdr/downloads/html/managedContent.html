@@ -131,10 +131,9 @@
                     <div style="page-break-before:always;">
                         <h2>{{ itemlist.model_pluralized }}</h2>
                         {% if itemlist.help %}<p>{% relink itemlist.help 'brief' %}</p>{% endif %}
-                        {% for i in itemlist.items %}
+                        {% for i in itemlist.sorted_items %}
                             <div id='{{i.id}}' style="page-break-before:always;">
                               {% include i|template_path:'html,inline' with item=i header='h3' %}
-                              {# {% include "aristotle_mdr/downloads/html/inline/managedContent.html" with item=i header='h3' user=user only %} #}
                             </div>
                         {% endfor %}
                     </div>
