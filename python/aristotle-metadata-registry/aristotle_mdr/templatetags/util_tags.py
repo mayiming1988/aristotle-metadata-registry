@@ -172,7 +172,12 @@ def dict_lookup(mapping, *keys):
     for key in keys:
         try:
             result = result[key]
-        except (KeyError, TypeError):
-            return ''
+        except (KeyError, TypeError) as e:
+            # If key was not found or object is not indexable
+            # In development raise error, in production return empty string
+            if settings.DEBUG:
+                raise e
+            else:
+                return ''
 
     return result
