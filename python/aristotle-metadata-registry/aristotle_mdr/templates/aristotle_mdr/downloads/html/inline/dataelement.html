@@ -1,28 +1,34 @@
 {% extends "aristotle_mdr/downloads/html/inline/managedContent.html" %}
+{% load util_tags %}
+
 {% block objSpecific %}
 <strong style="main_heading">Components</strong>
 <dl>
     <dt>Data Element Concept -
-        {% include "aristotle_mdr/helpers/itemLink.html" with item=item.dataElementConcept %}
+        {% lookup sub_items "aristotle_mdr.datalementconcept" item.dataElementConcept_id as dec %}
+        {% include "aristotle_mdr/helpers/itemLink.html" with item=dec %}
     </dt>
     <dd>
-        {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=item.dataElementConcept name=False %}
+        {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=dec name=False %}
         <dl class="additionaldetails">
             <dt>Object Class</dt>
             <dd>
-                {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=item.dataElementConcept.objectClass %}
+                {% lookup sub_items "aristotle_mdr.objectclass" dec.objectClass_id as oc %}
+                {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=oc %}
             </dd>
             <dt>Property</dt>
             <dd>
-                {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=item.dataElementConcept.property %}
+                {% lookup sub_items "aristotle_mdr.property" dec.property_id as prop %}
+                {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=prop %}
             </dd>
         </dl>
     </dd>
     <dt>Value Domain -
-        {% include "aristotle_mdr/helpers/itemLink.html" with item=item.valueDomain %}
+        {% lookup sub_items "aristotle_mdr.valuedomain" item.valueDomain_id as vd %}
+        {% include "aristotle_mdr/helpers/itemLink.html" with item=vd %}
     </dt>
     <dd>
-        {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=item.valueDomain name=False %}
+        {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=vd name=False %}
         {# % include "aristotle_mdr/downloads/html/inline/valueDomainRepresentation.html" with item=item.valueDomain % #}
     </dd>
 </dl>

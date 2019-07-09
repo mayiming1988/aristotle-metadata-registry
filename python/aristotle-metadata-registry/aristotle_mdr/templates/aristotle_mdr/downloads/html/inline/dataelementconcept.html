@@ -1,14 +1,18 @@
 {% extends "aristotle_mdr/downloads/html/inline/managedContent.html" %}
+{% load util_tags %}
+
 {% block objSpecific %}
 <strong>Components</strong>
     <dl>
         <dt>Object Class:</dt>
         <dd>
-            {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=item.objectClass name=False %}
+            {% lookup sub_items "aristotle_mdr.objectclass" item.objectClass_id as oc %}
+            {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=oc name=False %}
         </dd>
         <dt>Property:</dt>
         <dd>
-            {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=item.property name=False %}
+            {% lookup sub_items "aristotle_mdr.property" item.property_id as prop %}
+            {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=prop name=False %}
         </dd>
     </dl>
 {% endblock %}
