@@ -867,7 +867,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
     def test_uuids_redirect_correctly(self):
         self.login_viewer()
-        response = self.client.get(reverse('aristotle:item_uuid', args=[self.item1.id]))
+        response = self.client.get(reverse('aristotle:item_uuid', args=[self.item1.uuid]))
         self.assertRedirects(response, url_slugify_concept(self.item1))
 
     def test_anon_cannot_view_edit_page(self):
