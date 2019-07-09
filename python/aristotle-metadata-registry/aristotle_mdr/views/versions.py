@@ -1,7 +1,6 @@
-from typing import Dict, List, Optional, Tuple, Any, Set
 from django.db.models.query import QuerySet
-from django.http import Http404, HttpResponseRedirect
-from django.core.exceptions import PermissionDenied, FieldDoesNotExist
+from django.http import Http404
+from django.core.exceptions import PermissionDenied
 from django.views.generic.list import ListView
 from django.views.generic import TemplateView
 from django.db.models import Q, Model, Field
@@ -10,7 +9,7 @@ from django.core.exceptions import FieldDoesNotExist
 from django.shortcuts import get_object_or_404
 
 from aristotle_mdr import models as MDR
-from aristotle_mdr.perms import user_can_view, user_can_edit
+from aristotle_mdr.perms import user_can_edit
 from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
 from aristotle_mdr.views.utils import SimpleItemGet
 from aristotle_mdr.utils.utils import strip_tags
@@ -20,6 +19,7 @@ from aristotle_mdr.contrib.custom_fields.models import CustomField
 from aristotle_mdr.utils.versions import VersionField, VersionLinkField, VersionGroupField, VersionMultiLinkField
 
 from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
+from typing import Dict, List, Optional, Tuple, Any, Set
 import json
 import reversion
 import diff_match_patch
@@ -125,7 +125,6 @@ class VersionsMixin:
             field = model._meta.get_field(field_name)
         except FieldDoesNotExist:
             field = model._meta.get_field(self.clean_field(field_name))
-
         return field
 
     def get_field_or_none(self, field_name: str, model) -> Optional[Field]:
@@ -142,7 +141,6 @@ class VersionsMixin:
             name = self.get_verbose_name(fieldobj)
         except AttributeError:
             name = field
-
         return name
 
     def get_verbose_name(self, field: Field) -> str:
@@ -173,6 +171,17 @@ class VersionsMixin:
         serialized_data['customvalue_set'] = serialized_custom_values
 
         return serialized_data
+
+    def is_concept_fk(self, field):
+        """Check whether field is a foreign key to a concept"""
+        return field.many_to_one and issubclass(field.related_model, MDR._concept)
+
+    def is_link_field(self, field) -> bool:
+        """Check whether field is a foreign key to an item we want to display lookup value for"""
+        if field.many_to_one:
+            related = field.related_model
+            return issubclass(related, MDR._concept) or related == CustomField
+        return False
 
 
 class ConceptVersionView(VersionsMixin, TemplateView):
@@ -236,20 +245,9 @@ class ConceptVersionView(VersionsMixin, TemplateView):
 
         return self.remove_disallowed_custom_fields(self.request.user, version_dict, item)
 
-    def is_concept_fk(self, field):
-        """Check whether field is a foreign key to a concept"""
-        return field.many_to_one and issubclass(field.related_model, MDR._concept)
-
     def is_concept_multiple(self, field):
         """Check whether field is a link to multiple concepts"""
         return (field.many_to_many or field.one_to_many) and issubclass(field.related_model, MDR._concept)
-
-    def is_link_field(self, field) -> bool:
-        """Check whether field is a foreign key to an item we want to display lookup value for"""
-        if field.many_to_one:
-            related = field.related_model
-            return issubclass(related, MDR._concept) or related == CustomField
-        return False
 
     def get_field_data(self, version_data: Dict, model, exclude: List[str] = []) -> Dict:
         """Replace data with (field, data) tuples"""
@@ -431,6 +429,12 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
             return True
         return False
 
+    def perform_diff_on_field(self, earlier, later):
+        diff = self.differ.diff_main(earlier, later)
+        self.differ.diff_cleanupSemantic(diff)
+
+        return diff
+
     def generate_diff(self, earlier_dict, later_dict):
         """
         Returns a dictionary containing a list of tuples with the differences per field.
@@ -462,15 +466,12 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
                             earlier = strip_tags(earlier)
                             later = strip_tags(later)
 
-                        diff = self.differ.diff_main(earlier, later)
-                        self.differ.diff_cleanupSemantic(diff)
-
                         is_html_field = self.is_field_html(field, self.model)
 
                         field_to_diff[field] = {'user_friendly_name': field.title(),
                                                 'subitem': False,
                                                 'is_html': is_html_field,
-                                                'diffs': diff}
+                                                'diffs': self.perform_diff_on_field(earlier, later)}
 
                     elif isinstance(earlier_value, dict):
                         # It's a single subitem
@@ -527,7 +528,6 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
         return differences
 
     def build_diff_of_subitem_dict(self, earlier_item, later_item, subitem_model) -> List[Dict]:
-        differences = []
         difference_dict = {}
 
         for field, earlier_value in earlier_item.items():
@@ -546,16 +546,28 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
                 if later_value is None:
                     later_value = 'None'
 
-                diff = self.differ.diff_main(earlier_value, later_value)
-                self.differ.diff_cleanupSemantic(diff)
-
-                difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model), 'diff': diff}
-
-            differences.append(difference_dict)
-        return differences
+                difference_dict[field] = {'is_html': self.is_field_html(field, subitem_model),
+                                          'diff': self.perform_diff_on_field(earlier_value, later_value)}
+        return [difference_dict]
 
     def get_subitem_key(self, subitem_model):
         return 'id'
+
+    def replace_id_with_names(self, model, items):
+        for subitem in items.values():
+            # Iterate over subitems
+            for field_name, value in subitem.items():
+                field = self.get_field_or_none(field_name, model)
+                if field is None:
+                    pass
+                else:
+                    if self.is_concept_fk(field):
+                        # Perform the lookup, modify in place
+                        item_model = self.get_model_from_foreign_key_field(model, field_name)
+                        item_name = item_model.objects.get(pk=value).name
+                        subitem[field_name] =  item_name
+        return items
+
 
     def build_diff_of_subitems(self, earlier_values, later_values, subitem_model) -> List[Dict]:
         """
@@ -566,12 +578,14 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
         """
         differences: list = []
 
-        both_empty = earlier_values == [] and later_values == []
-        if not both_empty:
+        if not self.both_fields_empty(earlier_values, later_values):
             key = self.get_subitem_key(subitem_model)
 
             earlier_items = {item[key]: item for item in earlier_values}
+            earlier_items = self.replace_id_with_names(subitem_model, earlier_items)
+
             later_items = {item[key]: item for item in later_values}
+            later_items = self.replace_id_with_names(subitem_model, later_items)
 
             # Items that are in the later items but not the earlier items have been 'added'
             added_ids = set(later_items.keys()) - set(earlier_items.keys())
@@ -609,9 +623,6 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
                             earlier_value = strip_tags(earlier_value)
                             later_value = strip_tags(later_value)
 
-                        diff = self.differ.diff_main(earlier_value, later_value)
-                        self.differ.diff_cleanupSemantic(diff)
-
                         # Custom logic to determine if CustomValue field is HTML
                         is_html = False
                         if subitem_model is CustomValue:
@@ -622,7 +633,7 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
                             is_html = self.is_field_html(field, subitem_model)
 
                         difference_dict[field] = {'is_html': is_html,
-                                                  'diff': diff}
+                                                  'diff': self.perform_diff_on_field(earlier_value, later_value)}
                 if difference_dict:
                     differences.append(difference_dict)
 
