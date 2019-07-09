@@ -565,9 +565,8 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
                         # Perform the lookup, modify in place
                         item_model = self.get_model_from_foreign_key_field(model, field_name)
                         item_name = item_model.objects.get(pk=value).name
-                        subitem[field_name] =  item_name
+                        subitem[field_name] = item_name
         return items
-
 
     def build_diff_of_subitems(self, earlier_values, later_values, subitem_model) -> List[Dict]:
         """
