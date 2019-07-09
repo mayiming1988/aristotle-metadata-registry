@@ -8,7 +8,6 @@ import aristotle_mdr.models as MDR
 from aristotle_mdr.contrib.autocomplete import widgets
 from aristotle_mdr.exceptions import NoUserGivenForUserForm
 from aristotle_mdr.managers import ConceptQuerySet
-from comet.managers import FrameworkDimensionQuerySet
 from aristotle_mdr.perms import user_can_remove_from_workgroup, user_can_move_to_workgroup
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 from aristotle_mdr.widgets.widgets import NameSuggestInput
@@ -117,6 +116,7 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
     """
 
     def __init__(self, *args, **kwargs):
+        from comet.managers import FrameworkDimensionQuerySet
         # TODO: Have this throw a 'no user' error
         super().__init__(*args, **kwargs)
 
