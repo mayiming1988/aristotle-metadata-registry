@@ -9,6 +9,7 @@ from django.core.exceptions import PermissionDenied
 from django.core.files.base import ContentFile
 from django.core.mail.message import EmailMessage
 from django.db.models.query import QuerySet
+from django.db.models import Q
 from django.http.request import QueryDict
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -499,8 +500,10 @@ class HTMLDownloader(Downloader):
 
         # Bulk lookup current status
         status_objs = MDR.Status.objects.filter(concept__in=all_ids).current().all()
-        # Bulk lookup custom values
-        custom_values = CustomValue.objects.filter(concept__in=all_ids).select_related('field')
+        # Bulk lookup custom values (with non empty content)
+        custom_values = CustomValue.objects.filter(
+            Q(concept__in=all_ids) & ~Q(content="")
+        ).visible(self.user).select_related('field')
 
         context.update({
             'current_statuses': self.qs_as_dict(status_objs),
