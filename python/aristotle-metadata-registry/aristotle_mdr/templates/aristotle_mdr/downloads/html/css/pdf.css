@@ -105,18 +105,50 @@ a {
 }
 
 table.dss_inclusions {
+    border: 1px solid lightgray;
     width: 100%;
-    border-collapse: collapse;
+    margin-top: 30px;
 }
 
 table.dss_inclusions td, table.dss_inclusions th {
     border: 1px solid lightgray;
     text-align: left;
-    padding: 0.2em;
 }
 
-dd.dss_inclusions {
-    padding-left: 1.5em;
+.dss_inclusion_name {
+    margin-left: 10px;
+}
+
+.padding-1 {
+    padding-left: 20px
+}
+
+.padding-2 {
+    padding-left: 40px
+}
+
+.padding-3 {
+    padding-left: 60px
+}
+
+.padding-4 {
+    padding-left: 80px
+}
+
+.padding-5 {
+    padding-left: 100px
+}
+
+.padding-6 {
+    padding-left: 120px
+}
+
+.padding-7 {
+    padding-left: 140px
+}
+
+.padding-8 {
+    padding-left: 160px
 }
 
 .title_page .title_section {
