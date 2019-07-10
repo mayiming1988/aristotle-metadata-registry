@@ -501,8 +501,8 @@ def django_admin_wrapper(request, page_url):
     return render(request, "aristotle_mdr/user/admin.html", {'page_url': page_url})
 
 
-class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListView):
-    """Display the User's sandbox items"""
+class SandboxedItemsView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListView):
+    """Display the user's sandbox items"""
 
     paginate_by = 25
     template_name = "aristotle_mdr/user/sandbox.html"
@@ -519,7 +519,6 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
     def get_share(self):
         if not hasattr(self.request.user, 'profile'):
             return None
-
         return getattr(self.request.user.profile, 'share', None)
 
     def get_initial(self):
@@ -531,28 +530,6 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
             self.state_of_emails_before_updating = share.emails
 
         return initial
-
-    def get_context_data(self, *args, **kwargs):
-        # Call the base implementation first to get a context
-        context = super().get_context_data(*args, **kwargs)
-        context['sort'] = self.request.GET.get('sort', 'name_asc')
-        context['share'] = self.share
-
-        if 'form' in kwargs:
-            form = kwargs['form']
-        else:
-            form = self.get_form()
-
-        context['form'] = form
-        context['host'] = self.request.get_host()
-
-        if 'display_share' in self.request.GET:
-            context['display_share'] = True
-            context['number_of_accounts_user_is_sharing_with'] = len(self.get_initial().get('emails'))
-        else:
-            context['display_share'] = False
-
-        return context
 
     def post(self, *args, **kwargs):
         form = self.get_form()
@@ -588,13 +565,35 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
                     json.loads(self.share.emails)
                 )
                 if len(recently_added_emails) > 0:
-                    # If new emails have been added
+                    # If new emails have been added, send an email
                     send_sandbox_notification_emails.delay(
                         recently_added_emails,
                         self.request.get_host() + reverse('aristotle_mdr:sharedSandbox', args=[self.share.uuid])
                     )
 
         return super().form_valid(form)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['sort'] = self.request.GET.get('sort', 'name_asc')
+        context['share'] = self.share
+        context['shared_emails'] = json.loads(self.share.emails)
+
+        if 'form' in kwargs:
+            form = kwargs['form']
+        else:
+            form = self.get_form()
+
+        context['form'] = form
+        context['host'] = self.request.get_host()
+
+        if 'display_share' in self.request.GET:
+            context['display_share'] = True
+            context['number_of_accounts_user_is_sharing_with'] = len(self.get_initial().get('emails'))
+        else:
+            context['display_share'] = False
+
+        return context
 
     def get_ordering(self):
         from aristotle_mdr.views.utils import paginate_sort_opts
@@ -604,26 +603,27 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
     def get_success_url(self):
         return reverse('aristotle_mdr:userSandbox') + '?display_share=1'
 
-    def get_recently_added_emails(self, old_list, new_list):
-        old_list_set = set(old_list)
-        new_list_set = set(new_list)
-        return list(new_list_set - old_list_set)
+    def get_recently_added_emails(self, old_emails, new_emails):
+        return list(set(new_emails) - set(old_emails))
 
 
 class GetShareMixin:
     """Code shared by all share link views"""
 
     def dispatch(self, request, *args, **kwargs):
-
-        self.share = self.get_share()
+        self.share = self.get_share_obj()
         emails = json.loads(self.share.emails)
 
-        if request.user.email not in emails:
-            # If the user is not in the list of allowed emails
-            raise PermissionDenied
+        not_in_shared_emails = request.user.email not in emails
+        not_own_sandbox = request.user.id != self.share.profile.user_id
+
+        if not_in_shared_emails and not_own_sandbox:
+            # If the user is not in the list of allowed emails or it's not their own sandbox
+                raise PermissionDenied
+
         return super().dispatch(request, *args, **kwargs)
 
-    def get_share(self):
+    def get_share_obj(self):
         uuid = self.kwargs['share']
         try:
             share = MDR.SandboxShare.objects.get(uuid=uuid)
@@ -685,9 +685,7 @@ class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderView):
                 'active': True
             }
         ]
-
-        # Set these in order to display links to other sandbox content
-        # correctly
+        # Set these in order to display links to other sandbox content  correctly
         context['shared_ids'] = self.sandbox_ids
         context['share_uuid'] = self.share.uuid
         return context
