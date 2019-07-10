@@ -343,10 +343,17 @@ class DataSetSpecification(aristotle.models.concept):
             # get parent, child tuples
             values = DSSClusterInclusion.objects.filter(
                 dss_id__in=last_level_ids,
-            ).values_list('dss_id', 'child_id')
+            ).order_by('order')
+
+            values_list = []
+            for inc in values:
+                values_list.append(
+                    (inc.dss_id, inc.child_id, inc)
+                )
+
             # Update last level ids
             last_level_ids.clear()
-            for v in values:
+            for v in values_list:
                 last_level_ids.append(v[1])
                 clusters.append(v)
 
@@ -356,9 +363,15 @@ class DataSetSpecification(aristotle.models.concept):
         """Helper used to fetch all data element relations for a set of dss's"""
         values = DSSDEInclusion.objects.filter(
             dss__in=dss_ids,
-        ).values_list('dss_id', 'data_element_id')
+        ).order_by('order')
 
-        return list(values)
+        values_list = []
+        for inc in values:
+            values_list.append(
+                (inc.dss_id, inc.data_element_id, inc)
+            )
+
+        return values_list
 
     def get_unique_ids(self, relations: List[Tuple[int, int]]) -> Set[int]:
         unique_ids = set()
