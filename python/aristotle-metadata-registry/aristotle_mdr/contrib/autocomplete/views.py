@@ -103,14 +103,9 @@ class GenericConceptAutocomplete(GenericAutocomplete):
 
 
 class FrameworkDimensionsAutocomplete(GenericAutocomplete):
-    model = None
-    template_name = "autocomplete_light/concept.html"
-
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
+    template_name = "autocomplete_light/framework_dimensions.html"
 
     def get_queryset(self):
-
         if self.q:
             qs = self.model.objects.filter(
                 name__icontains=self.q
