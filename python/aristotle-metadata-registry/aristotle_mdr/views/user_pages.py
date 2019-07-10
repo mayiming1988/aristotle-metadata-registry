@@ -544,7 +544,7 @@ class SandboxedItemsView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListView)
             return self.form_invalid(form)
 
     def form_valid(self, form):
-
+        raise ValueError(self.request.user.profile.name)
         emails = form.cleaned_data.get('emails', [])
         emails_json = json.dumps(emails)
 
@@ -553,23 +553,23 @@ class SandboxedItemsView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListView)
                 profile=self.request.user.profile,
                 emails=emails_json
             )
-        else:
-            self.share.emails = emails_json
-            self.share.save()
-            self.ajax_success_message = 'Share permissions updated'
 
-            if 'notify_new_users_checkbox' in form.cleaned_data and form.cleaned_data.get('notify_new_users_checkbox'):
-                # If the notify new users checkbox was selected
-                recently_added_emails = self.get_recently_added_emails(
-                    json.loads(self.state_of_emails_before_updating),
-                    json.loads(self.share.emails)
+        self.share.emails = emails_json
+        self.share.save()
+        self.ajax_success_message = 'Share permissions updated'
+
+        if 'notify_new_users_checkbox' in form.cleaned_data and form.cleaned_data.get('notify_new_users_checkbox'):
+            # If the notify new users checkbox was selected
+            recently_added_emails = self.get_recently_added_emails(
+                json.loads(self.state_of_emails_before_updating),
+                json.loads(self.share.emails)
+            )
+            if len(recently_added_emails) > 0:
+                # If new emails have been added, send an email
+                send_sandbox_notification_emails.delay(
+                    recently_added_emails,
+                    self.request.get_host() + reverse('aristotle_mdr:sharedSandbox', args=[self.share.uuid])
                 )
-                if len(recently_added_emails) > 0:
-                    # If new emails have been added, send an email
-                    send_sandbox_notification_emails.delay(
-                        recently_added_emails,
-                        self.request.get_host() + reverse('aristotle_mdr:sharedSandbox', args=[self.share.uuid])
-                    )
 
         return super().form_valid(form)
 

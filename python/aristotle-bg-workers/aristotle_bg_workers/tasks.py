@@ -108,7 +108,7 @@ def download(download_type: str, item_ids: List[int], user_id: int, options={}) 
 
 
 @shared_task(name='send_sandbox_notification_emails')
-def send_sandbox_notification_emails(emails_list, sandbox_access_url):
+def send_sandbox_notification_emails(user, emails_list, sandbox_access_url):
     from django.core.mail import send_mail
     from django.conf import settings
 
