@@ -283,7 +283,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         response = self.reverse_get(
             'aristotle_mdr:sharedSandbox',
             reverse_args=[share.uuid],
-            status_code=404
+            status_code=403
         )
 
     @tag('share_link')
@@ -313,7 +313,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         self.assertInContext(response, 'breadcrumbs')
 
     @tag('share_link')
-    def test_view_sanbox_item_incorrect_email(self):
+    def test_view_sandbox_item_incorrect_email(self):
         share = self.create_content_and_share(
             self.editor,
             ['tester@example.com', 'alice@example.com']
@@ -327,7 +327,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         response = self.reverse_get(
             'aristotle_mdr:sharedSandboxItem',
             reverse_args=[share.uuid, item.id],
-            status_code=404
+            status_code=403
         )
 
     @tag('share_link')

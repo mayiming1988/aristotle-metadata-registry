@@ -550,7 +550,7 @@ class SandboxedItemsView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListView)
         name_of_user = self.request.user.first_name
 
         if not self.share:
-            MDR.SandboxShare.objects.create(
+            self.share = MDR.SandboxShare.objects.create(
                 profile=self.request.user.profile,
                 emails=emails_json
             )
@@ -579,7 +579,9 @@ class SandboxedItemsView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListView)
         context = super().get_context_data(*args, **kwargs)
         context['sort'] = self.request.GET.get('sort', 'name_asc')
         context['share'] = self.share
-        context['shared_emails'] = json.loads(self.share.emails)
+
+        if hasattr(self.share, 'emails'):
+            context['shared_emails'] = json.loads(self.share.emails)
 
         if 'form' in kwargs:
             form = kwargs['form']
