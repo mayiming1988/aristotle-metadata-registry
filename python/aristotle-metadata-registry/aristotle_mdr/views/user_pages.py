@@ -619,7 +619,7 @@ class GetShareMixin:
 
         if not_in_shared_emails and not_own_sandbox:
             # If the user is not in the list of allowed emails or it's not their own sandbox
-                raise PermissionDenied
+            raise PermissionDenied
 
         return super().dispatch(request, *args, **kwargs)
 
