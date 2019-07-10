@@ -108,7 +108,7 @@ def download(download_type: str, item_ids: List[int], user_id: int, options={}) 
 
 
 @shared_task(name='send_sandbox_notification_emails')
-def send_sandbox_notification_emails(user, emails_list, sandbox_access_url):
+def send_sandbox_notification_emails(name_of_user, emails_list, sandbox_access_url):
     from django.core.mail import send_mail
     from django.conf import settings
 
@@ -121,7 +121,8 @@ def send_sandbox_notification_emails(user, emails_list, sandbox_access_url):
     for email in emails_list:
         send_mail(
             'Sandbox Access',
-            'Hello there, to access my Sandbox please use the following URL: ' + sandbox_access_url,
+            "Hello there, to access {}'s Sandbox please use the following URL: ".format(name_of_user.capitalize())
+            + sandbox_access_url,
             from_email,
             [email]
         )

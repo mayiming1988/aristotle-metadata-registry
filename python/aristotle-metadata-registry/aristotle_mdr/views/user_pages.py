@@ -544,9 +544,10 @@ class SandboxedItemsView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListView)
             return self.form_invalid(form)
 
     def form_valid(self, form):
-        raise ValueError(self.request.user.profile.name)
         emails = form.cleaned_data.get('emails', [])
         emails_json = json.dumps(emails)
+
+        name_of_user = self.request.user.first_name
 
         if not self.share:
             MDR.SandboxShare.objects.create(
@@ -567,6 +568,7 @@ class SandboxedItemsView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListView)
             if len(recently_added_emails) > 0:
                 # If new emails have been added, send an email
                 send_sandbox_notification_emails.delay(
+                    name_of_user,
                     recently_added_emails,
                     self.request.get_host() + reverse('aristotle_mdr:sharedSandbox', args=[self.share.uuid])
                 )

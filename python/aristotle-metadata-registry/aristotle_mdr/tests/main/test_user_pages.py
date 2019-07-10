@@ -530,14 +530,23 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
 
     @tag('share_link')
     def test_send_emails_for_new_email_addresses(self):
-
+        # Create some content and share it
         share = self.create_content_and_share(self.editor, ['vicky@example.com'])
-        send_sandbox_notification_emails(ast.literal_eval(share.emails), str(share.uuid))
+        name_of_user = 'vicky'
+
+        # Send the emails
+        send_sandbox_notification_emails(name_of_user, ast.literal_eval(share.emails), str(share.uuid))
+
+        # Check that one email appears in the outbox
         self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].subject, 'Sandbox Access')
+
         # Assert that the email is being sent from the default from email
         self.assertEqual(mail.outbox[0].from_email, settings.DEFAULT_FROM_EMAIL)
-        self.assertEqual(mail.outbox[0].body, 'Hello there, to access my Sandbox please use the following URL: ' + str(share.uuid))
+        self.assertEqual(mail.outbox[0].subject, 'Sandbox Access')
+        self.assertEqual(mail.outbox[0].body,
+                         "Hello there, to access {}'s Sandbox "
+                         "please use the following URL: ".format(name_of_user.capitalize())
+                         + str(share.uuid))
 
 
 class UserDashRecentItems(utils.AristotleTestUtils, TestCase):
