@@ -14,7 +14,6 @@ from django.utils.module_loading import import_string
 from django.utils.functional import SimpleLazyObject
 from django.utils import timezone
 from formtools.wizard.views import SessionWizardView
-from aristotle_mdr.forms import EditStatusForm
 
 import json
 
@@ -22,11 +21,14 @@ import reversion
 
 from aristotle_mdr.perms import (
     user_can_view, user_can_edit,
+    user_can_add_status,
+    user_can_publish_object,
+    user_can_supersede,
     user_can_add_status
 )
 from aristotle_mdr import perms
 from aristotle_mdr.utils import url_slugify_concept
-
+from aristotle_mdr.forms import EditStatusForm
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
 from aristotle_mdr.utils import (
@@ -44,8 +46,8 @@ from aristotle_mdr.views.utils import (
 from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.contrib.links.utils import get_links_for_concept
-
 from aristotle_bg_workers.tasks import register_items
+from aristotle_bg_workers.utils import run_task_on_commit
 
 from reversion.models import Version
 
@@ -257,17 +259,22 @@ class ConceptRenderView(TagsMixin, TemplateView):
         else:
             context['isFavourite'] = self.request.user.profile.is_favourite(self.item)
 
-        context['last_edit'] = Version.objects.get_for_object(self.item).first()
-        # Only display viewable slots
-        context['slots'] = Slot.objects.get_item_allowed(self.item, self.user)
-        context['item'] = self.item
-        context['statuses'] = self.item.current_statuses
-        context['discussions'] = self.item.relatedDiscussions.all()
-        context['activetab'] = 'item'
-        context['links'] = self.get_links()
-        context['custom_values'] = self.get_custom_values()
-        context['submitting_organizations'] = self.item.submitting_organizations
-        context['responsible_organizations'] = self.item.responsible_organizations
+        aristotle_settings = fetch_aristotle_settings()
+
+        context.update({
+            'last_edit': Version.objects.get_for_object(self.item).first(),
+            # Only display viewable slots
+            'slots': Slot.objects.get_item_allowed(self.item, self.user),
+            'item': self.item,
+            'statuses': self.item.current_statuses,
+            'discussions': self.item.relatedDiscussions.all(),
+            'activetab': 'item',
+            'links': self.get_links(),
+            'custom_values': self.get_custom_values(),
+            'submitting_organizations': self.item.submitting_organizations,
+            'responsible_organizations': self.item.responsible_organizations,
+            'infobox_identifier_name': aristotle_settings['INFOBOX_IDENTIFIER_NAME']
+        })
 
         # Add a list of viewable concept ids for fast visibility checks in
         # templates
@@ -276,6 +283,14 @@ class ConceptRenderView(TagsMixin, TemplateView):
             lambda: list(MDR._concept.objects.visible(self.user).values_list('id', flat=True))
         )
         context['viewable_ids'] = lazy_viewable_ids
+
+        # Permissions (so they are looked up once)
+        context.update({
+            'can_edit': user_can_edit(self.user, self.item),
+            'can_publish': user_can_publish_object(self.user, self.item),
+            'can_supersede': user_can_supersede(self.user, self.item),
+            'can_add_status': user_can_add_status(self.user, self.item)
+        })
 
         return context
 
@@ -313,20 +328,6 @@ class ObjectClassView(ConceptRenderView):
             'statuses'
         ]
         return model.objects.prefetch_related(*prefetch_objects)
-
-    def get_context_data(self, *args, **kwargs):
-        oc = self.get_item()
-        dec_qs = MDR.DataElementConcept.objects.filter(objectClass=oc)
-        dec_count = dec_qs.all().visible(self.request.user).count()
-
-        ctx = super().get_context_data(*args, **kwargs)
-        dec_qs = dec_qs.filter(statuses__state=MDR.STATES.standard).order_by("name")
-
-        decs = list(dec_qs[:51])
-        ctx['data_element_concepts'] = decs
-        ctx['total_data_element_concept_count'] = dec_count
-        ctx['excess_data_element_concepts'] = (len(decs) > 50)
-        return ctx
 
 
 class DataElementView(ConceptRenderView):
@@ -405,6 +406,19 @@ def create_list(request):
         w.update(_w)
         wizards.append(w)
 
+    return render(
+        request, "aristotle_mdr/create/create_list.html",
+        {
+            'models': get_app_config_list(),
+            'wizards': wizards
+        }
+    )
+
+
+def get_app_config_list(count=False):
+    out = {}
+    aristotle_apps = fetch_metadata_apps()
+
     for m in get_concepts_for_apps(aristotle_apps):
         # Only output subclasses of 11179 concept
         app_models = out.get(m.app_label, {'app': None, 'models': []})
@@ -418,18 +432,15 @@ def create_list(request):
                 app = AristotleExtensionBaseConfig()
                 app.verbose_name = "No name"
                 app_models['app'] = app
-        app_models['models'].append((m, m.model_class()))
+        app_models['models'].append({
+            "content_type": m,
+            "class": m.model_class()
+        })
         out[m.app_label] = app_models
 
-    return render(
-        request, "aristotle_mdr/create/create_list.html",
-        {
-            'models': sorted(
-                out.values(),
-                key=lambda x: (x['app'].create_page_priority, x['app'].create_page_name, x['app'].verbose_name)
-            ),
-            'wizards': wizards
-        }
+    return sorted(
+        out.values(),
+        key=lambda x: (x['app'].create_page_priority, x['app'].create_page_name, x['app'].verbose_name)
     )
 
 
@@ -556,12 +567,8 @@ class ReviewChangesView(SessionWizardView):
 
         cascading = (can_cascade and cascade)
 
-        # Call celery task to register items
-        register_func = register_items
-        if (len(item_ids) > 1 or cascading):
-            register_func = register_items.delay
-
-        register_func(
+        # Register items (using celery if required)
+        register_args = [
             item_ids,
             cascading,
             state,
@@ -569,7 +576,16 @@ class ReviewChangesView(SessionWizardView):
             self.request.user.id,
             changeDetails,
             (regDate.year, regDate.month, regDate.day)
-        )
+        ]
+
+        use_celery: bool = (len(item_ids) > 1 or cascading)
+        if settings.ALWAYS_SYNC_REGISTER:
+            use_celery = False
+
+        if use_celery:
+            run_task_on_commit(register_items, args=register_args)
+        else:
+            register_items(*register_args)
 
 
 class ChangeStatusView(ReviewChangesView):

@@ -1,5 +1,5 @@
 {% extends 'aristotle_mdr/base.html' %}
-{% load humanize i18n %}
+{% load util_tags humanize i18n %}
 
 {% block title %}
     {{ item.name }}
@@ -12,67 +12,18 @@
 {% block content %}
 <header class="row">
     {% block concept_title %}
-    {% include "aristotle_mdr/concepts/titles/display_title.html" %}
+    {% include "aristotle_mdr/concepts/titles/display_title.html" with item=current_item %}
     {% endblock %}
 </header>
 <section class="managed row">
     {% include "aristotle_mdr/concepts/versionInfobox.html" %}
     {% include "aristotle_mdr/concepts/visibilityInfoBar.html" %}
 
-    <h2>{% trans 'Definition'%}</h2>
-    <div id="definition" class="definition">
-        {{ item.definition|striptags }}
-    </div>
-
-    {% for heading, fields in item.item_data.items %}
-      <h2>{{ heading }}</h2>
-      {% for field, value in fields.items %}
-          <h3>
-            {{ field }}
-
-            {% comment %}
-             {% if value.help_text %}
-
-              <small>
-                <a tabindex="0" type="button" class="aristotle-popover" data-toggle="popover" data-trigger="focus" title="{{ field }}" data-content="{{ value.help_text }}">
-                  <i class="fa fa-2x fa-question-circle"></i>
-                </a>
-              </small>
-             {% endif %}
-            {% endcomment %}
-          </h3>
-          <p>{% include 'aristotle_mdr/helpers/version_field.html' with field=value %}</p>
-      {% endfor %}
+    {# Render version data #}
+    {% for field in item.item_fields %}
+      {% include 'aristotle_mdr/helpers/version_field.html' with field=field only %}
     {% endfor %}
 
-    {% for weak in item.weak %}
-    <h3>{{ weak.model }}{{ weak.items|length|pluralize }}</h3>
-    <table class="table">
-      <thead>
-        <tr>
-          {% for header in weak.headers %}
-            <th>
-              {{ header.text }}
-              {% if header.help_text %}
-                <a tabindex="0" type="button" class="aristotle-popover" data-toggle="popover" data-trigger="focus" title="{{ header.text }}" data-content="{{ header.help_text }}">
-                  <i class="fa fa-question-circle"></i>
-                </a>
-              {% endif %}
-            </th>
-          {% endfor %}
-        <tr>
-      </thead>
-      <tbody>
-        {% for item in weak.items %}
-          <tr>
-          {% for value in item.values %}
-            <td>{% include 'aristotle_mdr/helpers/version_field.html' with field=value %}</td>
-          {% endfor %}
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% endfor %}
 
 </section>
 

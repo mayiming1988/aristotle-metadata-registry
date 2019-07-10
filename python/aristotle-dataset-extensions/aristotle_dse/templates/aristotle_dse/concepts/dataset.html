@@ -34,8 +34,8 @@
     <h2>Data source details</h2>
     <dl class="">
         <dt>Frequency</dt>
-        <dd>{% if item.accrual_periodicity %}
-            {{ item.accrual_periodicity }}
+        <dd>{% if item.frequency %}
+            {{ item.frequency }}
         {% else %}
             {% trans "No frequency stated" %}
         {% endif %}
@@ -104,6 +104,8 @@
                         {% endfor %}
                     {% endif %}
                 </ol>
+            {% else %}
+                <em>None</em>
             {% endif %}
         </dd>
     </dl>

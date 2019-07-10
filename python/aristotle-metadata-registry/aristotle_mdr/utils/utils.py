@@ -215,7 +215,11 @@ error_messages = {
 }
 
 
-def fetch_aristotle_settings():
+def fetch_aristotle_settings() -> Dict:
+    """
+    Fetch Aristotle settings.
+    :return: dict with all the aristotle settings.
+    """
     if hasattr(settings, 'ARISTOTLE_SETTINGS_LOADER'):
         aristotle_settings = import_string(getattr(settings, 'ARISTOTLE_SETTINGS_LOADER'))()
     else:
@@ -266,6 +270,7 @@ def fetch_metadata_apps():
     aristotle_apps += ["aristotle_mdr"]
     aristotle_apps += ["aristotle_mdr_stewards"]
     aristotle_apps = list(set(aristotle_apps))
+
     return aristotle_apps
 
 
@@ -300,12 +305,19 @@ def pandoc_installed() -> bool:
 
 
 def fetch_aristotle_downloaders() -> List:
-    downloaders = []
+    downloaders: List = []
+    unusable_imports: List = []
+    enabled_downloaders: List = []
+
     imports = cache.get(settings.DOWNLOADERS_CACHE_KEY)
     if imports is None:
         installed = pandoc_installed()
-        enabled_downloaders = fetch_aristotle_settings().get('DOWNLOADERS', [])
-        unusable_imports = []
+        downloader_list = fetch_aristotle_settings().get('DOWNLOAD_OPTIONS', {}).get('DOWNLOADERS', [])
+        if type(downloader_list) is dict:
+            enabled_downloaders = [k for k, v in downloader_list.items() if v]
+        elif type(downloader_list) is list:
+            enabled_downloaders = downloader_list
+
         for imp in enabled_downloaders:
             downloader = import_string(imp)
             if (downloader.requires_pandoc and not installed):
@@ -321,18 +333,6 @@ def fetch_aristotle_downloaders() -> List:
             import_string(imp)
             for imp in imports
         ]
-
-
-def setup_aristotle_test_environment():
-    from django.test.utils import setup_test_environment
-    try:
-        setup_test_environment()
-    except RuntimeError as err:
-        if "setup_test_environment() was already called" in err.args[0]:
-            # The environment is setup, its all good.
-            pass
-        else:
-            raise
 
 
 # Given a models label, id and name, Return a url to that objects page
@@ -377,6 +377,7 @@ def get_aristotle_url(label, obj_id, obj_name=None):
 
 
 def strip_tags(text: str) -> str:
+    """This filter removes all the tags from a string."""
     return bleach.clean(text, tags=[], strip=True)
 
 
@@ -398,7 +399,7 @@ def get_concept_content_types() -> Dict[Model, ContentType]:
 
 def get_managed_item_models() -> List[Model]:
     """Returns models for any managed item subclass"""
-    from aristotle_mdr.util.model_utils import ManagedItem
+    from aristotle_mdr.utils.model_utils import ManagedItem
     models = []
     for app_config in apps.get_app_configs():
         for model in app_config.get_models():

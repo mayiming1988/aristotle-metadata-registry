@@ -35,11 +35,19 @@ def relink(help_item, field):
     return make_relink(text, app_label=help_item.app_label)
 
 
+@register.filter
+def relinked(help_item, field):
+    text = getattr(help_item, field)
+    if not text:
+        return ""
+    return make_relink(text, app_label=help_item.app_label)
+
+
 def make_relink(text, app_label=None):
     import re
     text = re.sub(
         r'\{static\}',
-        "%saristotle_help" % settings.STATIC_URL, text
+        "%s" % settings.STATIC_URL, text
     )
 
     def make_concept_link(match):

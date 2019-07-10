@@ -8,4 +8,4 @@ For example:
 
     /templates/aristotle_tags/extra_content/no_content_for_bad_model.html
     
-These templates are ten invoked in ``tests/main/test_templatetags.py`` testrunner.
+These templates are then invoked in ``tests/main/test_templatetags.py`` testrunner.

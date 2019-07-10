@@ -3,7 +3,6 @@ from django.test import TestCase
 import aristotle_mdr.models as models
 
 
-from aristotle_mdr.utils import setup_aristotle_test_environment
 from aristotle_mdr.tests.utils import store_taskresult, get_download_result
 from aristotle_mdr.contrib.aristotle_pdf.downloader import PDFDownloader
 from aristotle_mdr.tests.main.test_bulk_actions import BulkActionsTest

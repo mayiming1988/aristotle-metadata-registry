@@ -37,14 +37,7 @@
             {% endcomment %}
             <form id="quickSearch" action="{% url 'aristotle:search' %}" method="get" class="navbar-form navbar-left" role="search">
                 <label class="sr-only" for="searchText">Search:</label>
-                <div class="input-group">
-                    <input type="text" class="extended-search-bar form-control" placeholder="{% trans 'Search for metadata' %}" id="searchText" name="q" accesskey="q">
-                    <span class="input-group-btn">
-                    <button class="btn btn-primary" type="submit" title="{% trans 'Search' %}">
-                        {% bootstrap_icon "search" %}&nbsp;
-                    </button>
-                    </span>
-                </div>
+                {% include "search/search_bar.html" %}
             </form>
         {% endif %}
 

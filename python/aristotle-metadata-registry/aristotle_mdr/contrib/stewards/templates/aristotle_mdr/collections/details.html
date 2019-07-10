@@ -40,7 +40,7 @@
                     </div>
                 </td>
                 <td>
-                    {{ obj.description }}
+                    {{ obj.description|striptags }}
                 </td>
             </tr>
             {% endfor %}

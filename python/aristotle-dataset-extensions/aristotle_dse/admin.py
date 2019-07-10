@@ -2,6 +2,7 @@ from django.contrib import admin
 from aristotle_dse import models
 
 from aristotle_mdr.register import register_concept
+from aristotle_mdr.search_indexes import SEARCH_CATEGORIES
 
 
 class DSSDEInclusionInline(admin.TabularInline):
@@ -37,31 +38,29 @@ register_concept(
         ),
     ],
     extra_inlines=[DSSDEInclusionInline, DSSClusterInclusionInline],
-    reversion={
-        'follow': ['dssdeinclusion_set', 'dssclusterinclusion_set'],
-        'follow_classes': [models.DSSClusterInclusion, models.DSSDEInclusion, models.DSSGrouping]
-    },
 )
 
 
 register_concept(
     models.DataCatalog,
+    search_category=SEARCH_CATEGORIES.data,
     extra_fieldsets=[
         ('Data Source',
-            {'fields': ['issued', 'publisher', 'homepage', 'spatial', 'license']}),
+            {'fields': ['issued', 'homepage', 'spatial', 'license']}),
     ]
 )
 
 
 register_concept(
     models.Dataset,
+    search_category=SEARCH_CATEGORIES.data,
     extra_fieldsets=[
         ('Coverage',
             {'fields': ['spatial', 'temporal']}),
         ('Publishing',
             {'fields': [
-                'publisher', 'contact_point', 'landing_page',
-                'dct_modified', 'issued', 'accrual_periodicity'
+                'contact_point', 'landing_page',
+                'dct_modified', 'issued', 'frequency'
                 ]}),
     ]
 )
@@ -69,6 +68,7 @@ register_concept(
 
 register_concept(
     models.Distribution,
+    search_category=SEARCH_CATEGORIES.data,
     extra_fieldsets=[
         ('File details',
             {'fields': [
@@ -77,7 +77,7 @@ register_concept(
             ]}),
         ('Publishing',
             {'fields': [
-                'license', 'rights', 'publisher',
+                'license', 'rights',
                 'dct_modified', 'issued',
                 ]}),
     ],
@@ -86,3 +86,6 @@ register_concept(
         'follow_classes': [models.DistributionDataElementPath]
     }
 )
+
+# Temporary fix
+

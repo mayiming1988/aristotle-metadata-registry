@@ -1,5 +1,6 @@
 {% extends "groups/base.html" %}
 {% load group_tags %}
+{% load bootstrap3 %}
 
 {% block group_content %}
 <h1>
@@ -12,9 +13,8 @@
 </p>
 <form action="{%url view.manager.namespace|add:":membership_remove" group.slug member.pk %}" method="POST">
     {% csrf_token %}
-
-    <a href="{%url view.manager.namespace|add:":detail" group.slug %}">Cancel</a>
-    <button type="submit">Remove User</button>
+    <a class="btn btn-default" href="{%url view.manager.namespace|add:":detail" group.slug %}">Cancel</a>
+    <button class="btn btn-primary" type="submit">Remove User</button>
 </form>
 
 {% endblock %}

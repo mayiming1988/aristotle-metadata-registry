@@ -1,13 +1,14 @@
 from django import forms
+from django.core.exceptions import PermissionDenied
 from aristotle_mdr.forms.bulk_actions import BulkActionForm
 from django.utils.translation import ugettext_lazy as _
 
 
 class StaffDeleteActionForm(BulkActionForm):
     action_text = _('Delete')
-    classes="fa-trash"
+    classes = "fa-trash"
     confirm_page = "confirm_delete.html"
-    items_label="Items to delete",
+    items_label = "Items to delete",
 
     safe_to_delete = forms.BooleanField(required=True, label="Tick to confirm deletion")
 

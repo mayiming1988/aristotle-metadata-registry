@@ -47,9 +47,9 @@ def notif_accepted_email(func):
             elif func.__name__ == "issue_comment_created_items_i_can_edit":
                 message = "A new comment has been created for an issue you can edit"
             elif func.__name__ == "new_post_created":
-                message = kwargs['post'].author + " made a new post"
+                message = kwargs['post'].author.name + " made a new post"
             elif func.__name__ == "new_comment_created":
-                message = kwargs['comment'].author + " commented on your post " + kwargs['comment'].post
+                message = kwargs['comment'].author.name + " commented on your post " + kwargs['comment'].post
             send_notification_email.delay(kwargs['recipient'].email, message)
         return func(*args, **kwargs)
     return wrapper

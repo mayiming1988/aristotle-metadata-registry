@@ -13,17 +13,6 @@
         <th>{% trans "Comment" %}</th>
         <th>{% trans "Updated" %}</th>
         <th>{% trans "Items" %}</th>
-        {% comment %}
-        {% if sort == "mod_asc" %}
-            <th>
-            <a href="?{% paginator_get request page.number pop='sort' %}&sort=mod_desc"><i class="fa fa-sort-asc"></i></a>
-        {% elif sort == "mod_desc" %}
-            <a href="?{% paginator_get request page.number pop='sort' %}&sort=mod_asc"><i class="fa fa-sort-desc"></i></a>
-        {% else %}
-            <a href="?{% paginator_get request page.number pop='sort' %}&sort=mod_desc"><i class="fa fa-sort"></i></a>
-        {% endif %}
-        Last modified</th>
-        {% endcomment %}
     </tr>
     </thead>
     <tbody>
@@ -41,7 +30,12 @@
                         {% else %}
                             <ul>
                                 {% for item in versions %}
-                                    <li><a href="{{ item.object.get_absolute_url }}">{{ item }}</a></li>
+                                    {% if item.object.get_absolute_url != None %}
+                                        <li><a href="{{ item.object.get_absolute_url }}">{{ item }}</a></li>
+                                    {% else %}
+                                        {# If there is no URL for the object #}
+                                        <li>{{ item }}</li>
+                                    {% endif %}
                                 {% endfor %}
                             </ul>
                         {% endif %}

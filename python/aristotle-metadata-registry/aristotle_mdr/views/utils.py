@@ -14,9 +14,6 @@ from django.forms.models import model_to_dict
 from django.http import (
     Http404,
     JsonResponse,
-    HttpResponse,
-    HttpResponseNotFound,
-    HttpResponseForbidden
 )
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
@@ -386,17 +383,22 @@ class GenericListWorkgroup(LoginRequiredMixin, SortedListView):
 class ObjectLevelPermissionRequiredMixin(PermissionRequiredMixin):
     def check_permissions(self, request):
         """
-        Returns whether or not the user has permissions
+        Returns True or False depending on whether or not the user has permission to perform an action
+
+        If you're using it as a mixin you are required to set either 'object' or get_object
         """
         perms = self.get_permission_required(request)
         # TODO handle permission not required
+
         has_permission = False
+
         if hasattr(self, 'object') and self.object is not None:
             has_permission = request.user.has_perm(self.get_permission_required(request), self.object)
         elif hasattr(self, 'get_object') and callable(self.get_object):
             has_permission = request.user.has_perm(self.get_permission_required(request), self.get_object())
         else:
             has_permission = request.user.has_perm(self.get_permission_required(request))
+
         return has_permission
 
 
@@ -623,7 +625,6 @@ class TagsMixin:
 
 
 class SimpleItemGet:
-
     item_id_arg = 'iid'
 
     def get_item(self, user):
@@ -641,11 +642,11 @@ class SimpleItemGet:
 
         return item
 
-    def get(self, request, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         item = self.get_item(request.user)
 
         self.item = item
-        return super().get(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)

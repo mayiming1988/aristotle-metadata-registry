@@ -10,11 +10,7 @@ import aristotle_mdr.tests.utils as utils
 
 import datetime
 
-from aristotle_mdr.utils import setup_aristotle_test_environment
 from aristotle_mdr.models import STATES
-
-
-setup_aristotle_test_environment()
 
 
 class BulkActionsTest(utils.AristotleTestUtils):
@@ -73,6 +69,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
             'change_state-items': [str(a) for a in items],
             'change_state-registrationDate': reg_date,
             'change_state-cascadeRegistration': 0,
+            'change_state-changeDetails': "Because",
             'change_state-registrationAuthorities': [self.ra.id],
             'submit_next': 'value',  # Go to review changes page
             'change_status_bulk_action_view-current_step': 'change_state',
@@ -305,6 +302,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
             'change_state-items': [str(a) for a in items],
             'change_state-registrationDate': reg_date,
             'change_state-cascadeRegistration': 0,
+            'change_state-changeDetails': "Because",
             'change_state-registrationAuthorities': [self.ra.id],
             'submit_skip': 'value',
             'change_status_bulk_action_view-current_step': 'change_state',
@@ -338,10 +336,12 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
             self.assertEqual(len(self.item2.current_statuses()), 0)
 
     @tag('changestatus')
+    @override_settings(ALWAYS_SYNC_REGISTER=True)
     def test_bulk_status_change_on_permitted_items_direct(self):
         self.bulk_status_change_on_permitted_items(review_changes=False)
 
     @tag('changestatus')
+    @override_settings(ALWAYS_SYNC_REGISTER=True)
     def test_bulk_status_change_on_permitted_items_with_review(self):
         self.bulk_status_change_on_permitted_items(review_changes=True)
 
@@ -435,6 +435,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         self.assertTrue(extra_info[self.item1.id]['checked'])
 
     @tag('changestatus')
+    @override_settings(ALWAYS_SYNC_REGISTER=True)
     def test_bulk_status_change_cascade_common_child(self):
         # Test for changestatus with cascade  on 2 items with a common child
         self.login_superuser()
@@ -455,7 +456,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         self.assertEqual(change_state_get_response.context['form'].initial['items'], [str(a) for a in items])
 
         items_strings = [str(a) for a in items]
-        reg_date = datetime.date(2014,10,27)
+        reg_date = datetime.date(2014, 10, 27)
         new_state = self.ra.locked_state
 
         postdata = {
@@ -463,6 +464,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
             'change_state-items': items_strings,
             'change_state-registrationDate': reg_date,
             'change_state-cascadeRegistration': 1,
+            'change_state-changeDetails': "Because",
             'change_state-registrationAuthorities': [self.ra.id],
             'submit_next': 'value',
             'change_status_bulk_action_view-current_step': 'change_state',
@@ -486,6 +488,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
                 'change_status_bulk_action_view-current_step': 'review_changes',
             }
         )
+        self.assertEqual(review_response.status_code, 302)
 
         for item in cascade_items:
 
@@ -494,6 +497,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
             self.assertTrue(item.current_statuses().first().registrationAuthority == self.ra)
 
     @tag('changestatus')
+    @override_settings(ALWAYS_SYNC_REGISTER=True)
     def test_bulk_status_change_on_forbidden_items(self):
         self.login_registrar()
         self.make_review_request(self.item1, self.registrar)
@@ -528,6 +532,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
                 'change_state-items': [str(a) for a in items],
                 'change_state-registrationDate': reg_date,
                 'change_state-cascadeRegistration': 0,
+                'change_state-changeDetails': "Because",
                 'change_state-registrationAuthorities': [self.ra.id],
                 'change_state-confirmed': 'confirmed',
                 'submit_skip': 'value',
@@ -582,7 +587,6 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         self.assertTrue(self.item1.concept in self.new_workgroup.items.all())
         self.assertTrue(self.item2.concept in self.new_workgroup.items.all())
         self.assertTrue(self.item4.concept not in self.new_workgroup.items.all())
-
 
         self.logout()
         self.login_superuser()

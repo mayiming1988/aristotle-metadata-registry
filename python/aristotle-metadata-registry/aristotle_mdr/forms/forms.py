@@ -12,6 +12,7 @@ from aristotle_mdr.contrib.autocomplete import widgets
 from django_jsonforms.forms import JSONSchemaField
 from aristotle_mdr.forms.utils import RegistrationAuthorityMixin
 
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ class ChangeStatusGenericForm(RegistrationAuthorityMixin, UserAwareForm):
     )
     changeDetails = forms.CharField(
         max_length=512,
-        required=False,
+        required=True,
         label=_("Why is the status being changed for these items?"),
         widget=forms.Textarea
     )
@@ -162,7 +163,7 @@ class EditStatusForm(ModelForm):
     )
     changeDetails = forms.CharField(
         max_length=512,
-        required=False,
+        required=True,
         label=_("Why is the status being changed for these items?"),
         widget=forms.Textarea
     )
@@ -181,7 +182,7 @@ class NotificationPermissionsForm(forms.Form):
                     "properties": {
                         "general changes": {
                             "type": "object",
-                            "title": "",
+                            "title": "General Changes",
                             "description": "Notify me of changes to:",
                             "properties": {
                                 "items in my workgroups": {
@@ -206,7 +207,7 @@ class NotificationPermissionsForm(forms.Form):
                         },
                         "superseded": {
                             "type": "object",
-                            "title": "",
+                            "title": "Supersedes",
                             "description": "Notify me when the following metadata is superseded:",
                             "properties": {
                                 "items in my workgroups": {
@@ -231,7 +232,7 @@ class NotificationPermissionsForm(forms.Form):
                         },
                         "new items": {
                             "type": "object",
-                            "title": "",
+                            "title": "New Items",
                             "description": "Notify me of new items in my workgroups:",
                             "properties": {
                                 "new items in my workgroups": {
@@ -360,3 +361,19 @@ class ShareLinkForm(forms.Form):
 
     emails = MultipleEmailField(required=False)
     notify_new_users_checkbox = BooleanField(label="Notify new people", initial=True, required=False)
+
+
+class ReportingToolForm(forms.Form):
+
+    ra = forms.ModelChoiceField(
+        queryset=MDR.RegistrationAuthority.objects.all(),
+        label="Registration Authority",
+        empty_label=None,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+    )
+
+    status = forms.ChoiceField(
+        label="Status",
+        choices=MDR.STATES,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+    )

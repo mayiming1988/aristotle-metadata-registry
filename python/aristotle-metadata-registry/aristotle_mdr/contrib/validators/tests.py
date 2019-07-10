@@ -11,10 +11,6 @@ from aristotle_mdr.contrib.validators import models
 from aristotle_mdr.contrib.validators import runners
 from aristotle_mdr.contrib.reviews.models import ReviewRequest
 
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-setup_aristotle_test_environment()
-
 
 class ValidationTester(TestCase):
     def assertValid(self, result, expected_message=""):

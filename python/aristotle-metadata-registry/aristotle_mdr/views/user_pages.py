@@ -32,7 +32,7 @@ from aristotle_mdr.views.utils import (paginated_list,
                                        paginated_registration_authority_list,
                                        GenericListWorkgroup,
                                        AjaxFormMixin)
-from aristotle_mdr.views.views import ConceptRenderView
+from aristotle_mdr.views.views import ConceptRenderView, get_app_config_list
 from aristotle_mdr.utils import fetch_metadata_apps
 from aristotle_mdr.utils import get_aristotle_url
 from aristotle_bg_workers.tasks import send_sandbox_notification_emails
@@ -40,6 +40,8 @@ from aristotle_bg_workers.tasks import send_sandbox_notification_emails
 import json
 import random
 import ast
+
+import copy
 
 import logging
 logger = logging.getLogger(__name__)
@@ -217,10 +219,13 @@ class Roles(LoginRequiredMixin, TemplateView):
 
 @login_required
 def recent(request):
+    """ Display the list of the user's recent actions """
     from reversion.models import Revision
     from aristotle_mdr.views.utils import paginated_reversion_list
+
     items = Revision.objects.filter(user=request.user).order_by('-date_created')
     context = {}
+
     return paginated_reversion_list(request, items, "aristotle_mdr/user/recent.html", context)
 
 
@@ -265,7 +270,7 @@ def admin_tools(request):
             # Only output subclasses of 11179 concept
             app_models = model_stats.get(m.app_label, {'app': None, 'models': []})
             if app_models['app'] is None:
-                app_models['app'] = getattr(apps.get_app_config(m.app_label), 'verbose_name')
+                app_models['app'] = apps.get_app_config(m.app_label)
             app_models['models'].append(
                 (
                     m.model_class(),
@@ -274,6 +279,11 @@ def admin_tools(request):
                 )
             )
             model_stats[m.app_label] = app_models
+
+    model_stats = sorted(
+        model_stats.values(),
+        key=lambda x: (x['app'].create_page_priority, x['app'].create_page_name, x['app'].verbose_name)
+    )
 
     page = render(
         request,
@@ -307,7 +317,7 @@ def admin_stats(request):
             # Only output subclasses of 11179 concept
             app_models = model_stats.get(m.app_label, {'app': None, 'models': []})
             if app_models['app'] is None:
-                app_models['app'] = getattr(apps.get_app_config(m.app_label), 'verbose_name')
+                app_models['app'] = apps.get_app_config(m.app_label)
             if use_cache:
                 total = get_cached_query_count(
                     qs=m.model_class().objects,
@@ -343,6 +353,11 @@ def admin_stats(request):
             )
             model_stats[m.app_label] = app_models
 
+    model_stats = sorted(
+        model_stats.values(),
+        key=lambda x: (x['app'].create_page_priority, x['app'].create_page_name, x['app'].verbose_name)
+    )
+
     page = render(
         request, "aristotle_mdr/user/userAdminStats.html",
         {"item": request.user, "model_stats": model_stats, 'model_max': max(mod_counts)}
@@ -374,7 +389,7 @@ class EditView(LoginRequiredMixin, UpdateView):
     form_class = MDRForms.EditUserForm
 
     def get_object(self, querySet=None):
-        return self.request.user
+        return copy.deepcopy(self.request.user)
 
     def get_success_url(self):
         return reverse('aristotle:userProfile')
@@ -401,6 +416,7 @@ class EditView(LoginRequiredMixin, UpdateView):
         picture = form.cleaned_data['profile_picture']
         picture_update = True
 
+        # Determine whether picture has been updated or changed
         if picture:
             if 'profile_picture' in form.changed_data:
                 profile.profilePicture = picture
@@ -425,6 +441,7 @@ class EditView(LoginRequiredMixin, UpdateView):
 
             if valid:
                 profile.save()
+
             else:
                 form.add_error('profile_picture', 'Image could not be saved. {}'.format(invalid_message))
                 return self.form_invalid(form)
@@ -479,21 +496,13 @@ class RegistrarTools(LoginRequiredMixin, View):
         )
 
 
-# @login_required
-# def my_review_list(request):
-#     # Users can see any items they have been asked to review
-#     q = Q(requester=request.user)
-#     reviews = MDR.ReviewRequest.objects.visible(request.user).filter(q).filter(registration_authority__active=0)
-#     return paginated_list(request, reviews, "aristotle_mdr/user/my_review_list.html", {'reviews': reviews})
-
-
 @login_required
 def django_admin_wrapper(request, page_url):
     return render(request, "aristotle_mdr/user/admin.html", {'page_url': page_url})
 
 
 class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListView):
-    """Display Users sandbox items"""
+    """Display the User's sandbox items"""
 
     paginate_by = 25
     template_name = "aristotle_mdr/user/sandbox.html"
@@ -572,15 +581,18 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
             self.share.save()
             self.ajax_success_message = 'Share permissions updated'
 
-            if 'notify_new_users_checkbox' in self.request.POST and self.request.POST['notify_new_users_checkbox']:
-                recently_added_emails = self.get_recently_added_emails(ast.literal_eval(self.state_of_emails_before_updating),
-                                                                       ast.literal_eval(self.share.emails))
+            if 'notify_new_users_checkbox' in form.cleaned_data and form.cleaned_data.get('notify_new_users_checkbox'):
+                # If the notify new users checkbox was selected
+                recently_added_emails = self.get_recently_added_emails(
+                    json.loads(self.state_of_emails_before_updating),
+                    json.loads(self.share.emails)
+                )
                 if len(recently_added_emails) > 0:
-                    send_sandbox_notification_emails.delay(recently_added_emails,
-                                                           self.request.user.email,
-                                                           self.request.get_host() + reverse('aristotle_mdr:sharedSandbox',
-                                                                                             args=[self.share.uuid])
-                                                           )
+                    # If new emails have been added
+                    send_sandbox_notification_emails.delay(
+                        recently_added_emails,
+                        self.request.get_host() + reverse('aristotle_mdr:sharedSandbox', args=[self.share.uuid])
+                    )
 
         return super().form_valid(form)
 

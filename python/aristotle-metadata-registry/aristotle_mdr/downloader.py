@@ -15,6 +15,7 @@ from django.urls import reverse
 from django.utils.module_loading import import_string
 from django.utils.safestring import mark_safe
 from django.utils.timezone import now
+from django.utils.translation import ugettext_lazy as _
 
 from hashlib import sha256
 import pickle
@@ -46,7 +47,7 @@ class Downloader:
       * the string "__template__" indicating the downloader supports any metadata type with a matching download template
     """
     metadata_register: Union[Dict[str, List], str] = '__all__'
-    # Font awsome icon to use
+    # Fontawesome icon to use
     icon_class: str = 'fa-file-text-o'
     description: str = ''
     filename: str = 'download'
@@ -97,7 +98,7 @@ class Downloader:
 
     def create_file(self) -> File:
         """
-        Create the file object, should be overwitten by subclasses
+        Create the file object, should be overwritten by subclasses
         See below for examples
         """
         raise NotImplementedError
@@ -199,7 +200,7 @@ class Downloader:
         email.send(fail_silently=True)
 
     def download(self) -> str:
-        """Get the url for this downloads file, creating it if neccesary"""
+        """Get the url for this downloads file, creating it if necessary"""
         filepath = self.get_filepath()
 
         if settings.DOWNLOAD_CACHING:
@@ -248,9 +249,10 @@ class HTMLDownloader(Downloader):
     def get_base_download_context(self) -> Dict[str, Any]:
         # page size for the pdf
         aristotle_settings = fetch_aristotle_settings()
-        page_size = aristotle_settings.get('PDF_PAGE_SIZE', 'A4')
+        page_size = aristotle_settings.get('DOWNLOAD_OPTIONS', {}).get('PDF_PAGE_SIZE', 'A4')
 
         context = {
+            'infobox_identifier_name': aristotle_settings.get('INFOBOX_IDENTIFIER_NAME', _("Item ID")),
             'user': self.user,
             'page_size': page_size,
             'options': self.options,
@@ -373,13 +375,14 @@ class HTMLDownloader(Downloader):
             context = self.get_bulk_download_context()
         else:
             context = self.get_download_context()
+
         context.update({"is_bulk_download": self.bulk})
 
         return context
 
     def get_template(self) -> str:
         """
-        Gets the template contex
+        Gets the template context
         Can be used by subclasses
         """
         if self.bulk:

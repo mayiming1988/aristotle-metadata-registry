@@ -14,6 +14,7 @@ Available tags and filters
 --------------------------
 """
 from django import template
+from django.template.loader import get_template
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.utils.html import mark_safe
@@ -24,6 +25,7 @@ from aristotle_mdr.utils import (
     fetch_metadata_apps,
     fetch_aristotle_downloaders
 )
+from aristotle_mdr.models import STATES
 
 register = template.Library()
 
@@ -172,7 +174,7 @@ def visible_supersedes_items(item, user):
         'superseded_by_items_relation_set__registration_authority',
     ).visible(user).filter(
         superseded_by_items_relation_set__newer_item_id=item.pk,
-        superseded_by_items_relation_set__proposed=False
+        # superseded_by_items_relation_set__proposed=False
     ).distinct()
     sup_rels = [
         {
@@ -184,9 +186,11 @@ def visible_supersedes_items(item, user):
                     "message": sup.message,
                     "date_effective": sup.date_effective,
                     "registration_authority": sup.registration_authority,
+                    "proposed": sup.proposed
                 }
                 for sup in obj.superseded_by_items_relation_set.all()
-                if sup.newer_item_id == item.pk and sup.proposed is False
+                if sup.newer_item_id == item.pk
+                # and sup.proposed is False
             ]
         }
         for obj in objects
@@ -296,16 +300,16 @@ def ternary(condition, a, b):
 @register.filter
 def paginator_range(page, mode):
     page_range = list(page.paginator.page_range)
-    if mode=="start":
+    if mode == "start":
         if page.number <= 5:
             # show 4,5,6 if page is 4, 5,6,7 if page is 5...
             return page_range[:max(5, page.number + 2)]
         else:
             return page_range[:3]
-    if mode=="middle":
-        if page.number > 5 and page.number < page.paginator.num_pages - 5:
+    if mode == "middle":
+        if 5 < page.number < page.paginator.num_pages - 5:
             return page_range[page.number - 3:page.number + 2]
-    if mode=="end":
+    if mode == "end":
         if page.number > page.paginator.num_pages - 5:
             return page_range[-5:]
         else:
@@ -346,7 +350,8 @@ def zws(string):
         <h1>{% zws item.name %}</h1>
 
     """
-    return string.replace("—", "&shy;—")
+    from aristotle_mdr.utils.utils import strip_tags
+    return mark_safe(strip_tags(string.replace("—", "&shy;—")))
 
 
 @register.simple_tag
@@ -360,7 +365,7 @@ def adminEdit(item):
     return reverse("admin:%s_%s_change" % (app_name, item._meta.model_name), args=[item.id])
 
 
-@register.simple_tag
+@register.inclusion_tag('aristotle_mdr/helpers/downloadMenu.html')
 def downloadMenu(item):
     """
     Returns the complete download menu for a partcular item. It accepts the id of
@@ -371,7 +376,6 @@ def downloadMenu(item):
 
         {% downloadMenu item %}
     """
-    from django.template.loader import get_template
     downloadOpts = fetch_aristotle_downloaders()
 
     from aristotle_mdr.utils import get_download_template_path_for_item
@@ -397,32 +401,11 @@ def downloadMenu(item):
                     downloadsForItem.append(d)
                 except template.TemplateDoesNotExist:
                     pass  # This is ok.
-                except:
-                    # TODO: Should probably do something with this error
-                    pass  # Something very bad has happened in the template.
 
     dlOptionsForItem = []
     for dl_class in downloadsForItem:
         dlOptionsForItem.append(dl_class.get_class_info())
-    return get_template(
-        "aristotle_mdr/helpers/downloadMenu.html").render(
-        {'item': item, 'download_options': dlOptionsForItem, }
-    )
-
-
-@register.simple_tag(takes_context=True)
-def extra_content(context, extension, item):
-    try:
-        from django.template.loader import get_template
-        s = item._meta.object_name
-        s = s[0].lower() + s[1:]
-
-        return get_template(extension + "/extra_content/" + s + ".html").render(
-            {'item': item, 'user': context['request'].user, 'viewable_ids': context.get('viewable_ids', [])}
-        )
-    except template.TemplateDoesNotExist:
-        # there is no extra content for this item, and thats ok.
-        return ""
+    return {'item': item, 'download_options': dlOptionsForItem, }
 
 
 @register.simple_tag
@@ -554,3 +537,66 @@ def publish_registry_item_url(item):
 @register.filter
 def can_edit_label(label, user):
     return perms.user_can_edit_issue_label(user, label)
+
+
+@register.inclusion_tag('aristotle_mdr_help/helpers/field_icon.html', takes_context=True)
+def field_help_icon(context, item_or_model, field_name):
+    klass = item_or_model.__class__
+    return {
+        'app': klass._meta.app_label,
+        'model_name': klass._meta.model_name,
+        'field_name': field_name,
+        'model_class': klass,
+    }
+
+
+@register.inclusion_tag('aristotle_mdr/helpers/styled_difference.html')
+def render_difference(difference):
+    return {'difference': difference}
+
+
+@register.filter()
+def get_field(content_type, field_name):
+    return content_type.model_class()._meta.get_field(field_name)
+
+
+@register.simple_tag
+def get_value_from_dict(dictionary, key):
+    """
+    Get the value corresponding to the key passed.
+    Can be used in the following way:
+    {% get_value_from_dict dict key %}
+    :param dictionary: Dictionary containing the desired key.
+    :param key: Lookup key.
+    :return: Value of the corresponding key in the dictionary, or "None" type if nothing is found in the dictionary.
+    """
+    return dictionary.get(key, None)
+
+
+@register.simple_tag
+def get_status_from_dict(dictionary, current_status, key, with_icon=True):
+    """
+    Get the Status of a particular item from a dictionary mapping.
+    :param dictionary: dictionary mapping that must contain key-value pairs
+    where the key must correspond to the concept_id, and the value must
+    correspond to the state id.
+    :param current_status: string that represents the numerical form of
+    the status object that belongs to the Data Element.
+    :param key: string that represents the concept id to be looked up.
+    :param with_icon: boolean value to add a Fontawesome icon.
+    :return: HTML with the name of the corresponding status state.
+    """
+    state_value = dictionary.get(key, None)
+    if state_value:
+        if with_icon:
+            if current_status == str(state_value):
+                element = '<em><spam style="display:inline-block">[%s]&nbsp;<span class="text-success"><i class="fa fa-check"></i></span></span></em>'
+            else:
+                element = '<em><span class="text-danger">[%s]&nbsp;<i class="fa fa-times"></i></span></em>'
+
+        else:
+            element = '<em>[%s]&nbsp;<span class="text-success"></span></em>'
+        return mark_safe(element % (STATES[state_value]))
+
+    else:
+        return ""

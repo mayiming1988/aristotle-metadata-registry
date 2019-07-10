@@ -10,11 +10,6 @@ from aristotle_bg_workers.tasks import send_sandbox_notification_emails
 from aristotle_mdr import models
 import datetime, json, os, ast
 
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-
-setup_aristotle_test_environment()
-
 
 class UserHomePages(utils.AristotleTestUtils, TestCase):
     def setUp(self):
@@ -535,14 +530,13 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
 
     @tag('share_link')
     def test_send_emails_for_new_email_addresses(self):
-        from_email = settings.DEFAULT_FROM_EMAIL
 
         share = self.create_content_and_share(self.editor, ['vicky@example.com'])
-        send_sandbox_notification_emails(ast.literal_eval(share.emails), settings.DEFAULT_FROM_EMAIL, str(share.uuid))
+        send_sandbox_notification_emails(ast.literal_eval(share.emails), str(share.uuid))
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].subject, 'Sandbox Access')
         # Assert that the email is being sent from the default from email
-        self.assertEqual(mail.outbox[0].from_email, from_email)
+        self.assertEqual(mail.outbox[0].from_email, settings.DEFAULT_FROM_EMAIL)
         self.assertEqual(mail.outbox[0].body, 'Hello there, to access my Sandbox please use the following URL: ' + str(share.uuid))
 
 
@@ -580,6 +574,9 @@ class UserDashRecentItems(utils.AristotleTestUtils, TestCase):
             'results-workgroup': self.wg1.pk
         }
         step_2_data.update(self.get_formset_postdata([], 'slots'))
+        step_2_data.update(self.get_formset_postdata([], 'org_records'))
+
+
         response = self.client.post(wizard_url, step_2_data)
         self.assertTrue(models._concept.objects.filter(name="Test Item").exists())
         self.assertEqual(models._concept.objects.filter(name="Test Item").count(), 1)

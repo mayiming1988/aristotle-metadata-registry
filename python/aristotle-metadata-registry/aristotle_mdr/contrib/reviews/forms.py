@@ -62,7 +62,7 @@ class RequestReviewCreateForm(UserAwareModelForm):
             'due_date': "Date this review needs to be actioned by",
             'registration_date': "Date the metadata will be endorsed at",
             'title': "A short title for this review",
-            'concepts': "List of concepts for review",
+            'concepts': "List of metadata for review",
             'cascade_registration': "Include related items when registering metadata. When enabled, see the full list of metadata under the \"impact\" tab.",
         }
 
@@ -72,6 +72,7 @@ class RequestReviewCreateForm(UserAwareModelForm):
         self.fields['concepts'].queryset = self.fields['concepts'].queryset.all().visible(self.user)
         self.fields['concepts'].widget.choices = self.fields['concepts'].choices
         self.fields['registration_authority'].queryset = self.fields['registration_authority'].queryset.filter(active=0)  # Exclude "inactive" Registration Authorities.
+        self.fields['concepts'].label = "Metadata"
 
 
 class RequestReviewUpdateForm(UserAwareModelForm):
@@ -94,7 +95,7 @@ class RequestReviewUpdateForm(UserAwareModelForm):
             'due_date': "Date this review needs to be actioned by",
             'registration_date': "Date the metadata will be endorsed at",
             'title': "A short title for this review",
-            'concepts': "List of concepts for review",
+            'concepts': "List of metadata for review",
             'cascade_registration': "Include related items when registering metadata. When enabled, see the full list of metadata under the \"impact\" tab.",
         }
 
@@ -104,6 +105,7 @@ class RequestReviewUpdateForm(UserAwareModelForm):
         self.fields['target_registration_state'].choices = MDR.STATES
         self.fields['concepts'].queryset = self.fields['concepts'].queryset.all().visible(self.user)
         self.fields['concepts'].widget.choices = self.fields['concepts'].choices
+        self.fields['concepts'].label = "Metadata"
 
 
 class RequestReviewAcceptForm(UserAwareForm):
@@ -180,16 +182,16 @@ class ReviewRequestSupersedesForm(forms.ModelForm):
             self.fields['older_item'].queryset = MDR._concept.objects.visible(user)
 
     class Meta:
-        fields = ('newer_item', 'older_item', 'message')
+        fields = ('newer_item', 'older_item', 'message', 'date_effective')
         widgets = {
-            'older_item': ConceptAutocompleteSelect,
-            'message': forms.widgets.TextInput,
-            'newer_item': DataAttrSelect
+            'older_item': ConceptAutocompleteSelect(attrs={"class": "form-control"}),
+            'message': forms.widgets.TextInput(attrs={"class": "form-control"}),
+            'newer_item': DataAttrSelect(attrs={"class": "form-control"}),
+            'date_effective': BootstrapDateTimePicker
         }
 
 
 class ReviewRequestSupersedesFormset(forms.BaseModelFormSet):
-
     def clean(self):
         super().clean()
         # Map older items to newer items

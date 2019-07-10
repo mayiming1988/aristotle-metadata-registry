@@ -5,15 +5,12 @@ from django.test import TestCase
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from aristotle_mdr.tests import utils
-from aristotle_mdr.utils import setup_aristotle_test_environment
 from aristotle_mdr.contrib.issues.models import Issue
 from aristotle_bg_workers.tasks import send_notification_email
 from django.core import mail
 from django.conf import settings
 import logging
 logger = logging.getLogger(__name__)
-
-setup_aristotle_test_environment()
 
 
 class TestNotifications(utils.AristotleTestUtils, TestCase):

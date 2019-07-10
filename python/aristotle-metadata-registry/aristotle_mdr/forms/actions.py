@@ -89,11 +89,6 @@ class SupersedeForm(forms.ModelForm):
                 model=self.item._meta.model
             )
         )
-        self.fields['registration_authority']=forms.ModelChoiceField(
-            queryset=self.user.profile.registrarAuthorities,
-            empty_label="None",
-            label=_("Registration authority"),
-        )
         self.fields['message'].widget.attrs.update({'class': 'small-text-area'})
 
     def clean_older_item(self):
@@ -111,3 +106,13 @@ class SupersedeAdminForm(SupersedeForm):
     class Meta:
         model = MDR.SupersedeRelationship
         fields = ['proposed', 'older_item', 'registration_authority', 'message', 'date_effective']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Restrict ra's to only ones user is a registrar in
+        self.fields['registration_authority']=forms.ModelChoiceField(
+            queryset=self.user.profile.registrarAuthorities,
+            empty_label="None",
+            label=_("Registration authority"),
+        )

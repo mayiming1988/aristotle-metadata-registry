@@ -1,10 +1,12 @@
+import django_filters
+import datetime
+import string
+import logging
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
-
 from django.urls import reverse
 from django.forms import Select
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
-from django.db.utils import OperationalError
 from django.views.generic import (
     CreateView,
     ListView,
@@ -15,14 +17,14 @@ from django.views.generic.detail import SingleObjectMixin
 from django.core.exceptions import PermissionDenied
 from django.forms.models import modelform_factory
 from django.http.request import QueryDict
-
-import django_filters
 from django_filters.views import FilterView
 from dal.autocomplete import ModelSelect2Multiple
-
 from aristotle_mdr import models as MDR
 from aristotle_mdr.forms import actions
-from aristotle_mdr.forms.registrationauthority import CreateRegistrationAuthorityForm
+from aristotle_mdr.forms.registrationauthority import (
+    CreateRegistrationAuthorityForm,
+    EditRegistationAuthorityForm
+)
 from aristotle_mdr.views.utils import (
     paginated_registration_authority_list,
     ObjectLevelPermissionRequiredMixin,
@@ -37,14 +39,8 @@ from aristotle_mdr.utils import fetch_aristotle_downloaders
 from aristotle_mdr.utils.utils import get_concept_type_choices
 from aristotle_mdr.contrib.validators.views import ValidationRuleEditView
 from aristotle_mdr.contrib.validators.models import RAValidationRules
-
 from ckeditor.widgets import CKEditorWidget
-
-import datetime
 from typing import Dict
-import string
-
-import logging
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
@@ -225,8 +221,8 @@ class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequire
         return context
 
 
-class EditRegistrationAuthorityStates(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, MainPageMixin,
-                                      UpdateView):
+class EditRegistrationAuthorityStates(LoginRequiredMixin,
+                                      ObjectLevelPermissionRequiredMixin, MainPageMixin, UpdateView):
     model = MDR.RegistrationAuthority
     template_name = "aristotle_mdr/user/registration_authority/edit_states.html"
     permission_required = "aristotle_mdr.change_registrationauthority"
@@ -234,19 +230,7 @@ class EditRegistrationAuthorityStates(LoginRequiredMixin, ObjectLevelPermissionR
     redirect_unauthenticated_users = True
     object_level_permissions = True
 
-    fields = [
-        'locked_state',
-        'public_state',
-        'notprogressed',
-        'incomplete',
-        'candidate',
-        'recorded',
-        'qualified',
-        'standard',
-        'preferred',
-        'superseded',
-        'retired',
-    ]
+    form_class = EditRegistationAuthorityForm
 
     pk_url_kwarg = 'iid'
     context_object_name = "item"
@@ -402,7 +386,7 @@ class ConceptFilter(django_filters.FilterSet):
         # Override the init method so we can pass the iid to the queryset
         self.registration_authority_id = kwargs.pop('registration_authority_id')
 
-        # This is overriden because otherwise it runs on docs CI
+        # This is overridden because otherwise it runs on docs CI
         self.base_filters['concept_type'] = django_filters.MultipleChoiceFilter(
             choices=get_concept_type_choices(),
             method='noop',
@@ -468,6 +452,14 @@ class DateFilterView(FilterView, MainPageMixin):
             # If there were no selections made in the form, set defaults
             kwargs["data"] = {"status": MDR.STATES.standard,
                               "registration_date": str(datetime.date.today())}
+
+        if 'registration_date' not in kwargs['data']:
+            kwargs['data'] = kwargs['data'].copy()
+            kwargs['data']['registration_date'] = datetime.date.today()
+
+        if 'status' not in kwargs['data']:
+            kwargs['data'] = kwargs['data'].copy()
+            kwargs['data']['status'] = MDR.STATES.standard
 
         return kwargs
 

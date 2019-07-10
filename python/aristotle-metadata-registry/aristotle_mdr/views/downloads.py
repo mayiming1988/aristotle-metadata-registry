@@ -54,6 +54,9 @@ class BaseDownloadView(TemplateView):
         if not downloader_class:
             raise Http404
 
+        # Add the current host url to the options to make the relative links clickable:
+        options.update({"CURRENT_HOST": request.scheme + "://" +request.get_host()})
+
         res = download.delay(download_type, self.item_ids, user_id, options)
 
         request.session['download_result_id'] = res.id

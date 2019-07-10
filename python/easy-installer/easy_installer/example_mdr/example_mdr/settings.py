@@ -117,10 +117,12 @@ ARISTOTLE_SETTINGS.update({
         #!aristotle_mdr_api!'aristotle_mdr_api',
         #!aristotle_graphql!'aristotle_mdr_graphql',
     ],
-    'DOWNLOADERS': [
-        'aristotle_mdr.downloader.CSVDownloader',
-        #!aristotle_pdf!'aristotle_pdf.downloader.PDFDownloader',
-    ]
+    "DOWNLOAD_OPTIONS": {
+        'DOWNLOADERS': [
+            'aristotle_mdr.downloader.CSVDownloader',
+            #!aristotle_pdf!'aristotle_pdf.downloader.PDFDownloader',
+        ]
+    }
 })
 
 # Use database caching by default

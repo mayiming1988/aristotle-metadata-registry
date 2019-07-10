@@ -61,7 +61,7 @@ CKEDITOR_UPLOAD_PATH = 'uploads/'
 
 
 # Required for admindocs, see: https://code.djangoproject.com/ticket/21386
-SITE_ID=None
+SITE_ID = None
 
 # This gets called because of the DataElementConcept.property attribute.
 # We can resolve this by explicitly adding the parent pointer field, to squash Error E006
@@ -85,7 +85,11 @@ SILENCED_SYSTEM_CHECKS = [
 ALLOWED_HOSTS: list = []
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
+# Use asynchronous processing of signals
 ARISTOTLE_ASYNC_SIGNALS = os.getenv('ARISTOTLE_ASYNC_SIGNALS', False) == "True"
+# Always register items synchronously (without celery)
+ALWAYS_SYNC_REGISTER = os.getenv('ARISTOTLE_SYNC_REGISTER', False) == "True"
 
 INSTALLED_APPS = (
     'aristotle_bg_workers',
@@ -129,8 +133,6 @@ INSTALLED_APPS = (
 
     'bootstrap3',
     'reversion',  # https://github.com/etianen/django-reversion
-    'reversion_compare',  # https://github.com/jedie/django-reversion-compare
-
     'notifications',
     'organizations',
 
@@ -193,7 +195,6 @@ BOOTSTRAP3 = {
     'base_url': '/static/aristotle_mdr/bootstrap/',
 }
 
-ADD_REVERSION_ADMIN = True
 
 # We need this to make sure users can see all extensions.
 AUTHENTICATION_BACKENDS = ('aristotle_mdr.backends.AristotleBackend',)
@@ -208,9 +209,9 @@ ARISTOTLE_SETTINGS = {
     'SITE_NAME': 'Default Site Name',  # 'The main title for the site.'
     'SITE_BRAND': 'aristotle_mdr/images/aristotle_small.png',  # URL for the Site-wide logo
     'SITE_INTRO': 'Use Default Site Name to search for metadata...',  # 'Intro text use on the home page as a prompt for users.'
+    'INFOBOX_IDENTIFIER_NAME': '',  # Identifier name used in Metadata Infobox Template.
     'SITE_DESCRIPTION': 'About this site',  # 'The main title for the site.'
     'CONTENT_EXTENSIONS': [],
-    'PDF_PAGE_SIZE': 'A4',
     'WORKGROUP_CHANGES': [],  # ['admin'] # or manager or submitter,
     'BULK_ACTIONS': [
         'aristotle_mdr.forms.bulk_actions.AddFavouriteForm',
@@ -221,6 +222,7 @@ ARISTOTLE_SETTINGS = {
         'aristotle_mdr.forms.bulk_actions.BulkDownloadForm',
         'aristotle_mdr.contrib.reviews.forms.RequestReviewBulkActionForm',
     ],
+    # Dashboard add-ons will only be rendered for staff
     'DASHBOARD_ADDONS': [],
     'METADATA_CREATION_WIZARDS': [
         {
@@ -236,13 +238,16 @@ ARISTOTLE_SETTINGS = {
             'link': 'create/wizard/aristotle_mdr/dataelementconcept',
         }
     ],
-    "DOWNLOADERS": [
-        'aristotle_mdr.contrib.aristotle_pdf.downloader.PDFDownloader'
-    ],
-
+    "DOWNLOAD_OPTIONS": {
+        'PDF_PAGE_SIZE': 'A4',
+        'COPYRIGHT_PAGE_CONTENT': '',
+        "DOWNLOADERS": [
+            'aristotle_mdr.contrib.aristotle_pdf.downloader.PDFDownloader'
+        ],
+    },
     # These settings aren't active yet.
     # "USER_EMAIL_RESTRICTIONS": None,
-    "USER_VISIBILITY": ['owner', 'workgroup_manager', 'registation_authority_manager']
+    "USER_VISIBILITY": ['owner', 'workgroup_manager', 'registation_authority_manager'],
     # "SIGNUP_OPTION": 'closed', # or 'closed'
     # "GROUPS_CAN_INVITE": 'closed', # or 'closed'
 
@@ -344,7 +349,19 @@ ARISTOTLE_VALIDATORS = {
 }
 
 # Serialization
-SERIALIZATION_MODULES = {'mdrjson': 'aristotle_mdr_api.serializers.idjson'}
+SERIALIZATION_MODULES = {'mdrjson': 'aristotle_mdr_api.serializers.idjson',
+                         # Override django-reversion serializer
+                         'aristotle_mdr_json': 'aristotle_mdr.contrib.serializers.concept_serializer'}
+
+# Set an environment variable as the default email address to send backend emails for notifications.
+ARISTOTLE_EMAIL_NOTIFICATIONS = os.getenv('ARISTOTLE_EMAIL_NOTIFICATIONS', None)
+
+# Set an environment variable as the default email address to send backend emails for sandbox invitation notifications.
+ARISTOTLE_EMAIL_SANDBOX_NOTIFICATIONS = os.getenv('ARISTOTLE_EMAIL_SANDBOX_NOTIFICATIONS', None)
+
+# Set an environment variable as the default email address to send backend emails for account recovery (password reset).
+ARISTOTLE_EMAIL_ACCOUNT_RECOVERY = os.getenv('ARISTOTLE_EMAIL_ACCOUNT_RECOVERY', None)
+
 
 # API
 REST_FRAMEWORK = {

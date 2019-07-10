@@ -1,15 +1,16 @@
-from typing import Optional, List, Tuple
-import datetime
-from io import StringIO
-
-from django.core.management import call_command
-from django.contrib.auth import get_user_model
-
 from celery import shared_task, Task
 from celery.utils.log import get_task_logger
+from django.apps import apps
+from django.contrib.auth import get_user_model
+from django.core.management import call_command
+from django.utils.module_loading import import_string
+from io import StringIO
+from typing import Optional, List, Tuple
+import datetime
 
 from aristotle_mdr.utils.download import get_download_class
 from aristotle_mdr.models import _concept, RegistrationAuthority
+from aristotle_bg_workers.utils import lookup_model
 
 import reversion
 
@@ -45,6 +46,14 @@ def reindex_task(self, *args, **kwargs):
     return meta
 
 
+@shared_task(base=AristotleTask, bind=True, name='long__recache_visibility')
+def recache_visibility(self, *args, **kwargs):
+    meta = {"requester": kwargs['requester'], "start_date": datetime.datetime.now()}
+    self.update_state(meta=meta, state="STARTED")
+    meta.update({"result": run_django_command('recache_registration_authority_item_visibility', interactive=False)})
+    return meta
+
+
 @shared_task(base=AristotleTask, bind=True, name='long__load_help')
 def loadhelp_task(self, *args, **kwargs):
     meta = {"requester": kwargs['requester'], "start_date": datetime.datetime.now()}
@@ -55,21 +64,34 @@ def loadhelp_task(self, *args, **kwargs):
 
 @shared_task(name='fire_async_signal')
 def fire_async_signal(namespace, signal_name, message={}):
-    from django.utils.module_loading import import_string
+    """Runs the given function with the message as argument"""
     import_string("%s.%s" % (namespace, signal_name))(message)
 
 
 @shared_task(name='update_search_index')
-def update_search_index(action, sender, instance, **kwargs):
-    from django.apps import apps
-    sender = apps.get_model(sender['app_label'], sender['model_name'])
-    instance = apps.get_model(instance['app_label'], instance['model_name']).objects.filter(pk=instance['pk']).first()
+def update_search_index(sender, instance, **kwargs):
+    """Task to update the search index when a model has been saved"""
+    # Fetch sender model
+    sender = lookup_model(sender)
+    # Fetch instance (this will raise an exception and fail the task if not found)
+    instance = lookup_model(instance).objects.get(pk=instance['pk'])
+
+    # Pass to haystack signal processor
     processor = apps.get_app_config('haystack').signal_processor
-    if action == "save":
-        logger.debug("UPDATING INDEX FOR {}".format(instance))
-        processor.handle_save(sender, instance, **kwargs)
-    elif action == "delete":
-        processor.handle_delete(sender, instance, **kwargs)
+    processor.handle_save(sender, instance, **kwargs)
+
+
+@shared_task(name='delete_search_index')
+def delete_search_index(sender, instance, **kwargs):
+    """Task to update the search index when a model has been deleted"""
+    # Fetch sender model
+    sender = lookup_model(sender)
+    # Fetch instance (this will raise an exception and fail the task if not found)
+    instance = lookup_model(instance).objects.get(pk=instance['pk'])
+
+    # Pass to haystack signal processor
+    processor = apps.get_app_config('haystack').signal_processor
+    processor.handle_delete(sender, instance, **kwargs)
 
 
 @shared_task(name='download')
@@ -77,20 +99,23 @@ def download(download_type: str, item_ids: List[int], user_id: int, options={}) 
     dl_class = get_download_class(download_type)
 
     if dl_class is not None:
-        # Instanciate downloader class
+        # Instantiate downloader class
         downloader = dl_class(item_ids, user_id, options)
         # Get file url
         return downloader.download()
 
-    raise LookupError('Requested Donwloader class could not be found')
+    raise LookupError('Requested Downloader class could not be found')
 
 
 @shared_task(name='send_sandbox_notification_emails')
-def send_sandbox_notification_emails(emails_list, user_email, sandbox_access_url):
+def send_sandbox_notification_emails(emails_list, sandbox_access_url):
     from django.core.mail import send_mail
     from django.conf import settings
 
-    from_email = settings.DEFAULT_FROM_EMAIL
+    if settings.ARISTOTLE_EMAIL_SANDBOX_NOTIFICATIONS:
+        from_email = settings.ARISTOTLE_EMAIL_SANDBOX_NOTIFICATIONS
+    else:
+        from_email = settings.DEFAULT_FROM_EMAIL
 
     # Send a separate email to each email address:
     for email in emails_list:
@@ -107,7 +132,10 @@ def send_notification_email(recipient, message):
     from django.core.mail import send_mail
     from django.conf import settings
 
-    from_email = settings.DEFAULT_FROM_EMAIL
+    if settings.ARISTOTLE_EMAIL_NOTIFICATIONS:
+        from_email = settings.ARISTOTLE_EMAIL_NOTIFICATIONS
+    else:
+        from_email = settings.DEFAULT_FROM_EMAIL
 
     send_mail(
         'Notification',

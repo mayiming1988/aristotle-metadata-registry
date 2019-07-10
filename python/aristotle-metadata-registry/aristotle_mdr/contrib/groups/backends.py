@@ -1,15 +1,23 @@
+import logging
+import os
 from typing import Optional, List
+
+import attr
 from braces.views import (
     LoginRequiredMixin, PermissionRequiredMixin, SuperuserRequiredMixin
 )
-
-import os
-
+from django import forms
+from django.conf import settings
 from django.conf.urls import url, include
+from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.urls import reverse
+from django.core.mail import EmailMessage
+from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
+from django.template import loader
+from django.urls import reverse
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic import (
     FormView,
     ListView,
@@ -18,23 +26,10 @@ from django.views.generic import (
     CreateView,
     RedirectView,
 )
-from django.template import loader
-from django.contrib import messages
-
 from organizations.backends.defaults import InvitationBackend
-
-import attr
-
-from django.conf import settings
-from django.core.mail import EmailMessage
-from django.utils.translation import ugettext_lazy as _
-from django import forms
-from django.http import Http404
-
 from .base import AbstractGroup
 from .utils import GroupRegistrationTokenGenerator
-
-import logging
+from aristotle_mdr.contrib.autocomplete.widgets import UserAutocompleteSelect
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
@@ -45,7 +40,7 @@ User = get_user_model()
 class ListForObjectMixin(DetailView):
     related_class = None
 
-    def get_object(self):
+    def get_object(self, queryset=None):
         self.object = DetailView.get_object(self, queryset=self.related_class.objects.all())
         return self.object
 
@@ -102,6 +97,7 @@ class GroupMixin(GroupBase):
             slug = self.slug_url_kwarg
         else:
             slug = self.group_slug_url_kwarg
+
         return get_object_or_404(
             self.get_group_queryset(), slug=self.kwargs[slug]
         )
@@ -171,9 +167,20 @@ class GroupMemberListView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin
     role_permission = "edit_members"
     current_group_context = "members"
 
+    paginate_by = 50
+
     def get_queryset(self):
+        # Get queryset of StewardOrganisationMemberships
         qs = super().get_queryset()
-        return qs.filter(group=self.get_group())
+
+        # Filter on StewardOrganisationMemberships that are part of the current Stewardship Organisation
+        qs = qs.filter(group=self.get_group())
+
+        # Populate users to avoid bulk lookup in template
+        qs = qs.select_related('user')
+
+        # Sort alphabetically by user
+        return qs.order_by('user__short_name')
 
 
 class GroupMemberRemoveView(LoginRequiredMixin, HasRolePermissionMixin, GroupMemberMixin, FormView):
@@ -278,11 +285,20 @@ class GroupMemberAddView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin,
                 fields = ["user", "role"]
                 model = self.manager.membership_class
 
+                widgets = {'user': UserAutocompleteSelect}
+
+                error_messages = {
+                    'user': {
+                        'invalid_choice': 'User is already a member of this Stewardship Organisation'
+                    }
+                }
+
             def __init__(self, manager, group, *args, **kwargs):
                 super().__init__(*args, **kwargs)
                 self.manager = manager
                 self.group = group
 
+                # The autocomplete select ignores this but it's still used for form validation
                 self.fields['user'].queryset = get_user_model().objects.all().exclude(
                     pk__in=self.group.member_list.all())
 
@@ -295,7 +311,7 @@ class GroupMemberAddView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin,
         return kwargs
 
     def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
+        context = super().get_context_data()
         context['active_group_page'] = 'members'
 
         return context
@@ -359,7 +375,7 @@ class GroupURLManager(InvitationBackend):
                 url(r'^invite$', view=self.invite_view(), name="invite"),
                 url(
                     r'^accept-invitation/(?P<user_id>[\d]+)-(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-                    view=self.activate_view(),
+                    view=self.activate_view(request=None, user_id=None, token=None),
                     name="accept_invitation"
                 ),
             ]))
@@ -468,7 +484,7 @@ class GroupURLManager(InvitationBackend):
     registration_form_template = 'aristotle_mdr/users_management/newuser/register_form.html'
     accept_url_name = 'registry_invitations_register'
 
-    def activate_view(self):
+    def activate_view(self, request, user_id, token):
         """
         View function that activates the given User by setting `is_active` to
         true if the provided information is verified.
@@ -531,7 +547,7 @@ class GroupURLManager(InvitationBackend):
 
         return ActivateView.as_view(manager=self, group_class=self.group_class)
 
-    def invite_by_emails(self, emails, group, sender=None, request=None, **kwargs):
+    def invite_by_emails(self, emails, group, request=None, **kwargs):
         """Creates an inactive user with the information we know and then sends
         an invitation email for that user to complete registration.
         If your project uses email in a different way then you should make to
@@ -543,7 +559,6 @@ class GroupURLManager(InvitationBackend):
             try:
                 user = User.objects.get(email=email)
                 # TODO: We still want to send the user a notification email, add this functionality later
-
             except User.DoesNotExist:
                 # TODO break out user creation process
                 user = User.objects.create(
@@ -552,28 +567,28 @@ class GroupURLManager(InvitationBackend):
                 )
                 user.is_active = False
                 user.save()
-            self.send_invitation(user, group=group, sender=request.user, request=request, **kwargs)
+                kwargs.update({'group': group})
+            self.send_invitation(user, sender=request.user, request=request, **kwargs)
             users.append(user)
         return users
 
-    def email_message(self, user, subject_template, body_template, request, group, sender=None,
-                      message_class=EmailMessage, **kwargs):
+    def email_message(self, user, subject_template, body_template, message_class=EmailMessage, **kwargs):
         """
         Returns an email message for a new user.
 
-        This can be easily overriden.
+        This can be easily overridden.
         For instance, to send an HTML message, use the EmailMultiAlternatives message_class
         and attach the additional component.
         """
 
-        if sender:
+        if kwargs['sender']:
             # We have a specific sender
             import email.utils
             from_email = "%s <%s>" % (
-                sender.full_name,
+                kwargs['sender'].full_name,
                 email.utils.parseaddr(settings.DEFAULT_FROM_EMAIL)[1]
             )
-            reply_to = "%s <%s>" % (sender.full_name, sender.email)
+            reply_to = "%s <%s>" % (kwargs['sender'].full_name, kwargs['sender'].email)
         else:
             # There's no specific sender
             from_email = settings.DEFAULT_FROM_EMAIL
@@ -581,13 +596,12 @@ class GroupURLManager(InvitationBackend):
 
         headers = {'Reply-To': reply_to}
         kwargs.update({
-            'sender': sender,
+            'sender': kwargs.get('sender', None),
             'user': user,
             'accept_url': reverse(
                 "%s:%s" % (self.namespace, "accept_invitation"),
-                args=[group.slug, user.pk, self.get_token(user, group)],
+                args=[kwargs['group'].slug, user.pk, self.get_token(user, **kwargs)],
             ),
-            'request': request
         })
 
         subject_template = loader.get_template(subject_template)
@@ -597,7 +611,7 @@ class GroupURLManager(InvitationBackend):
 
         return message_class(subject, body, from_email, [user.email], headers=headers)
 
-    def send_invitation(self, user, group, sender=None, **kwargs):
+    def send_invitation(self, user, sender=None, **kwargs):
         """An intermediary function for sending an invitation email that
         selects the templates, generating the token, and ensuring that the user
         has not already joined the site.
@@ -609,17 +623,18 @@ class GroupURLManager(InvitationBackend):
         if user.is_active:
             return False
 
-        token = self.get_token(user, group)
+        token = self.get_token(user, **kwargs)
         kwargs.update({'token': token})
         kwargs.update({'sender': sender})
         kwargs.update({'user_id': user.pk})
-        # Send the email
-        self.email_message(user, self.invitation_subject, self.invitation_body, group=group, **kwargs).send()
+        kwargs.update({'group': kwargs['group']})
+
+        self.email_message(user, self.invitation_subject, self.invitation_body, **kwargs).send()
         return True
 
-    def get_token(self, user, group, **kwargs):
+    def get_token(self, user, **kwargs):
         """Returns a unique token for the given user"""
-        return GroupRegistrationTokenGenerator(group).make_token(user)
+        return GroupRegistrationTokenGenerator(kwargs['group']).make_token(user)
 
 
 def group_backend_factory(*args, **kwargs):

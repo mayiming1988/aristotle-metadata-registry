@@ -11,7 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 from model_utils import Choices
 
 from haystack import connections
-from haystack.constants import DEFAULT_ALIAS
+from haystack.constants import DEFAULT_ALIAS, DJANGO_ID
 from haystack.forms import FacetedSearchForm, model_choices
 from haystack.query import EmptySearchQuerySet, SearchQuerySet, SQ
 from haystack.inputs import AutoQuery
@@ -21,10 +21,12 @@ from aristotle_mdr.widgets.bootstrap import (
     BootstrapDropdownSelectMultiple,
     BootstrapDropdownIntelligentDate,
     BootstrapDropdownSelect,
-    BootstrapDateTimePicker
+    BootstrapDateTimePicker,
+    BootstrapDropdownSearchCategoriesSelect
 )
 
 from aristotle_mdr.utils import fetch_metadata_apps
+from aristotle_mdr.search_indexes import SEARCH_CATEGORIES
 
 import logging
 logger = logging.getLogger(__name__)
@@ -40,12 +42,14 @@ QUICK_DATES = Choices(
     ('X', 'custom', _('Custom period')),
 )
 
+
+# For dates and times, ascending means that earlier dates will precede later ones.
 SORT_OPTIONS = Choices(
     ('n', 'natural', _('Relevance')),
-    ('ma', 'modified_ascending', _('First Modified')),
-    ('md', 'modified_descending', _('Last Modified')),
-    ('ma', 'created_ascending', _('First Created')),
-    ('md', 'created_descending', _('Last Created')),
+    ('md', 'modified_descending', _('Most Recently Modified')),
+    ('ma', 'modified_ascending', _('Least Recently Modified')),
+    ('ca', 'created_ascending', _('First Created')),
+    ('cd', 'created_descending', _('Last Created')),
     ('aa', 'alphabetical', _('Alphabetical')),
     ('s', 'state', _('Registration state')),
 )
@@ -335,9 +339,17 @@ class TokenSearchForm(FacetedSearchForm):
         if self.query_text:
             # If there is query text
             # Search on text (which is the document) and name fields (so name can be boosted)
-            sqs = self.searchqueryset.filter(
-                SQ(text=AutoQuery(self.query_text)) | SQ(name=AutoQuery(self.query_text))
-            )
+            title_only = self.cleaned_data.get('title_only', None)
+            if title_only:
+                sqs = self.searchqueryset.filter(
+                    SQ(name=AutoQuery(self.query_text))
+                )
+            else:
+                sqs = self.searchqueryset.filter(
+                    SQ(text=AutoQuery(self.query_text)) |
+                    SQ(name=AutoQuery(self.query_text)) |
+                    SQ(**{DJANGO_ID: self.query_text})
+                )
 
         else:
             # Don't search
@@ -377,9 +389,6 @@ class PermissionSearchForm(TokenSearchForm):
         We need to make a new form as permissions to view objects are a bit finicky.
         This form allows us to perform the base query then restrict it to just those
         of interest.
-
-
-        TODO: This might not scale well, so it may need to be looked at in production.
     """
     # Use short names to reduce URL length
     mq=forms.ChoiceField(
@@ -414,6 +423,7 @@ class PermissionSearchForm(TokenSearchForm):
         label="Created before date",
         widget=BootstrapDateTimePicker(options=datePickerOptions)
     )
+
     ra = forms.MultipleChoiceField(
         required=False, label=_("Registration authority"),
         choices=[], widget=BootstrapDropdownSelectMultiple
@@ -440,9 +450,18 @@ class PermissionSearchForm(TokenSearchForm):
         required=False,
         label="Only show public items"
     )
+    title_only = forms.BooleanField(
+        required=False,
+        label="Search titles only"
+    )
     myWorkgroups_only = forms.BooleanField(
         required=False,
         label="Only show items in my workgroups"
+    )
+    category = forms.ChoiceField(
+        choices=SEARCH_CATEGORIES,
+        required=False, label=_('Categories'),
+        widget=BootstrapDropdownSelect
     )
     models = forms.MultipleChoiceField(
         choices=[],  # model_choices(),
@@ -477,7 +496,6 @@ class PermissionSearchForm(TokenSearchForm):
         self.fields['ra'].choices = [(ra.id, ra.name) for ra in MDR.RegistrationAuthority.objects.filter(active__in=[0, 1]).order_by('active', 'name')]
 
         # List of models that you can search for
-        # TODO: ensure that this includes collections
 
         self.default_models = [
             m[0] for m in model_choices()
@@ -507,7 +525,7 @@ class PermissionSearchForm(TokenSearchForm):
     @property
     def applied_filters(self):
         """
-        :return: The filters appearing in the URL that are applied
+        Returns the filters appearing in the URL that are applied
         """
         if not hasattr(self, 'cleaned_data'):
             return []
@@ -525,7 +543,7 @@ class PermissionSearchForm(TokenSearchForm):
         if not has_filter and not self.query_text:
             return self.no_query_found()
 
-        if self.applied_filters and not self.query_text:  # and not self.kwargs:
+        if self.applied_filters and not self.query_text:
             # If there is a filter, but no query, then we'll force some results.
             sqs = self.searchqueryset.order_by('-modified')
             self.filter_search = True
@@ -535,6 +553,7 @@ class PermissionSearchForm(TokenSearchForm):
         states = self.cleaned_data.get('state', None)
         ras = self.cleaned_data.get('ra', None)
         restriction = self.cleaned_data['res']
+        search_category = self.cleaned_data['category']
         workgroup = self.cleaned_data.get('wg', None)
         stewardship_organisation = self.cleaned_data.get('sa', None)
 
@@ -542,6 +561,9 @@ class PermissionSearchForm(TokenSearchForm):
         sqs = sqs.apply_registration_status_filters(states, ras)
         if restriction:
             sqs = sqs.filter(restriction=restriction)
+
+        if search_category and search_category != SEARCH_CATEGORIES.all:
+            sqs = sqs.filter(category=search_category)
 
         sqs = self.apply_date_filtering(sqs)
         sqs = sqs.apply_permission_checks(
@@ -622,10 +644,8 @@ class PermissionSearchForm(TokenSearchForm):
         for facet in additional_hardcoded_facets:
             sqs = sqs.facet(facet)
 
-        """
-        Generate details about facets from ``concepts`` registered (as facetable) with a Haystack search index that conforms
-        to Aristotle permissions. Excludes facets that have been previously been added.
-        """
+        # Generate details about facets from ``concepts`` registered (as facetable) with a Haystack search index that conforms
+        # to Aristotle permissions. Excludes facets that have been previously been added.
         extra_facets = []
         from aristotle_mdr.search_indexes import registered_indexes
         for model_index in registered_indexes:
@@ -786,17 +806,25 @@ class PermissionSearchForm(TokenSearchForm):
         return sqs
 
     def apply_sorting(self, sqs):  # pragma: no cover, no security issues, standard Haystack methods, so already tested.
+
         sort_order = self.cleaned_data['sort']
+
+        # Ordering is evaluated from left to right
         if sort_order == SORT_OPTIONS.modified_ascending:
-            sqs = sqs.order_by('-modified', 'name_sortable')
+            sqs = sqs.order_by('modified', 'name_sortable')
+
         elif sort_order == SORT_OPTIONS.modified_descending:
-            sqs = sqs.order_by('modified', '-name_sortable')
+            sqs = sqs.order_by('-modified', 'name_sortable')
+
         elif sort_order == SORT_OPTIONS.created_ascending:
-            sqs = sqs.order_by('-created', 'name_sortable')
+            sqs = sqs.order_by('created', 'name_sortable')
+
         elif sort_order == SORT_OPTIONS.created_descending:
-            sqs = sqs.order_by('created', '-name_sortable')
+            sqs = sqs.order_by('-created', 'name_sortable')
+
         elif sort_order == SORT_OPTIONS.alphabetical:
             sqs = sqs.order_by('name_sortable')
+
         elif sort_order == SORT_OPTIONS.state:
             sqs = sqs.order_by('-highest_state', 'name_sortable')
 

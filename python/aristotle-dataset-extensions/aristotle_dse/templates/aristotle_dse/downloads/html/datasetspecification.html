@@ -3,12 +3,12 @@
 
 {% block title %}{{ item.name }} ({{item.status}}){% endblock %}
 {% block objSpecific %}
-{% if item.data_elements.all %}
-    <dt>
-        <header>Metadata items in this Data Set Specification</header>
-    </dt>
-    <dd class="dss_inclusions">
-    {% include "aristotle_dse/downloads/html/helpers/inclusions.html" with item=item %}
-    </dd>
-{% endif %}
+    {% if item.data_elements.all or item.clusters.all %}
+        <dt>
+            <header>Metadata items in this Data Set Specification</header>
+        </dt>
+        <dd class="dss_inclusions">
+            {% include "aristotle_dse/downloads/html/helpers/inclusions.html" with item=item %}
+        </dd>
+    {% endif %}
 {% endblock %}

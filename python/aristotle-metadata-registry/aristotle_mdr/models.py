@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union, Iterable, Optional
+from typing import List, Tuple, Union, Iterable, Optional, Dict
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ImproperlyConfigured
@@ -41,7 +41,6 @@ from aristotle_mdr.utils import (
     strip_tags,
 )
 from aristotle_mdr.utils.text import truncate_words
-from aristotle_mdr import comparators
 
 from jsonfield import JSONField
 from .fields import (
@@ -266,12 +265,14 @@ class RegistrationAuthority(Organization):
     )
     locked_state = models.IntegerField(
         choices=STATES,
-        help_text=_("When metadata is endorsed at  the specified 'locked' level, the metadata item will not longer be able to be altered by standard users. Only Workgroup or Organisation Stewards will be able to edit 'locked' metadata."),
+        help_text=_(
+            "When metadata is endorsed at  the specified 'locked' level, the metadata item will not longer be able to be altered by standard users. Only Workgroup or Organisation Stewards will be able to edit 'locked' metadata."),
         default=STATES.candidate
     )
     public_state = models.IntegerField(
         choices=STATES,
-        help_text=_("When metadata is endorsed at the specified 'public' level, the metadata item will be visible to all users"),
+        help_text=_(
+            "When metadata is endorsed at the specified 'public' level, the metadata item will be visible to all users"),
         default=STATES.recorded
     )
 
@@ -294,7 +295,8 @@ class RegistrationAuthority(Organization):
 
     notprogressed = models.TextField(
         _("Not Progressed"),
-        help_text=_("A description of the meaning of the 'Not Progressed' status level for this Registration Authority."),
+        help_text=_(
+            "A description of the meaning of the 'Not Progressed' status level for this Registration Authority."),
         blank=True
     )
     incomplete = models.TextField(
@@ -324,7 +326,8 @@ class RegistrationAuthority(Organization):
     )
     preferred = models.TextField(
         _("Preferred Standard"),
-        help_text=_("A description of the meaning of the 'Preferred Standard' status level for this Registration Authority."),
+        help_text=_(
+            "A description of the meaning of the 'Preferred Standard' status level for this Registration Authority."),
         blank=True
     )
     superseded = models.TextField(
@@ -348,12 +351,6 @@ class RegistrationAuthority(Organization):
         'manager': _("Manager")
     }
 
-    def get_absolute_url(self):
-        return url_slugify_registration_authoritity(self)
-
-    def can_view(self, user):
-        return True
-
     @property
     def unlocked_states(self):
         return range(STATES.notprogressed, self.locked_state)
@@ -365,6 +362,36 @@ class RegistrationAuthority(Organization):
     @property
     def public_states(self):
         return range(self.public_state, STATES.retired + 1)
+
+    @property
+    def members(self):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+
+        reg_pks = list(self.registrars.all().values_list("pk", flat=True))
+        man_pks = list(self.managers.all().values_list("pk", flat=True))
+
+        pks = set(reg_pks + man_pks)
+        return User.objects.filter(pk__in=pks)
+
+    @property
+    def is_active(self):
+        return self.active == RA_ACTIVE_CHOICES.active
+
+    @property
+    def is_visible(self):
+        return not self.active == RA_ACTIVE_CHOICES.hidden
+
+    @property
+    def short_definition(self):
+        stripped = strip_tags(self.definition)
+        return truncate_words(stripped, 50)
+
+    def get_absolute_url(self):
+        return url_slugify_registration_authoritity(self)
+
+    def can_view(self, user):
+        return True
 
     def statusDescriptions(self):
         descriptions = [
@@ -488,25 +515,6 @@ class RegistrationAuthority(Organization):
     def removeUser(self, user):
         self.registrars.remove(user)
         self.managers.remove(user)
-
-    @property
-    def members(self):
-        from django.contrib.auth import get_user_model
-        User = get_user_model()
-
-        reg_pks = list(self.registrars.all().values_list("pk", flat=True))
-        man_pks = list(self.managers.all().values_list("pk", flat=True))
-
-        pks = set(reg_pks + man_pks)
-        return User.objects.filter(pk__in=pks)
-
-    @property
-    def is_active(self):
-        return self.active == RA_ACTIVE_CHOICES.active
-
-    @property
-    def is_visible(self):
-        return not self.active == RA_ACTIVE_CHOICES.hidden
 
 
 @receiver(post_save, sender=RegistrationAuthority)
@@ -744,14 +752,13 @@ class _concept(baseAristotleObject):
 
     tracker = FieldTracker()
 
-    comparator = comparators.Comparator
     edit_page_excludes: List[str] = []
     admin_page_excludes: List[str] = []
     # List of fields that will only be displayed if 'aristotle_backwards' is
     # enabled
     backwards_compatible_fields: List[str] = []
     registerable = True
-    relational_attributes: List[QuerySet]
+    relational_attributes: Dict[str, Dict] = {}
     # Used by concept manager with_related in a select_related
     related_objects: List[str] = []
     # Fields to build the name from
@@ -768,6 +775,14 @@ class _concept(baseAristotleObject):
     def model_to_publish(self):
         return _concept
 
+    @classmethod
+    def custom_help(cls):
+        from aristotle_mdr.utils import cloud_enabled
+        if not cloud_enabled():
+            return None
+        ct = ContentType.objects.get_for_model(cls)
+        return ct.custom_help
+
     @property
     def non_cached_fields_changed(self):
         changed = self.tracker.changed()
@@ -782,12 +797,6 @@ class _concept(baseAristotleObject):
         # changed.pop('_is_public', False)
         # changed.pop('_is_locked', False)
         return self.tracker.changed()
-
-    def can_edit(self, user):
-        return _concept.objects.filter(pk=self.pk).editable(user).exists()
-
-    def can_view(self, user):
-        return _concept.objects.filter(pk=self.pk).visible(user).exists()
 
     @property
     def cached_item(self) -> Optional[models.Model]:
@@ -863,6 +872,11 @@ class _concept(baseAristotleObject):
 
     @property
     def short_definition(self):
+        """
+        Provides a truncated (20 characters long) description of the item.
+        Html tags are stripped.
+        :return: 20 character long string.
+        """
         stripped = strip_tags(self.definition)
         return truncate_words(stripped, 20)
 
@@ -954,6 +968,12 @@ class _concept(baseAristotleObject):
     def approved_superseded_by(self):
         supersedes = self.superseded_by_items_relation_set.filter(proposed=False).select_related('newer_item')
         return [ss.newer_item for ss in supersedes]
+
+    def can_edit(self, user):
+        return _concept.objects.filter(pk=self.pk).editable(user).exists()
+
+    def can_view(self, user):
+        return _concept.objects.filter(pk=self.pk).visible(user).exists()
 
     def check_is_public(self, when=timezone.now()):
         """
@@ -1172,9 +1192,27 @@ class ObjectClass(concept):
 
     @property
     def relational_attributes(self):
-        return [
-            self.dataelementconcept_set.all(),
-        ]
+        rels = {
+            "data_element_concepts": {
+                "all": _("Data Element Concepts implementing this Object Class"),
+                "qs": self.dataelementconcept_set.all()
+            },
+        }
+        if "aristotle_ontology" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
+            from aristotle_ontology.models import ObjectClassSpecialisation
+            rels.update({
+                'broader_specialisations': {
+                    "all": _("As a broader class of"),
+                    "qs": self.oc_as_broader.all()
+                },
+                'narrower_specialisations': {
+                    "all": _("As a specialisation class of"),
+                    "qs": ObjectClassSpecialisation.objects.filter(
+                        objectclassspecialisationnarrowerclass__narrower_class=self
+                    ).all()
+                },
+            })
+        return rels
 
 
 class Property(concept):
@@ -1189,9 +1227,13 @@ class Property(concept):
 
     @property
     def relational_attributes(self):
-        return [
-            self.dataelementconcept_set.all(),
-        ]
+        rels = {
+            "data_element_concepts": {
+                "all": _("Data Element Concepts implementing this Property"),
+                "qs": self.dataelementconcept_set.all()
+            },
+        }
+        return rels
 
 
 class Measure(ManagedItem):
@@ -1217,8 +1259,23 @@ class UnitOfMeasure(concept):
 
     template = "aristotle_mdr/concepts/unitOfMeasure.html"
     list_details_template = "aristotle_mdr/concepts/list_details/unit_of_measure.html"
-    measure = models.ForeignKey(Measure, blank=True, null=True)
-    symbol = models.CharField(max_length=20, blank=True)
+    measure = models.ForeignKey(Measure,
+                                blank=True,
+                                null=True,
+                                on_delete=models.SET_NULL,
+                                )
+    symbol = models.CharField(max_length=20,
+                              blank=True,
+                              )
+
+    @property
+    def relational_attributes(self):
+        return {
+            "value_domains": {
+                "all": _("Value Domains implementing this Unit of Measure"),
+                "qs": self.valuedomain_set.all()
+            },
+        }
 
 
 class DataType(concept):
@@ -1227,6 +1284,15 @@ class DataType(concept):
     by operations on those values (3.1.9)
     """
     template = "aristotle_mdr/concepts/dataType.html"
+
+    @property
+    def relational_attributes(self):
+        return {
+            "value_domains": {
+                "all": _("Value Domains implementing this Data Type"),
+                "qs": self.valuedomain_set.all()
+            },
+        }
 
 
 class ConceptualDomain(concept):
@@ -1253,10 +1319,16 @@ class ConceptualDomain(concept):
 
     @property
     def relational_attributes(self):
-        return [
-            self.dataelementconcept_set.all(),
-            self.valuedomain_set.all()
-        ]
+        return {
+            "data_element_concepts": {
+                "all": _("Data Element Concepts implementing this Conceptual Domain"),
+                "qs": self.dataelementconcept_set.all()
+            },
+            "value_domains": {
+                "all": _("Value Domains Concepts implementing this Conceptual Domain"),
+                "qs": self.valuedomain_set.all()
+            },
+        }
 
 
 class ValueMeaning(aristotleComponent):
@@ -1320,7 +1392,6 @@ class ValueDomain(concept):
 
     template = "aristotle_mdr/concepts/valueDomain.html"
     list_details_template = "aristotle_mdr/concepts/list_details/value_domain.html"
-    comparator = comparators.ValueDomainComparator
     serialize_weak_entities = [
         ('permissible_values', 'permissiblevalue_set'),
         ('supplementary_values', 'supplementaryvalue_set'),
@@ -1333,7 +1404,8 @@ class ValueDomain(concept):
         blank=True,
         null=True,
         help_text=_('Datatype used in a Value Domain'),
-        verbose_name='Data Type'
+        verbose_name='Data Type',
+        on_delete=models.SET_NULL,
     )
     format = models.CharField(  # 11.3.2.5.2.1
         max_length=100,
@@ -1351,14 +1423,16 @@ class ValueDomain(concept):
         blank=True,
         null=True,
         help_text=_('Unit of Measure used in a Value Domain'),
-        verbose_name='Unit Of Measure'
+        verbose_name='Unit Of Measure',
+        on_delete=models.SET_NULL,
     )
     conceptual_domain = ConceptForeignKey(
         ConceptualDomain,
         blank=True,
         null=True,
         help_text=_('The Conceptual Domain that this Value Domain which provides representation.'),
-        verbose_name='Conceptual Domain'
+        verbose_name='Conceptual Domain',
+        on_delete=models.SET_NULL,
     )
     classification_scheme = ConceptForeignKey(
         'aristotle_mdr_backwards.ClassificationScheme',
@@ -1366,6 +1440,7 @@ class ValueDomain(concept):
         null=True,
         related_name='valueDomains',
         verbose_name='Classification Scheme',
+        on_delete=models.SET_NULL,
     )
     representation_class = ConceptForeignKey(
         'aristotle_mdr_backwards.RepresentationClass',
@@ -1373,6 +1448,7 @@ class ValueDomain(concept):
         null=True,
         related_name='value_domains',
         verbose_name='Representation Class',
+        on_delete=models.SET_NULL,
     )
     description = models.TextField(
         _('description'),
@@ -1395,9 +1471,12 @@ class ValueDomain(concept):
 
     @property
     def relational_attributes(self):
-        return [
-            self.dataelement_set.all(),
-        ]
+        return {
+            "data_elements": {
+                "all": _("Data Elements implementing this Value Domain"),
+                "qs": self.dataelement_set.all()
+            },
+        }
 
 
 class PermissibleValue(AbstractValue):
@@ -1465,9 +1544,12 @@ class DataElementConcept(concept):
 
     @property_
     def relational_attributes(self):
-        return [
-            self.dataelement_set.all(),
-        ]
+        return {
+            "data_elements": {
+                "all": _("Data Elements implementing this Data Element Concept"),
+                "qs": self.dataelement_set.all()
+            },
+        }
 
 
 # Yes this name looks bad - blame 11179:3:2013 for renaming "administered item"
@@ -1522,6 +1604,53 @@ class DataElement(concept):
         if self.dataElementConcept:
             items += self.dataElementConcept.get_download_items()
         return items
+
+    @property
+    def relational_attributes(self):
+        rels = {}
+        if "aristotle_dse" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
+            from aristotle_dse.models import DataSetSpecification
+
+            rels.update({
+                "dss": {
+                    "all": _("Inclusion in Data Set Specifications"),
+                    "qs": DataSetSpecification.objects.filter(
+                        dssdeinclusion__data_element=self
+                    ).distinct()
+                },
+            })
+        if "mallard_qr" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
+
+            rels.update({
+                "dss": {
+                    "all": _("Use within a Question"),
+                    "qs": self.questions.all(),
+                },
+            })
+        if "comet" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
+            from comet.models import Indicator
+
+            rels.update({
+                "as_numerator": {
+                    "all": _("As a numerator in an Indicator"),
+                    "qs": Indicator.objects.filter(
+                        indicatornumeratordefinition__data_element=self
+                    ).distinct()
+                },
+                "as_denominator": {
+                    "all": _("As a denominator in an Indicator"),
+                    "qs": Indicator.objects.filter(
+                        indicatordenominatordefinition__data_element=self
+                    ).distinct()
+                },
+                "as_disaggregator": {
+                    "all": _("As a disaggregation in an Indicator"),
+                    "qs": Indicator.objects.filter(
+                        indicatordisaggregationdefinition__data_element=self
+                    ).distinct()
+                },
+            })
+        return rels
 
 
 class DataElementDerivation(concept):
@@ -1596,7 +1725,7 @@ class PossumProfile(models.Model):
         height_field='profilePictureHeight',
         width_field='profilePictureWidth',
         max_upload_size=((1024 ** 2) * 10),  # 10 MB
-        content_types=['image/jpg', 'image/png', 'image/bmp', 'image/jpeg'],
+        content_types=['image/jpg', 'image/png', 'image/bmp', 'image/jpeg', 'image/x-ms-bmp'],
         js_checker=True
     )
     notificationPermissions = JSONField(
@@ -1682,13 +1811,18 @@ class PossumProfile(models.Model):
 
     @property
     def mySandboxContent(self):
+        """ Sandbox content is content:
+            1. Submitted by the user
+            2. That is not registered
+            3. That is not under review or is for a review that has been revoked
+            4. That has not been added to a workgroup"""
         from aristotle_mdr.contrib.reviews.const import REVIEW_STATES
         return _concept.objects.filter(
             Q(submitter=self.user,
               statuses__isnull=True
               ) & Q(Q(rr_review_requests__isnull=True) |
                     Q(rr_review_requests__status=REVIEW_STATES.revoked)
-                    )
+                    ) & Q(workgroup__isnull=True)
         )
 
     @property
@@ -1859,9 +1993,13 @@ def check_concept_app_label(sender, instance, **kwargs):
         return
     if instance._meta.app_label not in fetch_metadata_apps():
         raise ImproperlyConfigured(
-            "Trying to save item <{instance_name}> when app_label <{app_label}> is not enabled".format(
+            (
+                "Trying to save item <{instance_name}> when app_label <{app_label}> "
+                "is not enabled. Metadata apps at this point were <{metadata_apps}>."
+            ).format(
                 app_label=instance._meta.app_label,
-                instance_name=instance.name
+                instance_name=instance.name,
+                metadata_apps=str(fetch_metadata_apps())
             )
         )
 

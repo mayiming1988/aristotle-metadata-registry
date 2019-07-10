@@ -11,6 +11,9 @@ from aristotle_mdr.fields import (
     ConceptManyToManyField,
     ShortTextField,
 )
+from aristotle_mdr.utils import fetch_aristotle_settings
+
+import reversion
 
 
 class DataCatalog(aristotle.models.concept):
@@ -30,11 +33,11 @@ class DataCatalog(aristotle.models.concept):
         blank=True, null=True,
         help_text=_('The dataset specification to which this data source conforms'),
         )
-    publisher = models.ForeignKey(
-        aristotle.models.Organization,
-        blank=True, null=True,
-        help_text=_('The entity responsible for making the catalog online.'),
-        )
+    # publisher_record = models.ForeignKey(
+    #     aristotle.models.OrganizationRecord,
+    #     blank=True, null=True,
+    #     help_text=_('The entity responsible for making the catalog online.'),
+    #     )
     spatial = models.TextField(
         blank=True, null=True,
         help_text=_('The geographical area covered by the catalog.'),
@@ -48,14 +51,6 @@ class DataCatalog(aristotle.models.concept):
         ),
         )
 
-    @property
-    def publishing_organisations(self):
-        return aristotle.models.Organization.objects.filter(dataset__catalog=self).distinct()
-
-    # @property
-    # def homepage(self):
-    #     return self.originURI
-
 
 class Dataset(aristotle.models.concept):
     """
@@ -63,18 +58,20 @@ class Dataset(aristotle.models.concept):
     for access or download in one or more formats.
     """
     template = "aristotle_dse/concepts/dataset.html"
+
     # Themes = slots with name 'theme'
     # Keywords = slots with name 'keyword'
     issued = models.DateField(
         blank=True, null=True,
         help_text=_('Date of formal issuance (e.g., publication) of the catalog.'),
         )
-    publisher = models.ForeignKey(
-        aristotle.models.Organization,
-        blank=True, null=True,
-        help_text=_('An entity responsible for making the dataset available.'),
-        )
-    accrual_periodicity = models.TextField(
+    # publisher_record = models.ForeignKey(
+    #     aristotle.models.OrganizationRecord,
+    #     verbose_name=_("Publisher"),
+    #     blank=True, null=True,
+    #     help_text=_('An entity responsible for making the dataset available.'),
+    #     )
+    frequency = models.TextField(
         blank=True, null=True,
         help_text=_('The frequency at which dataset is published.'),
         )
@@ -101,8 +98,37 @@ class Dataset(aristotle.models.concept):
         )
     dct_modified = models.DateTimeField(
         blank=True, null=True,
-        help_text=_('Most recent date on which the catalog was changed, updated or modified.'),
+        verbose_name="Modification date",
+        help_text=_('Most recent date on which the dataset was changed, updated or modified.'),
         )
+
+    @property
+    def relational_attributes(self):
+        rels = {}
+        if "comet" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
+            from comet.models import Indicator
+            
+            rels.update({
+                "as_numerator": {
+                    "all": _("As a numerator in an Indicator"),
+                    "qs": Indicator.objects.filter(
+                        indicatornumeratordefinition__data_set=self
+                    ).distinct()
+                },
+                "as_denominator": {
+                    "all": _("As a denominator in an Indicator"),
+                    "qs": Indicator.objects.filter(
+                        indicatordenominatordefinition__data_set=self
+                    ).distinct()
+                },
+                "as_disaggregator": {
+                    "all": _("As a disaggregation in an Indicator"),
+                    "qs": Indicator.objects.filter(
+                        indicatordisaggregationdefinition__data_set=self
+                    ).distinct()
+                },
+            })
+        return rels
 
 
 class Distribution(aristotle.models.concept):
@@ -123,17 +149,13 @@ class Distribution(aristotle.models.concept):
         )
     dct_modified = models.DateTimeField(
         blank=True, null=True,
+        verbose_name="Modification date",
         help_text=_('Most recent date on which the catalog was changed, updated or modified.'),
         )
     dataset = models.ForeignKey(
         Dataset,
         blank=True, null=True,
         help_text=_('Connects a distribution to its available datasets'),
-        )
-    publisher = models.ForeignKey(
-        aristotle.models.Organization,
-        blank=True, null=True,
-        help_text=_('An entity responsible for making the dataset available.'),
         )
     license = models.TextField(
         blank=True, null=True,
@@ -283,46 +305,78 @@ class DataSetSpecification(aristotle.models.concept):
             self.clusters.all(),
             aristotle.models.DataElement.objects.filter(
                 Q(dssInclusions__dss=self) |
-				Q(dssInclusions__dss__in=self.clusters.all()) 
+                Q(dssInclusions__dss__in=self.clusters.all())
             ).distinct(),
             # We need to make these distinct to avoid duplicates being returned
             aristotle.models.DataElementConcept.objects.filter(
                 Q(dataelement__dssInclusions__dss=self) |
-				Q(dataelement__dssInclusions__dss__in=self.clusters.all()) 
+                Q(dataelement__dssInclusions__dss__in=self.clusters.all())
             ).distinct(),
             aristotle.models.ObjectClass.objects.filter(
                 Q(dataelementconcept__dataelement__dssInclusions__dss=self) |
-				Q(dataelementconcept__dataelement__dssInclusions__dss__in=self.clusters.all()) 
+                Q(dataelementconcept__dataelement__dssInclusions__dss__in=self.clusters.all())
             ).distinct(),
             aristotle.models.Property.objects.filter(
                 Q(dataelementconcept__dataelement__dssInclusions__dss=self) |
-				Q(dataelementconcept__dataelement__dssInclusions__dss__in=self.clusters.all()) 
+                Q(dataelementconcept__dataelement__dssInclusions__dss__in=self.clusters.all())
             ).distinct(),
             aristotle.models.ValueDomain.objects.filter(
                 Q(dataelement__dssInclusions__dss=self) |
-				Q(dataelement__dssInclusions__dss__in=self.clusters.all()) 
+                Q(dataelement__dssInclusions__dss__in=self.clusters.all())
             ).distinct(),
         ]
+
+    @property
+    def relational_attributes(self):
+        rels = {}
+        if "comet" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
+            from comet.models import Indicator
+            
+            rels.update({
+                "as_numerator": {
+                    "all": _("As a numerator in an Indicator"),
+                    "qs": Indicator.objects.filter(
+                        indicatornumeratordefinition__data_set_specification=self
+                    ).distinct()
+                },
+                "as_denominator": {
+                    "all": _("As a denominator in an Indicator"),
+                    "qs": Indicator.objects.filter(
+                        indicatordenominatordefinition__data_set_specification=self
+                    ).distinct()
+                },
+                "as_disaggregator": {
+                    "all": _("As a disaggregation in an Indicator"),
+                    "qs": Indicator.objects.filter(
+                        indicatordisaggregationdefinition__data_set_specification=self
+                    ).distinct()
+                },
+            })
+        return rels
 
 
 class DSSInclusion(aristotle.models.aristotleComponent):
     class Meta:
-        abstract=True
+        abstract = True
         ordering = ['order']
 
     inline_field_layout = 'list'
+
     reference = models.CharField(
         max_length=512,
-        null=True, blank=True,
-        help_text=_("Optional field for refering to this item within the DSS.")
+        blank=True,
+        help_text=_("Optional field for refering to this item within the DSS."),
+        default=''
     )
 
     dss = ConceptForeignKey(DataSetSpecification)
-    maximum_occurances = models.PositiveIntegerField(
+    maximum_occurrences = models.PositiveIntegerField(
         default=1,
+        verbose_name=_("Maximum Occurrences"),
         help_text=_("The maximum number of times a item can be included in a dataset")
         )
-    cardinality = models.CharField(
+    inclusion = models.CharField(
+        "Inclusion",
         choices=CARDINALITY,
         default=CARDINALITY.conditional,
         max_length=20,
@@ -331,8 +385,9 @@ class DSSInclusion(aristotle.models.aristotleComponent):
     specific_information = RichTextField(
         blank=True,
         help_text=_("Any additional information on the inclusion of a data element or cluster in a dataset.")
-        )  # may need to become HTML field.
-    conditional_obligation = models.TextField(
+        )
+    conditional_inclusion = RichTextField(
+        "Conditional Inclusion",
         blank=True,
         help_text=_("If an item is present conditionally, this field defines the conditions under which an item will appear.")
         )
@@ -394,6 +449,11 @@ class DSSDEInclusion(DSSInclusion):
     )
 
     inline_field_layout = 'list'
+    inline_field_order = [
+        "order", "dss",
+        "data_element", "reference", "inclusion", "maximum_occurrences",
+        "conditional_inclusion", "specific_information", "group", "specialisation_classes"
+    ]
 
     class Meta(DSSInclusion.Meta):
         verbose_name = "DSS Data Element"
@@ -409,6 +469,15 @@ class DSSDEInclusion(DSSInclusion):
             msg = "Data element '%s' at position %s" % (self.data_element.name, self.order)
         return msg
 
+    def __str__(self):
+        has_reference = self.reference is not None and self.reference != ''
+        if has_reference:
+            return 'Data element {} at position {} with reference: {}.'.format(self.data_element_id, self.order, self.reference)
+        return 'Data element {} at position {}'.format(self.data_element_id, self.order)
+
+    def get_absolute_url(self):
+        pass
+
 
 # Holds the link between a DSS and a cluster with the DSS Specific details.
 class DSSClusterInclusion(DSSInclusion):
@@ -416,6 +485,13 @@ class DSSClusterInclusion(DSSInclusion):
     The child in this relationship is considered to be a child of the parent DSS as specified by the `dss` property.
     """
     child = ConceptForeignKey(DataSetSpecification, related_name='parent_dss')
+
+    inline_field_layout = 'list'
+    inline_field_order = [
+        "order", "dss", "child",
+        "reference", "inclusion", "maximum_occurrences",
+        "conditional_inclusion", "specific_information"
+    ]
 
     class Meta(DSSInclusion.Meta):
         verbose_name = "DSS Cluster"
@@ -428,3 +504,6 @@ class DSSClusterInclusion(DSSInclusion):
         if self.order:
             return "Cluster '{cls}' at position {pos}".format(cls=self.child.name, pos=self.order)
         return "Cluster '{}'".format(self.child.name)
+
+    def __str__(self):
+        return "Cluster {cls} at position {pos}".format(cls=self.child_id, pos=self.order)

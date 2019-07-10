@@ -67,6 +67,7 @@ class StatusNode(DjangoObjectType):
 
 
 class AristotleConceptObjectType(DjangoObjectType):
+    aristotle_id = graphene.String()
     metadata_type = graphene.String()
     identifiers = DjangoListFilterField(ScopedIdentifierNode, filterset_class=IdentifierFilterSet)
     statuses = DjangoListFilterField(StatusNode, filterset_class=StatusFilterSet)
@@ -91,7 +92,7 @@ class AristotleConceptObjectType(DjangoObjectType):
 
     def resolve_metadata_type(self, info, **kwargs):
         item = self.item
-        out = "{}:{}".format(item._meta.app_label,item._meta.model_name)
+        out = "{}:{}".format(item._meta.app_label, item._meta.model_name)
         return out
 
     def resolve_custom_values_as_object(self, info, **kwargs):

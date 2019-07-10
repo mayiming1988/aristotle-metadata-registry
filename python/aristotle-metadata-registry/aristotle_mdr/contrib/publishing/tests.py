@@ -16,22 +16,21 @@ from aristotle_mdr.contrib.publishing import models as pub
 from aristotle_mdr.forms.search import get_permission_sqs
 from aristotle_mdr.models import ObjectClass, _concept
 from aristotle_mdr.tests import utils
-from aristotle_mdr.utils import setup_aristotle_test_environment
 from aristotle_mdr import perms
 
 from aristotle_mdr.constants import visibility_permission_choices
 
 from django.contrib.auth.models import AnonymousUser
 
-setup_aristotle_test_environment()
 
-
-class TestPublishing(utils.LoggedInViewPages, TestCase):
+class TestPublishing(utils.AristotleTestUtils, TestCase):
     def setUp(self):
         super().setUp()
         self.submitting_user = get_user_model().objects.create_user(
             email="self@publisher.net",
-            password="self-publisher")
+            password="self-publisher"
+        )
+
         with reversion.create_revision():
             self.item = ObjectClass.objects.create(
                 name="A published item",
@@ -86,13 +85,26 @@ class TestPublishing(utils.LoggedInViewPages, TestCase):
         psqs = psqs.auto_query('published').apply_permission_checks()
         self.assertEqual(len(psqs), 1)
 
-    # def test_submitter_can_see_hidden_self_publish(self):
-    #     pub.PublicationRecord.objects.create(
-    #         user=self.submitting_user,
-    #         concept=self.item,
-    #         visibility=pub.PublicationRecord.VISIBILITY.active
-    #     )
+    def test_publish_button_visibility_no_perm(self):
+        """Check that a user that cannot publish the item also can't see the button"""
 
-    #     self.assertTrue(
-    #         self.item.__class__.objects.all().visible(self.registrar).filter(pk=self.item.pk).exists()
-    #     )
+        # Add item to so and wg
+        self.item.stewardship_organisation = self.steward_org_1
+        self.item.workgroup = self.wg1
+        self.item.save()
+
+        # Login as someone who can view the item but can not publish
+        self.assertFalse(perms.user_can_publish_object(self.editor, self.item))
+
+        self.login_editor()
+        response = self.reverse_get(
+            'aristotle:item',
+            reverse_args=[self.item.id],
+            follow=True
+        )
+        self.assertEqual(response.status_code, 200)
+
+        self.assertNotContains(
+            response,
+            reverse('aristotle_publishing:publish_item', args=[self.item._meta.model_name, self.item.id])
+        )

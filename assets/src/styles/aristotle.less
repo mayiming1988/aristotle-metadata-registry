@@ -431,7 +431,6 @@ table.codeList {
     thead th, tbody td {
         border-left:1px solid @colors_border;
     }
-
     tr {
         margin: 0;
         td, th {
@@ -439,6 +438,9 @@ table.codeList {
         }
     }
     tbody tr {
+        th {
+            padding-left: 8px;
+        }
         th, td {
             padding-right: 5px;
             vertical-align:top;
@@ -568,11 +570,11 @@ dl.treble_defintions {
 .extended-search-bar {
 
     @media (min-width: 992px) {
-        min-width: 310px;
+        min-width: 250px;
     }
 
     @media (min-width: 1200px) {
-        min-width: 500px;
+        min-width: 450px;
     }
 }
 
@@ -665,4 +667,128 @@ div.bleached-content {
 textarea.small-text-area {
     width: 250px;
     height: 100px
+}
+
+/* Helper indentation classes */
+.indent-right-1 {
+    padding-left: 1em;
+}
+.indent-right-2 {
+    padding-left: 2em;
+}
+.indent-right-3 {
+    padding-left: 3em;
+}
+.indent-right-4 {
+    padding-left: 4em;
+}
+.indent-right-5 {
+    padding-left: 5em;
+}
+
+.breadcrumb > li.maybe-long-breadcrumb-item {
+    display: inline;
+}
+
+.custom_fields {
+    dl {
+        padding-bottom: 0px;
+    }
+    dt {
+        font-size: 12pt;
+        font-family: inherit;
+        font-weight: 700;
+        line-height: 1.1;
+        
+        // color: inherit;
+        color: #444444;
+        // font-weight: 500;
+    }
+    dd {
+        padding-left: 3em;
+        padding-bottom: 0.5em;
+    }
+    dd *:last-child {
+        // Make the last child consistent
+        padding-bottom:0px;
+        margin-bottom:0px;
+    }
+}
+
+.item_version {
+    color: #444;
+    font-size: 95%;
+    display: inline-block;
+    &:before { content: "(v "}
+    &:after { content: ")"}
+}
+
+.context_help_link {
+    font-size: 12pt;
+}
+
+header.editor {
+    font-size: 14pt;
+    color: #444;
+}
+
+
+ul.fancy_checkbox_list  {
+    label {
+        font-weight:normal;
+        padding:3px 10px;
+        margin:0px;
+        display:inline-block;
+        width:160px;
+    }
+
+    &>li {
+        display:block;
+        width:200px;
+
+        [type="checkbox"],[type="radio"] {
+          position: absolute;
+          left: -9999px;
+
+            &:focus + label {
+               outline: -webkit-focus-ring-color auto 5px;
+               background-color: whiteSmoke
+            }
+
+            &:hover + label {
+               background-color: whiteSmoke;
+            }
+            & + label:before {
+                font-family: 'FontAwesome';
+                display: table-cell;
+                box-sizing: border-box;
+                width: 16px;
+            }
+            & ~ label >  span {
+                display: table-cell;
+                padding-left: 5px;
+            }
+        }
+
+        /*The label will contain the icon and the text, will grab the focus*/
+        label {
+            width:100%;
+            cursor: pointer;
+            display: table;
+        }
+        /* toggle font awesome icon*/
+        [type="checkbox"]:checked + label:before {
+          content: "\f046";
+        }
+        [type="checkbox"]:not(:checked) + label:before {
+          content: "\f096";
+        }
+
+        [type="radio"]:checked + label:before {
+          content: "\f05d";
+        }
+        [type="radio"]:not(:checked) + label:before {
+          content: "\f1db";
+        }
+    }
 }

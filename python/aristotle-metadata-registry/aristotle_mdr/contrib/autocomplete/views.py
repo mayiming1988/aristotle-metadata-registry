@@ -84,9 +84,9 @@ class GenericConceptAutocomplete(GenericAutocomplete):
             try:
                 int(self.q)
                 q |= Q(pk=self.q)
-            except:
+            except ValueError:
                 pass
-            qs = qs.filter(q)
+            qs = qs.filter(q).order_by('name')
         return qs
 
     def get_results(self, context):
