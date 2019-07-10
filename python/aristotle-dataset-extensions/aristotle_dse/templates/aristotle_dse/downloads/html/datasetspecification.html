@@ -17,10 +17,9 @@
             <tr>
               <th class="dss_inclusion_ref">Ref</th>
               <th>Name</th>
-              <th class="dss_inclusion_html">Specific Information</th>
-              <th class="dss_inclusion_html">Conditional Information</th>
+              <th class="dss_inclusion_html">Information</th>
               <th>Inclusion</th>
-              <th>Maximum Occurances</th>
+              <th>#</th>
             </tr>
           </thead>
           <tbody>
@@ -31,8 +30,18 @@
                 {{ node.relation_data.reference|default:"-" }} 
                 <span class="dss_inclusion_name">{{ node.data.name }}</span>
               </td>
-              <td>{{ node.relation_data.specific_information|bleach }}</td>
-              <td>{{ node.relation_data.conditional_information|bleach }}</td>
+              <td>
+                <dl>
+                  {% if node.relation_data.specific_information %}
+                  <dt>Specific Information</dt>
+                  <dd>{{ node.relation_data.specific_information|bleach }}</dd>
+                  {% endif %}
+                  {% if node.relation_data.conditional_information %}
+                  <dt>Conditional Information</dt>
+                  <dd>{{ node.relation_data.conditional_information|bleach }}</dd>
+                  {% endif %}
+                </dl>
+              </td>
               <td>{{ node.relation_data.inclusion }}</td>
               <td>{{ node.relation_data.maximum_occurrences }}</td>
             </tr>
