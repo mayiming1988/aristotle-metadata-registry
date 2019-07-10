@@ -3,6 +3,7 @@ from typing import List, Tuple, Set
 from collections import defaultdict
 
 from django.db import models
+from django.db.models import Q
 from django.utils.translation import ugettext as _
 from django.conf import settings
 from model_utils import Choices
@@ -326,7 +327,7 @@ class DataSetSpecification(aristotle.models.concept):
         de_ids = self.get_unique_ids(de_relations)
 
         return [
-            type(self).objects.filter(id__in=dss_ids).distinct(),
+            type(self).objects.filter(Q(id__in=dss_ids) & ~Q(id=self.id)).distinct(),
             aristotle.models.DataElement.objects.filter(id__in=de_ids).distinct(),
             aristotle.models.DataElementConcept.objects.filter(dataelement__in=de_ids).distinct(),
             aristotle.models.ObjectClass.objects.filter(dataelementconcept__dataelement__in=de_ids).distinct(),
