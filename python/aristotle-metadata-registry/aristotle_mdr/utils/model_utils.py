@@ -165,6 +165,7 @@ class aristotleComponent(models.Model):
     def can_view(self, user):
         return self.parentItem.can_view(user)
 
+
 class discussionAbstract(TimeStampedModel):
     body = models.TextField()
     author = models.ForeignKey(

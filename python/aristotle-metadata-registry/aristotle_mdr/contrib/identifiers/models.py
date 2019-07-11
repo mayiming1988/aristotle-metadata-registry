@@ -47,8 +47,6 @@ class ScopedIdentifier(TimeStampedModel, MDR.aristotleComponent):
         unique_together = ("namespace", "identifier", "version")
         ordering = ['order']
 
-
-
     def __str__(self):
         return u"{0}:{1}:{2}".format(self.prefix, self.identifier, self.version)
 
