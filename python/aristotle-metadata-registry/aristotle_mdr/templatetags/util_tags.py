@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, List
 from django import template
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import format_html
@@ -159,3 +159,25 @@ def timetag(dt: Union[datetime, date, None]):
         '<time datetime="{isotime}">{isotime}</time>',
         isotime=isotime
     )
+
+
+@register.simple_tag(name='lookup')
+def dict_lookup(mapping, *keys):
+    """
+    Get a value from dictionary of any depth
+    Return empty string if an error is encountered
+    Usage: {% lookup dict key1 key2 ... %}
+    """
+    result = mapping
+    for key in keys:
+        try:
+            result = result[key]
+        except (KeyError, TypeError) as e:
+            # If key was not found or object is not indexable
+            # In development raise error, in production return empty string
+            if settings.DEBUG:
+                raise e
+            else:
+                return ''
+
+    return result

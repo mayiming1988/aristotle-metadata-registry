@@ -23,7 +23,7 @@
             {% if statuses != False %}
                 <dt>Statuses</dt>
                 <dd>
-                    {% include "aristotle_mdr/downloads/html/component/statuses.html" with skip_can_view=True statuses=item.current_statuses %}
+                    {% include "aristotle_mdr/downloads/html/helpers/statuses.html" with skip_can_view=True current_statuses=current_statuses %}
                 </dd>
             {% endif %}
         </dl>
@@ -32,6 +32,3 @@
     <em>You dont have permission to view this item</em>
 {% endif %}
 
-{% if options.include_related %}
-    {% include 'aristotle_mdr/downloads/html/inline/relational_attrs.html' with item=item %}
-{% endif %}

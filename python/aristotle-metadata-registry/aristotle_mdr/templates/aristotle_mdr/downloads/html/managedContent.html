@@ -56,7 +56,7 @@
             <dt>{% trans 'Endorsed by' %}</dt>
             <dd>
                 <div class="">
-                    {% include "aristotle_mdr/downloads/html/helpers/statuses.html" with statuses=item.current_statuses only %}
+                    {% include "aristotle_mdr/downloads/html/helpers/statuses.html" with statuses=item.current_statuses current_statuses=current_statuses only %}
                 </div>
             </dd>
             <dt>Supersedes</dt>
@@ -113,17 +113,9 @@
 
             {% block objSpecific %}
             {% endblock %}
-
-            {% comment %}
-            <dt>
-                Related items
-            </dt>
-            <dd>
-            </dd>
-            {% endcomment %}
         </dl>
 
-        {% include "aristotle_mdr/downloads/html/slots/slots_display.html" %}
+        {# {% include "aristotle_mdr/downloads/html/slots/slots_display.html" %} #}
         {% include "aristotle_mdr/downloads/html/component/custom_fields_display.html" %}
 
         {% if subitems %}
@@ -135,13 +127,13 @@
                     <h1>Supporting Items</h1>
                 {% endif %}
 
-                {% for l,dict in subitems.items %}
+                {% for l, itemlist in subitems.items %}
                     <div style="page-break-before:always;">
-                        <h2>{{ dict.verbose_name_plural }}</h2>
-                        {% if dict.help %}<p>{% relink dict.help 'brief' %}</p>{% endif %}
-                        {% for i in dict.items %}
-                            <div id='{{i.id}}'  style="page-break-before:always;">
-                                {% include i|template_path:'html,inline' with item=i header='h3' user=user only %}
+                        <h2>{{ itemlist.model_pluralized }}</h2>
+                        {% if itemlist.help %}<p>{% relink itemlist.help 'brief' %}</p>{% endif %}
+                        {% for i in itemlist.sorted_items %}
+                            <div id='{{i.id}}' style="page-break-before:always;">
+                              {% include i|template_path:'html,inline' with item=i header='h3' %}
                             </div>
                         {% endfor %}
                     </div>
