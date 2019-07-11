@@ -2,13 +2,14 @@ import os
 from io import BytesIO
 
 from django.template.loader import select_template, get_template
-from django.core.files.base import File
+from django.core.files.base import File, ContentFile
 
 from aristotle_mdr.downloader import HTMLDownloader
 
 import logging
 import weasyprint
 from PyPDF2 import PdfFileMerger
+import pdfkit
 
 PDF_STATIC_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'pdf_static')
 
@@ -26,7 +27,7 @@ class PDFDownloader(HTMLDownloader):
     description = "Downloads for various content types in the PDF format"
     allow_wrapper_pages = True
 
-    def wrap_file(self, generated_bytes) -> BytesIO:
+    def wrap_file(self, generated_bytes: bytes) -> BytesIO:
         if self.has_wrap_pages:
             merger = PdfFileMerger()
             pages = self.get_wrap_pages()
@@ -47,6 +48,18 @@ class PDFDownloader(HTMLDownloader):
 
         byte_string = render_to_pdf(template, context)
         final_file = self.wrap_file(byte_string)
+        return File(final_file)
+
+
+class FastPDFDownloader(PDFDownloader):
+    download_type = "fpdf"
+
+    def create_file(self):
+        html_string = self.get_html().decode()
+        toc_options = {'--toc-header-text': 'Table of Contents'}
+        pdf: bytes = pdfkit.from_string(html_string, False, toc=toc_options)
+
+        final_file = self.wrap_file(pdf)
         return File(final_file)
 
 
