@@ -1940,9 +1940,12 @@ class PossumProfile(models.Model):
 
 class SandboxShare(models.Model):
     uuid = models.UUIDField(
-        help_text=_(
-            "Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries"),
-        unique=True, default=uuid.uuid1, editable=False, null=False
+        help_text=_("Universally-unique Identifier. Uses UUID1 as "
+                    "this improves uniqueness and ""tracking between registries"),
+        unique=True,
+        default=uuid.uuid1,
+        editable=False,
+        null=False
     )
     profile = models.OneToOneField(
         PossumProfile,
