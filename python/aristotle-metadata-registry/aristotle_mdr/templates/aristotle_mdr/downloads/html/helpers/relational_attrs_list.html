@@ -1,6 +1,6 @@
-{% load aristotle_tags %}
+{% load aristotle_tags aristotle_download_tags %}
 <ul>
-  {% for sub_item in qs|can_view_iter:user %}
+  {% for sub_item in qs|rels_for_download|can_view_iter:user %}
     <li>{% include 'aristotle_mdr/helpers/inlineDetails.html' with item=sub_item skip_can_view=True %}</li>
   {% empty %}
     <li><em>None</em></li>

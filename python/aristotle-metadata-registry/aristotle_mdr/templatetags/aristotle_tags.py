@@ -565,19 +565,6 @@ def get_field(content_type, field_name):
 
 
 @register.simple_tag
-def get_value_from_dict(dictionary, key):
-    """
-    Get the value corresponding to the key passed.
-    Can be used in the following way:
-    {% get_value_from_dict dict key %}
-    :param dictionary: Dictionary containing the desired key.
-    :param key: Lookup key.
-    :return: Value of the corresponding key in the dictionary, or "None" type if nothing is found in the dictionary.
-    """
-    return dictionary.get(key, None)
-
-
-@register.simple_tag
 def get_status_from_dict(dictionary, current_status, key, with_icon=True):
     """
     Get the Status of a particular item from a dictionary mapping.
