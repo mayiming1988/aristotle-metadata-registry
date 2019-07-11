@@ -143,27 +143,29 @@
 
     <h2>Calculation rules</h2>
     <div class="container">
-        <div class="row" id="computation">
-            <div class="col-sm-2">
-                <header class="h4">Computation Rule</header>
+        {% if item.computation or item.computation_description  %}
+            <div class="row" id="computation">
+                <div class="col-sm-3">
+                    <header class="h4">Computation Rule</header>
+                </div>
+                <div class="col-sm-9">
+                    <dl>
+                        {% if item.computation %}
+                            <dt>Computation</dt>
+                            <dd><div class="computation well">{{ item.computation | bleach }}</div></dd>
+                        {% endif %}
+                        {% if item.computation_description %}
+                            <dt>Description</dt>
+                            <dd>{{ item.computation_description | bleach }}</dd>
+                        {% endif %}
+                    </dl>
+                </div>
             </div>
-            <div class="col-sm-9">
-                <dl>
-                    <dt>Computation</dt>
-                    {% if item.computation %}
-                        <dd><div class="computation well">{{ item.computation | bleach }}</div></dd>
-                    {% endif %}
-                    <dt>Description</dt>
-                    <dd>
-                        {{ item.computation_description | bleach }}
-                    </dd>
-                </dl>
-            </div>
-        </div>
+        {% endif %}
 
         {% if item.numerator_description or item.indicatornumeratordefinition_set.exists %}
             <div class="row" id="numerators">
-                <div class="col-sm-2">
+                <div class="col-sm-3">
                     <header class="h4">Numerators</header>
                 </div>
                 <div class="col-sm-9">
@@ -174,7 +176,7 @@
         {% endif %}
         {% if item.denominator_description or item.indicatordenominatordefinition_set.exists %}
             <div class="row" id="denominators">
-                <div class="col-sm-2">
+                <div class="col-sm-3">
                     <header class="h4">Denominators</header>
                 </div>
                 <div class="col-sm-9">
@@ -185,7 +187,7 @@
         {% endif %}
         {% if item.disaggregation_description or item.indicatordisaggregationdefinition_set.exists %}
             <div class="row" id="disaggregation">
-                <div class="col-sm-2">
+                <div class="col-sm-3">
                     <header class="h4">Disaggregation</header>
                 </div>
                 <div class="col-sm-9">
