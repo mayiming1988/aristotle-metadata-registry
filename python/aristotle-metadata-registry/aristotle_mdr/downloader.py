@@ -237,9 +237,9 @@ class Downloader:
 class ItemList:
     """Class for storing items of one type along with model information (used in sub_dict below)"""
 
-    def __init__(self, model_class, items: List=[]):
+    def __init__(self, model_class, items: List = []):
         # Private properties
-        self._cache = {}
+        self._cache: Dict = {}
         self._model_class = model_class
         self._items = {i.id: i for i in items}
         # Public properties
@@ -489,7 +489,7 @@ class HTMLDownloader(Downloader):
     def qs_as_dict(self, qs, concept_field_name='concept') -> Dict[int, List]:
         """Get queryset as dict mapping ids to lists of objects"""
         concept_id_field_name = concept_field_name + '_id'
-        object_dict = defaultdict(list)
+        object_dict: Dict = defaultdict(list)
         for o in qs:
             concept_id = getattr(o, concept_id_field_name)
             object_dict[concept_id].append(o)

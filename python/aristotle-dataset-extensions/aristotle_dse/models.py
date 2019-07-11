@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-from typing import List, Tuple, Set
+from typing import List, Tuple, Set, Any, Iterable
 from collections import defaultdict
 
 from django.db import models
@@ -335,7 +335,7 @@ class DataSetSpecification(aristotle.models.concept):
             aristotle.models.ValueDomain.objects.filter(dataelement__in=de_ids).distinct(),
         ]
 
-    def get_all_clusters(self) -> List[Tuple[int, int]]:
+    def get_all_clusters(self) -> List[Tuple[int, int, Any]]:
         """Get all clusters as parent child tuples (depth limited)"""
         clusters = []
         last_level_ids = [self.id]
@@ -359,7 +359,7 @@ class DataSetSpecification(aristotle.models.concept):
 
         return clusters
 
-    def get_de_relations(self, dss_ids: List[int]) -> List[Tuple[int, int]]:
+    def get_de_relations(self, dss_ids: Iterable[int]) -> List[Tuple[int, int, Any]]:
         """Helper used to fetch all data element relations for a set of dss's"""
         values = DSSDEInclusion.objects.filter(
             dss__in=dss_ids,
@@ -373,7 +373,7 @@ class DataSetSpecification(aristotle.models.concept):
 
         return values_list
 
-    def get_unique_ids(self, relations: List[Tuple[int, int]]) -> Set[int]:
+    def get_unique_ids(self, relations: List[Tuple[int, int, Any]]) -> Set[int]:
         unique_ids = set()
 
         for pair in relations:
