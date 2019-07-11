@@ -398,8 +398,12 @@ class HTMLDownloader(Downloader):
     def get_sub_items_dict(self, include_root=False) -> Dict[str, ItemList]:
         """Function that populates the supporting items in the template"""
         items: Dict[str, ItemList] = {}
-        from aristotle_glossary.models import GlossaryItem
-        glossary_items = GlossaryItem.objects.none()
+
+        glossary_enabled = False
+        if 'aristotle_glossary' in settings.INSTALLED_APPS:
+            from aristotle_glossary.models import GlossaryItem
+            glossary_items = GlossaryItem.objects.none()
+            glossary_enabled = True
 
         # Get all items using above method to create dict
         for item in self.items:
@@ -437,7 +441,8 @@ class HTMLDownloader(Downloader):
 
                     sub_list = list(sub_query)
 
-                    glossary_items |= GlossaryItem.objects.filter(index__in=download_items)
+                    if glossary_enabled:
+                        glossary_items |= GlossaryItem.objects.filter(index__in=download_items)
 
                 else:
                     raise AssertionError("Must be a QuerySet")
@@ -447,10 +452,11 @@ class HTMLDownloader(Downloader):
                     if sub_item is not None:
                         self._add_to_sub_items(items, sub_item)
 
-        for sub_item in glossary_items.visible(self.user):
-            # Can be none for components
-            if sub_item is not None:
-                self._add_to_sub_items(items, sub_item)
+        if glossary_enabled:
+            for sub_item in glossary_items.visible(self.user):
+                # Can be none for components
+                if sub_item is not None:
+                    self._add_to_sub_items(items, sub_item)
 
         return items
 
