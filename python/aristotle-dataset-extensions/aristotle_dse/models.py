@@ -1,7 +1,11 @@
 from __future__ import unicode_literals
+from typing import List, Tuple, Set, Any, Iterable
+from collections import defaultdict
 
 from django.db import models
+from django.db.models import Q
 from django.utils.translation import ugettext as _
+from django.conf import settings
 from model_utils import Choices
 
 import aristotle_mdr as aristotle
@@ -11,6 +15,7 @@ from aristotle_mdr.fields import (
     ConceptManyToManyField,
     ShortTextField,
 )
+from aristotle_mdr.structs import Tree, Node
 from aristotle_mdr.utils import fetch_aristotle_settings
 
 import reversion
@@ -107,7 +112,7 @@ class Dataset(aristotle.models.concept):
         rels = {}
         if "comet" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
             from comet.models import Indicator
-            
+
             rels.update({
                 "as_numerator": {
                     "all": _("As a numerator in an Indicator"),
@@ -273,13 +278,25 @@ class DataSetSpecification(aristotle.models.concept):
 
     @property
     def clusters(self):
+        """Fetch all child dss's elements on this dss directly"""
         ids = self.dssclusterinclusion_set.all().values_list('child', flat=True)
         return self.__class__.objects.filter(id__in=ids)
 
     @property
     def data_elements(self):
+        """Fetch all included data elements on this dss directly"""
         ids = self.dssdeinclusion_set.all().values_list('data_element', flat=True)
         return aristotle.models.DataElement.objects.filter(id__in=ids)
+
+    @property
+    def cluster_inclusions(self):
+        """Fetch cluster inclustions (with child pre-fetched)"""
+        return self.dssclusterinclusion_set.all().select_related('child')
+
+    @property
+    def data_element_inclusions(self):
+        """Fetch data elemen inclustions (with de pre-fetched)"""
+        return self.dssdeinclusion_set.all().select_related('data_element')
 
     def ungrouped_data_element_inclusions(self):
         return self.dssdeinclusion_set.filter(group=None)
@@ -295,39 +312,97 @@ class DataSetSpecification(aristotle.models.concept):
             list(aristotle.models.DataElementConcept.objects.filter(dataelement__dssInclusions__dss=self))
         )
 
-    def get_download_items(self):
+    def get_download_items(self, cluster_relations=None, de_relations=None):
         from django.db.models import Q
+
+        if not cluster_relations:
+            cluster_relations = self.get_all_clusters()
+        dss_ids = self.get_unique_ids(cluster_relations)
+
+        if not de_relations:
+            de_relations = self.get_de_relations(dss_ids)
+        de_ids = self.get_unique_ids(de_relations)
+
         return [
-            self.clusters.all(),
-            aristotle.models.DataElement.objects.filter(
-                Q(dssInclusions__dss=self) |
-                Q(dssInclusions__dss__in=self.clusters.all())
-            ).distinct(),
-            # We need to make these distinct to avoid duplicates being returned
-            aristotle.models.DataElementConcept.objects.filter(
-                Q(dataelement__dssInclusions__dss=self) |
-                Q(dataelement__dssInclusions__dss__in=self.clusters.all())
-            ).distinct(),
-            aristotle.models.ObjectClass.objects.filter(
-                Q(dataelementconcept__dataelement__dssInclusions__dss=self) |
-                Q(dataelementconcept__dataelement__dssInclusions__dss__in=self.clusters.all())
-            ).distinct(),
-            aristotle.models.Property.objects.filter(
-                Q(dataelementconcept__dataelement__dssInclusions__dss=self) |
-                Q(dataelementconcept__dataelement__dssInclusions__dss__in=self.clusters.all())
-            ).distinct(),
-            aristotle.models.ValueDomain.objects.filter(
-                Q(dataelement__dssInclusions__dss=self) |
-                Q(dataelement__dssInclusions__dss__in=self.clusters.all())
-            ).distinct(),
+            type(self).objects.filter(Q(id__in=dss_ids) & ~Q(id=self.id)).distinct(),
+            aristotle.models.DataElement.objects.filter(id__in=de_ids).distinct(),
+            aristotle.models.DataElementConcept.objects.filter(dataelement__in=de_ids).distinct(),
+            aristotle.models.ObjectClass.objects.filter(dataelementconcept__dataelement__in=de_ids).distinct(),
+            aristotle.models.Property.objects.filter(dataelementconcept__dataelement__in=de_ids).distinct(),
+            aristotle.models.ValueDomain.objects.filter(dataelement__in=de_ids).distinct(),
         ]
+
+    def get_all_clusters(self) -> List[Tuple[int, int, Any]]:
+        """Get all clusters as parent child tuples (depth limited)"""
+        clusters = []
+        last_level_ids = [self.id]
+        for i in range(settings.CLUSTER_DISPLAY_DEPTH):
+            # get parent, child tuples
+            values = DSSClusterInclusion.objects.filter(
+                dss_id__in=last_level_ids,
+            ).order_by('order')
+
+            values_list = []
+            for inc in values:
+                values_list.append(
+                    (inc.dss_id, inc.child_id, inc)
+                )
+
+            # Update last level ids
+            last_level_ids.clear()
+            for v in values_list:
+                last_level_ids.append(v[1])
+                clusters.append(v)
+
+        return clusters
+
+    def get_de_relations(self, dss_ids: Iterable[int]) -> List[Tuple[int, int, Any]]:
+        """Helper used to fetch all data element relations for a set of dss's"""
+        values = DSSDEInclusion.objects.filter(
+            dss__in=dss_ids,
+        ).order_by('order')
+
+        values_list = []
+        for inc in values:
+            values_list.append(
+                (inc.dss_id, inc.data_element_id, inc)
+            )
+
+        return values_list
+
+    def get_unique_ids(self, relations: List[Tuple[int, int, Any]]) -> Set[int]:
+        unique_ids = set()
+
+        for pair in relations:
+            unique_ids.add(pair[0])
+            unique_ids.add(pair[1])
+
+        return unique_ids
+
+    def get_cluster_tree(self, cluster_relations, de_relations, objects=None):
+
+        # Lookup all objects
+        if not objects:
+            dss_ids = self.get_unique_ids(cluster_relations)
+            de_ids = self.get_unique_ids(de_relations)
+            objects = type(self).objects.in_bulk(dss_ids)
+            objects.update(aristotle.models.DataElement.objects.in_bulk(de_ids))
+
+        all_relations = cluster_relations + de_relations
+
+        root = Node(data=self)
+        tree = Tree(root)
+
+        tree.add_bulk_relations(root, all_relations, objects)
+
+        return tree
 
     @property
     def relational_attributes(self):
         rels = {}
         if "comet" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
             from comet.models import Indicator
-            
+
             rels.update({
                 "as_numerator": {
                     "all": _("As a numerator in an Indicator"),

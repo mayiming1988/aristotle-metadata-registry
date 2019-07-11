@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 if git diff --name-only origin/$TRAVIS_BRANCH HEAD|grep ^$1 &>/dev/null; then
     # Folder is in latest check in
     exit 0

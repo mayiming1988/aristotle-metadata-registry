@@ -124,7 +124,7 @@ urlpatterns = [
 
     url(r'^account/?$', RedirectView.as_view(url=reverse_lazy("aristotle:userHome"), permanent=True)),
     url(r'^account/home/?$', views.user_pages.home, name='userHome'),
-    url(r'^account/sandbox/?$', views.user_pages.CreatedItemsListView.as_view(), name='userSandbox'),
+    url(r'^account/sandbox/?$', views.user_pages.SandboxedItemsView.as_view(), name='userSandbox'),
     url(r'^account/sandbox/delete/?$', views.actions.DeleteSandboxView.as_view(), name="sandbox_delete"),
     url(r'^account/roles/?$', views.user_pages.Roles.as_view(), name='userRoles'),
     url(r'^account/admin/?$', views.user_pages.admin_tools, name='userAdminTools'),

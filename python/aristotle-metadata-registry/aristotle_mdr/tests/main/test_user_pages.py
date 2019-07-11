@@ -283,7 +283,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         response = self.reverse_get(
             'aristotle_mdr:sharedSandbox',
             reverse_args=[share.uuid],
-            status_code=404
+            status_code=403
         )
 
     @tag('share_link')
@@ -313,7 +313,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         self.assertInContext(response, 'breadcrumbs')
 
     @tag('share_link')
-    def test_view_sanbox_item_incorrect_email(self):
+    def test_view_sandbox_item_incorrect_email(self):
         share = self.create_content_and_share(
             self.editor,
             ['tester@example.com', 'alice@example.com']
@@ -327,7 +327,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         response = self.reverse_get(
             'aristotle_mdr:sharedSandboxItem',
             reverse_args=[share.uuid, item.id],
-            status_code=404
+            status_code=403
         )
 
     @tag('share_link')
@@ -530,14 +530,23 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
 
     @tag('share_link')
     def test_send_emails_for_new_email_addresses(self):
-
+        # Create some content and share it
         share = self.create_content_and_share(self.editor, ['vicky@example.com'])
-        send_sandbox_notification_emails(ast.literal_eval(share.emails), str(share.uuid))
+        name_of_user = 'vicky'
+
+        # Send the emails
+        send_sandbox_notification_emails(name_of_user, ast.literal_eval(share.emails), str(share.uuid))
+
+        # Check that one email appears in the outbox
         self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].subject, 'Sandbox Access')
+
         # Assert that the email is being sent from the default from email
         self.assertEqual(mail.outbox[0].from_email, settings.DEFAULT_FROM_EMAIL)
-        self.assertEqual(mail.outbox[0].body, 'Hello there, to access my Sandbox please use the following URL: ' + str(share.uuid))
+        self.assertEqual(mail.outbox[0].subject, 'Sandbox Access')
+        self.assertEqual(mail.outbox[0].body,
+                         "Hello there, to access {}'s Sandbox "
+                         "please use the following URL: ".format(name_of_user.capitalize())
+                         + str(share.uuid))
 
 
 class UserDashRecentItems(utils.AristotleTestUtils, TestCase):

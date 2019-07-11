@@ -62,9 +62,9 @@ def make_relink(text, app_label=None):
             else:
                 app, model = m
             if app:
-                ct = ContentType.objects.get(app_label=app, model=model)
+                ct = ContentType.objects.get_by_natural_key(app, model)
             else:
-                ct = ContentType.objects.get(model=model)
+                ct = ContentType.objects.get_for_model(model)
                 app = ct.app_label
             help_url = reverse("aristotle_help:concept_help", args=[app, model])
 

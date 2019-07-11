@@ -2,21 +2,41 @@
 {% block content %}
 <section>
     <header>
-    <{{header}} id="objectTitle">
+    <{{header}} class="objectTitle">
         {{ item.name }}
     </{{header}}>
-    <small>Item id: {{item.id}}
+    <small>{% firstof infobox_identifier_name "Item ID" %}: {{item.id}}
         {% if item.version %}v {{item.version}}{% endif %}
     </small>
 </header>
-<div class="definition">
-    {{ item.definition|bleach }}
-</div>
+
+<dt>Definition</dt>
+<dd>
+  <div class="definition">
+      {{ item.definition|bleach }}
+  </div>
+</dd>
+
+{% if item.references %}
+    <dt>References</dt>
+    <dd>{{ item.references|bleach }}</dd>
+{% endif %}
+
+{% if item.origin %}
+    <dt>Origin</dt>
+    <dd>{{ item.origin|bleach }}</dd>
+{% endif %}
+
+{% if item.comments %}
+    <dt>Comments</dt>
+    <dd>{{ item.comments|bleach }}</dd>
+{% endif %}
+
 <div class="status">
-    {% include "aristotle_mdr/downloads/html/component/statuses.html" with statuses=item.current_statuses only %}
+    {% include "aristotle_mdr/downloads/html/helpers/statuses.html" with current_statuses=current_statuses item=item only %}
 </div>
 
-  {% include "aristotle_mdr/downloads/html/slots/slots_display.html" %}
+  {# {% include "aristotle_mdr/downloads/html/slots/slots_display.html" %} #}
   {% include "aristotle_mdr/downloads/html/component/custom_fields_display.html" %}
 
 <div class="objectSpecific">
@@ -24,6 +44,11 @@
     {% endblock %}
 </div>
 
+{% if options.include_related %}
+    {% include 'aristotle_mdr/downloads/html/inline/relational_attrs.html' with item=item %}
+{% endif %}
+
 </section>
+
 
 {% endblock %}

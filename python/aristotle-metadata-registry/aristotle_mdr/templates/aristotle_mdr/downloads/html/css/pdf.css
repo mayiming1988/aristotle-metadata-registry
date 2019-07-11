@@ -77,9 +77,12 @@ header.minor {
 /*    padding-left:1cm;*/
 /*}*/
 
+/* pandoc does not support first-of
 dt:first-of {
     padding-top: 0em;
 }
+*/
+
 dt {
     padding-top: 0.5em;
     font-weight: bold;
@@ -105,18 +108,71 @@ a {
 }
 
 table.dss_inclusions {
+    border: 1px dotted lightgray;
     width: 100%;
+    margin-top: 30px;
     border-collapse: collapse;
 }
 
 table.dss_inclusions td, table.dss_inclusions th {
-    border: 1px solid lightgray;
+    /*border: 1px dotted lightgray;*/
+    border-bottom: 1px solid lightgray;
     text-align: left;
-    padding: 0.2em;
+    padding:3px;
 }
 
-dd.dss_inclusions {
-    padding-left: 1.5em;
+table.dss_inclusions td {
+    /*font-size:8pt;*/
+}
+
+.dss_inclusion_name {
+    margin-left: 10px;
+}
+
+.dss_inclusion_ref {
+    width: 25px;
+}
+
+.dss_inclusion_html {
+    width: 20%;
+}
+.dss_inclusions .ref {
+    padding-right: 10px;
+}
+.dss_inclusions .padding-0 {
+    padding-left: 10px !important;
+}
+
+.dss_inclusions .padding-1 {
+    padding-left: 25px !important;
+}
+
+.dss_inclusions .padding-2 {
+    padding-left: 40px !important;
+}
+
+.dss_inclusions .padding-3 {
+    padding-left: 55px !important;
+}
+
+.dss_inclusions .padding-4 {
+    padding-left: 70px !important;
+}
+
+.dss_inclusions .padding-5 {
+    padding-left: 85px !important;
+}
+
+.dss_inclusions .padding-6 {
+    padding-left: 100px !important;
+}
+
+.dss_inclusions .padding-7 {
+    padding-left: 115px !important;
+}
+
+.dss_inclusions .padding-8 {
+    padding-left: 130px !important;
 }
 
 .title_page .title_section {

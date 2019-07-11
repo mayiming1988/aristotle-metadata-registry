@@ -8,7 +8,7 @@ CKEDITOR_CONFIGS = {
                                             'Outdent', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight']},
             {'name': 'insert', 'items': ['Image', 'Table', 'HorizontalRule', 'SpecialChar']},
             {'name': 'aristotletoolbar', 'items': ['Glossary']},
-            {'name': 'document', 'items': ['Maximize', 'Source']},
+            {'name': 'document', 'items': ['Maximize', 'Source', 'Math']},
          ],
         'width': "",
         'disableNativeSpellChecker': False,

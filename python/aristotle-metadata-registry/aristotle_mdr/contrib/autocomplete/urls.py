@@ -17,4 +17,10 @@ urlpatterns = [
         views.WorkgroupAutocomplete.as_view(),
         name='workgroup',
     ),
+    url(
+        r'^framework/(?:(?P<app_name>[a-z_]+)-(?P<model_name>[a-z_]+))?$',
+        views.FrameworkDimensionsAutocomplete.as_view(),
+        name='framework'
+    )
+
 ]

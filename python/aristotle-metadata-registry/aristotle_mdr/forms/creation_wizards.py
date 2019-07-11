@@ -116,6 +116,7 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
     """
 
     def __init__(self, *args, **kwargs):
+        from comet.managers import FrameworkDimensionQuerySet
         # TODO: Have this throw a 'no user' error
         super().__init__(*args, **kwargs)
 
@@ -140,6 +141,11 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
                     self.fields[f].queryset = self.fields[f].queryset.all().visible(self.user)
                     self.fields[f].widget = field_widget(model=self.fields[f].queryset.model)
                     self.fields[f].widget.choices = self.fields[f].choices
+            elif hasattr(self.fields[f], 'queryset') and type(self.fields[f].queryset) == FrameworkDimensionQuerySet:
+                if f in [m2m.name for m2m in self._meta.model._meta.many_to_many]:
+                    field_widget = widgets.FrameworkDimensionAutocompleteSelectMultiple
+                    self.fields[f].widget = field_widget(model=self.fields[f].queryset.model)
+                    self.fields[f].queryset = self.fields[f].queryset.all()
             elif type(self.fields[f]) == forms.fields.DateField:
                 self.fields[f].widget = BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"})
             elif type(self.fields[f]) == forms.fields.DateTimeField:

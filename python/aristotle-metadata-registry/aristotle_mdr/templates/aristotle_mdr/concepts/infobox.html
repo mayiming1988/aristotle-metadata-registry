@@ -58,26 +58,27 @@
                     <dd>
                         {% if request.user.is_authenticated %}
                             {% if request.user.is_superuser or request.user.is_staff and item.workgroup in request.user.workgroups %}
-                                <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|isotime }}" data-time-from="true">
+                                <time title="{{ last_edit.revision.date_created|date:'o-m-d H:i e' }}" datetime="{{ last_edit.revision.date_created|isotime }}" data-time-from="true">
                                 </time>
                             {% elif item.workgroup in request.user.workgroups or item.submitter == request.user %}
-                                <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|isotime }}" data-time-from="true">
+                                <time title="{{ last_edit.revision.date_created|date:'o-m-d H:i e' }}" datetime="{{ last_edit.revision.date_created|isotime }}" data-time-from="true">
                                 </time>
                             {% endif %}
                         {% else %}
-                            <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|isotime }}">
-                                {{ item.modified|naturaltime }}
+                            <time title="{{ last_edit.revision.date_created|date:'o-m-d H:i e' }}" datetime="{{ last_edit.revision.date_created|isotime }}">
+                                {{ last_edit.revision.date_created|naturaltime }}
                             </time>
                         {% endif %}
                         {% if request.user.is_superuser or request.user.is_active and item.workgroup in request.user.workgroups %}
-                            <span style="display:inline-block">By
+                            <span style="display:inline-block">
+                                By
                                 {% with editing_user=last_edit.revision.user %}
                                     {% if editing_user %}
                                         {% firstof editing_user.short_name editing_user.full_name editing_user.email %}
                                     {% else %}<em title="{% trans 'This may have been added during an import.'%}">{% trans 'Unknown' context "Unknown import user"%}</em>
                                     {% endif %}
                                 {% endwith %}
-                </span>
+                            </span>
                         {% endif %}
                     </dd>
                     <dt>{% trans 'Created'%}</dt>

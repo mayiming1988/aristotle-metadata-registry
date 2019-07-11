@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 export MODULE=$1
 cd $TRAVIS_BUILD_DIR/python/$MODULE
 coveralls
