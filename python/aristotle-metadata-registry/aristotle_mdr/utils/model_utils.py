@@ -147,7 +147,7 @@ class aristotleComponent(models.Model):
     ordering_field = 'order'
 
     # Parent is the parent item of the component
-    parent = ''
+    parent: str = ''
 
     @property
     def parentItem(self):
