@@ -15,6 +15,11 @@
 </head>
 <body>
 <div id="main">
+    {% if add_preamble and tableOfContents %}
+    <div id="preamble">
+      {% include "aristotle_mdr/downloads/pdf/title.html" %}
+    </div>
+    {% endif %}
     <div id='content'>
         {% block content %}
         {% endblock %}
