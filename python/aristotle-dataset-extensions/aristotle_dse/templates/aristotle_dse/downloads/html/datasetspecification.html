@@ -7,17 +7,11 @@
         <dt>
             <header>Metadata items in this Data Set Specification</header>
         </dt>
-        {% if tree %}
-        <dd class="tree">
-          <ul>{{ tree.string_list|unordered_list }}</ul>
-        </dd>
-        {% endif %}
         <table class="dss_inclusions">
           <thead>
             <tr>
               <th class="dss_inclusion_ref">Ref</th>
-              <th>Name</th>
-              <th class="dss_inclusion_html">Information</th>
+              <th>Metadata item</th>
               <th>Inclusion</th>
               <th>#</th>
             </tr>
@@ -26,10 +20,13 @@
           {% for node, depth in tree.values %}
           {% if depth > 0 %}
             <tr>
-              <td class="padding-{{ depth|add:"-1" }}" colspan=2>
-                {{ node.relation_data.reference|default:"-" }} 
-                <span class="dss_inclusion_name">{{ node.data.name }}</span>
+              <td class="ref padding-{{ depth|add:"-1" }}"  colspan=2>
+                <div style="display:table-row">
+                <div style="display:table-cell; min-width:15px">{{ node.relation_data.reference|default:"-" }}</div>
+                <div style="display:table-cell; padding-left:10px">{{ node.data.name }}</div>
+                </div>
               </td>
+              {% comment %}
               <td>
                 <dl>
                   {% if node.relation_data.specific_information %}
@@ -42,12 +39,21 @@
                   {% endif %}
                 </dl>
               </td>
+              {% endcomment %}
               <td>{{ node.relation_data.inclusion }}</td>
               <td>{{ node.relation_data.maximum_occurrences }}</td>
             </tr>
           {% endif %}
           {% endfor %}
           </tbody>
+          <tfoot>
+            <tr>
+              <th class="dss_inclusion_ref">Ref</th>
+              <th>Metadata item</th>
+              <th>Inclusion</th>
+              <th>#</th>
+            </tr>
+          </tfoot>
         </table>
     {% endif %}
 {% endblock %}
