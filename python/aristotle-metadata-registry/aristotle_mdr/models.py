@@ -597,6 +597,8 @@ class Workgroup(AbstractGroup, TimeStampedModel):
         return url_slugify_workgroup(self)
 
     def can_view(self, user):
+        # If the user has permission to manage workgroups within the stewardship organisation the work-group
+        # is a part of
         if self.stewardship_organisation.user_has_permission(user, "manage_workgroups"):
             return True
         return self.member_list.filter(pk=user.pk).exists()
