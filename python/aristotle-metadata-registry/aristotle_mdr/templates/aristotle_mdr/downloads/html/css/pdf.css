@@ -5,8 +5,14 @@
 
 tr {
     break-inside: avoid;
-    /* page-break-inside is deprecated, here just in case */
+    /* page-break-inside is deprecated, here for compatibility */
     page-break-inside: avoid;
+}
+
+.break-after {
+    break-after: always;
+    /* page-break-after is deprecated, here for compatibility */
+    page-break-after: always;
 }
 
 .full-page {
