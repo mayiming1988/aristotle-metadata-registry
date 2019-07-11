@@ -54,10 +54,16 @@ class PDFDownloader(HTMLDownloader):
 class FastPDFDownloader(PDFDownloader):
     download_type = "fpdf"
 
+    wk_options = {
+        '--disable-javascript': ''
+    }
+    wk_toc_options = {
+        '--toc-header-text': 'Table of Contents'
+    }
+
     def create_file(self):
         html_string = self.get_html().decode()
-        toc_options = {'--toc-header-text': 'Table of Contents'}
-        pdf: bytes = pdfkit.from_string(html_string, False, toc=toc_options)
+        pdf: bytes = pdfkit.from_string(html_string, False, options=self.wk_options, toc=self.wk_toc_options)
 
         final_file = self.wrap_file(pdf)
         return File(final_file)
