@@ -362,7 +362,7 @@ class HTMLDownloader(Downloader):
         # Add tree if dss
         if 'aristotle_dse' in settings.INSTALLED_APPS:
             from aristotle_dse.models import DataSetSpecification
-    
+
             if isinstance(item, DataSetSpecification):
                 kwargs = self.prelim.get(item.id, None)
                 if kwargs:
@@ -371,7 +371,7 @@ class HTMLDownloader(Downloader):
                     if sub_items:
                         kwargs['objects'] = sub_items['aristotle_dse.datasetspecification'].as_dict()
                         kwargs['objects'].update(sub_items['aristotle_mdr.dataelement'].as_dict())
-    
+
                     context['tree'] = item.get_cluster_tree(**kwargs)
 
         context.update({
@@ -482,7 +482,7 @@ class HTMLDownloader(Downloader):
                     cluster_relations = item.get_all_clusters()
                     dss_ids = item.get_unique_ids(cluster_relations)
                     de_relations = item.get_de_relations(dss_ids)
-    
+
                     prelim[item.id] = {
                         'cluster_relations': cluster_relations,
                         'de_relations': de_relations
