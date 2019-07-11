@@ -1605,6 +1605,7 @@ class DataElement(concept):
             items += self.dataElementConcept.get_download_items()
         return items
 
+    # TODO: Can we refactor this to work on a set of objects instead of just one to speed up downloads.
     @property
     def relational_attributes(self):
         rels = {}
