@@ -3,6 +3,12 @@
     /*font-family: 'Baloo Tamma', serif;*/
 }
 
+tr {
+    break-inside: avoid;
+    /* page-break-inside is deprecated, here just in case */
+    page-break-inside: avoid;
+}
+
 .full-page {
     width: 100%;
     height:100%;
