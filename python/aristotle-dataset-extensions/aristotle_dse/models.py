@@ -192,7 +192,7 @@ class Distribution(aristotle.models.concept):
 class DistributionDataElementPath(aristotle.models.aristotleComponent):
     class Meta:
         ordering = ['order']
-
+    parent = 'distribution'
 
     distribution = models.ForeignKey(
         Distribution,
@@ -219,10 +219,6 @@ class DistributionDataElementPath(aristotle.models.aristotleComponent):
         help_text=_(""),
         blank=True
     )
-
-    @property
-    def parentItem(self):
-        return self.distribution
 
     @property
     def parentItemId(self):
@@ -361,6 +357,7 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         ordering = ['order']
 
     inline_field_layout = 'list'
+    parent = 'dss'
 
     reference = models.CharField(
         max_length=512,
@@ -399,12 +396,8 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         )
 
     @property
-    def parentItem(self):
-        return self.dss
-
-    @property
     def parentItemId(self):
-        return self.dss_id
+        return self.parentItem.id
 
 
 class DSSGrouping(aristotle.models.aristotleComponent):
@@ -430,6 +423,7 @@ class DSSGrouping(aristotle.models.aristotleComponent):
         null=True,
         blank=True,
     )
+    parent = 'dss'
 
     def __str__(self):
         return self.name

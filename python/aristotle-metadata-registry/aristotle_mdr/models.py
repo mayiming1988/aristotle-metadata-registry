@@ -1364,6 +1364,8 @@ class ValueMeaning(aristotleComponent):
         help_text=_('Date at which the value meaning ceased to be valid')
     )
 
+    parent = 'conceptual_domain'
+
     def __str__(self):
         return "%s: %s - %s" % (
             self.conceptual_domain.name,
@@ -1372,12 +1374,8 @@ class ValueMeaning(aristotleComponent):
         )
 
     @property
-    def parentItem(self):
-        return self.conceptual_domain
-
-    @property
     def parentItemId(self):
-        return self.conceptual_domain_id
+        return self.parentItem.id
 
 
 class ValueDomain(concept):

@@ -20,7 +20,8 @@ from aristotle_mdr.models import (
     PermissibleValue,
     ValueMeaning,
     DedInputsThrough,
-    DedDerivesThrough
+    DedDerivesThrough,
+    aristotleComponent
 )
 
 from aristotle_mdr.contrib.links.models import RelationRole
@@ -131,7 +132,7 @@ class BaseSerializer(serializers.ModelSerializer):
 
 class ConceptSerializerFactory():
     """ Generalized serializer factory to dynamically set form fields for simpler concepts """
-    FIELD_SUBSERIALIZER_MAPPING = {
+    field_subserializer_mapping = {
         'permissiblevalue_set': PermissibleValueSerializer(many=True),
         'supplementaryvalue_set': SupplementaryValueSerializer(many=True),
         'valuemeaning_set': ValueMeaningSerializer(many=True),
@@ -152,7 +153,7 @@ class ConceptSerializerFactory():
                 DistributionDataElementPathSerializer,
             )
 
-            self.FIELD_SUBSERIALIZER_MAPPING.update({
+            self.field_subserializer_mapping.update({
                 'dssdeinclusion_set': DSSDEInclusionSerializer(many=True),
                 'dssclusterinclusion_set': DSSClusterInclusionSerializer(many=True),
                 'groups': DSSGroupingSerializer(many=True),
@@ -167,7 +168,7 @@ class ConceptSerializerFactory():
                 IndicatorInclusionSerializer
             )
 
-            self.FIELD_SUBSERIALIZER_MAPPING.update({
+            self.field_subserializer_mapping.update({
                 'indicatornumeratordefinition_set': IndicatorNumeratorSerializer(many=True),
                 'indicatordenominatordefinition_set': IndicatorDenominatorSerializer(many=True),
                 'indicatordisaggregationdefinition_set': IndicatorDisaggregationSerializer(many=True),
@@ -177,7 +178,7 @@ class ConceptSerializerFactory():
         self.whitelisted_fields = [
             'statistical_unit',
             'dssgrouping_set',
-        ] + list(self.FIELD_SUBSERIALIZER_MAPPING.keys())
+        ] + list(self.field_subserializer_mapping.keys())
 
     def _get_concept_fields(self, model_class):
         """Internal helper function to get fields that are actually **on** the model.
@@ -192,21 +193,41 @@ class ConceptSerializerFactory():
 
         return tuple(fields)
 
+    def get_field_name(self, field):
+        if hasattr(field, 'get_accessor_name'):
+            return field.get_accessor_name()
+        else:
+            return field.name
+
     def _get_relation_fields(self, model_class):
         """
         Internal helper function to get related fields
         Returns a tuple of fields
         """
-
         related_fields = []
+
         for field in model_class._meta.get_fields():
             if not field.name.startswith('_'):
                 # Don't serialize internal fields
                 if field.is_relation:
-                    if hasattr(field, 'get_accessor_name'):
-                        related_fields.append(field.get_accessor_name())
+                    # Check if the model class is the parent of the item, we don't want to serialize up the chain
+                    field_model = field.related_model
+                    if issubclass(field_model, aristotleComponent):
+                        # If it's a subclass of aristotleComponent it should have a parent
+                        parent_model = field_model.get_parent_model()
+                        if not parent_model:
+                            # This aristotle component has no parent model
+                            related_fields.append(self.get_field_name(field))
+                        else:
+                            if field_model.get_parent_model() == model_class:
+                                # If the parent is the model we're serializing right now
+                                related_fields.append(self.get_field_name(field))
+                            else:
+                                # It's the child, we don't want to serialize
+                                pass
                     else:
-                        related_fields.append(field.name)
+                        # Just a normal field
+                        related_fields.append(self.get_field_name(field))
 
         return tuple([field for field in related_fields if field in self.whitelisted_fields])
 
@@ -237,9 +258,9 @@ class ConceptSerializerFactory():
 
         serializer_attrs = {}
         for field_name in relation_fields:
-            if field_name in self.FIELD_SUBSERIALIZER_MAPPING:
+            if field_name in self.field_subserializer_mapping:
                 # Field is for something that should have it's component fields serialized
-                serializer = self.FIELD_SUBSERIALIZER_MAPPING[field_name]
+                serializer = self.field_subserializer_mapping[field_name]
                 serializer_attrs[field_name] = serializer
 
         serializer_attrs['Meta'] = Meta

@@ -146,12 +146,24 @@ class aristotleComponent(models.Model):
     objects = UtilsManager()
     ordering_field = 'order'
 
+    # Parent is the parent item of the component
+    parent = ''
+
+    @property
+    def parentItem(self):
+        return getattr(self, 'parent')
+
+    @classmethod
+    def get_parent_model(cls):
+        if cls.parent == '':
+            return None
+        return cls._meta.get_field(cls.parent).related_model
+
     def can_edit(self, user):
         return self.parentItem.can_edit(user)
 
     def can_view(self, user):
         return self.parentItem.can_view(user)
-
 
 class discussionAbstract(TimeStampedModel):
     body = models.TextField()
@@ -173,7 +185,6 @@ class AbstractValue(aristotleComponent):
     Implementation note: Not the best name, but there will be times to
     subclass a "value" when its not just a permissible value.
     """
-
     class Meta:
         abstract = True
         ordering = ['order']
@@ -211,6 +222,8 @@ class AbstractValue(aristotleComponent):
         help_text=_('Date at which the value ceased to be valid')
     )
 
+    parent = 'valueDomain'
+
     def __str__(self):
         return "%s: %s - %s" % (
             self.valueDomain.name,
@@ -219,12 +232,8 @@ class AbstractValue(aristotleComponent):
         )
 
     @property
-    def parentItem(self):
-        return self.valueDomain
-
-    @property
     def parentItemId(self):
-        return self.valueDomain_id
+        return self.parentItem.id
 
 
 class DedBaseThrough(aristotleComponent):
@@ -237,14 +246,12 @@ class DedBaseThrough(aristotleComponent):
     order = models.PositiveSmallIntegerField("Position")
     objects = UtilsManager()
 
+    parent = 'data_element_derivation'
+
     class Meta:
         abstract = True
         ordering = ['order']
 
     @property
-    def parentItem(self):
-        return self.data_element_derivation
-
-    @property
     def parentItemId(self):
-        return self.data_element_derivation_id
+        return self.parentItem.id

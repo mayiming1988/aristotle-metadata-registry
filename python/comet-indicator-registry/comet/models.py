@@ -110,9 +110,9 @@ class IndicatorDataElementBase(aristotleComponent):
 
     inline_field_layout = 'list'
 
-    @property
-    def parentItem(self):
-        return self.indicator
+    parent = 'indicator'
+
+
 
 
 class IndicatorNumeratorDefinition(IndicatorDataElementBase):
@@ -146,13 +146,11 @@ class IndicatorInclusion(aristotleComponent):
         max_length=1024, blank=True,
         help_text=_("The name identifying this indicator in the set")
     )
+    parent = 'indicator_set'
 
     class Meta:
         ordering = ['order']
 
-    @property
-    def parentItem(self):
-        return self.indicator_set
 
 
 class OutcomeArea(MDR.concept):
