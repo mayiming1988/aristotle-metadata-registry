@@ -550,9 +550,13 @@ def field_help_icon(context, item_or_model, field_name):
     }
 
 
-@register.inclusion_tag('aristotle_mdr/helpers/styled_difference.html')
-def render_difference(difference):
-    return {'difference': difference}
+@register.inclusion_tag('aristotle_mdr/helpers/styled_difference.html', takes_context=True)
+def render_difference(context, difference):
+    raw = False
+    if 'raw' in context:
+        raw = context['raw']
+    return {'difference': difference,
+            'raw': raw}
 
 
 @register.filter()
