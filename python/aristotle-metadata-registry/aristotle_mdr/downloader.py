@@ -1,4 +1,4 @@
-from typing import Any, List, Dict, Optional, Union, AnyStr
+from typing import Any, List, Dict, Optional, Union, AnyStr, Set
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -9,6 +9,7 @@ from django.core.exceptions import PermissionDenied
 from django.core.files.base import ContentFile
 from django.core.mail.message import EmailMessage
 from django.db.models.query import QuerySet
+from django.db.models import Q
 from django.http.request import QueryDict
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -17,14 +18,18 @@ from django.utils.safestring import mark_safe
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
+from operator import attrgetter
 from hashlib import sha256
+from collections import defaultdict
 import pickle
 import pypandoc
 
 from aristotle_mdr.contrib.help.models import ConceptHelp
 from aristotle_mdr import models as MDR
+from aristotle_mdr.contrib.custom_fields.models import CustomValue
 from aristotle_mdr.utils import fetch_aristotle_settings, get_model_label, format_seconds
 from aristotle_mdr.utils.utils import get_download_template_path_for_item
+from aristotle_dse.models import DataSetSpecification
 
 import logging
 logger = logging.getLogger(__name__)
@@ -229,6 +234,87 @@ class Downloader:
         }
 
 
+class ItemList:
+    """Class for storing items of one type along with model information (used in sub_dict below)"""
+
+    def __init__(self, model_class, items: List=[]):
+        # Private properties
+        self._cache = {}
+        self._model_class = model_class
+        self._items = {i.id: i for i in items}
+        # Public properties
+        self.app_label = self._model_class._meta.app_label
+        self.model_name = self._model_class._meta.model_name
+        self.verbose_name = self._model_class.get_verbose_name()
+        self.verbose_name_plural = self._model_class.get_verbose_name_plural()
+
+    @property
+    def model_pluralized(self):
+        """Get model name as plural if more than one"""
+        if len(self) > 1:
+            return self.verbose_name_plural
+        return self.verbose_name
+
+    @property
+    def ids(self) -> List[int]:
+        """List of item ids in list"""
+        return [i.id for i in self._items.values()]
+
+    @property
+    def items(self):
+        """Iterator of items"""
+        return self._items.values()
+
+    @property
+    def help(self) -> Optional[ConceptHelp]:
+        """
+        Help object for the model (None if not found)
+        This is cached so repeated calls are ok
+        """
+        if 'help' in self._cache:
+            return self._cache['help']
+
+        try:
+            help_obj = ConceptHelp.objects.get(
+                app_label=self.app_label,
+                concept_type=self.model_name
+            )
+        except ConceptHelp.DoesNotExist:
+            help_obj = None
+
+        self._cache['help'] = help_obj
+        return help_obj
+
+    def has_item(self, iid):
+        """Whether the list contins item with this id"""
+        return iid in self._items
+
+    def get_item(self, iid):
+        """Get item by id"""
+        return self._items[iid]
+
+    def __getitem__(self, key):
+        """Support indexing the itemlist to get an item"""
+        return self.get_item(key)
+
+    def add_item(self, item):
+        """Add item to list"""
+        self._items[item.id] = item
+
+    def as_dict(self):
+        """Return copy of internal dictionary"""
+        return self._items.copy()
+
+    def __len__(self):
+        """Support len()"""
+        return len(self._items)
+
+    def sorted_items(self):
+        """Items sorted by name"""
+        items_list = list(self.items)
+        return sorted(items_list, key=attrgetter('name'))
+
+
 class HTMLDownloader(Downloader):
     """
     Generates a html download
@@ -274,6 +360,18 @@ class HTMLDownloader(Downloader):
         else:
             sub_items = {}
 
+        # Add tree if dss
+        if isinstance(item, DataSetSpecification):
+            kwargs = self.prelim.get(item.id, None)
+            if kwargs:
+                kwargs['objects'] = None
+                # Reuse sub objects if already avaliable (saves a query)
+                if sub_items:
+                    kwargs['objects'] = sub_items['aristotle_dse.datasetspecification'].as_dict()
+                    kwargs['objects'].update(sub_items['aristotle_mdr.dataelement'].as_dict())
+
+                context['tree'] = item.get_cluster_tree(**kwargs)
+
         context.update({
             'title': item.name,
             'item': item,
@@ -283,29 +381,21 @@ class HTMLDownloader(Downloader):
         return context
 
     def _add_to_sub_items(self, items_dict, item):
+        """Adds an item to the sub items dict"""
         item_class = type(item)
 
         label = get_model_label(item_class)
 
+        # Create a new item list if label not in dict
         if label not in items_dict:
-            model_help = ConceptHelp.objects.filter(
-                app_label=item_class._meta.app_label,
-                concept_type=item_class._meta.model_name
-            ).first()
+            items_dict[label] = ItemList(item_class)
 
-            items_dict[label] = {
-                'items': [],
-                'verbose_name': item_class.get_verbose_name(),
-                'verbose_name_plural': item_class.get_verbose_name_plural(),
-                'help': model_help
-            }
+        # Add item to itemlist
+        items_dict[label].add_item(item)
 
-        items_dict[label]['items'].append(item)
-
-    def get_sub_items_dict(self, include_root=False) -> Dict[str, Dict[str, Any]]:
-        """Function that populates the supporting items in the template. Only populates
-         the """
-        items: Dict[str, Dict[str, Any]] = {}
+    def get_sub_items_dict(self, include_root=False) -> Dict[str, ItemList]:
+        """Function that populates the supporting items in the template"""
+        items: Dict[str, ItemList] = {}
 
         # Get all items using above method to create dict
         for item in self.items:
@@ -316,7 +406,11 @@ class HTMLDownloader(Downloader):
             registration_authority_id = self.options['registration_authority']
             state = self.options['registration_status']
 
-            for download_items in item.get_download_items():
+            # Fetch prelim values, use with get_download item if avaliable
+            prelim = self.prelim.get(item.id, {})
+            all_download_items = item.get_download_items(**prelim)
+
+            for download_items in all_download_items:
 
                 if isinstance(download_items, QuerySet):
                     # It's a queryset with multiple items
@@ -327,7 +421,17 @@ class HTMLDownloader(Downloader):
                     if state is not None:
                         download_items = download_items.filter(statuses__state=state)
 
-                    sub_list = list(download_items.visible(self.user))
+                    sub_query = download_items.visible(self.user)
+
+                    # Prefetch all sub objects on a value domain
+                    if sub_query.model == MDR.ValueDomain:
+                        sub_query = sub_query.select_related(
+                            'unit_of_measure', 'conceptual_domain', 'data_type'
+                        ).prefetch_related(
+                            'permissiblevalue_set', 'supplementaryvalue_set'
+                        )
+
+                    sub_list = list(sub_query)
 
                 else:
                     raise AssertionError("Must be a QuerySet")
@@ -337,10 +441,6 @@ class HTMLDownloader(Downloader):
                     if sub_item is not None:
                         self._add_to_sub_items(items, sub_item)
 
-        # Sort the items lists by name
-        for label, data in items.items():
-            data['items'].sort(key=lambda item: item.name)
-
         return items
 
     def get_bulk_download_context(self) -> Dict[str, Any]:
@@ -349,20 +449,65 @@ class HTMLDownloader(Downloader):
         """
         context = self.get_base_download_context()
 
-        _list = "<li>" + "</li><li>".join([item.name for item in self.items if item]) + "</li>"
-        subtitle = mark_safe("Generated from the following metadata items:<ul>%s<ul>" % _list)
-
-        # sub_items = self.get_sub_items_dict(include_root=True)
         if self.options['include_supporting']:
             sub_items = self.get_sub_items_dict()
         else:
             sub_items = {}
 
         context.update({
-            'subtitle': subtitle,
             'tableOfContents': True,
             'items': self.items,
             'included_items': sub_items
+        })
+        return context
+
+    def get_preliminary_values(self) -> Dict:
+        """Fetch prelim values for calculation of download items"""
+        prelim = {}
+        for item in self.items:
+            if isinstance(item, DataSetSpecification):
+                cluster_relations = item.get_all_clusters()
+                dss_ids = item.get_unique_ids(cluster_relations)
+                de_relations = item.get_de_relations(dss_ids)
+
+                prelim[item.id] = {
+                    'cluster_relations': cluster_relations,
+                    'de_relations': de_relations
+                }
+
+        return prelim
+
+    def qs_as_dict(self, qs, concept_field_name='concept') -> Dict[int, List]:
+        """Get queryset as dict mapping ids to lists of objects"""
+        concept_id_field_name = concept_field_name + '_id'
+        object_dict = defaultdict(list)
+        for o in qs:
+            concept_id = getattr(o, concept_id_field_name)
+            object_dict[concept_id].append(o)
+
+        return object_dict
+
+    def get_caches(self, context: Dict) -> Dict:
+        # Build set of all items & subitem id's
+        all_ids: Set = {i.id for i in self.items}
+
+        if 'subitems' in context:
+            subitems = context['subitems']
+            # Add to all_ids
+            for label, itemlist in subitems.items():
+                for iid in itemlist.ids:
+                    all_ids.add(iid)
+
+        # Bulk lookup current status
+        status_objs = MDR.Status.objects.filter(concept__in=all_ids).current().all()
+        # Bulk lookup custom values (with non empty content)
+        custom_values = CustomValue.objects.filter(
+            concept__in=all_ids
+        ).with_content().visible(self.user).select_related('field')
+
+        context.update({
+            'current_statuses': self.qs_as_dict(status_objs),
+            'custom_values': self.qs_as_dict(custom_values)
         })
         return context
 
@@ -371,11 +516,14 @@ class HTMLDownloader(Downloader):
         Gets the template context
         Can be used by subclasses
         """
+        self.prelim = self.get_preliminary_values()
+
         if self.bulk:
             context = self.get_bulk_download_context()
         else:
             context = self.get_download_context()
 
+        context = self.get_caches(context)
         context.update({"is_bulk_download": self.bulk})
 
         return context

@@ -408,3 +408,6 @@ MAXIMUM_NUMBER_OF_NODES_IN_GENERAL_GRAPHICAL_REPRESENTATION = 200
 # the Django app label and the model name.
 # E.g. [("app_label", "model_name"), ...]
 EXTRA_GRAPHQL_SCHEMA_MODELS: list = []
+
+# DSS cluster display depth
+CLUSTER_DISPLAY_DEPTH = 8

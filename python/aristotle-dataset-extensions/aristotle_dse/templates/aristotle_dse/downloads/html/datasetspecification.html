@@ -1,14 +1,53 @@
 {% extends "aristotle_mdr/downloads/html/managedContent.html" %}
-{% load aristotle_tags %}
+{% load aristotle_tags util_tags %}
 
 {% block title %}{{ item.name }} ({{item.status}}){% endblock %}
 {% block objSpecific %}
-    {% if item.data_elements.all or item.clusters.all %}
+    {% if item.data_elements.exists or item.clusters.exists %}
         <dt>
             <header>Metadata items in this Data Set Specification</header>
         </dt>
-        <dd class="dss_inclusions">
-            {% include "aristotle_dse/downloads/html/helpers/inclusions.html" with item=item %}
+        {% if tree %}
+        <dd class="tree">
+          <ul>{{ tree.string_list|unordered_list }}</ul>
         </dd>
+        {% endif %}
+        <table class="dss_inclusions">
+          <thead>
+            <tr>
+              <th class="dss_inclusion_ref">Ref</th>
+              <th>Name</th>
+              <th class="dss_inclusion_html">Information</th>
+              <th>Inclusion</th>
+              <th>#</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for node, depth in tree.values %}
+          {% if depth > 0 %}
+            <tr>
+              <td class="padding-{{ depth|add:"-1" }}" colspan=2>
+                {{ node.relation_data.reference|default:"-" }} 
+                <span class="dss_inclusion_name">{{ node.data.name }}</span>
+              </td>
+              <td>
+                <dl>
+                  {% if node.relation_data.specific_information %}
+                  <dt>Specific Information</dt>
+                  <dd>{{ node.relation_data.specific_information|bleach }}</dd>
+                  {% endif %}
+                  {% if node.relation_data.conditional_information %}
+                  <dt>Conditional Information</dt>
+                  <dd>{{ node.relation_data.conditional_information|bleach }}</dd>
+                  {% endif %}
+                </dl>
+              </td>
+              <td>{{ node.relation_data.inclusion }}</td>
+              <td>{{ node.relation_data.maximum_occurrences }}</td>
+            </tr>
+          {% endif %}
+          {% endfor %}
+          </tbody>
+        </table>
     {% endif %}
 {% endblock %}
