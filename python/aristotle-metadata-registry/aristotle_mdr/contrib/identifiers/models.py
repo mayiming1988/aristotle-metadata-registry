@@ -41,7 +41,7 @@ class ScopedIdentifier(TimeStampedModel, MDR.aristotleComponent):
     )
     order = models.PositiveSmallIntegerField("Position", default=0)
 
-    parent = 'concept'
+    parent_field_name = 'concept'
 
     class Meta:
         unique_together = ("namespace", "identifier", "version")

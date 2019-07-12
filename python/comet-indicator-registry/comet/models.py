@@ -110,7 +110,7 @@ class IndicatorDataElementBase(aristotleComponent):
 
     inline_field_layout = 'list'
 
-    parent = 'indicator'
+    parent_field_name = 'indicator'
 
 
 
@@ -146,7 +146,7 @@ class IndicatorInclusion(aristotleComponent):
         max_length=1024, blank=True,
         help_text=_("The name identifying this indicator in the set")
     )
-    parent = 'indicator_set'
+    parent_field_name = 'indicator_set'
 
     class Meta:
         ordering = ['order']
@@ -184,6 +184,7 @@ class Framework(MDR.concept):
 
 
 class FrameworkDimension(MPTTModel, TimeStampedModel, aristotleComponent):
+    parent_field_name = 'framework'
 
     objects = FrameworkDimensionManager()
     framework = ConceptForeignKey('Framework')

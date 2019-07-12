@@ -147,7 +147,7 @@ class aristotleComponent(models.Model):
     ordering_field = 'order'
 
     # Parent is the parent item of the component
-    parent: str = ''
+    parent_field_name: str = ''
 
     @property
     def parentItem(self):
@@ -161,9 +161,10 @@ class aristotleComponent(models.Model):
     @classmethod
     def get_parent_model(cls):
         """Get the model of the parent item"""
-        if cls.parent == '':
+        if cls.parent_field_name == '':
             return None
-        return cls._meta.get_field(cls.parent).related_model
+
+        return cls._meta.get_field(cls.parent_field_name).related_model
 
     def can_edit(self, user):
         return self.parentItem.can_edit(user)
@@ -229,7 +230,7 @@ class AbstractValue(aristotleComponent):
         help_text=_('Date at which the value ceased to be valid')
     )
 
-    parent = 'valueDomain'
+    parent_field_name = 'valueDomain'
 
     def __str__(self):
         return "%s: %s - %s" % (
@@ -253,7 +254,7 @@ class DedBaseThrough(aristotleComponent):
     order = models.PositiveSmallIntegerField("Position")
     objects = UtilsManager()
 
-    parent = 'data_element_derivation'
+    parent_field_name = 'data_element_derivation'
 
     class Meta:
         abstract = True
