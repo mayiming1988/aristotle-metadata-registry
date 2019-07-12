@@ -2,21 +2,21 @@
 {% load util_tags %}
 
 {% block objSpecific %}
-<strong>Components</strong>
-    <dl>
-        {% if item.objectClass_id %}
-          <dt>Object Class:</dt>
-          <dd>
-              {% lookup subitems "aristotle_mdr.objectclass" item.objectClass_id as oc %}
-              {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=oc name=False %}
-          </dd>
-        {% endif %}
-        {% if item.property_id %}
-          <dt>Property:</dt>
-          <dd>
-              {% lookup subitems "aristotle_mdr.property" item.property_id as prop %}
-              {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=prop name=False %}
-          </dd>
-        {% endif %}
-    </dl>
+  <dt>Components</dt>
+  <dl>
+      {% if item.objectClass_id %}
+        <dt>Object Class:</dt>
+        <dd>
+            {% lookup subitems "aristotle_mdr.objectclass" item.objectClass_id as oc %}
+            {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=oc name=False %}
+        </dd>
+      {% endif %}
+      {% if item.property_id %}
+        <dt>Property:</dt>
+        <dd>
+            {% lookup subitems "aristotle_mdr.property" item.property_id as prop %}
+            {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=prop name=False %}
+        </dd>
+      {% endif %}
+  </dl>
 {% endblock %}

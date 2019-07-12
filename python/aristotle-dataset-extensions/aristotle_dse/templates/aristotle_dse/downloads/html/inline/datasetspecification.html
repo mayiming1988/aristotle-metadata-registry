@@ -3,24 +3,24 @@
 
 {% block objSpecific %}
     {% if item.collection_method or item.statistical_unit %}
-        <h2>Collection and usage information</h2>
+        <dt>Collection and usage information</dt>
         <div>
             {% if item.statistical_unit %}
-                <h3>Statistical Unit</h3>
+                <strong style="main_heading">Statistical Unit</strong>
                 <div>
                     {% include "aristotle_mdr/helpers/itemLink.html" with item=item.statistical_unit showType=False %}
                 </div>
             {% endif %}
 
             {% if item.collection_method %}
-                <h3>Collection Method</h3>
+                <strong style="main_heading">Collection Method</strong>
                 <div>{{ item.collection_method | bleach }}</div>
             {% endif %}
         </div>
     {% endif %}
 
-    <div>
-        <header>Metadata items in this Data Set Specification</header>
+    <dt>Metadata items in this Data Set Specification</dt>
+    <dd>
         {% include "aristotle_dse/downloads/html/helpers/inclusions.html" with item=item %}
-    </div>
+    </dd>
 {% endblock %}
