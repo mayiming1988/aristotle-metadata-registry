@@ -65,8 +65,13 @@
                 </td>
             {% endif %}
             <td>
-                <a href="{{ item.get_absolute_url }}">{{ item.name }}</a>
+                {% if perms.aristotle_mdr.view_workgroup %}
+                    <a href="{{ item.get_absolute_url }}">{{ item.name }}</a>
+                {% else %}
+                    {{ item.name }}
+                {% endif %}
             </td>
+
             <td>{{ item.definition|striptags|truncatewords:50 }}</td>
             <td>{{ item.members.all.count }}</td>
             <td>{{ item.num_items }}</td>
@@ -79,7 +84,9 @@
                     {% endif %}
                 </td>
             {% endif %}
+            {% if perms.aristotle_mdr.change_workgroup %}
             <td><a class="btn btn-primary btn-small" href="{% url 'aristotle:workgroup_edit' item.pk %}">Edit</a></td>
+            {% endif %}
         </tr>
     {% endfor %}
 

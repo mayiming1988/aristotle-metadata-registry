@@ -20,23 +20,33 @@
     <div class="row">
         <form class="" action="" method="post">{% csrf_token %}
             {{ wizard.management_form }}
-            {% block formarea %}
-                {{ wizard.management_form }}
-            {% endblock %}
+            <div class="col-sm-8">
+                {% block formarea %}
+                    {{ wizard.management_form }}
+                {% endblock %}
+                <div class="row">
+                    <div class="col-sm-12">
+                        {% if wizard.steps.prev %}
+                            <!-- button name="wizard_goto_step" type="submit" value="{{ wizard.steps.first }}">{% trans "First step" %}</button -->
+                            <button name="wizard_goto_step" class="btn btn-default pull-right" type="submit" value="{{ wizard.steps.prev }}">
+                                <i class="fa fa-angle-double-left"></i>
+                                {% trans "Back" %}
+                            </button>
+                        {% endif %}
+                        {% block next_button %}
+                            <button type="submit" class="btn btn-primary pull-right" value="{% trans "submit" %}">
+                                {% trans "Next" %}
+                                <i class="fa fa-angle-double-right"></i>
+                            </button>
+                        {% endblock %}
+                    </div>
+                </div>
+            </div>
+            <aside class="creationTips col-sm-4">
+                {% include 'aristotle_mdr_help/helpers/tips_section.html' %}
+            </aside>
 
-            {% if wizard.steps.prev %}
-                <!-- button name="wizard_goto_step" type="submit" value="{{ wizard.steps.first }}">{% trans "First step" %}</button -->
-                <button name="wizard_goto_step" class="btn btn-default" type="submit" value="{{ wizard.steps.prev }}">
-                    <i class="fa fa-angle-double-left"></i>
-                    {% trans "Back" %}
-                </button>
-            {% endif %}
-            {% block next_button %}
-                <button type="submit" class="btn btn-primary" value="{% trans "submit" %}">
-                    {% trans "Next" %}
-                    <i class="fa fa-angle-double-right"></i>
-                </button>
-            {% endblock %}
+
         </form>
         {% block underform %}
         {% endblock %}

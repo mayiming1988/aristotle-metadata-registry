@@ -16,7 +16,7 @@
                 {# If there was no table of contents the user submitted title should go here #}
                 <h1>{{ options.title }}</h1>
             {% else %}
-                <{% firstof header "h1" %} id="objectTitle">
+                <{% firstof header "h1" %} class="objectTitle">
                 {{ item.name }}
                 </{% firstof header "h1" %}>
             {% endif %}

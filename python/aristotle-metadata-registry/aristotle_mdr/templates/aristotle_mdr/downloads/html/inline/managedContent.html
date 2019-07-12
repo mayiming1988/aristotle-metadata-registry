@@ -2,10 +2,10 @@
 {% block content %}
 <section>
     <header>
-    <{{header}} id="objectTitle">
+    <{{header}} class="objectTitle">
         {{ item.name }}
     </{{header}}>
-    <small>Item id: {{item.id}}
+    <small>{% firstof infobox_identifier_name "Item ID" %}: {{item.id}}
         {% if item.version %}v {{item.version}}{% endif %}
     </small>
 </header>

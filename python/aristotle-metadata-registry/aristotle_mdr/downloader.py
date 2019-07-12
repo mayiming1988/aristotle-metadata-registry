@@ -29,7 +29,6 @@ from aristotle_mdr import models as MDR
 from aristotle_mdr.contrib.custom_fields.models import CustomValue
 from aristotle_mdr.utils import fetch_aristotle_settings, get_model_label, format_seconds
 from aristotle_mdr.utils.utils import get_download_template_path_for_item
-from aristotle_dse.models import DataSetSpecification
 
 import logging
 logger = logging.getLogger(__name__)
@@ -237,9 +236,9 @@ class Downloader:
 class ItemList:
     """Class for storing items of one type along with model information (used in sub_dict below)"""
 
-    def __init__(self, model_class, items: List=[]):
+    def __init__(self, model_class, items: List = []):
         # Private properties
-        self._cache = {}
+        self._cache: Dict = {}
         self._model_class = model_class
         self._items = {i.id: i for i in items}
         # Public properties
@@ -363,16 +362,19 @@ class HTMLDownloader(Downloader):
             sub_items = {}
 
         # Add tree if dss
-        if isinstance(item, DataSetSpecification):
-            kwargs = self.prelim.get(item.id, None)
-            if kwargs:
-                kwargs['objects'] = None
-                # Reuse sub objects if already avaliable (saves a query)
-                if sub_items:
-                    kwargs['objects'] = sub_items['aristotle_dse.datasetspecification'].as_dict()
-                    kwargs['objects'].update(sub_items['aristotle_mdr.dataelement'].as_dict())
+        if 'aristotle_dse' in settings.INSTALLED_APPS:
+            from aristotle_dse.models import DataSetSpecification
 
-                context['tree'] = item.get_cluster_tree(**kwargs)
+            if isinstance(item, DataSetSpecification):
+                kwargs = self.prelim.get(item.id, None)
+                if kwargs:
+                    kwargs['objects'] = None
+                    # Reuse sub objects if already avaliable (saves a query)
+                    if sub_items:
+                        kwargs['objects'] = sub_items['aristotle_dse.datasetspecification'].as_dict()
+                        kwargs['objects'].update(sub_items['aristotle_mdr.dataelement'].as_dict())
+
+                    context['tree'] = item.get_cluster_tree(**kwargs)
 
         context.update({
             'title': item.name,
@@ -398,6 +400,12 @@ class HTMLDownloader(Downloader):
     def get_sub_items_dict(self, include_root=False) -> Dict[str, ItemList]:
         """Function that populates the supporting items in the template"""
         items: Dict[str, ItemList] = {}
+
+        glossary_enabled = False
+        if 'aristotle_glossary' in settings.INSTALLED_APPS:
+            from aristotle_glossary.models import GlossaryItem
+            glossary_items = GlossaryItem.objects.none()
+            glossary_enabled = True
 
         # Get all items using above method to create dict
         for item in self.items:
@@ -435,6 +443,9 @@ class HTMLDownloader(Downloader):
 
                     sub_list = list(sub_query)
 
+                    if glossary_enabled:
+                        glossary_items |= GlossaryItem.objects.filter(index__in=download_items)
+
                 else:
                     raise AssertionError("Must be a QuerySet")
 
@@ -442,6 +453,12 @@ class HTMLDownloader(Downloader):
                     # Can be none for components
                     if sub_item is not None:
                         self._add_to_sub_items(items, sub_item)
+
+        if glossary_enabled:
+            for sub_item in glossary_items.visible(self.user):
+                # Can be none for components
+                if sub_item is not None:
+                    self._add_to_sub_items(items, sub_item)
 
         return items
 
@@ -467,22 +484,24 @@ class HTMLDownloader(Downloader):
         """Fetch prelim values for calculation of download items"""
         prelim = {}
         for item in self.items:
-            if isinstance(item, DataSetSpecification):
-                cluster_relations = item.get_all_clusters()
-                dss_ids = item.get_unique_ids(cluster_relations)
-                de_relations = item.get_de_relations(dss_ids)
+            if 'aristotle_dse' in settings.INSTALLED_APPS:
+                from aristotle_dse.models import DataSetSpecification
+                if isinstance(item, DataSetSpecification):
+                    cluster_relations = item.get_all_clusters()
+                    dss_ids = item.get_unique_ids(cluster_relations)
+                    de_relations = item.get_de_relations(dss_ids)
 
-                prelim[item.id] = {
-                    'cluster_relations': cluster_relations,
-                    'de_relations': de_relations
-                }
+                    prelim[item.id] = {
+                        'cluster_relations': cluster_relations,
+                        'de_relations': de_relations
+                    }
 
         return prelim
 
     def qs_as_dict(self, qs, concept_field_name='concept') -> Dict[int, List]:
         """Get queryset as dict mapping ids to lists of objects"""
         concept_id_field_name = concept_field_name + '_id'
-        object_dict = defaultdict(list)
+        object_dict: Dict = defaultdict(list)
         for o in qs:
             concept_id = getattr(o, concept_id_field_name)
             object_dict[concept_id].append(o)

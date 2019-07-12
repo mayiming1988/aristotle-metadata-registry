@@ -147,7 +147,7 @@ class SupersedeItemView(UnorderedGenericAlterOneToManyView, ItemSubpageView, Per
             registration_authority__registrars__profile__user=self.request.user
         )
 
-    def get_form(self):
+    def get_form(self, **kwargs):
         return actions.SupersedeAdminForm
 
     def get_form_kwargs(self):
@@ -162,7 +162,7 @@ class ProposedSupersedeItemView(SupersedeItemView):
     form_title = _('Propose Supersedes')
     form_add_another_text = _('Add a proposed relationship')
 
-    def get_form(self):
+    def get_form(self, **kwargs):
         return actions.SupersedeForm
 
     def get_editable_queryset(self):
