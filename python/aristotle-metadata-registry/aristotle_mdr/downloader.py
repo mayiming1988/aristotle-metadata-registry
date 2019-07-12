@@ -328,7 +328,6 @@ class HTMLDownloader(Downloader):
     mime_type = 'text/html'
     metadata_register = '__all__'
     description = 'Download as html (used for debugging)'
-    add_preamble = True
 
     bulk_download_template = 'aristotle_mdr/downloads/html/bulk_download.html'
 
@@ -344,7 +343,6 @@ class HTMLDownloader(Downloader):
             'options': self.options,
             'config': aristotle_settings,
             'export_date': now(),
-            'add_preamble': self.add_preamble
         }
         return context
 
