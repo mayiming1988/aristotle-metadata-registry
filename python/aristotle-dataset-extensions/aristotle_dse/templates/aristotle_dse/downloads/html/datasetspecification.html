@@ -3,6 +3,23 @@
 
 {% block title %}{{ item.name }} ({{item.status}}){% endblock %}
 {% block objSpecific %}
+    {% if item.collection_method or item.statistical_unit %}
+        <h2>Collection and usage information</h2>
+        <div>
+            {% if item.statistical_unit %}
+                <h3>Statistical Unit</h3>
+                <div>
+                    {% include "aristotle_mdr/helpers/itemLink.html" with item=item.statistical_unit showType=False %}
+                </div>
+            {% endif %}
+
+            {% if item.collection_method %}
+                <h3>Collection Method</h3>
+                <div>{{ item.collection_method | bleach }}</div>
+            {% endif %}
+        </div>
+    {% endif %}
+
     {% if item.data_elements.exists or item.clusters.exists %}
         <dt>
             <header>Metadata items in this Data Set Specification</header>
