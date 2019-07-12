@@ -61,9 +61,16 @@ class FastPDFDownloader(PDFDownloader):
         '--toc-header-text': 'Table of Contents'
     }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if settings.WKHTMLTOPDF_LOCATION is not None:
+            self.wk_config = pdfkit.configuration(wkhtmltopdf=settings.WKHTMLTOPDF_LOCATION)
+        else:
+            self.wk_config = pdfkit.configuration()
+
     def create_file(self):
         html_string = self.get_html().decode()
-        pdf: bytes = pdfkit.from_string(html_string, False, options=self.wk_options, toc=self.wk_toc_options)
+        pdf: bytes = pdfkit.from_string(html_string, False, configuration=self.wk_config, options=self.wk_options, toc=self.wk_toc_options)
 
         final_file = self.wrap_file(pdf)
         return File(final_file)
