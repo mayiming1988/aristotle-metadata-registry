@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
 
-class PDFDownloader(HTMLDownloader):
+class LegacyPDFDownloader(HTMLDownloader):
     download_type = "pdf"
     file_extension = 'pdf'
     metadata_register = '__all__'
@@ -53,14 +53,11 @@ class PDFDownloader(HTMLDownloader):
         return File(final_file)
 
 
-class FastPDFDownloader(PDFDownloader):
-    download_type = "fpdf"
+class PDFDownloader(LegacyPDFDownloader):
+    download_type = "pdf"
 
     wk_options = {
         '--disable-javascript': ''
-    }
-    wk_toc_options = {
-        '--toc-header-text': 'Table of Contents'
     }
     preamble_template = 'aristotle_mdr/downloads/pdf/title.html'
 
@@ -75,24 +72,41 @@ class FastPDFDownloader(PDFDownloader):
         template = self.get_template()
         context = self.get_context()
 
-        # Preamble string
-        preamble_string = render_to_string(self.preamble_template, context=context)
-
         # Main document string
         html_string = render_to_string(template, context=context)
 
-        with NamedTemporaryFile(delete=False, suffix='.html') as temp_file:
-            temp_file.write(preamble_string.encode('utf-8'))
+        # Whether to create a title page & toc or not
+        table_of_contents = context['tableOfContents']
 
-            pdf: bytes = pdfkit.from_string(
-                html_string,
-                False,
-                cover=temp_file.name,
-                cover_first=True,
-                configuration=self.wk_config,
-                options=self.wk_options,
-                toc=self.wk_toc_options
-            )
+        toc_options = {}
+        temp_file = None
+        cover = None
+
+        # If we are making a title, write to temp file
+        if table_of_contents:
+            # Add toc option so toc is generated
+            toc_options['--toc-header-text'] = 'Table Of Contents'
+            # Render preamble string
+            preamble_string = render_to_string(self.preamble_template, context=context)
+            # Write preamble temp file
+            temp_file = NamedTemporaryFile(delete=False, suffix='.html')
+            temp_file.write(preamble_string.encode('utf-8'))
+            cover = temp_file.name
+
+        # Convert to pdf
+        pdf: bytes = pdfkit.from_string(
+            html_string,
+            False,
+            cover=cover,
+            cover_first=True,
+            configuration=self.wk_config,
+            options=self.wk_options,
+            toc=toc_options
+        )
+
+        # Close the temp file if it exists
+        if temp_file is not None:
+            temp_file.close()
 
         final_file = self.wrap_file(pdf)
         return File(final_file)
