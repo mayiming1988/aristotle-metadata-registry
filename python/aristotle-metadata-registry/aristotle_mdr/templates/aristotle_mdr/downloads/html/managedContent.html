@@ -55,8 +55,8 @@
 
             <dt>{% trans 'Endorsed by' %}</dt>
             <dd>
-                <div class="">
-                    {% include "aristotle_mdr/downloads/html/helpers/statuses.html" with statuses=item.current_statuses current_statuses=current_statuses only %}
+                <div class="status">
+                    {% include "aristotle_mdr/downloads/html/helpers/statuses.html" with current_statuses=current_statuses item=item only %}
                 </div>
             </dd>
             <dt>Supersedes</dt>
@@ -110,6 +110,29 @@
                     {% endfor %}
                 </ul>
             </dd>
+
+            {% if item.submitting_organizations %}
+                <dt>Submitting Organizations</dt>
+                <dd>
+                {% for rec in item.submitting_organizations %}
+                    {% if rec.organization_record|can_view:user %}
+                        <p><a href="{{ rec.organization_record.get_absolute_url }}">{{ rec.organization_record.name }}</a></p>
+                    {% else %}
+                    {% endif %}
+                {% endfor %}
+                </dd>
+            {% endif %}
+            {% if item.responsible_organizations %}
+                <dt>Responsible Organizations</dt>
+                <dd>
+                {% for rec in item.responsible_organizations %}
+                {% if rec.organization_record|can_view:user %}
+                    <p><a href="{{ rec.organization_record.get_absolute_url }}">{{ rec.organization_record.name }}</a></p>
+                {% else %}
+                {% endif %}
+                {% endfor %}
+                </dd>
+            {% endif %}
 
             {% block objSpecific %}
             {% endblock %}
