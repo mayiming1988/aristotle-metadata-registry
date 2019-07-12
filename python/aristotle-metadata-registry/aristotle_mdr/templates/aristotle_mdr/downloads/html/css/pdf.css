@@ -19,7 +19,6 @@ tr {
     white-space: pre-line;
 }
 
-/*
 .full-page {
     width: 100%;
     height:100%;
@@ -30,6 +29,10 @@ tr {
     margin-top: 0px !important;
 }
 
+.small-svg-container svg {
+    height: 64px;
+}
+
 .copyright table {
     height:100%;
     width:100%;
@@ -37,12 +40,6 @@ tr {
 
 .copyright table td {
     vertical-align: bottom;
-}
-*/
-
-.copyright {
-    position: absolute;
-    bottom: 0;
 }
 
 h1 {
