@@ -12,7 +12,7 @@
 </head>
 <body class="">
 {% if tableOfContents %}
-    <div class="title_page" style="page-break-after:always;">
+    <div class="title_page break-after">
 
         <div class="title_section">
             {% comment %}
@@ -46,7 +46,7 @@
        <table class="full-page">
           <tr>
              <td>
-                <div style="white-space: pre-line">
+                <div class="pre-line">
 {{ config.DOWNLOAD_OPTIONS.COPYRIGHT_PAGE_CONTENT }}
                 </div>
                 {% include "aristotle_mdr/downloads/html/preamble/copyright_page_aristotle_insert.html" %}

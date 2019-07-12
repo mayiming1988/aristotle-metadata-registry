@@ -1,7 +1,8 @@
 import os
 from io import BytesIO
 
-from django.template.loader import select_template, get_template
+from django.conf import settings
+from django.template.loader import select_template, get_template, render_to_string
 from django.core.files.base import File, ContentFile
 
 from aristotle_mdr.downloader import HTMLDownloader
@@ -9,6 +10,7 @@ from aristotle_mdr.downloader import HTMLDownloader
 import logging
 import weasyprint
 from PyPDF2 import PdfFileMerger
+from tempfile import NamedTemporaryFile
 import pdfkit
 
 PDF_STATIC_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'pdf_static')
@@ -60,6 +62,7 @@ class FastPDFDownloader(PDFDownloader):
     wk_toc_options = {
         '--toc-header-text': 'Table of Contents'
     }
+    preamble_template = 'aristotle_mdr/downloads/pdf/title.html'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -69,8 +72,27 @@ class FastPDFDownloader(PDFDownloader):
             self.wk_config = pdfkit.configuration()
 
     def create_file(self):
-        html_string = self.get_html().decode()
-        pdf: bytes = pdfkit.from_string(html_string, False, configuration=self.wk_config, options=self.wk_options, toc=self.wk_toc_options)
+        template = self.get_template()
+        context = self.get_context()
+
+        # Preamble string
+        preamble_string = render_to_string(self.preamble_template, context=context)
+
+        # Main document string
+        html_string = render_to_string(template, context=context)
+
+        with NamedTemporaryFile(delete=False, suffix='.html') as temp_file:
+            temp_file.write(preamble_string.encode('utf-8'))
+
+            pdf: bytes = pdfkit.from_string(
+                html_string,
+                False,
+                cover=temp_file.name,
+                cover_first=True,
+                configuration=self.wk_config,
+                options=self.wk_options,
+                toc=self.wk_toc_options
+            )
 
         final_file = self.wrap_file(pdf)
         return File(final_file)
