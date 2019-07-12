@@ -481,6 +481,7 @@ class DSSGrouping(aristotle.models.aristotleComponent):
         verbose_name = 'DSS Grouping'
 
     inline_field_layout = 'list'
+    parent = 'dss'
 
     dss = ConceptForeignKey(DataSetSpecification, related_name="groups")
     name = ShortTextField(

@@ -9,6 +9,7 @@ import uuid
 import datetime
 
 from model_utils.models import TimeStampedModel
+
 from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
 
 from aristotle_mdr.fields import (
@@ -21,7 +22,6 @@ from aristotle_mdr.managers import (
     ManagedItemQuerySet,
     UtilsManager
 )
-
 
 VERY_RECENTLY_SECONDS = 15
 
@@ -151,10 +151,16 @@ class aristotleComponent(models.Model):
 
     @property
     def parentItem(self):
-        return getattr(self, 'parent')
+        """Return the actual parent item or None if no parent item exists"""
+        parent = getattr(self, 'parent')
+        if parent == "":
+            return None
+
+        return getattr(self, parent)
 
     @classmethod
     def get_parent_model(cls):
+        """Get the model of the parent item"""
         if cls.parent == '':
             return None
         return cls._meta.get_field(cls.parent).related_model
