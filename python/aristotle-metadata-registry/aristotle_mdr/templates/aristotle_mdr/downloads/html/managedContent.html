@@ -59,11 +59,14 @@
                     {% include "aristotle_mdr/downloads/html/helpers/statuses.html" with current_statuses=current_statuses item=item only %}
                 </div>
             </dd>
+
+            {% with supersedes_items=item|visible_supersedes_items:user %}
+            {% if supersedes_items %}
             <dt>Supersedes</dt>
             <dd>
                 <ul>
                     {# This is inefficient - % for suprel in item.superseded_items_relation_set.all %#}
-                    {% for suprel in item|visible_supersedes_items:user %}
+                    {% for suprel in supersedes_items %}
                         <li>
                             <a href="{% url 'aristotle:item' iid=suprel.older_item.id %}">
                                 {{ suprel.older_item.name }}
@@ -85,10 +88,15 @@
                     {% endfor %}
                 </ul>
             </dd>
+            {% endif %}
+            {% endwith %}
+
+            {% with superseded_by_items=item|visible_superseded_by_items:user %}
+            {% if superseded_by_items %}
             <dt>Superseded by</dt>
             <dd>
                 <ul>
-                    {% for suprel in item|visible_superseded_by_items:user %}
+                    {% for suprel in superseded_by_items %}
                         <li>
                             <a href="{% url 'aristotle:item' iid=suprel.newer_item.id %}">
                                 {{ suprel.newer_item.name }}
@@ -110,6 +118,8 @@
                     {% endfor %}
                 </ul>
             </dd>
+            {% endif %}
+            {% endwith %}
 
             {% if item.submitting_organizations %}
                 <dt>Submitting Organizations</dt>
