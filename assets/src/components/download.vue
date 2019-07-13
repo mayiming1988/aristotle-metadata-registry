@@ -56,6 +56,7 @@ export default {
                         this.error = true
                     } else if (data.result != undefined) {
                         this.url = data.result
+                        document.title = "Download complete"
                     }
                     clearInterval(this.interval)
                 }

@@ -361,8 +361,8 @@ class HTMLDownloader(Downloader):
 
         # Add tree if dss
         if 'aristotle_dse' in settings.INSTALLED_APPS:
-            from aristotle_dse.models import DataSetSpecification
-
+            from aristotle_dse.models import DataSetSpecification, DSSClusterInclusion, DSSDEInclusion
+            inclusion_orderer = {DSSClusterInclusion: 0, DSSDEInclusion: 1}
             if isinstance(item, DataSetSpecification):
                 kwargs = self.prelim.get(item.id, None)
                 if kwargs:
@@ -372,7 +372,12 @@ class HTMLDownloader(Downloader):
                         kwargs['objects'] = sub_items['aristotle_dse.datasetspecification'].as_dict()
                         kwargs['objects'].update(sub_items['aristotle_mdr.dataelement'].as_dict())
 
-                    context['tree'] = item.get_cluster_tree(**kwargs)
+                    dss_tree = item.get_cluster_tree(**kwargs)
+                    context['tree'] = dss_tree
+
+                    # A nice lambda to force ordering by inclusion type, then inclusion order
+                    child_sorter = lambda node: (inclusion_orderer.get(node.relation_data.__class__, 999), node.relation_data.order)
+                    context['tree_values'] = dss_tree.get_values(dss_tree.root, sort_by=child_sorter)
 
         context.update({
             'title': item.name,

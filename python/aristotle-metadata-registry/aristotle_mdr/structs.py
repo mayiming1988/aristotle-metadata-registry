@@ -62,8 +62,11 @@ class Tree:
                     Node(next_node, datadict.get(child_id, None), relation_info)
                 )
 
-    def get_node_children(self, identifier) -> List[Node]:
-        return [self.nodes[i] for i in self.children[identifier]]
+    def get_node_children(self, identifier, sort_by=None) -> List[Node]:
+        children = [self.nodes[i] for i in self.children[identifier]]
+        if callable(sort_by):
+            children.sort(key=sort_by)
+        return children
 
     def get_string(self, node, level=0) -> str:
         """Recurively build string representation of tree"""
@@ -92,11 +95,11 @@ class Tree:
     def get_values_list(self, node):
         return self.get_nested_list(node, lambda n: n)
 
-    def get_values(self, node, start_depth=0) -> List[Tuple[Node, int]]:
+    def get_values(self, node, start_depth=0, sort_by=None) -> List[Tuple[Node, int]]:
         vals = [(node, start_depth)]
 
-        for sub_node in self.get_node_children(node.identifier):
-            vals.extend(self.get_values(sub_node, start_depth + 1))
+        for sub_node in self.get_node_children(node.identifier, sort_by=sort_by):
+            vals.extend(self.get_values(sub_node, start_depth + 1, sort_by=sort_by))
 
         return vals
 
