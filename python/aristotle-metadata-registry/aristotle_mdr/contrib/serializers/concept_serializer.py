@@ -220,7 +220,7 @@ class ConceptSerializerFactory():
                             related_fields.append(self.get_field_name(field))
                         else:
                             if field_model.get_parent_model() == model_class:
-                                # If the parent is the model we're serializing right now
+                                # If the parent is the model we're serializing, right now
                                 related_fields.append(self.get_field_name(field))
                             else:
                                 # It's the child, we don't want to serialize
