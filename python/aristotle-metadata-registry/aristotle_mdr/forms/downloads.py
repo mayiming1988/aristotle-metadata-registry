@@ -29,8 +29,7 @@ class EmptyChoiceField(forms.ChoiceField):
 
 
 class DownloadOptionsForm(forms.Form):
-
-    def __init__(self, *args, wrap_pages: bool, **kwargs):
+    def __init__(self, *args, wrap_pages: bool, no_email: bool, **kwargs):
         super().__init__(*args, **kwargs)
         # Add front page and back page options
         if wrap_pages:
@@ -43,6 +42,12 @@ class DownloadOptionsForm(forms.Form):
                 help_text='A back page to be added to the document. Must be in the same format as the download'
             )
         self.wrap_pages = wrap_pages
+
+        if not no_email:
+            self.fields['email_copy'] = forms.BooleanField(
+                required=False,
+                help_text='Send a copy of the download to your email address'
+            )
 
     title = forms.CharField(
         required=False,
@@ -68,9 +73,4 @@ class DownloadOptionsForm(forms.Form):
         choices=STATES,
         required=False,
         help_text="Select a particular registration status to filter the base level items"
-    )
-
-    email_copy = forms.BooleanField(
-        required=False,
-        help_text='Send a copy of the download to your email address'
     )
