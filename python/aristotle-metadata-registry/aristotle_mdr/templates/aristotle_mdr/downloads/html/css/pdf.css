@@ -3,6 +3,7 @@
     /*font-family: 'Baloo Tamma', serif;*/
 }
 
+/* Don't add a page break inside a tr */
 tr {
     break-inside: avoid;
     /* page-break-inside is deprecated, here for compatibility */
