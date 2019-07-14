@@ -326,7 +326,7 @@ class DataSetSpecification(aristotle.models.concept):
             de_relations = self.get_de_relations(dss_ids)
         de_ids = self.get_unique_ids(de_relations)
 
-        return [
+        items = [
             type(self).objects.filter(Q(id__in=dss_ids) & ~Q(id=self.id)).distinct(),
             aristotle.models.DataElement.objects.filter(id__in=de_ids).distinct(),
             aristotle.models.DataElementConcept.objects.filter(dataelement__in=de_ids).distinct(),
@@ -334,6 +334,14 @@ class DataSetSpecification(aristotle.models.concept):
             aristotle.models.Property.objects.filter(dataelementconcept__dataelement__in=de_ids).distinct(),
             aristotle.models.ValueDomain.objects.filter(dataelement__in=de_ids).distinct(),
         ]
+
+        if 'aristotle_mdr_backwards' in fetch_aristotle_settings().get('CONTENT_EXTENSIONS', []):
+            from aristotle_mdr.contrib.aristotle_backwards.models import ClassificationScheme
+            items.append(
+                ClassificationScheme.objects.filter(valueDomains__dataelement__in=de_ids).distinct(),
+            )
+        
+        return items
 
     def get_all_clusters(self) -> List[Tuple[int, int, Any]]:
         """Get all clusters as parent child tuples (depth limited)"""
