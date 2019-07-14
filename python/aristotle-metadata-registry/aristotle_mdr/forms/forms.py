@@ -358,9 +358,8 @@ class NotificationPermissionsForm(forms.Form):
 
 
 class ShareLinkForm(forms.Form):
-
     emails = MultipleEmailField(required=False)
-    notify_new_users_checkbox = BooleanField(label="Notify new people", initial=True, required=False)
+    notify_new_users_checkbox = BooleanField(label="Send an email notifying newly invited users", initial=True, required=False)
 
 
 class ReportingToolForm(forms.Form):

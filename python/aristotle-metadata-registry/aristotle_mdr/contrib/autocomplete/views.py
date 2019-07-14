@@ -102,6 +102,19 @@ class GenericConceptAutocomplete(GenericAutocomplete):
         ]
 
 
+class FrameworkDimensionsAutocomplete(GenericAutocomplete):
+    template_name = "autocomplete_light/framework_dimensions.html"
+
+    def get_queryset(self):
+        if self.q:
+            qs = self.model.objects.filter(
+                name__icontains=self.q
+            ).order_by('name')
+        else:
+            qs = self.model.objects.all().order_by('name')
+        return qs
+
+
 class UserAutocomplete(GenericAutocomplete):
     # model = User
     model = None

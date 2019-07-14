@@ -597,6 +597,8 @@ class Workgroup(AbstractGroup, TimeStampedModel):
         return url_slugify_workgroup(self)
 
     def can_view(self, user):
+        # If the user has permission to manage workgroups within the stewardship organisation the work-group
+        # is a part of
         if self.stewardship_organisation.user_has_permission(user, "manage_workgroups"):
             return True
         return self.member_list.filter(pk=user.pk).exists()
@@ -1942,9 +1944,12 @@ class PossumProfile(models.Model):
 
 class SandboxShare(models.Model):
     uuid = models.UUIDField(
-        help_text=_(
-            "Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries"),
-        unique=True, default=uuid.uuid1, editable=False, null=False
+        help_text=_("Universally-unique Identifier. Uses UUID1 as "
+                    "this improves uniqueness and ""tracking between registries"),
+        unique=True,
+        default=uuid.uuid1,
+        editable=False,
+        null=False
     )
     profile = models.OneToOneField(
         PossumProfile,
