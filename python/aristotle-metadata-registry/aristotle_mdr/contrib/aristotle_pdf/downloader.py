@@ -57,7 +57,9 @@ class PDFDownloader(LegacyPDFDownloader):
     download_type = "pdf"
 
     wk_options = {
-        '--disable-javascript': ''
+        '--disable-javascript': '',
+        '--footer-right': 'Page [page] of [topage]',
+        '--footer-font-size': 9
     }
     preamble_template = 'aristotle_mdr/downloads/pdf/title.html'
 
