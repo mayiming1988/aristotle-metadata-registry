@@ -6,6 +6,7 @@ from django.template.loader import select_template, get_template, render_to_stri
 from django.core.files.base import File, ContentFile
 
 from aristotle_mdr.downloader import HTMLDownloader
+from aristotle_mdr.utils import fetch_aristotle_settings
 
 import logging
 import weasyprint
@@ -73,6 +74,11 @@ class PDFDownloader(LegacyPDFDownloader):
         # Get path to footer template
         footer_template_path = os.path.join(settings.MDR_BASE_DIR, 'templates', self.footer_template)
         self.wk_options['--footer-html'] = os.path.abspath(footer_template_path)
+
+        # Set pdf page size
+        aristotle_settings = fetch_aristotle_settings()
+        if 'DOWNLOAD_OPTIONS' in aristotle_settings:
+            self.wk_options['--page-size'] = aristotle_settings['DOWNLOAD_OPTIONS'].get('PDF_PAGE_SIZE', 'A4')
 
         # Create configuration object so we can ser wkhtmltopdf binary location
         if settings.WKHTMLTOPDF_LOCATION is not None:
