@@ -332,14 +332,12 @@ class HTMLDownloader(Downloader):
     bulk_download_template = 'aristotle_mdr/downloads/html/bulk_download.html'
 
     def get_base_download_context(self) -> Dict[str, Any]:
-        # page size for the pdf
+
         aristotle_settings = fetch_aristotle_settings()
-        page_size = aristotle_settings.get('DOWNLOAD_OPTIONS', {}).get('PDF_PAGE_SIZE', 'A4')
 
         context = {
             'infobox_identifier_name': aristotle_settings.get('INFOBOX_IDENTIFIER_NAME', _("Item ID")),
             'user': self.user,
-            'page_size': page_size,
             'options': self.options,
             'config': aristotle_settings,
             'export_date': now(),
