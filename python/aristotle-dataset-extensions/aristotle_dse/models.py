@@ -340,30 +340,36 @@ class DataSetSpecification(aristotle.models.concept):
             items.append(
                 ClassificationScheme.objects.filter(valueDomains__dataelement__in=de_ids).distinct(),
             )
-        
+
         return items
 
     def get_all_clusters(self) -> List[Tuple[int, int, Any]]:
-        """Get all clusters as parent child tuples (depth limited)"""
+        """Get all clusters as (parent_id, child_id, inclusion) tuples (depth limited)"""
+        # Final triples
         clusters = []
-        last_level_ids = [self.id]
+        # Id's of last level
+        last_level_ids = set([self.id])
+        # Inclusion id's
+        seen_inclusions = set()
+
         for i in range(settings.CLUSTER_DISPLAY_DEPTH):
             # get parent, child tuples
             values = DSSClusterInclusion.objects.filter(
                 dss_id__in=last_level_ids,
             ).order_by('order')
 
-            values_list = []
-            for inc in values:
-                values_list.append(
-                    (inc.dss_id, inc.child_id, inc)
-                )
-
-            # Update last level ids
             last_level_ids.clear()
-            for v in values_list:
-                last_level_ids.append(v[1])
-                clusters.append(v)
+            for inc in values:
+                if inc.id not in seen_inclusions:
+                    # Add to sets
+                    seen_inclusions.add(inc.id)
+                    last_level_ids.add(inc.child_id)
+                    # Add tuple to final list
+                    triple = (inc.dss_id, inc.child_id, inc)
+                    clusters.append(triple)
+
+            if not last_level_ids:
+                break
 
         return clusters
 
