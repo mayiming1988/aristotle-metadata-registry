@@ -25,32 +25,45 @@
     </div>
     <script>
       // Can't use any ES6 here :(
+
+      // Prefix for css class
+      var cssPrefix = 'wkhtml-'
+
+      // Build queryParams object
       var queryString = document.location.search
       var queryParams = {}
-      
-      // Build queryParams object
       var queryParamStrings = queryString.substring(1).split('&')
       for (var i in queryParamStrings) {
         var pair = queryParamStrings[i].split('=', 2)
         queryParams[pair[0]] = decodeURI(pair[1])
       }
 
-      // Values to look for in params
-      var values = ['page', 'frompage', 'topage', 'webpage', 'section', 'subsection', 'date', 'isodate', 'time', 'title', 'doctitle', 'sitepage', 'sitepages'];
-      // Prefix for css class
-      var cssPrefix = 'wkhtml-'
-
-      for (var i in values) {
-        var val = values[i]
-        if (queryParams.hasOwnProperty(val)) {
-          var cssClass = cssPrefix + val
-          var elements = document.getElementsByClassName(cssClass)
-          for (var j in elements) {
-            var element = elements[j]
-            element.innerText = queryParams[val]
+      // Replace innerText of elements with queryString values
+      function processValues(values, processor) {
+        for (var i in values) {
+          var val = values[i]
+          if (queryParams.hasOwnProperty(val)) {
+            var cssClass = cssPrefix + val
+            var elements = document.getElementsByClassName(cssClass)
+            for (var j in elements) {
+              var element = elements[j]
+              var value = queryParams[val]
+              if (processor !== undefined) {
+                value = processor(value)
+              }
+              element.innerText = value
+            }
           }
         }
       }
+
+      // Values to look for in params (only the ones we use for efficiency)
+      var values = ['topage']
+      var decrementValues = ['page']
+
+      processValues(values)
+      processValues(decrementValues, function(i) { return i - 1 })
+
     </script>
   </body>
 </html>
