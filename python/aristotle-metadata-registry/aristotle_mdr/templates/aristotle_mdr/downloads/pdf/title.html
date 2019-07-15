@@ -10,14 +10,10 @@
     {% include "aristotle_mdr/downloads/html/css/pdf.css" %}
     </style>
 </head>
-<body class="">
-{% if tableOfContents %}
+<body>
     <div class="title_page break-after">
 
         <div class="title_section">
-            {% comment %}
-                    <img height="50px" src="{% static config.SITE_BRAND %}" alt="{{ config.SITE_NAME }}" title="{{ config.SITE_NAME }}">
-                {% endcomment %}
 
             <div class="main_title">
                 {% if options.title %}<h1>{{ options.title }}</h1>{% endif %}
@@ -54,7 +50,5 @@
           </tr>
        </table>
     </div>
-    
-  {% endif %}
  </body>
 </html>
