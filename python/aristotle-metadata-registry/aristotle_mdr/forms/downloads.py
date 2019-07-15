@@ -4,7 +4,7 @@ from aristotle_mdr.models import RegistrationAuthority, STATES
 
 class ModelChoicePKField(forms.ModelChoiceField):
     """ Overriding the to_python so that we can pass the pk directly to the download view, without
-    it (unsuccessfully) trying to JSON serialize the Registration Authority object """
+    it (unsuccessfully) trying to JSON serialize the Registration Authority object  """
     def to_python(self, value):
         if value in self.empty_values:
             return None
