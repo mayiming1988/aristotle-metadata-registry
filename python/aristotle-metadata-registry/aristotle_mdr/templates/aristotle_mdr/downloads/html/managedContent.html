@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block content %}
-    <section class="break-after">
+    <section>
         <header>
             {% if not tableOfContents and options.title %}
                 {# If there was no table of contents the user submitted title should go here #}
@@ -119,7 +119,7 @@
         {% include "aristotle_mdr/downloads/html/component/custom_fields_display.html" %}
 
         {% if subitems %}
-            <div style="page-break-before:always">
+            <div class="break-before">
 
                 {% if is_bulk_download %}
                     <header>Supporting Items</header>
@@ -128,11 +128,11 @@
                 {% endif %}
 
                 {% for l, itemlist in subitems.items %}
-                    <div style="page-break-before:always;">
+                    <div class="break-before">
                         <h2>{{ itemlist.model_pluralized }}</h2>
                         {% if itemlist.help %}<p>{% relink itemlist.help 'brief' %}</p>{% endif %}
                         {% for i in itemlist.sorted_items %}
-                            <div id='{{i.id}}' style="page-break-before:always;">
+                            <div id='{{i.id}}' class="break-before">
                               {% include i|template_path:'html,inline' with item=i header='h3' %}
                             </div>
                         {% endfor %}
