@@ -1,5 +1,5 @@
 """
-Serializer for concept and all attached fields
+Serializer for concept and all attached subfields
 """
 from rest_framework import serializers
 
