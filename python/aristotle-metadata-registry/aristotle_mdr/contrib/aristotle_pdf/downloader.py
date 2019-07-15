@@ -56,15 +56,24 @@ class LegacyPDFDownloader(HTMLDownloader):
 class PDFDownloader(LegacyPDFDownloader):
     download_type = "pdf"
 
-    wk_options = {
-        '--disable-javascript': '',
-        '--footer-right': 'Page [page] of [topage]',
-        '--footer-font-size': 9
+    default_wk_options = {
+        '--page-offset': -1,  # Make the table of contents start at 1
+        '--footer-line': '',
     }
+
     preamble_template = 'aristotle_mdr/downloads/pdf/title.html'
+    footer_template = 'aristotle_mdr/downloads/html/footer.html'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # Set dynamic options
+        self.wk_options = self.default_wk_options.copy()
+        # Get path to footer template
+        footer_template_path = os.path.join(settings.MDR_BASE_DIR, 'templates', self.footer_template)
+        self.wk_options['--footer-html'] = os.path.abspath(footer_template_path)
+
+        # Create configuration object so we can ser wkhtmltopdf binary location
         if settings.WKHTMLTOPDF_LOCATION is not None:
             self.wk_config = pdfkit.configuration(wkhtmltopdf=settings.WKHTMLTOPDF_LOCATION)
         else:
@@ -80,8 +89,9 @@ class PDFDownloader(LegacyPDFDownloader):
         # Whether to create a title page & toc or not
         table_of_contents = context['tableOfContents']
 
+        final_options = self.wk_options.copy()
         toc_options = {}
-        temp_file = None
+        title_temp_file = None
         cover = None
 
         # If we are making a title, write to temp file
@@ -91,9 +101,10 @@ class PDFDownloader(LegacyPDFDownloader):
             # Render preamble string
             preamble_string = render_to_string(self.preamble_template, context=context)
             # Write preamble temp file
-            temp_file = NamedTemporaryFile(delete=False, suffix='.html')
-            temp_file.write(preamble_string.encode('utf-8'))
-            cover = temp_file.name
+            title_temp_file = NamedTemporaryFile(suffix='.html')
+            title_temp_file.write(preamble_string.encode('utf-8'))
+            # Set cover
+            cover = title_temp_file.name
 
         # Convert to pdf
         pdf: bytes = pdfkit.from_string(
@@ -107,8 +118,8 @@ class PDFDownloader(LegacyPDFDownloader):
         )
 
         # Close the temp file if it exists
-        if temp_file is not None:
-            temp_file.close()
+        if title_temp_file is not None:
+            title_temp_file.close()
 
         final_file = self.wrap_file(pdf)
         return File(final_file)
