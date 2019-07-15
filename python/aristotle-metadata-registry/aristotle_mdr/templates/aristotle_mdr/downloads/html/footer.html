@@ -1,31 +1,56 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="utf-8">
     <style>
-    body {
-      border: 0;
-      margin: 0;
-    }
+      body {
+        border: 0;
+        margin: 0;
+      }
 
-    table {
-      border-bottom: 1px solid black;
-      width: 100%;
-    }
+      table {
+        border-bottom: 1px solid black;
+        width: 100%;
+      }
 
-    .right {
-      text-align: right;
-    }
+      .right {
+        text-align: right;
+      }
     </style>
   </head>
 
   <body>
-    <table>
-      <tr>
-        <td class="section">The Section</td>
-        <td class="right">
-          Page <span class="page">1</span> of <span class="topage">1</span>
-        </td>
-      </tr>
-    </table>
+    <div class="right">
+      Page <span class="wkhtml-page"></span> of <span class="wkhtml-topage"></span>
+    </div>
+    <script>
+      // Can't use any ES6 here :(
+      var queryString = document.location.search
+      var queryParams = {}
+      
+      // Build queryParams object
+      var queryParamStrings = queryString.substring(1).split('&')
+      for (var i in queryParamStrings) {
+        var pair = queryParamStrings[i].split('=', 2)
+        queryParams[pair[0]] = decodeURI(pair[1])
+      }
+
+      // Values to look for in params
+      var values = ['page', 'frompage', 'topage', 'webpage', 'section', 'subsection', 'date', 'isodate', 'time', 'title', 'doctitle', 'sitepage', 'sitepages'];
+      // Prefix for css class
+      var cssPrefix = 'wkhtml-'
+
+      for (var i in values) {
+        var val = values[i]
+        if (queryParams.hasOwnProperty(val)) {
+          var cssClass = cssPrefix + val
+          var elements = document.getElementsByClassName(cssClass)
+          for (var j in elements) {
+            var element = elements[j]
+            element.innerText = queryParams[val]
+          }
+        }
+      }
+    </script>
   </body>
 </html>

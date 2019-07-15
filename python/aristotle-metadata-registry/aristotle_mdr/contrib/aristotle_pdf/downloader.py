@@ -58,7 +58,8 @@ class PDFDownloader(LegacyPDFDownloader):
 
     default_wk_options = {
         '--page-offset': -1,  # Make the table of contents start at 1
-        '--footer-line': '',
+        '--margin-top': '10mm',
+        '--margin-bottom': '10mm',
     }
 
     preamble_template = 'aristotle_mdr/downloads/pdf/title.html'
