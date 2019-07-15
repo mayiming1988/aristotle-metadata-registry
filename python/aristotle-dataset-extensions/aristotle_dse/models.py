@@ -348,9 +348,9 @@ class DataSetSpecification(aristotle.models.concept):
         # Final triples
         clusters = []
         # Id's of last level
-        last_level_ids = set([self.id])
+        last_level_ids: Set = set([self.id])
         # Inclusion id's
-        seen_inclusions = set()
+        seen_inclusions: Set = set()
 
         for i in range(settings.CLUSTER_DISPLAY_DEPTH):
             # get parent, child tuples
