@@ -21,7 +21,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
         </button>
-        <a href="{% url 'aristotle:home' %}" id="logo">
+        <a href="{% url 'aristotle:home' %}" title="Home" id="logo">
             {% block header_logo %}
                 <img height="50px" src="{% static config.SITE_BRAND %}" alt="{{ config.SITE_NAME }}" title="{{ config.SITE_NAME }}">
             {% endblock %}
@@ -63,7 +63,7 @@
                         </a>
                         <ul class="dropdown-menu" role="menu">
                             <li><a href="{% url 'aristotle:userHome' %}">
-                                <i class="fa fa-home fa-fw"></i> {% trans 'My Dashboard'%}
+                                <i class="fa fa-th fa-fw"></i> {% trans 'My Dashboard'%}
                             </a></li>
                             <li><a href="{% url 'aristotle:userProfile' %}">
                                 <img class="small-profile-picture" src="{{ request.user.profile.profile_picture_url }}" width="18px" alt="Profile Picture">
@@ -195,3 +195,6 @@
     </div>
 </div>
 </nav>
+{% if aristotle_cloud_is_active %}
+{% include 'aristotle_cloud/custom/neck.html' %}
+{% endif %}
