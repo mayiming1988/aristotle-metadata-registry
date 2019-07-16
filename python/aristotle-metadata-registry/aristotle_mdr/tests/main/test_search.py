@@ -592,6 +592,7 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
         psqs = PSQS.auto_query('mutations').apply_permission_checks(self.su)
         self.assertEqual(len(psqs),1)
         self.assertEqual(psqs[0].object.pk, cd.pk)
+
         psqs = PSQS.auto_query('flight').apply_permission_checks(self.su)
         self.assertEqual(len(psqs),1)
         self.assertEqual(psqs[0].object.pk, cd.pk)
@@ -620,13 +621,13 @@ class TestSearch(utils.AristotleTestUtils, TestCase):
             )
 
         psqs = PSQS.auto_query('mutations').apply_permission_checks(self.su)
-        self.assertEqual(len(psqs),1)
+        self.assertEqual(len(psqs), 1)
         self.assertEqual(psqs[0].object.pk, vd.pk)
         psqs = PSQS.auto_query('flight').apply_permission_checks(self.su)
-        self.assertEqual(len(psqs),1)
+        self.assertEqual(len(psqs), 1)
         self.assertEqual(psqs[0].object.pk, vd.pk)
         psqs = PSQS.auto_query('FLT').apply_permission_checks(self.su)
-        self.assertEqual(len(psqs),1)
+        self.assertEqual(len(psqs), 1)
         self.assertEqual(psqs[0].object.pk, vd.pk)
 
     def test_number_search_results(self):
