@@ -118,6 +118,7 @@ setup(
 
         # Html to pdf
         'weasyprint',
+        'pdfkit',
 
         # Pdf toolkit
         'PyPDF2',

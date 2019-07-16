@@ -411,3 +411,7 @@ EXTRA_GRAPHQL_SCHEMA_MODELS: list = []
 
 # DSS cluster display depth
 CLUSTER_DISPLAY_DEPTH = 8
+
+# wkhtmltopdf binary location
+# Uses PATH if None
+WKHTMLTOPDF_LOCATION = os.environ.get('WKHTMLTOPDF_LOCATION', None)
