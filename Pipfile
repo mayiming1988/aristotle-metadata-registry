@@ -17,7 +17,7 @@ redis = ">2.10,<3.0"
 celery = "==4.2.2"
 kombu = "~=4.3.0"
 # Pinning this until drf-yasg updates
-django-rest-framework = "<3.10"
+djangorestframework = "<3.10"
 # Pinning these due to breaking changes & aniso8601 dependancy conflict
 graphene-django = "==2.2.0"
 graphene = "==2.1.3"
