@@ -1,4 +1,5 @@
 from typing import Optional, List, Dict, Tuple, Any, Union, Callable
+from django.conf import settings
 from collections import defaultdict
 
 
@@ -47,19 +48,27 @@ class Tree:
         for rel in relations:
             relation_dict[rel[0]].append(rel[1:])
 
-        node_stack = [start]
+        # Stack of node, depth tuples
+        node_stack = [(start, 1)]
 
+        # While there are elements in the stack
         while node_stack:
             # Pop node off stack
-            next_node = node_stack.pop()
+            next_node, depth = node_stack.pop()
+            # Depth check
+            if depth > settings.CLUSTER_DISPLAY_DEPTH:
+                break
             # Add to tree if not root
             if next_node != start:
                 self.add_node(next_node)
             # Create child nodes and add to stack
-            children = relation_dict.pop(next_node.data.id, [])
+            children = relation_dict.get(next_node.data.id, [])
             for child_id, relation_info in children:
                 node_stack.append(
-                    Node(next_node, datadict.get(child_id, None), relation_info)
+                    (
+                        Node(next_node, datadict.get(child_id, None), relation_info),
+                        depth + 1
+                    )
                 )
 
     def get_node_children(self, identifier, sort_by=None) -> List[Node]:
