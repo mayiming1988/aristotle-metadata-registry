@@ -80,7 +80,7 @@ class AristotleSignalProcessor(haystack_signals.BaseSignalProcessor):
         # Components should have parents, but lets be kind.
         if issubclass(sender, aristotleComponent):
             parent_item = instance.parentItem
-            if not parent_item is None:
+            if parent_item is not None:
                 obj = parent_item.item
                 self.async_handle_save(obj.__class__, obj, **kwargs)
 

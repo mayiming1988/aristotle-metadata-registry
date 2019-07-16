@@ -1377,7 +1377,6 @@ class ValueMeaning(aristotleComponent):
         )
 
 
-
 class ValueDomain(concept):
     """
     Value_Domain is a class each instance of which models a value domain (3.2.140),

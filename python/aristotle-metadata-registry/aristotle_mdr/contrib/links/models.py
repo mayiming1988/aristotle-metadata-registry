@@ -59,7 +59,6 @@ class RelationRole(MDR.aristotleComponent):  # 9.1.2.5
 
     ordering_field = 'ordinal'
 
-
     def __str__(self):
         return "{0.name}".format(self)
 

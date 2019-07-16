@@ -171,7 +171,6 @@ class aristotleComponent(models.Model):
             return None
         return cls._meta.get_field(cls.parent_field_name).related_model
 
-
     def can_edit(self, user):
         return self.parentItem.can_edit(user)
 
@@ -246,7 +245,6 @@ class AbstractValue(aristotleComponent):
         )
 
 
-
 class DedBaseThrough(aristotleComponent):
     """
     Abstract Class for Data Element Derivation Many to Many through tables with ordering
@@ -262,4 +260,3 @@ class DedBaseThrough(aristotleComponent):
     class Meta:
         abstract = True
         ordering = ['order']
-
