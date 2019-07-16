@@ -3,23 +3,31 @@
     /*font-family: 'Baloo Tamma', serif;*/
 }
 
-.full-page {
-    width: 100%;
-    height:100%;
-    position:absolute;
-    top:0px;
-    bottom:0px;
-    margin: auto;
-    margin-top: 0px !important;
+/* Don't add a page break inside a tr */
+tr {
+    break-inside: avoid;
+    /* page-break-inside is deprecated, here for compatibility */
+    page-break-inside: avoid;
 }
 
-.copyright table, .copyright table td {
-    height:100%;
-    width:100%;
+.break-after {
+    break-after: always;
+    /* page-break-after is deprecated, here for compatibility */
+    page-break-after: always;
 }
 
-.copyright table td {
-    vertical-align: bottom;
+.break-before {
+    break-before: always;
+    /* page-break-before is deprecated, here for compatibility */
+    page-break-before: always;
+}
+
+.pre-line {
+    white-space: pre-line;
+}
+
+.small-svg-container svg {
+    height: 64px;
 }
 
 h1 {
@@ -41,6 +49,7 @@ header {
     padding-top: 1em;
     padding-bottom: 0.5em;
 }
+
 header.minor {
     font-size: 10pt;
     font-weight: normal;
@@ -48,6 +57,7 @@ header.minor {
     padding-top: 1em;
     padding-bottom: 0.5em;
 }
+
 #supersedes {
     list-style-type:none;
     margin-left:0px;
@@ -108,14 +118,21 @@ a {
 }
 
 table.dss_inclusions {
-    border: 1px solid lightgray;
+    border: 1px dotted lightgray;
     width: 100%;
     margin-top: 30px;
+    border-collapse: collapse;
 }
 
 table.dss_inclusions td, table.dss_inclusions th {
-    border: 1px solid lightgray;
+    /*border: 1px dotted lightgray;*/
+    border-bottom: 1px solid lightgray;
     text-align: left;
+    padding:3px;
+}
+
+table.dss_inclusions td {
+    /*font-size:8pt;*/
 }
 
 .dss_inclusion_name {
@@ -129,37 +146,43 @@ table.dss_inclusions td, table.dss_inclusions th {
 .dss_inclusion_html {
     width: 20%;
 }
-
-.padding-1 {
-    padding-left: 20px;
+.dss_inclusions .ref {
+    padding-right: 10px;
+}
+.dss_inclusions .padding-0 {
+    padding-left: 10px !important;
 }
 
-.padding-2 {
-    padding-left: 40px;
+.dss_inclusions .padding-1 {
+    padding-left: 25px !important;
 }
 
-.padding-3 {
-    padding-left: 60px;
+.dss_inclusions .padding-2 {
+    padding-left: 40px !important;
 }
 
-.padding-4 {
-    padding-left: 80px;
+.dss_inclusions .padding-3 {
+    padding-left: 55px !important;
 }
 
-.padding-5 {
-    padding-left: 100px;
+.dss_inclusions .padding-4 {
+    padding-left: 70px !important;
 }
 
-.padding-6 {
-    padding-left: 120px;
+.dss_inclusions .padding-5 {
+    padding-left: 85px !important;
 }
 
-.padding-7 {
-    padding-left: 140px;
+.dss_inclusions .padding-6 {
+    padding-left: 100px !important;
 }
 
-.padding-8 {
-    padding-left: 160px;
+.dss_inclusions .padding-7 {
+    padding-left: 115px !important;
+}
+
+.dss_inclusions .padding-8 {
+    padding-left: 130px !important;
 }
 
 .title_page .title_section {
@@ -183,20 +206,13 @@ table.dss_inclusions td, table.dss_inclusions th {
     font-size: 14pt;
 }
 
+/*
+ * Unfortunately webkit does not support @page
+ * So this has no effect when using wkhtmltopdf
+ */
 @page {
-    size: {{ page_size }};
-
     margin: 1cm;
     margin-bottom: 2cm;
     padding: 0.5cm;
     border: 0px solid white;
-    @frame footer {
-        -pdf-frame-content: footerContent;
-        bottom: 0cm;
-        margin-left: 2cm;
-        margin-right: 2cm;
-        padding:0.2cm;
-        height: 2cm;
-    }
-
 }

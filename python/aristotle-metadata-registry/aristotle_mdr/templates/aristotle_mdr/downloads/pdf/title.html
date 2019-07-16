@@ -10,14 +10,10 @@
     {% include "aristotle_mdr/downloads/html/css/pdf.css" %}
     </style>
 </head>
-<body class="">
-{% if tableOfContents %}
-    <div class="title_page" style="page-break-after:always;">
+<body>
+    <div class="title_page break-after">
 
         <div class="title_section">
-            {% comment %}
-                    <img height="50px" src="{% static config.SITE_BRAND %}" alt="{{ config.SITE_NAME }}" title="{{ config.SITE_NAME }}">
-                {% endcomment %}
 
             <div class="main_title">
                 {% if options.title %}<h1>{{ options.title }}</h1>{% endif %}
@@ -43,18 +39,16 @@
      </div>
 
     <div class="copyright">
-       <table class="full-page">
+       <table>
           <tr>
              <td>
-                <div style="white-space: pre-line">
-{{ config.DOWNLOAD_OPTIONS.COPYRIGHT_PAGE_CONTENT }}
+                <div class="pre-line">
+                {{ config.DOWNLOAD_OPTIONS.COPYRIGHT_PAGE_CONTENT }}
                 </div>
                 {% include "aristotle_mdr/downloads/html/preamble/copyright_page_aristotle_insert.html" %}
              </td>
           </tr>
        </table>
     </div>
-    
-  {% endif %}
  </body>
 </html>
