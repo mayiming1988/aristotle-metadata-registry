@@ -1,6 +1,7 @@
 * {
-    font-size:9pt;
+    font-size: 10pt;
     /*font-family: 'Baloo Tamma', serif;*/
+    font-family: 'DejaVu Serif', serif; 
 }
 
 /* Don't add a page break inside a tr */
@@ -27,7 +28,7 @@ tr {
 }
 
 .small-svg-container svg {
-    height: 64px;
+    height: 2.5cm;
 }
 
 h1 {
