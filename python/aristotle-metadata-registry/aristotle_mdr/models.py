@@ -1376,9 +1376,6 @@ class ValueMeaning(aristotleComponent):
             self.definition
         )
 
-    @property
-    def parentItemId(self):
-        return self.parentItem.id
 
 
 class ValueDomain(concept):

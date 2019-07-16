@@ -30,6 +30,8 @@ class Relation(MDR.concept):  # 9.1.2.4
 
 
 class RelationRole(MDR.aristotleComponent):  # 9.1.2.5
+    parent_field_name = 'relation'
+
     name = models.TextField(
         help_text=_("The primary name used for human identification purposes.")
     )
@@ -57,13 +59,6 @@ class RelationRole(MDR.aristotleComponent):  # 9.1.2.5
 
     ordering_field = 'ordinal'
 
-    @property
-    def parentItem(self):
-        return self.relation
-
-    @property
-    def parentItemId(self):
-        return self.relation_id
 
     def __str__(self):
         return "{0.name}".format(self)

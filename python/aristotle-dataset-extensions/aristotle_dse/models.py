@@ -225,9 +225,7 @@ class DistributionDataElementPath(aristotle.models.aristotleComponent):
         blank=True
     )
 
-    @property
-    def parentItemId(self):
-        return self.distribution_id
+
 
 
 CARDINALITY = Choices(('optional', _('Optional')), ('conditional', _('Conditional')), ('mandatory', _('Mandatory')))
@@ -478,9 +476,6 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         help_text=_("If a dataset is ordered, this indicates which position this item is in a dataset.")
         )
 
-    @property
-    def parentItemId(self):
-        return self.parentItem.id
 
 
 class DSSGrouping(aristotle.models.aristotleComponent):

@@ -152,19 +152,25 @@ class aristotleComponent(models.Model):
     @property
     def parentItem(self):
         """Return the actual parent item or None if no parent item exists"""
-        parent = getattr(self, 'parent')
+        parent = getattr(self, 'parent_field_name')
         if parent == "":
             return None
-
         return getattr(self, parent)
+
+    @property
+    def parentItemId(self):
+        """Return the id of the parent item"""
+        parent = getattr(self, 'parent_field_name')
+        parent_id = parent + '_id'
+        return getattr(self, parent_id)
 
     @classmethod
     def get_parent_model(cls):
         """Get the model of the parent item"""
         if cls.parent_field_name == '':
             return None
-
         return cls._meta.get_field(cls.parent_field_name).related_model
+
 
     def can_edit(self, user):
         return self.parentItem.can_edit(user)
@@ -239,9 +245,6 @@ class AbstractValue(aristotleComponent):
             self.meaning
         )
 
-    @property
-    def parentItemId(self):
-        return self.parentItem.id
 
 
 class DedBaseThrough(aristotleComponent):
@@ -260,6 +263,3 @@ class DedBaseThrough(aristotleComponent):
         abstract = True
         ordering = ['order']
 
-    @property
-    def parentItemId(self):
-        return self.parentItem.id

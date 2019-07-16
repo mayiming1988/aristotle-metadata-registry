@@ -32,6 +32,7 @@ class Question(aristotle.models.concept):
 
 class ResponseDomain(aristotle.models.aristotleComponent):
 
+    parent_field_name = 'question'
     class Meta:
         ordering = ['order']
 
@@ -52,14 +53,6 @@ class ResponseDomain(aristotle.models.aristotleComponent):
         blank=True,
         help_text=_("If a dataset is ordered, this indicates which position this item is in a dataset.")
         )
-
-    @property
-    def parentItem(self):
-        return self.question
-
-    @property
-    def parentItemId(self):
-        return self.question_id
 
 
 """

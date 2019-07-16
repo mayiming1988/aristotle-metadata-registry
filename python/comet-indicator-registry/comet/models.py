@@ -196,9 +196,6 @@ class FrameworkDimension(MPTTModel, TimeStampedModel, aristotleComponent):
     def parentItem(self):
         return self.framework
 
-    @property
-    def parentItemId(self):
-        return self.framework_id
 
     def __str__(self):
         return self.name

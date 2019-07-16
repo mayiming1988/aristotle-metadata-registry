@@ -54,6 +54,3 @@ class ScopedIdentifier(TimeStampedModel, MDR.aristotleComponent):
     def prefix(self):
         return self.namespace.shorthand_prefix
 
-    @property
-    def parentItemId(self):
-        return self.parentItem.id
