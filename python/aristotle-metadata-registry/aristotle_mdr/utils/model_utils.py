@@ -9,6 +9,7 @@ import uuid
 import datetime
 
 from model_utils.models import TimeStampedModel
+
 from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
 
 from aristotle_mdr.fields import (
@@ -21,7 +22,6 @@ from aristotle_mdr.managers import (
     ManagedItemQuerySet,
     UtilsManager
 )
-
 
 VERY_RECENTLY_SECONDS = 15
 
@@ -146,6 +146,31 @@ class aristotleComponent(models.Model):
     objects = UtilsManager()
     ordering_field = 'order'
 
+    # Parent is the parent item of the component
+    parent_field_name: str = ''
+
+    @property
+    def parentItem(self):
+        """Return the actual parent item or None if no parent item exists"""
+        parent = getattr(self, 'parent_field_name')
+        if parent == "":
+            return None
+        return getattr(self, parent)
+
+    @property
+    def parentItemId(self):
+        """Return the id of the parent item"""
+        parent = getattr(self, 'parent_field_name')
+        parent_id = parent + '_id'
+        return getattr(self, parent_id)
+
+    @classmethod
+    def get_parent_model(cls):
+        """Get the model of the parent item"""
+        if cls.parent_field_name == '':
+            return None
+        return cls._meta.get_field(cls.parent_field_name).related_model
+
     def can_edit(self, user):
         return self.parentItem.can_edit(user)
 
@@ -173,7 +198,6 @@ class AbstractValue(aristotleComponent):
     Implementation note: Not the best name, but there will be times to
     subclass a "value" when its not just a permissible value.
     """
-
     class Meta:
         abstract = True
         ordering = ['order']
@@ -211,20 +235,14 @@ class AbstractValue(aristotleComponent):
         help_text=_('Date at which the value ceased to be valid')
     )
 
+    parent_field_name = 'valueDomain'
+
     def __str__(self):
         return "%s: %s - %s" % (
             self.valueDomain.name,
             self.value,
             self.meaning
         )
-
-    @property
-    def parentItem(self):
-        return self.valueDomain
-
-    @property
-    def parentItemId(self):
-        return self.valueDomain_id
 
 
 class DedBaseThrough(aristotleComponent):
@@ -237,14 +255,8 @@ class DedBaseThrough(aristotleComponent):
     order = models.PositiveSmallIntegerField("Position")
     objects = UtilsManager()
 
+    parent_field_name = 'data_element_derivation'
+
     class Meta:
         abstract = True
         ordering = ['order']
-
-    @property
-    def parentItem(self):
-        return self.data_element_derivation
-
-    @property
-    def parentItemId(self):
-        return self.data_element_derivation_id

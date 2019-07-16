@@ -197,6 +197,7 @@ class Distribution(aristotle.models.concept):
 class DistributionDataElementPath(aristotle.models.aristotleComponent):
     class Meta:
         ordering = ['order']
+    parent_field_name = 'distribution'
 
     distribution = models.ForeignKey(
         Distribution,
@@ -224,13 +225,7 @@ class DistributionDataElementPath(aristotle.models.aristotleComponent):
         blank=True
     )
 
-    @property
-    def parentItem(self):
-        return self.distribution
 
-    @property
-    def parentItemId(self):
-        return self.distribution_id
 
 
 CARDINALITY = Choices(('optional', _('Optional')), ('conditional', _('Conditional')), ('mandatory', _('Mandatory')))
@@ -449,6 +444,7 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         ordering = ['order']
 
     inline_field_layout = 'list'
+    parent_field_name = 'dss'
 
     reference = models.CharField(
         max_length=512,
@@ -486,13 +482,6 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         help_text=_("If a dataset is ordered, this indicates which position this item is in a dataset.")
         )
 
-    @property
-    def parentItem(self):
-        return self.dss
-
-    @property
-    def parentItemId(self):
-        return self.dss_id
 
 
 class DSSGrouping(aristotle.models.aristotleComponent):
@@ -501,6 +490,7 @@ class DSSGrouping(aristotle.models.aristotleComponent):
         verbose_name = 'DSS Grouping'
 
     inline_field_layout = 'list'
+    parent_field_name = 'dss'
 
     dss = ConceptForeignKey(DataSetSpecification, related_name="groups")
     name = ShortTextField(
@@ -518,6 +508,7 @@ class DSSGrouping(aristotle.models.aristotleComponent):
         null=True,
         blank=True,
     )
+    parent = 'dss'
 
     def __str__(self):
         return self.name
