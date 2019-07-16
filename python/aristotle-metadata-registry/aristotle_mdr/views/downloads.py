@@ -182,6 +182,12 @@ class DownloadOptionsView(FormView):
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['wrap_pages'] = self.download_class.allow_wrapper_pages
+
+        kwargs['no_email'] = False
+        if not self.request.user.is_authenticated:
+            # If the user is unauthenticated, they don't have an email
+            kwargs['no_email'] = True
+
         return kwargs
 
     def form_valid(self, form):

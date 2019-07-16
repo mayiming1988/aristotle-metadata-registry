@@ -102,7 +102,6 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
             self.client.session['download_options'],
             {
                 'include_supporting': True,
-                'email_copy': True,
                 'include_related': False,
                 'title': '',
                 'registration_authority': None,
