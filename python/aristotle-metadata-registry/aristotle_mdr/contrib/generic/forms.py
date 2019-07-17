@@ -8,6 +8,7 @@ from django.forms.models import modelformset_factory
 from aristotle_mdr.models import _concept, AbstractValue, ValueDomain, ValueMeaning
 from aristotle_mdr.contrib.autocomplete import widgets
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
+from comet.models import FrameworkDimension
 
 from django_bulk_update.helper import bulk_update
 
@@ -190,8 +191,6 @@ def ordered_formset_factory(model, ordering_field, exclude=[], extra=0):
 
 def ordered_formset_save(formset, item, model_to_add_field, ordering_field):
     # Save a formset created with the above factory
-
-    from comet.models import FrameworkDimension
 
     item.save()  # do this to ensure we are saving reversion records for the item, not just the values
     formset.save(commit=False)  # Save formset so we have access to deleted_objects and save_m2m
