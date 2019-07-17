@@ -27,10 +27,9 @@ tr {
     white-space: pre-line;
 }
 
-.small-svg-container img, .small-svg-container svg {
+.small-svg-container svg {
     height: 2.5cm;
     width: 2.5cm;
-    /*height: 2.5cm;*/
 }
 
 h1 {
