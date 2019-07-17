@@ -191,6 +191,8 @@ def ordered_formset_factory(model, ordering_field, exclude=[], extra=0):
 def ordered_formset_save(formset, item, model_to_add_field, ordering_field):
     # Save a formset created with the above factory
 
+    from comet.models import FrameworkDimension
+
     item.save()  # do this to ensure we are saving reversion records for the item, not just the values
     formset.save(commit=False)  # Save formset so we have access to deleted_objects and save_m2m
 
@@ -199,7 +201,10 @@ def ordered_formset_save(formset, item, model_to_add_field, ordering_field):
         # Loop through the forms so we can add the order value to the ordering field
         # ordered_forms does not contain forms marked for deletion
         setattr(obj, model_to_add_field, item)
-        new.append(obj)
+        if formset.model == FrameworkDimension:
+            obj.save()
+        else:
+            new.append(obj)
 
     if new:
         formset.model.objects.bulk_create(new)
@@ -221,5 +226,5 @@ def ordered_formset_save(formset, item, model_to_add_field, ordering_field):
             # Backup just in case wrong manager is being used
             formset.model.objects.filter(id__in=[i.id for i in formset.deleted_objects]).delete()
 
-    # Save any m2m relations on the ojects (not actually needed yet)
+    # Save any m2m relations on the objects (not actually needed yet)
     formset.save_m2m()
