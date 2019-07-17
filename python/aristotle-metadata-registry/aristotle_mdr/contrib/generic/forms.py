@@ -8,7 +8,7 @@ from django.forms.models import modelformset_factory
 from aristotle_mdr.models import _concept, AbstractValue, ValueDomain, ValueMeaning
 from aristotle_mdr.contrib.autocomplete import widgets
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
-from comet.models import FrameworkDimension
+from mptt.models import MPTTModel
 
 from django_bulk_update.helper import bulk_update
 
@@ -201,8 +201,10 @@ def ordered_formset_save(formset, item, model_to_add_field, ordering_field):
         # ordered_forms does not contain forms marked for deletion
         setattr(obj, model_to_add_field, item)
 
-        # If this is a FrameworkDimension let MPTT order the values automatically.
-        if formset.model == FrameworkDimension:
+        # If this item is a subclass of MPTT (like a FrameworkDimension) let MPTT order the values automatically.
+        # They are ordered by name in alphabetical order by default.
+        # Check the FrameworkDimension model to see the 'order_insertion_by' option of MPTT.
+        if issubclass(formset.model, MPTTModel):
             obj.save()
         else:
             new.append(obj)
