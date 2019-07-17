@@ -370,6 +370,7 @@ class DataSetSpecification(aristotle.models.concept):
 
     def get_de_relations(self, dss_ids: Iterable[int]) -> List[Tuple[int, int, Any]]:
         """Helper used to fetch all data element relations for a set of dss's"""
+        dss_ids.add(self.id)
         values = DSSDEInclusion.objects.filter(
             dss__in=dss_ids,
         ).order_by('order')
@@ -396,6 +397,7 @@ class DataSetSpecification(aristotle.models.concept):
         # Lookup all objects
         if not objects:
             dss_ids = self.get_unique_ids(cluster_relations)
+            
             de_ids = self.get_unique_ids(de_relations)
             objects = type(self).objects.in_bulk(dss_ids)
             objects.update(aristotle.models.DataElement.objects.in_bulk(de_ids))
