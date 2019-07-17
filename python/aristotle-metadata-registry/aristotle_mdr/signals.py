@@ -78,9 +78,11 @@ class AristotleSignalProcessor(haystack_signals.BaseSignalProcessor):
             self.async_handle_save(type(instance), instance, **kwargs)
 
         # Components should have parents, but lets be kind.
-        if issubclass(sender, aristotleComponent) and hasattr(instance, "parentItem"):
-            obj = instance.parentItem.item
-            self.async_handle_save(obj.__class__, obj, **kwargs)
+        if issubclass(sender, aristotleComponent):
+            parent_item = instance.parentItem
+            if parent_item is not None:
+                obj = parent_item.item
+                self.async_handle_save(obj.__class__, obj, **kwargs)
 
     def handle_concept_delete(self, sender, instance, **kwargs):
         # Delete index *before* the object, as we need to query it to check the actual subclass.

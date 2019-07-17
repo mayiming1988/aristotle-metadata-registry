@@ -197,6 +197,7 @@ class Distribution(aristotle.models.concept):
 class DistributionDataElementPath(aristotle.models.aristotleComponent):
     class Meta:
         ordering = ['order']
+    parent_field_name = 'distribution'
 
     distribution = models.ForeignKey(
         Distribution,
@@ -224,13 +225,7 @@ class DistributionDataElementPath(aristotle.models.aristotleComponent):
         blank=True
     )
 
-    @property
-    def parentItem(self):
-        return self.distribution
 
-    @property
-    def parentItemId(self):
-        return self.distribution_id
 
 
 CARDINALITY = Choices(('optional', _('Optional')), ('conditional', _('Conditional')), ('mandatory', _('Mandatory')))
@@ -340,35 +335,42 @@ class DataSetSpecification(aristotle.models.concept):
             items.append(
                 ClassificationScheme.objects.filter(valueDomains__dataelement__in=de_ids).distinct(),
             )
-        
+
         return items
 
     def get_all_clusters(self) -> List[Tuple[int, int, Any]]:
-        """Get all clusters as parent child tuples (depth limited)"""
+        """Get all clusters as (parent_id, child_id, inclusion) tuples (depth limited)"""
+        # Final triples
         clusters = []
-        last_level_ids = [self.id]
+        # Id's of last level
+        last_level_ids: Set = set([self.id])
+        # Inclusion id's
+        seen_inclusions: Set = set()
+
         for i in range(settings.CLUSTER_DISPLAY_DEPTH):
             # get parent, child tuples
             values = DSSClusterInclusion.objects.filter(
                 dss_id__in=last_level_ids,
             ).order_by('order')
 
-            values_list = []
-            for inc in values:
-                values_list.append(
-                    (inc.dss_id, inc.child_id, inc)
-                )
-
-            # Update last level ids
             last_level_ids.clear()
-            for v in values_list:
-                last_level_ids.append(v[1])
-                clusters.append(v)
+            for inc in values:
+                if inc.id not in seen_inclusions:
+                    # Add to sets
+                    seen_inclusions.add(inc.id)
+                    last_level_ids.add(inc.child_id)
+                    # Add tuple to final list
+                    triple = (inc.dss_id, inc.child_id, inc)
+                    clusters.append(triple)
+
+            if not last_level_ids:
+                break
 
         return clusters
 
-    def get_de_relations(self, dss_ids: Iterable[int]) -> List[Tuple[int, int, Any]]:
+    def get_de_relations(self, dss_ids: Set[int]) -> List[Tuple[int, int, Any]]:
         """Helper used to fetch all data element relations for a set of dss's"""
+        dss_ids.add(self.id)
         values = DSSDEInclusion.objects.filter(
             dss__in=dss_ids,
         ).order_by('order')
@@ -390,11 +392,12 @@ class DataSetSpecification(aristotle.models.concept):
 
         return unique_ids
 
-    def get_cluster_tree(self, cluster_relations, de_relations, objects=None):
+    def get_cluster_tree(self, cluster_relations, de_relations, objects={}):
 
         # Lookup all objects
         if not objects:
             dss_ids = self.get_unique_ids(cluster_relations)
+            
             de_ids = self.get_unique_ids(de_relations)
             objects = type(self).objects.in_bulk(dss_ids)
             objects.update(aristotle.models.DataElement.objects.in_bulk(de_ids))
@@ -443,6 +446,7 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         ordering = ['order']
 
     inline_field_layout = 'list'
+    parent_field_name = 'dss'
 
     reference = models.CharField(
         max_length=512,
@@ -480,13 +484,6 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         help_text=_("If a dataset is ordered, this indicates which position this item is in a dataset.")
         )
 
-    @property
-    def parentItem(self):
-        return self.dss
-
-    @property
-    def parentItemId(self):
-        return self.dss_id
 
 
 class DSSGrouping(aristotle.models.aristotleComponent):
@@ -495,6 +492,7 @@ class DSSGrouping(aristotle.models.aristotleComponent):
         verbose_name = 'DSS Grouping'
 
     inline_field_layout = 'list'
+    parent_field_name = 'dss'
 
     dss = ConceptForeignKey(DataSetSpecification, related_name="groups")
     name = ShortTextField(
@@ -512,6 +510,7 @@ class DSSGrouping(aristotle.models.aristotleComponent):
         null=True,
         blank=True,
     )
+    parent = 'dss'
 
     def __str__(self):
         return self.name

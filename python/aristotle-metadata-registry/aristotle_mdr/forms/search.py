@@ -243,6 +243,7 @@ class TokenSearchForm(FacetedSearchForm):
         'id': 'identifier',
         'ns': 'namespace',
         'hs': 'highest_state',
+        'status': 'statuses',
     }
 
     def _clean_state(self, value):

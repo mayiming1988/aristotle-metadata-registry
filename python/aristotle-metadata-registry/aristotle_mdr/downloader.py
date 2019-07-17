@@ -332,17 +332,15 @@ class HTMLDownloader(Downloader):
     bulk_download_template = 'aristotle_mdr/downloads/html/bulk_download.html'
 
     def get_base_download_context(self) -> Dict[str, Any]:
-        # page size for the pdf
+
         aristotle_settings = fetch_aristotle_settings()
-        page_size = aristotle_settings.get('DOWNLOAD_OPTIONS', {}).get('PDF_PAGE_SIZE', 'A4')
 
         context = {
             'infobox_identifier_name': aristotle_settings.get('INFOBOX_IDENTIFIER_NAME', _("Item ID")),
             'user': self.user,
-            'page_size': page_size,
             'options': self.options,
             'config': aristotle_settings,
-            "export_date": now(),
+            'export_date': now(),
         }
         return context
 
@@ -366,11 +364,13 @@ class HTMLDownloader(Downloader):
             if isinstance(item, DataSetSpecification):
                 kwargs = self.prelim.get(item.id, None)
                 if kwargs:
-                    kwargs['objects'] = None
+                    kwargs['objects'] = {}
                     # Reuse sub objects if already avaliable (saves a query)
                     if sub_items:
-                        kwargs['objects'] = sub_items['aristotle_dse.datasetspecification'].as_dict()
-                        kwargs['objects'].update(sub_items['aristotle_mdr.dataelement'].as_dict())
+                        if 'aristotle_dse.datasetspecification' in sub_items:
+                            kwargs['objects'].update(sub_items['aristotle_dse.datasetspecification'].as_dict())
+                        if 'aristotle_dse.dataelement' in sub_items:
+                            kwargs['objects'].update(sub_items['aristotle_mdr.dataelement'].as_dict())
 
                     dss_tree = item.get_cluster_tree(**kwargs)
                     context['tree'] = dss_tree
