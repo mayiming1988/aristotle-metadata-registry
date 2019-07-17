@@ -201,6 +201,8 @@ def ordered_formset_save(formset, item, model_to_add_field, ordering_field):
         # Loop through the forms so we can add the order value to the ordering field
         # ordered_forms does not contain forms marked for deletion
         setattr(obj, model_to_add_field, item)
+
+        # If this is a FrameworkDimension let MPTT order the values automatically.
         if formset.model == FrameworkDimension:
             obj.save()
         else:
