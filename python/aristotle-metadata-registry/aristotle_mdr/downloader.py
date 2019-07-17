@@ -364,11 +364,13 @@ class HTMLDownloader(Downloader):
             if isinstance(item, DataSetSpecification):
                 kwargs = self.prelim.get(item.id, None)
                 if kwargs:
-                    kwargs['objects'] = None
+                    kwargs['objects'] = {}
                     # Reuse sub objects if already avaliable (saves a query)
                     if sub_items:
-                        kwargs['objects'] = sub_items['aristotle_dse.datasetspecification'].as_dict()
-                        kwargs['objects'].update(sub_items['aristotle_mdr.dataelement'].as_dict())
+                        if 'aristotle_dse.datasetspecification' in sub_items:
+                            kwargs['objects'].update(sub_items['aristotle_dse.datasetspecification'].as_dict())
+                        if 'aristotle_dse.dataelement' in sub_items:
+                            kwargs['objects'].update(sub_items['aristotle_mdr.dataelement'].as_dict())
 
                     dss_tree = item.get_cluster_tree(**kwargs)
                     context['tree'] = dss_tree
