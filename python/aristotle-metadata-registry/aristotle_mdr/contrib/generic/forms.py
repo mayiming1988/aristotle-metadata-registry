@@ -204,6 +204,7 @@ def ordered_formset_save(formset, item, model_to_add_field, ordering_field):
         # If this item is a subclass of MPTT (like a FrameworkDimension) let MPTT order the values automatically.
         # They are ordered by name in alphabetical order by default.
         # Check the FrameworkDimension model to see the 'order_insertion_by' option of MPTT.
+        # TODO: We need to write some tests for this functionality.
         if issubclass(formset.model, MPTTModel):
             obj.save()
         else:
@@ -217,7 +218,10 @@ def ordered_formset_save(formset, item, model_to_add_field, ordering_field):
         # record is a tuple with obj and form changed_data
         obj = record[0]
         setattr(obj, model_to_add_field, item)
-        changed.append(obj)
+        if issubclass(formset.model, MPTTModel):
+            obj.save()
+        else:
+            changed.append(obj)
 
     if changed:
         bulk_update(changed, batch_size=500)
@@ -228,6 +232,9 @@ def ordered_formset_save(formset, item, model_to_add_field, ordering_field):
         else:
             # Backup just in case wrong manager is being used
             formset.model.objects.filter(id__in=[i.id for i in formset.deleted_objects]).delete()
+
+    if issubclass(formset.model, MPTTModel):
+        formset.model.objects.rebuild()
 
     # Save any m2m relations on the objects (not actually needed yet)
     formset.save_m2m()
