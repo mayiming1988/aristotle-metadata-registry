@@ -8,6 +8,7 @@ from django.forms.models import modelformset_factory
 from aristotle_mdr.models import _concept, AbstractValue, ValueDomain, ValueMeaning
 from aristotle_mdr.contrib.autocomplete import widgets
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
+from mptt.models import MPTTModel
 
 from django_bulk_update.helper import bulk_update
 
@@ -199,7 +200,15 @@ def ordered_formset_save(formset, item, model_to_add_field, ordering_field):
         # Loop through the forms so we can add the order value to the ordering field
         # ordered_forms does not contain forms marked for deletion
         setattr(obj, model_to_add_field, item)
-        new.append(obj)
+
+        # If this item is a subclass of MPTT (like a FrameworkDimension) let MPTT order the values automatically.
+        # They are ordered by name in alphabetical order by default.
+        # Check the FrameworkDimension model to see the 'order_insertion_by' option of MPTT.
+        # TODO: We need to write some tests for this functionality.
+        if issubclass(formset.model, MPTTModel):
+            obj.save()
+        else:
+            new.append(obj)
 
     if new:
         formset.model.objects.bulk_create(new)
@@ -209,7 +218,10 @@ def ordered_formset_save(formset, item, model_to_add_field, ordering_field):
         # record is a tuple with obj and form changed_data
         obj = record[0]
         setattr(obj, model_to_add_field, item)
-        changed.append(obj)
+        if issubclass(formset.model, MPTTModel):
+            obj.save()
+        else:
+            changed.append(obj)
 
     if changed:
         bulk_update(changed, batch_size=500)
@@ -221,5 +233,8 @@ def ordered_formset_save(formset, item, model_to_add_field, ordering_field):
             # Backup just in case wrong manager is being used
             formset.model.objects.filter(id__in=[i.id for i in formset.deleted_objects]).delete()
 
-    # Save any m2m relations on the ojects (not actually needed yet)
+    if issubclass(formset.model, MPTTModel):
+        formset.model.objects.rebuild()
+
+    # Save any m2m relations on the objects (not actually needed yet)
     formset.save_m2m()

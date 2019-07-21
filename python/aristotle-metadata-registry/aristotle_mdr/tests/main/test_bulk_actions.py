@@ -97,7 +97,6 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(self.editor.profile.favourites.count(), 2)
 
-
     def test_bulk_add_favourite_on_permitted_items_by_anonymous(self):
         self.logout()
 
@@ -108,7 +107,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
                 'items': [self.item1.id, self.item2.id],
             }
         )
-        self.assertRedirects(response,reverse('friendly_login')+"?next="+reverse('aristotle:bulk_action'))
+        self.assertRedirects(response, reverse('friendly_login')+"?next="+reverse('aristotle:bulk_action'))
         self.assertEqual(response.status_code, 302)
 
     def test_bulk_add_favourite_on_forbidden_items(self):
@@ -268,8 +267,6 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         )
         self.assertEqual(response.status_code, 302)
         self.assertEqual(self.editor.profile.favourites.count(), 0)
-
-
 
     # Function used for the 2 tests below
     def bulk_status_change_on_permitted_items(self, review_changes):
@@ -473,10 +470,10 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         change_response = self.client.post(reverse('aristotle:change_state_bulk_action'), postdata)
 
         self.assertEqual(change_response.status_code, 200)
-        self.assertEqual(change_response.context['wizard']['steps'].step1, 2) # check we are now on second step
+        self.assertEqual(change_response.context['wizard']['steps'].step1, 2)  # check we are now on second step
 
         queryset = change_response.context['form'].fields['selected_list'].queryset
-        self.assertEqual(queryset.count(), 3) # Should not have multiples of the same item
+        self.assertEqual(queryset.count(), 3)  # Should not have multiples of the same item
 
         cascade_items = [self.item6, self.item7, self.item8]
         cascade_items_strings = [str(a.id) for a in cascade_items]
@@ -508,7 +505,7 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         self.assertFalse(self.item2.is_registered)
         self.assertFalse(self.item4.is_registered)
 
-        reg_date = datetime.date(2014,10,27)
+        reg_date = datetime.date(2014, 10, 27)
         new_state = self.ra.locked_state
         items = [self.item1.id, self.item2.id, self.item4.id]
 
@@ -555,10 +552,9 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
 
     # TODO: bulk action *and* cascade, where a user doesn't have permission for child elements.
 
-
     @override_settings(ARISTOTLE_SETTINGS=dict(settings.ARISTOTLE_SETTINGS, WORKGROUP_CHANGES=['submitter']))
     def test_bulk_workgroup_change_with_all_from_workgroup_list(self):
-        #phew thats one hell of a test name
+        # phew thats one hell of a test name
         from aristotle_mdr.utils.cached_querysets import register_queryset
 
         self.new_workgroup = models.Workgroup.objects.create(name="new workgroup", stewardship_organisation=self.steward_org_1)

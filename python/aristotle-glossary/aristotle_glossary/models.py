@@ -16,7 +16,7 @@ class GlossaryItem(MDR.concept):
     template = "aristotle_glossary/concepts/glossaryItem.html"
     edit_page_excludes = ["index"]
 
-    index = models.ManyToManyField(MDR._concept,blank=True,null=True,related_name="related_glossary_items")
+    index = models.ManyToManyField(MDR._concept, blank=True, null=True, related_name="related_glossary_items")
 
     @property
     def relational_attributes(self):
@@ -28,14 +28,16 @@ class GlossaryItem(MDR.concept):
         }
         return rels
 
+
 @reversion.register()
 class GlossaryAdditionalDefinition(MDR.aristotleComponent):
-    glossaryItem = models.ForeignKey(GlossaryItem,related_name="alternate_definitions")
+    glossaryItem = models.ForeignKey(GlossaryItem, related_name="alternate_definitions")
     registrationAuthority = models.ForeignKey(MDR.RegistrationAuthority)
     definition = models.TextField()
     @property
     def parentItem(self):
         return self.glossaryItem
+
     class Meta:
         unique_together = ('glossaryItem', 'registrationAuthority',)
 
@@ -48,11 +50,11 @@ def add_concepts_to_glossary_index(sender, instance, created, **kwargs):
 
 
 def reindex_metadata_item(item):
-    if not issubclass(item.__class__, MDR._concept):
-        return
-
     import lxml.html
     from lxml import etree
+
+    if not issubclass(item.__class__, MDR._concept):
+        return
 
     fields = [
         field.value_from_object(item)
