@@ -862,18 +862,18 @@ class ConfirmDeleteView(GenericWithItemURLView, TemplateView):
 
 class BootTableListView(ListView):
     """Lists objects in a bootstrap table (with optional pagination)"""
-    template_name='aristotle_mdr/generic/boottablelist.html'
+    template_name = 'aristotle_mdr/generic/boottablelist.html'
     # Need to override these
     headers: List[str]
     attrs: List[str]
-    model_name=''
+    model_name = ''
     # Can optionally override these
     blank_value: Dict[str, str]
-    page_heading=''
-    create_button_text=''
-    create_url_name=''
-    delete_url_name=''
-    update_url_name=''
+    page_heading = ''
+    create_button_text = ''
+    create_url_name = ''
+    delete_url_name = ''
+    update_url_name = ''
 
     def get_heading(self) -> str:
         if self.page_heading:
@@ -900,7 +900,7 @@ class BootTableListView(ListView):
 
         return listing
 
-    def get_context_data(self) -> dict:
+    def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data()
         headers = copy(self.headers)
 
@@ -937,7 +937,7 @@ class BootTableListView(ListView):
 
 
 class CancelUrlMixin:
-    cancel_url_name=''
+    cancel_url_name = ''
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
