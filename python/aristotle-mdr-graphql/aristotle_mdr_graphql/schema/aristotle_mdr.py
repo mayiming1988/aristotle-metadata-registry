@@ -96,3 +96,4 @@ class Query(object):
     data_element_derivations = AristotleConceptFilterConnectionField(DataElementDerivationNode)
     classification_schemes = AristotleConceptFilterConnectionField(ClassificationSchemeNode)
     collections = AristotleFilterConnectionField(CollectionNode)
+    stewards = AristotleFilterConnectionField(StewardOrganisationNode)
