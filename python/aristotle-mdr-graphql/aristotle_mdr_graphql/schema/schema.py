@@ -1,6 +1,7 @@
 import graphene
 from .aristotle_mdr import Query as AristotleMDRQuery
 from .aristotle_dse import Query as AristotleDSEQuery
+from .glossary import Query as GlossaryQuery
 from .comet import Query as CometQuery
 # from .user import SingleUserQuery
 from django.conf import settings
@@ -8,7 +9,7 @@ from django.apps import apps
 from aristotle_mdr_graphql.utils import type_from_model
 
 
-class AristotleQuery(AristotleDSEQuery, AristotleMDRQuery, CometQuery, graphene.ObjectType):
+class AristotleQuery(AristotleDSEQuery, AristotleMDRQuery, CometQuery, GlossaryQuery, graphene.ObjectType):
     """The query root of the Aristotle GraphQL API"""
     pass
 
