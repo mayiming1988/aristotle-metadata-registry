@@ -68,7 +68,7 @@ class ValueMeaningNode(DjangoObjectType):
         model = mdr_models.ValueMeaning
 
 
-class Query(object):
+class Query:
 
     metadata = AristotleConceptFilterConnectionField(
         ConceptNode,

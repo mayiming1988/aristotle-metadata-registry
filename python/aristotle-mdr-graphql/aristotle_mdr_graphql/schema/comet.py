@@ -16,7 +16,7 @@ IndicatorDenominatorDefinitionNode = type_from_model(comet_models.IndicatorDenom
 IndicatorDisaggregationDefinitionNode = type_from_model(comet_models.IndicatorDisaggregationDefinition)
 
 
-class Query(object):
+class Query:
 
     indicators = AristotleConceptFilterConnectionField(IndicatorNode)
     indicator_sets = AristotleConceptFilterConnectionField(IndicatorSetNode)
