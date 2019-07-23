@@ -10,17 +10,20 @@ IndicatorInclusionNode = inline_type_from_model(comet_models.IndicatorInclusion)
 OutcomeAreaNode = type_from_concept_model(comet_models.OutcomeArea)
 QualityStatementNode = type_from_concept_model(comet_models.QualityStatement)
 FrameworkNode = type_from_concept_model(comet_models.Framework)
-FrameworkDimensionNode = type_from_model(comet_models.FrameworkDimension)
+FrameworkDimensionNode = type_from_model(
+    comet_models.FrameworkDimension,
+    meta_kwargs={'exclude_fields': ['lft', 'rght', 'tree_id']}
+)
 IndicatorNumeratorDefinitionNode = type_from_model(comet_models.IndicatorNumeratorDefinition)
 IndicatorDenominatorDefinitionNode = type_from_model(comet_models.IndicatorDenominatorDefinition)
 IndicatorDisaggregationDefinitionNode = type_from_model(comet_models.IndicatorDisaggregationDefinition)
 
 
 class Query:
-
     indicators = AristotleConceptFilterConnectionField(IndicatorNode)
     indicator_sets = AristotleConceptFilterConnectionField(IndicatorSetNode)
     # indicator_set_types = AristotleFilterConnectionField(IndicatorSetTypeNode)
     outcome_areas = AristotleConceptFilterConnectionField(OutcomeAreaNode)
     quality_statements = AristotleConceptFilterConnectionField(QualityStatementNode)
-    # frameworks = AristotleConceptFilterConnectionField(FrameworkNode)
+    frameworks = AristotleConceptFilterConnectionField(FrameworkNode)
+    framework_dimensions = AristotleFilterConnectionField(FrameworkDimensionNode)
