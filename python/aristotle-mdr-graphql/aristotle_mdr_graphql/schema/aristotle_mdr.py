@@ -97,3 +97,5 @@ class Query:
     classification_schemes = AristotleConceptFilterConnectionField(ClassificationSchemeNode)
     collections = AristotleFilterConnectionField(CollectionNode)
     stewards = AristotleFilterConnectionField(StewardOrganisationNode)
+    organisation_record = AristotleFilterConnectionField(OrganizationRecordNode)
+
