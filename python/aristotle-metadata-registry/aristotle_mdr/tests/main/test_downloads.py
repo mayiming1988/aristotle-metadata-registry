@@ -102,7 +102,6 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
             self.client.session['download_options'],
             {
                 'include_supporting': True,
-                'email_copy': True,
                 'include_related': False,
                 'title': '',
                 'registration_authority': None,
@@ -360,12 +359,12 @@ class TestHTMLDownloader(AristotleTestUtils, TestCase):
 
         context = downloader.get_context()
         self.assertCountEqual(
-            context['subitems']['aristotle_mdr.objectclass']['items'],
+            context['subitems']['aristotle_mdr.objectclass'].items,
             [self.animal]
         )
 
         self.assertCountEqual(
-            context['subitems']['aristotle_mdr.property']['items'],
+            context['subitems']['aristotle_mdr.property'].items,
             [self.speed]
         )
 

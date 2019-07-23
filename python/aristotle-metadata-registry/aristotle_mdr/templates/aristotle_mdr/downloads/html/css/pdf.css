@@ -1,25 +1,35 @@
 * {
-    font-size:9pt;
+    font-size: 10pt;
     /*font-family: 'Baloo Tamma', serif;*/
+    font-family: 'DejaVu Serif', serif; 
 }
 
-.full-page {
-    width: 100%;
-    height:100%;
-    position:absolute;
-    top:0px;
-    bottom:0px;
-    margin: auto;
-    margin-top: 0px !important;
+/* Don't add a page break inside a tr */
+tr {
+    break-inside: avoid;
+    /* page-break-inside is deprecated, here for compatibility */
+    page-break-inside: avoid;
 }
 
-.copyright table, .copyright table td {
-    height:100%;
-    width:100%;
+.break-after {
+    break-after: always;
+    /* page-break-after is deprecated, here for compatibility */
+    page-break-after: always;
 }
 
-.copyright table td {
-    vertical-align: bottom;
+.break-before {
+    break-before: always;
+    /* page-break-before is deprecated, here for compatibility */
+    page-break-before: always;
+}
+
+.pre-line {
+    white-space: pre-line;
+}
+
+.small-svg-container svg {
+    height: 2.5cm;
+    width: 2.5cm;
 }
 
 h1 {
@@ -41,6 +51,7 @@ header {
     padding-top: 1em;
     padding-bottom: 0.5em;
 }
+
 header.minor {
     font-size: 10pt;
     font-weight: normal;
@@ -48,6 +59,7 @@ header.minor {
     padding-top: 1em;
     padding-bottom: 0.5em;
 }
+
 #supersedes {
     list-style-type:none;
     margin-left:0px;
@@ -77,9 +89,12 @@ header.minor {
 /*    padding-left:1cm;*/
 /*}*/
 
+/* pandoc does not support first-of
 dt:first-of {
     padding-top: 0em;
 }
+*/
+
 dt {
     padding-top: 0.5em;
     font-weight: bold;
@@ -105,18 +120,71 @@ a {
 }
 
 table.dss_inclusions {
+    border: 1px dotted lightgray;
     width: 100%;
+    margin-top: 30px;
     border-collapse: collapse;
 }
 
 table.dss_inclusions td, table.dss_inclusions th {
-    border: 1px solid lightgray;
+    /*border: 1px dotted lightgray;*/
+    border-bottom: 1px solid lightgray;
     text-align: left;
-    padding: 0.2em;
+    padding:3px;
 }
 
-dd.dss_inclusions {
-    padding-left: 1.5em;
+table.dss_inclusions td {
+    /*font-size:8pt;*/
+}
+
+.dss_inclusion_name {
+    margin-left: 10px;
+}
+
+.dss_inclusion_ref {
+    width: 25px;
+}
+
+.dss_inclusion_html {
+    width: 20%;
+}
+.dss_inclusions .ref {
+    padding-right: 10px;
+}
+.dss_inclusions .padding-0 {
+    padding-left: 10px !important;
+}
+
+.dss_inclusions .padding-1 {
+    padding-left: 25px !important;
+}
+
+.dss_inclusions .padding-2 {
+    padding-left: 40px !important;
+}
+
+.dss_inclusions .padding-3 {
+    padding-left: 55px !important;
+}
+
+.dss_inclusions .padding-4 {
+    padding-left: 70px !important;
+}
+
+.dss_inclusions .padding-5 {
+    padding-left: 85px !important;
+}
+
+.dss_inclusions .padding-6 {
+    padding-left: 100px !important;
+}
+
+.dss_inclusions .padding-7 {
+    padding-left: 115px !important;
+}
+
+.dss_inclusions .padding-8 {
+    padding-left: 130px !important;
 }
 
 .title_page .title_section {
@@ -140,20 +208,34 @@ dd.dss_inclusions {
     font-size: 14pt;
 }
 
+/*
+ * Unfortunately webkit does not support @page
+ * So this has no effect when using wkhtmltopdf
+ */
 @page {
-    size: {{ page_size }};
-
     margin: 1cm;
     margin-bottom: 2cm;
     padding: 0.5cm;
     border: 0px solid white;
-    @frame footer {
-        -pdf-frame-content: footerContent;
-        bottom: 0cm;
-        margin-left: 2cm;
-        margin-right: 2cm;
-        padding:0.2cm;
-        height: 2cm;
-    }
+}
 
+
+div.bleached-content table {
+    border: 1px solid black;
+    padding: 5px;
+}
+div.bleached-content td {
+    border-right: 1px solid black;
+    border-top: 1px solid black;
+    padding: 3px 5px;
+    font-size: small;
+}
+
+div.bleached-content th {
+    border-right: 1px solid black;
+    padding: 3px 5px;
+    font-size: small;
+}
+div.bleached-content img {
+    max-width: 100%;
 }

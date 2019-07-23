@@ -19,7 +19,7 @@ from aristotle_mdr.contrib.custom_fields.models import CustomField
 from aristotle_mdr.utils.versions import VersionField, VersionLinkField, VersionGroupField, VersionMultiLinkField
 
 from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
-from typing import Dict, List, Optional, Tuple, Any, Set
+from typing import Dict, List, Optional, Tuple, Any, Set, NamedTuple
 import json
 import reversion
 import diff_match_patch
@@ -252,6 +252,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
     def get_field_data(self, version_data: Dict, model, exclude: List[str] = []) -> Dict:
         """Replace data with (field, data) tuples"""
         field_data = {}
+
         for name, data in version_data.items():
             # If field name isnt excluded or we are not excluding
             if name not in exclude or not exclude:
@@ -261,10 +262,11 @@ class ConceptVersionView(VersionsMixin, TemplateView):
                     if type(data) == list and field.is_relation:
                         sub_field_data = []
                         submodel = field.related_model
+
                         # Recursively resolve sub dicts
                         for subdata in data:
                             if type(subdata) == dict:
-                                # If subdata is dict item was subserialized
+                                # If subdata is dict item that was subserialized
                                 sub_field_data.append(
                                     self.get_field_data(subdata, submodel, self.excluded_subfields)
                                 )

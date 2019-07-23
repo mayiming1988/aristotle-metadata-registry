@@ -38,8 +38,9 @@ So we've split this out into its own template.
 {% endif %}
 </table>
 
-<header>Permissible Values</header>
-{% if item.permissibleValues.count > 0 %}
+{% with permissible_values=item.permissiblevalue_set.all %}
+{% if permissible_values|length > 0 %}
+    <header>Permissible Values</header>
     <table class="codeList table table-striped">
         <thead>
             <tr>
@@ -48,7 +49,7 @@ So we've split this out into its own template.
             </tr>
         </thead>
         <tbody>
-          {% for perm in item.permissibleValues.all %}
+          {% for perm in permissible_values %}
               <tr>
                   <td>{{ perm.value }}</td>
                   <td>{{ perm.meaning }}</td>
@@ -57,9 +58,11 @@ So we've split this out into its own template.
         </tbody>
     </table>
 {% endif %}
+{% endwith %}
 
-<header>Supplementary Values</header>
-{% if item.supplementaryValues.count > 0 %}
+{% with supplementary_values=item.supplementaryvalue_set.all %}
+{% if supplementary_values|length > 0 %}
+    <header>Supplementary Values</header>
     <table class="codeList table table-striped">
         <thead>
             <tr>
@@ -68,7 +71,7 @@ So we've split this out into its own template.
             </tr>
         </thead>
         <tbody>
-        {% for perm in item.supplementaryValues.all %}
+        {% for perm in supplementary_values %}
             <tr>
                 <td>{{ perm.value }}</td>
                 <td>{{ perm.meaning }}</td>
@@ -77,5 +80,6 @@ So we've split this out into its own template.
         </tbody>
     </table>
 {% endif %}
+{% endwith %}
 
 </div>

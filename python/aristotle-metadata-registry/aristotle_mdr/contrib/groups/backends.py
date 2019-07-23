@@ -221,7 +221,6 @@ class GroupCreateView(LoginRequiredMixin, PermissionRequiredMixin, GroupBase, Cr
 
 class GroupUpdateView(LoginRequiredMixin, HasRolePermissionMixin, GroupMixin, UpdateView):
     """ Settings page for updating a Stewardship Organisation """
-
     template_name = "groups/group/settings.html"
 
     role_permission = "edit_group_details"

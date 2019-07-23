@@ -597,6 +597,8 @@ class Workgroup(AbstractGroup, TimeStampedModel):
         return url_slugify_workgroup(self)
 
     def can_view(self, user):
+        # If the user has permission to manage workgroups within the stewardship organisation the work-group
+        # is a part of
         if self.stewardship_organisation.user_has_permission(user, "manage_workgroups"):
             return True
         return self.member_list.filter(pk=user.pk).exists()
@@ -838,8 +840,9 @@ class _concept(baseAristotleObject):
     @property
     def item_type(self) -> ContentType:
         """Returns the content type of the subclassed item"""
-        if self._type:
-            return self._type
+        if self._type_id:
+            # Use get_for_id so the internal cache is used
+            return ContentType.objects.get_for_id(self._type_id)
 
         # Fallback to using get_subclass (this is slow)
         instance = _concept.objects.get_subclass(pk=self.pk)
@@ -1364,20 +1367,14 @@ class ValueMeaning(aristotleComponent):
         help_text=_('Date at which the value meaning ceased to be valid')
     )
 
+    parent_field_name = 'conceptual_domain'
+
     def __str__(self):
         return "%s: %s - %s" % (
             self.conceptual_domain.name,
             self.name,
             self.definition
         )
-
-    @property
-    def parentItem(self):
-        return self.conceptual_domain
-
-    @property
-    def parentItemId(self):
-        return self.conceptual_domain_id
 
 
 class ValueDomain(concept):
@@ -1605,6 +1602,7 @@ class DataElement(concept):
             items += self.dataElementConcept.get_download_items()
         return items
 
+    # TODO: Can we refactor this to work on a set of objects instead of just one to speed up downloads.
     @property
     def relational_attributes(self):
         rels = {}
@@ -1940,9 +1938,12 @@ class PossumProfile(models.Model):
 
 class SandboxShare(models.Model):
     uuid = models.UUIDField(
-        help_text=_(
-            "Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries"),
-        unique=True, default=uuid.uuid1, editable=False, null=False
+        help_text=_("Universally-unique Identifier. Uses UUID1 as "
+                    "this improves uniqueness and ""tracking between registries"),
+        unique=True,
+        default=uuid.uuid1,
+        editable=False,
+        null=False
     )
     profile = models.OneToOneField(
         PossumProfile,

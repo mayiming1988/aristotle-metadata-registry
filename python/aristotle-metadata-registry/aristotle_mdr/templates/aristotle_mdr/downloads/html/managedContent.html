@@ -10,13 +10,13 @@
 {% endblock %}
 
 {% block content %}
-    <section style="page-break-after:always;">
+    <section>
         <header>
             {% if not tableOfContents and options.title %}
                 {# If there was no table of contents the user submitted title should go here #}
                 <h1>{{ options.title }}</h1>
             {% else %}
-                <{% firstof header "h1" %} id="objectTitle">
+                <{% firstof header "h1" %} class="objectTitle">
                 {{ item.name }}
                 </{% firstof header "h1" %}>
             {% endif %}
@@ -55,15 +55,18 @@
 
             <dt>{% trans 'Endorsed by' %}</dt>
             <dd>
-                <div class="">
-                    {% include "aristotle_mdr/downloads/html/helpers/statuses.html" with statuses=item.current_statuses only %}
+                <div class="status">
+                    {% include "aristotle_mdr/downloads/html/helpers/statuses.html" with current_statuses=current_statuses item=item only %}
                 </div>
             </dd>
+
+            {% with supersedes_items=item|visible_supersedes_items:user %}
+            {% if supersedes_items %}
             <dt>Supersedes</dt>
             <dd>
                 <ul>
                     {# This is inefficient - % for suprel in item.superseded_items_relation_set.all %#}
-                    {% for suprel in item|visible_supersedes_items:user %}
+                    {% for suprel in supersedes_items %}
                         <li>
                             <a href="{% url 'aristotle:item' iid=suprel.older_item.id %}">
                                 {{ suprel.older_item.name }}
@@ -85,10 +88,15 @@
                     {% endfor %}
                 </ul>
             </dd>
+            {% endif %}
+            {% endwith %}
+
+            {% with superseded_by_items=item|visible_superseded_by_items:user %}
+            {% if superseded_by_items %}
             <dt>Superseded by</dt>
             <dd>
                 <ul>
-                    {% for suprel in item|visible_superseded_by_items:user %}
+                    {% for suprel in superseded_by_items %}
                         <li>
                             <a href="{% url 'aristotle:item' iid=suprel.newer_item.id %}">
                                 {{ suprel.newer_item.name }}
@@ -110,24 +118,41 @@
                     {% endfor %}
                 </ul>
             </dd>
+            {% endif %}
+            {% endwith %}
+
+            {% if item.submitting_organizations %}
+                <dt>Submitting Organizations</dt>
+                <dd>
+                {% for rec in item.submitting_organizations %}
+                    {% if rec.organization_record|can_view:user %}
+                        <p><a href="{{ rec.organization_record.get_absolute_url }}">{{ rec.organization_record.name }}</a></p>
+                    {% else %}
+                    {% endif %}
+                {% endfor %}
+                </dd>
+            {% endif %}
+            {% if item.responsible_organizations %}
+                <dt>Responsible Organizations</dt>
+                <dd>
+                {% for rec in item.responsible_organizations %}
+                {% if rec.organization_record|can_view:user %}
+                    <p><a href="{{ rec.organization_record.get_absolute_url }}">{{ rec.organization_record.name }}</a></p>
+                {% else %}
+                {% endif %}
+                {% endfor %}
+                </dd>
+            {% endif %}
 
             {% block objSpecific %}
             {% endblock %}
-
-            {% comment %}
-            <dt>
-                Related items
-            </dt>
-            <dd>
-            </dd>
-            {% endcomment %}
         </dl>
 
-        {% include "aristotle_mdr/downloads/html/slots/slots_display.html" %}
+        {# {% include "aristotle_mdr/downloads/html/slots/slots_display.html" %} #}
         {% include "aristotle_mdr/downloads/html/component/custom_fields_display.html" %}
 
         {% if subitems %}
-            <div style="page-break-before:always">
+            <div class="break-before">
 
                 {% if is_bulk_download %}
                     <header>Supporting Items</header>
@@ -135,13 +160,13 @@
                     <h1>Supporting Items</h1>
                 {% endif %}
 
-                {% for l,dict in subitems.items %}
-                    <div style="page-break-before:always;">
-                        <h2>{{ dict.verbose_name_plural }}</h2>
-                        {% if dict.help %}<p>{% relink dict.help 'brief' %}</p>{% endif %}
-                        {% for i in dict.items %}
-                            <div id='{{i.id}}'  style="page-break-before:always;">
-                                {% include i|template_path:'html,inline' with item=i header='h3' user=user only %}
+                {% for l, itemlist in subitems.items %}
+                    <div class="break-before">
+                        <h2>{{ itemlist.model_pluralized }}</h2>
+                        {% if itemlist.help %}<p>{% relink itemlist.help 'brief' %}</p>{% endif %}
+                        {% for i in itemlist.sorted_items %}
+                            <div id='{{i.id}}' class="break-before">
+                              {% include i|template_path:'html,inline' with item=i header='h3' %}
                             </div>
                         {% endfor %}
                     </div>

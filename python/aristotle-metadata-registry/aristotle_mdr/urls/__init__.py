@@ -26,7 +26,7 @@ urlpatterns = [
 if settings.DEBUG:
     from aristotle_mdr.views import debug as debug_views
     urlpatterns += [
-        url(r'^aristotle_debug/(pdf|word|html)/$', debug_views.download, name='api_mark_all_read'),
+        url(r'^aristotle_debug/(pdf|word|html|slow)/$', debug_views.download, name='api_mark_all_read'),
     ]
 
 handler403 = 'aristotle_mdr.views.unauthorised'

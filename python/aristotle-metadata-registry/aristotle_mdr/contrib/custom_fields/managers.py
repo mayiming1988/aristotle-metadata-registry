@@ -11,6 +11,10 @@ class CustomFieldQueryset(SimplePermsQueryset):
 class CustomValueQueryset(SimplePermsQueryset):
     perm_field_name = 'field__visibility'
 
+    def with_content(self):
+        """Restricts qs to only values with non blank content"""
+        return self.filter(~Q(content=""))
+
 
 class CustomValueManager(Manager):
 

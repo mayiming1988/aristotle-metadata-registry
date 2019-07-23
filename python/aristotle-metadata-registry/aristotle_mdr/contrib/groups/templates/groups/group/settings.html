@@ -2,18 +2,22 @@
 {% load group_tags bootstrap3 i18n %}
 
 {% block group_content %}
-<h1>
-    Edit {{object.name}}
-</h1>
-
-<form action="{%url view.manager.namespace|add:":settings" object.slug %}" method="POST">
-    {% csrf_token %}
-
-    {% bootstrap_form form %}
-
-    <a  class="btn btn-default" href="{%url view.manager.namespace|add:":detail" object.slug %}">Cancel</a>
-    <button class="btn btn-primary" type="submit">Submit</button>
-
-</form>
+    <h1>
+        Edit {{ object.name }}
+    </h1>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-10">
+                <form action="{% url view.manager.namespace|add:":settings" object.slug %}" method="POST">
+                    {% csrf_token %}
+                    {% bootstrap_form form %}
+                    <a class="btn btn-default"
+                       href="{% url view.manager.namespace|add:":detail" object.slug %}">Cancel</a>
+                    <button class="btn btn-primary" type="submit">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}

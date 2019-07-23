@@ -4,7 +4,7 @@ from django.conf import settings
 
 def download(request, dtype):
     """Built in download method"""
-    from aristotle_mdr.contrib.aristotle_pdf.downloader import PDFDownloader
+    from aristotle_mdr.contrib.aristotle_pdf.downloader import PDFDownloader, LegacyPDFDownloader
     from aristotle_mdr.downloader import DocxDownloader
     from aristotle_mdr.downloader import HTMLDownloader
 
@@ -14,6 +14,8 @@ def download(request, dtype):
         DClass = DocxDownloader
     elif dtype == "html":
         DClass = HTMLDownloader
+    elif dtype == "slow":
+        DClass = LegacyPDFDownloader
 
     default_options = {
         'include_supporting': bool(request.GET.get('sup')),

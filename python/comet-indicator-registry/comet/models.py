@@ -110,9 +110,7 @@ class IndicatorDataElementBase(aristotleComponent):
 
     inline_field_layout = 'list'
 
-    @property
-    def parentItem(self):
-        return self.indicator
+    parent_field_name = 'indicator'
 
 
 class IndicatorNumeratorDefinition(IndicatorDataElementBase):
@@ -132,7 +130,7 @@ class IndicatorSet(MDR.concept):
     serialize_weak_entities = [
         ('indicators', 'indicatorinclusion_set'),
     ]
-    clone_fields = ['indicatorinclusion',]
+    clone_fields = ['indicatorinclusion']
 
 
 class IndicatorInclusion(aristotleComponent):
@@ -146,13 +144,10 @@ class IndicatorInclusion(aristotleComponent):
         max_length=1024, blank=True,
         help_text=_("The name identifying this indicator in the set")
     )
+    parent_field_name = 'indicator_set'
 
     class Meta:
         ordering = ['order']
-
-    @property
-    def parentItem(self):
-        return self.indicator_set
 
 
 class OutcomeArea(MDR.concept):
@@ -186,6 +181,7 @@ class Framework(MDR.concept):
 
 
 class FrameworkDimension(MPTTModel, TimeStampedModel, aristotleComponent):
+    parent_field_name = 'framework'
 
     objects = FrameworkDimensionManager()
     framework = ConceptForeignKey('Framework')
@@ -193,14 +189,12 @@ class FrameworkDimension(MPTTModel, TimeStampedModel, aristotleComponent):
     description = MDR.RichTextField(blank=True)
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='child_dimensions')
 
+    class MPTTMeta:
+        order_insertion_by = ['name']
+
     @property
     def parentItem(self):
         return self.framework
 
-    @property
-    def parentItemId(self):
-        return self.framework_id
-
     def __str__(self):
         return self.name
-

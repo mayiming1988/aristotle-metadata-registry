@@ -1,28 +1,32 @@
 {% load aristotle_tags %}
 
-{% if item.dssclusterinclusion_set.exists %}
+{% with cluster_inclusions=item.cluster_inclusions %}
+{% if cluster_inclusions %}
     <header class="minor">Clusters</header>
     <table class="dss_inclusions">
         {% include "aristotle_dse/downloads/html/helpers/inclusion_head.html" %}
         <tbody>
-        {% for dssinc in item.dssclusterinclusion_set.all %}
+        {% for dssinc in cluster_inclusions %}
             {% include "aristotle_dse/downloads/html/helpers/inclusion_row.html" with inc=dssinc %}
         {% endfor %}
         </tbody>
     </table>
 {% endif %}
+{% endwith %}
 
-{% if item.dssdeinclusion_set.exists %}
+{% with de_inclusions=item.data_element_inclusions %}
+{% if de_inclusions %}
     <header class="minor">Data Elements</header>
     <table class="dss_inclusions">
         {% include "aristotle_dse/downloads/html/helpers/inclusion_head.html" %}
         <tbody>
-        {% for deinc in item.dssdeinclusion_set.all %}
+        {% for deinc in de_inclusions %}
             {% include "aristotle_dse/downloads/html/helpers/inclusion_row.html" with inc=deinc %}
         {% endfor %}
         </tbody>
     </table>
 {% endif %}
+{% endwith %}
 
 <strong>Table Legend</strong>
 <table style="font-size:80%">

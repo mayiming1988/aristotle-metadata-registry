@@ -98,3 +98,4 @@ class Query:
     collections = AristotleFilterConnectionField(CollectionNode)
     stewards = AristotleFilterConnectionField(StewardOrganisationNode)
     organisation_record = AristotleFilterConnectionField(OrganizationRecordNode)
+
