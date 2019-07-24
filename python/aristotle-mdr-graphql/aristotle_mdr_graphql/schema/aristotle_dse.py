@@ -29,7 +29,7 @@ class DSSClusterInclusionNode(DjangoObjectType):
         default_resolver = resolvers.DSSInclusionResolver()
 
 
-class Query(object):
+class Query:
 
     # data_catalogs = AristotleConceptFilterConnectionField(DataCatalogNode)
     datasets = AristotleConceptFilterConnectionField(DatasetNode)

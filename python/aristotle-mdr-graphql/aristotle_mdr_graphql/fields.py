@@ -35,7 +35,7 @@ class AristotleFilterConnectionField(DjangoFilterConnectionField):
         extrameta = {
             'filterset_base_class': AristotleFilterSet
         }
-        kwargs.update({'extra_filter_meta': extrameta})
+        kwargs['extra_filter_meta'] = extrameta
         super().__init__(type, *args, **kwargs)
 
     @classmethod
@@ -70,8 +70,8 @@ class AristotleConceptFilterConnectionField(AristotleFilterConnectionField):
         extrameta = {
             'filterset_base_class': ConceptFilterSet,
         }
+        kwargs['extra_filter_meta'] = extrameta
 
-        kwargs.update({'extra_filter_meta': extrameta})
         if "description" not in kwargs.keys():
             kwargs['description'] = "Look up a collection of " + str(type._meta.model.get_verbose_name_plural())
 

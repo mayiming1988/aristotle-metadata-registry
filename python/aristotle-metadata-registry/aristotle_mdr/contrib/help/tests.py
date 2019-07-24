@@ -70,10 +70,8 @@ class TestHelpPagesLoad(TestCase):
             self.assertEqual(response.status_code, 200)
 
         for obj in concept_help:
-            if obj.app_label == 'aristotle_dse':
-                # TODO: implement better behavior for this
-                pass
-            else:
+            # TODO: implement better behavior for this
+            if obj.app_label not in ('aristotle_dse', 'aristotle_glossary'):
                 response = self.client.get(reverse('aristotle_help:concept_help', args=[obj.app_label, obj.concept_type]))
                 self.assertEqual(response.status_code, 200)
 
