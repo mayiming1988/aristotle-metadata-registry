@@ -112,6 +112,15 @@ class IndicatorDataElementBase(aristotleComponent):
 
     parent_field_name = 'indicator'
 
+    inline_field_order = [
+        "data_element",
+        "data_set_specification",
+        "data_set",
+        "description",
+        "guide_for_use",
+        "order",
+    ]
+
 
 class IndicatorNumeratorDefinition(IndicatorDataElementBase):
     pass
