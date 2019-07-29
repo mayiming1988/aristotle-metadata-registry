@@ -83,10 +83,10 @@ def can_add_status(item, user):
         {{ item }}
       {% endif %}
     """
-    try:
-        return perms.user_can_add_status(user, item)
-    except:  # pragma: no cover -- passing a bad item or user is the template authors fault
-        return None
+    # try:
+    return perms.user_can_add_status(user, item)
+    # except:  # pragma: no cover -- passing a bad item or user is the template authors fault
+    #     return None
 
 
 @register.filter
