@@ -249,8 +249,7 @@ class ConceptRenderView(TagsMixin, TemplateView):
             else:
                 to_links.append(l)
 
-        return (from_links, to_links) 
-         
+        return (from_links, to_links)
 
     def get_custom_values(self):
         allowed = CustomField.objects.get_allowed_fields(self.item.concept, self.request.user)
@@ -373,7 +372,7 @@ def registrationHistory(request, iid):
         else:
             raise PermissionDenied
 
-    history = item.statuses.order_by("registrationAuthority", "-registrationDate")
+    history = item.statuses.order_by("registrationAuthority", "-registrationDate", "-until_date", "-created")
     out = {}
     for status in history:
         if status.registrationAuthority in out.keys():
