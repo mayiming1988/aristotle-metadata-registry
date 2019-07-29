@@ -1,0 +1,69 @@
+{% load i18n util_tags link_tags %}
+
+{% for link in links %}
+    <tbody>
+    {% with linkend_count=link.linkend_set.all|length %}
+        {% if linkend_count == 2 %}
+            {% for e in link.linkend_set.all %}
+                {% if e.concept.concept != item.concept %}
+                    <tr>
+                        <td>
+                            {{forloop.parentloop.counter}}. 
+                            <a href="{% url 'aristotle:item' e.link.relation.id %}">{{ e.link.relation.name }}</a>
+                        </td>
+                        <td title="{{e.role.definition}}">
+                            <a href="{% url 'aristotle:item' e.link.relation.id %}#role_{{e.role.pk}}">{{ e.role.name }}</a>
+                        </td>
+                        <td>
+                            <a href="{% url 'aristotle:item' e.concept.id %}">{{ e.concept.name }}</a>
+                        </td>
+                        <td>
+                            {% if not no_edit_links %}
+                                {% if request.user|can_edit_link:link %}
+                                    <a href="{% url 'aristotle_mdr_links:edit_link' link.pk %}?next={{item.get_absolute_url}}">
+                                        <span>Edit link</span>
+                                        <i class="fa fa-pencil"></i>
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            {% for e in link.linkend_set.all %}
+                <tr>
+                    {% if forloop.first %}
+                        <td rowspan="{{ linkend_count }}">
+                            {{forloop.parentloop.counter}}. 
+                            <a href="{% url 'aristotle:item' e.link.relation.id %}">{{ e.link.relation.name }}</a>
+                        </td>
+                    {% endif %}
+                    <td title="{{e.role.definition}}">
+                        <a href="{% url 'aristotle:item' e.link.relation.id %}#role_{{e.role.pk}}">{{ e.role.name }}</a>
+                    </td>
+                    <td>
+                        {% if e.concept.concept == item.concept %}
+                            <strong class="active_link" title="">{{ e.concept.name }}</strong>
+                        {% else %}
+                            <a href="{% url 'aristotle:item' e.concept.id %}">{{ e.concept.name }}</a>
+                        {% endif %}
+                    </td>
+                    {% if forloop.first %}
+                        <td rowspan="{{ linkend_count }}">
+                            {% if not no_edit_links %}
+                                {% if request.user|can_edit_link:link %}
+                                    <a href="{% url 'aristotle_mdr_links:edit_link' link.pk %}?next={{item.get_absolute_url}}">
+                                        <span>Edit link</span>
+                                        <i class="fa fa-pencil"></i>
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    </tbody>
+{% endfor %}
