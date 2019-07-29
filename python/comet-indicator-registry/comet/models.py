@@ -113,8 +113,6 @@ class IndicatorDataElementBase(aristotleComponent):
     parent_field_name = 'indicator'
 
 
-
-
 class IndicatorNumeratorDefinition(IndicatorDataElementBase):
     pass
 
@@ -132,7 +130,7 @@ class IndicatorSet(MDR.concept):
     serialize_weak_entities = [
         ('indicators', 'indicatorinclusion_set'),
     ]
-    clone_fields = ['indicatorinclusion',]
+    clone_fields = ['indicatorinclusion']
 
 
 class IndicatorInclusion(aristotleComponent):
@@ -150,7 +148,6 @@ class IndicatorInclusion(aristotleComponent):
 
     class Meta:
         ordering = ['order']
-
 
 
 class OutcomeArea(MDR.concept):
@@ -192,11 +189,12 @@ class FrameworkDimension(MPTTModel, TimeStampedModel, aristotleComponent):
     description = MDR.RichTextField(blank=True)
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='child_dimensions')
 
+    class MPTTMeta:
+        order_insertion_by = ['name']
+
     @property
     def parentItem(self):
         return self.framework
 
-
     def __str__(self):
         return self.name
-

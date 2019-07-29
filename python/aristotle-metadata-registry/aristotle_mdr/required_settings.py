@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from typing import List, Tuple
 import os
 
 BASE_DIR = os.getenv('aristotlemdr__BASE_DIR', os.path.dirname(os.path.dirname(__file__)))
@@ -404,10 +405,11 @@ MIGRATION_PRINT = True
 
 MAXIMUM_NUMBER_OF_NODES_IN_GENERAL_GRAPHICAL_REPRESENTATION = 200
 
-# Add extra GraphQL schema models to the list in the form of a tuple containing
-# the Django app label and the model name.
-# E.g. [("app_label", "model_name"), ...]
-EXTRA_GRAPHQL_SCHEMA_MODELS: list = []
+# List of import strings for additional graphql nodes
+EXTRA_GRAPHQL_SCHEMA_MODELS: List[str] = []
+
+# List of import strings for additional graphql query objects
+EXTRA_GRAPHQL_QUERY_OBJS: List[str] = []
 
 # DSS cluster display depth
 CLUSTER_DISPLAY_DEPTH = 8
