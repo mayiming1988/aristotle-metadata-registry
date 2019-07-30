@@ -74,6 +74,8 @@ class ConceptHelpView(AppHelpViewer):
         return get_object_or_404(ConceptHelp, app_label=app, concept_type=model)
 
     def get_context_data(self, **kwargs):
+        from aristotle_mdr.contrib.custom_fields.models import CustomField
+
         context = super().get_context_data(**kwargs)
 
         model = self.kwargs['model']
@@ -87,8 +89,6 @@ class ConceptHelpView(AppHelpViewer):
             custom_help = CustomHelp.objects.filter(content_type=ct).first()
 
         context['custom_help'] = custom_help
-
-        from aristotle_mdr.contrib.custom_fields.models import CustomField
 
         context['custom_fields'] = CustomField.objects.filter(allowed_model=ct)
 
