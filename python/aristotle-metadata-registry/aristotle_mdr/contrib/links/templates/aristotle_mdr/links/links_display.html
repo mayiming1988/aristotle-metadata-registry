@@ -1,12 +1,13 @@
 {% load i18n util_tags link_tags %}
 
+{% if links_from or links_to %}
 <div>
     <h2>Relationships</h2>
     <p>
         Click on the name of any relationship to learn more about the different roles available for links
         that implement these relations.
     </p>
-    {% if links_to %}
+    {% if links_from %}
     <table class="table">
         <thead>
         <tr>
