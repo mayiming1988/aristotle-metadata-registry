@@ -65,9 +65,9 @@
                 {% if field_help %}
                     <li>
                         <a href="#field_is_{{field_name}}">
-                        {% with field=custom_help.content_type|get_field:field_name %}
-                            {{ field.verbose_name.title }}
-                        {% endwith %}
+                            {% with field=custom_help.content_type|get_field:field_name %}
+                                {{ field.verbose_name.title }}
+                            {% endwith %}
                         </a>
                     </li>
                 {% endif %}
@@ -111,6 +111,7 @@
                 </dt>
                 <dd>
                     <div class="well">
+                        {{ custom_field.help_text_long }}
                         {{ custom_field.help_text_long | bleach }}
                     </div>
                 </dd>
