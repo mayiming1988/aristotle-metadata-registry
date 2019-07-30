@@ -111,14 +111,15 @@
                 </dt>
                 <dd>
                     <div class="well">
-                        {{ custom_field.help_text_long }}
-                        {{ custom_field.help_text_long | bleach }}
+                        {% if custom_field.help_text_long %}
+                            {{ custom_field.help_text_long | bleach }}
+                        {% else %}
+                            No help text available for this Custom Field.
+                        {% endif %}
                     </div>
                 </dd>
             {% endfor %}
         </dl>
     {% endif %}
-
-
 
 {% endblock %}
