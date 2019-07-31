@@ -34,6 +34,6 @@ setup(
         'django_filter',
         'django-jsonforms',
         'coreapi',
-        'drf-yasg',
+        'drf-yasg==1.16.0',  # Pinning it because it tries to import packaging
     ]
 )
