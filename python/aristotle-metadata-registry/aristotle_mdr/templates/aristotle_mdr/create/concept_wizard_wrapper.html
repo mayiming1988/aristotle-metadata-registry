@@ -18,35 +18,38 @@
 {% block content %}
     <h1>Create {{ model_name }} - <em>Step {{ wizard.steps.step1 }} of {{ wizard.steps.count }} - {{ step_title }}</em>
     </h1>
+    {% block content_container_start %}
+    {# Sam: I am not happy about this either #}
     <div class="row">
-        <div class="col-md-10">
+        <div class="col-md-12">
+    {% endblock %}
             <form class="" action="" method="post">{% csrf_token %}
                 {{ wizard.management_form }}
                 {% block formarea %}
                     {{ wizard.management_form }}
                 {% endblock %}
+                <div class="pull-right">
                 {% if wizard.steps.prev %}
                     <!-- button name="wizard_goto_step" type="submit" value="{{ wizard.steps.first }}">{% trans "First step" %}</button -->
-                    <button name="wizard_goto_step" class="btn btn-default pull-right" type="submit"
+                    <button name="wizard_goto_step" class="btn btn-default" type="submit"
                             value="{{ wizard.steps.prev }}">
                         <i class="fa fa-angle-double-left"></i>
                         {% trans "Back" %}
                     </button>
                 {% endif %}
                 {% block next_button %}
-                    <button type="submit" class="btn btn-primary pull-right" value="{% trans "submit" %}">
+                    <button type="submit" class="btn btn-primary" value="{% trans "submit" %}">
                         {% trans "Next" %}
                         <i class="fa fa-angle-double-right"></i>
                     </button>
                 {% endblock %}
+                </div>
             </form>
-        </div>
-        <div class="col-md-2">
-            <aside class="creationTips">
-                {% include 'aristotle_mdr_help/helpers/tips_section.html' %}
-            </aside>
+    {% block content_container_end %}
         </div>
     </div>
+    {% endblock %}
+
     {% block underform %}
     {% endblock %}
     </div>

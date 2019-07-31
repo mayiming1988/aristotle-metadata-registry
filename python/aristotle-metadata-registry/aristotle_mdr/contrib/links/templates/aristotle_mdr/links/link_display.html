@@ -8,7 +8,6 @@
                 {% if e.concept.concept != item.concept %}
                     <tr>
                         <td>
-                            {{forloop.parentloop.counter}}. 
                             <a href="{% url 'aristotle:item' e.link.relation.id %}">{{ e.link.relation.name }}</a>
                         </td>
                         <td title="{{e.role.definition}}">

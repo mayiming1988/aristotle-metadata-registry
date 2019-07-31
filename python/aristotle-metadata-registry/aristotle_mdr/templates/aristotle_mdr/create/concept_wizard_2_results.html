@@ -103,8 +103,17 @@
 {% endblock %}
 
 {% block next_button %}
-    <button type="submit" class="btn btn-primary pull-right" value="{% trans "submit" %}">
+    <button type="submit" class="btn btn-primary" value="{% trans "submit" %}">
         {% trans "Save" %}
         <i class="fa fa-save"></i>
     </button>
+{% endblock %}
+
+{% block content_container_start %}
+<div class="row">
+    <div class="col-md-12">
+{% endblock %}
+{% block content_container_end %}
+    </div>
+</div>
 {% endblock %}
