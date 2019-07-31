@@ -20,7 +20,11 @@ logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
 
-class PythonPDFDownloader(HTMLDownloader):
+class GenericPDFDownloader(HTMLDownloader):
+    """
+    Generic pdf downloader with wrapping support
+    Subclassed below, cannot be used as a downloader itself
+    """
     download_type = "pdf"
     file_extension = 'pdf'
     metadata_register = '__all__'
@@ -45,16 +49,91 @@ class PythonPDFDownloader(HTMLDownloader):
         else:
             return BytesIO(generated_bytes)
 
+
+class PythonPDFDownloader(GenericPDFDownloader):
+    """Pure python weasyprint based pdf downloader"""
+
+    def wrap_file(self, generated_bytes: bytes) -> BytesIO:
+        if self.has_wrap_pages:
+            merger = PdfFileMerger()
+            pages = self.get_wrap_pages()
+            pages.insert(1, generated_bytes)
+            for page_bytes in pages:
+                if page_bytes is not None:
+                    merger.append(BytesIO(page_bytes))
+            final_file = BytesIO()
+            merger.write(final_file)
+            merger.close()  # Close all files given to the merger
+            return final_file
+        else:
+            return BytesIO(generated_bytes)
+
+    def generate_outline_str(self, bookmarks, indent=0):
+        outline_str = ""
+        for i, (label, (page, _, _), children) in enumerate(bookmarks, 1):
+            outline_str += ('<div>%s %d. %s ..... <span style="float:right"> %d </span> </div>' % (
+                '&nbsp;' * indent * 2, i, label.lstrip('0123456789. '), page + 1))
+            outline_str += self.generate_outline_str(children, indent + 1)
+        return outline_str
+
+    def generate_outline_tree(self, bookmarks, depth=1):
+        return [
+            {'label': label, "depth": depth, "page": page + 1, "children": self.generate_outline_tree(children, depth + 1)}
+            for i, (label, (page, _, _), children) in enumerate(bookmarks, 1)
+        ]
+
+    def render_to_pdf(self, template_src, context_dict,
+                      preamble_template='aristotle_mdr/downloads/pdf/title.html') -> bytes:
+        """Render to pdf using weasyprint"""
+        # If the request template doesnt exist, we will give a default one.
+        template = select_template([
+            template_src,
+            'aristotle_mdr/downloads/html/managedContent.html'
+        ])
+
+        document = weasyprint.HTML(
+            string=template.render(context_dict),
+            base_url=PDF_STATIC_PATH
+        ).render()
+
+        if not context_dict.get('tableOfContents', False):
+            return document.write_pdf()
+
+        toc = get_template('aristotle_mdr/downloads/html/toc.html').render(
+            {
+                "toc_tree": self.generate_outline_tree(document.make_bookmark_tree())
+            }
+        )
+
+        table_of_contents_document = weasyprint.HTML(
+            string=toc,
+            base_url=PDF_STATIC_PATH
+        ).render()
+
+        for i, table_of_contents_page in enumerate(table_of_contents_document.pages):
+            document.pages.insert(i, table_of_contents_page)
+
+        if preamble_template:
+            title_pages = weasyprint.HTML(
+                string=get_template(preamble_template).render(context_dict),
+                base_url=PDF_STATIC_PATH
+            ).render().pages
+            for i, page in enumerate(title_pages):
+                document.pages.insert(i, page)
+
+        return document.write_pdf()
+
     def create_file(self):
         template = self.get_template()
         context = self.get_context()
 
-        byte_string = render_to_pdf(template, context)
+        byte_string = self.render_to_pdf(template, context)
         final_file = self.wrap_file(byte_string)
         return File(final_file)
 
 
-class PDFDownloader(LegacyPDFDownloader):
+class PDFDownloader(GenericPDFDownloader):
+    """Wkhtmltopdf based pdf downloader"""
     download_type = "pdf"
 
     default_wk_options = {
@@ -132,60 +211,3 @@ class PDFDownloader(LegacyPDFDownloader):
         return File(final_file)
 
 
-def generate_outline_str(bookmarks, indent=0):
-    outline_str = ""
-    for i, (label, (page, _, _), children) in enumerate(bookmarks, 1):
-        outline_str += ('<div>%s %d. %s ..... <span style="float:right"> %d </span> </div>' % (
-            '&nbsp;' * indent * 2, i, label.lstrip('0123456789. '), page + 1))
-        outline_str += generate_outline_str(children, indent + 1)
-    return outline_str
-
-
-def generate_outline_tree(bookmarks, depth=1):
-    return [
-        {'label': label, "depth": depth, "page": page + 1, "children": generate_outline_tree(children, depth + 1)}
-        for i, (label, (page, _, _), children) in enumerate(bookmarks, 1)
-    ]
-
-
-def render_to_pdf(template_src, context_dict,
-                  preamble_template='aristotle_mdr/downloads/pdf/title.html') -> bytes:
-    # If the request template doesnt exist, we will give a default one.
-    template = select_template([
-        template_src,
-        'aristotle_mdr/downloads/html/managedContent.html'
-    ])
-
-    document = weasyprint.HTML(
-        string=template.render(context_dict),
-        base_url=PDF_STATIC_PATH
-    ).render()
-
-    if not context_dict.get('tableOfContents', False):
-        return document.write_pdf()
-
-    toc = get_template('aristotle_mdr/downloads/html/toc.html').render(
-        # Context(
-        {
-            "toc_tree": generate_outline_tree(document.make_bookmark_tree())
-        }
-        # )
-    )
-
-    table_of_contents_document = weasyprint.HTML(
-        string=toc,
-        base_url=PDF_STATIC_PATH
-    ).render()
-
-    for i, table_of_contents_page in enumerate(table_of_contents_document.pages):
-        document.pages.insert(i, table_of_contents_page)
-
-    if preamble_template:
-        title_pages = weasyprint.HTML(
-            string=get_template(preamble_template).render(context_dict),
-            base_url=PDF_STATIC_PATH
-        ).render().pages
-        for i, page in enumerate(title_pages):
-            document.pages.insert(i, page)
-
-    return document.write_pdf()
