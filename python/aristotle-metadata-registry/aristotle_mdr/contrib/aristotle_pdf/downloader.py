@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
 
 
-class LegacyPDFDownloader(HTMLDownloader):
+class PythonPDFDownloader(HTMLDownloader):
     download_type = "pdf"
     file_extension = 'pdf'
     metadata_register = '__all__'

@@ -243,7 +243,7 @@ ARISTOTLE_SETTINGS = {
         'PDF_PAGE_SIZE': 'A4',
         'COPYRIGHT_PAGE_CONTENT': '',
         "DOWNLOADERS": [
-            'aristotle_mdr.contrib.aristotle_pdf.downloader.PDFDownloader'
+            'aristotle_mdr.contrib.aristotle_pdf.downloader.PythonPDFDownloader'
         ],
     },
     # These settings aren't active yet.
