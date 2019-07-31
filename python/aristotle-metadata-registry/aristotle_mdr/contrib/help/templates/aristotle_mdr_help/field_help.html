@@ -1,5 +1,5 @@
 {% extends "aristotle_mdr_help/base.html" %}
-{% load i18n aristotle_help util_tags %}
+{% load i18n aristotle_help util_tags aristotle_tags %}
 
 {% block breadcumbs %}
     <li><a href="{% url 'aristotle_help:help_base' %}">Help</a></li>
@@ -22,30 +22,50 @@
 {% endblock %}
 
 {% block help_content %}
-    <h2>
-        Help text for field <em>{{ field.verbose_name.title }}</em>
-    </h2>
-    {% if not this_is_a_custom_field %}
-        <div class="panel panel-default">
-            <div class="panel-heading">ISO 11179 help definition</div>
-            <div class="panel-body">
-                {% firstof field.help_text "No help text available" %}
-            </div>
-        </div>
-    {% elif custom_help.help_text %}
-        <div class="panel panel-default">
+
+    {% if this_is_a_custom_field %}
+        <h2>
+            Help text for Custom Field <em>{{ field }}</em>
+        </h2>
+        <div class="panel panel-info">
             <div class="panel-heading">Short help</div>
             <div class="panel-body">
-                {% firstof custom_help.help_text "No help text available" %}
+                {% if custom_field.help_text %}
+                    {{ custom_field.help_text|bleach }}
+                {% else %}
+                    No short help text available.
+                {% endif %}
+            </div>
+            <div class="panel-heading">Detailed help</div>
+            <div class="panel-body">
+                {% if custom_field.help_text_long %}
+                    {{ custom_field.help_text_long | bleach }}
+                {% else %}
+                    No Detailed help text available.
+                {% endif %}
             </div>
         </div>
-    {% endif %}
-    {% if custom_help.help_text_long %}
-        <div class="panel panel-default">
+    {% else %}
+        <h2>
+            Help text for field <em>{{ field.verbose_name.title }}</em>
+        </h2>
+        <div class="panel panel-info">
+            <div class="panel-heading">ISO 11179 help definition</div>
+            <div class="panel-body">
+                {% firstof field.help_text "No ISO 11179 help definition text available." %}
+            </div>
+        </div>
+
+        <div class="panel panel-info">
             <div class="panel-heading">Registry specific help</div>
             <div class="panel-body">
-                {{ custom_help.help_text_long|bleach }}
+                {% if custom_help %}
+                    {{ custom_help | bleach }}
+                {% else %}
+                    No Registry specific help text available.
+                {% endif %}
             </div>
         </div>
     {% endif %}
+
 {% endblock %}

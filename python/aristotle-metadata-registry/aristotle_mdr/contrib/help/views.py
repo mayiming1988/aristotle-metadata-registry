@@ -1,6 +1,6 @@
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import FieldDoesNotExist
+from django.core.exceptions import FieldDoesNotExist, ObjectDoesNotExist
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -74,6 +74,8 @@ class ConceptHelpView(AppHelpViewer):
         return get_object_or_404(ConceptHelp, app_label=app, concept_type=model)
 
     def get_context_data(self, **kwargs):
+        from aristotle_mdr.contrib.custom_fields.models import CustomField
+
         context = super().get_context_data(**kwargs)
 
         model = self.kwargs['model']
@@ -87,8 +89,6 @@ class ConceptHelpView(AppHelpViewer):
             custom_help = CustomHelp.objects.filter(content_type=ct).first()
 
         context['custom_help'] = custom_help
-
-        from aristotle_mdr.contrib.custom_fields.models import CustomField
 
         context['custom_fields'] = CustomField.objects.filter(allowed_model=ct)
 
@@ -125,11 +125,11 @@ class ConceptFieldHelpView(TemplateView):
             try:
                 field = CustomField.objects.get(allowed_model=ct, name=field_name)
                 kwargs.update({
-                    'custom_help': field,
+                    'custom_field': field,
                     'field': field_name,
                     'this_is_a_custom_field': True,
                 })
-            except CustomField.DoesNotExist:
+            except ObjectDoesNotExist:
                 raise Http404
 
         kwargs.update({

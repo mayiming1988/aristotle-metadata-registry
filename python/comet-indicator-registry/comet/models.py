@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from typing import List
+
 from django.db import models
 from django.utils.translation import ugettext as _
 
@@ -111,6 +113,16 @@ class IndicatorDataElementBase(aristotleComponent):
     inline_field_layout = 'list'
 
     parent_field_name = 'indicator'
+    
+    # Provide a specific field ordering for the advanced metadata editor.
+    inline_field_order: List[str] = [
+        "data_element",
+        "data_set_specification",
+        "data_set",
+        "description",
+        "guide_for_use",
+        "order",
+    ]
 
 
 class IndicatorNumeratorDefinition(IndicatorDataElementBase):
