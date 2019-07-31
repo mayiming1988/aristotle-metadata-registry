@@ -13,8 +13,8 @@
 {% block help_content %}
     <div class="well">{% relink object 'brief' %}</div>
 
-    {% if object.offical_definition %}
-        <blockquote>{% relink object 'offical_definition' %}
+    {% if object.official_definition %}
+        <blockquote>{% relink object 'official_definition' %}
             {% if object.official_reference %}
                 {% if object.official_link %}
                     <small>
@@ -33,7 +33,6 @@
     <p>
         {% relink object 'body' %}
     </p>
-
 
     {% with creation_tip=object|relinked:"creation_tip" %}
         {% if custom_help.creation_tip or creation_tip %}

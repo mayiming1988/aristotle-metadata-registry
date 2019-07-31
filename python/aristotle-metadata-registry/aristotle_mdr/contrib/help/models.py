@@ -59,7 +59,7 @@ class ConceptHelp(HelpBase):
     brief = models.TextField(
         help_text=_("A short description of the concept")
     )
-    offical_definition = models.TextField(
+    official_definition = models.TextField(
         null=True, blank=True,
         help_text=_("An official description of the concept, e.g. the ISO/IEC definition for an Object Class")
     )

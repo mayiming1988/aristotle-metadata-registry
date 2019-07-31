@@ -1,10 +1,12 @@
-{% load util_tags %}
+{% load util_tags aristotle_tags %}
 
 {% block content %}
 
     {% for weak_formset in formsets %}
         <div class="weak_formset">
-            <label>{{ weak_formset.title }}</label>
+            <label>{{ weak_formset.title }}:
+                {% field_help_icon weak_formset.model weak_formset.field_related_name %}
+            </label>
             {{ weak_formset.formset.management_form }}
             {{ weak_formset.formset.non_form_errors.as_ul }}
             {% for dict in weak_formset.formset.errors %}

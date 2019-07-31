@@ -7,7 +7,7 @@
       record a measurement. A [[Value Domain]] can link to a single Unit of Measure to describe
       the units used to measure the associated data which can be used when to finding or 
       comparing similar data.
-    offical_definition: >
+    official_definition: >
         Actual units in which the associated values are measured
     official_reference: ISO/IEC 11179 - Clause 3.2.138
     official_link:

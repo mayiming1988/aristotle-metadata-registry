@@ -8,7 +8,7 @@
             performance. Indicators can reference [[aristotle_mdr.dataelement|s]] when defining 
             their component parts, such as numerators and denominators, and Indicators may be
             linked across multiple [[Indicator Set|s]] to track performance over time.
-    offical_definition: A particular characteristic or dimension used to measure intended changes 
+    official_definition: A particular characteristic or dimension used to measure intended changes
         defined by an organizational unit’s results framework. Performance indicators 
         are used to observe progress and to measure actual results compared to expected 
         results. They serve to answer “how” or “whether” a unit is progressing towards 

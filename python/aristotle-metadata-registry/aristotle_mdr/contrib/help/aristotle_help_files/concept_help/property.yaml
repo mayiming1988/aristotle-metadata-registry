@@ -4,7 +4,7 @@
     concept_type: property
     language: en
     brief: A Property is an attribute common to all members of a set of things defined by an [[Object Class]].
-    offical_definition: >
+    official_definition: >
         Quality common to all members of an [[Object Class]]
     official_reference: ISO/IEC 11179 - Clause 3.2.100
     official_link:

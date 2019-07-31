@@ -6,7 +6,7 @@
     brief: A Distribution describes the structure and format of a specific downloadable
         collection of data. Multiple Distributions that capture different parts of data or 
         provide different formats for data may be grouped into a single [[Data Set]].
-    offical_definition: An accessible form of a dataset as for example a downloadable file.
+    official_definition: An accessible form of a dataset as for example a downloadable file.
     official_reference: "Data Catalog Vocabulary (DCAT): 5.4 Class: Distribution"
     official_link: https://www.w3.org/TR/vocab-dcat/
     body: >
