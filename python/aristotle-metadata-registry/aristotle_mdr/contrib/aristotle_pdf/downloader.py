@@ -209,5 +209,3 @@ class PDFDownloader(GenericPDFDownloader):
 
         final_file = self.wrap_file(pdf)
         return File(final_file)
-
-
