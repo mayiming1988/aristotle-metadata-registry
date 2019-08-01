@@ -99,40 +99,38 @@ class ConceptFieldHelpView(TemplateView):
     template_name = "aristotle_mdr_help/field_help.html"
 
     def get_context_data(self, **kwargs):
-        if self.kwargs['app'] not in fetch_metadata_apps():
-            raise Http404
 
         app = self.kwargs['app']
         model = self.kwargs['model']
         field_name = self.kwargs['field_name']
         ct = get_object_or_404(ContentType, app_label=app, model=model)
+        field = None
+
+        if app not in fetch_metadata_apps():
+            raise Http404
 
         try:
             field = ct.model_class()._meta.get_field(field_name)
         except FieldDoesNotExist:
-            # If there is an error in the next line, we don't want to catch it. We want to know what the problem is.
-            field = ct.model_class()._meta.get_field(field_name + "_set")
-            kwargs.update({'field': field})
-            custom_help = None
-            if cloud_enabled():
-                from aristotle_cloud.contrib.custom_help.models import CustomHelp
-                try:
-                    custom_help = ct.custom_help.field_help.get(field_name, None)
-                except CustomHelp.DoesNotExist:
-                    pass
-                kwargs.update({'custom_help': custom_help})
+            try:
+                field = ct.model_class()._meta.get_field(field_name + "_set")
+            except FieldDoesNotExist:
+                pass
 
-        if not field:  # If there is no field, then this must be a CustomField...
+            kwargs.update({'field': field})
+            self.cloud_help_handler(ct, field_name, **kwargs)
+
+        if not field:  # If the passed field name is not the model's field name, then this must be a CustomField...
             from aristotle_mdr.contrib.custom_fields.models import CustomField
             try:
                 field = CustomField.objects.get(allowed_model=ct, name=field_name)
-                kwargs.update({
-                    'custom_field': field,
-                    'field': field_name,
-                    'this_is_a_custom_field': True,
-                })
             except ObjectDoesNotExist:
                 raise Http404
+            kwargs.update({
+                'custom_field': field,
+                'field': field_name,
+                'this_is_a_custom_field': True,
+            })
 
         kwargs.update({
             'app': apps.get_app_config(app),
@@ -141,17 +139,6 @@ class ConceptFieldHelpView(TemplateView):
             'content_type': ct,
         })
         return super().get_context_data(**kwargs)
-
-    # def field_and_cloud_help_handler(self, field, field_name, ct, kwargs):
-    #     kwargs.update({'field': field})
-    #     custom_help = None
-    #     if cloud_enabled():
-    #         from aristotle_cloud.contrib.custom_help.models import CustomHelp
-    #         try:
-    #             custom_help = ct.custom_help.field_help.get(field_name, None)
-    #         except CustomHelp.DoesNotExist:
-    #             pass
-    #         kwargs.update({'custom_help': custom_help})
 
     @staticmethod
     def cloud_help_handler(ct, field_name, **kwargs):
