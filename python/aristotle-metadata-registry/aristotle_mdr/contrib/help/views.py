@@ -109,6 +109,9 @@ class ConceptFieldHelpView(TemplateView):
 
         try:
             field = ct.model_class()._meta.get_field(field_name)
+        except FieldDoesNotExist:
+            # If there is an error in the next line, we don't want to catch it. We want to know what the problem is.
+            field = ct.model_class()._meta.get_field(field_name + "_set")
             kwargs.update({'field': field})
             custom_help = None
             if cloud_enabled():
@@ -119,8 +122,7 @@ class ConceptFieldHelpView(TemplateView):
                     pass
                 kwargs.update({'custom_help': custom_help})
 
-        except FieldDoesNotExist:
-            # If the field does not exist, then this must be a CustomField...
+        if not field:  # If there is no field, then this must be a CustomField...
             from aristotle_mdr.contrib.custom_fields.models import CustomField
             try:
                 field = CustomField.objects.get(allowed_model=ct, name=field_name)
@@ -139,3 +141,32 @@ class ConceptFieldHelpView(TemplateView):
             'content_type': ct,
         })
         return super().get_context_data(**kwargs)
+
+    # def field_and_cloud_help_handler(self, field, field_name, ct, kwargs):
+    #     kwargs.update({'field': field})
+    #     custom_help = None
+    #     if cloud_enabled():
+    #         from aristotle_cloud.contrib.custom_help.models import CustomHelp
+    #         try:
+    #             custom_help = ct.custom_help.field_help.get(field_name, None)
+    #         except CustomHelp.DoesNotExist:
+    #             pass
+    #         kwargs.update({'custom_help': custom_help})
+
+    @staticmethod
+    def cloud_help_handler(ct, field_name, **kwargs):
+        """
+        This static method checks the availability of Aristotle Cloud and
+        updates the kwargs with the Custom Help object for a specific model.
+        :param ct: Content Type (Model) name of the Help Object requested.
+        :param field_name: Specific field name of the Content Type (Model).
+        :param kwargs: key_word_arguments to be updated with the Custom Help required.
+        """
+        custom_help = None
+        if cloud_enabled():
+            from aristotle_cloud.contrib.custom_help.models import CustomHelp
+            try:
+                custom_help = ct.custom_help.field_help.get(field_name, None)
+            except CustomHelp.DoesNotExist:
+                pass
+            kwargs.update({'custom_help': custom_help})

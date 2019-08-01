@@ -568,9 +568,8 @@ class ExtraFormsetMixin:
                 context['weak_formsets'].append({'formset': formset_info['formset'],
                                                  'title': formset_info['title'],
                                                  'editor_help_text': formset_info['editor_help_text'],
-                                                 'model': formset_info['saveargs']['item'],
+                                                 'model': formset_info['item'],
                                                  'field_related_name': formset_info['field_related_name'],
-
                                                  })
 
             elif type == 'through':
@@ -643,6 +642,7 @@ class ExtraFormsetMixin:
                 order_field = 'order'
 
             extra_formsets.append({
+                'item': item,
                 'formset': formset,
                 'type': 'weak',
                 'title': weak['model']._meta.verbose_name.title(),
@@ -828,7 +828,6 @@ class ExtraFormsetMixin:
 
                     try:
                         field = check_class._meta.get_field(entity[1])
-
                     except FieldDoesNotExist:
                         try:
                             field = check_class._meta.get_field(related_name)
