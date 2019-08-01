@@ -4,6 +4,7 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from aristotle_mdr.utils import fetch_aristotle_settings
 
 import uuid
 import datetime
@@ -260,3 +261,41 @@ class DedBaseThrough(aristotleComponent):
     class Meta:
         abstract = True
         ordering = ['order']
+
+
+def get_relational_attributes(model_instance, rels=None):
+    """
+    :param model_instance: The model
+    :param rels: Dictionary containing relational attributes.
+    If no value is provided then it returns a new Dictionary.
+    :return: Dictionary containing relational attributes from the Comet extension.
+    """
+    # Argument is mutable so we need to avoid mutability.
+    # Please consult:
+    # https: // docs.quantifiedcode.com / python - anti - patterns / correctness / mutable_default_value_as_argument.html
+    if rels is None:
+        rels = {}
+    if "comet" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
+        from comet.models import Indicator
+
+        rels.update({
+            "as_numerator": {
+                "all": _("As a numerator in an Indicator"),
+                "qs": Indicator.objects.filter(
+                    indicatornumeratordefinition__data_set_specification=model_instance
+                ).distinct()
+            },
+            "as_denominator": {
+                "all": _("As a denominator in an Indicator"),
+                "qs": Indicator.objects.filter(
+                    indicatordenominatordefinition__data_set_specification=model_instance
+                ).distinct()
+            },
+            "as_disaggregator": {
+                "all": _("As a disaggregation in an Indicator"),
+                "qs": Indicator.objects.filter(
+                    indicatordisaggregationdefinition__data_set_specification=model_instance
+                ).distinct()
+            },
+        })
+    return rels
