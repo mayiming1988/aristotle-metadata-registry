@@ -5,6 +5,7 @@ from django.utils.translation import ugettext as _
 from django.conf import settings
 from model_utils import Choices
 import aristotle_mdr as aristotle
+from aristotle_mdr.models import RichTextField
 from aristotle_mdr.utils.model_utils import get_relational_attributes
 from aristotle_mdr.fields import (
     ConceptForeignKey,
