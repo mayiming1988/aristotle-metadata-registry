@@ -248,7 +248,7 @@ class ConceptWizardPage(HaystackReindexMixin, utils.AristotleTestUtils):
         self.login_editor()
         self.assertTrue(self.item_existing.can_view(self.editor))
         form_data = {
-            self.wizard_form_name+'-current_step': 'initial',
+            self.wizard_form_name + '-current_step': 'initial',
             'initial-name': "Already exists",
         }
         # success!
