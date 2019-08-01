@@ -1482,9 +1482,13 @@ class PermissibleValue(AbstractValue):
     the designation (3.2.51) of a value meaning (3.2.141).
     """
 
+    class Meta:
+        verbose_name = "Permissible Value"
+
 
 class SupplementaryValue(AbstractValue):
-    pass
+    class Meta:
+        verbose_name = "Supplementary Value"
 
 
 class DataElementConcept(concept):
