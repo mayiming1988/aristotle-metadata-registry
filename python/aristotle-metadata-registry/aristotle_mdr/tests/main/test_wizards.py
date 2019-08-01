@@ -115,7 +115,7 @@ class ConceptWizardPage(HaystackReindexMixin, utils.AristotleTestUtils):
     def test_editor_can_make_object(self):
         self.login_editor()
         step_1_data = {
-            self.wizard_form_name+'-current_step': 'initial',
+            self.wizard_form_name + '-current_step': 'initial',
             'initial-name': 'Test Item'
         }
 
@@ -127,7 +127,7 @@ class ConceptWizardPage(HaystackReindexMixin, utils.AristotleTestUtils):
         self.do_test_for_issue333(response)
 
         step_2_data = {
-            self.wizard_form_name+'-current_step': 'results',
+            self.wizard_form_name + '-current_step': 'results',
             'results-name': "Test Item",
             'results-definition': "Test Definition",
         }
