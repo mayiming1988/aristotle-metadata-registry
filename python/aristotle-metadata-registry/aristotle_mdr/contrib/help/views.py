@@ -117,13 +117,13 @@ class ConceptFieldHelpView(TemplateView):
             except FieldDoesNotExist:
                 pass
 
-            kwargs.update({'field': field})
-            self.cloud_help_handler(ct, field_name, **kwargs)
+        kwargs.update({'field': field})
+        self.cloud_help_handler(ct, field_name, kwargs)
 
         if not field:  # If the passed field name is not the model's field name, then this must be a CustomField...
             from aristotle_mdr.contrib.custom_fields.models import CustomField
             try:
-                field = CustomField.objects.get(allowed_model=ct, name=field_name)
+                field = CustomField.objects.get(allowed_model=ct, name__iexact=field_name)
             except ObjectDoesNotExist:
                 raise Http404
             kwargs.update({
@@ -141,7 +141,7 @@ class ConceptFieldHelpView(TemplateView):
         return super().get_context_data(**kwargs)
 
     @staticmethod
-    def cloud_help_handler(ct, field_name, **kwargs):
+    def cloud_help_handler(ct, field_name, kwargs):
         """
         This static method checks the availability of Aristotle Cloud and
         updates the kwargs with the Custom Help object for a specific model.

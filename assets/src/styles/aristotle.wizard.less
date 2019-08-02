@@ -92,3 +92,18 @@ fieldset.wizard {
 .django-ckeditor-widget {
     width:100%
 }
+
+// This custom css is needed to avoid
+// span elements to appear on top of
+// Bootstrap modal.
+span.select2-selection__clear {
+    z-index:auto;
+}
+
+span.select2-selection__arrow {
+    z-index:auto;
+}
+
+span.select2-selection__arrow b {
+    z-index:auto;
+}
