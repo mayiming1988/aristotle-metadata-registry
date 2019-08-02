@@ -34,6 +34,7 @@ class Command(BaseCommand):
             if not options['no-index']:
                 # If no-index is not selected as a flag, update the search index
                 connections['default'].get_unified_index().get_index(item.item.__class__).update_object(item.item)
+                self.stdout.write('Update search index for item: {}!'.format(item.id))
 
             self.stdout.write(' Updated! item (id:%s)' % (item.id))
 
