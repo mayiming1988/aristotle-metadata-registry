@@ -263,39 +263,47 @@ class DedBaseThrough(aristotleComponent):
         ordering = ['order']
 
 
-def get_relational_attributes(model_instance, rels=None):
+def get_comet_indicator_relational_attributes(model_instance):
     """
-    :param model_instance: The model
-    :param rels: Dictionary containing relational attributes.
-    If no value is provided then it returns a new Dictionary.
+    The purpose of this function is to retrieve the relational attributes
+    from the Comet Indicator Registry, particularly from the
+    IndicatorDataElementBase model.
+    :param model_instance: The related model.
     :return: Dictionary containing relational attributes from the Comet extension.
     """
-    # Argument is mutable so we need to avoid mutability.
-    # Please consult:
-    # https: // docs.quantifiedcode.com / python - anti - patterns / correctness / mutable_default_value_as_argument.html
-    if rels is None:
-        rels = {}
+    rels = {}
     if "comet" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
-        from comet.models import Indicator
+        from comet.models import Indicator, IndicatorDataElementBase
+
+        as_numerator_kwargs = {}
+        as_denominator_kwargs = {}
+        as_disaggregator_kwargs = {}
+
+        for model_field in IndicatorDataElementBase._meta.get_fields():
+            if model_field.is_relation and model_field.many_to_one:
+                if model_field.related_model == model_instance._meta.model:
+                    as_numerator_kwargs = {
+                        'indicatornumeratordefinition__{}'.format(model_field.name): model_instance,
+                    }
+                    as_denominator_kwargs = {
+                        'indicatordenominatordefinition__{}'.format(model_field.name): model_instance,
+                    }
+                    as_disaggregator_kwargs = {
+                        'indicatordisaggregationdefinition__{}'.format(model_field.name): model_instance,
+                    }
 
         rels.update({
             "as_numerator": {
                 "all": _("As a numerator in an Indicator"),
-                "qs": Indicator.objects.filter(
-                    indicatornumeratordefinition__data_set_specification=model_instance
-                ).distinct()
+                "qs": Indicator.objects.filter(**as_numerator_kwargs).distinct()
             },
             "as_denominator": {
                 "all": _("As a denominator in an Indicator"),
-                "qs": Indicator.objects.filter(
-                    indicatordenominatordefinition__data_set_specification=model_instance
-                ).distinct()
+                "qs": Indicator.objects.filter(**as_denominator_kwargs).distinct()
             },
             "as_disaggregator": {
                 "all": _("As a disaggregation in an Indicator"),
-                "qs": Indicator.objects.filter(
-                    indicatordisaggregationdefinition__data_set_specification=model_instance
-                ).distinct()
+                "qs": Indicator.objects.filter(**as_disaggregator_kwargs).distinct()
             },
         })
     return rels

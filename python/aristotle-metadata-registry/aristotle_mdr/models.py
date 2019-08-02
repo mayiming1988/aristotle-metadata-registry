@@ -25,7 +25,7 @@ from aristotle_mdr.utils.model_utils import (
     discussionAbstract,
     AbstractValue,
     DedBaseThrough,
-    get_relational_attributes,
+    get_comet_indicator_relational_attributes,
 )
 from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
 from aristotle_mdr import perms
@@ -1627,7 +1627,7 @@ class DataElement(concept):
                     "qs": self.questions.all(),
                 },
             })
-        return get_relational_attributes(self, rels=rels)
+        return {**rels, **get_comet_indicator_relational_attributes(self)}  # Return both dictionaries combined.
 
 
 class DataElementDerivation(concept):

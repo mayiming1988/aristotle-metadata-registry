@@ -6,7 +6,7 @@ from django.conf import settings
 from model_utils import Choices
 import aristotle_mdr as aristotle
 from aristotle_mdr.models import RichTextField
-from aristotle_mdr.utils.model_utils import get_relational_attributes
+from aristotle_mdr.utils.model_utils import get_comet_indicator_relational_attributes
 from aristotle_mdr.fields import (
     ConceptForeignKey,
     ConceptManyToManyField,
@@ -106,7 +106,7 @@ class Dataset(aristotle.models.concept):
 
     @property
     def relational_attributes(self):
-        return get_relational_attributes(self)
+        return get_comet_indicator_relational_attributes(self)
 
 
 class Distribution(aristotle.models.concept):
@@ -381,7 +381,7 @@ class DataSetSpecification(aristotle.models.concept):
 
     @property
     def relational_attributes(self):
-        return get_relational_attributes(self)
+        return get_comet_indicator_relational_attributes(self)
 
 
 class DSSInclusion(aristotle.models.aristotleComponent):
