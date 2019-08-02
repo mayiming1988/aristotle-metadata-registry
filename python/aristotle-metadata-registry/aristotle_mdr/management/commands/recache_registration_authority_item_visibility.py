@@ -13,6 +13,11 @@ class Command(BaseCommand):
             nargs='*',
             default=None,
         )
+        parser.add_argument(
+            '--no-index',
+            action='store_true',
+            help="If --no-index is selected, this command will not update the search index"
+        )
 
     def handle(self, *args, **options):
         from haystack import connections
@@ -22,9 +27,12 @@ class Command(BaseCommand):
             ras = options['ra']
 
         for item in _concept.objects.filter(statuses__registrationAuthority__in=ras):
-            # self.stdout.write(' Updating item (id:%s)' % (item.id))
             item.recache_states()
-            connections['default'].get_unified_index().get_index(item.item.__class__).update_object(item.item)
+
+            if not options['no-index']:
+                # If no-index is not selected as a flag, update the search index
+                connections['default'].get_unified_index().get_index(item.item.__class__).update_object(item.item)
+                
             self.stdout.write(' Updated! item (id:%s)' % (item.id))
 
         self.stdout.write('Successfully updated items!')
