@@ -31,7 +31,7 @@ class Command(BaseCommand):
         for item in _concept.objects.filter(statuses__registrationAuthority__in=ras):
             item.recache_states()
 
-            if not options['no-index']:
+            if 'no_index' not in options:
                 # If no-index is not selected as a flag, update the search index
                 connections['default'].get_unified_index().get_index(item.item.__class__).update_object(item.item)
                 self.stdout.write('Update search index for item: {}!'.format(item.id))
