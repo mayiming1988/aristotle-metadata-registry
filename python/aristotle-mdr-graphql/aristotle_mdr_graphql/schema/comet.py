@@ -26,3 +26,4 @@ class Query:
     outcome_areas = AristotleConceptFilterConnectionField(OutcomeAreaNode)
     quality_statements = AristotleConceptFilterConnectionField(QualityStatementNode)
     frameworks = AristotleConceptFilterConnectionField(FrameworkNode)
+    framework_dimensions = AristotleFilterConnectionField(FrameworkDimensionNode)
