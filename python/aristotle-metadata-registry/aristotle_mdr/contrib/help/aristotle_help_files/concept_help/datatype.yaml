@@ -4,7 +4,7 @@
     concept_type: datatype
     language: en
     brief: A Data Type describes a way of storing a specific form of data within a system.
-    offical_definition: >
+    official_definition: >
         set of distinct values, characterized by properties of those values and by operations on those values
     official_reference: ISO/IEC 11179 - Clause 3.1.8
     official_link:

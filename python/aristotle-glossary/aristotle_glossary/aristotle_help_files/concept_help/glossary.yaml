@@ -5,7 +5,7 @@
     language: en
     brief: A Glossary Item records a business term that is commonly used within the metadata registry.
         A collection of Glossary Items is commonly referred to as a business glossary.
-    offical_definition: A glossary item is a definition for a reusable term
+    official_definition: A glossary item is a definition for a reusable term
     official_reference: ''
     official_link: ''
     body: ''

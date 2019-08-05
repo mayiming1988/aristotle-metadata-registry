@@ -4,7 +4,8 @@
         <tr>
             {% if not disable_ordering %}<th></th>{% endif %}
             {% for field in form.visible_fields %}
-                <th><div>{{ field.label|capfirst }}</div>
+                <th>
+                    <div>{{ field.label|capfirst }}</div>
                     <small title="{{ field.help_text }}">{{ field.help_text|truncatewords:10 }}</small>
                 </th>
             {% endfor %}

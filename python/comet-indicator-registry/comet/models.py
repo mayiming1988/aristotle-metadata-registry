@@ -126,15 +126,18 @@ class IndicatorDataElementBase(aristotleComponent):
 
 
 class IndicatorNumeratorDefinition(IndicatorDataElementBase):
-    pass
+    class Meta:
+        verbose_name = "Numerator"
 
 
 class IndicatorDenominatorDefinition(IndicatorDataElementBase):
-    pass
+    class Meta:
+        verbose_name = "Denominator"
 
 
 class IndicatorDisaggregationDefinition(IndicatorDataElementBase):
-    pass
+    class Meta:
+        verbose_name = "Disaggregator"
 
 
 class IndicatorSet(MDR.concept):

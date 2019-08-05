@@ -7,7 +7,7 @@
         A Data Quality Statement records any known issues that may be related to a data asset.
         A Data Quality Statement assesses data against seven key factors: Institutional Environment, 
         Relevance, Timeliness, Accuracy, Coherence, Interpretability & Accessibility. 
-    offical_definition: A Data Quality Statement is a presentation of information about the quality of a statistical collection or product using the Data Quality Framework.
+    official_definition: A Data Quality Statement is a presentation of information about the quality of a statistical collection or product using the Data Quality Framework.
       These may also be referred to as Data Quality Declarations.
     official_reference: ABS Data Quality Statement Checklist
     official_link: http://www.abs.gov.au/websitedbs/d3310114.nsf/home/abs+data+quality+statement+checklist

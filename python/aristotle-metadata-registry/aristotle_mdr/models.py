@@ -1,4 +1,6 @@
-from typing import List, Tuple, Union, Iterable, Optional, Dict
+import uuid
+import reversion  # import revisions
+from typing import List, Union, Optional, Dict
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ImproperlyConfigured
@@ -23,12 +25,8 @@ from aristotle_mdr.utils.model_utils import (
     discussionAbstract,
     AbstractValue,
     DedBaseThrough,
+    get_comet_indicator_relational_attributes,
 )
-import uuid
-
-import reversion  # import revisions
-
-import datetime
 from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
 from aristotle_mdr import perms
 from aristotle_mdr.utils import (
@@ -46,18 +44,18 @@ from jsonfield import JSONField
 from .fields import (
     ConceptForeignKey,
     ConceptManyToManyField,
-    ShortTextField,
     ConvertedConstrainedImageField,
     ConceptGenericRelation
 )
 
 from .managers import (
     ConceptManager,
-    ReviewRequestQuerySet, WorkgroupQuerySet,
+    WorkgroupQuerySet,
     StewardOrganisationQuerySet,
     RegistrationAuthorityQuerySet,
-    StatusQuerySet, UtilsManager,
-    SupersedesManager, ProposedSupersedesManager
+    StatusQuerySet,
+    SupersedesManager,
+    ProposedSupersedesManager
 )
 
 from aristotle_mdr.contrib.groups.base import (
@@ -959,7 +957,7 @@ class _concept(baseAristotleObject):
         return [
             field
             for field in type(self)._meta.get_fields()
-            if field.is_relation and field.one_to_many and issubclass(field.related_model, MDR.aristotleComponent)
+            if field.is_relation and field.one_to_many and issubclass(field.related_model, aristotleComponent)
         ]
 
     @property
@@ -1482,9 +1480,13 @@ class PermissibleValue(AbstractValue):
     the designation (3.2.51) of a value meaning (3.2.141).
     """
 
+    class Meta:
+        verbose_name = "Permissible Value"
+
 
 class SupplementaryValue(AbstractValue):
-    pass
+    class Meta:
+        verbose_name = "Supplementary Value"
 
 
 class DataElementConcept(concept):
@@ -1625,30 +1627,7 @@ class DataElement(concept):
                     "qs": self.questions.all(),
                 },
             })
-        if "comet" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
-            from comet.models import Indicator
-
-            rels.update({
-                "as_numerator": {
-                    "all": _("As a numerator in an Indicator"),
-                    "qs": Indicator.objects.filter(
-                        indicatornumeratordefinition__data_element=self
-                    ).distinct()
-                },
-                "as_denominator": {
-                    "all": _("As a denominator in an Indicator"),
-                    "qs": Indicator.objects.filter(
-                        indicatordenominatordefinition__data_element=self
-                    ).distinct()
-                },
-                "as_disaggregator": {
-                    "all": _("As a disaggregation in an Indicator"),
-                    "qs": Indicator.objects.filter(
-                        indicatordisaggregationdefinition__data_element=self
-                    ).distinct()
-                },
-            })
-        return rels
+        return {**rels, **get_comet_indicator_relational_attributes(self)}  # Return both dictionaries combined.
 
 
 class DataElementDerivation(concept):
@@ -1964,7 +1943,7 @@ class SandboxShare(models.Model):
 
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        profile, created = PossumProfile.objects.get_or_create(user=instance)
+        PossumProfile.objects.get_or_create(user=instance)
 
 
 post_save.connect(create_user_profile, sender=settings.AUTH_USER_MODEL)

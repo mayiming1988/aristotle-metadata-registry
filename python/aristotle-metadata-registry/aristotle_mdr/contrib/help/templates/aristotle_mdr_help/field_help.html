@@ -33,7 +33,7 @@
                 {% if custom_field.help_text %}
                     {{ custom_field.help_text|bleach }}
                 {% else %}
-                    No short help text available.
+                    <p class="text-muted">No text available.</p>
                 {% endif %}
             </div>
             <div class="panel-heading">Detailed help</div>
@@ -41,7 +41,7 @@
                 {% if custom_field.help_text_long %}
                     {{ custom_field.help_text_long | bleach }}
                 {% else %}
-                    No Detailed help text available.
+                    <p class="text-muted">No text available.</p>
                 {% endif %}
             </div>
         </div>
@@ -52,7 +52,11 @@
         <div class="panel panel-info">
             <div class="panel-heading">ISO 11179 help definition</div>
             <div class="panel-body">
-                {% firstof field.help_text "No ISO 11179 help definition text available." %}
+                {% if field.help_text %}
+                    {{ field.help_text }}
+                {% else %}
+                    <p class="text-muted">No text available.</p>
+                {% endif %}
             </div>
         </div>
 
@@ -62,7 +66,7 @@
                 {% if custom_help %}
                     {{ custom_help | bleach }}
                 {% else %}
-                    No Registry specific help text available.
+                    <p class="text-muted">No text available.</p>
                 {% endif %}
             </div>
         </div>

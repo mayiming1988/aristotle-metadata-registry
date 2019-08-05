@@ -6,7 +6,7 @@
     brief: A Data Set Specification describes an agreement to collect an ideal standard of data.
       A Data Set Specification may reference other Data Set Specifications or [[aristotle_mdr.dataelement|s]] to 
       describe the data that should be collected under the agreement.
-    offical_definition: A collection of [[aristotle_mdr.dataelement|s]] for collecting data.
+    official_definition: A collection of [[aristotle_mdr.dataelement|s]] for collecting data.
     official_reference: 
     official_link:
     body: >
