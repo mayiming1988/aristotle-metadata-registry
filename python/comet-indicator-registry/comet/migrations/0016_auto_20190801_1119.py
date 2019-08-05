@@ -8,7 +8,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('comet', '0015_auto_20190801_1105'),
+        ('comet', '0014_auto_20190716_0859'),
     ]
 
     operations = [
