@@ -582,9 +582,9 @@ class TestLinkPages(LinkTestBase, TestCase):
             status_code=200
         )
         self.assertContains(response, '<h2>Relationships</h2>')
-        self.assertEqual(len(response.context['links']), 1)
+        self.assertEqual(len(response.context['links_from']), 1)
 
-    def test_link_not_viewable_from_non_root(self):
+    def test_link_viewable_from_non_root_under_to_links(self):
         # Make item2 viewable
         self.item2.workgroup = self.wg1
         self.item2.save()
@@ -597,8 +597,8 @@ class TestLinkPages(LinkTestBase, TestCase):
             reverse_args=[self.item2.id, 'objectclass', 'item2'],
             status_code=200
         )
-        self.assertNotContains(response, '<h2>Relationships</h2>')
-        self.assertEqual(len(response.context['links']), 0)
+        self.assertContains(response, '<h3>Links to this item</h3>')
+        self.assertEqual(len(response.context['links_to']), 1)
 
     def test_arity_prop_2_roles(self):
         self.assertEqual(self.relation.arity, 2)
