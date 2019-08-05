@@ -17,37 +17,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class VersionPublishMetadataFormView(GenericWithItemURLFormView):
-    permission_checks = [perms.user_can_publish_object]
-    template_name = "aristotle_mdr/publish/publish_metadata_versions.html"
-    form_class = VersionPublicationForm
-
-    def get_form_kwargs(self):
-        """Return the keyword arguments for instantiating the form."""
-        kwargs = super().get_form_kwargs()
-
-        VersionPublicationRecord.objects.get_or_create(
-            # content_object=self.item,
-            content_type=ContentType.objects.get_for_model(self.item),
-            object_id=self.item.pk
-        )
-        kwargs.update({'instance': self.item.version_publication_details.first()})
-        return kwargs
-
-    def form_valid(self, form):
-        defaults={
-            'public_user_publication_date': form.cleaned_data['public_user_publication_date'],
-            'authenticated_user_publication_date': form.cleaned_data['authenticated_user_publication_date']
-        }
-        rec, c = VersionPublicationRecord.objects.update_or_create(
-            content_type=ContentType.objects.get_for_model(self.item),
-            object_id=self.item.pk,
-            # user=self.request.user,
-            defaults=defaults
-        )
-        return HttpResponseRedirect(self.get_success_url())
-
-
 class PublishContentBaseView(PermissionRequiredMixin, CreateUpdateView):
     template_name = "aristotle_mdr/publish/publish_object.html"
     model = PublicationRecord

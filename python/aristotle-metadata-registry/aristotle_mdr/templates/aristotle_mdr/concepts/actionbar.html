@@ -31,11 +31,6 @@
                     </a></li>
 
                 {% if item.stewardship_organisation and can_publish %}
-                    <li><a href="{% url 'aristotle_publishing:edit_version_history_visibility' item.id %}"
-                           data-toggle="modal" data-target="#infobox_adv_edit">
-                        <i class="fa fa-fw fa-history"></i> {% trans 'History visibility'%}
-                    </a>
-                    </li>
                     <li><a href="{% url 'aristotle_publishing:publish_item' item.meta.model_name item.id %}"
                            data-toggle="modal" data-target="#infobox_adv_edit">
                         <i class="fa fa-fw fa-globe"></i> {% trans 'Publication details'%}
