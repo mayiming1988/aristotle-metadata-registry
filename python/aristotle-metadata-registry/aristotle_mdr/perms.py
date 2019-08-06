@@ -139,11 +139,8 @@ def user_can_edit(user, item):
     return _can_edit
 
 
-# TODO remove this
-def user_is_editor(user, workgroup=None):
-    if user.is_anonymous():
-        return False
-    return user.is_active
+def user_is_authenticated_and_active(user):
+    return user.is_authenticated() and user.is_active
 
 
 def user_can_submit_to_workgroup(user, workgroup):

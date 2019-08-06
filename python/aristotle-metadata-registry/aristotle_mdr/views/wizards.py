@@ -12,7 +12,6 @@ from django.db import transaction
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr import forms as MDRForms
-from aristotle_mdr.perms import user_is_editor
 from aristotle_mdr.utils import url_slugify_concept
 from aristotle_mdr.contrib.custom_fields.models import CustomField
 from aristotle_mdr.contrib.help.models import ConceptHelp
@@ -72,7 +71,7 @@ def create_item(request, app_label=None, model_name=None):
 class PermissionWizard(SessionWizardView):
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        if not user_is_editor(request.user):
+        if not request.user.is_active:
             raise PermissionDenied
 
         return super().dispatch(request, *args, **kwargs)
@@ -80,12 +79,12 @@ class PermissionWizard(SessionWizardView):
     def get_template_names(self):
         return [self.templates[self.steps.current]]
 
-    def get_form_kwargs(self, step):
+    def get_form_kwargs(self, step=None):
         kwargs = super().get_form_kwargs(step)
         kwargs.update({'user': self.request.user})
         return kwargs
 
-    def help_guide(self, model=None):
+    def help_guide(self):
         # Refactored out as part of help changes
         # TODO: Need to permanently remove
         return None
