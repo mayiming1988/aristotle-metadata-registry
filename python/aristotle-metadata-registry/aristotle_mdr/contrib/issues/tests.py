@@ -235,6 +235,8 @@ class LabelTests(BaseStewardOrgsTestCase, AristotleTestUtils, TestCase):
         redirect_url = reverse('friendly_login') + '?next=' + reverse('aristotle_issues:admin_labels_update',
                                                                     args=[self.so_label.id])
 
+        self.assertRedirects(response, redirect_url)
+
     def test_creating_public_label_redirects_to_login(self):
         self.logout()
         response = self.reverse_get('aristotle_issues:admin_labels_create', status_code=302)
