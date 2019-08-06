@@ -413,7 +413,6 @@ class GroupMemberMixin(object):
 class RoleChangeView(GroupMemberMixin, LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, BaseDetailView, FormView):
     raise_exception = True
     redirect_unauthenticated_users = True
-    object_level_permissions = True
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -437,7 +436,6 @@ class RoleChangeView(GroupMemberMixin, LoginRequiredMixin, ObjectLevelPermission
 class SingleRoleChangeView(GroupMemberMixin, LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, BaseDetailView, FormView):
     raise_exception = True
     redirect_unauthenticated_users = True
-    object_level_permissions = True
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -458,7 +456,6 @@ class SingleRoleChangeView(GroupMemberMixin, LoginRequiredMixin, ObjectLevelPerm
 class MemberRemoveFromGroupView(GroupMemberMixin, LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, DetailView):
     raise_exception = True
     redirect_unauthenticated_users = True
-    object_level_permissions = True
 
     http_method_names = ['get', 'post']
 

@@ -194,7 +194,6 @@ class EditRegistrationAuthority(LoginRequiredMixin, ObjectLevelPermissionRequire
     permission_required = "aristotle_mdr.change_registrationauthority"
     raise_exception = True
     redirect_unauthenticated_users = True
-    object_level_permissions = True
 
     fields = ('name', 'definition', 'active')
     widgets = {
@@ -228,7 +227,6 @@ class EditRegistrationAuthorityStates(LoginRequiredMixin,
     permission_required = "aristotle_mdr.change_registrationauthority"
     raise_exception = True
     redirect_unauthenticated_users = True
-    object_level_permissions = True
 
     form_class = EditRegistationAuthorityForm
 
