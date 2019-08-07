@@ -206,7 +206,7 @@ def new_comment_created(recipient, comment):
             notify.send(comment, recipient=recipient, verb="(comment) has been created in the discussion:",
                         target=comment.post)
 
-    message = comment.author.display_name + " commented on your post " + comment.post
+    message = comment.author.display_name + " commented on your post " + comment.post.title
     send_email(recipient, message)
 
 
