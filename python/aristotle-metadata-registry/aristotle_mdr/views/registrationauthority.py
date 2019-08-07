@@ -184,8 +184,8 @@ class MembersRegistrationAuthority(LoginRequiredMixin, PermissionRequiredMixin, 
         context.update(self.get_tab_context())
         context['is_manager'] = self.is_manager(self.object)
         context['ra_members'] = context['object'].members.all()
-        context['managers'] = context['object'].managers.all().values_list("pk", flat=True)
-        context['registrars'] = context['object'].registrars.all().values_list("pk", flat=True)
+        context['managers'] = set(context['object'].managers.all().values_list("pk", flat=True))
+        context['registrars'] = set(context['object'].registrars.all().values_list("pk", flat=True))
         return context
 
 
