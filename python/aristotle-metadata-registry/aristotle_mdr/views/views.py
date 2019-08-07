@@ -116,7 +116,6 @@ class ManagedItemView(TemplateView):
         # Fall back to fallback template
         return [getattr(self.managed_item, 'template', 'aristotle_mdr/manageditems/fallback.html')]
 
-
     def dispatch(self, request, *args, **kwargs):
         self.managed_item = self.get_item()
 
