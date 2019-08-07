@@ -195,7 +195,7 @@ def new_post_created(recipient, post):
             else:
                 notify.send(post, recipient=recipient, verb="(discussion) has been created.")
 
-    message = post.author.name + " made a new post"
+    message = post.author.display_name + " made a new post"
     send_email(recipient, message)
 
 
@@ -206,7 +206,7 @@ def new_comment_created(recipient, comment):
             notify.send(comment, recipient=recipient, verb="(comment) has been created in the discussion:",
                         target=comment.post)
 
-    message = comment.author.name + " commented on your post " + comment.post
+    message = comment.author.display_name + " commented on your post " + comment.post
     send_email(recipient, message)
 
 
