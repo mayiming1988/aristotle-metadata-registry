@@ -405,9 +405,6 @@ MIGRATION_PRINT = True
 
 MAXIMUM_NUMBER_OF_NODES_IN_GENERAL_GRAPHICAL_REPRESENTATION = 200
 
-# List of import strings for additional graphql nodes
-EXTRA_GRAPHQL_SCHEMA_MODELS: List[str] = []
-
 # List of import strings for additional graphql query objects
 EXTRA_GRAPHQL_QUERY_OBJS: List[str] = []
 
