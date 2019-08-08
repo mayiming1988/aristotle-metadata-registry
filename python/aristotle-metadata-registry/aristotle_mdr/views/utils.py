@@ -374,7 +374,8 @@ class GenericListWorkgroup(LoginRequiredMixin, SortedListView):
         workgroups = self.get_initial_queryset()
 
         if self.text_filter:
-            workgroups = workgroups.filter(Q(name__icontains=self.text_filter) | Q(definition__icontains=self.text_filter))
+            workgroups = workgroups.filter(Q(name__icontains=self.text_filter)
+                                           | Q(definition__icontains=self.text_filter))
 
         workgroups = self.sort_queryset(workgroups)
         return workgroups
