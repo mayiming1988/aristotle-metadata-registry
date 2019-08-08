@@ -99,8 +99,6 @@ def concept_by_uuid(request, uuid):
 
 
 class ManagedItemView(TemplateView):
-    managed_item = None
-
     def get_item(self):
         item_id = self.kwargs.pop('iid')
         model_slug = self.kwargs.pop('model_slug')
