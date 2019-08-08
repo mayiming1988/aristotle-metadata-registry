@@ -125,8 +125,14 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages, TestCase):
         pass
 
     # The error is due to foreign-keys in the get_updated_data_for_clone function.
-    @tag('clone_item')
     def test_cloning_with_components(self):
+        """"""
+        # Create a Data Set Specification
+        data_set_specification = models.DataSetSpecification.objects.create(
+            name="Data Set Specification",
+            definition="This is a data set specification"
+        )
+
         # Create two Data Elements
         de1 = MDR.DataElement.objects.create(
             name='de1',
@@ -136,27 +142,34 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages, TestCase):
             name='de2',
             definition='de2'
         )
-        self.item1.addDataElement(de1)
-        self.item1.addDataElement(de2)
 
-        self.login_editor()
-        old_name = self.item1.name
-        response = self.client.get(reverse('aristotle:clone_item', args=[self.item1.id]))
+        # Add data elements to a DSS
+        data_set_specification.addDataElement(de1)
+        data_set_specification.addDataElement(de2)
+
+        # Login a superuser
+        self.login_superuser()
+
+        # Go to the clone item page
+        response = self.client.get(reverse('aristotle:clone_item', args=[data_set_specification.id]))
         self.assertEqual(response.status_code, 200)
+
+
+        # Update the cloned item's data
         data = self.get_updated_data_for_clone(response)
         data.update({
             'name': 'My dataset (clone)',
             'definition': 'My very own dataset'
         })
 
-        print(data)
-        response = self.client.post(reverse('aristotle:clone_item', args=[self.item1.id]), data)
-        print(response)
-        print(response.context['formset'].errors)
-        # self.assertEqual(response.status_code,302)
+        raise ValueError(data)
+
+        # Post the cloned items data to the clone item view
+        response = self.client.post(reverse('aristotle:clone_item', args=[data_set_specification.id]), data)
+
         clone = response.context[-1]['object'].item  # Get the item back to check
 
-        # clone = models.DataSetSpecification.objects.get(name='My dataset (clone)')
+        # Assert that the cloned item is identical to the first one
         self.assertEqual(clone.name, data['name'])
         self.assertEqual(clone.dssdeinclusion_set.count(), 2)
 
