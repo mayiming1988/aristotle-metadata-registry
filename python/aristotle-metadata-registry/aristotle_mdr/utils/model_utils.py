@@ -98,9 +98,9 @@ class baseAristotleObject(TimeStampedModel):
         raise NotImplementedError  # pragma: no cover
 
     @classmethod
-    def meta(self):
+    def meta(cls):
         # I know what I'm doing, get out the way.
-        return self._meta
+        return cls._meta
 
 
 class ManagedItem(baseAristotleObject):
