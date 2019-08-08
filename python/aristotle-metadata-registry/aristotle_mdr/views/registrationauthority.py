@@ -121,7 +121,12 @@ class AddUser(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, FormView):
 
     def dispatch(self, request, *args, **kwargs):
         self.item = get_object_or_404(MDR.RegistrationAuthority, pk=self.kwargs.get('iid'))
+
         return super().dispatch(request, *args, **kwargs)
+
+    def get_object(self):
+        # For object level permissions mix in
+        return self.item
 
     def get_context_data(self, **kwargs):
         """
