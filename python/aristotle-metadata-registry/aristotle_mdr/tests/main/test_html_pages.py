@@ -1421,7 +1421,6 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
                 data.update({
                     "%s-TOTAL_FORMS" % pre: num_vals, "%s-INITIAL_FORMS" % 0: num_vals, "%s-MAX_NUM_FORMS" % pre: 1000,
                 })
-            # import pdb; pdb.set_trace()
             return data
 
     def test_help_page_exists(self):
@@ -1509,6 +1508,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
                 response,
                 '%s is %s' % (self.item1.name, s.get_state_display())
             )
+
     @skip("We are no longer providing functionality for reverting items for the time being")
     def test_editor_can_revert_item_and_status_goes_back_too(self):
         self.login_editor()
