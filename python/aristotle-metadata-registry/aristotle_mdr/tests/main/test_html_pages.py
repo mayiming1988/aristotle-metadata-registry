@@ -7,12 +7,10 @@ from django.test import TestCase, override_settings, tag, RequestFactory
 from django.urls import reverse
 from django.utils import timezone
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.messages import get_messages
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
 import aristotle_mdr.contrib.identifiers.models as ident_models
-
 from aristotle_mdr.constants import visibility_permission_choices as permission_choices
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
 from aristotle_mdr.utils import url_slugify_concept
@@ -24,6 +22,7 @@ from aristotle_mdr.tests import utils
 from aristotle_mdr.views import ConceptRenderView
 from aristotle_mdr.utils.versions import VersionLinkField
 from aristotle_mdr.downloader import HTMLDownloader
+
 import datetime
 from unittest import mock, skip
 import reversion

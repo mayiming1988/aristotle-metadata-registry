@@ -124,15 +124,14 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages, TestCase):
         # TODO: Add test for #939
         pass
 
-    # The error is due to foreign-keys in the get_updated_data_for_clone function.
     def test_cloning_with_components(self):
-        """"""
+        """Test that when an item is cloned, the included components come across"""
+
         # Create a Data Set Specification
         data_set_specification = models.DataSetSpecification.objects.create(
             name="Data Set Specification",
             definition="This is a data set specification"
         )
-
         # Create two Data Elements
         de1 = MDR.DataElement.objects.create(
             name='de1',
@@ -142,7 +141,6 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages, TestCase):
             name='de2',
             definition='de2'
         )
-
         # Add data elements to a DSS
         data_set_specification.addDataElement(de1)
         data_set_specification.addDataElement(de2)
@@ -154,23 +152,17 @@ class DataSetSpecificationViewPage(LoggedInViewConceptPages, TestCase):
         response = self.client.get(reverse('aristotle:clone_item', args=[data_set_specification.id]))
         self.assertEqual(response.status_code, 200)
 
-
         # Update the cloned item's data
         data = self.get_updated_data_for_clone(response)
-        data.update({
-            'name': 'My dataset (clone)',
-            'definition': 'My very own dataset'
-        })
-
-        raise ValueError(data)
 
         # Post the cloned items data to the clone item view
-        response = self.client.post(reverse('aristotle:clone_item', args=[data_set_specification.id]), data)
+        response = self.client.post(
+            reverse('aristotle:clone_item', args=[data_set_specification.id]),
+            data, follow=True)
 
         clone = response.context[-1]['object'].item  # Get the item back to check
 
-        # Assert that the cloned item is identical to the first one
-        self.assertEqual(clone.name, data['name'])
+        # Assert that the components have come across in the clone
         self.assertEqual(clone.dssdeinclusion_set.count(), 2)
 
     @tag('perms')
