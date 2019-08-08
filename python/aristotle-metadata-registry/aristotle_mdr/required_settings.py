@@ -88,7 +88,10 @@ ALLOWED_HOSTS: list = []
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 # Use asynchronous processing of signals
-ARISTOTLE_ASYNC_SIGNALS = os.getenv('ARISTOTLE_ASYNC_SIGNALS', False) == "True"
+ARISTOTLE_ASYNC_SIGNALS = True
+if os.getenv("ARISTOTLE_DISABLE_ASYNC_SIGNALS", "False") == "True":
+    ARISTOTLE_ASYNC_SIGNALS = False
+
 # Always register items synchronously (without celery)
 ALWAYS_SYNC_REGISTER = os.getenv('ARISTOTLE_SYNC_REGISTER', False) == "True"
 
