@@ -189,13 +189,20 @@ def new_post_created(recipient, post):
     if check_within_aristotle_notification_permission(recipient) and \
             recipient.profile.notificationPermissions['discussions']['new posts']:
         if post.author:
-            if post.workgroup is not None:
+            if post.workgroup:
                 notify.send(post, recipient=recipient, verb="(discussion) has been created in the workgroup:",
                             target=post.workgroup)
             else:
                 notify.send(post, recipient=recipient, verb="(discussion) has been created.")
 
-    message = post.author.display_name + " made a new post"
+    if post.author and post.workgroup:
+        message = post.author.display_name + " made a new post in the workgroup {}.".format(post.workgroup)
+    elif post.author:
+        message = post.author.display_name + " made a new post."
+    elif post.workgroup:
+        message = "A new post was created in the workgroup {}".format(post.workgroup)
+    else:
+        message = "A new post was created."
     send_email(recipient, message)
 
 
