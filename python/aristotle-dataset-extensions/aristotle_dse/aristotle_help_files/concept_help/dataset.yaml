@@ -7,7 +7,7 @@
       for the data, that has been captured and is available for use under a specific licence.
       A Data Set may be included in a [[Data Catalog]], and can reference multiple [[Distribution|s]]
       that record different parts or formats of the data that are available to download.
-    offical_definition: A representation of a dataset in a catalog.
+    official_definition: A representation of a dataset in a catalog.
     official_reference: "Data Catalog Vocabulary (DCAT): 5.3 Class: Dataset"
     official_link: https://www.w3.org/TR/vocab-dcat/
     body: >

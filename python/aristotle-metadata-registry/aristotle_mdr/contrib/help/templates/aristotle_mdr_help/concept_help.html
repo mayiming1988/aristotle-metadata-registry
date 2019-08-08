@@ -13,8 +13,8 @@
 {% block help_content %}
     <div class="well">{% relink object 'brief' %}</div>
 
-    {% if object.offical_definition %}
-        <blockquote>{% relink object 'offical_definition' %}
+    {% if object.official_definition %}
+        <blockquote>{% relink object 'official_definition' %}
             {% if object.official_reference %}
                 {% if object.official_link %}
                     <small>
@@ -33,7 +33,6 @@
     <p>
         {% relink object 'body' %}
     </p>
-
 
     {% with creation_tip=object|relinked:"creation_tip" %}
         {% if custom_help.creation_tip or creation_tip %}
@@ -65,9 +64,9 @@
                 {% if field_help %}
                     <li>
                         <a href="#field_is_{{field_name}}">
-                        {% with field=custom_help.content_type|get_field:field_name %}
-                            {{ field.verbose_name.title }}
-                        {% endwith %}
+                            {% with field=custom_help.content_type|get_field:field_name %}
+                                {{ field.verbose_name.title }}
+                            {% endwith %}
                         </a>
                     </li>
                 {% endif %}
@@ -111,13 +110,15 @@
                 </dt>
                 <dd>
                     <div class="well">
-                        {{ custom_field.help_text_long | bleach }}
+                        {% if custom_field.help_text_long %}
+                            {{ custom_field.help_text_long | bleach }}
+                        {% else %}
+                            No help text available for this Custom Field.
+                        {% endif %}
                     </div>
                 </dd>
             {% endfor %}
         </dl>
     {% endif %}
-
-
 
 {% endblock %}

@@ -4,7 +4,19 @@ from mptt.querysets import TreeQuerySet
 
 
 class FrameworkDimensionQuerySet(TreeQuerySet):
-    pass
+
+    def visible(self, user):
+        """
+        Only dimensions where the parent framework is visible are visible
+        This is currently only used in graphql
+        """
+        from comet.models import Framework
+
+        if user.is_superuser:
+            return self
+
+        visible_frameworks = Framework.objects.all().visible(user)
+        return self.filter(framework__in=visible_frameworks)
 
 
 class FrameworkDimensionManager(models.Manager.from_queryset(FrameworkDimensionQuerySet), TreeManager):

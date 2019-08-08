@@ -4,7 +4,7 @@
     concept_type: question
     language: en
     brief: A question describes the text used to elicit a response for the Concept to be measured.
-    offical_definition: Describes the text used to elicit a response for the Concept to be measured.
+    official_definition: Describes the text used to elicit a response for the Concept to be measured.
 
         A Question may be a single question used to obtain a response, or may be a multiple question, a construct which links multiple sub-questions, each with their own response.
         A Question also includes a relationship to the Value Domain to document the associated response criteria for the question. A single response question will have one Value Domain associated with it, while a 'multiple question' may have more than one Value Domain.

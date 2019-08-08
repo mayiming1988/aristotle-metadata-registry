@@ -63,3 +63,18 @@
     </div>
 
 {% endblock %}
+
+{% block content_container_start %}
+<div class="row">
+    <div class="col-md-8">
+{% endblock %}
+
+{% block content_container_end %}
+    </div>
+    <div class="col-md-4">
+        <aside class="creationTips">
+            {% include 'aristotle_mdr_help/helpers/tips_section.html' %}
+        </aside>
+    </div>
+</div>
+{% endblock %}

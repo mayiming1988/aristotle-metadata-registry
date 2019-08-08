@@ -3,6 +3,7 @@
 {% load aristotle_tags util_tags %}
 
 {% block infoContent %}
+
     <section class="managed row">
         {% include "aristotle_mdr/concepts/infobox.html" %}
 
@@ -92,7 +93,7 @@
             </table>
         {% endif %}
 
-        {% if 'aristotle_mdr_links'|is_active_extension and links %}
+        {% if 'aristotle_mdr_links'|is_active_extension and has_links %}
             {% include "aristotle_mdr/links/links_display.html" with links=links %}
         {% endif %}
 

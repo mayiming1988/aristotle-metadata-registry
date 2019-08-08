@@ -1,15 +1,12 @@
 from __future__ import unicode_literals
-from typing import List, Tuple, Set, Any, Iterable
-from collections import defaultdict
-
+from typing import List, Tuple, Set, Any
 from django.db import models
-from django.db.models import Q
 from django.utils.translation import ugettext as _
 from django.conf import settings
 from model_utils import Choices
-
 import aristotle_mdr as aristotle
 from aristotle_mdr.models import RichTextField
+from aristotle_mdr.utils.model_utils import get_comet_indicator_relational_attributes
 from aristotle_mdr.fields import (
     ConceptForeignKey,
     ConceptManyToManyField,
@@ -18,7 +15,7 @@ from aristotle_mdr.fields import (
 from aristotle_mdr.structs import Tree, Node
 from aristotle_mdr.utils import fetch_aristotle_settings
 
-import reversion
+CARDINALITY = Choices(('optional', _('Optional')), ('conditional', _('Conditional')), ('mandatory', _('Mandatory')))
 
 
 class DataCatalog(aristotle.models.concept):
@@ -109,31 +106,7 @@ class Dataset(aristotle.models.concept):
 
     @property
     def relational_attributes(self):
-        rels = {}
-        if "comet" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
-            from comet.models import Indicator
-
-            rels.update({
-                "as_numerator": {
-                    "all": _("As a numerator in an Indicator"),
-                    "qs": Indicator.objects.filter(
-                        indicatornumeratordefinition__data_set=self
-                    ).distinct()
-                },
-                "as_denominator": {
-                    "all": _("As a denominator in an Indicator"),
-                    "qs": Indicator.objects.filter(
-                        indicatordenominatordefinition__data_set=self
-                    ).distinct()
-                },
-                "as_disaggregator": {
-                    "all": _("As a disaggregation in an Indicator"),
-                    "qs": Indicator.objects.filter(
-                        indicatordisaggregationdefinition__data_set=self
-                    ).distinct()
-                },
-            })
-        return rels
+        return get_comet_indicator_relational_attributes(self)
 
 
 class Distribution(aristotle.models.concept):
@@ -226,11 +199,6 @@ class DistributionDataElementPath(aristotle.models.aristotleComponent):
     )
 
 
-
-
-CARDINALITY = Choices(('optional', _('Optional')), ('conditional', _('Conditional')), ('mandatory', _('Mandatory')))
-
-
 class DataSetSpecification(aristotle.models.concept):
     """
     A collection of :model:`aristotle_mdr.DataElement`\s
@@ -261,14 +229,14 @@ class DataSetSpecification(aristotle.models.concept):
         )
 
     def addDataElement(self, data_element, **kwargs):
-        inc = DSSDEInclusion.objects.get_or_create(
+        DSSDEInclusion.objects.get_or_create(
             data_element=data_element,
             dss=self,
             defaults=kwargs
             )
 
     def addCluster(self, child, **kwargs):
-        inc = DSSClusterInclusion.objects.get_or_create(
+        DSSClusterInclusion.objects.get_or_create(
             child=child,
             dss=self,
             defaults=kwargs
@@ -413,31 +381,7 @@ class DataSetSpecification(aristotle.models.concept):
 
     @property
     def relational_attributes(self):
-        rels = {}
-        if "comet" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
-            from comet.models import Indicator
-
-            rels.update({
-                "as_numerator": {
-                    "all": _("As a numerator in an Indicator"),
-                    "qs": Indicator.objects.filter(
-                        indicatornumeratordefinition__data_set_specification=self
-                    ).distinct()
-                },
-                "as_denominator": {
-                    "all": _("As a denominator in an Indicator"),
-                    "qs": Indicator.objects.filter(
-                        indicatordenominatordefinition__data_set_specification=self
-                    ).distinct()
-                },
-                "as_disaggregator": {
-                    "all": _("As a disaggregation in an Indicator"),
-                    "qs": Indicator.objects.filter(
-                        indicatordisaggregationdefinition__data_set_specification=self
-                    ).distinct()
-                },
-            })
-        return rels
+        return get_comet_indicator_relational_attributes(self)
 
 
 class DSSInclusion(aristotle.models.aristotleComponent):
@@ -483,7 +427,6 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         blank=True,
         help_text=_("If a dataset is ordered, this indicates which position this item is in a dataset.")
         )
-
 
 
 class DSSGrouping(aristotle.models.aristotleComponent):

@@ -6,7 +6,7 @@
     brief: A Relation defines a relationship that can be used to link different metadata
         items within the registry. Each Relation can specify a number of roles that metadata
         can fill within the relationship.
-    offical_definition: >
+    official_definition: >
         Relation is a class each instance of which models a relation (3.2.119),
         a sense in which concepts (3.2.18) may be connected via constituent
         relation roles (3.2.120).

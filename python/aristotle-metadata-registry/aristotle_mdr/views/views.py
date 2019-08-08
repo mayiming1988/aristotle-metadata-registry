@@ -45,7 +45,7 @@ from aristotle_mdr.views.utils import (
 )
 from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
-from aristotle_mdr.contrib.links.utils import get_links_for_concept
+from aristotle_mdr.contrib.links.utils import get_all_links_for_concept
 from aristotle_bg_workers.tasks import register_items
 from aristotle_bg_workers.utils import run_task_on_commit
 
@@ -240,7 +240,16 @@ class ConceptRenderView(TagsMixin, TemplateView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_links(self):
-        return get_links_for_concept(self.item)
+        from_links = []
+        to_links = []
+
+        for l in get_all_links_for_concept(self.item):
+            if l.root_item_id == self.item.pk:
+                from_links.append(l)
+            else:
+                to_links.append(l)
+
+        return (from_links, to_links)
 
     def get_custom_values(self):
         allowed = CustomField.objects.get_allowed_fields(self.item.concept, self.request.user)
@@ -261,6 +270,8 @@ class ConceptRenderView(TagsMixin, TemplateView):
 
         aristotle_settings = fetch_aristotle_settings()
 
+        links_from, links_to = self.get_links()
+
         context.update({
             'last_edit': Version.objects.get_for_object(self.item).first(),
             # Only display viewable slots
@@ -269,7 +280,9 @@ class ConceptRenderView(TagsMixin, TemplateView):
             'statuses': self.item.current_statuses,
             'discussions': self.item.relatedDiscussions.all(),
             'activetab': 'item',
-            'links': self.get_links(),
+            'has_links': links_from or links_to,
+            'links_from': links_from,
+            'links_to': links_to,
             'custom_values': self.get_custom_values(),
             'submitting_organizations': self.item.submitting_organizations,
             'responsible_organizations': self.item.responsible_organizations,
@@ -359,7 +372,7 @@ def registrationHistory(request, iid):
         else:
             raise PermissionDenied
 
-    history = item.statuses.order_by("registrationAuthority", "-registrationDate")
+    history = item.statuses.order_by("registrationAuthority", "-registrationDate", "-until_date", "-created")
     out = {}
     for status in history:
         if status.registrationAuthority in out.keys():

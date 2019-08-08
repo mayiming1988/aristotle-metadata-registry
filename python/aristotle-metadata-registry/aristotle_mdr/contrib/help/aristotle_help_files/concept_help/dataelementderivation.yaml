@@ -6,7 +6,7 @@
     brief: A Data Element Derivation describes a standardised rule or equation that transforms
         a set of input Data Elements to produce a set of output [[Data Element|s]].
         application of a derivation rule to one or more input
-    offical_definition: >
+    official_definition: >
         application of a derivation rule to one or more input [[data element|s]]
         to derive one or more output data elements.
     official_reference: ISO/IEC 11179 - Clause 3.2.33

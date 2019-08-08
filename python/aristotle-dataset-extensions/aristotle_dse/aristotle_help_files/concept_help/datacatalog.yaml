@@ -4,7 +4,7 @@
     concept_type: datacatalog
     language: en
     brief: A Data Catalog records a curated collection of data sets.
-    offical_definition: A representation of a catalog of data.
+    official_definition: A representation of a catalog of data.
     official_reference: "Data Catalog Vocabulary (DCAT): 5.1 Class: Catalog"
     official_link: https://www.w3.org/TR/vocab-dcat/
     body: >

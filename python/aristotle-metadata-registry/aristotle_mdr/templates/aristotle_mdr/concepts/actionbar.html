@@ -31,11 +31,6 @@
                     </a></li>
 
                 {% if item.stewardship_organisation and can_publish %}
-                    <li><a href="{% url 'aristotle_publishing:edit_version_history_visibility' item.id %}"
-                           data-toggle="modal" data-target="#infobox_adv_edit">
-                        <i class="fa fa-fw fa-history"></i> {% trans 'History visibility'%}
-                    </a>
-                    </li>
                     <li><a href="{% url 'aristotle_publishing:publish_item' item.meta.model_name item.id %}"
                            data-toggle="modal" data-target="#infobox_adv_edit">
                         <i class="fa fa-fw fa-globe"></i> {% trans 'Publication details'%}
@@ -49,7 +44,7 @@
                     </a></li>
                 {% endif %}
 
-                {% if can_supersede %}
+                {% if user_can_supersede %}
                     <li>
                       <a class="" href="{% url 'aristotle:supersede' item.id %}">
                         <i class="fa fa-fw fa-fast-forward"></i> {% trans 'Edit Supersedes'%}
@@ -70,7 +65,7 @@
                         <i class="fa fa-fw fa-sitemap"></i> {% trans 'Check component states'%}
                     </a></li>
                 {% endif %}
-                {% if 'aristotle_mdr_links'|is_active_extension %}
+                {% if can_edit and 'aristotle_mdr_links'|is_active_extension %}
                     {% include "aristotle_mdr_links/actions/add_link_action.html" %}
                 {% endif %}
             </ul>
