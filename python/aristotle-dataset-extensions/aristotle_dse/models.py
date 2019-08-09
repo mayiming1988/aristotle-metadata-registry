@@ -467,7 +467,7 @@ class DSSGrouping(aristotle.models.aristotleComponent):
 
 # Holds the link between a DSS and a Data Element with the DSS Specific details.
 class DSSDEInclusion(DSSInclusion):
-    data_element = ConceptForeignKey(aristotle.models.DataElement, related_name="dssInclusions")
+    data_element = ConceptForeignKey(aristotle.models.DataElement, related_name="dssInclusions", on_delete=models.CASCADE)
     group = models.ForeignKey(
         DSSGrouping,
         blank=True, null=True,

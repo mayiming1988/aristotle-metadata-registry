@@ -149,7 +149,7 @@ INSTALLED_APPS = (
     'django_filters',
 
     'django_jsonforms',
-    'missing',
+    'aristotle_mdr.vendor.missing',
     'mptt',
 
 )
