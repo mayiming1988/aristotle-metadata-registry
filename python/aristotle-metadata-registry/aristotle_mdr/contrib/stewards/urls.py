@@ -4,9 +4,8 @@ from .views import manager
 urlpatterns = [
     url(
         r'', include(
-            manager.group_backend_factory().get_urls(),
-            # CHECK - will this work when line below is commented?
-            # namespace="group"
+            (manager.group_backend_factory().get_urls(), 'aristotle_mdr.contrib.stewards'),
+            namespace="group"
         ),
     ),
     # url(

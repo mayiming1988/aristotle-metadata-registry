@@ -3,7 +3,13 @@
 import re, unicodedata
 
 from django import template
-from django.core import urlresolvers
+
+#######################################
+# UPDATED
+# from django.core import urlresolvers
+from django import urls as urlresolvers
+#######################################
+
 from django.conf import settings
 from django.template import defaultfilters
 from django.utils import encoding, html, safestring
@@ -213,8 +219,13 @@ def urltemplate_with_prefix(resolver, view, prefix, *args, **kwargs):
         args = list(args)
 
     possibilities = resolver.reverse_dict.getlist(view)
+    print(possibilities)
 
-    for possibility, pattern, defaults in possibilities:
+    ###############################################################
+    # UPDATED
+    # for possibility, pattern, defaults in possibilities:
+    ###############################################################
+    for possibility, pattern, defaults, _ in possibilities:
         assert len(possibility) > 0
 
         if len(possibility) > 1:
@@ -256,6 +267,12 @@ def urltemplate_namespaces(viewname, current_app=None, *args, **kwargs):
 
     resolved_path = []
     ns_pattern = ''
+    
+    ##################
+    # UPDATED
+    ns_converters = {}
+    ##################
+    
     while path:
         ns = path.pop()
 
@@ -279,13 +296,21 @@ def urltemplate_namespaces(viewname, current_app=None, *args, **kwargs):
             extra, resolver = resolver.namespace_dict[ns]
             resolved_path.append(ns)
             ns_pattern = ns_pattern + extra
+            ###############################################################
+            # UPDATED
+            ns_converters.update(resolver.pattern.converters)
+            ###############################################################
         except KeyError as key:
             if resolved_path:
                 raise urlresolvers.NoReverseMatch("%s is not a registered namespace inside '%s'" % (key, ':'.join(resolved_path)))
             else:
                 raise urlresolvers.NoReverseMatch("%s is not a registered namespace" % key)
     if ns_pattern:
-        resolver = urlresolvers.get_ns_resolver(ns_pattern, resolver)
+        ###############################################################
+        # UPDATED
+        # resolver = urlresolvers.get_ns_resolver(ns_pattern, resolver)
+        resolver = urlresolvers.get_ns_resolver(ns_pattern, resolver, tuple(ns_converters.items()))
+        ###############################################################
 
     return urltemplate_with_prefix(resolver, view, prefix, *args, **kwargs)
 
