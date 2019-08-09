@@ -1839,7 +1839,7 @@ class PossumProfile(models.Model):
     @property
     def is_ra_manager(self):
         user = self.user
-        if user.is_anonymous():
+        if user.is_anonymous:
             return False
         if user.is_superuser:
             return True

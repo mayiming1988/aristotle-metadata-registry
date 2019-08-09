@@ -214,7 +214,7 @@ def editInclusionDetails(request, dss_id, inc_type, cluster_id):
         raise Http404
     item = get_object_or_404(models.DataSetSpecification, pk=dss_id)
     if not user_can_edit(request.user, item):
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             return redirect(reverse('friendly_login') + '?next=%s' % request.path)
         else:
             raise PermissionDenied
@@ -256,7 +256,7 @@ def editInclusionOrder(request, dss_id, inc_type):
         raise Http404
     item = get_object_or_404(models.DataSetSpecification, pk=dss_id)
     if not user_can_edit(request.user, item):
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             return redirect(reverse('friendly_login') + '?next=%s' % request.path)
         else:
             raise PermissionDenied
