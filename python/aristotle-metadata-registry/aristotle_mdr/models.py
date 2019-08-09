@@ -1481,11 +1481,13 @@ class PermissibleValue(AbstractValue):
     """
 
     class Meta:
+        ordering = ['order']
         verbose_name = "Permissible Value"
 
 
 class SupplementaryValue(AbstractValue):
     class Meta:
+        ordering = ['order']
         verbose_name = "Supplementary Value"
 
 
