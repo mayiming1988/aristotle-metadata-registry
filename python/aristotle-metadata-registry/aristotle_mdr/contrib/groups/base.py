@@ -46,6 +46,7 @@ class AbstractMembershipBase(ModelBase):
                     clsobj.group_class,
                     related_name="members",
                     **clsobj.group_kwargs,
+                    on_delete=models.CASCADE
                 )
             )
 
@@ -66,7 +67,7 @@ class AbstractMembership(AbstractMembershipModel, metaclass=AbstractMembershipBa
         abstract = True
         unique_together = ("user", "group")
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
 
 
 class AbstractMultipleMembership(AbstractMembershipModel, metaclass=AbstractMembershipBase):
@@ -74,7 +75,7 @@ class AbstractMultipleMembership(AbstractMembershipModel, metaclass=AbstractMemb
         abstract = True
         unique_together = ("user", "group", "role")
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
 
 
 class AbstractGroupBase(ModelBase):
