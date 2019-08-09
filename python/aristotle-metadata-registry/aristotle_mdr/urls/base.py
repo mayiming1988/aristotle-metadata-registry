@@ -14,9 +14,9 @@ urlpatterns = [
     url(r'^login/?$', FriendlyLoginView.as_view(), name='friendly_login'),
     url(r'^logout/?$', FriendlyLogoutView.as_view(), name='logout'),
     url(r'^django/admin/doc/', include('django.contrib.admindocs.urls')),
-    url(r'^django/admin/', include(admin.site.urls)),
+    url(r'^django/admin/', admin.site.urls),
     url(r'^ckeditor/', include('aristotle_mdr.urls.ckeditor_uploader')),
-    url(r'^account/notifications/', include(notifications.urls, namespace="notifications")),
+    url(r'^account/notifications/', include((notifications.urls, 'notifications'), namespace="notifications")),
     url(r'^account/password/reset/$', AristotlePasswordResetView.as_view()),
     url(r'^account/password/reset_done/$', AristotlePasswordResetView.as_view()),
     url(
