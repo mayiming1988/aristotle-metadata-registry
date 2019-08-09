@@ -91,8 +91,8 @@ urlpatterns = [
     url(r'^item/(?P<iid>\d+)(?:/.*)?$', views.ConceptView.as_view(), name='item_short'),  # Catch every other 'item' URL and throw it for a redirect
     url(r'^item/(?P<uuid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/?(.*)?$', views.concept_by_uuid, name='item_uuid'),
 
-    url(r'^unmanaged/measure/(?P<iid>\d+)(?:/(?P<model_slug>\w+)/(?P<name_slug>.+))?/?$', views.measure, name='measure'),
-    url(r"^managed_items/(?P<model_slug>.+)/(?P<iid>.+)?$", view=views.managed_item, name="view_managed_item"),
+    url(r'^unmanaged/measure/(?P<iid>\d+)(?:/(?P<model_slug>\w+)/(?P<name_slug>.+))?/?$', views.MeasureView.as_view(), name='measure'),
+    url(r"^managed_items/(?P<model_slug>.+)/(?P<iid>.+)?$", view=views.ManagedItemView.as_view(), name="view_managed_item"),
 
     # url(r'^create/?$', views.item, name='item'),
     url(r'^create/?$', views.create_list, name='create_list'),
