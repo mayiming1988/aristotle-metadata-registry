@@ -49,7 +49,7 @@ setup(
         'docutils',
 
         # Search requirements
-        'django-haystack>=2.7.dev1,<2.8.0',
+        'django-haystack~=2.8.0',
 
         # Rich text editors
         'django-ckeditor>=5.3.0',
