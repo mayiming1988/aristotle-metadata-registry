@@ -23,12 +23,12 @@ QUERY_OBJECTS = [
 def get_query_model(bases: List[Type]) -> Type:
     """Create the root level query objects from sub query objects"""
 
-    for imp in settings.EXTRA_GRAPHQL_QUERY_OBJS:
-        logger.warning('Importing: {imp}'.format(imp=imp))
+    for graphql_query_object in settings.EXTRA_GRAPHQL_QUERY_OBJS:
+        logger.warning('Importing: {}'.format(graphql_query_object))
         try:
-            query = import_string(imp)
+            query = import_string(graphql_query_object)
         except ImportError:
-            logger.warning('Could not import {}'.format(imp))
+            logger.warning('Could not import {}'.format(graphql_query_object))
             query = None
 
         if query:

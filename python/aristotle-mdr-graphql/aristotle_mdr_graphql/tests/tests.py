@@ -1,3 +1,6 @@
+import datetime
+import json
+from unittest import skip
 from django.test import Client, TestCase, tag, override_settings
 from django.urls import reverse
 from aristotle_mdr.tests import utils
@@ -6,11 +9,9 @@ from aristotle_dse import models as dse_models
 from aristotle_mdr.contrib.slots import models as slots_models
 from aristotle_mdr.contrib.identifiers import models as ident_models
 from aristotle_mdr.contrib.slots.tests import BaseSlotsTestCase
+from aristotle_mdr.contrib.reviews.models import ReviewRequest
 from aristotle_mdr_api.token_auth.models import AristotleToken
 from comet import models as comet_models
-
-import json
-from unittest import skip
 
 
 class BaseGraphqlTestCase(utils.LoggedInViewPages):
@@ -20,7 +21,7 @@ class BaseGraphqlTestCase(utils.LoggedInViewPages):
         super().setUp()
         self.client = Client()
 
-        self.apiurl = reverse('aristotle_graphql:graphql_api')
+        self.api_url = reverse('aristotle_graphql:graphql_api')
 
         self.dec = mdr_models.DataElementConcept.objects.create(
             name='Test Data Element Concept',
@@ -42,13 +43,13 @@ class BaseGraphqlTestCase(utils.LoggedInViewPages):
             valueDomain=self.vd
         )
 
-    def post_query(self, qstring, expected_code=200):
+    def post_query(self, query_string, expected_code=200):
         postdata = {
-            'query': qstring
+            'query': query_string
         }
 
         jsondata = json.dumps(postdata)
-        response = self.client.post(self.apiurl, jsondata, 'application/json')
+        response = self.client.post(self.api_url, jsondata, 'application/json')
         self.assertEqual(response.status_code, expected_code)
         response_json = json.loads(response.content)
         return response_json
@@ -77,13 +78,12 @@ class GraphqlFunctionalTests(BaseGraphqlTestCase, TestCase):
 
         self.login_editor()
 
-        response = self.client.get(self.apiurl, HTTP_ACCEPT='text/html')
+        response = self.client.get(self.api_url, HTTP_ACCEPT='text/html')
         self.assertRedirects(response, reverse('aristotle_graphql:graphql_explorer'))
 
-        response = self.client.get(self.apiurl+"?noexplorer", HTTP_ACCEPT='text/html')
+        response = self.client.get(self.api_url + "?noexplorer", HTTP_ACCEPT='text/html')
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed('graphene/graphiql.html')
-
 
         response = self.client.get(reverse('aristotle_graphql:graphql_explorer'))
         self.assertEqual(response.status_code, 200)
@@ -349,6 +349,19 @@ class GraphqlExternalViewTestCase(utils.AristotleTestUtils, TestCase):
         self.make_item_public(self.public, self.ra)
         self.default_query = 'query { metadata { edges { node { uuid } } } }'
 
+    def assert_default_query_works(self):
+        response = self.reverse_post(
+            'aristotle_graphql:external',
+            self.default_query,
+            content_type='application/graphql'
+        )
+        self.assertEqual(response.status_code, 200)
+        response_json = self.decode_response(response)
+        self.assertCountEqual(
+            response_json['data']['metadata']['edges'],
+            [{'node': {'uuid': str(self.public.uuid)}}]
+        )
+
     def decode_response(self, response):
         response_json = json.loads(response.content)
         self.assertFalse('errors' in response_json)
@@ -368,18 +381,8 @@ class GraphqlExternalViewTestCase(utils.AristotleTestUtils, TestCase):
             [{'node': {'uuid': str(self.public.uuid)}}]
         )
 
-    def test_query_with_gql_content(self):
-        response = self.reverse_post(
-            'aristotle_graphql:external',
-            self.default_query,
-            content_type='application/graphql'
-        )
-        self.assertEqual(response.status_code, 200)
-        response_json = self.decode_response(response)
-        self.assertCountEqual(
-            response_json['data']['metadata']['edges'],
-            [{'node': {'uuid': str(self.public.uuid)}}]
-        )
+    def test_default_query_with_gql_content(self):
+        self.assert_default_query_works()
 
     def test_query_with_bad_content(self):
         response = self.reverse_post(
@@ -449,17 +452,7 @@ class GraphqlExternalViewTestCase(utils.AristotleTestUtils, TestCase):
 
     def test_force_anon_if_no_token(self):
         self.login_editor()
-        response = self.reverse_post(
-            'aristotle_graphql:external',
-            self.default_query,
-            content_type='application/graphql'
-        )
-        self.assertEqual(response.status_code, 200)
-        response_json = self.decode_response(response)
-        self.assertCountEqual(
-            response_json['data']['metadata']['edges'],
-            [{'node': {'uuid': str(self.public.uuid)}}]
-        )
+        self.assert_default_query_works()
 
     def test_invalid_unicode_request(self):
         response = self.reverse_post(
@@ -597,35 +590,6 @@ class GraphqlPermissionsTests(BaseGraphqlTestCase, TestCase):
         self.assertEqual(edges[0]['node']['name'], 'Test Value Domain')
         self.assertEqual(len(edges[0]['node']['dataelementSet']['edges']), 0)
 
-    @skip('Review requests are not in graphql at the moment')
-    def test_reviewrequest_query_perms(self):
-
-        allowed_rr = mdr_models.ReviewRequest.objects.create(
-            requester=self.editor,
-            registration_authority=self.ra,
-            status=0,
-            state=1,
-            registration_date=datetime.date.today(),
-            cascade_registration=0
-        )
-
-        disallowed_rr = mdr_models.ReviewRequest.objects.create(
-            requester=self.viewer,
-            registration_authority=self.ra,
-            status=0,
-            state=0,
-            registration_date=datetime.date.today(),
-            cascade_registration=0
-        )
-
-        self.login_editor()
-
-        json_response = self.post_query('{ reviewRequests { edges { node { id state } } } }')
-        edges = json_response['data']['reviewRequests']['edges']
-
-        self.assertEqual(len(edges), 1)
-        self.assertEqual(edges[0]['node']['state'], 'A_1')
-
     def test_query_non_registered_item(self):
         # Test requesting an object without a defined node e.g. User
 
@@ -642,6 +606,34 @@ class GraphqlPermissionsTests(BaseGraphqlTestCase, TestCase):
     def test_external_graphql_404_when_not_enabled(self):
         response = self.client.get('aristotle_graphql:graphql_api')
         self.assertEqual(response.status_code, 404)
+
+    @skip('Review requests are not in graphql at the moment')
+    def test_reviewrequest_query_perms(self):
+        ReviewRequest.objects.create(
+            requester=self.editor,
+            registration_authority=self.ra,
+            status=0,
+            state=1,
+            registration_date=datetime.date.today(),
+            cascade_registration=0
+        )
+
+        ReviewRequest.objects.create(
+            requester=self.viewer,
+            registration_authority=self.ra,
+            status=0,
+            state=0,
+            registration_date=datetime.date.today(),
+            cascade_registration=0
+        )
+
+        self.login_editor()
+
+        json_response = self.post_query('{ reviewRequests { edges { node { id state } } } }')
+        edges = json_response['data']['reviewRequests']['edges']
+
+        self.assertEqual(len(edges), 1)
+        self.assertEqual(edges[0]['node']['state'], 'A_1')
 
 
 class GraphqlSlotsTests(BaseSlotsTestCase, BaseGraphqlTestCase, TestCase):

@@ -7,7 +7,6 @@ from model_utils.models import TimeStampedModel
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.fields import (
-    ConceptForeignKey,
     ShortTextField,
     ConceptManyToManyField,
 )

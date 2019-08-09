@@ -10,6 +10,7 @@ from aristotle_mdr.contrib.stewards import models as aristotle_steward_models
 from aristotle_mdr_graphql.fields import AristotleFilterConnectionField, AristotleConceptFilterConnectionField
 from aristotle_mdr_graphql.utils import type_from_model, type_from_concept_model, inline_type_from_model
 from aristotle_mdr_graphql import resolvers
+from aristotle_mdr_graphql.aristotle_filterset_classes import CollectionFilterSet
 
 
 # ReviewRequestNode = type_from_model(mdr_models.ReviewRequest)
@@ -47,7 +48,7 @@ DataElementNode = type_from_concept_model(
 )
 ValueDomainNode = type_from_concept_model(mdr_models.ValueDomain, resolver=resolvers.ValueDomainResolver())
 ClassificationSchemeNode = type_from_concept_model(aristotle_backwards_models.ClassificationScheme)
-CollectionNode = type_from_model(aristotle_steward_models.Collection)
+CollectionNode = type_from_model(aristotle_steward_models.Collection, filterset_class=CollectionFilterSet)
 RepresentationClassNode = type_from_model(aristotle_backwards_models.RepresentationClass)
 
 
