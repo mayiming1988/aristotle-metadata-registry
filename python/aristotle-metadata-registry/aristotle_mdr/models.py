@@ -1698,7 +1698,8 @@ class PossumProfile(models.Model):
     savedActiveWorkgroup = models.ForeignKey(
         Workgroup,
         blank=True,
-        null=True
+        null=True,
+        on_delete=models.SET_NULL,
     )
     profilePictureWidth = models.IntegerField(
         blank=True,
