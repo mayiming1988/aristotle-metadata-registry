@@ -1452,10 +1452,6 @@ class ValueDomain(concept):
                    'range for a set of all values for a Value Domain.')
     )
 
-    # Below is a dirty, dirty hack that came from re-designing permissible
-    # values
-
-    # TODO: Fix references to permissible and supplementary values
     @property
     def permissibleValues(self):
         return self.permissiblevalue_set.all()
@@ -1481,11 +1477,13 @@ class PermissibleValue(AbstractValue):
     """
 
     class Meta:
+        ordering = ['order']
         verbose_name = "Permissible Value"
 
 
 class SupplementaryValue(AbstractValue):
     class Meta:
+        ordering = ['order']
         verbose_name = "Supplementary Value"
 
 
