@@ -100,7 +100,7 @@ matrix:
       name: "Documentation"
       language: python
       env:
-        DB=postgres
+        DATABASE_URL=postgresql://postgres:@localhost/aristotle_test_db
       install:
         - pip install codecov coveralls
         - pip install 'tox>=3.0'
