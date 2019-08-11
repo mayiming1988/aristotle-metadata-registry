@@ -29,7 +29,7 @@ setup(
     ],
     install_requires = [
         'graphene-django~=2.5.0',
-        'graphene-django~=2.1.7',
+        'graphene~=2.1.7',
         'django-filter~=2.2.0'
     ]
 )
