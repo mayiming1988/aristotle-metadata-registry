@@ -42,6 +42,7 @@ setup(
         'six',  # Setuptools > 36 doesn't install this by default
         'pytz',
         'pyyaml',
+        'dj-database-url',
 
         'django-model-utils>=2.3.1',
         'django-notifications-hq==1.4',
