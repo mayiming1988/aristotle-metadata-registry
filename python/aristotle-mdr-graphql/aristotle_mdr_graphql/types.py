@@ -1,7 +1,8 @@
 import logging
-from graphene import relay, String as GrapheneString
+import graphene
 from aristotle_mdr import models as mdr_models
 from aristotle_mdr.contrib.custom_fields import models as cf_models
+from aristotle_mdr.contrib.slots import models as slots_models
 from aristotle_mdr.contrib.identifiers import models as ident_models
 from graphene_django.types import DjangoObjectType
 from aristotle_mdr_graphql import resolvers
@@ -15,7 +16,7 @@ class AristotleObjectType(DjangoObjectType):
 
     class Meta:
         model = mdr_models._concept
-        interfaces = (relay.Node, )
+        interfaces = (graphene.relay.Node, )
         filter_fields = []  # type: ignore
 
     @classmethod
@@ -23,7 +24,7 @@ class AristotleObjectType(DjangoObjectType):
 
         kwargs.update({
             'default_resolver': resolvers.aristotle_resolver,
-            'interfaces': (relay.Node, ),
+            'interfaces': (graphene.relay.Node, ),
         })
         if "filter_fields" not in kwargs.keys():
             kwargs['filter_fields'] = '__all__'
@@ -31,7 +32,7 @@ class AristotleObjectType(DjangoObjectType):
 
 
 class ScopedIdentifierNode(DjangoObjectType):
-    namespace_prefix = GrapheneString()
+    namespace_prefix = graphene.String()
 
     class Meta:
         model = ident_models.ScopedIdentifier
@@ -43,7 +44,7 @@ class ScopedIdentifierNode(DjangoObjectType):
 
 
 class CustomValueNode(DjangoObjectType):
-    field_name = GrapheneString()
+    field_name = graphene.String()
 
     class Meta:
         model = cf_models.CustomValue
@@ -55,7 +56,7 @@ class CustomValueNode(DjangoObjectType):
 
 
 class StatusNode(DjangoObjectType):
-    state_name = GrapheneString()
+    state_name = graphene.String()
 
     class Meta:
         model = mdr_models.Status
@@ -63,8 +64,8 @@ class StatusNode(DjangoObjectType):
 
 
 class AristotleConceptObjectType(DjangoObjectType):
-    aristotle_id = GrapheneString()
-    metadata_type = GrapheneString()
+    aristotle_id = graphene.String()
+    metadata_type = graphene.String()
     identifiers = DjangoListFilterField(ScopedIdentifierNode, filterset_class=IdentifierFilterSet)
     statuses = DjangoListFilterField(StatusNode, filterset_class=StatusFilterSet)
     custom_values_as_object = ObjectField()
@@ -72,7 +73,7 @@ class AristotleConceptObjectType(DjangoObjectType):
 
     class Meta:
         model = mdr_models._concept
-        interfaces = (relay.Node, )
+        interfaces = (graphene.relay.Node, )
         # filter_fields = '__all__'
         # filterset_class = ConceptFilterSet
 
@@ -82,30 +83,31 @@ class AristotleConceptObjectType(DjangoObjectType):
         # Default resolver is set in type_from_concept_model instead
         kwargs.update({
             # 'default_resolver': aristotle_resolver,
-            'interfaces': (relay.Node, ),
+            'interfaces': (graphene.relay.Node, ),
             # 'filter_fields': ['name'],
         })
         super().__init_subclass_with_meta__(*args, **kwargs)
 
-    # TODO: REMOVE THESE METHODS BECAUSE THEY ARE NOT BEING USED ANYWHERE.
-    # def resolve_metadata_type(self):
-    #     return "{}:{}".format(self.item._meta.app_label, self.item._meta.model_name)
+    # Important info: the following methods are actually used by GraphQL to resolve the queries:
+    # "customValuesAsObject", "metadataType" and "slotsAsObject".
+    def resolve_metadata_type(self):
+        return "{}:{}".format(self.item._meta.app_label, self.item._meta.model_name)
 
-    # def resolve_custom_values_as_object(self, info):
-    #     out = {}
-    #     for val in cf_models.CustomValue.objects.get_item_allowed(self.item, info.context.user):
-    #         out[val.field.name] = {
-    #             "type": val.field.type,
-    #             "value": val.content
-    #         }
-    #     return out
-    #
-    # def resolve_slots_as_object(self, info):
-    #     out = {}
-    #     for slot in slots_models.Slot.objects.get_item_allowed(self.item, info.context.user):
-    #         out[slot.name] = {
-    #             "type": slot.type,
-    #             "value": slot.value
-    #         }
-    #     return out
+    def resolve_custom_values_as_object(self, info):
+        out = {}
+        for val in cf_models.CustomValue.objects.get_item_allowed(self.item, info.context.user):
+            out[val.field.name] = {
+                "type": val.field.type,
+                "value": val.content
+            }
+        return out
+
+    def resolve_slots_as_object(self, info):
+        out = {}
+        for slot in slots_models.Slot.objects.get_item_allowed(self.item, info.context.user):
+            out[slot.name] = {
+                "type": slot.type,
+                "value": slot.value
+            }
+        return out
 

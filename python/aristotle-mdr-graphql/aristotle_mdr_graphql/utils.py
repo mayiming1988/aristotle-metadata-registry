@@ -46,15 +46,14 @@ def type_from_model(model: Type,
     """
     Create a relay node from a django model.
     You should pass a filter_fields parameter OR a filterset_class parameter, but not both at the same time.
-    :param model:
+    :param model: Model to query.
     :param filter_fields:
     :param filterset_class:
-    :param description:
+    :param description: String Documentation of the Model passed.
     :param meta_kwargs:
     :return:
     """
     new_model_name = model.__name__ + 'Node'
-    description = description or dedent(model.__doc__)
 
     _filter_fields: FFType = []
     if filter_fields is not None:
@@ -62,7 +61,7 @@ def type_from_model(model: Type,
 
     kwargs = dict(
         model=model,
-        description=description,
+        description=description or dedent(model.__doc__),
         filter_fields=_filter_fields,
         filterset_class=filterset_class,
         interfaces=(graphene.relay.Node, ),
@@ -85,11 +84,11 @@ def type_from_concept_model(model: Type[_concept],
     """
     Create a relay node from a concept with a custom base class for concept specific fields.
     You should pass a filter_fields parameter OR a filterset_class parameter, but not both at the same time.
-    :param model:
+    :param model: Model to query.
     :param filter_fields: Dictionary of fields to be used as filter parameters in GraphQL.
-    :param filterset_class: Class con
+    :param filterset_class: By default we use the ConceptFilterSet class.
     :param extra_filter_fields:
-    :param resolver:
+    :param resolver: Query resolver to be used.
     :param meta_kwargs:
     :return: Type
     """
@@ -98,7 +97,6 @@ def type_from_concept_model(model: Type[_concept],
     _filter_fields: Dict[str, List[str]] = {
         'name': ['exact', 'icontains', 'iexact'],
         'uuid': ['exact'],
-        # '_is_public': ['exact'],
     }
 
     # Assign _filter_fields from filter_fields arg if available
