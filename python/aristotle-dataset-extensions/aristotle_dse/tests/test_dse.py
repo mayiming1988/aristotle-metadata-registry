@@ -9,7 +9,7 @@ from aristotle_mdr.tests.main.test_wizards import ConceptWizardPage
 from aristotle_mdr.tests.utils import ManagedObjectVisibility
 from aristotle_mdr.utils import url_slugify_concept
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.test import TestCase, tag
 
 
