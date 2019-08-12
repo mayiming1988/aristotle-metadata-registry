@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import VueSimpleSuggest from 'vue-simple-suggest'
+import VueSimpleSuggest from './mySimpleSuggest.vue'
 import tagComponent from './tag.vue'
 
 export default {
@@ -22,11 +22,6 @@ export default {
             type: Array,
             required: true
         }
-    },
-    mounted: function() {
-        // Replace setText, since we are using event to add a tag anyways
-        // TODO Find a better long term solution to this
-        this.$children[0].setText = function() {}
     },
     computed: {
         newTags: function() {
