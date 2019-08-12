@@ -74,7 +74,7 @@ class AristotleConceptObjectType(DjangoObjectType):
         model = mdr_models._concept
         interfaces = (relay.Node, )
         # filter_fields = '__all__'
-        filterset_class = ConceptFilterSet
+        # filterset_class = ConceptFilterSet
 
     @classmethod
     def __init_subclass_with_meta__(cls, *args, **kwargs):
