@@ -1,5 +1,5 @@
 import logging
-from graphene import relay, String as graphene_string
+from graphene import relay, String as GrapheneString
 from aristotle_mdr import models as mdr_models
 from aristotle_mdr.contrib.custom_fields import models as cf_models
 from aristotle_mdr.contrib.identifiers import models as ident_models
@@ -31,7 +31,7 @@ class AristotleObjectType(DjangoObjectType):
 
 
 class ScopedIdentifierNode(DjangoObjectType):
-    namespace_prefix = graphene_string()
+    namespace_prefix = GrapheneString()
 
     class Meta:
         model = ident_models.ScopedIdentifier
@@ -43,7 +43,7 @@ class ScopedIdentifierNode(DjangoObjectType):
 
 
 class CustomValueNode(DjangoObjectType):
-    field_name = graphene_string()
+    field_name = GrapheneString()
 
     class Meta:
         model = cf_models.CustomValue
@@ -55,7 +55,7 @@ class CustomValueNode(DjangoObjectType):
 
 
 class StatusNode(DjangoObjectType):
-    state_name = graphene_string()
+    state_name = GrapheneString()
 
     class Meta:
         model = mdr_models.Status
@@ -63,8 +63,8 @@ class StatusNode(DjangoObjectType):
 
 
 class AristotleConceptObjectType(DjangoObjectType):
-    aristotle_id = graphene_string()
-    metadata_type = graphene_string()
+    aristotle_id = GrapheneString()
+    metadata_type = GrapheneString()
     identifiers = DjangoListFilterField(ScopedIdentifierNode, filterset_class=IdentifierFilterSet)
     statuses = DjangoListFilterField(StatusNode, filterset_class=StatusFilterSet)
     custom_values_as_object = ObjectField()
