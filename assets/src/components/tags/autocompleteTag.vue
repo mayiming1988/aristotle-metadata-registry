@@ -59,21 +59,18 @@ export default {
 
 <style>
 .vue-simple-suggest.designed .suggestions {
-  /* position: absolute;
-  left: 0;
-  right: 0;
-  top: 100%;
-  top: calc(100% + 5px); */
   border-radius: 3px;
   border: 1px solid #aaa;
   background-color: #fff;
   opacity: 1;
-  /* z-index: 1000; */
+  padding-left: 5px;
+  padding-right: 5px;
 }
 
 .vue-simple-suggest.designed .suggestions .suggest-item {
   cursor: pointer;
   user-select: none;
+  list-style-type: none;
 }
 
 .vue-simple-suggest.designed .suggestions .suggest-item,
