@@ -3,11 +3,11 @@ import django_filters
 
 
 class AristotleIdFilterSet(FilterSet):
-    aristotle_id = django_filters.CharFilter(name='id')
+    aristotle_id = django_filters.CharFilter(field_name='id')
 
 
 class IdentifierFilterSet(FilterSet):
-    namespace = django_filters.CharFilter(name='namespace__shorthand_prefix', lookup_expr='iexact', distinct=True)
+    namespace = django_filters.CharFilter(field_name='namespace__shorthand_prefix', lookup_expr='iexact', distinct=True)
 
     class Meta:
         fields = ['namespace']
@@ -15,7 +15,7 @@ class IdentifierFilterSet(FilterSet):
 
 class StatusFilterSet(FilterSet):
     is_current = django_filters.BooleanFilter(method='filter_is_current')
-    ra = django_filters.CharFilter(name='registrationAuthority__uuid', lookup_expr='iexact', distinct=True)
+    ra = django_filters.CharFilter(field_name='registrationAuthority__uuid', lookup_expr='iexact', distinct=True)
 
     class Meta:
         fields = ['is_current', 'ra']
@@ -29,11 +29,11 @@ class StatusFilterSet(FilterSet):
 
 class ConceptFilterSet(FilterSet):
     name = django_filters.CharFilter(field_name='name', lookup_expr=['exact', 'icontains', 'iexact'])
-    uuid = django_filters.CharFilter(name='uuid', lookup_expr='exact', distinct=True)
-    aristotle_id = django_filters.CharFilter(name='id')
-    identifier = django_filters.CharFilter(name='identifiers__identifier', lookup_expr='iexact', distinct=True)
-    identifier_namespace = django_filters.CharFilter(name='identifiers__namespace__shorthand_prefix', lookup_expr='iexact', distinct=True)
-    identifier_version = django_filters.CharFilter(name='identifiers__version', lookup_expr='iexact', distinct=True)
+    uuid = django_filters.CharFilter(field_name='uuid', lookup_expr='exact', distinct=True)
+    aristotle_id = django_filters.CharFilter(field_name='id')
+    identifier = django_filters.CharFilter(field_name='identifiers__identifier', lookup_expr='iexact', distinct=True)
+    identifier_namespace = django_filters.CharFilter(field_name='identifiers__namespace__shorthand_prefix', lookup_expr='iexact', distinct=True)
+    identifier_version = django_filters.CharFilter(field_name='identifiers__version', lookup_expr='iexact', distinct=True)
     only_public = django_filters.BooleanFilter(method='filter_only_public')
 
     def filter_only_public(self, qs, name, value):
