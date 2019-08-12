@@ -23,10 +23,15 @@ export default {
             required: true
         }
     },
+    mounted: function() {
+        // Replace setText, since we are using event to add a tag anyways
+        // TODO Find a better long term solution to this
+        this.$children[0].setText = function() {}
+    },
     computed: {
         newTags: function() {
-            var newTags = []
-            for (var element of this.current_tags) {
+            let newTags = []
+            for (let element of this.current_tags) {
                 if (!this.user_tags.includes(element)) {
                     newTags.push(element)
                 }
@@ -36,8 +41,8 @@ export default {
     },
     methods: {
         getSuggestions: function() {
-            var suggestions = []
-            for (var element of this.user_tags) {
+            let suggestions = []
+            for (let element of this.user_tags) {
                 // Add to suggestions if not in current tags
                 if (!this.current_tags.includes(element)) {
                     suggestions.push(element)
