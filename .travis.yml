@@ -110,9 +110,9 @@ matrix:
       <<: *main_test_script_py36
 
     - stage: "Testing Django Modules"
-      name: "Aristotle Tests Postgres/Elasticsearch"
-      env: DB=postgres  SEARCH=elastic MODULE=amr
-      <<: *main_test_script_py36
+        name: "Aristotle Tests Postgres/Elasticsearch"
+        env: DB=postgres  SEARCH=elastic MODULE=amr
+        <<: *main_test_script_py36
 
     - stage: "Testing Django Modules"
       name: "Aristotle Tests Postgres/Whoosh"
@@ -121,10 +121,10 @@ matrix:
       <<: *main_test_script_py36
 
     - stage: "Testing Django Modules"
-      name: "Aristotle Tests MariaDB/Elasticsearch"
-      if: type = push
-      env: DB=mariadb   SEARCH=elastic MODULE=amr
-      <<: *main_test_script_py36
+        name: "Aristotle Tests MariaDB/Elasticsearch"
+        if: type = push
+        env: DB=mariadb   SEARCH=elastic MODULE=amr
+        <<: *main_test_script_py36
 
     - stage: "Testing Django Modules"
       name: "Aristotle Tests MariaDB/Whoosh"
