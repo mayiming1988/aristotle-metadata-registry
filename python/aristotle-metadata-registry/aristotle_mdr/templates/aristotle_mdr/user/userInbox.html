@@ -68,7 +68,6 @@
                     {% endif %}
 
                     {% if notice.target %}
-{#                        {% trans "in" %}#}
                         {% if notice.target.get_absolute_url %}
                             <a href="{{notice.target.get_absolute_url}}">{{ notice.target }}</a>
                         {% else %}
