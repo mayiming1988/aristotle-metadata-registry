@@ -17,6 +17,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='userviewhistory',
             name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='recently_viewed_metadata', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='recently_viewed_metadata', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADEsettings.AUTH_USER_MODEL),
         ),
     ]

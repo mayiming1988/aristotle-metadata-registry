@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(default='Token', max_length=100)),
                 ('key', models.CharField(max_length=40, unique=True, verbose_name='Key')),
                 ('permissions', jsonfield.fields.JSONField()),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='auth_token', to=settings.AUTH_USER_MODEL, verbose_name='User')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='auth_token', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADEsettings.AUTH_USER_MODEL, verbose_name='User')),
             ],
             options={
                 'verbose_name': 'Token',

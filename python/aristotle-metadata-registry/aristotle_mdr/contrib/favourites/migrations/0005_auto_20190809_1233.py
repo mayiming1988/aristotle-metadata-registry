@@ -16,6 +16,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='tag',
             name='profile',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='tags', to='aristotle_mdr.PossumProfile'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='tags', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.PossumProfile'),
         ),
     ]

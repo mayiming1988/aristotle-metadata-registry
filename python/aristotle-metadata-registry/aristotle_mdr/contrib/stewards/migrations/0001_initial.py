@@ -28,8 +28,8 @@ class Migration(migrations.Migration):
                 ('name', aristotle_mdr.fields.ShortTextField(help_text='The name of the group.')),
                 ('description', ckeditor_uploader.fields.RichTextUploadingField(blank=True, verbose_name='description')),
                 ('metadata', aristotle_mdr.fields.ConceptManyToManyField(blank=True, to='aristotle_mdr._concept')),
-                ('parent_collection', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr_stewards.Collection')),
-                ('stewardship_organisation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.StewardOrganisation', to_field='uuid')),
+                ('parent_collection', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr_stewards.Collection')),
+                ('stewardship_organisation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.StewardOrganisation', to_field='uuid')),
             ],
             options={
                 'abstract': False,

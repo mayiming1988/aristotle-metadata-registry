@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='valuedomain',
             name='classification_scheme',
-            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='valueDomains', to='aristotle_mdr_backwards.ClassificationScheme', verbose_name='Classification Scheme'),
+            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='valueDomains', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr_backwards.ClassificationScheme', verbose_name='Classification Scheme'),
         ),
         migrations.AlterField(
             model_name='permissiblevalue',

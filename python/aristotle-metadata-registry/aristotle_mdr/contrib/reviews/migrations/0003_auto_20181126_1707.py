@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
                 ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
                 ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
                 ('registration_state', models.IntegerField(choices=[(0, 'Not Progressed'), (1, 'Incomplete'), (2, 'Candidate'), (3, 'Recorded'), (4, 'Qualified'), (5, 'Standard'), (6, 'Preferred Standard'), (7, 'Superseded'), (8, 'Retired')], help_text='The state at which a user wishes a metadata item to be endorsed')),
-                ('actor', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('actor', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADEsettings.AUTH_USER_MODEL)),
             ],
             options={
                 'ordering': ['created'],
@@ -37,7 +37,7 @@ class Migration(migrations.Migration):
                 ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
                 ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
                 ('status', models.IntegerField(choices=[(0, 'Open'), (5, 'Revoked'), (10, 'Approved'), (15, 'Closed')], default=0, help_text='Status of a review')),
-                ('actor', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('actor', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADEsettings.AUTH_USER_MODEL)),
             ],
             options={
                 'ordering': ['created'],
@@ -61,11 +61,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='reviewstatuschangetimeline',
             name='request',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='state_changes', to='aristotle_mdr_review_requests.ReviewRequest'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='state_changes', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr_review_requests.ReviewRequest'),
         ),
         migrations.AddField(
             model_name='reviewendorsementtimeline',
             name='request',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='endorsements', to='aristotle_mdr_review_requests.ReviewRequest'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='endorsements', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr_review_requests.ReviewRequest'),
         ),
     ]

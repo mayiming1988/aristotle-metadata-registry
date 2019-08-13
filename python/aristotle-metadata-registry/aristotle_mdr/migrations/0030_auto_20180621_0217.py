@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='possumprofile',
             name='profilePicture',
-            field=aristotle_mdr.fields.ConvertedConstrainedImageField(blank=True, height_field='profilePictureHeight', js_checker=True, max_upload_size=1073741824, mime_lookup_length=4096, null=True, upload_to='', width_field='profilePictureWidth'),
+            field=aristotle_mdr.fields.ConvertedConstrainedImageField(blank=True, height_field='profilePictureHeight', js_checker=True, max_upload_size=1073741824, mime_lookup_length=4096, null=True, upload_on_delete=django.db.models.deletion.CASCADE, to='', width_field='profilePictureWidth'),
         ),
         migrations.AddField(
             model_name='possumprofile',

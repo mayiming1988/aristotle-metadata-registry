@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('name', aristotle_mdr.fields.ShortTextField(help_text='The name applied to the grouping.')),
                 ('definition', ckeditor_uploader.fields.RichTextUploadingField(verbose_name='definition')),
                 ('order', models.PositiveSmallIntegerField(blank=True, null=True, verbose_name='Position')),
-                ('dss', aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='groups', to='aristotle_dse.DataSetSpecification')),
+                ('dss', aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='groups', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_dse.DataSetSpecification')),
             ],
             options={
                 'ordering': ['order'],
@@ -31,6 +31,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='dssdeinclusion',
             name='group',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_dse.DSSGrouping'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_dse.DSSGrouping'),
         ),
     ]

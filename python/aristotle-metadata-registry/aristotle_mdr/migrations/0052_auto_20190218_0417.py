@@ -39,7 +39,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='supersederelationship',
             name='review',
-            field=aristotle_mdr.fields.ConceptForeignKey(default=None, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='supersedes', to='aristotle_mdr_review_requests.ReviewRequest'),
+            field=aristotle_mdr.fields.ConceptForeignKey(default=None, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='supersedes', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr_review_requests.ReviewRequest'),
         ),
         migrations.DeleteModel(
             name='ReviewRequest',

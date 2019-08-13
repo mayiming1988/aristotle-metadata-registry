@@ -17,11 +17,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='datasetspecification',
             name='statistical_unit',
-            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='Indiciates if the ordering for a dataset is must match exactly the order laid out in the specification.', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='statistical_unit_of', to='aristotle_mdr._concept', verbose_name='Statistical Unit'),
+            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='Indiciates if the ordering for a dataset is must match exactly the order laid out in the specification.', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='statistical_unit_of', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr._concept', verbose_name='Statistical Unit'),
         ),
         migrations.AlterField(
             model_name='distributiondataelementpath',
             name='data_element',
-            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='An entity responsible for making the dataset available.', null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.DataElement', verbose_name='Data Element'),
+            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='An entity responsible for making the dataset available.', null=True, on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.DataElement', verbose_name='Data Element'),
         ),
     ]

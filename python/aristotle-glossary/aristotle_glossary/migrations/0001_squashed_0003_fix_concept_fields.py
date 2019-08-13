@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GlossaryItem',
             fields=[
-                ('_concept_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='aristotle_mdr._concept')),
+                ('_concept_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr._concept')),
                 ('index', models.ManyToManyField(related_name='related_glossary_items', null=True, to='aristotle_mdr._concept', blank=True)),
             ],
             options={
@@ -32,12 +32,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='glossaryadditionaldefinition',
             name='glossaryItem',
-            field=models.ForeignKey(related_name='alternate_definitions', to='aristotle_glossary.GlossaryItem'),
+            field=models.ForeignKey(related_name='alternate_definitions', on_delete=django.db.models.deletion.CASCADE, to='aristotle_glossary.GlossaryItem'),
         ),
         migrations.AddField(
             model_name='glossaryadditionaldefinition',
             name='registrationAuthority',
-            field=models.ForeignKey(to='aristotle_mdr.RegistrationAuthority'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.RegistrationAuthority'),
         ),
         migrations.AlterUniqueTogether(
             name='glossaryadditionaldefinition',

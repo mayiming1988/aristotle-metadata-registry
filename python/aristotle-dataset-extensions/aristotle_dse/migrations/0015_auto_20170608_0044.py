@@ -38,36 +38,36 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='datasetspecification',
             name='statistical_unit',
-            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='Indiciates if the ordering for a dataset is must match exactly the order laid out in the specification.', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='statistical_unit_of', to='aristotle_mdr._concept'),
+            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='Indiciates if the ordering for a dataset is must match exactly the order laid out in the specification.', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='statistical_unit_of', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr._concept'),
         ),
         migrations.AlterField(
             model_name='distribution',
             name='specification',
-            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='The dataset specification to which this data source conforms', null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_dse.DataSetSpecification'),
+            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='The dataset specification to which this data source conforms', null=True, on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_dse.DataSetSpecification'),
         ),
         migrations.AlterField(
             model_name='distributiondataelementpath',
             name='data_element',
-            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='An entity responsible for making the dataset available.', null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.DataElement'),
+            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='An entity responsible for making the dataset available.', null=True, on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.DataElement'),
         ),
         migrations.AlterField(
             model_name='dssclusterinclusion',
             name='child',
-            field=aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='parent_dss', to='aristotle_dse.DataSetSpecification'),
+            field=aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='parent_dss', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_dse.DataSetSpecification'),
         ),
         migrations.AlterField(
             model_name='dssclusterinclusion',
             name='dss',
-            field=aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aristotle_dse.DataSetSpecification'),
+            field=aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_dse.DataSetSpecification'),
         ),
         migrations.AlterField(
             model_name='dssdeinclusion',
             name='data_element',
-            field=aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='dssInclusions', to='aristotle_mdr.DataElement'),
+            field=aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='dssInclusions', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.DataElement'),
         ),
         migrations.AlterField(
             model_name='dssdeinclusion',
             name='dss',
-            field=aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aristotle_dse.DataSetSpecification'),
+            field=aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_dse.DataSetSpecification'),
         ),
     ]

@@ -17,32 +17,32 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='_concept',
             name='superseded_by',
-            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='supersedes', to='aristotle_mdr._concept'),
+            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='supersedes', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr._concept'),
         ),
         migrations.AlterField(
             model_name='dataelement',
             name='dataElementConcept',
-            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='binds with a Value_Domain that describes a set of possible values that may be recorded in an instance of the Data_Element', null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.DataElementConcept', verbose_name='Data Element Concept'),
+            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='binds with a Value_Domain that describes a set of possible values that may be recorded in an instance of the Data_Element', null=True, on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.DataElementConcept', verbose_name='Data Element Concept'),
         ),
         migrations.AlterField(
             model_name='dataelement',
             name='valueDomain',
-            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='binds with a Data_Element_Concept that provides the meaning for the Data_Element', null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.ValueDomain', verbose_name='Value Domain'),
+            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='binds with a Data_Element_Concept that provides the meaning for the Data_Element', null=True, on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.ValueDomain', verbose_name='Value Domain'),
         ),
         migrations.AlterField(
             model_name='dataelementconcept',
             name='conceptualDomain',
-            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='references a Conceptual_Domain that is part of the specification of the Data_Element_Concept', null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.ConceptualDomain'),
+            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='references a Conceptual_Domain that is part of the specification of the Data_Element_Concept', null=True, on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.ConceptualDomain'),
         ),
         migrations.AlterField(
             model_name='dataelementconcept',
             name='objectClass',
-            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='references an Object_Class that is part of the specification of the Data_Element_Concept', null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.ObjectClass'),
+            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='references an Object_Class that is part of the specification of the Data_Element_Concept', null=True, on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.ObjectClass'),
         ),
         migrations.AlterField(
             model_name='dataelementconcept',
             name='property',
-            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='references a Property that is part of the specification of the Data_Element_Concept', null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.Property'),
+            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='references a Property that is part of the specification of the Data_Element_Concept', null=True, on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.Property'),
         ),
         migrations.AlterField(
             model_name='dataelementderivation',
@@ -57,36 +57,36 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='permissiblevalue',
             name='valueDomain',
-            field=aristotle_mdr.fields.ConceptForeignKey(help_text='Enumerated Value Domain that this value meaning relates to', on_delete=django.db.models.deletion.CASCADE, related_name='permissiblevalue_set', to='aristotle_mdr.ValueDomain'),
+            field=aristotle_mdr.fields.ConceptForeignKey(help_text='Enumerated Value Domain that this value meaning relates to', on_delete=django.db.models.deletion.CASCADE, related_name='permissiblevalue_set', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.ValueDomain'),
         ),
         migrations.AlterField(
             model_name='status',
             name='concept',
-            field=aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='statuses', to='aristotle_mdr._concept'),
+            field=aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='statuses', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr._concept'),
         ),
         migrations.AlterField(
             model_name='supplementaryvalue',
             name='valueDomain',
-            field=aristotle_mdr.fields.ConceptForeignKey(help_text='Enumerated Value Domain that this value meaning relates to', on_delete=django.db.models.deletion.CASCADE, related_name='supplementaryvalue_set', to='aristotle_mdr.ValueDomain'),
+            field=aristotle_mdr.fields.ConceptForeignKey(help_text='Enumerated Value Domain that this value meaning relates to', on_delete=django.db.models.deletion.CASCADE, related_name='supplementaryvalue_set', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.ValueDomain'),
         ),
         migrations.AlterField(
             model_name='valuedomain',
             name='conceptual_domain',
-            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='The Conceptual Domain that this Value Domain which provides representation.', null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.ConceptualDomain'),
+            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='The Conceptual Domain that this Value Domain which provides representation.', null=True, on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.ConceptualDomain'),
         ),
         migrations.AlterField(
             model_name='valuedomain',
             name='data_type',
-            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='Datatype used in a Value Domain', null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.DataType'),
+            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='Datatype used in a Value Domain', null=True, on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.DataType'),
         ),
         migrations.AlterField(
             model_name='valuedomain',
             name='unit_of_measure',
-            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='Unit of Measure used in a Value Domain', null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.UnitOfMeasure'),
+            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='Unit of Measure used in a Value Domain', null=True, on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.UnitOfMeasure'),
         ),
         migrations.AlterField(
             model_name='valuemeaning',
             name='conceptual_domain',
-            field=aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.ConceptualDomain'),
+            field=aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.ConceptualDomain'),
         ),
     ]

@@ -17,6 +17,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='publicationrecord',
             name='publisher',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='published_content', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='published_content', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADEsettings.AUTH_USER_MODEL),
         ),
     ]

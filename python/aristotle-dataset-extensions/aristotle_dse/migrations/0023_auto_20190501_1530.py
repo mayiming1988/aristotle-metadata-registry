@@ -25,6 +25,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='datasetspecification',
             name='statistical_unit',
-            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='A Statistical Unit is the Object Class that is recorded against each entry described by this specification', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='statistical_unit_of', to='aristotle_mdr._concept', verbose_name='Statistical Unit'),
+            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, help_text='A Statistical Unit is the Object Class that is recorded against each entry described by this specification', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='statistical_unit_of', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr._concept', verbose_name='Statistical Unit'),
         ),
     ]

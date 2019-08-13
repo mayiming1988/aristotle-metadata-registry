@@ -24,19 +24,19 @@ class Migration(StewardMigration):
             migrations.AlterField(
                 model_name='registrationauthority',
                 name='stewardship_organisation',
-                field=models.ForeignKey(null=False, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.StewardOrganisation', to_field='uuid'),
+                field=models.ForeignKey(null=False, on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.StewardOrganisation', to_field='uuid'),
                 preserve_default=False,
             ),
             migrations.AlterField(
                 model_name='workgroup',
                 name='stewardship_organisation',
-                field=models.ForeignKey(null=False, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.StewardOrganisation', to_field='uuid'),
+                field=models.ForeignKey(null=False, on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.StewardOrganisation', to_field='uuid'),
                 preserve_default=False,
             ),
             migrations.AlterField(
                 model_name='measure',
                 name='stewardship_organisation',
-                field=models.ForeignKey(null=False, on_delete=django.db.models.deletion.CASCADE, related_name='managed_items', to='aristotle_mdr.StewardOrganisation', to_field='uuid'),
+                field=models.ForeignKey(null=False, on_delete=django.db.models.deletion.CASCADE, related_name='managed_items', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.StewardOrganisation', to_field='uuid'),
                 preserve_default=False,
             ),
         ]

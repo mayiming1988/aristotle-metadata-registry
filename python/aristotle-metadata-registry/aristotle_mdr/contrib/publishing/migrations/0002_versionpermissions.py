@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
                 ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
-                ('version', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False, to='reversion.Version')),
+                ('version', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'reversion.Version')),
                 ('visibility_permission', models.CharField(choices=[(0, 'Public'), (1, 'Authenticated'), (2, 'Workgroup')], default=2, max_length=20)),
             ],
             options={

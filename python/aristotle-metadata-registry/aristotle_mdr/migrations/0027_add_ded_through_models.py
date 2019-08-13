@@ -86,22 +86,22 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='dedinputsthrough',
             name='data_element_derivation',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.DataElementDerivation'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.DataElementDerivation'),
         ),
         migrations.AddField(
             model_name='dedinputsthrough',
             name='data_element',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.DataElement'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.DataElement'),
         ),
         migrations.AddField(
             model_name='dedderivesthrough',
             name='data_element_derivation',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.DataElementDerivation'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.DataElementDerivation'),
         ),
         migrations.AddField(
             model_name='dedderivesthrough',
             name='data_element',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.DataElement'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.DataElement'),
         ),
         migrations.RunPython(add_through, add_through_reverse)
     ]
