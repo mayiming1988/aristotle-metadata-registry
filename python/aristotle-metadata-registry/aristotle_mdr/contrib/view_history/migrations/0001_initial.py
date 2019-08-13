@@ -24,8 +24,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('view_date', models.DateTimeField(default=django.utils.timezone.now, help_text='When the item was viewed')),
-                ('concept', aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_view_history', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr._concept')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='recently_viewed_metadata', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADEsettings.AUTH_USER_MODEL)),
+                ('concept', aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_view_history', to='aristotle_mdr._concept')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='recently_viewed_metadata', to=settings.AUTH_USER_MODEL)),
             ],
         ),
     ]

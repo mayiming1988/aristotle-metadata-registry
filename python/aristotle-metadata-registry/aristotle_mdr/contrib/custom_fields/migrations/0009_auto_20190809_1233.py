@@ -16,6 +16,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='customfield',
             name='allowed_model',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'contenttypes.ContentType'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='contenttypes.ContentType'),
         ),
     ]

@@ -51,12 +51,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='workgroupmembership',
             name='group',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='members', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.Workgroup', to_field='uuid'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='members', to='aristotle_mdr.Workgroup', to_field='uuid'),
         ),
         migrations.AddField(
             model_name='workgroupmembership',
             name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADEsettings.AUTH_USER_MODEL),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterUniqueTogether(
             name='workgroupmembership',

@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
                 ('uuid', models.UUIDField(default=uuid.uuid1, editable=False, help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries', unique=True)),
                 ('name', aristotle_mdr.fields.ShortTextField(help_text='The primary name used for human identification purposes.')),
                 ('definition', ckeditor_uploader.fields.RichTextUploadingField(help_text='Representation of a concept by a descriptive statement which serves to differentiate it from related concepts. (3.2.39)', verbose_name='definition', null=True, blank=True)),
-                ('stewardship_organisation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.StewardOrganisation', to_field='uuid')),
+                ('stewardship_organisation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.StewardOrganisation', to_field='uuid')),
             ],
             options={
                 'abstract': False,
@@ -40,8 +40,8 @@ class Migration(migrations.Migration):
                 ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
                 ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
                 ('type', models.CharField(choices=[('s', 'Submitting Organization'), ('r', 'Responsible Organization')], max_length=1)),
-                ('concept', aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='org_records', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr._concept')),
-                ('organization_record', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.OrganizationRecord')),
+                ('concept', aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='org_records', to='aristotle_mdr._concept')),
+                ('organization_record', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.OrganizationRecord')),
             ],
             options={
                 'abstract': False,

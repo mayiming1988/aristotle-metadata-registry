@@ -20,6 +20,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='_concept',
             name='_type',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'contenttypes.ContentType'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='contenttypes.ContentType'),
         ),
     ]

@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
                 ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
                 ('body', models.TextField()),
-                ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADEsettings.AUTH_USER_MODEL)),
+                ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'ordering': ['created'],
@@ -45,9 +45,9 @@ class Migration(migrations.Migration):
                 ('due_date', models.DateField(help_text='Date and time a response is required', null=True, verbose_name='Date registration required')),
                 ('cascade_registration', models.IntegerField(choices=[(0, 'No'), (1, 'Yes')], default=0, help_text='Update the registration of associated items')),
                 ('concepts', models.ManyToManyField(related_name='rr_review_requests', to='aristotle_mdr._concept')),
-                ('registration_authority', models.ForeignKey(help_text='The registration authority the requester wishes to endorse the metadata item', on_delete=django.db.models.deletion.CASCADE, related_name='rr_requested_reviews', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.RegistrationAuthority')),
-                ('requester', models.ForeignKey(help_text='The user requesting a review', on_delete=django.db.models.deletion.CASCADE, related_name='rr_requested_reviews', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADEsettings.AUTH_USER_MODEL)),
-                ('workgroup', models.ForeignKey(help_text='A workgroup associated with this review', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='rr_workgroup_reviews', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.Workgroup')),
+                ('registration_authority', models.ForeignKey(help_text='The registration authority the requester wishes to endorse the metadata item', on_delete=django.db.models.deletion.CASCADE, related_name='rr_requested_reviews', to='aristotle_mdr.RegistrationAuthority')),
+                ('requester', models.ForeignKey(help_text='The user requesting a review', on_delete=django.db.models.deletion.CASCADE, related_name='rr_requested_reviews', to=settings.AUTH_USER_MODEL)),
+                ('workgroup', models.ForeignKey(help_text='A workgroup associated with this review', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='rr_workgroup_reviews', to='aristotle_mdr.Workgroup')),
             ],
             options={
                 'abstract': False,
@@ -56,6 +56,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='reviewcomment',
             name='request',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comments', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr_review_requests.ReviewRequest'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comments', to='aristotle_mdr_review_requests.ReviewRequest'),
         ),
     ]

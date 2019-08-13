@@ -18,11 +18,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='valuedomain',
             name='representation_class',
-            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='value_domains', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr_backwards.RepresentationClass', verbose_name='Representation Class'),
+            field=aristotle_mdr.fields.ConceptForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='value_domains', to='aristotle_mdr_backwards.RepresentationClass', verbose_name='Representation Class'),
         ),
         migrations.AlterField(
             model_name='measure',
             name='stewardship_organisation',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.StewardOrganisation', to_field='uuid'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.StewardOrganisation', to_field='uuid'),
         ),
     ]

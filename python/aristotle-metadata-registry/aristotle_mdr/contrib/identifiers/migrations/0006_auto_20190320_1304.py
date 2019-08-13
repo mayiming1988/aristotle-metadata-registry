@@ -51,7 +51,7 @@ class Migration(StewardMigration):
             migrations.AddField(
                 model_name='namespace',
                 name='stewardship_organisation',
-                field=models.ForeignKey(default=klass.get_uuid, on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.StewardOrganisation', to_field='uuid'),
+                field=models.ForeignKey(default=klass.get_uuid, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.StewardOrganisation', to_field='uuid'),
                 preserve_default=False,
             ),
             migrations.AddField(

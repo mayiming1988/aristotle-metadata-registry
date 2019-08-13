@@ -53,17 +53,17 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='supersederelationship',
             name='newer_item',
-            field=aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='superseded_items_relation_set', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr._concept'),
+            field=aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='superseded_items_relation_set', to='aristotle_mdr._concept'),
         ),
         migrations.AddField(
             model_name='supersederelationship',
             name='older_item',
-            field=aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='superseded_by_items_relation_set', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr._concept'),
+            field=aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='superseded_by_items_relation_set', to='aristotle_mdr._concept'),
         ),
         migrations.AddField(
             model_name='supersederelationship',
             name='registration_authority',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.RegistrationAuthority'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.RegistrationAuthority'),
         ),
         migrations.RunPython(move_to_new, move_to_old),
     ]

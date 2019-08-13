@@ -47,8 +47,8 @@ class Migration(migrations.Migration):
                 fields=[
                     ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                     ('role', models.CharField(choices=[('admin', 'Admin'), ('steward', 'Steward'), ('member', 'Member')], help_text='Role within this group', max_length=128)),
-                    ('group', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='members', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.StewardOrganisation', to_field='uuid')),
-                    ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADEsettings.AUTH_USER_MODEL)),
+                    ('group', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='members', to='aristotle_mdr.StewardOrganisation', to_field='uuid')),
+                    ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
                 ],
                 options={
                     'abstract': False,
@@ -58,20 +58,20 @@ class Migration(migrations.Migration):
             migrations.AddField(
                 model_name='_concept',
                 name='stewardship_organisation',
-                field=models.ForeignKey(null=True, blank=True, on_delete=django.db.models.deletion.CASCADE, related_name='metadata', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.StewardOrganisation', to_field='uuid'),
+                field=models.ForeignKey(null=True, blank=True, on_delete=django.db.models.deletion.CASCADE, related_name='metadata', to='aristotle_mdr.StewardOrganisation', to_field='uuid'),
                 preserve_default=False,
             ),
 
             migrations.AddField(
                 model_name='registrationauthority',
                 name='stewardship_organisation',
-                field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.StewardOrganisation', to_field='uuid'),
+                field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.StewardOrganisation', to_field='uuid'),
                 preserve_default=False,
             ),
             migrations.AddField(
                 model_name='workgroup',
                 name='stewardship_organisation',
-                field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.StewardOrganisation', to_field='uuid'),
+                field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.StewardOrganisation', to_field='uuid'),
                 preserve_default=False,
             ),
             migrations.AlterUniqueTogether(
@@ -81,7 +81,7 @@ class Migration(migrations.Migration):
             migrations.AddField(
                 model_name='measure',
                 name='stewardship_organisation',
-                field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='managed_items', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.StewardOrganisation', to_field='uuid'),
+                field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='managed_items', to='aristotle_mdr.StewardOrganisation', to_field='uuid'),
                 preserve_default=False,
             ),
             DBOnlySQL('SET CONSTRAINTS ALL IMMEDIATE', reverse_sql=migrations.RunSQL.noop, vendor='postgresql'),

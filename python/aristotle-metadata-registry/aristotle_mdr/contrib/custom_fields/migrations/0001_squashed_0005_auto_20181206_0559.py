@@ -39,8 +39,8 @@ class Migration(migrations.Migration):
                 ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
                 ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
                 ('content', models.TextField()),
-                ('concept', aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr._concept')),
-                ('field', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr_custom_fields.CustomField')),
+                ('concept', aristotle_mdr.fields.ConceptForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr._concept')),
+                ('field', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr_custom_fields.CustomField')),
             ],
             options={
                 'abstract': False,
@@ -74,7 +74,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='customfield',
             name='allowed_model',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'contenttypes.ContentType'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='contenttypes.ContentType'),
         ),
         migrations.AddField(
             model_name='customfield',
@@ -92,6 +92,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='customvalue',
             name='field',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='values', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr_custom_fields.CustomField'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='values', to='aristotle_mdr_custom_fields.CustomField'),
         ),
     ]

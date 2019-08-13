@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('rules', models.TextField(default='')),
-                ('registration_authority', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.RegistrationAuthority', unique=True)),
+                ('registration_authority', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='aristotle_mdr.RegistrationAuthority', unique=True)),
             ],
             options={
                 'abstract': False,

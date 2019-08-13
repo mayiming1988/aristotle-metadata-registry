@@ -28,8 +28,8 @@ class Migration(migrations.Migration):
                 ('object_id', models.PositiveIntegerField()),
                 ('permission', models.IntegerField(choices=[(0, 'Public'), (1, 'Authenticated'), (2, 'Workgroup')], default=0)),
                 ('publication_date', models.DateField(default=django.utils.timezone.now, help_text='Enter a date in the future to specify the date is published from.')),
-                ('content_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'contenttypes.ContentType')),
-                ('publisher', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='published_content', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADEsettings.AUTH_USER_MODEL)),
+                ('content_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='contenttypes.ContentType')),
+                ('publisher', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='published_content', to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
                 ('object_id', models.PositiveIntegerField()),
                 ('public_user_publication_date', models.DateTimeField(blank=True, default=None, help_text='Date from which public users can view version histories for this item.', null=True, verbose_name='Public version history start date')),
                 ('authenticated_user_publication_date', models.DateTimeField(blank=True, default=None, help_text='Date from which logged in users can view version histories for this item.', null=True, verbose_name='Logged-in version history start date')),
-                ('content_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'contenttypes.ContentType')),
+                ('content_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='contenttypes.ContentType')),
             ],
         ),
         migrations.AlterUniqueTogether(

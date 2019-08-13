@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='favourites', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr._concept')),
+                ('item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='favourites', to='aristotle_mdr._concept')),
             ],
         ),
         migrations.CreateModel(
@@ -30,12 +30,12 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(blank=True, max_length=200)),
                 ('description', models.TextField()),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('profile', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='favourites', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.PossumProfile')),
+                ('profile', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='favourites', to='aristotle_mdr.PossumProfile')),
             ],
         ),
         migrations.AddField(
             model_name='favourite',
             name='tag',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='favourites', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr_favourites.Tag'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='favourites', to='aristotle_mdr_favourites.Tag'),
         ),
     ]

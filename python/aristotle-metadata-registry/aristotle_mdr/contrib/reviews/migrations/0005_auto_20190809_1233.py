@@ -17,26 +17,26 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='reviewcomment',
             name='author',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADEsettings.AUTH_USER_MODEL),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterField(
             model_name='reviewendorsementtimeline',
             name='actor',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADEsettings.AUTH_USER_MODEL),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterField(
             model_name='reviewrequest',
             name='requester',
-            field=models.ForeignKey(help_text='The user requesting a review', on_delete=django.db.models.deletion.PROTECT, related_name='rr_requested_reviews', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADEsettings.AUTH_USER_MODEL),
+            field=models.ForeignKey(help_text='The user requesting a review', on_delete=django.db.models.deletion.PROTECT, related_name='rr_requested_reviews', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterField(
             model_name='reviewrequest',
             name='workgroup',
-            field=models.ForeignKey(help_text='A workgroup associated with this review', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='rr_workgroup_reviews', on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADE'aristotle_mdr.Workgroup'),
+            field=models.ForeignKey(help_text='A workgroup associated with this review', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='rr_workgroup_reviews', to='aristotle_mdr.Workgroup'),
         ),
         migrations.AlterField(
             model_name='reviewstatuschangetimeline',
             name='actor',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, on_delete=django.db.models.deletion.CASCADE, to=on_delete=django.db.models.deletion.CASCADEsettings.AUTH_USER_MODEL),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL),
         ),
     ]
