@@ -98,7 +98,6 @@ matrix:
       env: DB=sqlite  SEARCH=elastic MODULE=amr
       <<: *main_test_script_py36
 
-
     - name: "Aristotle Tests Postgres/Whoosh"
       if: type = push
       env: DB=postgres  SEARCH=whoosh MODULE=amr
