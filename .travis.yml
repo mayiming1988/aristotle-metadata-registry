@@ -44,7 +44,7 @@ defaults:
 matrix:
   include:
 
-    - stage: Style Check
+    - stage: "Style Check"
       name: "Python Lint"
       language: python
       python: 3.6
@@ -81,8 +81,9 @@ matrix:
         - pip install 'tox>=3.0'
       script: tox -e docs
 
+    # FRONTEND JAVASCRIPT TESTS:
     - stage: "Frontend"
-      name: "Frontend Tests"
+      name: "Javascript Tests"
       language: node_js
       node_js: 10
       before_install:
@@ -92,12 +93,31 @@ matrix:
       script:
         - npm run test
 
-    - stage: "Aristotle Metadata Registry Python"
+    # THESE JOBS MUST BE ALWAYS RUN TO RUN MAIN TESTS FOR ARISTOTLE MAIN REPO:
+    - stage: "Aristotle Compulsory Python Tests"
       name: "Aristotle Tests Postgres/Elasticsearch"
       env: DB=postgres  SEARCH=elastic MODULE=amr
       <<: *main_test_script_py36
 
-    - name: "Aristotle Tests Sqlite/Elasticsearch"
+    - name: "Dataset Extension Tests"
+      env: DB=postgres   SEARCH=elastic MODULE=dse
+      <<: *main_test_script_py36
+
+    - name: "Comet Extension Tests"
+      env: DB=postgres   SEARCH=elastic MODULE=cir
+      <<: *main_test_script_py36
+
+    - name: "Graphql Tests"
+      env: DB=postgres   SEARCH=elastic MODULE=gql
+      <<: *main_test_script_py36
+
+    - name: "API Tests"
+      env: DB=postgres   SEARCH=elastic MODULE=api
+      <<: *main_test_script_py36
+
+    # THE FOLLOWING JOBS ARE ONLY RUN IF TYPE OF GIT COMMAND = PUSH:
+    - stage: "Aristotle Metadata Registry Main Python Tests"
+      name: "Aristotle Tests Sqlite/Elasticsearch"
       if: type = push
       env: DB=sqlite  SEARCH=elastic MODULE=amr
       <<: *main_test_script_py36
@@ -122,24 +142,7 @@ matrix:
       env: DB=sqlite    SEARCH=whoosh MODULE=amr
       <<: *main_test_script_py36
 
-    - stage: "Aristotle Modules"
-      name: "Dataset Extenstions Tests"
-      env: DB=postgres   SEARCH=elastic MODULE=dse
-      <<: *main_test_script_py36
-
-    - name: "Comet Tests"
-      env: DB=postgres   SEARCH=elastic MODULE=cir
-      <<: *main_test_script_py36
-
-    - name: "Graphql Tests"
-      env: DB=postgres   SEARCH=elastic MODULE=gql
-      <<: *main_test_script_py36
-
-    - name: "API Tests"
-      env: DB=postgres   SEARCH=elastic MODULE=api
-      <<: *main_test_script_py36
-
-    # Test Accessibility
+    # ACCESSIBILITY TESTS:
     - stage: "Accessibility"
       name: "Accessibility Tests Metadata Item"
       <<: *test_accessibility_py36
@@ -151,8 +154,9 @@ matrix:
       <<: *test_accessibility_py36
       env: ALLY=static MODULE=aristotle-metadata-registry
 
-    - stage: "deploy-it"
-      name: "Deploy"
+    # DEPLOYMENT:
+    - stage: "Deployment"
+      name: "Deployment"
       if: branch = master
       install: skip
       script: ./scripts/buildandcopy.sh --manual
