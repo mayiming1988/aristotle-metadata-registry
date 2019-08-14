@@ -1,5 +1,6 @@
 from django_filters.filterset import FilterSet
 import django_filters
+from django.forms import CharField
 
 
 class AristotleIdFilterSet(FilterSet):
@@ -28,7 +29,7 @@ class StatusFilterSet(FilterSet):
 
 
 class ConceptFilterSet(FilterSet):
-    name = django_filters.CharFilter(field_name='name', lookup_expr=['exact', 'icontains', 'iexact'])
+    name = django_filters.LookupChoiceFilter(field_name='name', field_class=CharField, lookup_choices=['exact', 'icontains', 'iexact'])
     uuid = django_filters.CharFilter(field_name='uuid', lookup_expr='exact', distinct=True)
     aristotle_id = django_filters.CharFilter(field_name='id')
     identifier = django_filters.CharFilter(field_name='identifiers__identifier', lookup_expr='iexact', distinct=True)

@@ -62,7 +62,6 @@ class ConceptFilter(django_filters.rest_framework.FilterSet):
         )
     )
     modified = django_filters.DateFromToRangeFilter(
-        # lookup_expr=['exact', 'gte', 'lte'],
         help_text = (
             'An `app_label:concept_type` pair that filters results to '
             'only return concepts of the specified type.\n\n'
