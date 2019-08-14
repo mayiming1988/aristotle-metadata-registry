@@ -53,7 +53,6 @@ def type_from_model(model: Type,
     :param meta_kwargs:
     :return:
     """
-    new_model_name = model.__name__ + 'Node'
 
     _filter_fields: FFType = []
     if filter_fields is not None:
@@ -70,13 +69,13 @@ def type_from_model(model: Type,
     kwargs.update(meta_kwargs)
 
     meta_class = type('Meta', (object, ), kwargs)
-    dynamic_class = type(new_model_name, (AristotleObjectType, ), dict(Meta=meta_class))
+    dynamic_class = type(model.__name__ + 'Node', (AristotleObjectType, ), dict(Meta=meta_class))
     return dynamic_class
 
 
 def type_from_concept_model(model: Type[_concept],
                             filter_fields: FFType = None,
-                            filterset_class=ConceptFilterSet,
+                            # filterset_class=ConceptFilterSet,
                             extra_filter_fields: FFType = None,
                             resolver=aristotle_resolver,
                             meta_kwargs: KwargsType = {},
@@ -111,7 +110,7 @@ def type_from_concept_model(model: Type[_concept],
         model=model,
         description=dedent(model.__doc__),
         filter_fields=filter_fields,
-        filterset_class=filterset_class,
+        # filterset_class=filterset_class,
         interfaces=(graphene.relay.Node, ),
         default_resolver=resolver,
     ))
