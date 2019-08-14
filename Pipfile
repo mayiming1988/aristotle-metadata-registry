@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-# Needed for procuction
+# Needed for production
 elasticsearch = ">=5.0.0,<6.0.0"
 django-haystack-elasticsearch = "*"
 django-redis = "*"
