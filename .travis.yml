@@ -2,7 +2,13 @@ sudo: false
 dist: trusty
 
 defaults:
-  - &main_test_script
+  - &main_test_script_py36
+    language: python
+    python: 3.6
+    install:
+      - pip install codecov coveralls
+      - pip install 'tox>=3.0'
+      - nvm install 10.13.0
     before_script:
       ./scripts/main_before_script.sh
     script:
@@ -23,15 +29,6 @@ defaults:
         repo_token: ac63d774ebdd641ef502acf1588b36248726a28a50e4e1f4ba4295a157477f54
       mariadb: '10.1'
 
-  - &main_test_script_py36
-    language: python
-    python: 3.6
-    install:
-      - pip install codecov coveralls
-      - pip install 'tox>=3.0'
-      - nvm install 10.13.0
-    <<: *main_test_script
-
   - &test_accessibility_py36
     stage: accessibility
     name: "Accessibility Tests"
@@ -49,7 +46,7 @@ defaults:
 matrix:
   include:
 
-    - stage: "Style Check"
+    - stage: Style Check
       name: "Python Lint"
       language: python
       python: 3.6
@@ -97,36 +94,36 @@ matrix:
       script:
         - npm run test
 
-    - stage: "Testing Aristotle Metadata Registry"
+    - stage: Testing Aristotle Metadata Registry
       name: "Aristotle Tests Sqlite/Elasticsearch"
       if: type = push
       env: DB=sqlite  SEARCH=elastic MODULE=amr
       <<: *main_test_script_py36
 
-    - stage: "Testing Aristotle Metadata Registry"
+    - stage: Testing Aristotle Metadata Registry
       name: "Aristotle Tests Postgres/Whoosh"
       if: type = push
       env: DB=postgres  SEARCH=whoosh MODULE=amr
       <<: *main_test_script_py36
 
-    - stage: "Testing Aristotle Metadata Registry"
+    - stage: Testing Aristotle Metadata Registry
       name: "Aristotle Tests MariaDB/Whoosh"
       if: type = push
       env: DB=mariadb   SEARCH=whoosh MODULE=amr
       <<: *main_test_script_py36
 
-    - stage: "Testing Aristotle Metadata Registry"
+    - stage: Testing Aristotle Metadata Registry
       name: "Aristotle Tests MariaDB/Elasticsearch"
       if: type = push
       env: DB=mariadb   SEARCH=elastic MODULE=amr
       <<: *main_test_script_py36
 
-    - stage: "Testing Aristotle Metadata Registry"
+    - stage: Testing Aristotle Metadata Registry
       name: "Aristotle Tests Sqlite/Whoosh"
       if: type = push
       env: DB=sqlite    SEARCH=whoosh MODULE=amr
       <<: *main_test_script_py36
-      
+
     - stage: "Testing Modules"
       name: "Aristotle Tests Postgres/Elasticsearch"
       env: DB=postgres  SEARCH=elastic MODULE=amr
