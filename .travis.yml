@@ -103,17 +103,6 @@ matrix:
       env: DB=sqlite  SEARCH=elastic MODULE=amr
       <<: *main_test_script_py36
 
-    - stage: "Testing Modules"
-      name: "Aristotle Tests Postgres/Elasticsearch"
-      env: DB=postgres  SEARCH=elastic MODULE=amr
-      <<: *main_test_script_py36
-
-    - stage: "Testing Aristotle Metadata Registry"
-      name: "Aristotle Tests Sqlite/Whoosh"
-      if: type = push
-      env: DB=sqlite    SEARCH=whoosh MODULE=amr
-      <<: *main_test_script_py36
-
     - stage: "Testing Aristotle Metadata Registry"
       name: "Aristotle Tests Postgres/Whoosh"
       if: type = push
@@ -130,6 +119,17 @@ matrix:
       name: "Aristotle Tests MariaDB/Elasticsearch"
       if: type = push
       env: DB=mariadb   SEARCH=elastic MODULE=amr
+      <<: *main_test_script_py36
+
+    - stage: "Testing Aristotle Metadata Registry"
+      name: "Aristotle Tests Sqlite/Whoosh"
+      if: type = push
+      env: DB=sqlite    SEARCH=whoosh MODULE=amr
+      <<: *main_test_script_py36
+      
+    - stage: "Testing Modules"
+      name: "Aristotle Tests Postgres/Elasticsearch"
+      env: DB=postgres  SEARCH=elastic MODULE=amr
       <<: *main_test_script_py36
 
     - stage: "Testing Modules"
