@@ -30,8 +30,8 @@ defaults:
       mariadb: '10.1'
 
   - &test_accessibility_py36
-    language: python
-    python: 3.6
+#    language: python
+#    python: 3.6
     install:
       - pip install codecov coveralls
       - pip install 'tox>=3.0'
@@ -93,6 +93,8 @@ matrix:
         - npm run test
 
     - stage: "Testing Modules"
+      language: python
+      python: 3.6
       name: "Aristotle Tests Sqlite/Elasticsearch"
       if: type = push
       env: DB=sqlite  SEARCH=elastic MODULE=amr
