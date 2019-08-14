@@ -30,8 +30,6 @@ defaults:
       mariadb: '10.1'
 
   - &test_accessibility_py36
-    stage: accessibility
-    name: "Accessibility Tests"
     language: python
     python: 3.6
     install:
@@ -143,11 +141,15 @@ matrix:
       <<: *main_test_script_py36
 
     # Test Accessibility
-    - <<: *test_accessibility_py36
+    - stage: Accessibility
+      name: "Accessibility Tests Metadata Item"
+      <<: *test_accessibility_py36
       env: ALLY=metadata_item MODULE=aristotle-metadata-registry
-    - <<: *test_accessibility_py36
+    - name: "Accessibility Tests Metadata Action"
+      <<: *test_accessibility_py36
       env: ALLY=metadata_action MODULE=aristotle-metadata-registry
-    - <<: *test_accessibility_py36
+    - name: "Accessibility Tests Static"
+      <<: *test_accessibility_py36
       env: ALLY=static MODULE=aristotle-metadata-registry
 
     - stage: deploy-it
