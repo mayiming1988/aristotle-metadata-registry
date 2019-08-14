@@ -92,7 +92,7 @@ matrix:
       script:
         - npm run test
 
-    - stage: Testing Modules
+    - stage: "Testing Modules"
       name: "Aristotle Tests Sqlite/Elasticsearch"
       if: type = push
       env: DB=sqlite  SEARCH=elastic MODULE=amr
@@ -139,7 +139,7 @@ matrix:
       <<: *main_test_script_py36
 
     # Test Accessibility
-    - stage: Accessibility
+    - stage: "Accessibility"
       name: "Accessibility Tests Metadata Item"
       <<: *test_accessibility_py36
       env: ALLY=metadata_item MODULE=aristotle-metadata-registry
@@ -150,7 +150,7 @@ matrix:
       <<: *test_accessibility_py36
       env: ALLY=static MODULE=aristotle-metadata-registry
 
-    - stage: deploy-it
+    - stage: "deploy-it"
       name: "Deploy"
       if: branch = master
       install: skip
