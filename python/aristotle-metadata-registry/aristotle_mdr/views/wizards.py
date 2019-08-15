@@ -490,7 +490,7 @@ class DataElementConceptWizard(MultiStepAristotleWizard):
         else:
             return []
 
-    def get_form_kwargs(self, step):
+    def get_form_kwargs(self, step=None):
         # determine the step if not given
         if step is None:  # pragma: no cover
             step = self.steps.current
@@ -582,6 +582,7 @@ class DataElementConceptWizard(MultiStepAristotleWizard):
         pr = self.get_property()
         dec = None
         for form in form_list:
+
             saved_item = form.save(commit=False)
             if saved_item is not None:
                 saved_item.submitter = self.request.user
@@ -617,6 +618,7 @@ class DataElementConceptWizard(MultiStepAristotleWizard):
             dec.objectClass = oc
             dec.property = pr
             dec.save()
+
         return HttpResponseRedirect(url_slugify_concept(dec))
 
 
@@ -1010,6 +1012,7 @@ class DataElementWizard(MultiStepAristotleWizard):
             dec.objectClass = oc
             dec.property = pr
             dec.save()
+
         if de is not None:
             de.dataElementConcept = dec
             de.valueDomain = vd
