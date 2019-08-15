@@ -84,7 +84,7 @@ class AristotleConceptObjectType(DjangoObjectType):
         kwargs.update({
             # 'default_resolver': aristotle_resolver,
             'interfaces': (graphene.relay.Node, ),
-            # 'filter_fields': ['name'],
+            'filter_fields': ['name'],  # Since we updated to Django 2.2, this field is needed for graphene-django latest version.
         })
         super().__init_subclass_with_meta__(*args, **kwargs)
 
