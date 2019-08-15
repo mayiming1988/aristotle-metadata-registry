@@ -20,11 +20,11 @@ class SupersedeRelationshipFilter(django_filters.rest_framework.FilterSet):
         # strict = django_filters.STRICTNESS.RAISE_VALIDATION_ERROR
 
     superseded_by = django_filters.UUIDFilter(
-        name='newer_item__uuid',
+        field_name='newer_item__uuid',
         label="Superseded by"
     )
     superseded_item = django_filters.UUIDFilter(
-        name='older_item__uuid',
+        field_name='older_item__uuid',
         label="Superseded by"
     )
 
@@ -35,7 +35,7 @@ class ConceptFilterBackend(DjangoFilterBackend):
 
 class ConceptFilter(django_filters.rest_framework.FilterSet):
     superseded_by = django_filters.UUIDFilter(
-        name='superseded_by__uuid',
+        field_name='superseded_by__uuid',
         method='superseded_by_filter',
         label="Superseded by"
     )
