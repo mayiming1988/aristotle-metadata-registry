@@ -31,7 +31,7 @@ setup(
     ],
     install_requires=[
         'djangorestframework>=3.8',
-        'django-filter~=2.2.0',
+        'django-filter',
         'django-jsonforms',
         'coreapi',
         'drf-yasg==1.16.0',  # Pinning it because it tries to import packaging
