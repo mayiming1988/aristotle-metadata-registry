@@ -20,21 +20,20 @@ defaults:
       - mariadb
     addons:
       postgresql: "10"
-        apt:
+      apt:
+          sources:
+          - elasticsearch-5.x
           packages:
             - postgresql-10
             - postgresql-client-10
-      env:
-        global:
-          - PGPORT=5433
+            - elasticsearch
+            - libmariadbclient-dev
 
-      apt:
-        sources:
-          - elasticsearch-5.x
-        packages:
-          - elasticsearch
-          - libmariadbclient-dev
-      code_climate:
+    env:
+      global:
+        - PGPORT=5433
+
+    code_climate:
         repo_token: ac63d774ebdd641ef502acf1588b36248726a28a50e4e1f4ba4295a157477f54
       mariadb: '10.1'
 
