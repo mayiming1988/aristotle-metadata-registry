@@ -64,7 +64,7 @@ class AristotleBackend(ModelBackend):
         if perm == "aristotle_mdr.can_create_metadata":
             return perms.user_is_authenticated_and_active(user_obj)
 
-        if perm == "aristotle_mdr.view_workgroup":
+        if perm == "aristotle_mdr.can_view_workgroup":
             return perms.user_can_view_workgroup(user_obj, obj)
         if perm == "aristotle_mdr.can_leave_workgroup":
             return perms.user_in_workgroup(user_obj, obj)
