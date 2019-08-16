@@ -11,8 +11,8 @@ class NameSuggestInput(TextInput):
         self.separator = kwargs.pop('separator', '-')
         super().__init__(*args, **kwargs)
 
-    def render(self, name, value, attrs=None):
-        out = super().render(name, value, attrs)
+    def render(self, name, value, attrs=None, renderer=None):
+        out = super().render(name, value, attrs, renderer)
         if self.suggest_fields:
             button = "<button class=\"btn btn-default\" type='button' data-separator='{}' data-suggest-fields='{}'>Suggest</button>".format(self.separator, ",".join(self.suggest_fields))
             out = "<div class='suggest_name_wrapper'>{}{}</div>".format(out, button)
