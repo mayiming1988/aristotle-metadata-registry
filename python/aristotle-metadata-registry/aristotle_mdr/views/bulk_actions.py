@@ -130,7 +130,7 @@ def get_bulk_actions():
 
     actions = {}
     for action_name in config.get('BULK_ACTIONS', []):
-        if not re.search(r'^[a-zA-Z0-9\_\.]+$', action_name):  # pragma: no cover
+        if not re.search(r'^[a-zA-Z0-9_.]+$', action_name):  # pragma: no cover
             # Invalid download_type
             raise registry_exceptions.BadBulkActionModuleName("Bulk action isn't a valid Python module name.")
 
@@ -193,7 +193,9 @@ class ChangeStatusBulkActionView(ReviewChangesView):
 
         return context
 
-    def done(self, form_list, form_dict, **kwargs):
+    def done(self, form_list, **kwargs):
+
+        form_dict = kwargs.get('form_dict')
 
         self.register_changes(form_dict, 'change_state')
 
