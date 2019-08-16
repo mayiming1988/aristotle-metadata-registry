@@ -744,7 +744,7 @@ class DataElementWizard(MultiStepAristotleWizard):
         else:
             return []
 
-    def get_form_kwargs(self, step):
+    def get_form_kwargs(self, step=None):
         # determine the step if not given
         kwargs = super().get_form_kwargs(step)
         if step is None:  # pragma: no cover
