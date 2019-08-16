@@ -84,7 +84,9 @@ class New(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, FormView):
                 author=request.user,
             )
             new.save()
-            new.relatedItems = form.cleaned_data['relatedItems']
+
+            new.relatedItems.set(form.cleaned_data['relatedItems'])
+
             return HttpResponseRedirect(reverse("aristotle:discussionsPost", args=[new.pk]))
 
         return render(request, "aristotle_mdr/discussions/new.html", {"form": form})
