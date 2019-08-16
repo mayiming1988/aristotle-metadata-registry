@@ -240,7 +240,7 @@ class EditPost(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, PostMixin
             post.title = form.cleaned_data['title']
             post.body = form.cleaned_data['body']
             post.save()
-            post.relatedItems = form.cleaned_data['relatedItems']
+            post.relatedItems.set(form.cleaned_data['relatedItems'])
 
             return HttpResponseRedirect(reverse("aristotle:discussionsPost", args=[post.pk]))
 
