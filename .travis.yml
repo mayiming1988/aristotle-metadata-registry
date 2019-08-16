@@ -1,5 +1,5 @@
 sudo: false
-dist: trusty
+dist: xenial
 
 defaults:
   - &main_test_script_py36
