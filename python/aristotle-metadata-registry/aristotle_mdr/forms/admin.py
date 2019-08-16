@@ -74,7 +74,7 @@ class AristotleProfileForm(forms.ModelForm):
         if "organization_manager_in" in self.cleaned_data.keys():
             user.organization_manager_in.set(self.cleaned_data['organization_manager_in'])
         if "registrar_in" in self.cleaned_data.keys():
-            user.registrar_in.set(['registrar_in'])
+            user.registrar_in.set(self.cleaned_data['registrar_in'])
 
 
 class AdminConceptForm(ConceptForm):
