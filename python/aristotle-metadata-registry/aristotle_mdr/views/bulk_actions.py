@@ -166,7 +166,7 @@ class ChangeStatusBulkActionView(ReviewChangesView):
     def get_items(self):
         return self.get_change_data()['items']
 
-    def get_form_kwargs(self, step):
+    def get_form_kwargs(self, step=None):
 
         kwargs = super().get_form_kwargs(step)
 

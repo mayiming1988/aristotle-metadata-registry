@@ -66,7 +66,7 @@ class DynamicTemplateView(TemplateView):
         return ['aristotle_mdr/static/%s.html' % self.kwargs['template']]
 
 
-def notification_redirect(self, content_type, object_id):
+def notification_redirect(content_type, object_id):
 
     ct = ContentType.objects.get(id=content_type)
     model_class = ct.model_class()
@@ -82,7 +82,7 @@ def get_if_user_can_view(objtype, user, iid):
         return False
 
 
-def concept_by_uuid(request, uuid):
+def concept_by_uuid(uuid):
     item = get_object_or_404(MDR._concept, uuid=uuid)
     return redirect(url_slugify_concept(item))
 
@@ -111,8 +111,8 @@ class ManagedItemView(TemplateView):
 
         return super().dispatch(request, *args, **kwargs)
 
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
         context.update(
             {'item': self.managed_item,
@@ -257,7 +257,7 @@ class ConceptRenderView(TagsMixin, TemplateView):
             else:
                 to_links.append(l)
 
-        return (from_links, to_links)
+        return from_links, to_links
 
     def get_custom_values(self):
         allowed = CustomField.objects.get_allowed_fields(self.item.concept, self.request.user)
@@ -299,7 +299,7 @@ class ConceptRenderView(TagsMixin, TemplateView):
 
         # Add a list of viewable concept ids for fast visibility checks in
         # templates
-        # Since its lazy we can do this everytime :)
+        # Since its lazy we can do this every time :)
         lazy_viewable_ids = SimpleLazyObject(
             lambda: list(MDR._concept.objects.visible(self.user).values_list('id', flat=True))
         )
@@ -343,11 +343,7 @@ class ObjectClassView(ConceptRenderView):
         return user_can_view(self.request.user, item)
 
     def get_related(self, model):
-        related_objects = [
-        ]
-        prefetch_objects = [
-            'statuses'
-        ]
+        prefetch_objects = ['statuses']
         return model.objects.prefetch_related(*prefetch_objects)
 
 
@@ -434,7 +430,7 @@ def create_list(request):
     )
 
 
-def get_app_config_list(count=False):
+def get_app_config_list():
     out = {}
     aristotle_apps = fetch_metadata_apps()
 
@@ -482,7 +478,7 @@ class ReviewChangesView(SessionWizardView):
     def get_items(self):
         raise NotImplementedError
 
-    def get_form_kwargs(self, step):
+    def get_form_kwargs(self, step=None):
 
         if step == 'review_changes':
             items = self.get_items()
@@ -542,7 +538,7 @@ class ReviewChangesView(SessionWizardView):
 
         return context
 
-    def register_changes(self, form_dict, change_form=None, **kwargs):
+    def register_changes(self, form_dict, change_form=None):
 
         can_cascade = True
         items = self.get_items()
@@ -570,7 +566,7 @@ class ReviewChangesView(SessionWizardView):
         if change_form:
             cleaned_data = form_dict[change_form].cleaned_data
         else:
-            cleaned_data = self.get_change_data(register=True)
+            cleaned_data = self.get_change_data()
 
         ras = cleaned_data['registrationAuthorities']
         state = cleaned_data['state']
@@ -640,7 +636,7 @@ class ChangeStatusView(ReviewChangesView):
     def get_items(self):
         return [self.item]
 
-    def get_form_kwargs(self, step):
+    def get_form_kwargs(self, step=None):
 
         kwargs = super().get_form_kwargs(step)
 
@@ -656,8 +652,8 @@ class ChangeStatusView(ReviewChangesView):
         context.update({'item': item, 'status_matrix': status_matrix})
         return context
 
-    def done(self, form_list, form_dict, **kwargs):
-        self.register_changes(form_dict, 'change_status')
+    def done(self, form_list, **kwargs):
+        self.register_changes(kwargs.get('form_dict'), 'change_status')
         return HttpResponseRedirect(url_slugify_concept(self.item))
 
 
@@ -719,16 +715,16 @@ def extensions(request):
 
     if aristotle_apps:
         for app_label in aristotle_apps:
-            app=apps.get_app_config(app_label)
+            app = apps.get_app_config(app_label)
             try:
                 app.about_url = reverse('%s:about' % app_label)
             except:
-                pass  # if there is no about URL, thats ok.
+                pass  # If there is no "about" URL, that's ok.
             content.append(app)
 
     content = list(set(content))
     aristotle_downloaders = fetch_aristotle_downloaders()
-    download_extensions = [dler.get_class_info() for dler in aristotle_downloaders]
+    download_extensions = [dldr.get_class_info() for dldr in aristotle_downloaders]
 
     return render(
         request,

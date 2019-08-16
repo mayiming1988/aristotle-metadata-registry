@@ -1,3 +1,6 @@
+import reversion
+import json
+import logging
 from typing import List, Dict, Any
 from django.conf import settings
 
@@ -21,9 +24,6 @@ from django.views.generic import (
     CreateView,
     UpdateView
 )
-
-import reversion
-import json
 from django_bulk_update.helper import bulk_update
 
 from aristotle_mdr import models as MDR
@@ -37,13 +37,10 @@ from aristotle_mdr.views.utils import (
     UserFormViewMixin,
     FormsetView
 )
-
 from aristotle_bg_workers.tasks import register_items
 from aristotle_bg_workers.utils import run_task_on_commit
 
 from . import models, forms
-
-import logging
 
 
 logger = logging.getLogger(__name__)
@@ -64,7 +61,7 @@ def review_list(request):
         raise PermissionDenied
     authorities = [i[0] for i in request.user.profile.registrarAuthorities.filter(active=0).values_list('id')]
 
-    # Registars can see items they have been asked to review
+    # Registrars can see items they have been asked to review
     q = Q(Q(registration_authority__id__in=authorities) & ~Q(status=models.REVIEW_STATES.revoked))
 
     reviews = models.ReviewRequest.objects.visible(request.user).filter(q)
@@ -85,7 +82,7 @@ class ReviewActionMixin(LoginRequiredMixin, UserFormViewMixin):
         if not perm_func(self.request.user, self.review):
             # TODO: make this use CBVs
             if self.request.user.is_anonymous:
-                return redirect(reverse('friendly_login') + '?next=%s' % request.path)
+                return redirect(reverse('friendly_login') + '?next=%s' % self.request.path)
             else:
                 raise PermissionDenied
 
@@ -120,7 +117,7 @@ class ReviewActionMixin(LoginRequiredMixin, UserFormViewMixin):
             kwargs['active_tab'] = self.active_tab_name
         return kwargs
 
-    def get_object(self, *args, **kwargs):
+    def get_object(self):
         return self.review
 
 
@@ -222,7 +219,7 @@ class ReviewStatusChangeBase(ReviewActionMixin, ReviewChangesView):
 
         if register:
             # If registering cascade needs to be a boolean
-            # This is done autmoatically on clean for the change status forms
+            # This is done automatically on clean for the change status forms
             change_data['cascadeRegistration'] = (review.cascade_registration == 1)
 
         return change_data
@@ -259,13 +256,13 @@ class ReviewAcceptView(ReviewStatusChangeBase):
         'review_changes': 'aristotle_mdr/actions/review_state_changes.html'
     }
 
-    def approve_supersedes(self, review, regDate):
+    def approve_supersedes(self, review, reg_date):
         sups = review.proposed_supersedes
 
         old_items = [s.older_item.id for s in sups]
 
-        if not regDate:
-            regDate = timezone.now().date()
+        if not reg_date:
+            reg_date = timezone.now().date()
 
         # Set all old items to the Superseded status
         register_args=[
@@ -275,7 +272,7 @@ class ReviewAcceptView(ReviewStatusChangeBase):
             review.registration_authority_id,
             self.request.user.id,
             "",
-            (regDate.year, regDate.month, regDate.day),
+            (reg_date.year, reg_date.month, reg_date.day),
             False
         ]
 
@@ -288,14 +285,16 @@ class ReviewAcceptView(ReviewStatusChangeBase):
                 args=register_args
             )
 
-        # approve all proposed supersedes
+        # Approve all proposed supersedes
         sups.update(proposed=False)
 
-    def done(self, form_list, form_dict, **kwargs):
+    def done(self, form_list, **kwargs):
+
         review = self.get_review()
+        form_dict = kwargs.get('form_dict')
 
         with reversion.revisions.create_revision():
-            self.register_changes(form_dict)
+            self.register_changes(kwargs.get('form_dict'))
 
             if form_dict['review_accept'].cleaned_data['close_review'] == "1":
                 review.status = models.REVIEW_STATES.approved
@@ -306,7 +305,7 @@ class ReviewAcceptView(ReviewStatusChangeBase):
                 request=review, status=models.REVIEW_STATES.approved,
                 actor=self.request.user
             )
-            # add to review endorsement timeline
+            # Add to review endorsement timeline
             models.ReviewEndorsementTimeline.objects.create(
                 request=review,
                 registration_state=review.target_registration_state,
@@ -352,8 +351,10 @@ class ReviewEndorseView(ReviewStatusChangeBase):
         change_data['cascadeRegistration'] = cascade
         return change_data
 
-    def done(self, form_list, form_dict, **kwargs):
+    def done(self, form_list, **kwargs):
+
         review = self.get_review()
+        form_dict = kwargs.get('form_dict')
 
         with reversion.revisions.create_revision():
             self.register_changes(form_dict)
@@ -362,7 +363,7 @@ class ReviewEndorseView(ReviewStatusChangeBase):
                 review.status = models.REVIEW_STATES.closed
                 review.save()
 
-            update = models.ReviewEndorsementTimeline.objects.create(
+            models.ReviewEndorsementTimeline.objects.create(
                 request=review,
                 registration_state=self.get_cleaned_data_for_step(self.change_step_name)['registration_state'],
                 actor=self.request.user
@@ -489,7 +490,7 @@ class ReviewSupersedesEditView(ReviewActionMixin, FormsetView):
         deleted = formset.deleted_objects
 
         for ss in created:
-            # Set data not avaliable through form
+            # Set data not available through form
             ss.proposed = True
             ss.registration_authority = self.review.registration_authority
             ss.review = self.review
