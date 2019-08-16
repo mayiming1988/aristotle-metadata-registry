@@ -82,7 +82,7 @@ def get_if_user_can_view(objtype, user, iid):
         return False
 
 
-def concept_by_uuid(uuid):
+def concept_by_uuid(request, uuid):  # Beware! request parameter is actually necessary!?
     item = get_object_or_404(MDR._concept, uuid=uuid)
     return redirect(url_slugify_concept(item))
 
