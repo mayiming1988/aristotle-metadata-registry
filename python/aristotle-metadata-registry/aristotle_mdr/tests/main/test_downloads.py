@@ -178,7 +178,7 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
         self.assertEqual(response.url, expected_url)
 
 
-class DownloderTestCase(AristotleTestUtils, TestCase):
+class DownloaderTestCase(AristotleTestUtils, TestCase):
     """
     Testing functionality defined in the base downloader
     """
