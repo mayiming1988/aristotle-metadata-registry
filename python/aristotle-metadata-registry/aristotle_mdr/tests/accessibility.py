@@ -95,7 +95,7 @@ class TestStaticPageAccessibility(TestWebPageAccessibilityBase, TestCase):
         from aristotle_mdr.urls.aristotle import urlpatterns
         pages = [
             reverse("aristotle:%s" % u.name) for u in urlpatterns
-            if hasattr(u, 'name') and u.name is not None and u.regex.groups == 0
+            if hasattr(u, 'name') and u.name is not None
         ]
 
         self.pages_tester(pages)
