@@ -162,6 +162,7 @@ class DownloadsTestCase(AristotleTestUtils, TestCase):
     @tag('bulk_download')
     def test_bulk_download_redirects(self):
         self.login_editor()
+
         response = self.client.post(
             reverse('aristotle:bulk_action'),
             {
