@@ -1,11 +1,12 @@
 from __future__ import print_function
 import os
 import tempfile
+import re
+
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
 import aristotle_dse.models as models
-
 from aristotle_mdr.tests.accessibility import TestWebPageAccessibilityBase
 
 
@@ -31,6 +32,7 @@ class TestStaticPageAccessibility(DSSTestWebPageAccessibilityBase, TestCase):
         pages = [
             reverse("aristotle_dse:%s" % u.name) for u in urlpatterns
             if hasattr(u, 'name') and u.name is not None
+            and re.compile(u.pattern._regex).groups == 0  # Only get static pages without matching
         ]
 
         self.pages_tester(pages)
