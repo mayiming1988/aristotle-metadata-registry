@@ -4,76 +4,123 @@
 {% block title %}Status History for {{ item.name }} in {{ ra.name }}{% endblock %}
 
 {% block content %}
+    <h1>
+        Status History for <a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a> in <a href="{% url 'aristotle:registrationAuthority' ra.id %}">{{ ra.name }}</a>
+    </h1>
+
+    <ol class="breadcrumb">
+        <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a></li>
+        <li><a href="{% url 'aristotle:registrationHistory' item.id %}">Registration History</a></li>
+        <li>Status History</li>
+    </ol>
+
     <h2>
         Status History for <a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a> in <a href="{% url 'aristotle:registrationAuthority' ra.id %}">{{ ra.name }}</a>
     </h2>
 
-    <table id="change-history" class='table table-striped'
-           data-update-api-url="{% url 'api_v4:item:update-version-permissions' object.id %}">
+    <table class="table">
         <thead>
         <tr>
-            <th scope="col">
-                <input id="compare" class="btn btn-default btn-xs" type="submit" value="{% trans 'Compare' %}"
-                       data-compare-url="{% url 'aristotle:compare_versions' object.id %}">
-            </th>
             <th scope="col">{% trans 'Date/time' %}</th>
+            <th>{% trans 'Date registration effective' %}</th>
+            <th>{% trans 'Date registration expires' %}</th>
+            <th>{% trans 'State' %}</th>
             <th scope="col">{% trans 'User' %}</th>
             <th scope="col">{% trans 'Comment' %}</th>
-
-            {% if user_can_edit %}
-                <th scope="col">
-                    <div class="btn-group">
-                        <input class="btn btn-default btn-sm" id="edit-visibilities-button"
-                               type="button" value="Edit Visibilities">
-                        <input disabled class="btn btn-default btn-sm" id="save-visibilities-button" type="button"
-                               value="Save Visibilities">
-                    </div>
-                </th>
-            {% else %}
-                <th scope="col">{% trans 'Visibility' %}</th>
-            {% endif %}
         </tr>
         </thead>
         <tbody>
-        {# Iteration through the versions #}
         {% for version in versions %}
             <tr>
-            <td scope="row">
-                <input type="radio" name="version_id1" value="{{ version.version.pk|unlocalize }}"
-                       {% if version.first %}style="visibility:hidden;"{% endif %}>
-                <input type="radio" name="version_id2" value="{{ version.version.pk|unlocalize }}">
-            </td>
-            <th scope="row">
-                {% if version.url %}
-                    <a href="{{version.url}}">{{version.revision.date_created|date:_("DATETIME_FORMAT")}}</a>
-                {% else %}
-                    {{version.revision.date_created|date:_("DATETIME_FORMAT")}}
-                {% endif %}
-            </th>
-            <td>
-                {% if version.revision.user %}
-                    {% firstof version.revision.user.get_full_name  version.revision.user.email %}
-                {% endif %}
-            </td>
-            <td>{{version.revision.comment|linebreaks|default:"-"}}</td>
-            <td>
-                {# Visibility #}
-                {% if user_can_edit %}
-                    <select disabled class="form-control visibility-select version-select" data-version-id="{{ version.version.pk }}">
-                        <option value="0" {% if version.permission == choices.public %}selected{%endif%}>&#xf0ac; Public</option>
-                        <option value="1" {% if version.permission == choices.auth %}selected{%endif%}>&#xf2bd; Logged in users</option>
-                        <option value="2" {% if version.permission == choices.workgroup %}selected{%endif%}
-                        >&#xf0c0; Workgroup only</option></select>
-                {% else %}
-                    {# User can't edit #}
-                    {% if version.permission == choices.public %} <i class="fa fa-fw fa-globe"></i> Public {%endif%}
-                    {% if version.permission == choices.auth %}  <i class="fa fa-fw fa-user-circle"></i> Logged in users {%endif%}
-                    {% if version.permission == choices.workgroup %} <i class="fa fa-fw fa-users"></i> Workgroup only {%endif%}
-                {% endif %}
-            </td>
+                <th scope="row">
+                    {% if version.url %}
+                        <a href="{{version.url}}">{{version.revision.date_created|date:_("DATETIME_FORMAT")}}</a>
+                    {% else %}
+                        {{version.revision.date_created|date:_("DATETIME_FORMAT")}}
+                    {% endif %}
+                </th>
+                <td>{{ version }}{{ version.registrationDate }}</td>
+                <td></td>
+                <td> {{ version.revision }} </td>
+                <td>
+                    {% if version.revision.user %}
+                        {{ version.revision.user.display_name }}
+                    {% endif %}
+                </td>
+                <td>
+                    {{version.revision.comment|linebreaks|default:"-"}}
+                </td>
+            </tr>
         {% endfor %}
-        </tr>
         </tbody>
     </table>
+
+    {#    <table id="change-history" class='table table-striped'#}
+    {#           data-update-api-url="{% url 'api_v4:item:update-version-permissions' object.id %}">#}
+    {#        <thead>#}
+    {#        <tr>#}
+    {#            <th scope="col">#}
+    {#                <input id="compare" class="btn btn-default btn-xs" type="submit" value="{% trans 'Compare' %}"#}
+    {#                       data-compare-url="{% url 'aristotle:compare_versions' object.id %}">#}
+    {#            </th>#}
+    {#            <th scope="col">{% trans 'Date/time' %}</th>#}
+    {#            <th scope="col">{% trans 'User' %}</th>#}
+    {#            <th scope="col">{% trans 'Comment' %}</th>#}
+    {##}
+    {#            {% if user_can_edit %}#}
+    {#                <th scope="col">#}
+    {#                    <div class="btn-group">#}
+    {#                        <input class="btn btn-default btn-sm" id="edit-visibilities-button"#}
+    {#                               type="button" value="Edit Visibilities">#}
+    {#                        <input disabled class="btn btn-default btn-sm" id="save-visibilities-button" type="button"#}
+    {#                               value="Save Visibilities">#}
+    {#                    </div>#}
+    {#                </th>#}
+    {#            {% else %}#}
+    {#                <th scope="col">{% trans 'Visibility' %}</th>#}
+    {#            {% endif %}#}
+    {#        </tr>#}
+    {#        </thead>#}
+    {#        <tbody>#}
+    {# Iteration through the versions #}
+    {#        {% for version in versions %}#}
+    {#            <tr>#}
+    {#            <td scope="row">#}
+    {#                <input type="radio" name="version_id1" value="{{ version.version.pk|unlocalize }}"#}
+    {#                       {% if version.first %}style="visibility:hidden;"{% endif %}>#}
+    {#                <input type="radio" name="version_id2" value="{{ version.version.pk|unlocalize }}">#}
+    {#            </td>#}
+    {#            <th scope="row">#}
+    {#                {% if version.url %}#}
+    {#                    <a href="{{version.url}}">{{version.revision.date_created|date:_("DATETIME_FORMAT")}}</a>#}
+    {#                {% else %}#}
+    {#                    {{version.revision.date_created|date:_("DATETIME_FORMAT")}}#}
+    {#                {% endif %}#}
+    {#            </th>#}
+    {#            <td>#}
+    {#                {% if version.revision.user %}#}
+    {#                    {% firstof version.revision.user.get_full_name  version.revision.user.email %}#}
+    {#                {% endif %}#}
+    {#            </td>#}
+    {#            <td>{{version.revision.comment|linebreaks|default:"-"}}</td>#}
+    {#            <td>#}
+    {# Visibility #}
+    {#                {% if user_can_edit %}#}
+    {#                    <select disabled class="form-control visibility-select version-select" data-version-id="{{ version.version.pk }}">#}
+    {#                        <option value="0" {% if version.permission == choices.public %}selected{%endif%}>&#xf0ac; Public</option>#}
+    {#                        <option value="1" {% if version.permission == choices.auth %}selected{%endif%}>&#xf2bd; Logged in users</option>#}
+    {#                        <option value="2" {% if version.permission == choices.workgroup %}selected{%endif%}#}
+    {#                        >&#xf0c0; Workgroup only</option></select>#}
+    {#                {% else %}#}
+    {# User can't edit #}
+    {#                    {% if version.permission == choices.public %} <i class="fa fa-fw fa-globe"></i> Public {%endif%}#}
+    {#                    {% if version.permission == choices.auth %}  <i class="fa fa-fw fa-user-circle"></i> Logged in users {%endif%}#}
+    {#                    {% if version.permission == choices.workgroup %} <i class="fa fa-fw fa-users"></i> Workgroup only {%endif%}#}
+    {#                {% endif %}#}
+    {#            </td>#}
+    {#        {% endfor %}#}
+    {#        </tr>#}
+    {#        </tbody>#}
+    {#    </table>#}
 
 {% endblock %}

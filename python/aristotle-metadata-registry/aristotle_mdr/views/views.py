@@ -42,6 +42,7 @@ from aristotle_bg_workers.tasks import register_items
 from aristotle_bg_workers.utils import run_task_on_commit
 
 from reversion.models import Version
+from reversion import revisions as reversion
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
@@ -368,7 +369,7 @@ class DataElementView(ConceptRenderView):
         return model.objects.select_related(*related_objects).prefetch_related(*prefetch_objects)
 
 
-def registrationHistory(request, iid):
+def registration_history(request, iid):
     item = get_if_user_can_view(MDR._concept, request.user, iid)
     if not item:
         if request.user.is_anonymous:
@@ -661,6 +662,14 @@ class DeleteStatus(DeleteView):
 
     model = MDR.Status
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        item = get_object_or_404(MDR._concept, pk=self.kwargs['iid'])
+        context.update({
+            'item': item,
+        })
+        return context
+
     def get_object(self, queryset=None):
         return get_object_or_404(MDR.Status, pk=self.kwargs['sid'])
 
@@ -701,24 +710,44 @@ class EditStatus(UpdateView):
 
         return initial
 
+    @reversion.create_revision()
     def form_valid(self, form):
-        self.object = form.save()
-        # Update the search engine indexation for the concept:
         from aristotle_mdr.models import concept_visibility_updated
-        concept_visibility_updated.send(concept=self.get_object().concept, sender=self.get_object().concept.__class__)
+        status_object = form.save()
+        reversion.set_user(self.request.user)
+        reversion.set_comment({
+            "status": {"name": status_object.state_name,
+                       "changed": not (status_object.state == self.get_initial().get('state')),
+                       },
+            "effective_date": {"date": status_object.registrationDate,
+                               "changed": not (status_object.registrationDate == self.get_initial().get('registrationDate')),
+                               },
+            "until_date": {"date": status_object.until_date,
+                           "changed": not (status_object.until_date == self.get_initial().get('until_date')),
+                           },
+        })
+        # Update the search engine indexation for the concept:
+        concept_visibility_updated.send(concept=status_object.concept, sender=type(status_object.concept))
         return redirect(reverse('aristotle:registrationHistory', args=[self.kwargs['iid']]))
 
 
-class CheckStatusHistory(TemplateView):
+class StatusHistory(TemplateView):
     template_name = "aristotle_mdr/status_history.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
 
+        versions = Version.objects.get_for_object(self.status).select_related("revision__user")
+
+        print("THESE ARE THE VERSIONS:")
+        print(versions)
+        print(versions[0])
+
         context.update(
             {'item': self.item,
              'ra': self.RA,
              'status': self.status,
+             'versions': versions,
              }
         )
 

@@ -13,13 +13,13 @@ from aristotle_mdr.perms import user_can_edit
 from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
 from aristotle_mdr.views.utils import SimpleItemGet
 from aristotle_mdr.utils.utils import strip_tags
-from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
+from aristotle_mdr.contrib.custom_fields.models import CustomValue
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.contrib.custom_fields.models import CustomField
 from aristotle_mdr.utils.versions import VersionField, VersionLinkField, VersionGroupField, VersionMultiLinkField
 
 from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
-from typing import Dict, List, Optional, Tuple, Any, Set, NamedTuple
+from typing import Dict, List, Optional, Tuple, Any, Set
 import json
 import reversion
 import diff_match_patch
