@@ -20,9 +20,7 @@ kombu = "~=4.3.0"
 drf-yasg = "==1.16.0"
 # Pinning this until drf-yasg updates
 djangorestframework = "<3.10"
-# Pinning these due to breaking changes & aniso8601 dependancy conflict
-graphene-django = "~=2.5.0"
-graphene = "~=2.1.7"
+django-filter = "~=2.2.0"
 
 pypandoc = {ref = "master",git = "https://github.com/harrywhite4/pypandoc",editable = true}
 aristotle-metadata-registry = {path = "./python/aristotle-metadata-registry",editable = true}

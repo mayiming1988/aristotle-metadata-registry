@@ -1,5 +1,5 @@
 sudo: false
-dist: trusty
+dist: xenial
 
 defaults:
   - &main_test_script_py36
@@ -19,12 +19,14 @@ defaults:
       - elasticsearch
       - mariadb
     addons:
+      postgresql: 9.4
       apt:
         sources:
           - elasticsearch-5.x
         packages:
           - elasticsearch
-          - libmariadbclient-dev
+          - libmariadb-client-lgpl-dev
+
       code_climate:
         repo_token: ac63d774ebdd641ef502acf1588b36248726a28a50e4e1f4ba4295a157477f54
       mariadb: '10.1'

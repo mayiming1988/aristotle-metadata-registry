@@ -21,7 +21,7 @@ class NameSuggestInput(TextInput):
 
 # Thanks http://stackoverflow.com/questions/6727372/
 class RegistrationAuthoritySelect(forms.Select):
-    def render(self, name, value, **kwargs):
+    def render(self, name, value, renderer=None, **kwargs):
         attrs = kwargs.get('attrs', None)
         if value is not None:
             attrs['disabled']='disabled'
@@ -34,13 +34,13 @@ class RegistrationAuthoritySelect(forms.Select):
             rendered = super().render(name, value, **kwargs)
             return mark_safe(rendered + hidden_input_with_value)
         else:
-            return super().render(name, value, **kwargs)
+            return super().render(name, value, renderer=None, **kwargs)
 
 
 class TableCheckboxSelect(CheckboxSelectMultiple):
 
-    def __init__(self, extra_info, static_info, headers, top_header, order, attrs=None, choices=(), deselections=False, **kwargs):
-        super().__init__(attrs, choices, **kwargs)
+    def __init__(self, extra_info, static_info, headers, top_header, order, attrs=None, choices=(), deselections=False):
+        super().__init__(attrs, choices)
         self.extra_info = extra_info
         self.static_info = static_info
         self.order = order
