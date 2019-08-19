@@ -322,7 +322,7 @@ class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
     items_label = "These are the items that will be moved between workgroups." \
                   " Add or remove additional items within the autocomplete box. " \
 
-    move_from_checks: Dict[int, bool]  = {}   # Cache the view permission to speed up the bulk view
+    move_from_checks: Dict[int, bool] = {}   # Cache the view permission to speed up the bulk view
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
