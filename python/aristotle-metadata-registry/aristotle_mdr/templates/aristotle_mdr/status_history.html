@@ -39,9 +39,9 @@
                         {{version.revision.date_created|date:_("DATETIME_FORMAT")}}
                     {% endif %}
                 </th>
-                <td>{{ version }}{{ version.registrationDate }}</td>
-                <td></td>
-                <td> {{ version.revision }} </td>
+                <td>{{ version.field_dict.registrationDate }}</td>
+                <td>{{ version.field_dict.until_date }}</td>
+                <td>{{ version.field_dict.state|stateToText }}</td>
                 <td>
                     {% if version.revision.user %}
                         {{ version.revision.user.display_name }}
