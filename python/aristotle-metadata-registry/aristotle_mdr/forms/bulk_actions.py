@@ -228,7 +228,29 @@ class ChangeStateForm(ChangeStatusForm, BulkActionForm):
         return user_is_registrar(user)
 
 
-class ChangeWorkgroupForm(BulkActionForm):
+class BulkMoveMetadataMixin:
+    @staticmethod
+    def generate_moving_message(org_name, sucessfully_moved_items: int, failed_items=None) -> str:
+        if not failed_items:
+            message = _(
+                "%(num_items)s items moved into the workgroup '%(new_wg)s'. \n"
+            ) % {
+                'new_wg': org_name,
+                'num_items': sucessfully_moved_items,
+            }
+        else:
+            message = _(
+                "%(num_items)s items moved into the workgroup '%(new_wg)s'. \n"
+                "Some items failed, they had the id's: %(bad_ids)s"
+            ) % {
+                'new_wg': org_name,
+                'num_items': sucessfully_moved_items,
+                'bad_ids': ",".join(failed_items)
+            }
+        return message
+
+
+class ChangeWorkgroupForm(BulkActionForm, BulkMoveMetadataMixin):
     confirm_page = "aristotle_mdr/actions/bulk_actions/change_workgroup.html"
     classes = "fa-users"
     action_text = _('Change workgroup')
@@ -291,28 +313,6 @@ class ChangeWorkgroupForm(BulkActionForm):
     @classmethod
     def can_use(cls, user):
         return user_can_move_any_workgroup(user)
-
-
-class BulkMoveMetadataMixin:
-    @staticmethod
-    def generate_moving_message(org_name, sucessfully_moved_items: int, failed_items=None) -> str:
-        if not failed_items:
-            message = _(
-                "%(num_items)s items moved into the workgroup '%(new_wg)s'. \n"
-            ) % {
-                'new_wg': org_name,
-                'num_items': sucessfully_moved_items,
-            }
-        else:
-            message = _(
-                "%(num_items)s items moved into the workgroup '%(new_wg)s'. \n"
-                "Some items failed, they had the id's: %(bad_ids)s"
-            ) % {
-                'new_wg': org_name,
-                'num_items': sucessfully_moved_items,
-                'bad_ids': ",".join(failed_items)
-            }
-        return message
 
 
 class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
@@ -384,9 +384,9 @@ class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
 
             failed = list(set(failed))
             success = list(set(suceeded))
-            bad_items = sorted([str(i.id) for i in failed])
+            failed_items = sorted([str(i.id) for i in failed])
 
-            return self.generate_moving_message(new_stewardship_org.name, len(success), failed_items=bad_items)
+            return self.generate_moving_message(new_stewardship_org.name, len(success), failed_items=failed_items)
 
     @classmethod
     def can_user(cls, user):
