@@ -758,7 +758,7 @@ class ConceptVersionCompareView(SimpleItemGet, ConceptVersionCompareBase):
 
 class ConceptVersionListView(SimpleItemGet, VersionsMixin, ListView):
     """
-    View  that lists all the specific versions of a particular concept
+    View that lists all the specific versions of a particular concept
     """
     template_name = 'aristotle_mdr/compare/versions.html'
     item_action_url = 'aristotle:item_version'
