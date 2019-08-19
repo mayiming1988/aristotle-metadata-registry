@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Dict
 import reversion
 
 from django import forms
@@ -297,18 +297,21 @@ class BulkMoveMetadataMixin:
     @staticmethod
     def generate_moving_message(org_name, sucessfully_moved_items: int, failed_items=None) -> str:
         if not failed_items:
-            message = _("%(num_items)s items moved into the workgroup '%(new_wg)s'. \n") % {
+            message = _(
+                "%(num_items)s items moved into the workgroup '%(new_wg)s'. \n"
+            ) % {
                 'new_wg': org_name,
                 'num_items': sucessfully_moved_items,
-                }
+            }
         else:
-            message = _("%(num_items)s items moved into the workgroup '%(new_wg)s'. \n"
-                        "Some items failed, they had the id's: %(bad_ids)s") % \
-                      {
-                        'new_wg': org_name,
-                        'num_items': sucessfully_moved_items,
-                        'bad_ids': ",".join(failed_items)
-                      }
+            message = _(
+                "%(num_items)s items moved into the workgroup '%(new_wg)s'. \n"
+                "Some items failed, they had the id's: %(bad_ids)s"
+            ) % {
+                'new_wg': org_name,
+                'num_items': sucessfully_moved_items,
+                'bad_ids': ",".join(failed_items)
+            }
         return message
 
 
@@ -319,7 +322,7 @@ class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
     items_label = "These are the items that will be moved between workgroups." \
                   " Add or remove additional items within the autocomplete box. " \
 
-    move_from_checks = {}   # Cache the view permission to speed up the bulk view
+    move_from_checks: Dict[int, bool]  = {}   # Cache the view permission to speed up the bulk view
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
