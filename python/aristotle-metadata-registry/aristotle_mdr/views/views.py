@@ -691,9 +691,9 @@ class EditStatus(UpdateView):
         return context
 
     def get_initial(self):
-        self.RA = get_object_or_404(MDR.RegistrationAuthority, pk=self.kwargs['raid'])
         self.item = get_object_or_404(MDR._concept, pk=self.kwargs['iid'])
         self.status = get_object_or_404(MDR.Status, pk=self.kwargs['sid'])
+        self.RA = get_object_or_404(MDR.RegistrationAuthority, pk=self.kwargs['raid'])
         initial = super().get_initial()
         initial['registrationDate'] = self.status.registrationDate
         initial['until_date'] = self.status.until_date
@@ -707,6 +707,29 @@ class EditStatus(UpdateView):
         from aristotle_mdr.models import concept_visibility_updated
         concept_visibility_updated.send(concept=self.get_object().concept, sender=self.get_object().concept.__class__)
         return redirect(reverse('aristotle:registrationHistory', args=[self.kwargs['iid']]))
+
+
+class CheckStatusHistory(TemplateView):
+    template_name = "aristotle_mdr/status_history.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+
+        context.update(
+            {'item': self.item,
+             'ra': self.RA,
+             'status': self.status,
+             }
+        )
+
+        return context
+
+    def dispatch(self, request, *args, **kwargs):
+        self.item = get_object_or_404(MDR._concept, pk=self.kwargs['iid'])
+        self.status = get_object_or_404(MDR.Status, pk=self.kwargs['sid'])
+        self.RA = get_object_or_404(MDR.RegistrationAuthority, pk=self.kwargs['raid'])
+
+        return super().dispatch(request, args, kwargs)
 
 
 def extensions(request):

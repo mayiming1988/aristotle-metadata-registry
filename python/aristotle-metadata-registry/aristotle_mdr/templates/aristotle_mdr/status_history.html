@@ -1,20 +1,12 @@
-{% extends 'aristotle_mdr/concepts/contentInfoBase.html' %}
-{% load aristotle_tags i18n l10n %}
-{% load render_bundle from webpack_loader %}
+{% extends 'aristotle_mdr/base.html' %}
+{% load aristotle_tags util_tags i18n %}
+{% load bootstrap3 static %}
+{% block title %}Status History for {{ item.name }} in {{ ra.name }}{% endblock %}
 
-{% block title %}Version history of {{ object.item.name }}{% endblock %}
-
-{% block webpack_css_bundle %}
-    {% render_bundle 'versions' 'css' %}
-{% endblock %}
-
-{% block webpack_bundle %}
-    {% render_bundle 'versions' 'js' %}
-{% endblock %}
-
-{% block infoContent %}
-    <h2>Revisions for {{object.name}}.</h2>
-    <p>Select two items and click compare to see the differences between them.</p>
+{% block content %}
+    <h2>
+        Status History for <a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a> in <a href="{% url 'aristotle:registrationAuthority' ra.id %}">{{ ra.name }}</a>
+    </h2>
 
     <table id="change-history" class='table table-striped'
            data-update-api-url="{% url 'api_v4:item:update-version-permissions' object.id %}">
