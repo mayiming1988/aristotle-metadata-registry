@@ -13,7 +13,8 @@ from aristotle_mdr.forms import ChangeStatusForm
 from aristotle_mdr.perms import (
     user_can_view,
     user_is_registrar,
-    user_can_move_any_workgroup
+    user_can_move_any_workgroup,
+    user_can_move_any_stewardship_organisation
 )
 from aristotle_mdr.forms.creation_wizards import UserAwareForm
 from aristotle_mdr.contrib.autocomplete import widgets
@@ -212,9 +213,8 @@ class RemoveFavouriteForm(LoggedInBulkActionForm):
 
 
 class ChangeStateForm(ChangeStatusForm, BulkActionForm):
-
     confirm_page = "aristotle_mdr/actions/bulk_actions/change_status.html"
-    classes="fa-university"
+    classes = "fa-university"
     action_text = _('Change registration status')
     items_label = "These are the items that will be registered. " \
                   "Add or remove additional items with the autocomplete box."
@@ -310,7 +310,7 @@ class ChangeStewardshipOrganisationForm(BulkActionForm):
     classes = "fa-sitemap"
     action_text = _("Change Stewardship Organisation")
     items_label = "These are the items that will be moved between workgroups." \
-                  "Add or remove additional items within the autocomplete box"
+                  "Add or remove additional items within the autocomplete box."
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -326,10 +326,12 @@ class ChangeStewardshipOrganisationForm(BulkActionForm):
             widget=forms.Textarea
         )
 
+    def make_changes(self):
+        return "It worked"
 
     @classmethod
     def can_user(cls, user):
-        return user
+        return user_can_move_any_stewardship_organisation(user)
 
 
 class DownloadActionForm(BulkActionForm):

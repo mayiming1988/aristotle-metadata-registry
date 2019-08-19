@@ -218,7 +218,7 @@ ARISTOTLE_SETTINGS = {
         'aristotle_mdr.forms.bulk_actions.RemoveFavouriteForm',
         'aristotle_mdr.forms.bulk_actions.ChangeStateForm',
         'aristotle_mdr.forms.bulk_actions.ChangeWorkgroupForm',
-        # 'aristotle_mdr.forms.bulk_actions.RequestReviewForm',
+        'aristotle_mdr.forms.bulk_actions.ChangeStewardshipOrganisationForm'
         'aristotle_mdr.forms.bulk_actions.BulkDownloadForm',
         'aristotle_mdr.contrib.reviews.forms.RequestReviewBulkActionForm',
     ],

@@ -493,6 +493,14 @@ def user_is_superuser_or_has_admin_role_in_steward_organisation(user, steward_or
     return StewardOrganisation.objects.filter(**kwargs).active().exists()
 
 
+def user_can_remove_from_stewardship_organisation(user, steward_org=None):
+    pass
+
+
+def user_can_move_to_stewardship_organisation(user, steward_org=None):
+    pass
+
+
 def user_can_move_between_stewardship_organisations(user, stewardorg_a, stewardorg_b):
     """Checks if user can move metadata from a to b """
     return user_is_superuser_or_has_admin_role_in_steward_organisation(user, steward_org=stewardorg_a) and \
