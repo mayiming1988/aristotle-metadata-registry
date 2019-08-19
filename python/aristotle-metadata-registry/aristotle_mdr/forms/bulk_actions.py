@@ -281,31 +281,39 @@ class ChangeWorkgroupForm(BulkActionForm):
             failed = list(set(failed))
             success = list(set(success))
             bad_items = sorted([str(i.id) for i in failed])
-            if not bad_items:
-                message = _(
-                    "%(num_items)s items moved into the workgroup '%(new_wg)s'. \n"
-                ) % {
-                    'new_wg': new_workgroup.name,
-                    'num_items': len(success),
-                }
-            else:
-                message = _(
-                    "%(num_items)s items moved into the workgroup '%(new_wg)s'. \n"
-                    "Some items failed, they had the id's: %(bad_ids)s"
-                ) % {
-                    'new_wg': new_workgroup.name,
-                    'num_items': len(success),
-                    'bad_ids': ",".join(bad_items)
-                }
-            reversion.revisions.set_comment(changeDetails + "\n\n" + message)
-            return message
+
+            return self.generate_moving_message(new_workgroup.name, len(success), failed_items=bad_items)
 
     @classmethod
     def can_use(cls, user):
         return user_can_move_any_workgroup(user)
 
 
-class ChangeStewardshipOrganisationForm(BulkActionForm):
+class BulkMoveMetadataMixin:
+    @staticmethod
+    def generate_moving_message(org_name, sucessfully_moved_items: int, failed_items=None) -> str:
+        if not failed_items:
+            message = _(
+                "%(num_items)s items moved into the workgroup '%(new_wg)s'. \n"
+            ) % {
+                          'new_wg': org_name,
+                          'num_items': sucessfully_moved_items,
+                      }
+        else:
+            message = _(
+                "%(num_items)s items moved into the workgroup '%(new_wg)s'. \n"
+                "Some items failed, they had the id's: %(bad_ids)s"
+            ) % {
+                          'new_wg': org_name,
+                          'num_items': sucessfully_moved_items,
+                          'bad_ids': ",".join(failed_items)
+                      }
+        return message
+
+
+
+
+class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
     confirm_page = "aristotle_mdr/actions/bulk_actions/change_stewardship_organisation.html"
     classes = "fa-sitemap"
     action_text = _("Change stewardship organisation")
@@ -339,7 +347,7 @@ class ChangeStewardshipOrganisationForm(BulkActionForm):
         items = self.cleaned_data['items']
 
         failed = []
-        succeeded = []
+        suceeded = []
 
         if not user_can_move_to_stewardship_organisation(self.user, new_stewardship_org):
             raise PermissionDenied
@@ -361,39 +369,21 @@ class ChangeStewardshipOrganisationForm(BulkActionForm):
                         # No org, the user can move their own item
                         can_move_permission = True
 
-
                     if not can_move_permission:
                         # There's no permission to move the item
                         failed.append(item)
                     else:
                         # There's permission
-                        succeeded.append(item)
+                        suceeded.append(item)
                         item.workgroup = None
                         item.stewardship_organisation = new_stewardship_org
                         item.save()
 
             failed = list(set(failed))
-            success = list(set(succeeded))
+            success = list(set(suceeded))
             bad_items = sorted([str(i.id) for i in failed])
 
-            if not bad_items:
-                message = _(
-                    "%(num_items)s items moved into the workgroup '%(new_wg)s'. \n"
-                ) % {
-                              'new_wg': new_stewardship_org.name,
-                              'num_items': len(success),
-                          }
-            else:
-                message = _(
-                    "%(num_items)s items moved into the workgroup '%(new_wg)s'. \n"
-                    "Some items failed, they had the id's: %(bad_ids)s"
-                ) % {
-                              'new_wg': new_stewardship_org.name,
-                              'num_items': len(success),
-                              'bad_ids': ",".join(bad_items)
-                          }
-                # reversion.revisions.set_comment(change_details + "\n\n" + message)
-            return message
+            return self.generate_moving_message(new_stewardship_org.name, len(success), failed_items=bad_items)
 
 
     @classmethod
