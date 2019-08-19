@@ -470,6 +470,7 @@ def user_can_create_registration_authority(user, steward_org=None):
     return user_is_superuser_or_has_admin_role_in_steward_organisation(user, steward_org)
 
 
+
 def user_is_superuser_or_has_admin_role_in_steward_organisation(user, steward_org=None):
     from aristotle_mdr.models import StewardOrganisation
     if user.is_superuser:
@@ -481,6 +482,12 @@ def user_is_superuser_or_has_admin_role_in_steward_organisation(user, steward_or
     if steward_org:
         kwargs["pk"] = steward_org.pk
     return StewardOrganisation.objects.filter(**kwargs).active().exists()
+
+
+def user_can_move_between_stewardship_organisations(user, stewardorg_a, stewardorg_b):
+    """Checks if user can move metadata from a to b """
+    return user_is_superuser_or_has_admin_role_in_steward_organisation(user, steward_org=stewardorg_a) and \
+        user_is_superuser_or_has_admin_role_in_steward_organisation(user, steward_org=stewardorg_b)
 
 
 def user_can_edit_issue_label(user, label):

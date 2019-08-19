@@ -164,7 +164,7 @@ class LoggedInBulkActionForm(BulkActionForm):
 
 
 class AddFavouriteForm(LoggedInBulkActionForm):
-    classes="fa-bookmark"
+    classes = "fa-bookmark"
     action_text = _('Add favourite')
     items_label = "Items that will be added to your favourites list"
 
@@ -216,7 +216,8 @@ class ChangeStateForm(ChangeStatusForm, BulkActionForm):
     confirm_page = "aristotle_mdr/actions/bulk_actions/change_status.html"
     classes="fa-university"
     action_text = _('Change registration status')
-    items_label = "These are the items that will be registered. Add or remove additional items with the autocomplete box."
+    items_label = "These are the items that will be registered. " \
+                  "Add or remove additional items with the autocomplete box."
 
     @classmethod
     def can_use(cls, user):
@@ -225,19 +226,19 @@ class ChangeStateForm(ChangeStatusForm, BulkActionForm):
 
 class ChangeWorkgroupForm(BulkActionForm):
     confirm_page = "aristotle_mdr/actions/bulk_actions/change_workgroup.html"
-    classes= "fa-users"
+    classes = "fa-users"
     action_text = _('Change workgroup')
-    items_label= "These are the items that will be moved between workgroups." \
-                " Add or remove additional items with the autocomplete box."
+    items_label = "These are the items that will be moved between workgroups." \
+                  " Add or remove additional items with the autocomplete box."
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields['workgroup']=forms.ModelChoiceField(
+        self.fields['workgroup'] = forms.ModelChoiceField(
             label="Workgroup to move items to",
             queryset=self.user.profile.workgroups
         )
-        self.fields['changeDetails']=forms.CharField(
+        self.fields['changeDetails'] = forms.CharField(
             label="Change notes (optional)",
             required=False,
             widget=forms.Textarea
@@ -302,6 +303,22 @@ class ChangeWorkgroupForm(BulkActionForm):
     @classmethod
     def can_use(cls, user):
         return user_can_move_any_workgroup(user)
+
+
+class ChangeStewardshipOrganisationForm(BulkActionForm):
+    confirm_page = "aristotle_mdr/actions/bulk_actions/change_stewardship_organisation.html"
+    classes = "fa-sitemap"
+    action_text = _("Change Stewardship Organisation")
+    items_label = "These are the items that will be moved between workgroups." \
+                  "Add or remove additional items within the autocomplete box"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # self.fields['steward_org'] = forms.ModelChoiceField(
+        #     label="Stewardship Organisation to move items to "
+        #     queryset=self.user.profile.
+        # )
 
 
 class DownloadActionForm(BulkActionForm):

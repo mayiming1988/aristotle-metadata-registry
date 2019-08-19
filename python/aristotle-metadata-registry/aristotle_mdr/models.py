@@ -1869,6 +1869,20 @@ class PossumProfile(models.Model):
             kwargs["group"] = org
         return StewardOrganisationMembership.objects.filter(**kwargs).exists()
 
+    @property
+    def stewardship_organisations(self):
+        """The list of Stewardship Organisations the user is a member in, or all, if they are a superuser """
+
+        if self.user.is_superuser:
+            return StewardOrganisation.objects.all()
+        else:
+            # They are not a superuser
+            qs_kwargs = {
+                "members__user": self.user,
+                "members__role": StewardOrganisation.roles.admin,
+            }
+            return StewardOrganisation.objects.visible(self.user).filter(**qs_kwargs)
+
     def is_favourite(self, item):
         from aristotle_mdr.contrib.favourites.models import Favourite
         fav = Favourite.objects.filter(
