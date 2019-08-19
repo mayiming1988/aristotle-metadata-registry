@@ -66,7 +66,7 @@ class DynamicTemplateView(TemplateView):
         return ['aristotle_mdr/static/%s.html' % self.kwargs['template']]
 
 
-def notification_redirect(content_type, object_id):
+def notification_redirect(request, content_type, object_id):  # Beware: request parameter is not used but it is actually necessary.
 
     ct = ContentType.objects.get(id=content_type)
     model_class = ct.model_class()
@@ -82,7 +82,7 @@ def get_if_user_can_view(objtype, user, iid):
         return False
 
 
-def concept_by_uuid(request, uuid):  # Beware! request parameter is actually necessary!?
+def concept_by_uuid(request, uuid):  # Beware: request parameter is not used but it is actually necessary.
     item = get_object_or_404(MDR._concept, uuid=uuid)
     return redirect(url_slugify_concept(item))
 
@@ -153,7 +153,7 @@ class ConceptRenderView(TagsMixin, TemplateView):
         itemid = self.kwargs[self.itemid_arg]
         # Lookup concept
         concept = get_object_or_404(MDR._concept, pk=itemid)
-        # Get queryset with (with select/prefetchs)
+        # Get queryset with (with select/prefetch)
         queryset = self.get_queryset(concept)
         # Fetch subclassed item
         try:
@@ -489,7 +489,7 @@ class ReviewChangesView(SessionWizardView):
             ra = cleaned_data['registrationAuthorities']
 
             static_content = {'new_state': state, 'new_reg_date': cleaned_data['registrationDate']}
-            # Need to check wether cascaded was true here
+            # Need to check whether cascaded was true here
 
             if cascade == 1:
                 queryset = cascade_items_queryset(items=items)
