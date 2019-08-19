@@ -1,4 +1,6 @@
 from typing import Any
+import reversion
+
 from django import forms
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
@@ -14,7 +16,9 @@ from aristotle_mdr.perms import (
     user_can_view,
     user_is_registrar,
     user_can_move_any_workgroup,
-    user_can_move_any_stewardship_organisation
+    user_can_move_any_stewardship_organisation,
+    user_can_remove_from_stewardship_organisation,
+    user_can_move_to_stewardship_organisation
 )
 from aristotle_mdr.forms.creation_wizards import UserAwareForm
 from aristotle_mdr.contrib.autocomplete import widgets
@@ -320,6 +324,7 @@ class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
     items_label = "These are the items that will be moved between workgroups." \
                   " Add or remove additional items within the autocomplete box. " \
 
+    move_from_checks = {} # Cache the view permission to speed up the bulk view
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -337,10 +342,22 @@ class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
         )
 
 
+    def appply_move_permission_checking(self, item) -> bool:
+        can_move_permission = self.move_from_checks.get(item.stewardship_organisation.pk, None)
+        if can_move_permission is None:
+            can_move_permission = user_can_remove_from_stewardship_organisation(self.user,
+                                                                                item.stewardship_organisation)
+            # Cache the can move permission
+            self.move_from_checks[item.stewardship_organisation.pk] = can_move_permission
+        else:
+            # No org, the user can move their own item
+            can_move_permission = True
+
+        return False
+
+
     def make_changes(self):
-        import reversion
-        from aristotle_mdr.perms import (user_can_remove_from_stewardship_organisation,
-                                         user_can_move_to_stewardship_organisation)
+        self.move_from_checks = {}
 
         new_stewardship_org = self.cleaned_data['steward_org']
         change_details = self.cleaned_data['changeDetails']
@@ -352,28 +369,18 @@ class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
         if not user_can_move_to_stewardship_organisation(self.user, new_stewardship_org):
             raise PermissionDenied
 
-        move_from_checks = {} # Cache stewardship organisation permissions as we check them to speed things up
-
         with transaction.atomic(), reversion.revisions.create_revision():
             reversion.revisions.set_user(self.user)
             for item in items:
                 if item.stewardship_organisation:
                     # The item has a stewardship organisation
-                    can_move_permission = move_from_checks.get(item.stewardship_organisation.pk, None)
-                    if can_move_permission is None:
-                        can_move_permission = user_can_remove_from_stewardship_organisation(self.user,
-                                                                                            item.stewardship_organisation)
-                        # Cache the can move permission
-                        move_from_checks[item.stewardship_organisation.pk] = can_move_permission
-                    else:
-                        # No org, the user can move their own item
-                        can_move_permission = True
+                    can_move_permission = self.appply_move_permission_checking(item)
 
                     if not can_move_permission:
                         # There's no permission to move the item
                         failed.append(item)
                     else:
-                        # There's permission
+                        # There's permission, move the item
                         suceeded.append(item)
                         item.workgroup = None
                         item.stewardship_organisation = new_stewardship_org
