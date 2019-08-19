@@ -398,7 +398,7 @@ def user_can_move_any_stewardship_organisation(user):
     if user.is_superuser:
         return True
     else:
-        if user.profile.stewardship_organisations.filter(members__role=StewardOrganisation.roles.admin).count > 0:
+        if user.profile.stewardship_organisations.filter(members__role=StewardOrganisation.roles.admin).count() > 0:
             return True
     return False
 
