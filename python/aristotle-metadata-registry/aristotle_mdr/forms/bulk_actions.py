@@ -315,10 +315,21 @@ class ChangeStewardshipOrganisationForm(BulkActionForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # self.fields['steward_org'] = forms.ModelChoiceField(
-        #     label="Stewardship Organisation to move items to "
-        #     queryset=self.user.profile.
-        # )
+        self.fields['steward_org'] = forms.ModelChoiceField(
+            label="Stewardship Organisation to move items to ",
+            queryset=self.user.profile.stewardship_organisations
+        )
+
+        self.fields['changeDetails'] = forms.ModelChoiceField(
+            label="Change notes (optional)",
+            required=False,
+            widget=forms.Textarea
+        )
+
+
+    @classmethod
+    def can_user(cls, user):
+        return user
 
 
 class DownloadActionForm(BulkActionForm):

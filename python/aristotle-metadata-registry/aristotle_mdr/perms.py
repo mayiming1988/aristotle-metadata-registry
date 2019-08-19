@@ -380,7 +380,6 @@ def user_can_move_any_workgroup(user):
 
     if user.is_anonymous:
         return False
-
     if user.is_superuser:
         return True
     if 'admin' in workgroup_change_access and user.is_staff:
@@ -390,6 +389,16 @@ def user_can_move_any_workgroup(user):
     if 'submitter' in workgroup_change_access and user.workgroupmembership_set.filter(role="submitter").exists():
         return True
 
+    return False
+
+
+def user_can_move_any_stewardship_organisation(user):
+    """Checks if a user can move an item from any of their stewardship organisations"""
+    if user.is_superuser:
+        return True
+    else:
+        if user.profile.stewardship_organisations.count() > 0:
+            return True
     return False
 
 

@@ -1872,7 +1872,6 @@ class PossumProfile(models.Model):
     @property
     def stewardship_organisations(self):
         """The list of Stewardship Organisations the user is a member in, or all, if they are a superuser """
-
         if self.user.is_superuser:
             return StewardOrganisation.objects.all()
         else:
