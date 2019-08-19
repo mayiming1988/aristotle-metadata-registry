@@ -368,15 +368,13 @@ class ChangeStewardshipOrganisationForm(BulkActionForm):
                     else:
                         # There's permission
                         succeeded.append(item)
+                        item.workgroup = None
                         item.stewardship_organisation = new_stewardship_org
                         item.save()
-                        # MDR._concept.objects.filter(pk=item.pk).update(stewardship_organisation=new_stewardship_org)
 
             failed = list(set(failed))
             success = list(set(succeeded))
             bad_items = sorted([str(i.id) for i in failed])
-
-            raise ValueError
 
             if not bad_items:
                 message = _(

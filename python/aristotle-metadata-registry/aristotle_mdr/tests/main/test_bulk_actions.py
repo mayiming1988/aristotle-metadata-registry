@@ -19,8 +19,10 @@ class BulkActionsTest(utils.AristotleTestUtils):
 
         # There would be too many tests to test every item type against every other
         # But they all have identical logic, so one test should suffice
-        self.item1 = models.ObjectClass.objects.create(name="OC1", definition="OC1 definition", workgroup=self.wg1)
-        self.item2 = models.ObjectClass.objects.create(name="OC2", definition="OC2 definition", workgroup=self.wg1)
+        self.item1 = models.ObjectClass.objects.create(name="OC1", definition="OC1 definition", workgroup=self.wg1,
+                                                       stewardship_organisation=self.steward_org_1)
+        self.item2 = models.ObjectClass.objects.create(name="OC2", definition="OC2 definition", workgroup=self.wg1,
+                                                       stewardship_organisation=self.steward_org_1)
         self.item3 = models.ObjectClass.objects.create(name="OC3", definition="OC3 definition", workgroup=self.wg1)
         self.item4 = models.Property.objects.create(name="Prop4", definition="Prop4 definition", workgroup=self.wg2)
         self.item5 = models.Property.objects.create(name="Prop5", definition="Prop5 definition", workgroup=None, submitter=self.editor)
@@ -59,7 +61,6 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
     def test_bulk_action_change_of_stewardship_organisation(self):
         # Login in superuser
         self.login_superuser()
-        import pdb; pdb.set_trace()
         self.new_stewardship_org = models.StewardOrganisation.objects.create(name="New Steward")
 
         # Post a bulk action moving two items from one stewardship organisation to another
