@@ -225,9 +225,10 @@ class ChangeStateForm(ChangeStatusForm, BulkActionForm):
 
 class ChangeWorkgroupForm(BulkActionForm):
     confirm_page = "aristotle_mdr/actions/bulk_actions/change_workgroup.html"
-    classes="fa-users"
+    classes= "fa-users"
     action_text = _('Change workgroup')
-    items_label="These are the items that will be moved between workgroups. Add or remove additional items with the autocomplete box."
+    items_label= "These are the items that will be moved between workgroups." \
+                " Add or remove additional items with the autocomplete box."
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -245,6 +246,7 @@ class ChangeWorkgroupForm(BulkActionForm):
     def make_changes(self):
         import reversion
         from aristotle_mdr.perms import user_can_remove_from_workgroup, user_can_move_to_workgroup
+
         new_workgroup = self.cleaned_data['workgroup']
         changeDetails = self.cleaned_data['changeDetails']
         items = self.cleaned_data['items']
