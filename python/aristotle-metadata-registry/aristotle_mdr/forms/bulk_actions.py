@@ -259,7 +259,7 @@ class ChangeWorkgroupForm(BulkActionForm):
         if not user_can_move_to_workgroup(self.user, new_workgroup):
             raise PermissionDenied
 
-        move_from_checks = {}  # Cache workgroup permissions as we check them to speed things up
+        move_from_checks = {}   # Cache workgroup permissions as we check them to speed things up
 
         failed = []
         success = []
@@ -297,24 +297,19 @@ class BulkMoveMetadataMixin:
     @staticmethod
     def generate_moving_message(org_name, sucessfully_moved_items: int, failed_items=None) -> str:
         if not failed_items:
-            message = _(
-                "%(num_items)s items moved into the workgroup '%(new_wg)s'. \n"
-            ) % {
-                          'new_wg': org_name,
-                          'num_items': sucessfully_moved_items,
-                      }
+            message = _("%(num_items)s items moved into the workgroup '%(new_wg)s'. \n") % {
+                'new_wg': org_name,
+                'num_items': sucessfully_moved_items,
+                }
         else:
-            message = _(
-                "%(num_items)s items moved into the workgroup '%(new_wg)s'. \n"
-                "Some items failed, they had the id's: %(bad_ids)s"
-            ) % {
-                          'new_wg': org_name,
-                          'num_items': sucessfully_moved_items,
-                          'bad_ids': ",".join(failed_items)
+            message = _("%(num_items)s items moved into the workgroup '%(new_wg)s'. \n"
+                        "Some items failed, they had the id's: %(bad_ids)s") % \
+                      {
+                        'new_wg': org_name,
+                        'num_items': sucessfully_moved_items,
+                        'bad_ids': ",".join(failed_items)
                       }
         return message
-
-
 
 
 class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
@@ -324,7 +319,7 @@ class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
     items_label = "These are the items that will be moved between workgroups." \
                   " Add or remove additional items within the autocomplete box. " \
 
-    move_from_checks = {} # Cache the view permission to speed up the bulk view
+    move_from_checks = {}   # Cache the view permission to speed up the bulk view
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -341,8 +336,7 @@ class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
             widget=forms.Textarea(attrs={'class': 'form-control'})
         )
 
-
-    def appply_move_permission_checking(self, item) -> bool:
+    def apply_move_permission_checking(self, item) -> bool:
         can_move_permission = self.move_from_checks.get(item.stewardship_organisation.pk, None)
         if can_move_permission is None:
             can_move_permission = user_can_remove_from_stewardship_organisation(self.user,
@@ -353,8 +347,7 @@ class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
             # No org, the user can move their own item
             can_move_permission = True
 
-        return False
-
+        return can_move_permission
 
     def make_changes(self):
         self.move_from_checks = {}
@@ -374,7 +367,7 @@ class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
             for item in items:
                 if item.stewardship_organisation:
                     # The item has a stewardship organisation
-                    can_move_permission = self.appply_move_permission_checking(item)
+                    can_move_permission = self.apply_move_permission_checking(item)
 
                     if not can_move_permission:
                         # There's no permission to move the item
@@ -391,7 +384,6 @@ class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
             bad_items = sorted([str(i.id) for i in failed])
 
             return self.generate_moving_message(new_stewardship_org.name, len(success), failed_items=bad_items)
-
 
     @classmethod
     def can_user(cls, user):

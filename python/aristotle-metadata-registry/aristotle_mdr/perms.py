@@ -394,10 +394,11 @@ def user_can_move_any_workgroup(user):
 
 def user_can_move_any_stewardship_organisation(user):
     """Checks if a user can move an item from any of their stewardship organisations"""
+    from aristotle_mdr.models import StewardOrganisation
     if user.is_superuser:
         return True
     else:
-        if user.profile.stewardship_organisations.count() > 0:
+        if user.profile.stewardship_organisations.filter(members__role=StewardOrganisation.roles.admin).count > 0:
             return True
     return False
 
@@ -477,7 +478,6 @@ def user_can_create_workgroup(user, steward_org=None):
 
 def user_can_create_registration_authority(user, steward_org=None):
     return user_is_superuser_or_has_admin_role_in_steward_organisation(user, steward_org)
-
 
 
 def user_is_superuser_or_has_admin_role_in_steward_organisation(user, steward_org=None):

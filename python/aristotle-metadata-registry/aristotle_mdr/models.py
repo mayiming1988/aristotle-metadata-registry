@@ -1876,11 +1876,7 @@ class PossumProfile(models.Model):
             return StewardOrganisation.objects.all()
         else:
             # They are not a superuser
-            qs_kwargs = {
-                "members__user": self.user,
-                "members__role": StewardOrganisation.roles.admin,
-            }
-            return StewardOrganisation.objects.visible(self.user).filter(**qs_kwargs)
+            return StewardOrganisation.objects.visible(self.user).filter(members__user=self.user)
 
     def is_favourite(self, item):
         from aristotle_mdr.contrib.favourites.models import Favourite
@@ -2019,6 +2015,7 @@ def update_org_to_match_workgroup(sender, instance, **kwargs):
         return
     if instance.workgroup is not None:
         instance.stewardship_organisation = instance.workgroup.stewardship_organisation
+
 
 @receiver(post_save, sender=DiscussionComment)
 def new_comment_created(sender, instance, **kwargs):
