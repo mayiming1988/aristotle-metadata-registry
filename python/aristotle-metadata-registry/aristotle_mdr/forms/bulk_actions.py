@@ -334,9 +334,12 @@ class ChangeStewardshipOrganisationForm(BulkActionForm):
         from aristotle_mdr.perms import (user_can_remove_from_stewardship_organisation,
                                          user_can_move_to_stewardship_organisation)
 
-        new_stewardship_org = self.cleaned_data['workgroup']
+        new_stewardship_org = self.cleaned_data['steward_org']
         change_details = self.cleaned_data['changeDetails']
         items = self.cleaned_data['items']
+
+        failed = []
+        succeeded = []
 
         if not user_can_move_to_stewardship_organisation(self.user, new_stewardship_org):
             raise PermissionDenied
@@ -346,11 +349,54 @@ class ChangeStewardshipOrganisationForm(BulkActionForm):
         with transaction.atomic(), reversion.revisions.create_revision():
             reversion.revisions.set_user(self.user)
             for item in items:
-                if item.stewardship:
-                    can_movel
+                if item.stewardship_organisation:
+                    # The item has a stewardship organisation
+                    can_move_permission = move_from_checks.get(item.stewardship_organisation.pk, None)
+                    if can_move_permission is None:
+                        can_move_permission = user_can_remove_from_stewardship_organisation(self.user,
+                                                                                            item.stewardship_organisation)
+                        # Cache the can move permission
+                        move_from_checks[item.stewardship_organisation.pk] = can_move_permission
+                    else:
+                        # No org, the user can move their own item
+                        can_move_permission = True
 
-        failed = []
-        suceeded = []
+
+                    if not can_move_permission:
+                        # There's no permission to move the item
+                        failed.append(item)
+                    else:
+                        # There's permission
+                        succeeded.append(item)
+                        item.stewardship_organisation = new_stewardship_org
+                        item.save()
+                        # MDR._concept.objects.filter(pk=item.pk).update(stewardship_organisation=new_stewardship_org)
+
+            failed = list(set(failed))
+            success = list(set(succeeded))
+            bad_items = sorted([str(i.id) for i in failed])
+
+            raise ValueError
+
+            if not bad_items:
+                message = _(
+                    "%(num_items)s items moved into the workgroup '%(new_wg)s'. \n"
+                ) % {
+                              'new_wg': new_stewardship_org.name,
+                              'num_items': len(success),
+                          }
+            else:
+                message = _(
+                    "%(num_items)s items moved into the workgroup '%(new_wg)s'. \n"
+                    "Some items failed, they had the id's: %(bad_ids)s"
+                ) % {
+                              'new_wg': new_stewardship_org.name,
+                              'num_items': len(success),
+                              'bad_ids': ",".join(bad_items)
+                          }
+                # reversion.revisions.set_comment(change_details + "\n\n" + message)
+            return message
+
 
     @classmethod
     def can_user(cls, user):

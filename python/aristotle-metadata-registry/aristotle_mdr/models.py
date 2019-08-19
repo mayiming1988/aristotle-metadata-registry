@@ -2012,12 +2012,13 @@ def check_concept_app_label(sender, instance, **kwargs):
         )
 
 
-@receiver(pre_save)
-def update_org_to_match_workgroup(sender, instance, **kwargs):
-    if not issubclass(sender, _concept):
-        return
-    if instance.workgroup is not None:
-        instance.stewardship_organisation = instance.workgroup.stewardship_organisation
+# @receiver(pre_save)
+# def update_org_to_match_workgroup(sender, instance, **kwargs):
+#     # if not issubclass(sender, _concept):
+#     #     return
+#     # # if instance.workgroup is not None:
+#     #     instance.stewardship_organisation = instance.workgroup.stewardship_organisation
+#     pass
 
 
 @receiver(post_save, sender=DiscussionComment)

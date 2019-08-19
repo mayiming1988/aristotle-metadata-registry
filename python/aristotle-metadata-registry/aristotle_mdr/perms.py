@@ -494,11 +494,17 @@ def user_is_superuser_or_has_admin_role_in_steward_organisation(user, steward_or
 
 
 def user_can_remove_from_stewardship_organisation(user, steward_org=None):
-    pass
+    if user.is_superuser:
+        return True
+
+    return False
 
 
 def user_can_move_to_stewardship_organisation(user, steward_org=None):
-    pass
+    if user.is_superuser:
+        return True
+
+    return False
 
 
 def user_can_move_between_stewardship_organisations(user, stewardorg_a, stewardorg_b):

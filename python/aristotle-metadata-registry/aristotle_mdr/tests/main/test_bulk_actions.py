@@ -56,6 +56,31 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
 
         return review_response
 
+    def test_bulk_action_change_of_stewardship_organisation(self):
+        # Login in superuser
+        self.login_superuser()
+        import pdb; pdb.set_trace()
+        self.new_stewardship_org = models.StewardOrganisation.objects.create(name="New Steward")
+
+        # Post a bulk action moving two items from one stewardship organisation to another
+        response = self.client.post(
+            reverse('aristotle:bulk_action'),
+            {
+                'bulkaction': 'aristotle_mdr.forms.bulk_actions.ChangeStewardshipOrganisationForm',
+                'items': [self.item1.id, self.item2.id],
+                'steward_org': [self.new_stewardship_org.id],
+                "confirmed": True
+            }
+        )
+        # Recache
+        self.item1.refresh_from_db()
+        self.item2.refresh_from_db()
+
+        # Check that the items have been moved
+        self.assertEqual(self.item1.stewardship_organisation, self.new_stewardship_org)
+        self.assertEqual(self.item2.stewardship_organisation, self.new_stewardship_org)
+
+
     def create_review_request(self, items):
         self.login_registrar()
         # Make a RR so the registrar can change status
@@ -605,3 +630,4 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         self.assertTrue(self.item1.concept in self.wg1.items.all())
         self.assertTrue(self.item2.concept in self.wg1.items.all())
         self.assertTrue(self.item4.concept not in self.wg1.items.all())
+
