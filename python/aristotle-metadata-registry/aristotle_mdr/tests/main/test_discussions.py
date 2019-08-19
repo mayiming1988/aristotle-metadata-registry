@@ -144,7 +144,9 @@ class WorkgroupMembersCanMakePostsAndComments(utils.LoggedInViewPages, TestCase)
         response = self.client.post(reverse('aristotle:discussionsNew'),
                                     {
                                         'title': "New post that will not work",
-                                        'body': "I am a member of this workgroup but am trying to post about an item that I'm not allowed to see.",
+                                        'body': "I am a member of this "
+                                                "workgroup but am trying to post "
+                                                "about an item that I'm not allowed to see.",
                                         'workgroup': self.wg1.id,
                                         'relatedItems': [forbidden_item.id]
                                     }

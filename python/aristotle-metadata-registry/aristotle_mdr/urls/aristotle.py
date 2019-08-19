@@ -11,8 +11,6 @@ import aristotle_mdr.forms as forms
 import aristotle_mdr.models as models
 from aristotle_mdr.contrib.generic.views import (
     GenericAlterOneToManyView,
-    GenericAlterManyToManyView,
-    GenericAlterManyToManyOrderView,
     generic_foreign_key_factory_view
 )
 
