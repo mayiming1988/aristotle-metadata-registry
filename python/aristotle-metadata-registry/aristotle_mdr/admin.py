@@ -84,7 +84,7 @@ class WorkgroupFilter(RelatedFieldListFilter):
             self.lookup_choices = [(w.id, w) for w in request.user.profile.workgroups.all()]
 
 
-class WorkgroupAdmin(CompareVersionAdmin):
+class WorkgroupAdmin(admin.ModelAdmin):
     fieldsets = [
         (None, {'fields': ['name', 'definition']}),
         # ('Members', {'fields': ['managers', 'stewards', 'submitters', 'viewers']}),

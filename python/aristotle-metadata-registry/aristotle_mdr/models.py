@@ -770,6 +770,9 @@ class _concept(baseAristotleObject):
     class Meta:
         # So the url_name works for items we can't determine.
         verbose_name = "item"
+        indexes = [
+            models.Index(fields=['uuid']),
+        ]
 
     class ReportBuilder:
         exclude = ('_is_public', '_is_locked', '_type')

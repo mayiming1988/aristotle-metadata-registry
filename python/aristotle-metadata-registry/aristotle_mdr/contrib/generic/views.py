@@ -240,7 +240,9 @@ class GenericAlterManyToManyView(GenericAlterManyToSomethingFormView):
             return self.form_invalid(form)
 
     def form_valid(self, form):
-        self.item.__setattr__(self.model_base_field, form.cleaned_data['items_to_add'])
+        m2m_field = getattr(self.item, self.model_base_field)
+        m2m_field.set(form.cleaned_data['items_to_add'])
+
         self.item.save()
         return HttpResponseRedirect(self.get_success_url())
 
