@@ -24,7 +24,7 @@ class RegistrationAuthoritySelect(forms.Select):
     def render(self, name, value, renderer=None, **kwargs):
         attrs = kwargs.get('attrs', None)
         if value is not None:
-            attrs['disabled']='disabled'
+            attrs['disabled'] = 'disabled'
             _id = attrs.get('id')
             # Insert a hidden field with the same name as 'disabled' fields aren't submitted.
             # http://stackoverflow.com/questions/368813/
