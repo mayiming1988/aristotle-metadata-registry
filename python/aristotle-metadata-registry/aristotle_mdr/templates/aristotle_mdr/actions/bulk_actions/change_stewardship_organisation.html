@@ -15,13 +15,13 @@
             {{ form.items }}
         </div>
         <section>
-        <div id="workgroup">
+        <div id="steward_org">
             <span>
-                {{ form.workgroup.label }}:
-                {{ form.workgroup.errors }}
+                {{ form.steward_org.label }}:
+                {{ form.steward_org.errors }}
             </span>
             <span>
-                {{ form.workgroup }}
+                {{ form.steward_org }}
             </span>
         </div>
         <div id="comments">
@@ -36,7 +36,7 @@
     </div>
     <div>
         <a class="btn btn-default" href="{{ next }}">Cancel</a>
-        <button type="submit" name="confirmed" class="btn btn-primary" value="Change">Move to stewardship organisation</button>
+        <button type="submit" name="confirmed" class="btn btn-primary" value="Change">Move to Stewardship Organisation</button>
     </div>
 </form>
 {% endblock %}

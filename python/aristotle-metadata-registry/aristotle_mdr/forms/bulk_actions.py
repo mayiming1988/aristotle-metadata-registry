@@ -308,26 +308,49 @@ class ChangeWorkgroupForm(BulkActionForm):
 class ChangeStewardshipOrganisationForm(BulkActionForm):
     confirm_page = "aristotle_mdr/actions/bulk_actions/change_stewardship_organisation.html"
     classes = "fa-sitemap"
-    action_text = _("Change Stewardship Organisation")
+    action_text = _("Change stewardship organisation")
     items_label = "These are the items that will be moved between workgroups." \
-                  "Add or remove additional items within the autocomplete box."
+                  " Add or remove additional items within the autocomplete box. " \
+
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.fields['steward_org'] = forms.ModelChoiceField(
             label="Stewardship Organisation to move items to ",
-            queryset=self.user.profile.stewardship_organisations
+            queryset=self.user.profile.stewardship_organisations,
+            widget=forms.Select(attrs={'class': 'form-control'}),
         )
 
-        self.fields['changeDetails'] = forms.ModelChoiceField(
+        self.fields['changeDetails'] = forms.CharField(
             label="Change notes (optional)",
             required=False,
-            widget=forms.Textarea
+            widget=forms.Textarea(attrs={'class': 'form-control'})
         )
 
+
     def make_changes(self):
-        return "It worked"
+        import reversion
+        from aristotle_mdr.perms import (user_can_remove_from_stewardship_organisation,
+                                         user_can_move_to_stewardship_organisation)
+
+        new_stewardship_org = self.cleaned_data['workgroup']
+        change_details = self.cleaned_data['changeDetails']
+        items = self.cleaned_data['items']
+
+        if not user_can_move_to_stewardship_organisation(self.user, new_stewardship_org):
+            raise PermissionDenied
+
+        move_from_checks = {} # Cache stewardship organisation permissions as we check them to speed things up
+
+        with transaction.atomic(), reversion.revisions.create_revision():
+            reversion.revisions.set_user(self.user)
+            for item in items:
+                if item.stewardship:
+                    can_movel
+
+        failed = []
+        suceeded = []
 
     @classmethod
     def can_user(cls, user):
