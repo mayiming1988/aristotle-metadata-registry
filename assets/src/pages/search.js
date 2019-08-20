@@ -111,6 +111,7 @@ $('.dropdown-menu-date .dropdown-menu').each( function() {
 
 // Setup the sort ordering box
 $('.sort-order-box .dropdown-menu input').on('click', function(e) {
+    e.stopPropagation();
     $(this).closest("form")[0].submit();
 });
 
