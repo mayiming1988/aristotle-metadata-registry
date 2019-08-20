@@ -3,9 +3,9 @@ from django.http import Http404
 from django.core.exceptions import PermissionDenied
 from django.views.generic.list import ListView
 from django.views.generic import TemplateView
-from django.db.models import Q, Model, Field
+from django.db.models import Model, Field
 from django.urls import reverse
-from django.core.exceptions import FieldDoesNotExist
+from django.core.exceptions import FieldDoesNotExist, ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
 
 from aristotle_mdr import models as MDR
@@ -191,7 +191,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
     version_arg = 'verid'
     # Top level fields to exclude
     excluded_fields = ['id', 'uuid', 'name', 'version', 'submitter', 'created', 'modified', 'serialized_model']
-    # Excluded fields on subserialized items
+    # Excluded fields on subserialised items
     excluded_subfields = ['id', 'group']
 
     def dispatch(self, request, *args, **kwargs):
@@ -206,7 +206,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         # Get version permission
         try:
             self.version_permission = VersionPermissions.objects.get(pk=self.version.pk)
-        except VersionPermissions.DoesNotExist:
+        except ObjectDoesNotExist:
             self.version_permission = None
 
         # Check if version can be viewed
@@ -254,7 +254,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         field_data = {}
 
         for name, data in version_data.items():
-            # If field name isnt excluded or we are not excluding
+            # If field name isn't excluded or we are not excluding
             if name not in exclude or not exclude:
                 field = self.get_field_or_none(name, model)
                 if field:
@@ -266,7 +266,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
                         # Recursively resolve sub dicts
                         for subdata in data:
                             if type(subdata) == dict:
-                                # If subdata is dict item that was subserialized
+                                # If subdata is dict item that was subserialised
                                 sub_field_data.append(
                                     self.get_field_data(subdata, submodel, self.excluded_subfields)
                                 )
@@ -304,11 +304,9 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         return MDR._concept.objects.filter(id__in=ids).visible(self.request.user).in_bulk()
 
     def get_lookup_dict(self, field_data) -> LookupDict:
-        lookup = {}
-        lookup[MDR._concept._meta.label_lower] = self.get_viewable_concepts(field_data)
         # Get all custom fields since values already filtered
-        lookup[CustomField._meta.label_lower] = CustomField.objects.in_bulk()
-        return lookup
+        return {MDR._concept._meta.label_lower: self.get_viewable_concepts(field_data),
+                  CustomField._meta.label_lower: CustomField.objects.in_bulk()}
 
     def get_version_fields(self, field_data, items: LookupDict) -> List[VersionField]:
         """Get a list of VersionField objects to render"""
@@ -343,7 +341,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
                             VersionLinkField(self.get_verbose_name(field), subdata, lookup.get(subdata, None))
                         )
 
-                # Group field take priority if there were both (this shouldnt happen though)
+                # Group field take priority if there were both (this shouldn't happen though)
                 if len(sub_fields) == 0 and len(sub_links) > 0:
                     fields.append(
                         VersionMultiLinkField(self.get_verbose_name(field), sub_links)
@@ -380,7 +378,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         if self.version_dict['workgroup']:
             try:
                 workgroup = MDR.Workgroup.objects.get(pk=self.version_dict['workgroup'])
-            except MDR.Workgroup.DoesNotExist:
+            except ObjectDoesNotExist:
                 workgroup = None
 
             context['workgroup'] = workgroup
@@ -401,8 +399,8 @@ class ConceptVersionView(VersionsMixin, TemplateView):
 
         return context
 
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         context.update({
             'view': self,
             'hide_item_actions': True,
