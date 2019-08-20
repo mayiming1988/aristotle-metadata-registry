@@ -306,7 +306,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
     def get_lookup_dict(self, field_data) -> LookupDict:
         # Get all custom fields since values already filtered
         return {MDR._concept._meta.label_lower: self.get_viewable_concepts(field_data),
-                  CustomField._meta.label_lower: CustomField.objects.in_bulk()}
+                CustomField._meta.label_lower: CustomField.objects.in_bulk()}
 
     def get_version_fields(self, field_data, items: LookupDict) -> List[VersionField]:
         """Get a list of VersionField objects to render"""
