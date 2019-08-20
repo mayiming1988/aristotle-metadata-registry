@@ -654,6 +654,7 @@ class ChangeStatusView(ReviewChangesView):
         context.update({'item': item, 'status_matrix': status_matrix})
         return context
 
+
     def done(self, form_list, **kwargs):
         self.register_changes(kwargs.get('form_dict'), 'change_status')
         return HttpResponseRedirect(url_slugify_concept(self.item))

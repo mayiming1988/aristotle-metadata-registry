@@ -168,7 +168,10 @@ def construct_change_message_for_form(form, model=None):
 
 def construct_change_message(form, formsets):
     """
-    Construct a change message from a changed object.
+    This function constructs messages for new, changed or deleted objects of a formset.
+    :param form: Django form object to evaluate the fields that have been modified.
+    :param formsets: List of Formsets.
+    :return: String. Descriptions of the changes performed in the objects of the formset.
     """
 
     messages_list = [construct_change_message_for_form(form)]
@@ -177,21 +180,27 @@ def construct_change_message(form, formsets):
         for formset in formsets:
             if formset.model:
                 for added_object in formset.new_objects:
-                    # Translators: A message in the version history of an item saying that an object with the name (name) of the type (object) has been created in the registry.
-                    messages_list.append(_('Added %(name)s "%(object)s".')
-                                          % {'name': force_text(added_object._meta.verbose_name),
-                                             'object': force_text(added_object)})
+                    messages_list.append(
+                        _('Added %(name)s "%(object)s".').format(
+                            name=force_text(added_object._meta.verbose_name),
+                            object=force_text(added_object),
+                        )
+                    )
+
                 for changed_object, changed_fields in formset.changed_objects:
-                    # Translators: A message in the version history of an item saying that an object with the name (name) of the type (object) has been changed in the registry.
-                    messages_list.append(_('Changed %(list)s for %(name)s "%(object)s".')
-                                          % {'list': get_text_list(changed_fields, _('and')),
-                                             'name': force_text(changed_object._meta.verbose_name),
-                                             'object': force_text(changed_object)})
+                    messages_list.append(
+                        _('Changed %(list)s for %(name)s "%(object)s".').format(
+                            list=get_text_list(changed_fields,_('and')),
+                            name=force_text(changed_object._meta.verbose_name),
+                            object=force_text(changed_object)),
+                    )
+
                 for deleted_object in formset.deleted_objects:
-                    # Translators: A message in the version history of an item saying that an object with the name (name) of the type (object) has been deleted from the registry.
-                    messages_list.append(_('Deleted %(name)s "%(object)s".')
-                                          % {'name': force_text(deleted_object._meta.verbose_name),
-                                             'object': force_text(deleted_object)})
+                    messages_list.append(
+                        _('Deleted {name} "{object}s".').format(
+                            name=force_text(deleted_object._meta.verbose_name),
+                            object=force_text(deleted_object)),
+                    )
 
     change_message = ', '.join(messages_list)
     return change_message or _('No fields changed.')
