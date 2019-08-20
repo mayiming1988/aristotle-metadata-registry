@@ -190,7 +190,7 @@ def construct_change_message(form, formsets):
                 for changed_object, changed_fields in formset.changed_objects:
                     messages_list.append(
                         _('Changed %(list)s for %(name)s "%(object)s".').format(
-                            list=get_text_list(changed_fields,_('and')),
+                            list=get_text_list(changed_fields, _('and')),
                             name=force_text(changed_object._meta.verbose_name),
                             object=force_text(changed_object)),
                     )
