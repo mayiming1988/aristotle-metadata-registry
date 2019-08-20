@@ -71,12 +71,14 @@ function updateDateRadioDetails(menu) {
 }
 
 function updateSortRadioDetails(menu) {
-    var x = $(menu).find("input:checked");
+    let x = $(menu).find("input:checked");
     if (x.length == 0 ) {
+        // No button has been checked, default to sorting by relevance
         x = $(menu).find("input[value='n']");
         x.prop("checked", true);
     }
     x=x[0];
+    // Update the text to display which checkbox is selected
     $(menu).parent().find(".details").text($("label[for='"+x.id+"']").text());
 }
 
@@ -108,11 +110,16 @@ $('.dropdown-menu-date .dropdown-menu').each( function() {
 });
 
 // Setup the sort ordering box
-$('.sort-order-box .dropdown-menu').on('click', function(e) {
-    e.stopPropagation();
-    updateSortRadioDetails(this);
-    $(this).closest("form").submit();
+$('.sort-order-box .dropdown-menu input').on('click', function(e) {
+    // e.stopPropagation();
+    // updateSortRadioDetails(this);
+
+    let target = $(e.target);
+    target.prop("checked", true);
+
+    $(this).closest("form")[0].submit();
 });
+
 $('.sort-order-box .dropdown-menu').each( function() {
     updateSortRadioDetails(this);
 });
