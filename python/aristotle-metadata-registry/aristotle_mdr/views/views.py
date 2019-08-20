@@ -30,6 +30,7 @@ from aristotle_mdr.utils import (
     fetch_aristotle_downloaders,
     fetch_metadata_apps,
     url_slugify_concept,
+    construct_change_message_for_form,
 )
 from aristotle_mdr.views.utils import (
     generate_visibility_matrix,
@@ -653,6 +654,7 @@ class ChangeStatusView(ReviewChangesView):
         context.update({'item': item, 'status_matrix': status_matrix})
         return context
 
+
     def done(self, form_list, **kwargs):
         self.register_changes(kwargs.get('form_dict'), 'change_status')
         return HttpResponseRedirect(url_slugify_concept(self.item))
@@ -715,17 +717,7 @@ class EditStatus(UpdateView):
         from aristotle_mdr.models import concept_visibility_updated
         status_object = form.save()
         reversion.set_user(self.request.user)
-        reversion.set_comment({
-            "status": {"name": status_object.state_name,
-                       "changed": not (status_object.state == self.get_initial().get('state')),
-                       },
-            "effective_date": {"date": status_object.registrationDate,
-                               "changed": not (status_object.registrationDate == self.get_initial().get('registrationDate')),
-                               },
-            "until_date": {"date": status_object.until_date,
-                           "changed": not (status_object.until_date == self.get_initial().get('until_date')),
-                           },
-        })
+        reversion.set_comment(construct_change_message_for_form(form, self.model))
         # Update the search engine indexation for the concept:
         concept_visibility_updated.send(concept=status_object.concept, sender=type(status_object.concept))
         return redirect(reverse('aristotle:registrationHistory', args=[self.kwargs['iid']]))
@@ -735,13 +727,9 @@ class StatusHistory(TemplateView):
     template_name = "aristotle_mdr/status_history.html"
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data()
+        context = super().get_context_data(**kwargs)
 
         versions = Version.objects.get_for_object(self.status).select_related("revision__user")
-
-        print("THESE ARE THE VERSIONS:")
-        print(versions)
-        print(versions[0])
 
         context.update(
             {'item': self.item,

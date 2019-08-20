@@ -317,7 +317,7 @@ def paginator_range(page, mode):
 
 
 @register.filter
-def stateToText(state):
+def state_to_text(state):
     # @register.simple_tag
     """
     This tag takes the integer value of a state for a registration status and

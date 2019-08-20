@@ -136,9 +136,9 @@ class VersionsMixin:
 
     def get_user_friendly_field_name(self, field: str, model) -> str:
         # If the field ends with _set we want to remove it, so we can look it up in the _meta.
-        fieldobj = self.get_field(field, model)
+        field_obj = self.get_field(field, model)
         try:
-            name = self.get_verbose_name(fieldobj)
+            name = self.get_verbose_name(field_obj)
         except AttributeError:
             name = field
         return name
@@ -751,7 +751,7 @@ class ConceptVersionCompareView(SimpleItemGet, ConceptVersionCompareBase):
     def get_compare_versions(self):
         version_1 = self.request.GET.get('v1')
         version_2 = self.request.GET.get('v2')
-        return (version_1, version_2)
+        return version_1, version_2
 
 
 class ConceptVersionListView(SimpleItemGet, VersionsMixin, ListView):

@@ -30,7 +30,7 @@
                     <tr>
                         <td><time datetime="{{ status.registrationDate|isotime }}">{{ status.registrationDate }}</time></td>
                         <td><time datetime="{{ status.until_date|isotime }}">{{ status.until_date }}</time></td>
-                        <td><a title='' href='{% url 'aristotle:registrationAuthority' ra.id %}#state_{{ status.state }}'>{{ status.state|stateToText }}</a></td>
+                        <td><a title='' href='{% url 'aristotle:registrationAuthority' ra.id %}#state_{{ status.state }}'>{{ status.state|state_to_text }}</a></td>
                         <td>{{ status.changeDetails }}</td>
                         {% if item|can_edit:request.user %}
                             <td>

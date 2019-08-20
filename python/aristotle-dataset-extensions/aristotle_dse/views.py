@@ -272,7 +272,7 @@ def editInclusionOrder(request, dss_id, inc_type):
     else:
         extra = 1
 
-    ValuesFormSet = modelformset_factory(
+    values_formset = modelformset_factory(
         item_type,
         formset=HiddenOrderModelFormSet,
         can_order=True,
@@ -281,7 +281,7 @@ def editInclusionOrder(request, dss_id, inc_type):
     )
 
     if request.method == 'POST':
-        formset = ValuesFormSet(request.POST, request.FILES)
+        formset = values_formset(request.POST, request.FILES)
         if formset.is_valid():
             with transaction.atomic(), reversion.create_revision():
                 item.save()  # do this to ensure we are saving reversion records for the DSS, not just the values
@@ -299,11 +299,11 @@ def editInclusionOrder(request, dss_id, inc_type):
                 for obj in formset.deleted_objects:
                     obj.delete()
                 reversion.set_user(request.user)
-                reversion.set_comment(construct_change_message(request, None, [formset, ]))
+                reversion.set_comment(construct_change_message(None, [formset, ]))
 
                 return redirect(reverse("aristotle_mdr:item", args=[item.id]))
     else:
-        formset = ValuesFormSet(
+        formset = values_formset(
             queryset=item_type.objects.filter(dss=item.id),
         )
     return render(
