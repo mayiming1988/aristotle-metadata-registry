@@ -9,8 +9,10 @@ from graphene_django.utils import maybe_queryset
 from graphene.types.argument import to_arguments
 from graphene.types.scalars import Scalar
 from collections import OrderedDict
-from aristotle_mdr_graphql.aristotle_filterset_classes import (AristotleIdFilterSet,
-                                                               ConceptFilterSet)
+from aristotle_mdr_graphql.aristotle_filterset_classes import (
+    AristotleIdFilterSet,
+    ConceptFilterSet
+)
 
 
 class ObjectField(Scalar):
@@ -64,7 +66,7 @@ class AristotleFilterConnectionField(DjangoFilterConnectionField):
 
 
 class AristotleConceptFilterConnectionField(AristotleFilterConnectionField):
-    def __init__(self, type, *args, **kwargs):
+    def __init__(self, aristotle_type, *args, **kwargs):
 
         extrameta = {
             'filterset_base_class': ConceptFilterSet,
@@ -72,9 +74,9 @@ class AristotleConceptFilterConnectionField(AristotleFilterConnectionField):
         kwargs['extra_filter_meta'] = extrameta
 
         if "description" not in kwargs.keys():
-            kwargs['description'] = "Look up a collection of " + str(type._meta.model.get_verbose_name_plural())
+            kwargs['description'] = "Look up a collection of " + str(aristotle_type._meta.model.get_verbose_name_plural())
 
-        super(AristotleFilterConnectionField, self).__init__(type, *args, **kwargs)
+        super(AristotleFilterConnectionField, self).__init__(aristotle_type, *args, **kwargs)
 
 
 class DjangoListFilterField(Field):
@@ -107,7 +109,17 @@ class DjangoListFilterField(Field):
         self._base_args = args
 
     @staticmethod
-    def list_resolver(resolver, filterset_class, filtering_args, root, info, **args):
+    def list_resolver(resolver, default_manager, filterset_class, filtering_args, root, info, **args):
+        """
+        :param resolver:
+        :param default_manager: Beware! this field is actually needed. GraphQl will fail if removed!
+        :param filterset_class:
+        :param filtering_args:
+        :param root:
+        :param info:
+        :param args:
+        :return:
+        """
         filter_kwargs = {k: v for k, v in args.items() if k in filtering_args}
         qs = filterset_class(
             data=filter_kwargs,

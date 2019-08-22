@@ -99,7 +99,11 @@ class baseAristotleObject(TimeStampedModel):
 
     @classmethod
     def meta(cls):
-        # I know what I'm doing, get out the way.
+        """
+        The purpose of this function is to use the meta attribute in templates.
+         example: "item.meta"
+        :return: _meta attribute of class.
+        """
         return cls._meta
 
 

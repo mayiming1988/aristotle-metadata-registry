@@ -13,27 +13,27 @@ FFType = Union[List[str], Dict[str, List[str]]]
 KwargsType = Dict[str, Any]
 
 
-def inline_type_from_model(meta_model: Type, filter_fields: FFType = None,
-                           description: str = None, meta_kwargs: KwargsType = {}) -> Type:
+def inline_type_from_model(model: Type,
+                           filter_fields: FFType = None,
+                           description: str = None,
+                           meta_kwargs: KwargsType = {}
+                           ) -> Type:
     """Create a regular node from a django model"""
-
-    new_model_name = meta_model.__name__ + 'Node'
-    description = description or dedent(meta_model.__doc__)
 
     _filter_fields: FFType = []
     if filter_fields is not None:
         _filter_fields = filter_fields
 
     kwargs = dict(
-        model=meta_model,
-        description=description,
+        model=model,
+        description=description or dedent(model.__doc__),
         filter_fields=_filter_fields,
         default_resolver=aristotle_resolver,
     )
     kwargs.update(meta_kwargs)
 
     meta_class = type('Meta', (object, ), kwargs)
-    dynamic_class = type(new_model_name, (DjangoObjectType, ), dict(Meta=meta_class))
+    dynamic_class = type(model.__name__ + 'Node', (DjangoObjectType, ), dict(Meta=meta_class))
     return dynamic_class
 
 
@@ -75,7 +75,7 @@ def type_from_model(model: Type,
 
 def type_from_concept_model(model: Type[_concept],
                             filter_fields: FFType = None,
-                            # filterset_class=ConceptFilterSet,
+                            filterset_class=ConceptFilterSet,
                             extra_filter_fields: FFType = None,
                             resolver=aristotle_resolver,
                             meta_kwargs: KwargsType = {},
@@ -109,7 +109,7 @@ def type_from_concept_model(model: Type[_concept],
     meta_kwargs.update(dict(
         model=model,
         description=dedent(model.__doc__),
-        filter_fields=filter_fields,
+        filter_fields=_filter_fields,
         # filterset_class=filterset_class,
         interfaces=(graphene.relay.Node, ),
         default_resolver=resolver,
