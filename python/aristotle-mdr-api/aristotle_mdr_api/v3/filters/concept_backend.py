@@ -42,7 +42,7 @@ class ConceptFilter(django_filters.rest_framework.FilterSet):
     identifier = django_filters.CharFilter(
         label="Identifier",
         method='identifier_filter',
-        help_text = (
+        help_text=(
             'Used to filter concept based on the requested identifier. '
             'Identifiers must be of the type `identifier`, `namespace::identifier` '
             'or `namespace::identifier::version.` '
@@ -52,7 +52,7 @@ class ConceptFilter(django_filters.rest_framework.FilterSet):
     )
     type = django_filters.CharFilter(
         method='concept_type_filter',
-        help_text = (
+        help_text=(
             'An `app_label:concept_type` pair that filters results to '
             'only return concepts of the specified type.\n\n'
             'A list of models can be accessed at `/api/types/`, filterable '
@@ -62,7 +62,7 @@ class ConceptFilter(django_filters.rest_framework.FilterSet):
         )
     )
     modified = django_filters.DateFromToRangeFilter(
-        help_text = (
+        help_text=(
             'An `app_label:concept_type` pair that filters results to '
             'only return concepts of the specified type.\n\n'
             'A list of models can be accessed at `/api/types/`, filterable '
@@ -74,7 +74,7 @@ class ConceptFilter(django_filters.rest_framework.FilterSet):
     dq = django_filters.CharFilter(
         label="Django QuerySet Field",
         method='queryset_filter',
-        help_text = (
+        help_text=(
             'Used to filter based on Django Querysets'
         )
     )
@@ -82,8 +82,8 @@ class ConceptFilter(django_filters.rest_framework.FilterSet):
     class Meta:
         model = MDR._concept
         fields = {
-            'name': ['icontains',],
-            'uuid': ['exact',],
+            'name': ['icontains', ],
+            'uuid': ['exact', ],
             # 'modified': ['exact', 'gte', 'lte'],
             'created': ['exact', 'gte', 'lte'],
             'type': ['exact']
@@ -91,20 +91,20 @@ class ConceptFilter(django_filters.rest_framework.FilterSet):
         # TODO: Enable below through view, or remove v3 API
         # strict = django_filters.STRICTNESS.RAISE_VALIDATION_ERROR
 
-
     def superseded_by_filter(self, queryset, name, value):
         return queryset.filter(superseded_by_items__uuid=value)
 
     def identifier_filter(self, queryset, name, value):
         # construct the full lookup expression.
         args = value.split('::')
+        kwargs = {}
         if len(args) == 1:
             kwargs = {'identifiers__identifier': args[0]}
         if len(args) == 2:
             kwargs = {'identifiers__identifier': args[0]}
         elif len(args) == 3:
             kwargs = dict([
-                ('identifiers__%s'%k, v)
+                ('identifiers__%s' % k, v)
                 for k, v in
                 zip(
                     ['namespace__shorthand_prefix', 'identifier', 'version'],
@@ -122,9 +122,8 @@ class ConceptFilter(django_filters.rest_framework.FilterSet):
         if self.has_forbidden_join(queryset.model()._meta.model, f):
             raise PermissionDenied(detail="Joining on that field is not allowed")
 
-
         try:
-            queryset = queryset.filter(**{f:v})
+            queryset = queryset.filter(**{f: v})
         except:
             raise ParseError(
                 detail="This field [{j}] makes no sense".format(
@@ -137,8 +136,8 @@ class ConceptFilter(django_filters.rest_framework.FilterSet):
     def has_forbidden_join(self, model, join):
         disallowed_models = [
             "User", "Permission", "Group",  # django.contrib.auth
-            "Revision", "Version", # django_reversion
-            "PossumProfile","Discussion","Workgroup", #  aristotle_mdr
+            "Revision", "Version",  # django_reversion
+            "PossumProfile", "Discussion", "Workgroup",  # aristotle_mdr
             "Notification",
         ]
         checking_model = model
