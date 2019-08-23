@@ -15,7 +15,6 @@ urlpatterns = [
     url(r'^', include(('aristotle_mdr.contrib.user_management.urls', 'aristotle_mdr.contrib.user_management'), namespace='aristotle-user')),
     url(r'^', include(('aristotle_mdr.urls.aristotle', 'aristotle_mdr'), namespace="aristotle")),
     url(r'^ac/', include(('aristotle_mdr.contrib.autocomplete.urls', 'aristotle_mdr.contrib.autocomplete'), namespace='aristotle-autocomplete')),
-    url(r'^', include(('aristotle_mdr.contrib.healthcheck.urls', 'aristotle_mdr_hb'), namespace="aristotle_hb")),
     url(r'^', include('aristotle_mdr.contrib.view_history.urls')),
     url(r'^', include(('aristotle_mdr.contrib.reviews.urls', 'aristotle_mdr_review_requests'), namespace="aristotle_reviews")),
     url(r'^', include(('aristotle_mdr.contrib.custom_fields.urls', 'aristotle_mdr.contrib.custom_fields'), namespace='aristotle_custom_fields')),
