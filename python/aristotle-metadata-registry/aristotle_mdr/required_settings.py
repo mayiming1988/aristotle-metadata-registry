@@ -169,8 +169,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'aristotle_mdr.contrib.redirect.middleware.RedirectMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-
     # 'reversion.middleware.RevisionMiddleware',
 ]
 

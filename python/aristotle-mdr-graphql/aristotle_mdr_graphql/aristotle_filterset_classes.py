@@ -1,6 +1,7 @@
 from django_filters.filterset import FilterSet
 import django_filters
 from django.forms import CharField
+from aristotle_mdr.models import _concept
 
 
 class AristotleIdFilterSet(FilterSet):
@@ -29,6 +30,12 @@ class StatusFilterSet(FilterSet):
 
 
 class ConceptFilterSet(FilterSet):
+    class Meta:
+        model = _concept
+        fields = {
+            'name': ['exact', 'icontains', 'iexact'],
+            'uuid': ['exact'],
+        }
     name = django_filters.LookupChoiceFilter(field_name='name', field_class=CharField, lookup_choices=['exact', 'icontains', 'iexact'])
     uuid = django_filters.CharFilter(field_name='uuid', lookup_expr='exact', distinct=True)
     aristotle_id = django_filters.CharFilter(field_name='id')
@@ -37,18 +44,19 @@ class ConceptFilterSet(FilterSet):
     identifier_version = django_filters.CharFilter(field_name='identifiers__version', lookup_expr='iexact', distinct=True)
     only_public = django_filters.BooleanFilter(method='filter_only_public')
 
-    def filter_only_public(self, qs, name, value):
+    def filter_only_public(self, name, value):
         if name == "only_public" and value:
-            return qs.public()
+            return self.public()
         else:
-            return qs
+            return self
 
 
 class CollectionFilterSet(FilterSet):
     only_public = django_filters.BooleanFilter(method='filter_only_public')
 
-    def filter_only_public(self, qs, name, value):
+    def filter_only_public(self, name, value):
         if name == "only_public" and value:
-            return qs.public()
+            return self.public()
         else:
-            return qs
+            return self
+
