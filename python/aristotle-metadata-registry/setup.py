@@ -64,7 +64,7 @@ setup(
         'diff-match-patch',
 
         # Fancy UI stuff
-        'django-autocomplete-light>=3.0.0,<3.3.0',
+        'django-autocomplete-light>=3.4.0',
         'django-bootstrap3>8.0,<9.0',
         'django-bootstrap3-datetimepicker-2>=2.5.0',
 
@@ -73,7 +73,7 @@ setup(
         # required for help, but thats required
         'django-autoslug',
 
-        # This is only needed for Migration 0024 once this is squashed, remove this dependency
+        # TODO: This is only needed for Migration 0024 once this is squashed, remove this dependency
         'sqlparse',
 
         'django-organizations',

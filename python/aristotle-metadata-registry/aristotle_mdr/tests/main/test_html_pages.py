@@ -777,7 +777,7 @@ class LoggedInViewConceptPages(utils.AristotleTestUtils):
 
     def loadHelp(self):
         from django.core.management import call_command
-        call_command('load_aristotle_help', verbosity=0, interactive=False)
+        call_command('load_aristotle_help', verbosity=0)
 
     def update_defn_with_versions(self, new_defn='brand new definition'):
         with reversion.create_revision():

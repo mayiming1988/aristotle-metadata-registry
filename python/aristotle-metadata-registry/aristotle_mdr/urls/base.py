@@ -33,10 +33,9 @@ urlpatterns = [
     url(
         r'^user/password/reset/(?P<uidb64>[0-9A-Za-z]+)-(?P<token>.+)/$',
         auth_views.PasswordResetConfirmView.as_view(),
-        {'post_reset_redirect': '/user/password/done/'},
         name='password_reset_confirm',
     ),
-    url(r'^user/password/done/$', auth_views.PasswordResetCompleteView.as_view()),
+    url(r'^user/password/done/$', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     url(r'^account/password/?$', RedirectView.as_view(url='account/home/', permanent=True)),
     url(r'^account/password/change/?$', auth_views.PasswordChangeView.as_view(), name='password_change'),
     url(r'^account/password/change/done/?$', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),

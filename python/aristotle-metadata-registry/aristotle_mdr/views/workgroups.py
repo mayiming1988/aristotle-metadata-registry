@@ -49,7 +49,7 @@ class WorkgroupContextMixin(object):
 
 
 class WorkgroupView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermissionRequiredMixin, DetailView):
-    permission_required = "aristotle_mdr.view_workgroup"
+    permission_required = "aristotle_mdr.can_view_workgroup"
 
     def get(self, request, *args, **kwargs):
         self.object = self.workgroup = self.get_object()
@@ -75,7 +75,7 @@ class WorkgroupView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermis
 class ItemsView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermissionRequiredMixin, ListView):
     template_name = "aristotle_mdr/workgroupItems.html"
     sort_by = None
-    permission_required = "aristotle_mdr.view_workgroup"
+    permission_required = "aristotle_mdr.can_view_workgroup"
 
     def get_object(self):
         return self.model.objects.get(pk=self.kwargs.get(self.pk_url_kwarg))
@@ -105,7 +105,7 @@ class ItemsView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermission
 
 class MembersView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermissionRequiredMixin, DetailView):
     template_name = 'aristotle_mdr/user/workgroups/members.html'
-    permission_required = "aristotle_mdr.view_workgroup"
+    permission_required = "aristotle_mdr.can_view_workgroup"
 
 
 class ArchiveView(LoginRequiredMixin, WorkgroupContextMixin, ObjectLevelPermissionRequiredMixin, DetailView):

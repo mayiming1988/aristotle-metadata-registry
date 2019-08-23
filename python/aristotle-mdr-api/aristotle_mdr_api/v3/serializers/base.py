@@ -164,7 +164,7 @@ class Serializer(PySerializer):
 
     def handle_m2m_field(self, obj, field):
         from aristotle_mdr.fields import ConceptManyToManyField
-        foreign_model = field.rel  # change to field.remote_field.model for django >= 1.9
+        foreign_model = field.remote_field
         if foreign_model.through._meta.auto_created:
             if type(field) is ConceptManyToManyField:
                 def m2m_value(value):
@@ -210,7 +210,7 @@ class Serializer(PySerializer):
                     continue
 
                 if field.serialize:
-                    if field.rel is None:
+                    if field.remote_field is None:
                         if self.selected_fields is None or field.attname in self.selected_fields:
                             self.handle_field(obj, field)
                     else:
