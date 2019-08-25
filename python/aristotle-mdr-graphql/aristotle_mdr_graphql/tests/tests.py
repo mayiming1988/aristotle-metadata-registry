@@ -279,8 +279,6 @@ class GraphqlFunctionalTests(BaseGraphqlTestCase, TestCase):
 
         json_response = self.post_query(querytext)
         edges = json_response['data']['metadata']['edges']
-        # import pdb
-        # pdb.set_trace()
         self.assertEqual(edges[3]['node']['slots'][0]['name'], 'Test slot')
         self.assertEqual(edges[3]['node']['identifiers'][0]['identifier'], 'Test Identifier')
 
@@ -643,6 +641,8 @@ class GraphqlSlotsTests(BaseSlotsTestCase, BaseGraphqlTestCase, TestCase):
 
     def check_slots(self, gql_response, slots):
         slots_list = gql_response['data']['metadata']['edges'][0]['node']['slots']
+        # import pdb
+        # pdb.set_trace()
         self.assertEqual(len(slots_list), len(slots))
 
         returned_slots = [edge['name'] for edge in slots_list]
