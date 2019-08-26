@@ -7,7 +7,9 @@
 <a class="sr-only" accesskey="l" href="{% url 'aristotle:accessibility' %}#accesskeys">Learn about the access keys available for {{ config.SITE_NAME }}</a>
 
 {% if aristotle_cloud_is_active %}
+<header class="aristotle_cloud_custom_main_page_container">
 {% include 'aristotle_cloud/custom/header.html' %}
+</header>
 {% endif %}
 
 {% block header_navtag %}

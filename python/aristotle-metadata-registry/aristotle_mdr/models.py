@@ -1869,6 +1869,15 @@ class PossumProfile(models.Model):
             kwargs["group"] = org
         return StewardOrganisationMembership.objects.filter(**kwargs).exists()
 
+    @property
+    def stewardship_organisations(self):
+        """The list of Stewardship Organisations the user is a member in, or all, if they are a superuser """
+        if self.user.is_superuser:
+            return StewardOrganisation.objects.all()
+        else:
+            # They are not a superuser
+            return StewardOrganisation.objects.visible(self.user).filter(members__user=self.user)
+
     def is_favourite(self, item):
         from aristotle_mdr.contrib.favourites.models import Favourite
         fav = Favourite.objects.filter(
@@ -2001,6 +2010,7 @@ def check_concept_app_label(sender, instance, **kwargs):
 
 @receiver(pre_save)
 def update_org_to_match_workgroup(sender, instance, **kwargs):
+    """Enforces integrity between Stewardship Organisation and Workgroup"""
     if not issubclass(sender, _concept):
         return
     if instance.workgroup is not None:
