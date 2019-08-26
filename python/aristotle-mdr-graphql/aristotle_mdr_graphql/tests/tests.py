@@ -279,8 +279,8 @@ class GraphqlFunctionalTests(BaseGraphqlTestCase, TestCase):
 
         json_response = self.post_query(querytext)
         edges = json_response['data']['metadata']['edges']
-        self.assertEqual(edges[3]['node']['slots'][0]['name'], 'Test slot')
-        self.assertEqual(edges[3]['node']['identifiers'][0]['identifier'], 'Test Identifier')
+        self.assertEqual(edges[0]['node']['slots'][0]['name'], 'Test slot')
+        self.assertEqual(edges[0]['node']['identifiers'][0]['identifier'], 'Test Identifier')
 
     def test_identifier_filters(self):
 
