@@ -3,17 +3,37 @@
 
 <div class="input-group">
     <div class="input-group-btn category_selector">
-        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
+                aria-expanded="false">
             <span id="category-button-face">{% firstof searched_category "Metadata" %}</span>
             <span class="caret"></span>
         </button>
         {% if search_page %}
             {{ form.category }}
         {% else %}
-            <ul id="id_categories" role="menu" class="fancy_checkbox_list dropdown-menu "><li><input type="radio" name="category" value="all" id="id_categories_0"><label for="id_categories_0" role="menuitem" tabindex="-1"><span>All</span></label></li><li><input type="radio" name="category" value="collaboration" id="id_categories_1"><label for="id_categories_1" role="menuitem" tabindex="-1"><span>Issues &amp; Discussions</span></label></li><li><input type="radio" name="category" value="data" id="id_categories_2" checked=""><label for="id_categories_2" role="menuitem" tabindex="-1"><span>Data</span></label></li><li><input type="radio" name="category" value="help" id="id_categories_3"><label for="id_categories_3" role="menuitem" tabindex="-1"><span>Help</span></label></li><li><input type="radio" name="category" checked=checked value="metadata" id="id_categories_4"><label for="id_categories_4" role="menuitem" tabindex="-1"><span>Metadata</span></label></li><li><input type="radio" name="category" value="references" id="id_categories_5"><label for="id_categories_5" role="menuitem" tabindex="-1"><span>References</span></label></li></ul>
+            <ul id="id_categories" role="menu" class="fancy_checkbox_list dropdown-menu ">
+                <li><input type="radio" name="category" value="all" id="id_categories_0"><label for="id_categories_0"
+                                                                                                role="menuitem"
+                                                                                                tabindex="-1"><span>All</span></label>
+                </li>
+                <li><input type="radio" name="category" value="collaboration" id="id_categories_1"><label
+                        for="id_categories_1" role="menuitem"
+                        tabindex="-1"><span>Issues &amp; Discussions</span></label></li>
+                <li><input type="radio" name="category" value="data" id="id_categories_2" checked=""><label
+                        for="id_categories_2" role="menuitem" tabindex="-1"><span>Data</span></label></li>
+                <li><input type="radio" name="category" value="help" id="id_categories_3"><label for="id_categories_3"
+                                                                                                 role="menuitem"
+                                                                                                 tabindex="-1"><span>Help</span></label>
+                </li>
+                <li><input type="radio" name="category" checked=checked value="metadata" id="id_categories_4"><label
+                        for="id_categories_4" role="menuitem" tabindex="-1"><span>Metadata</span></label></li>
+                <li><input type="radio" name="category" value="references" id="id_categories_5"><label
+                        for="id_categories_5" role="menuitem" tabindex="-1"><span>References</span></label></li>
+            </ul>
         {% endif %}
     </div>
-    <input type="text" class="form-control {% if not search_page %}extended-search-bar{% endif %}" value="{% firstof form.q.value "" %}" name="q"
+    <input type="text" class="form-control {% if not search_page %}extended-search-bar{% endif %}"
+           value="{% firstof form.q.value "" %}" name="q"
            accesskey="q">
     <span class="input-group-btn">
     <button class="btn btn-primary" type="submit">
