@@ -1,6 +1,5 @@
 from django_filters.filterset import FilterSet
 import django_filters
-from django.forms import CharField
 from aristotle_mdr.models import _concept
 
 
