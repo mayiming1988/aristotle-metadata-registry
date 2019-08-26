@@ -35,8 +35,6 @@ class ConceptFilterSet(FilterSet):
             'name': ['exact', 'icontains', 'iexact'],
             'uuid': ['exact'],
         }
-    name = django_filters.CharFilter(field_name='name', lookup_expr='icontains', distinct=True)
-    uuid = django_filters.CharFilter(field_name='uuid', lookup_expr='exact', distinct=True)
     aristotle_id = django_filters.CharFilter(field_name='id')
     identifier = django_filters.CharFilter(field_name='identifiers__identifier', lookup_expr='iexact', distinct=True)
     identifier_namespace = django_filters.CharFilter(field_name='identifiers__namespace__shorthand_prefix', lookup_expr='iexact', distinct=True)
