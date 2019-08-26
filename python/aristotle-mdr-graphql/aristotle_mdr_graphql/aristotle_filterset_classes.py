@@ -44,19 +44,18 @@ class ConceptFilterSet(FilterSet):
     identifier_version = django_filters.CharFilter(field_name='identifiers__version', lookup_expr='iexact', distinct=True)
     only_public = django_filters.BooleanFilter(method='filter_only_public')
 
-    def filter_only_public(self, name, value):
+    def filter_only_public(self, qs, name, value):
         if name == "only_public" and value:
-            return self.public()
+            return qs.public()
         else:
-            return self
+            return qs
 
 
 class CollectionFilterSet(FilterSet):
     only_public = django_filters.BooleanFilter(method='filter_only_public')
 
-    def filter_only_public(self, name, value):
+    def filter_only_public(self, qs, name, value):
         if name == "only_public" and value:
-            return self.public()
+            return qs.public()
         else:
-            return self
-
+            return qs
