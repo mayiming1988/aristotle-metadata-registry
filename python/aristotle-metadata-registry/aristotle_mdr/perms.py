@@ -227,6 +227,7 @@ def user_can_view_statuses_revisions(user, ra):
         return False
     if user.is_superuser:
         return True
+    return False
 
 
 def user_can_supersede(user, item):

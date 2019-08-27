@@ -730,7 +730,7 @@ class StatusHistory(TemplateView):
         context = super().get_context_data(**kwargs)
         versions = None
 
-        if user_can_view_statuses_revisions(self.request.user, self.RA, self.item):
+        if user_can_view_statuses_revisions(self.request.user, self.RA):
             versions = Version.objects.get_for_object(self.status).select_related("revision__user")
 
         context.update(
