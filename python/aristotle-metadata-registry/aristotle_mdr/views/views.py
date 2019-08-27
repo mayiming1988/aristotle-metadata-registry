@@ -20,6 +20,7 @@ from aristotle_mdr.perms import (
     user_can_publish_object,
     user_can_supersede,
     user_can_add_status,
+    user_can_view_statuses_revisions,
 )
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
@@ -727,8 +728,10 @@ class StatusHistory(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        versions = None
 
-        versions = Version.objects.get_for_object(self.status).select_related("revision__user")
+        if user_can_view_statuses_revisions(self.request.user, self.RA, self.item):
+            versions = Version.objects.get_for_object(self.status).select_related("revision__user")
 
         context.update(
             {'item': self.item,
