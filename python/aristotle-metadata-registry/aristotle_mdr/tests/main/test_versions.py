@@ -590,8 +590,6 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
                 registrationDate=datetime.date(2000, 1, 1),
             )
 
-        self.response = self.client.get(reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
-
     def test_statuses_reversion_page_works(self):
 
         # Load the Reversions page for Statuses
@@ -602,7 +600,10 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
     def test_statuses_reversions_list_only_includes_the_first_reversion_object(self):
 
         # Because there are no versions yet.
-        self.assertEqual(len(self.response.context['versions']), 1)
+
+        response = self.client.get(
+            reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
+        self.assertEqual(len(response.context['versions']), 1)
 
     def test_statuses_reversions_list_is_populated_after_creating_reversion(self):
 
@@ -612,7 +613,7 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
                 registrationAuthority=self.ra,
                 defaults={
                     'changeDetails': "My new details.",
-                    'state': MDR.STATES.candidate
+                    'state': MDR.STATES.candidate,
                 }
             )
             reversion.revisions.set_comment("This is an edit")
