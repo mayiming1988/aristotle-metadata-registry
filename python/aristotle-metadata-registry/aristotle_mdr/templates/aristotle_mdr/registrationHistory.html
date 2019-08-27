@@ -44,11 +44,13 @@
                                                 <i class="fa fa-fw fa-pencil-square-o"></i> {% trans 'Edit'%}
                                             </a>
                                         </li>
-                                        <li>
-                                            <a href="{% url 'aristotle:statusHistory' status.id item.id ra.id %}">
-                                                <i class="fa fa-fw fa-clock-o"></i> {% trans 'Check Status History'%}
-                                            </a>
-                                        </li>
+                                        {% if request.user|user_can_view_statuses_revisions:ra %}
+                                            <li>
+                                                <a href="{% url 'aristotle:statusHistory' status.id item.id ra.id %}">
+                                                    <i class="fa fa-fw fa-clock-o"></i> {% trans 'Check Status History'%}
+                                                </a>
+                                            </li>
+                                        {% endif %}
                                         <li>
                                             <a href="{% url 'aristotle:deleteStatus' status.id item.id %}">
                                                 <i class="fa fa-fw fa-trash"></i> {% trans 'Delete'%}

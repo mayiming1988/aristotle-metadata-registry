@@ -165,6 +165,23 @@ def can_view_iter(qs, user):
 
 
 @register.filter
+def user_can_view_statuses_revisions(user, ra):
+    """
+    A filter that is a simple wrapper that applies the ``aristotle_mdr.perms.user_can_view_statuses_revisions``
+    Returns true if the user has permission to view the statuses reversion history, otherwise it returns False.
+    If calling ``user_can_view`` throws an exception it safely returns False.
+
+    If calling ``user_can_view_statuses_revisions`` throws an exception it safely returns False.
+
+    For example::
+      {% if request.user|user_can_view_statuses_revisions:ra %}
+        {{ item }}
+      {% endif %}
+    """
+    return perms.user_can_view_statuses_revisions(user, ra)
+
+
+@register.filter
 def visible_supersedes_items(item, user):
     """
     Fetch older items for a newer item
