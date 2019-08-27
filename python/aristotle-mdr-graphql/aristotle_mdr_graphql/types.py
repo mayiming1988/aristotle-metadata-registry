@@ -1,16 +1,13 @@
-import graphene
 import logging
-
+import graphene
 from aristotle_mdr import models as mdr_models
 from aristotle_mdr.contrib.custom_fields import models as cf_models
-from aristotle_mdr.contrib.identifiers import models as ident_models
 from aristotle_mdr.contrib.slots import models as slots_models
-from graphene import relay
 from graphene_django.types import DjangoObjectType
-
 from aristotle_mdr_graphql import resolvers
-from .filterset import IdentifierFilterSet, StatusFilterSet
+from .aristotle_filterset_classes import IdentifierFilterSet, StatusFilterSet
 from .fields import DjangoListFilterField, ObjectField
+from .aristotle_nodes import StatusNode, ScopedIdentifierNode
 
 logger = logging.getLogger(__name__)
 
@@ -19,51 +16,18 @@ class AristotleObjectType(DjangoObjectType):
 
     class Meta:
         model = mdr_models._concept
-        interfaces = (relay.Node, )
-        filter_fields = []  # type: ignore
+        interfaces = (graphene.relay.Node, )
 
     @classmethod
     def __init_subclass_with_meta__(cls, *args, **kwargs):
 
         kwargs.update({
             'default_resolver': resolvers.aristotle_resolver,
-            'interfaces': (relay.Node, ),
+            'interfaces': (graphene.relay.Node, ),
         })
-        if "filter_fields" not in kwargs.keys():
-            kwargs['filter_fields'] = '__all__'
+        # if "filter_fields" not in kwargs.keys():
+        #     kwargs['filter_fields'] = '__all__'
         super().__init_subclass_with_meta__(*args, **kwargs)
-
-
-class ScopedIdentifierNode(DjangoObjectType):
-    namespace_prefix = graphene.String()
-
-    class Meta:
-        model = ident_models.ScopedIdentifier
-        default_resolver = resolvers.aristotle_resolver
-        # interfaces = (relay.Node, )
-
-    def resolve_namespace_prefix(self, info):
-        return self.namespace.shorthand_prefix
-
-
-class CustomValueNode(DjangoObjectType):
-    field_name = graphene.String()
-
-    class Meta:
-        model = cf_models.CustomValue
-        default_resolver = resolvers.aristotle_resolver
-        # interfaces = (relay.Node, )
-
-    def resolve_field_name(self, info):
-        return self.field.name
-
-
-class StatusNode(DjangoObjectType):
-    state_name = graphene.String()
-
-    class Meta:
-        model = mdr_models.Status
-        default_resolver = resolvers.aristotle_resolver
 
 
 class AristotleConceptObjectType(DjangoObjectType):
@@ -76,26 +40,26 @@ class AristotleConceptObjectType(DjangoObjectType):
 
     class Meta:
         model = mdr_models._concept
-        interfaces = (relay.Node, )
-        filter_fields = '__all__'
+        interfaces = (graphene.relay.Node, )
+        # filter_fields = '__all__'
+        # filterset_class = ConceptFilterSet
 
     @classmethod
     def __init_subclass_with_meta__(cls, *args, **kwargs):
 
-        # Default resolver is set in type_from_concept_model instead
         kwargs.update({
-            # 'default_resolver': aristotle_resolver,
-            'interfaces': (relay.Node, ),
-            # 'filter_fields': ['name'],
+            # 'default_resolver': aristotle_resolver,   # Default resolver is set in type_from_concept_model instead
+            'interfaces': (graphene.relay.Node, ),
+            # 'filter_fields': ['name'],  # Since we updated to Django 2.2, this field is needed for graphene-django latest version.
         })
         super().__init_subclass_with_meta__(*args, **kwargs)
 
-    def resolve_metadata_type(self, info, **kwargs):
-        item = self.item
-        out = "{}:{}".format(item._meta.app_label, item._meta.model_name)
-        return out
+    # Important info: the following methods are actually used by GraphQL to resolve the queries:
+    # "customValuesAsObject", "metadataType" and "slotsAsObject".
+    def resolve_metadata_type(self):
+        return "{}:{}".format(self.item._meta.app_label, self.item._meta.model_name)
 
-    def resolve_custom_values_as_object(self, info, **kwargs):
+    def resolve_custom_values_as_object(self, info):
         out = {}
         for val in cf_models.CustomValue.objects.get_item_allowed(self.item, info.context.user):
             out[val.field.name] = {
@@ -104,7 +68,7 @@ class AristotleConceptObjectType(DjangoObjectType):
             }
         return out
 
-    def resolve_slots_as_object(self, info, **kwargs):
+    def resolve_slots_as_object(self, info):
         out = {}
         for slot in slots_models.Slot.objects.get_item_allowed(self.item, info.context.user):
             out[slot.name] = {
@@ -112,4 +76,5 @@ class AristotleConceptObjectType(DjangoObjectType):
                 "value": slot.value
             }
         return out
+
 
