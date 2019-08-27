@@ -174,9 +174,10 @@ def user_can_view_statuses_revisions(user, ra):
     If calling ``user_can_view_statuses_revisions`` throws an exception it safely returns False.
 
     For example::
-      {% if request.user|user_can_view_statuses_revisions:ra %}
-        {{ item }}
-      {% endif %}
+
+        {% if request.user|user_can_view_statuses_revisions:ra %}
+          {{ item }}
+        {% endif %}
     """
     return perms.user_can_view_statuses_revisions(user, ra)
 
