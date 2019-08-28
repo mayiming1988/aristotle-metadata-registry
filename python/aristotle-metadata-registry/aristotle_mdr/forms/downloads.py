@@ -28,8 +28,28 @@ class EmptyChoiceField(forms.ChoiceField):
             return value
 
 
-class DownloadOptionsForm(forms.Form):
-    def __init__(self, *args, wrap_pages: bool, no_email: bool, **kwargs):
+class DownloadOptionsBase(forms.Form):
+    def __init__(self, *args, no_email: bool, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if not no_email:
+            self.fields['email_copy'] = forms.BooleanField(
+                required=False,
+                help_text='Send a copy of the download to your email address'
+            )
+
+    include_supporting = forms.BooleanField(
+        required=False,
+        help_text='Include the name and definition for components of the item (e.g. the Value Domain of a Data Element)'
+    )
+    include_related = forms.BooleanField(
+        required=False,
+        help_text='Include the name and definition of all concepts implementing the item (e.g. the Data Elements using a Value Domain)'
+    )
+
+
+class DownloadOptionsForm(DownloadOptionsBase):
+    def __init__(self, *args, wrap_pages: bool, **kwargs):
         super().__init__(*args, **kwargs)
         # Add front page and back page options
         if wrap_pages:
@@ -43,24 +63,9 @@ class DownloadOptionsForm(forms.Form):
             )
         self.wrap_pages = wrap_pages
 
-        if not no_email:
-            self.fields['email_copy'] = forms.BooleanField(
-                required=False,
-                help_text='Send a copy of the download to your email address'
-            )
-
     title = forms.CharField(
         required=False,
         help_text='Optional title of the document'
-    )
-
-    include_supporting = forms.BooleanField(
-        required=False,
-        help_text='Include the name and definition for components of the item (e.g. the Value Domain of a Data Element)'
-    )
-    include_related = forms.BooleanField(
-        required=False,
-        help_text='Include the name and definition of all concepts implementing the item (e.g. the Data Elements using a Value Domain)'
     )
 
     registration_authority = ModelChoicePKField(
@@ -74,3 +79,6 @@ class DownloadOptionsForm(forms.Form):
         required=False,
         help_text="Select a particular registration status to filter the base level items"
     )
+
+class DataDictionaryDownloadOptionsForm(DownloadOptionsBase):
+    wrap_pages = False
