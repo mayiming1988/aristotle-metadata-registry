@@ -471,7 +471,7 @@ class DateFilterView(FilterView, MainPageMixin):
         downloaders = fetch_aristotle_downloaders()
 
         from aristotle_mdr.utils.cached_querysets import register_queryset
-        qs_uuid = register_queryset(self.filterset.qs) #.order_by('name'), 60*60)
+        qs_uuid = register_queryset(self.filterset.qs.order_by('name'), 60 * 60)
         options: list = []
 
         ids = [concept.id for concept in queryset]
@@ -481,8 +481,6 @@ class DateFilterView(FilterView, MainPageMixin):
 
         for dl in downloaders:
             query = QueryDict(mutable=True)
-            # query['qs'] = qs_uuid
-            # query['title'] = "Data Dictionary for {}".format(self.registration_authority.name)
 
             url = '{url}?{qstring}'.format(
                 url=reverse(
@@ -517,7 +515,7 @@ class DataDictionaryDownloadOptionsView(FilterView, DownloadOptionsViewBase):
 
         from aristotle_mdr.utils.cached_querysets import register_queryset, get_queryset_from_uuid
         logger.critical(self.filterset.qs.count())
-        qs_uuid = register_queryset(self.filterset.qs) # , 100000) #, 60 * 60)  # .order_by('name'), 60*60)
+        qs_uuid = register_queryset(self.filterset.qs, 60 * 60)
         logger.critical(qs_uuid)
         get_queryset_from_uuid(qs_uuid)
 

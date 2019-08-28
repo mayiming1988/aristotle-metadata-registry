@@ -113,11 +113,11 @@ class BulkDownloadView(BaseDownloadView):
         qs_uuid = self.request.GET.get('qs')
 
         if qs_uuid:
-            # try:
+            try:
                 qs = get_queryset_from_uuid(qs_uuid)
                 ids = list(qs.values_list('id', flat=True))
-            # except ValueError:
-            #     raise Http404("Queryset not found")
+            except ValueError:
+                raise Http404("Queryset not found")
         else:
             try:
                 ids = [int(id) for id in id_strings]
@@ -269,4 +269,3 @@ class DownloadOptionsView(DownloadOptionsViewBase):
 
         self.request.session[self.session_key] = cleaned_data
         return super().form_valid(form)
-

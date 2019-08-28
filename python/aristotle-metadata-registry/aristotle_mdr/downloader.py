@@ -78,7 +78,7 @@ class Downloader:
         'registration_authority': None,
     }
 
-    def __init__(self, item_ids: List[int], user_id: Optional[int], options: Dict[str, Any] = {}, override_bulk: bool = False) :
+    def __init__(self, item_ids: List[int], user_id: Optional[int], options: Dict[str, Any] = {}, override_bulk: bool = False):
         self.item_ids = item_ids
         self.error = False
         self.order_fields = ['name']

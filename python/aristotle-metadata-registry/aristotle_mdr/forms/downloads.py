@@ -80,5 +80,6 @@ class DownloadOptionsForm(DownloadOptionsBase):
         help_text="Select a particular registration status to filter the base level items"
     )
 
+
 class DataDictionaryDownloadOptionsForm(DownloadOptionsBase):
     wrap_pages = False
