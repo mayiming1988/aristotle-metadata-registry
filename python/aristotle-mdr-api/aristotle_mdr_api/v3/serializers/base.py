@@ -97,23 +97,22 @@ class Serializer(PySerializer):
         # if 'aristotle_mdr.contrib.links' in settings.INSTALLED_APPS:
         #     from aristotle_mdr.contrib.links import models as link_models
         #     obj_links = link_models.Link.objects.filter(linkend__concept=obj).all().distinct()
-
+        #
         #     data['links'] = [
-                #     [{
-                #         'relation': {
-                #             link.relation.uuid,
-                #         },
-                #         'members': [{
-                #             'concept': linkend.concept.uuid,
-                #             'role': linkend.role.name,
-                #             }]
-                #         }
-                #     }
-                #         for linkend in link.linkend_set.all()
-                #     ]
-                #     for link in obj_links
-                # ]
-
+        #             [{
+        #                 'relation': {
+        #                     link.relation.uuid,
+        #                 },
+        #                 'members': [{
+        #                     'concept': linkend.concept.uuid,
+        #                     'role': linkend.role.name,
+        #                     }]
+        #                 }
+        #             }
+        #                 for linkend in link.linkend_set.all()
+        #             ]
+        #             for link in obj_links
+        #         ]
 
         data['statuses'] = [
             {
@@ -296,7 +295,6 @@ def Deserializer(manifest, **options):
                     naming_authority = o,
                     shorthand_prefix = namespace['shorthand_prefix']
                 )
-
 
     for d in manifest['metadata']:
         # Look up the model and starting build a dict of data for it.
@@ -484,7 +482,6 @@ def Deserializer(manifest, **options):
                     }
                 st, c = MDR.Status.objects.get_or_create(**state)
 
-
             if "links" in d.keys() and 'aristotle_mdr.contrib.links' in settings.INSTALLED_APPS:
                 from aristotle_mdr.contrib.links import models as link_models
                 # obj_links = link_models.Link.objects.filter(linkend__concept=obj).all().distinct()
@@ -508,19 +505,19 @@ def Deserializer(manifest, **options):
                             concept=concept
                         )
 
-
             yield base.DeserializedObject(obj, m2m_data)
 
-def build_instance(Model, data, db):
+
+def build_instance(model, data, db):
     """
     Build a model instance.
     If the model instance doesn't have a primary key and the model supports
     natural keys, try to retrieve it from the database.
     """
-    obj = Model(**data)
-    if (obj.pk is None and hasattr(Model, 'uuid')):
+    obj = model(**data)
+    if obj.pk is None and hasattr(model, 'uuid'):
         try:
-            obj.pk = Model._default_manager.db_manager(db).get(uuid=obj.uuid).pk
-        except Model.DoesNotExist:
+            obj.pk = model._default_manager.db_manager(db).get(uuid=obj.uuid).pk
+        except model.DoesNotExist:
             pass
     return obj
