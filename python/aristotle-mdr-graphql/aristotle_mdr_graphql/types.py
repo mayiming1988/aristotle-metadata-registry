@@ -48,18 +48,16 @@ class AristotleConceptObjectType(DjangoObjectType):
     def __init_subclass_with_meta__(cls, *args, **kwargs):
 
         kwargs.update({
-            # 'default_resolver': aristotle_resolver,   # Default resolver is set in type_from_concept_model instead
             'interfaces': (graphene.relay.Node, ),
-            # 'filter_fields': ['name'],  # Since we updated to Django 2.2, this field is needed for graphene-django latest version.
         })
         super().__init_subclass_with_meta__(*args, **kwargs)
 
     # Important info: the following methods are actually used by GraphQL to resolve the queries:
     # "customValuesAsObject", "metadataType" and "slotsAsObject".
-    def resolve_metadata_type(self, info, **kwargs):  # BEWARE! PARAMETERS INFO AND KWARGS ARE ACTUALLY USED BY meteor-apis REPO!!
+    def resolve_metadata_type(self, info, **kwargs):  # Parameters "info" and "kwargs" are used by the graphene api.
         return "{}:{}".format(self.item._meta.app_label, self.item._meta.model_name)
 
-    def resolve_custom_values_as_object(self, info, **kwargs):  # BEWARE! PARAMETER KWARGS IS ACTUALLY USED BY meteor-apis REPO!!
+    def resolve_custom_values_as_object(self, info, **kwargs):  # Parameter "kwargs" is used by the graphene api.
         out = {}
         for val in cf_models.CustomValue.objects.get_item_allowed(self.item, info.context.user):
             out[val.field.name] = {
@@ -68,7 +66,7 @@ class AristotleConceptObjectType(DjangoObjectType):
             }
         return out
 
-    def resolve_slots_as_object(self, info, **kwargs):  # BEWARE! PARAMETER KWARGS IS ACTUALLY USED BY meteor-apis REPO!!
+    def resolve_slots_as_object(self, info, **kwargs):  # Parameter "kwargs" is used by the graphene api.
         out = {}
         for slot in slots_models.Slot.objects.get_item_allowed(self.item, info.context.user):
             out[slot.name] = {
