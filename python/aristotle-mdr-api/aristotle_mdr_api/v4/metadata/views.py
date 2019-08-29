@@ -2,12 +2,10 @@ from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.reverse import reverse
 from rest_framework.viewsets import ModelViewSet
-from django.views.generic.base import RedirectView
 from django.template.defaultfilters import slugify
 from rest_framework.response import Response
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-from django.contrib.contenttypes.models import ContentType
 from aristotle_mdr_api.v4.permissions import AuthCanViewEdit, UnAuthenticatedUserCanView
 from aristotle_mdr_api.v4.concepts import serializers
 from aristotle_mdr.contrib.serializers.concept_serializer import ConceptSerializerFactory
@@ -24,7 +22,7 @@ class MetadataBaseApiView:
 class GetMetadataTypeFromUUID(APIView):
     """
     The purpose of this API Endpoint is to retrieve the item type from a uuid parameter and redirect to a
-    generic metadata API Endpoint handler.
+    generic metadata serialiser API Endpoint handler.
     """
     permission_classes = (UnAuthenticatedUserCanView,)
 
