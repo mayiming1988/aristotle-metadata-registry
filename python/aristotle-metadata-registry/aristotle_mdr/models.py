@@ -843,7 +843,10 @@ class _concept(baseAristotleObject):
 
     @property
     def item_type(self) -> ContentType:
-        """Returns the content type of the subclassed item"""
+        """
+        Returns the content type of the subclassed item
+        e.g. "object class"
+        """
         if self._type_id:
             # Use get_for_id so the internal cache is used
             return ContentType.objects.get_for_id(self._type_id)
@@ -860,8 +863,8 @@ class _concept(baseAristotleObject):
     @property
     def item_type_name(self) -> str:
         """
-        Return the verbose name of the subclassed items type
-        e.g. (Object Class)
+        Returns the verbose name of the subclassed items type
+        e.g. "Object Class"
         """
         # Get content type
         ct = self.item_type
