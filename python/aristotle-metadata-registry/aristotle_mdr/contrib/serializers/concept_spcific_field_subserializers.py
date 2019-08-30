@@ -57,4 +57,3 @@ class ObjectClassSpecialisationNarrowerClassSerializer(SubSerializer):
     class Meta:
         model = ObjectClassSpecialisationNarrowerClass
         fields = ['order', 'narrower_class']
-
