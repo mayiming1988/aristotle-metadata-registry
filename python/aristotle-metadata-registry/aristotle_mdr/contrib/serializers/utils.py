@@ -1,4 +1,14 @@
 from django.conf import settings
+from rest_framework import serializers
+
+
+class SubSerializer(serializers.ModelSerializer):
+    """Base class for subserializers"""
+    id = serializers.SerializerMethodField()
+
+    def get_id(self, item):
+        """Get pk here in case we are not using the auto id field"""
+        return item.pk
 
 
 def get_comet_field_serializer_mapping():

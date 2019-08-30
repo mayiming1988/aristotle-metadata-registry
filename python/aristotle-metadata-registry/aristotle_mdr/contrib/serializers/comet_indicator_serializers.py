@@ -1,5 +1,5 @@
 from comet import models
-from aristotle_mdr.contrib.serializers.concept_serializer import SubSerializer
+from aristotle_mdr.contrib.serializers.utils import SubSerializer
 
 
 class IndicatorNumeratorSerializer(SubSerializer):

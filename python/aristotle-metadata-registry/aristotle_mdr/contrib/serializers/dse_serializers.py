@@ -1,4 +1,4 @@
-from aristotle_mdr.contrib.serializers.concept_serializer import SubSerializer
+from aristotle_mdr.contrib.serializers.utils import SubSerializer
 from aristotle_dse.models import DSSClusterInclusion, DSSDEInclusion, DSSGrouping, DistributionDataElementPath
 
 excluded_fields = ('dss',)

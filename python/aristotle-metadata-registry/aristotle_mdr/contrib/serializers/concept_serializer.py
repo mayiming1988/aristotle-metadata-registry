@@ -8,26 +8,33 @@ from django.core.serializers.base import DeserializedObject, build_instance
 from django.apps import apps
 from django.db import DEFAULT_DB_ALIAS
 
-from aristotle_mdr.contrib.custom_fields.models import CustomValue
-from aristotle_mdr.contrib.slots.models import Slot
-from aristotle_mdr.contrib.identifiers.models import ScopedIdentifier
+
 from aristotle_mdr.models import (
-    RecordRelation,
     ValueDomain,
     DataElementConcept,
-    SupplementaryValue,
-    PermissibleValue,
-    ValueMeaning,
-    DedInputsThrough,
-    DedDerivesThrough,
     aristotleComponent
 )
 from aristotle_mdr.contrib.serializers.utils import (
     get_comet_field_serializer_mapping,
     get_dse_field_serializer_mapping,
 )
+from aristotle_mdr.contrib.serializers.concept_general_field_subserializers import (
+    IdentifierSerializer,
+    SlotsSerializer,
+    CustomValuesSerializer,
+    OrganisationRecordsSerializer,
+)
 
-from aristotle_mdr.contrib.links.models import RelationRole
+from aristotle_mdr.contrib.serializers.concept_spcific_field_subserializers import (
+    PermissibleValueSerializer,
+    SupplementaryValueSerializer,
+    ValueMeaningSerializer,
+    DedInputsThroughSerializer,
+    DedDerivesThroughSerializer,
+    RelationRoleSerializer,
+    ObjectClassSpecialisationNarrowerClassSerializer,
+
+)
 
 import json as JSON
 
@@ -36,88 +43,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class SubSerializer(serializers.ModelSerializer):
-    """Base class for subserializers"""
-    id = serializers.SerializerMethodField()
-
-    def get_id(self, item):
-        """Get pk here in case we are not using the auto id field"""
-        return item.pk
-
-
-class IdentifierSerializer(SubSerializer):
-
-    class Meta:
-        model = ScopedIdentifier
-        fields = ['namespace', 'identifier', 'version', 'order', 'id']
-
-
-class CustomValuesSerializer(SubSerializer):
-    name = serializers.SerializerMethodField()
-
-    class Meta:
-        model = CustomValue
-        fields = ['field', 'name', 'content', 'id']
-
-    def get_name(self, custom_value):
-        return custom_value.field.name
-
-
-class SlotsSerializer(SubSerializer):
-    class Meta:
-        model = Slot
-        fields = ['name', 'value', 'order', 'permission', 'id']
-
-
-class OrganisationRecordsSerializer(SubSerializer):
-    class Meta:
-        model = RecordRelation
-        fields = ['organization_record', 'type', 'id']
-
-
-class SupplementaryValueSerializer(SubSerializer):
-
-    class Meta:
-        model = SupplementaryValue
-        fields = ['value', 'meaning', 'order', 'start_date', 'end_date', 'id']
-
-
-class PermissibleValueSerializer(SubSerializer):
-
-    class Meta:
-        model = PermissibleValue
-        fields = ['value', 'meaning', 'order', 'start_date', 'end_date', 'id']
-
-
-class ValueMeaningSerializer(SubSerializer):
-
-    class Meta:
-        model = ValueMeaning
-        exclude = ('conceptual_domain',)
-
-
-class DedDerivesThroughSerializer(SubSerializer):
-
-    class Meta:
-        model = DedDerivesThrough
-        exclude = ('data_element_derivation',)
-
-
-class DedInputsThroughSerializer(SubSerializer):
-
-    class Meta:
-        model = DedInputsThrough
-        exclude = ('data_element_derivation',)
-
-
-class RelationRoleSerializer(SubSerializer):
-
-    class Meta:
-        model = RelationRole
-        exclude = ('relation',)
-
-
-class BaseSerializer(serializers.ModelSerializer):
+class ConceptBaseSerializer(serializers.ModelSerializer):
+    """
+    This Class is the serializer representation of the _concept model.
+    It includes the universal fields for every _concept instance.
+    """
     slots = SlotsSerializer(many=True)
     customvalue_set = CustomValuesSerializer(many=True)
     identifiers = IdentifierSerializer(many=True)
@@ -141,6 +71,7 @@ class ConceptSerializerFactory:
         'dedinputsthrough_set': DedInputsThroughSerializer(many=True),
         'dedderivesthrough_set': DedDerivesThroughSerializer(many=True),
         'relationrole_set': RelationRoleSerializer(many=True),
+        'objectclassspecialisationnarrowerclass_set': ObjectClassSpecialisationNarrowerClassSerializer(many=True),
     }
 
     def __init__(self, *args, **kwargs):
@@ -250,7 +181,7 @@ class ConceptSerializerFactory:
         serializer_attrs['Meta'] = Meta
 
         # Generate serializer class dynamically
-        Serializer = type('Serializer', (BaseSerializer,), serializer_attrs)
+        Serializer = type('Serializer', (ConceptBaseSerializer,), serializer_attrs)
         return Serializer
 
     def _get_class_for_deserializer(self, json):
