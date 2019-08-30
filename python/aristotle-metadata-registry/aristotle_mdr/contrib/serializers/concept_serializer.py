@@ -7,7 +7,6 @@ from django.core.serializers.base import Serializer as BaseDjangoSerializer
 from django.core.serializers.base import DeserializedObject, build_instance
 from django.apps import apps
 from django.db import DEFAULT_DB_ALIAS
-from django.conf import settings
 
 from aristotle_mdr.contrib.custom_fields.models import CustomValue
 from aristotle_mdr.contrib.slots.models import Slot
@@ -22,6 +21,10 @@ from aristotle_mdr.models import (
     DedInputsThrough,
     DedDerivesThrough,
     aristotleComponent
+)
+from aristotle_mdr.contrib.serializers.utils import (
+    get_comet_field_serializer_mapping,
+    get_dse_field_serializer_mapping,
 )
 
 from aristotle_mdr.contrib.links.models import RelationRole
@@ -117,20 +120,19 @@ class RelationRoleSerializer(SubSerializer):
 class BaseSerializer(serializers.ModelSerializer):
     slots = SlotsSerializer(many=True)
     customvalue_set = CustomValuesSerializer(many=True)
-
     identifiers = IdentifierSerializer(many=True)
     org_records = OrganisationRecordsSerializer(many=True)
-
     stewardship_organisation = serializers.PrimaryKeyRelatedField(
         pk_field=serializers.UUIDField(format='hex'),
-        read_only=True)
+        read_only=True
+    )
 
 # To begin serializing an added subitem:
 #   1. Add a ModelSerializer for your subitem
 #   2. Add to FIELD_SUBSERIALIZER_MAPPING
 
 
-class ConceptSerializerFactory():
+class ConceptSerializerFactory:
     """ Generalized serializer factory to dynamically set form fields for simpler concepts """
     field_subserializer_mapping = {
         'permissiblevalue_set': PermissibleValueSerializer(many=True),
@@ -144,36 +146,10 @@ class ConceptSerializerFactory():
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if 'aristotle_dse' in settings.INSTALLED_APPS:
-            # Add extra serializers if DSE is installed
-            from aristotle_mdr.contrib.serializers.dse_serializers import (
-                DSSGroupingSerializer,
-                DSSClusterInclusionSerializer,
-                DSSDEInclusionSerializer,
-                DistributionDataElementPathSerializer,
-            )
-
-            self.field_subserializer_mapping.update({
-                'dssdeinclusion_set': DSSDEInclusionSerializer(many=True),
-                'dssclusterinclusion_set': DSSClusterInclusionSerializer(many=True),
-                'groups': DSSGroupingSerializer(many=True),
-                'distributiondataelementpath_set': DistributionDataElementPathSerializer(many=True),
-            })
-
-        if 'comet' in settings.INSTALLED_APPS:
-            from aristotle_mdr.contrib.serializers.indicator_serializers import (
-                IndicatorNumeratorSerializer,
-                IndicatorDenominatorSerializer,
-                IndicatorDisaggregationSerializer,
-                IndicatorInclusionSerializer
-            )
-
-            self.field_subserializer_mapping.update({
-                'indicatornumeratordefinition_set': IndicatorNumeratorSerializer(many=True),
-                'indicatordenominatordefinition_set': IndicatorDenominatorSerializer(many=True),
-                'indicatordisaggregationdefinition_set': IndicatorDisaggregationSerializer(many=True),
-                'indicatorinclusion_set': IndicatorInclusionSerializer(many=True)
-            })
+        self.field_subserializer_mapping.update({
+            **get_comet_field_serializer_mapping(),
+            **get_dse_field_serializer_mapping(),
+        })
 
         self.whitelisted_fields = [
             'statistical_unit',
@@ -233,15 +209,22 @@ class ConceptSerializerFactory():
 
         return tuple([field for field in related_fields if field in self.whitelisted_fields])
 
-    def _get_class_for_serializer(self, concept):
-        return concept.__class__
-
     def generate_serializer(self, concept):
         """ Generate the serializer class """
         concept_class = self._get_class_for_serializer(concept)
         Serializer = self._generate_serializer_class(concept_class)
 
         return Serializer
+
+    def generate_deserializer(self, json):
+        """ Generate the deserializer """
+        concept_model = self._get_class_for_deserializer(json)
+
+        Deserializer = self._generate_serializer_class(concept_model)
+        return Deserializer
+
+    def _get_class_for_serializer(self, concept):
+        return concept.__class__
 
     def _generate_serializer_class(self, concept_class):
         universal_fields = ('slots', 'customvalue_set', 'org_records', 'identifiers', 'stewardship_organisation',
@@ -266,20 +249,13 @@ class ConceptSerializerFactory():
 
         serializer_attrs['Meta'] = Meta
 
-        # Generate serializer dynamically
+        # Generate serializer class dynamically
         Serializer = type('Serializer', (BaseSerializer,), serializer_attrs)
         return Serializer
 
     def _get_class_for_deserializer(self, json):
         data = JSON.loads(json)
         return apps.get_model(data['serialized_model'])
-
-    def generate_deserializer(self, json):
-        """ Generate the deserializer """
-        concept_model = self._get_class_for_deserializer(json)
-
-        Deserializer = self._generate_serializer_class(concept_model)
-        return Deserializer
 
 
 class Serializer(BaseDjangoSerializer):
