@@ -592,6 +592,8 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
 
     def test_statuses_reversion_page_works(self):
 
+        self.login_superuser()
+
         # Load the Reversions page for Statuses
         response = self.client.get(
             reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
@@ -599,13 +601,19 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
 
     def test_statuses_reversions_list_only_includes_the_first_reversion_object(self):
 
+        self.login_superuser()
+
         # Because there are no versions yet.
 
         response = self.client.get(
             reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
+        # import pdb
+        # pdb.set_trace()
         self.assertEqual(len(response.context['versions']), 1)
 
     def test_statuses_reversions_list_is_populated_after_creating_reversion(self):
+
+        self.login_superuser()
 
         with reversion.revisions.create_revision():
             MDR.Status.objects.update_or_create(
@@ -622,3 +630,14 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
             reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
 
         self.assertEqual(len(response.context['versions']), 2)
+
+    def test_statuses_reversions_are_only_visible_to_superusers(self):
+
+        self.logout()
+        self.login_editor()
+
+        response = self.client.get(
+            reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
+
+        # Vesions are not visible to editors at the moment. Maybe later we need to update test.
+        self.assertEquals(response.context['versions'], None)
