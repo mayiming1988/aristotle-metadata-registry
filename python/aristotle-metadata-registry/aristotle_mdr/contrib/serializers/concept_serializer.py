@@ -87,10 +87,16 @@ class ConceptSerializerFactory:
             'dssgrouping_set',
         ] + list(self.field_subserializer_mapping.keys())
 
+    def get_field_name(self, field):
+        if hasattr(field, 'get_accessor_name'):
+            return field.get_accessor_name()
+        else:
+            return field.name
+
     def _get_concept_fields(self, model_class):
         """
         Internal helper function to get fields that are actually **on** the model.
-        This function excludes Foreign Key fields.
+        This function excludes Foreign Key fields (relation fields).
         :param model_class: Model to get the fields from.
         :return: Tuple of fields
         """
@@ -102,16 +108,11 @@ class ConceptSerializerFactory:
 
         return tuple(fields)
 
-    def get_field_name(self, field):
-        if hasattr(field, 'get_accessor_name'):
-            return field.get_accessor_name()
-        else:
-            return field.name
-
-    def _get_relation_fields(self, model_class):
+    def _get_concept_relation_fields(self, model_class):
         """
-        Internal helper function to get related fields
-        Returns a tuple of fields
+        Internal helper function to get related (Foreign key) fields.
+        :param model_class: Model to get the fields from.
+        :return: Tuple of fields
         """
         related_fields = []
 
@@ -162,9 +163,9 @@ class ConceptSerializerFactory:
                             'workgroup', 'submitter')
 
         concept_fields = self._get_concept_fields(concept_class)
-        relation_fields = self._get_relation_fields(concept_class)
+        concept_relation_fields = self._get_concept_relation_fields(concept_class)
 
-        included_fields = concept_fields + relation_fields + universal_fields
+        included_fields = concept_fields + concept_relation_fields + universal_fields
 
         # Generate metaclass dynamically
         meta_attrs = {'model': concept_class,
@@ -172,7 +173,7 @@ class ConceptSerializerFactory:
         Meta = type('Meta', tuple(), meta_attrs)
 
         serializer_attrs = {}
-        for field_name in relation_fields:
+        for field_name in concept_relation_fields:
             if field_name in self.field_subserializer_mapping:
                 # Field is for something that should have it's component fields serialized
                 serializer = self.field_subserializer_mapping[field_name]
