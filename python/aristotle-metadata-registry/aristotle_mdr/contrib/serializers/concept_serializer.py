@@ -17,6 +17,7 @@ from aristotle_mdr.models import (
 from aristotle_mdr.contrib.serializers.utils import (
     get_comet_field_serializer_mapping,
     get_dse_field_serializer_mapping,
+    get_aristotle_ontology_serializer_mapping,
 )
 from aristotle_mdr.contrib.serializers.concept_general_field_subserializers import (
     IdentifierSerializer,
@@ -32,8 +33,6 @@ from aristotle_mdr.contrib.serializers.concept_spcific_field_subserializers impo
     DedInputsThroughSerializer,
     DedDerivesThroughSerializer,
     RelationRoleSerializer,
-    ObjectClassSpecialisationNarrowerClassSerializer,
-
 )
 
 import json as JSON
@@ -71,7 +70,6 @@ class ConceptSerializerFactory:
         'dedinputsthrough_set': DedInputsThroughSerializer(many=True),
         'dedderivesthrough_set': DedDerivesThroughSerializer(many=True),
         'relationrole_set': RelationRoleSerializer(many=True),
-        'objectclassspecialisationnarrowerclass_set': ObjectClassSpecialisationNarrowerClassSerializer(many=True),
     }
 
     def __init__(self, *args, **kwargs):
@@ -80,6 +78,7 @@ class ConceptSerializerFactory:
         self.field_subserializer_mapping.update({
             **get_comet_field_serializer_mapping(),
             **get_dse_field_serializer_mapping(),
+            **get_aristotle_ontology_serializer_mapping(),
         })
 
         self.whitelisted_fields = [

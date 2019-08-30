@@ -48,3 +48,16 @@ def get_dse_field_serializer_mapping():
             'distributiondataelementpath_set': DistributionDataElementPathSerializer(many=True),
         }
     return mapping
+
+
+def get_aristotle_ontology_serializer_mapping():
+    mapping = {}
+    if 'aristotle_ontology' in settings.INSTALLED_APPS:
+        from aristotle_mdr.contrib.serializers.aristotle_ontology_serializers import (
+            ObjectClassSpecialisationNarrowerClassSerializer
+        )
+
+        mapping = {
+            'objectclassspecialisationnarrowerclass_set': ObjectClassSpecialisationNarrowerClassSerializer(many=True),
+        }
+    return mapping

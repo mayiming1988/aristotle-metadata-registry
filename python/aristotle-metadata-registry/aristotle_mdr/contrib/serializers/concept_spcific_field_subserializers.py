@@ -7,7 +7,6 @@ from aristotle_mdr.models import (
     DedDerivesThrough,
 )
 from aristotle_mdr.contrib.links.models import RelationRole
-from aristotle_ontology.models import ObjectClassSpecialisationNarrowerClass
 
 
 class PermissibleValueSerializer(SubSerializer):
@@ -50,10 +49,3 @@ class RelationRoleSerializer(SubSerializer):
     class Meta:
         model = RelationRole
         exclude = ('relation',)
-
-
-class ObjectClassSpecialisationNarrowerClassSerializer(SubSerializer):
-
-    class Meta:
-        model = ObjectClassSpecialisationNarrowerClass
-        fields = ['order', 'narrower_class']
