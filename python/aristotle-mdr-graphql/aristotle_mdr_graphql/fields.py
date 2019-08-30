@@ -1,17 +1,18 @@
+from functools import partial
 from graphene_django.filter import DjangoFilterConnectionField
-from graphene_django.utils import maybe_queryset
 from graphene import Field, List
 from graphene_django.filter.utils import (
     get_filtering_args_from_filterset,
     get_filterset_class
 )
-from functools import partial
 from graphene_django.utils import maybe_queryset
 from graphene.types.argument import to_arguments
-from collections import OrderedDict
-from aristotle_mdr_graphql.filterset import (AristotleFilterSet,
-                                             ConceptFilterSet)
 from graphene.types.scalars import Scalar
+from collections import OrderedDict
+from aristotle_mdr_graphql.aristotle_filterset_classes import (
+    AristotleIdFilterSet,
+    ConceptFilterSet
+)
 
 
 class ObjectField(Scalar):
@@ -33,7 +34,7 @@ class AristotleFilterConnectionField(DjangoFilterConnectionField):
 
     def __init__(self, type, *args, **kwargs):
         extrameta = {
-            'filterset_base_class': AristotleFilterSet
+            'filterset_base_class': AristotleIdFilterSet
         }
         kwargs['extra_filter_meta'] = extrameta
         super().__init__(type, *args, **kwargs)
@@ -65,7 +66,7 @@ class AristotleFilterConnectionField(DjangoFilterConnectionField):
 
 
 class AristotleConceptFilterConnectionField(AristotleFilterConnectionField):
-    def __init__(self, type, *args, **kwargs):
+    def __init__(self, aristotle_type, *args, **kwargs):
 
         extrameta = {
             'filterset_base_class': ConceptFilterSet,
@@ -73,9 +74,9 @@ class AristotleConceptFilterConnectionField(AristotleFilterConnectionField):
         kwargs['extra_filter_meta'] = extrameta
 
         if "description" not in kwargs.keys():
-            kwargs['description'] = "Look up a collection of " + str(type._meta.model.get_verbose_name_plural())
+            kwargs['description'] = "Look up a collection of " + str(aristotle_type._meta.model.get_verbose_name_plural())
 
-        super(AristotleFilterConnectionField, self).__init__(type, *args, **kwargs)
+        super(AristotleFilterConnectionField, self).__init__(aristotle_type, *args, **kwargs)
 
 
 class DjangoListFilterField(Field):
@@ -83,8 +84,7 @@ class DjangoListFilterField(Field):
     Custom field to use django-filter with graphene object types (without relay).
     """
 
-    def __init__(self, _type, fields=None, extra_filter_meta=None,
-                 filterset_class=None, *args, **kwargs):
+    def __init__(self, _type, fields=None, filterset_class=None, *args, **kwargs):
         _fields = _type._meta.filter_fields
         _model = _type._meta.model
         self._model = _type._meta.model
@@ -110,6 +110,16 @@ class DjangoListFilterField(Field):
 
     @staticmethod
     def list_resolver(resolver, default_manager, filterset_class, filtering_args, root, info, **args):
+        """
+        :param resolver:
+        :param default_manager: Beware! this field is actually needed. GraphQl will fail if removed!
+        :param filterset_class:
+        :param filtering_args:
+        :param root:
+        :param info:
+        :param args:
+        :return:
+        """
         filter_kwargs = {k: v for k, v in args.items() if k in filtering_args}
         qs = filterset_class(
             data=filter_kwargs,

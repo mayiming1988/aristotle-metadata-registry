@@ -597,7 +597,7 @@ class LoggedInViewPages(object):
         return response
 
     def test_logins(self):
-        # Failed logins reutrn 200, not 401
+        # Failed logins return 200, not 401
         # See http://stackoverflow.com/questions/25839434/
         response = self.client.post(reverse('friendly_login'), {'username': 'super@example.com', 'password': 'the_wrong_password'})
         self.assertEqual(response.status_code, 200)

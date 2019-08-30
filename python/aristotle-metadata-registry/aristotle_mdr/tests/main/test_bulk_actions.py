@@ -4,7 +4,9 @@ from django.test import TestCase, tag
 from django.test.utils import override_settings
 from django.utils import timezone
 
+from aristotle_mdr.models import StewardOrganisation
 import aristotle_mdr.models as models
+
 import aristotle_mdr.perms as perms
 import aristotle_mdr.tests.utils as utils
 
@@ -19,8 +21,10 @@ class BulkActionsTest(utils.AristotleTestUtils):
 
         # There would be too many tests to test every item type against every other
         # But they all have identical logic, so one test should suffice
-        self.item1 = models.ObjectClass.objects.create(name="OC1", definition="OC1 definition", workgroup=self.wg1)
-        self.item2 = models.ObjectClass.objects.create(name="OC2", definition="OC2 definition", workgroup=self.wg1)
+        self.item1 = models.ObjectClass.objects.create(name="OC1", definition="OC1 definition", workgroup=self.wg1,
+                                                       stewardship_organisation=self.steward_org_1)
+        self.item2 = models.ObjectClass.objects.create(name="OC2", definition="OC2 definition", workgroup=self.wg1,
+                                                       stewardship_organisation=self.steward_org_1)
         self.item3 = models.ObjectClass.objects.create(name="OC3", definition="OC3 definition", workgroup=self.wg1)
         self.item4 = models.Property.objects.create(name="Prop4", definition="Prop4 definition", workgroup=self.wg2)
         self.item5 = models.Property.objects.create(name="Prop5", definition="Prop5 definition", workgroup=None, submitter=self.editor)
@@ -55,6 +59,75 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         )
 
         return review_response
+
+    def test_bulk_action_change_of_stewardship_organisation_by_stewardship_admin(self):
+        """Test that an admin of a Stewardship Org can move metadata from one S.O to another"""
+
+        self.login_manager()
+        old_stewardship_org = models.StewardOrganisation.objects.create(name="Old Steward")
+        new_stewardship_org = models.StewardOrganisation.objects.create(name="New Steward")
+
+        # Give the manager admin permissions in two Stewardship Organisation
+        old_stewardship_org.grant_role(
+            role=StewardOrganisation.roles.admin,
+            user=self.manager,
+        )
+        new_stewardship_org.grant_role(
+            role=StewardOrganisation.roles.admin,
+            user=self.manager
+
+        )
+        item1 = models.ObjectClass.objects.create(name="Person",
+                                                  definition="Person",
+                                                  stewardship_organisation=old_stewardship_org)
+        item2 = models.ObjectClass.objects.create(name="Person",
+                                                  definition="Person",
+                                                  stewardship_organisation=new_stewardship_org)
+
+        # Test that they can move metadata from one Stewardship Organisation to another
+        response = self.client.post(
+            reverse('aristotle:bulk_action'),
+            {
+                'bulkaction': 'aristotle_mdr.forms.bulk_actions.ChangeStewardshipOrganisationForm',
+                'items': [item1.id, item2.id],
+                'steward_org': [new_stewardship_org.id],
+                "confirmed": True
+            }
+        )
+        # Recache
+        item1.refresh_from_db()
+        item2.refresh_from_db()
+
+        # Check that the items have been moved
+        self.assertEqual(item1.stewardship_organisation, new_stewardship_org)
+        self.assertEqual(item2.stewardship_organisation, new_stewardship_org)
+
+
+    def test_bulk_action_change_of_stewardship_organisation(self):
+        """Test that a superuser can move metadata from one S.O to another"""
+
+        # Login in superuser
+        self.login_superuser()
+        self.new_stewardship_org = models.StewardOrganisation.objects.create(name="New Steward")
+
+        # Post a bulk action moving two items from one stewardship organisation to another
+        response = self.client.post(
+            reverse('aristotle:bulk_action'),
+            {
+                'bulkaction': 'aristotle_mdr.forms.bulk_actions.ChangeStewardshipOrganisationForm',
+                'items': [self.item1.id, self.item2.id],
+                'steward_org': [self.new_stewardship_org.id],
+                "confirmed": True
+            }
+        )
+        # Recache
+        self.item1.refresh_from_db()
+        self.item2.refresh_from_db()
+
+        # Check that the items have been moved
+        self.assertEqual(self.item1.stewardship_organisation, self.new_stewardship_org)
+        self.assertEqual(self.item2.stewardship_organisation, self.new_stewardship_org)
+
 
     def create_review_request(self, items):
         self.login_registrar()
@@ -605,3 +678,4 @@ class BulkWorkgroupActionsPage(BulkActionsTest, TestCase):
         self.assertTrue(self.item1.concept in self.wg1.items.all())
         self.assertTrue(self.item2.concept in self.wg1.items.all())
         self.assertTrue(self.item4.concept not in self.wg1.items.all())
+
