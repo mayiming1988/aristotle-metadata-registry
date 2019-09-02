@@ -75,11 +75,11 @@ class ConceptSerializerFactory:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.field_subserializer_mapping.update({
+        self.field_subserializer_mapping.update(
             **get_comet_field_serializer_mapping(),
             **get_dse_field_serializer_mapping(),
             **get_aristotle_ontology_serializer_mapping(),
-        })
+        )
 
         self.whitelisted_fields = [
             'statistical_unit',
@@ -116,8 +116,7 @@ class ConceptSerializerFactory:
         related_fields = []
 
         for field in model_class._meta.get_fields():
-            if not field.name.startswith('_'):
-                # Don't serialize internal fields
+            if not field.name.startswith('_'):  # Don't serialize internal fields
                 if field.is_relation:
                     # Check if the model class is the parent of the item, we don't want to serialize up the chain
                     field_model = field.related_model

@@ -37,18 +37,28 @@ class GetMetadataTypeFromUUID(APIView):
         )
 
 
-class GenericMetadataSerialiserAPIView(generics.ListCreateAPIView):
+class GenericMetadataSerialiserAPIView(generics.ListCreateAPIView):  # CHANGE THIS ONE TO RETRIEVEUPDATEAPIVIEW.
 
     permission_classes = (UnAuthenticatedUserCanView,)
 
     def dispatch(self, request, *args, **kwargs):
         self.metadata_type = kwargs.get("metadata_type")
         self.item_uuid = kwargs.get("item_uuid")
-        self.item = get_object_or_404(_concept, uuid=self.item_uuid)
+        # item = get_object_or_404(type(self.item), uuid=self.item_uuid)
+        # self.item = get_object_or_404(self.item.item_type.model_class(), uuid=self.item_uuid)
+
+        print("THIS IS THE ITEM")
+        print(self.get_object())
+        # print("THIS IS THE CONTENT TYPE:")
+        # print()
+        # print("THIS IS THE OBJECT:")
+        # new = get_object_or_404(type(self.item), uuid=self.item_uuid)
+        # print(new)
+        # print(type(new))
 
         return super().dispatch(request, *args, **kwargs)
 
-    def get_queryset(self):
+    def get_queryset(self):  # OVERRIDE GET QUERYSET!!!!
         return self.item.item_type.model_class().objects.get(uuid=self.item_uuid)
 
     def get_serializer(self, *args, **kwargs):
