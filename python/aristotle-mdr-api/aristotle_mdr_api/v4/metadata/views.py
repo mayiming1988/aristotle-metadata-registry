@@ -42,18 +42,20 @@ class GetMetadataTypeFromUUID(APIView):
 
 
 class GenericMetadataSerialiserAPIView(generics.RetrieveUpdateAPIView):
+    """
+    The purpose of this View is to retrieve a serialiser from a _concept metadata child instance.
+    """
 
     lookup_field = 'uuid'
     lookup_url_kwarg = 'item_uuid'
-
     permission_classes = (UnAuthenticatedUserCanView,)
 
     def dispatch(self, request, *args, **kwargs):
 
-        self.metadata_type = kwargs.get("metadata_type")
+        metadata_type = kwargs.get("metadata_type")
 
         for model in get_concept_models():
-            if slugify(model.__name__) == self.metadata_type:
+            if slugify(model.__name__) == metadata_type:
                 self.model_instance = model
         return super().dispatch(request, *args, **kwargs)
 
