@@ -36,7 +36,7 @@ class VersionPermissionsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VersionPermissions
-        fields = ('version_id','visibility')
+        fields = ('version_id', 'visibility')
         list_serializer_class = VersionVisibilityPermissionSerializer
 
     def validate_version_id(self, value):
