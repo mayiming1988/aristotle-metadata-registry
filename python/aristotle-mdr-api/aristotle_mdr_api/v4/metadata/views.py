@@ -1,4 +1,4 @@
-from rest_framework import generics
+from rest_framework import generics, pagination
 from rest_framework.views import APIView
 from rest_framework.reverse import reverse
 from rest_framework.parsers import JSONParser
@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from aristotle_mdr_api.v4.permissions import UnAuthenticatedUserCanView
+from aristotle_mdr_api.v3.views.utils import ConceptResultsPagination
 from aristotle_mdr.contrib.serializers.concept_serializer import ConceptSerializerFactory
 from aristotle_mdr.models import _concept
 from aristotle_mdr.utils import get_concept_models
@@ -81,6 +82,8 @@ class CreateMetadata(generics.ListCreateAPIView):
     The purpose of this API endpoint is to create Metadata Objects.
     """
 
+    pagination_class = ConceptResultsPagination
+
     # def get_parsers(self):
     #     parsers = super().get_parsers().append(JSONParser)
     #     return parsers
@@ -95,15 +98,17 @@ class CreateMetadata(generics.ListCreateAPIView):
     def get_queryset(self):
         return self.klass.objects.all()
 
+    def get_queryset(self):
+        return self.klass.objects.all()
+
     def get_serializer_class(self):
-        serializer_class = ConceptSerializerFactory().generate_serializer_class(self.klass)
-        return serializer_class(self.get_object())
+        return ConceptSerializerFactory().generate_serializer_class(self.klass)
 
-    # When get is used just retrieve objects from that type.
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
-
-    # When post is used try to create an object of the specified metadata type.
+    # # When get is used just retrieve objects from that type.
+    # def get(self, request, *args, **kwargs):
+    #     return super().get(request, *args, **kwargs)
+    #
+    # # When post is used try to create an object of the specified metadata type.
     # def post(self, request, *args, **kwargs):
     #     return self.update(request, *args, **kwargs)
 
