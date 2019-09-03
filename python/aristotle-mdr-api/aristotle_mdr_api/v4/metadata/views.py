@@ -41,9 +41,11 @@ class GetMetadataTypeFromUUID(APIView):
         )
 
 
-class GenericMetadataSerialiserAPIView(generics.RetrieveUpdateAPIView):
+# Eventually we need to update this class to subclass RetrieveUpdateAPIView.
+# We need to make this class capable of object deserialization for "PUT" and "PATCH" requests.
+class GenericMetadataSerialiserAPIView(generics.RetrieveAPIView):
     """
-    The purpose of this View is to retrieve a serialiser from a _concept metadata child instance.
+    The purpose of this API Endpoint is to retrieve a serializer from a _concept metadata child instance.
     """
 
     lookup_field = 'uuid'
@@ -56,26 +58,70 @@ class GenericMetadataSerialiserAPIView(generics.RetrieveUpdateAPIView):
 
         for model in get_concept_models():
             if slugify(model.__name__) == metadata_type:
-                self.model_instance = model
+                self.klass = model
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        return self.model_instance.objects.all()
+        return self.klass.objects.all()
 
-    def get_serializer(self, *args, **kwargs):
-        serialiser_model = ConceptSerializerFactory().generate_serializer(self.get_object())
-        serialiser = serialiser_model(self.get_object())
+    def get_serializer(self, instance, *args, **kwargs):
+        serialiser_class = ConceptSerializerFactory().generate_serializer_class(self.klass)
+        serialiser = serialiser_class(instance)
         return serialiser
 
-    def update(self, request, *args, **kwargs):
+    # def update(self, request, *args, **kwargs):
+    #     queryset = self.filter_queryset(self.get_queryset())
+    #
+    #     serializer = self.get_serializer(queryset, data=request.data, many=True)
+    #
+    #     serializer.is_valid(raise_exception=True)
+    #
+    #     serializer.save()
+    #     return Response(serializer.data)
+    #
+    # def put(self, request, *args, **kwargs):
+    #     pass
+    #
+    # def patch(self, request, *args, **kwargs):
+    #     pass
+
+
+class CreateMetadata(generics.ListCreateAPIView):
+    """
+    The purpose of this API endpoint is to create Metadata Objects.
+    """
+
+    def dispatch(self, request, *args, **kwargs):
+        metadata_type = kwargs.get("metadata_type")
+        for model in get_concept_models():
+            if slugify(model.__name__) == metadata_type:
+                self.klass = model
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return self.klass.objects.all()
+
+    def get_serializer_class(self):
+        serialiser_class = ConceptSerializerFactory().generate_serializer_class(self.klass)
+        serialiser = serialiser_class(self.get_object())
+        return serialiser
+
+    # # When get is used just retrieve objects from that type.
+    # def get(self, request, *args, **kwargs):
+    #     pass
+
+    # When post is used try to create an object of the specified metadata type.
+    # def post(self, request, *args, **kwargs):
+    #     return self.update(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
-        serializer = self.get_serializer(queryset, data=request.data, many=True)
+        serializer = self.get_serializer(
+            queryset, data=request.data, many=True,
+            context={'version_ids': "self.version_ids"}
+        )
 
         serializer.is_valid(raise_exception=True)
-
         serializer.save()
         return Response(serializer.data)
-
-    def post(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
