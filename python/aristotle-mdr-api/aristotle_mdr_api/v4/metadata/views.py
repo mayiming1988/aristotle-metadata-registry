@@ -1,6 +1,7 @@
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.reverse import reverse
+from rest_framework.parsers import JSONParser
 from django.template.defaultfilters import slugify
 from rest_framework.response import Response
 from django.http.response import HttpResponseRedirect
@@ -65,20 +66,9 @@ class GenericMetadataSerialiserAPIView(generics.RetrieveAPIView):
         return self.klass.objects.all()
 
     def get_serializer(self, instance, *args, **kwargs):
-        serialiser_class = ConceptSerializerFactory().generate_serializer_class(self.klass)
-        serialiser = serialiser_class(instance)
-        return serialiser
+        serializer_class = ConceptSerializerFactory().generate_serializer_class(self.klass)
+        return serializer_class(instance)
 
-    # def update(self, request, *args, **kwargs):
-    #     queryset = self.filter_queryset(self.get_queryset())
-    #
-    #     serializer = self.get_serializer(queryset, data=request.data, many=True)
-    #
-    #     serializer.is_valid(raise_exception=True)
-    #
-    #     serializer.save()
-    #     return Response(serializer.data)
-    #
     # def put(self, request, *args, **kwargs):
     #     pass
     #
@@ -91,6 +81,10 @@ class CreateMetadata(generics.ListCreateAPIView):
     The purpose of this API endpoint is to create Metadata Objects.
     """
 
+    # def get_parsers(self):
+    #     parsers = super().get_parsers().append(JSONParser)
+    #     return parsers
+
     def dispatch(self, request, *args, **kwargs):
         metadata_type = kwargs.get("metadata_type")
         for model in get_concept_models():
@@ -102,13 +96,12 @@ class CreateMetadata(generics.ListCreateAPIView):
         return self.klass.objects.all()
 
     def get_serializer_class(self):
-        serialiser_class = ConceptSerializerFactory().generate_serializer_class(self.klass)
-        serialiser = serialiser_class(self.get_object())
-        return serialiser
+        serializer_class = ConceptSerializerFactory().generate_serializer_class(self.klass)
+        return serializer_class(self.get_object())
 
-    # # When get is used just retrieve objects from that type.
-    # def get(self, request, *args, **kwargs):
-    #     pass
+    # When get is used just retrieve objects from that type.
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
     # When post is used try to create an object of the specified metadata type.
     # def post(self, request, *args, **kwargs):
