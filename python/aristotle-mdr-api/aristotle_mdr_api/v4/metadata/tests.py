@@ -11,7 +11,7 @@ class ObjectCreationForMetadataAPITests(BaseAPITestCase):
         self.item = mdr_models.ObjectClass.objects.create(
             name='Test Concept',
             definition='Concept Definition',
-            submitter=self.user
+            submitter=self.user,
         )
 
         self.login_user()
@@ -55,7 +55,7 @@ class GenericMetadataSerialiserAPIViewTestCase(ObjectCreationForMetadataAPITests
     def test_api_serialiser_works_and_fields_are_shown(self):
         self.assertDictEqual(
             {"name": self.item.name, "definition": self.item.definition},
-            {"name": self.response.data['name'], "definition": self.response.data['definition']}
+            {"name": self.response.data['name'], "definition": self.response.data['definition']},
         )
 
 
@@ -67,13 +67,13 @@ class ListOrCreateMetadataGetRequest(ObjectCreationForMetadataAPITests):
         self.value_domain_1 = mdr_models.ValueDomain.objects.create(
             name='Test Value Domain 1',
             definition='VD Definition',
-            submitter=self.user
+            submitter=self.user,
         )
 
         self.value_domain_2 = mdr_models.ValueDomain.objects.create(
             name='Test Value Domain 2',
             definition='VD Definition',
-            submitter=self.user
+            submitter=self.user,
         )
 
         self.response = self.client.get(
@@ -106,16 +106,64 @@ class ListOrCreateMetadataPostRequest(ObjectCreationForMetadataAPITests):
     def setUp(self):
         super().setUp()
 
+        from aristotle_mdr.models import ValueDomain
+
+        post_data = {
+            "name": "Total Australian currency N[N(8)]",
+            "definition": "Total number of Australian dollars.",
+        }
+
+        self.response = self.client.post(
+            reverse(
+                'api_v4:metadata:list_or_create_metadata_endpoint',
+                kwargs={
+                    "metadata_type": ValueDomain.__name__.lower(),
+                }
+            ),
+            post_data,
+            format='json',
+        )
+
+    def test_api_list_or_create_metadata_post_request_response_status_is_201(self):
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+
+
+class ListOrCreateMetadataPostRequestWithComplexDataStructureAndSubitems(ObjectCreationForMetadataAPITests):
+
+    def setUp(self):
+        super().setUp()
+
         self.value_domain_1 = mdr_models.ValueDomain.objects.create(
             name='Test Value Domain 1',
             definition='VD Definition',
-            submitter=self.user
+            submitter=self.user,
         )
 
         post_data = {
-                        "name": "Total Australian currency N[N(8)]",
-                        "definition": "Total number of Australian dollars.",
-                    }
+            "name": "Address—address start time, hhmmss",
+            "definition": "The time when this address was or is to be first used, expressed as hhmmss.",
+            "stewardship_organisation": "fef721d6c89e11e9bc630242ac12000b",
+            "workgroup": 602467,
+            "submitter": None,
+            "origin": "Standards Australia 2006. AS 4590—2006 Interchange of client information. Sydney: Standards Australia.",
+            "comments": "",
+            "dataElementConcept": 636337,
+            "valueDomain": 428853,
+            "customvalue_set": [
+                {
+                    "field": 52,
+                    "name": "Synonymous Name",
+                    "content": "",
+                    "id": 280209
+                },
+                {
+                    "field": 53,
+                    "name": "Short name",
+                    "content": "Address start time",
+                    "id": 280210
+                },
+            ],
+        }
 
         self.response = self.client.post(
             reverse(
@@ -125,9 +173,5 @@ class ListOrCreateMetadataPostRequest(ObjectCreationForMetadataAPITests):
                 }
             ),
             post_data,
-            format='json'
+            format='json',
         )
-
-    def test_api_list_or_create_metadata_post_request_response_status_is_200(self):
-        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
-    
