@@ -43,10 +43,10 @@ class ConceptBaseSerializer(serializers.ModelSerializer):
     This Class is the serializer representation of the _concept model.
     It includes the universal fields for every _concept instance.
     """
-    slots = SlotsSerializer(many=True)
-    customvalue_set = CustomValuesSerializer(many=True)
-    identifiers = IdentifierSerializer(many=True)
-    org_records = OrganisationRecordsSerializer(many=True)
+    slots = SlotsSerializer(many=True, required=False)
+    customvalue_set = CustomValuesSerializer(many=True, required=False)
+    identifiers = IdentifierSerializer(many=True, required=False)
+    org_records = OrganisationRecordsSerializer(many=True, required=False)
     stewardship_organisation = serializers.PrimaryKeyRelatedField(
         pk_field=serializers.UUIDField(format='hex'),
         read_only=True
@@ -62,8 +62,8 @@ class ConceptSerializerFactory:
         2. Add the class to the field_subserializer_mapping.
     """
     field_subserializer_mapping = {
-        'permissiblevalue_set': PermissibleValueSerializer(many=True),
-        'supplementaryvalue_set': SupplementaryValueSerializer(many=True),
+        'permissiblevalue_set': PermissibleValueSerializer(many=True, required=False),
+        'supplementaryvalue_set': SupplementaryValueSerializer(many=True, required=False),
         'valuemeaning_set': ValueMeaningSerializer(many=True),
         'dedinputsthrough_set': DedInputsThroughSerializer(many=True),
         'dedderivesthrough_set': DedDerivesThroughSerializer(many=True),

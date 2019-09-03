@@ -40,15 +40,16 @@ class GenericMetadataSerialiserAPIViewTestCase(ObjectCreationForMetadataAPITests
     def setUp(self):
         super().setUp()
         self.response = self.client.get(
-            reverse('api_v4:metadata:generic_metadata_serialiser_api_endpoint',
-                    kwargs={
-                        "item_uuid": self.item.uuid,
-                        "metadata_type": self.item.item_type.model,
-                    }
-                    ),
+            reverse(
+                'api_v4:metadata:generic_metadata_serialiser_api_endpoint',
+                kwargs={
+                    "item_uuid": self.item.uuid,
+                    "metadata_type": self.item.item_type.model,
+                }
+            ),
         )
 
-    def test_api_redirection_works(self):
+    def test_api_response_status_is_200(self):
         self.assertEqual(self.response.status_code, status.HTTP_200_OK)
 
     def test_api_serialiser_works_and_fields_are_shown(self):
@@ -56,3 +57,77 @@ class GenericMetadataSerialiserAPIViewTestCase(ObjectCreationForMetadataAPITests
             {"name": self.item.name, "definition": self.item.definition},
             {"name": self.response.data['name'], "definition": self.response.data['definition']}
         )
+
+
+class ListOrCreateMetadataGetRequest(ObjectCreationForMetadataAPITests):
+
+    def setUp(self):
+        super().setUp()
+
+        self.value_domain_1 = mdr_models.ValueDomain.objects.create(
+            name='Test Value Domain 1',
+            definition='VD Definition',
+            submitter=self.user
+        )
+
+        self.value_domain_2 = mdr_models.ValueDomain.objects.create(
+            name='Test Value Domain 2',
+            definition='VD Definition',
+            submitter=self.user
+        )
+
+        self.response = self.client.get(
+            reverse(
+                'api_v4:metadata:list_or_create_metadata_endpoint',
+                kwargs={
+                    "metadata_type": self.value_domain_1.item_type.model,
+                }
+            ),
+        )
+
+    def test_api_list_or_create_metadata_get_request_response_status_is_200(self):
+        self.assertEqual(self.response.status_code, status.HTTP_200_OK)
+
+    def test_api_list_or_create_metadata_get_request_returns_two_value_domain_objects(self):
+        self.assertEqual(len(self.response.data['results']), 2)
+
+    def test_api_list_or_create_metadata_get_request_paginator_returns_two_objects(self):
+        self.assertEqual(self.response.data['count'], 2)
+
+    def test_api_list_or_create_metadata_get_request_paginator_has_no_next(self):
+        self.assertIsNone(self.response.data['next'])
+
+    def test_api_list_or_create_metadata_get_request_paginator_has_no_previous(self):
+        self.assertIsNone(self.response.data['previous'])
+
+
+class ListOrCreateMetadataPostRequest(ObjectCreationForMetadataAPITests):
+
+    def setUp(self):
+        super().setUp()
+
+        self.value_domain_1 = mdr_models.ValueDomain.objects.create(
+            name='Test Value Domain 1',
+            definition='VD Definition',
+            submitter=self.user
+        )
+
+        post_data = {
+                        "name": "Total Australian currency N[N(8)]",
+                        "definition": "Total number of Australian dollars.",
+                    }
+
+        self.response = self.client.post(
+            reverse(
+                'api_v4:metadata:list_or_create_metadata_endpoint',
+                kwargs={
+                    "metadata_type": self.value_domain_1.item_type.model,
+                }
+            ),
+            post_data,
+            format='json'
+        )
+
+    def test_api_list_or_create_metadata_post_request_response_status_is_200(self):
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+    

@@ -77,7 +77,7 @@ class GenericMetadataSerialiserAPIView(generics.RetrieveAPIView):
     #     pass
 
 
-class CreateMetadata(generics.ListCreateAPIView):
+class ListOrCreateMetadata(generics.ListCreateAPIView):
     """
     The purpose of this API endpoint is to create Metadata Objects.
     """
@@ -98,9 +98,6 @@ class CreateMetadata(generics.ListCreateAPIView):
     def get_queryset(self):
         return self.klass.objects.all()
 
-    def get_queryset(self):
-        return self.klass.objects.all()
-
     def get_serializer_class(self):
         return ConceptSerializerFactory().generate_serializer_class(self.klass)
 
@@ -112,14 +109,14 @@ class CreateMetadata(generics.ListCreateAPIView):
     # def post(self, request, *args, **kwargs):
     #     return self.update(request, *args, **kwargs)
 
-    def create(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-
-        serializer = self.get_serializer(
-            queryset, data=request.data, many=True,
-            context={'version_ids': "self.version_ids"}
-        )
-
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
+    # def create(self, request, *args, **kwargs):
+    #     queryset = self.filter_queryset(self.get_queryset())
+    #
+    #     serializer = self.get_serializer(
+    #         queryset, data=request.data, many=True,
+    #         context={'version_ids': "self.version_ids"}
+    #     )
+    #
+    #     serializer.is_valid(raise_exception=True)
+    #     serializer.save()
+    #     return Response(serializer.data)
