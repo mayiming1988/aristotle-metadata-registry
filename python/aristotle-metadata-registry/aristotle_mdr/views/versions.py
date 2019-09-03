@@ -5,7 +5,7 @@ from django.views.generic.list import ListView
 from django.views.generic import TemplateView
 from django.db.models import Model, Field
 from django.urls import reverse
-from django.core.exceptions import FieldDoesNotExist, ObjectDoesNotExist
+from django.core.exceptions import FieldDoesNotExist
 from django.shortcuts import get_object_or_404
 
 from aristotle_mdr import models as MDR
@@ -206,7 +206,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         # Get version permission
         try:
             self.version_permission = VersionPermissions.objects.get(pk=self.version.pk)
-        except ObjectDoesNotExist:
+        except VersionPermissions.DoesNotExist:
             self.version_permission = None
 
         # Check if version can be viewed
@@ -378,7 +378,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         if self.version_dict['workgroup']:
             try:
                 workgroup = MDR.Workgroup.objects.get(pk=self.version_dict['workgroup'])
-            except ObjectDoesNotExist:
+            except MDR.Workgroup.DoesNotExist:
                 workgroup = None
 
             context['workgroup'] = workgroup

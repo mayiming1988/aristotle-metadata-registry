@@ -69,7 +69,7 @@ class DynamicTemplateView(TemplateView):
         return ['aristotle_mdr/static/%s.html' % self.kwargs['template']]
 
 
-def notification_redirect(request, content_type, object_id):  # Beware: request parameter is not used but it is actually necessary.
+def notification_redirect(request, content_type, object_id):  # Beware: request parameter is necessary because this is a function based view.
 
     ct = ContentType.objects.get(id=content_type)
     model_class = ct.model_class()
@@ -85,7 +85,7 @@ def get_if_user_can_view(objtype, user, iid):
         return False
 
 
-def concept_by_uuid(request, uuid):  # Beware: request parameter is not used but it is actually necessary.
+def concept_by_uuid(request, uuid):  # Beware: request parameter is necessary because this is a function based view.
     item = get_object_or_404(MDR._concept, uuid=uuid)
     return redirect(url_slugify_concept(item))
 
