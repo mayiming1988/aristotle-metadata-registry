@@ -4,7 +4,8 @@ from aristotle_mdr_api.v4.tests import BaseAPITestCase
 from aristotle_mdr import models as mdr_models
 
 
-class ObjectCreationForMetadataAPITests(BaseAPITestCase):
+class MetadataRedirectionAPITestCase(BaseAPITestCase):
+
     def setUp(self):
         super().setUp()
 
@@ -16,30 +17,19 @@ class ObjectCreationForMetadataAPITests(BaseAPITestCase):
 
         self.login_user()
 
+    def test_get_metadata_type_redirection_works_and_matches_uuid_and_type(self):
 
-class MetadataRedirectionAPITestCase(ObjectCreationForMetadataAPITests):
-
-    def setUp(self):
-        super().setUp()
-        self.response = self.client.get(
+        response = self.client.get(
             reverse('api_v4:metadata:get_metadata_type_from_uuid', kwargs={"item_uuid": self.item.uuid}),
         )
 
-    def test_get_metadata_type_redirection_works(self):
-        self.assertEqual(self.response.status_code, status.HTTP_302_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertTrue(str(self.item.uuid) in response.url.split("/"))
+        self.assertTrue(self.item.item_type.model in response.url.split("/"))
 
-    def test_get_metadata_redirection_matches_object_uuid(self):
-        self.assertTrue(str(self.item.uuid) in self.response.url.split("/"))
+    def test_api_serialiser_response_status_is_200_and_fields_are_shown(self):
 
-    def test_get_metadata_redirection_matches_object_type(self):
-        self.assertTrue(self.item.item_type.model in self.response.url.split("/"))
-
-
-class GenericMetadataSerialiserAPIViewTestCase(ObjectCreationForMetadataAPITests):
-
-    def setUp(self):
-        super().setUp()
-        self.response = self.client.get(
+        response = self.client.get(
             reverse(
                 'api_v4:metadata:generic_metadata_serialiser_api_endpoint',
                 kwargs={
@@ -49,17 +39,14 @@ class GenericMetadataSerialiserAPIViewTestCase(ObjectCreationForMetadataAPITests
             ),
         )
 
-    def test_api_response_status_is_200(self):
-        self.assertEqual(self.response.status_code, status.HTTP_200_OK)
-
-    def test_api_serialiser_works_and_fields_are_shown(self):
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertDictEqual(
             {"name": self.item.name, "definition": self.item.definition},
-            {"name": self.response.data['name'], "definition": self.response.data['definition']},
+            {"name": response.data['name'], "definition": response.data['definition']},
         )
 
 
-class ListOrCreateMetadataGetRequest(ObjectCreationForMetadataAPITests):
+class ListOrCreateMetadataGetRequest(BaseAPITestCase):
 
     def setUp(self):
         super().setUp()
@@ -75,43 +62,33 @@ class ListOrCreateMetadataGetRequest(ObjectCreationForMetadataAPITests):
             definition='VD Definition',
             submitter=self.user,
         )
+        self.login_user()
 
-        self.response = self.client.get(
+    def test_api_list_or_create_metadata_get_request(self):
+
+        response = self.client.get(
             reverse(
                 'api_v4:metadata:list_or_create_metadata_endpoint',
                 kwargs={
-                    "metadata_type": self.value_domain_1.item_type.model,
+                    "metadata_type": mdr_models.ValueDomain.__name__.lower(),
                 }
             ),
         )
 
-    def test_api_list_or_create_metadata_get_request_response_status_is_200(self):
-        self.assertEqual(self.response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)  # Make sure response is OK.
+        self.assertEqual(len(response.data['results']), 2)  # Make sure the length is correct.
+        self.assertEqual(response.data['count'], 2)  # Make sure the length is correct.
+        self.assertIsNone(response.data['next'])  # Make sure the paginator works.
+        self.assertIsNone(response.data['previous'])  # Make sure the paginator works.
 
-    def test_api_list_or_create_metadata_get_request_returns_two_value_domain_objects(self):
-        self.assertEqual(len(self.response.data['results']), 2)
-
-    def test_api_list_or_create_metadata_get_request_paginator_returns_two_objects(self):
-        self.assertEqual(self.response.data['count'], 2)
-
-    def test_api_list_or_create_metadata_get_request_paginator_has_no_next(self):
-        self.assertIsNone(self.response.data['next'])
-
-    def test_api_list_or_create_metadata_get_request_paginator_has_no_previous(self):
-        self.assertIsNone(self.response.data['previous'])
-
-
-class ListOrCreateMetadataPostRequest(ObjectCreationForMetadataAPITests):
-
-    def setUp(self):
-        super().setUp()
+    def test_api_list_or_create_metadata_post_request(self):
 
         post_data = {
             "name": "Total Australian currency N[N(8)]",
             "definition": "Total number of Australian dollars.",
         }
 
-        self.response = self.client.post(
+        response = self.client.post(
             reverse(
                 'api_v4:metadata:list_or_create_metadata_endpoint',
                 kwargs={
@@ -122,20 +99,9 @@ class ListOrCreateMetadataPostRequest(ObjectCreationForMetadataAPITests):
             format='json',
         )
 
-    def test_api_list_or_create_metadata_post_request_response_status_is_201(self):
-        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-
-class ListOrCreateMetadataPostRequestWithForeignKeyIds(ObjectCreationForMetadataAPITests):
-
-    def setUp(self):
-        super().setUp()
-
-        self.value_domain_1 = mdr_models.ValueDomain.objects.create(
-            name='Test Value Domain 1',
-            definition='VD Definition',
-            submitter=self.user,
-        )
+    def test_api_list_or_create_metadata_post_request_with_foreign_keys(self):
 
         post_data = {
             "name": "MY TEST DATA ELEMENT",
@@ -144,7 +110,7 @@ class ListOrCreateMetadataPostRequestWithForeignKeyIds(ObjectCreationForMetadata
             "valueDomain": self.value_domain_1.id,
         }
 
-        self.response = self.client.post(
+        response = self.client.post(
             reverse(
                 'api_v4:metadata:list_or_create_metadata_endpoint',
                 kwargs={
@@ -154,21 +120,13 @@ class ListOrCreateMetadataPostRequestWithForeignKeyIds(ObjectCreationForMetadata
             post_data,
             format='json',
         )
-
-    def test_metadata_api_creates_foreign_keys_from_id(self):
-        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
-
-    def test_metadata_api_data_is_correct(self):
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertDictEqual(
             {"name": self.value_domain_1.id},
-            {"name": self.response.data['valueDomain']},
+            {"name": response.data['valueDomain']},
         )
 
-
-class ListOrCreateMetadataPostRequestWithSubComponentsAndComplexDataStructures(ObjectCreationForMetadataAPITests):
-
-    def setUp(self):
-        super().setUp()
+    def test_api_list_or_create_metadata_post_request_with_subcomponent_and_complex_data_structures(self):
 
         from aristotle_mdr.contrib.custom_fields.models import CustomField
 
@@ -185,6 +143,7 @@ class ListOrCreateMetadataPostRequestWithSubComponentsAndComplexDataStructures(O
         post_data = {
             "name": "MY DATA ELEMENT WITH CUSTOM VALUES",
             "definition": "THIS DATA ELEMENT HAS CUSTOM VALUES.",
+            "workgroup": self.wg.id,
             "customvalue_set": [
                 {
                     "content": "hello",
@@ -197,7 +156,7 @@ class ListOrCreateMetadataPostRequestWithSubComponentsAndComplexDataStructures(O
             ],
         }
 
-        self.response = self.client.post(
+        response = self.client.post(
             reverse(
                 'api_v4:metadata:list_or_create_metadata_endpoint',
                 kwargs={
@@ -208,6 +167,7 @@ class ListOrCreateMetadataPostRequestWithSubComponentsAndComplexDataStructures(O
             format='json',
         )
 
-    def test_api_list_or_create_metadata_post_request_response_status_is_201(self):
-        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)  # Make sure we actually created data.
+        self.assertEqual(len(response.data['customvalue_set']), 2)  # Make sure we have 2 custom value objects.
+        self.assertEqual(response.data['workgroup'], self.wg.id)
 
