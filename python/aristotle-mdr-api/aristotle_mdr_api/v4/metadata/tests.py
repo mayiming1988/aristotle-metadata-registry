@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 from aristotle_mdr_api.v4.tests import BaseAPITestCase
 from aristotle_mdr import models as mdr_models
+from aristotle_mdr.contrib.custom_fields.models import CustomField
 
 
 class MetadataRedirectionAPITestCase(BaseAPITestCase):
@@ -62,6 +63,17 @@ class ListOrCreateMetadataGetRequest(BaseAPITestCase):
             definition='VD Definition',
             submitter=self.user,
         )
+
+        self.custom_field_1 = CustomField.objects.create(
+            name="Test CustomField",
+            order=1,
+        )
+
+        self.custom_field_2 = CustomField.objects.create(
+            name="Test CustomField",
+            order=2,
+        )
+
         self.login_user()
 
     def test_api_list_or_create_metadata_get_request(self):
@@ -126,19 +138,7 @@ class ListOrCreateMetadataGetRequest(BaseAPITestCase):
             {"name": response.data['valueDomain']},
         )
 
-    def test_api_list_or_create_metadata_post_request_with_subcomponent_and_complex_data_structures(self):
-
-        from aristotle_mdr.contrib.custom_fields.models import CustomField
-
-        self.custom_field_1 = CustomField.objects.create(
-            name="Test CustomField",
-            order=1,
-        )
-
-        self.custom_field_2 = CustomField.objects.create(
-            name="Test CustomField",
-            order=2,
-        )
+    def test_api_list_or_create_metadata_post_request_for_data_element_with_subcomponents(self):
 
         post_data = {
             "name": "MY DATA ELEMENT WITH CUSTOM VALUES",
@@ -171,3 +171,83 @@ class ListOrCreateMetadataGetRequest(BaseAPITestCase):
         self.assertEqual(len(response.data['customvalue_set']), 2)  # Make sure we have 2 custom value objects.
         self.assertEqual(response.data['workgroup'], self.wg.id)
 
+    def test_api_list_or_create_metadata_post_request_for_value_domain_with_subcomponents(self):
+
+        dt = mdr_models.DataType.objects.create(name="Test DT", workgroup=self.wg)
+
+        post_data = {
+            "name": "My Value Domain",
+            "definition": "My Value Domain definition",
+            "stewardship_organisation": self.so.id,
+            "workgroup": self.wg.id,
+            "submitter": None,
+            "version": "",
+            "references": "These are my references",
+            "origin_URI": "",
+            "origin": "This is my origin",
+            "comments": "My comments",
+            "data_type": dt.id,
+            "format": "N",
+            "maximum_length": 1,
+            "unit_of_measure": None,
+            "conceptual_domain": None,
+            "description": "",
+            "permissiblevalue_set": [
+                {
+                    "value": "0",
+                    "meaning": "My meaning",
+                    "order": 1,
+                    "start_date": "2018-01-01",
+                },
+                {
+                    "value": "1",
+                    "meaning": "My meaning 1",
+                    "order": 2,
+                    "start_date": "2018-02-02",
+                },
+            ],
+            "supplementaryvalue_set": [
+                {
+                    "value": "s0",
+                    "meaning": "My meaning sv",
+                    "order": 1,
+                    "start_date": "2018-01-01",
+                },
+                {
+                    "value": "s1",
+                    "meaning": "My meaning sv 1",
+                    "order": 2,
+                    "start_date": "2018-02-02",
+                }
+            ],
+            "slots": [],
+            "customvalue_set": [
+                {
+                    "field": self.custom_field_1.id,
+                    "name": "New Name 1",
+                    "content": "Activity - need for assistance",
+                },
+                {
+                    "field": self.custom_field_2.id,
+                    "name": "New Name 2",
+                    "content": "",
+                },
+            ],
+            "org_records": [],
+            "identifiers": []
+        }
+
+        response = self.client.post(
+            reverse(
+                'api_v4:metadata:list_or_create_metadata_endpoint',
+                kwargs={
+                    "metadata_type": mdr_models.ValueDomain.__name__.lower(),
+                }
+            ),
+            post_data,
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)  # Make sure we actually created data.
+        self.assertEqual(len(response.data['supplementaryvalue_set']), 2)  # We have 2 supplementary value objects.
+        self.assertEqual(len(response.data['permissiblevalue_set']), 2)  # We have 2 permissible value objects.
