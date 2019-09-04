@@ -1,5 +1,6 @@
 import json as JSON
 from rest_framework import serializers
+from drf_writable_nested import WritableNestedModelSerializer
 
 from django.core.serializers.base import Serializer as BaseDjangoSerializer
 from django.core.serializers.base import DeserializedObject, build_instance
@@ -8,8 +9,6 @@ from django.db import DEFAULT_DB_ALIAS
 
 
 from aristotle_mdr.models import (
-    ValueDomain,
-    DataElementConcept,
     aristotleComponent
 )
 from aristotle_mdr.contrib.serializers.utils import (
@@ -38,7 +37,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ConceptBaseSerializer(serializers.ModelSerializer):
+class ConceptBaseSerializer(WritableNestedModelSerializer):
     """
     This Class is the serializer representation of the _concept model.
     It includes the universal fields for every _concept instance.
@@ -51,7 +50,6 @@ class ConceptBaseSerializer(serializers.ModelSerializer):
         pk_field=serializers.UUIDField(format='hex'),
         read_only=True
     )
-    # We probably want to override create method in the serializers for nested serialisation...
 
 
 class ConceptSerializerFactory:

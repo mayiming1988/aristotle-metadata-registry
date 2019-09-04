@@ -106,8 +106,6 @@ class ListOrCreateMetadataPostRequest(ObjectCreationForMetadataAPITests):
     def setUp(self):
         super().setUp()
 
-        from aristotle_mdr.models import ValueDomain
-
         post_data = {
             "name": "Total Australian currency N[N(8)]",
             "definition": "Total number of Australian dollars.",
@@ -117,7 +115,7 @@ class ListOrCreateMetadataPostRequest(ObjectCreationForMetadataAPITests):
             reverse(
                 'api_v4:metadata:list_or_create_metadata_endpoint',
                 kwargs={
-                    "metadata_type": ValueDomain.__name__.lower(),
+                    "metadata_type": mdr_models.ValueDomain.__name__.lower(),
                 }
             ),
             post_data,
@@ -128,7 +126,7 @@ class ListOrCreateMetadataPostRequest(ObjectCreationForMetadataAPITests):
         self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
 
 
-class ListOrCreateMetadataPostRequestWithComplexDataStructureAndSubitems(ObjectCreationForMetadataAPITests):
+class ListOrCreateMetadataPostRequestWithForeignKeyIds(ObjectCreationForMetadataAPITests):
 
     def setUp(self):
         super().setUp()
@@ -140,27 +138,61 @@ class ListOrCreateMetadataPostRequestWithComplexDataStructureAndSubitems(ObjectC
         )
 
         post_data = {
-            "name": "Address—address start time, hhmmss",
-            "definition": "The time when this address was or is to be first used, expressed as hhmmss.",
-            "stewardship_organisation": "fef721d6c89e11e9bc630242ac12000b",
-            "workgroup": 602467,
-            "submitter": None,
-            "origin": "Standards Australia 2006. AS 4590—2006 Interchange of client information. Sydney: Standards Australia.",
-            "comments": "",
-            "dataElementConcept": 636337,
-            "valueDomain": 428853,
+            "name": "MY TEST DATA ELEMENT",
+            "definition": "DEFINITION FOR MY TEST DATA ELEMENT",
+            "origin": "Blah blah...",
+            "valueDomain": self.value_domain_1.id,
+        }
+
+        self.response = self.client.post(
+            reverse(
+                'api_v4:metadata:list_or_create_metadata_endpoint',
+                kwargs={
+                    "metadata_type": mdr_models.DataElement.__name__.lower(),
+                }
+            ),
+            post_data,
+            format='json',
+        )
+
+    def test_metadata_api_creates_foreign_keys_from_id(self):
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+
+    def test_metadata_api_data_is_correct(self):
+        self.assertDictEqual(
+            {"name": self.value_domain_1.id},
+            {"name": self.response.data['valueDomain']},
+        )
+
+
+class ListOrCreateMetadataPostRequestWithSubComponentsAndComplexDataStructures(ObjectCreationForMetadataAPITests):
+
+    def setUp(self):
+        super().setUp()
+
+        from aristotle_mdr.contrib.custom_fields.models import CustomField
+
+        self.custom_field_1 = CustomField.objects.create(
+            name="Test CustomField",
+            order=1,
+        )
+
+        self.custom_field_2 = CustomField.objects.create(
+            name="Test CustomField",
+            order=2,
+        )
+
+        post_data = {
+            "name": "MY DATA ELEMENT WITH CUSTOM VALUES",
+            "definition": "THIS DATA ELEMENT HAS CUSTOM VALUES.",
             "customvalue_set": [
                 {
-                    "field": 52,
-                    "name": "Synonymous Name",
-                    "content": "",
-                    "id": 280209
+                    "content": "hello",
+                    "field": self.custom_field_1.id,
                 },
                 {
-                    "field": 53,
-                    "name": "Short name",
-                    "content": "Address start time",
-                    "id": 280210
+                    "content": "HELLO 2",
+                    "field": self.custom_field_2.id,
                 },
             ],
         }
@@ -169,9 +201,13 @@ class ListOrCreateMetadataPostRequestWithComplexDataStructureAndSubitems(ObjectC
             reverse(
                 'api_v4:metadata:list_or_create_metadata_endpoint',
                 kwargs={
-                    "metadata_type": self.value_domain_1.item_type.model,
+                    "metadata_type": mdr_models.DataElement.__name__.lower(),
                 }
             ),
             post_data,
             format='json',
         )
+
+    def test_api_list_or_create_metadata_post_request_response_status_is_201(self):
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+
