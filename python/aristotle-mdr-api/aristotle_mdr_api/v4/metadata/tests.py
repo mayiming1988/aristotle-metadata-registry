@@ -1,3 +1,4 @@
+import datetime
 from django.urls import reverse
 from rest_framework import status
 from aristotle_mdr_api.v4.tests import BaseAPITestCase
@@ -137,7 +138,7 @@ class ListOrCreateMetadataGetRequest(BaseAPITestCase):
             {"name": self.value_domain_1.id},
             {"name": response.data['valueDomain']},
         )
-        self.assertEqual(post_data['name'], mdr_models.ValueDomain.objects.last().name)  # ValueDomain is in db.
+        self.assertEqual(post_data['name'], mdr_models.DataElement.objects.last().name)  # Data Element is in db.
 
     def test_api_list_or_create_metadata_post_request_for_data_element_with_subcomponents(self):
 
@@ -180,7 +181,7 @@ class ListOrCreateMetadataGetRequest(BaseAPITestCase):
         post_data = {
             "name": "My Value Domain",
             "definition": "My Value Domain definition",
-            "stewardship_organisation": self.so.id,
+            "stewardship_organisation": self.so.uuid,
             "workgroup": self.wg.id,
             "submitter": None,
             "version": "",
@@ -260,21 +261,41 @@ class ListOrCreateMetadataGetRequest(BaseAPITestCase):
         self.assertEqual(post_data['permissiblevalue_set'][0]['value'], my_saved_value_domain.permissibleValues[0].value)
         self.assertEqual(post_data['permissiblevalue_set'][0]['meaning'], my_saved_value_domain.permissibleValues[0].meaning)
         self.assertEqual(post_data['permissiblevalue_set'][0]['order'], my_saved_value_domain.permissibleValues[0].order)
-        self.assertEqual(post_data['permissiblevalue_set'][0]['start_date'], my_saved_value_domain.permissibleValues[0].start_date)
         self.assertEqual(post_data['permissiblevalue_set'][1]['value'], my_saved_value_domain.permissibleValues[1].value)
         self.assertEqual(post_data['permissiblevalue_set'][1]['meaning'], my_saved_value_domain.permissibleValues[1].meaning)
         self.assertEqual(post_data['permissiblevalue_set'][1]['order'], my_saved_value_domain.permissibleValues[1].order)
-        self.assertEqual(post_data['permissiblevalue_set'][1]['start_date'], my_saved_value_domain.permissibleValues[1].start_date)
 
     def test_api_list_or_create_metadata_post_request_for_data_set_specification_with_subcomponents(self):
 
         from aristotle_dse.models import DataSetSpecification
 
+        de1 = mdr_models.DataElement.objects.create(
+            name="My DE 1",
+            definition="My Def 1",
+            workgroup=self.wg,
+        )
+
+        de2 = mdr_models.DataElement.objects.create(
+            name="My DE 2",
+            definition="My Def 2",
+            workgroup=self.wg,
+        )
+
+        oc = mdr_models.ObjectClass.objects.create(
+            name='Test Object Class',
+            definition='Test Defn',
+            workgroup=self.wg
+        )
+
+        dss = DataSetSpecification.objects.create(
+            name="My DSS",
+            definition="My definition",
+        )
+
         post_data = {
-            "id": 5,
-            "name": "My DSS",
+            "name": "Test DSS",
             "definition": "This is my definition",
-            "stewardship_organisation": "fef721d6c89e11e9bc630242ac12000b",
+            "stewardship_organisation": None,
             "submitter": None,
             "version": "",
             "references": "",
@@ -286,132 +307,61 @@ class ListOrCreateMetadataGetRequest(BaseAPITestCase):
             "groups": [],
             "dssdeinclusion_set": [
                 {
-                    "id": 33458,
+                    "id": 1,
                     "reference": "1",
                     "maximum_occurrences": 18,
                     "inclusion": "mandatory",
                     "specific_information": "This is my specific info.",
-                    "conditional_inclusion": "",
+                    "conditional_inclusion": "Conditional inclusion",
                     "order": 0,
-                    "data_element": 568962,
+                    "data_element": de1.id,
                     "group": None,
-                    "specialisation_classes": []
+                    "specialisation_classes": [
+                        oc.id,
+                    ]
                 },
                 {
-                    "id": 33459,
+                    "id": 2,
                     "reference": "2",
                     "maximum_occurrences": 1,
                     "inclusion": "conditional",
-                    "specific_information": "",
+                    "specific_information": "Specific info",
                     "conditional_inclusion": "My conditional inclusion.",
                     "order": 1,
-                    "data_element": 568998,
+                    "data_element": de2.id,
                     "group": None,
-                    "specialisation_classes": []
+                    "specialisation_classes": [
+                        oc.id,
+                    ]
                 },
+            ],
+            "dssclusterinclusion_set": [
                 {
-                    "id": 33460,
-                    "reference": "3",
-                    "maximum_occurrences": 2,
+                    "id": 2598,
+                    "reference": "",
+                    "maximum_occurrences": 99,
                     "inclusion": "conditional",
                     "specific_information": "",
-                    "conditional_inclusion": "",
+                    "conditional_inclusion": "Conditional Incl",
                     "order": 2,
-                    "data_element": 569486,
-                    "group": None,
-                    "specialisation_classes": []
-                },
-                {
-                    "id": 33461,
-                    "reference": "4",
-                    "maximum_occurrences": 24,
-                    "inclusion": "mandatory",
-                    "specific_information": "More than one substance use service may be selected.",
-                    "conditional_inclusion": "",
-                    "order": 3,
-                    "data_element": 568907,
-                    "group": None,
-                    "specialisation_classes": []
-                },
-                {
-                    "id": 33462,
-                    "reference": "5",
-                    "maximum_occurrences": 2,
-                    "inclusion": "conditional",
-                    "specific_information": "",
-                    "conditional_inclusion": "This data element is cool.",
-                    "order": 4,
-                    "data_element": 568937,
-                    "group": None,
-                    "specialisation_classes": []
+                    "child": dss.id
                 }
             ],
-            "dssclusterinclusion_set": [],
             "slots": [],
             "customvalue_set": [
                 {
-                    "field": 100,
-                    "name": "Synonymous Name",
+                    "field": self.custom_field_1.id,
+                    "name": "New Name 1",
+                    "content": "Activity - need for assistance",
+                },
+                {
+                    "field": self.custom_field_2.id,
+                    "name": "New Name 2",
                     "content": "",
-                    "id": 344213
                 },
-                {
-                    "field": 101,
-                    "name": "Short name",
-                    "content": "",
-                    "id": 344214
-                },
-                {
-                    "field": 102,
-                    "name": "Submitting Organisation",
-                    "content": "My content",
-                    "id": 344215
-                },
-                {
-                    "field": 103,
-                    "name": "Submitting Organisation Contact Details",
-                    "content": "",
-                    "id": 344216
-                },
-                {
-                    "field": 104,
-                    "name": "Steward Contact Details",
-                    "content": "",
-                    "id": 344217
-                },
-                {
-                    "field": 105,
-                    "name": "Context",
-                    "content": "",
-                    "id": 344218
-                },
-                {
-                    "field": 106,
-                    "name": "Guide for use",
-                    "content": "",
-                    "id": 344219
-                },
-                {
-                    "field": 107,
-                    "name": "Data Set Specification Type",
-                    "content": "Data Element Cluster",
-                    "id": 344220
-                },
-                {
-                    "field": 110,
-                    "name": "Statistical Unit",
-                    "content": "",
-                    "id": 344221
-                },
-                {
-                    "field": 111,
-                    "name": "Exclude From Dictionary",
-                    "content": "",
-                    "id": 344222
-                }
             ],
             "org_records": [],
-            "identifiers": []
+            "identifiers": [],
         }
 
         response = self.client.post(
@@ -425,7 +375,8 @@ class ListOrCreateMetadataGetRequest(BaseAPITestCase):
             format='json',
         )
 
-        # self.assertEqual(response.status_code, status.HTTP_201_CREATED)  # Make sure we actually created data.
-        # self.assertEqual(len(response.data['supplementaryvalue_set']), 2)  # We have 2 supplementary value objects.
-        # self.assertEqual(len(response.data['permissiblevalue_set']), 2)  # We have 2 permissible value objects.
-        # self.assertEqual(post_data['name'], mdr_models.ValueDomain.objects.last().name)  # ValueDomain is in db.
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)  # Make sure we actually created data.
+        self.assertEqual(len(response.data['dssdeinclusion_set']), 2)  # We have 2 dss de inclusion objects.
+        self.assertEqual(len(response.data['dssclusterinclusion_set']), 1)  # We have 1 dss cluster inclusion objects.
+        self.assertEqual(len(response.data['customvalue_set']), 2)  # We have 2 custom value objects.
+        self.assertEqual(post_data['name'], DataSetSpecification.objects.last().name)  # DSS is in db.

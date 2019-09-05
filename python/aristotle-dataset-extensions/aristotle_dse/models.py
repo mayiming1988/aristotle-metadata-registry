@@ -537,4 +537,4 @@ class DSSClusterInclusion(DSSInclusion):
         return "Cluster '{}'".format(self.child.name)
 
     def __str__(self):
-        return "Cluster {cls} at position {pos}".format(cls=self.child_id, pos=self.order)
+        return self.inline_editor_description()
