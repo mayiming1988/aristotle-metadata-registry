@@ -48,8 +48,16 @@ class ConceptBaseSerializer(WritableNestedModelSerializer):
     org_records = OrganisationRecordsSerializer(many=True, required=False)
     stewardship_organisation = serializers.PrimaryKeyRelatedField(
         pk_field=serializers.UUIDField(format='hex'),
-        read_only=True
+        read_only=True,
     )
+    submitter = serializers.HiddenField(default=None)
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        if request and hasattr(request, "user"):
+            user = request.user
+            validated_data["submitter"] = user
+        return super().create(validated_data)
 
 
 class ConceptSerializerFactory:

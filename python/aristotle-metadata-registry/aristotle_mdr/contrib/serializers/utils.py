@@ -58,6 +58,6 @@ def get_aristotle_ontology_serializer_mapping():
         )
 
         mapping = {
-            'objectclassspecialisationnarrowerclass_set': ObjectClassSpecialisationNarrowerClassSerializer(many=True),
+            'objectclassspecialisationnarrowerclass_set': ObjectClassSpecialisationNarrowerClassSerializer(many=True, required=False),
         }
     return mapping
