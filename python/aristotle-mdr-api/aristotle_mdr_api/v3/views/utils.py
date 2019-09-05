@@ -9,7 +9,7 @@ class DescriptionStubSerializerMixin(object):
         from django.utils.html import strip_tags
         import re
         d = strip_tags(instance.definition)
-        d = re.sub(r"\s+", " ",d, flags=re.UNICODE)
+        d = re.sub(r"\s+", " ", d, flags=re.UNICODE)
         d=d.split()
         if len(d) > 100:
             d = d[0:100] + ["..."]
@@ -47,8 +47,8 @@ def get_api_fields(cls):
     for field in cls._meta.get_fields():
         if field.name not in api_excluded_fields:
             f = field
-            if f.auto_created == False: #, because the new get_field() API will find "reverse" relations), and:
-                if True: #f.is_relation and f.related_model is None: #, because the new get_field() API will find GenericForeignKey relations;
+            if not f.auto_created:  # because the new get_field() API will find "reverse" relations), and:
+                if True:  # f.is_relation and f.related_model is None: #, because the new get_field() API will find GenericForeignKey relations;
                     yield field
 
 

@@ -10,7 +10,7 @@ def create_model_api_class_dynamically(model):
         (views.ListOrCreateMetadata,),
         {
             "serializer_class": ConceptSerializerFactory().generate_serializer_class(model),
-            '__doc__': "The purpose of this API endpoint is to create {} objects.\n{}".format(model.__name__, model.__doc__)
+            '__doc__': "\n{}".format(model.__doc__.replace('\n\n', '\n'))
          }
     )
 
