@@ -22,7 +22,7 @@ class MultiSerializerViewSetMixin(viewsets.ReadOnlyModelViewSet):
     }
 
     def get_serializer_class(self):
-        return self.serializers.get(self.action,self.serializers['default'])
+        return self.serializers.get(self.action, self.serializers['default'])
 
 
 aristotle_apps = fetch_aristotle_settings().get('CONTENT_EXTENSIONS', [])
