@@ -5,6 +5,12 @@ from aristotle_mdr.contrib.serializers.concept_serializer import ConceptSerializ
 
 
 def create_model_api_class_dynamically(model):
+    """
+    The purpose of this function is to create a Rest Framework View class dynamically,
+    and provide a serializer to the View class.
+    :param model: Model subclass of _concept to generate a serializer for the View.
+    :return: Class.
+    """
     return type(
         model.__class__.__name__.capitalize() + "ListOrCreateMetadata",
         (views.ListOrCreateMetadata,),
@@ -16,6 +22,15 @@ def create_model_api_class_dynamically(model):
 
 
 def create_metadata_urls_dynamically():
+    """
+    This function generates a list of valid Django URLs each of them containing a custom View class.
+    The main purpose of this function is to generate serializers for the Swagger API endpoints, and
+    provide a frontend graphical representation of the serializers.
+    None of these endpoints are actually used, because the metadata_type parameter of the
+    list_or_create_metadata_endpoint is actually overridden by the model_name of each one of the
+    dynamically-generated urls.
+    :return: List of paths.
+    """
     list_of_urls = []
     for model in get_concept_models():
         model_name = model.__name__.lower()
@@ -25,7 +40,7 @@ def create_metadata_urls_dynamically():
 
 
 urlpatterns = [
-    path('<uuid:item_uuid>/', views.GetMetadataTypeFromUUID.as_view(), name='get_metadata_type_from_uuid'),
+    path('<uuid:item_uuid>/', views.GetMetadataTypeFromUuidAndRedirect.as_view(), name='get_metadata_type_from_uuid'),
     path('<str:metadata_type>/<uuid:item_uuid>/', views.GenericMetadataSerialiserAPIView.as_view(), name='generic_metadata_serialiser_api_endpoint'),
     path('<str:metadata_type>/', views.ListOrCreateMetadata.as_view(), name='list_or_create_metadata_endpoint'),
 ] + create_metadata_urls_dynamically()

@@ -1,4 +1,3 @@
-import datetime
 from django.urls import reverse
 from rest_framework import status
 from aristotle_mdr_api.v4.tests import BaseAPITestCase

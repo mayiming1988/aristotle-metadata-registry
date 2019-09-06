@@ -19,7 +19,7 @@ class MetadataBaseApiView:
     pass
 
 
-class GetMetadataTypeFromUUID(APIView):
+class GetMetadataTypeFromUuidAndRedirect(APIView):
     """
     The purpose of this API Endpoint is to retrieve the item type from a uuid parameter and redirect to a
     generic metadata serialiser API Endpoint handler.
@@ -77,20 +77,18 @@ class GenericMetadataSerialiserAPIView(generics.RetrieveAPIView):
 
 class ListOrCreateMetadata(generics.ListCreateAPIView):
     """
-    The purpose of this API endpoint is to create metadata objects.
+    The purpose of this API endpoint is to get or create metadata objects.
     """
+    # We need to change docstring to match actual request method in API.
 
     pagination_class = ConceptResultsPagination
 
     def dispatch(self, request, *args, **kwargs):
 
-        self.klass = ""
-
-        if request.method == 'POST':
-            metadata_type = kwargs.get("metadata_type")
-            for model in get_concept_models():
-                if slugify(model.__name__) == metadata_type:
-                    self.klass = model
+        metadata_type = kwargs.get("metadata_type")
+        for model in get_concept_models():
+            if slugify(model.__name__) == metadata_type:
+                self.klass = model
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
