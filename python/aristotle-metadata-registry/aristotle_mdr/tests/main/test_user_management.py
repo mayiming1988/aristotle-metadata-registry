@@ -458,7 +458,6 @@ class UserManagementPages(utils.LoggedInViewPages, TestCase):
             existing_data.update({'email': 'MyEmail@example.com'})
             post_response = self.client.post(reverse('aristotle-user:signup_register'), existing_data)
             self.assertEqual(post_response.status_code, 200)
-            #import pdb; pdb.set_trace()
 
             self.assertTrue('message' in post_response.context.keys())
             self.assertEqual(len(mail.outbox), 1)
