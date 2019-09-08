@@ -1314,8 +1314,8 @@ class ConceptualDomain(concept):
     # no reason to model them separately.
 
     template = "aristotle_mdr/concepts/conceptualDomain.html"
-    description = models.TextField(
-        _('description'),
+    description = RichTextField(
+        _('Description'),
         blank=True,
         help_text=_(
             ('Description or specification of a rule, reference, or '
@@ -1454,8 +1454,8 @@ class ValueDomain(concept):
         verbose_name='Representation Class',
         on_delete=models.SET_NULL,
     )
-    description = models.TextField(
-        _('description'),
+    description = RichTextField(
+        _('Description'),
         blank=True,
         help_text=('Description or specification of a rule, reference, or '
                    'range for a set of all values for a Value Domain.')
