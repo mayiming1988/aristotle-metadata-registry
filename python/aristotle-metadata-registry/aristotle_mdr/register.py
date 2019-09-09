@@ -55,7 +55,6 @@ def register_concept_reversions(concept_class, *args, **kwargs):
     from reversion import revisions as reversion
 
     follows = kwargs.get('reversion', {}).get('follow', [])
-    follows += ['_concept_ptr']
     # Register the concept with reversion
     reversion.register(concept_class, follow=follows, format='aristotle_mdr_json')
 
