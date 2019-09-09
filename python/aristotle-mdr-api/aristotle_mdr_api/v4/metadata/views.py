@@ -4,7 +4,6 @@ from rest_framework.reverse import reverse
 from django.template.defaultfilters import slugify
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-from aristotle_mdr_api.v3.views.utils import ConceptResultsPagination
 from aristotle_mdr.contrib.serializers.concept_serializer import ConceptSerializerFactory
 from aristotle_mdr.models import _concept
 from aristotle_mdr_api.v4.permissions import UnAuthenticatedUserCanView
@@ -13,10 +12,6 @@ from aristotle_mdr.utils import get_concept_models
 
 import logging
 logger = logging.getLogger(__name__)
-
-
-class MetadataBaseApiView:
-    pass
 
 
 class GetMetadataTypeFromUuidAndRedirect(APIView):

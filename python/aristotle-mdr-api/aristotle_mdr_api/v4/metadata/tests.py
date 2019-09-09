@@ -1,3 +1,4 @@
+import urllib
 from django.urls import reverse
 from rest_framework import status
 from aristotle_mdr_api.v4.tests import BaseAPITestCase
@@ -79,18 +80,13 @@ class ListOrCreateMetadataGetRequest(BaseAPITestCase):
     def test_api_list_or_create_metadata_get_request(self):
 
         response = self.client.get(
-            reverse(
-                'api_v4:metadata:list_or_create_metadata_endpoint_valuedomain',
-            ),
+            reverse('api_v4:metadata:list_or_create_metadata_endpoint_valuedomain'), data={"page": 1, "page_size": 2}
         )
-
         self.assertEqual(response.status_code, status.HTTP_200_OK)  # Make sure response is OK.
-        # import pdb
-        # pdb.set_trace()
-        # self.assertEqual(len(response.data['results']), 2)  # Make sure the length is correct.
-        # self.assertEqual(response.data['count'], 2)  # Make sure the length is correct.
-        # self.assertIsNone(response.data['next'])  # Make sure the paginator works.
-        # self.assertIsNone(response.data['previous'])  # Make sure the paginator works.
+        self.assertEqual(len(response.data['results']), 2)  # Make sure the length is correct.
+        self.assertEqual(response.data['count'], 2)  # Make sure the length is correct.
+        self.assertIsNone(response.data['next'])  # Make sure the paginator works.
+        self.assertIsNone(response.data['previous'])  # Make sure the paginator works.
 
     def test_api_list_or_create_metadata_post_request(self):
 
