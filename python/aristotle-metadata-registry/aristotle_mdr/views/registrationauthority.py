@@ -21,11 +21,19 @@ from django.http.request import QueryDict
 from django_filters.views import FilterView
 from dal.autocomplete import ModelSelect2Multiple
 from aristotle_mdr import models as MDR
+
+from aristotle_mdr import perms
+from aristotle_mdr.contrib.validators.views import ValidationRuleEditView
+from aristotle_mdr.contrib.validators.models import RAValidationRules
 from aristotle_mdr.forms import actions
+from aristotle_mdr.forms.downloads import DataDictionaryDownloadOptionsForm
 from aristotle_mdr.forms.registrationauthority import (
     CreateRegistrationAuthorityForm,
     EditRegistationAuthorityForm
 )
+from aristotle_mdr.utils import fetch_aristotle_downloaders
+from aristotle_mdr.utils.utils import get_concept_type_choices
+from aristotle_mdr.views.downloads import DownloadOptionsViewBase
 from aristotle_mdr.views.utils import (
     paginated_registration_authority_list,
     ObjectLevelPermissionRequiredMixin,
@@ -35,11 +43,7 @@ from aristotle_mdr.views.utils import (
     UserFormViewMixin
 )
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
-from aristotle_mdr import perms
-from aristotle_mdr.utils import fetch_aristotle_downloaders
-from aristotle_mdr.utils.utils import get_concept_type_choices
-from aristotle_mdr.contrib.validators.views import ValidationRuleEditView
-from aristotle_mdr.contrib.validators.models import RAValidationRules
+
 from ckeditor.widgets import CKEditorWidget
 from typing import Dict
 
@@ -410,9 +414,9 @@ class DateFilterView(FilterView, MainPageMixin):
         context.update(self.get_tab_context())
 
         # Need to pass the ra context for use in building links in the template
-        ra = MDR.RegistrationAuthority.objects.get(id=self.kwargs['iid'])
-        context['item'] = ra
-        context['is_manager'] = self.is_manager(ra)
+        self.registration_authority = MDR.RegistrationAuthority.objects.get(id=self.kwargs['iid'])
+        context['item'] = self.registration_authority
+        context['is_manager'] = self.is_manager(self.registration_authority)
 
         status = self.request.GET.get('status', MDR.STATES.standard)
         if status == '':
@@ -432,7 +436,7 @@ class DateFilterView(FilterView, MainPageMixin):
         concept_to_status: Dict = {}
 
         # Get the current statuses that are most up to date
-        statuses = MDR.Status.objects.current(when=selected_date).filter(registrationAuthority=ra, state=status)
+        statuses = MDR.Status.objects.current(when=selected_date).filter(registrationAuthority=self.registration_authority, state=status)
 
         for concept in context['object_list']:
             on_concept = Q(concept=concept)
@@ -466,19 +470,60 @@ class DateFilterView(FilterView, MainPageMixin):
     def build_downloaders(self, queryset):
         downloaders = fetch_aristotle_downloaders()
 
+        from aristotle_mdr.utils.cached_querysets import register_queryset
+        qs_uuid = register_queryset(self.filterset.qs.order_by('name'), 60 * 60)
         options: list = []
 
         ids = [concept.id for concept in queryset]
+        state_map = {v: k for k, v in MDR.STATES._identifier_map.items()}
+
+        filter_kwargs = self.get_filterset_kwargs(self.filterset_class)['data']
 
         for dl in downloaders:
             query = QueryDict(mutable=True)
-            query.setlist('items', ids)
 
             url = '{url}?{qstring}'.format(
-                url=reverse('aristotle:download_options', args=[dl.download_type]),
+                url=reverse(
+                    'aristotle:registrationauthority_data_dictionary_download_options',
+                    kwargs={
+                        "iid": self.registration_authority.pk,
+                        "download_type": dl.download_type,
+                        "state_name": state_map[int(filter_kwargs['status'])],
+                        "registration_date": filter_kwargs['registration_date']
+                    }
+                ),
                 qstring=query.urlencode()
             )
 
             options.append({'label': dl.label, 'url': url})
 
         return options
+
+
+class DataDictionaryDownloadOptionsView(FilterView, DownloadOptionsViewBase):
+    form_class = DataDictionaryDownloadOptionsForm
+    template_name = 'aristotle_mdr/downloads/data_dictionary_download_options.html'
+    filterset_class = ConceptFilter
+
+    def get_filterset_kwargs(self, filterset_class):
+        kwargs = super().get_filterset_kwargs(filterset_class)
+        kwargs.update({'registration_authority_id': self.kwargs['iid']})
+        return kwargs
+
+    def get_success_url(self):
+        self.filterset = self.get_filterset(self.filterset_class)
+
+        from aristotle_mdr.utils.cached_querysets import register_queryset, get_queryset_from_uuid
+        logger.critical(self.filterset.qs.count())
+        qs_uuid = register_queryset(self.filterset.qs, 60 * 60)
+        logger.critical(qs_uuid)
+        get_queryset_from_uuid(qs_uuid)
+
+        self.registration_authority = MDR.RegistrationAuthority.objects.get(id=self.kwargs['iid'])
+
+        query = QueryDict(mutable=True)
+        query['qs'] = qs_uuid
+        query['title'] = "Data Dictionary for {}".format(self.registration_authority.name)
+
+        url = reverse('aristotle:bulk_download', args=[self.download_type])
+        return url + '?' + query.urlencode()
