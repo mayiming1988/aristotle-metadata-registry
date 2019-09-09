@@ -76,23 +76,26 @@ class VersionsMixin:
         """ Get versions and apply permission checking so that only versions that the user is allowed to see are
         shown """
 
-        versions = reversion.models.Version.objects.get_for_object(concept).select_related("revision__user")
+        versions = reversion.models.Version.objects.filter(object_id=concept.id)
 
         # Determine the viewing permissions of the users
-        if not user.is_superuser:
-            # Superusers can see everything, for performance we won't look up version permission objs
-            version_to_permission = VersionPermissions.objects.in_bulk(versions)
+        version_to_permission = VersionPermissions.objects.in_bulk(versions)
+        for version in versions:
+            if version.format == 'json':
+                # It's the old format
+                serialized_data = json.loads(version.serialized_data)[0]
+                if serialized_data['model'] != 'aristotle_mdr._concept':
+                    # It's not the actual concept, so there's no data
+                    versions = versions.exclude(id=version.id)
 
-            for version in versions:
-                if version.id in version_to_permission:
-                    version_permission = version_to_permission[version.id]
-                else:
-                    version_permission = None
-                if not self.user_can_view_version(user, concept, version_permission):
-                    versions = versions.exclude(pk=version.pk)
+            if version.id in version_to_permission:
+                version_permission = version_to_permission[version.id]
+            else:
+                version_permission = None
+            if not self.user_can_view_version(user, concept, version_permission):
+                versions = versions.exclude(pk=version.pk)
 
         versions = versions.order_by('-revision__date_created')
-
         return versions
 
     def is_field_html(self, fieldname: str, model: Model) -> bool:
@@ -243,6 +246,10 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         except json.JSONDecodeError:
             # Handle bad serialized data
             raise Http404
+
+        if type(version_dict) == list:
+            # It's the old format
+            version_dict = version_dict[0]['fields']
 
         return self.remove_disallowed_custom_fields(self.request.user, version_dict, item)
 
@@ -661,9 +668,19 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
             later_version = second_version
             earlier_version = first_version
 
+        versions = {'earlier': earlier_version, 'later': later_version}
+
+        for key, version in versions.items():
+            version = json.loads(version.serialized_data)
+            if type(version) == list:
+                # It's the old version, modify it
+                version = version[0]['fields']
+
+            versions[key] = version
+
         return (
-            json.loads(earlier_version.serialized_data),
-            json.loads(later_version.serialized_data),
+            versions['earlier'],
+            versions['later'],
             reordered
         )
 
@@ -676,7 +693,7 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
     def get_version_2_concept(self):
         raise NotImplementedError
 
-    def apply_permission_checking(self, version_permission_1, version_permission_2):
+    def apply_permission_checking(self, version_permission_1, version_permission_2) -> None:
         if not self.user_can_view_version(self.request.user, self.get_version_1_concept(), version_permission_1) and \
                 self.user_can_view_version(self.request.user, self.get_version_2_concept(), version_permission_2):
             raise PermissionDenied
@@ -684,7 +701,7 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
     def get_compare_versions(self):
         raise NotImplementedError
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> Dict:
         self.context = super().get_context_data(**kwargs)
 
         self.context['activetab'] = 'history'
@@ -700,6 +717,7 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
 
         first_version = reversion.models.Version.objects.get(pk=version_1)
         second_version = reversion.models.Version.objects.get(pk=version_2)
+
         version_permission_1 = VersionPermissions.objects.get_object_or_none(pk=version_1)
         version_permission_2 = VersionPermissions.objects.get_object_or_none(pk=version_2)
 
@@ -755,7 +773,8 @@ class ConceptVersionCompareView(SimpleItemGet, ConceptVersionCompareBase):
     def get_compare_versions(self):
         version_1 = self.request.GET.get('v1')
         version_2 = self.request.GET.get('v2')
-        return (version_1, version_2)
+
+        return version_1, version_2
 
 
 class ConceptVersionListView(SimpleItemGet, VersionsMixin, ListView):
