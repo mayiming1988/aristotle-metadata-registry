@@ -850,7 +850,7 @@ class ConceptVersionListView(SimpleItemGet, VersionsMixin, ListView):
 
         return version_list
 
-    def get_context_data(self, **kwargs) -> Dict:
+    def get_context_data(self, **kwargs):
         # Determine the editing permissions of the user
         metadata_item = self.get_object()
         can_edit = user_can_edit(self.request.user, metadata_item)
