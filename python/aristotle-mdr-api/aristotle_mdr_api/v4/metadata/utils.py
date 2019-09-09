@@ -1,13 +1,26 @@
-# from django.template.defaultfilters import slugify
-# from django.urls import reverse
-#
-#
-# def url_slugify_metadata_api(item):
-#     item_model = item.item_type.model_class()
-#     slug = slugify(item.name)[:50]
-#     if not slug:
-#         slug = "--"
-#     return reverse(
-#         "aristotle:item",
-#         kwargs={'iid': item.pk, 'model_slug': item_model._meta.model_name, 'name_slug': slug}
-#     )
+from aristotle_mdr.contrib.serializers.concept_serializer import ConceptSerializerFactory
+
+
+def concat_elems_and_remove_commas_from_iter(iterable):
+    return ",".join([elem.__class__.__name__ for elem in iterable]).replace(',', '')
+
+
+def create_model_api_class_dynamically(model, base_model_classes, *args, **kwargs):
+    """
+    The purpose of this function is to create a Rest Framework View class dynamically,
+    and provide a serializer to the View class.
+    :param model: Model subclass of _concept to generate a serializer for the View.
+    :param base_model_classes: Tuple of Base Classes (parent classes) for the Class returned.
+    :return: Class.
+    """
+
+    return type(
+        model.__class__.__name__.capitalize() + concat_elems_and_remove_commas_from_iter(base_model_classes),
+        base_model_classes,
+        {
+            "queryset": model.objects.all(),
+            "serializer_class": ConceptSerializerFactory().generate_serializer_class(model),
+            '__doc__': "\n{}".format(model.__doc__.replace('\n\n', '\n')),
+            **kwargs,
+         }
+    )

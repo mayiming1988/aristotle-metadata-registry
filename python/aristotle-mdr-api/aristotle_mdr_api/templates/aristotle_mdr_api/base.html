@@ -5,7 +5,7 @@
 {% block extra_block_scripts %}
 {% endblock %}
 
-<!--{% block title %}Aristotle API{% endblock %}-->
+{#{% block title %}Aristotle API{% endblock %}#}
 
 {% block content %}
     <div class="jumbotron">
@@ -25,6 +25,7 @@
                 <strong><a href='{% url "aristotle_api_root" %}v3'>API v3</a></strong>
                 <p>
                     About Version 3:
+                </p>
                 <ul>
                     <li>
                         To maintain compatibility, metadata item <code>superseded_by</code> attribute returns the UUID of only the first superseding metadata item.
@@ -35,24 +36,24 @@
                     </li>
                     <li>Added the <code>/about/</code> route to give basic public details about the registry</li>
                 </ul>
-                </p>
             </li>
             {% endcomment %}
             <li class="list-group-item">
                 <strong><a href="{% url 'api_v4:schema' %}">API v4</a></strong>
                 <p>
                     About Version 4:
+                </p>
                 <ul>
                     <li>Current stable version of the Aristotle REST API</li>
                     <li>See <a href="{% url 'api_v4:schema' %}">Schema</a> for more information</li>
                 </ul>
-                </p>
             </li>
             {% if graphql_enabled %}
                 <li class="list-group-item">
                     <strong><a href='{% url 'aristotle_graphql:graphql_explorer' %}'>Graphql</a></strong>
-
-                    About Graphql:
+                    <p>
+                        About Graphql:
+                    </p>
                     <ul>
                         <li>Provides a dynamic way of querying data</li>
                         <li>See <a href="https://graphql.org/">Graphql.org</a> for more information</li>

@@ -7,7 +7,7 @@
     <script src="{% static "rest_framework/js/default.js" %}"></script>
 {% endblock %}
 
-<!--{% block title %}Aristotle API{% endblock %}-->
+{#{% block title %}Aristotle API{% endblock %}#}
 
 {% block content %}
     {% block breadcrumbs %}
@@ -22,9 +22,7 @@
         </ul>
     {% endblock %}
 
-    <!-- Content -->
     <div id="content">
-
         {% if 'GET' in allowed_methods %}
             <form id="get-form" class="pull-right">
                 <fieldset>
@@ -200,5 +198,4 @@
             {% endif %}
         {% endif %}
     </div>
-    <!-- END Content -->
 {% endblock %}

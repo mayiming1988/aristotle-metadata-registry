@@ -4,10 +4,10 @@ from rest_framework.reverse import reverse
 from django.template.defaultfilters import slugify
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-from aristotle_mdr_api.v4.permissions import UnAuthenticatedUserCanView
 from aristotle_mdr_api.v3.views.utils import ConceptResultsPagination
 from aristotle_mdr.contrib.serializers.concept_serializer import ConceptSerializerFactory
 from aristotle_mdr.models import _concept
+from aristotle_mdr_api.v4.permissions import UnAuthenticatedUserCanView
 from aristotle_mdr.utils import get_concept_models
 
 
@@ -41,8 +41,6 @@ class GetMetadataTypeFromUuidAndRedirect(APIView):
         )
 
 
-# Eventually we need to update this class to subclass RetrieveUpdateAPIView.
-# We need to make this class capable of object deserialization for "PUT" and "PATCH" requests.
 class GenericMetadataSerialiserAPIView(generics.RetrieveAPIView):
     """
     The purpose of this API Endpoint is to retrieve a serializer from a _concept metadata child instance.
@@ -67,35 +65,3 @@ class GenericMetadataSerialiserAPIView(generics.RetrieveAPIView):
     def get_serializer(self, instance, *args, **kwargs):
         serializer_class = ConceptSerializerFactory().generate_serializer_class(self.klass)
         return serializer_class(instance)
-
-    # def put(self, request, *args, **kwargs):
-    #     pass
-    #
-    # def patch(self, request, *args, **kwargs):
-    #     pass
-
-
-class ListOrCreateMetadata(generics.ListCreateAPIView):
-    """
-    The purpose of this API endpoint is to get or create metadata objects.
-    """
-    # We need to change docstring to match actual request method in API.
-
-    pagination_class = ConceptResultsPagination
-
-    def dispatch(self, request, *args, **kwargs):
-
-        metadata_type = kwargs.get("metadata_type")
-        for model in get_concept_models():
-            if slugify(model.__name__) == metadata_type:
-                self.klass = model
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_queryset(self):
-        return self.klass.objects.all()
-
-    def get_serializer_class(self):
-        if self.serializer_class is None:
-            return ConceptSerializerFactory().generate_serializer_class(self.klass)
-        else:
-            return self.serializer_class
