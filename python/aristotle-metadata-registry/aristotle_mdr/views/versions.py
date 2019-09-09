@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404
 from aristotle_mdr import models as MDR
 from aristotle_mdr.perms import user_can_edit
 from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_PERMISSION_CHOICES
+from aristotle_mdr.constants import REVERSION_FORMATS
 from aristotle_mdr.views.utils import SimpleItemGet
 from aristotle_mdr.utils.utils import strip_tags
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
@@ -420,11 +421,12 @@ class ConceptVersionView(VersionsMixin, TemplateView):
 
 class ConceptVersionCompareBase(VersionsMixin, TemplateView):
     template_name = 'aristotle_mdr/compare/compare.html'
-    context: dict = {}
     hidden_diff_fields = ['modified', 'created', 'uuid', 'serialized_model', 'parent_dss']
 
     differ = diff_match_patch.diff_match_patch()
     raw = False
+
+    context: dict = {}
 
     def both_fields_empty(self, earlier_value, later_value):
         if not earlier_value and not later_value:
@@ -766,6 +768,10 @@ class ConceptVersionListView(SimpleItemGet, VersionsMixin, ListView):
     def get_object(self):
         return self.get_item(self.request.user).item  # Versions are now saved on the model rather than the concept
 
+    @staticmethod
+    def get_format_of_version(version):
+        return REVERSION_FORMATS[version.format]
+
     def get_queryset(self) -> List[Dict]:
         """Return a queryset of all the versions the user has permission to access as well as associated metadata
          involved in template rendering"""
@@ -786,6 +792,7 @@ class ConceptVersionListView(SimpleItemGet, VersionsMixin, ListView):
                 version_permission_code = VISIBILITY_PERMISSION_CHOICES.workgroup
 
             version_list.append({
+                'format': self.get_format_of_version(version),
                 'permission': int(version_permission_code),
                 'version': version,
                 'revision': version.revision,
@@ -794,7 +801,7 @@ class ConceptVersionListView(SimpleItemGet, VersionsMixin, ListView):
 
         return version_list
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> Dict:
         # Determine the editing permissions of the user
         metadata_item = self.get_object()
         can_edit = user_can_edit(self.request.user, metadata_item)

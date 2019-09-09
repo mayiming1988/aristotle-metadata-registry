@@ -10,6 +10,11 @@ FILE_FORMAT = {
     'txt': 'txt'
 }
 
+REVERSION_FORMATS = {
+    'json': 'Original Format',
+    'aristotle_mdr_json': 'Upgraded Format'
+}
+
 visibility_permission_choices = Choices(
     (0, 'public', 'Public'),
     (1, 'auth', 'Authenticated'),
