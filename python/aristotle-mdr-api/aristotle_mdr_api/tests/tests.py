@@ -319,6 +319,8 @@ class TokenTestCase(utils.LoggedInViewPages, TestCase):
             response = self.client.get('/api/' + version + '/search/', HTTP_AUTHORIZATION=auth)
             self.assertEqual(response.status_code, 401)
 
+            import pdb
+            pdb.set_trace()
             response = self.client.get('/api/' + version + '/organizations/', HTTP_AUTHORIZATION=auth)
             self.assertEqual(response.status_code, 401)
 

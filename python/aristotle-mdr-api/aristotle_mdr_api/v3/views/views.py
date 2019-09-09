@@ -107,9 +107,6 @@ class OrganizationViewSet(UUIDLookupModelMixin, viewsets.ReadOnlyModelViewSet):
 
     """.format((OrganizationSerializer.Meta.fields,))
 
-    def __init__(self):
-        super().__init__()
-
     queryset = models.Organization.objects.all()
     serializer_class = OrganizationSerializer
 

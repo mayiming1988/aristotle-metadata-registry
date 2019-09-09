@@ -38,7 +38,7 @@ class GetMetadataTypeFromUuidAndRedirect(APIView):
 
 class GenericMetadataSerialiserAPIView(generics.RetrieveAPIView):
     """
-    The purpose of this API Endpoint is to retrieve a serializer from a _concept metadata child instance.
+    The purpose of this API Endpoint is to retrieve a serialized representation of a _concept metadata child instance.
     """
 
     lookup_field = 'uuid'

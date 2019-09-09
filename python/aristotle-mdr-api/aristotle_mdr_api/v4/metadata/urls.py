@@ -28,7 +28,7 @@ def create_metadata_urls_dynamically():
                      {"lookup_field": 'uuid',
                       "lookup_url_kwarg": 'item_uuid',
                       "pagination_class": ConceptResultsPagination,
-                      "permission_classes": (UnAuthenticatedUserCanView,)  # TODO: We need to change the permission classes.
+                      "permission_classes": (UnAuthenticatedUserCanView,)
                       }
                  ).as_view(),
                  name='list_or_create_metadata_endpoint_' + model_name),
@@ -38,7 +38,7 @@ def create_metadata_urls_dynamically():
                      (generics.UpdateAPIView,),
                      {"lookup_field": 'uuid',
                       "lookup_url_kwarg": 'item_uuid',
-                      "permission_classes": (UnAuthenticatedUserCanView,)  # TODO: We need to change the permission classes.
+                      "permission_classes": (UnAuthenticatedUserCanView,)
                       }
                  ).as_view(),
                  name='retrieve_update_metadata_endpoint_' + model_name),
