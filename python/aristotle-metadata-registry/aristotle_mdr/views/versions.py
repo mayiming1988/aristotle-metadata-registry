@@ -886,8 +886,12 @@ class CompareHTMLFieldsView(SimpleItemGet, VersionsMixin, TemplateView):
         versions = [json.loads(version_1.serialized_data),
                     json.loads(version_2.serialized_data)]
 
-        for version in versions:
-            version_data = version
+        for version_data in versions:
+            try:
+                version_data = version_data[0]['fields']
+            except KeyError:
+                pass
+
             for field in fields:
                 if version_data is None:
                     pass
