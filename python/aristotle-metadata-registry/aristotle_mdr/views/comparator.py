@@ -24,9 +24,19 @@ class MetadataComparison(ConceptVersionCompareBase, AristotleMetadataToolView):
         return CompareConceptsForm(data, user=user, qs=qs)  # A form bound to the POST data
 
     def get_version_jsons(self, first_version, second_version):
+
+        versions = {'first': first_version, 'second': second_version}
+        for key, version in versions.items():
+            version = json.loads(version.serialized_data)
+            if type(version) == list:
+                self.comparing_different_formats = True
+                # It's the old version, modify it
+                version = version[0]['fields']
+            versions[key] = version
+
         return (
-            json.loads(first_version.serialized_data),
-            json.loads(second_version.serialized_data),
+            versions['first'],
+            versions['second'],
             False
         )
 
@@ -99,12 +109,12 @@ class MetadataComparison(ConceptVersionCompareBase, AristotleMetadataToolView):
         return version_1, version_2
 
     def get_context_data(self, **kwargs):
-        self.context = super().get_context_data(**kwargs)
-
         if self.get_version_1_concept() is None and self.get_version_2_concept() is None:
             # Not all concepts selected
             self.context['form'] = self.get_form()
             return self.context
+
+        self.context = super().get_context_data(**kwargs)
 
         self.context.update({
             "form": self.get_form(),
