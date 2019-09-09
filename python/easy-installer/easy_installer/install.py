@@ -28,6 +28,7 @@ optional_modules = [
     ("Mallard Questionnaire Registry", '#!mallard!')
 ]
 
+
 def valid_input(prompt, match):
 
     for i in range(5):
@@ -36,9 +37,11 @@ def valid_input(prompt, match):
             return check
     raise Exception
 
+
 def ask_yesno(message):
     yn = '^[YyNn]?$'  # yes/no regex
     return 'y' == valid_input('{} (y/n): '.format(message), yn).lower()
+
 
 def setup_mdr(args):
     name_regex = '^[a-z][a-z_]*$'
@@ -108,6 +111,7 @@ def setup_mdr(args):
 
     print('Done! Your registry was installed in %s' % directory)
 
+
 def generate_secret_key(name, directory):
     key = "Change-this-key-as-soon-as-you-can"
     # This is probably not cryptographically secure, not for production.
@@ -145,6 +149,7 @@ def manage_commands(name, dir):
     cctable = call(["python3", manage_path, 'createcachetable'])
     return (migrate, cstatic, cctable)
 
+
 def check_example_exists(dir, name):
 
     dest = os.path.join(dir, name)
@@ -154,7 +159,7 @@ def check_example_exists(dir, name):
         if use_existing:
             return True
         else:
-            you_sure = ask_yesno("Are you sure you want to delete the directory at %s"%dest)
+            you_sure = ask_yesno("Are you sure you want to delete the directory at %s" % dest)
             if you_sure:
                 print('Deleting existing example_mdr')
                 shutil.rmtree(dest)
@@ -164,6 +169,7 @@ def check_example_exists(dir, name):
                 return True
 
     return False
+
 
 def copy_example_mdr(dir):
     print("Copying in example metadata registry")
@@ -176,8 +182,10 @@ def copy_example_mdr(dir):
 
     return False
 
+
 def find_and_replace(mydir, old, new):
-    """Really naive find and replace lovingly borrowed from stack overflow - http://stackoverflow.com/a/4205918/764357"""
+    """Really naive find and replace lovingly borrowed from stack overflow -
+    http://stackoverflow.com/a/4205918/764357"""
     for dname, dirs, files in os.walk(mydir):
         for fname in files:
             if fname.endswith(('py', 'txt', 'rst')):
@@ -187,6 +195,7 @@ def find_and_replace(mydir, old, new):
                 s = s.replace(old, new)
                 with open(fpath, "w") as f:
                     f.write(s)
+
 
 def find_and_remove(mydir, extensions):
     for dname, dirs, files in os.walk(mydir):
@@ -199,6 +208,7 @@ def find_and_remove(mydir, extensions):
                     s = s.replace(ext, '')
                 with open(fpath, "w") as f:
                     f.write(s)
+
 
 def main():
 

@@ -1,0 +1,58 @@
+{% extends 'aristotle_mdr/base.html' %}
+{% load aristotle_tags util_tags i18n %}
+{% load bootstrap3 static %}
+{% block title %}Status History for {{ item.name }} in {{ ra.name }}{% endblock %}
+
+{% block content %}
+    <h1>
+        Status History for <a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a> in <a href="{% url 'aristotle:registrationAuthority' ra.id %}">{{ ra.name }}</a>
+    </h1>
+
+    <ol class="breadcrumb">
+        <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a></li>
+        <li><a href="{% url 'aristotle:registrationHistory' item.id %}">Registration History</a></li>
+        <li>Status History</li>
+    </ol>
+
+    <h2>
+        Status History for <a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a> in <a href="{% url 'aristotle:registrationAuthority' ra.id %}">{{ ra.name }}</a>
+    </h2>
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th scope="col">{% trans 'Date/time' %}</th>
+            <th>{% trans 'Date registration effective' %}</th>
+            <th>{% trans 'Date registration expires' %}</th>
+            <th>{% trans 'State' %}</th>
+            <th scope="col">{% trans 'User' %}</th>
+            <th scope="col">{% trans 'Comment' %}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for version in versions %}
+            <tr>
+                <th scope="row">
+                    {% if version.url %}
+                        <a href="{{version.url}}">{{version.revision.date_created|date:_("DATETIME_FORMAT")}}</a>
+                    {% else %}
+                        {{version.revision.date_created|date:_("DATETIME_FORMAT")}}
+                    {% endif %}
+                </th>
+                <td>{{ version.field_dict.registrationDate }}</td>
+                <td>{{ version.field_dict.until_date }}</td>
+                <td>{{ version.field_dict.state|state_to_text }}</td>
+                <td>
+                    {% if version.revision.user %}
+                        {{ version.revision.user.display_name }}
+                    {% endif %}
+                </td>
+                <td>
+                    {{version.revision.comment|linebreaks|default:"-"}}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}

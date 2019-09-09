@@ -459,7 +459,7 @@ class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
                 self.save_formset(self.formset)
 
                 reversion.revisions.set_user(request.user)
-                reversion.revisions.set_comment(construct_change_message(request, None, [self.formset]))
+                reversion.revisions.set_comment(construct_change_message(None, [self.formset]))
 
             return HttpResponseRedirect(self.get_success_url())
         else:

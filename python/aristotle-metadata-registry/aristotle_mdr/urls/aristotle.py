@@ -79,7 +79,7 @@ urlpatterns = [
     url(r'^item/(?P<iid>\d+)/compare_fields/?$', views.versions.CompareHTMLFieldsView.as_view(), name='compare_fields'),
     url(r'^item/(?P<iid>\d+)/history/$', views.versions.ConceptVersionListView.as_view(), name='item_history'),
     url(r'^item/(?P<iid>\d+)/compare/?$', views.versions.ConceptVersionCompareView.as_view(), name='compare_versions'),
-    url(r'^item/(?P<iid>\d+)/registrationHistory/?$', views.registrationHistory, name='registrationHistory'),
+    url(r'^item/(?P<iid>\d+)/registrationHistory/?$', views.registration_history, name='registrationHistory'),
     url(r'^item/(?P<iid>\d+)/child_states/?$', views.actions.CheckCascadedStates.as_view(), name='check_cascaded_states'),
 
     # Concept page overrides
@@ -112,12 +112,13 @@ urlpatterns = [
 
     url(r'^action/bulkaction/?$', views.bulk_actions.BulkAction.as_view(), name='bulk_action'),
     url(r'^action/bulkaction/state/?$', views.bulk_actions.ChangeStatusBulkActionView.as_view(), name='change_state_bulk_action'),
+    url(r'^action/changestatus/(?P<iid>\d+)$', views.ChangeStatusView.as_view(), name='changeStatus'),
     url(r'^toolbox/compare/?$', views.comparator.MetadataComparison.as_view(), name='compare_concepts'),
     url(r'^toolbox/dataelementcomponents/?$', views.tools.DataElementsAndSubcomponentsStatusCheckTool.as_view(), name='data_element_components_tool'),
 
-    url(r'^action/changestatus/(?P<iid>\d+)$', views.ChangeStatusView.as_view(), name='changeStatus'),
-    url(r'^action/deletestatus/(?P<sid>\d+)/(?P<iid>\d+)$', views.DeleteStatus.as_view(), name='deleteStatus'),
-    url(r'^action/editstatus/(?P<sid>\d+)/item/(?P<iid>\d+)/registrationauthority/(?P<raid>\w+)$', views.EditStatus.as_view(), name='editStatus'),
+    url(r'^status/delete/(?P<sid>\d+)/item/(?P<iid>\d+)$', views.DeleteStatus.as_view(), name='deleteStatus'),
+    url(r'^status/edit/(?P<sid>\d+)/item/(?P<iid>\d+)/registrationauthority/(?P<raid>\w+)$', views.EditStatus.as_view(), name='editStatus'),
+    url(r'^status/history/(?P<sid>\d+)/item/(?P<iid>\d+)/registrationauthority/(?P<raid>\w+)$', views.StatusHistory.as_view(), name='statusHistory'),
 
     url(r'^account/?$', RedirectView.as_view(url=reverse_lazy("aristotle:userHome"), permanent=True)),
     url(r'^account/home/?$', views.user_pages.home, name='userHome'),

@@ -1143,8 +1143,13 @@ class Status(TimeStampedModel):
     objects = StatusQuerySet.as_manager()
     concept = ConceptForeignKey(_concept, related_name="statuses", on_delete=models.CASCADE)
     registrationAuthority = models.ForeignKey(RegistrationAuthority, on_delete=models.CASCADE)
-    changeDetails = models.TextField(blank=True, null=True)
+    changeDetails = models.TextField(
+        _("Change details"),
+        blank=True,
+        null=True
+    )
     state = models.IntegerField(
+        _("State"),
         choices=STATES,
         default=STATES.incomplete,
         help_text=_("Designation (3.2.51) of the status in the registration life-cycle of an Administered_Item")
@@ -1153,14 +1158,15 @@ class Status(TimeStampedModel):
     # 11179-6 (Section 8.1.2.6.2.2)
     registrationDate = models.DateField(
         _('Date registration effective'),
-        help_text=_("date and time an Administered_Item became/becomes available to registry users")
+        help_text=_("Date and time an Administered_Item became/becomes available to registry users.")
     )
     until_date = models.DateField(
         _('Date registration expires'),
         blank=True,
         null=True,
         help_text=_(
-            "date and time the Registration of an Administered_Item by a Registration_Authority in a registry is no longer effective")
+            "Date and time the Registration of an Administered_Item by a Registration_Authority in a registry is no longer effective."
+        )
     )
     tracker = FieldTracker()
 

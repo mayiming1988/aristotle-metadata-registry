@@ -20,6 +20,7 @@ from aristotle_mdr.perms import (
     user_can_publish_object,
     user_can_supersede,
     user_can_add_status,
+    user_can_view_statuses_revisions,
 )
 from aristotle_mdr import forms as MDRForms
 from aristotle_mdr import models as MDR
@@ -30,6 +31,7 @@ from aristotle_mdr.utils import (
     fetch_aristotle_downloaders,
     fetch_metadata_apps,
     url_slugify_concept,
+    construct_change_message_for_form,
 )
 from aristotle_mdr.views.utils import (
     generate_visibility_matrix,
@@ -42,6 +44,7 @@ from aristotle_bg_workers.tasks import register_items
 from aristotle_bg_workers.utils import run_task_on_commit
 
 from reversion.models import Version
+from reversion import revisions as reversion
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
@@ -66,7 +69,7 @@ class DynamicTemplateView(TemplateView):
         return ['aristotle_mdr/static/%s.html' % self.kwargs['template']]
 
 
-def notification_redirect(self, content_type, object_id):
+def notification_redirect(request, content_type, object_id):  # Beware: request parameter is necessary because this is a function based view.
 
     ct = ContentType.objects.get(id=content_type)
     model_class = ct.model_class()
@@ -82,7 +85,7 @@ def get_if_user_can_view(objtype, user, iid):
         return False
 
 
-def concept_by_uuid(request, uuid):
+def concept_by_uuid(request, uuid):  # Beware: request parameter is necessary because this is a function based view.
     item = get_object_or_404(MDR._concept, uuid=uuid)
     return redirect(url_slugify_concept(item))
 
@@ -111,8 +114,8 @@ class ManagedItemView(TemplateView):
 
         return super().dispatch(request, *args, **kwargs)
 
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
         context.update(
             {'item': self.managed_item,
@@ -153,7 +156,7 @@ class ConceptRenderView(TagsMixin, TemplateView):
         itemid = self.kwargs[self.itemid_arg]
         # Lookup concept
         concept = get_object_or_404(MDR._concept, pk=itemid)
-        # Get queryset with (with select/prefetchs)
+        # Get queryset with (with select/prefetch)
         queryset = self.get_queryset(concept)
         # Fetch subclassed item
         try:
@@ -257,7 +260,7 @@ class ConceptRenderView(TagsMixin, TemplateView):
             else:
                 to_links.append(l)
 
-        return (from_links, to_links)
+        return from_links, to_links
 
     def get_custom_values(self):
         allowed = CustomField.objects.get_allowed_fields(self.item.concept, self.request.user)
@@ -299,7 +302,7 @@ class ConceptRenderView(TagsMixin, TemplateView):
 
         # Add a list of viewable concept ids for fast visibility checks in
         # templates
-        # Since its lazy we can do this everytime :)
+        # Since its lazy we can do this every time :)
         lazy_viewable_ids = SimpleLazyObject(
             lambda: list(MDR._concept.objects.visible(self.user).values_list('id', flat=True))
         )
@@ -343,11 +346,7 @@ class ObjectClassView(ConceptRenderView):
         return user_can_view(self.request.user, item)
 
     def get_related(self, model):
-        related_objects = [
-        ]
-        prefetch_objects = [
-            'statuses'
-        ]
+        prefetch_objects = ['statuses']
         return model.objects.prefetch_related(*prefetch_objects)
 
 
@@ -372,7 +371,7 @@ class DataElementView(ConceptRenderView):
         return model.objects.select_related(*related_objects).prefetch_related(*prefetch_objects)
 
 
-def registrationHistory(request, iid):
+def registration_history(request, iid):
     item = get_if_user_can_view(MDR._concept, request.user, iid)
     if not item:
         if request.user.is_anonymous:
@@ -434,7 +433,7 @@ def create_list(request):
     )
 
 
-def get_app_config_list(count=False):
+def get_app_config_list():
     out = {}
     aristotle_apps = fetch_metadata_apps()
 
@@ -482,7 +481,7 @@ class ReviewChangesView(SessionWizardView):
     def get_items(self):
         raise NotImplementedError
 
-    def get_form_kwargs(self, step):
+    def get_form_kwargs(self, step=None):
 
         if step == 'review_changes':
             items = self.get_items()
@@ -493,7 +492,7 @@ class ReviewChangesView(SessionWizardView):
             ra = cleaned_data['registrationAuthorities']
 
             static_content = {'new_state': state, 'new_reg_date': cleaned_data['registrationDate']}
-            # Need to check wether cascaded was true here
+            # Need to check whether cascaded was true here
 
             if cascade == 1:
                 queryset = cascade_items_queryset(items=items)
@@ -542,7 +541,7 @@ class ReviewChangesView(SessionWizardView):
 
         return context
 
-    def register_changes(self, form_dict, change_form=None, **kwargs):
+    def register_changes(self, form_dict, change_form=None):
 
         can_cascade = True
         items = self.get_items()
@@ -570,7 +569,7 @@ class ReviewChangesView(SessionWizardView):
         if change_form:
             cleaned_data = form_dict[change_form].cleaned_data
         else:
-            cleaned_data = self.get_change_data(register=True)
+            cleaned_data = self.get_change_data()
 
         ras = cleaned_data['registrationAuthorities']
         state = cleaned_data['state']
@@ -640,7 +639,7 @@ class ChangeStatusView(ReviewChangesView):
     def get_items(self):
         return [self.item]
 
-    def get_form_kwargs(self, step):
+    def get_form_kwargs(self, step=None):
 
         kwargs = super().get_form_kwargs(step)
 
@@ -656,14 +655,22 @@ class ChangeStatusView(ReviewChangesView):
         context.update({'item': item, 'status_matrix': status_matrix})
         return context
 
-    def done(self, form_list, form_dict, **kwargs):
-        self.register_changes(form_dict, 'change_status')
+    def done(self, form_list, **kwargs):
+        self.register_changes(kwargs.get('form_dict'), 'change_status')
         return HttpResponseRedirect(url_slugify_concept(self.item))
 
 
 class DeleteStatus(DeleteView):
 
     model = MDR.Status
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        item = get_object_or_404(MDR._concept, pk=self.kwargs['iid'])
+        context.update({
+            'item': item,
+        })
+        return context
 
     def get_object(self, queryset=None):
         return get_object_or_404(MDR.Status, pk=self.kwargs['sid'])
@@ -695,9 +702,9 @@ class EditStatus(UpdateView):
         return context
 
     def get_initial(self):
-        self.RA = get_object_or_404(MDR.RegistrationAuthority, pk=self.kwargs['raid'])
         self.item = get_object_or_404(MDR._concept, pk=self.kwargs['iid'])
         self.status = get_object_or_404(MDR.Status, pk=self.kwargs['sid'])
+        self.RA = get_object_or_404(MDR.RegistrationAuthority, pk=self.kwargs['raid'])
         initial = super().get_initial()
         initial['registrationDate'] = self.status.registrationDate
         initial['until_date'] = self.status.until_date
@@ -705,12 +712,43 @@ class EditStatus(UpdateView):
 
         return initial
 
+    @reversion.create_revision()
     def form_valid(self, form):
-        self.object = form.save()
-        # Update the search engine indexation for the concept:
         from aristotle_mdr.models import concept_visibility_updated
-        concept_visibility_updated.send(concept=self.get_object().concept, sender=self.get_object().concept.__class__)
+        status_object = form.save()
+        reversion.set_user(self.request.user)
+        reversion.set_comment(construct_change_message_for_form(form, self.model))
+        # Update the search engine indexation for the concept:
+        concept_visibility_updated.send(concept=status_object.concept, sender=type(status_object.concept))
         return redirect(reverse('aristotle:registrationHistory', args=[self.kwargs['iid']]))
+
+
+class StatusHistory(TemplateView):
+    template_name = "aristotle_mdr/status_history.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        versions = None
+
+        if user_can_view_statuses_revisions(self.request.user, self.RA):
+            versions = Version.objects.get_for_object(self.status).select_related("revision__user")
+
+        context.update(
+            {'item': self.item,
+             'ra': self.RA,
+             'status': self.status,
+             'versions': versions,
+             }
+        )
+
+        return context
+
+    def dispatch(self, request, *args, **kwargs):
+        self.item = get_object_or_404(MDR._concept, pk=self.kwargs['iid'])
+        self.status = get_object_or_404(MDR.Status, pk=self.kwargs['sid'])
+        self.RA = get_object_or_404(MDR.RegistrationAuthority, pk=self.kwargs['raid'])
+
+        return super().dispatch(request, args, kwargs)
 
 
 def extensions(request):
@@ -719,16 +757,16 @@ def extensions(request):
 
     if aristotle_apps:
         for app_label in aristotle_apps:
-            app=apps.get_app_config(app_label)
+            app = apps.get_app_config(app_label)
             try:
                 app.about_url = reverse('%s:about' % app_label)
             except:
-                pass  # if there is no about URL, thats ok.
+                pass  # If there is no "about" URL, that's ok.
             content.append(app)
 
     content = list(set(content))
     aristotle_downloaders = fetch_aristotle_downloaders()
-    download_extensions = [dler.get_class_info() for dler in aristotle_downloaders]
+    download_extensions = [dldr.get_class_info() for dldr in aristotle_downloaders]
 
     return render(
         request,
