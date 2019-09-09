@@ -262,7 +262,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         field_data = {}
 
         for name, data in version_data.items():
-            # If field name isnt excluded or we are not excluding
+            # If field name isn't excluded or we are not excluding
             if name not in exclude or not exclude:
                 field = self.get_field_or_none(name, model)
                 if field:
@@ -432,6 +432,8 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
 
     differ = diff_match_patch.diff_match_patch()
     raw = False
+
+    comparing_different_formats = False
 
     context: dict = {}
 
@@ -673,6 +675,7 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
         for key, version in versions.items():
             version = json.loads(version.serialized_data)
             if type(version) == list:
+                self.comparing_different_formats = True
                 # It's the old version, modify it
                 version = version[0]['fields']
 
@@ -701,34 +704,28 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
     def get_compare_versions(self):
         raise NotImplementedError
 
-    def get_context_data(self, **kwargs) -> Dict:
-        self.context = super().get_context_data(**kwargs)
-
-        self.context['activetab'] = 'history'
-        self.context['hide_item_actions'] = True
-
+    def get_versions(self):
         version_1, version_2 = self.get_compare_versions()
 
         if not version_1 or not version_2:
             self.context['not_all_versions_selected'] = True
             return self.context
 
-        self.model = self.get_model(self.get_version_1_concept())
-
         first_version = reversion.models.Version.objects.get(pk=version_1)
         second_version = reversion.models.Version.objects.get(pk=version_2)
 
+        return first_version, second_version
+
+    def get_version_permission(self, version_1, version_2):
         version_permission_1 = VersionPermissions.objects.get_object_or_none(pk=version_1)
         version_permission_2 = VersionPermissions.objects.get_object_or_none(pk=version_2)
 
-        self.apply_permission_checking(version_permission_1, version_permission_2)
+        return version_permission_1, version_permission_2
 
-        # Need to pass this context to rebuild query parameters in template
-        self.context['version_1_id'] = version_1
-        self.context['version_2_id'] = version_2
-
+    def get_version_json(self, first_version, second_version):
         try:
             earlier_json, later_json, reordered = self.get_version_jsons(first_version, second_version)
+
         except json.JSONDecodeError:
             self.context['cannot_compare'] = True
             return self.context
@@ -740,6 +737,7 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
             earlier_concept = self.get_version_2_concept()
             later_concept = self.get_version_1_concept()
 
+        # Remove disallowed custom fields
         earlier_json = self.remove_disallowed_custom_fields(
             self.request.user, earlier_json, earlier_concept
         )
@@ -747,13 +745,45 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
             self.request.user, later_json, later_concept
         )
 
+        return earlier_json, later_json
+
+    def get_version_context_data(self):
+        # Get the versions
+        version_1, version_2 = self.get_versions()
+
+        # Get version permission and apply permission checking
+        version_permission_1, version_permission_2 = self.get_version_permission(version_1, version_2)
+        self.apply_permission_checking(version_permission_1, version_permission_2)
+
+        # Load the version json
+        earlier_json, later_json = self.get_version_json(version_1, version_2)
+
+        # Perform the diff
         self.raw = self.request.GET.get('raw')
         if self.raw:
-            self.context['raw'] = True
-            self.context['diffs'] = self.generate_diff(earlier_json, later_json)
+            differences = self.generate_diff(earlier_json, later_json)
         else:
-            self.context['diffs'] = self.generate_diff(earlier_json, later_json)
+            differences = self.generate_diff(earlier_json, later_json)
 
+        self.context.update({
+            'diffs':  differences,
+            'raw': self.raw,
+            'version_1_id': version_1.id,
+            'version_2_id': version_2.id
+        })
+
+    def get_context_data(self, **kwargs) -> Dict:
+        self.context = super().get_context_data(**kwargs)
+        self.model = self.get_model(self.get_version_1_concept())
+
+        self.get_version_context_data()
+
+        self.context.update({
+            'activetab': 'history',
+            'hide_item_actions': True,
+            'comparing_different_formats': self.comparing_different_formats
+
+        })
         return self.context
 
 

@@ -19,10 +19,19 @@
         Only fields where there is a difference between saves are displayed. <br> Comparisions are performed chronologically.
         Green highlighting indicates that is has been added in the newer item, and red text indicates it has been removed
         in the newer item.
+
+    {% if comparing_different_formats %}
+        <div class="alert alert-warning">
+           <i class="fa fa-exclamation-triangle"></i>
+            You are comparing versions saved using two different formats
+        </div>
+    {% endif %}
+
     <div class="well well-sm">
         <em>The <i class="fa fa-columns"></i> icon indicates that a side-by-side rendered HTML comparison exists for
         this field.</em>
     </div>
+
     {% if not_all_versions_selected %}
         <div class="well">
             Both versions must be selected

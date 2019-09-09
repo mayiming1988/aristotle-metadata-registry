@@ -1160,7 +1160,8 @@ class Status(TimeStampedModel):
         blank=True,
         null=True,
         help_text=_(
-            "date and time the Registration of an Administered_Item by a Registration_Authority in a registry is no longer effective")
+            "date and time the Registration of an Administered_Item "
+            "by a Registration_Authority in a registry is no longer effective")
     )
     tracker = FieldTracker()
 
