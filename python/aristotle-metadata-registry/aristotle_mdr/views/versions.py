@@ -85,7 +85,7 @@ class VersionsMixin:
                 # It's the old format
                 serialized_data = json.loads(version.serialized_data)[0]
                 if serialized_data['model'] != 'aristotle_mdr._concept':
-                    # It's not the actual concept, so there's no data
+                    # Only compare fields on the actual concept
                     versions = versions.exclude(id=version.id)
 
             if version.id in version_to_permission:
@@ -747,7 +747,7 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
 
         return earlier_json, later_json
 
-    def get_version_context_data(self):
+    def get_version_context_data(self) -> None:
         # Get the versions
         version_1, version_2 = self.get_versions()
 
@@ -766,7 +766,7 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
             differences = self.generate_diff(earlier_json, later_json)
 
         self.context.update({
-            'diffs':  differences,
+            'diffs': differences,
             'raw': self.raw,
             'version_1_id': version_1.id,
             'version_2_id': version_2.id
