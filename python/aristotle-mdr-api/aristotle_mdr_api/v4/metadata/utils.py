@@ -8,11 +8,11 @@ def concat_elems_and_remove_commas_from_iter(iterable):
 def create_model_api_class_dynamically(model, base_model_classes, class_attrs):
     """
     The purpose of this function is to create a Rest Framework View class dynamically,
-    and provide a serializer to the View class.
+    and provide a serializer to it.
     :param model: Model subclass of _concept to generate a serializer for the View.
     :param base_model_classes: Tuple of Base Classes (parent classes) for the Class returned.
     :param class_attrs: Dictionary containing class attributes and their values in the form of key-value pairs
-    for the class returned.
+    for our dynamically-created class.
     :return: Class.
     """
 
