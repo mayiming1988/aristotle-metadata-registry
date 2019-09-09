@@ -11,8 +11,8 @@ FILE_FORMAT = {
 }
 
 REVERSION_FORMATS = {
-    'json': 'Original Format',
-    'aristotle_mdr_json': 'Upgraded Format'
+    'json': 'Legacy Version',
+    'aristotle_mdr_json': 'New Version'
 }
 
 visibility_permission_choices = Choices(
