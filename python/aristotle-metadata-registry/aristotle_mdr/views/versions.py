@@ -429,14 +429,9 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
     hidden_diff_fields = ['modified', 'created', 'uuid', 'serialized_model', 'parent_dss']
 
     differ = diff_match_patch.diff_match_patch()
+
     raw = False
-
     comparing_different_formats = False
-
-    context: dict = {}
-
-    def get_model(self, concept) -> Model:
-        return concept.item._meta.model
 
     def get_version_1_concept(self):
         raise NotImplementedError
@@ -447,10 +442,28 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
     def get_compare_versions(self):
         raise NotImplementedError
 
+    def get_model(self, concept) -> Model:
+        return concept.item._meta.model
+
     def both_fields_empty(self, earlier_value, later_value):
         if not earlier_value and not later_value:
             return True
         return False
+
+    def replace_id_with_names(self, model, items):
+        for subitem in items.values():
+            # Iterate over subitems
+            for field_name, value in subitem.items():
+                field = self.get_field_or_none(field_name, model)
+                if field is None:
+                    pass
+                else:
+                    if self.is_concept_fk(field):
+                        # Perform the lookup, modify in place
+                        item_model = self.get_model_from_foreign_key_field(model, field_name)
+                        item_name = item_model.objects.get(pk=value).name
+                        subitem[field_name] = item_name
+        return items
 
     def perform_diff_on_field(self, earlier, later):
         diff = self.differ.diff_main(earlier, later)
@@ -516,7 +529,7 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
 
         return field_to_diff
 
-    def generate_diff_for_added_removed_fields(self, ids, values, subitem_model, added=True):
+    def generate_diff_for_added_or_removed_fields(self, ids, values, subitem_model, added=True):
         """ Generates the diff for fields that have been added/removed from a concept comparision"""
         differences = []
 
@@ -573,23 +586,8 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
                                           'diff': self.perform_diff_on_field(earlier_value, later_value)}
         return [difference_dict]
 
-    def get_subitem_key(self, subitem_model):
+    def get_subitem_key(self, subitem_model) -> str:
         return 'id'
-
-    def replace_id_with_names(self, model, items):
-        for subitem in items.values():
-            # Iterate over subitems
-            for field_name, value in subitem.items():
-                field = self.get_field_or_none(field_name, model)
-                if field is None:
-                    pass
-                else:
-                    if self.is_concept_fk(field):
-                        # Perform the lookup, modify in place
-                        item_model = self.get_model_from_foreign_key_field(model, field_name)
-                        item_name = item_model.objects.get(pk=value).name
-                        subitem[field_name] = item_name
-        return items
 
     def build_diff_of_subitems(self, earlier_values, later_values, subitem_model) -> List[Dict]:
         """
@@ -611,21 +609,22 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
 
             # Items that are in the later items but not the earlier items have been 'added'
             added_ids = set(later_items.keys()) - set(earlier_items.keys())
-            added_items = self.generate_diff_for_added_removed_fields(added_ids, later_items,
-                                                                      subitem_model, added=True)
+            added_items = self.generate_diff_for_added_or_removed_fields(added_ids, later_items,
+                                                                         subitem_model, added=True)
             if added_items:
                 differences.extend(added_items)
 
             # Items that are in the earlier items but not the later items have been 'removed'
             removed_ids = set(earlier_items.keys()) - set(later_items.keys())
-            removed_items = self.generate_diff_for_added_removed_fields(removed_ids, earlier_items,
-                                                                        subitem_model, added=False)
+            removed_items = self.generate_diff_for_added_or_removed_fields(removed_ids, earlier_items,
+                                                                           subitem_model, added=False)
             if removed_items:
                 differences.extend(removed_items)
 
             # Items with IDs that are present in both earlier and later data have been changed,
             # so we want to perform a field-by-field dict comparision.
             changed_ids = set(earlier_items).intersection(set(later_items))
+
             for id in changed_ids:
                 earlier_item = earlier_items[id]
                 later_item = later_items[id]
@@ -661,13 +660,36 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
 
         return differences
 
-    def get_version_jsons(self, first_version, second_version):
+    def get_version_permission(self, version_1, version_2) -> Tuple[VersionPermissions, VersionPermissions]:
+        version_permission_1 = VersionPermissions.objects.get_object_or_none(pk=version_1)
+        version_permission_2 = VersionPermissions.objects.get_object_or_none(pk=version_2)
+
+        return version_permission_1, version_permission_2
+
+    def apply_permission_checking(self, version_permission_1, version_permission_2) -> None:
+        if not self.user_can_view_version(self.request.user, self.get_version_1_concept(), version_permission_1) and \
+                self.user_can_view_version(self.request.user, self.get_version_2_concept(), version_permission_2):
+            raise PermissionDenied
+
+    def get_versions(self):
+        version_1, version_2 = self.get_compare_versions()
+
+        if not version_1 or not version_2:
+            return None
+
+        first_version = reversion.models.Version.objects.get(pk=version_1)
+        second_version = reversion.models.Version.objects.get(pk=version_2)
+
+        return first_version, second_version
+
+    def load_version_json(self, first_version, second_version):
         """
         Diffing is order sensitive, so date comparision is performed to ensure that the versions are compared with
         correct chronology.
         """
         first_version_created = first_version.revision.date_created
         second_version_created = second_version.revision.date_created
+
         reordered = False
 
         if first_version_created > second_version_created:
@@ -683,50 +705,28 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
         versions = {'earlier': earlier_version, 'later': later_version}
 
         for key, version in versions.items():
-            version = json.loads(version.serialized_data)
+            try:
+                version = json.loads(version.serialized_data)
+            except json.JSONDecodeError:
+                return None
+
             if type(version) == list:
                 self.comparing_different_formats = True
-                # It's the old version, modify it
+                # It's the old version, pull out the actual fields
                 version = version[0]['fields']
 
             versions[key] = version
 
-        return (
-            versions['earlier'],
-            versions['later'],
-            reordered
-        )
+        return {
+            'earlier': versions['earlier'],
+            'later': versions['later'],
+            'reordered': reordered
+        }
 
-    def apply_permission_checking(self, version_permission_1, version_permission_2) -> None:
-        if not self.user_can_view_version(self.request.user, self.get_version_1_concept(), version_permission_1) and \
-                self.user_can_view_version(self.request.user, self.get_version_2_concept(), version_permission_2):
-            raise PermissionDenied
-
-    def get_version_permission(self, version_1, version_2):
-            version_permission_1 = VersionPermissions.objects.get_object_or_none(pk=version_1)
-            version_permission_2 = VersionPermissions.objects.get_object_or_none(pk=version_2)
-
-            return version_permission_1, version_permission_2
-
-    def get_versions(self):
-        version_1, version_2 = self.get_compare_versions()
-
-        if not version_1 or not version_2:
-            self.context['not_all_versions_selected'] = True
-            return self.context
-
-        first_version = reversion.models.Version.objects.get(pk=version_1)
-        second_version = reversion.models.Version.objects.get(pk=version_2)
-
-        return first_version, second_version
-
-    def get_version_json(self, first_version, second_version):
-        try:
-            earlier_json, later_json, reordered = self.get_version_jsons(first_version, second_version)
-
-        except json.JSONDecodeError:
-            self.context['cannot_compare'] = True
-            return self.context
+    def sanitize_version_json(self, json):
+        reordered = json['reordered']
+        earlier_json = json['earlier']
+        later_json = json['later']
 
         if not reordered:
             earlier_concept = self.get_version_1_concept()
@@ -747,14 +747,21 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
 
     def get_version_context_data(self) -> Dict[str, Any]:
         # Get the versions
-        version_1, version_2 = self.get_versions()
+        versions = self.get_versions()
+        if versions is None:
+            return {'not_all_versions_selected': True}
 
         # Get version permission and apply permission checking
-        version_permission_1, version_permission_2 = self.get_version_permission(version_1, version_2)
+        version_permission_1, version_permission_2 = self.get_version_permission(versions[0], versions[1])
         self.apply_permission_checking(version_permission_1, version_permission_2)
 
         # Load the version json
-        earlier_json, later_json = self.get_version_json(version_1, version_2)
+        json = self.load_version_json(versions[0], versions[1])
+        if json is None:
+            return {'cannot_compare': True}
+
+        # Sanitize the version json
+        earlier_json, later_json = self.sanitize_version_json(json)
 
         # Perform the diff
         self.raw = self.request.GET.get('raw')
@@ -766,16 +773,18 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
         return {
             'diffs': differences,
             'raw': self.raw,
-            'version_1_id': version_1.id,
-            'version_2_id': version_2.id
+            'version_1_id': versions[0].id,
+            'version_2_id': versions[1].id
         }
 
     def get_context_data(self, **kwargs) -> Dict:
         context = super().get_context_data(**kwargs)
         self.model = self.get_model(self.get_version_1_concept())
 
+        # Get the version context
         context.update(self.get_version_context_data())
 
+        # Basic required template context
         context.update({
             'activetab': 'history',
             'hide_item_actions': True,

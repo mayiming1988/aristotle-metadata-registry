@@ -23,11 +23,15 @@ class MetadataComparison(ConceptVersionCompareBase, AristotleMetadataToolView):
         qs = _concept.objects.visible(user)
         return CompareConceptsForm(data, user=user, qs=qs)  # A form bound to the POST data
 
-    def get_version_jsons(self, first_version, second_version):
-
+    def load_version_json(self, first_version, second_version):
         versions = {'first': first_version, 'second': second_version}
+
         for key, version in versions.items():
-            version = json.loads(version.serialized_data)
+            try:
+                version = json.loads(version.serialized_data)
+            except json.JSONDecodeError:
+                return None
+
             if type(version) == list:
                 self.comparing_different_formats = True
                 # It's the old version, modify it
