@@ -2,20 +2,19 @@ from typing import Iterable, List, Dict
 
 from django.http import HttpResponseRedirect, Http404
 from django.urls import reverse
-from django.db.models.query import QuerySet
-from django.views.generic import FormView
+from django.views.generic import FormView, ListView
 from django.views.generic.detail import SingleObjectMixin
 from django.contrib.contenttypes.models import ContentType
-f
+
 from aristotle_mdr.mixins import IsSuperUserMixin
 from aristotle_mdr.contrib.generic.views import VueFormView
 from aristotle_mdr.contrib.generic.views import BootTableListView, CancelUrlMixin
 from aristotle_mdr.contrib.custom_fields import models
-from aristotle_mdr.contrib.custom_fields.forms import CustomFieldForm, CustomFieldDeleteForm
-from aristotle_mdr_api.v4.custom_fields.serializers import CustomFieldSerializer
 from aristotle_mdr.contrib.slots.models import Slot
 
-from aristotle_mdr.utils.utils import get_concept_name_to_content_type
+from aristotle_mdr.contrib.custom_fields.forms import CustomFieldForm, CustomFieldDeleteForm
+from aristotle_mdr_api.v4.custom_fields.serializers import CustomFieldSerializer
+from aristotle_mdr.utils.utils import get_concept_name_to_content_type, get_content_type_to_concept_name
 
 import json
 
@@ -34,22 +33,28 @@ class CustomFieldListView(IsSuperUserMixin, BootTableListView):
     delete_url_name = 'aristotle_custom_fields:delete'
 
 
-class PerModelCustomFieldEditView(IsSuperUserMixin, VueFormView):
-    pass
+class CustomFieldEditableOptionsList(IsSuperUserMixin, ListView):
+    template_name = ''
 
 
-class CustomFieldMultiEditView(IsSuperUserMixin, VueFormView):
+class CustomFieldModelEditView(IsSuperUserMixin, VueFormView):
     """ View to edit the values for all custom fields """
     template_name = 'aristotle_mdr/custom_fields/multiedit.html'
     form_class = CustomFieldForm
     non_write_fields = ['hr_type', 'hr_visibility']
 
+    def get_custom_fields(self) -> Iterable[models.CustomField]:
+        content_type_mapping = get_concept_name_to_content_type()
 
-    def get_custom_fields(self) -> QuerySet[models.CustomField]:
+        metadata_type = self.kwargs['metadata_type']
 
-        name_mapping = get_concept_name_to_content_type()
-
-        return models.CustomField.objects.all()
+        if metadata_type in content_type_mapping:
+            content_type = content_type_mapping[metadata_type]
+            return models.CustomField.objects.filter(allowed_model=content_type)
+        elif metadata_type == 'all':
+            return models.CustomField.objects.filter(allowed_model=None)
+        else:
+            raise Http404
 
     def get_vue_initial(self) -> List[Dict[str, str]]:
         fields = self.get_custom_fields()
@@ -65,8 +70,15 @@ class CustomFieldMultiEditView(IsSuperUserMixin, VueFormView):
 
         return allowed_models
 
+    def get_name_of_edited_model(self, metadata_type):
+        mapping = get_content_type_to_concept_name()
+        if metadata_type in mapping:
+            return mapping[metadata_type]
+        return ''
+
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data()
+        context['edited_model'] = self.get_name_of_edited_model(self.kwargs['metadata_type'])
 
         context['vue_allowed_models'] = json.dumps(self.get_allowed_models())
         return context

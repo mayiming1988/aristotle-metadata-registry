@@ -330,8 +330,23 @@ class ConceptFilter(django_filters.FilterSet):
         # Exclude unused fields, otherwise they appear in the template
         fields: list = []
 
+    def __init__(self, *args, **kwargs):
+        # Override the init method so we can pass the iid to the queryset
+        self.registration_authority_id = kwargs.pop('registration_authority_id')
+
+        # This is overridden because otherwise it runs on docs CI
+        self.base_filters['concept_type'] = django_filters.MultipleChoiceFilter(
+            choices=get_concept_type_choices(),
+            method='noop',
+            widget=ModelSelect2Multiple)
+
+        super().__init__(*args, **kwargs)
+
+        self.queryset = self.queryset.visible(self.request.user)
+
     def noop(self, queryset, name, value):
         return queryset
+
 
     @property
     def qs(self):
@@ -386,19 +401,6 @@ class ConceptFilter(django_filters.FilterSet):
 
         return self._qs
 
-    def __init__(self, *args, **kwargs):
-        # Override the init method so we can pass the iid to the queryset
-        self.registration_authority_id = kwargs.pop('registration_authority_id')
-
-        # This is overridden because otherwise it runs on docs CI
-        self.base_filters['concept_type'] = django_filters.MultipleChoiceFilter(
-            choices=get_concept_type_choices(),
-            method='noop',
-            widget=ModelSelect2Multiple)
-
-        super().__init__(*args, **kwargs)
-
-        self.queryset = self.queryset.visible(self.request.user)
 
 
 class DateFilterView(FilterView, MainPageMixin):

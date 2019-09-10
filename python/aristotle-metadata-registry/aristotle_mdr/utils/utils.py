@@ -428,6 +428,10 @@ def get_concept_name_to_content_type() -> Dict[str, ContentType]:
     return {concept.__name__.lower(): concept_type for concept, concept_type in get_concept_content_types().items()}
 
 
+def get_content_type_to_concept_name() -> Dict[str, str]:
+    return {str(content_type).replace(" ", ""): content_type.name.title()
+            for content_type in get_concept_content_types().values()}
+
 def get_managed_item_models() -> List[Model]:
     """Returns models for any managed item subclass"""
     from aristotle_mdr.utils.model_utils import ManagedItem
