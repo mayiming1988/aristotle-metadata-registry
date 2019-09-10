@@ -168,6 +168,10 @@ def dict_lookup(mapping, *keys):
     Return empty string if an error is encountered
     Usage: {% lookup dict key1 key2 ... %}
     """
+
+    if type(mapping) == str:
+        json.load(mapping)
+
     result = mapping
     for key in keys:
         try:

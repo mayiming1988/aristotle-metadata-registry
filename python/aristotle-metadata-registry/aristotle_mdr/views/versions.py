@@ -3,7 +3,7 @@ from django.http import Http404
 from django.core.exceptions import PermissionDenied
 from django.views.generic.list import ListView
 from django.views.generic import TemplateView
-from django.db.models import Q, Model, Field
+from django.db.models import Model, Field
 from django.urls import reverse
 from django.core.exceptions import FieldDoesNotExist
 from django.shortcuts import get_object_or_404
@@ -14,13 +14,13 @@ from aristotle_mdr.constants import visibility_permission_choices as VISIBILITY_
 from aristotle_mdr.constants import REVERSION_FORMATS
 from aristotle_mdr.views.utils import SimpleItemGet
 from aristotle_mdr.utils.utils import strip_tags
-from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
+from aristotle_mdr.contrib.custom_fields.models import CustomValue
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.contrib.custom_fields.models import CustomField
 from aristotle_mdr.utils.versions import VersionField, VersionLinkField, VersionGroupField, VersionMultiLinkField
 
 from ckeditor_uploader.fields import RichTextUploadingField as RichTextField
-from typing import Dict, List, Optional, Tuple, Any, Set, NamedTuple
+from typing import Dict, List, Optional, Tuple, Any, Set
 import json
 import reversion
 import diff_match_patch
@@ -140,9 +140,9 @@ class VersionsMixin:
 
     def get_user_friendly_field_name(self, field: str, model) -> str:
         # If the field ends with _set we want to remove it, so we can look it up in the _meta.
-        fieldobj = self.get_field(field, model)
+        field_obj = self.get_field(field, model)
         try:
-            name = self.get_verbose_name(fieldobj)
+            name = self.get_verbose_name(field_obj)
         except AttributeError:
             name = field
         return name
@@ -195,7 +195,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
     version_arg = 'verid'
     # Top level fields to exclude
     excluded_fields = ['id', 'uuid', 'name', 'version', 'submitter', 'created', 'modified', 'serialized_model']
-    # Excluded fields on subserialized items
+    # Excluded fields on subserialised items
     excluded_subfields = ['id', 'group']
 
     def dispatch(self, request, *args, **kwargs):
@@ -274,7 +274,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
                         # Recursively resolve sub dicts
                         for subdata in data:
                             if type(subdata) == dict:
-                                # If subdata is dict item that was subserialized
+                                # If subdata is dict item that was subserialised
                                 sub_field_data.append(
                                     self.get_field_data(subdata, submodel, self.excluded_subfields)
                                 )
@@ -312,11 +312,9 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         return MDR._concept.objects.filter(id__in=ids).visible(self.request.user).in_bulk()
 
     def get_lookup_dict(self, field_data) -> LookupDict:
-        lookup = {}
-        lookup[MDR._concept._meta.label_lower] = self.get_viewable_concepts(field_data)
         # Get all custom fields since values already filtered
-        lookup[CustomField._meta.label_lower] = CustomField.objects.in_bulk()
-        return lookup
+        return {MDR._concept._meta.label_lower: self.get_viewable_concepts(field_data),
+                CustomField._meta.label_lower: CustomField.objects.in_bulk()}
 
     def get_version_fields(self, field_data, items: LookupDict) -> List[VersionField]:
         """Get a list of VersionField objects to render"""
@@ -351,7 +349,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
                             VersionLinkField(self.get_verbose_name(field), subdata, lookup.get(subdata, None))
                         )
 
-                # Group field take priority if there were both (this shouldnt happen though)
+                # Group field take priority if there were both (this shouldn't happen though)
                 if len(sub_fields) == 0 and len(sub_links) > 0:
                     fields.append(
                         VersionMultiLinkField(self.get_verbose_name(field), sub_links)
@@ -409,8 +407,8 @@ class ConceptVersionView(VersionsMixin, TemplateView):
 
         return context
 
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         context.update({
             'view': self,
             'hide_item_actions': True,
@@ -809,7 +807,7 @@ class ConceptVersionCompareView(SimpleItemGet, ConceptVersionCompareBase):
 
 class ConceptVersionListView(SimpleItemGet, VersionsMixin, ListView):
     """
-    View  that lists all the specific versions of a particular concept
+    View that lists all the specific versions of a particular concept
     """
     template_name = 'aristotle_mdr/compare/versions.html'
     item_action_url = 'aristotle:item_version'

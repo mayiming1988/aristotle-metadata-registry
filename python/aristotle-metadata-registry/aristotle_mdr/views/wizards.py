@@ -446,6 +446,81 @@ class MultiStepAristotleWizard(PermissionWizard):
         context['show_slots_tab'] = False
         return context
 
+    def save_foreignkey_components(self, form_list, oc=None, pr=None, vd=None, dec=None, de=None):
+        """
+        This generic function was created as DE and DECs have a lot of the same underlying components.
+        Depending on the wizard instance class, this list saves foreign key components accordingly.
+        :param form_list: List of foreign key forms to preform dynamic saving of foreign key fields.
+        :param oc: Object Class form.
+        :param pr: Property form.
+        :param vd: Value Domain form.
+        :param dec: Data Element Concept form.
+        :param de: Data Element form.
+        :return: Dictionary containing a Data Element object OR a Data Element Concept object.
+        """
+        for form in form_list:
+            saved_item = form.save(commit=False)
+            if saved_item is not None:
+                saved_item.submitter = self.request.user
+                saved_item.save()
+            if type(saved_item) == MDR.Property:
+                pr = saved_item
+                messages.success(
+                    self.request,
+                    mark_safe(_("New Property '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
+                        url=url_slugify_concept(saved_item),
+                        name=saved_item.name, id=saved_item.id
+                    ))
+                )
+            if type(saved_item) == MDR.ObjectClass:
+                oc = saved_item
+                messages.success(
+                    self.request,
+                    mark_safe(_("New Object Class '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
+                        url=url_slugify_concept(saved_item),
+                        name=saved_item.name, id=saved_item.id
+                    ))
+                )
+            if type(saved_item) == MDR.DataElementConcept:
+                dec = saved_item
+                messages.success(
+                    self.request,
+                    mark_safe(_("New Data Element Concept '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
+                        url=url_slugify_concept(saved_item),
+                        name=saved_item.name, id=saved_item.id
+                    ))
+                )
+            if type(saved_item) == MDR.ValueDomain:
+                vd = saved_item
+                messages.success(
+                    self.request,
+                    mark_safe(_("New ValueDomain '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
+                        url=url_slugify_concept(saved_item),
+                        name=saved_item.name, id=saved_item.id
+                    ))
+                )
+            if type(saved_item) == MDR.DataElement:
+                de = saved_item
+                messages.success(
+                    self.request,
+                    mark_safe(_("New Data Element '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
+                        url=url_slugify_concept(saved_item),
+                        name=saved_item.name, id=saved_item.id
+                    ))
+                )
+
+        if dec is not None:
+            dec.objectClass = oc
+            dec.property = pr
+            dec.save()
+
+        if de is not None:
+            de.dataElementConcept = dec
+            de.valueDomain = vd
+            de.save()
+
+        return {"dec": dec, "de": de}
+
 
 class DataElementConceptWizard(MultiStepAristotleWizard):
     __doc__ = _(
@@ -490,7 +565,7 @@ class DataElementConceptWizard(MultiStepAristotleWizard):
         else:
             return []
 
-    def get_form_kwargs(self, step):
+    def get_form_kwargs(self, step=None):
         # determine the step if not given
         if step is None:  # pragma: no cover
             step = self.steps.current
@@ -580,43 +655,9 @@ class DataElementConceptWizard(MultiStepAristotleWizard):
 
         oc = self.get_object_class()
         pr = self.get_property()
-        dec = None
-        for form in form_list:
-            saved_item = form.save(commit=False)
-            if saved_item is not None:
-                saved_item.submitter = self.request.user
-                saved_item.save()
-            if type(saved_item) == MDR.Property:
-                pr = saved_item
-                messages.success(
-                    self.request,
-                    mark_safe(_("New Property '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
-                        url=url_slugify_concept(saved_item),
-                        name=saved_item.name, id=saved_item.id
-                    ))
-                )
-            if type(saved_item) == MDR.ObjectClass:
-                oc = saved_item
-                messages.success(
-                    self.request,
-                    mark_safe(_("New Object Class '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
-                        url=url_slugify_concept(saved_item),
-                        name=saved_item.name, id=saved_item.id
-                    ))
-                )
-            if type(saved_item) == MDR.DataElementConcept:
-                dec = saved_item
-                messages.success(
-                    self.request,
-                    mark_safe(_("New Data Element Concept '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
-                        url=url_slugify_concept(saved_item),
-                        name=saved_item.name, id=saved_item.id
-                    ))
-                )
-        if dec is not None:
-            dec.objectClass = oc
-            dec.property = pr
-            dec.save()
+
+        dec = self.save_foreignkey_components(form_list, oc, pr).get('dec')
+
         return HttpResponseRedirect(url_slugify_concept(dec))
 
 
@@ -742,7 +783,7 @@ class DataElementWizard(MultiStepAristotleWizard):
         else:
             return []
 
-    def get_form_kwargs(self, step):
+    def get_form_kwargs(self, step=None):
         # determine the step if not given
         kwargs = super().get_form_kwargs(step)
         if step is None:  # pragma: no cover
@@ -936,10 +977,10 @@ class DataElementWizard(MultiStepAristotleWizard):
                 # remove the trailing period as we are going to try to make a sentence
                 dec_desc = dec_desc[:-1]
 
-            SEPARATORS = fetch_aristotle_settings().get('SEPARATORS', {})
+            separators = fetch_aristotle_settings().get('SEPARATORS', {})
 
             initial.update({
-                'name': u"{dec}{separator}{vd}".format(dec=dec_name, separator=SEPARATORS["DataElement"], vd=vd_name),
+                'name': u"{dec}{separator}{vd}".format(dec=dec_name, separator=separators["DataElement"], vd=vd_name),
                 'definition': _(u"<p>{dec}, recorded as {vd}</p> - This was an autogenerated definition.").format(
                     dec=dec_desc, vd=vd_desc
                     )
@@ -955,63 +996,7 @@ class DataElementWizard(MultiStepAristotleWizard):
         pr = self.get_property()
         vd = self.get_value_domain()
         dec = self.get_data_element_concept()
-        de = None
-        for form in form_list:
-            saved_item = form.save(commit=False)
-            if saved_item is not None:
-                saved_item.submitter = self.request.user
-                saved_item.save()
-            if type(saved_item) == MDR.Property:
-                pr = saved_item
-                messages.success(
-                    self.request,
-                    mark_safe(_("New Property '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
-                        url=url_slugify_concept(saved_item),
-                        name=saved_item.name, id=saved_item.id
-                    ))
-                )
-            if type(saved_item) == MDR.ObjectClass:
-                oc = saved_item
-                messages.success(
-                    self.request,
-                    mark_safe(_("New Object Class '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
-                        url=url_slugify_concept(saved_item),
-                        name=saved_item.name, id=saved_item.id
-                    ))
-                )
-            if type(saved_item) == MDR.DataElementConcept:
-                dec = saved_item
-                messages.success(
-                    self.request,
-                    mark_safe(_("New Data Element Concept '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
-                        url=url_slugify_concept(saved_item),
-                        name=saved_item.name, id=saved_item.id
-                    ))
-                )
-            if type(saved_item) == MDR.ValueDomain:
-                vd = saved_item
-                messages.success(
-                    self.request,
-                    mark_safe(_("New ValueDomain '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
-                        url=url_slugify_concept(saved_item),
-                        name=saved_item.name, id=saved_item.id
-                    ))
-                )
-            if type(saved_item) == MDR.DataElement:
-                de = saved_item
-                messages.success(
-                    self.request,
-                    mark_safe(_("New Data Element '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
-                        url=url_slugify_concept(saved_item),
-                        name=saved_item.name, id=saved_item.id
-                    ))
-                )
-        if dec is not None:
-            dec.objectClass = oc
-            dec.property = pr
-            dec.save()
-        if de is not None:
-            de.dataElementConcept = dec
-            de.valueDomain = vd
-            de.save()
+
+        de = self.save_foreignkey_components(form_list, oc, pr, vd, dec).get('de')
+
         return HttpResponseRedirect(url_slugify_concept(de))

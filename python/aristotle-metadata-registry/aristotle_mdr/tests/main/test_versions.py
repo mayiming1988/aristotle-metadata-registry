@@ -5,6 +5,7 @@ from django.conf import settings
 
 import aristotle_mdr.models as MDR
 import aristotle_dse.models as DSE
+import datetime
 from aristotle_mdr.tests import utils
 from aristotle_mdr.contrib.publishing.models import VersionPermissions
 from aristotle_mdr.contrib.custom_fields.models import CustomField, CustomValue
@@ -86,7 +87,6 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
         versions = Version.objects.get_for_object(concept)
         self.assertEqual(versions.count(), 2)
 
-
     def test_altered_on_concept_field_displayed(self):
         """Test that field that is **on** the concept, and has
         had content altered between the saves is displayed in the compare versions view"""
@@ -103,7 +103,6 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
 
         # Check that the response contains 'Name'
         self.assertContainsHtml(response, 'Name')
-
 
     def test_added_subitem_displayed(self):
         """Test that a subitem (ex. custom fields) added to a concept between versions is displayed """
@@ -351,7 +350,6 @@ class VersionComparisionTestCase(utils.AristotleTestUtils, TestCase):
             self.name = "New Data Set Specification"
             self.data_set_specification.save()
 
-
         with reversion.revisions.create_revision():
             # Create 4 DSS Data Elements
             DSE.DSSDEInclusion.objects.create(
@@ -529,7 +527,7 @@ class TestViewingVersionPermissions(utils.AristotleTestUtils, TestCase):
                 submitter=self.regular)
 
         response = self.client.get(reverse('aristotle:item_history', args=[self.sandbox_item.id]))
-        self.assertEqual((len(response.context['versions'])), 1 )
+        self.assertEqual((len(response.context['versions'])), 1)
 
 
 class CreationOfVersionTests(utils.AristotleTestUtils, TestCase):
@@ -571,3 +569,75 @@ class CreationOfVersionTests(utils.AristotleTestUtils, TestCase):
 
         # Check that it defaults to 2
         self.assertEqual(version_permission.visibility, VISIBILITY_PERMISSION_CHOICES.workgroup)
+
+
+class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
+
+    def setUp(self):
+
+        super().setUp()
+
+        self.object_class = MDR.ObjectClass.objects.create(
+            name="A published item",
+            definition="I wonder what the version permission for this is",
+            submitter=self.editor,
+        )
+
+        with reversion.revisions.create_revision():
+            self.status = MDR.Status.objects.create(
+                concept=self.object_class,
+                registrationAuthority=self.ra,
+                registrationDate=datetime.date(2000, 1, 1),
+            )
+
+    def test_statuses_reversion_page_works(self):
+
+        self.login_superuser()
+
+        # Load the Reversions page for Statuses
+        response = self.client.get(
+            reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
+        self.assertEqual(response.status_code, 200)
+
+    def test_statuses_reversions_list_only_includes_the_first_reversion_object(self):
+
+        self.login_superuser()
+
+        # Because there are no versions yet.
+
+        response = self.client.get(
+            reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
+        # import pdb
+        # pdb.set_trace()
+        self.assertEqual(len(response.context['versions']), 1)
+
+    def test_statuses_reversions_list_is_populated_after_creating_reversion(self):
+
+        self.login_superuser()
+
+        with reversion.revisions.create_revision():
+            MDR.Status.objects.update_or_create(
+                concept=self.object_class,
+                registrationAuthority=self.ra,
+                defaults={
+                    'changeDetails': "My new details.",
+                    'state': MDR.STATES.candidate,
+                }
+            )
+            reversion.revisions.set_comment("This is an edit")
+
+        response = self.client.get(
+            reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
+
+        self.assertEqual(len(response.context['versions']), 2)
+
+    def test_statuses_reversions_are_only_visible_to_superusers(self):
+
+        self.logout()
+        self.login_editor()
+
+        response = self.client.get(
+            reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
+
+        # Vesions are not visible to editors at the moment. Maybe later we need to update test.
+        self.assertEquals(response.context['versions'], None)

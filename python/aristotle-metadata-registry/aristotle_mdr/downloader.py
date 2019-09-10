@@ -81,13 +81,14 @@ class Downloader:
     def __init__(self, item_ids: List[int], user_id: Optional[int], options: Dict[str, Any] = {}, override_bulk: bool = False):
         self.item_ids = item_ids
         self.error = False
+        self.order_fields = ['name']
 
         if user_id is not None:
             self.user = get_user_model().objects.prefetch_related('profile').get(id=user_id)
         else:
             self.user = AnonymousUser()
 
-        self.items = MDR._concept.objects.filter(id__in=item_ids).visible(self.user).select_subclasses()
+        self.items = MDR._concept.objects.filter(id__in=item_ids).visible(self.user).select_subclasses().order_by(*self.order_fields)
 
         # Do len here since we are going to evaluate it later anyways
         self.numitems = len(self.items)
@@ -479,7 +480,7 @@ class HTMLDownloader(Downloader):
         context.update({
             'tableOfContents': True,
             'items': self.items,
-            'included_items': sub_items
+            'supporting_items': sub_items
         })
         return context
 
