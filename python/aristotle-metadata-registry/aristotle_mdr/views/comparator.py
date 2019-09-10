@@ -16,6 +16,7 @@ from .versions import ConceptVersionCompareBase
 
 class MetadataComparison(ConceptVersionCompareBase, AristotleMetadataToolView):
     template_name = 'aristotle_mdr/actions/compare/compare_items.html'
+    context: dict = {}
 
     def get_form(self):
         data = self.request.GET
@@ -38,11 +39,11 @@ class MetadataComparison(ConceptVersionCompareBase, AristotleMetadataToolView):
                 version = version[0]['fields']
             versions[key] = version
 
-        return (
-            versions['first'],
-            versions['second'],
-            False
-        )
+        return {
+            'earlier': versions['first'],
+            'later': versions['second'],
+            'reordered': False
+        }
 
     @cached_property
     def has_same_base_model(self):

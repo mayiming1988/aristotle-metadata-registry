@@ -26,6 +26,7 @@ import reversion
 import diff_match_patch
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 # Type alias
@@ -881,7 +882,8 @@ class CompareHTMLFieldsView(SimpleItemGet, VersionsMixin, TemplateView):
                 get_object_or_404(reversion.models.Version, pk=version2))
 
     def get_object(self):
-        return self.get_item(self.request.user).item  # Versions are now saved on the model rather than the concept
+        return self.get_item(self.request.user).item
+        # Versions are now saved on the model rather than the concept
 
     def get_html_fields(self, version_1, version_2, field_query) -> List[str]:
         """Cleans and returns the content for the two versions of a HTML field """
@@ -924,27 +926,28 @@ class CompareHTMLFieldsView(SimpleItemGet, VersionsMixin, TemplateView):
             raise PermissionDenied
 
     def get_context_data(self, **kwargs):
+        context = {}
         self.metadata_item = self.get_item(self.request.user).item
-
-        context = {'activetab': 'history',
-                   'hide_item_actions': True,
-                   'item': self.get_object()}
 
         version_1 = self.request.GET.get('v1', None)
         version_2 = self.request.GET.get('v2', None)
+        field_query = self.request.GET.get('field')
 
         if not version_1 or not version_2:
             context['not_all_versions_selected'] = True
             return context
 
         first_version, second_version = self.get_version_json(version_1, version_2)
-
         version_permission_1 = VersionPermissions.objects.get_object_or_none(pk=version_1)
         version_permission_2 = VersionPermissions.objects.get_object_or_none(pk=version_2)
 
         self.apply_permission_checking(version_permission_1, version_permission_2)
 
-        field_query = self.request.GET.get('field')
-        context['html_fields'] = self.get_html_fields(first_version, second_version, field_query)
+        context = {'activetab': 'history',
+                   'hide_item_actions': True,
+                   'item': self.get_object(),
+                   'html_fields': self.get_html_fields(version_1=first_version,
+                                                       version_2=second_version,
+                                                       field_query=field_query)}
 
         return context
