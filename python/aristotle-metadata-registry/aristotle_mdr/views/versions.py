@@ -918,12 +918,12 @@ class CompareHTMLFieldsView(SimpleItemGet, VersionsMixin, TemplateView):
 
         return html_values
 
-    def apply_permission_checking(self, version_permission_1, version_permission_2):
+    def apply_permission_checking(self, version_permission_1, version_permission_2) -> None:
         if not self.user_can_view_version(self.request.user, self.metadata_item, version_permission_1) and \
                 self.user_can_view_version(self.request.user, self.metadata_item, version_permission_2):
             raise PermissionDenied
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> Dict[str, Any]:
         self.metadata_item = self.get_item(self.request.user).item
 
         context = {'activetab': 'history',
