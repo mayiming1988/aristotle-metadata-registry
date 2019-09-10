@@ -1,10 +1,8 @@
 from django.urls import path
-from rest_framework import generics
 from . import views
 from aristotle_mdr.utils import get_concept_models
-from aristotle_mdr_api.v3.views.utils import ConceptResultsPagination
-from aristotle_mdr_api.v4.permissions import UnAuthenticatedUserCanView
 from aristotle_mdr_api.v4.metadata.utils import create_model_api_class_dynamically
+from aristotle_mdr_api.v4.metadata.views import ListCreateMetadataAPIView, UpdateMetadataAPIView
 
 
 def create_metadata_urls_dynamically():
@@ -24,22 +22,13 @@ def create_metadata_urls_dynamically():
             path(model_name,
                  create_model_api_class_dynamically(
                      model,
-                     (generics.ListCreateAPIView,),
-                     {"lookup_field": 'uuid',
-                      "lookup_url_kwarg": 'item_uuid',
-                      "pagination_class": ConceptResultsPagination,
-                      "permission_classes": (UnAuthenticatedUserCanView,)
-                      }
+                     (ListCreateMetadataAPIView,)
                  ).as_view(),
                  name='list_or_create_metadata_endpoint_' + model_name),
             path(model_name + '/<uuid:item_uuid>',
                  create_model_api_class_dynamically(
                      model,
-                     (generics.UpdateAPIView,),
-                     {"lookup_field": 'uuid',
-                      "lookup_url_kwarg": 'item_uuid',
-                      "permission_classes": (UnAuthenticatedUserCanView,)
-                      }
+                     (UpdateMetadataAPIView,)
                  ).as_view(),
                  name='retrieve_update_metadata_endpoint_' + model_name),
         ]

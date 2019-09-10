@@ -1,4 +1,3 @@
-import urllib
 from django.urls import reverse
 from rest_framework import status
 from aristotle_mdr_api.v4.tests import BaseAPITestCase
@@ -48,7 +47,7 @@ class MetadataRedirectionAPITestCase(BaseAPITestCase):
         )
 
 
-class ListOrCreateMetadataGetRequest(BaseAPITestCase):
+class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
 
     def setUp(self):
         super().setUp()
@@ -88,11 +87,11 @@ class ListOrCreateMetadataGetRequest(BaseAPITestCase):
         self.assertIsNone(response.data['next'])  # Make sure the paginator works.
         self.assertIsNone(response.data['previous'])  # Make sure the paginator works.
 
-    def test_api_list_or_create_metadata_post_request(self):
+    def test_api_list_or_create_metadata_post_request_actually_creates_metadata_and_submitter_is_correct(self):
 
         post_data = {
-            "name": "Total Australian currency N[N(8)]",
-            "definition": "Total number of Australian dollars.",
+            "name": "My new Value Domain",
+            "definition": "This is my brand new Value Domain.",
         }
 
         response = self.client.post(
@@ -104,6 +103,7 @@ class ListOrCreateMetadataGetRequest(BaseAPITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(self.user, mdr_models.ValueDomain.objects.last().submitter)
 
     def test_api_list_or_create_metadata_post_request_with_foreign_keys(self):
 
@@ -347,9 +347,7 @@ class ListOrCreateMetadataGetRequest(BaseAPITestCase):
         }
 
         response = self.client.post(
-            reverse(
-                'api_v4:metadata:list_or_create_metadata_endpoint_datasetspecification',
-            ),
+            reverse('api_v4:metadata:list_or_create_metadata_endpoint_datasetspecification'),
             post_data,
             format='json',
         )
@@ -359,3 +357,77 @@ class ListOrCreateMetadataGetRequest(BaseAPITestCase):
         self.assertEqual(len(response.data['dssclusterinclusion_set']), 1)  # We have 1 dss cluster inclusion objects.
         self.assertEqual(len(response.data['customvalue_set']), 2)  # We have 2 custom value objects.
         self.assertEqual(post_data['name'], DataSetSpecification.objects.last().name)  # DSS is in db.
+
+
+class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
+
+    def setUp(self):
+
+        super().setUp()
+
+        self.login_superuser()
+
+        self.de = mdr_models.DataElement.objects.create(
+            name="Test Data Element",
+            definition="This is my Test DE!",
+            version="version 1.0",
+            submitter=self.user
+        )
+
+    def test_update_data_element_with_put_request(self):
+
+        put_data = {
+            "name": "My test DE",
+            "definition": "Yeah!",
+            "workgroup": self.wg.id,
+            "references": "string",
+            "origin_URI": "https://duckduckgo.com/",
+            "origin": "string",
+            "comments": "string",
+            "slots": [
+                {
+                    "name": "The cool slot name",
+                    "value": "Yay!",
+                    "order": 0,
+                    "permission": 0
+                }
+            ]
+        }
+
+        response = self.client.put(
+            reverse('api_v4:metadata:retrieve_update_metadata_endpoint_dataelement', kwargs={"item_uuid": self.de.uuid}),
+            put_data,
+            format='json',
+        )
+
+        self.de.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)  # Make sure we actually changed the data.
+        self.assertEqual(self.de.id, response.data['id'])  # Make sure both objects have the same id.
+        self.assertEqual(self.de.version, response.data['version'])  # We didn't change the version.
+        self.assertEqual(self.de.name, response.data['name'])
+        self.assertEqual(self.de.definition, response.data['definition'])
+        self.assertEqual(self.de.workgroup.id, response.data['workgroup'])
+        self.assertEqual(self.de.origin_URI, response.data['origin_URI'])
+        self.assertEqual(self.de.name, response.data['name'])
+        self.assertEqual(self.de.slots.all().count(), 1)  # Slot was created.
+        self.assertEqual(self.de.slots.all()[0].name, response.data['slots'][0]['name'])
+        self.assertEqual(self.de.slots.all()[0].value, response.data['slots'][0]['value'])
+
+    def test_update_data_element_with_patch_request(self):
+
+        patch_data = {
+            "name": "My new name",
+        }
+
+        response = self.client.patch(
+            reverse('api_v4:metadata:retrieve_update_metadata_endpoint_dataelement',
+                    kwargs={"item_uuid": self.de.uuid}),
+            patch_data,
+            format='json',
+        )
+
+        self.de.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)  # Make sure we actually changed the data.
+        self.assertEqual(self.de.name, response.data['name'])

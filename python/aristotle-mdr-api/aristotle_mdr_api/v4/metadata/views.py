@@ -6,6 +6,7 @@ from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from aristotle_mdr.contrib.serializers.concept_serializer import ConceptSerializerFactory
 from aristotle_mdr.models import _concept
+from aristotle_mdr_api.v3.views.utils import ConceptResultsPagination
 from aristotle_mdr_api.v4.permissions import UnAuthenticatedUserCanView
 from aristotle_mdr.utils import get_concept_models
 
@@ -60,3 +61,16 @@ class GenericMetadataSerialiserAPIView(generics.RetrieveAPIView):
     def get_serializer(self, instance, *args, **kwargs):
         serializer_class = ConceptSerializerFactory().generate_serializer_class(self.klass)
         return serializer_class(instance)
+
+
+class ListCreateMetadataAPIView(generics.ListCreateAPIView):
+    lookup_field = 'uuid'
+    lookup_url_kwarg = 'item_uuid'
+    pagination_class = ConceptResultsPagination
+    permission_classes = (UnAuthenticatedUserCanView,)
+
+
+class UpdateMetadataAPIView(generics.UpdateAPIView):
+    lookup_field = 'uuid'
+    lookup_url_kwarg = 'item_uuid'
+    permission_classes = (UnAuthenticatedUserCanView,)
