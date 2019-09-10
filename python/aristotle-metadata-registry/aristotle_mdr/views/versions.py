@@ -435,6 +435,18 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
 
     context: dict = {}
 
+    def get_model(self, concept) -> Model:
+        return concept.item._meta.model
+
+    def get_version_1_concept(self):
+        raise NotImplementedError
+
+    def get_version_2_concept(self):
+        raise NotImplementedError
+
+    def get_compare_versions(self):
+        raise NotImplementedError
+
     def both_fields_empty(self, earlier_value, later_value):
         if not earlier_value and not later_value:
             return True
@@ -685,22 +697,16 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
             reordered
         )
 
-    def get_model(self, concept) -> Model:
-        return concept.item._meta.model
-
-    def get_version_1_concept(self):
-        raise NotImplementedError
-
-    def get_version_2_concept(self):
-        raise NotImplementedError
-
     def apply_permission_checking(self, version_permission_1, version_permission_2) -> None:
         if not self.user_can_view_version(self.request.user, self.get_version_1_concept(), version_permission_1) and \
                 self.user_can_view_version(self.request.user, self.get_version_2_concept(), version_permission_2):
             raise PermissionDenied
 
-    def get_compare_versions(self):
-        raise NotImplementedError
+    def get_version_permission(self, version_1, version_2):
+            version_permission_1 = VersionPermissions.objects.get_object_or_none(pk=version_1)
+            version_permission_2 = VersionPermissions.objects.get_object_or_none(pk=version_2)
+
+            return version_permission_1, version_permission_2
 
     def get_versions(self):
         version_1, version_2 = self.get_compare_versions()
@@ -713,12 +719,6 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
         second_version = reversion.models.Version.objects.get(pk=version_2)
 
         return first_version, second_version
-
-    def get_version_permission(self, version_1, version_2):
-        version_permission_1 = VersionPermissions.objects.get_object_or_none(pk=version_1)
-        version_permission_2 = VersionPermissions.objects.get_object_or_none(pk=version_2)
-
-        return version_permission_1, version_permission_2
 
     def get_version_json(self, first_version, second_version):
         try:
@@ -745,7 +745,7 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
 
         return earlier_json, later_json
 
-    def get_version_context_data(self) -> None:
+    def get_version_context_data(self) -> Dict[str, Any]:
         # Get the versions
         version_1, version_2 = self.get_versions()
 
@@ -763,26 +763,25 @@ class ConceptVersionCompareBase(VersionsMixin, TemplateView):
         else:
             differences = self.generate_diff(earlier_json, later_json)
 
-        self.context.update({
+        return {
             'diffs': differences,
             'raw': self.raw,
             'version_1_id': version_1.id,
             'version_2_id': version_2.id
-        })
+        }
 
     def get_context_data(self, **kwargs) -> Dict:
-        self.context = super().get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         self.model = self.get_model(self.get_version_1_concept())
 
-        self.get_version_context_data()
+        context.update(self.get_version_context_data())
 
-        self.context.update({
+        context.update({
             'activetab': 'history',
             'hide_item_actions': True,
             'comparing_different_formats': self.comparing_different_formats
-
         })
-        return self.context
+        return context
 
 
 class ConceptVersionCompareView(SimpleItemGet, ConceptVersionCompareBase):
