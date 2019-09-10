@@ -31,6 +31,8 @@ class CustomField(TimeStampedModel):
         on_delete=models.PROTECT
     )
 
+    unique_name = models.CharField(max_length=1000)
+
     visibility = models.IntegerField(
         choices=permission_choices,
         default=permission_choices.public
