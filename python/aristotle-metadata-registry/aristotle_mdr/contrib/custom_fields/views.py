@@ -33,11 +33,17 @@ class CustomFieldListView(IsSuperUserMixin, BootTableListView):
     delete_url_name = 'aristotle_custom_fields:delete'
 
 
-class CustomFieldEditableOptionsList(IsSuperUserMixin, ListView):
-    template_name = ''
+class CustomFieldListCreateView(IsSuperUserMixin, ListView):
+    template_name = 'aristotle_mdr/custom_fields/list_create.html'
+
+    def get_queryset(self):
+        metadata_types = {'all': 'All'}
+        metadata_types.update(get_content_type_to_concept_name())
+
+        return list(metadata_types.items())
 
 
-class CustomFieldModelEditView(IsSuperUserMixin, VueFormView):
+class CustomFieldEditCreateView(IsSuperUserMixin, VueFormView):
     """ View to edit the values for all custom fields """
     template_name = 'aristotle_mdr/custom_fields/multiedit.html'
     form_class = CustomFieldForm
