@@ -1,10 +1,12 @@
 from typing import Iterable, List, Dict
-from django.http import HttpResponseRedirect
+
+from django.http import HttpResponseRedirect, Http404
 from django.urls import reverse
+from django.db.models.query import QuerySet
 from django.views.generic import FormView
 from django.views.generic.detail import SingleObjectMixin
 from django.contrib.contenttypes.models import ContentType
-
+f
 from aristotle_mdr.mixins import IsSuperUserMixin
 from aristotle_mdr.contrib.generic.views import VueFormView
 from aristotle_mdr.contrib.generic.views import BootTableListView, CancelUrlMixin
@@ -12,6 +14,8 @@ from aristotle_mdr.contrib.custom_fields import models
 from aristotle_mdr.contrib.custom_fields.forms import CustomFieldForm, CustomFieldDeleteForm
 from aristotle_mdr_api.v4.custom_fields.serializers import CustomFieldSerializer
 from aristotle_mdr.contrib.slots.models import Slot
+
+from aristotle_mdr.utils.utils import get_concept_name_to_content_type
 
 import json
 
@@ -30,13 +34,21 @@ class CustomFieldListView(IsSuperUserMixin, BootTableListView):
     delete_url_name = 'aristotle_custom_fields:delete'
 
 
+class PerModelCustomFieldEditView(IsSuperUserMixin, VueFormView):
+    pass
+
+
 class CustomFieldMultiEditView(IsSuperUserMixin, VueFormView):
     """ View to edit the values for all custom fields """
-    template_name='aristotle_mdr/custom_fields/multiedit.html'
-    form_class=CustomFieldForm
+    template_name = 'aristotle_mdr/custom_fields/multiedit.html'
+    form_class = CustomFieldForm
     non_write_fields = ['hr_type', 'hr_visibility']
 
-    def get_custom_fields(self) -> Iterable[models.CustomField]:
+
+    def get_custom_fields(self) -> QuerySet[models.CustomField]:
+
+        name_mapping = get_concept_name_to_content_type()
+
         return models.CustomField.objects.all()
 
     def get_vue_initial(self) -> List[Dict[str, str]]:
@@ -45,12 +57,6 @@ class CustomFieldMultiEditView(IsSuperUserMixin, VueFormView):
 
         return serializer.data
 
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data()
-
-        context['vue_allowed_models'] = json.dumps(self.get_allowed_models())
-        return context
-
     def get_allowed_models(self):
         allowed_models: Dict = {}
         # We don't need to do any form of permission checking because this is a super user only view
@@ -58,6 +64,12 @@ class CustomFieldMultiEditView(IsSuperUserMixin, VueFormView):
             allowed_models[allowed_model.pk] = allowed_model.name.title()
 
         return allowed_models
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data()
+
+        context['vue_allowed_models'] = json.dumps(self.get_allowed_models())
+        return context
 
 
 class CustomFieldDeleteView(IsSuperUserMixin, CancelUrlMixin, SingleObjectMixin, FormView):

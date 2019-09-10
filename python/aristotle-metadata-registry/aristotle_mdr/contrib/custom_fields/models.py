@@ -8,10 +8,12 @@ from model_utils.models import TimeStampedModel
 
 from aristotle_mdr.models import _concept, RichTextField
 from aristotle_mdr.fields import ConceptForeignKey
+from aristotle_mdr.utils.utils import get_concept_content_types
+
 from aristotle_mdr.contrib.custom_fields.managers import CustomValueManager, CustomFieldManager
 from aristotle_mdr.contrib.custom_fields.types import type_choices
-
 from aristotle_mdr.contrib.custom_fields.constants import CUSTOM_FIELD_STATES
+
 from aristotle_mdr.constants import visibility_permission_choices as permission_choices
 
 
