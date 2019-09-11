@@ -105,6 +105,43 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(self.user, mdr_models.ValueDomain.objects.last().submitter)
 
+    def test_api_list_or_create_metadata_post_request_cannot_accept_ids_inside_subcomponents(self):
+
+        vd_1 = mdr_models.ValueDomain.objects.create(
+            name="I am VD # 1",
+            definition="I have my own Supplementary Value. It is only mine!"
+        )
+
+        sv_1 = mdr_models.SupplementaryValue.objects.create(
+            value="I am supplementary value # 1",
+            meaning="I belong to VD #1",
+            valueDomain=vd_1,
+            order=0
+        )
+
+        post_data = {
+            "name": "My VD with Supplementary Values with ids.",
+            "definition": "I am trying to steal Supplementary Values from another VD, be careful...",
+            "workgroup": self.wg.id,
+            "supplementaryvalue_set": [
+                {
+                    "value": "hello",
+                    "order": 0,
+                    "id": sv_1.id,
+                },
+            ],
+        }
+
+        response = self.client.post(
+            reverse(
+                'api_v4:metadata:list_or_create_metadata_endpoint_valuedomain',
+            ),
+            post_data,
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_api_list_or_create_metadata_post_request_with_foreign_keys(self):
 
         post_data = {
@@ -233,19 +270,19 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
             format='json',
         )
 
-        my_saved_value_domain = mdr_models.ValueDomain.objects.last()
+        last_vd = mdr_models.ValueDomain.objects.last()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)  # Make sure we actually created data.
         self.assertEqual(len(response.data['supplementaryvalue_set']), 2)  # We have 2 supplementary value objects.
         self.assertEqual(len(response.data['permissiblevalue_set']), 2)  # We have 2 permissible value objects.
         self.assertEqual(response.data['data_type'], dt.id)  # The DataType was actually saved.
-        self.assertEqual(post_data['name'], my_saved_value_domain.name)  # ValueDomain is in db.
-        self.assertEqual(post_data['permissiblevalue_set'][0]['value'], my_saved_value_domain.permissibleValues[0].value)
-        self.assertEqual(post_data['permissiblevalue_set'][0]['meaning'], my_saved_value_domain.permissibleValues[0].meaning)
-        self.assertEqual(post_data['permissiblevalue_set'][0]['order'], my_saved_value_domain.permissibleValues[0].order)
-        self.assertEqual(post_data['permissiblevalue_set'][1]['value'], my_saved_value_domain.permissibleValues[1].value)
-        self.assertEqual(post_data['permissiblevalue_set'][1]['meaning'], my_saved_value_domain.permissibleValues[1].meaning)
-        self.assertEqual(post_data['permissiblevalue_set'][1]['order'], my_saved_value_domain.permissibleValues[1].order)
+        self.assertEqual(post_data['name'], last_vd.name)  # ValueDomain is in db.
+        self.assertEqual(post_data['permissiblevalue_set'][0]['value'], last_vd.permissibleValues[0].value)
+        self.assertEqual(post_data['permissiblevalue_set'][0]['meaning'], last_vd.permissibleValues[0].meaning)
+        self.assertEqual(post_data['permissiblevalue_set'][0]['order'], last_vd.permissibleValues[0].order)
+        self.assertEqual(post_data['permissiblevalue_set'][1]['value'], last_vd.permissibleValues[1].value)
+        self.assertEqual(post_data['permissiblevalue_set'][1]['meaning'], last_vd.permissibleValues[1].meaning)
+        self.assertEqual(post_data['permissiblevalue_set'][1]['order'], last_vd.permissibleValues[1].order)
 
     def test_api_list_or_create_metadata_post_request_for_data_set_specification_with_subcomponents(self):
 
@@ -289,7 +326,6 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
             "groups": [],
             "dssdeinclusion_set": [
                 {
-                    "id": 1,
                     "reference": "1",
                     "maximum_occurrences": 18,
                     "inclusion": "mandatory",
@@ -303,7 +339,6 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
                     ]
                 },
                 {
-                    "id": 2,
                     "reference": "2",
                     "maximum_occurrences": 1,
                     "inclusion": "conditional",
@@ -319,7 +354,6 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
             ],
             "dssclusterinclusion_set": [
                 {
-                    "id": 2598,
                     "reference": "",
                     "maximum_occurrences": 99,
                     "inclusion": "conditional",
@@ -386,14 +420,14 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
 
         self.sv_1 = mdr_models.SupplementaryValue.objects.create(
             value="I am supplementary value # 1",
-            meaning="I belong to SV #1",
+            meaning="I belong to VD #1",
             valueDomain=self.vd_1,
             order=0
         )
 
         self.sv_2 = mdr_models.SupplementaryValue.objects.create(
             value="I am supplementary value # 2",
-            meaning="I belong to SV #2",
+            meaning="I belong to VD #2",
             valueDomain=self.vd_2,
             order=5
         )
@@ -419,7 +453,10 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
         }
 
         response = self.client.put(
-            reverse('api_v4:metadata:retrieve_update_metadata_endpoint_dataelement', kwargs={"item_uuid": self.de.uuid}),
+            reverse(
+                'api_v4:metadata:retrieve_update_metadata_endpoint_dataelement',
+                kwargs={"item_uuid": self.de.uuid}
+            ),
             put_data,
             format='json',
         )
@@ -490,8 +527,7 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
             "supplementaryvalue_set": [
                 {
                     "id": self.sv_2.id,
-                    # "value": "Oh no, please don't move me to VD # 1!",
-                    "meaning": "Oh no, please don't move me to VD # 1!"
+                    "meaning": "Oh no, please don't move me to VD # 1!",
                 }
             ]
         }
@@ -509,3 +545,19 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)  # Make sure we actually get an error.
         self.assertEqual(self.vd_1.supplementaryvalue_set.all()[0].id, self.sv_1.id)
         self.assertEqual(self.vd_2.supplementaryvalue_set.all()[0].id, self.sv_2.id)
+
+    def test_update_subitems_with_empty_list(self):
+        patch_data = {
+            "supplementaryvalue_set": []
+        }
+
+        response = self.client.patch(
+            reverse('api_v4:metadata:retrieve_update_metadata_endpoint_valuedomain',
+                    kwargs={"item_uuid": self.vd_1.uuid}),
+            patch_data,
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)  # Make sure we actually changed the data.
+        self.assertCountEqual(self.vd_1.supplementaryvalue_set.all(), [])  # The list should be empty.
+        self.assertFalse(self.vd_1.supplementaryvalue_set.all())
