@@ -3,6 +3,8 @@ Aristotle MDR 11179 Slots with alternate management
 Defined as a field by registry administrator
 """
 from django.db import models
+from django.db.models import Q
+
 from django.contrib.contenttypes.models import ContentType
 from model_utils.models import TimeStampedModel
 
@@ -20,6 +22,11 @@ class CustomField(TimeStampedModel):
     order = models.IntegerField()
     name = models.CharField(max_length=1000)
     type = models.CharField(max_length=10, choices=type_choices)
+    # A unique name used in identifying custom fields in the database in a meaningful way
+    unique_name = models.CharField(max_length=1000,
+                                   null=True,
+                                   help_text='A name used for uniquely identifying the custom field')
+
     # Optional
     help_text = models.CharField(max_length=1000, blank=True)
     help_text_long = RichTextField(
@@ -46,6 +53,7 @@ class CustomField(TimeStampedModel):
 
     class Meta:
         ordering = ['order']
+        unique_together = ['name', 'unique_name']
 
     def __str__(self):
         return "CustomField with name: '{}' and allowed_model: '{}'".format(self.name, self.allowed_model)

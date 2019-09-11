@@ -258,7 +258,7 @@ class CustomFieldsTestCase(BaseAPITestCase):
 
         self.assertEqual(len(response.data), 2)
 
-    def test_multiple_create(self):
+    def test_creation_of_multiple_custom_fields(self):
         self.login_superuser()
         postdata = [
             {'order': 1, 'name': 'Spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
