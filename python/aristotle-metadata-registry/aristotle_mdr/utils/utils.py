@@ -16,7 +16,7 @@ from django.contrib.contenttypes.models import ContentType
 import bleach
 import logging
 import re
-from pypandoc import _ensure_pandoc_path
+# from pypandoc import _ensure_pandoc_path
 
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)

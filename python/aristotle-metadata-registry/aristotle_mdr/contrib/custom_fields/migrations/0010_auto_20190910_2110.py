@@ -15,8 +15,4 @@ class Migration(migrations.Migration):
             name='unique_name',
             field=models.CharField(help_text='A name used for uniquely identifying the custom field', max_length=1000, null=True),
         ),
-        migrations.AlterUniqueTogether(
-            name='customfield',
-            unique_together={('name', 'unique_name')},
-        ),
     ]

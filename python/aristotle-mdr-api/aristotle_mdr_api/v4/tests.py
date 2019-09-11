@@ -4,6 +4,7 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 
 from aristotle_mdr import models as mdr_models
+from aristotle_mdr.models import ObjectClass
 from aristotle_mdr.contrib.issues import models
 from aristotle_mdr.contrib.custom_fields import models as cf_models
 from aristotle_mdr.contrib.favourites.models import Tag, Favourite
@@ -330,6 +331,7 @@ class CustomFieldsTestCase(BaseAPITestCase):
         ids = self.create_test_fields()
         self.login_superuser()
 
+
         postdata = [
             {'id': ids[0], 'order': 1, 'name': 'Blandness', 'type': 'int', 'help_text': 'The Spiciness'},
             {'id': ids[1], 'order': 2, 'name': 'Blandness_old', 'type': 'int', 'help_text': 'The Blandness'}
@@ -356,6 +358,17 @@ class CustomFieldsTestCase(BaseAPITestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(cf_models.CustomField.objects.count(), 2)
+
+    def test_creation_of_two_fields_with_same_allowed_model_and_same_unique_name_fails(self):
+        """Test that the creation of two custom fields with the same allowed model and the same
+           unique name is blocked"""
+        ids = self.create_test_fields()
+        self.login_superuser()
+
+        postdata = [
+            {'id': ids[0], 'order': 1, 'name': 'Spiciness', 'unique_name': 'spiciness', 'type': 'int'},
+            {'id': ids[1], 'order': 2, 'name': 'Blandness', 'unique_name': 'spiciness', 'type': 'int'}
+        ]
 
 
 @tag('perms')
