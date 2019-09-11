@@ -22,8 +22,9 @@ class CustomField(TimeStampedModel):
     name = models.CharField(max_length=1000)
     type = models.CharField(max_length=10, choices=type_choices)
     # A unique name used in identifying custom fields in the database in a meaningful way
-    unique_name = models.CharField(max_length=1000,
+    system_name = models.CharField(max_length=1000,
                                    null=True,
+                                   unique=True,
                                    help_text='A name used for uniquely identifying the custom field')
 
     # Optional
@@ -52,8 +53,6 @@ class CustomField(TimeStampedModel):
 
     class Meta:
         ordering = ['order']
-        constraints = [models.UniqueConstraint(fields=['allowed_model', 'unique_name'], name="unique_across_model")]
-
     def __str__(self):
         return "CustomField with name: '{}' and allowed_model: '{}'".format(self.name, self.allowed_model)
 
