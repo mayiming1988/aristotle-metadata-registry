@@ -50,23 +50,26 @@ def pickle_abstract_field(field):
     return func, args
 
 
-def register_queryset(qs):
+def register_queryset(qs, expire_in=360, qs_meta={}):
     import uuid
     from django.db.models.query import QuerySet
 
     assert(issubclass(type(qs), QuerySet))
 
     qs_uuid = str(uuid.uuid4())
-    cache.set('aristotle_mdr_cache_qs__%s' % qs_uuid, pickle.dumps(qs.query), 360)
-
+    cache.set('aristotle_mdr_cache_qs__%s' % qs_uuid, pickle.dumps(qs.query), expire_in)
     return qs_uuid
 
 
-def get_queryset_from_uuid(qs_uuid, Model):
+def get_queryset_from_uuid(qs_uuid, Model=None):
+    if Model is None:
+        from aristotle_mdr.models import _concept
+        Model = _concept
+
     if not qs_uuid:
         return Model.objects.none()
     if not cache.get('aristotle_mdr_cache_qs__%s' % qs_uuid):
-        return Model.objects.none()
+        raise ValueError("Queryset not found")
 
     query = pickle.loads(cache.get('aristotle_mdr_cache_qs__%s' % qs_uuid))
     qs = Model.objects.none()

@@ -8,6 +8,12 @@
         Delete confirmation for state "{{ object.state_name }}"
     </h2>
 
+    <ol class="breadcrumb">
+        <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a></li>
+        <li><a href="{% url 'aristotle:registrationHistory' item.id %}">Registration History</a></li>
+        <li>Delete Confirmation</li>
+    </ol>
+
     <form action="" method="post">{% csrf_token %}
         <p>Are you sure you want to delete the state "{{ object.state_name }}" applied in <a href="{% url 'aristotle:item' object.concept.id %}">{{ object.concept }}</a> by <a href="{% url 'aristotle:registrationAuthority' object.registrationAuthority.id %}">{{ object.registrationAuthority }}</a>?</p>
         <div class="pull-right">
