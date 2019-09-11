@@ -11,16 +11,52 @@ class CustomFieldSerializer(serializers.ModelSerializer):
     choices = serializers.CharField(allow_blank=True, default='')
     system_name = serializers.CharField(validators=[])
 
-    def get_system_name(self, obj):
-        if obj.system_name is None:
-            return ''
-        return obj.system_name.split(':', 1)[-1]
+    def to_representation(self, instance):
+        repr = super().to_representation(instance)
+        try:
+            repr['system_name'] = self.get_cleaned_system_name(repr['system_name'])
+        except KeyError:
+            repr['system_name'] = ''
+
+        return repr
+
+    def get_cleaned_system_name(self, system_name):
+        return system_name.split(':', 1)[-1]  # Remove the namespacing
+
+    def get_namespaced_system_name(self, validated_data):
+        system_name = validated_data['system_name']
+
+        if 'allowed_model' in validated_data:
+            if validated_data['allowed_model'] is None:
+                allowed_model = 'all'
+            else:
+                allowed_model = validated_data['allowed_model']
+        else:
+            allowed_model = 'all'
+
+        allowed_model = str(allowed_model).replace(' ', '')
+        system_name = '{namespace}:{system_name}'.format(namespace=allowed_model,
+                                                         system_name=system_name)
+
+        return system_name
 
     def create(self, validated_data):
-        raise ValueError(validated_data)
+        validated_data['system_name'] = self.get_namespaced_system_name(validated_data)
+
+        return CustomField.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        raise ValueError(validated_data)
+        instance.order = validated_data.get('order', instance.order)
+        instance.name = validated_data.get('name', instance.name)
+        instance.type = validated_data.get('type', instance.type)
+        instance.visibility = validated_data.get('visibility', instance.visibility)
+        instance.state = validated_data.get('state', instance.state)
+        instance.choices = validated_data.get('choices', instance.choices)
+        instance.system_name = self.get_namespaced_system_name(validated_data)
+
+        instance.save()
+
+        return instance
 
     class Meta:
         model = CustomField
