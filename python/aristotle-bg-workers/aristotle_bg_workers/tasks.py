@@ -4,6 +4,7 @@ from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.utils.module_loading import import_string
+from django.utils.translation import ugettext_lazy as _
 from io import StringIO
 from typing import Optional, List, Tuple
 import datetime
@@ -120,8 +121,8 @@ def send_sandbox_notification_emails(name_of_user, emails_list, sandbox_access_u
     # Send a separate email to each email address:
     for email in emails_list:
         send_mail(
-            'Sandbox Access',
-            "Hello there, to access {}'s Sandbox please use the following URL: ".format(name_of_user.capitalize())
+            _('Sandbox Access'),
+            _("Hello there, to access {}'s Sandbox please use the following URL: ").format(name_of_user.capitalize())
             + sandbox_access_url,
             from_email,
             [email]
@@ -139,7 +140,7 @@ def send_notification_email(recipient, message):
         from_email = settings.DEFAULT_FROM_EMAIL
 
     send_mail(
-        'Notification',
+        _('Notification'),
         message,
         from_email,
         [recipient]
