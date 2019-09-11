@@ -142,6 +142,46 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_api_list_or_create_metadata_post_request_cannot_accept_pks_inside_subcomponents_2(self):
+
+        vd_1 = mdr_models.ValueDomain.objects.create(
+            name="I am VD # 1",
+            definition="I have my own Supplementary Value. It is only mine!"
+        )
+
+        sv_1 = mdr_models.SupplementaryValue.objects.create(
+            value="I am supplementary value # 1",
+            meaning="I belong to VD #1",
+            valueDomain=vd_1,
+            order=0
+        )
+
+        post_data = {
+            "name": "My VD with Supplementary Values with ids.",
+            "definition": "I am trying to steal Supplementary Values from another VD, be careful...",
+            "workgroup": self.wg.id,
+            "supplementaryvalue_set": [
+                {
+                    "value": "hello",
+                    "order": 0,
+                    "pk": sv_1.id,
+                },
+            ],
+        }
+
+        response = self.client.post(
+            reverse(
+                'api_v4:metadata:list_or_create_metadata_endpoint_valuedomain',
+            ),
+            post_data,
+            format='json',
+        )
+
+        import pdb
+        pdb.set_trace()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_api_list_or_create_metadata_post_request_with_foreign_keys(self):
 
         post_data = {

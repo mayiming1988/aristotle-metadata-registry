@@ -62,6 +62,9 @@ class ConceptBaseSerializer(WritableNestedModelSerializer):
                         if 'id' in elem:
                             msg = _("Parameter `id` is not allowed in POST requests for metadata creation.")
                             raise serializers.ValidationError(msg, code='Aristotle API Request Error')
+                        if 'pk' in elem:
+                            msg = _("Parameter `pk` is not allowed in POST requests for metadata creation.")
+                            raise serializers.ValidationError(msg, code='Aristotle API Request Error')
                 else:
                     if not hasattr(self.instance, field_name):
                         msg = _('Object {} of type `{}` does not have any field named "{}"'.format(
