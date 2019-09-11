@@ -456,7 +456,7 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)  # Make sure we actually changed the data.
         self.assertEqual(self.de.name, response.data['name'])
 
-    def test_sub_items_with_id_in_json_data_can_update_actual_items(self):
+    def test_sub_items_in_json_data_can_update_actual_items_when_their_id_is_provided(self):
 
         patch_data = {
             "name": "My new vd name",
