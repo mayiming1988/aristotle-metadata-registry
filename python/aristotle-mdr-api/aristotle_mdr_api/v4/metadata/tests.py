@@ -456,7 +456,7 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)  # Make sure we actually changed the data.
         self.assertEqual(self.de.name, response.data['name'])
 
-    def test_sub_items_id_in_json_data_is_ignored(self):
+    def test_sub_items_with_id_in_json_data_can_update_actual_items(self):
 
         patch_data = {
             "name": "My new vd name",
@@ -464,7 +464,7 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
                 {
                     "value": "Yeah SV!",
                     "order": 5,
-                    "id": "90"
+                    "id": self.sv_1.id,
                 }
             ]
         }
@@ -477,9 +477,12 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
         )
 
         self.de.refresh_from_db()
+        self.sv_1.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)  # Make sure we actually changed the data.
         self.assertEqual(self.sv_1.id, response.data['supplementaryvalue_set'][0]['id'])
+        self.assertEqual(self.sv_1.value, response.data['supplementaryvalue_set'][0]['value'])
+        self.assertEqual(self.sv_1.order, response.data['supplementaryvalue_set'][0]['order'])
 
     def test_avoid_updating_sub_items_that_are_not_linked_to_the_parent_item(self):
 

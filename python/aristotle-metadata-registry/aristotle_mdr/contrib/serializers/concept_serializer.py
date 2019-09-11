@@ -57,7 +57,7 @@ class ConceptBaseSerializer(WritableNestedModelSerializer):
 
         for field_name, data in self.get_initial().items():  # We are using self.get_initial() because it provides ids.
             if type(data) is list:
-                if not hasattr(self.instance, field_name):
+                if self.instance is not None and not hasattr(self.instance, field_name):
                     msg = _('Object {} of type `{}` does not have any field named "{}"'.format(
                         self.instance, type(self.instance), field_name)
                     )
@@ -65,7 +65,7 @@ class ConceptBaseSerializer(WritableNestedModelSerializer):
                 allowed_ids_for_object_field = set(getattr(self.instance, field_name).values_list('id', flat=True))
                 for elem in data:
                     subcomponent_id = elem.get('id')
-                    if subcomponent_id not in allowed_ids_for_object_field:
+                    if subcomponent_id and subcomponent_id not in allowed_ids_for_object_field:
                         msg = _('Id {} does not match with any existing id for {} in {}.'.format(
                             subcomponent_id, field_name, self.instance)
                         )
