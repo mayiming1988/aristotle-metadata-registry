@@ -374,6 +374,30 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
             submitter=self.user
         )
 
+        self.vd_1 = mdr_models.ValueDomain.objects.create(
+            name="I am VD # 1",
+            definition="I have my own Supplementary Value. It is only mine!"
+        )
+
+        self.vd_2 = mdr_models.ValueDomain.objects.create(
+            name="I am VD # 2",
+            definition="I have my own Supplementary Value."
+        )
+
+        self.sv_1 = mdr_models.SupplementaryValue.objects.create(
+            value="I am supplementary value # 1",
+            meaning="I belong to SV #1",
+            valueDomain=self.vd_1,
+            order=0
+        )
+
+        self.sv_2 = mdr_models.SupplementaryValue.objects.create(
+            value="I am supplementary value # 2",
+            meaning="I belong to SV #2",
+            valueDomain=self.vd_2,
+            order=5
+        )
+
     def test_update_data_element_with_put_request(self):
 
         put_data = {
@@ -431,3 +455,54 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)  # Make sure we actually changed the data.
         self.assertEqual(self.de.name, response.data['name'])
+
+    def test_sub_items_id_in_json_data_is_ignored(self):
+
+        patch_data = {
+            "name": "My new vd name",
+            "supplementaryvalue_set": [
+                {
+                    "value": "Yeah SV!",
+                    "order": 5,
+                    "id": "90"
+                }
+            ]
+        }
+
+        response = self.client.patch(
+            reverse('api_v4:metadata:retrieve_update_metadata_endpoint_valuedomain',
+                    kwargs={"item_uuid": self.vd_1.uuid}),
+            patch_data,
+            format='json',
+        )
+
+        self.de.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)  # Make sure we actually changed the data.
+        self.assertEqual(self.sv_1.id, response.data['supplementaryvalue_set'][0]['id'])
+
+    def test_avoid_updating_sub_items_that_are_not_linked_to_the_parent_item(self):
+
+        patch_data = {
+            "supplementaryvalue_set": [
+                {
+                    "id": self.sv_2.id,
+                    # "value": "Oh no, please don't move me to VD # 1!",
+                    "meaning": "Oh no, please don't move me to VD # 1!"
+                }
+            ]
+        }
+
+        response = self.client.patch(
+            reverse('api_v4:metadata:retrieve_update_metadata_endpoint_valuedomain',
+                    kwargs={"item_uuid": self.vd_1.uuid}),
+            patch_data,
+            format='json',
+        )
+
+        self.vd_1.refresh_from_db()
+        self.vd_2.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)  # Make sure we actually get an error.
+        self.assertEqual(self.vd_1.supplementaryvalue_set.all()[0].id, self.sv_1.id)
+        self.assertEqual(self.vd_2.supplementaryvalue_set.all()[0].id, self.sv_2.id)
