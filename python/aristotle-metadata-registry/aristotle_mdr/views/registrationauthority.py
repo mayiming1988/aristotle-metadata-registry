@@ -347,7 +347,6 @@ class ConceptFilter(django_filters.FilterSet):
     def noop(self, queryset, name, value):
         return queryset
 
-
     @property
     def qs(self):
         # We're doing all the filtering at once here in order to improve filtering performance
@@ -400,7 +399,6 @@ class ConceptFilter(django_filters.FilterSet):
             self._qs = qs.order_by(Upper('name'))
 
         return self._qs
-
 
 
 class DateFilterView(FilterView, MainPageMixin):

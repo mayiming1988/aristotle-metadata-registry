@@ -53,6 +53,7 @@ class CustomField(TimeStampedModel):
 
     class Meta:
         ordering = ['order']
+
     def __str__(self):
         return "CustomField with name: '{}' and allowed_model: '{}'".format(self.name, self.allowed_model)
 
