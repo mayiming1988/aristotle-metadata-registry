@@ -1,7 +1,7 @@
 <template>
     <div class="outer-formset">
         <alert v-if="message.length > 0" type="success">{{ message }}</alert>
-        <alert v-if="request_error.length > 0" type="danger">{{ request_error }}</alert>
+        <alert v-if="errors.length > 0" type="danger">{{ errors }}</alert>
         <FormSet 
             :fields="fields" 
             :initial="initial"
@@ -71,6 +71,12 @@ export default {
                     this.reqerror = this.errors['request']
                     this.errors = []
                 }
+                let error_string = '';
+                for (let error of this.errors) {
+                    error = error['non_field_errors'][0];
+                    error_string += ` ${error} \n`
+                }
+                this.errors = error_string;
             })
         }
     }

@@ -26,13 +26,12 @@ class CustomFieldSerializer(serializers.ModelSerializer):
             # It's a newly created instance
             if CustomField.objects.filter(system_name=system_name).count() > 0:
                 raise serializers.ValidationError(
-                    'System name {} is not unique. Please choose another'.format(data['system_name']
+                    'System name {} is not unique. Please choose another.'.format(data['system_name']
                 ))
         else:
             system_names = [initial_dict['system_name'] for initial_dict in self.initial_data]
             if len(system_names) != len(set(system_names)):
-                raise serializers.ValidationError("There are duplicated system names. "
-                                                  "Please double check your system names")
+                raise serializers.ValidationError("There are duplicated system names. ")
 
         return data
 
@@ -54,7 +53,7 @@ class CustomFieldSerializer(serializers.ModelSerializer):
         return system_name
 
     def get_cleaned_system_name(self, system_name):
-        return system_name.split(':', 1)[-1]  # Remove the namespacing
+        return system_name.split(':', 1)[-1]  # Remove the namespacing for display in the edit view
 
     def create(self, validated_data):
         validated_data['system_name'] = self.get_namespaced_system_name(validated_data)
