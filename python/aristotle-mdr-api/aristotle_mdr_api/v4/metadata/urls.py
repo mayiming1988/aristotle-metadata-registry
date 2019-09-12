@@ -31,8 +31,7 @@ def create_metadata_urls_dynamically():
                      (UpdateMetadataAPIView,)
                  ).as_view(),
                  name='retrieve_update_metadata_endpoint_' + model_name),
-        ]
-        )
+        ])
     return list_of_urls
 
 

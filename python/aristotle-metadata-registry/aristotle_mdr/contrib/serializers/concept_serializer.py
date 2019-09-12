@@ -234,7 +234,9 @@ class ConceptSerializerFactory:
 
 
 class Serializer(BaseDjangoSerializer):
-    """This is a django serializer that has a 'composed' DRF Serializer inside. """
+    """
+    This is a django serializer that has a 'composed' DRF Serializer inside.
+    """
     data: dict = {}
 
     def serialize(self, queryset, stream=None, fields=None, use_natural_foreign_keys=False,
@@ -260,9 +262,11 @@ class Serializer(BaseDjangoSerializer):
 
 def Deserializer(json, using=DEFAULT_DB_ALIAS, **options):
     # TODO: fix
-    """ Deserialize JSON back into Django ORM instances.
-        Django deserializers yield a DeserializedObject generator.
-        DeserializedObjects are thin wrappers over POPOs. """
+    """
+    Deserialize JSON back into Django ORM instances.
+    Django deserializers yield a DeserializedObject generator.
+    DeserializedObjects are thin wrappers over POPOs.
+    """
     m2m_data = {}
 
     # Generate the serializer
