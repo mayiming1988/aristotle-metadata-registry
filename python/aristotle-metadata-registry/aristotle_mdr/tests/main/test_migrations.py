@@ -7,7 +7,6 @@ from aristotle_mdr.utils import migrations as migration_utils
 from django.test import TestCase, tag
 from django.apps import apps as current_apps
 from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from unittest import skip
 
@@ -37,7 +36,6 @@ class TestUtils(TestCase):
         self.assertEqual(slots[0].value, '1.11.1')
 
     def test_backwards_slot_move(self):
-
         oc1 = models.ObjectClass.objects.create(
             name='Test OC',
             definition='Test Definition',
@@ -79,37 +77,56 @@ class TestCustomFieldsMigration(MigrationsTestCase, TestCase):
         object_class_ct = ContentType.objects.get(app_label='aristotle_mdr', model='objectclass')
 
         # Object Class Custom Fields with no collisions
-        self.object_class_custom_field = CustomField.objects.create(order=0,
-                                                                    name='A Boring Custom Field',
-                                                                    type='str',
-                                                                    help_text='Very boring with no collisions',
-                                                                    allowed_model=object_class_ct,
-                                                                    )
+        self.object_class_custom_field = CustomField.objects.create(
+            order=0,
+            name='A Boring Custom Field',
+            type='str',
+            help_text='Very boring with no collisions',
+            allowed_model=object_class_ct,
+        )
 
-        self.object_class_custom_field_2 = CustomField.objects.create(order=1,
-                                                                      name='A Very Boring Custom Field',
-                                                                      type='str',
-                                                                      help_text='Very boring with no collisions',
-                                                                      allowed_model=object_class_ct)
+        self.object_class_custom_field_2 = CustomField.objects.create(
+            order=1,
+            name='A Very Boring Custom Field',
+            type='str',
+            help_text='Very boring with no collisions',
+            allowed_model=object_class_ct
+        )
+
+        self.general_custom_field = CustomField.objects.create(
+            order=2,
+            name='A General Custom Field',
+            type='str',
+            help_text='General purpose custom field',
+            allowed_model=None
+        )
 
     def test_migration(self):
         CustomField = self.apps.get_model("aristotle_mdr_custom_fields", 'CustomField')
 
         # Test that all Custom Fields came across
-        self.assertEqual(CustomField.objects.all().count(), 2)
+        self.assertEqual(CustomField.objects.all().count(), 3)
 
         # Test that system names were set correctly for Object Class Custom Fields
-        custom_field_1 = CustomField.objects.get(pk=self.object_class_custom_field)
-        self.assertEqual(custom_field_1.system_name, 'objectclass:aboringcustomfield')
+        oc_field_1 = CustomField.objects.get(pk=self.object_class_custom_field.pk)
+        self.assertEqual(oc_field_1.system_name, 'objectclass:aboringcustomfield')
+
+        oc_field_2 = CustomField.objects.get(pk=self.object_class_custom_field_2.pk)
+        self.assertEqual(oc_field_2.system_name, 'objectclass:averyboringcustomfield')
+
+        # Test that system name was set correctly for 'All' Custom Field
+        general_field = CustomField.objects.get(pk=self.general_custom_field.pk)
+        self.assertEqual(general_field.system_name, 'all:ageneralcustomfield')
+
+        # Test that collisions are saved correctly
+        collided_field_1 = CustomField.objects.get(pk=)
 
 
 class TestSynonymMigration(MigrationsTestCase, TestCase):
-
     migrate_from = '0023_auto_20180206_0332'
     migrate_to = '0024_synonym_data_migration'
 
     def setUpBeforeMigration(self, apps):
-
         objectclass = apps.get_model('aristotle_mdr', 'ObjectClass')
 
         self.oc1 = objectclass.objects.create(
@@ -124,7 +141,6 @@ class TestSynonymMigration(MigrationsTestCase, TestCase):
         )
 
     def test_migration(self):
-
         slot = self.apps.get_model('aristotle_mdr_slots', 'Slot')
 
         self.assertEqual(slot.objects.count(), 1)
@@ -136,12 +152,10 @@ class TestSynonymMigration(MigrationsTestCase, TestCase):
 
 
 class TestDedMigration(MigrationsTestCase, TestCase):
-
     migrate_from = '0026_auto_20180411_2323'
     migrate_to = '0027_add_ded_through_models'
 
     def setUpBeforeMigration(self, apps):
-
         ded = apps.get_model('aristotle_mdr', 'DataElementDerivation')
         de = apps.get_model('aristotle_mdr', 'DataElement')
 
@@ -170,7 +184,6 @@ class TestDedMigration(MigrationsTestCase, TestCase):
         self.ded1.inputs.add(self.de3)
 
     def test_migration(self):
-
         ded = self.apps.get_model('aristotle_mdr', 'DataElementDerivation')
         ded_inputs_through = self.apps.get_model('aristotle_mdr', 'DedInputsThrough')
         ded_derives_through = self.apps.get_model('aristotle_mdr', 'DedDerivesThrough')
@@ -197,7 +210,6 @@ class TestDedMigration(MigrationsTestCase, TestCase):
 
 
 class TestLowercaseEmailMigration(MigrationsTestCase, TestCase):
-
     app = 'aristotle_mdr_user_management'
     migrate_from = '0001_initial'
     migrate_to = '0002_lowercase_emails'
@@ -222,12 +234,10 @@ class TestLowercaseEmailMigration(MigrationsTestCase, TestCase):
 
 
 class TestRaActiveMigration(MigrationsTestCase, TestCase):
-
     migrate_from = '0032_add_new_active'
     migrate_to = '0033_ra_levels'
 
     def setUpBeforeMigration(self, apps):
-
         ra = apps.get_model('aristotle_mdr', 'RegistrationAuthority')
 
         self.ra1 = ra.objects.create(
@@ -242,7 +252,6 @@ class TestRaActiveMigration(MigrationsTestCase, TestCase):
         )
 
     def test_migration(self):
-
         ra = self.apps.get_model('aristotle_mdr', 'RegistrationAuthority')
         from aristotle_mdr.models import RA_ACTIVE_CHOICES
 
@@ -255,7 +264,6 @@ class TestRaActiveMigration(MigrationsTestCase, TestCase):
 
 @skip("Field added to Possum Profile (Notification Permissions).")
 class TestSupersedingMigration(MigrationsTestCase, TestCase):
-
     migrate_from = '0042_remove_possumprofile_favourites'
     migrate_to = '0043_change_superseding'
 
@@ -323,9 +331,8 @@ class TestSupersedingMigration(MigrationsTestCase, TestCase):
 
 @tag('favsmigration')
 class TestFavouritesMigration(MigrationsTestCase, TestCase):
-
-    migrate_from='0040_rename_favourites'
-    migrate_to='0041_migrate_favourites'
+    migrate_from = '0040_rename_favourites'
+    migrate_to = '0041_migrate_favourites'
 
     def setUpBeforeMigration(self, apps):
         user = apps.get_model('aristotle_mdr_user_management', 'User')
@@ -360,15 +367,14 @@ class TestFavouritesMigration(MigrationsTestCase, TestCase):
 
 
 class TestLinkRootMigration(MigrationsTestCase, TestCase):
-
     app = 'aristotle_mdr_links'
     migrate_from = [
-        ('aristotle_mdr','0046_auto_20181107_0433'),
-        ('aristotle_mdr_links','0006_link_root_item'),
+        ('aristotle_mdr', '0046_auto_20181107_0433'),
+        ('aristotle_mdr_links', '0006_link_root_item'),
     ]
     migrate_to = [
-        ('aristotle_mdr','0046_auto_20181107_0433'),
-        ('aristotle_mdr_links','0007_migrate_root_item'),
+        ('aristotle_mdr', '0046_auto_20181107_0433'),
+        ('aristotle_mdr_links', '0007_migrate_root_item'),
     ]
 
     def setUpBeforeMigration(self, apps):
@@ -426,11 +432,9 @@ class TestLinkRootMigration(MigrationsTestCase, TestCase):
 
 
 class TestRAOrganisationRemoval(MigrationsTestCase, TestCase):
-
     app = 'aristotle_mdr'
     migrate_from = '0046_auto_20181107_0433'
     migrate_to = '0049_make_non_nullable_so'
-
 
     def setUpBeforeMigration(self, apps):
         User = apps.get_model('aristotle_mdr_user_management', 'User')
@@ -479,6 +483,6 @@ class TestRAOrganisationRemoval(MigrationsTestCase, TestCase):
         #     self.ra.created == self.org.created
         # )
         self.ra = RAClass.objects.get(pk=self.ra.pk)
-        print(self.ra) #.stewardship_organisation)
+        print(self.ra)  # .stewardship_organisation)
 
         self.assertTrue(self.ra.stewardship_organisation == s_org)

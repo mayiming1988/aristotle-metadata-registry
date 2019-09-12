@@ -7,8 +7,8 @@ from random import randrange
 def get_system_name(allowed_model, name) -> str:
     if allowed_model is None:
         allowed_model = 'all'
-
-    allowed_model = str(allowed_model).replace(' ', '')
+    else:
+        allowed_model = str(allowed_model.model).replace(' ', '')
 
     # Make the name lowercase and strip spaces
     name = name.replace(" ", "").lower()
