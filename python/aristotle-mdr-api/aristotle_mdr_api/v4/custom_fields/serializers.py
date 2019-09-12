@@ -4,6 +4,24 @@ from aristotle_mdr_api.v4.serializers import MultiUpdateNoDeleteListSerializer
 from aristotle_mdr.contrib.custom_fields.models import CustomField
 
 
+def get_namespaced_system_name(validated_data):
+    system_name = validated_data['system_name']
+
+    if 'allowed_model' in validated_data:
+        if validated_data['allowed_model'] is None:
+            allowed_model = 'all'
+        else:
+            allowed_model = validated_data['allowed_model']
+    else:
+        allowed_model = 'all'
+
+    allowed_model = str(allowed_model).replace(' ', '')
+    system_name = '{namespace}:{system_name}'.format(namespace=allowed_model,
+                                                     system_name=system_name)
+
+    return system_name
+
+
 class CustomFieldSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
     order = serializers.IntegerField()
@@ -23,25 +41,8 @@ class CustomFieldSerializer(serializers.ModelSerializer):
     def get_cleaned_system_name(self, system_name):
         return system_name.split(':', 1)[-1]  # Remove the namespacing
 
-    def get_namespaced_system_name(self, validated_data):
-        system_name = validated_data['system_name']
-
-        if 'allowed_model' in validated_data:
-            if validated_data['allowed_model'] is None:
-                allowed_model = 'all'
-            else:
-                allowed_model = validated_data['allowed_model']
-        else:
-            allowed_model = 'all'
-
-        allowed_model = str(allowed_model).replace(' ', '')
-        system_name = '{namespace}:{system_name}'.format(namespace=allowed_model,
-                                                         system_name=system_name)
-
-        return system_name
-
     def create(self, validated_data):
-        validated_data['system_name'] = self.get_namespaced_system_name(validated_data)
+        validated_data['system_name'] = get_namespaced_system_name(validated_data)
 
         return CustomField.objects.create(**validated_data)
 
@@ -52,7 +53,7 @@ class CustomFieldSerializer(serializers.ModelSerializer):
         instance.visibility = validated_data.get('visibility', instance.visibility)
         instance.state = validated_data.get('state', instance.state)
         instance.choices = validated_data.get('choices', instance.choices)
-        instance.system_name = self.get_namespaced_system_name(validated_data)
+        instance.system_name = get_namespaced_system_name(validated_data)
 
         instance.save()
 
