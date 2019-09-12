@@ -11,6 +11,8 @@ class CustomFieldSerializer(serializers.ModelSerializer):
     choices = serializers.CharField(allow_blank=True, default='')
     system_name = serializers.CharField(validators=[])
 
+    already_detected_duplicates = False
+
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         try:
@@ -29,9 +31,13 @@ class CustomFieldSerializer(serializers.ModelSerializer):
                     'System name {} is not unique. Please choose another.'.format(data['system_name']
                 ))
         else:
-            system_names = [initial_dict['system_name'] for initial_dict in self.initial_data]
-            if len(system_names) != len(set(system_names)):
-                raise serializers.ValidationError("There are duplicated system names. ")
+            if not self.already_detected_duplicates:
+                system_names = [initial_dict['system_name'] for initial_dict in self.initial_data]
+                if len(system_names) != len(set(system_names)):
+                    duplicates = [val for val in system_names if system_names.count(val) > 1]
+                    self.already_detected_duplicates = True
+
+                    raise serializers.ValidationError("Duplicated system names {} found".format(duplicates))
 
         return data
 
