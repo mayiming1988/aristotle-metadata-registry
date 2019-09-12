@@ -3,6 +3,7 @@ from rest_framework import status
 from aristotle_mdr_api.v4.tests import BaseAPITestCase
 from aristotle_mdr import models as mdr_models
 from aristotle_mdr.contrib.custom_fields.models import CustomField
+from aristotle_mdr.required_settings import ARISTOTLE_SETTINGS
 
 
 class MetadataRedirectionAPITestCase(BaseAPITestCase):
@@ -127,7 +128,7 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
 
         self.assertEqual(
             last_revision.comment,
-            'Added via Aristotle API.'
+            "Added via {} API.".format(ARISTOTLE_SETTINGS['SITE_NAME'])
         )
         self.assertEqual(last_revision.user, self.user)
 
