@@ -49,6 +49,20 @@ class MetadataRedirectionAPITestCase(BaseAPITestCase):
 
 class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
 
+    def create_value_domain_with_post_request(self):
+        post_data = {
+            "name": "My new Value Domain",
+            "definition": "This is my brand new Value Domain.",
+        }
+
+        return self.client.post(
+            reverse(
+                'api_v4:metadata:list_or_create_metadata_endpoint_valuedomain',
+            ),
+            post_data,
+            format='json',
+        )
+
     def setUp(self):
         super().setUp()
 
@@ -87,35 +101,29 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
         self.assertIsNone(response.data['next'])  # Make sure the paginator works.
         self.assertIsNone(response.data['previous'])  # Make sure the paginator works.
 
+    def test_api_list_or_create_metadata_post_request_cannot_be_made_by_anonymous_users(self):
+
+        self.logout()
+
+        response = self.create_value_domain_with_post_request()
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        self.login_user()
+
     def test_api_list_or_create_metadata_post_request_actually_creates_metadata_and_submitter_is_correct(self):
 
-        post_data = {
-            "name": "My new Value Domain",
-            "definition": "This is my brand new Value Domain.",
-        }
-
-        response = self.client.post(
-            reverse(
-                'api_v4:metadata:list_or_create_metadata_endpoint_valuedomain',
-            ),
-            post_data,
-            format='json',
-        )
+        response = self.create_value_domain_with_post_request()
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(self.user, mdr_models.ValueDomain.objects.last().submitter)
 
-    def test_api_list_or_create_metadata_post_request_cannot_accept_ids_inside_subcomponents(self):
-
-        vd_1 = mdr_models.ValueDomain.objects.create(
-            name="I am VD # 1",
-            definition="I have my own Supplementary Value. It is only mine!"
-        )
+    def test_api_list_or_create_metadata_post_request_cannot_accept_ids_or_pks_inside_subcomponents(self):
 
         sv_1 = mdr_models.SupplementaryValue.objects.create(
             value="I am supplementary value # 1",
             meaning="I belong to VD #1",
-            valueDomain=vd_1,
+            valueDomain=self.value_domain_1,
             order=0
         )
 
@@ -127,7 +135,7 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
                 {
                     "value": "hello",
                     "order": 0,
-                    "id": sv_1.id,
+                    "id": sv_1.id,  # We don't allow ids.
                 },
             ],
         }
@@ -142,20 +150,6 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_api_list_or_create_metadata_post_request_cannot_accept_pks_inside_subcomponents_2(self):
-
-        vd_1 = mdr_models.ValueDomain.objects.create(
-            name="I am VD # 1",
-            definition="I have my own Supplementary Value. It is only mine!"
-        )
-
-        sv_1 = mdr_models.SupplementaryValue.objects.create(
-            value="I am supplementary value # 1",
-            meaning="I belong to VD #1",
-            valueDomain=vd_1,
-            order=0
-        )
-
         post_data = {
             "name": "My VD with Supplementary Values with ids.",
             "definition": "I am trying to steal Supplementary Values from another VD, be careful...",
@@ -164,7 +158,7 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
                 {
                     "value": "hello",
                     "order": 0,
-                    "pk": sv_1.id,
+                    "pk": sv_1.id,  # We don't allow pks.
                 },
             ],
         }
@@ -176,9 +170,6 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
             post_data,
             format='json',
         )
-
-        import pdb
-        pdb.set_trace()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -601,3 +592,41 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)  # Make sure we actually changed the data.
         self.assertCountEqual(self.vd_1.supplementaryvalue_set.all(), [])  # The list should be empty.
         self.assertFalse(self.vd_1.supplementaryvalue_set.all())
+
+    def test_reversion_object_created_during_update_api_calls(self):
+
+        put_data = {
+            "name": "My updated TEST DE",
+            "definition": "Yeah 222!",
+            "workgroup": self.wg.id,
+            "references": "This has been changed",
+            "origin_URI": "https://duckduckgo.com/",
+            "origin": "string",
+            "comments": "string",
+            "slots": [
+                {
+                    "name": "The cool slot name",
+                    "value": "Yay!",
+                    "order": 0,
+                    "permission": 0
+                }
+            ]
+        }
+
+        self.client.put(
+            reverse(
+                'api_v4:metadata:retrieve_update_metadata_endpoint_dataelement',
+                kwargs={"item_uuid": self.de.uuid}
+            ),
+            put_data,
+            format='json',
+        )
+
+        from reversion.models import Revision
+        last_revision = Revision.objects.last()
+
+        self.assertEqual(
+            last_revision.comment,
+            'Changed name, definition, workgroup, user, references, origin URI, origin, comments and slot.'
+        )
+        self.assertEqual(last_revision.user, self.su)

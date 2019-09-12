@@ -7,7 +7,7 @@ from django.core.serializers.base import DeserializedObject, build_instance
 from django.apps import apps
 from django.db import DEFAULT_DB_ALIAS
 from django.utils.translation import ugettext_lazy as _
-
+import reversion
 
 from aristotle_mdr.models import (
     aristotleComponent
@@ -16,6 +16,7 @@ from aristotle_mdr.contrib.serializers.utils import (
     get_comet_field_serializer_mapping,
     get_dse_field_serializer_mapping,
     get_aristotle_ontology_serializer_mapping,
+    construct_change_message_for_validated_data,
 )
 from aristotle_mdr.contrib.serializers.concept_general_field_subserializers import (
     IdentifierSerializer,
@@ -81,11 +82,22 @@ class ConceptBaseSerializer(WritableNestedModelSerializer):
                             raise serializers.ValidationError(msg, code='Aristotle API Request Error')
         return attrs
 
+    @reversion.create_revision()
+    def update(self, instance, validated_data):
+        request = self.context.get("request")
+        reversion.set_user(request.user)
+        reversion.set_comment(construct_change_message_for_validated_data(validated_data, type(self.instance)))
+        return super().update(instance, validated_data)
+
     def create(self, validated_data):
         request = self.context.get("request")
         if request and hasattr(request, "user"):
             user = request.user
-            validated_data["submitter"] = user
+            if user.is_authenticated:
+                validated_data["submitter"] = user
+            else:
+                msg = _('In order to create metadata using a post request, a user needs to be authenticated.')
+                raise serializers.ValidationError(msg, code='Aristotle API Request Error')
         return super().create(validated_data)
 
 
