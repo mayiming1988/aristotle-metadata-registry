@@ -101,11 +101,27 @@ class TestCustomFieldsMigration(MigrationsTestCase, TestCase):
             allowed_model=None
         )
 
+        self.collided_field_1 = CustomField.objects.create(
+            order=3,
+            name='Collision',
+            type='str',
+            help_text='Colliding error 1',
+            allowed_model=object_class_ct
+        )
+
+        self.collided_field_2 = CustomField.objects.create(
+            order=4,
+            name='Collision',
+            type='str',
+            help_text='Colliding error 2',
+            allowed_model=object_class_ct
+        )
+
     def test_migration(self):
         CustomField = self.apps.get_model("aristotle_mdr_custom_fields", 'CustomField')
 
         # Test that all Custom Fields came across
-        self.assertEqual(CustomField.objects.all().count(), 3)
+        self.assertEqual(CustomField.objects.all().count(), 5)
 
         # Test that system names were set correctly for Object Class Custom Fields
         oc_field_1 = CustomField.objects.get(pk=self.object_class_custom_field.pk)
@@ -119,7 +135,8 @@ class TestCustomFieldsMigration(MigrationsTestCase, TestCase):
         self.assertEqual(general_field.system_name, 'all:ageneralcustomfield')
 
         # Test that collisions are saved correctly
-        collided_field_1 = CustomField.objects.get(pk=)
+        collided_field_2 = CustomField.objects.get(pk=self.collided_field_2.pk)
+        self.assertRegex(collided_field_2.system_name, r'\d')
 
 
 class TestSynonymMigration(MigrationsTestCase, TestCase):
