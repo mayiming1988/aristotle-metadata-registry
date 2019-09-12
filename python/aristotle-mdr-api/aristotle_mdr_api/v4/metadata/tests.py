@@ -627,6 +627,6 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
 
         self.assertEqual(
             last_revision.comment,
-            'Changed name, definition, workgroup, user, references, origin URI, origin, comments and slot.'
+            'Changed name, definition, workgroup, references, origin URI, origin, comments and slot.'
         )
         self.assertEqual(last_revision.user, self.su)

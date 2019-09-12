@@ -69,6 +69,9 @@ def construct_change_message_for_validated_data(validated_data, model=None):
     """
     This function returns the string representation of the modified fields from an API serialized data.
     Particularly useful in update() functions of Serializers.
+
+    The change message returned by this function ignores the item submitter.
+
     :param validated_data: Dictionary containing field names as keys and changed values.
     :param model: Model from which the fields' verbose names will be retrieved.
     :return: String. Description of the modified fields of a serializer's validated data.
@@ -76,8 +79,12 @@ def construct_change_message_for_validated_data(validated_data, model=None):
 
     change_message = ""
     fields_verbose_names = []
+    field_names_list = list(validated_data.keys())
 
-    for field_name in validated_data.keys():
+    if 'submitter' in field_names_list:  # We don't need the `user` field in our change message.
+        field_names_list.remove('submitter')
+
+    for field_name in field_names_list:
         field = model._meta.get_field(field_name)
         if field.is_relation:
             fields_verbose_names.append(field.related_model._meta.verbose_name.lower())

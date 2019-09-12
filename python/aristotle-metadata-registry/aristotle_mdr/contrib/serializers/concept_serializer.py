@@ -82,23 +82,24 @@ class ConceptBaseSerializer(WritableNestedModelSerializer):
                             raise serializers.ValidationError(msg, code='Aristotle API Request Error')
         return attrs
 
+    def create(self, validated_data):
+        request = self.context.get("request")
+        if request and hasattr(request, "user"):
+            user = request.user
+            if user.is_authenticated:
+                if request.method == 'POST':  # Assign a submitter user only if the item has been created.
+                    validated_data["submitter"] = user
+            else:
+                msg = _('In order to create or update metadata, a user needs to be authenticated.')
+                raise serializers.ValidationError(msg, code='Aristotle API Request Error')
+        return super().create(validated_data)
+
     @reversion.create_revision()
     def update(self, instance, validated_data):
         request = self.context.get("request")
         reversion.set_user(request.user)
         reversion.set_comment(construct_change_message_for_validated_data(validated_data, type(self.instance)))
         return super().update(instance, validated_data)
-
-    def create(self, validated_data):
-        request = self.context.get("request")
-        if request and hasattr(request, "user"):
-            user = request.user
-            if user.is_authenticated:
-                validated_data["submitter"] = user
-            else:
-                msg = _('In order to create metadata using a post request, a user needs to be authenticated.')
-                raise serializers.ValidationError(msg, code='Aristotle API Request Error')
-        return super().create(validated_data)
 
 
 class ConceptSerializerFactory:
