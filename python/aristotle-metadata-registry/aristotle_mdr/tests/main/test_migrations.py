@@ -7,6 +7,7 @@ from aristotle_mdr.utils import migrations as migration_utils
 from django.test import TestCase, tag
 from django.apps import apps as current_apps
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from unittest import skip
 
@@ -62,12 +63,53 @@ class TestUtils(TestCase):
         self.assertEqual(oc1.version, '2.222')
 
 
+class TestCustomFieldsMigration(MigrationsTestCase, TestCase):
+    """Test that the addition of the unique system_name field, and the
+       generation of the system_name is working effectively """
+    app = 'aristotle_mdr_custom_fields'
+
+    migrate_from = '0010_customfield_system_name'
+    migrate_to = '0011_customfield_generate_system_name'
+
+    def setUpBeforeMigration(self, apps):
+        # Create two standard custom fields
+        CustomField = apps.get_model('aristotle_mdr_custom_fields', 'customfield')
+        ContentType = apps.get_model('contenttypes', 'ContentType')
+
+        object_class_ct = ContentType.objects.get(app_label='aristotle_mdr', model='objectclass')
+
+        # Object Class Custom Fields with no collisions
+        self.object_class_custom_field = CustomField.objects.create(order=0,
+                                                                    name='A Boring Custom Field',
+                                                                    type='str',
+                                                                    help_text='Very boring with no collisions',
+                                                                    allowed_model=object_class_ct,
+                                                                    )
+
+        self.object_class_custom_field_2 = CustomField.objects.create(order=1,
+                                                                      name='A Very Boring Custom Field',
+                                                                      type='str',
+                                                                      help_text='Very boring with no collisions',
+                                                                      allowed_model=object_class_ct)
+
+    def test_migration(self):
+        CustomField = self.apps.get_model("aristotle_mdr_custom_fields", 'CustomField')
+
+        # Test that all Custom Fields came across
+        self.assertEqual(CustomField.objects.all().count(), 2)
+
+        # Test that system names were set correctly for Object Class Custom Fields
+        custom_field_1 = CustomField.objects.get(pk=self.object_class_custom_field)
+        self.assertEqual(custom_field_1.system_name, 'objectclass:aboringcustomfield')
+
+
 class TestSynonymMigration(MigrationsTestCase, TestCase):
 
     migrate_from = '0023_auto_20180206_0332'
     migrate_to = '0024_synonym_data_migration'
 
     def setUpBeforeMigration(self, apps):
+
         objectclass = apps.get_model('aristotle_mdr', 'ObjectClass')
 
         self.oc1 = objectclass.objects.create(
@@ -92,38 +134,10 @@ class TestSynonymMigration(MigrationsTestCase, TestCase):
         self.assertEqual(syn_slot.concept.definition, self.oc1.definition)
         self.assertEqual(syn_slot.value, 'great')
 
-#class TestSynonymMigrationReverse(MigrationsTestCase, TestCase):
-#
-#    migrate_from = '0024_synonym_data_migration'
-#    migrate_to = '0023_auto_20180206_0332'
-#
-#    def setUpBeforeMigration(self, apps):
-#        objectclass = apps.get_model('aristotle_mdr', 'ObjectClass')
-#        slot = apps.get_model('aristotle_mdr_slots', 'Slot')
-#
-#        self.oc = objectclass.objects.create(
-#            name='Test OC',
-#            definition='Test Definition',
-#            synonyms='great'
-#        )
-#
-#        self.slot = slot.objects.create(
-#            name='Synonyms',
-#            concept=self.oc,
-#            value='amazing'
-#        )
-#
-#    def test_migration(self):
-#
-#        objectclass = self.apps.get_model('aristotle_mdr', 'ObjectClass')
-#
-#        oc = objectclass.objects.get(pk=self.oc.pk)
-#        self.assertEqual(oc.synonyms, 'amazing')
 
 class TestDedMigration(MigrationsTestCase, TestCase):
 
     migrate_from = '0026_auto_20180411_2323'
-    #migrate_to = '0028_replace_old_ded_through'
     migrate_to = '0027_add_ded_through_models'
 
     def setUpBeforeMigration(self, apps):
@@ -289,6 +303,7 @@ class TestSupersedingMigration(MigrationsTestCase, TestCase):
             registrationDate=timezone.now().date(),
             state=STATES.standard,
         )
+
     def test_migration(self):
         objectclass = self.apps.get_model('aristotle_mdr', 'ObjectClass')
         self.oc_new = objectclass.objects.get(name='A newer OC')

@@ -9,6 +9,10 @@ def get_system_name(allowed_model, name) -> str:
         allowed_model = 'all'
 
     allowed_model = str(allowed_model).replace(' ', '')
+
+    # Make the name lowercase and strip spaces
+    name = name.replace(" ", "").lower()
+
     system_name = '{namespace}:{name}'.format(namespace=allowed_model,
                                               name=name)
     return system_name
@@ -36,11 +40,19 @@ def generate_system_name(apps, schema_editor):
             custom_field.save()
 
 
+def remove_system_name(apps, schema_editor):
+    CustomField = apps.get_model('aristotle_mdr_custom_fields', 'CustomField')
+
+    for custom_field in CustomField.objects.all():
+        custom_field.system_name = ''
+        custom_field.save()
+
+
 class Migration(migrations.Migration):
     dependencies = [
         ('aristotle_mdr_custom_fields', '0010_customfield_system_name'),
     ]
 
     operations = [
-        migrations.RunPython(generate_system_name, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(generate_system_name, remove_system_name),
     ]

@@ -6,7 +6,9 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('aristotle_mdr', '0073_auto_20190814_1520'),
         ('aristotle_mdr_custom_fields', '0009_auto_20190809_1233'),
+
     ]
 
     operations = [
