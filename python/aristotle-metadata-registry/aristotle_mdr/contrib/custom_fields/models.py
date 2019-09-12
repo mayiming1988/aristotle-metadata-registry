@@ -23,9 +23,9 @@ class CustomField(TimeStampedModel):
     type = models.CharField(max_length=10, choices=type_choices)
     # A unique name used in identifying custom fields in the database in a meaningful way
     system_name = models.CharField(max_length=1000,
-                                   null=True,
                                    unique=True,
-                                   help_text='A name used for uniquely identifying the custom field')
+                                   help_text='A name used for uniquely identifying the custom field',
+                                   default='')
 
     # Optional
     help_text = models.CharField(max_length=1000, blank=True)
