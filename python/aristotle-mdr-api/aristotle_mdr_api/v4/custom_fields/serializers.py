@@ -21,13 +21,19 @@ class CustomFieldSerializer(serializers.ModelSerializer):
         return representation
 
     def validate(self, data):
+        system_name = self.get_namespaced_system_name(data)
         if 'id' not in data:
             # It's a newly created instance
-            system_name = self.get_namespaced_system_name(data)
             if CustomField.objects.filter(system_name=system_name).count() > 0:
                 raise serializers.ValidationError(
                     'System name {} is not unique. Please choose another'.format(data['system_name']
                 ))
+        else:
+            system_names = [initial_dict['system_name'] for initial_dict in self.initial_data]
+            if len(system_names) != len(set(system_names)):
+                raise serializers.ValidationError("There are duplicated system names. "
+                                                  "Please double check your system names")
+
         return data
 
     def get_namespaced_system_name(self, validated_data):
