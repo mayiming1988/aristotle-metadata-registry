@@ -1,3 +1,4 @@
+import reversion
 import json as JSON
 from rest_framework import serializers
 from drf_writable_nested import WritableNestedModelSerializer
@@ -7,7 +8,6 @@ from django.core.serializers.base import DeserializedObject, build_instance
 from django.apps import apps
 from django.db import DEFAULT_DB_ALIAS
 from django.utils.translation import ugettext_lazy as _
-import reversion
 
 from aristotle_mdr.models import (
     aristotleComponent
@@ -33,6 +33,7 @@ from aristotle_mdr.contrib.serializers.concept_spcific_field_subserializers impo
     DedDerivesThroughSerializer,
     RelationRoleSerializer,
 )
+from aristotle_mdr.required_settings import ARISTOTLE_SETTINGS
 from typing import Tuple
 import logging
 
@@ -82,11 +83,14 @@ class ConceptBaseSerializer(WritableNestedModelSerializer):
                             raise serializers.ValidationError(msg, code='Aristotle API Request Error')
         return attrs
 
+    @reversion.create_revision()
     def create(self, validated_data):
         request = self.context.get("request")
         if request and hasattr(request, "user"):
             user = request.user
             if user.is_authenticated:
+                reversion.revisions.set_user(user)
+                reversion.revisions.set_comment("Added via {} API.".format(ARISTOTLE_SETTINGS['SITE_NAME']))
                 if request.method == 'POST':  # Assign a submitter user only if the item has been created.
                     validated_data["submitter"] = user
             else:

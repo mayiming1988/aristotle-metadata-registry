@@ -118,6 +118,19 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(self.user, mdr_models.ValueDomain.objects.last().submitter)
 
+    def test_reversion_object_created_during_update_api_calls_with_put_request(self):
+
+        self.create_value_domain_with_post_request()
+
+        from reversion.models import Revision
+        last_revision = Revision.objects.last()
+
+        self.assertEqual(
+            last_revision.comment,
+            'Added via Aristotle API.'
+        )
+        self.assertEqual(last_revision.user, self.user)
+
     def test_api_list_or_create_metadata_post_request_cannot_accept_ids_or_pks_inside_subcomponents(self):
 
         sv_1 = mdr_models.SupplementaryValue.objects.create(
@@ -593,7 +606,7 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
         self.assertCountEqual(self.vd_1.supplementaryvalue_set.all(), [])  # The list should be empty.
         self.assertFalse(self.vd_1.supplementaryvalue_set.all())
 
-    def test_reversion_object_created_during_update_api_calls(self):
+    def test_reversion_object_created_during_update_api_calls_with_put_request(self):
 
         put_data = {
             "name": "My updated TEST DE",
