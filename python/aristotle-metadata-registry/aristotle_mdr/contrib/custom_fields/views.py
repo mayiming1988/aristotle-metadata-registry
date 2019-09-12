@@ -80,7 +80,7 @@ class CustomFieldEditCreateView(IsSuperUserMixin, VueFormView):
         mapping = get_content_type_to_concept_name()
         if metadata_type in mapping:
             return mapping[metadata_type]
-        return ''
+        return 'All Models'
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data()

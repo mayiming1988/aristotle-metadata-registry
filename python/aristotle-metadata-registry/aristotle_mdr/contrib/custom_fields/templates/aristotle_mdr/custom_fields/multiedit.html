@@ -2,23 +2,28 @@
 {% load render_bundle from webpack_loader %}
 
 {% block webpack_bundle %}
-    {% render_bundle 'custom_field_edit' 'js' %}
+{% render_bundle 'custom_field_edit' 'js' %}
 {% endblock %}
 
 {% block webpack_css_bundle %}
-    {% render_bundle 'custom_field_edit' 'css' %}
+{% render_bundle 'custom_field_edit' 'css' %}
 {% endblock %}
 
 {% block page %}
-    <h1>Edit Custom Fields for {{ edited_model }}</h1>
-    <div id="vue-container">
-        <formset
-                data-fields="{{ vue_fields }}"
-                data-allowed="{{ vue_allowed_models }}"
-                data-initial="{{ vue_initial }}"
-                data-dont-submit="{{ vue_dont_submit }}"
-                url="{% url 'api_v4:custom_field_list' %}"
-                :show-delete="false">
-        </formset>
-    </div>
+<h1>Edit Custom Fields for {{ edited_model }}</h1>
+<div class="alert alert-warning">
+    If you are adding a Custom Field for a particular model, you must select the correct allowed model.
+</div>
+<hr>
+<div id="vue-container">
+    <formset
+            data-fields="{{ vue_fields }}"
+            data-allowed="{{ vue_allowed_models }}"
+            data-initial="{{ vue_initial }}"
+            data-dont-submit="{{ vue_dont_submit }}"
+            url="{% url 'api_v4:custom_field_list' %}"
+            :show-delete="false">
+    </formset>
+</div>
+
 {% endblock %}

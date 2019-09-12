@@ -2,16 +2,16 @@ from rest_framework.test import APIClient
 from django.test import TestCase, tag
 from django.urls import reverse
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 
 from aristotle_mdr import models as mdr_models
-from aristotle_mdr.models import ObjectClass
 from aristotle_mdr.contrib.issues import models
 from aristotle_mdr.contrib.custom_fields import models as cf_models
-from aristotle_mdr.contrib.favourites.models import Tag, Favourite
-from aristotle_mdr.contrib.favourites.tests import BaseFavouritesTestCase
+from aristotle_mdr.contrib.favourites.models import Tag
 from aristotle_mdr_api.token_auth.models import AristotleToken
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -70,7 +70,6 @@ class BaseAPITestCase(TestCase):
 
 
 class IssueEndpointsTestCase(BaseAPITestCase):
-
     def setUp(self):
         super().setUp()
         self.item = mdr_models.ObjectClass.objects.create(
@@ -93,14 +92,12 @@ class IssueEndpointsTestCase(BaseAPITestCase):
         return response
 
     def test_create_issue_own_item(self):
-
         self.login_user()
         response = self.post_issue(self.item)
 
         self.assertEqual(response.status_code, 201)
 
     def test_create_issue_non_owned_item(self):
-
         self.login_user()
         item = mdr_models.ObjectClass.objects.create(
             name='New API Request',
@@ -114,7 +111,6 @@ class IssueEndpointsTestCase(BaseAPITestCase):
 
     @tag('issue_comment')
     def test_create_issue_comment(self):
-
         self.login_user()
         issue = self.create_test_issue()
 
@@ -232,18 +228,22 @@ class IssueEndpointsTestCase(BaseAPITestCase):
 
 
 class CustomFieldsTestCase(BaseAPITestCase):
+    def setUp(self):
+        super().setUp()
 
     def create_test_fields(self):
         cf1 = cf_models.CustomField.objects.create(
             order=1,
             name='Spiciness',
             type='int',
+            system_name='spiciness',
             help_text='The Spiciness'
         )
         cf2 = cf_models.CustomField.objects.create(
             order=2,
             name='Blandness',
             type='int',
+            system_name='blandness',
             help_text='The Blandness'
         )
         return [cf1.id, cf2.id]
@@ -262,8 +262,8 @@ class CustomFieldsTestCase(BaseAPITestCase):
     def test_creation_of_multiple_custom_fields(self):
         self.login_superuser()
         postdata = [
-            {'order': 1, 'name': 'Spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
-            {'order': 2, 'name': 'Blandness', 'type': 'int', 'help_text': 'The Blandness'}
+            {'order': 1, 'name': 'Spiciness', 'system_name': 'spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
+            {'order': 2, 'name': 'Blandness', 'system_name': 'blandness', 'type': 'int', 'help_text': 'The Blandness'}
         ]
 
         response = self.client.post(
@@ -279,8 +279,8 @@ class CustomFieldsTestCase(BaseAPITestCase):
     def test_multiple_create_as_standard_user(self):
         self.login_user()
         postdata = [
-            {'order': 1, 'name': 'Spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
-            {'order': 2, 'name': 'Blandness', 'type': 'int', 'help_text': 'The Blandness'}
+            {'order': 1, 'name': 'Spiciness', 'system_name': 'spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
+            {'order': 2, 'name': 'Blandness', 'system_name': 'blandness', 'type': 'int', 'help_text': 'The Blandness'}
         ]
 
         response = self.client.post(
@@ -295,8 +295,10 @@ class CustomFieldsTestCase(BaseAPITestCase):
         self.login_superuser()
 
         postdata = [
-            {'id': ids[0], 'order': 1, 'name': 'Spic', 'type': 'int', 'help_text': 'The Spiciness'},
-            {'id': ids[1], 'order': 2, 'name': 'Bland', 'type': 'int', 'help_text': 'The Blandness'}
+            {'id': ids[0], 'order': 1, 'name': 'Spic', 'system_name': 'spicy', 'type': 'int',
+             'help_text': 'The Spiciness'},
+            {'id': ids[1], 'order': 2, 'name': 'Bland', 'type': 'int', 'system_name': 'bland',
+             'help_text': 'The Blandness'}
         ]
 
         response = self.client.post(
@@ -314,8 +316,10 @@ class CustomFieldsTestCase(BaseAPITestCase):
         self.login_superuser()
 
         postdata = [
-            {'id': ids[0], 'order': 2, 'name': 'Spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
-            {'id': ids[1], 'order': 1, 'name': 'Blandness', 'type': 'int', 'help_text': 'The Blandness'}
+            {'id': ids[0], 'order': 2, 'name': 'Spiciness', 'system_name': 'spiciness', 'type': 'int',
+             'help_text': 'The Spiciness'},
+            {'id': ids[1], 'order': 1, 'name': 'Blandness', 'type': 'int', 'system_name': 'blandness',
+             'help_text': 'The Blandness'}
         ]
         response = self.client.post(
             reverse('api_v4:custom_field_list'),
@@ -331,10 +335,11 @@ class CustomFieldsTestCase(BaseAPITestCase):
         ids = self.create_test_fields()
         self.login_superuser()
 
-
         postdata = [
-            {'id': ids[0], 'order': 1, 'name': 'Blandness', 'type': 'int', 'help_text': 'The Spiciness'},
-            {'id': ids[1], 'order': 2, 'name': 'Blandness_old', 'type': 'int', 'help_text': 'The Blandness'}
+            {'id': ids[0], 'order': 1, 'name': 'Blandness', 'system_name': 'spiciness', 'type': 'int',
+             'help_text': 'The Spiciness'},
+            {'id': ids[1], 'order': 2, 'name': 'Blandness_old', 'system_name': 'blandness', 'type': 'int',
+             'help_text': 'The Blandness'}
         ]
         response = self.client.post(
             reverse('api_v4:custom_field_list'),
@@ -348,7 +353,8 @@ class CustomFieldsTestCase(BaseAPITestCase):
         self.login_superuser()
 
         postdata = [
-            {'id': ids[0], 'order': 1, 'name': 'Spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
+            {'id': ids[0], 'order': 1, 'name': 'Spiciness', 'system_name': 'spiciness', 'type': 'int',
+             'help_text': 'The Spiciness'},
         ]
 
         response = self.client.post(
@@ -359,7 +365,7 @@ class CustomFieldsTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(cf_models.CustomField.objects.count(), 2)
 
-    def test_creation_of_two_fields_with_same_allowed_model_and_same_unique_name_fails(self):
+    def test_creation_of_two_fields_with_no_allowed_model_and_same_unique_name_fails(self):
         """Test that the creation of two custom fields with the same allowed model and the same
            unique name is blocked"""
         ids = self.create_test_fields()
@@ -369,6 +375,44 @@ class CustomFieldsTestCase(BaseAPITestCase):
             {'id': ids[0], 'order': 1, 'name': 'Spiciness', 'unique_name': 'spiciness', 'type': 'int'},
             {'id': ids[1], 'order': 2, 'name': 'Blandness', 'unique_name': 'spiciness', 'type': 'int'}
         ]
+
+        response = self.client.post(
+            reverse('api_v4:custom_field_list'),
+            postdata,
+            format='json'
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_creating_custom_fields_with_same_system_name_but_different_allowed_models_succeeds(self):
+        """Test that creating a custom field the same system_name
+        but different allowed models is successfully namespaced"""
+        self.login_superuser()
+
+        object_class_ct = ContentType.objects.get_for_model(mdr_models.ObjectClass).pk
+        data_element_ct = ContentType.objects.get_for_model(mdr_models.DataElement).pk
+
+        postdata = [
+            {'order': 1, 'name': 'Spiciness', 'system_name': 'spiciness', 'allowed_model': object_class_ct,
+             'type': 'int', 'help_text': 'The Spiciness'},
+            {'order': 2, 'name': 'Spiciness', 'system_name': 'spiciness', 'allowed_model': data_element_ct,
+             'type': 'int', 'help_text': 'The Spiciness'}
+        ]
+
+        response = self.client.post(
+            reverse('api_v4:custom_field_list'),
+            postdata,
+            format='json'
+        )
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(cf_models.CustomField.objects.all().count(), 2)
+
+        # Check that the system names are set correctly in the database
+        custom_field_1 = cf_models.CustomField.objects.get(name='Spiciness', allowed_model=object_class_ct)
+        self.assertEqual(custom_field_1.system_name, 'objectclass:spiciness')
+
+        custom_field_2 = cf_models.CustomField.objects.get(name='Spiciness', allowed_model=data_element_ct)
+        self.assertEqual(custom_field_2.system_name, 'dataelement:spiciness')
 
 
 @tag('perms')
@@ -407,7 +451,6 @@ class PermsTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_get_issue_not_allowed(self):
-
         self.login_other_user()
         response = self.client.get(
             reverse('api_v4:issues:issue', args=[self.issue.pk]),

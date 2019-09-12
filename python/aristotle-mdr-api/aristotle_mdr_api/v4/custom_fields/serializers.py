@@ -72,6 +72,8 @@ class CustomFieldSerializer(serializers.ModelSerializer):
         instance.type = validated_data.get('type', instance.type)
         instance.visibility = validated_data.get('visibility', instance.visibility)
         instance.state = validated_data.get('state', instance.state)
+        instance.help_text = validated_data.get('help_text', instance.help_text)
+        instance.help_text_long = validated_data.get('help_text_long', instance.help_text_long)
         instance.choices = validated_data.get('choices', instance.choices)
         instance.system_name = self.get_namespaced_system_name(validated_data)
 
