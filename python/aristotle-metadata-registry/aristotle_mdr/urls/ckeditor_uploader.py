@@ -5,6 +5,6 @@ from django.views.decorators.cache import never_cache
 from ckeditor_uploader import views
 
 urlpatterns = [
-    path(r'^upload/', login_required(views.upload), name='ckeditor_upload'),
-    path(r'^browse/', never_cache(login_required(views.browse)), name='ckeditor_browse'),
+    path('upload/', login_required(views.upload), name='ckeditor_upload'),
+    path('browse/', never_cache(login_required(views.browse)), name='ckeditor_browse'),
 ]
