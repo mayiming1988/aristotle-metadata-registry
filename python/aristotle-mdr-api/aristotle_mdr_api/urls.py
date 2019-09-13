@@ -1,5 +1,4 @@
 from django.urls import re_path, include
-from django.utils.module_loading import import_string
 from .views import APIRootView
 # from rest_framework.authtoken import views as tokenviews
 
