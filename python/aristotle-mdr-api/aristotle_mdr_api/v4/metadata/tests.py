@@ -67,6 +67,10 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
     def setUp(self):
         super().setUp()
 
+        from aristotle_dse.models import DataSetSpecification, Dataset
+        from aristotle_mdr.contrib.identifiers.models import Namespace
+        from comet.models import QualityStatement
+
         self.value_domain_1 = mdr_models.ValueDomain.objects.create(
             name='Test Value Domain 1',
             definition='VD Definition',
@@ -87,6 +91,48 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
         self.custom_field_2 = CustomField.objects.create(
             name="Test CustomField",
             order=2,
+        )
+
+        self.de1 = mdr_models.DataElement.objects.create(
+            name="My DE 1",
+            definition="My Def 1",
+            workgroup=self.wg,
+        )
+
+        self.de2 = mdr_models.DataElement.objects.create(
+            name="My DE 2",
+            definition="My Def 2",
+            workgroup=self.wg,
+        )
+
+        self.oc = mdr_models.ObjectClass.objects.create(
+            name='Test Object Class',
+            definition='Test Defn',
+            workgroup=self.wg
+        )
+
+        self.dss = DataSetSpecification.objects.create(
+            name="My DSS",
+            definition="My definition",
+        )
+
+        self.qs = QualityStatement.objects.create(
+            name="My Test QS",
+            definition="My QS definition.",
+        )
+
+        self.ds = Dataset.objects.create(
+            name="My DS",
+            definition="MY DS definition."
+        )
+
+        self.org_record = mdr_models.OrganizationRecord.objects.create(
+            stewardship_organisation=self.so,
+        )
+
+        self.namespace = Namespace.objects.create(
+            shorthand_prefix="Hello world",
+            stewardship_organisation=self.so,
         )
 
         self.login_user()
@@ -333,29 +379,6 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
 
         from aristotle_dse.models import DataSetSpecification
 
-        de1 = mdr_models.DataElement.objects.create(
-            name="My DE 1",
-            definition="My Def 1",
-            workgroup=self.wg,
-        )
-
-        de2 = mdr_models.DataElement.objects.create(
-            name="My DE 2",
-            definition="My Def 2",
-            workgroup=self.wg,
-        )
-
-        oc = mdr_models.ObjectClass.objects.create(
-            name='Test Object Class',
-            definition='Test Defn',
-            workgroup=self.wg
-        )
-
-        dss = DataSetSpecification.objects.create(
-            name="My DSS",
-            definition="My definition",
-        )
-
         post_data = {
             "name": "Test DSS",
             "definition": "This is my definition",
@@ -377,10 +400,10 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
                     "specific_information": "This is my specific info.",
                     "conditional_inclusion": "Conditional inclusion",
                     "order": 0,
-                    "data_element": de1.id,
+                    "data_element": self.de1.id,
                     "group": None,
                     "specialisation_classes": [
-                        oc.id,
+                        self.oc.id,
                     ]
                 },
                 {
@@ -390,10 +413,10 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
                     "specific_information": "Specific info",
                     "conditional_inclusion": "My conditional inclusion.",
                     "order": 1,
-                    "data_element": de2.id,
+                    "data_element": self.de2.id,
                     "group": None,
                     "specialisation_classes": [
-                        oc.id,
+                        self.oc.id,
                     ]
                 },
             ],
@@ -405,7 +428,7 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
                     "specific_information": "",
                     "conditional_inclusion": "Conditional Incl",
                     "order": 2,
-                    "child": dss.id
+                    "child": self.dss.id
                 }
             ],
             "slots": [],
@@ -436,6 +459,94 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(len(response.data['dssclusterinclusion_set']), 1)  # We have 1 dss cluster inclusion objects.
         self.assertEqual(len(response.data['customvalue_set']), 2)  # We have 2 custom value objects.
         self.assertEqual(post_data['name'], DataSetSpecification.objects.last().name)  # DSS is in db.
+
+    def test_api_list_or_create_metadata_post_request_for_indicator_with_subcomponents(self):
+
+        post_data = {
+            "name": "my Test Indicator",
+            "definition": "This is my Indicator Definition.",
+            "workgroup": self.wg.id,
+            "version": "v 1.1.0",
+            "references": "My references",
+            "origin_URI": "https://duckduckgo.com/",
+            "origin": "my origin",
+            "comments": "my comments",
+            "computation_description": "my computation description.",
+            "computation": "my computation.",
+            "numerator_description": "This is the description of my Numerator.",
+            "denominator_description": "This is the description of my denominator.",
+            "disaggregation_description": "This is the disaggregation.",
+            "quality_statement": self.qs.id,
+            "rationale": "My rationale",
+            "benchmark": "My benchmark",
+            "reporting_information": "My reporting information.",
+            "indicatornumeratordefinition_set": [
+                {
+                    "order": 0,
+                    "guide_for_use": "Guide for use 1",
+                    "description": "Description of guide for use.",
+                    "data_element": self.de1.id,
+                    "data_set_specification": self.dss.id,
+                    "data_set": self.ds.id,
+                }
+            ],
+            "indicatordenominatordefinition_set": [
+                {
+                    "order": 0,
+                    "guide_for_use": "Guide for use 2",
+                    "description": "Description",
+                    "data_element": self.de1.id,
+                    "data_set_specification": self.dss.id,
+                    "data_set": self.ds.id,
+                }
+            ],
+            "indicatordisaggregationdefinition_set": [
+                {
+                    "order": 0,
+                    "guide_for_use": "Guide for use.",
+                    "description": "Description.",
+                    "data_element": self.de2.id,
+                    "data_set_specification": self.dss.id,
+                    "data_set": self.ds.id,
+                }
+            ],
+            "slots": [
+                {
+                    "name": "Test slot",
+                    "value": "value",
+                    "order": 0,
+                    "permission": 0
+                }
+            ],
+            "customvalue_set": [
+                {
+                    "field": self.custom_field_1.id,
+                    "content": "string"
+                }
+            ],
+            "org_records": [
+                {
+                    "organization_record": self.org_record.id,
+                    "type": "s"
+                }
+            ],
+            "identifiers": [
+                {
+                    "namespace": self.namespace.id,
+                    "identifier": "string",
+                    "version": "string",
+                    "order": 0
+                }
+            ]
+        }
+
+        response = self.client.post(
+            reverse('api_v4:metadata:list_or_create_metadata_endpoint_indicator'),
+            post_data,
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)  # Make sure we actually created data.
 
 
 class UpdateMetadataAPIViewTestCase(BaseAPITestCase):

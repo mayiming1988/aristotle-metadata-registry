@@ -899,9 +899,9 @@ class _concept(baseAristotleObject):
         return self.org_records.all().filter(type='r')
 
     @classmethod
-    def get_autocomplete_name(self):
+    def get_autocomplete_name(cls):
         return 'Autocomplete' + "".join(
-            self._meta.verbose_name.title().split()
+            cls._meta.verbose_name.title().split()
         )
 
     @staticmethod
