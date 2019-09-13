@@ -11,10 +11,12 @@ class CustomFieldSerializer(serializers.ModelSerializer):
     name = serializers.CharField(max_length=1000)
     choices = serializers.CharField(allow_blank=True, default='')
     system_name = serializers.CharField(validators=[])
+    # Remove validators because DRF cannot unique fields with list serializers
 
     already_found_duplicates = False
 
     def to_representation(self, instance) -> str:
+        """Return the cleaned system name for editing in the Vue form"""
         representation = super().to_representation(instance)
         try:
             representation['system_name'] = self.get_cleaned_system_name(representation['system_name'])
@@ -24,6 +26,7 @@ class CustomFieldSerializer(serializers.ModelSerializer):
         return representation
 
     def validate(self, data):
+        """Validate that system name is unique """
         system_name = self.get_namespaced_system_name(data)
 
         if 'id' not in data:
@@ -42,14 +45,15 @@ class CustomFieldSerializer(serializers.ModelSerializer):
 
         return data
 
-    def get_namespaced_system_name(self, validated_data) -> str:
-        system_name = validated_data['system_name']
+    def get_namespaced_system_name(self, data) -> str:
+        """Generate the namespaced system name. Example: datacatalog:guide_for_use"""
+        system_name = data['system_name']
 
-        if 'allowed_model' in validated_data:
-            if validated_data['allowed_model'] is None:
+        if 'allowed_model' in data:
+            if data['allowed_model'] is None:
                 allowed_model = 'all'
             else:
-                allowed_model = validated_data['allowed_model']
+                allowed_model = data['allowed_model']
         else:
             allowed_model = 'all'
 
