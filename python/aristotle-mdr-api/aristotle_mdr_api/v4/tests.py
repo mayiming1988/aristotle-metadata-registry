@@ -228,9 +228,6 @@ class IssueEndpointsTestCase(BaseAPITestCase):
 
 
 class CustomFieldsTestCase(BaseAPITestCase):
-    def setUp(self):
-        super().setUp()
-
     def create_test_fields(self):
         cf1 = cf_models.CustomField.objects.create(
             order=1,
