@@ -262,8 +262,8 @@ class CustomFieldsTestCase(BaseAPITestCase):
     def test_creation_of_multiple_custom_fields(self):
         self.login_superuser()
         postdata = [
-            {'order': 1, 'name': 'Spiciness', 'system_name': 'hotness', 'type': 'int', 'help_text': 'The Spiciness'},
-            {'order': 2, 'name': 'Blandness', 'system_name': 'mildness', 'type': 'int', 'help_text': 'The Blandness'}
+            {'order': 1, 'name': 'Spiciness', 'system_name': 'spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
+            {'order': 2, 'name': 'Blandness', 'system_name': 'blandness', 'type': 'int', 'help_text': 'The Blandness'}
         ]
 
         response = self.client.post(
@@ -414,7 +414,7 @@ class CustomFieldsTestCase(BaseAPITestCase):
         custom_field_2 = cf_models.CustomField.objects.get(name='Spiciness', allowed_model=data_element_ct)
         self.assertEqual(custom_field_2.system_name, 'dataelement:mildness')
 
-    def test_creating_custom_fields_with_same_name_and_allowed_model_fails(self):
+    def test_creating_custom_fields_with_same_system_name_and_allowed_model_fails(self):
         """Test that creating custom fields with same name and allowed_model fails"""
         self.login_superuser()
 
@@ -434,6 +434,23 @@ class CustomFieldsTestCase(BaseAPITestCase):
         )
 
         self.assertEqual(response.status_code, 400)
+
+    def test_creating_custom_field_with_no_system_name_correctly_set_to_all(self):
+        self.login_superuser()
+
+        postdata = [{'order': 1, 'name': 'Spiciness', 'system_name': 'spiciness',
+                     'type': 'int', 'help_text': 'The Spiciness'}]
+
+        response = self.client.post(
+            reverse('api_v4:custom_field_list'),
+            postdata,
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        custom_field_1 = cf_models.CustomField.objects.get(name='Spiciness', allowed_model=None)
+        self.assertEqual(custom_field_1.system_name, 'all:spiciness')
 
 
 @tag('perms')

@@ -14,7 +14,7 @@ class CustomFieldSerializer(serializers.ModelSerializer):
 
     already_found_duplicates = False
 
-    def to_representation(self, instance):
+    def to_representation(self, instance) -> str:
         representation = super().to_representation(instance)
         try:
             representation['system_name'] = self.get_cleaned_system_name(representation['system_name'])
@@ -40,10 +40,9 @@ class CustomFieldSerializer(serializers.ModelSerializer):
                 self.already_found_duplicates = True
                 raise serializers.ValidationError("Duplicated system names {} found!".format(duplicates))
 
-
         return data
 
-    def get_namespaced_system_name(self, validated_data):
+    def get_namespaced_system_name(self, validated_data) -> str:
         system_name = validated_data['system_name']
 
         if 'allowed_model' in validated_data:
@@ -63,15 +62,15 @@ class CustomFieldSerializer(serializers.ModelSerializer):
 
         return system_name
 
-    def get_cleaned_system_name(self, system_name):
+    def get_cleaned_system_name(self, system_name) -> str:
         return system_name.split(':', 1)[-1]  # Remove the namespacing for display in the edit view
 
-    def create(self, validated_data):
+    def create(self, validated_data) -> CustomField:
         validated_data['system_name'] = self.get_namespaced_system_name(validated_data)
 
         return CustomField.objects.create(**validated_data)
 
-    def update(self, instance, validated_data):
+    def update(self, instance, validated_data ) -> CustomField:
         instance.order = validated_data.get('order', instance.order)
         instance.name = validated_data.get('name', instance.name)
         instance.type = validated_data.get('type', instance.type)
