@@ -262,8 +262,8 @@ class CustomFieldsTestCase(BaseAPITestCase):
     def test_creation_of_multiple_custom_fields(self):
         self.login_superuser()
         postdata = [
-            {'order': 1, 'name': 'Spiciness', 'system_name': 'spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
-            {'order': 2, 'name': 'Blandness', 'system_name': 'blandness', 'type': 'int', 'help_text': 'The Blandness'}
+            {'order': 1, 'name': 'Spiciness', 'system_name': 'hotness', 'type': 'int', 'help_text': 'The Spiciness'},
+            {'order': 2, 'name': 'Blandness', 'system_name': 'mildness', 'type': 'int', 'help_text': 'The Blandness'}
         ]
 
         response = self.client.post(
@@ -365,7 +365,7 @@ class CustomFieldsTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(cf_models.CustomField.objects.count(), 2)
 
-    def test_creation_of_two_fields_with_no_allowed_model_and_same_unique_name_fails(self):
+    def test_creating_two_fields_with_no_allowed_model_and_same_unique_name_fails(self):
         """Test that the creation of two custom fields with the same allowed model and the same
            unique name is blocked"""
         ids = self.create_test_fields()
@@ -384,7 +384,7 @@ class CustomFieldsTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_creating_custom_fields_with_same_system_name_but_different_allowed_models_succeeds(self):
-        """Test that creating a custom field the same system_name
+        """Test that creating custom fields with the same system_name
         but different allowed models is successfully namespaced"""
         self.login_superuser()
 
@@ -392,9 +392,9 @@ class CustomFieldsTestCase(BaseAPITestCase):
         data_element_ct = ContentType.objects.get_for_model(mdr_models.DataElement).pk
 
         postdata = [
-            {'order': 1, 'name': 'Spiciness', 'system_name': 'spiciness', 'allowed_model': object_class_ct,
+            {'order': 1, 'name': 'Spiciness', 'system_name': 'mildness', 'allowed_model': object_class_ct,
              'type': 'int', 'help_text': 'The Spiciness'},
-            {'order': 2, 'name': 'Spiciness', 'system_name': 'spiciness', 'allowed_model': data_element_ct,
+            {'order': 2, 'name': 'Spiciness', 'system_name': 'mildness', 'allowed_model': data_element_ct,
              'type': 'int', 'help_text': 'The Spiciness'}
         ]
 
@@ -409,10 +409,31 @@ class CustomFieldsTestCase(BaseAPITestCase):
 
         # Check that the system names are set correctly in the database
         custom_field_1 = cf_models.CustomField.objects.get(name='Spiciness', allowed_model=object_class_ct)
-        self.assertEqual(custom_field_1.system_name, 'objectclass:spiciness')
+        self.assertEqual(custom_field_1.system_name, 'objectclass:mildness')
 
         custom_field_2 = cf_models.CustomField.objects.get(name='Spiciness', allowed_model=data_element_ct)
-        self.assertEqual(custom_field_2.system_name, 'dataelement:spiciness')
+        self.assertEqual(custom_field_2.system_name, 'dataelement:mildness')
+
+    def test_creating_custom_fields_with_same_name_and_allowed_model_fails(self):
+        """Test that creating custom fields with same name and allowed_model fails"""
+        self.login_superuser()
+
+        object_class_ct = ContentType.objects.get_for_model(mdr_models.ObjectClass).pk
+
+        postdata = [
+            {'order': 1, 'name': 'Spiciness', 'system_name': 'spiciness', 'allowed_model': object_class_ct,
+             'type': 'int', 'help_text': 'The Spiciness'},
+            {'order': 2, 'name': 'Spiciness', 'system_name': 'spiciness', 'allowed_model': object_class_ct,
+             'type': 'int', 'help_text': 'The Spiciness'}
+        ]
+
+        response = self.client.post(
+            reverse('api_v4:custom_field_list'),
+            postdata,
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, 400)
 
 
 @tag('perms')

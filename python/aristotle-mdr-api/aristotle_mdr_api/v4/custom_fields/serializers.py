@@ -1,3 +1,4 @@
+from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 
 from aristotle_mdr_api.v4.serializers import MultiUpdateNoDeleteListSerializer
@@ -11,7 +12,7 @@ class CustomFieldSerializer(serializers.ModelSerializer):
     choices = serializers.CharField(allow_blank=True, default='')
     system_name = serializers.CharField(validators=[])
 
-    already_detected_duplicates = False
+    already_found_duplicates = False
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -24,20 +25,21 @@ class CustomFieldSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         system_name = self.get_namespaced_system_name(data)
+
         if 'id' not in data:
-            # It's a newly created instance
+            # It's a newly created instance, check that the newly created instance is not already in database
             if CustomField.objects.filter(system_name=system_name).count() > 0:
                 raise serializers.ValidationError(
-                    'System name {} is not unique. Please choose another.'.format(data['system_name']
-                ))
-        else:
-            if not self.already_detected_duplicates:
-                system_names = [initial_dict['system_name'] for initial_dict in self.initial_data]
-                if len(system_names) != len(set(system_names)):
-                    duplicates = [val for val in system_names if system_names.count(val) > 1]
-                    self.already_detected_duplicates = True
+                    'System name {} is not unique. Please choose another.'.format(data['system_name'])
+                )
+        if not self.already_found_duplicates:
+            system_names = [self.get_namespaced_system_name(initial_dict) for initial_dict in self.initial_data]
+            if len(system_names) != len(set(system_names)):
+                duplicates = [val for val in system_names if system_names.count(val) > 1]
 
-                    raise serializers.ValidationError("Duplicated system names {} found".format(duplicates))
+                self.already_found_duplicates = True
+                raise serializers.ValidationError("Duplicated system names {} found!".format(duplicates))
+
 
         return data
 
@@ -51,6 +53,9 @@ class CustomFieldSerializer(serializers.ModelSerializer):
                 allowed_model = validated_data['allowed_model']
         else:
             allowed_model = 'all'
+
+        if type(allowed_model) == int:
+            allowed_model = ContentType.objects.get(pk=int(allowed_model)).model
 
         allowed_model = str(allowed_model).replace(' ', '')
         system_name = '{namespace}:{system_name}'.format(namespace=allowed_model,

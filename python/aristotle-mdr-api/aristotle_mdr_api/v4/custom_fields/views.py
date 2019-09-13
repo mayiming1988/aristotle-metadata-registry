@@ -24,6 +24,7 @@ class CustomFieldListView(generics.ListAPIView):
     def update(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
+        serializer = None
         serializer = self.get_serializer(queryset, data=request.data, many=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
