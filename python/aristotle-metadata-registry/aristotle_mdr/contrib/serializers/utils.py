@@ -21,13 +21,15 @@ def get_comet_field_serializer_mapping():
             IndicatorDenominatorSerializer,
             IndicatorDisaggregationSerializer,
             IndicatorInclusionSerializer,
+            FrameworkDimensionSerializer,
         )
 
         mapping = {
             'indicatornumeratordefinition_set': IndicatorNumeratorSerializer(many=True),
             'indicatordenominatordefinition_set': IndicatorDenominatorSerializer(many=True),
             'indicatordisaggregationdefinition_set': IndicatorDisaggregationSerializer(many=True),
-            'indicatorinclusion_set': IndicatorInclusionSerializer(many=True)
+            'indicatorinclusion_set': IndicatorInclusionSerializer(many=True),
+            'frameworkdimension_set': FrameworkDimensionSerializer(many=True),
         }
     return mapping
 
