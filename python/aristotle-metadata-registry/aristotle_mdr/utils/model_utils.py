@@ -108,7 +108,9 @@ class baseAristotleObject(TimeStampedModel):
 
 
 class ManagedItem(baseAristotleObject):
-    """Managed items can be published, but not registered"""
+    """
+    Managed items can be published, but not registered
+    """
     class Meta:
         abstract = True
 
