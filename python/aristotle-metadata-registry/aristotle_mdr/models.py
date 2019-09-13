@@ -778,7 +778,7 @@ class _concept(baseAristotleObject):
         exclude = ('_is_public', '_is_locked', '_type')
 
     @classmethod
-    def model_to_publish(self):
+    def model_to_publish(cls):
         return _concept
 
     @classmethod
