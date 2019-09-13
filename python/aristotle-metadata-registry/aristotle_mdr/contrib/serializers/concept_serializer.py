@@ -153,7 +153,7 @@ class ConceptSerializerFactory:
         # Generate metaclass dynamically
         meta_attrs = {'model': concept_class,
                       'fields': included_fields}
-        Meta = type('Meta', tuple(), meta_attrs)
+        meta = type('Meta', tuple(), meta_attrs)
 
         serializer_attrs = {}
         for field_name in concept_relation_fields:
@@ -162,11 +162,10 @@ class ConceptSerializerFactory:
                 serializer = self.field_subserializer_mapping[field_name]
                 serializer_attrs[field_name] = serializer
 
-        serializer_attrs['Meta'] = Meta
+        serializer_attrs['Meta'] = meta
 
         # Generate serializer class dynamically
-        Serializer = type('Serializer', (ConceptBaseSerializer,), serializer_attrs)
-        return Serializer
+        return type('Serializer', (ConceptBaseSerializer,), serializer_attrs)
 
     def get_field_name(self, field) -> str:
         if hasattr(field, 'get_accessor_name'):

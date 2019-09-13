@@ -44,8 +44,8 @@ def get_dse_field_serializer_mapping():
         )
 
         mapping = {
-            'dssdeinclusion_set': DSSDEInclusionSerializer(many=True),
             'dssclusterinclusion_set': DSSClusterInclusionSerializer(many=True),
+            'dssdeinclusion_set': DSSDEInclusionSerializer(many=True),
             'groups': DSSGroupingSerializer(many=True),
             'distributiondataelementpath_set': DistributionDataElementPathSerializer(many=True),
         }

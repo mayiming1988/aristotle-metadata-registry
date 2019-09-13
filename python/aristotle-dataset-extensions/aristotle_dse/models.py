@@ -205,7 +205,7 @@ class DistributionDataElementPath(aristotle.models.aristotleComponent):
 
 
 class DataSetSpecification(aristotle.models.concept):
-    """
+    r"""
     A collection of :model:`aristotle_mdr.DataElement`\s
     specifying the order and fields required for a standardised
     :model:`aristotle_dse.DataSource`.
