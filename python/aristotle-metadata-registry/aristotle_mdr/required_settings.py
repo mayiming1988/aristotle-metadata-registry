@@ -351,7 +351,6 @@ ARISTOTLE_VALIDATORS = {
 
 # Serialization
 SERIALIZATION_MODULES = {'mdrjson': 'aristotle_mdr_api.serializers.idjson',
-                         # Override django-reversion serializer
                          'aristotle_mdr_json': 'aristotle_mdr.contrib.serializers.concept_serializer'}
 
 # Set an environment variable as the default email address to send backend emails for notifications.

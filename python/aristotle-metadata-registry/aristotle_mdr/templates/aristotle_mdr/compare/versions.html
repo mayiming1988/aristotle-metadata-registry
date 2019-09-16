@@ -63,7 +63,11 @@
                     {% firstof version.revision.user.get_full_name  version.revision.user.email %}
                 {% endif %}
             </td>
-            <td>{{version.revision.comment|linebreaks|default:"-"}}</td>
+            <td>
+                {{version.revision.comment|linebreaks|default:"-"}}
+                <span class="badge badge-info">{{ version.format }}</span>
+
+            </td>
             <td>
                 {# Visibility #}
                 {% if user_can_edit %}

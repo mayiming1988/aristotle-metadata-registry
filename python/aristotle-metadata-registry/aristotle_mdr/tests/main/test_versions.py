@@ -607,8 +607,7 @@ class CheckStatusHistoryReversionTests(utils.AristotleTestUtils, TestCase):
 
         response = self.client.get(
             reverse('aristotle:statusHistory', args=[self.status.id, self.object_class.id, self.ra.id]))
-        # import pdb
-        # pdb.set_trace()
+
         self.assertEqual(len(response.context['versions']), 1)
 
     def test_statuses_reversions_list_is_populated_after_creating_reversion(self):
