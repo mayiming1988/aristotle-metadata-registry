@@ -41,7 +41,7 @@ class VersionPermissionsSerializer(serializers.ModelSerializer):
 
     def validate_version_id(self, value):
         if value not in self.context.get('version_ids'):
-            raise serializers.ValidationError()
+            raise serializers.ValidationError("Value not present in version ids")
         return value
 
 
