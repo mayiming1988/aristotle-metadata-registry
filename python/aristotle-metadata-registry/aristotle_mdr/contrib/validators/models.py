@@ -12,8 +12,9 @@ class ValidationRules(models.Model):
 
 
 class RAValidationRules(ValidationRules):
-    registration_authority = models.OneToOneField(
+    registration_authority = models.ForeignKey(
         RegistrationAuthority,
+        unique=True,
         on_delete=models.CASCADE
     )
 
