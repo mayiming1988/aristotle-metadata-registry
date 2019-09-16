@@ -234,11 +234,8 @@ class ListVersionsView(ObjectAPIView):
 
 
 class ListVersionsPermissionsView(ObjectAPIView):
-<<<<<<< HEAD
+
     """List the version permissions of an item"""
-=======
-    " List the version permissions of an item "
->>>>>>> upstream/develop
 
     def get(self, request, *args, **kwargs):
         metadata_item = self.get_object()
