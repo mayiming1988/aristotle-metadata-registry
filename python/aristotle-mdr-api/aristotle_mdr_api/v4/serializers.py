@@ -11,9 +11,10 @@ class MultiUpdateListSerializer(serializers.ListSerializer):
     Needs a non required IntegerField for idA
 
     """
-    perform_create = True
-    perform_delete = True
-    create_if_not_in_db = False
+    perform_create = True # Whether to actually create the item
+    perform_delete = True # Whether to delete the items
+    create_if_not_in_db = False # Whether to create if not in database
+
     lookup_key_flag = 'id'
 
     def update(self, instance: QuerySet, validated_data: Iterable[Dict]):

@@ -3,7 +3,7 @@ import request from 'src/lib/request.js'
 export default {
     data: () => ({
         request_error: '',
-        // Wether to put request error in this.errors
+        // Whether to put request error in this.errors
         combine_errors: true,
         errors: {},
         loading: false,

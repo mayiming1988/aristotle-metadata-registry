@@ -21,7 +21,7 @@
     {% for itemdict in list %}
       <tr>
         {% for attr in itemdict.attrs %}
-          <td>{{ attr }}</td>
+          <td>{{ attr|title }}</td>
         {% endfor %}
         {% if update_url_name %}
           <td><a class="btn btn-primary" href="{% url update_url_name itemdict.pk %}">Update</a></td>

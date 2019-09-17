@@ -4,21 +4,30 @@ Defined as a field by registry administrator
 """
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
+from django.dispatch import receiver
+from django.db.models.signals import pre_save
+
 from model_utils.models import TimeStampedModel
 
 from aristotle_mdr.models import _concept, RichTextField
 from aristotle_mdr.fields import ConceptForeignKey
+from aristotle_mdr.constants import visibility_permission_choices as permission_choices
+
 from aristotle_mdr.contrib.custom_fields.managers import CustomValueManager, CustomFieldManager
 from aristotle_mdr.contrib.custom_fields.types import type_choices
-
 from aristotle_mdr.contrib.custom_fields.constants import CUSTOM_FIELD_STATES
-from aristotle_mdr.constants import visibility_permission_choices as permission_choices
+from aristotle_mdr.contrib.custom_fields.utils import get_system_name, generate_random_unique_characters
 
 
 class CustomField(TimeStampedModel):
     order = models.IntegerField()
     name = models.CharField(max_length=1000)
     type = models.CharField(max_length=10, choices=type_choices)
+    # A unique name used in identifying custom fields in the database in a meaningful way
+    system_name = models.CharField(max_length=1000,
+                                   unique=True,
+                                   help_text='A name used for uniquely identifying the custom field',
+                                   default='')
 
     # Optional
     help_text = models.CharField(max_length=1000, blank=True)
@@ -89,3 +98,15 @@ class CustomValue(TimeStampedModel):
 
     def __str__(self):
         return 'CustomValue with field "{}" for concept "{}"'.format(self.field, self.concept)
+
+
+@receiver(pre_save, sender=CustomField)
+def set_system_name_if_none(sender, instance, **kwargs):
+    if not instance.system_name:
+        system_name = get_system_name(instance.allowed_model, instance.name)
+
+        while CustomField.objects.filter(system_name=system_name).count() != 0:
+            # Ensure that the generated system name is unique
+            system_name = '{system_name}_{random_chars}'.format(system_name=system_name,
+                                                                random_chars=generate_random_unique_characters())
+        instance.system_name = system_name
