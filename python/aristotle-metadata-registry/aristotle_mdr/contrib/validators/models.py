@@ -12,17 +12,16 @@ class ValidationRules(models.Model):
 
 
 class RAValidationRules(ValidationRules):
-    registration_authority = models.ForeignKey(
+    registration_authority = models.OneToOneField(
         RegistrationAuthority,
-        unique=True,
         on_delete=models.CASCADE
     )
 
     def can_view(self, user):
-        return (user in self.registration_authority.managers.all())
+        return user in self.registration_authority.managers.all()
 
     def can_edit(self, user):
-        return (user in self.registration_authority.managers.all())
+        return user in self.registration_authority.managers.all()
 
 
 class RegistryValidationRules(ValidationRules):

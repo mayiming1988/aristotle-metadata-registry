@@ -778,7 +778,7 @@ class _concept(baseAristotleObject):
         exclude = ('_is_public', '_is_locked', '_type')
 
     @classmethod
-    def model_to_publish(self):
+    def model_to_publish(cls):
         return _concept
 
     @classmethod
@@ -843,7 +843,10 @@ class _concept(baseAristotleObject):
 
     @property
     def item_type(self) -> ContentType:
-        """Returns the content type of the subclassed item"""
+        """
+        Returns the content type of the subclassed item
+        e.g. "object class"
+        """
         if self._type_id:
             # Use get_for_id so the internal cache is used
             return ContentType.objects.get_for_id(self._type_id)
@@ -860,8 +863,8 @@ class _concept(baseAristotleObject):
     @property
     def item_type_name(self) -> str:
         """
-        Return the verbose name of the subclassed items type
-        e.g. (Object Class)
+        Returns the verbose name of the subclassed items type
+        e.g. "Object Class"
         """
         # Get content type
         ct = self.item_type
@@ -896,9 +899,9 @@ class _concept(baseAristotleObject):
         return self.org_records.all().filter(type='r')
 
     @classmethod
-    def get_autocomplete_name(self):
+    def get_autocomplete_name(cls):
         return 'Autocomplete' + "".join(
-            self._meta.verbose_name.title().split()
+            cls._meta.verbose_name.title().split()
         )
 
     @staticmethod
@@ -1165,7 +1168,8 @@ class Status(TimeStampedModel):
         blank=True,
         null=True,
         help_text=_(
-            "Date and time the Registration of an Administered_Item by a Registration_Authority in a registry is no longer effective."
+            "Date and time the Registration of an Administered_Item "
+            "by a Registration_Authority in a registry is no longer effective."
         )
     )
     tracker = FieldTracker()
