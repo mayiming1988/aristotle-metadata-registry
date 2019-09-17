@@ -169,8 +169,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'aristotle_mdr.contrib.redirect.middleware.RedirectMiddleware',
-
-
     # 'reversion.middleware.RevisionMiddleware',
 ]
 
@@ -221,8 +219,8 @@ ARISTOTLE_SETTINGS = {
         'aristotle_mdr.forms.bulk_actions.RemoveFavouriteForm',
         'aristotle_mdr.forms.bulk_actions.ChangeStateForm',
         'aristotle_mdr.forms.bulk_actions.ChangeWorkgroupForm',
-        # 'aristotle_mdr.forms.bulk_actions.RequestReviewForm',
         'aristotle_mdr.forms.bulk_actions.BulkDownloadForm',
+        'aristotle_mdr.forms.bulk_actions.ChangeStewardshipOrganisationForm',
         'aristotle_mdr.contrib.reviews.forms.RequestReviewBulkActionForm',
     ],
     # Dashboard add-ons will only be rendered for staff
@@ -353,7 +351,6 @@ ARISTOTLE_VALIDATORS = {
 
 # Serialization
 SERIALIZATION_MODULES = {'mdrjson': 'aristotle_mdr_api.serializers.idjson',
-                         # Override django-reversion serializer
                          'aristotle_mdr_json': 'aristotle_mdr.contrib.serializers.concept_serializer'}
 
 # Set an environment variable as the default email address to send backend emails for notifications.
@@ -406,9 +403,6 @@ GRAPHQL_ENABLED = False
 MIGRATION_PRINT = True
 
 MAXIMUM_NUMBER_OF_NODES_IN_GENERAL_GRAPHICAL_REPRESENTATION = 200
-
-# List of import strings for additional graphql nodes
-EXTRA_GRAPHQL_SCHEMA_MODELS: List[str] = []
 
 # List of import strings for additional graphql query objects
 EXTRA_GRAPHQL_QUERY_OBJS: List[str] = []

@@ -778,7 +778,7 @@ class _concept(baseAristotleObject):
         exclude = ('_is_public', '_is_locked', '_type')
 
     @classmethod
-    def model_to_publish(self):
+    def model_to_publish(cls):
         return _concept
 
     @classmethod
@@ -843,7 +843,10 @@ class _concept(baseAristotleObject):
 
     @property
     def item_type(self) -> ContentType:
-        """Returns the content type of the subclassed item"""
+        """
+        Returns the content type of the subclassed item
+        e.g. "object class"
+        """
         if self._type_id:
             # Use get_for_id so the internal cache is used
             return ContentType.objects.get_for_id(self._type_id)
@@ -860,8 +863,8 @@ class _concept(baseAristotleObject):
     @property
     def item_type_name(self) -> str:
         """
-        Return the verbose name of the subclassed items type
-        e.g. (Object Class)
+        Returns the verbose name of the subclassed items type
+        e.g. "Object Class"
         """
         # Get content type
         ct = self.item_type
@@ -896,9 +899,9 @@ class _concept(baseAristotleObject):
         return self.org_records.all().filter(type='r')
 
     @classmethod
-    def get_autocomplete_name(self):
+    def get_autocomplete_name(cls):
         return 'Autocomplete' + "".join(
-            self._meta.verbose_name.title().split()
+            cls._meta.verbose_name.title().split()
         )
 
     @staticmethod
@@ -1143,8 +1146,13 @@ class Status(TimeStampedModel):
     objects = StatusQuerySet.as_manager()
     concept = ConceptForeignKey(_concept, related_name="statuses", on_delete=models.CASCADE)
     registrationAuthority = models.ForeignKey(RegistrationAuthority, on_delete=models.CASCADE)
-    changeDetails = models.TextField(blank=True, null=True)
+    changeDetails = models.TextField(
+        _("Change details"),
+        blank=True,
+        null=True
+    )
     state = models.IntegerField(
+        _("State"),
         choices=STATES,
         default=STATES.incomplete,
         help_text=_("Designation (3.2.51) of the status in the registration life-cycle of an Administered_Item")
@@ -1153,14 +1161,16 @@ class Status(TimeStampedModel):
     # 11179-6 (Section 8.1.2.6.2.2)
     registrationDate = models.DateField(
         _('Date registration effective'),
-        help_text=_("date and time an Administered_Item became/becomes available to registry users")
+        help_text=_("Date and time an Administered_Item became/becomes available to registry users.")
     )
     until_date = models.DateField(
         _('Date registration expires'),
         blank=True,
         null=True,
         help_text=_(
-            "date and time the Registration of an Administered_Item by a Registration_Authority in a registry is no longer effective")
+            "Date and time the Registration of an Administered_Item "
+            "by a Registration_Authority in a registry is no longer effective."
+        )
     )
     tracker = FieldTracker()
 
@@ -1314,8 +1324,8 @@ class ConceptualDomain(concept):
     # no reason to model them separately.
 
     template = "aristotle_mdr/concepts/conceptualDomain.html"
-    description = models.TextField(
-        _('description'),
+    description = RichTextField(
+        _('Description'),
         blank=True,
         help_text=_(
             ('Description or specification of a rule, reference, or '
@@ -1454,8 +1464,8 @@ class ValueDomain(concept):
         verbose_name='Representation Class',
         on_delete=models.SET_NULL,
     )
-    description = models.TextField(
-        _('description'),
+    description = RichTextField(
+        _('Description'),
         blank=True,
         help_text=('Description or specification of a rule, reference, or '
                    'range for a set of all values for a Value Domain.')
@@ -1869,6 +1879,15 @@ class PossumProfile(models.Model):
             kwargs["group"] = org
         return StewardOrganisationMembership.objects.filter(**kwargs).exists()
 
+    @property
+    def stewardship_organisations(self):
+        """The list of Stewardship Organisations the user is a member in, or all, if they are a superuser """
+        if self.user.is_superuser:
+            return StewardOrganisation.objects.all()
+        else:
+            # They are not a superuser
+            return StewardOrganisation.objects.visible(self.user).filter(members__user=self.user)
+
     def is_favourite(self, item):
         from aristotle_mdr.contrib.favourites.models import Favourite
         fav = Favourite.objects.filter(
@@ -2001,6 +2020,7 @@ def check_concept_app_label(sender, instance, **kwargs):
 
 @receiver(pre_save)
 def update_org_to_match_workgroup(sender, instance, **kwargs):
+    """Enforces integrity between Stewardship Organisation and Workgroup"""
     if not issubclass(sender, _concept):
         return
     if instance.workgroup is not None:

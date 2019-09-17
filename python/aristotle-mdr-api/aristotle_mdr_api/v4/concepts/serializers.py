@@ -36,12 +36,12 @@ class VersionPermissionsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VersionPermissions
-        fields = ('version_id','visibility')
+        fields = ('version_id', 'visibility')
         list_serializer_class = VersionVisibilityPermissionSerializer
 
     def validate_version_id(self, value):
         if value not in self.context.get('version_ids'):
-            raise serializers.ValidationError()
+            raise serializers.ValidationError("Value not present in version ids")
         return value
 
 

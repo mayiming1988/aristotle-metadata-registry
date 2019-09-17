@@ -7,8 +7,6 @@ from .comet import Query as CometQuery
 # from .user import SingleUserQuery
 from django.conf import settings
 from django.utils.module_loading import import_string
-from django.apps import apps
-from aristotle_mdr_graphql.utils import type_from_model
 
 import logging
 logger = logging.getLogger(__name__)
@@ -21,24 +19,16 @@ QUERY_OBJECTS = [
     GlossaryQuery,
 ]
 
-# Loop through the models and instantiate GraphQL Nodes:
-for imp in settings.EXTRA_GRAPHQL_SCHEMA_MODELS:
-    logger.warning('Importing: {imp}'.format(imp=imp))
-    try:
-        import_string(imp)
-    except ImportError:
-        logger.warning('Could not import {}'.format(imp))
-
 
 def get_query_model(bases: List[Type]) -> Type:
     """Create the root level query objects from sub query objects"""
 
-    for imp in settings.EXTRA_GRAPHQL_QUERY_OBJS:
-        logger.warning('Importing: {imp}'.format(imp=imp))
+    for graphql_query_object in settings.EXTRA_GRAPHQL_QUERY_OBJS:
+        logger.warning('Importing: {}'.format(graphql_query_object))
         try:
-            query = import_string(imp)
+            query = import_string(graphql_query_object)
         except ImportError:
-            logger.warning('Could not import {}'.format(imp))
+            logger.warning('Could not import {}'.format(graphql_query_object))
             query = None
 
         if query:

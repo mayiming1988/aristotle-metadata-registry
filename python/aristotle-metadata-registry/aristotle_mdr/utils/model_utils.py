@@ -98,9 +98,13 @@ class baseAristotleObject(TimeStampedModel):
         raise NotImplementedError  # pragma: no cover
 
     @classmethod
-    def meta(self):
-        # I know what I'm doing, get out the way.
-        return self._meta
+    def meta(cls):
+        """
+        The purpose of this function is to use the meta attribute in templates.
+         example: "item.meta"
+        :return: _meta attribute of class.
+        """
+        return cls._meta
 
 
 class ManagedItem(baseAristotleObject):
