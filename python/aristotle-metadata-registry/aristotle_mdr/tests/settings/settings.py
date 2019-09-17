@@ -91,7 +91,8 @@ INSTALLED_APPS = (
     'aristotle_mdr.contrib.links',
     'aristotle_glossary',
     'extension_test',
-    'aristotle_dse'
+    'aristotle_dse',
+    'comet',
 ) + INSTALLED_APPS
 
 
