@@ -1,14 +1,28 @@
 Changelog
 
-- 3.0.x
-    - Major changes:
-      - Added Steward Organisations to Aristotle - on migration a default organisation will be created.
-        All apps should be migrated across
-      - Workgroups, Registration Authorities and Organisations (now Organisation Records)
-        all exist within Submitting Organisations
-
-    - Minor UI Fixes:
-      - Canceling out of editing profile returns to the user profile
+- 3.0.0
+  - Major changes:
+    - Added Steward Organisations to Aristotle - on migration a default organisation will be created.
+      All apps should be migrated across
+    - Workgroups, Registration Authorities and Organisations (now Organisation Records)
+      all exist within Submitting Organisations
+    - Improved data dictionary
+    - Improved downloads
+    - Improved graphql endpoints
+    - Improved notifications
+    - Added reporting tool
+    - Metadata tagging
+    - Update to Django 2.0
+    - New versioning system
+    - Version comparison updates
+    - Initial v4 REST API
+    - Webpack for bundling and managing static
+    - Use local time on frontend
+    - Graphs page for showing relations between metadata
+    - Metadata issues
+    - Cloning now copies components
+  - Minor UI Fixes:
+    - Canceling out of editing profile returns to the user profile
 
 - 2.2.0
   - Aristotle MDR core
