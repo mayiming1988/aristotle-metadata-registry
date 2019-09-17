@@ -6,7 +6,7 @@ from setuptools import setup, PackageFinder
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 
-__version_info__ = {
+version_info = {
     'major': 3,
     'minor': 0,
     'micro': 0,
@@ -19,15 +19,18 @@ def get_version(release_level=True):
     """
     Return the formatted version information
     """
-    vers = ["%(major)i.%(minor)i.%(micro)i" % __version_info__]
-    if release_level and __version_info__['releaselevel'] != 'final':
-        vers.append('%(releaselevel)s%(serial)i' % __version_info__)
+    vers = ["%(major)i.%(minor)i.%(micro)i" % version_info]
+    if release_level and version_info['releaselevel'] != 'final':
+        vers.append('%(releaselevel)s%(serial)i' % version_info)
     return ''.join(vers)
 
 
 def get_readme():
     with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
         return readme.read()
+
+
+__version__ = get_version()
 
 
 class MonoRepoPackageFinder(PackageFinder):
@@ -149,7 +152,7 @@ class MonoRepoPackageFinder(PackageFinder):
 
 setup(
     name="aristotle-metadata-registry",
-    version=get_version(),
+    version=__version__,
     packages=MonoRepoPackageFinder.find("python"),
     package_dir=MonoRepoPackageFinder.find_dirs("python"),
     include_package_data=True,
