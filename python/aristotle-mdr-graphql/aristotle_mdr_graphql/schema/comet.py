@@ -12,7 +12,7 @@ IndicatorInclusionNode = get_dynamic_type_node_from_model(
 )
 OutcomeAreaNode = get_dynamic_type_node_from_concept_model(model=comet_models.OutcomeArea)
 QualityStatementNode = get_dynamic_type_node_from_model(model=comet_models.QualityStatement)
-FrameworkNode = get_dynamic_type_node_from_model(model=comet_models.Framework)
+FrameworkNode = get_dynamic_type_node_from_concept_model(model=comet_models.Framework)
 FrameworkDimensionNode = get_dynamic_type_node_from_model(
     model=comet_models.FrameworkDimension,
     meta_kwargs={'exclude_fields': ['lft', 'rght', 'tree_id']},
