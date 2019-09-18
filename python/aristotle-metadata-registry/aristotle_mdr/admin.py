@@ -6,15 +6,13 @@ from django.contrib.admin.filters import RelatedFieldListFilter
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.db.models import BooleanField
-from django.forms import widgets
 
 import aristotle_mdr.models as MDR
 import aristotle_mdr.forms as MDRForms
 from aristotle_mdr import perms
 from reversion_compare.admin import CompareVersionAdmin
 
-from aristotle_mdr.search_indexes import conceptIndex
+from aristotle_mdr.search_indexes import ConceptIndex
 from haystack import indexes
 
 import reversion
@@ -24,6 +22,7 @@ from aristotle_mdr.register import register_concept
 from aristotle_mdr.utils import fetch_aristotle_settings
 
 reversion.revisions.register(MDR.Status)
+reversion.revisions.register(MDR.RecordRelation)
 reversion.revisions.register(
     MDR._concept,
     follow=[
@@ -69,7 +68,7 @@ class StatusInline(admin.TabularInline):
 
     def has_change_permission(self, request, obj=None):
         if obj is not None:
-            return perms.user_can_change_status(request.user, obj)
+            return perms.user_can_add_status(request.user, obj)
         return super().has_change_permission(request, obj=None)
 
     def has_add_permission(self, request):
@@ -85,12 +84,12 @@ class WorkgroupFilter(RelatedFieldListFilter):
             self.lookup_choices = [(w.id, w) for w in request.user.profile.workgroups.all()]
 
 
-class WorkgroupAdmin(CompareVersionAdmin):
+class WorkgroupAdmin(admin.ModelAdmin):
     fieldsets = [
         (None, {'fields': ['name', 'definition']}),
-        ('Members', {'fields': ['managers', 'stewards', 'submitters', 'viewers']}),
+        # ('Members', {'fields': ['managers', 'stewards', 'submitters', 'viewers']}),
     ]
-    filter_horizontal = ['managers', 'stewards', 'submitters', 'viewers']
+    # filter_horizontal = ['managers', 'stewards', 'submitters', 'viewers']
     list_display = ('name', 'definition', 'archived')
     list_filter = ('archived',)
     search_fields = ('name', 'definition')
@@ -121,7 +120,7 @@ class WorkgroupAdmin(CompareVersionAdmin):
             return super().has_change_permission(request, obj=None)
 
 
-class ConceptAdmin(CompareVersionAdmin, admin.ModelAdmin):
+class ConceptAdmin(admin.ModelAdmin):
 
     form = MDRForms.admin.AdminConceptForm
     list_display = ['name', 'description_stub', 'created', 'modified', 'workgroup', 'is_public', 'is_locked']  # ,'status']
@@ -172,11 +171,11 @@ class ConceptAdmin(CompareVersionAdmin, admin.ModelAdmin):
             return perms.user_can_edit(request.user, obj)
 
     def has_add_permission(self, request):
-        return perms.user_is_editor(request.user)
+        return perms.user_is_authenticated_and_active(request.user)
 
     def has_delete_permission(self, request, obj=None):
         if obj is None:
-            return perms.user_is_editor(request.user)
+            return perms.user_is_authenticated_and_active(request.user)
         else:
             return request.user.has_perm("aristotle_mdr.delete_concept_from_admin", obj)
 
@@ -300,7 +299,8 @@ admin.site.register(MDR.Measure)
 class AristotleProfileInline(admin.StackedInline):
     model = MDR.PossumProfile
     form = MDRForms.admin.AristotleProfileForm
-    exclude = ('savedActiveWorkgroup', 'favourites')
+    exclude = ('savedActiveWorkgroup', 'favourites', 'profilePictureWidth',
+               'profilePictureHeight', 'notificationPermissions', 'profilePicture')
     can_delete = False
     verbose_name_plural = 'Membership details'
 
@@ -365,7 +365,7 @@ register_concept(
 )
 
 
-class aristotle_mdr_DataElementConceptSearchIndex(conceptIndex, indexes.Indexable):
+class aristotle_mdr_DataElementConceptSearchIndex(ConceptIndex, indexes.Indexable):
     data_element_concept = indexes.MultiValueField(model_attr="name", faceted=True, null=True)
     data_element_concept.title = 'Data element concept'
     object_class = indexes.MultiValueField(model_attr="objectClass__name", faceted=True, null=True)
@@ -383,7 +383,7 @@ register_concept(
 )
 
 
-class aristotle_mdr_DataElementSearchIndex(conceptIndex, indexes.Indexable):
+class aristotle_mdr_DataElementSearchIndex(ConceptIndex, indexes.Indexable):
     data_element_concept = indexes.MultiValueField(model_attr="dataElementConcept__name", faceted=True, null=True)
     data_element_concept.title = 'Data element concept'
     object_class = indexes.MultiValueField(model_attr="dataElementConcept__objectClass__name", faceted=True, null=True)
@@ -401,7 +401,7 @@ register_concept(
 )
 
 
-class aristotle_mdr_DataElementDerivationSearchIndex(conceptIndex, indexes.Indexable):
+class aristotle_mdr_DataElementDerivationSearchIndex(ConceptIndex, indexes.Indexable):
     data_element_concept = indexes.MultiValueField(faceted=True, null=True)
     data_element_concept.title = 'Data element concept'
     object_class = indexes.MultiValueField(faceted=True, null=True)
@@ -412,12 +412,12 @@ class aristotle_mdr_DataElementDerivationSearchIndex(conceptIndex, indexes.Index
 
     def prepare_data_element_concept(self, obj):
         return list(MDR.DataElementConcept.objects.filter(
-            Q(dataelement__derived_from=obj) | Q(dataelement__input_to_derivation=obj)
+            Q(dataelement__dedderivesthrough__data_element_derivation=obj) | Q(dataelement__dedinputsthrough__data_element_derivation=obj)
         ).values_list('name', flat=True))
 
     def prepare_object_class(self, obj):
         return list(MDR.ObjectClass.objects.filter(
-            Q(dataelementconcept__dataelement__derived_from=obj) | Q(dataelementconcept__dataelement__input_to_derivation=obj)
+            Q(dataelementconcept__dataelement__dedderivesthrough__data_element_derivation=obj) | Q(dataelementconcept__dataelement__dedinputsthrough__data_element_derivation=obj)
         ).values_list('name', flat=True))
 
 
@@ -441,7 +441,8 @@ register_concept(
     extra_inlines=[DedDerivesInline, DedInputsInline],
     custom_search_index=aristotle_mdr_DataElementDerivationSearchIndex,
     reversion={
-        'follow': ['derives', 'inputs'],
+        'follow': ['dedinputsthrough_set', 'dedderivesthrough_set'],
+        'follow_classes': [MDR.DedInputsThrough, MDR.DedDerivesThrough]
     }
 )
 

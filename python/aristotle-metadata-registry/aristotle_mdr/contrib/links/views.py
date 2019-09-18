@@ -24,7 +24,7 @@ class EditLinkFormView(FormView):
             link_models.Link, pk=self.kwargs['linkid']
         )
         self.relation = self.link.relation
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             return redirect(reverse('friendly_login') + '?next=%s' % request.path)
         if not perms.user_can_change_link(request.user, self.link):
             raise PermissionDenied
@@ -101,7 +101,7 @@ class AddLinkWizard(SessionWizardView):
     ]
 
     def dispatch(self, request, *args, **kwargs):
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             return redirect(reverse('friendly_login') + '?next=%s' % request.path)
         if not request.user.has_perm('aristotle_mdr_links.add_link'):
             raise PermissionDenied
@@ -126,7 +126,6 @@ class AddLinkWizard(SessionWizardView):
         if istep == 0:
             kwargs['user'] = self.request.user
         elif istep == 1:
-            relation = self.get_cleaned_data_for_step('0')['relation']
             kwargs['roles'] = self.get_roles()
         elif istep == 2:
             relation = self.get_cleaned_data_for_step('0')['relation']
@@ -158,9 +157,11 @@ class AddLinkWizard(SessionWizardView):
         return role_concepts
 
     def get_context_data(self, *args, **kwargs):
+        # Steps are 0 indexed, but the template is 1 indexed
         context = super().get_context_data(*args, **kwargs)
         istep = int(self.steps.current)
         if istep == 1:
+            context['relation'] = self.get_cleaned_data_for_step('0')['relation']
             context['roles_exist'] = context['form'].fields['role'].queryset.exists()
         elif istep == 2:
             context['roles'] = self.get_roles()

@@ -3,8 +3,10 @@
     app_label: aristotle_dse
     concept_type: datasetspecification
     language: en
-    brief: A collection of [[aristotle_mdr.dataelement|s]] for collecting data.
-    offical_definition: 
+    brief: A Data Set Specification describes an agreement to collect an ideal standard of data.
+      A Data Set Specification may reference other Data Set Specifications or [[aristotle_mdr.dataelement|s]] to 
+      describe the data that should be collected under the agreement.
+    official_definition: A collection of [[aristotle_mdr.dataelement|s]] for collecting data.
     official_reference: 
     official_link:
     body: >
@@ -12,7 +14,7 @@
         [[aristotle_mdr.data element|s]] which address the requirements within 
         the scope statement. The selected data elements must be collected according
         to the specified guidelines, and may require the user to comply with
-        constraints such as sequencing, conditionality, multiple occurences
+        constraints such as sequencing, conditionality, multiple occurrences
         of the same data element, and multiple responses allowed within a code set.</p> 
         
         <p>Data set specifications may also be associated with other item types 

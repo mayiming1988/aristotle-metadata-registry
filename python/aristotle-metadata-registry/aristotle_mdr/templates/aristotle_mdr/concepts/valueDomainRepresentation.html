@@ -4,49 +4,62 @@ amount of information around the Value Domain
 So we've split this out into its own template.
 {% endcomment %}
 
-{% load aristotle_tags %}
+{% load aristotle_tags util_tags %}
 
 
 <div>
-<table class="table table-striped valueDomainRepresentation">
-{% if item.description %}
-<tr>
-  <th>Description</th>
-  <td>{{ item.description }}</a></td>
-</tr>
-{% endif %}
-{% if item.data_type %}
-<tr>
-  <th>Data Type</th>
-  <td><a href="{% url 'aristotle:item' item.data_type.id %}">{{ item.data_type }}</a></td>
-</tr>
-{% endif %}
-{% if item.unit_of_measure %}
-<tr>
-  <th>Unit Of Measure</th>
-  <td><a href="{% url 'aristotle:item' item.unit_of_measure.id %}">
-    {{ item.unit_of_measure }}
-    {% if item.unit_of_measure.symbol %}<tt>({{ item.unit_of_measure.symbol }})</tt>{% endif %}
-  </td>
-</tr>
-{% endif %}
-{% if item.format %}
-<tr>
-  <th>Format</th>
-  <td>{{ item.format }}</td>
-</tr>
-{% endif %}
-{% if item.maximum_length %}
-<tr>
-  <th>Maximum character length</th>
-  <td>{{ item.maximum_length }}</td>
-</tr>
-{% endif %}
-</table>
-{% if item.permissiblevalue_set.count > 0 or item.supplementaryvalue_set.count > 0 %}
-  <strong>Permissible Values</strong>
-    <table class="codeList table table-striped">
-        <thead>
+    <table class="table table-striped valueDomainRepresentation">
+        {% if item.description %}
+            <tr>
+                <th>Description</th>
+                <td>{{ item.description }}</td>
+            </tr>
+        {% endif %}
+        {% if item.data_type %}
+            <tr>
+                <th>Data Type</th>
+                <td><a href="{% url 'aristotle:item' item.data_type.id %}">{{ item.data_type }}</a></td>
+            </tr>
+        {% endif %}
+        {% if item.unit_of_measure %}
+            <tr>
+                <th>Unit Of Measure</th>
+                <td>
+                    <a href="{% url 'aristotle:item' item.unit_of_measure.id %}">
+                        {{ item.unit_of_measure }}
+                        {% if item.unit_of_measure.symbol %}<tt>({{ item.unit_of_measure.symbol }})</tt>{% endif %}
+                    </a>
+                </td>
+            </tr>
+        {% endif %}
+        {% if item.format %}
+            <tr>
+                <th>Format</th>
+                <td>{{ item.format }}</td>
+            </tr>
+        {% endif %}
+        {% if item.maximum_length %}
+            <tr>
+                <th>Maximum character length</th>
+                <td>{{ item.maximum_length }}</td>
+            </tr>
+        {% endif %}
+        {% if item.representation_class %}
+            <tr>
+                <th>Representation Class</th>
+                <td>{{ item.representation_class }}</td>
+            </tr>
+        {% endif %}
+    </table>
+    {% if item.permissiblevalue_set.count > 0 or item.supplementaryvalue_set.count > 0 %}
+        {% if valueHeading %}
+          <h3>Values</h3>
+        {% else %}
+          <strong>Values</strong>
+        {% endif %}
+
+        <table class="codeList table table-striped">
+            <thead>
             <tr>
                 <td></td>
                 <th>Value</th>
@@ -58,17 +71,12 @@ So we've split this out into its own template.
                 <th>Start Date</th>
                 <th>End Date</th>
             </tr>
-        </thead>
-        <tbody>
+            </thead>
+            <tbody>
             {% for perm in item.permissiblevalue_set.all %}
                 <tr>
                     {% if forloop.first %}
-                    <th rowspan="{{ item.permissiblevalue_set.count }}">Permissible Values
-                        {% if item|can_edit:request.user and not hide_item_actions %}
-                            <a class="inline_action" data-toggle="modal" data-target="#value_domain_modal"
-                            href="{% url 'aristotle:permsissible_values_edit' item.id %}">edit</a>
-                        {% endif %}
-                    </th>
+                        <th rowspan="{{ item.permissiblevalue_set.count }}">Permissible Values</th>
                     {% endif %}
                     <td>{{ perm.value }}</td>
                     {% if perm.value_meaning %}
@@ -76,36 +84,27 @@ So we've split this out into its own template.
                     {% else %}
                         <td>{{ perm.meaning }}</td>
                     {% endif %}
-                    <td>{{ perm.start_date|default_if_none:"-" }}</td>
-                    <td>{{ perm.end_date|default_if_none:"-" }}</td>
+                    <td><time datetime="{{ perm.start_date|isotime }}">{{ perm.start_date }}</time></td>
+                    <td><time datetime="{{ perm.end_date|isotime }}">{{ perm.end_date }}</time></td>
                 </tr>
             {% empty %}
                 {% if item|can_edit:request.user %}
-                <tr>
-                    <th>
-                        {% if item|can_edit:request.user and not hide_item_actions %}
-                            <a class="inline_action" data-toggle="modal" data-target="#value_domain_modal"
-                            href="{% url 'aristotle:permsissible_values_edit' item.id %}">Add Permissible Values</a>
-                        {% endif %}
-                    </th>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
+                    <tr>
+                        <th>
+                        </th>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
                 {% endif %}
             {% endfor %}
-        </tbody>
-        <tbody>
+            </tbody>
+            <tbody>
             {% for perm in item.supplementaryvalue_set.all %}
                 <tr>
                     {% if forloop.first %}
-                    <th rowspan="{{ item.supplementaryvalue_set.count }}">Supplementary Values
-                        {% if item|can_edit:request.user and not hide_item_actions %}
-                            <a class="inline_action" data-toggle="modal" data-target="#value_domain_modal"
-                            href="{% url 'aristotle:supplementary_values_edit' item.id %}">edit</a>
-                        {% endif %}
-                    </th>
+                        <th rowspan="{{ item.supplementaryvalue_set.count }}">Supplementary Values</th>
                     {% endif %}
                     <td>{{ perm.value }}</td>
                     {% if perm.value_meaning %}
@@ -113,28 +112,24 @@ So we've split this out into its own template.
                     {% else %}
                         <td>{{ perm.meaning }}</td>
                     {% endif %}
-                    <td>{{ perm.start_date|default_if_none:"-" }}</td>
-                    <td>{{ perm.end_date|default_if_none:"-" }}</td>
+                    <td><time datetime="{{ perm.start_date|isotime }}">{{ perm.start_date }}</time></td>
+                    <td><time datetime="{{ perm.end_date|isotime }}">{{ perm.end_date }}</time></td>
                 </tr>
             {% empty %}
                 {% if item|can_edit:request.user %}
-                <tr>
-                    <th>
-                        {% if item|can_edit:request.user and not hide_item_actions %}
-                            <a class="inline_action" data-toggle="modal" data-target="#value_domain_modal"
-                            href="{% url 'aristotle:supplementary_values_edit' item.id %}">Add Supplementary Values</a>
-                        {% endif %}
-                    </th>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
+                    <tr>
+                        <th>
+                        </th>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
                 {% endif %}
             {% endfor %}
-        </tbody>
+            </tbody>
 
-    </table>
-    {% bootstrap_modal "value_domain_modal" size='lg' %}
-{% endif %}
+        </table>
+        {% bootstrap_modal "value_domain_modal" size='lg' %}
+    {% endif %}
 </div>

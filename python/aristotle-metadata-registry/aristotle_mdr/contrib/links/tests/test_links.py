@@ -5,18 +5,16 @@ from django.test import TestCase, tag
 from aristotle_mdr.contrib.links import models, perms
 from aristotle_mdr.models import ObjectClass, STATES
 from aristotle_mdr.tests import utils
-from aristotle_mdr.utils import setup_aristotle_test_environment, url_slugify_concept
+from aristotle_mdr.utils import url_slugify_concept
 
 from aristotle_mdr.tests.main.test_admin_pages import AdminPageForConcept
 from aristotle_mdr.tests.main.test_html_pages import LoggedInViewConceptPages
 from aristotle_mdr.tests.main.test_wizards import ConceptWizardPage
 
-setup_aristotle_test_environment()
-
 
 def setUpModule():
     from django.core.management import call_command
-    call_command('load_aristotle_help', verbosity=0, interactive=False)
+    call_command('load_aristotle_help', verbosity=0)
 
 
 class RelationViewPage(LoggedInViewConceptPages, TestCase):
@@ -74,6 +72,8 @@ class RelationCreationWizard(ConceptWizardPage, TestCase):
             'results-definition':"Test Definition",
         }
         step_2_data.update(self.get_formset_postdata([], 'slots'))
+
+        step_2_data.update(self.get_formset_postdata([], 'org_records'))
 
         role_formset_data = [
             {'name': 'parent', 'definition': 'ok', 'multiplicity': 1, 'ORDER': 0},
@@ -389,8 +389,50 @@ class TestLinkPages(LinkTestBase, TestCase):
             self.item3._concept_ptr
         )
 
-    def test_add_link_root_item_set(self):
+    def test_add_roles_to_relation(self):
+        """ Test whether adding roles to a relation via the formset is working successfully"""
 
+        self.empty_relation = models.Relation.objects.create(
+            name='Blank Relation',
+            definition='Super blank',
+            submitter=self.editor,
+            workgroup=self.wg1
+        )
+
+        self.login_editor()
+
+        # Generate the POST data
+        postdata = self.get_formset_postdata(
+            [{
+                'name': "A role",
+                'definition': "Something that must be performed",
+                'multiplicity': 1,
+                'relation': self.empty_relation.pk,
+                'ORDER': 0  # Order refers to the ordinality in the db
+            }],
+            prefix='relationrole_set',
+            initialforms=0
+        )
+
+        # POST the data to the view
+        response = self.reverse_post(
+            'aristotle_mdr_links:relation_roles_edit',
+            postdata,
+            reverse_args=[self.empty_relation.id],
+        )
+
+        # Assert that the form was redirected
+        self.assertEqual(response.status_code, 302)
+
+        # Check that relational role was created
+        roles = self.empty_relation.relationrole_set.all().order_by('ordinal')
+
+        self.assertEqual(roles[0].name, "A role")
+        self.assertEqual(roles[0].definition, "Something that must be performed")
+        self.assertEqual(roles[0].multiplicity, 1)
+
+
+    def test_add_link_root_item_set(self):
         self.login_editor()
         response = self.reverse_get(
             'aristotle_mdr_links:add_link',
@@ -540,9 +582,9 @@ class TestLinkPages(LinkTestBase, TestCase):
             status_code=200
         )
         self.assertContains(response, '<h2>Relationships</h2>')
-        self.assertEqual(len(response.context['links']), 1)
+        self.assertEqual(len(response.context['links_from']), 1)
 
-    def test_link_not_viewable_from_non_root(self):
+    def test_link_viewable_from_non_root_under_to_links(self):
         # Make item2 viewable
         self.item2.workgroup = self.wg1
         self.item2.save()
@@ -555,8 +597,8 @@ class TestLinkPages(LinkTestBase, TestCase):
             reverse_args=[self.item2.id, 'objectclass', 'item2'],
             status_code=200
         )
-        self.assertNotContains(response, '<h2>Relationships</h2>')
-        self.assertEqual(len(response.context['links']), 0)
+        self.assertContains(response, '<h3>Links to this item</h3>')
+        self.assertEqual(len(response.context['links_to']), 1)
 
     def test_arity_prop_2_roles(self):
         self.assertEqual(self.relation.arity, 2)

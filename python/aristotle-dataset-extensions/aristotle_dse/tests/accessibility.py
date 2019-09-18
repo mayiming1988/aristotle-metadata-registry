@@ -1,23 +1,13 @@
 from __future__ import print_function
 import os
-import sys
 import tempfile
+import re
+
 from django.test import TestCase, override_settings
-from django.core.management import call_command
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 import aristotle_dse.models as models
-import aristotle_mdr.perms as perms
-import aristotle_mdr.tests.utils as utils
-from wcag_zoo.validators import parade
-
-import subprocess
-import pprint
-
-from aristotle_mdr.utils import setup_aristotle_test_environment
-setup_aristotle_test_environment()
-
-from aristotle_mdr.tests.accessibility import MEDIA_TYPES, TestWebPageAccessibilityBase
+from aristotle_mdr.tests.accessibility import TestWebPageAccessibilityBase
 
 
 TMP_STATICPATH = tempfile.mkdtemp(suffix='static')
@@ -41,7 +31,8 @@ class TestStaticPageAccessibility(DSSTestWebPageAccessibilityBase, TestCase):
         from aristotle_dse.urls import urlpatterns
         pages = [
             reverse("aristotle_dse:%s" % u.name) for u in urlpatterns
-            if hasattr(u, 'name') and u.name is not None and u.regex.groups == 0
+            if hasattr(u, 'name') and u.name is not None
+            and re.compile(u.pattern._regex).groups == 0  # Only get static pages without matching
         ]
 
         self.pages_tester(pages)

@@ -1,0 +1,26 @@
+{% extends "aristotle_mdr/downloads/html/inline/managedContent.html" %}
+{% load aristotle_tags util_tags %}
+
+{% block objSpecific %}
+    {% if item.collection_method or item.statistical_unit %}
+        <dt>Collection and usage information</dt>
+        <dd>
+            {% if item.statistical_unit %}
+                <strong style="main_heading">Statistical Unit</strong>
+                <div>
+                    {% include "aristotle_mdr/helpers/itemLink.html" with item=item.statistical_unit showType=False %}
+                </div>
+            {% endif %}
+
+            {% if item.collection_method %}
+                <strong style="main_heading">Collection Method</strong>
+                <div>{{ item.collection_method | bleach }}</div>
+            {% endif %}
+        </dd>
+    {% endif %}
+
+    <dt>Metadata items in this Data Set Specification</dt>
+    <dd>
+        {% include "aristotle_dse/downloads/html/helpers/inclusions.html" with item=item %}
+    </dd>
+{% endblock %}

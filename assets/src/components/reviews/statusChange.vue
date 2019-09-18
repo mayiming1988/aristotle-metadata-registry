@@ -11,12 +11,6 @@
         </div>
         <hr>
     </div>
-  <!--<div v-bind:class="'small-alert alert-'+alertClass" role="alert">-->
-  <!--  <strong>-->
-  <!--    <i v-bind:class="'fa fa-'+iconClass"></i>-->
-  <!--  </strong>-->
-  <!--  {{ alertText }}-->
-  <!--</div>-->
   </div>
 </template>
 
@@ -40,6 +34,7 @@ export default {
                 case "closed":
                     return "times-circle"
             }
+            return ""
         },
         divClass: function() {
             switch(this.status) {
@@ -52,6 +47,7 @@ export default {
                 case "closed":
                     return "danger"
             }
+            return "warning"
         },
         alertText: function() {
             switch(this.status) {
@@ -64,6 +60,7 @@ export default {
                 case "closed":
                     return "Closed"
             }
+            return "Error"
         }
     }
 }

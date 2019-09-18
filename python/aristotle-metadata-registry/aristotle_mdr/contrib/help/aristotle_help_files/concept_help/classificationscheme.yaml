@@ -1,0 +1,14 @@
+- model: aristotle_mdr_help.concepthelp
+  fields:
+    app_label: aristotle_mdr_backwards
+    concept_type: classificationscheme
+    language: en
+    brief: A Classification Scheme describes a set of ideas and standard values used to record codes when storing data.
+        When linked to multiple [[aristotle_mdr.valuedomain|s]], a Classification Scheme can find similarities across different sets of 
+        recorded data. A Classification Scheme can also be recorded as a [[aristotle_mdr.conceptualdomain]] where there is no standard 
+        set of codes in the classification.
+
+    official_definition: The descriptive information for an arrangement or division of objects into groups based on characteristics, which the objects have in common
+    official_reference: ISO/IEC 11179 (Edition 2) - Clause 3.3.9
+    official_link: ''
+    body: ''

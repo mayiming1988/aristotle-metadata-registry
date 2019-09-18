@@ -1,25 +1,19 @@
 from django.conf import settings
 from django.db import models
-from django.db.models import Q
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.urls import reverse
-from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
+from django.template.defaultfilters import pluralize
 
-from model_utils import Choices
 from model_utils.models import TimeStampedModel
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr import perms
-from aristotle_mdr.fields import ConceptForeignKey, ShortTextField
 from aristotle_mdr.contrib.async_signals.utils import fire
 
-
 from aristotle_mdr.managers import (
-    # MetadataItemManager, ConceptManager,
     ReviewRequestQuerySet,
-    # WorkgroupQuerySet
 )
 
 from .const import REVIEW_STATES
@@ -33,29 +27,30 @@ class StatusMixin:
 
 class ReviewRequest(StatusMixin, TimeStampedModel):
     objects = ReviewRequestQuerySet.as_manager()
+
     concepts = models.ManyToManyField(
         MDR._concept, related_name="rr_review_requests"
     )
     registration_authority = models.ForeignKey(
         MDR.RegistrationAuthority,
         help_text=_("The registration authority the requester wishes to endorse the metadata item"),
-        related_name='rr_requested_reviews'
+        related_name='rr_requested_reviews',
+        on_delete=models.CASCADE
     )
     requester = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         help_text=_("The user requesting a review"),
-        related_name='rr_requested_reviews'
+        related_name='rr_requested_reviews',
+        on_delete=models.PROTECT
     )
     workgroup = models.ForeignKey(
         MDR.Workgroup,
         help_text=_("A workgroup associated with this review"),
         related_name='rr_workgroup_reviews',
-        null=True
+        null=True,
+        on_delete=models.SET_NULL
     )
-    # title = ShortTextField(blank=True, null=True, help_text=_("A title for the review"))
     title = models.TextField(blank=True, null=True, help_text=_("An optional message accompanying a request, this will accompany the approved registration status"))
-    # reviewer = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, help_text=_("The user performing a review"), related_name='reviewed_requests')
-    # response = models.TextField(blank=True, null=True, help_text=_("An optional message responding to a request"))
     status = models.IntegerField(
         choices=REVIEW_STATES,
         default=REVIEW_STATES.open,
@@ -90,6 +85,13 @@ class ReviewRequest(StatusMixin, TimeStampedModel):
     def state(self):
         return self.target_registration_state
 
+    @property
+    def proposed_supersedes(self):
+        """
+        Get the proposed supersedes attached to this review only
+        """
+        return self.supersedes.filter(proposed=True)
+
     def get_absolute_url(self):
         return reverse(
             "aristotle_reviews:review_details",
@@ -97,8 +99,9 @@ class ReviewRequest(StatusMixin, TimeStampedModel):
         )
 
     def __str__(self):
-        return "Review of {count} items in {ra} registraion authority".format(
+        return "Review of {count} item{item_pluralise} in {ra} registration authority".format(
             count=self.concepts.count(),
+            item_pluralise=pluralize(self.concepts.count()),
             ra=self.registration_authority,
         )
 
@@ -112,7 +115,6 @@ class ReviewRequest(StatusMixin, TimeStampedModel):
         return perms.user_can_edit_review(user, self)
 
     def timeline(self):
-        keep_going = True
         comments = self.comments.all()
         endorsements = self.endorsements.all()
         state_changes = self.state_changes.all()
@@ -128,10 +130,11 @@ class ReviewComment(TimeStampedModel):
 
     timeline_type = "comment"
 
-    request = models.ForeignKey(ReviewRequest, related_name='comments')
+    request = models.ForeignKey(ReviewRequest, related_name='comments', on_delete=models.CASCADE)
     body = models.TextField()
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT
     )
 
     @property
@@ -151,7 +154,7 @@ class ReviewStatusChangeTimeline(StatusMixin, TimeStampedModel):
 
     timeline_type = "status_change"
 
-    request = models.ForeignKey(ReviewRequest, related_name='state_changes')
+    request = models.ForeignKey(ReviewRequest, related_name='state_changes', on_delete=models.CASCADE)
     status = models.IntegerField(
         choices=REVIEW_STATES,
         default=REVIEW_STATES.open,
@@ -159,7 +162,7 @@ class ReviewStatusChangeTimeline(StatusMixin, TimeStampedModel):
     )
     actor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        null=True
+        null=True, on_delete=models.PROTECT
     )
 
     def can_view(self, user):
@@ -175,14 +178,14 @@ class ReviewEndorsementTimeline(TimeStampedModel):
 
     timeline_type = "endorsement"
 
-    request = models.ForeignKey(ReviewRequest, related_name='endorsements')
+    request = models.ForeignKey(ReviewRequest, related_name='endorsements', on_delete=models.CASCADE)
     registration_state = models.IntegerField(
         choices=MDR.STATES,
         help_text=_("The state at which a user wishes a metadata item to be endorsed")
     )
     actor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        null=True
+        null=True, on_delete=models.PROTECT
     )
 
     def can_view(self, user):
@@ -193,7 +196,7 @@ class ReviewEndorsementTimeline(TimeStampedModel):
 
 
 @receiver(post_save, sender=ReviewRequest)
-def review_request_changed(sender, instance, *args, **kwargs):
+def review_request_created(sender, instance, *args, **kwargs):
     if kwargs.get('created'):
         fire("action_signals.review_request_created", obj=instance, **kwargs)
     else:

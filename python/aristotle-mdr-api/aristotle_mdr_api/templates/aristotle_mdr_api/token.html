@@ -1,4 +1,5 @@
 {% extends 'aristotle_mdr_api/base.html' %}
+{% load util_tags %}
 
 {% block api_content %}
 
@@ -16,7 +17,7 @@
     {% for token in object_list %}
     <tr>
       <td><a href="{% url 'token_auth:token_update' token.id %}">{{ token.name }}</a></td>
-      <td>{{ token.created }}</td>
+      <td><time datetime="{{ token.created|isotime }}">{{ token.created }}</time></td>
       <td><a class="btn btn-danger" href="{% url 'token_auth:token_delete' token.id %}">Delete</a></td>
     </tr>
     {% endfor %}

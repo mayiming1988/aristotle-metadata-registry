@@ -1,28 +1,30 @@
 {% extends "aristotle_mdr/user/userHome.html" %}
+{% load i18n %}
 {% load aristotle_tags %}
-
-{% block collapse-link %}
-    <i class="fa fa-institution fa-fw"></i> Registrar tools </a>
-{% endblock %}
 
 {% block sidebar %}
     {% include "aristotle_mdr/user/userSideBar.html" with activeTab='myreviewrequests' %}
 {% endblock %}
 
 {% block page %}
-<h1>{% block title %}Review list{% endblock %}</h1>
-<p>
-    The following are collections of items that have been requested for review.
-    Once reviewed, if accepted, they may become visible.
-</p>
-{% if page %}
-    <form action="{% url 'aristotle:bulk_action' %}?next={{ request.path }}" method="POST">
-    {% csrf_token %}
-    {% include "aristotle_mdr/helpers/paginated_review_list.html" with page=page actions='user' %}
-    </form>
-{% else %}
-    <strong>You currently have reviews outstanding.</strong>
-{% endif %}
+    <h1>
+        {% block title %}{% trans "Review List" %}{% endblock %}
+    </h1>
+    <a class="btn btn-primary" href="{% url 'aristotle_reviews:review_create' %}">
+        <i class="fa fa-plus-square"></i> Create New Review
+    </a>
+    <p>
+        The following are collections of items that have been requested for review.
+        Once reviewed, if accepted, they may become visible.
+    </p>
+    {% if page %}
+        <form action="{% url 'aristotle:bulk_action' %}?next={{ request.path }}" method="POST">
+            {% csrf_token %}
+            {% include "aristotle_mdr/helpers/paginated_review_list.html" with page=page actions='user' %}
+        </form>
+    {% else %}
+        <strong>You currently have no reviews outstanding.</strong>
+    {% endif %}
 
-{% bootstrap_modal "review_box" %}
+    {% bootstrap_modal "review_box" %}
 {% endblock %}

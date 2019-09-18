@@ -1,0 +1,14 @@
+{% extends "aristotle_mdr/stewards/base.html" %}
+{% load i18n %}
+
+{% block title %}Workgroups | {{ stewardship_organisation }}{% endblock %}
+{% block page_title %}{{ stewardship_organisation }} | Workgroups{% endblock %}
+
+{% block steward_content %}
+
+<section id="workgroups">
+    <a class="btn btn-default" href="{% url 'aristotle:workgroup_create'%}">Add New Workgroup</a>
+    
+    {% include "aristotle_mdr/helpers/paginated_workgroup_list.html" with page=page show_all=True show_stewardship_organisations=False %}
+</section>
+{% endblock %}

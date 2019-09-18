@@ -1,5 +1,6 @@
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
+from django.forms.models import inlineformset_factory
 from django.utils import timezone, dateparse
 from django.utils.translation import ugettext_lazy as _
 
@@ -7,13 +8,19 @@ import aristotle_mdr.models as MDR
 from aristotle_mdr.contrib.autocomplete import widgets
 from aristotle_mdr.exceptions import NoUserGivenForUserForm
 from aristotle_mdr.managers import ConceptQuerySet
-from aristotle_mdr.perms import user_can_move_between_workgroups, user_can_move_any_workgroup, user_can_remove_from_workgroup
+from aristotle_mdr.perms import user_can_remove_from_workgroup, user_can_move_to_workgroup
 from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
+from aristotle_mdr.widgets.widgets import NameSuggestInput
+from aristotle_mdr.utils.utils import fetch_aristotle_settings
 
 from aristotle_mdr.contrib.custom_fields.forms import CustomValueFormMixin
 
 
-class UserAwareForm(forms.Form):
+# Fields to not show in editors
+EXCLUDED_FIELD_NAMES = ['_concept_ptr', 'superseded_by_items', '_is_public', '_is_locked', '_type', 'origin_URI', 'submitter', 'stewardship_organisation']
+
+
+class UserAwareFormMixin:
     def __init__(self, *args, **kwargs):
         if 'user' in kwargs.keys():
             self.user = kwargs.pop('user')
@@ -26,38 +33,44 @@ class UserAwareForm(forms.Form):
         super().__init__(*args, **kwargs)
 
 
-class UserAwareModelForm(UserAwareForm, forms.ModelForm):
+class UserAwareForm(UserAwareFormMixin, forms.Form):
+    pass
+
+
+class UserAwareModelForm(UserAwareFormMixin, forms.ModelForm):
     class Meta:
         model = MDR._concept
-        exclude = ['superseded_by_items', '_is_public', '_is_locked', 'originURI', 'submitter']
+        exclude = EXCLUDED_FIELD_NAMES
 
 
-class WorkgroupVerificationMixin(forms.ModelForm):
-    cant_move_any_permission_error = _("You do not have permission to move an item between workgroups.")
+class WorkgroupVerificationMixin:
     cant_move_from_permission_error = _("You do not have permission to remove an item from this workgroup.")
     cant_move_to_permission_error = _("You do not have permission to move an item to that workgroup.")
 
     def clean_workgroup(self):
-        # raise a permission denied before cleaning if possible.
-        # This gives us a 'clearer' error
-        # cleaning before checking gives a "invalid selection" even if a user isn't allowed to change workgroups.
-        if self.instance.pk is not None:
-            if 'workgroup' in self.data.keys() and str(self.data['workgroup']) is not None:
-                old_wg_pk = None
-                if self.instance.workgroup:
-                    old_wg_pk = str(self.instance.workgroup.pk)
-                if str(self.data['workgroup']) != str(old_wg_pk) and not (str(self.data['workgroup']) == "" and old_wg_pk is None):
-                    if not user_can_move_any_workgroup(self.user):
-                        raise forms.ValidationError(WorkgroupVerificationMixin.cant_move_any_permission_error)
-                    if not user_can_remove_from_workgroup(self.user, self.instance.workgroup):
-                        raise forms.ValidationError(WorkgroupVerificationMixin.cant_move_from_permission_error)
         new_workgroup = self.cleaned_data['workgroup']
-        if self.instance.pk is not None:
-            if 'workgroup' in self.cleaned_data.keys() and self.instance.workgroup != new_workgroup:
-                if not user_can_move_between_workgroups(self.user, self.instance.workgroup, new_workgroup):
-                    self.data = self.data.copy()  # need to make a mutable version of the POST querydict.
-                    self.data['workgroup'] = self.instance.workgroup.pk
-                    raise forms.ValidationError(WorkgroupVerificationMixin.cant_move_to_permission_error)
+        old_workgroup = self.instance.workgroup
+
+        # If new item return
+        if self.instance.pk is None:
+            return new_workgroup
+
+        # If old workgroup is None return
+        if old_workgroup is None:
+            return new_workgroup
+
+        # If workgroup didnt change return
+        if old_workgroup == new_workgroup:
+            return new_workgroup
+
+        # Check user can remove from old wg
+        if not user_can_remove_from_workgroup(self.user, old_workgroup):
+            raise forms.ValidationError(self.cant_move_from_permission_error)
+
+        # Check user can move to new wg
+        if not user_can_move_to_workgroup(self.user, new_workgroup):
+            raise forms.ValidationError(self.cant_move_to_permission_error)
+
         return new_workgroup
 
 
@@ -70,7 +83,8 @@ class CheckIfModifiedMixin(forms.ModelForm):
     )
     last_fetched = forms.CharField(
         widget=forms.widgets.HiddenInput(),
-        initial=timezone.now(), required=True,
+        initial=timezone.now(),
+        required=True,
         error_messages={'required': modified_since_field_missing}
     )
 
@@ -91,7 +105,7 @@ class CheckIfModifiedMixin(forms.ModelForm):
             self.initial['last_fetched'] = timezone.now()
             raise forms.ValidationError(CheckIfModifiedMixin.modified_since_field_missing)
         if modified_time > self.cleaned_data['last_fetched']:
-            self.initial['last_fetched']= timezone.now()
+            self.initial['last_fetched'] = timezone.now()
             raise forms.ValidationError(CheckIfModifiedMixin.modified_since_form_fetched_error)
 
 
@@ -102,9 +116,15 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
     """
 
     def __init__(self, *args, **kwargs):
-        # TODO: Have tis throw a 'no user' error
-        first_load = kwargs.pop('first_load', None)
+        from comet.managers import FrameworkDimensionQuerySet
+        # TODO: Have this throw a 'no user' error
         super().__init__(*args, **kwargs)
+
+        if 'aristotle_mdr_backwards' not in fetch_aristotle_settings().get('CONTENT_EXTENSIONS', []):
+            bc_fields = self._meta.model.backwards_compatible_fields
+            for fname in bc_fields:
+                if fname in self.fields:
+                    del self.fields[fname]
 
         for f in self.fields:
             if f == "workgroup":
@@ -121,14 +141,29 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
                     self.fields[f].queryset = self.fields[f].queryset.all().visible(self.user)
                     self.fields[f].widget = field_widget(model=self.fields[f].queryset.model)
                     self.fields[f].widget.choices = self.fields[f].choices
+            elif hasattr(self.fields[f], 'queryset') and type(self.fields[f].queryset) == FrameworkDimensionQuerySet:
+                if f in [m2m.name for m2m in self._meta.model._meta.many_to_many]:
+                    field_widget = widgets.FrameworkDimensionAutocompleteSelectMultiple
+                    self.fields[f].widget = field_widget(model=self.fields[f].queryset.model)
+                    self.fields[f].queryset = self.fields[f].queryset.all()
             elif type(self.fields[f]) == forms.fields.DateField:
                 self.fields[f].widget = BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"})
             elif type(self.fields[f]) == forms.fields.DateTimeField:
                 self.fields[f].widget = BootstrapDateTimePicker(options={"format": "YYYY-MM-DD"})
 
+        # Name suggest button
+        aristotle_settings = fetch_aristotle_settings()
+        self.fields['name'].widget = NameSuggestInput(
+            name_suggest_fields=self._meta.model.name_suggest_fields,
+            separator=aristotle_settings['SEPARATORS'].get(self._meta.model.__name__, '-')
+        )
+
     def concept_fields(self):
         # version/workgroup are displayed with name/definition
+        # This is where References, Origin URI, Origin and Comments are populated
+
         field_names = [field.name for field in MDR.baseAristotleObject._meta.fields] + ['version', 'workgroup']
+
         concept_field_names = [
             field.name for field in MDR.concept._meta.fields
             if field.name not in field_names
@@ -142,7 +177,7 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
         obj_field_names = [
             field.name for field in self._meta.model._meta.get_fields()
             if field not in MDR.concept._meta.fields
-            ]
+        ]
         fields = []
         for name in self.fields:
             if name in obj_field_names:
@@ -153,7 +188,7 @@ class ConceptForm(WorkgroupVerificationMixin, UserAwareModelForm):
 class Concept_1_Search(UserAwareForm):
     template = "aristotle_mdr/create/concept_wizard_1_search.html"
     # Object class fields
-    name = forms.CharField(max_length=256)
+    name = forms.CharField(max_length=256, required=False)
     version = forms.CharField(max_length=256, required=False)
     definition = forms.CharField(widget=forms.Textarea, required=False)
 
@@ -161,11 +196,28 @@ class Concept_1_Search(UserAwareForm):
         pass
 
 
+class Concept_2_Results(CustomValueFormMixin, ConceptForm):
+    make_new_item = forms.BooleanField(
+        initial=False,
+        label=_("I've reviewed these items, and none of them meet my needs. Make me a new one."),
+        error_messages={'required': 'You must select this to acknowledge you have reviewed the above items.'}
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.check_similar = kwargs.pop('check_similar', True)
+        super().__init__(*args, **kwargs)
+        self.fields['workgroup'].queryset = self.user.profile.editable_workgroups
+        self.fields['workgroup'].initial = self.user.profile.activeWorkgroup
+        if not self.check_similar:
+            self.fields.pop('make_new_item')
+
+
 def subclassed_modelform(set_model):
     class MyForm(ConceptForm):
         class Meta(ConceptForm.Meta):
             model = set_model
             fields = '__all__'
+
     return MyForm
 
 
@@ -174,13 +226,13 @@ def subclassed_mixin_modelform(set_model, extra_mixins=[]):
     if set_model.edit_page_excludes:
         meta_attrs['exclude'] = set(list(UserAwareModelForm._meta.exclude) + list(set_model.edit_page_excludes))
     else:
-        meta_attrs['fields'] = '__all__'
+        meta_attrs['exclude'] = UserAwareModelForm._meta.exclude  # '__all__'
 
     meta_class = type('Meta', (ConceptForm.Meta,), meta_attrs)
 
     form_class_bases = extra_mixins + [ConceptForm]
-    form_class_attrs = {'Meta': meta_class}
-    form_class_attrs['change_comments'] = forms.CharField(widget=forms.Textarea, required=False)
+    form_class_attrs = {'Meta': meta_class,
+                        'change_comments': forms.CharField(widget=forms.Textarea, required=False)}
 
     form_class = type('MyForm', tuple(form_class_bases), form_class_attrs)
 
@@ -192,8 +244,8 @@ def subclassed_edit_modelform(set_model, extra_mixins=[]):
     return subclassed_mixin_modelform(set_model, extra_mixins=extra_mixins)
 
 
-def subclassed_clone_modelform(set_model):
-    return subclassed_mixin_modelform(set_model)
+def subclassed_clone_modelform(set_model, extra_mixins=[]):
+    return subclassed_mixin_modelform(set_model, extra_mixins=extra_mixins)
 
 
 def subclassed_wizard_2_Results(set_model):
@@ -206,22 +258,6 @@ def subclassed_wizard_2_Results(set_model):
             else:
                 fields = '__all__'
     return MyForm
-
-
-class Concept_2_Results(CustomValueFormMixin, ConceptForm):
-    make_new_item = forms.BooleanField(
-        initial=False,
-        label=_("I've reviewed these items, and none of them meet my needs. Make me a new one."),
-        error_messages={'required': 'You must select this to ackowledge you have reviewed the above items.'}
-    )
-
-    def __init__(self, *args, **kwargs):
-        self.check_similar = kwargs.pop('check_similar', True)
-        super().__init__(*args, **kwargs)
-        self.fields['workgroup'].queryset = self.user.profile.editable_workgroups
-        self.fields['workgroup'].initial = self.user.profile.activeWorkgroup
-        if not self.check_similar:
-            self.fields.pop('make_new_item')
 
 
 class DEC_OCP_Search(UserAwareForm):
@@ -399,8 +435,39 @@ class DE_Complete(UserAwareForm):
     make_items = forms.BooleanField(
         initial=False,
         label=_("I've reviewed these items, and wish to create them."),
-        error_messages={'required': 'You must select this to ackowledge you have reviewed the above items.'}
+        error_messages={'required': 'You must select this to acknowledge you have reviewed the above items.'}
     )
 
     def save(self, *args, **kwargs):
         pass
+
+
+def record_relation_inlineformset_factory():
+    """Create an inline formset factory for organization record"""
+    base_formset = inlineformset_factory(
+        MDR._concept, MDR.RecordRelation,
+        can_delete=True,
+        fields=('concept', 'type', 'organization_record'),
+        widgets={
+            'type': forms.widgets.Select(attrs={'class': 'form-control'}),
+            'organization_record': forms.widgets.Select(attrs={'class': 'form-control'})
+        },
+        extra=1,
+    )
+    return base_formset
+
+
+def reference_link_inlineformset_factory():
+    """Create an inline formset factory for organization record"""
+    from aristotle_cloud.contrib.steward_extras.models import MetadataReferenceLink
+    base_formset = inlineformset_factory(
+        MDR._concept, MetadataReferenceLink,
+        can_delete=True,
+        fields=('metadata', 'reference', 'description'),
+        widgets={
+            'reference': forms.widgets.Select(attrs={'class': 'form-control'}),
+            # 'organization_record': forms.widgets.Select(attrs={'class': 'form-control'})
+        },
+        extra=1,
+    )
+    return base_formset

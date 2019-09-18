@@ -7,16 +7,26 @@
       <p>
           The <a href="/search/">search page</a> provides a form that gives users control to filter and sort search results.</p>
       <p>
-      <img src="{static}/aristotle_mdr/search_filters.png">
           When searching, the "indexed text" refers to everything crawled by the search engine.
           This always includes names, definitions, version and comments.
           Some items will also include additional text from associated items.
           For example, Data Elements include the text from its related Data Element Concept and Value Domain.</p>
+
+      <img src="{static}/aristotle_mdr/search_filters.png">
+
+      <hr>      
+      <h3><i class="fa fa-quote-left fa-fw"></i> Search titles only</h3>
+      <p>
+          Selecting this option restricts Aristotle to only search
+          for items with titles or names. This option is available for all
+          searchable objects, including metadata types, pages, collections,
+          documents, discussions and issues.
+      </p>
       
       <h3><i class="fa fa-eye fa-fw"></i> Only show public items</h3>
       <p>
           When logged in, selecting this option limits search results 
-          to only those items that are publically visible to all users,
+          to only those items that are publicly visible to all users,
           including those without an account.
           This option is only shown to logged-in users as non-logged in
           users only have right to view to public content.
@@ -39,12 +49,18 @@
           Any time the search is changed, such as spelling correction or filter removal, a notification
           will appear under the search bar to let users know.
       </p>
+
       
+      <h3><i class="fa fa-search fa-fw"></i> Default Search</h3>
+      <p>
+        When searching without selecting an item type or category, the search engine
+        searches across everything in the registry.
+      </p>
       
       <h2>Keyword search shortcuts</h2>
       <p>
           When searching there are a few advanced options available to make searching easier.
-          Much like other large scale search engines, these can be entered into any search
+          These can be entered into any search
           box using the <tt>keyword:search_term</tt> format.
       
       </p>

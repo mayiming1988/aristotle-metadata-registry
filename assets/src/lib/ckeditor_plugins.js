@@ -32,6 +32,7 @@ function buildDialogHtml(item_label, select_id, dalurl) {
 }
 
 function addDialog(editor, dialogname, dialogtitle, dialoghtml, select_id) {
+    // Add the dialog
     editor.dialog.add(dialogname, function(editor) {
         return {
             title : dialogtitle,
@@ -51,18 +52,28 @@ function addDialog(editor, dialogname, dialogtitle, dialoghtml, select_id) {
                 }
             ],
             onOk: function() {
+                // Get selected glossary item
                 let select = document.getElementById(select_id)
                 let option = select.options[select.selectedIndex]
                 let g_id = option.value
+                // If valid options
                 if (g_id) {
                     let g_name = option.title
+
+                    // If user has selected some text use that instead
+                    let selectedText = editor.getSelection().getSelectedText()
+                    if (selectedText) {
+                        g_name = selectedText
+                    }
 
                     let linkattrs = {
                         class: 'aristotle-concept-link',
                         href: '/item/' + g_id,
                         'data-aristotle-concept-id': g_id
                     }
+                    // Build link
                     let link = buildElement('a', linkattrs, g_name)
+                    // Insert link into editor
                     editor.insertHtml(link.outerHTML);
                 }
             },
@@ -93,3 +104,5 @@ export function addPlugins(editor) {
     )
     addDialog(editor, 'glossaryListDialog', 'Glossary search', html, 'id_glossary')
 }
+
+

@@ -1,13 +1,11 @@
 from django.urls import reverse
 from rest_framework import serializers
-from rest_framework.fields import CurrentUserDefault
 
 from aristotle_mdr.contrib.reviews.models import (
     ReviewRequest, ReviewComment, REVIEW_STATES,
     ReviewStatusChangeTimeline
 )
 from aristotle_mdr.perms import user_can_view
-from aristotle_mdr.models import _concept
 
 import logging
 

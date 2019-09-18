@@ -4,11 +4,11 @@
 {% load render_bundle from webpack_loader %}
 
 {% block webpack_css_bundle %}
-  {% render_bundle 'itemPage' 'css' %}
+    {% render_bundle 'itemPage' 'css' %}
 {% endblock %}
 
 {% block webpack_bundle %}
-  {% render_bundle 'itemPage' 'js' %}
+    {% render_bundle 'itemPage' 'js' %}
 {% endblock %}
 
 {% block title %}
@@ -20,46 +20,60 @@
 {% endblock %}
 
 {% block content %}
-<div id="vue-container">
-  <header class="row">
-      {% if breadcrumbs %}
-        <ol class="breadcrumb">
-          {% for crumb in breadcrumbs %}
-            <li {% if crumb.active %}class="active"{% endif %}>
-              {% if crumb.url %}
-                <a href="{{ crumb.url }}">{{ crumb.name }}</a>
-              {% else %}
-                {{ crumb.name }}
-              {% endif %}
-            </li>
-          {% endfor %}
-        </ol>
-      {% endif %}
-      {% block concept_title %}
-        {% include "aristotle_mdr/concepts/titles/display_title.html" %}
-      {% endblock %}
-      {% if not hide_item_actions %}
-        {% include "aristotle_mdr/concepts/actionbar.html" %}
-      {% endif %}
-  </header>
+    <div id="vue-container">
+        <header v-pre class="row">
+            {% if breadcrumbs %}
+                <ol class="breadcrumb">
+                    {% for crumb in breadcrumbs %}
+                        <li {% if crumb.active %}class="active"{% endif %}>
+                            {% if crumb.url %}
+                                <a href="{{ crumb.url }}">{{ crumb.name }}</a>
+                            {% else %}
+                                {{ crumb.name }}
+                            {% endif %}
+                        </li>
+                      {% endfor %}
+                </ol>
+            {% endif %}
+            {% block concept_title %}
+                {% include "aristotle_mdr/concepts/titles/display_title.html" %}
+            {% endblock %}
+        </header>
+
+        {% if not hide_item_actions %}
+            {% include "aristotle_mdr/concepts/actionbar.html" %}
+        {% endif %}
   
-  <!-- Nav tabs -->
-  <ul class="nav nav-tabs" role="tablist">
-    <li role="presentation" {% if activetab == "item" %}class="active"{% endif %}>
-      <a href="{% url 'aristotle:item' item.id item.meta.model_name item.name %}" aria-controls="item">Item</a>
-    </li>
-    {% if user.is_authenticated %}
-    <li role="presentation" {% if activetab == "issues" %}class="active"{% endif %}>
-      <a href="{% url 'aristotle_issues:item_issues' item.id %}" aria-controls="issues" role="tab">Issues</a>
-    </li>
-    {% endif %}
-    <li role="presentation" {% if activetab == "history" %}class="active"{% endif %}>
-      <a href="{% url 'aristotle:item_history' item.id %}" aria-controls="history" role="tab">History</a>
-    </li>
-  </ul>
+        <!-- Nav tabs -->
+        <div v-pre class="row">
+          <ul class="nav nav-tabs" role="tablist">
+            <li role="presentation" {% if activetab == "item" %}class="active"{% endif %}>
+              <a href="{% url 'aristotle:item' item.id item.meta.model_name item.name %}" aria-controls="item">Item</a>
+            </li>
+            {% if not hide_tabs %}
+              {% if user.is_authenticated %}
+              <li role="presentation" {% if activetab == "issues" %}class="active"{% endif %}>
+                <a href="{% url 'aristotle_issues:item_issues' item.id %}" aria-controls="issues" role="tab">Issues</a>
+              </li>
+              {% endif %}
+              <li role="presentation" {% if activetab == "history" %}class="active"{% endif %}>
+                <a href="{% url 'aristotle:item_history' item.id %}" aria-controls="history" role="tab">History</a>
+              </li>
+            {% endif %}
+              <li role="presentation" {% if activetab == "graphs" %}class="active"{% endif %}>
+                 <a href="{% url 'aristotle:item_graphs' item.id %}" aria-controls="graphs" role="tab">Graphs</a>
+              </li>
+              <li role="presentation" {% if activetab == "related" %}class="active"{% endif %}>
+                 <a href="{% url 'aristotle:item_related' item.id %}" aria-controls="related" role="tab">Related</a>
+              </li>
+          </ul>
+        </div>
 
-  {% block infoContent %}
-  {% endblock %}
+        {% block infoContent %}
+        {% endblock %}
 
-</div>
+    </div>
+
+    <div v-pre>{% bootstrap_modal "context_help" size='lg' %}</div>
+
 {% endblock %}

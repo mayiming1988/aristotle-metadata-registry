@@ -1,0 +1,28 @@
+{% load util_tags %}
+
+{% if item.publication_details.exists %}
+    <div class="panel panel-default">
+        <header class="panel-heading">
+            Publication
+        </header>
+        <div class="panel-body">
+            <ul>
+            {% for record in item.publication_details.all %}
+            <li>
+        
+            {{record.get_permission_display}} from
+            <time title="{{ record.publication_date|date:'o-m-d' }}" datetime="{{ record.publication_date|isotime }}" >
+            </time>
+            </li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+{% elif show_no_publication %}
+    <div class="panel panel-default">
+        <header class="panel-heading">
+            This item is not published.
+        </header>
+    </div>
+
+{% endif %}

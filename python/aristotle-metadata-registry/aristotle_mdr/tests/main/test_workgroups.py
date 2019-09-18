@@ -5,24 +5,26 @@ import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
 import aristotle_mdr.tests.utils as utils
 
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-
-setup_aristotle_test_environment()
-
-# This is for testing permissions around workgroup mangement.
 
 class WorkgroupMembership(TestCase):
+    """ Test permissions around workgroup management"""
+    def setUp(self):
+        self.steward_org_1 = models.StewardOrganisation.objects.create(
+            name='Org 1',
+            description="1",
+        )
+        
     def test_userInWorkgroup(self):
-        wg = models.Workgroup.objects.create(name="Test WG 1")
+        wg = models.Workgroup.objects.create(name="Test WG 1", stewardship_organisation=self.steward_org_1)
         user = get_user_model().objects.create_user('editor1@example.com','editor1')
-        wg.viewers.add(user)
+        wg.giveRoleToUser('viewer', user)
         self.assertTrue(perms.user_in_workgroup(user,wg))
+
     def test_RemoveUserFromWorkgroup(self):
         # Does removing a user from a workgroup remove their permissions? It should!
-        wg = models.Workgroup.objects.create(name="Test WG 1")
+        wg = models.Workgroup.objects.create(name="Test WG 1", stewardship_organisation=self.steward_org_1)
         user = get_user_model().objects.create_user('editor1@example.com','editor1')
-        wg.managers.add(user)
+        wg.giveRoleToUser('manager', user)
         # Caching issue, refresh from DB with correct permissions
         user = get_user_model().objects.get(pk=user.pk)
         self.assertTrue(perms.user_in_workgroup(user,wg))
@@ -31,12 +33,13 @@ class WorkgroupMembership(TestCase):
         # Caching issue, refresh from DB with correct permissions
         user = get_user_model().objects.get(pk=user.pk)
         self.assertFalse(perms.user_is_workgroup_manager(user,wg))
+
     def test_managersCanEditWorkgroups(self):
-        wg = models.Workgroup.objects.create(name="Test WG 1")
+        wg = models.Workgroup.objects.create(name="Test WG 1", stewardship_organisation=self.steward_org_1)
         user1 = get_user_model().objects.create_user('manager@example.com','manager')
         user2 = get_user_model().objects.create_user('viewer@example.com','viewer')
-        wg.managers.add(user1)
-        wg.viewers.add(user2)
+        wg.giveRoleToUser('manager', user1)
+        wg.giveRoleToUser('viewer', user2)
         wg.save()
         wg = models.Workgroup.objects.get(pk=wg.id)
 
@@ -58,15 +61,13 @@ class WorkgroupMembership(TestCase):
     def test_editable_workgroups_are_unique(self):
         # Tests against bug #333
         # https://github.com/aristotle-mdr/aristotle-metadata-registry/issues/333
-        wg1 = models.Workgroup.objects.create(name="Test WG 1")
-        wg2 = models.Workgroup.objects.create(name="Test WG 2")
-        wg3 = models.Workgroup.objects.create(name="Test WG 3")
+        wg1 = models.Workgroup.objects.create(name="Test WG 1", stewardship_organisation=self.steward_org_1)
+        wg2 = models.Workgroup.objects.create(name="Test WG 2", stewardship_organisation=self.steward_org_1)
+        wg3 = models.Workgroup.objects.create(name="Test WG 3", stewardship_organisation=self.steward_org_1)
         editor = get_user_model().objects.create_user('editor@example.com','editor')
-        wg1.stewards.add(editor)
-        wg1.submitters.add(editor)
-        wg1.viewers.add(editor)
-        wg2.stewards.add(editor)
-        wg3.viewers.add(editor)
+        wg1.giveRoleToUser('steward', editor)
+        wg2.giveRoleToUser('steward', editor)
+        wg3.giveRoleToUser('viewer', editor)
         wg1.save()
         wg2.save()
         wg3.save()
@@ -79,7 +80,8 @@ class WorkgroupMembership(TestCase):
         self.assertTrue(wg2 in editable.all())
         self.assertTrue(wg3 not in editable.all())
 
-class WorkgroupAnonTests(utils.LoggedInViewPages,TestCase):
+
+class WorkgroupAnonTests(utils.LoggedInViewPages, TestCase):
     def test_anon_cannot_add(self):
         self.logout()
         response = self.client.get(reverse('aristotle:addWorkgroupMembers',args=[self.wg1.id]))
@@ -109,7 +111,7 @@ class WorkgroupAnonTests(utils.LoggedInViewPages,TestCase):
         self.assertListEqual(list(self.newuser.profile.workgroups.all()),[])
 
 
-class WorkgroupCreationTests(utils.LoggedInViewPages,TestCase):
+class WorkgroupCreationTests(utils.LoggedInViewPages, TestCase):
     def test_anon_cannot_create(self):
         self.logout()
         response = self.client.get(reverse('aristotle:workgroup_create'))
@@ -165,10 +167,12 @@ class WorkgroupCreationTests(utils.LoggedInViewPages,TestCase):
             reverse('aristotle:workgroup_create'),
             {
                 'name':"My cool team",
-                'definition':"This team rocks!"
+                'definition':"This team rocks!",
+                'stewardship_organisation':self.steward_org_1.uuid,
             },
             follow=True
         )
+
         self.assertTrue(response.redirect_chain[0][1] == 302)
 
         self.assertEqual(response.status_code, 200)
@@ -182,7 +186,7 @@ class WorkgroupCreationTests(utils.LoggedInViewPages,TestCase):
         self.assertEqual(new_wg.definition, "This team rocks!")
 
 
-class WorkgroupUpdateTests(utils.LoggedInViewPages,TestCase):
+class WorkgroupUpdateTests(utils.LoggedInViewPages, TestCase):
     def test_anon_cannot_update(self):
         self.logout()
         response = self.client.get(reverse('aristotle:workgroup_create'))
@@ -194,7 +198,7 @@ class WorkgroupUpdateTests(utils.LoggedInViewPages,TestCase):
     def test_viewer_cannot_update(self):
         self.login_viewer()
 
-        my_wg = models.Workgroup.objects.create(name="My new Workgroup", definition="")
+        my_wg = models.Workgroup.objects.create(name="My new Workgroup", definition="", stewardship_organisation=self.steward_org_1)
 
         response = self.client.get(reverse('aristotle:workgroup_edit', args=[my_wg.pk]))
         self.assertEqual(response.status_code, 403)
@@ -217,7 +221,7 @@ class WorkgroupUpdateTests(utils.LoggedInViewPages,TestCase):
     def test_registry_owner_can_edit(self):
         self.login_superuser()
 
-        my_wg = models.Workgroup.objects.create(name="My new Workgroup", definition="")
+        my_wg = models.Workgroup.objects.create(name="My new Workgroup", definition="", stewardship_organisation=self.steward_org_1)
 
         response = self.client.get(reverse('aristotle:workgroup_edit', args=[my_wg.pk]))
         self.assertEqual(response.status_code, 200)
@@ -241,14 +245,14 @@ class WorkgroupUpdateTests(utils.LoggedInViewPages,TestCase):
     def test_manager_can_edit(self):
         self.login_manager()
 
-        my_wg = models.Workgroup.objects.create(name="My new Workgroup", definition="")
+        my_wg = models.Workgroup.objects.create(name="My new Workgroup", definition="", stewardship_organisation=self.steward_org_1)
 
         response = self.client.get(reverse('aristotle:workgroup_edit', args=[my_wg.pk]))
         self.assertEqual(response.status_code, 403)
 
-        my_wg.managers.add(self.manager)
+        my_wg.giveRoleToUser('manager', self.manager)
         my_wg = models.Workgroup.objects.get(pk=my_wg.pk)
-        self.assertTrue(self.manager in my_wg.managers.all())
+        self.assertTrue(my_wg.has_role('manager', self.manager))
 
         response = self.client.get(reverse('aristotle:workgroup_edit', args=[my_wg.pk]))
         self.assertEqual(response.status_code, 200)
@@ -324,6 +328,23 @@ class WorkgroupMemberTests(utils.LoggedInViewPages,TestCase):
         response = self.client.get(reverse('aristotle:workgroup_member_remove',args=[self.wg1.id,self.newuser.pk]))
         self.assertEqual(response.status_code,403)
 
+    def test_viewer_cannot_see_add_user_button(self):
+        """ The viewer should not be able to see the Add User button in the workgroup member list, as
+            they are not permitted to add users"""
+        self.login_viewer()
+
+        response = self.client.get(reverse('aristotle:workgroupMembers', args=[self.wg1.id]))
+
+        self.assertNotContainsHtml(response, 'Add a user')
+
+    def test_manager_can_see_add_user_button(self):
+        """ Managers should be able to see the Add User button in the workgroup member list"""
+        self.login_manager()
+
+        response = self.client.get(reverse('aristotle:workgroupMembers', args=[self.wg1.id]))
+
+        self.assertContainsHtml(response, 'Add a user')
+
     def test_manager_can_add_or_change_users(self):
         self.login_manager()
         self.assertTrue(self.newuser in list(get_user_model().objects.all()))
@@ -332,14 +353,14 @@ class WorkgroupMemberTests(utils.LoggedInViewPages,TestCase):
         self.assertEqual(response.status_code,403)
         response = self.client.get(reverse('aristotle:addWorkgroupMembers',args=[self.wg1.id]))
         self.assertEqual(response.status_code,200)
-        self.assertTrue(self.newuser.id in [u[0] for u in response.context['form'].fields['users'].choices])
+        self.assertTrue(self.newuser.id in [u[0] for u in response.context['form'].fields['user'].choices])
 
         self.assertListEqual(list(self.newuser.profile.workgroups.all()),[])
         response = self.client.post(
             reverse('aristotle:addWorkgroupMembers', args=[self.wg2.id]),
             {
-                'roles':['viewer'],
-                'users':[self.newuser.pk]
+                'role':'viewer',
+                'user':self.newuser.pk
             }
         )
         self.assertEqual(response.status_code,403)
@@ -348,12 +369,12 @@ class WorkgroupMemberTests(utils.LoggedInViewPages,TestCase):
         response = self.client.post(
             reverse('aristotle:addWorkgroupMembers', args=[self.wg1.id]),
             {
-                'roles': ['viewer'],
-                'users': [self.newuser.pk]
+                'role': 'viewer',
+                'user': self.newuser.pk
             }
         )
         self.assertEqual(response.status_code,302)
-        self.assertTrue(self.newuser in self.wg1.members.all())
+        self.assertTrue(self.newuser in self.wg1.member_list.all())
         self.assertListEqual(list(self.newuser.profile.workgroups.all()),[self.wg1])
 
         response = self.client.get(reverse('aristotle:workgroup_member_change_role',args=[self.wg1.id,self.newuser.pk]))
@@ -361,19 +382,11 @@ class WorkgroupMemberTests(utils.LoggedInViewPages,TestCase):
 
         response = self.client.post(
             reverse('aristotle:workgroup_member_change_role',args=[self.wg1.id,self.newuser.pk]),
-            {'roles': ['manager']}
+            {'role': 'manager'}
         )
         self.assertEqual(response.status_code,302)
-        self.assertFalse(self.newuser in self.wg1.viewers.all())
-        self.assertTrue(self.newuser in self.wg1.managers.all())
-        response = self.client.post(
-            reverse('aristotle:workgroup_member_change_role',args=[self.wg1.id,self.newuser.pk]),
-            {'roles': []}
-        )
-        self.assertEqual(response.status_code,302)
-        self.assertFalse(self.newuser in self.wg1.viewers.all())
-        self.assertFalse(self.newuser in self.wg1.managers.all())
-        self.assertFalse(self.newuser in self.wg1.members.all())
+        self.assertTrue(self.wg1.has_role('manager', self.newuser))
+        self.assertFalse(self.wg1.has_role('viewer', self.newuser))
 
     def test_manager_can_remove_users(self):
         self.login_manager()
@@ -382,22 +395,22 @@ class WorkgroupMemberTests(utils.LoggedInViewPages,TestCase):
         response = self.client.post(
             reverse('aristotle:addWorkgroupMembers', args=[self.wg1.id]),
             {
-                'roles': ['viewer', 'manager'],
-                'users': [self.newuser.pk]
+                'role': 'manager',
+                'user': self.newuser.pk
             }
         )
         self.assertEqual(response.status_code,302)
-        self.assertTrue(self.newuser in self.wg1.members.all())
-        self.assertTrue(self.newuser in self.wg1.viewers.all())
-        self.assertTrue(self.newuser in self.wg1.managers.all())
+        self.assertTrue(self.newuser in self.wg1.member_list.all())
+        self.assertFalse(self.wg1.has_role('viewer', self.newuser))
+        self.assertTrue(self.wg1.has_role('manager', self.newuser))
         self.assertListEqual(list(self.newuser.profile.workgroups.all()),[self.wg1])
 
         response = self.client.post(
             reverse('aristotle:workgroup_member_remove',args=[self.wg1.id,self.newuser.pk]),
         )
         self.assertEqual(response.status_code,302)
-        self.assertFalse(self.newuser in self.wg1.viewers.all())
-        self.assertFalse(self.newuser in self.wg1.managers.all())
+        self.assertFalse(self.wg1.has_role('viewer', self.newuser))
+        self.assertFalse(self.wg1.has_role('manager', self.newuser))
 
         response = self.client.get(
             reverse('aristotle:workgroup_member_remove', args=[self.wg1.id,self.newuser.pk]),
@@ -466,6 +479,7 @@ class WorkgroupMemberTests(utils.LoggedInViewPages,TestCase):
 
         # Managers must have the archive button on the workgroup page
         response = self.client.get(self.wg1.get_absolute_url())
+        self.assertEqual(response.status_code,200)
         self.assertContains(response, "archive_modal")
 
         response = self.client.get(reverse('aristotle:archive_workgroup',args=[self.wg2.id]))

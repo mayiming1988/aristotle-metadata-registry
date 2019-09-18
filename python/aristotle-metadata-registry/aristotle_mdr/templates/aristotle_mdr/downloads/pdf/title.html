@@ -1,0 +1,54 @@
+{% load i18n %}
+{% load static from staticfiles %}
+
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>{% block title %}{{ options.title }}{% endblock %}</title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <style>
+    {% include "aristotle_mdr/downloads/html/css/pdf.css" %}
+    </style>
+</head>
+<body>
+    <div class="title_page break-after">
+
+        <div class="title_section">
+
+            <div class="main_title">
+                {% if options.title %}<h1>{{ options.title }}</h1>{% endif %}
+                {% if item.name %}
+                    {{ item.name }}
+                {% endif %}
+                {% if items|length > 1 %}
+                    PDF download for Multiple Items
+                {% else %}
+                    {{ items.0.name }}
+                {% endif %}
+            </div>
+
+            <div class="byline">
+                Exported from {{config.SITE_NAME}}
+            </div>
+            {% if export_date %}
+                <div class="byline date">
+                    On {{ export_date }}
+                </div>
+            {% endif %}
+          </div>
+     </div>
+
+    <div class="copyright">
+       <table>
+          <tr>
+             <td>
+                <div class="pre-line">
+                {{ config.DOWNLOAD_OPTIONS.COPYRIGHT_PAGE_CONTENT }}
+                </div>
+                {% include "aristotle_mdr/downloads/html/preamble/copyright_page_aristotle_insert.html" %}
+             </td>
+          </tr>
+       </table>
+    </div>
+ </body>
+</html>

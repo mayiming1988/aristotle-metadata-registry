@@ -1,45 +1,31 @@
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import FieldError
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, TemplateView
-from aristotle_mdr.utils import get_concepts_for_apps, fetch_metadata_apps
 from collections import OrderedDict
+
+from aristotle_mdr.utils import get_concepts_for_apps, fetch_metadata_apps
 from aristotle_mdr.models import _concept
+from aristotle_mdr.views.views import get_app_config_list
 
 
 class BrowseApps(TemplateView):
     template_name = "aristotle_mdr_browse/apps_list.html"
     ordering = 'app_label'
 
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-
-        aristotle_apps = fetch_metadata_apps()
-        out = {}
-
-        for m in get_concepts_for_apps(aristotle_apps):
-            # Only output subclasses of 11179 concept
-            app_models = out.get(m.app_label, {'app': None, 'models': []})
-            if app_models['app'] is None:
-                app_models['app'] = getattr(
-                    apps.get_app_config(m.app_label),
-                    'verbose_name',
-                    _("No name")  # Where no name is configured in the app_config, set a dummy so we don't keep trying
-                )
-
-            app_models['models'].append(m)
-            out[m.app_label] = app_models
-
-        context['apps'] = OrderedDict(sorted(out.items(), key=lambda app: app[1]['app']))
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['apps'] = get_app_config_list()
         return context
 
 
 class AppBrowser(ListView):
-    def get_context_data(self, *args, **kwargs):
+    """ListView with some extra context (subclassed by following views)"""
+
+    def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
-        context = super().get_context_data(*args, **kwargs)
+        context = super().get_context_data(**kwargs)
         if self.kwargs['app'] not in fetch_metadata_apps():
             raise Http404
         context['app_label'] = self.kwargs['app']
@@ -48,6 +34,7 @@ class AppBrowser(ListView):
 
 
 class BrowseModels(AppBrowser):
+    """Show a list of models"""
     template_name = "aristotle_mdr_browse/model_list.html"
     context_object_name = "model_list"
     paginate_by = 25
@@ -60,6 +47,7 @@ class BrowseModels(AppBrowser):
 
 
 class BrowseConcepts(AppBrowser):
+    """Show a list of items of a particular model"""
     _model = None
     paginate_by = 25
 
@@ -81,57 +69,15 @@ class BrowseConcepts(AppBrowser):
 
     def get_queryset(self, *args, **kwargs):
         queryset = super().get_queryset(*args, **kwargs)
+        return queryset.visible(self.request.user).prefetch_related('statuses__registrationAuthority')
 
-        # Regular queryset filter
-        for f in self.request.GET.getlist('f'):
-            try:
-                k, v = f.split(':', 1)
-                queryset = queryset.filter(**{k: v})
-            except:
-                pass
-
-        # Regular queryset filters
-        filters = {}
-        for f in self.request.GET.getlist('f'):
-            if ':' in f:
-                k, v = f.split(':', 1)
-                filter_vals = filters.get(k, [])
-                filter_vals.append(v)
-                filters[k] = filter_vals
-
-        for query, values in filters.items():
-            try:
-                k = "%s__in" % k
-                queryset = queryset.filter(**{k: values})
-            except FieldError:
-                pass
-
-        # slot filters
-        slots = {}
-        for sf in self.request.GET.getlist('sf'):
-            if ':' in sf:
-                k, v = sf.split(':', 1)
-                slot_vals = slots.get(k, [])
-                slot_vals.append(v)
-                slots[k] = slot_vals
-
-        for slot_name, values in slots.items():
-            try:
-                queryset = queryset.filter(
-                    slots__name=slot_name,
-                    slots__value__in=values,
-                )
-            except FieldError:
-                pass
-
-        return queryset.visible(self.request.user)
-
-    def get_context_data(self, *args, **kwargs):
+    def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
-        context = super().get_context_data(*args, **kwargs)
+        context = super().get_context_data(**kwargs)
         context['model'] = self.model
         context['model_name'] = self.model._meta.model_name
         context['sort'] = self.order
+        context['total_queryset_size'] = self.get_queryset().count()
         return context
 
     def get_template_names(self):

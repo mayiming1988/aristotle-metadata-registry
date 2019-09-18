@@ -1,19 +1,14 @@
 from django.test import TestCase, tag, Client
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
-from django.urls import reverse
 from django.conf import settings
+from django.urls import reverse
+from django.core import mail
 
 import aristotle_mdr.tests.utils as utils
+from aristotle_bg_workers.tasks import send_sandbox_notification_emails
 from aristotle_mdr import models
-import datetime
-import json
-import os
-
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-
-setup_aristotle_test_environment()
+import datetime, json, os, ast
 
 
 class UserHomePages(utils.AristotleTestUtils, TestCase):
@@ -27,7 +22,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse('aristotle:userInbox',))
         self.assertEqual(response.status_code, 200)
-        response = self.client.get(reverse('aristotle:userInbox', args=['all']))
+        response = self.client.get(reverse('aristotle:userInboxAll',))
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse('aristotle:userWorkgroups',))
         self.assertEqual(response.status_code, 200)
@@ -288,7 +283,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         response = self.reverse_get(
             'aristotle_mdr:sharedSandbox',
             reverse_args=[share.uuid],
-            status_code=404
+            status_code=403
         )
 
     @tag('share_link')
@@ -318,7 +313,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         self.assertInContext(response, 'breadcrumbs')
 
     @tag('share_link')
-    def test_view_sanbox_item_incorrect_email(self):
+    def test_view_sandbox_item_incorrect_email(self):
         share = self.create_content_and_share(
             self.editor,
             ['tester@example.com', 'alice@example.com']
@@ -332,7 +327,7 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         response = self.reverse_get(
             'aristotle_mdr:sharedSandboxItem',
             reverse_args=[share.uuid, item.id],
-            status_code=404
+            status_code=403
         )
 
     @tag('share_link')
@@ -432,12 +427,12 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
 
         # make some workgroups
         for i in range(1,4):
-            wg1 = models.Workgroup.objects.create(name="Test WG match_this_name %s"%i)
+            wg1 = models.Workgroup.objects.create(name="Test WG match_this_name %s"%i, stewardship_organisation=self.steward_org_1)
             wg1.giveRoleToUser('viewer',self.viewer)
             for j in range(i):
                 models.ObjectClass.objects.create(name="Test item",workgroup=wg1)
         for i in range(4,7):
-            wg1 = models.Workgroup.objects.create(name="Test WG %s"%i,definition="match_this_definition")
+            wg1 = models.Workgroup.objects.create(name="Test WG %s"%i,definition="match_this_definition", stewardship_organisation=self.steward_org_1)
             wg1.giveRoleToUser('viewer',self.viewer)
             for j in range(i):
                 models.ObjectClass.objects.create(name="Test item",workgroup=wg1)
@@ -474,12 +469,12 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
 
         # make some workgroups
         for i in range(1,4):
-            wg1 = models.Workgroup.objects.create(name="Test WG match_this_name %s"%i)
+            wg1 = models.Workgroup.objects.create(name="Test WG match_this_name %s"%i, stewardship_organisation=self.steward_org_1)
             wg1.giveRoleToUser('viewer',self.viewer)
             for j in range(i):
                 models.ObjectClass.objects.create(name="Test item",workgroup=wg1)
         for i in range(4,7):
-            wg1 = models.Workgroup.objects.create(name="Test WG %s"%i,definition="match_this_definition")
+            wg1 = models.Workgroup.objects.create(name="Test WG %s"%i,definition="match_this_definition", stewardship_organisation=self.steward_org_1)
             wg1.giveRoleToUser('viewer',self.viewer)
             for j in range(i):
                 models.ObjectClass.objects.create(name="Test item",workgroup=wg1)
@@ -529,6 +524,30 @@ class UserHomePages(utils.AristotleTestUtils, TestCase):
         response = self.client.get("/login")
         self.assertRedirects(response, reverse('aristotle:userHome'))
 
+    def test_avoid_redirection_loop_value_error(self):
+        response = self.client.post(reverse('friendly_login') + '?next=/login', {'username': 'super@example.com', 'password': 'user'})
+        self.assertRedirects(response, settings.LOGIN_REDIRECT_URL)
+
+    @tag('share_link')
+    def test_send_emails_for_new_email_addresses(self):
+        # Create some content and share it
+        share = self.create_content_and_share(self.editor, ['vicky@example.com'])
+        name_of_user = 'vicky'
+
+        # Send the emails
+        send_sandbox_notification_emails(name_of_user, ast.literal_eval(share.emails), str(share.uuid))
+
+        # Check that one email appears in the outbox
+        self.assertEqual(len(mail.outbox), 1)
+
+        # Assert that the email is being sent from the default from email
+        self.assertEqual(mail.outbox[0].from_email, settings.DEFAULT_FROM_EMAIL)
+        self.assertEqual(mail.outbox[0].subject, 'Sandbox Access')
+        self.assertEqual(mail.outbox[0].body,
+                         "Hello there, to access {}'s Sandbox "
+                         "please use the following URL: ".format(name_of_user.capitalize())
+                         + str(share.uuid))
+
 
 class UserDashRecentItems(utils.AristotleTestUtils, TestCase):
     def setUp(self):
@@ -564,6 +583,9 @@ class UserDashRecentItems(utils.AristotleTestUtils, TestCase):
             'results-workgroup': self.wg1.pk
         }
         step_2_data.update(self.get_formset_postdata([], 'slots'))
+        step_2_data.update(self.get_formset_postdata([], 'org_records'))
+
+
         response = self.client.post(wizard_url, step_2_data)
         self.assertTrue(models._concept.objects.filter(name="Test Item").exists())
         self.assertEqual(models._concept.objects.filter(name="Test Item").count(), 1)
@@ -666,7 +688,7 @@ class UserProfileTests(TestCase):
         self.login_newuser()
 
         initial = self.get_initial()
-        response = self.post_with_profile_picture(initial)
+        self.post_with_profile_picture(initial)
 
         user = get_user_model().objects.get(email='newuser@example.com')
 
@@ -698,23 +720,35 @@ class UserProfileTests(TestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_default_profile_picture(self):
+        user_a = get_user_model().objects.create_user(
+            email='newuser_a@example.com',
+            password='verysecure',
+            short_name='new',
+            full_name='new user'
+        )
+        user_b = get_user_model().objects.create_user(
+            email='newuser_b@example.com',
+            password='verysecure',
+            short_name='new',
+            full_name='new user'
+        )
 
         # check page load
-        response = self.client.get(reverse('aristotle_mdr:dynamic_profile_picture', args=[3]))
+        response = self.client.get(reverse('aristotle_mdr:dynamic_profile_picture', args=[user_a.pk]))
         self.assertEqual(response.status_code, 200)
 
         three_toga_color = response.context['toga_color']
         three_headshot_color = response.context['headshot_color']
 
         # check diffent args returns new colors
-        response = self.client.get(reverse('aristotle_mdr:dynamic_profile_picture', args=[4]))
+        response = self.client.get(reverse('aristotle_mdr:dynamic_profile_picture', args=[user_b.pk]))
         self.assertEqual(response.status_code, 200)
 
         self.assertNotEqual(three_toga_color, response.context['toga_color'])
         self.assertNotEqual(three_headshot_color, response.context['headshot_color'])
 
         # check second request with same args returns same colors
-        response = self.client.get(reverse('aristotle_mdr:dynamic_profile_picture', args=[3]))
+        response = self.client.get(reverse('aristotle_mdr:dynamic_profile_picture', args=[user_a.pk]))
         self.assertEqual(response.status_code, 200)
 
         self.assertEqual(three_toga_color, response.context['toga_color'])
@@ -792,3 +826,35 @@ class RegistrationAuthorityPages(utils.AristotleTestUtils, TestCase):
         response = self.client.get(reverse('aristotle_mdr:registrationauthority_edit', args=[self.ra.id]))
         self.assertEqual(response.status_code, 200)
         self.assertTrue('active' in response.context['form'].fields)
+
+    def test_user_roles_ordering(self):
+        self.login_regular_user()
+        wg2 = models.Workgroup.objects.create(
+            name='AAA Great Workgroup',
+            definition='Great',
+            stewardship_organisation=self.steward_org_1
+        )
+        self.ra.managers.add(self.regular)
+
+        self.wg1.giveRoleToUser('manager', self.regular)
+        wg2.giveRoleToUser('manager', self.regular)
+
+        response = self.reverse_get(
+            'aristotle:userRoles',
+            status_code=200
+        )
+
+        wgs = response.context['workgroups']
+        ras = response.context['registration_authorities']
+
+        self.assertCountEqual(
+            wgs,
+            [
+                {'name': wg2.name, 'pk': wg2.pk, 'role': 'manager'},
+                {'name': self.wg1.name, 'pk': self.wg1.pk, 'role': 'manager'},
+            ]
+        )
+        self.assertCountEqual(
+            ras,
+            [{'name': self.ra.name, 'pk': self.ra.pk, 'role': 'Manager'}]
+        )

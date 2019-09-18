@@ -1,7 +1,6 @@
 from django import template
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
-from django.utils.translation import ugettext_lazy as _
 
 from aristotle_mdr.contrib.help.models import ConceptHelp, HelpPage
 from aristotle_mdr.templatetags.aristotle_tags import doc
@@ -36,11 +35,19 @@ def relink(help_item, field):
     return make_relink(text, app_label=help_item.app_label)
 
 
+@register.filter
+def relinked(help_item, field):
+    text = getattr(help_item, field)
+    if not text:
+        return ""
+    return make_relink(text, app_label=help_item.app_label)
+
+
 def make_relink(text, app_label=None):
     import re
     text = re.sub(
         r'\{static\}',
-        "%s/aristotle_help/" % settings.STATIC_URL, text
+        "%s" % settings.STATIC_URL, text
     )
 
     def make_concept_link(match):
@@ -55,9 +62,9 @@ def make_relink(text, app_label=None):
             else:
                 app, model = m
             if app:
-                ct = ContentType.objects.get(app_label=app, model=model)
+                ct = ContentType.objects.get_by_natural_key(app, model)
             else:
-                ct = ContentType.objects.get(model=model)
+                ct = ContentType.objects.get_for_model(model)
                 app = ct.app_label
             help_url = reverse("aristotle_help:concept_help", args=[app, model])
 

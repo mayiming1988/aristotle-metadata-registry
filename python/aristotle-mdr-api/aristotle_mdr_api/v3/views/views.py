@@ -1,16 +1,9 @@
-from django.http import Http404
-from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import PermissionDenied
 
-from rest_framework import serializers, status, mixins
-from rest_framework.views  import APIView
+from rest_framework import serializers
 from rest_framework.response import Response
-from rest_framework.reverse import reverse
-from rest_framework.decorators import detail_route
 
-from django.forms import model_to_dict
-from aristotle_mdr import models, perms
+from aristotle_mdr import models
 from aristotle_mdr.forms.search import PermissionSearchQuerySet
 from aristotle_mdr_api.v3.permissions import AuthAndTokenOrRO
 from .concepts import ConceptListSerializer
@@ -33,11 +26,9 @@ class ConceptSearchSerializer(serializers.Serializer):
         self.request = kwargs.pop('request',None)
         super(ConceptSearchSerializer,self).__init__(*args,**kwargs)
     def get_object(self,instance):
-        data = {}
         return ConceptListSerializer(instance.object,context={'request': self.request}).data
 
 
-from haystack.models import SearchResult
 #class SearchList(APIView):
 class SearchViewSet(viewsets.GenericViewSet):
     "Search."
@@ -52,14 +43,14 @@ class SearchViewSet(viewsets.GenericViewSet):
 
 
     def list(self, request):
-        if not self.request.query_params.keys():
+        if 'q' not in self.request.query_params:
             return Response({'search_options':'q models state ra'.split()})
 
         items = PermissionSearchQuerySet().auto_query(self.request.query_params['q'])
         if self.request.query_params.get('models') is not None:
             search_models = []
             models = self.request.query_params.get('models')
-            if type(models) != type([]):
+            if type(models) != list:
                 models = [models]
             for mod in models:
                 if len(mod.split('.',1)) == 2:

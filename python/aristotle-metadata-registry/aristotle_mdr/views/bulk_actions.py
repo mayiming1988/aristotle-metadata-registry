@@ -19,7 +19,7 @@ class BulkAction(FormView):
         if not action:
             return HttpResponseRedirect(self.request.GET.get("next", "/"))
         if not action['can_use'](self.request.user):
-            if self.request.user.is_anonymous():
+            if self.request.user.is_anonymous:
                 return redirect(
                     reverse('friendly_login') + '?next=%s' % self.request.path
                 )
@@ -34,7 +34,6 @@ class BulkAction(FormView):
 
     def post(self, request, *args, **kwargs):
         url = request.GET.get("next", reverse("aristotle:home"))
-        message = ""
         action = self.get_action()
 
         if action is None:
@@ -123,7 +122,6 @@ class BulkAction(FormView):
                     "bulk_action_title": self.request.POST.get("bulkaction", None)
                 }
             )
-        return HttpResponseRedirect(url)
 
 
 def get_bulk_actions():
@@ -132,7 +130,7 @@ def get_bulk_actions():
 
     actions = {}
     for action_name in config.get('BULK_ACTIONS', []):
-        if not re.search(r'^[a-zA-Z0-9\_\.]+$', action_name):  # pragma: no cover
+        if not re.search(r'^[a-zA-Z0-9_.]+$', action_name):  # pragma: no cover
             # Invalid download_type
             raise registry_exceptions.BadBulkActionModuleName("Bulk action isn't a valid Python module name.")
 
@@ -168,7 +166,7 @@ class ChangeStatusBulkActionView(ReviewChangesView):
     def get_items(self):
         return self.get_change_data()['items']
 
-    def get_form_kwargs(self, step):
+    def get_form_kwargs(self, step=None):
 
         kwargs = super().get_form_kwargs(step)
 
@@ -195,9 +193,11 @@ class ChangeStatusBulkActionView(ReviewChangesView):
 
         return context
 
-    def done(self, form_list, form_dict, **kwargs):
+    def done(self, form_list, **kwargs):
 
-        self.register_changes_with_message(form_dict, 'change_state')
+        form_dict = kwargs.get('form_dict')
+
+        self.register_changes(form_dict, 'change_state')
 
         if 'next' in self.request.session:
             url = self.request.session['next']

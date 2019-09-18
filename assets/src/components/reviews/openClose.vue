@@ -9,7 +9,16 @@
 
 <script>
 export default {
-    props: ['reviewStatus','initialStatus'],
+    props: {
+        reviewStatus: {
+            type: String,
+            default: '',
+        },
+        initialStatus: {
+            type: String,
+            required: true
+        },
+    },
     computed: {
         current_status: function() {
             return this.reviewStatus || this.initialStatus
@@ -25,6 +34,7 @@ export default {
                 case "closed":
                     return "certificate"
             }
+            return ""
         },
         alertClass: function() {
             switch(this.current_status) {
@@ -37,6 +47,7 @@ export default {
                 case "closed":
                     return "danger"
             }
+            return "warning"
         },
         alertText: function() {
             switch(this.current_status) {
@@ -49,6 +60,7 @@ export default {
                 case "closed":
                     return "Closed"
             }
+            return "Error"
         }
     }
 }

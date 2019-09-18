@@ -6,13 +6,13 @@
 {% if result.get_full_name %}
     {{ result.highlight.full_name|bleach }}
     {% if result == request.user %}
-    (You)
+        (You)
     {% endif %}
     <div>{{ result.highlight.email|bleach }}</div>
 {% else %}
-    {{ result.highlight.email }}
+    {{ result.highlight.email|bleach }}
     {% if result == request.user|bleach %}
-    (You)
+        (You)
     {% endif %}
 {% endif %}
 </span>

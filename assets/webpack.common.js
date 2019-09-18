@@ -1,14 +1,14 @@
+/* eslint-env node */
 const path = require('path')
 const webpack = require('webpack')
-const glob = require('glob')
 const entry = require('webpack-glob-entry')
-const CleanWebpackPlugin = require('clean-webpack-plugin')
+const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
-var BundleTracker  = require('webpack-bundle-tracker')
+const BundleTracker  = require('webpack-bundle-tracker')
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 
-const entries = entry('./src/pages/*.js')
+const entries = entry('./src/pages/*.js', './src/pages/**/*.js', './src/custom/entry/*.js')
 
 module.exports = {
     entry: entries,
@@ -21,6 +21,7 @@ module.exports = {
         hashFunction: 'sha256'
     },
     module: {
+        strictExportPresence: true,  // Missing exports fail the build
         rules: [
             {
                 // Expose jquery outside bundle
@@ -40,9 +41,9 @@ module.exports = {
                 use: 'vue-loader'
             },
             {
-                // Load .js files with babel
+                // Load .js and .mjs files with babel
                 test: /\.m?js$/,
-                exclude: /node_modules\/(?!vue-simple-suggest)/,
+                exclude: /node_modules\/(?!(vue-simple-suggest|uiv))/, //Don't run on node modules except these
                 use: [{
                     loader: 'babel-loader',
                     options: {
@@ -50,25 +51,13 @@ module.exports = {
                             [
                                 '@babel/preset-env',
                                 {
-                                    useBuiltIns: 'entry'
+                                    useBuiltIns: 'entry',
+                                    modules: false,
+                                    corejs: '2'
                                 }
                             ]
                         ],
-                        plugins: ["@babel/plugin-syntax-dynamic-import"]
-                    }
-                }]
-                //loader: 'eslint-loader',
-                //options: {
-                //  failOnError: false,
-                //  failOnWarning: false
-                //}
-            },
-            {
-                test: /\.woff2?$|\.ttf$|\.eot$|\.svg$|\.png$|\.jpg$/,
-                use: [{
-                    loader: 'file-loader',
-                    options: {
-                        name: '[name]-[sha256:hash:hex:16].[ext]'
+                        plugins: ["@babel/plugin-syntax-dynamic-import"],
                     }
                 }]
             },
@@ -76,28 +65,52 @@ module.exports = {
                 // Compile less and process css
                 test: /\.less$/,
                 use: [
-                    MiniCssExtractPlugin.loader,
-                    'css-loader',
-                    'less-loader'
+                    {
+                        loader: MiniCssExtractPlugin.loader
+                    },
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            modules: 'global',
+                            importLoaders: 1
+                        }
+                    },
+                    {
+                        loader: 'less-loader'
+                    }
                 ]
             },
             {
                 // Process and extract
                 test: /\.css$/,
                 use: [
-                    MiniCssExtractPlugin.loader,
-                    "css-loader"
+                    {
+                        loader: MiniCssExtractPlugin.loader
+                    },
+                    {
+                        loader: 'css-loader',
+                        options: {modules: 'global'}
+                    }
                 ]
-            }
+            },
+            {
+                test: /\.(woff2?|ttf|eot|svg|png|jpg)$/,
+                use: [{
+                    loader: 'file-loader',
+                    options: {
+                        name: '[name]-[sha256:hash:hex:16].[ext]'
+                    }
+                }]
+            },
         ]
     },
     plugins: [
         // Clean dist folder before builds
-        new CleanWebpackPlugin(['dist']),
+        new CleanWebpackPlugin(),
         // Load .vue files
         new VueLoaderPlugin(),
+        // Provide $ and jQuery to scripts, no need to import
         new webpack.ProvidePlugin({
-            // Provide $ and jQuery to scripts, no need to import
             $: "jquery",
             jQuery: "jquery"
         }),
@@ -107,17 +120,22 @@ module.exports = {
         new MiniCssExtractPlugin({
             filename: '[name]-[contenthash].bundle.css'
         }),
-        // Required for django-webpack-loader
+        /*
+         * Creates json file with bundle information
+         * Required for django-webpack-loader
+         */
         new BundleTracker({
             path: __dirname, 
             filename: './dist/webpack-stats.json'
         }),
         // Create report.html
         new BundleAnalyzerPlugin({
-            analyzerMode: 'static'
+            analyzerMode: 'static',
+            openAnalyzer: false
         })
     ],
     optimization: {
+        // How bundle are split into files
         splitChunks: {
             cacheGroups: {
                 vendors: {
@@ -132,12 +150,16 @@ module.exports = {
             }
         }
     },
+    // Uses external variables instead of including packages
+    externals: {
+        esprima: 'esprima' // This is being used to exclude esprima from bundle since we dont need it
+    },
     resolve: {
         alias: {
             // Use compiler version of vue
             'vue$': 'vue/dist/vue.esm.js',
             'src': path.resolve(__dirname, 'src'),
-            '@': path.resolve(__dirname, 'src/components')
+            '@': path.resolve(__dirname, 'src/components'),
         }
     }
 };

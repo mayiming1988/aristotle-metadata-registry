@@ -1,15 +1,16 @@
-{% load i18n aristotle_tags humanize %}
+{% load i18n aristotle_tags util_tags humanize %}
 
 {% if page.has_other_pages %}
-Showing {{ page.start_index }} - {{ page.end_index }} of {{ page.paginator.count }} results.
+Showing {{ page.start_index }} - {{ page.end_index }} of {{ page.paginator.count }} result{{ page.paginator.count|pluralize }}.
 {% else %}
-Showing {{ page.paginator.count }} results.
+Showing {{ page.paginator.count }} result{{ page.paginator.count|pluralize }}.
 {% endif %}
 
 <table class="table">
 <thead>
     <tr>
-        <th>{% trans 'Message' %}</th>
+        <th>{% trans 'Title' %}</th>
+        <th>{% trans 'Submitter' %}</th>
         <th>{% trans 'Registration Authority' %}</th>
         <th title="{% trans 'Number of items' %}">#</th>
         <th>{% trans 'Status' %}</th>
@@ -47,6 +48,7 @@ Showing {{ page.paginator.count }} results.
                 {% endif %}
             </a>
         </td>
+        <td>{{ item.requester.display_name }}</td>
         <td>{{ item.registration_authority.name }}</td>
         <td>
             <a href="{% url 'aristotle_reviews:review_list' item.id %}">
@@ -55,12 +57,12 @@ Showing {{ page.paginator.count }} results.
         <td>{{ item.get_status_display }}
         </td>
         <td>
-            <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|date:'c' }}">
+            <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|isotime }}">
                 {{item.modified|naturaltime}}
             </time>
         </td>
         <td>
-            <time title="{{ item.created|date:'o-m-d H:i e' }}" datetime="{{ item.created|date:'c' }}">
+            <time title="{{ item.created|date:'o-m-d H:i e' }}" datetime="{{ item.created|isotime }}">
                 {{item.created|naturaltime}}
             </time>
         </td>

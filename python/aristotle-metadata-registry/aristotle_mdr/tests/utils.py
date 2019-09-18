@@ -1,5 +1,4 @@
 from typing import List, Dict
-from django import VERSION as django_version
 import attr
 import datetime
 import random
@@ -8,6 +7,7 @@ import string
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.core.files.base import ContentFile
 
 import aristotle_mdr.models as models
 import aristotle_mdr.perms as perms
@@ -18,9 +18,11 @@ from django_celery_results.models import TaskResult
 from django_tools.unittest_utils.BrowserDebug import debug_response
 
 from aristotle_mdr.contrib.reviews.models import ReviewRequest
+from aristotle_mdr.downloader import Downloader
 
-from time import sleep
+from time import sleep, process_time
 import random
+
 
 def wait_for_signal_to_fire(seconds=1):
     sleep(seconds)
@@ -31,7 +33,7 @@ def model_to_dict(item):
     return dict((k, v) for (k, v) in mtd(item).items() if v is not None)
 
 
-def get_management_forms(item, slots=False, identifiers=False, item_is_model=False):
+def get_management_forms(item, org_records=True, slots=False, identifiers=False, item_is_model=False):
 
     d = {}
 
@@ -40,6 +42,12 @@ def get_management_forms(item, slots=False, identifiers=False, item_is_model=Fal
         d['slots-INITIAL_FORMS'] = 0
         d['slots-MIN_NUM_FORMS'] = 0
         d['slots-MAX_NUM_FORMS'] = 0
+
+    if org_records:
+        d['org_records-TOTAL_FORMS'] = 0
+        d['org_records-INITIAL_FORMS'] = 0
+        d['org_records-MIN_NUM_FORMS'] = 0
+        d['org_records-MAX_NUM_FORMS'] = 0
 
     if identifiers:
         d['identifiers-TOTAL_FORMS'] = 0
@@ -50,10 +58,10 @@ def get_management_forms(item, slots=False, identifiers=False, item_is_model=Fal
     if hasattr(item, 'serialize_weak_entities'):
         weak = item.serialize_weak_entities
         for entity in weak:
-            d['%s-TOTAL_FORMS'%entity[0]] = 0
-            d['%s-INITIAL_FORMS'%entity[0]] = 0
-            d['%s-MIN_NUM_FORMS'%entity[0]] = 0
-            d['%s-MAX_NUM_FORMS'%entity[0]] = 1000
+            d['%s-TOTAL_FORMS' % entity[0]] = 0
+            d['%s-INITIAL_FORMS' % entity[0]] = 0
+            d['%s-MIN_NUM_FORMS' % entity[0]] = 0
+            d['%s-MAX_NUM_FORMS' % entity[0]] = 1000
 
     add_through_forms = False
     if not item_is_model:
@@ -116,14 +124,16 @@ def get_json_from_response(response):
 # This isn't an actual TestCase, we'll just pretend it is
 class ManagedObjectVisibility(object):
     def setUp(self):
+        self.steward_org_1 = models.StewardOrganisation.objects.create(name="Test SO")
         self.ra = models.RegistrationAuthority.objects.create(
             name="Test RA",
             definition="My RA",
             public_state=models.STATES.qualified,
-            locked_state=models.STATES.candidate
+            locked_state=models.STATES.candidate,
+            stewardship_organisation=self.steward_org_1,
         )
 
-        self.wg = models.Workgroup.objects.create(name="Test WG", definition="My WG")
+        self.wg = models.Workgroup.objects.create(name="Test WG", definition="My WG", stewardship_organisation=self.steward_org_1)
         #RAFIX self.wg.registrationAuthorities.add(self.ra)
 
     def test_object_is_public(self):
@@ -401,17 +411,14 @@ class ManagedObjectVisibility(object):
 
     def test_object_submitter_can_view(self):
         # make editor for wg1
-        wg1 = models.Workgroup.objects.create(name="Test WG 1")
+        wg1 = models.Workgroup.objects.create(name="Test WG 1", stewardship_organisation=self.steward_org_1)
         e1 = get_user_model().objects.create_user('editor1@example.com', 'editor1')
         wg1.giveRoleToUser('submitter', e1)
 
         # make editor for wg2
-        wg2 = models.Workgroup.objects.create(name="Test WG 2")
+        wg2 = models.Workgroup.objects.create(name="Test WG 2", stewardship_organisation=self.steward_org_1)
         e2 = get_user_model().objects.create_user('editor2@example.com', 'editor2')
         wg2.giveRoleToUser('submitter', e2)
-
-        #RAFIX wg1.registrationAuthorities.add(self.ra)
-        #RAFIX wg2.registrationAuthorities.add(self.ra)
 
         # ensure object is in wg1
         self.item.workgroup = wg1
@@ -451,17 +458,14 @@ class ManagedObjectVisibility(object):
         self.ra.registrars.add(registrar)
 
         # make editor for wg1
-        wg1 = models.Workgroup.objects.create(name="Test WG 1")
+        wg1 = models.Workgroup.objects.create(name="Test WG 1", stewardship_organisation=self.steward_org_1)
         e1 = get_user_model().objects.create_user('editor1@example.com', 'editor1')
         wg1.giveRoleToUser('submitter', e1)
 
         # make editor for wg2
-        wg2 = models.Workgroup.objects.create(name="Test WG 2")
+        wg2 = models.Workgroup.objects.create(name="Test WG 2", stewardship_organisation=self.steward_org_1)
         e2 = get_user_model().objects.create_user('editor2@example.com', 'editor2')
         wg2.giveRoleToUser('submitter', e2)
-
-        #RAFIX wg1.registrationAuthorities.add(self.ra)
-        #RAFIX wg2.registrationAuthorities.add(self.ra)
 
         # ensure object is in wg1
         self.item.workgroup = wg1
@@ -496,10 +500,14 @@ class LoggedInViewPages(object):
     This helps us manage testing across different user types.
     """
     def setUp(self):
-        self.wg1 = models.Workgroup.objects.create(name="Test WG 1", definition="My WG")  # Editor is member
-        self.wg2 = models.Workgroup.objects.create(name="Test WG 2", definition="My WG")
-        self.ra = models.RegistrationAuthority.objects.create(name="Test RA", definition="My WG")
-        #RAFIX self.wg1.registrationAuthorities.add(self.ra)
+        self.steward_org_1 = models.StewardOrganisation.objects.create(
+            name='Org 1',
+            description="1",
+        )
+        
+        self.wg1 = models.Workgroup.objects.create(name="Test WG 1", definition="My WG", stewardship_organisation=self.steward_org_1)  # Editor is member
+        self.wg2 = models.Workgroup.objects.create(name="Test WG 2", definition="My WG", stewardship_organisation=self.steward_org_1)
+        self.ra = models.RegistrationAuthority.objects.create(name="Test RA", definition="My WG", stewardship_organisation=self.steward_org_1)
         self.wg1.save()
 
         self.su = get_user_model().objects.create_superuser('super@example.com', 'user')
@@ -515,11 +523,11 @@ class LoggedInViewPages(object):
 
         self.regular = get_user_model().objects.create_user('regular@example.com', 'thanks_steve')
 
-        self.wg1.submitters.add(self.editor)
-        self.wg1.managers.add(self.manager)
-        self.wg1.viewers.add(self.viewer)
+        self.wg1.giveRoleToUser('submitter', self.editor)
+        self.wg1.giveRoleToUser('manager', self.manager)
+        self.wg1.giveRoleToUser('viewer', self.viewer)
         self.ra.registrars.add(self.registrar)
-        self.ra.managers.add(self.ramanager)
+        self.ra.giveRoleToUser('manager', self.ramanager)
 
         self.editor = get_user_model().objects.get(pk=self.editor.pk)
         self.manager = get_user_model().objects.get(pk=self.manager.pk)
@@ -528,8 +536,11 @@ class LoggedInViewPages(object):
         self.ramanager = get_user_model().objects.get(pk=self.ramanager.pk)
 
         self.assertEqual(self.viewer.profile.editable_workgroups.count(), 0)
-        self.assertEqual(self.manager.profile.editable_workgroups.count(), 0)
         self.assertEqual(self.registrar.profile.editable_workgroups.count(), 0)
+
+        self.assertEqual(self.manager.profile.editable_workgroups.count(), 1)
+        self.assertTrue(self.wg1 in self.manager.profile.editable_workgroups.all())
+
         self.assertEqual(self.editor.profile.editable_workgroups.count(), 1)
         self.assertTrue(self.wg1 in self.editor.profile.editable_workgroups.all())
 
@@ -586,7 +597,7 @@ class LoggedInViewPages(object):
         return response
 
     def test_logins(self):
-        # Failed logins reutrn 200, not 401
+        # Failed logins return 200, not 401
         # See http://stackoverflow.com/questions/25839434/
         response = self.client.post(reverse('friendly_login'), {'username': 'super@example.com', 'password': 'the_wrong_password'})
         self.assertEqual(response.status_code, 200)
@@ -643,30 +654,46 @@ class LoggedInViewPages(object):
         # This is useful when testing async code.
         # If updates aren't done in 1+2+3+4= 10seconds, then there is a problem.
         self.assertEqual(*args)
-        return
-        for i in range(1,5):
+        for i in range(1, 5):
             try:
                 self.assertEqual(*args)
                 break
             except:
-                print('failed, keep trying - %s',i)
-                sleep(i) # sleep for progressively longer, just to give it a fighting chance to finish.
+                print('failed, keep trying - %s', i)
+                sleep(i)  # sleep for progressively longer, just to give it a fighting chance to finish.
         self.assertEqual(*args)
 
 
 class FormsetTestUtils:
     """Utilities to help create formset post data"""
+    def instantiate_formset(self, formset_class, data, instance=None, initial=None):
+        prefix = formset_class().prefix
+        formset_data = {}
+        for i, form_data in enumerate(data):
+            for name, value in form_data.items():
+                if instance(value, list):
+                    for j, inner in enumerate(value):
+                        formset_data["{}-{}-{}_{}".format(prefix, i, name, j)] = inner
+                else:
+                    formset_data['{}-{}-{}'.format(prefix, i, name)] = value
+        formset_data['{}-TOTAL_FORMS'.format(prefix)] = len(data)
+        formset_data['{}-INITIAL_FORMS'.format(prefix)] = 0
+
+        if instance:
+            return formset_class(formset_data, instance=instance, initial=initial)
+        else:
+            return formset_class(formset_data, initial=initial)
 
     def get_formset_postdata(self, datalist: List[Dict], prefix: str='form', initialforms: int=0):
         """
-        Get postdata for a formset
+        Get the POST data for a formset
 
         Arguments:
             datalist: List of form dictionaries to be posted
 
         Keyword Arguments:
             prefix: Formsets prefix
-            initialforms: number of forms initialy rendered
+            initialforms: number of forms initial rendered
         """
 
         postdata = {}
@@ -810,8 +837,19 @@ class WizardTestUtils:
         return self.post_direct_to_wizard(updated_datalist, url, step_names)
 
 
+class TimingTestUtils:
+
+    def start_timer(self):
+        self.start = process_time()
+
+    def end_timer(self, event: str = 'Event'):
+        end = process_time()
+        total = end - self.start
+        print('{} took {}s'.format(event, total))
+
+
 class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils,
-                         WizardTestUtils, FormsetTestUtils):
+                         WizardTestUtils, FormsetTestUtils, TimingTestUtils):
     """Combination of the above 3 utils plus some aristotle specific utils"""
 
     def favourite_item(self, user, item):
@@ -835,10 +873,12 @@ class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils,
         )
         return s
 
-    def make_review_request(self, item, user, requester=None):
+    def make_review_request(self, item, user, requester=None, check_perms=True):
         if not requester:
             requester = self.su
-        self.assertFalse(perms.user_can_view(user,item))
+
+        if check_perms:
+            self.assertFalse(perms.user_can_view(user,item))
         item.save()
         item = item.__class__.objects.get(pk=item.pk)
 
@@ -851,8 +891,9 @@ class AristotleTestUtils(LoggedInViewPages, GeneralTestUtils,
 
         review.concepts.add(item)
 
-        self.assertTrue(perms.user_can_view(user,item))
-        self.assertTrue(perms.user_can_change_status(user,item))
+        if check_perms:
+            self.assertTrue(perms.user_can_view(user,item))
+            self.assertTrue(perms.user_can_add_status(user,item))
         return review
 
     def make_review_request_iterable(self, items, user=None, request_kwargs={}):
@@ -912,6 +953,15 @@ class MockManagementForm(object):
         return base
 
 
+class FakeDownloader(Downloader):
+    download_type = 'fake'
+    file_extension = 'fak'
+    label = 'FAKE'
+
+    def create_file(self):
+        return ContentFile('')
+
+
 class AsyncResultMock:
     """
     This mock AsyncResult class will replace celery's AsyncResult class to facilitate ready and status features
@@ -968,6 +1018,7 @@ def store_taskresult(status='SUCCESS'):
     )
     tr.save()
     return tr
+
 
 def get_download_result(iid):
     """

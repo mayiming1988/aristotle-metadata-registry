@@ -12,8 +12,8 @@ from model_utils.models import TimeStampedModel
 from aristotle_mdr import models as MDR
 from aristotle_mdr.fields import ConceptForeignKey
 
-from aristotle_mdr.contrib.slots.choices import permission_choices
 from aristotle_mdr.contrib.slots.manager import SlotsManager
+from aristotle_mdr.constants import visibility_permission_choices as permission_choices
 
 
 class Slot(TimeStampedModel):
@@ -21,7 +21,7 @@ class Slot(TimeStampedModel):
     # on save confirm the cardinality
     name = models.CharField(max_length=256)  # Or some other sane length
     type = models.CharField(max_length=256, blank=True)  # Or some other sane length
-    concept = ConceptForeignKey(MDR._concept, related_name='slots')
+    concept = ConceptForeignKey(MDR._concept, related_name='slots', on_delete=models.CASCADE)
     value = models.TextField()
     order = models.PositiveSmallIntegerField("Position", default=0)
     permission = models.IntegerField(

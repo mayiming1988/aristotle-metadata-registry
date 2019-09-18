@@ -1,18 +1,11 @@
 from django.urls import reverse
-from django.test import TestCase, tag
+from django.test import TestCase
 
 from aristotle_mdr.contrib.slots import models
-from aristotle_mdr import models as mdr_models
 from aristotle_mdr.models import ObjectClass, Workgroup
 from aristotle_mdr.tests import utils
 from aristotle_mdr.tests.main.test_bulk_actions import BulkActionsTest
-from aristotle_mdr.utils import setup_aristotle_test_environment
 from aristotle_mdr.contrib.slots.utils import concepts_with_similar_slots
-
-import datetime
-import json
-
-setup_aristotle_test_environment()
 
 
 class BaseSlotsTestCase(utils.AristotleTestUtils):
@@ -162,7 +155,7 @@ class TestSlotsPagesLoad(utils.LoggedInViewPages, TestCase):
         slot_type = ''
 
         # Will be glad to not have so many cluttering workgroups everywhere!
-        wg = Workgroup.objects.create(name='test wg')
+        wg = Workgroup.objects.create(name='test wg', stewardship_organisation=self.steward_org_1)
         oc1 = ObjectClass.objects.create(
             name="test obj1",
             definition="test",

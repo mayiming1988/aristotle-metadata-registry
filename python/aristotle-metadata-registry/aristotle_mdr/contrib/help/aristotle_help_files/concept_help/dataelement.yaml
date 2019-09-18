@@ -3,9 +3,9 @@
     app_label: aristotle_mdr
     concept_type: dataelement
     language: en
-    brief: A precise way of defining how a measurable attribute of a set of objects
-        may be recorded in a system, using reusable metadata components.
-    offical_definition: A unit of data that is considered in context to be indivisible.
+    brief: "A Data Element is a precise way of defining how a piece of data is recorded for a specific set of objects, using reusable metadata components.
+        Data Elements is composed of a [[Data Element Concept]], which describes the meaning of the data, and a [[Value Domain]] which describes how the data is recorded."
+    official_definition: A unit of data that is considered in context to be indivisible.
     official_reference: ISO/IEC 11179 - Clause 3.2.28
     official_link:
     body: >

@@ -1,8 +1,5 @@
 {% extends "aristotle_mdr/user/userHome.html" %}
 
-{% block collapse-link%}
-    <i class="fa bar-chart fa-fw"></i> Registry Statistics</a>
-{% endblock %}
 {% block sidebar %}
     {% include "aristotle_mdr/user/userSideBar.html" with activeTab='adminTools' adminSub='stats' %}
 {% endblock %}
@@ -11,42 +8,56 @@
 <h1>{% block title %}Registry statistics{% endblock %}</h1>
 
 <h2>Advanced item statistics</h2>
+<div class="well">
+    <p>
+        The following table provides a breakdown of all metadata created in the registry in the given time frames.
+    </p><p>
+        The bar chart shows, at a glance, the amount of metadata items of each type that have been created.
+    </p>
+</div>
+
 <table class='table'>
     <thead>
     <tr>
         <th>Extension name</th>
         <th>Concept type</th>
-        <th>7 days</th>
-        <th>30 days</th>
+        <th>Last 7 days</th>
+        <th>Last 30 days</th>
         <th>All time</th>
         <th>#</th>
     </thead>
-{% for app,app_models in model_stats.items %}
+{% for app in model_stats %}
     <tbody>
-    {% for model,count,adminlink in app_models.models %}
-    <tr>
+    {% for model,count,adminlink in app.models %}
+    
         {% if forloop.first %}
-            <td rowspan="{{app_models.models|length }}">{{ app_models.app }}</td>
+        <tr>
+            <th>
+                {% firstof app.app.create_page_name app.app.verbose_name %}
+            </th>
+        </tr>
         {% endif %}
-        <td>
-            <a href="{{ adminlink }}">
-                {{ model.get_verbose_name }}
-            </a>
-        </td>
-        <td>{{ count.t7 }}</td>
-        <td>{{ count.t30 }}</td>
-        <td>{{ count.all_time }}</td>
-        <td>    
-            <div class="progress" style="width:75px;margin:0px">
-                <div class="progress-bar" role="progressbar"
-                    aria-valuenow="{{ count.alltime }}"
-                    aria-valuemin="0"
-                    aria-valuemax="{{ model_max }}"
-                    style="width: {% widthratio count.all_time model_max 100 %}%;">
+        <tr>
+            <td></td>
+            <td>
+                <a href="{{ adminlink }}">
+                    {{ model.get_verbose_name }}
+                </a>
+            </td>
+            <td>{{ count.t7 }}</td>
+            <td>{{ count.t30 }}</td>
+            <td>{{ count.all_time }}</td>
+            <td>    
+                <div class="progress" style="width:75px;margin:0">
+                    <div class="progress-bar" role="progressbar"
+                        aria-valuenow="{{ count.alltime }}"
+                        aria-valuemin="0"
+                        aria-valuemax="{{ model_max }}"
+                        style="width: {% widthratio count.all_time model_max 100 %}%;">
+                    </div>
                 </div>
-            </div>
-        </td>
-    </tr>
+            </td>
+        </tr>
     {% endfor %}
     <tbody>
 {% endfor %}

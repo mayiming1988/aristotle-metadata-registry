@@ -1,0 +1,17 @@
+{% if raw %}
+    {% if difference.0 == -1 %}
+        <del>{{ difference.1 }}</del>
+    {% elif difference.0 == 1 %}
+        <ins>{{ difference.1 }}</ins>
+    {% else %}
+        {{ difference.1 }}
+    {% endif %}
+{%  else %}
+    {% if difference.0 == -1 %}
+        <del>{{ difference.1|safe }}</del>
+    {% elif difference.0 == 1 %}
+        <ins>{{ difference.1|safe }}</ins>
+    {% else %}
+        {{ difference.1|safe }}
+    {% endif %}
+{% endif %}

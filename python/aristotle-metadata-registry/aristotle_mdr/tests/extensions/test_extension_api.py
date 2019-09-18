@@ -9,23 +9,6 @@ from aristotle_mdr.tests.main.test_admin_pages import AdminPageForConcept
 
 from extension_test.models import Question, Questionnaire
 
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-setup_aristotle_test_environment()
-
-
-class TestExtensionListVisibility(TestCase):
-    def test_extension_list_page(self):
-        from django.apps import apps
-
-        response = self.client.get(reverse('aristotle_mdr:extensions'))
-        self.assertEqual(response.status_code, 200)
-
-        from django.utils.module_loading import import_string
-        dowloader = import_string('text_download_test.downloader.TestTextDownloader')
-
-        self.assertContains(response, dowloader.description)
-
 
 class QuestionVisibility(utils.ManagedObjectVisibility, TestCase):
     def setUp(self):
@@ -34,6 +17,7 @@ class QuestionVisibility(utils.ManagedObjectVisibility, TestCase):
             name="Test Question",
             workgroup=self.wg,
         )
+
 
 class QuestionAdmin(AdminPageForConcept, TestCase):
     itemType=Question
@@ -109,7 +93,6 @@ class QuestionnaireViewPage(LoggedInViewExtensionConceptPages, TestCase):
         self.login_editor()
         response = self.client.get(reverse('extension_test:questionnaire_add_question', args=[self.item1.id]))
         self.assertEqual(response.status_code, 200)
-        form = response.context['form']
 
 
     def loggedin_user_can_use_value_page(self,value_url,current_item,http_code):
@@ -156,5 +139,4 @@ class QuestionnaireViewPage(LoggedInViewExtensionConceptPages, TestCase):
         self.login_editor()
         response = self.client.get(reverse('aristotle:edit_item', args=[self.item1.id]))
         self.assertEqual(response.status_code, 200)
-        form = response.context['form']
         self.assertContains(response, 'glyphicon-calendar')  # While we use bootstrap-datewidget, this should be there.

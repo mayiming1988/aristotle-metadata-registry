@@ -1,0 +1,26 @@
+{% extends "aristotle_mdr/downloads/html/managedContent.html" %}
+{% load aristotle_tags %}
+
+{% block objSpecific %}
+
+    <h2>Derivation</h2>
+    <tt>
+        {{ item.derivation_rule }}
+    </tt>
+    {% if options.include_supporting %}
+        <dl>
+            <dt>Derived Data Element</dt>
+            <dd>
+                {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=item.derives %}
+            </dd>
+            <dt>Input Data Elements</dt>
+            {% for de in item.inputs.all|can_view_iter:user %}
+                <dd>
+                    {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=de skip_can_view=True %}
+                </dd>
+            {% empty %}
+                <dd><em>None</em></dd>
+            {% endfor %}
+        </dl>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,59 @@
+{% load aristotle_tags %}
+
+{% with cluster_inclusions=item.cluster_inclusions %}
+{% if cluster_inclusions %}
+    <header class="minor">Clusters</header>
+    <table class="dss_inclusions">
+        {% include "aristotle_dse/downloads/html/helpers/inclusion_head.html" %}
+        <tbody>
+        {% for dssinc in cluster_inclusions %}
+            {% include "aristotle_dse/downloads/html/helpers/inclusion_row.html" with inc=dssinc %}
+        {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+{% endwith %}
+
+{% with de_inclusions=item.data_element_inclusions %}
+{% if de_inclusions %}
+    <header class="minor">Data Elements</header>
+    <table class="dss_inclusions">
+        {% include "aristotle_dse/downloads/html/helpers/inclusion_head.html" %}
+        <tbody>
+        {% for deinc in de_inclusions %}
+            {% include "aristotle_dse/downloads/html/helpers/inclusion_row.html" with inc=deinc %}
+        {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+{% endwith %}
+
+<strong>Table Legend</strong>
+<table style="font-size:80%">
+    <tr>
+        <th>Ref</th>
+        <td>A reference name for this data element or cluster within this
+            Data Set Specification.
+        </td>
+    </tr>
+    <tr>
+        <th>Name</th>
+        <td>
+            The name of the data element or cluster
+        </td>
+    </tr>
+    <tr>
+        <th>Inclusion</th>
+        <td>
+            Whether the item is <em>optional, mandatory or conditional</em> .
+        </td>
+    </tr>
+    <tr>
+        <th>#</th>
+        <td>
+            The maximum number of times the data element may be repeated
+            within the DataSet Specification
+        </td>
+    </tr>
+
+</table>

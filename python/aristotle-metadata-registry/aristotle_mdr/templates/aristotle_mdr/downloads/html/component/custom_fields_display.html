@@ -1,0 +1,24 @@
+{% load util_tags %}
+
+{% lookup custom_values item.id as item_values %}
+{% if item_values %}
+<dl class="custom_fields">
+<dt class="main_heading">Custom Fields</dt>
+<dd>
+    <dl>
+        {% for cv in item_values %}
+            <dt>
+                {{ cv.field.name }}
+            </dt>
+            <dd>
+                {% if cv.is_html %}
+                    {{ cv.content|bleach }}
+                {% else %}
+                    {{ cv.content }}
+                {% endif %}
+            </dd>
+        {% endfor %}
+    </dl>
+</dd>
+</dl>
+{% endif %}

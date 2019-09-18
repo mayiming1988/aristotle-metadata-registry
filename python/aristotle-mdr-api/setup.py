@@ -23,7 +23,7 @@ setup(
         'Environment :: Web Environment',
         'Framework :: Django',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License', # example license
+        'License :: OSI Approved :: BSD License',  # example license
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Topic :: Internet :: WWW/HTTP',
@@ -31,9 +31,9 @@ setup(
     ],
     install_requires=[
         'djangorestframework>=3.8',
-        'django-rest-swagger',
-        'django_filter',
+        'django-filter',
         'django-jsonforms',
+        'coreapi',
+        'drf-yasg==1.16.0',  # Pinning it because it tries to import packaging
     ]
-
 )

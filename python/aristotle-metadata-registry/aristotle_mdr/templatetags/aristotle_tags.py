@@ -14,6 +14,7 @@ Available tags and filters
 --------------------------
 """
 from django import template
+from django.template.loader import get_template
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.utils.html import mark_safe
@@ -24,6 +25,7 @@ from aristotle_mdr.utils import (
     fetch_metadata_apps,
     fetch_aristotle_downloaders
 )
+from aristotle_mdr.models import STATES
 
 register = template.Library()
 
@@ -69,23 +71,22 @@ def in_workgroup(user, workgroup):
 
 
 @register.filter
-def can_change_status(item, user):
+def can_add_status(item, user):
     """
-    A filter that acts as a wrapper around ``aristotle_mdr.perms.can_change_status``.
+    A filter that acts as a wrapper around ``aristotle_mdr.perms.user_can_add_status``.
     Returns true if the user has permission to change status the item, otherwise it returns False.
-    If calling ``user_can_change_status`` throws an exception it safely returns False.
+    If calling ``user_can_add_status`` throws an exception it safely returns False.
 
     For example::
 
-      {% if myItem|can_change_status:request.user %}
+      {% if myItem|can_add_status:request.user %}
         {{ item }}
       {% endif %}
     """
-    # return perms.can_change_status(user, item)
-    try:
-        return perms.user_can_change_status(user, item)
-    except:  # pragma: no cover -- passing a bad item or user is the template authors fault
-        return None
+    # try:
+    return perms.user_can_add_status(user, item)
+    # except:  # pragma: no cover -- passing a bad item or user is the template authors fault
+    #     return None
 
 
 @register.filter
@@ -143,22 +144,6 @@ def can_supersede(item, user):
     return perms.user_can_supersede(user, item)
 
 
-# @register.filter
-# def can_change_status(item, user):
-#     """
-#     A filter that acts as a wrapper around ``aristotle_mdr.perms.user_can_supersede``.
-#     Returns true if the user has permission to supersede the item, otherwise it returns False.
-#     If calling ``user_can_supersede`` throws an exception it safely returns False.
-#
-#     For example::
-#
-#       {% if myItem|can_supersede:request.user %}
-#         {{ item }}
-#       {% endif %}
-#     """
-#     return perms.user_can_change_status(user, item)
-
-
 @register.filter
 def can_view_iter(qs, user):
     """
@@ -175,7 +160,26 @@ def can_view_iter(qs, user):
           {{ item }}
         {% endfor %}
     """
-    return qs.visible(user)
+    if qs is not None:
+        return qs.visible(user)
+
+
+@register.filter
+def user_can_view_statuses_revisions(user, ra):
+    """
+    A filter that is a simple wrapper that applies the ``aristotle_mdr.perms.user_can_view_statuses_revisions``
+    Returns true if the user has permission to view the statuses reversion history, otherwise it returns False.
+    If calling ``user_can_view`` throws an exception it safely returns False.
+
+    If calling ``user_can_view_statuses_revisions`` throws an exception it safely returns False.
+
+    For example::
+
+        {% if request.user|user_can_view_statuses_revisions:ra %}
+          {{ item }}
+        {% endif %}
+    """
+    return perms.user_can_view_statuses_revisions(user, ra)
 
 
 @register.filter
@@ -183,13 +187,12 @@ def visible_supersedes_items(item, user):
     """
     Fetch older items for a newer item
     """
-    # TODO: Add to view
-    objects = item.__class__.objects.prefetch_related(
+    objects = type(item).objects.prefetch_related(
         'superseded_by_items_relation_set__older_item',
-        # 'superseded_by_items_relation_set__newer_item',
         'superseded_by_items_relation_set__registration_authority',
     ).visible(user).filter(
-        superseded_by_items_relation_set__newer_item_id=item.pk
+        superseded_by_items_relation_set__newer_item_id=item.pk,
+        # superseded_by_items_relation_set__proposed=False
     ).distinct()
     sup_rels = [
         {
@@ -201,9 +204,11 @@ def visible_supersedes_items(item, user):
                     "message": sup.message,
                     "date_effective": sup.date_effective,
                     "registration_authority": sup.registration_authority,
+                    "proposed": sup.proposed
                 }
                 for sup in obj.superseded_by_items_relation_set.all()
                 if sup.newer_item_id == item.pk
+                # and sup.proposed is False
             ]
         }
         for obj in objects
@@ -217,24 +222,25 @@ def visible_superseded_by_items(item, user):
     """
     Fetch newer items for an older item
     """
-    # TODO: Add to view
+
+    # Get all the objects that have superseded items
     objects = item.__class__.objects.prefetch_related(
-        # 'superseded_items_relation_set__older_item',
         'superseded_items_relation_set__newer_item',
         'superseded_items_relation_set__registration_authority',
     ).visible(user).filter(
-        superseded_items_relation_set__older_item_id=item.pk
+        superseded_items_relation_set__older_item_id=item.pk,
     ).distinct()
+
     sup_rels = [
         {
             "pk": obj.pk,
             "newer_item": obj,
             "rels": [
                 {
-                    # "newer_item": sup.newer_item,
                     "message": sup.message,
                     "date_effective": sup.date_effective,
                     "registration_authority": sup.registration_authority,
+                    "proposed": sup.proposed
                 }
                 for sup in obj.superseded_items_relation_set.all()
                 if sup.older_item_id == item.pk
@@ -312,16 +318,16 @@ def ternary(condition, a, b):
 @register.filter
 def paginator_range(page, mode):
     page_range = list(page.paginator.page_range)
-    if mode=="start":
+    if mode == "start":
         if page.number <= 5:
             # show 4,5,6 if page is 4, 5,6,7 if page is 5...
             return page_range[:max(5, page.number + 2)]
         else:
             return page_range[:3]
-    if mode=="middle":
-        if page.number > 5 and page.number < page.paginator.num_pages - 5:
+    if mode == "middle":
+        if 5 < page.number < page.paginator.num_pages - 5:
             return page_range[page.number - 3:page.number + 2]
-    if mode=="end":
+    if mode == "end":
         if page.number > page.paginator.num_pages - 5:
             return page_range[-5:]
         else:
@@ -329,7 +335,7 @@ def paginator_range(page, mode):
 
 
 @register.filter
-def stateToText(state):
+def state_to_text(state):
     # @register.simple_tag
     """
     This tag takes the integer value of a state for a registration status and
@@ -362,7 +368,8 @@ def zws(string):
         <h1>{% zws item.name %}</h1>
 
     """
-    return string.replace("—", "&shy;—")
+    from aristotle_mdr.utils.utils import strip_tags
+    return mark_safe(strip_tags(string.replace("—", "&shy;—")))
 
 
 @register.simple_tag
@@ -376,7 +383,7 @@ def adminEdit(item):
     return reverse("admin:%s_%s_change" % (app_name, item._meta.model_name), args=[item.id])
 
 
-@register.simple_tag
+@register.inclusion_tag('aristotle_mdr/helpers/downloadMenu.html')
 def downloadMenu(item):
     """
     Returns the complete download menu for a partcular item. It accepts the id of
@@ -387,7 +394,6 @@ def downloadMenu(item):
 
         {% downloadMenu item %}
     """
-    from django.template.loader import get_template
     downloadOpts = fetch_aristotle_downloaders()
 
     from aristotle_mdr.utils import get_download_template_path_for_item
@@ -396,7 +402,7 @@ def downloadMenu(item):
     app_label = item._meta.app_label
     model_name = item._meta.model_name
     for d in downloadOpts:
-        download_type = d.download_type
+        template_type = d.template_type
         item_register = d.metadata_register
 
         if type(item_register) is not str:
@@ -409,32 +415,15 @@ def downloadMenu(item):
                 downloadsForItem.append(d)
             elif item_register == '__template__':
                 try:
-                    get_template(get_download_template_path_for_item(item, download_type))
+                    get_template(get_download_template_path_for_item(item, template_type))
                     downloadsForItem.append(d)
                 except template.TemplateDoesNotExist:
                     pass  # This is ok.
-                except:
-                    # TODO: Should probably do something with this error
-                    pass  # Something very bad has happened in the template.
-    return get_template(
-        "aristotle_mdr/helpers/downloadMenu.html").render(
-        {'item': item, 'download_options': downloadsForItem, }
-    )
 
-
-@register.simple_tag
-def extra_content(extension, item, user):
-    try:
-        from django.template.loader import get_template
-        s = item._meta.object_name
-        s = s[0].lower() + s[1:]
-
-        return get_template(extension + "/extra_content/" + s + ".html").render(
-            {'item': item, 'user': user}
-        )
-    except template.TemplateDoesNotExist:
-        # there is no extra content for this item, and thats ok.
-        return ""
+    dlOptionsForItem = []
+    for dl_class in downloadsForItem:
+        dlOptionsForItem.append(dl_class.get_class_info())
+    return {'item': item, 'download_options': dlOptionsForItem, }
 
 
 @register.simple_tag
@@ -513,11 +502,6 @@ def is_active_extension(extension_name):
 
 
 @register.filter
-def user_roles_for_group(group, user):
-    return group.list_roles_for_user(user)
-
-
-@register.filter
 def get_dataelements_from_m2m(ded, field_name):
 
     throughmodel = getattr(ded, field_name).through
@@ -532,29 +516,91 @@ def get_dataelements_from_m2m(ded, field_name):
 
 @register.filter
 def distinct_workgroups_count(user):
-
-    wgs = set()
-    roles = ['submitter_in', 'viewer_in', 'steward_in', 'workgroup_manager_in']
-    for role in roles:
-        manager = getattr(user, role)
-        for wg in manager.all():
-            wgs.add(wg.id)
-
-    return len(wgs)
+    return user.workgroupmembership_set.all().count()
 
 
 @register.filter
 def distinct_members_count(workgroup):
-    users = set()
-    roles = ['submitters', 'viewers', 'stewards', 'managers']
-    for role in roles:
-        manager = getattr(workgroup, role)
-        for user in manager.all():
-            users.add(user.id)
-
-    return len(users)
+    return workgroup.members.all().count()
 
 
 @register.filter
 def get_item(dictionary, key):
     return dictionary.get(key)
+
+
+@register.simple_tag(takes_context=True)
+def has_group_perm(context, group, permission):
+    request = context['request']
+    if not request.user.is_authenticated:
+        return False
+    return group.user_has_permission(request.user, permission)
+
+
+@register.filter
+def publish_item_url(item):
+    return reverse('aristotle_publishing:publish_item', args=[item._meta.model_name, item.id])
+
+
+@register.filter
+def publish_registry_item_url(item):
+    return reverse('aristotle_publishing:publish_registry_item', args=[item._meta.model_name, item.id])
+
+
+@register.filter
+def can_edit_label(label, user):
+    return perms.user_can_edit_issue_label(user, label)
+
+
+@register.inclusion_tag('aristotle_mdr_help/helpers/field_icon.html', takes_context=True)
+def field_help_icon(context, item_or_model, field_name):
+    klass = item_or_model.__class__
+    return {
+        'app': klass._meta.app_label,
+        'model_name': klass._meta.model_name,
+        'field_name': field_name,
+        'model_class': klass,
+    }
+
+
+@register.inclusion_tag('aristotle_mdr/helpers/styled_difference.html', takes_context=True)
+def render_difference(context, difference):
+    raw = False
+    if 'raw' in context:
+        raw = context['raw']
+    return {'difference': difference,
+            'raw': raw}
+
+
+@register.filter()
+def get_field(content_type, field_name):
+    return content_type.model_class()._meta.get_field(field_name)
+
+
+@register.simple_tag
+def get_status_from_dict(dictionary, current_status, key, with_icon=True):
+    """
+    Get the Status of a particular item from a dictionary mapping.
+    :param dictionary: dictionary mapping that must contain key-value pairs
+    where the key must correspond to the concept_id, and the value must
+    correspond to the state id.
+    :param current_status: string that represents the numerical form of
+    the status object that belongs to the Data Element.
+    :param key: string that represents the concept id to be looked up.
+    :param with_icon: boolean value to add a Fontawesome icon.
+    :return: HTML with the name of the corresponding status state.
+    """
+    state_value = dictionary.get(key, None)
+    if state_value:
+        if with_icon:
+            if current_status == str(state_value):
+                element = '<em><spam style="display:inline-block">[%s]&nbsp;<span class="text-success"><i class="fa fa-check"></i></span></span></em>'
+            else:
+                element = '<em><span class="text-danger">[%s]&nbsp;<i class="fa fa-times"></i></span></em>'
+
+        else:
+            element = '<em>[%s]&nbsp;<span class="text-success"></span></em>'
+        return mark_safe(element % (STATES[state_value]))
+
+    else:
+        return ""

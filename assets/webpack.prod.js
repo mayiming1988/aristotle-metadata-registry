@@ -1,3 +1,4 @@
+/* eslint-env node */
 const merge = require('webpack-merge');
 const common = require('./webpack.common.js');
 const webpack = require('webpack')
@@ -14,11 +15,15 @@ module.exports = merge(common, {
     output: {
         publicPath: ASSET_PATH
     },
+    devtool: 'source-map',
     optimization: {
         minimizer: [
-            new TerserPlugin(),
+            new TerserPlugin({
+                sourceMap: true
+            }),
             new OptimizeCSSAssetsPlugin()
-        ]
+        ],
+        noEmitOnErrors: true,
     },
     plugins: [
         new webpack.DefinePlugin({

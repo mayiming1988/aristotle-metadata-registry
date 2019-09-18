@@ -1,0 +1,18 @@
+{% load aristotle_tags util_tags %}
+{% load humanize i18n %}
+
+<dt class="large">
+    <span>{% trans 'Published to' %}</span>
+</dt>
+<dd class="large">
+    <ul>
+    {% for record in item.concept.publication_details.all %}
+    <li>
+
+    {{record.get_permission_display}} from
+    <time title="{{ record.publication_date|date:'o-m-d' }}" datetime="{{ record.publication_date|isotime }}" >
+    </time>
+    </li>
+    {% endfor %}
+    </ul>
+</dd>

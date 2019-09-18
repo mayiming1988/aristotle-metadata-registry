@@ -2,11 +2,8 @@ from django.forms import Field
 from django.forms.models import ModelMultipleChoiceField
 from django.core.validators import EmailValidator
 from django.core.exceptions import ValidationError
-import aristotle_mdr.models as MDR
-from aristotle_mdr.models import STATES, Status
 from django.forms.widgets import EmailInput
 from aristotle_mdr.widgets.widgets import TableCheckboxSelect, MultiTextWidget
-from django.urls import reverse
 from aristotle_mdr import perms
 from aristotle_mdr.utils import get_status_change_details
 
@@ -54,7 +51,7 @@ class ReviewChangesChoiceField(ModelMultipleChoiceField):
         (extra_info, deselections) = get_status_change_details(queryset, ra, static_content['new_state'])
         for key, item in extra_info.items():
             item['checked'] = not item['has_higher_status']
-            item['perm'] = perms.user_can_change_status(user, item['concept'])
+            item['perm'] = perms.user_can_add_status(user, item['concept'])
 
         return (extra_info, deselections)
 
@@ -79,7 +76,7 @@ class MultipleEmailField(Field):
         errors = []
 
         for email in value:
-            if email is not '':
+            if email != '':
                 validator.message = '{} is not a valid email address'.format(email)
                 try:
                     validator(email)

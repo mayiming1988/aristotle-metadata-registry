@@ -1,23 +1,19 @@
 from typing import Dict
 from django.shortcuts import get_object_or_404
 from aristotle_mdr.utils import url_slugify_concept
-from django.contrib.auth.decorators import login_required
 from aristotle_mdr.models import _concept
 from aristotle_mdr.perms import user_can_view
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import View, ListView, UpdateView, DeleteView
+from django.views.generic import ListView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
-from django.urls import reverse
 from django.http.response import JsonResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from aristotle_mdr.contrib.favourites.models import Favourite, Tag
-from django.db.models import Sum, Case, When, Count, Max, Min, F, Prefetch
-from aristotle_mdr.views.utils import AjaxFormMixin
+from django.db.models import Case, Count, F, Max, Prefetch, When
 from aristotle_mdr.models import _concept
 
 import json
-from collections import defaultdict
 
 
 class ToggleFavourite(LoginRequiredMixin, View):
@@ -166,6 +162,7 @@ class FavouritesAndTags(LoginRequiredMixin, ListView):
         context['help'] = self.request.GET.get('help', False)
         context['favourite'] = self.request.GET.get('favourite', False)
         context['tags'] = self.get_tags()
+        context['count_favourites'] = self.get_queryset().count()
         return context
 
 

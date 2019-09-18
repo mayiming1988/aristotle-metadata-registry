@@ -1,0 +1,27 @@
+{% extends 'aristotle_mdr/user/base.html' %}
+
+{% load render_bundle from webpack_loader %}
+
+{% block webpack_bundle %}
+  {% render_bundle 'validationEdit' 'js' %}
+{% endblock %}
+
+{% block webpack_css_bundle %}
+  {% render_bundle 'validationEdit' 'css' %}
+{% endblock %}
+
+{% block title %}
+Registry-wide validation rules editor
+{% endblock %}
+
+{% block page %}
+<h1>Registry Wide Rules</h1>
+<p>These rules apply for review requests in all registration authorities</p>
+<div id="vue-container">
+  <rules-editor
+    schema="{{ schema }}"
+    value="{{ rules.rules }}"
+    api_url="{% url 'api_v4:registry_rules' %}">
+  </rules-editor>
+</div>
+{% endblock %}

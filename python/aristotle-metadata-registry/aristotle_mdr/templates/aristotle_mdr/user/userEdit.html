@@ -2,7 +2,6 @@
 {% load bootstrap3 static %}
 
 {% block title %}Edit details{% endblock %}
-{% block collapse-link%}<i class="fa fa-user fa-fw"></i> Edit my account details</a>{% endblock %}
 {% block sidebar %}
     {% include "aristotle_mdr/user/userSideBar.html" with activeTab='edit' %}
 {% endblock %}
@@ -14,17 +13,15 @@
         {% bootstrap_form form %}
 
         {% buttons %}
-          <a class="btn btn-default" href="{% url 'aristotle:userHome' %}">
+          <a class="btn btn-default" href="{% url 'aristotle:userProfile' %}">
             <i class="fa fa-times fa-fw"></i>Cancel
           </a>
           <button type="submit" class="btn btn-primary">
               <i class="fa fa-check  fa-fw"></i>Save Changes
           </button>
         {% endbuttons %}
-    </div>
-
-    </form>
-
+      </form>
+     </div>
 {% endblock %}
 
 {% block after_bundle %}

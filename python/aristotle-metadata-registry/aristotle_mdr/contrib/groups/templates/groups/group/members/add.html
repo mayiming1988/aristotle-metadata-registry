@@ -1,0 +1,27 @@
+{% extends "groups/base.html" %}
+{% load group_tags %}
+{% load bootstrap3 %}
+
+{% block group_content %}
+<h1>
+    Add members to {{view.manager.group_meta.verbose_name.title}}
+</h1>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <form action="{% url view.manager.namespace|add:":member_add" group.slug %}" method="POST">
+                {% bootstrap_form_errors form %}
+                {% csrf_token %}
+
+                {% bootstrap_label "User" %}
+                <br>
+                {{ form.user }}
+
+                {% bootstrap_field form.role %}
+    <a class="btn btn-default" href="{%url view.manager.namespace|add:":member_list" group.slug %}">Cancel</a>
+    <button class="btn btn-primary" type="submit">Submit</button>
+</form>
+</div>
+</div>
+</div>
+{% endblock %}

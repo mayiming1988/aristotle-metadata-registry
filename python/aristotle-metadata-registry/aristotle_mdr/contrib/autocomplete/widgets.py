@@ -1,6 +1,5 @@
 from dal.autocomplete import ModelSelect2Multiple, ModelSelect2
 from django.urls import reverse_lazy
-from django import forms
 
 
 class ConceptAutocompleteBase(object):
@@ -51,6 +50,27 @@ class UserAutocompleteSelect(UserAutocompleteMixin, ModelSelect2):
 
 class UserAutocompleteSelectMultiple(UserAutocompleteMixin, ModelSelect2Multiple):
     url = 'aristotle-autocomplete:user'
+
+
+class FrameworkDimensionAutocompleteMixin(object):
+    def __init__(self, *args, **kwargs):
+        self.model = kwargs.pop('model', None)
+        kwargs.update(
+            url=reverse_lazy(
+                'aristotle-autocomplete:framework',
+                args=[self.model._meta.app_label, self.model._meta.model_name]
+            ),
+            attrs={'data-html': 'true'}
+        )
+        super().__init__(*args, **kwargs)
+
+
+class FrameworkDimensionAutocompleteSelect(FrameworkDimensionAutocompleteMixin, ModelSelect2):
+    pass
+
+
+class FrameworkDimensionAutocompleteSelectMultiple(FrameworkDimensionAutocompleteMixin, ModelSelect2Multiple):
+    pass
 
 
 class WorkgroupAutocompleteMixin(object):

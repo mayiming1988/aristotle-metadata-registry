@@ -14,6 +14,10 @@ from dal import autocomplete
 
 
 class GenericAutocomplete(autocomplete.Select2QuerySetView):
+    """
+    Generic autocomplete view subclassed below
+    Is not used as a view itself
+    """
     model: Any = None
     template_name = "autocomplete_light/item.html"
 
@@ -26,7 +30,7 @@ class GenericAutocomplete(autocomplete.Select2QuerySetView):
 
     def get_queryset(self):
         # Don't forget to filter out results depending on the visitor !
-        if not self.request.user.is_authenticated():
+        if not self.request.user.is_authenticated:
             return self.model.objects.none()
 
         qs = self.model.objects.all()
@@ -63,7 +67,11 @@ class GenericConceptAutocomplete(GenericAutocomplete):
     template_name = "autocomplete_light/concept.html"
 
     def get_queryset(self):
-        if not self.request.user.is_authenticated():
+
+        # Get public query parameter
+        public = self.request.GET.get('public', '')
+        # If we requested public objects, or are not authenticated
+        if public or not self.request.user.is_authenticated:
             qs = self.model.objects.public()
         else:
             qs = self.model.objects.visible(self.request.user)
@@ -76,9 +84,9 @@ class GenericConceptAutocomplete(GenericAutocomplete):
             try:
                 int(self.q)
                 q |= Q(pk=self.q)
-            except:
+            except ValueError:
                 pass
-            qs = qs.filter(q)
+            qs = qs.filter(q).order_by('name')
         return qs
 
     def get_results(self, context):
@@ -94,6 +102,19 @@ class GenericConceptAutocomplete(GenericAutocomplete):
         ]
 
 
+class FrameworkDimensionsAutocomplete(GenericAutocomplete):
+    template_name = "autocomplete_light/framework_dimensions.html"
+
+    def get_queryset(self):
+        if self.q:
+            qs = self.model.objects.filter(
+                name__icontains=self.q
+            ).order_by('name')
+        else:
+            qs = self.model.objects.all().order_by('name')
+        return qs
+
+
 class UserAutocomplete(GenericAutocomplete):
     # model = User
     model = None
@@ -106,7 +127,7 @@ class UserAutocomplete(GenericAutocomplete):
         self.model = get_user_model()
 
         # Don't forget to filter out results depending on the visitor !
-        if not self.request.user.is_authenticated():
+        if not self.request.user.is_authenticated:
             raise PermissionDenied
 
         if not perms.user_can_query_user_list(self.request.user):
@@ -154,14 +175,14 @@ class WorkgroupAutocomplete(GenericAutocomplete):
 
     def get_queryset(self):
         # Don't forget to filter out results depending on the visitor !
-        if not self.request.user.is_authenticated():
+        if not self.request.user.is_authenticated:
             raise PermissionDenied
 
         if self.q:
             qs = self.request.user.profile.editable_workgroups.filter(
                 Q(definition__icontains=self.q) |
                 Q(name__icontains=self.q)
-            )
+            ).order_by('name')
         else:
             qs = self.request.user.profile.editable_workgroups
         return qs

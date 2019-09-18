@@ -1,17 +1,19 @@
-from typing import Iterable, Dict
-from django.db.models import Model
 from django.urls import reverse
-from django.db.models.query import QuerySet
 from rest_framework import serializers
-from aristotle_mdr.contrib.issues.models import Issue, IssueComment
+from aristotle_mdr.contrib.issues.models import Issue, IssueComment, IssueLabel
 from aristotle_mdr.perms import user_can_view
 
 
 class IssueSerializer(serializers.ModelSerializer):
 
+    labels = serializers.PrimaryKeyRelatedField(
+        queryset=IssueLabel.objects.all(),
+        many=True
+    )
+
     class Meta:
         model = Issue
-        fields = ('name', 'description', 'item', 'isopen', 'submitter')
+        fields = ('name', 'description', 'item', 'isopen', 'submitter', 'proposal_field', 'proposal_value', 'labels')
 
     submitter = serializers.HiddenField(
         default=serializers.CurrentUserDefault()

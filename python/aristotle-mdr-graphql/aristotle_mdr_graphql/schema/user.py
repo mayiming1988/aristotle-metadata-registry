@@ -1,8 +1,6 @@
 import graphene
-from graphene_django.debug import DjangoDebug
 from graphene_django.types import DjangoObjectType
 from django.contrib.auth import get_user_model
-from aristotle_mdr.models import PossumProfile
 
 
 User = get_user_model()
@@ -31,12 +29,12 @@ class UserType(DjangoObjectType):
 
 
 class SingleUserQuery(graphene.ObjectType):
-    "Returns the current authenticated user"
+    """Returns the current authenticated user"""
     user = graphene.Field(UserType)
 
     def resolve_user(self, info, **kwargs):
 
-        if not info.context.user.is_authenticated():
+        if not info.context.user.is_authenticated:
             return User.objects.none()
         else:
             return info.context.user

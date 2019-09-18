@@ -1,0 +1,6 @@
+{% load util_tags %}
+<h2>Relational Attributes</h2>
+{% for data in item.relational_attributes.values %}
+  <h3>{{ data.all }}</h3>
+  {% include 'aristotle_mdr/downloads/html/helpers/relational_attrs_list.html' with qs=data.qs %}
+{% endfor %}

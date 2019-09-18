@@ -1,43 +1,48 @@
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
 from django.db.models.signals import m2m_changed, post_save, pre_delete
-# from reversion.signals import post_revision_commit
-import haystack.signals as signals  # .RealtimeSignalProcessor as RealtimeSignalProcessor
+from haystack import signals as haystack_signals
+
+from aristotle_mdr.contrib.async_signals.utils import clean_signal
+from aristotle_bg_workers.tasks import update_search_index, delete_search_index
+from aristotle_bg_workers.utils import run_task_on_commit
 from aristotle_mdr.utils import fetch_metadata_apps
+
 # Don't import aristotle_mdr.models directly, only pull in whats required,
 #  otherwise Haystack gets into a circular dependancy.
 
-# class AristotleSignalProcessor(signals.BaseSignalProcessor):
-# Replace below with this when doing a dataload (shuts off Haystack)
-#    pass
-
-
 import logging
+
 logger = logging.getLogger(__name__)
 
 
-# @receiver(pre_save)
+# This is imported by other modules
 def pre_save_clean(sender, instance, *args, **kwargs):
     instance.full_clean()
 
 
-class AristotleSignalProcessor(signals.BaseSignalProcessor):
+class AristotleSignalProcessor(haystack_signals.BaseSignalProcessor):
     def setup(self):
+        """Connect django signals to this classes methods"""
         from aristotle_mdr.models import _concept, concept_visibility_updated
         from aristotle_mdr.contrib.reviews.models import ReviewRequest
         from aristotle_mdr.contrib.help.models import HelpPage, ConceptHelp
-        post_save.connect(self.handle_concept_save)
-        # post_revision_commit.connect(self.handle_concept_revision)
+        from aristotle_mdr.contrib.publishing.models import PublicationRecord
+
+        post_save.connect(self.handle_object_save)
         pre_delete.connect(self.handle_concept_delete, sender=_concept)
         post_save.connect(self.update_visibility_review_request, sender=ReviewRequest)
         m2m_changed.connect(self.update_visibility_review_request, sender=ReviewRequest.concepts.through)
         concept_visibility_updated.connect(self.handle_concept_recache)
         post_save.connect(self.async_handle_save, sender=HelpPage)
         post_save.connect(self.async_handle_save, sender=ConceptHelp)
+        post_save.connect(self.item_published, sender=PublicationRecord)
         super().setup()
 
     def teardown(self):  # pragma: no cover
         from aristotle_mdr.models import _concept
-        post_save.disconnect(self.handle_concept_save, sender=_concept)
+        post_save.disconnect(self.handle_object_save, sender=_concept)
         # post_revision_commit.disconnect(self.handle_concept_revision)
         pre_delete.disconnect(self.handle_concept_delete, sender=_concept)
         super().teardown()
@@ -46,19 +51,38 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
         instance = concept.item
         self.async_handle_save(instance.__class__, instance)
 
-    def handle_concept_save(self, sender, instance, **kwargs):
+    # Called on the saving of all objects
+    def handle_object_save(self, sender, instance, **kwargs):
         from aristotle_mdr.models import _concept, aristotleComponent
-        if isinstance(instance, _concept) and type(instance) is not _concept:
+
+        itype = type(instance)
+
+        # If saving a concept subclass
+        if isinstance(instance, _concept) and itype is not _concept:
             if instance._meta.app_label in fetch_metadata_apps():
+                # If newly created
+                if kwargs.get('created', False):
+                    # Make sure we have a _concept_ptr
+                    if hasattr(instance, '_concept_ptr'):
+                        concept = instance._concept_ptr
+                        ct = ContentType.objects.get_for_model(itype)
+                        concept._type = ct
+                        concept.save()
+
+                # Handle async
                 obj = instance.item
                 self.async_handle_save(obj.__class__, obj, **kwargs)
-            else:
-                return
+
+        from aristotle_mdr.models import DiscussionPost
+        if isinstance(instance, DiscussionPost):
+            self.async_handle_save(type(instance), instance, **kwargs)
 
         # Components should have parents, but lets be kind.
-        if issubclass(sender, aristotleComponent) and hasattr(instance, "parentItem"):
-            obj = instance.parentItem.item
-            self.async_handle_save(obj.__class__, obj, **kwargs)
+        if issubclass(sender, aristotleComponent):
+            parent_item = instance.parentItem
+            if parent_item is not None:
+                obj = parent_item.item
+                self.async_handle_save(obj.__class__, obj, **kwargs)
 
     def handle_concept_delete(self, sender, instance, **kwargs):
         # Delete index *before* the object, as we need to query it to check the actual subclass.
@@ -67,53 +91,55 @@ class AristotleSignalProcessor(signals.BaseSignalProcessor):
 
     def update_visibility_review_request(self, sender, instance, **kwargs):
         from aristotle_mdr.contrib.reviews.models import ReviewRequest
-        assert(sender in [ReviewRequest, ReviewRequest.concepts.through])
+        assert (sender in [ReviewRequest, ReviewRequest.concepts.through])
         for concept in instance.concepts.all():
             obj = concept.item
             self.async_handle_save(obj.__class__, obj, **kwargs)
 
+    def item_published(self, sender, instance, **kwargs):
+        obj = instance.content_object
+        from aristotle_mdr.models import _concept
+        if not issubclass(obj.__class__, _concept):
+            return
+        obj = obj.item
+        self.async_handle_save(obj.__class__, obj, **kwargs)
+
     def async_handle_save(self, sender, instance, **kwargs):
+        # Dev tests settings
         if not settings.ARISTOTLE_ASYNC_SIGNALS:
-            super().handle_save(sender, instance, **kwargs)
+            super().handle_save(sender, instance, **kwargs)  # Call haystack handle save
         else:
-            from aristotle_mdr.contrib.async_signals.utils import clean_signal
             message = clean_signal(kwargs)
-            from aristotle_bg_workers.celery import app
-            app.send_task(
-                'update_search_index',
-                args=[
-                    'save',
-                    {   # sender
-                        'app_label': sender._meta.app_label,
-                        'model_name': sender._meta.model_name,
-                    },
-                    {   # instance
-                        'pk': instance.pk,
-                        'app_label': instance._meta.app_label,
-                        'model_name': instance._meta.model_name,
-                    },
-                ],
-                kwargs=message
-            )
+
+            task_args = [
+                {  # sender
+                    'app_label': sender._meta.app_label,
+                    'model_name': sender._meta.model_name,
+                },
+                {  # instance
+                    'pk': instance.pk,
+                    'app_label': instance._meta.app_label,
+                    'model_name': instance._meta.model_name,
+                },
+            ]
+
+            # Start task on commit
+            run_task_on_commit(update_search_index, args=task_args, kwargs=message)
 
     def async_handle_delete(self, sender, instance, **kwargs):
         if not settings.ARISTOTLE_ASYNC_SIGNALS:
             super().handle_delete(sender, instance, **kwargs)
         else:
-            from aristotle_bg_workers.celery import app
-            app.send_task(
-                'update_search_index',
-                args=[
-                    'delete',
-                    {   # sender
-                        'app_label': sender._meta.app_label,
-                        'model_name': sender._meta.model_name,
-                    },
-                    {   # instance
-                        'pk': instance.pk,
-                        'app_label': instance._meta.app_label,
-                        'model_name': instance._meta.model_name,
-                    },
-                ],
-                kwargs=kwargs
-            )
+            message = clean_signal(kwargs)
+            args = [
+                {  # sender
+                    'app_label': sender._meta.app_label,
+                    'model_name': sender._meta.model_name,
+                },
+                {  # instance
+                    'pk': instance.pk,
+                    'app_label': instance._meta.app_label,
+                    'model_name': instance._meta.model_name
+                },
+            ]
+            delete_search_index.delay(*args, **message)

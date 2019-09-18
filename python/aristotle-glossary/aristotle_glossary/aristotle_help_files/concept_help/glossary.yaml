@@ -3,8 +3,9 @@
     app_label: aristotle_glossary
     concept_type: glossaryitem
     language: en
-    brief: A glossary item is a definition for a reusable term
-    offical_definition: ''
+    brief: A Glossary Item records a business term that is commonly used within the metadata registry.
+        A collection of Glossary Items is commonly referred to as a business glossary.
+    official_definition: A glossary item is a definition for a reusable term
     official_reference: ''
     official_link: ''
     body: ''

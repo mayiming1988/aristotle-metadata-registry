@@ -2,18 +2,20 @@ import haystack.indexes as indexes
 
 from aristotle_mdr.contrib.help import models
 from django.utils import timezone
-from aristotle_mdr.search_indexes import RESTRICTION
+from aristotle_mdr.search_indexes import (
+    BaseObjectIndex,
+    RESTRICTION,
+    SEARCH_CATEGORIES,
+)
 
-from aristotle_mdr.search_indexes import baseObjectIndex
 
-
-class HelpObjectIndex(baseObjectIndex):
+class HelpObjectIndex(BaseObjectIndex):
     name = indexes.CharField(model_attr='title')
     name_sortable = indexes.CharField(model_attr='title', indexed=False, stored=True)
-    facet_model_ct = indexes.IntegerField(faceted=True)
     is_public = indexes.BooleanField(model_attr='is_public')
 
     restriction = indexes.IntegerField(faceted=True)
+    search_category = SEARCH_CATEGORIES.help
 
     def get_model(self):
         raise NotImplementedError  # pragma: no cover -- This should always be overridden
@@ -26,12 +28,6 @@ class HelpObjectIndex(baseObjectIndex):
 
     def prepare_restriction(self, obj):
         return RESTRICTION['Public']
-
-    def prepare_facet_model_ct(self, obj):
-        # We need to use the content type, as if we use text it gets stemmed wierdly
-        from django.contrib.contenttypes.models import ContentType
-        ct = ContentType.objects.get_for_model(obj)
-        return ct.pk
 
     def prepare(self, obj):
         # Slightly down-rank help in search

@@ -71,12 +71,14 @@ function updateDateRadioDetails(menu) {
 }
 
 function updateSortRadioDetails(menu) {
-    var x = $(menu).find("input:checked");
+    let x = $(menu).find("input:checked");
     if (x.length == 0 ) {
+        // No button has been checked, default to sorting by relevance
         x = $(menu).find("input[value='n']");
         x.prop("checked", true);
     }
     x=x[0];
+    // Update the text to display which checkbox is selected
     $(menu).parent().find(".details").text($("label[for='"+x.id+"']").text());
 }
 
@@ -108,11 +110,11 @@ $('.dropdown-menu-date .dropdown-menu').each( function() {
 });
 
 // Setup the sort ordering box
-$('.sort-order-box .dropdown-menu').on('click', function(e) {
+$('.sort-order-box .dropdown-menu input').on('click', function(e) {
     e.stopPropagation();
-    updateSortRadioDetails(this);
-    $(this).closest("form").submit();
+    $(this).closest("form")[0].submit();
 });
+
 $('.sort-order-box .dropdown-menu').each( function() {
     updateSortRadioDetails(this);
 });
@@ -189,3 +191,26 @@ $('.rpp').click(function() {
     $('#id_rpp').val(new_rpp);
     $('#search_form').submit();
 });
+
+
+$(document).ready(function() {
+    $('.category_selector li input').on('click', function() {
+        var cat_map = JSON.parse(document.getElementById('search-category-map').textContent);
+
+        $('ul#id_models li').each(function() {
+            $(this).hide()
+            $(this).find("input").each(function() {
+                $(this).prop('checked', false);
+            })
+        });
+        
+        for (let model of cat_map[this.value]) {
+            $('ul#id_models input[value="'+model+'"]').parent().show();
+        }
+        
+        if (this.value == "all") {
+            $('ul#id_models li').show();
+        }
+        
+    });
+})

@@ -1,14 +1,13 @@
-from typing import Any
+from typing import Any, Dict
+import reversion
+
 from django import forms
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.forms import HiddenInput
 from django.urls import reverse
-from django.utils import timezone
-from django.utils.html import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-from aristotle_mdr.widgets.bootstrap import BootstrapDateTimePicker
 
 import aristotle_mdr.models as MDR
 import aristotle_mdr.contrib.favourites.models as fav_models
@@ -16,13 +15,14 @@ from aristotle_mdr.forms import ChangeStatusForm
 from aristotle_mdr.perms import (
     user_can_view,
     user_is_registrar,
-    user_can_move_any_workgroup
+    user_can_move_any_workgroup,
+    user_can_move_any_stewardship_organisation,
+    user_can_remove_from_stewardship_organisation,
+    user_can_move_to_stewardship_organisation
 )
 from aristotle_mdr.forms.creation_wizards import UserAwareForm
 from aristotle_mdr.contrib.autocomplete import widgets
 from aristotle_mdr.utils import fetch_aristotle_downloaders
-
-from .utils import RegistrationAuthorityMixin
 
 
 class ForbiddenAllowedModelMultipleChoiceField(forms.ModelMultipleChoiceField):
@@ -109,7 +109,6 @@ class BulkActionForm(UserAwareForm):
 
     def __init__(self, form, *args, **kwargs):
         self.initial_items = kwargs.pop('items', [])
-        all_in_queryset = kwargs.pop('all_in_queryset', [])
 
         self.request = kwargs.pop('request')
         if 'user' in kwargs.keys():
@@ -170,7 +169,7 @@ class LoggedInBulkActionForm(BulkActionForm):
 
 
 class AddFavouriteForm(LoggedInBulkActionForm):
-    classes="fa-bookmark"
+    classes = "fa-bookmark"
     action_text = _('Add favourite')
     items_label = "Items that will be added to your favourites list"
 
@@ -218,31 +217,54 @@ class RemoveFavouriteForm(LoggedInBulkActionForm):
 
 
 class ChangeStateForm(ChangeStatusForm, BulkActionForm):
-
     confirm_page = "aristotle_mdr/actions/bulk_actions/change_status.html"
-    classes="fa-university"
+    classes = "fa-university"
     action_text = _('Change registration status')
-    items_label = "These are the items that will be registered. Add or remove additional items with the autocomplete box."
+    items_label = "These are the items that will be registered. " \
+                  "Add or remove additional items with the autocomplete box."
 
     @classmethod
     def can_use(cls, user):
         return user_is_registrar(user)
 
 
-class ChangeWorkgroupForm(BulkActionForm):
+class BulkMoveMetadataMixin:
+    @staticmethod
+    def generate_moving_message(org_name, sucessfully_moved_items: int, failed_items=None) -> str:
+        if not failed_items:
+            message = _(
+                "%(num_items)s items moved into the workgroup '%(new_wg)s'. \n"
+            ) % {
+                'new_wg': org_name,
+                'num_items': sucessfully_moved_items,
+            }
+        else:
+            message = _(
+                "%(num_items)s items moved into the workgroup '%(new_wg)s'. \n"
+                "Some items failed, they had the id's: %(bad_ids)s"
+            ) % {
+                'new_wg': org_name,
+                'num_items': sucessfully_moved_items,
+                'bad_ids': ",".join(failed_items)
+            }
+        return message
+
+
+class ChangeWorkgroupForm(BulkActionForm, BulkMoveMetadataMixin):
     confirm_page = "aristotle_mdr/actions/bulk_actions/change_workgroup.html"
-    classes="fa-users"
+    classes = "fa-users"
     action_text = _('Change workgroup')
-    items_label="These are the items that will be moved between workgroups. Add or remove additional items with the autocomplete box."
+    items_label = "These are the items that will be moved between workgroups." \
+                  " Add or remove additional items with the autocomplete box."
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields['workgroup']=forms.ModelChoiceField(
+        self.fields['workgroup'] = forms.ModelChoiceField(
             label="Workgroup to move items to",
             queryset=self.user.profile.workgroups
         )
-        self.fields['changeDetails']=forms.CharField(
+        self.fields['changeDetails'] = forms.CharField(
             label="Change notes (optional)",
             required=False,
             widget=forms.Textarea
@@ -251,6 +273,7 @@ class ChangeWorkgroupForm(BulkActionForm):
     def make_changes(self):
         import reversion
         from aristotle_mdr.perms import user_can_remove_from_workgroup, user_can_move_to_workgroup
+
         new_workgroup = self.cleaned_data['workgroup']
         changeDetails = self.cleaned_data['changeDetails']
         items = self.cleaned_data['items']
@@ -258,7 +281,7 @@ class ChangeWorkgroupForm(BulkActionForm):
         if not user_can_move_to_workgroup(self.user, new_workgroup):
             raise PermissionDenied
 
-        move_from_checks = {}  # Cache workgroup permissions as we check them to speed things up
+        move_from_checks = {}   # Cache workgroup permissions as we check them to speed things up
 
         failed = []
         success = []
@@ -284,35 +307,99 @@ class ChangeWorkgroupForm(BulkActionForm):
             failed = list(set(failed))
             success = list(set(success))
             bad_items = sorted([str(i.id) for i in failed])
-            if not bad_items:
-                message = _(
-                    "%(num_items)s items moved into the workgroup '%(new_wg)s'. \n"
-                ) % {
-                    'new_wg': new_workgroup.name,
-                    'num_items': len(success),
-                }
-            else:
-                message = _(
-                    "%(num_items)s items moved into the workgroup '%(new_wg)s'. \n"
-                    "Some items failed, they had the id's: %(bad_ids)s"
-                ) % {
-                    'new_wg': new_workgroup.name,
-                    'num_items': len(success),
-                    'bad_ids': ",".join(bad_items)
-                }
-            reversion.revisions.set_comment(changeDetails + "\n\n" + message)
-            return message
+
+            return self.generate_moving_message(new_workgroup.name, len(success), failed_items=bad_items)
 
     @classmethod
     def can_use(cls, user):
         return user_can_move_any_workgroup(user)
 
 
+class ChangeStewardshipOrganisationForm(BulkActionForm, BulkMoveMetadataMixin):
+    confirm_page = "aristotle_mdr/actions/bulk_actions/change_stewardship_organisation.html"
+    classes = "fa-sitemap"
+    action_text = _("Change stewardship organisation")
+    items_label = "These are the items that will be moved between workgroups." \
+                  " Add or remove additional items within the autocomplete box. " \
+
+    move_from_checks: Dict[int, bool] = {}   # Cache the view permission to speed up the bulk view
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['steward_org'] = forms.ModelChoiceField(
+            label="Stewardship Organisation to move items to ",
+            queryset=self.user.profile.stewardship_organisations,
+            widget=forms.Select(attrs={'class': 'form-control'}),
+        )
+
+        self.fields['changeDetails'] = forms.CharField(
+            label="Change notes (optional)",
+            required=False,
+            widget=forms.Textarea(attrs={'class': 'form-control'})
+        )
+
+    def apply_move_permission_checking(self, item) -> bool:
+        can_move_permission = self.move_from_checks.get(item.stewardship_organisation.pk, None)
+        if can_move_permission is None:
+            can_move_permission = user_can_remove_from_stewardship_organisation(self.user,
+                                                                                item.stewardship_organisation)
+            # Cache the can move permission
+            self.move_from_checks[item.stewardship_organisation.pk] = can_move_permission
+        else:
+            # No org, the user can move their own item
+            can_move_permission = True
+
+        return can_move_permission
+
+    def make_changes(self):
+        self.move_from_checks = {}
+
+        new_stewardship_org = self.cleaned_data['steward_org']
+        change_details = self.cleaned_data['changeDetails']
+        items = self.cleaned_data['items']
+
+        failed = []
+        suceeded = []
+
+        if not user_can_move_to_stewardship_organisation(self.user, new_stewardship_org):
+            raise PermissionDenied
+
+        with transaction.atomic(), reversion.revisions.create_revision():
+            reversion.revisions.set_user(self.user)
+            for item in items:
+                if item.stewardship_organisation:
+                    # The item has a stewardship organisation
+                    can_move_permission = self.apply_move_permission_checking(item)
+
+                    if not can_move_permission:
+                        # There's no permission to move the item
+                        failed.append(item)
+                    else:
+                        # There's permission, move the item
+                        suceeded.append(item)
+                        item.workgroup = None
+                        item.stewardship_organisation = new_stewardship_org
+                        item.save()
+
+            failed = list(set(failed))
+            success = list(set(suceeded))
+            failed_items = sorted([str(i.id) for i in failed])
+
+            return self.generate_moving_message(new_stewardship_org.name, len(success), failed_items=failed_items)
+
+    @classmethod
+    def can_user(cls, user):
+        return user_can_move_any_stewardship_organisation(user)
+
+
 class DownloadActionForm(BulkActionForm):
     def make_changes(self):
-        items = self.items_to_change
         from aristotle_mdr.contrib.redirect.exceptions import Redirect
-        raise Redirect(url=reverse('aristotle:bulk_download', kwargs={'download_type': self.download_type}) + ('?title=%s&' % self.title) + "&".join(['items=%s' % i.id for i in items]))
+        items = self.items_to_change
+        get_params = '?' + '&'.join(['items=%s' % i.id for i in items])
+        url=reverse('aristotle:download_options', kwargs={'download_type': self.download_type}) + get_params
+        raise Redirect(url=url)
 
 
 class QuickPDFDownloadForm(DownloadActionForm):
@@ -329,11 +416,6 @@ class BulkDownloadForm(DownloadActionForm):
     action_text = _('Bulk download')
     items_label="These are the items that will be downloaded"
 
-    title = forms.CharField(
-        required=False,
-        label=_("Title for the document"),
-        # widget=forms.Textarea
-    )
     download_type = forms.ChoiceField(
         choices=[],
         widget=forms.RadioSelect
@@ -352,6 +434,4 @@ class BulkDownloadForm(DownloadActionForm):
 
     def make_changes(self):
         self.download_type = self.cleaned_data['download_type']
-        self.title = self.cleaned_data['title']
-        items = self.cleaned_data['items']
         super().make_changes()

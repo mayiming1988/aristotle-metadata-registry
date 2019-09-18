@@ -1,15 +1,27 @@
-{% if item %}
-    {% if name != False %}
-    {% include "aristotle_mdr/helpers/itemLink.html" %}
-    {% endif %}
-<div class="attr"><small>Statuses:
-    {% for s in item.current_statuses %}
-        [{{ s.registrationAuthority }}: {{ s.state_name }}]
-    {% empty %}
-    <em>Unregistered</em>
-    {% endfor %}</small></div>
+{% load aristotle_tags %}
 
-    <div class="definition">
-        {{ item.definition|striptags|truncatewords:20 }}
-    </div>
+{% if skip_can_view or item|can_view:user %}
+    {% if item %}
+        {% if name != False %}
+            {% include "aristotle_mdr/helpers/itemLink.html" with skip_can_view=True %}
+        {% endif %}
+        {% if statuses != False %}
+            <div class="attr">
+                <small>
+                    Statuses:
+                    {% for s in item.current_statuses %}
+                        [{{ s.registrationAuthority }}: {{ s.state_name }}]
+                    {% empty %}
+                        <em>Unregistered</em>
+                    {% endfor %}
+                </small>
+            </div>
+        {% endif %}
+
+        <div class="definition">
+            {{ item.short_definition | safe }}
+        </div>
+    {% endif %}
+{% else %}
+    <em>You dont have permission to view this item</em>
 {% endif %}

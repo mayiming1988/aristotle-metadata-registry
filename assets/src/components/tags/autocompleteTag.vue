@@ -1,11 +1,11 @@
 <template>
   <vue-simple-suggest :list="getSuggestions" :filter-by-query="true" @select="makeSuggestion">
-    <taggle-tags :tags="current_tags" :newtags="newTags" @tag-update="update_tags"></taggle-tags>
+      <taggle-tags :tags="current_tags" :newtags="newTags" @tag-update="update_tags" />
   </vue-simple-suggest>
 </template>
 
 <script>
-import VueSimpleSuggest from 'vue-simple-suggest'
+import VueSimpleSuggest from './mySimpleSuggest.vue'
 import tagComponent from './tag.vue'
 
 export default {
@@ -13,11 +13,20 @@ export default {
         'taggle-tags': tagComponent,
         'vue-simple-suggest': VueSimpleSuggest
     },
-    props: ['current_tags', 'user_tags'],
+    props: {
+        'current_tags': {
+            type: Array,
+            required: true
+        },
+        'user_tags': {
+            type: Array,
+            required: true
+        }
+    },
     computed: {
         newTags: function() {
-            var newTags = []
-            for (var element of this.current_tags) {
+            let newTags = []
+            for (let element of this.current_tags) {
                 if (!this.user_tags.includes(element)) {
                     newTags.push(element)
                 }
@@ -27,8 +36,8 @@ export default {
     },
     methods: {
         getSuggestions: function() {
-            var suggestions = []
-            for (var element of this.user_tags) {
+            let suggestions = []
+            for (let element of this.user_tags) {
                 // Add to suggestions if not in current tags
                 if (!this.current_tags.includes(element)) {
                     suggestions.push(element)
@@ -50,21 +59,18 @@ export default {
 
 <style>
 .vue-simple-suggest.designed .suggestions {
-  /* position: absolute;
-  left: 0;
-  right: 0;
-  top: 100%;
-  top: calc(100% + 5px); */
   border-radius: 3px;
   border: 1px solid #aaa;
   background-color: #fff;
   opacity: 1;
-  /* z-index: 1000; */
+  padding-left: 5px;
+  padding-right: 5px;
 }
 
 .vue-simple-suggest.designed .suggestions .suggest-item {
   cursor: pointer;
   user-select: none;
+  list-style-type: none;
 }
 
 .vue-simple-suggest.designed .suggestions .suggest-item,

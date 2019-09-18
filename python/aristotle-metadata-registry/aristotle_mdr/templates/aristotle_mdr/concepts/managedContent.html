@@ -3,72 +3,114 @@
 {% load aristotle_tags util_tags %}
 
 {% block infoContent %}
-  <section class="managed row">
-    {% include "aristotle_mdr/concepts/infobox.html" %}
-    <div v-pre>
-      {# Pre rendered content #}
-      {% include "aristotle_mdr/concepts/visibilityInfoBar.html" %}
 
-      <h2 title="{% doc item 'definition' %}">{% trans 'Definition'%}</h2>
-      <div id="definition" class="definition">
-          {{ item.definition|bleach }}
-      </div>
+    <section class="managed row">
+        {% include "aristotle_mdr/concepts/infobox.html" %}
 
-      {% block objSpecific %}{% endblock %}
+        <div v-pre>
+        {# Pre rendered content #}
 
-      {% if item.comments %}
-          <h2>Comments</h2>
-          {{ item.comments|bleach }}
-      {% endif %}
+        {% include "aristotle_mdr/concepts/visibilityInfoBar.html" %}
 
-      {% if item.origin %}
-          <h2>Origin</h2>
-          {{ item.origin|bleach }}
-      {% endif %}
+        <h2 title="{% doc item 'definition' %}">{% trans 'Definition'%}
+        {% field_help_icon item 'definition' %}
+        </h2>
+        <div id="definition" class="definition">
+            {{ item.definition|bleach }}
+        </div>
 
-      {% if item.references %}
-      <div>
-      <h2>References</h2>
-          <p>{{ item.references|bleach }}</p>
-          {% if item.submitting_organisation %}
-          <h3>Submitting Organisation</h3>
-              <p>{{ item.submitting_organisation }}</p>
-          {% endif %}
-          {% if item.responsible_organisation %}
-          <h3>Responsible Organisation</h3>
-              <p>{{ item.responsible_organisation }}</p>
-          {% endif %}
-      </div>
-      {% endif %}
-      {% if custom_values %}
-        {% include 'aristotle_mdr/custom_fields/custom_fields_display.html' %}
-      {% endif %}
-      {% if 'aristotle_mdr.contrib.slots'|is_active_module %}
-          {% include "aristotle_mdr/slots/slots_display.html" %}
-      {% endif %}
-      {% if 'aristotle_mdr_links'|is_active_extension and links %}
-          {% include "aristotle_mdr/links/links_display.html" with links=links %}
-      {% endif %}
-      <h2>Related content</h2>
-      {% block relationships %}{% endblock %}
-      {% for extension in config.CONTENT_EXTENSIONS %}
-          {% extra_content extension item request.user %}
-      {% endfor %}
-    </div>
-  </section>
+        {% block objSpecific %}{% endblock %}
 
-  <tags-modal 
-    :open="tagsModalOpen" 
-    item-tags="{{ item_tags }}" 
-    user-tags="{{ user_tags }}" 
-    submit-url="{% url 'api_v4:item_tags' item.id %}"
-    @saved-tags="updateTags"
-    @hide="closeTagsModal">
-  </tags-modal>
+        {% if item.comments %}
+            <h2>Comments {% field_help_icon item 'comments' %}</h2>
+            {{ item.comments|bleach }}
+        {% endif %}
 
-  <issue-modal 
-    v-model="issueModalOpen" 
-    iid="{{ item.id }}"
-    url="{% url 'api_v4:issues:create' %}">
-  </issue-modal>
+        {% if item.origin %}
+            <h2>Origin {% field_help_icon item 'origin' %}</h2>
+            {{ item.origin|bleach }}
+        {% endif %}
+
+        {% if item.references or item.metadatareferencelink_set.exists %}
+            <div>
+                <h2>References</h2>
+                {% if item.references %}
+                  <p>{{ item.references|bleach }}</p>
+                {% endif %}
+    
+                {% if aristotle_cloud_is_active %}
+                    {% include "aristotle_cloud/concepts/helpers/reference_links_display.html" with item=item %}
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {% if item.submitting_organizations %}
+            <h3>Submitting Organizations</h3>
+            {% for rec in item.submitting_organizations %}
+                {% if rec.organization_record|can_view:request.user %}
+                    <p><a href="{{ rec.organization_record.get_absolute_url }}">{{ rec.organization_record.name }}</a></p>
+                {% else %}
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+        {% if item.responsible_organizations %}
+            <h3>Responsible Organizations</h3>
+            {% for rec in item.responsible_organizations %}
+            {% if rec.organization_record|can_view:request.user %}
+                <p><a href="{{ rec.organization_record.get_absolute_url }}">{{ rec.organization_record.name }}</a></p>
+            {% else %}
+            {% endif %}
+            {% endfor %}
+        {% endif %}
+
+        {% if custom_values %}
+            {% include 'aristotle_mdr/custom_fields/custom_fields_display.html' %}
+        {% endif %}
+        {% if 'aristotle_mdr.contrib.slots'|is_active_module %}
+            {% include "aristotle_mdr/slots/slots_display.html" %}
+        {% endif %}
+
+        <div class="clearfix"></div>
+        {% if item.relational_attributes %}
+        <h2>Related content</h2>
+
+            <table class="table">
+                <tr>
+                    <th>Relation</th>
+                    <th>Count</th>
+                </tr>
+            {% for name, data in item.relational_attributes.items %}
+                <tr>
+                    <td>
+                        <a href="{% url 'aristotle_mdr:item_related' item.pk name %}">
+                        {{data.all}}
+                        </a>
+                    </td>
+                    <td>{{data.qs.count}}</td>
+                </tr>
+            {% endfor %}
+            </table>
+        {% endif %}
+
+        {% if 'aristotle_mdr_links'|is_active_extension and has_links %}
+            {% include "aristotle_mdr/links/links_display.html" with links=links %}
+        {% endif %}
+
+        {% block relationships %}
+        {% endblock %}
+
+        </div>
+
+    </section>
+
+    <tags-modal
+            :open="tagsModalOpen"
+            item-tags="{{ item_tags }}"
+            user-tags="{{ user_tags }}"
+            submit-url="{% url 'api_v4:item_tags' item.id %}"
+            @saved-tags="updateTags"
+            @hide="closeTagsModal">
+    </tags-modal>
+
 {% endblock %}

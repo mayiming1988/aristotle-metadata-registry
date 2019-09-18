@@ -12,19 +12,20 @@ class Question(aristotle_mdr.models.concept):
         aristotle_mdr.models.DataElement,
         related_name="questions",
         null=True,
-        blank=True
+        blank=True,
+        on_delete=models.deletion.CASCADE,
     )
 
-# End of the question model
 
+# End of the question model
 
 class Questionnaire(aristotle_mdr.models.concept):
     # Questionnaire is a test of a lazy developer who has done the bare minimum
     # To get an object in the system. This is a test of how little a dev can to
     # get a functional object. Ideally the string 'Questionnaire' should exist only here.
-    edit_page_excludes = ['questions', 'respondent_classes','targetrespondentclass']
+    edit_page_excludes = ['questions', 'respondent_classes', 'targetrespondentclass']
     through_edit_excludes = ['respondent_classes']
-    admin_page_excludes = ['respondent_classes','targetrespondentclass']
+    admin_page_excludes = ['respondent_classes', 'targetrespondentclass']
     # template = "extension_test/concepts/question.html"  # Blank to test default template
     questions = models.ManyToManyField(
         Question,
@@ -50,14 +51,8 @@ class Questionnaire(aristotle_mdr.models.concept):
     # Start of get_download_items
     def get_download_items(self):
         return [
-            (
-                Question,
-                self.questions.all().order_by('name')
-            ),
-            (
-                aristotle_mdr.models.DataElement,
-                aristotle_mdr.models.DataElement.objects.filter(questions__questionnaires=self).order_by('name')
-            ),
+            self.questions.all().order_by('name'),
+            aristotle_mdr.models.DataElement.objects.filter(questions__questionnaires=self).order_by('name')
         ]
     # End of get_download_items
 
@@ -68,6 +63,6 @@ class TargetRespondentClass(aristotle_mdr.models.aristotleComponent):
     def parentItem(self):
         return self.questionnaire
 
-    questionnaire = models.ForeignKey('Questionnaire')
-    respondent_class = models.ForeignKey(aristotle_mdr.models.ObjectClass)
+    questionnaire = models.ForeignKey('Questionnaire', on_delete=models.deletion.CASCADE)
+    respondent_class = models.ForeignKey(aristotle_mdr.models.ObjectClass, on_delete=models.deletion.CASCADE)
     rationale = models.TextField(blank=True, null=True)

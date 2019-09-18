@@ -1,0 +1,20 @@
+{% extends "groups/base.html" %}
+{% load group_tags %}
+{% load bootstrap3 %}
+
+{% block group_content %}
+<h1>
+    Remove member from {{view.manager.group_meta.verbose_name.title}}
+</h1>
+
+<p>
+    You are about to remove the user <em>{{member}}</em>.
+    If you add them as a member again, you will need to reassign their permissions.
+</p>
+<form action="{%url view.manager.namespace|add:":membership_remove" group.slug member.pk %}" method="POST">
+    {% csrf_token %}
+    <a class="btn btn-default" href="{%url view.manager.namespace|add:":detail" group.slug %}">Cancel</a>
+    <button class="btn btn-primary" type="submit">Remove User</button>
+</form>
+
+{% endblock %}

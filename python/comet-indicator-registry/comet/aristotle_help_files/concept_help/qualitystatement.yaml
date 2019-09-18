@@ -1,0 +1,35 @@
+- model: aristotle_mdr_help.concepthelp
+  fields:
+    app_label: comet
+    concept_type: qualitystatement
+    language: en
+    brief: >
+        A Data Quality Statement records any known issues that may be related to a data asset.
+        A Data Quality Statement assesses data against seven key factors: Institutional Environment, 
+        Relevance, Timeliness, Accuracy, Coherence, Interpretability & Accessibility. 
+    official_definition: A Data Quality Statement is a presentation of information about the quality of a statistical collection or product using the Data Quality Framework.
+      These may also be referred to as Data Quality Declarations.
+    official_reference: ABS Data Quality Statement Checklist
+    official_link: http://www.abs.gov.au/websitedbs/d3310114.nsf/home/abs+data+quality+statement+checklist
+    body: >
+    
+
+        <div class="well">
+            <header>The ABS Data Quality Framework</header>
+            <p>
+            The ABS Data Quality Framework (ABS DQF) provides the standards for assessing and reporting on the quality of statistical information.
+            It can also assist you with the development of statistical collections to produce high quality outputs.
+            </p><p>
+            The ABS DQF is based on the <a href="http://www.statcan.gc.ca/pub/12-586-x/12-586-x2002001-eng.pdf">
+            Statistics Canada Quality Assurance Framework (PDF, 178.05 KB)</a> and the
+            <a href="http://epp.eurostat.ec.europa.eu/portal/page/portal/quality/documents/CoP_October_2011.pdf">European Statistics Code of Practice (PDF, 1.09 MB)</a>.
+            It consists of seven dimensions of quality: institutional environment, relevance, timeliness, accuracy, coherence, interpretability, and accessibility. 
+            </p><p>
+        </div>
+        <cite>
+            Based on Australian Bureau of Statistics
+            <a href="http://www.abs.gov.au/websitedbs/d3310114.nsf/home/abs+data+quality+statement+checklist">
+            ABS Data Quality Statement Checklist</a>
+        </cite>
+      
+    creation_tip: 

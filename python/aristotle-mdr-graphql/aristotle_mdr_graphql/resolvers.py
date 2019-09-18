@@ -1,27 +1,30 @@
-import graphene
-import logging
-
 from aristotle_mdr import perms
 from aristotle_mdr import models as mdr_models
+from aristotle_mdr.contrib.custom_fields import models as cf_models
 from aristotle_mdr.contrib.slots import models as slots_models
-from aristotle_mdr.contrib.slots.utils import filter_slot_perms, get_allowed_slots
 from aristotle_dse import models as dse_models
 from django.db.models import Model
 from django.db.models.manager import Manager
 from django.db.models.query import QuerySet
-from graphene import relay
-from graphene_django.types import DjangoObjectType
+from aristotle_mdr.contrib.links import models as link_models
+from aristotle_mdr.contrib.aristotle_backwards import models as backwards_models
+
+import logging
 
 logger = logging.getLogger(__name__)
 
 
 class AristotleResolver(object):
+
+    # allowed models that are not concepts:
+    allowed_models = [link_models.LinkEnd, link_models.Link, mdr_models.OrganizationRecord, backwards_models.RepresentationClass]
     @classmethod
     def resolver(cls, attname, default_value, root, info, **args):
         retval = getattr(root, attname, default_value)
 
         # If object is a django model
         if isinstance(retval, Model):
+
             if isinstance(retval, mdr_models._concept):
                 # Use user_can_view to determine if we display
                 if perms.user_can_view(info.context.user, retval):
@@ -42,12 +45,19 @@ class AristotleResolver(object):
                 else:
                     return None
 
+            if type(retval) in cls.allowed_models:
+                return retval
+
             return None
 
         elif isinstance(retval, Manager):
             # Need this for when related manager is returned when querying object.related_set
             # Can safely return restricted queryset
             queryset = retval.get_queryset()
+
+            # We need to check permissions for Organizations depending on the authentication of the user:
+            if queryset.model == mdr_models.RecordRelation:
+                return queryset
 
             if queryset.model == slots_models.Slot:
                 instance = getattr(retval, 'instance', None)
@@ -56,13 +66,22 @@ class AristotleResolver(object):
                 else:
                     return queryset.visible(info.context.user)
 
+            if queryset.model == cf_models.CustomValue:
+                instance = getattr(retval, 'instance', None)
+                if instance:
+                    return cf_models.CustomValue.objects.get_item_allowed(instance, info.context.user)
+                else:
+                    return queryset.visible(info.context.user)
+
             if hasattr(queryset, 'visible'):
                 return queryset.visible(info.context.user)
 
-            if issubclass(queryset.model, mdr_models.aristotleComponent):
+            if queryset.model in (link_models.Link, link_models.LinkEnd):
                 return queryset
 
-            return None
+            if issubclass(queryset.model, mdr_models.aristotleComponent):
+                return queryset
+            return queryset.none()
 
         elif isinstance(retval, QuerySet):
             # In case a queryset is returned
@@ -71,7 +90,7 @@ class AristotleResolver(object):
             if issubclass(retval.model, mdr_models.aristotleComponent):
                 return retval
 
-            return None
+            return retval.none()
 
         return retval
 
@@ -114,6 +133,7 @@ class DataSetSpecificationResolver(AristotleResolver):
             if isinstance(retval, QuerySet) and issubclass(retval.model, dse_models.DSSInclusion):
                 return retval
         return super().resolver(attname, default_value, root, info, **args)
+
 
 class DSSInclusionResolver(AristotleResolver):
     pass

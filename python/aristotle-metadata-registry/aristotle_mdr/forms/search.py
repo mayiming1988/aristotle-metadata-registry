@@ -1,32 +1,36 @@
 from typing import List, Dict
 import datetime
 from django import forms
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.apps import apps
+from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
 
 from model_utils import Choices
 
 from haystack import connections
-from haystack.constants import DEFAULT_ALIAS
+from haystack.constants import DEFAULT_ALIAS, DJANGO_ID
 from haystack.forms import FacetedSearchForm, model_choices
 from haystack.query import EmptySearchQuerySet, SearchQuerySet, SQ
+from haystack.inputs import AutoQuery
 
 import aristotle_mdr.models as MDR
 from aristotle_mdr.widgets.bootstrap import (
     BootstrapDropdownSelectMultiple,
     BootstrapDropdownIntelligentDate,
     BootstrapDropdownSelect,
-    BootstrapDateTimePicker
+    BootstrapDateTimePicker,
+    BootstrapDropdownSearchCategoriesSelect
 )
 
 from aristotle_mdr.utils import fetch_metadata_apps
+from aristotle_mdr.search_indexes import SEARCH_CATEGORIES
 
 import logging
 logger = logging.getLogger(__name__)
 logger.debug("Logging started for " + __name__)
-
 
 QUICK_DATES = Choices(
     ('', 'anytime', _('Any time')),
@@ -39,12 +43,13 @@ QUICK_DATES = Choices(
 )
 
 
+# For dates and times, ascending means that earlier dates will precede later ones.
 SORT_OPTIONS = Choices(
-    ('n', 'natural', _('Ranking')),
-    ('ma', 'modified_ascending', _('Modified ascending')),
-    ('md', 'modified_descending', _('Modified descending')),
-    ('ma', 'created_ascending', _('Created ascending')),
-    ('md', 'created_descending', _('Created descending')),
+    ('n', 'natural', _('Relevance')),
+    ('md', 'modified_descending', _('Most Recently Modified')),
+    ('ma', 'modified_ascending', _('Least Recently Modified')),
+    ('ca', 'created_ascending', _('First Created')),
+    ('cd', 'created_descending', _('Last Created')),
     ('aa', 'alphabetical', _('Alphabetical')),
     ('s', 'state', _('Registration state')),
 )
@@ -64,6 +69,13 @@ SHORT_STATE_MAP = {
     "sup": "superseded",
     "ret": "retired",
 }
+
+
+def allowable_search_models():
+    return fetch_metadata_apps() + [
+        'aristotle_mdr_help',
+        'aristotle_mdr_stewards',
+    ] + getattr(settings, 'ARISTOTLE_SEARCH_EXTRA_MODULES', [])
 
 
 # This function is not critical and are mathematically sound, so testing is not required.
@@ -132,7 +144,6 @@ def first_letter(j):
 
 
 def get_permission_sqs(*args, **kwargs):
-    from django.conf import settings
     psqs_kls = getattr(settings, 'ARISTOTLE_PERMISSION_SEARCH_CLASS', None)
     if psqs_kls is None:
         psqs_kls = PermissionSearchQuerySet
@@ -156,13 +167,19 @@ class PermissionSearchQuerySet(SearchQuerySet):
         # We have to redefine this because Whoosh & Haystack don't play well with model filtering
         from haystack.utils import get_model_ct
         mods = [get_model_ct(m) for m in mods]
+
+        # This is performing a filter on the search result to restrict it to only the actual models
         return self.filter(django_ct__in=mods)
 
     def apply_permission_checks(self, user=None, public_only=False, user_workgroups_only=False):
+        """"
+        Apply permission checks by altering the SearchQuery
+        """
         sqs = self
         q = SQ(is_public=True)
-        if user is None or user.is_anonymous():
-            # Regular users can only see public items, so boot them off now.
+        q |= SQ(published_date_public__lte=timezone.now())
+        if user is None or user.is_anonymous:
+            # Regular users can only see public items, so filter only on the public items.
             sqs = sqs.filter(q)
             return sqs
 
@@ -189,6 +206,11 @@ class PermissionSearchQuerySet(SearchQuerySet):
         return sqs
 
     def apply_registration_status_filters(self, states=[], ras=[]):
+        """
+        :param states:
+        :param ras:
+        :return: SearchQuerySet
+        """
         sqs = self
         if states and not ras:
             states = [int(s) for s in states]
@@ -214,12 +236,14 @@ class TokenSearchForm(FacetedSearchForm):
         'version',
         'identifier',
         'namespace',
+        'uuid'
     ]
 
     token_shortnames = {
         'id': 'identifier',
         'ns': 'namespace',
         'hs': 'highest_state',
+        'status': 'statuses',
     }
 
     def _clean_state(self, value):
@@ -241,6 +265,7 @@ class TokenSearchForm(FacetedSearchForm):
         try:
             query = self.cleaned_data.get('q')
         except:
+            # There was no query
             return {}
         opts = connections[DEFAULT_ALIAS].get_unified_index().fields.keys()
         kwargs = {}
@@ -248,6 +273,7 @@ class TokenSearchForm(FacetedSearchForm):
         token_models = []
         boost_ups = []
         for word in query.split(" "):
+            # Boost the query words that start with +
             if word.startswith("+"):
                 boost_strength = min(4, len(word) - len(word.lstrip('+')))
                 boost_val = round(0.1 + 1.1 ** (boost_strength ** 1.35), 3)
@@ -259,39 +285,40 @@ class TokenSearchForm(FacetedSearchForm):
             if ":" in word:
                 opt, arg = word.split(":", 1)
 
-                if opt in self.token_shortnames:
-                    opt = self.token_shortnames[opt]
+                # Make sure arg isnt blank
+                if arg:
+                    if opt in self.token_shortnames:
+                        opt = self.token_shortnames[opt]
 
-                if opt in opts and opt in self.allowed_tokens:
-                    clean_arguments_func = getattr(self, "process_%s" % opt, None)
-                    if not clean_arguments_func:
-                        kwargs[str(opt)]=arg
-                    else:
-                        # if we have a processor, run that.
-                        clean_value = clean_arguments_func(arg)
-                        if type(clean_value) is list:
-                            kwargs["%s__in" % str(opt)] = clean_value
-                        elif clean_value is not None:
-                            kwargs[str(opt)] = clean_value
-                elif opt == "type":
-                    # we'll allow these through and assume they meant content type
-
-                    from django.contrib.contenttypes.models import ContentType
-                    arg = arg.lower().replace('_', '').replace('-', '')
-                    app_labels = fetch_metadata_apps()
-                    app_labels.append('aristotle_mdr_help')
-                    mods = ContentType.objects.filter(app_label__in=app_labels).all()
-                    for i in mods:
-                        if hasattr(i.model_class(), 'get_verbose_name'):
-                            model_short_code = "".join(
-                                map(
-                                    first_letter, i.model_class()._meta.verbose_name.split(" ")
-                                )
-                            ).lower()
-                            if arg == model_short_code:
+                    if opt in opts and opt in self.allowed_tokens:
+                        clean_arguments_func = getattr(self, "process_%s" % opt, None)
+                        if not clean_arguments_func:
+                            kwargs[str(opt)]=arg
+                        else:
+                            # if we have a processor, run that.
+                            clean_value = clean_arguments_func(arg)
+                            if type(clean_value) is list:
+                                kwargs["%s__in" % str(opt)] = clean_value
+                            elif clean_value is not None:
+                                kwargs[str(opt)] = clean_value
+                    elif opt == "type":
+                        # we'll allow these through and assume they meant content type
+                        # Look up all the models that you can search from
+                        from django.contrib.contenttypes.models import ContentType
+                        arg = arg.lower().replace('_', '').replace('-', '')
+                        app_labels = allowable_search_models()
+                        mods = ContentType.objects.filter(app_label__in=app_labels).all()
+                        for i in mods:
+                            if hasattr(i.model_class(), 'get_verbose_name'):
+                                model_short_code = "".join(
+                                    map(
+                                        first_letter, i.model_class()._meta.verbose_name.split(" ")
+                                    )
+                                ).lower()
+                                if arg == model_short_code:
+                                    token_models.append(i.model_class())
+                            if arg == i.model:
                                 token_models.append(i.model_class())
-                        if arg == i.model:
-                            token_models.append(i.model_class())
 
             else:
                 query_text.append(word)
@@ -311,8 +338,22 @@ class TokenSearchForm(FacetedSearchForm):
             return self.no_query_found()
 
         if self.query_text:
-            sqs = self.searchqueryset.auto_query(self.query_text)
+            # If there is query text
+            # Search on text (which is the document) and name fields (so name can be boosted)
+            title_only = self.cleaned_data.get('title_only', None)
+            if title_only:
+                sqs = self.searchqueryset.filter(
+                    SQ(name=AutoQuery(self.query_text))
+                )
+            else:
+                sqs = self.searchqueryset.filter(
+                    SQ(text=AutoQuery(self.query_text)) |
+                    SQ(name=AutoQuery(self.query_text)) |
+                    SQ(**{DJANGO_ID: self.query_text})
+                )
+
         else:
+            # Don't search
             sqs = self.searchqueryset
 
         if self.token_models:
@@ -327,10 +368,10 @@ class TokenSearchForm(FacetedSearchForm):
             sqs = sqs.load_all()
 
         # Only show models that are in apps that are enabled
-        app_labels = fetch_metadata_apps()
-        app_labels.append('aristotle_mdr_help')
+        app_labels = allowable_search_models()
+        # We need to restrict search so that if an install app is "disabled" by
+        #    Aristotle, its models won't show up in search.
         sqs = sqs.filter(django_ct_app_label__in=app_labels)
-
         return sqs
 
     def no_query_found(self):
@@ -339,8 +380,6 @@ class TokenSearchForm(FacetedSearchForm):
 
 datePickerOptions = {
     "format": "YYYY-MM-DD",
-    # "pickTime": False,
-    # "pickDate": True,
     "defaultDate": "",
     "useCurrent": False,
 }
@@ -351,9 +390,8 @@ class PermissionSearchForm(TokenSearchForm):
         We need to make a new form as permissions to view objects are a bit finicky.
         This form allows us to perform the base query then restrict it to just those
         of interest.
-
-        TODO: This might not scale well, so it may need to be looked at in production.
     """
+    # Use short names to reduce URL length
     mq=forms.ChoiceField(
         required=False,
         initial=QUICK_DATES.anytime,
@@ -387,17 +425,15 @@ class PermissionSearchForm(TokenSearchForm):
         widget=BootstrapDateTimePicker(options=datePickerOptions)
     )
 
-    # Use short singular names
-    # ras = [(ra.id, ra.name) for ra in MDR.RegistrationAuthority.objects.all()]
     ra = forms.MultipleChoiceField(
         required=False, label=_("Registration authority"),
         choices=[], widget=BootstrapDropdownSelectMultiple
     )
-
     sort = forms.ChoiceField(
         required=False, initial=SORT_OPTIONS.natural,
         choices=SORT_OPTIONS, widget=BootstrapDropdownSelect
     )
+
     from aristotle_mdr.search_indexes import BASE_RESTRICTION
     res = forms.ChoiceField(
         required=False, initial=None,
@@ -415,9 +451,18 @@ class PermissionSearchForm(TokenSearchForm):
         required=False,
         label="Only show public items"
     )
+    title_only = forms.BooleanField(
+        required=False,
+        label="Search titles only"
+    )
     myWorkgroups_only = forms.BooleanField(
         required=False,
         label="Only show items in my workgroups"
+    )
+    category = forms.ChoiceField(
+        choices=SEARCH_CATEGORIES,
+        required=False, label=_('Categories'),
+        widget=BootstrapDropdownSelect
     )
     models = forms.MultipleChoiceField(
         choices=[],  # model_choices(),
@@ -428,8 +473,17 @@ class PermissionSearchForm(TokenSearchForm):
         required=False,
         label='Results per page'
     )
-    # F for facet!
-    # searchqueryset = PermissionSearchQuerySet
+    # Hidden Workgroup field that is not rendered in the template,
+    # label is required for faceting display
+    wg = forms.IntegerField(required=False,
+                            label="Workgroup")
+    # Hidden Stewardship Organisation field that is not rendered in the template,
+    # label is required for faceting display
+    sa = forms.IntegerField(required=False,
+                            label="Stewardship Organisation")
+
+    # Filters that are to be applied
+    filters = ["models", "mq", "cq", "cds", "cde", "mds", "mde", "state", "ra", "res", "wg", "sa"]
 
     def __init__(self, *args, **kwargs):
         if 'searchqueryset' not in kwargs.keys() or kwargs['searchqueryset'] is None:
@@ -438,29 +492,42 @@ class PermissionSearchForm(TokenSearchForm):
             raise ImproperlyConfigured("Aristotle Search Queryset connection must be a subclass of PermissionSearchQuerySet")
         super().__init__(*args, **kwargs)
 
-        # Show visible workgroups ordered by active state and name
+        # Populate choice of Registration Authorities ordered by active state and name
         # Inactive last
         self.fields['ra'].choices = [(ra.id, ra.name) for ra in MDR.RegistrationAuthority.objects.filter(active__in=[0, 1]).order_by('active', 'name')]
 
+        # List of models that you can search for
+
+        self.default_models = [
+            m[0] for m in model_choices()
+            if m[0].split('.', 1)[0] in allowable_search_models()
+        ]
+
+        # Set choices for models
         self.fields['models'].choices = [
             m for m in model_choices()
-            if m[0].split('.', 1)[0] in fetch_metadata_apps() + ['aristotle_mdr_help']
+            if m[0].split('.', 1)[0] in allowable_search_models()
         ]
 
     def get_models(self):
         """Return an alphabetical list of model classes in the index."""
         search_models = []
 
-        if self.is_valid() and self.cleaned_data['models']:
-            for model in self.cleaned_data['models']:
+        if self.is_valid():
+            app_labels = self.default_models
+            if self.cleaned_data['models']:
+                app_labels = self.cleaned_data['models']
+
+            for model in app_labels:
                 search_models.append(apps.get_model(*model.split('.')))
 
         return search_models
 
-    filters = "models mq cq cds cde mds mde state ra res".split()
-
     @property
     def applied_filters(self):
+        """
+        Returns the filters appearing in the URL that are applied
+        """
         if not hasattr(self, 'cleaned_data'):
             return []
         return [f for f in self.filters if self.cleaned_data.get(f, False)]
@@ -472,23 +539,32 @@ class PermissionSearchForm(TokenSearchForm):
             sqs = sqs.models(*self.get_models())
         self.repeat_search = repeat_search
 
+        # Is there no filter and no query -> no search was performed
         has_filter = self.kwargs or self.token_models or self.applied_filters
         if not has_filter and not self.query_text:
             return self.no_query_found()
 
-        if self.applied_filters and not self.query_text:  # and not self.kwargs:
-            # If there is a filter, but no query then we'll force some results.
+        if self.applied_filters and not self.query_text:
+            # If there is a filter, but no query, then we'll force some results.
             sqs = self.searchqueryset.order_by('-modified')
             self.filter_search = True
             self.attempted_filter_search = True
 
+        # Get filter data from query
         states = self.cleaned_data.get('state', None)
         ras = self.cleaned_data.get('ra', None)
         restriction = self.cleaned_data['res']
-        sqs = sqs.apply_registration_status_filters(states, ras)
+        search_category = self.cleaned_data['category']
+        workgroup = self.cleaned_data.get('wg', None)
+        stewardship_organisation = self.cleaned_data.get('sa', None)
 
+        # Apply the filters
+        sqs = sqs.apply_registration_status_filters(states, ras)
         if restriction:
             sqs = sqs.filter(restriction=restriction)
+
+        if search_category and search_category != SEARCH_CATEGORIES.all:
+            sqs = sqs.filter(category=search_category)
 
         sqs = self.apply_date_filtering(sqs)
         sqs = sqs.apply_permission_checks(
@@ -497,6 +573,16 @@ class PermissionSearchForm(TokenSearchForm):
             user_workgroups_only=self.cleaned_data['myWorkgroups_only']
         )
 
+        if workgroup is not None:
+            # We don't want to filter on a non-existent field
+            # Must filter exactly
+            sqs = sqs.filter(workgroup__exact=workgroup)
+
+        if stewardship_organisation is not None:
+            # Apply the stewardship organisation filter
+            sqs = sqs.filter(stewardship_organisation=stewardship_organisation)
+
+        # f for facets
         extra_facets_details = {}
         facets_opts = self.request.GET.getlist('f', [])
 
@@ -536,32 +622,42 @@ class PermissionSearchForm(TokenSearchForm):
             'models': 'facet_model_ct',
             'state': 'statuses',
         }
+
+        # Add filters that are also facets to Search Query Set
         for _filter, facet in filters_to_facets.items():
             if _filter not in self.applied_filters:
-                # Don't do this: sqs = sqs.facet(facet, sort='count')
                 sqs = sqs.facet(facet)
 
         logged_in_facets = {
             'wg': 'workgroup',
             'res': 'restriction'
         }
+
+        # If user is logged in, add permisssioned facets to Search Query Set
         if self.request.user.is_active:
             for _filter, facet in logged_in_facets.items():
                 if _filter not in self.applied_filters:
                     # Don't do this: sqs = sqs.facet(facet, sort='count')
                     sqs = sqs.facet(facet)
 
-        extra_facets = []
+        # For facets that will always appear on the sidebar, but are not part of the previous lists
+        additional_hardcoded_facets = ['stewardship_organisation']
+        for facet in additional_hardcoded_facets:
+            sqs = sqs.facet(facet)
 
+        # Generate details about facets from ``concepts`` registered (as facetable) with a Haystack search index that conforms
+        # to Aristotle permissions. Excludes facets that have been previously been added.
+        extra_facets = []
         from aristotle_mdr.search_indexes import registered_indexes
         for model_index in registered_indexes:
             for name, field in model_index.fields.items():
                 if field.faceted:
-                    if name not in (list(filters_to_facets.values()) + list(logged_in_facets.values())):
+                    if name not in (list(filters_to_facets.values()) + list(logged_in_facets.values()) +
+                                    additional_hardcoded_facets):
                         extra_facets.append(name)
 
                         x = extra_facets_details.get(name, {})
-                        x.update(**{
+                        x.update({
                             'title': getattr(field, 'title', name),
                             'display': getattr(field, 'display', None),
                             'allow_search': getattr(field, 'allow_search', False),
@@ -570,8 +666,10 @@ class PermissionSearchForm(TokenSearchForm):
                         # Don't do this: sqs = sqs.facet(facet, sort='count')  # Why Sam, why?
                         sqs = sqs.facet(name)
 
+        # Generate facet content
         self.facets = sqs.facet_counts()
 
+        # Populate the extra facet fields
         if 'fields' in self.facets:
             self.extra_facet_fields = [
                 (k, {'values': sorted(v, key=lambda x: -x[1])[:10], 'details': extra_facets_details[k]})
@@ -592,9 +690,41 @@ class PermissionSearchForm(TokenSearchForm):
                 if k in extra_facets
             ]
 
+            # Cut down to only the top 10 results for each facet, order by number of results
             for facet, counts in self.facets['fields'].items():
-                # Return the 5 top results for each facet in order of number of results.
                 self.facets['fields'][facet] = sorted(counts, key=lambda x: -x[1])[:10]
+
+            # Perform id to object lookup
+            from django.contrib.contenttypes.models import ContentType
+            model_types = {
+                'stewardship_organisation': MDR.StewardOrganisation,
+                'registrationAuthorities': MDR.RegistrationAuthority,
+                'workgroup': MDR.Workgroup,
+                'facet_model_ct': ContentType,
+            }
+
+            for facet in self.facets['fields'].keys():
+                if facet in model_types.keys():
+                    id_to_item = {}
+                    # Facet is for a model that must be looked up from the database
+                    item_type = model_types.get(facet)
+                    ids = []
+                    for id, count in self.facets['fields'][facet]:
+                        if id is not None:
+                            ids.append(id)
+
+                    id_to_instance = item_type.objects.in_bulk(ids)
+
+                    for id, count in self.facets['fields'][facet]:
+                        if id is None:
+                            id_to_item[id] = (None, count)
+                        # TODO: eradicate -99 from code
+                        elif (id == -99):
+                            id_to_item[id] = (None, count)
+
+                        else:
+                            id_to_item[id] = (id_to_instance[int(id)], count)
+                    self.facets['fields'][facet] = id_to_item
 
         return sqs
 
@@ -628,11 +758,16 @@ class PermissionSearchForm(TokenSearchForm):
                     else:
                         suggested_query.append(token)
                     suggestions.append((token, suggestion))
+
             if optimal_query != original_query:
-                self.spelling_suggestions = suggestions
-                self.has_spelling_suggestions = has_suggestions
-                self.original_query = self.cleaned_data.get('q')
-                self.suggested_query = quote_plus(' '.join(suggested_query), safe="")
+                if optimal_query == original_query.lower():
+                    # If the suggested query is the same query but in lowercase, don't suggest it
+                    self.has_spelling_suggestions = False
+                else:
+                    self.spelling_suggestions = suggestions
+                    self.has_spelling_suggestions = has_suggestions
+                    self.original_query = self.cleaned_data.get('q')
+                    self.suggested_query = quote_plus(' '.join(suggested_query), safe="")
 
     def apply_date_filtering(self, sqs):
         modify_quick_date = self.cleaned_data['mq']
@@ -672,17 +807,25 @@ class PermissionSearchForm(TokenSearchForm):
         return sqs
 
     def apply_sorting(self, sqs):  # pragma: no cover, no security issues, standard Haystack methods, so already tested.
+
         sort_order = self.cleaned_data['sort']
+
+        # Ordering is evaluated from left to right
         if sort_order == SORT_OPTIONS.modified_ascending:
-            sqs = sqs.order_by('-modified', 'name_sortable')
+            sqs = sqs.order_by('modified', 'name_sortable')
+
         elif sort_order == SORT_OPTIONS.modified_descending:
-            sqs = sqs.order_by('modified', '-name_sortable')
+            sqs = sqs.order_by('-modified', 'name_sortable')
+
         elif sort_order == SORT_OPTIONS.created_ascending:
-            sqs = sqs.order_by('-created', 'name_sortable')
+            sqs = sqs.order_by('created', 'name_sortable')
+
         elif sort_order == SORT_OPTIONS.created_descending:
-            sqs = sqs.order_by('created', '-name_sortable')
+            sqs = sqs.order_by('-created', 'name_sortable')
+
         elif sort_order == SORT_OPTIONS.alphabetical:
             sqs = sqs.order_by('name_sortable')
+
         elif sort_order == SORT_OPTIONS.state:
             sqs = sqs.order_by('-highest_state', 'name_sortable')
 

@@ -15,6 +15,7 @@ from aristotle_mdr.views.utils import ObjectLevelPermissionRequiredMixin
 
 from braces.views import LoginRequiredMixin
 from django.views.generic import DeleteView, TemplateView, FormView, UpdateView
+from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
 
 
 class All(LoginRequiredMixin, TemplateView):
@@ -83,7 +84,9 @@ class New(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, FormView):
                 author=request.user,
             )
             new.save()
-            new.relatedItems = form.cleaned_data['relatedItems']
+
+            new.relatedItems.set(form.cleaned_data['relatedItems'])
+
             return HttpResponseRedirect(reverse("aristotle:discussionsPost", args=[new.pk]))
 
         return render(request, "aristotle_mdr/discussions/new.html", {"form": form})
@@ -180,29 +183,36 @@ class NewComment(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, PostMix
         return HttpResponseRedirect(reverse("aristotle:discussionsPost", args=[post.pk]))
 
 
-class DeletePost(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, PostMixin, DeleteView):
-    model = MDR.DiscussionPost
-    permission_required = "aristotle_mdr.can_delete_discussion_post"
+class DeletePost(LoginRequiredMixin, ConfirmDeleteView):
+    """ A confirm delete view to delete a post and all associated comments """
+    confirm_template = "aristotle_mdr/generic/actions/confirm_delete.html"
+
+    form_delete_button_text = _("Delete")
+    warning_text = _("You are about to delete a discussion post \
+                     and all associated comments. Confirm below, or click cancel to return to the item.")
+    form_title = "Delete Discussion Post"
+    model_base = MDR.DiscussionPost
+
+    permission_checks = [perms.can_delete_discussion_post]
+
     raise_exception = True
     redirect_unauthenticated_users = True
 
-    def delete(self, request, *args, **kwargs):
-        post = self.get_object()
-        workgroup = post.workgroup
+    reverse_url = 'aristotle:discussionsPost'
+    # Override lookup pk
+    item_kwarg = "pid"
+
+    def perform_deletion(self):
+        post = self.item
 
         post.comments.all().delete()
         post.delete()
 
-        return HttpResponseRedirect(reverse("aristotle:discussionsWorkgroup", args=[workgroup.pk]))
-
     def get_success_url(self):
-        post = self.get_object()
+        post = self.item
         workgroup = post.workgroup
 
-        return HttpResponseRedirect(reverse("aristotle:discussionsWorkgroup", args=[workgroup.pk]))
-
-    def get(self, request, *args, **kwargs):
-        return self.post(request, *args, **kwargs)
+        return reverse("aristotle:discussionsWorkgroup", args=[workgroup.pk])
 
 
 class EditPost(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, PostMixin, UpdateView):
@@ -230,7 +240,7 @@ class EditPost(LoginRequiredMixin, ObjectLevelPermissionRequiredMixin, PostMixin
             post.title = form.cleaned_data['title']
             post.body = form.cleaned_data['body']
             post.save()
-            post.relatedItems = form.cleaned_data['relatedItems']
+            post.relatedItems.set(form.cleaned_data['relatedItems'])
 
             return HttpResponseRedirect(reverse("aristotle:discussionsPost", args=[post.pk]))
 

@@ -1,0 +1,52 @@
+{% extends 'aristotle_mdr/concepts/contentInfoBase.html' %}
+
+{% load aristotle_tags i18n l10n %}
+{% load render_bundle from webpack_loader %}
+
+{% block webpack_bundle %}
+    {% render_bundle 'compare_versions' 'js' %}
+{% endblock %}
+
+{% block webpack_css_bundle %}
+    {% render_bundle 'compare_versions' 'css' %}
+{% endblock %}
+
+{% block title %}Version history of {{ item.name }}{% endblock %}
+
+{% block infoContent %}
+    <h1>Version Comparator for {{ item.name }}</h1>
+    <p>Comparing differences between versions of {{ item.name }}.
+        Only fields where there is a difference between saves are displayed. <br> Comparisions are performed chronologically.
+        Green highlighting indicates that is has been added in the newer item, and red text indicates it has been removed
+        in the newer item.
+
+    {% if comparing_different_formats %}
+        <div class="alert alert-warning">
+           <i class="fa fa-exclamation-triangle"></i>
+            You are comparing versions saved using two different formats. The comparision will be very limited.
+        </div>
+    {% endif %}
+
+    <div class="well well-sm">
+        <em>The <i class="fa fa-columns"></i> icon indicates that a side-by-side rendered HTML comparison exists for
+        this field.</em>
+    </div>
+
+    {% if not_all_versions_selected %}
+        <div class="well">
+            Both versions must be selected
+        </div>
+    {% elif cannot_compare %}
+        <div class="well">
+            Those versions could not be compared
+        </div>
+    {% else %}
+        <div class="container">
+            {% if diffs %}
+                {% include "aristotle_mdr/actions/compare/compare_table.html" with allow_html_comparison=True %}
+            {% endif %}
+        </div>
+    {% endif %} {# <-- End not all versions selected #}
+
+
+{% endblock %}

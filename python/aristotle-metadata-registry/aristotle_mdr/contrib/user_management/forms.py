@@ -5,7 +5,6 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 
 from aristotle_mdr.forms.utils import FormRequestMixin
-from aristotle_mdr.utils import fetch_aristotle_settings
 from aristotle_mdr.fields import LowerEmailFormField
 
 
@@ -74,8 +73,23 @@ class UserRegistrationForm(forms.ModelForm):
 
     class Meta:
         model = get_user_model()
-        fields = ['short_name', 'full_name']
+        fields = ['short_name', 'full_name', 'email']
 
 
 class UpdateAnotherUserSiteWidePermsForm(forms.Form):
-    is_superuser = forms.BooleanField(required=False)
+    is_superuser = forms.BooleanField(
+        required=False,
+        label="Enable superuser permissions",
+        help_text="Enable this to allow a user to see and edit all content, metadata and pages stored in the registry"
+    )
+
+    is_staff = forms.BooleanField(
+        required=False,
+        label="Access Django admin area",
+        help_text="Enable this to allow a user to access the Django administration area"
+    )
+    perm_view_all_metadata = forms.BooleanField(
+        required=False,
+        label="Allow user to view all metadata",
+        help_text="Enable this to allow a user to see all metadata stored in the registry, including those in all users sandboxes. This will also allow them to view all issues for metadata."
+    )

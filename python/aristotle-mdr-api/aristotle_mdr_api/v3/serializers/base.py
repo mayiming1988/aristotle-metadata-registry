@@ -7,17 +7,14 @@ from __future__ import unicode_literals
 
 from collections import OrderedDict
 
-from django.apps import apps
 from django.conf import settings
 from django.core.serializers import base
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import DEFAULT_DB_ALIAS, models, transaction
+from django.db import DEFAULT_DB_ALIAS, models
 from django.utils import six
 from django.utils.encoding import force_text, is_protected_type
-from django.core.serializers.python import _get_model
 from django.core.serializers.python import Serializer as PySerializer
 from aristotle_mdr import models as MDR
-from django.core.serializers.json import Serializer as JSONSerializer
 
 from aristotle_mdr.contrib.slots.models import Slot
 
@@ -31,12 +28,14 @@ logger.debug("Logging started for " + __name__)
 
 
 excluded_fields = [
-        "workgroup",
-        "submitter",
-    ]
+    "workgroup",
+    "submitter",
+]
 
-def exclude_fields(obj,excludes):
+
+def exclude_fields(obj, excludes):
     return [n.name for n in obj._meta.get_fields() if n.name not in excludes]
+
 
 class Serializer(PySerializer):
     """
@@ -70,7 +69,6 @@ class Serializer(PySerializer):
             data['identifiers'] = [
                 {
                     'namespace': {
-                        'naming_authority': scoped_id.namespace.naming_authority.uuid,
                         'shorthand_prefix': scoped_id.namespace.shorthand_prefix,
                     },
                     'id': scoped_id.identifier,
@@ -92,7 +90,7 @@ class Serializer(PySerializer):
                 allowed_slots = []
 
             data['slots'] = [
-                {'name': slot.name, 'type': slot.type, 'value': slot.value }
+                {'name': slot.name, 'type': slot.type, 'value': slot.value}
                 for slot in allowed_slots
             ]
 
@@ -141,14 +139,14 @@ class Serializer(PySerializer):
             self._current[field.name] = field.value_to_string(obj)
 
     def handle_fk_field(self, obj, field):
-        foreign_model = field.rel.to  # change to field.remote_field.model for django >= 1.9
+        foreign_model = field.remote_field.model
         from aristotle_mdr.fields import ConceptForeignKey
         if type(field) is ConceptForeignKey:
             value = []
 
             if getattr(obj, field.get_attname()) is not None:
                 value = foreign_model.objects.get(pk=getattr(obj, field.get_attname())).uuid
-                #value = getattr(obj, field.get_attname()).uuid
+                # value = getattr(obj, field.get_attname()).uuid
             else:
                 value = None
 
@@ -166,7 +164,7 @@ class Serializer(PySerializer):
 
     def handle_m2m_field(self, obj, field):
         from aristotle_mdr.fields import ConceptManyToManyField
-        foreign_model = field.rel  # change to field.remote_field.model for django >= 1.9
+        foreign_model = field.remote_field
         if foreign_model.through._meta.auto_created:
             if type(field) is ConceptManyToManyField:
                 def m2m_value(value):
@@ -212,7 +210,7 @@ class Serializer(PySerializer):
                     continue
 
                 if field.serialize:
-                    if field.rel is None:
+                    if field.remote_field is None:
                         if self.selected_fields is None or field.attname in self.selected_fields:
                             self.handle_field(obj, field)
                     else:
@@ -424,7 +422,6 @@ def Deserializer(manifest, **options):
                     other_side = rel.rel.remote_field.name
                     for weak_entity in field_value:
                         # Boy this would be easier if uuids were primary keys :/
-                        extra = {}
                         # Check if any fields are concepts
                         for sub_field_name, sub_value in weak_entity.items():
                             sub_field = RelModel._meta.get_field(sub_field_name)
@@ -469,7 +466,6 @@ def Deserializer(manifest, **options):
                         logger.warning(e)
                         raise
                         #TODO: Better error logging
-                        pass
 
             for status in d.get("statuses", []):
                 ra, created = MDR.RegistrationAuthority.objects.get_or_create(

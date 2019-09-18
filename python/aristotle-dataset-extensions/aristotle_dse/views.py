@@ -1,15 +1,13 @@
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
-from django.core.urlresolvers import reverse
-from django.db import transaction, connections
+from django.urls import reverse
+from django.db import transaction
 from django.db.models.query import Prefetch
 from django.forms.models import modelformset_factory
-from django.forms.widgets import HiddenInput
 from django.http import HttpResponseRedirect, Http404
 from django.views.generic import TemplateView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.translation import ugettext as _
-from django.utils import timezone
 
 import reversion
 
@@ -18,7 +16,7 @@ from aristotle_mdr.contrib.generic.views import ConfirmDeleteView
 from aristotle_mdr.contrib.generic.forms import HiddenOrderModelFormSet
 from aristotle_mdr.perms import (
     user_can_view, user_can_edit, user_in_workgroup,
-    user_is_workgroup_manager, user_can_change_status
+    user_is_workgroup_manager, user_can_add_status
 )
 from aristotle_mdr.utils import construct_change_message
 from aristotle_mdr.views.utils import get_status_queryset
@@ -35,14 +33,14 @@ def addDataElementsToDSS(request, dss_id):
     if request.method == 'POST':
         form = forms.AddDataElementsToDSSForm(request.POST, user=request.user, qs=qs, dss=dss)
         if form.is_valid():
-            cardinality = form.cleaned_data['cardinality']
-            maxOccurs = form.cleaned_data['maximum_occurances']
+            inclusion = form.cleaned_data['inclusion']
+            maxOccurs = form.cleaned_data['maximum_occurrences']
             with reversion.revisions.create_revision():
                 for de in form.cleaned_data['dataElements']:
                     dss.addDataElement(
                         data_element=de,
-                        maximum_occurances=maxOccurs,
-                        cardinality=cardinality
+                        maximum_occurrences=maxOccurs,
+                        inclusion=inclusion
                     )
                 dss.save()
                 reversion.set_comment('Added data elements')
@@ -68,14 +66,14 @@ def addClustersToDSS(request, dss_id):
     if request.method == 'POST':
         form = forms.AddClustersToDSSForm(request.POST, user=request.user, qs=qs, dss=dss)
         if form.is_valid():
-            cardinality = form.cleaned_data['cardinality']
-            maxOccurs = form.cleaned_data['maximum_occurances']
+            inclusion = form.cleaned_data['inclusion']
+            maxOccurs = form.cleaned_data['maximum_occurrences']
             with reversion.revisions.create_revision():
                 for child_dss in form.cleaned_data['clusters']:
                     dss.addCluster(
                         child=child_dss,
-                        maximum_occurances=maxOccurs,
-                        cardinality=cardinality
+                        maximum_occurrences=maxOccurs,
+                        inclusion=inclusion
                     )
                 dss.save()
                 reversion.set_comment('Added clusters')
@@ -216,7 +214,7 @@ def editInclusionDetails(request, dss_id, inc_type, cluster_id):
         raise Http404
     item = get_object_or_404(models.DataSetSpecification, pk=dss_id)
     if not user_can_edit(request.user, item):
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             return redirect(reverse('friendly_login') + '?next=%s' % request.path)
         else:
             raise PermissionDenied
@@ -258,7 +256,7 @@ def editInclusionOrder(request, dss_id, inc_type):
         raise Http404
     item = get_object_or_404(models.DataSetSpecification, pk=dss_id)
     if not user_can_edit(request.user, item):
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             return redirect(reverse('friendly_login') + '?next=%s' % request.path)
         else:
             raise PermissionDenied
@@ -274,7 +272,7 @@ def editInclusionOrder(request, dss_id, inc_type):
     else:
         extra = 1
 
-    ValuesFormSet = modelformset_factory(
+    values_formset = modelformset_factory(
         item_type,
         formset=HiddenOrderModelFormSet,
         can_order=True,
@@ -283,7 +281,7 @@ def editInclusionOrder(request, dss_id, inc_type):
     )
 
     if request.method == 'POST':
-        formset = ValuesFormSet(request.POST, request.FILES)
+        formset = values_formset(request.POST, request.FILES)
         if formset.is_valid():
             with transaction.atomic(), reversion.create_revision():
                 item.save()  # do this to ensure we are saving reversion records for the DSS, not just the values
@@ -294,18 +292,18 @@ def editInclusionOrder(request, dss_id, inc_type):
                         if inc.dss != item:
                             raise PermissionDenied
                         inc.order = form['ORDER'].value()
-                        # inc.maximum_occurances = form['maximum_occurances'].value()
+                        # inc.maximum_occurrences = form['maximum_occurrences'].value()
                         # value = form.save(commit=False) #Don't immediately save, we need to attach the value domain
                         # value.dss = item
                         inc.save()
                 for obj in formset.deleted_objects:
                     obj.delete()
                 reversion.set_user(request.user)
-                reversion.set_comment(construct_change_message(request, None, [formset, ]))
+                reversion.set_comment(construct_change_message(None, [formset, ]))
 
                 return redirect(reverse("aristotle_mdr:item", args=[item.id]))
     else:
-        formset = ValuesFormSet(
+        formset = values_formset(
             queryset=item_type.objects.filter(dss=item.id),
         )
     return render(
@@ -361,3 +359,22 @@ class DatasetSpecificationView(ConceptRenderView):
         qs = qs.prefetch_related(Prefetch('dssdeinclusion_set', dssdeinclusions))
         qs = qs.prefetch_related(Prefetch('dssclusterinclusion_set', dssclusterinclusions))
         return qs
+
+    def grouped(self):
+        dss_is_grouped = False
+        ungrouped_name = "Data Elements"
+        for g in self.item.groups.order_by('order'):
+            ungrouped_name = "Ungrouped Data Elements"
+            dss_is_grouped = True
+            yield g
+        yield {
+            "name": ungrouped_name,
+            "ungrouped": True,
+            "dssdeinclusion_set": self.item.ungrouped_data_element_inclusions()
+        }
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+
+        context['groups_with_data_elements'] = self.grouped()
+        return context

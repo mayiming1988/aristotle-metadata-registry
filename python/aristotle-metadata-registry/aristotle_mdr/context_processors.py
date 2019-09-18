@@ -1,16 +1,23 @@
 from aristotle_mdr.utils import fetch_aristotle_settings
 from aristotle_mdr.views.bulk_actions import get_bulk_actions
 from aristotle_mdr.models import PossumProfile
-from django.contrib.auth.context_processors import PermWrapper
-from django.contrib.auth import get_user_model
 from django.utils.functional import SimpleLazyObject
 
 
 # This allows us to pass the Aristotle settings through to the final rendered page
-def settings(request):
+def general_context_processor(request):
+
+    if not request.user.is_anonymous:
+        notifcount = request.user.notifications.unread().count()
+        if notifcount > 100:
+            notifcount = "100 +"
+    else:
+        notifcount = None
+
     return {
         "config": SimpleLazyObject(fetch_aristotle_settings),
         'bulk_actions': SimpleLazyObject(get_bulk_actions),
+        'notifcount': notifcount
     }
 
 

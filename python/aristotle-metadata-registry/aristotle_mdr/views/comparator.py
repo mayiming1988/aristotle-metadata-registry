@@ -1,105 +1,131 @@
-from django.shortcuts import render
-from django.utils.translation import ugettext_lazy as _
+import json
 
-import reversion
+from django.db.models import Model
+from django.utils.functional import cached_property
+from django.core.exceptions import PermissionDenied
 
-from aristotle_mdr import forms as MDRForms
-from aristotle_mdr import models as MDR
+from aristotle_mdr.forms import CompareConceptsForm
+from aristotle_mdr.models import _concept
+from aristotle_mdr.perms import user_can_view
+
+from reversion.models import Version
+
+from .tools import AristotleMetadataToolView
+from .versions import ConceptVersionCompareBase
 
 
-def compare_concepts(request, obj_type=None):
-    comparison = {}
-    item_a = request.GET.get('item_a', None)
-    item_b = request.GET.get('item_b', None)
+class MetadataComparison(ConceptVersionCompareBase, AristotleMetadataToolView):
+    template_name = 'aristotle_mdr/actions/compare/compare_items.html'
+    context: dict = {}
 
-    context = {"item_a": item_a, "item_b": item_b}
+    def get_form(self):
+        data = self.request.GET
+        user = self.request.user
+        qs = _concept.objects.visible(user)
+        return CompareConceptsForm(data, user=user, qs=qs)  # A form bound to the POST data
 
-    item_a = MDR._concept.objects.visible(request.user).filter(pk=item_a).first()  # .item
-    item_b = MDR._concept.objects.visible(request.user).filter(pk=item_b).first()  # .item
-    context = {"item_a": item_a, "item_b": item_b}
+    def load_version_json(self, first_version, second_version):
+        versions = {'first': first_version, 'second': second_version}
 
-    request.GET = request.GET.copy()
+        for key, version in versions.items():
+            try:
+                version = json.loads(version.serialized_data)
+            except json.JSONDecodeError:
+                return None
 
-    if item_a:
-        item_a = item_a.item
-    else:
-        request.GET['item_a']="0"
-    if item_b:
-        item_b = item_b.item
-    else:
-        request.GET['item_b']="0"
+            if type(version) == list:
+                self.comparing_different_formats = True
+                # It's the old version, modify it
+                version = version[0]['fields']
+            versions[key] = version
 
-    qs = MDR._concept.objects.visible(request.user)
-    form = MDRForms.CompareConceptsForm(request.GET, user=request.user, qs=qs)  # A form bound to the POST data
-    if form.is_valid():
-        from django.contrib.contenttypes.models import ContentType
+        return {
+            'earlier': versions['first'],
+            'later': versions['second'],
+            'reordered': False
+        }
 
-        revs=[]
-        for item in [item_a, item_b]:
-            from reversion.models import Version
-            Version.objects.get_for_object(item)
-            ct = ContentType.objects.get_for_model(item)
-            version = reversion.models.Version.objects.filter(content_type=ct, object_id=item.pk).order_by('-revision__date_created').first()
-            revs.append(version)
-        if revs[0] is None:
-            form.add_error('item_a', _('This item has no revisions. A comparison cannot be made'))
-        if revs[1] is None:
-            form.add_error('item_b', _('This item has no revisions. A comparison cannot be made'))
-        if revs[0] is not None and revs[1] is not None:
-            comparator_a_to_b = item_a.comparator()
-            comparator_b_to_a = item_b.comparator()
+    @cached_property
+    def has_same_base_model(self):
+        concept_1 = self.get_version_1_concept()
+        concept_2 = self.get_version_2_concept()
 
-            version1 = revs[0]
-            version2 = revs[1]
+        return concept_1._meta.model == concept_2._meta.model
 
-            compare_data_a, has_unfollowed_fields_a = comparator_a_to_b.compare(item_a, version2, version1)
-            compare_data_b, has_unfollowed_fields_b = comparator_b_to_a.compare(item_a, version1, version2)
+    def get_subitem_key(self, subitem_model):
+        field_names = [f.name for f in subitem_model._meta.get_fields()]
+        if 'order' in field_names:
+            key = 'order'
+        elif 'field' in field_names and self.has_same_base_model:
+            key = 'field'
+        elif 'field' in field_names and not self.has_same_base_model:
+            key = 'name'
+        else:
+            key = 'id'
+        return key
 
-            has_unfollowed = has_unfollowed_fields_a or has_unfollowed_fields_b
+    def get_model(self, concept) -> Model:
+        if self.has_same_base_model:
+            return concept.item._meta.model
 
-            context.update({'debug': {'cmp_a': compare_data_a}})
-            comparison = {}
-            for field_diff_a in compare_data_a:
-                name = field_diff_a['field'].name
-                x = comparison.get(name, {})
-                x['field'] = field_diff_a['field']
-                x['a'] = field_diff_a['diff']
-                comparison[name] = x
-            for field_diff_b in compare_data_b:
-                name = field_diff_b['field'].name
-                comparison.get(name, {})['b'] = field_diff_b['diff']
+        return _concept
 
-            same = {}
-            for f in item_a._meta.fields:
-                if f.name not in comparison.keys():
-                    same[f.name] = {'field': f, 'value': getattr(item_a, f.name)}
-                if f.name.startswith('_'):
-                    # hidden field
-                    comparison.pop(f.name, None)
-                    same.pop(f.name, None)
+    def get_version_1_concept(self):
+        form = self.get_form()
+        if form.is_valid():
+            # Get items from form
+            item = form.cleaned_data['item_a'].item
+            if user_can_view(self.request.user, item):
+                return item
+            else:
+                raise PermissionDenied
+        return None
 
-            hidden_fields = ['workgroup', 'created', 'modified', 'id', 'submitter', 'statuses', 'uuid']
-            for h in hidden_fields:
-                comparison.pop(h, None)
-                same.pop(h, None)
+    def get_version_2_concept(self):
+        form = self.get_form()
+        if form.is_valid():
+            # Get items from form
+            item = form.cleaned_data['item_b'].item
+            if user_can_view(self.request.user, item):
+                return item
+            else:
+                raise PermissionDenied
+        return None
 
-            only_a = {}
-            for f in item_a._meta.fields:
-                if (f not in item_b._meta.fields and f not in comparison.keys() and f not in same.keys() and f.name not in hidden_fields):
-                    only_a[f.name] = {'field': f, 'value': getattr(item_a, f.name)}
+    def apply_permission_checking(self, version_permission_1, version_permission_2):
+        # We're not checking the version permissions because we are getting the most recent version and we have already
+        # checked that the user can view the item so the 'content' viewed is the same.
+        pass
 
-            only_b = {}
-            for f in item_b._meta.fields:
-                if (f not in item_a._meta.fields and f not in comparison.keys() and f not in same.keys() and f.name not in hidden_fields):
-                    only_b[f.name] = {'field': f, 'value': getattr(item_b, f.name)}
+    def get_compare_versions(self):
+        concept_1 = self.get_version_1_concept()
+        concept_2 = self.get_version_2_concept()
 
-            comparison = sorted(comparison.items())
-            context.update({
-                "comparison": comparison,
-                "same": same,
-                "only_a": only_a,
-                "only_b": only_b,
-            })
-    context.update({"form": form})
-    # comparison = {'a': compare_data_a, 'b': compare_data_b}
-    return render(request, "aristotle_mdr/actions/compare/compare_items.html", context)
+        if not concept_1 or not concept_2:
+            return None, None
+
+        try:
+            version_1 = Version.objects.get_for_object(concept_1).order_by('-revision__date_created').first().pk
+            version_2 = Version.objects.get_for_object(concept_2).order_by('-revision__date_created').first().pk
+        except AttributeError:
+            self.context['cannot_compare'] = True
+            return None, None
+
+        return version_1, version_2
+
+    def get_context_data(self, **kwargs):
+        if self.get_version_1_concept() is None and self.get_version_2_concept() is None:
+            # Not all concepts selected
+            self.context['form'] = self.get_form()
+            return self.context
+
+        self.context = super().get_context_data(**kwargs)
+
+        self.context.update({
+            "form": self.get_form(),
+            "has_same_base_model": self.has_same_base_model,
+            "item_a": self.get_version_1_concept(),
+            "item_b": self.get_version_2_concept(),
+        })
+
+        return self.context

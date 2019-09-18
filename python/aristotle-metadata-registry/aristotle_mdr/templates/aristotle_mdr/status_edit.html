@@ -1,0 +1,24 @@
+{% extends 'aristotle_mdr/base.html' %}
+{% load aristotle_tags util_tags i18n %}
+{% load bootstrap3 static %}
+{% block title %}Edit Status for {{ item.name }}{% endblock %}
+
+{% block content %}
+    <h2>
+        Editing status for <a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a> in <a href="{% url 'aristotle:registrationAuthority' ra.id %}">{{ ra.name }}</a>
+    </h2>
+
+    <ol class="breadcrumb">
+        <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a></li>
+        <li><a href="{% url 'aristotle:registrationHistory' item.id %}">Registration History</a></li>
+        <li>Status Edit</li>
+    </ol>
+
+    <form method="post">{% csrf_token %}
+        {% bootstrap_form form %}
+        <div class="pull-right">
+            <a class="btn btn-default" href="{% url 'aristotle:item' item.id %}">{% trans 'Cancel' %}</a>
+            <input class="btn btn-primary" type="submit" name="submit_skip" value="{% trans 'Update Status' %}" />
+        </div>
+    </form>
+{% endblock %}

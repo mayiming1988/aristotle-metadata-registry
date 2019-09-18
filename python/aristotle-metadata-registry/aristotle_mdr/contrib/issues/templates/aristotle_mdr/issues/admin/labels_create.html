@@ -1,0 +1,21 @@
+{% extends "aristotle_mdr/user/userHome.html" %}
+{% load bootstrap3 static %}
+
+
+{% block sidebar %}
+    {% include "aristotle_mdr/user/userSideBar.html" with activeTab='adminTools' %}
+{% endblock %}
+
+{% block page %}
+    <h1>{% block title %}Create Issue Label{% endblock %}</h1>
+
+    <form method="post" action="">{% csrf_token %}
+        {% bootstrap_form form %}
+    
+    <div class="pull-right">
+      <a class="btn btn-danger" href="{% url 'aristotle_issues:admin_issue_label_list' %}">Cancel</a>
+      <button class="btn btn-primary" type="submit">Save changes</button>
+    </div>
+    </form>
+
+{% endblock %}

@@ -3,17 +3,16 @@ from django import forms
 from django.core.exceptions import PermissionDenied, FieldDoesNotExist
 from django.urls import reverse
 from django.db import transaction
-from django.forms.models import modelformset_factory, inlineformset_factory
+from django.forms.models import inlineformset_factory
 from django.forms import formset_factory
-from django.http import Http404, HttpResponseRedirect, HttpResponse
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import FormView, TemplateView, View
-from django.core.signing import TimestampSigner
-from django.views.generic import ListView, DeleteView
+from django.views.generic import ListView
 
 from aristotle_mdr.contrib.autocomplete import widgets
-from aristotle_mdr.models import _concept, ValueDomain, AbstractValue
+from aristotle_mdr.models import AbstractValue, _concept
 from aristotle_mdr.perms import user_can_edit, user_can_view
 from aristotle_mdr.utils import construct_change_message
 from aristotle_mdr.utils.text import capitalize_words
@@ -26,7 +25,6 @@ from aristotle_mdr.contrib.generic.forms import (
 import json
 import reversion
 import inspect
-import re
 from copy import copy
 
 import logging
@@ -61,11 +59,11 @@ class GenericWithItemURLView(View):
         self.item = get_object_or_404(self.model_base, pk=self.kwargs[self.item_kwarg])
 
         if not (
-            self.item and
-            all([perm(request.user, self.item) for perm in self.permission_checks]) and
-            all([perm(request.user) for perm in self.user_checks])
+                self.item and
+                all([perm(request.user, self.item) for perm in self.permission_checks]) and
+                all([perm(request.user) for perm in self.user_checks])
         ):
-            if request.user.is_anonymous():
+            if request.user.is_anonymous:
                 return redirect(reverse('friendly_login') + '?next=%s' % request.path)
             else:
                 raise PermissionDenied
@@ -143,7 +141,7 @@ class GenericAlterForeignKey(GenericAlterManyToSomethingFormView):
         model_base_field = self.model_base_field
 
         class FKOnlyForm(forms.ModelForm):
-            class Meta():
+            class Meta:
                 model = self.model_base
                 fields = (self.model_base_field,)
                 widgets = {
@@ -158,6 +156,13 @@ class GenericAlterForeignKey(GenericAlterManyToSomethingFormView):
 
         return FKOnlyForm
 
+    def save_form(self, form):
+        """
+        Saves the formset returned by the view
+        Can be overwritten to add/change extra data
+        """
+        form.save()
+
     def post(self, request, *args, **kwargs):
         """
         Handles POST requests, instantiating a form instance with the passed
@@ -167,7 +172,8 @@ class GenericAlterForeignKey(GenericAlterManyToSomethingFormView):
         self.form = form(self.request.POST, self.request.FILES, instance=self.item)
         if self.form.is_valid():
             with transaction.atomic(), reversion.revisions.create_revision():
-                self.form.save()  # do this to ensure we are saving reversion records for the value domain, not just the values
+                self.save_form(self.form)
+
                 reversion.revisions.set_user(request.user)
                 reversion.revisions.set_comment(
                     _("Altered relationship of '%s' on %s") % (self.model_base_field, self.item)
@@ -234,7 +240,9 @@ class GenericAlterManyToManyView(GenericAlterManyToSomethingFormView):
             return self.form_invalid(form)
 
     def form_valid(self, form):
-        self.item.__setattr__(self.model_base_field, form.cleaned_data['items_to_add'])
+        m2m_field = getattr(self.item, self.model_base_field)
+        m2m_field.set(form.cleaned_data['items_to_add'])
+
         self.item.save()
         return HttpResponseRedirect(self.get_success_url())
 
@@ -257,8 +265,6 @@ class GenericAlterManyToManyOrderView(GenericAlterManyToManyView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        num_items = getattr(self.item, self.model_base_field).count()
-
         context['form_add_another_text'] = _('Add Another')
 
         if 'formset' in kwargs:
@@ -329,8 +335,6 @@ class GenericAlterManyToManyOrderView(GenericAlterManyToManyView):
             with transaction.atomic(), reversion.revisions.create_revision():
 
                 model_arglist = []
-                model_arglist_update = []
-                model_arglist_delete = []
                 change_message = []
 
                 for form in filled_formset.ordered_forms:
@@ -376,7 +380,6 @@ class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['form_add_another_text'] = self.form_add_another_text or _('Add another')
-        num_items = getattr(self.item, self.model_base_field).count()
 
         formset = self.formset or self.get_formset()
 
@@ -433,6 +436,13 @@ class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
             formset.ordering_field = self.ordering_field
         return formset
 
+    def save_formset(self, formset):
+        """
+        Saves the instances returned by the formset
+        Can be overwritten to add/change extra data
+        """
+        formset.save()
+
     def post(self, request, *args, **kwargs):
         """
         Handles POST requests, instantiating a form instance with the passed
@@ -445,9 +455,11 @@ class GenericAlterOneToManyViewBase(GenericAlterManyToSomethingFormView):
         if self.formset.is_valid():
             with transaction.atomic(), reversion.revisions.create_revision():
                 self.item.save()
-                self.formset.save()
+
+                self.save_formset(self.formset)
+
                 reversion.revisions.set_user(request.user)
-                reversion.revisions.set_comment(construct_change_message(request, None, [self.formset]))
+                reversion.revisions.set_comment(construct_change_message(None, [self.formset]))
 
             return HttpResponseRedirect(self.get_success_url())
         else:
@@ -513,9 +525,14 @@ class UnorderedGenericAlterOneToManyView(GenericAlterOneToManyViewBase):
     form_add_another_text = ''
     formset = None
 
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['disable_ordering'] = True
+        return context
+
 
 class ExtraFormsetMixin:
-    # Mixin of utils function for adding addtional formsets to a view
+    # Mixin of utils function for adding additional formsets to a view
     # extra_formsets must contain formset, type, title and saveargs
     # See EditItemView for example usage
 
@@ -538,30 +555,47 @@ class ExtraFormsetMixin:
     def get_formset_context(self, extra_formsets):
         context = {}
 
-        for formsetinfo in extra_formsets:
-            type = formsetinfo['type']
+        for formset_info in extra_formsets:
+            type = formset_info['type']
+
             if type == 'identifiers':
-                context['identifier_FormSet'] = formsetinfo['formset']
+                context['identifier_FormSet'] = formset_info['formset']
+
             elif type == 'slot':
-                context['slots_FormSet'] = formsetinfo['formset']
+                context['slots_FormSet'] = formset_info['formset']
+
             elif type == 'weak':
                 if 'weak_formsets' not in context.keys():
                     context['weak_formsets'] = []
-                context['weak_formsets'].append({'formset': formsetinfo['formset'], 'title': formsetinfo['title']})
+                context['weak_formsets'].append({'formset': formset_info['formset'],
+                                                 'title': formset_info['title'],
+                                                 'editor_help_text': formset_info['editor_help_text'],
+                                                 'model': formset_info['item'],
+                                                 'field_related_name': formset_info['field_related_name'],
+                                                 })
+
             elif type == 'through':
                 if 'through_formsets' not in context.keys():
                     context['through_formsets'] = []
-                context['through_formsets'].append({'formset': formsetinfo['formset'], 'title': formsetinfo['title']})
+                context['through_formsets'].append({'formset': formset_info['formset'],
+                                                    'title': formset_info['title']}
+                                                   )
+
+            elif type == 'record_relation':
+                context['recordrelation_FormSet'] = formset_info['formset']
+
+            elif type == 'reference_links':
+                context['referencelinks_FormSet'] = formset_info['formset']
 
         return context
 
-    def get_extra_formsets(self, item=None, postdata=None):
+    def get_extra_formsets(self, item=None, postdata=None, clone_item=False):
         # Item can be a class or an object
         # This is so we can reuse this function in creation wizards
 
         extra_formsets = []
 
-        if inspect.isclass(item):
+        if inspect.isclass(item) or clone_item:
             is_class = True
             add_item = None
         else:
@@ -569,12 +603,15 @@ class ExtraFormsetMixin:
             add_item = item
 
         through_list = self.get_m2m_through(item)
+
         for through in through_list:
 
             if not is_class:
                 formset = self.get_order_formset(through, item, postdata)
             else:
                 formset = self.get_order_formset(through, postdata=postdata)
+
+            formset = one_to_many_formset_filters(formset, item)
 
             extra_formsets.append({
                 'formset': formset,
@@ -589,16 +626,17 @@ class ExtraFormsetMixin:
             })
 
         weak_list = self.get_m2m_weak(item)
+
         for weak in weak_list:
 
-            if not is_class:
+            if clone_item:
+                formset = self.get_weak_formset(weak, item, clone=True)
+            elif not is_class:
                 formset = self.get_weak_formset(weak, item, postdata)
             else:
                 formset = self.get_weak_formset(weak, postdata=postdata)
 
-            title = weak['model'].__name__
-            # add spaces before capital letters
-            title = re.sub(r"\B([A-Z])", r" \1", title)
+            formset = one_to_many_formset_filters(formset, item)
 
             if hasattr(weak['model'], 'ordering_field'):
                 order_field = weak['model'].ordering_field
@@ -606,9 +644,12 @@ class ExtraFormsetMixin:
                 order_field = 'order'
 
             extra_formsets.append({
+                'item': item,
                 'formset': formset,
                 'type': 'weak',
-                'title': title,
+                'title': weak['model']._meta.verbose_name.title(),
+                'editor_help_text': getattr(weak['model'], 'editor_help_text', ''),
+                'field_related_name': weak['field_related_name'],
                 'saveargs': {
                     'formset': formset,
                     'item': add_item,
@@ -642,7 +683,7 @@ class ExtraFormsetMixin:
 
         return formset_instance
 
-    def get_weak_formset(self, weak, item=None, postdata=None):
+    def get_weak_formset(self, weak, item=None, postdata=None, clone=False):
 
         model_to_add_field = weak['item_field']
 
@@ -651,7 +692,7 @@ class ExtraFormsetMixin:
         else:
             fsargs = {'prefix': weak['field_name']}
 
-        if item:
+        if item and not clone:
             extra_excludes = one_to_many_formset_excludes(item, weak['model'])
             fsargs['queryset'] = getattr(item, weak['field_name']).all()
         else:
@@ -661,12 +702,27 @@ class ExtraFormsetMixin:
                 extra_excludes = []
             fsargs['queryset'] = weak['model'].objects.none()
 
+        extra = 0
+        if clone:
+            initial = []
+            from django.forms.models import model_to_dict
+            for index, obj in enumerate(getattr(item, weak['field_name']).all()):
+                o = model_to_dict(obj)
+                o['ORDER'] = o.pop(weak['model'].ordering_field)
+                for k in ['pk', 'id']:  # TODO: do we need to remove the FK field? eg. 'valueDomain'
+                    o.pop(k, None)
+                initial.append(o)
+            fsargs['initial'] = initial
+            extra = len(initial)
+
         if postdata:
             fsargs['data'] = postdata
 
         all_excludes = [model_to_add_field, weak['model'].ordering_field] + extra_excludes
         formset = ordered_formset_factory(
-            weak['model'], exclude=all_excludes, ordering_field=weak['model'].ordering_field
+            weak['model'], exclude=all_excludes,
+            extra=extra,
+            ordering_field=weak['model'].ordering_field
         )
 
         final_formset = formset(**fsargs)
@@ -675,11 +731,39 @@ class ExtraFormsetMixin:
 
     def get_slots_formset(self):
         from aristotle_mdr.contrib.slots.forms import slot_inlineformset_factory
-        return slot_inlineformset_factory()
+
+        formset = slot_inlineformset_factory()
+
+        formset.filtered_empty_form = formset.empty_form
+
+        return formset
+
+    def get_recordrelations_formset(self):
+        from aristotle_mdr.forms.creation_wizards import record_relation_inlineformset_factory
+
+        formset = record_relation_inlineformset_factory()
+
+        formset.filtered_empty_form = formset.empty_form
+
+        return formset
+
+    def get_referencelinks_formset(self):
+        from aristotle_mdr.forms.creation_wizards import reference_link_inlineformset_factory
+
+        formset = reference_link_inlineformset_factory()
+
+        formset.filtered_empty_form = formset.empty_form
+
+        return formset
 
     def get_identifier_formset(self):
         from aristotle_mdr.contrib.identifiers.forms import identifier_inlineformset_factory
-        return identifier_inlineformset_factory()
+
+        formset = identifier_inlineformset_factory()
+
+        formset.filtered_empty_form = formset.empty_form
+
+        return formset
 
     def get_model_field(self, model, search_model):
         # get the field in the model that we are adding so it can be excluded from form
@@ -735,24 +819,31 @@ class ExtraFormsetMixin:
 
                 if entity[0] not in excludes:
 
+                    if entity[1].endswith('_set'):
+                        # entity[1] contains the related name for an object
+                        # This can be different to the relation name on the model
+                        # If related_name was not set on the foreign key
+                        # this code deals with the case where it was auto generated by django
+                        related_name = entity[1][:-4]
+                    else:
+                        related_name = entity[1]
+
                     try:
                         field = check_class._meta.get_field(entity[1])
                     except FieldDoesNotExist:
-                        if entity[1].endswith('_set'):
-                            # entity[1] contains the related name for an object
-                            # This can be different to the relation name on the model
-                            # If related_name was not set on the foreign key
-                            # this code deals with the case where it was auto generated by django
-                            try:
-                                field = check_class._meta.get_field(entity[1][:-4])
-                            except FieldDoesNotExist:
-                                continue
-                        else:
+                        try:
+                            field = check_class._meta.get_field(related_name)
+                        except FieldDoesNotExist:
                             continue
 
                     item_field = self.get_model_field(field.related_model, check_class)
                     if item_field:
-                        weak_list.append({'prefix': entity[0], 'field_name': entity[1], 'model': field.related_model, 'item_field': item_field})
+                        weak_list.append({'prefix': entity[0],
+                                          'field_name': entity[1],
+                                          'model': field.related_model,
+                                          'item_field': item_field,
+                                          'field_related_name': related_name
+                                          })
 
         return weak_list
 
@@ -762,12 +853,17 @@ class ConfirmDeleteView(GenericWithItemURLView, TemplateView):
     template_name = "aristotle_mdr/generic/actions/confirm_delete.html"
     form_delete_button_text = _("Delete")
     warning_text = _("You are about to delete something, confirm below, or click cancel to return to the item.")
+    form_title = "Delete item"
+
+    # Default to concept
+    reverse_url = 'aristotle:item'
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context['form_title'] = self.form_title or _('Add child item')
+        context['form_title'] = self.form_title
         context['form_delete_button_text'] = self.form_delete_button_text
         context['warning_text'] = self.get_warning_text()
+        context['reverse_url'] = self.reverse_url
         return context
 
     def get_warning_text(self):
@@ -783,18 +879,18 @@ class ConfirmDeleteView(GenericWithItemURLView, TemplateView):
 
 class BootTableListView(ListView):
     """Lists objects in a bootstrap table (with optional pagination)"""
-    template_name='aristotle_mdr/generic/boottablelist.html'
+    template_name = 'aristotle_mdr/generic/boottablelist.html'
     # Need to override these
     headers: List[str]
     attrs: List[str]
-    model_name=''
+    model_name = ''
     # Can optionally override these
     blank_value: Dict[str, str]
-    page_heading=''
-    create_button_text=''
-    create_url_name=''
-    delete_url_name=''
-    update_url_name=''
+    page_heading = ''
+    create_button_text = ''
+    create_url_name = ''
+    delete_url_name = ''
+    update_url_name = ''
 
     def get_heading(self) -> str:
         if self.page_heading:
@@ -821,7 +917,7 @@ class BootTableListView(ListView):
 
         return listing
 
-    def get_context_data(self) -> dict:
+    def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data()
         headers = copy(self.headers)
 
@@ -858,7 +954,7 @@ class BootTableListView(ListView):
 
 
 class CancelUrlMixin:
-    cancel_url_name=''
+    cancel_url_name = ''
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -905,8 +1001,10 @@ class VueFormView(FormView):
         for fname, field in form.fields.items():
             widget_name = type(field.widget).__name__
 
+            # Data that is used to render the field in the Vue template
             field_data = {
                 'rules': {},
+                'help_text': field.help_text,
                 'tag': self.default_tag,
                 'label': field.label,
                 'options': [],
@@ -931,6 +1029,7 @@ class VueFormView(FormView):
                         field_data['rules'][attr] = attrdata
 
             vuefields[fname] = field_data
+
         return vuefields
 
     def post(self, request, *args, **kwargs):
@@ -941,7 +1040,11 @@ class VueFormView(FormView):
         context['vue_fields'] = json.dumps(
             self.get_vue_form_fields(context['form'])
         )
+
         initial = self.get_vue_initial()
+
         self.strip_fields(initial)
+
         context['vue_initial'] = json.dumps(initial)
+
         return context

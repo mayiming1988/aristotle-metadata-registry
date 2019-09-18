@@ -1,6 +1,7 @@
 from django.db.models import Manager
 from django.db.models.query import QuerySet
-from aristotle_mdr.contrib.slots.choices import permission_choices as perms
+
+from aristotle_mdr.constants import visibility_permission_choices as permission_choices
 
 
 class SimplePermsQueryset(QuerySet):
@@ -12,22 +13,18 @@ class SimplePermsQueryset(QuerySet):
         return self.perm_field_name + '__in'
 
     def visible(self, user, workgroup=None):
-        if user.is_authenticated:
-            if workgroup in user.profile.workgroups or user.is_superuser:
-                # return all slots
+        perms = [permission_choices.public]
+        if user is not None and user.is_authenticated:
+            perms.append(permission_choices.auth)
+            if user.is_superuser:
                 return self
-            else:
-                # Return public and auth only slots
-                kwargs = {
-                    self.perm_field_in: [perms.public, perms.auth]
-                }
-                return self.filter(**kwargs)
-        else:
-            # Only return public slots
-            kwargs = {
-                self.perm_field_name: perms.public
-            }
-            return self.filter(**kwargs)
+            elif workgroup in user.profile.workgroups:
+                perms.append(permission_choices.workgroup)
+            elif workgroup is None:
+                perms.append(permission_choices.workgroup)
+        return self.filter(**{
+            self.perm_field_in: perms
+        })
 
 
 class SlotsManager(Manager):

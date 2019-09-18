@@ -1,18 +1,9 @@
-from django.http import Http404
-from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import PermissionDenied
 
-from rest_framework import serializers, pagination, status, mixins
-from rest_framework.views  import APIView
-from rest_framework.response import Response
-from rest_framework.reverse import reverse
-from rest_framework.decorators import detail_route
+from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticated
 
-from django.forms import model_to_dict
-from aristotle_mdr import models, perms
-from aristotle_mdr.forms.search import PermissionSearchQuerySet
+from aristotle_mdr import models
 
 from rest_framework import viewsets
 
@@ -72,7 +63,6 @@ class ConceptTypeViewSet(viewsets.ReadOnlyModelViewSet):
         outputs = []
         for m in ContentType.objects.filter(app_label__in=aristotle_apps).all():
             if hasattr(m, 'model_class') and m.model_class():
-                print(m.model_class().__class__, models._concept)
                 if issubclass(m.model_class(), models._concept) and not m.model.startswith("_"):
                     outputs.append(m)
         return outputs

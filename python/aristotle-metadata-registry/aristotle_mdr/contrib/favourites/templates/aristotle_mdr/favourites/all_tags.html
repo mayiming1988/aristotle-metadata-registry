@@ -3,7 +3,6 @@
 {% load render_bundle from webpack_loader %}
 
 {% block title %}All Tags{% endblock %}
-{% block collapse-link%}<i class="fa fa-bookmark fa-fw"></i> All Tags</a>{% endblock %}
 {% block sidebar %}
     {% include "aristotle_mdr/user/userSideBar.html" with activeTab='favourites' %}
 {% endblock %}
@@ -22,7 +21,7 @@
     <api-errors :errors="errors"></api-errors>
     {% if page_obj %}
       <table class="table">
-        <thead>
+        <thead v-pre>
           <tr>
             <th>Tag</th>
             <th>Description</th>
@@ -33,11 +32,11 @@
         <tbody>
         {% for item in page_obj %}
           <tr>
-            <td>
+            <td v-pre>
               <a href="{% url 'aristotle_favourites:tag' item.id %}">{{ item.name }}</a>
             </td>
-            <td>{{ item.description }}</td>
-            <td>{{ item.num_items }}</td>
+            <td v-pre>{{ item.description }}</td>
+            <td v-pre>{{ item.num_items }}</td>
             <td>
               <delete-button 
                 item-id="{{ item.id }}" 
@@ -51,7 +50,7 @@
         </tbody>
       </table>
     {% endif %}
-    {% include "aristotle_mdr/helpers/paginator.html" with page=page %}
+    <div v-pre>{% include "aristotle_mdr/helpers/paginator.html" with page=page %}</div>
     <yesno-modal 
       id="deleteTagModal" 
       title="Delete Tag" 

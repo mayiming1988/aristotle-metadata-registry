@@ -1,41 +1,46 @@
+import copy
 import datetime
+import json
+import logging
+import random
+from typing import List
+
+from aristotle_bg_workers.tasks import send_sandbox_notification_emails
+from aristotle_mdr import forms as MDRForms
+from aristotle_mdr import models as MDR
+from aristotle_mdr.utils import fetch_metadata_apps
+from aristotle_mdr.utils import get_aristotle_url
+from aristotle_mdr.views.utils import (paginated_registration_authority_list,
+                                       GenericListWorkgroup,
+                                       AjaxFormMixin)
+from aristotle_mdr.views.views import ConceptRenderView
+
 from django.apps import apps
+from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.core.cache import cache
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.db.models import Q
+from django.http import HttpResponseRedirect
+from django.http.response import HttpResponse
+from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
-from django.db.models import Q, Count
-from django.http import HttpResponseRedirect, HttpResponseNotFound
-from django.shortcuts import render, redirect
 from django.utils.decorators import method_decorator
-from django.views.decorators.cache import never_cache
-from django.views.generic.edit import FormMixin
-from django.views.generic import (DetailView,
-                                  ListView,
-                                  UpdateView,
-                                  FormView,
-                                  TemplateView,
-                                  View)
-
-from django.core.exceptions import ValidationError
-from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.cache import never_cache
+from django.views.generic import (
+    ListView,
+    UpdateView,
+    FormView,
+    TemplateView,
+    View
+)
+from django.views.generic.edit import FormMixin
 
-from aristotle_mdr import forms as MDRForms
-from aristotle_mdr import models as MDR
-from aristotle_mdr.views.utils import (paginated_list,
-                                       paginated_workgroup_list,
-                                       paginated_registration_authority_list,
-                                       GenericListWorkgroup,
-                                       AjaxFormMixin)
-from aristotle_mdr.views.views import ConceptRenderView
-from aristotle_mdr.utils import fetch_metadata_apps
-from aristotle_mdr.utils import get_aristotle_url
-
-import json
-import random
+logger = logging.getLogger(__name__)
 
 
 class FriendlyLoginView(LoginView):
@@ -52,6 +57,11 @@ class FriendlyLoginView(LoginView):
             context.update({'welcome': True})
 
         return context
+
+    def get_redirect_url(self):  # WE HAVE TO OVERRIDE THIS METHOD, TO AVOID A ValueError "Redirection loop for auth..."
+        if self.request.GET.get(self.redirect_field_name, '') == reverse("friendly_login"):
+            return settings.LOGIN_REDIRECT_URL
+        return super().get_redirect_url()
 
 
 class FriendlyLogoutView(LogoutView):
@@ -130,14 +140,20 @@ def home(request):
                     revdata['versions'].append({'id': ver.object_id, 'text': str(ver), 'url': url})
                 else:
                     # Fallback, results in db query
-                    # print(ver)
-                    obj = ver.object
-                    if hasattr(obj, 'get_absolute_url'):
-                        revdata['versions'].append({'id': ver.object_id, 'text': str(ver), 'url': obj.get_absolute_url})
+                    try:
+                        # If a version exists, but the item has been removed the next line dies
+                        obj = ver.object
+                        if hasattr(obj, 'get_absolute_url'):
+                            revdata['versions'].append({'id': ver.object_id, 'text': str(ver), 'url': obj.get_absolute_url})
+                    except:
+                        # TODO: Show something properly here
+                        pass
 
             seen_ver_ids.append(ver.object_id)
 
-        recentdata.append(revdata)
+        if revdata['versions']:
+            # Don't append actions where there are no versions to show.
+            recentdata.append(revdata)
 
     recently_viewed = []
     for viewed in (
@@ -158,42 +174,83 @@ def home(request):
     return page
 
 
-@login_required
-def roles(request):
-    page = render(request, "aristotle_mdr/user/userRoles.html", {"item": request.user})
-    return page
+class Roles(LoginRequiredMixin, TemplateView):
+
+    template_name = 'aristotle_mdr/user/userRoles.html'
+
+    def sort(self, unsorted: List) -> List:
+        """Sorts a list by name with secondaty sort on role"""
+        # Sort by role (secondary sort)
+        sorted_list = sorted(unsorted, key=lambda k: k['role'])
+        # Then sort by name (primary sort)
+        sorted_list = sorted(sorted_list, key=lambda k: k['name'])
+        return sorted_list
+
+    def get_context_data(self):
+        user = self.request.user
+        workgroups = []
+        registration_authorities = []
+
+        for membership in user.workgroupmembership_set.all():
+            wg_object = {'name': membership.group.name, 'pk': membership.group.pk, 'role': membership.role}
+            workgroups.append(wg_object)
+
+        for ra in user.organization_manager_in.all():
+            ra_object = {'name': ra.name, 'pk': ra.pk, 'role': 'Manager'}
+            registration_authorities.append(ra_object)
+
+        for ra in user.registrar_in.all():
+            ra_object = {'name': ra.name, 'pk': ra.pk, 'role': 'Registrar'}
+            registration_authorities.append(ra_object)
+
+        # Ordering
+        sorted_workgroups_list = self.sort(workgroups)
+        sorted_registration_authorities_list = self.sort(registration_authorities)
+        return {
+            "user": user,
+            "workgroups": sorted_workgroups_list,
+            "registration_authorities": sorted_registration_authorities_list
+        }
 
 
 @login_required
 def recent(request):
+    """ Display the list of the user's recent actions """
     from reversion.models import Revision
     from aristotle_mdr.views.utils import paginated_reversion_list
+
     items = Revision.objects.filter(user=request.user).order_by('-date_created')
     context = {}
+
     return paginated_reversion_list(request, items, "aristotle_mdr/user/recent.html", context)
 
 
-@login_required
-def inbox(request, folder=None):
-    if folder is None:
-        # By default show only unread
-        folder='unread'
-    folder=folder.lower()
-    if folder == 'unread':
-        notices = request.user.notifications.unread().all()
-    elif folder == "all":
-        notices = request.user.notifications.all()
-    page = render(
-        request,
-        "aristotle_mdr/user/userInbox.html",
-        {"item": request.user, "notifications": notices, 'folder': folder}
-    )
-    return page
+class InboxView(LoginRequiredMixin, ListView):
+    template_name = 'aristotle_mdr/user/userInbox.html'
+    context_object_name = 'page'
+    paginate_by = 5
+
+    def get_queryset(self, *args, **kwargs):
+        return self.request.user.notifications.unread().all()
+
+    def get_paginate_by(self, queryset):
+        return self.request.GET.get('pp', 25)
+
+
+class InboxViewAll(LoginRequiredMixin, ListView):
+    template_name = 'aristotle_mdr/user/userInbox.html'
+    context_object_name = 'page'
+
+    def get_queryset(self, *args, **kwargs):
+        return self.request.user.notifications.all()
+
+    def get_paginate_by(self, queryset):
+        return self.request.GET.get('pp', 25)
 
 
 @login_required
 def admin_tools(request):
-    if request.user.is_anonymous():
+    if request.user.is_anonymous:
         return redirect(reverse('friendly_login') + '?next=%s' % request.path)
     elif not request.user.has_perm("aristotle_mdr.access_aristotle_dashboard"):
         raise PermissionDenied
@@ -209,7 +266,7 @@ def admin_tools(request):
             # Only output subclasses of 11179 concept
             app_models = model_stats.get(m.app_label, {'app': None, 'models': []})
             if app_models['app'] is None:
-                app_models['app'] = getattr(apps.get_app_config(m.app_label), 'verbose_name')
+                app_models['app'] = apps.get_app_config(m.app_label)
             app_models['models'].append(
                 (
                     m.model_class(),
@@ -218,6 +275,11 @@ def admin_tools(request):
                 )
             )
             model_stats[m.app_label] = app_models
+
+    model_stats = sorted(
+        model_stats.values(),
+        key=lambda x: (x['app'].create_page_priority, x['app'].create_page_name, x['app'].verbose_name)
+    )
 
     page = render(
         request,
@@ -229,7 +291,7 @@ def admin_tools(request):
 
 @login_required
 def admin_stats(request):
-    if request.user.is_anonymous():
+    if request.user.is_anonymous:
         return redirect(reverse('friendly_login') + '?next=%s' % request.path)
     elif not request.user.has_perm("aristotle_mdr.access_aristotle_dashboard"):
         raise PermissionDenied
@@ -251,7 +313,7 @@ def admin_stats(request):
             # Only output subclasses of 11179 concept
             app_models = model_stats.get(m.app_label, {'app': None, 'models': []})
             if app_models['app'] is None:
-                app_models['app'] = getattr(apps.get_app_config(m.app_label), 'verbose_name')
+                app_models['app'] = apps.get_app_config(m.app_label)
             if use_cache:
                 total = get_cached_query_count(
                     qs=m.model_class().objects,
@@ -287,6 +349,11 @@ def admin_stats(request):
             )
             model_stats[m.app_label] = app_models
 
+    model_stats = sorted(
+        model_stats.values(),
+        key=lambda x: (x['app'].create_page_priority, x['app'].create_page_name, x['app'].verbose_name)
+    )
+
     page = render(
         request, "aristotle_mdr/user/userAdminStats.html",
         {"item": request.user, "model_stats": model_stats, 'model_max': max(mod_counts)}
@@ -318,7 +385,7 @@ class EditView(LoginRequiredMixin, UpdateView):
     form_class = MDRForms.EditUserForm
 
     def get_object(self, querySet=None):
-        return self.request.user
+        return copy.deepcopy(self.request.user)
 
     def get_success_url(self):
         return reverse('aristotle:userProfile')
@@ -345,6 +412,7 @@ class EditView(LoginRequiredMixin, UpdateView):
         picture = form.cleaned_data['profile_picture']
         picture_update = True
 
+        # Determine whether picture has been updated or changed
         if picture:
             if 'profile_picture' in form.changed_data:
                 profile.profilePicture = picture
@@ -369,11 +437,33 @@ class EditView(LoginRequiredMixin, UpdateView):
 
             if valid:
                 profile.save()
+
             else:
                 form.add_error('profile_picture', 'Image could not be saved. {}'.format(invalid_message))
                 return self.form_invalid(form)
 
         return HttpResponseRedirect(self.get_success_url())
+
+
+class NotificationPermissions(LoginRequiredMixin, FormView):
+    form_class = MDRForms.NotificationPermissionsForm
+    template_name = 'aristotle_mdr/user/notificationPermissions.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.profile = request.user.profile
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+
+        initial = {
+            'notifications_json': json.dumps(self.profile.notificationPermissions)
+        }
+        return initial
+
+    def form_valid(self, form):
+        self.profile.notificationPermissions = form.cleaned_data['notifications_json']
+        self.profile.save()
+        return HttpResponseRedirect(reverse('aristotle:userProfile'))
 
 
 class RegistrarTools(LoginRequiredMixin, View):
@@ -402,25 +492,18 @@ class RegistrarTools(LoginRequiredMixin, View):
         )
 
 
-# @login_required
-# def my_review_list(request):
-#     # Users can see any items they have been asked to review
-#     q = Q(requester=request.user)
-#     reviews = MDR.ReviewRequest.objects.visible(request.user).filter(q).filter(registration_authority__active=0)
-#     return paginated_list(request, reviews, "aristotle_mdr/user/my_review_list.html", {'reviews': reviews})
-
-
 @login_required
 def django_admin_wrapper(request, page_url):
     return render(request, "aristotle_mdr/user/admin.html", {'page_url': page_url})
 
 
-class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListView):
-    """Display Users sandbox items"""
+class SandboxedItemsView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListView):
+    """Display the user's sandbox items"""
 
     paginate_by = 25
     template_name = "aristotle_mdr/user/sandbox.html"
     form_class = MDRForms.ShareLinkForm
+    state_of_emails_before_updating = ""
 
     def dispatch(self, *args, **kwargs):
         self.share = self.get_share()
@@ -432,7 +515,6 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
     def get_share(self):
         if not hasattr(self.request.user, 'profile'):
             return None
-
         return getattr(self.request.user.profile, 'share', None)
 
     def get_initial(self):
@@ -441,14 +523,61 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
         if share is not None:
             emails = json.loads(share.emails)
             initial['emails'] = emails
+            self.state_of_emails_before_updating = share.emails
 
         return initial
 
+    def post(self, *args, **kwargs):
+        form = self.get_form()
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            if not self.request.is_ajax():
+                # If request is not ajax and there is an invalid form we need
+                # to load the listview content (usually done in get())
+                # This should only run if a user has disabled js
+                self.object_list = self.get_queryset()
+            return self.form_invalid(form)
+
+    def form_valid(self, form):
+        emails = form.cleaned_data.get('emails', [])
+        emails_json = json.dumps(emails)
+
+        name_of_user = self.request.user.first_name
+
+        if not self.share:
+            self.share = MDR.SandboxShare.objects.create(
+                profile=self.request.user.profile,
+                emails=emails_json
+            )
+
+        self.share.emails = emails_json
+        self.share.save()
+        self.ajax_success_message = 'Share permissions updated'
+
+        if 'notify_new_users_checkbox' in form.cleaned_data and form.cleaned_data.get('notify_new_users_checkbox'):
+            # If the notify new users checkbox was selected
+            recently_added_emails = self.get_recently_added_emails(
+                json.loads(self.state_of_emails_before_updating),
+                json.loads(self.share.emails)
+            )
+            if len(recently_added_emails) > 0:
+                # If new emails have been added, send an email
+                send_sandbox_notification_emails.delay(
+                    name_of_user,
+                    recently_added_emails,
+                    self.request.get_host() + reverse('aristotle_mdr:sharedSandbox', args=[self.share.uuid])
+                )
+
+        return super().form_valid(form)
+
     def get_context_data(self, *args, **kwargs):
-        # Call the base implementation first to get a context
         context = super().get_context_data(*args, **kwargs)
         context['sort'] = self.request.GET.get('sort', 'name_asc')
         context['share'] = self.share
+
+        if hasattr(self.share, 'emails'):
+            context['shared_emails'] = json.loads(self.share.emails)
 
         if 'form' in kwargs:
             form = kwargs['form']
@@ -460,38 +589,11 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
 
         if 'display_share' in self.request.GET:
             context['display_share'] = True
+            context['number_of_accounts_user_is_sharing_with'] = len(self.get_initial().get('emails'))
         else:
             context['display_share'] = False
+
         return context
-
-    def post(self, *args, **kwargs):
-        form = self.get_form()
-        if form.is_valid():
-            return self.form_valid(form)
-        else:
-            if not self.request.is_ajax():
-                # If request is not ajax and there is an invlaid form we need
-                # to load the listview content (usually done in get())
-                # This should only run if a user has disabled js
-                self.object_list = self.get_queryset()
-            return self.form_invalid(form)
-
-    def form_valid(self, form):
-
-        emails = form.cleaned_data.get('emails', [])
-        emails_json = json.dumps(emails)
-
-        if not self.share:
-            MDR.SandboxShare.objects.create(
-                profile=self.request.user.profile,
-                emails=emails_json
-            )
-        else:
-            self.share.emails = emails_json
-            self.share.save()
-            self.ajax_success_message = 'Share permissions updated'
-
-        return super().form_valid(form)
 
     def get_ordering(self):
         from aristotle_mdr.views.utils import paginate_sort_opts
@@ -501,18 +603,27 @@ class CreatedItemsListView(LoginRequiredMixin, AjaxFormMixin, FormMixin, ListVie
     def get_success_url(self):
         return reverse('aristotle_mdr:userSandbox') + '?display_share=1'
 
+    def get_recently_added_emails(self, old_emails, new_emails):
+        return list(set(new_emails) - set(old_emails))
+
 
 class GetShareMixin:
     """Code shared by all share link views"""
 
     def dispatch(self, request, *args, **kwargs):
-        self.share = self.get_share()
+        self.share = self.get_share_obj()
         emails = json.loads(self.share.emails)
-        if request.user.email not in emails:
-            return HttpResponseNotFound()
+
+        not_in_shared_emails = request.user.email not in emails
+        not_own_sandbox = request.user.id != self.share.profile.user_id
+
+        if not_in_shared_emails and not_own_sandbox:
+            # If the user is not in the list of allowed emails or it's not their own sandbox
+            raise PermissionDenied
+
         return super().dispatch(request, *args, **kwargs)
 
-    def get_share(self):
+    def get_share_obj(self):
         uuid = self.kwargs['share']
         try:
             share = MDR.SandboxShare.objects.get(uuid=uuid)
@@ -556,6 +667,7 @@ class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['hide_item_actions'] = True
+        context['hide_item_tabs'] = True
         context['custom_visibility_message'] = {
             'alert_level': 'warning',
             'message': 'You are viewing a shared item in read only mode'
@@ -573,9 +685,7 @@ class SharedItemView(LoginRequiredMixin, GetShareMixin, ConceptRenderView):
                 'active': True
             }
         ]
-
-        # Set these in order to display links to other sandbox content
-        # correctly
+        # Set these in order to display links to other sandbox content  correctly
         context['shared_ids'] = self.sandbox_ids
         context['share_uuid'] = self.share.uuid
         return context
@@ -596,15 +706,14 @@ class WorkgroupArchiveList(GenericListWorkgroup):
 
     def get_initial_queryset(self):
         user = self.request.user
-        return (
-            user.viewer_in.all() |
-            user.submitter_in.all() |
-            user.steward_in.all() |
-            user.workgroup_manager_in.all()
-        ).filter(archived=True).distinct()
+        return user.profile.workgroups_for_user().filter(archived=True)
 
 
 def profile_picture(request, uid):
+    from django.contrib.auth import get_user_model
+    user = get_object_or_404(get_user_model(), pk=uid)
+    if user.profile.profilePicture:
+        return HttpResponse(user.profile.profilePicture.read(), content_type="image/png")
 
     template_name = 'aristotle_mdr/user/user-head.svg'
 

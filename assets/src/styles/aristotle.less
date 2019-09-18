@@ -137,12 +137,12 @@ dl .definition {
 }
 .no-notify {
     &:before {
-        content: '\f003';
+        content: '\f0a2';
     }
 }
 .notify {
     &:before {
-        content: '\f0e0';
+        content: '\f0f3';
     }
 }
 
@@ -257,7 +257,7 @@ body footer.footer {
     margin-top:10px;
     display:table;
     &>div>ul:first-child, &>div>span:first-child {
-            border-right:1px solid @colors_border;
+        border-right:1px solid @colors_border;
     }
     &>div {
         display:table-row;
@@ -341,9 +341,9 @@ label strong {
 #progress.alert {
     text-indent:15px hanging;
     &:before {
-            font-family: FontAwesome;
-            content: '\f071 ';
-            padding-right:3px;
+        font-family: FontAwesome;
+        content: '\f071 ';
+        padding-right:3px;
     }
 }
 
@@ -431,7 +431,6 @@ table.codeList {
     thead th, tbody td {
         border-left:1px solid @colors_border;
     }
-
     tr {
         margin: 0;
         td, th {
@@ -439,6 +438,9 @@ table.codeList {
         }
     }
     tbody tr {
+        th {
+            padding-left: 8px;
+        }
         th, td {
             padding-right: 5px;
             vertical-align:top;
@@ -487,29 +489,29 @@ dl.treble_defintions {
 }
 
 #loading_indicator.loading {
-  position: absolute;
-  left: 45%;
-  top: 45%;
-  z-index:2000; /* Needs to be greater than 1040 to go over the bootstrap modal-backdrop */
+    position: absolute;
+    left: 45%;
+    top: 45%;
+    z-index:2000; /* Needs to be greater than 1040 to go over the bootstrap modal-backdrop */
 }
 
 .su_action {
-background: repeating-linear-gradient(
-      45deg,
-    transparent,
-    transparent 10px,
-    rgba(250, 54, 54, 0.2) 10px,
-    rgba(250, 54, 54, 0.2) 20px
+    background: repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 10px,
+            rgba(250, 54, 54, 0.2) 10px,
+            rgba(250, 54, 54, 0.2) 20px
     )
 }
 
 .staff_action {
-background: repeating-linear-gradient(
-      -45deg,
-    transparent,
-    transparent 10px,
-    rgba(250, 150, 54, 0.2) 10px,
-    rgba(250, 150, 54, 0.2) 20px
+    background: repeating-linear-gradient(
+            -45deg,
+            transparent,
+            transparent 10px,
+            rgba(250, 150, 54, 0.2) 10px,
+            rgba(250, 150, 54, 0.2) 20px
     )
 }
 
@@ -524,28 +526,286 @@ background: repeating-linear-gradient(
     padding: 0px;
 }
 
-.margin-above {
-  margin-top: 10px;
+[v-cloak] {
+    display: none
 }
 
-[v-cloak] {
-  display: none
+.margin-above {
+    margin-top: 10px;
+}
+
+.margin-below {
+    margin-bottom: 10px;
+}
+
+.margin-below2 {
+    margin-bottom: 20px;
 }
 
 .margin-left {
-  margin-left: 10px;
+    margin-left: 10px;
+}
+
+.margin-right {
+    margin-right: 10px;
+}
+
+.row-margin {
+    margin-right: -15px;
+    margin-left: -15px;
+}
+
+.padded {
+    padding: 5px 10px;
 }
 
 .aristotle-select2 {
-  min-width: 150px
+    min-width: 150px
 }
 
 .ta-fixed-width {
     resize: vertical
 }
 
+.extended-search-bar {
+
+    @media (min-width: 992px) {
+        min-width: 250px;
+    }
+
+    @media (min-width: 1200px) {
+        min-width: 450px;
+    }
+}
+
 .small-profile-picture {
     /* Required for proper ie11 scaling */
     max-width: 100%;
     max-height: 100%;
+}
+
+div.bleached-content {
+
+    table {
+        border: 1px solid black;
+        padding: 5px;
+        td {
+            border-right: 1px solid black;
+            border-top: 1px solid black;
+            padding: 3px 5px;
+            font-size: small;
+        }
+        th {
+            border-right: 1px solid black;
+            padding: 3px 5px;
+            font-size: small;
+        }
+    }
+
+    img {
+        max-width: 100%;
+    }
+
+}
+
+.select2-selection.form-control {
+    height: auto;
+}
+
+/* Style the button that is used to open and close the collapsible content */
+.collapsible {
+    background: none;
+    color: inherit;
+    cursor: pointer;
+    border: none;
+    text-align: left;
+    outline: none;
+}
+
+/* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+.active, .collapsible:hover {
+    background-color: inherit;
+}
+
+/* Style the collapsible content. Note: hidden by default */
+.content {
+    padding: 0 18px;
+    display: none;
+    overflow: hidden;
+    background-color: inherit;
+}
+
+/* Tab content with a border */
+.border-tab-content {
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    padding: 10px;
+}
+
+/* Custom css for outline button similar to Bootstrap 4 outline button */
+.btn-outline {
+      border: 0.5px dodgerblue;
+      background-color: white;
+      color: black;
+      padding: 7px 14px;
+      cursor: pointer;
+}
+
+.btn-outline-info {
+  border-color: #2196F3;
+  color: dodgerblue;
+    background: none;
+}
+
+.btn-outline-info:hover {
+  background: #8FC8FF;
+  color: white;
+}
+
+/* textarea with more reasonable start width/height */
+textarea.small-text-area {
+    width: 250px;
+    height: 100px
+}
+
+/* Helper indentation classes */
+.indent-right-1 {
+    padding-left: 1em;
+}
+.indent-right-2 {
+    padding-left: 2em;
+}
+.indent-right-3 {
+    padding-left: 3em;
+}
+.indent-right-4 {
+    padding-left: 4em;
+}
+.indent-right-5 {
+    padding-left: 5em;
+}
+
+.breadcrumb > li.maybe-long-breadcrumb-item {
+    display: inline;
+}
+
+.custom_fields {
+    dl {
+        padding-bottom: 0px;
+    }
+    dt {
+        font-size: 12pt;
+        font-family: inherit;
+        font-weight: 700;
+        line-height: 1.1;
+        
+        // color: inherit;
+        color: #444444;
+        // font-weight: 500;
+    }
+    dd {
+        padding-left: 3em;
+        padding-bottom: 0.5em;
+    }
+    dd *:last-child {
+        // Make the last child consistent
+        padding-bottom:0px;
+        margin-bottom:0px;
+    }
+}
+
+.item_version {
+    color: #444;
+    font-size: 95%;
+    display: inline-block;
+    &:before { content: "(v "}
+    &:after { content: ")"}
+}
+
+.context_help_link {
+    font-size: 12pt;
+}
+
+header.editor {
+    font-size: 14pt;
+    color: #444;
+}
+
+
+ul.fancy_checkbox_list  {
+    label {
+        font-weight:normal;
+        padding:3px 10px;
+        margin:0px;
+        display:inline-block;
+        width:160px;
+    }
+
+    &>li {
+        display:block;
+        width:200px;
+
+        [type="checkbox"],[type="radio"] {
+          position: absolute;
+          left: -9999px;
+
+            &:focus + label {
+               outline: -webkit-focus-ring-color auto 5px;
+               background-color: whiteSmoke
+            }
+
+            &:hover + label {
+               background-color: whiteSmoke;
+            }
+            & + label:before {
+                font-family: 'FontAwesome';
+                display: table-cell;
+                box-sizing: border-box;
+                width: 16px;
+            }
+            & ~ label >  span {
+                display: table-cell;
+                padding-left: 5px;
+            }
+        }
+
+        /*The label will contain the icon and the text, will grab the focus*/
+        label {
+            width:100%;
+            cursor: pointer;
+            display: table;
+        }
+        /* toggle font awesome icon*/
+        [type="checkbox"]:checked + label:before {
+          content: "\f046";
+        }
+        [type="checkbox"]:not(:checked) + label:before {
+          content: "\f096";
+        }
+
+        [type="radio"]:checked + label:before {
+          content: "\f05d";
+        }
+        [type="radio"]:not(:checked) + label:before {
+          content: "\f1db";
+        }
+    }
+}
+
+body > nav.main.navbar {
+    border-width: 0px;
+}
+
+.aristotle_cloud_custom_main_page_container {
+    width: 100%;
+    overflow: hidden;
+}
+
+.badge-info {
+    background-color: #3a87ad !important;
+}
+
+.badge-info:hover {
+    background-color: #2d6987 !important;
 }

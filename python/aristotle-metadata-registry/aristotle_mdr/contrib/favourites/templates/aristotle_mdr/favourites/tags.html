@@ -3,7 +3,7 @@
 {% load render_bundle from webpack_loader %}
 
 {% block title %}{{ title }}{% endblock %}
-{% block collapse-link%}<i class="fa fa-bookmark fa-fw"></i> {{ title }}</a>{% endblock %}
+
 {% block sidebar %}
     {% include "aristotle_mdr/user/userSideBar.html" with activeTab='favourites' %}
 {% endblock %}
@@ -20,7 +20,7 @@
   <div id="vue-container">
     <h1>
       <i class="fa fa-bookmark fa-fw"></i>
-      <noscript>{{ title }}</noscript>
+      <noscript v-pre>{{ title }}</noscript>
       {% if tag %}
         <inline-edit
           initial="{{ title }}"
@@ -28,11 +28,11 @@
           submit-url="{% url 'api_v4:tags' tag.id %}">
         </inline-edit>
       {% else %}
-        {{ title }}
+        <span v-pre>{{ title }}</span>
       {% endif %}
     </h1>
     {% if tag %}
-      <noscript>
+      <noscript v-pre>
         {{ tag.description }}
       </noscript>
       <switch-edit 

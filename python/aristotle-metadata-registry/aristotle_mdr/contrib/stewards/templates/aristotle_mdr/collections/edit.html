@@ -1,0 +1,80 @@
+{% extends "aristotle_mdr/stewards/base.html" %}
+{% load i18n %}
+
+
+{% block title %}Edit Collection {{object.name}} | {{ stewardship_organisation }}{% endblock %}
+{% block page_title %}{{ stewardship_organisation }} | Edit Collection {{object.name}}{% endblock %}
+
+{% block steward_content %}
+    <h2>
+    Editing Metadata Collection '{{object.name}}'
+    </h2>
+    <form action="" method="POST">
+        {% csrf_token %}
+        
+        {{ form.errors}}
+
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group {% if form.name.errors %}has-error{% endif %}">
+                    {{ form.name.label_tag }}<br>
+                    <input class="form-control" id="{{form.name.id_for_label}}" value="{{ form.name.value|default:"" }}" name="name">
+                    {% if form.name.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.name.errors }}
+                        </div>
+                    {% endif %}
+                    <p class="help-block">
+                         {{ form.name.help_text }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group {% if form.parent_collection.errors %}has-error{% endif %}">
+                    {{ form.parent_collection.label_tag }}<br>
+                    {{form.parent_collection}}
+                    {% if form.parent_collection.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.parent_collection.errors }}
+                        </div>
+                    {% endif %}
+                    <p class="help-block">
+                         {{ form.parent_collection.help_text }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    
+        <div class="form-group {% if form.description.errors %}has-error{% endif %}">
+            {{ form.description.label_tag }}
+            {% if form.description.errors %}
+                <div class="alert alert-danger">
+                    {{ form.description.errors }}
+                </div>
+            {% endif %}
+            <p class="help-block">
+                {{ form.description.help_text }}
+            </p>
+            {{ form.description }}
+        </div>
+
+        <div class="form-group {% if form.description.errors %}has-error{% endif %}">
+            {{ form.metadata.label_tag }}
+            {% if form.metadata.errors %}
+                <div class="alert alert-danger">
+                    {{ form.metadata.errors }}
+                </div>
+            {% endif %}
+            <p class="help-block">
+                {{ form.metadata.help_text }}
+            </p>
+            {{ form.metadata }}
+        </div>
+
+        <a class="btn btn-default" href="{{object.get_absolute_url}}">Back</a>
+        <button type="Submit" class="btn btn-primary">Save Collection</button>
+    </form>
+{% endblock %}

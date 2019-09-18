@@ -1,185 +1,194 @@
-{% load aristotle_tags %}
+{% load aristotle_tags util_tags %}
 {% load humanize i18n %}
 {% load url_tags %}
 
 <aside id="infobox-wrap" class="col-xs-12 col-sm-4 pull-right navbar navbar-default">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#infobox">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a href="#" class="navbar-brand visible-xs" style="float:none;">
-        {% block collapse-link %}
-        <i class="fa fa-info-circle fa-fw"></i>More details...
-        {% endblock %}
-      </a>
+    <div v-pre class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#infobox">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a href="#" class="navbar-brand visible-xs" style="float:none;">
+        </a>
     </div>
     <div id="infobox" class="collapse navbar-collapse" >
         <header class="hidden-xs">{{ item.name }}</header>
         <dl>
             {% block infobox_list %}
-            <dt>{% trans 'Type' context "Object Type" %}</dt>
-            <dd>
-                <a href="{% url 'aristotle_help:concept_help' item.meta.app_label item.meta.model_name %}"
-                    title="{% trans 'Learn about this metadata type' %}"
-                    data-toggle="modal" data-target="#infobox_modal"
-                >{{ item.get_verbose_name }}</a>
-            </dd>
-            <!-- dt>Aristotle ID</dt><dd>{{ item.id }}</dd -->
-            <dt>Identifiers</dt>
-            <dd>UUID - <span title='{{ item.uuid }}'>{{ item.uuid }}</span></dd>
-            {% for ident in item.identifiers.all %}
-                <dd><a href="{{ident.namespace.naming_authority.get_absolute_url}}">{{ ident.prefix }}</a>/{{ ident.identifier }}/{{ ident.version }}</dd>
-            {% endfor %}
-            {% if item.version %}
-            <dt class="visible-xs">{% trans 'Version'%}</dt><dd class="visible-xs">{{ item.version }}</dd>
-            {% endif %}
-            {% if item.origin_URI %}
-            <dt title="{{ item.origin_URI.help_text }}">{% trans 'Origin URI'%}</dt><dd><a title="This link will exit this site" href="{{ item.origin_URI }}">Jump to original <i class="fa fa-external-link"></i></a></dd>
-            {% endif %}
-            {% comment %}
-            {# These may yet be removed, I don't like it #}
-            <dt>Included in</dt>
-            {% block includes %}{% endblock %}
-            {% endcomment %}
-
-            {% if item.registerable %}
-            {% include "aristotle_mdr/infobox_statuses.html" with statuses=statuses %}
-            {% endif %}
-
-            {% if item.publicationrecord and not statuses %}
-                {% include "aristotle_self_publish/concepts/publication_details.html" with item=item %}
-            {% endif %}
-
-            <dt>{% trans 'Last updated'%}</dt>
-            <dd>
-                {% if request.user.is_authenticated %}
-                    {% if request.user.is_superuser or request.user.is_staff and item.workgroup in request.user.workgroups %}
-                        <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|date:'c' }}">
-                            <a href="{% url 'aristotle:item_history' iid=item.id %}">{{item.modified|naturaltime}}</a>
-                        </time>
-                    {% elif item.workgroup in request.user.workgroups or item.submitter == request.user %}
-                        <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|date:'c' }}">
-                            <a href="{% url 'aristotle:item_history' iid=item.id %}">{{item.modified|naturaltime}}</a>
-                        </time>
+                <div v-pre>
+                    <dt>{% trans 'Type' context "Object Type" %}</dt>
+                    <dd>
+                        <a href="{% url 'aristotle_help:concept_help' item.meta.app_label item.meta.model_name %}"
+                           title="{% trans 'Learn about this metadata type' %}"
+                           data-toggle="modal" data-target="#infobox_modal"
+                        >{{ item.get_verbose_name }}</a>
+                    </dd>
+                    <dt>Identifiers</dt>
+                    <dd>UUID - <span title='{{ item.uuid }}'>{{ item.uuid }}</span></dd>
+                    {% if infobox_identifier_name %}
+                        <dd>{{ infobox_identifier_name }} - <span title="{{ item.aristotle_id }}">{{ item.aristotle_id }}</span></dd>
                     {% endif %}
-                {% else %}
-                    <time title="{{ item.modified|date:'o-m-d H:i e' }}" datetime="{{ item.modified|date:'c' }}">
-                        {{ item.modified|naturaltime }}
-                    </time>
-                {% endif %}
-                {% if request.user.is_superuser or request.user.is_active and item.workgroup in request.user.workgroups %}
-                <span style="display:inline-block">By
-                    {% with editing_user=last_edit.revision.user %}
-                        {% if editing_user %}
-                            {% firstof editing_user.short_name editing_user.full_name editing_user.email %}
-                        {% else %}<em title="{% trans 'This may have been added during an import.'%}">{% trans 'Unknown' context "Unknown import user"%}</em>
-                        {% endif %}
-                    {% endwith %}
-                </span>
-                {% endif %}
-            </dd>
-            <dt>{% trans 'Created'%}</dt>
-            <dd><time title="{{ item.created|date:'o-m-d' }}" datetime="{{ item.created|date:'c' }}">{{ item.created|date:'o-m-d' }}</time></dd>
-
-        {% block asideContent %}{% endblock %}
-
-            {% if not hide_item_supersedes %}
-              <dt class="large">{% trans 'Supersedes'%}
-              </dt>
-              <dd class="large">
-              <ul>
-                  {# This is inefficient - % for suprel in item.superseded_items_relation_set.all %#}
-                  {% for suprel in item|visible_supersedes_items:request.user %}
-                      <li>
-                        <a href="{% url 'aristotle:item' iid=suprel.older_item.id %}">
-                          {{ suprel.older_item.name }}
-                        </a>
-                        <ul>
-                          {% for rel in suprel.rels %}
-                            <li>
-                              <span title="{% trans 'The registration authority that applied this relationship' %}">
-                                {{ rel.registration_authority.name }}
-                              </span>,
-                            {{ rel.date_effective }} -
-                            {{ rel.message }}
-                            </li>
-                          {% endfor %}
-                        </ul>
-                      </small></li>
-                  {% empty %}
-                      <li><em>{% trans 'None' context 'No older objects' %}</em></li>
-                  {% endfor %}
-                  </ul>
-              </dd>
-              <dt class="large">{% trans 'Superseded by'%}
-              </dt>
-              <dd class="large">
-              <ul>
-                  {% for suprel in item|visible_superseded_by_items:request.user %}
-                      <li>
-                        <a href="{% url 'aristotle:item' iid=suprel.newer_item.id %}">
-                          {{ suprel.newer_item.name }}
-                        </a>
-                        <ul>
-                          {% for rel in suprel.rels %}
-                            <li>
-                              <span title="{% trans 'The registration authority that applied this relationship' %}">
-                                {{ rel.registration_authority.name }}
-                              </span>,
-                            {{ rel.date_effective }}
-                            {% if rel.message %} - {{ rel.message }} {% endif %}
-                            </li>
-                          {% endfor %}
-                        </ul>
-                      </li>
-                  {% empty %}
-                      <li><em>{% trans 'None' context 'No newer objects' %}</em></li>
-                  {% endfor %}
-              </ul>
-              </dd>
-            {% endif %}
-        {% if item.workgroup and request.user|in_workgroup:item.workgroup %}
-            <hr>
-            <dt>{% trans 'Workgroup' %}</dt>
-            <dd><a href="{% url 'aristotle:workgroup' iid=item.workgroup.id %}">{{ item.workgroup.name }}</a></dd>
-            <dt>{% trans 'History' %}</dt>
-            <dd><a href="{% url 'aristotle:item_history' iid=item.id %}">{% trans "View history" %}</a></dd>
-            <dt>{% trans 'Discussions' %}</dt>
-            <dd>{% if discussions %}
-                <ul>
-                    {% for discussion in discussions %}
-                    <li>
-                        <a href="{% url 'aristotle:discussionsPost' pid=discussion.id %}">{{ discussion.title }}</a>
-                    </li>
+                    {% for ident in item.identifiers.all %}
+                        <dd><a href="{{ident.namespace.naming_authority.get_absolute_url}}">{{ ident.prefix }}</a>/{{ ident.identifier }}/{{ ident.version }}</dd>
                     {% endfor %}
-                </ul>
+                    {% if item.version %}
+                        <dt class="visible-xs">{% trans 'Version'%}</dt><dd class="visible-xs">{{ item.version }}</dd>
+                    {% endif %}
+                    {% if item.origin_URI %}
+                        <dt title="{{ item.origin_URI.help_text }}">{% trans 'Origin URI'%}</dt><dd><a title="This link will exit this site" href="{{ item.origin_URI }}">Jump to original <i class="fa fa-external-link"></i></a></dd>
+                    {% endif %}
+
+                    <dt class="large">{% trans 'Stewardship Organisation'%}</dt>
+                    <dd class="">{{ item.stewardship_organisation }}</dd>
+
+                    {% if item.registerable %}
+                        {% include "aristotle_mdr/infobox_statuses.html" with statuses=statuses %}
+                    {% endif %}
+
+                    {% if item.concept.publication_details.exists %}
+                        {% include "aristotle_mdr/publish/infobox/publication_details.html" with item=item.concept %}
+                    {% endif %}
+
+                    <dt>{% trans 'Last updated'%}</dt>
+                    <dd>
+                        {% if request.user.is_authenticated %}
+                            {% if request.user.is_superuser or request.user.is_staff and item.workgroup in request.user.workgroups %}
+                                <time title="{{ last_edit.revision.date_created|date:'o-m-d H:i e' }}" datetime="{{ last_edit.revision.date_created|isotime }}" data-time-from="true">
+                                </time>
+                            {% elif item.workgroup in request.user.workgroups or item.submitter == request.user %}
+                                <time title="{{ last_edit.revision.date_created|date:'o-m-d H:i e' }}" datetime="{{ last_edit.revision.date_created|isotime }}" data-time-from="true">
+                                </time>
+                            {% endif %}
+                        {% else %}
+                            <time title="{{ last_edit.revision.date_created|date:'o-m-d H:i e' }}" datetime="{{ last_edit.revision.date_created|isotime }}">
+                                {{ last_edit.revision.date_created|naturaltime }}
+                            </time>
+                        {% endif %}
+                        {% if request.user.is_superuser or request.user.is_active and item.workgroup in request.user.workgroups %}
+                            <span style="display:inline-block">
+                                By
+                                {% with editing_user=last_edit.revision.user %}
+                                    {% if editing_user %}
+                                        {% firstof editing_user.short_name editing_user.full_name editing_user.email %}
+                                    {% else %}<em title="{% trans 'This may have been added during an import.'%}">{% trans 'Unknown' context "Unknown import user"%}</em>
+                                    {% endif %}
+                                {% endwith %}
+                            </span>
+                        {% endif %}
+                    </dd>
+                    <dt>{% trans 'Created'%}</dt>
+                    <dd><time title="{{ item.created|date:'o-m-d' }}" datetime="{{ item.created|isotime }}">{{ item.created|date:'o-m-d' }}</time></dd>
+
+                    {% block asideContent %}{% endblock %}
+
+                    {% if not hide_item_supersedes %}
+                        <dt class="large">{% trans 'Supersedes'%}
+                        </dt>
+                        <dd class="large">
+                            <ul>
+                                {# This is inefficient - % for suprel in item.superseded_items_relation_set.all %#}
+                                {% for suprel in item|visible_supersedes_items:request.user %}
+                                    <li>
+                                        <a href="{% url 'aristotle:item' iid=suprel.older_item.id %}">
+                                            {{ suprel.older_item.name }}
+                                        </a>
+                                        <ul>
+                                            {% for rel in suprel.rels %}
+                                                <li>
+                              <span title="{% trans 'The registration authority that applied this relationship' %}">
+                                {{ rel.registration_authority.name }}
+                              </span>,
+                                                    <time datetime="{{ rel.date_effective|isotime }}">{{ rel.date_effective }}</time> -
+                                                    {{ rel.message }}
+                                                    {% if rel.proposed %}<em>[Proposed]</em>{% endif %}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </li>
+                                {% empty %}
+                                    <li><em>{% trans 'None' context 'No older objects' %}</em></li>
+                                {% endfor %}
+                            </ul>
+                        </dd>
+                        <dt class="large">{% trans 'Superseded by'%}
+                        </dt>
+                        <dd class="large">
+                            <ul>
+                                {% for suprel in item|visible_superseded_by_items:request.user %}
+                                    <li>
+                                        <a href="{% url 'aristotle:item' iid=suprel.newer_item.id %}">
+                                            {{ suprel.newer_item.name }}
+                                        </a>
+                                        <ul>
+                                            {% for rel in suprel.rels %}
+                                                <li>
+                                                    <span title="{% trans 'The registration authority that applied this relationship' %}">
+                                                        {{ rel.registration_authority.name }},
+                                                    </span> <time datetime="{{ rel.date_effective|isotime }}">{{ rel.date_effective }}</time>
+                                                    {% if rel.message %} - {{ rel.message }} {% endif %}
+                                                    {% if rel.proposed %}<em>[Proposed]</em>{% endif %}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </li>
+                                {% empty %}
+                                    <li><em>{% trans 'None' context 'No newer objects' %}</em></li>
+                                {% endfor %}
+                            </ul>
+                        </dd>
+                    {% endif %}
+                    <dt class="large">{% trans 'Collections' %} </dt>
+                    <ul>
+                        {% for collection in item.collection_set.all|can_view_iter:request.user %}
+                            <li>
+                                <a href="{% url 'aristotle_mdr:stewards:group:collection_detail_view' collection.stewardship_organisation.slug collection.pk %}">{{ collection.name }}</a>
+                            </li>
+                        {% empty %}
+                            <li><em>None</em></li>
+                        {% endfor %}
+                    </ul>
+
+
+                    {% if item.workgroup and request.user|in_workgroup:item.workgroup %}
+                        <hr>
+                        <dt>{% trans 'Workgroup' %}</dt>
+                        <dd><a href="{% url 'aristotle:workgroup' iid=item.workgroup.id %}">{{ item.workgroup.name }}</a></dd>
+                        <dt>{% trans 'Discussions' %}</dt>
+                        <dd>{% if discussions %}
+                            <ul>
+                                {% for discussion in discussions %}
+                                    <li>
+                                        <a href="{% url 'aristotle:discussionsPost' pid=discussion.id %}">{{ discussion.title }}</a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                            <a href="{% url 'aristotle:discussionsNew' %}?workgroup={{item.workgroup.id}}&item={{item.id}}">{% trans "Start a new discussion about this item" %}</a>
+                        </dd>
+                    {% elif item.submitter == request.user %}
+                        <hr>
+                        <dt>{% trans 'Workgroup' %} </dt>
+                        <dd><a href="{% url 'aristotle:userSandbox' %}">{% trans "Sandboxed Item" %}</a></dd>
+                    {% endif %}
+                </div> {# end v-pre #}
+                {% if request.user.is_authenticated %}
+                    <div class="vue-tags" v-cloak v-if="hasTags">
+                        <hr>
+                        <dt>Your Tags</dt>
+                        <dd>
+                            <simple-linked-list
+                                    ul-class="taggle_list"
+                                    li-class="taggle"
+                                    :data="saved_tags"
+                                    link-template="{% urltemplate 'aristotle_favourites:tag' %}">
+                            </simple-linked-list>
+                        </dd>
+                    </div>
                 {% endif %}
-                <a href="{% url 'aristotle:discussionsNew' %}?workgroup={{item.workgroup.id}}&item={{item.id}}">{% trans "Start a new discussion about this item" %}</a>
-            </dd>
-        {% elif item.submitter == request.user %}
-            <hr>
-            <dt>{% trans 'Workgroup' %} </dt>
-            <dd><a href="{% url 'aristotle:userSandbox' %}">{% trans "Sandboxed Item" %}</a></dd>
-        {% endif %}
-          {% if request.user.is_authenticated %}
-          <div class="vue-tags" v-cloak v-if="hasTags">
-            <hr>
-            <dt>Your Tags</dt>
-            <dd>
-              <simple-linked-list 
-                ul-class="taggle_list" 
-                li-class="taggle" 
-                :data="saved_tags" 
-                link-template="{% urltemplate 'aristotle_favourites:tag' %}">
-              </simple-linked-list>
-            </dd>
-          </div>
-          {% endif %}
-        {% endblock %}
+            {% endblock %}
         </dl>
-        {% bootstrap_modal "infobox_modal" size='lg' %}
+        <div v-pre>{% bootstrap_modal "infobox_modal" size='lg' %}</div>
     </div>
 </aside>

@@ -70,20 +70,6 @@ class CustomWhooshBackend(original_backend.WhooshSearchBackend):
         return WriterWithFasterSpellingUpdate(
             self.storage, self.get_spell_checker(), self.spelling_fields, index
         )
-    """
-    def update(self, index, iterable, commit=True):
-        import pdb; pdb.set_trace();
-        super().update(index, iterable, commit)
-    """
-
-    def update_spelling(self):
-        pass
-        """
-        import pdb; pdb.set_trace()
-        sp = self.get_spell_checker()
-        sp.add_field(self.index, self.content_field_name)
-        sp.add_field(self.index, 'job_title')
-        """
 
     def search(self, query_string, sort_by=None, start_offset=0, end_offset=None,
                fields='', highlight=False, facets=None, date_facets=None, query_facets=None,
@@ -115,7 +101,6 @@ class CustomWhooshBackend(original_backend.WhooshSearchBackend):
     def create_spelling_suggestion(self, query_string):
         if not self.setup_complete:
             self.setup()
-        # import pdb; pdb.set_trace()
         return super().create_spelling_suggestion(query_string)
 
     def _process_results(self, raw_page, highlight=False, query_string='',

@@ -2,12 +2,17 @@ from rest_framework.test import APIClient
 from django.test import TestCase, tag
 from django.urls import reverse
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 
 from aristotle_mdr import models as mdr_models
 from aristotle_mdr.contrib.issues import models
 from aristotle_mdr.contrib.custom_fields import models as cf_models
-from aristotle_mdr.contrib.favourites.models import Tag, Favourite
-from aristotle_mdr.contrib.favourites.tests import BaseFavouritesTestCase
+from aristotle_mdr.contrib.favourites.models import Tag
+from aristotle_mdr_api.token_auth.models import AristotleToken
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class BaseAPITestCase(TestCase):
@@ -23,12 +28,17 @@ class BaseAPITestCase(TestCase):
             email='anothertestuser@example.com',
             password='1234'
         )
+        self.so = mdr_models.StewardOrganisation.objects.create(
+            name='Best Stewardship Organisation',
+        )
         self.wg = mdr_models.Workgroup.objects.create(
-            name='Best Working Group'
+            name='Best Working Group',
+            stewardship_organisation=self.so
         )
         self.su = self.um.objects.create_user(
             email='super@example.com',
-            password='1234'
+            password='1234',
+            is_superuser=True
         )
 
     def login_user(self):
@@ -59,27 +69,7 @@ class BaseAPITestCase(TestCase):
         )
 
 
-class ConceptAPITestCase(BaseAPITestCase):
-
-    def setUp(self):
-        super().setUp()
-        self.item = mdr_models.ObjectClass.objects.create(
-            name='Test Concept',
-            definition='Concept Definition',
-            submitter=self.user
-        )
-        self.concept = self.item._concept_ptr
-
-    def test_get_concept(self):
-        self.login_user()
-        response = self.client.get(
-            reverse('api_v4:item', args=[self.concept.id]),
-        )
-        self.assertEqual(response.status_code, 200)
-
-
 class IssueEndpointsTestCase(BaseAPITestCase):
-
     def setUp(self):
         super().setUp()
         self.item = mdr_models.ObjectClass.objects.create(
@@ -94,6 +84,7 @@ class IssueEndpointsTestCase(BaseAPITestCase):
             {
                 'name': 'Test issue',
                 'description': 'Just a test one',
+                'labels': [],
                 'item': item.pk,
             },
             format='json'
@@ -101,14 +92,12 @@ class IssueEndpointsTestCase(BaseAPITestCase):
         return response
 
     def test_create_issue_own_item(self):
-
         self.login_user()
         response = self.post_issue(self.item)
 
         self.assertEqual(response.status_code, 201)
 
     def test_create_issue_non_owned_item(self):
-
         self.login_user()
         item = mdr_models.ObjectClass.objects.create(
             name='New API Request',
@@ -122,7 +111,6 @@ class IssueEndpointsTestCase(BaseAPITestCase):
 
     @tag('issue_comment')
     def test_create_issue_comment(self):
-
         self.login_user()
         issue = self.create_test_issue()
 
@@ -203,24 +191,56 @@ class IssueEndpointsTestCase(BaseAPITestCase):
         self.assertFalse('comment' in response.data)
         self.assertFalse(response.data['issue']['isopen'])
 
-        issue = models.Issue.objects.get(pk=issue.pk)
+        issue.refresh_from_db()
         self.assertFalse(issue.isopen)
         self.assertEqual(issue.comments.count(), 0)
 
+    @tag('issue_apply')
+    def test_close_with_changes(self):
+        updated_definition = 'Fixed definition'
+
+        issue = models.Issue.objects.create(
+            name='Fix definition',
+            description='It needs fixing',
+            item=self.item,
+            submitter=self.user,
+            proposal_field='definition',
+            proposal_value=updated_definition
+        )
+
+        self.login_user()
+        response = self.client.post(
+            reverse('api_v4:issues:approve', args=[issue.pk]),
+            {'isopen': False},
+            format='json'
+        )
+
+        # Check response
+        self.assertEqual(response.status_code, 200)
+
+        # Make sure issue is closed
+        issue.refresh_from_db()
+        self.assertFalse(issue.isopen)
+
+        # Check item was updated
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.definition, updated_definition)
+
 
 class CustomFieldsTestCase(BaseAPITestCase):
-
     def create_test_fields(self):
         cf1 = cf_models.CustomField.objects.create(
             order=1,
             name='Spiciness',
             type='int',
+            system_name='spiciness',
             help_text='The Spiciness'
         )
         cf2 = cf_models.CustomField.objects.create(
             order=2,
             name='Blandness',
             type='int',
+            system_name='blandness',
             help_text='The Blandness'
         )
         return [cf1.id, cf2.id]
@@ -236,11 +256,11 @@ class CustomFieldsTestCase(BaseAPITestCase):
 
         self.assertEqual(len(response.data), 2)
 
-    def test_multiple_create(self):
+    def test_creation_of_multiple_custom_fields(self):
         self.login_superuser()
         postdata = [
-            {'order': 1, 'name': 'Spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
-            {'order': 2, 'name': 'Blandness', 'type': 'int', 'help_text': 'The Blandness'}
+            {'order': 1, 'name': 'Spiciness', 'system_name': 'spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
+            {'order': 2, 'name': 'Blandness', 'system_name': 'blandness', 'type': 'int', 'help_text': 'The Blandness'}
         ]
 
         response = self.client.post(
@@ -253,13 +273,29 @@ class CustomFieldsTestCase(BaseAPITestCase):
         self.assertEqual(cf_models.CustomField.objects.filter(name='Spiciness').count(), 1)
         self.assertEqual(cf_models.CustomField.objects.filter(name='Blandness').count(), 1)
 
+    def test_multiple_create_as_standard_user(self):
+        self.login_user()
+        postdata = [
+            {'order': 1, 'name': 'Spiciness', 'system_name': 'spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
+            {'order': 2, 'name': 'Blandness', 'system_name': 'blandness', 'type': 'int', 'help_text': 'The Blandness'}
+        ]
+
+        response = self.client.post(
+            reverse('api_v4:custom_field_list'),
+            postdata,
+            format='json'
+        )
+        self.assertEqual(response.status_code, 403)
+
     def test_multiple_update(self):
         ids = self.create_test_fields()
         self.login_superuser()
 
         postdata = [
-            {'id': ids[0], 'order': 1, 'name': 'Spic', 'type': 'int', 'help_text': 'The Spiciness'},
-            {'id': ids[1], 'order': 2, 'name': 'Bland', 'type': 'int', 'help_text': 'The Blandness'}
+            {'id': ids[0], 'order': 1, 'name': 'Spic', 'system_name': 'spicy', 'type': 'int',
+             'help_text': 'The Spiciness'},
+            {'id': ids[1], 'order': 2, 'name': 'Bland', 'type': 'int', 'system_name': 'bland',
+             'help_text': 'The Blandness'}
         ]
 
         response = self.client.post(
@@ -272,12 +308,50 @@ class CustomFieldsTestCase(BaseAPITestCase):
         self.assertEqual(cf_models.CustomField.objects.filter(name='Spic').count(), 1)
         self.assertEqual(cf_models.CustomField.objects.filter(name='Bland').count(), 1)
 
+    def test_reorder_fields(self):
+        ids = self.create_test_fields()
+        self.login_superuser()
+
+        postdata = [
+            {'id': ids[0], 'order': 2, 'name': 'Spiciness', 'system_name': 'spiciness', 'type': 'int',
+             'help_text': 'The Spiciness'},
+            {'id': ids[1], 'order': 1, 'name': 'Blandness', 'type': 'int', 'system_name': 'blandness',
+             'help_text': 'The Blandness'}
+        ]
+        response = self.client.post(
+            reverse('api_v4:custom_field_list'),
+            postdata,
+            format='json'
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(cf_models.CustomField.objects.count(), 2)
+        self.assertEqual(cf_models.CustomField.objects.get(order=1).name, 'Blandness')
+        self.assertEqual(cf_models.CustomField.objects.get(order=2).name, 'Spiciness')
+
+    def test_add_field_with_same_name(self):
+        ids = self.create_test_fields()
+        self.login_superuser()
+
+        postdata = [
+            {'id': ids[0], 'order': 1, 'name': 'Blandness', 'system_name': 'spiciness', 'type': 'int',
+             'help_text': 'The Spiciness'},
+            {'id': ids[1], 'order': 2, 'name': 'Blandness_old', 'system_name': 'blandness', 'type': 'int',
+             'help_text': 'The Blandness'}
+        ]
+        response = self.client.post(
+            reverse('api_v4:custom_field_list'),
+            postdata,
+            format='json'
+        )
+        self.assertEqual(response.status_code, 200)
+
     def test_multiple_delete_does_not_work(self):
         ids = self.create_test_fields()
         self.login_superuser()
 
         postdata = [
-            {'id': ids[0], 'order': 1, 'name': 'Spiciness', 'type': 'int', 'help_text': 'The Spiciness'},
+            {'id': ids[0], 'order': 1, 'name': 'Spiciness', 'system_name': 'spiciness', 'type': 'int',
+             'help_text': 'The Spiciness'},
         ]
 
         response = self.client.post(
@@ -288,171 +362,92 @@ class CustomFieldsTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(cf_models.CustomField.objects.count(), 2)
 
+    def test_creating_two_fields_with_no_allowed_model_and_same_unique_name_fails(self):
+        """Test that the creation of two custom fields with the same allowed model and the same
+           unique name is blocked"""
+        ids = self.create_test_fields()
+        self.login_superuser()
 
-class TagsEndpointsTestCase(BaseAPITestCase, BaseFavouritesTestCase):
+        postdata = [
+            {'id': ids[0], 'order': 1, 'name': 'Spiciness', 'unique_name': 'spiciness', 'type': 'int'},
+            {'id': ids[1], 'order': 2, 'name': 'Blandness', 'unique_name': 'spiciness', 'type': 'int'}
+        ]
 
-    def setUp(self):
-        super().setUp()
-        self.timtam = mdr_models.ObjectClass.objects.create(
-            name='Tim Tam',
-            definition='Chocolate covered biscuit',
-            submitter=self.user
+        response = self.client.post(
+            reverse('api_v4:custom_field_list'),
+            postdata,
+            format='json'
         )
+        self.assertEqual(response.status_code, 400)
 
-    @tag('newview')
-    def test_tag_edit_add_tags(self):
-        self.login_user()
+    def test_creating_custom_fields_with_same_system_name_but_different_allowed_models_succeeds(self):
+        """Test that creating custom fields with the same system_name
+        but different allowed models is successfully namespaced"""
+        self.login_superuser()
 
-        post_data = {
-            'tags': [{'name': 'very good'}, {'name': 'amazing'}],
-        }
+        object_class_ct = ContentType.objects.get_for_model(mdr_models.ObjectClass).pk
+        data_element_ct = ContentType.objects.get_for_model(mdr_models.DataElement).pk
 
-        response = self.client.put(
-            reverse('api_v4:item_tags', args=[self.timtam.id]),
-            post_data,
+        postdata = [
+            {'order': 1, 'name': 'Spiciness', 'system_name': 'mildness', 'allowed_model': object_class_ct,
+             'type': 'int', 'help_text': 'The Spiciness'},
+            {'order': 2, 'name': 'Spiciness', 'system_name': 'mildness', 'allowed_model': data_element_ct,
+             'type': 'int', 'help_text': 'The Spiciness'}
+        ]
+
+        response = self.client.post(
+            reverse('api_v4:custom_field_list'),
+            postdata,
             format='json'
         )
         self.assertEqual(response.status_code, 200)
 
-        self.check_tag(self.user, self.timtam, 'very good', True)
-        self.check_tag(self.user, self.timtam, 'amazing', True)
+        self.assertEqual(cf_models.CustomField.objects.all().count(), 2)
 
-        self.check_tag_count(self.user, 2)
-        self.check_favourite_count(self.user, 2)
+        # Check that the system names are set correctly in the database
+        custom_field_1 = cf_models.CustomField.objects.get(name='Spiciness', allowed_model=object_class_ct)
+        self.assertEqual(custom_field_1.system_name, 'objectclass:mildness')
 
-        response_obj = response.data
-        vg = self.get_tag(self.user, self.timtam, 'very good')
-        am = self.get_tag(self.user, self.timtam, 'amazing')
+        custom_field_2 = cf_models.CustomField.objects.get(name='Spiciness', allowed_model=data_element_ct)
+        self.assertEqual(custom_field_2.system_name, 'dataelement:mildness')
 
-        sorted_tags = sorted(response_obj['tags'], key=lambda i: i['name'])
-        self.assertEqual(len(sorted_tags), 2)
-        self.assertEqual(sorted_tags[1]['id'], vg.tag.id)
-        self.assertEqual(sorted_tags[1]['name'], 'very good')
-        self.assertEqual(sorted_tags[0]['id'], am.tag.id)
-        self.assertEqual(sorted_tags[0]['name'], 'amazing')
+    def test_creating_custom_fields_with_same_system_name_and_allowed_model_fails(self):
+        """Test that creating custom fields with same name and allowed_model fails"""
+        self.login_superuser()
 
-    def test_tag_edit_add_existing_tag(self):
+        object_class_ct = ContentType.objects.get_for_model(mdr_models.ObjectClass).pk
 
-        self.login_user()
-        tag = Tag.objects.create(
-            profile=self.user.profile,
-            name='very good',
-            primary=False
-        )
-        post_data = {
-            'tags': [{'name': 'very good'}]
-        }
+        postdata = [
+            {'order': 1, 'name': 'Spiciness', 'system_name': 'spiciness', 'allowed_model': object_class_ct,
+             'type': 'int', 'help_text': 'The Spiciness'},
+            {'order': 2, 'name': 'Spiciness', 'system_name': 'spiciness', 'allowed_model': object_class_ct,
+             'type': 'int', 'help_text': 'The Spiciness'}
+        ]
 
-        response = self.client.put(
-            reverse('api_v4:item_tags', args=[self.timtam.id]),
-            post_data,
-            format='json'
-        )
-        self.assertEqual(response.status_code, 200)
-
-        self.check_tag(self.user, self.timtam, 'very good', True)
-
-        self.check_tag_count(self.user, 1)
-        self.check_favourite_count(self.user, 1)
-
-        response_obj = response.data
-        vg = self.get_tag(self.user, self.timtam, 'very good')
-        self.assertEqual(len(response_obj['tags']), 1)
-        self.assertEqual(response_obj['tags'][0]['id'], vg.tag.id)
-        self.assertEqual(response_obj['tags'][0]['name'], 'very good')
-
-    def test_tag_edit_add_and_remove_tags(self):
-        self.login_user()
-
-        tag = Tag.objects.create(
-            profile=self.user.profile,
-            name='very good',
-            primary=False
-        )
-        Favourite.objects.create(
-            tag=tag,
-            item=self.timtam,
-        )
-
-        post_data = {
-            'tags': [{'name': '10/10'}]
-        }
-        response = self.client.put(
-            reverse('api_v4:item_tags', args=[self.timtam.id]),
-            post_data,
-            format='json'
-        )
-        self.assertEqual(response.status_code, 200)
-
-        self.check_tag(self.user, self.timtam, 'very good', False)
-        self.check_tag(self.user, self.timtam, '10/10', True)
-
-        self.check_tag_count(self.user, 2)
-        self.check_favourite_count(self.user, 1)
-
-        response_obj = response.data
-        ten = self.get_tag(self.user, self.timtam, '10/10')
-        self.assertEqual(len(response_obj['tags']), 1)
-        self.assertEqual(response_obj['tags'][0]['id'], ten.tag.id)
-        self.assertEqual(response_obj['tags'][0]['name'], '10/10')
-
-    def test_tag_edit_incorrect_data(self):
-        self.login_user()
-
-        post_data = {
-            'tags': [{'game': '10/10'}]
-        }
-        response = self.client.put(
-            reverse('api_v4:item_tags', args=[self.timtam.id]),
-            post_data,
+        response = self.client.post(
+            reverse('api_v4:custom_field_list'),
+            postdata,
             format='json'
         )
 
         self.assertEqual(response.status_code, 400)
 
-    def test_tag_view_patch(self):
-        tag = Tag.objects.create(
-            name='mytag',
-            description='Yeet',
-            profile=self.user.profile
-        )
+    def test_creating_custom_field_with_no_system_name_correctly_set_to_all(self):
+        self.login_superuser()
 
-        self.login_user()
-        response = self.client.patch(
-            reverse('api_v4:tags', args=[tag.id]),
-            {'description': 'no'},
+        postdata = [{'order': 1, 'name': 'Spiciness', 'system_name': 'spiciness',
+                     'type': 'int', 'help_text': 'The Spiciness'}]
+
+        response = self.client.post(
+            reverse('api_v4:custom_field_list'),
+            postdata,
             format='json'
         )
+
         self.assertEqual(response.status_code, 200)
 
-        tag = Tag.objects.get(id=tag.id)
-        self.assertEqual(tag.description, 'no')
-
-    def test_tag_delete(self):
-        tag = Tag.objects.create(
-            name='mytag',
-            description='Yeet',
-            profile=self.user.profile
-        )
-
-        self.login_user()
-        response = self.client.delete(
-            reverse('api_v4:tags', args=[tag.id]),
-            {'description': 'no'},
-            format='json'
-        )
-        self.assertEqual(response.status_code, 204)
-
-        self.assertFalse(Tag.objects.filter(id=tag.id).exists())
-
-    def test_request_invalid_item(self):
-        self.login_user()
-        response = self.client.delete(
-            reverse('api_v4:tags', args=[99]),
-            {'description': 'no'},
-            format='json'
-        )
-        self.assertEqual(response.status_code, 404)
+        custom_field_1 = cf_models.CustomField.objects.get(name='Spiciness', allowed_model=None)
+        self.assertEqual(custom_field_1.system_name, 'all:spiciness')
 
 
 @tag('perms')
@@ -491,7 +486,6 @@ class PermsTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_get_issue_not_allowed(self):
-
         self.login_other_user()
         response = self.client.get(
             reverse('api_v4:issues:issue', args=[self.issue.pk]),
@@ -499,7 +493,7 @@ class PermsTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_close_issue_as_item_viewer(self):
-        self.wg.viewers.add(self.other_user)
+        self.wg.grant_role(user=self.other_user, role=self.wg.roles.viewer)
         self.item.workgroup = self.wg
         self.item.save()
 
@@ -510,7 +504,7 @@ class PermsTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_close_issue_as_item_editor(self):
-        self.wg.submitters.add(self.other_user)
+        self.wg.grant_role(user=self.other_user, role=self.wg.roles.submitter)
         self.item.workgroup = self.wg
         self.item.save()
 
@@ -573,3 +567,35 @@ class PermsTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, 403)
 
         self.assertTrue(Tag.objects.filter(id=tag.id).exists())
+
+    def create_token(self, permissions):
+        token = AristotleToken.objects.create(
+            name='MyToken',
+            key='abc',
+            user=self.user,
+            permissions=permissions
+        )
+
+    def query_item_with_token(self, permissions, status_code):
+        """Used in the following 2 tests"""
+        self.item.submitter = self.user
+        self.item.save()
+        self.create_token(permissions)
+        self.client.credentials(HTTP_AUTHORIZATION='Token abc')
+        response = self.client.get(reverse('api_v4:item:item', args=[self.item.id]))
+        self.assertEqual(response.status_code, status_code)
+
+    def test_query_item_with_token_correct_perms(self):
+        # Query with meteadata read, expect 200
+        self.query_item_with_token({'metadata': {'read': True}}, 200)
+
+    def test_query_item_with_token_incorrect_perms(self):
+        # Query without metadata read, expect 403
+        self.query_item_with_token({'metadata': {'read': False}}, 403)
+
+    def test_query_unviewable_item_with_token(self):
+        # Query on item not visible to user, expect 403
+        self.create_token({'metadata': {'read': True}})
+        self.client.credentials(HTTP_AUTHORIZATION='Token abc')
+        response = self.client.get(reverse('api_v4:item:item', args=[self.item.id]))
+        self.assertEqual(response.status_code, 403)

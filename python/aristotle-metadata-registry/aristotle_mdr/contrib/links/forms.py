@@ -4,7 +4,7 @@ from django.db.models.query import QuerySet
 
 from aristotle_mdr import models as MDR
 from aristotle_mdr.forms.creation_wizards import UserAwareForm
-from aristotle_mdr.contrib.links.models import Relation, RelationRole
+from aristotle_mdr.contrib.links.models import Relation
 from aristotle_mdr.contrib.autocomplete import widgets
 
 
@@ -30,7 +30,6 @@ class LinkEndEditorBase(UserAwareForm, forms.Form):
         cleaned_data = super().clean(*args, **kwargs)
         for role in self.roles:
             field_name = 'role_' + str(role.pk)
-            # import pdb; pdb.set_trace()
             d = cleaned_data.get(field_name)
             if role.multiplicity is not None and d is not None and 1 < role.multiplicity < len(d):
                 msg = _("Only %s concepts are valid for this link" % role.multiplicity)

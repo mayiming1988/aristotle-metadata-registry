@@ -1,46 +1,72 @@
 {% extends 'aristotle_mdr/base.html' %}
-{% load aristotle_tags i18n %}
+{% load aristotle_tags util_tags i18n %}
 {% block title %}Registration History of {{ item.name }}{% endblock %}
 
 {% block content %}
-<h1>
-    Registration History of
-    {{ item.name }}
-    ({{ item.item.get_verbose_name }})
-</h1>
-<ol class="breadcrumb">
-    <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a></li>
-    <li><a href="#">Registration History</a></li>
-</ol>
-{% if history %}
-    {% for ra, states in history.items %}
-        <h2>History for <em><a href="{% url 'aristotle:registrationAuthority' ra.id %}">{{ ra.name }}</a></em></h2>
-        <table class="table">
-            <thead>
+    <h1>
+        Registration History of
+        {{ item.name }}
+        ({{ item.item_type_name }})
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="{% url 'aristotle:item' item.id %}">{{ item.name }}</a></li>
+        <li>Registration History</li>
+    </ol>
+    {% if history %}
+        {% for ra, states in history.items %}
+            <h2>Registration History for <em><a href="{% url 'aristotle:registrationAuthority' ra.id %}">{{ ra.name }}</a></em></h2>
+            <table class="table">
+                <thead>
                 <th>{% trans 'Date registration effective' %}</th>
                 <th>{% trans 'Date registration expires' %}</th>
                 <th>{% trans 'State' %}</th>
                 <th>Comments</th>
-                {% comment %}
                 {% if item|can_edit:request.user %}
-                    <th>Who</th>
+                    <th></th>
                 {% endif %}
-                {% endcomment %}
-            </thead>
-            <tbody>
-            {% for status in states %}
-                <tr>
-                    <td>{{ status.registrationDate }}</td>
-                    <td>{{ status.until_date }}</td>
-                    <td><a title='' href='{% url 'aristotle:registrationAuthority' ra.id %}#state_{{ status.state }}'>{{ status.state|stateToText }}</a></td>
-                    <td>{{ status.changeDetails }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    {% endfor %}
-{% else %}
-    <strong>{% trans 'This item has not yet been registered by any authority' %}</strong>
-{% endif %}
+                </thead>
+                <tbody>
+                {% for status in states %}
+                    <tr>
+                        <td><time datetime="{{ status.registrationDate|isotime }}">{{ status.registrationDate }}</time></td>
+                        <td><time datetime="{{ status.until_date|isotime }}">{{ status.until_date }}</time></td>
+                        <td><a title='' href='{% url 'aristotle:registrationAuthority' ra.id %}#state_{{ status.state }}'>{{ status.state|state_to_text }}</a></td>
+                        <td>{{ status.changeDetails }}</td>
+                        {% if item|can_edit:request.user %}
+                            <td>
+                                <div class="dropdown">
+                                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                                        <i class="fa fa-fw fa-pencil-square-o"></i> {% trans 'Manage'%} <span class="caret"></span>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-left" role="menu">
+                                        <li>
+                                            <a href="{% url 'aristotle:editStatus' status.id item.id ra.id %}">
+                                                <i class="fa fa-fw fa-pencil-square-o"></i> {% trans 'Edit'%}
+                                            </a>
+                                        </li>
+                                        {% if request.user|user_can_view_statuses_revisions:ra %}
+                                            <li>
+                                                <a href="{% url 'aristotle:statusHistory' status.id item.id ra.id %}">
+                                                    <i class="fa fa-fw fa-clock-o"></i> {% trans 'Check Status History'%}
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                        <li>
+                                            <a href="{% url 'aristotle:deleteStatus' status.id item.id %}">
+                                                <i class="fa fa-fw fa-trash"></i> {% trans 'Delete'%}
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endfor %}
+    {% else %}
+        <strong>{% trans 'This item has not yet been registered by any authority' %}</strong>
+    {% endif %}
 
 {% endblock %}

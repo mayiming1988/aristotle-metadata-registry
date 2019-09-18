@@ -1,0 +1,28 @@
+{% extends 'aristotle_mdr/organization/registration_authority/base.html' %}
+
+{% block racontent %}
+  <div class="row margin-above">
+    <div class="col-md-3">
+      <div class="list-group">
+        <a 
+          href="{% url 'aristotle:registrationauthority_edit' item.id %}"
+          class="list-group-item {% if settings_tab == 'general' %}active{% endif %}">
+          General
+        </a>
+        <a 
+          href="{% url 'aristotle:registrationauthority_edit_states' item.id %}"
+          class="list-group-item {% if settings_tab == 'states' %}active{% endif %}">
+          States
+        </a>
+        <a 
+          href="{% url 'aristotle:registrationauthority_rules' item.id %}"
+          class="list-group-item {% if settings_tab == 'validation' %}active{% endif %}">
+          Validation Rules
+        </a>
+      </div>
+    </div>
+    <div class="col-md-9">
+      {% block formcontent %}{% endblock %}
+    </div>
+  </div>
+{% endblock %}

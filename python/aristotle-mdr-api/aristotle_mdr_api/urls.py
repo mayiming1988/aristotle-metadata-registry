@@ -1,11 +1,8 @@
 from django.conf.urls import include, url
-from rest_framework.documentation import include_docs_urls
-from rest_framework_swagger.views import get_swagger_view
 from django.utils.module_loading import import_string
 from .views import APIRootView
 # from rest_framework.authtoken import views as tokenviews
 
-import re
 
 API_TITLE = 'Aristotle MDR API'
 API_DESCRIPTION = """
@@ -16,27 +13,12 @@ machine-readable interface.
 
 """
 
-def version_schema(*args, **kwargs):
-    version = kwargs.pop('version')
-    if version:
-        patterns = import_string('aristotle_mdr_api.%s.urls.urlpatterns' % version)
-    else:
-        patterns = []
-
-    return get_swagger_view(
-            title='Aristotle API %s' % version,
-            patterns=patterns
-        )(*args)
-
 
 urlpatterns = [
-    url(r'^auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^auth/', include(('rest_framework.urls', 'rest_framework'), namespace='rest_framework')),
     # url(r'^api-token-auth/', tokenviews.obtain_auth_token),
-    url(r'^token/', include('aristotle_mdr_api.token_auth.urls', namespace='token_auth')),
-    url(r'^(?P<version>(v3|v4)?)/schemas/', version_schema),
-    url(r'^schemas/', get_swagger_view(title='Aristotle API')),
+    url(r'^token/', include(('aristotle_mdr_api.token_auth.urls', 'aristotle_mdr_api.token_auth'), namespace='token_auth')),
     url(r'^$', APIRootView.as_view(), name="aristotle_api_root"),
-
-    url(r'^v3/', include('aristotle_mdr_api.v3.urls', namespace='aristotle_mdr_api.v3')),
-    url(r'^v4/', include('aristotle_mdr_api.v4.urls', namespace='api_v4')),
+    url(r'^v3/', include(('aristotle_mdr_api.v3.urls', 'aristotle_mdr_api.v3'), namespace='aristotle_mdr_api.v3')),
+    url(r'^v4/', include(('aristotle_mdr_api.v4.urls', 'aristotle_mdr_api.v4'), namespace='api_v4')),
 ]

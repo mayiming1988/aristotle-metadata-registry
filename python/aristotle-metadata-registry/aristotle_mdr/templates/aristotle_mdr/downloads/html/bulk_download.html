@@ -1,0 +1,36 @@
+{% extends "aristotle_mdr/downloads/html/pdf.html" %}
+{% load i18n aristotle_help aristotle_tags util_tags  %}
+
+{%  block content %}
+    <h1>Included Items</h1>
+    {% for item in items %}
+        <div class="break-after">
+            {% include item|template_path:'html,' with item=item header="h2" %}
+        </div>
+    {% endfor %}
+
+    {% if supporting_items %}
+        <div>
+            <h1>Supporting Items</h1>
+        </div>
+        {% for l,dict in supporting_items.items %}
+            <h2>{{ dict.verbose_name_plural }}</h2>
+            {% with object=dict.help %}
+                {% if object %}
+                    <p>
+                        <strong>Definition:</strong>
+                        {% relink object 'brief' %}
+                    </p>
+                    <p>
+                        For more information see the <em>Glossary of included metadata types</em>.
+                    </p>
+                {% endif %}
+            {% endwith %}
+            {% for item in dict.items %}
+                <div class="break-after">
+                    {% include item|template_path:'html,' with item=item header="h3" %}
+                </div>
+            {% endfor %}
+        {% endfor %}
+    {% endif %}
+{% endblock %}

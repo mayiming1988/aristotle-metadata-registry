@@ -2,24 +2,24 @@
 {% if parent_item|can_edit:request.user and not hide_item_actions %}
     {% if item %}
         <a href="{{ item.get_absolute_url }}">
-        {% if space %}
-            {% zws item.name %}
-        {% else %}
-            {{ item.name }}
-        {% endif %}
+            {% if space %}
+                {% zws item.name %}
+            {% else %}
+                {{ item.name }}
+            {% endif %}
         </a>
-        <a class='inline_action' 
-            data-toggle="modal" data-target="#fk_editor"
-            href="{% url 'aristotle:generic_foreign_key_editor' parent_item.pk field %}">
+        <a class='inline_action'
+           data-toggle="modal" data-target="#fk_editor"
+           href="{% url 'aristotle:generic_foreign_key_editor' parent_item.pk field %}">
             Edit
         </a>
     {% else %}
         <em>None
-        <a class='inline_action'
-            data-toggle="modal" data-target="#fk_editor"
-            href="{% url 'aristotle:generic_foreign_key_editor' parent_item.pk field %}">
-            Add
-        </a></em>
+            <a class='inline_action'
+               data-toggle="modal" data-target="#fk_editor"
+               href="{% url 'aristotle:generic_foreign_key_editor' parent_item.pk field %}">
+                Add
+            </a></em>
     {% endif %}
 {% else %}
     {% include "aristotle_mdr/helpers/itemLink.html" with item=item %}

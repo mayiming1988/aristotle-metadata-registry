@@ -1,32 +1,21 @@
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
-from django.db import transaction
-from django.http import Http404, HttpResponseRedirect, HttpResponse, HttpResponseNotFound
+from django.http import Http404
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import FormView, DetailView, View
-from django.utils import timezone
-from django.utils.decorators import method_decorator
-from django.utils.safestring import mark_safe
-import json
+from django.views.generic import DetailView, FormView
+from django.db import transaction
 
-import reversion
-from braces.views import LoginRequiredMixin, PermissionRequiredMixin
+from braces.views import PermissionRequiredMixin
 
 from aristotle_mdr import perms
 from aristotle_mdr import models as MDR
 from aristotle_mdr.contrib.generic.views import UnorderedGenericAlterOneToManyView
 from aristotle_mdr.forms import actions
-from aristotle_mdr.forms.forms import ChangeStatusGenericForm, ReviewChangesForm
-from aristotle_mdr.views import ReviewChangesView, display_review
-from aristotle_mdr.views.utils import (
-    generate_visibility_matrix,
-    ObjectLevelPermissionRequiredMixin,
-)
+from aristotle_mdr.views.utils import UserFormViewMixin
 from aristotle_mdr.utils import url_slugify_concept
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -93,19 +82,13 @@ class CheckCascadedStates(ItemSubpageView, DetailView):
         return kwargs
 
 
-class DeleteSandboxView(FormView):
+class DeleteSandboxView(UserFormViewMixin, FormView):
 
     form_class = actions.DeleteSandboxForm
     template_name = "aristotle_mdr/actions/delete_sandbox.html"
 
     def get_success_url(self):
         return reverse('aristotle:userSandbox')
-
-    def get_form_kwargs(self):
-
-        kwargs = super().get_form_kwargs()
-        kwargs.update({'user': self.request.user})
-        return kwargs
 
     def get_initial(self):
         initial = super().get_initial()
@@ -116,7 +99,6 @@ class DeleteSandboxView(FormView):
         return initial
 
     def form_invalid(self, form):
-
         if self.request.is_ajax():
             if 'item' in form.errors:
                 return JsonResponse({'completed': False, 'message': form.errors['item']})
@@ -125,7 +107,10 @@ class DeleteSandboxView(FormView):
 
         return super().form_invalid(form)
 
+    @transaction.atomic()
     def form_valid(self, form):
+        # This probably shouldn't be a transaction, but haystack in its infinite wisdom
+        # requires you pass an instance to delete the search index.
 
         item = form.cleaned_data['item']
         item.delete()
@@ -140,10 +125,10 @@ class SupersedeItemView(UnorderedGenericAlterOneToManyView, ItemSubpageView, Per
     permission_checks = [perms.user_can_supersede]
     model_base = MDR._concept
     model_to_add = MDR.SupersedeRelationship
-    model_base_field = 'superseded_by_items_relation_set'
-    model_to_add_field = 'older_item'
+    model_base_field = 'superseded_items_relation_set'
+    model_to_add_field = 'newer_item'
     form_add_another_text = _('Add a relationship')
-    form_title = _('Change Superseding')
+    form_title = _('Edit Supersedes')
 
     def has_permission(self):
         return perms.user_can_supersede(self.request.user, self.item)
@@ -152,17 +137,43 @@ class SupersedeItemView(UnorderedGenericAlterOneToManyView, ItemSubpageView, Per
         return url_slugify_concept(self.item)
 
     def get_editable_queryset(self):
+        """Get the SupersedeRelationship objects this user can edit"""
+        qs = self.item.superseded_items_relation_set.all()
+
         if self.request.user.is_superuser:
-            return super().get_editable_queryset()
-        return super().get_editable_queryset().filter(
+            return qs
+
+        return qs.filter(
             registration_authority__registrars__profile__user=self.request.user
         )
 
-    def get_form(self):
-        return actions.SupersedeForm
+    def get_form(self, **kwargs):
+        return actions.SupersedeAdminForm
 
     def get_form_kwargs(self):
         return {
             "item": self.item.item,
             "user": self.request.user,
         }
+
+
+class ProposedSupersedeItemView(SupersedeItemView):
+    permission_checks = [perms.user_can_edit]
+    form_title = _('Propose Supersedes')
+    form_add_another_text = _('Add a proposed relationship')
+
+    def get_form(self, **kwargs):
+        return actions.SupersedeForm
+
+    def get_editable_queryset(self):
+        """Get the SupersedeRelationship objects this user can edit"""
+        # Allow user to edit any proposed supersedes for now
+        qs = self.item.superseded_items_relation_set.all()
+        qs = qs.filter(proposed=True)
+        return qs
+
+    def save_formset(self, formset):
+        instances = formset.save(commit=False)
+        for instance in instances:
+            instance.proposed = True
+            instance.save()

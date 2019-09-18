@@ -3,9 +3,10 @@
     app_label: comet
     concept_type: outcomearea
     language: en
-    brief: A statement that specifically defines the target, standard, or the
-        ideal result against which an [[indicator]] is to be assessed.
-    offical_definition: A statement that specifically defines the target,
+    brief: An Outcome Area describes a strategic target or standard for a process or policy
+            that may not be able to be measured directly or efficiently. An Outcome Area may
+            be assesed by performance against a measurable [[Indicator]].
+    official_definition: A statement that specifically defines the target,
         standard, or the ideal result of the indicator against which the
         indicator is to be assessed.
     official_reference: Australia Institute of Health and Welfare

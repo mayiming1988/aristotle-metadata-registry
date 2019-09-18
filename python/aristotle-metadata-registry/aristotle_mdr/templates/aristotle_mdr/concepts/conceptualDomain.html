@@ -1,6 +1,6 @@
 {% extends "aristotle_mdr/concepts/managedContent.html" %}
 
-{% load aristotle_tags %}
+{% load aristotle_tags util_tags %}
 
 {% block type %}conceptualdomain{% endblock %}
 {% block includes %}
@@ -42,8 +42,8 @@
                 <tr>
                     <td>{{ perm.name }}</td>
                     <td>{{ perm.definition }}</td>
-                    <td>{{ perm.start_date|default_if_none:"-" }}</td>
-                    <td>{{ perm.end_date|default_if_none:"-" }}</td>
+                    <td><time datetime="{{ perm.start_date|isotime }}">{{ perm.start_date }}</time></td>
+                    <td><time datetime="{{ perm.end_date|isotime }}">{{ perm.end_date }}</time></td>
                 </tr>
             {% empty %}
                 {% if item|can_edit:request.user %}
@@ -73,7 +73,7 @@
             <ul>
             {% for dec in item.dataelementconcept_set.all|can_view_iter:request.user %}
                 <li>
-                    {% include "aristotle_mdr/helpers/inlineDetails.html" with item=dec %}
+                    {% include "aristotle_mdr/helpers/inlineDetails.html" with item=dec skip_can_view=True %}
                 </li>
             {% empty %}
                 <li><em>None</em></li>
@@ -85,7 +85,7 @@
             <ul>
             {% for vd in item.valuedomain_set.all|can_view_iter:request.user %}
                 <li>
-                    {% include "aristotle_mdr/helpers/inlineDetails.html" with item=vd %}
+                    {% include "aristotle_mdr/helpers/inlineDetails.html" with item=vd skip_can_view=True %}
                 </li>
             {% empty %}
                 <li><em>None</em></li>

@@ -1,0 +1,241 @@
+* {
+    font-size: 10pt;
+    /*font-family: 'Baloo Tamma', serif;*/
+    font-family: 'DejaVu Serif', serif; 
+}
+
+/* Don't add a page break inside a tr */
+tr {
+    break-inside: avoid;
+    /* page-break-inside is deprecated, here for compatibility */
+    page-break-inside: avoid;
+}
+
+.break-after {
+    break-after: always;
+    /* page-break-after is deprecated, here for compatibility */
+    page-break-after: always;
+}
+
+.break-before {
+    break-before: always;
+    /* page-break-before is deprecated, here for compatibility */
+    page-break-before: always;
+}
+
+.pre-line {
+    white-space: pre-line;
+}
+
+.small-svg-container svg {
+    height: 2.5cm;
+    width: 2.5cm;
+}
+
+h1 {
+    border-top:1px solid black;
+    border-bottom:1px solid black;
+    padding:5px;
+}
+
+h2, h3, h4 {
+    border-top:1px solid darkgray;
+    border-left:1px solid darkgray;
+    padding:5px;
+}
+
+header {
+    font-size: 10pt;
+    font-weight: bold;
+    display: block;
+    padding-top: 1em;
+    padding-bottom: 0.5em;
+}
+
+header.minor {
+    font-size: 10pt;
+    font-weight: normal;
+    display: block;
+    padding-top: 1em;
+    padding-bottom: 0.5em;
+}
+
+#supersedes {
+    list-style-type:none;
+    margin-left:0px;
+    float:right;
+}
+
+#supersedes > span {
+    display:table-cell;
+}
+#supersedes ul, #supersedes ol {
+    /*display:inline-block;*/
+    /*list-style-type:none;*/
+    padding:0px;
+    margin:0px;
+}
+
+/*#content .objectSpecific dl {*/
+/*    padding-top:0.25cm;*/
+/*    padding-left:0.5cm;*/
+/*}*/
+
+/*#content .objectSpecific dt {*/
+/*    font-weight:bold;*/
+/*}*/
+
+/*#content .objectSpecific dd {*/
+/*    padding-left:1cm;*/
+/*}*/
+
+/* pandoc does not support first-of
+dt:first-of {
+    padding-top: 0em;
+}
+*/
+
+dt {
+    padding-top: 0.5em;
+    font-weight: bold;
+    font-style: italic;
+}
+dd {
+    padding-left: 2.5em;
+}
+
+dl {
+    padding-left: 0px;
+}
+.main_heading {
+    border-bottom: 1px solid #333;
+}
+
+dl.custom_fields>dd {
+    padding-left: 0px;
+}
+
+a {
+    color: #224;
+}
+
+table.dss_inclusions {
+    border: 1px dotted lightgray;
+    width: 100%;
+    margin-top: 30px;
+    border-collapse: collapse;
+}
+
+table.dss_inclusions td, table.dss_inclusions th {
+    /*border: 1px dotted lightgray;*/
+    border-bottom: 1px solid lightgray;
+    text-align: left;
+    padding:3px;
+}
+
+table.dss_inclusions td {
+    /*font-size:8pt;*/
+}
+
+.dss_inclusion_name {
+    margin-left: 10px;
+}
+
+.dss_inclusion_ref {
+    width: 25px;
+}
+
+.dss_inclusion_html {
+    width: 20%;
+}
+.dss_inclusions .ref {
+    padding-right: 10px;
+}
+.dss_inclusions .padding-0 {
+    padding-left: 10px !important;
+}
+
+.dss_inclusions .padding-1 {
+    padding-left: 25px !important;
+}
+
+.dss_inclusions .padding-2 {
+    padding-left: 40px !important;
+}
+
+.dss_inclusions .padding-3 {
+    padding-left: 55px !important;
+}
+
+.dss_inclusions .padding-4 {
+    padding-left: 70px !important;
+}
+
+.dss_inclusions .padding-5 {
+    padding-left: 85px !important;
+}
+
+.dss_inclusions .padding-6 {
+    padding-left: 100px !important;
+}
+
+.dss_inclusions .padding-7 {
+    padding-left: 115px !important;
+}
+
+.dss_inclusions .padding-8 {
+    padding-left: 130px !important;
+}
+
+.title_page .title_section {
+    padding-top:15em;
+    font-size: 18pt;
+    text-align:center;
+    font-family: sans-serif;
+}
+
+.title_page .main_title {
+    font-size: 18pt;
+    font-weight: bold;
+    padding-bottom: 1em;
+    border-bottom: 1px solid gray;
+    margin-bottom: 1em;
+}
+.title_page .byline {
+    font-size: 14pt;
+}
+.title_page .date.byline {
+    font-size: 14pt;
+}
+
+/*
+ * Unfortunately webkit does not support @page
+ * So this has no effect when using wkhtmltopdf
+ */
+@page {
+    margin: 1cm;
+    margin-bottom: 2cm;
+    padding: 0.5cm;
+    border: 0px solid white;
+}
+
+
+div.bleached-content table {
+    border: 1px solid black;
+    padding: 5px;
+}
+div.bleached-content td {
+    border-right: 1px solid black;
+    border-top: 1px solid black;
+    padding: 3px 5px;
+    font-size: small;
+}
+
+div.bleached-content th {
+    border-right: 1px solid black;
+    padding: 3px 5px;
+    font-size: small;
+}
+div.bleached-content img {
+    max-width: 100%;
+}

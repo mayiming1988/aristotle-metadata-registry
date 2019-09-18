@@ -20,6 +20,13 @@ This table includes the current registration status and date for the item in the
 </a>
 </p>
 
+{% if supersedes %}
+  <div>
+    <strong>The proposed supersedes for this request:</strong>
+    {% include 'aristotle_mdr/helpers/supersedes_display_table.html' with supersedes=supersedes only %}
+  </div>
+{% endif %}
+
 {{ block.super }}
 {% endblock %}
 

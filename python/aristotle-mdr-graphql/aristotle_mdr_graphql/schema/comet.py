@@ -1,24 +1,30 @@
-from graphene import relay
-from aristotle_mdr_graphql.fields import AristotleFilterConnectionField, AristotleConceptFilterConnectionField
-from aristotle_mdr_graphql.types import AristotleObjectType
+from graphene_django.types import DjangoObjectType
 from comet import models as comet_models
-from aristotle_mdr_graphql.utils import type_from_model, type_from_concept_model
+from aristotle_mdr_graphql.utils import get_dynamic_type_node_from_model, get_dynamic_type_node_from_concept_model
+from aristotle_mdr_graphql.fields import AristotleConceptFilterConnectionField
 
-# IndicatorTypeNode = type_from_concept_model(comet_models.IndicatorType)
-IndicatorNode = type_from_concept_model(comet_models.Indicator)
-# IndicatorSetTypeNode = type_from_model(comet_models.IndicatorSetType)
-# IndicatorSetNode = type_from_concept_model(comet_models.IndicatorSet)
-# OutcomeAreaNode = type_from_concept_model(comet_models.OutcomeArea)
-# QualityStatementNode = type_from_concept_model(comet_models.QualityStatement)
-# FrameworkNode = type_from_concept_model(comet_models.Framework)
+IndicatorNode = get_dynamic_type_node_from_concept_model(model=comet_models.Indicator)
+IndicatorSetNode = get_dynamic_type_node_from_concept_model(model=comet_models.IndicatorSet)
+IndicatorInclusionNode = get_dynamic_type_node_from_model(
+    model=comet_models.IndicatorInclusion,
+    interfaces=[],  # We are overriding the default interface.
+    object_type=DjangoObjectType,  # We are also overriding the Object Type.
+)
+OutcomeAreaNode = get_dynamic_type_node_from_concept_model(model=comet_models.OutcomeArea)
+QualityStatementNode = get_dynamic_type_node_from_model(model=comet_models.QualityStatement)
+FrameworkNode = get_dynamic_type_node_from_model(model=comet_models.Framework)
+FrameworkDimensionNode = get_dynamic_type_node_from_model(
+    model=comet_models.FrameworkDimension,
+    meta_kwargs={'exclude_fields': ['lft', 'rght', 'tree_id']},
+)
+IndicatorNumeratorDefinitionNode = get_dynamic_type_node_from_model(model=comet_models.IndicatorNumeratorDefinition)
+IndicatorDenominatorDefinitionNode = get_dynamic_type_node_from_model(model=comet_models.IndicatorDenominatorDefinition)
+IndicatorDisaggregationDefinitionNode = get_dynamic_type_node_from_model(model=comet_models.IndicatorDisaggregationDefinition)
 
 
-class Query(object):
-
-    # indicator_types = AristotleConceptFilterConnectionField(IndicatorTypeNode)
+class Query:
     indicators = AristotleConceptFilterConnectionField(IndicatorNode)
-    # indicator_sets = AristotleConceptFilterConnectionField(IndicatorSetNode)
-    # indicator_set_types = AristotleFilterConnectionField(IndicatorSetTypeNode)
-    # outcome_areas = AristotleConceptFilterConnectionField(OutcomeAreaNode)
-    # quality_statements = AristotleConceptFilterConnectionField(QualityStatementNode)
-    # frameworks = AristotleConceptFilterConnectionField(FrameworkNode)
+    indicator_sets = AristotleConceptFilterConnectionField(IndicatorSetNode)
+    outcome_areas = AristotleConceptFilterConnectionField(OutcomeAreaNode)
+    quality_statements = AristotleConceptFilterConnectionField(QualityStatementNode)
+    frameworks = AristotleConceptFilterConnectionField(FrameworkNode)

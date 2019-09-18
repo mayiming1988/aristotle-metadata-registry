@@ -1,0 +1,10 @@
+{% extends 'aristotle_mdr/base.html' %}
+
+{% block content %}
+    <h1>Download Options</h1>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% include 'aristotle_mdr/helpers/fancy_table_form.html' with form=form %}
+        <button class='btn btn-primary'>Download</button>
+    </form>
+{% endblock %}

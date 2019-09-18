@@ -1,0 +1,24 @@
+{% extends "aristotle_mdr/manageditems/base.html" %}
+{% load aristotle_tags util_tags %}
+
+
+{% block objSpecific %}
+    <div>
+        {{ item.definition|bleach }}
+    </div>
+
+    {% comment %}
+    {# Link back to value domains and indicators here #}
+    {% if item.unitofmeasure_set.all %}
+        <h3>Units of Measure using this measure</h3>
+        <ul>
+        {% for uom in item.unitofmeasure_set.all|can_view_iter:request.user %}
+            <li>
+                {% include "aristotle_mdr/helpers/inlineDetails.html" with item=uom skip_can_view=True %}
+            </li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+    {% endcomment %}
+{% endblock %}
+

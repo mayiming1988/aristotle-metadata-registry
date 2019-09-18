@@ -4,19 +4,21 @@ from django.utils.translation import ugettext_lazy as _
 
 import aristotle_mdr.models as MDR
 from aristotle_mdr.contrib.autocomplete import widgets
-from aristotle_mdr.forms.creation_wizards import UserAwareForm
+from aristotle_mdr.forms.creation_wizards import UserAwareForm, UserAwareFormMixin
+
+from aristotle_mdr.forms.utils import StewardOrganisationRestrictedChoicesForm
 
 
 class AddMembers(forms.Form):
-    roles = forms.MultipleChoiceField(
-        label=_("Workgroup roles"),
-        choices=sorted(MDR.Workgroup.roles.items()),
-        widget=forms.CheckboxSelectMultiple
+    role = forms.ChoiceField(
+        label=_("Workgroup role"),
+        choices=sorted(MDR.Workgroup.roles),
+        widget=forms.Select
     )
-    users = forms.ModelMultipleChoiceField(
-        label=_("Select users"),
+    user = forms.ModelChoiceField(
+        label=_("Select user"),
         queryset=get_user_model().objects.filter(is_active=True),
-        widget=widgets.UserAutocompleteSelectMultiple()
+        widget=widgets.UserAutocompleteSelect()
     )
 
     def clean_roles(self):
@@ -26,9 +28,15 @@ class AddMembers(forms.Form):
 
 
 class ChangeWorkgroupUserRolesForm(UserAwareForm):
-    roles = forms.MultipleChoiceField(
-        label=_("Workgroup roles"),
-        choices=sorted(MDR.Workgroup.roles.items()),
-        widget=forms.CheckboxSelectMultiple,
+    role = forms.ChoiceField(
+        label=_("Workgroup role"),
+        choices=sorted(MDR.Workgroup.roles),
+        widget=forms.Select,
         required=False
     )
+
+
+class CreateWorkgroupForm(StewardOrganisationRestrictedChoicesForm):
+    class Meta:
+        model = MDR.Workgroup
+        fields = ['name', 'definition', 'stewardship_organisation']

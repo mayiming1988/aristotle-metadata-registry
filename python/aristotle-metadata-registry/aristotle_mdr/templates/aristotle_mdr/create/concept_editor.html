@@ -1,15 +1,21 @@
+
 {% load i18n aristotle_help static %}
+{% load aristotle_tags util_tags %}
 
 
 {% if form.errors or slots_FormSet.errors or slots_FormSet.non_form_errors %}
     <div class="alert alert-danger">
-    {{ form.errors.as_ul }}
-    {{slots_FormSet.errors.as_ul}}
-    {{slots_FormSet.non_form_errors.as_ul}}
-    {{identifier_FormSet.errors.as_ul}}
-    {{identifier_FormSet.non_form_errors.as_ul}}
+        {{ form.errors.as_ul }}
+        {{slots_FormSet.errors.as_ul}}
+        {{slots_FormSet.non_form_errors.as_ul}}
+        {{identifier_FormSet.errors.as_ul}}
+        {{identifier_FormSet.non_form_errors.as_ul}}
     </div>
 {% endif %}
+
+{% for tabname in invalid_tabs %}
+    <div class="alert alert-danger">An error occurred on the {{ tabname }} tab</div>
+{% endfor %}
 
 <div role="tabpanel">
     <ul class="nav nav-tabs" role="tablist">
@@ -21,24 +27,24 @@
             <a href="#tab_names" aria-controls="profile" role="tab" data-toggle="tab">Names & References</a>
         </li>
         {% if form.object_specific_fields or weak_formsets or through_formsets %}
-        <li role="presentation">
-            <a href="#tab_components" aria-controls="messages" role="tab" data-toggle="tab">{# { model_name|title } #} {% trans 'Components' context 'For making an item' %}</a>
-        </li>
+            <li role="presentation">
+                <a href="#tab_components" aria-controls="messages" role="tab" data-toggle="tab">{# { model_name|title } #} {% trans 'Components' context 'For making an item' %}</a>
+            </li>
         {% endif %}
         {% if show_slots_tab %}
-        <li role="presentation">
-            <a href="#tab_slots" aria-controls="messages" role="tab" data-toggle="tab">{% trans 'Slots' context 'When saving changes to an item' %}</a>
-        </li>
+            <li role="presentation">
+                <a href="#tab_slots" aria-controls="messages" role="tab" data-toggle="tab">{% trans 'Slots' context 'When saving changes to an item' %}</a>
+            </li>
         {% endif %}
         {% if show_id_tab %}
-        <li role="presentation">
-            <a href="#tab_identifiers" aria-controls="messages" role="tab" data-toggle="tab">{% trans 'Identifiers' context 'When saving changes to an item' %}</a>
-        </li>
+            <li role="presentation">
+                <a href="#tab_identifiers" aria-controls="messages" role="tab" data-toggle="tab">{% trans 'Identifiers' context 'When saving changes to an item' %}</a>
+            </li>
         {% endif %}
         {% if form.change_comments %}
-        <li role="presentation">
-            <a href="#tab_changeComments" aria-controls="messages" role="tab" data-toggle="tab">{% trans 'Change message' context 'When saving changes to an item' %}</a>
-        </li>
+            <li role="presentation">
+                <a href="#tab_changeComments" aria-controls="messages" role="tab" data-toggle="tab">{% trans 'Change message' context 'When saving changes to an item' %}</a>
+            </li>
         {% endif %}
         <li role="presentation">
             <a href="#tab_tips" aria-controls="messages" role="tab" data-toggle="tab">{% trans 'Tips and help' context 'creating items' %}</a>
@@ -52,29 +58,29 @@
             </div>
             <div class="fancy_name_version">
                 <div class="wizard_field name">
-                    <span>{{ form.name.label_tag }}</span>
+                    <span>
+                        {{ form.name.label_tag }}
+                        {% field_help_icon model_class 'name' %}
+                    </span>
                     {% if form.name.errors %}
-                    <span class="alert alert-danger">
+                        <span class="alert alert-danger">
                         {{ form.name.errors }}
                     {% endif %}
-                        {{ form.name }}
-                        <div>
-                         {{ form.name.help_text }}
-                        </div>
+                    {{ form.name }}
                     {% if form.name.errors %}
                         </span>
                     {% endif %}
                 </div>
                 <div class="wizard_field version">
-                    <span>{{ form.version.label_tag }}</span>
+                    <span>
+                        {{ form.version.label_tag }}
+                        {% field_help_icon model_class 'version' %}
+                    </span>
                     {% if form.version.errors %}
-                    <span class="alert alert-danger">
+                        <span class="alert alert-danger">
                         {{ form.version.errors }}
                     {% endif %}
                     {{ form.version }}
-                    <div>
-                     {{ form.version.help_text }}
-                    </div>
                     {% if form.version.errors %}
                         </span>
                     {% endif %}
@@ -82,11 +88,11 @@
             </div>
             <div class="wizard_field">
                 <span>{{ form.workgroup.label_tag }}
-                {{ form.workgroup.help_text }}
                 The workgroup responsible for maintaining this metadata item.
+                Leave this blank to save this metadata to your Sandbox.
                 </span>
                 {% if form.workgroup.errors %}
-                <span class="alert alert-danger">
+                    <span class="alert alert-danger">
                     {{ form.workgroup.errors }}
                 {% endif %}
                 {{ form.workgroup }}
@@ -95,7 +101,10 @@
                 {% endif %}
             </div>
             <div class="wizard_field">
-                <span>{{ form.definition.label_tag }} {{ form.definition.help_text }}</span>
+                <span>
+                    {{ form.definition.label_tag }}
+                    {% field_help_icon model_class 'definition' %}
+                </span>
                 {% if form.definition.errors %}
                     <span class="alert alert-danger">
                     {{ form.definition.errors }}
@@ -111,12 +120,14 @@
                 <strong>These fields are optional</strong>
                 but give extra context to this item, so add where appropriate.
             </div>
-
             {% for field in form.concept_fields %}
                 <div class="wizard_field">
-                    <span>{{ field.label_tag }} {{ field.help_text }}</span>
+                    <span>
+                        {{ field.label_tag }}
+                        {% field_help_icon model_class field.name %}
+                    </span>
                     {% if field.errors %}
-                    <span class="alert alert-danger">
+                        <span class="alert alert-danger">
                         {{ field.errors }}
                     {% endif %}
                     {{ field }}
@@ -125,149 +136,237 @@
                     {% endif %}
                 </div>
             {% endfor %}
-        </div>
-        {% if form.object_specific_fields or weak_formsets or through_formsets %}
-        <div role="tabpanel" class="tab-pane" id="tab_components">
-        {% for field in form.object_specific_fields %}
-            {% if forloop.first %}
-            <div class="alert alert-info">
-                <p><strong>These fields are optional</strong>
-                but give extra context to this item, so add where appropriate.
-                </p>
-                <p>Don't worry if you don't fill these out now, these can
-                    be filled in at a later stage.
-                </p>
-            </div>
+            {% if additional_records_active %}
+                {% if recordrelation_FormSet %}
+                    {% with formset=recordrelation_FormSet %}
+                        {{ formset.management_form }}
+                        <table class="form table table-hover">
+                            <thead>
+                            <tr>
+                                <th></th>
+                                <th>{% trans 'Organisation Record Type' %}</th>
+                                <th>{% trans 'Organization Record' %}</th>
+                                <th>{% trans 'Delete' %}</th>
+                            </tr>
+                            </thead>
+                            <tbody id="org_records" class="draggableTable">
+                            {% for recordform in formset.forms %}
+                                <tr class="movablerow">
+                                    <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
+                                        {% for hidden in recordform.hidden_fields %}
+                                            {{ hidden }}
+                                        {% endfor %}
+                                    </td>
+                                    {% for field in recordform.visible_fields %}
+                                        <td>
+                                            {{ field.errors.as_ul }}
+                                            {{ field }}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                        <a class="btn btn-primary add_code_button" formid="org_records">
+                            <i class="fa fa-plus-circle"></i> Add a record</a>
+                    {% endwith %}
+                {% endif %}
             {% endif %}
-            <div class="wizard_field">
-                <span>{{ field.label_tag }} {{ field.help_text }}</span>
-                {% if field.errors %}
-                <span class="alert alert-danger">
-                    {{ field.errors }}
+            {% if reference_links_active %}
+                {% if referencelinks_FormSet %}
+                    {% with formset=referencelinks_FormSet %}
+                        {{ formset.management_form }}
+
+                        <table class="form table table-hover">
+                            <thead>
+                            <tr>
+                                <th></th>
+                                <th>{% trans 'Reference Document' %}</th>
+                                <th>{% trans 'Note' %}</th>
+                                <th>{% trans 'Delete' %}</th>
+                            </tr>
+                            </thead>
+                            <tbody id="metadatareferencelink_set" class="draggableTable">
+                            {% for recordform in formset.forms %}
+                                <tr class="movablerow">
+                                    <td title="Drag to reorder"><i class="fa fa-bars grabber"></i>
+                                        {% for hidden in recordform.hidden_fields %}
+                                            {{ hidden }}
+                                        {% endfor %}
+                                    </td>
+                                    {% for field in recordform.visible_fields %}
+                                        <td>
+                                            {{ field.errors.as_ul }}
+                                            {{ field }}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                        <a class="btn btn-primary add_code_button" formid="metadatareferencelink_set">
+                            <i class="fa fa-plus-circle"></i> Add a record</a>
+                    {% endwith %}
                 {% endif %}
-                {{ field }}
-                {% if field.errors %}
-                    </span>
+            {% endif %}
+        </div>
+
+        {% if form.object_specific_fields or weak_formsets or through_formsets %}
+            <div role="tabpanel" class="tab-pane" id="tab_components">
+                {% for field in form.object_specific_fields %}
+                    {% if forloop.first %}
+                        <div class="alert alert-info">
+                            <p><strong>These fields are optional</strong>
+                                but give extra context to this item, so add where appropriate.
+                            </p>
+                            <p>Don't worry if you don't fill these out now, these can
+                                be filled in at a later stage.
+                            </p>
+                        </div>
+                    {% endif %}
+                    <div class="wizard_field">
+                        <span>
+                            {{ field.label_tag }}
+                            {% field_help_icon model_class field.name %}
+                        </span>
+                        {% if field.errors %}
+                            <span class="alert alert-danger">
+                            {{ field.errors }}
+                        {% endif %}
+                        {{ field }}
+                        {% if field.errors %}
+                            </span>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                {% if weak_formsets %}
+                    {% include 'aristotle_mdr/create/weak_editor.html' with formsets=weak_formsets %}
+                {% endif %}
+                {% if through_formsets %}
+                    {% include 'aristotle_mdr/create/weak_editor.html' with formsets=through_formsets %}
                 {% endif %}
             </div>
-        {% endfor %}
-        {% if weak_formsets %}
-            {% include 'aristotle_mdr/create/weak_editor.html' with formsets=weak_formsets %}
-        {% endif %}
-        {% if through_formsets %}
-            {% include 'aristotle_mdr/create/weak_editor.html' with formsets=through_formsets %}
-        {% endif %}
-        </div>
         {% endif %}
         {% if show_slots_tab %}
-        <div role="tabpanel" class="tab-pane" id="tab_slots">
-            <div class="alert alert-info">
-                <p>Slots can be used to annotate metadata with additional key-value pairs.
-                Below are the slots that have been configured to be used with
-                your registry for this particular metadata type.
-                </p>
+            <div role="tabpanel" class="tab-pane" id="tab_slots">
+                <div class="alert alert-info">
+                    <p>Slots can be used to annotate metadata with additional key-value pairs.
+                        Below are the slots that have been configured to be used with
+                        your registry for this particular metadata type.
+                    </p>
+                </div>
+                {# Slots also displays custom fields #}
+                {% for custom_field in form.custom_fields %}
+                    <div class="wizard_field">
+                        <span>
+                            {{ custom_field.label_tag }}
+{#                            {% custom_field_help_icon model_class custom_field %}#}
+                            {% field_help_icon model_class custom_field.label %}
+                        </span>
+                        {% if custom_field.errors %}
+                            <span class="alert alert-danger">
+                            {{ custom_field.errors }}
+                        {% endif %}
+                        {% if custom_field.name in form.bad_value_custom_fields %}
+                            <div class="alert alert-warning">
+                              An old value is set for this field, if edited the old value will not be reselectable
+                            </div>
+                        {% endif %}
+                        {{ custom_field }}
+                        {% if custom_field.errors %}
+                            </span>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                {% if slots_active %}
+                    {% include 'aristotle_mdr/slots/slots_editor_tab.html' %}
+                {% endif %}
             </div>
-            {% for field in form.custom_fields %}
-              <div class="wizard_field">
-                  <span>{{ field.label_tag }} {{ field.help_text }}</span>
-                  {% if field.errors %}
-                  <span class="alert alert-danger">
-                      {{ field.errors }}
-                  {% endif %}
-                  {{ field }}
-                  {% if field.errors %}
-                      </span>
-                  {% endif %}
-              </div>
-            {% endfor %}
-            {% include 'aristotle_mdr/slots/slots_editor_tab.html' %}
-        </div>
         {% endif %}
         {% if show_id_tab %}
-        <div role="tabpanel" class="tab-pane" id="tab_identifiers">
-            <div class="alert alert-info">
-                <p>Links can be used to annotate metadata with additional key-value pairs.
-                Below are the slots that have been configured to be used with
-                your registry for this particular metadata type.
-                </p>
+            <div role="tabpanel" class="tab-pane" id="tab_identifiers">
+                {% include 'aristotle_mdr/identifiers/identifiers_editor_tab.html' %}
             </div>
-            {% include 'aristotle_mdr/identifiers/identifiers_editor_tab.html' %}
-        </div>
         {% endif %}
 
         {% if form.change_comments %}
-        <div role="tabpanel" class="tab-pane" id="tab_changeComments">
-            <div class="alert alert-info">
-                <p><strong>Leaving a change message is optional.</strong>
-                {% blocktrans %}
-                If it is left blank an automatic messages stating which fields
-                have been changed will be generated on your behalf.
-                </p>
-                <p>However, stating <em>why</em> values in fields have changed
-                can be much more useful than knowing that a field has changed.
-                {% endblocktrans %}
-                </p>
+            <div role="tabpanel" class="tab-pane" id="tab_changeComments">
+                <div class="alert alert-info">
+                    <p><strong>Leaving a change message is optional.</strong>
+                        {% blocktrans %}
+                            If it is left blank an automatic messages stating which fields
+                            have been changed will be generated on your behalf.
+                            </p>
+                            <p>However, stating <em>why</em> values in fields have changed
+                            can be much more useful than knowing that a field has changed.
+                        {% endblocktrans %}
+                        </p>
+                </div>
+                <div class="wizard_field">
+                    {% with field=form.change_comments %}
+                        <span>{{ field.label_tag }} {{ field.help_text }}</span>
+                        {% if field.errors %}
+                            <span class="alert alert-danger">
+                            {{ field.errors }}
+                        {% endif %}
+                    {{ field }}
+                    {% if field.errors %}
+                        </span>
+                    {% endif %}
+                    {% endwith %}
+                </div>
             </div>
-            <div class="wizard_field">
-            {% with field=form.change_comments %}
-                <span>{{ field.label_tag }} {{ field.help_text }}</span>
-                {% if field.errors %}
-                <span class="alert alert-danger">
-                    {{ field.errors }}
-                {% endif %}
-                {{ field }}
-                {% if field.errors %}
-                    </span>
-                {% endif %}
-            {% endwith %}
-            </div>
-        </div>
         {% endif %}
         <div role="tabpanel" class="tab-pane" id="tab_tips">
 
-            <header class='editor'>How to use this creation wizard</header>
+            <header class='editor'>How to use this editor</header>
             <p>
-                This wizard is designed to help you create well-defined,
-                reusable metadata.
-
-                Each tab in this wizard covers metadata for different purposes:
-                <dl>
-                    <dt>Definition</dt>
-                    <dd>The fields in this tab cover the basic definition
-                    of an object fields. <em>Name</em> and <em>Definition</em>
-                    are always required, while <em>Version</em> may be
-                    optional depending on your agency.
-                    </dd>
-                    <dt>Names & References</dt>
-                    <dd>
-                        The fields in this tab are common to all concepts in this registry
-                    and are all optional. Where possible completing fields adds
+                This editor is designed to help you create well-defined,
+                reusable metadata. Each tab in this editor covers metadata for different purposes:
+            </p>
+            <dl>
+                <dt>Definition</dt>
+                <dd>The fields in this tab cover the basic definition
+                    of an object fields. A <em>Name</em> is always required,
+                    while and <em>Definition</em> and <em>Version</em> may be
+                    optional depending on business rules defined by the registry.
+                </dd>
+                <dt>Names & References</dt>
+                <dd>
+                    The fields in this tab are common to all concepts in this registry
+                    and are all optional when saving. Where possible completing fields adds
                     additional context to metadata to make it more discoverable,
-                    complete and resuable.
-                    </dd>
+                    complete and reusable.
+                    <br>
+                    The registry may have additional business rules configured requiring
+                    these fields to be completed before metadata can be endorsed or published.
+                </dd>
+                {% if form.object_specific_fields or weak_formsets or through_formsets %}
                     <dt>{{ model_name|title }} Components</dt>
                     <dd>
-                       The fields in the tab are specific to {{model_name_plural}}
-                       and allow for item specific metadata and relations to be
-                       recorded.
+                        The fields in the tab are specific to <em>{{model_name_plural}}</em>
+                        and allow for item specific metadata and relations to be
+                        recorded.
 
-                       For more information on {{model_name_plural}}, read the
+                        For more information on <em>{{model_name_plural}}</em>, read the
                         <a href="{% url 'aristotle_help:concept_help' app_label model %}">
-                        help page.</a>
+                            help page.</a>
                     </dd>
-                </dl>
-            </p>
+                {% endif %}
+                {% if show_slots_tab %}
+                    <dt>Slots</dt>
+                    <dd>
+                        This tab allows for the storage of additional attributes not captured.
+                        If enabled, this can be used to record additional registry-specified
+                        custom fields.<br>
+                        Users may also have the opportunity to store user-defined content with
+                        a name and value.
+                    </dd>
+                {% endif %}
+            </dl>
 
-            {% if help %}
-                <header>Help on {{ model_name_plural }}</header>
-                <strong>For more information on {{model_name_plural}}, read the
-                <a href="{% url 'aristotle_help:concept_help' app_label model %}">
-                help page.</strong>
-                </a>
-                <p>
-                    {% relink help 'creation_tip' %}
-                </p>
-            {% endif %}
+            {% include 'aristotle_mdr_help/helpers/tips_section.html' %}
         </div>
     </div>
 </div>
+<div v-pre>{% bootstrap_modal "context_help" size='lg' %}</div>

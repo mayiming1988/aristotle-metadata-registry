@@ -1,8 +1,3 @@
-from aristotle_mdr import models as MDR
-from aristotle_mdr import forms as MDRForms
-from aristotle_mdr.perms import user_is_editor
-from aristotle_mdr.utils import url_slugify_concept
-
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist, PermissionDenied
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -13,11 +8,16 @@ from django.utils.decorators import method_decorator
 from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+from django.db import transaction
 
+from aristotle_mdr import models as MDR
+from aristotle_mdr import forms as MDRForms
+from aristotle_mdr.utils import url_slugify_concept
 from aristotle_mdr.contrib.custom_fields.models import CustomField
 from aristotle_mdr.contrib.help.models import ConceptHelp
 from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.utils import (
+    cloud_enabled,
     fetch_aristotle_settings,
     fetch_metadata_apps,
     is_active_module
@@ -27,7 +27,6 @@ from aristotle_mdr.contrib.generic.views import ExtraFormsetMixin
 from formtools.wizard.views import SessionWizardView
 from reversion import revisions as reversion
 
-import re
 import logging
 logger = logging.getLogger(__name__)
 
@@ -52,17 +51,17 @@ def create_item(request, app_label=None, model_name=None):
     if app_label is None:
         models = ContentType.objects.filter(app_label__in=fetch_metadata_apps()).filter(model=model_name)
         if models.count() == 0:
-            raise Http404  # TODO: Throw better, more descriptive error
+            raise Http404
         elif models.count() == 1:
             mod = models.first().model_class()
-        else:  # models.count() > 1:
-            # TODO: make this template
+        else:
+            # Models count is greater than one
             return render(request, "aristotle_mdr/ambiguous_create_request.html", {'models': models})
     else:
         try:
             mod = ContentType.objects.filter(app_label__in=fetch_metadata_apps()).get(app_label=app_label, model=model_name).model_class()
         except ObjectDoesNotExist:
-            raise Http404  # TODO: Throw better, more descriptive error
+            raise Http404
 
     class DynamicAristotleWizard(ConceptWizard):
         model = mod
@@ -70,10 +69,9 @@ def create_item(request, app_label=None, model_name=None):
 
 
 class PermissionWizard(SessionWizardView):
-
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        if not user_is_editor(request.user):
+        if not request.user.is_active:
             raise PermissionDenied
 
         return super().dispatch(request, *args, **kwargs)
@@ -81,15 +79,10 @@ class PermissionWizard(SessionWizardView):
     def get_template_names(self):
         return [self.templates[self.steps.current]]
 
-    def get_form_kwargs(self, step):
+    def get_form_kwargs(self, step=None):
         kwargs = super().get_form_kwargs(step)
         kwargs.update({'user': self.request.user})
         return kwargs
-
-    def help_guide(self, model=None):
-        # Refactored out as part of help changes
-        # TODO: Need to permanently remove
-        return None
 
     def get_context_data(self, form, **kwargs):
         context = super().get_context_data(form=form, **kwargs)
@@ -101,7 +94,9 @@ class PermissionWizard(SessionWizardView):
 
 
 class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
+    """ Concept Wizard is the simple two stage (search, create) Wizard for all types of metadata """
     widgets: dict = {}
+
     templates = {
         "initial": "aristotle_mdr/create/concept_wizard_1_search.html",
         "results": "aristotle_mdr/create/concept_wizard_2_results.html",
@@ -112,8 +107,11 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
         ("results", MDRForms.wizards.Concept_2_Results),
     ]
 
+    additional_records_active = True
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.slots_active = is_active_module('aristotle_mdr.contrib.slots')
 
     def get_form(self, step=None, data=None, files=None):
         if step is None:  # pragma: no cover
@@ -123,28 +121,43 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             duplicates = self.find_duplicates()
             kwargs = self.get_form_kwargs(step)
             kwargs.update({
-                'custom_fields': CustomField.objects.get_for_model(self.model),
+                'custom_fields': CustomField.objects.get_for_model(self.model, user=self.request.user),
                 'data': data,
                 'files': files,
                 'prefix': self.get_form_prefix(step, self.form_list[step]),
                 'initial': self.get_cleaned_data_for_step('initial'),
-                'check_similar': len(similar)>0 or len(duplicates)>0
+                'check_similar': len(similar) > 0 or len(duplicates) > 0
             })
             return MDRForms.wizards.subclassed_wizard_2_Results(self.model)(**kwargs)
         return super().get_form(step, data, files)
 
-    def get_extra_formsets(self, item=None, postdata=None):
+    def get_extra_formsets(self, item=None, postdata=None, clone_item=False):
         extra_formsets = super().get_extra_formsets(item, postdata)
 
-        slots_formset = self.get_slots_formset()(
-            queryset=Slot.objects.none(),
+        if self.slots_active:
+            slots_formset = self.get_slots_formset()(
+                queryset=Slot.objects.none(),
+                data=postdata
+            )
+            extra_formsets.append({
+                'formset': slots_formset,
+                'title': 'Slots',
+                'type': 'slot',
+                'saveargs': None
+            })
+
+        recordrelation_formset = self.get_recordrelations_formset()(
             data=postdata
         )
+        # Override the queryset to restrict to the records the user has permission to view
+        for record_relation_form in recordrelation_formset:
+            record_relation_form.fields['organization_record'].queryset = MDR.OrganizationRecord.objects.visible(
+                self.request.user).order_by('name')
 
         extra_formsets.append({
-            'formset': slots_formset,
-            'title': 'Slots',
-            'type': 'slot',
+            'formset': recordrelation_formset,
+            'title': 'Record Relation',
+            'type': 'record_relation',
             'saveargs': None
         })
 
@@ -165,7 +178,10 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             else:
                 context.update({'similar_items': self.find_similar()})
             context['step_title'] = _('Select or create')
-            context['show_slots_tab'] = is_active_module('aristotle_mdr.contrib.slots') or form.custom_fields
+
+            slots_active = is_active_module('aristotle_mdr.contrib.slots')
+            context['slots_active'] = slots_active
+            context['show_slots_tab'] = slots_active or form.custom_fields
 
             if 'extra_formsets' in kwargs:
                 fslist = kwargs['extra_formsets']
@@ -176,15 +192,26 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             context.update(fscontext)
 
         context.update({'model_name': self.model._meta.verbose_name,
-                        'model_name_plural': self.model._meta.verbose_name_plural,
+                        'model_name_plural': self.model._meta.verbose_name_plural.title,
                         'help': ConceptHelp.objects.filter(
                             app_label=self.model._meta.app_label,
                             concept_type=self.model._meta.model_name
                         ).first(),
+                        'model_class': self.model,
                         'template_name': self.template_name,
-                        'help_guide': self.help_guide(),
                         'current_step': self.steps.current,
+                        'additional_records_active': self.additional_records_active
                         })
+
+        if cloud_enabled():
+            from aristotle_cloud.contrib.custom_help.models import CustomHelp
+            context.update({
+                "custom_help": CustomHelp.objects.filter(
+                    content_type__app_label=self.model._meta.app_label,
+                    content_type__model=self.model._meta.model_name,
+                ).first()
+            })
+
         return context
 
     def get(self, *args, **kwargs):
@@ -205,10 +232,8 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
 
         return super().post(*args, **kwargs)
 
-    @reversion.create_revision()
+    @transaction.atomic()
     def done(self, form_list, **kwargs):
-        reversion.set_user(self.request.user)
-        reversion.set_comment("Added via concept wizard")
         saved_item = None
 
         for form in form_list:
@@ -216,23 +241,31 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
             if saved_item is not None:
                 saved_item.submitter = self.request.user
                 saved_item.save()
-                form.save_custom_fields(saved_item)
-                form.save_m2m()
 
-        if 'results_postdata' in self.request.session:
-            extra_formsets = self.get_extra_formsets(item=self.model, postdata=self.request.session['results_postdata'])
-            formsets_invalid = self.validate_formsets(extra_formsets)
-            if not formsets_invalid:
-                final_formsets = []
-                for info in extra_formsets:
-                    if info['type'] != 'slot':
-                        info['saveargs']['item'] = saved_item
-                    else:
-                        info['formset'].instance = saved_item
-                    final_formsets.append(info)
+                with reversion.create_revision():
+                    reversion.set_user(self.request.user)
+                    reversion.set_comment("Added via concept wizard")
 
-                self.save_formsets(final_formsets)
-            self.request.session.pop('results_postdata')
+                    form.save_custom_fields(saved_item)
+                    form.save_m2m()
+
+                    if 'results_postdata' in self.request.session:
+                        extra_formsets = self.get_extra_formsets(item=self.model,
+                                                                 postdata=self.request.session['results_postdata'])
+                        formsets_invalid = self.validate_formsets(extra_formsets)
+                        if not formsets_invalid:
+                            final_formsets = []
+                            for info in extra_formsets:
+                                if info['saveargs'] is not None:
+                                    info['saveargs']['item'] = saved_item
+                                else:
+                                    info['formset'].instance = saved_item
+                                final_formsets.append(info)
+
+                            self.save_formsets(final_formsets)
+                        self.request.session.pop('results_postdata')
+
+                    saved_item.save()
 
         return HttpResponseRedirect(url_slugify_concept(saved_item))
 
@@ -245,25 +278,28 @@ class ConceptWizard(ExtraFormsetMixin, PermissionWizard):
         self.duplicate_items = self.model.objects.filter(name__iexact=name).public().all()
         return self.duplicate_items
 
-    """
-        Looks for items of a given item type with the given search terms
-    """
     def find_similar(self, model=None):
+        """Looks for items of a given item type with the given search terms"""
+        from aristotle_mdr.forms.search import get_permission_sqs as PSQS, EmptyPermissionSearchQuerySet
+
         if hasattr(self, 'similar_items'):
             return self.similar_items
+
         self.search_terms = self.get_cleaned_data_for_step('initial')
 
-        from aristotle_mdr.forms.search import get_permission_sqs as PSQS
         if model is None:
             model = self.model
 
-        q = PSQS().models(model).auto_query(
-            self.search_terms['definition'] + " " + self.search_terms['name']
-        ).filter(statuses__in=[int(s) for s in [MDR.STATES.standard, MDR.STATES.preferred]])
+        query = self.search_terms['definition'] + " " + self.search_terms['name']
+        if query == " ":
+            return EmptyPermissionSearchQuerySet()
 
-        # .filter(states="Standard")
-        similar = q
+        similar = PSQS().models(model).auto_query(query)\
+            .apply_permission_checks(user=self.request.user)\
+            .filter(statuses__in=[int(s) for s in [MDR.STATES.standard, MDR.STATES.preferred]])[:10]
+
         self.similar_items = similar
+
         return self.similar_items
 
 
@@ -326,10 +362,8 @@ class MultiStepAristotleWizard(PermissionWizard):
                     return self._valuedomain
         return None
 
-    """
-        Looks for items of a given item type with the given search terms
-    """
     def find_similar(self, name, definition, model=None):
+        """Looks for items of a given item type with the given search terms"""
         from aristotle_mdr.forms.search import get_permission_sqs as PSQS
         if model is None:
             model = self.model
@@ -339,10 +373,9 @@ class MultiStepAristotleWizard(PermissionWizard):
         if cached_items:
             return cached_items
 
-        # limit results to 20, as more than this tends to slow down everything.
-        # If a user is getting more than 20 results they probably haven't named things properly
-        # So instead holding everything up, lets return some of what we find and then give them an error message on the wizard template.
-        similar = PSQS().models(model).auto_query(name + " " + definition).apply_permission_checks(user=self.request.user)[:20]
+        # Limit results to 10, as more than this tends to slow down everything.
+        # If a user is getting more than 10 results they probably haven't named things properly
+        similar = PSQS().models(model).auto_query(name + " " + definition).apply_permission_checks(user=self.request.user)[:10]
         self.similar_items[model] = similar
         return similar
 
@@ -413,12 +446,87 @@ class MultiStepAristotleWizard(PermissionWizard):
         context['show_slots_tab'] = False
         return context
 
+    def save_foreignkey_components(self, form_list, oc=None, pr=None, vd=None, dec=None, de=None):
+        """
+        This generic function was created as DE and DECs have a lot of the same underlying components.
+        Depending on the wizard instance class, this list saves foreign key components accordingly.
+        :param form_list: List of foreign key forms to preform dynamic saving of foreign key fields.
+        :param oc: Object Class form.
+        :param pr: Property form.
+        :param vd: Value Domain form.
+        :param dec: Data Element Concept form.
+        :param de: Data Element form.
+        :return: Dictionary containing a Data Element object OR a Data Element Concept object.
+        """
+        for form in form_list:
+            saved_item = form.save(commit=False)
+            if saved_item is not None:
+                saved_item.submitter = self.request.user
+                saved_item.save()
+            if type(saved_item) == MDR.Property:
+                pr = saved_item
+                messages.success(
+                    self.request,
+                    mark_safe(_("New Property '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
+                        url=url_slugify_concept(saved_item),
+                        name=saved_item.name, id=saved_item.id
+                    ))
+                )
+            if type(saved_item) == MDR.ObjectClass:
+                oc = saved_item
+                messages.success(
+                    self.request,
+                    mark_safe(_("New Object Class '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
+                        url=url_slugify_concept(saved_item),
+                        name=saved_item.name, id=saved_item.id
+                    ))
+                )
+            if type(saved_item) == MDR.DataElementConcept:
+                dec = saved_item
+                messages.success(
+                    self.request,
+                    mark_safe(_("New Data Element Concept '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
+                        url=url_slugify_concept(saved_item),
+                        name=saved_item.name, id=saved_item.id
+                    ))
+                )
+            if type(saved_item) == MDR.ValueDomain:
+                vd = saved_item
+                messages.success(
+                    self.request,
+                    mark_safe(_("New ValueDomain '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
+                        url=url_slugify_concept(saved_item),
+                        name=saved_item.name, id=saved_item.id
+                    ))
+                )
+            if type(saved_item) == MDR.DataElement:
+                de = saved_item
+                messages.success(
+                    self.request,
+                    mark_safe(_("New Data Element '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
+                        url=url_slugify_concept(saved_item),
+                        name=saved_item.name, id=saved_item.id
+                    ))
+                )
+
+        if dec is not None:
+            dec.objectClass = oc
+            dec.property = pr
+            dec.save()
+
+        if de is not None:
+            de.dataElementConcept = dec
+            de.valueDomain = vd
+            de.save()
+
+        return {"dec": dec, "de": de}
+
 
 class DataElementConceptWizard(MultiStepAristotleWizard):
     __doc__ = _(
         "This wizard steps a user through creating a Data Element Concept, "
-        "as well as helping reuse or create the Object Class and Property to "
-        "accurately describe the new Data Element Concept."
+        "by reusing or creating the component parts required "
+        "- an Object Class and a Property."
     )
 
     model = MDR.DataElementConcept
@@ -447,15 +555,17 @@ class DataElementConceptWizard(MultiStepAristotleWizard):
     def get_data_element_concept(self):
         if hasattr(self, '_data_element_concept'):
             return self._data_element_concept
+
         oc = self.get_object_class()
         pr = self.get_property()
+
         if oc and pr:
-            self._data_element_concept = MDR.DataElementConcept.objects.filter(objectClass=oc, property=pr).visible(self.request.user)
+            self._data_element_concept = MDR.DataElementConcept.objects.filter(objectClass=oc, property=pr).visible(self.request.user).order_by('-created')[:10]
             return self._data_element_concept
         else:
             return []
 
-    def get_form_kwargs(self, step):
+    def get_form_kwargs(self, step=None):
         # determine the step if not given
         if step is None:  # pragma: no cover
             step = self.steps.current
@@ -509,18 +619,20 @@ class DataElementConceptWizard(MultiStepAristotleWizard):
         if self.steps.current == 'make_oc':
             context.update({
                 'model_name': MDR.ObjectClass._meta.verbose_name,
-                'help_guide': self.help_guide(MDR.ObjectClass),
+                'model_class': MDR.ObjectClass,
                 })
         if self.steps.current == 'make_p':
             context.update({
                 'model_name': MDR.Property._meta.verbose_name,
-                'help_guide': self.help_guide(MDR.Property),
+                'model_class': MDR.Property,
                 })
         if self.steps.current == 'find_dec_results':
             context.update({
                 'oc_match': self.get_object_class(),
                 'pr_match': self.get_property(),
-                'dec_matches': self.get_data_element_concept()
+                'model_class': MDR.DataElementConcept,
+                'dec_matches': self.get_data_element_concept(),
+                'hide_components_tab': True
                 })
         if self.steps.current == 'completed':
             context.update({
@@ -543,43 +655,9 @@ class DataElementConceptWizard(MultiStepAristotleWizard):
 
         oc = self.get_object_class()
         pr = self.get_property()
-        dec = None
-        for form in form_list:
-            saved_item = form.save(commit=False)
-            if saved_item is not None:
-                saved_item.submitter = self.request.user
-                saved_item.save()
-            if type(saved_item) == MDR.Property:
-                pr = saved_item
-                messages.success(
-                    self.request,
-                    mark_safe(_("New Property '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
-                        url=url_slugify_concept(saved_item),
-                        name=saved_item.name, id=saved_item.id
-                    ))
-                )
-            if type(saved_item) == MDR.ObjectClass:
-                oc = saved_item
-                messages.success(
-                    self.request,
-                    mark_safe(_("New Object Class '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
-                        url=url_slugify_concept(saved_item),
-                        name=saved_item.name, id=saved_item.id
-                    ))
-                )
-            if type(saved_item) == MDR.DataElementConcept:
-                dec = saved_item
-                messages.success(
-                    self.request,
-                    mark_safe(_("New Data Element Concept '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
-                        url=url_slugify_concept(saved_item),
-                        name=saved_item.name, id=saved_item.id
-                    ))
-                )
-        if dec is not None:
-            dec.objectClass = oc
-            dec.property = pr
-            dec.save()
+
+        dec = self.save_foreignkey_components(form_list, oc, pr).get('dec')
+
         return HttpResponseRedirect(url_slugify_concept(dec))
 
 
@@ -598,8 +676,9 @@ def has_valid_data_elements_from_components(wizard):
 class DataElementWizard(MultiStepAristotleWizard):
     __doc__ = _(
         "This wizard steps a user through creating a Data Element, "
-        "as well as helping reuse or create the Value Domain and Data Element Concept - "
-        "as well as the Object Class and Property that complete describe the new Data Element."
+        "by reusing or creating all the components of the Data Element, "
+        "the Value Domain and the Data Element Concept, which is broken down "
+        "further as an Object Class and Property."
     )
 
     model = MDR.DataElement
@@ -699,12 +778,12 @@ class DataElementWizard(MultiStepAristotleWizard):
             dec = results.get('dec_options', None)
         vd = self.get_value_domain()
         if dec and vd:
-            self._data_elements = MDR.DataElement.objects.filter(dataElementConcept=dec, valueDomain=vd).visible(self.request.user)
+            self._data_elements = MDR.DataElement.objects.filter(dataElementConcept=dec, valueDomain=vd).visible(self.request.user).order_by('-created')[:10]
             return self._data_elements
         else:
             return []
 
-    def get_form_kwargs(self, step):
+    def get_form_kwargs(self, step=None):
         # determine the step if not given
         kwargs = super().get_form_kwargs(step)
         if step is None:  # pragma: no cover
@@ -788,6 +867,7 @@ class DataElementWizard(MultiStepAristotleWizard):
             },
             }.get(self.steps.current, {}))
 
+        # Order of the steps make oc make p
         if self.steps.current == 'component_results':
             ocp = self.get_cleaned_data_for_step('component_search')
             context.update({
@@ -798,29 +878,51 @@ class DataElementWizard(MultiStepAristotleWizard):
                 'vd_name': ocp.get('vd_name', ""),
                 'vd_definition': ocp.get('vd_desc', "")
             })
+
+        if self.steps.current == "make_oc":
+            context.update({
+                'model_name': MDR.ObjectClass._meta.verbose_name,
+                'model_class': MDR.ObjectClass,
+                })
+
+        if self.steps.current == "make_p":
+            context.update({
+                'model_name': MDR.Property._meta.verbose_name,
+                'model_class': MDR.Property
+            })
+
         if self.steps.current == 'make_vd':
             context.update({
                 'model_name': MDR.ValueDomain._meta.verbose_name,
-                'help_guide': self.help_guide(MDR.Property),
+                'model_class': MDR.ValueDomain,
                 })
+        if self.steps.current == 'make_dec':
+            context.update({
+                'model_class': MDR.DataElementConcept,
+            })
         if self.steps.current == 'find_dec_results':
             context.update({
                 'oc_match': self.get_object_class(),
                 'pr_match': self.get_property(),
-                'dec_matches': self.get_data_element_concepts()
+                'model_class': MDR.DataElementConcept,
+                'dec_matches': self.get_data_element_concepts(),
+                'hide_components_tab': True
                 })
         if self.steps.current == 'find_de_from_comp':
             context.update({
                 'oc_match': self.get_object_class(),
                 'pr_match': self.get_property(),
                 'vd_match': self.get_value_domain(),
+                'model_class': MDR.DataElement,
                 'de_matches': self.get_data_elements_from_components()
                 })
         if self.steps.current == 'find_de_results':
             context.update({
                 'dec_match': self.get_data_element_concept(),
                 'vd_match': self.get_value_domain(),
-                'de_matches': self.get_data_elements()
+                'de_matches': self.get_data_elements(),
+                'model_class': MDR.DataElement,
+                'hide_components_tab': True
                 })
         if self.steps.current == 'completed':
             context.update({
@@ -875,10 +977,10 @@ class DataElementWizard(MultiStepAristotleWizard):
                 # remove the trailing period as we are going to try to make a sentence
                 dec_desc = dec_desc[:-1]
 
-            SEPARATORS = fetch_aristotle_settings().get('SEPARATORS', {})
+            separators = fetch_aristotle_settings().get('SEPARATORS', {})
 
             initial.update({
-                'name': u"{dec}{separator}{vd}".format(dec=dec_name, separator=SEPARATORS["DataElement"], vd=vd_name),
+                'name': u"{dec}{separator}{vd}".format(dec=dec_name, separator=separators["DataElement"], vd=vd_name),
                 'definition': _(u"<p>{dec}, recorded as {vd}</p> - This was an autogenerated definition.").format(
                     dec=dec_desc, vd=vd_desc
                     )
@@ -894,63 +996,7 @@ class DataElementWizard(MultiStepAristotleWizard):
         pr = self.get_property()
         vd = self.get_value_domain()
         dec = self.get_data_element_concept()
-        de = None
-        for form in form_list:
-            saved_item = form.save(commit=False)
-            if saved_item is not None:
-                saved_item.submitter = self.request.user
-                saved_item.save()
-            if type(saved_item) == MDR.Property:
-                pr = saved_item
-                messages.success(
-                    self.request,
-                    mark_safe(_("New Property '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
-                        url=url_slugify_concept(saved_item),
-                        name=saved_item.name, id=saved_item.id
-                    ))
-                )
-            if type(saved_item) == MDR.ObjectClass:
-                oc = saved_item
-                messages.success(
-                    self.request,
-                    mark_safe(_("New Object Class '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
-                        url=url_slugify_concept(saved_item),
-                        name=saved_item.name, id=saved_item.id
-                    ))
-                )
-            if type(saved_item) == MDR.DataElementConcept:
-                dec = saved_item
-                messages.success(
-                    self.request,
-                    mark_safe(_("New Data Element Concept '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
-                        url=url_slugify_concept(saved_item),
-                        name=saved_item.name, id=saved_item.id
-                    ))
-                )
-            if type(saved_item) == MDR.ValueDomain:
-                vd = saved_item
-                messages.success(
-                    self.request,
-                    mark_safe(_("New ValueDomain '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
-                        url=url_slugify_concept(saved_item),
-                        name=saved_item.name, id=saved_item.id
-                    ))
-                )
-            if type(saved_item) == MDR.DataElement:
-                de = saved_item
-                messages.success(
-                    self.request,
-                    mark_safe(_("New Data Element '{name}' Saved - <a href='{url}'>id:{id}</a>").format(
-                        url=url_slugify_concept(saved_item),
-                        name=saved_item.name, id=saved_item.id
-                    ))
-                )
-        if dec is not None:
-            dec.objectClass = oc
-            dec.property = pr
-            dec.save()
-        if de is not None:
-            de.dataElementConcept = dec
-            de.valueDomain = vd
-            de.save()
+
+        de = self.save_foreignkey_components(form_list, oc, pr, vd, dec).get('de')
+
         return HttpResponseRedirect(url_slugify_concept(de))

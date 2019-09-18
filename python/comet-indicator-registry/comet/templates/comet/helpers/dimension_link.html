@@ -1,0 +1,18 @@
+{% load aristotle_tags %}
+
+{% if item %}
+    {% if skip_can_view or item|can_view:user %}
+        <a class="itemLink" href="{{ item.framework.get_absolute_url }}#dimension_{{item.pk}}">
+            {{ item.framework.name }} &gt;
+            {% for parent in item.get_ancestors %}
+                {{ parent.name }} &gt;
+            {% endfor %}
+            {{ item.name }}
+        </a>
+        {% if showType %}({{ item.get_verbose_name }}){% endif %}
+    {% else %}
+        <em>You dont have permission to view this item</em>
+    {% endif %}
+{% else %}
+    <em>None</em>
+{% endif %}

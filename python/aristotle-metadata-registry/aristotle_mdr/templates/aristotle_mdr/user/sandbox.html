@@ -3,93 +3,103 @@
 {% load render_bundle from webpack_loader %}
 
 {% block extra_head_scripts %}
-<script>
-    delete_submit_url="{% url 'aristotle_mdr:sandbox_delete' %}";
-</script>
+    <script>
+        delete_submit_url="{% url 'aristotle_mdr:sandbox_delete' %}";
+    </script>
 {% endblock %}
 
 {% block webpack_bundle %}
-  {% render_bundle 'sandbox' 'js' %}
+    {% render_bundle 'sandbox' 'js' %}
 {% endblock %}
 
 {% block page %}
-<h1>
-  <i class="fa fa-pencil-square-o fa-fw"></i> {% block title %}{% trans "My Sandbox" %}{% endblock %}
-  <button class="btn btn-primary pull-right" data-toggle="modal" data-target="#share-link-modal">
-    <i class="fa fa-share-square-o fa-fw"></i>{% if not share %}Create {% endif %}Share Link
-  </button>
-</h1>
+    <h1>
+        <i class="fa fa-pencil-square-o fa-fw"></i> {% block title %}{% trans "My Sandbox" %}{% endblock %}
+        <button class="btn btn-primary pull-right" data-toggle="modal" data-target="#share-link-modal">
+            {% if share %}Manage {% else %}Create {% endif %}Share Link <i class="fa fa-share-square-o fa-fw"></i>
+        </button>
+    </h1>
 
-{% if display_share and share %}
-<div class="alert alert-info" role="alert">
-  Your share link is:
-  <span id="share_link_1">{{ host }}{% url 'aristotle_mdr:sharedSandbox' share.uuid %}</span> 
-  <button type="button" class="btn btn-default btn-sm copybutton" data-clipboard-target="#share_link_1">Copy</button>
-</div>
-{% endif %}
-
-<p>
-    Below are all items you have created that have not been registered, requested for review or assigned to a workgroup.
-    Only you can see these items.
-</p>
-
-{# Skipping wcag on these modals due to how headers are rendered in modals #}
-<div id="share-link-modal" class="modal fade exclude-scrap" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <div class="modal-title h4">Share Link</div>
-      </div>
-      <form class="ajaxform" method="POST">
-        <div class="modal-body">
-          {% if share %}
-            <p>
-              Your share link is:
-              <span id="share_link_2">{{ host }}{% url 'aristotle_mdr:sharedSandbox' share.uuid %}</span> 
-              <button type="button" class="btn btn-default btn-sm copybutton" data-clipboard-target="#share_link_2">Copy</button>
-            </p>
-          {% endif %}
-          <div class="alert alert-info" role="alert">
-            Create a link to share your sandbox. Only accounts with emails entered below will be able to use the link
-          </div>
-          <div class="ajax-success-container"></div>
-          {% csrf_token %}
-          {% include 'aristotle_mdr/helpers/fancy_form.html' with form=form %}
+    {% if display_share and share %}
+        <div class="alert alert-info" role="alert">
+            Your share link is:
+            <em><a href="{% url 'aristotle_mdr:sharedSandbox' share.uuid %}"><span id="share_link_1">{{ host }}{% url 'aristotle_mdr:sharedSandbox' share.uuid %}</span></a></em>
+            <button type="button" class="btn btn-sm copybutton" data-clipboard-target="#share_link_1">Copy</button>
+            <br>
+            You are sharing your Sandbox with {{ number_of_accounts_user_is_sharing_with }} user{{ number_of_accounts_user_is_sharing_with|pluralize }}. To control who can see
+            your Sandbox click 'Manage Share Link'.
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary">{% if share %}Update{% else %}Create{% endif %}</button>
+    {% endif %}
+
+    <p>
+        Below are all items you have created that have not been registered, requested for review or assigned to a workgroup.
+        {% if number_of_accounts_user_is_sharing_with == 0 %}
+            Only you can see these items.
+        {% endif %}
+    </p>
+
+    {# Skipping wcag on these modals due to how headers are rendered in modals #}
+    <div id="share-link-modal" class="modal fade exclude-scrap" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <div class="modal-title h4">Share Link</div>
+                </div>
+                <form class="ajaxform" method="POST">
+                    <div class="modal-body">
+                        {% if share %}
+                            <p>
+                                Your share link is:
+                                <em><a href="{% url 'aristotle_mdr:sharedSandbox' share.uuid %}"><span id="share_link_2">{{ host }}{% url 'aristotle_mdr:sharedSandbox' share.uuid %}</span></a></em>
+                                <button type="button" class="btn btn-default btn-sm copybutton" data-clipboard-target="#share_link_2">Copy</button>
+                            </p>
+                        {% endif %}
+                        <div class="alert alert-info" role="alert">
+                            Create a link to share your sandbox. The list of emails displayed below shows the accounts that have permission to access
+                            your sandbox.
+                        </div>
+                        <div class="well well-sm">
+                            <em>Emails that are green have not yet been invited to your Sandbox.
+                                Click {% if shared_emails %}Update{% else %}Create{% endif %} to invite them. </em>
+                        </div>
+                        <div class="ajax-success-container"></div>
+                        {% csrf_token %}
+                        {% include 'aristotle_mdr/helpers/fancy_form.html' with form=form %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="submit" id="submit-button-id" class="btn btn-primary">{% if shared_emails %}Update{% else %}Create{% endif %}</button>
+                    </div>
+                </form>
+            </div>
         </div>
-      </form>
     </div>
-  </div>
-</div>
 
-{% if form.errors %}
-<script>
-  $('#share-link-modal').modal('show')
-</script>
-{% endif %}
+    {% if form.errors %}
+        <script>
+            $('#share-link-modal').modal('show')
+        </script>
+    {% endif %}
 
-<div id="delete-modal" class="modal fade exclude-scrap" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <div class="modal-title h4">Delete</div>
-      </div>
-      <div class="modal-body">
-        <p id="modal-message">...</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-        <button id="delete-confirm-button" type="button" class="btn btn-primary">Ok</button>
-      </div>
+    <div id="delete-modal" class="modal fade exclude-scrap" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <div class="modal-title h4">Delete</div>
+                </div>
+                <div class="modal-body">
+                    <p id="modal-message">...</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button id="delete-confirm-button" type="button" class="btn btn-primary">Ok</button>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-{% include "aristotle_mdr/helpers/bulk_action_paginated_list.html" with allow_select_all=True page=page_obj delete=True %}
+    {% include "aristotle_mdr/helpers/bulk_action_paginated_list.html" with allow_select_all=True page=page_obj delete=True %}
 
 {% endblock %}

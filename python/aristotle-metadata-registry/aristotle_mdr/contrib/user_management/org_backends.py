@@ -8,15 +8,16 @@ from django.shortcuts import redirect, render
 from django.views.generic import FormView
 from django.template import loader
 
-from organizations.backends.defaults import (InvitationBackend,
-                                             RegistrationBackend)
+from organizations.backends.defaults import (
+    InvitationBackend,
+    RegistrationBackend
+)
 
 from organizations.backends.tokens import RegistrationTokenGenerator
 
 from . import forms
 
 from django.conf import settings
-from django.contrib.auth import authenticate, login
 from django.core.mail import EmailMessage
 from django.utils.translation import ugettext_lazy as _
 
@@ -88,10 +89,7 @@ class BaseAristotleInvitationBackend(InvitationBackend):
             try:
                 user = User.objects.get(email=email)
             except User.DoesNotExist:
-                # TODO break out user creation process
-                user = User.objects.create(
-                    email=email
-                )
+                user = User.objects.create(email=email)
                 user.set_password(User.objects.make_random_password())
                 user.is_active = False
                 user.save()
@@ -121,7 +119,10 @@ class BaseAristotleInvitationBackend(InvitationBackend):
         kwargs.update({
             'sender': sender,
             'user': user,
-            'accept_url_name': 'aristotle-user:' + self.accept_url_name,
+            'accept_url': reverse(
+                'aristotle-user:' + self.accept_url_name,
+                args=[user.pk, self.get_token(user)]
+            ),
             'request': request
         })
 
@@ -152,8 +153,10 @@ class BaseAristotleInvitationBackend(InvitationBackend):
 
 class AristotleInvitationBackend(BaseAristotleInvitationBackend):
 
+    # Notification email currently not used
     notification_subject = 'aristotle_mdr/users_management/newuser/email/notification_subject.txt'
     notification_body = 'aristotle_mdr/users_management/newuser/email/notification_body.html'
+
     invitation_subject = 'aristotle_mdr/users_management/newuser/email/invitation_subject.txt'
     invitation_body = 'aristotle_mdr/users_management/newuser/email/invitation_body.html'
     reminder_subject = 'aristotle_mdr/users_management/newuser/email/reminder_subject.txt'

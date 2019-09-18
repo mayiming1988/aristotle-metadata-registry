@@ -1,3 +1,4 @@
+/* eslint-env node */
 const webpack = require('webpack')
 const path = require('path')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
@@ -30,9 +31,7 @@ module.exports = (config) => {
             }
         },
         files: [
-            // all files ending in "_test"
-            { pattern: 'test/*_test.js', watched: false },
-            { pattern: 'test/**/*_test.js', watched: false }
+            'test/index_test.js'
             // each file acts as entry point for the webpack configuration
         ],
         preprocessors: {
@@ -46,8 +45,10 @@ module.exports = (config) => {
             // webpack watches dependencies
 
             // webpack configuration
+            mode: 'development',
             devtool: 'inline-source-map',
             optimization: {
+                // Don't minimize so that error lines are correct
                 minimize: false
             },
             module: {
@@ -64,7 +65,7 @@ module.exports = (config) => {
                             loader: 'babel-loader',
                             options: {
                                 presets: ['@babel/preset-env'],
-                                plugins: ['istanbul']
+                                plugins: ['istanbul', "@babel/plugin-syntax-dynamic-import"]
                             }
                         }]
                     },
@@ -74,7 +75,11 @@ module.exports = (config) => {
                             'style-loader',
                             'css-loader'
                         ]
-                    }
+                    },
+                    {
+                        test: /\.(woff2?|ttf|eot|svg|png|jpg)$/,
+                        use: 'file-loader'
+                    },
                 ]
             },
             plugins: [

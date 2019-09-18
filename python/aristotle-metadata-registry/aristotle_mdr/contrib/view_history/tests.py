@@ -1,19 +1,14 @@
-from django.conf import settings
 from django.core.management import call_command
 from django.urls import reverse
-from django.test import TestCase, override_settings
+from django.test import TestCase
 
 from django.utils.timezone import now
 import datetime
 
-from reversion import revisions as reversion
 
 from aristotle_mdr.contrib.view_history.models import UserViewHistory
 from aristotle_mdr.models import ObjectClass
 from aristotle_mdr.tests import utils
-from aristotle_mdr.utils import setup_aristotle_test_environment
-
-setup_aristotle_test_environment()
 
 
 class TestViewHistory(utils.LoggedInViewPages, TestCase):

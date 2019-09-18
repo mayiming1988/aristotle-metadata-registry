@@ -3,9 +3,11 @@
     app_label: aristotle_mdr
     concept_type: valuedomain
     language: en
-    brief: A definition of how to record the measurement a particular attribute, either
-        using a coded list of values or a description of the possible values.
-    offical_definition: a set of Permissible Values
+    brief: A Value Domain describes how to record the measurement of a particular type of data,
+        either using a coded list of values or a description of the possible values.
+        Value Domains can be linked to [[Data Element|s]] that all share a common way of recording
+        data, and its values can be linked to a [[Conceptual Domain]] to provide additional context.
+    official_definition: a set of Permissible Values
     official_reference: ISO/IEC 11179 - Clause 3.2.140
     official_link: 
     body: >

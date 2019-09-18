@@ -1,0 +1,43 @@
+{% extends "aristotle_mdr/downloads/html/inline/managedContent.html" %}
+{% load util_tags %}
+
+{% block objSpecific %}
+<dt style="main_heading">Components</dt>
+<dd><dl>
+    {% if item.dataElementConcept_id %}
+      <dt>Data Element Concept -
+          {% lookup subitems "aristotle_mdr.dataelementconcept" item.dataElementConcept_id as dec %}
+          {% include "aristotle_mdr/helpers/itemLink.html" with item=dec %}
+      </dt>
+      <dd>
+          {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=dec name=False %}
+          <dl class="additionaldetails">
+              {% if dec.objectClass_id %}
+                <dt>Object Class</dt>
+                <dd>
+                    {% lookup subitems "aristotle_mdr.objectclass" dec.objectClass_id as oc %}
+                    {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=oc %}
+                </dd>
+              {% endif %}
+              {% if dec.property_id %}
+                <dt>Property</dt>
+                <dd>
+                    {% lookup subitems "aristotle_mdr.property" dec.property_id as prop %}
+                    {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=prop %}
+                </dd>
+              {% endif %}
+          </dl>
+      </dd>
+    {% endif %}
+    {% if item.valueDomain_id %}
+      <dt>Value Domain -
+          {% lookup subitems "aristotle_mdr.valuedomain" item.valueDomain_id as vd %}
+          {% include "aristotle_mdr/helpers/itemLink.html" with item=vd %}
+      </dt>
+      <dd>
+          {% include "aristotle_mdr/downloads/html/helpers/inlineDetails.html" with item=vd name=False %}
+          {# % include "aristotle_mdr/downloads/html/inline/valueDomainRepresentation.html" with item=item.valueDomain % #}
+      </dd>
+    {% endif %}
+</dl></dd>
+{% endblock %}

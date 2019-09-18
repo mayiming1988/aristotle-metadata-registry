@@ -1,21 +1,21 @@
 <div class="row">
     <div class="col-xs-1">
-    <div class="thumbnail">
-    <img class="img-responsive user-photo" src="{{ comment.author.profile.profile_picture_url }}" alt=""></img>
-    </div><!-- /thumbnail -->
+        <div class="thumbnail">
+            <img class="img-responsive user-photo" src="{{ comment.author.profile.profile_picture_url }}" alt="">
+        </div><!-- /thumbnail -->
     </div><!-- /col-sm-1 -->
-    
+
     <div class="col-sm-8">
-    <div class="panel panel-default">
-    <div class="panel-heading">
-      <strong>{% firstof comment.author.get_short_name comment.author.email %}</strong>
-      <span class="text-muted" title="{{comment.created}}">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <strong>{% firstof comment.author.get_short_name comment.author.email %}</strong>
+                <span class="text-muted" title="{{comment.created}}">
       {{comment.created|naturaltime}}
       </span>
-    </div>
-    <div class="panel-body">
-      {{comment.body|linebreaks}}
-    </div><!-- /panel-body -->
-    </div><!-- /panel panel-default -->
+            </div>
+            <div class="panel-body">
+                {{comment.body|linebreaks}}
+            </div><!-- /panel-body -->
+        </div><!-- /panel panel-default -->
     </div><!-- /col-sm-8 -->
 </div>

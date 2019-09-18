@@ -1,0 +1,61 @@
+{% extends "aristotle_mdr/user/userHome.html" %}
+{% load i18n %}
+
+{% block sidebar %}
+    {% include "aristotle_mdr/user/userSideBar.html" with activeTab='adminTools' %}
+{% endblock %}
+
+{% block page %}
+    <h1>{% block title %}Editing {{model_name}} "{{object.name}}" {% endblock %}</h1>
+    <form action="" method="POST">
+        {% csrf_token %}
+
+        <div class="row">
+            <div class="col-sm-5">
+                <div class="form-group {% if form.stewardship_organisation.errors %}has-error{% endif %}">
+                    <label>Stewardship Organisation</label><br>
+                    <input class="form-control" type="text"
+                        value="{{ object.stewardship_organisation.name }}" readonly=true>
+                    {% if form.stewardship_organisation.errors %}
+                        <div class="alert alert-danger">
+                            {{ form.stewardship_organisation.errors }}
+                        </div>
+                    {% endif %}
+                    <p class="help-block">
+                        The organisation this item belongs to
+                    </p>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="form-group {% if form.name.errors %}has-error{% endif %}">
+                    {{ form.name.label_tag }}<br>
+                    <input class="form-control" id="{{form.name.id_for_label}}" value="{{ form.name.value|default:"" }}" name="name">
+                    {% if form.name.errors %}
+                        <div class="alert alert-danger">
+                            {{ form.name.errors }}
+                        </div>
+                    {% endif %}
+                    <p class="help-block">
+                        {{ form.name.help_text }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group {% if form.definition.errors %}has-error{% endif %}">
+            {{ form.definition.label_tag }}
+            {% if form.definition.errors %}
+                <div class="alert alert-danger">
+                    {{ form.definition.errors }}
+                </div>
+            {% endif %}
+            <p class="help-block">
+                {{ form.definition.help_text }}
+            </p>
+            {{ form.definition }}
+        </div>
+
+        <a href="{% url 'aristotle_mdr:view_managed_item' object.meta.model_name object.pk %}" class="btn btn-default">Cancel</a>
+        <button type="Submit" class="btn btn-primary">Save changes</button>
+    </form>
+{% endblock %}

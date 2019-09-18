@@ -1,112 +1,120 @@
 {% load i18n aristotle_tags util_tags %}
 
 {% if page.has_other_pages %}
-Showing {{ page.start_index }} - {{ page.end_index }} of {{ page.paginator.count }} results.
+    Showing {{ page.start_index }} - {{ page.end_index }} of {{ page.paginator.count }} results.
 {% else %}
-Showing {{ page.paginator.count }} results.
+    Showing {{ page.paginator.count }} results.
 {% endif %}
 
 <table class="table">
-<thead>
+    <thead>
     <tr>
         <th>
-            {% if allow_select_all %}
-            <input title='{% trans "Select all" %}' type="checkbox" id="all_in_queryset" name="all_in_queryset">
-            <input type="hidden" name="qs" value="{{ object_list|register_queryset }}">
+            {# If you want to use the fancy js make sure you render the webpack bundle in your template #}
+                {% if js_select_all %}
+                    {# Don't render anything #}
+                {% elif allow_select_all %}
+                    <input title='{% trans "Select all" %}' type="checkbox" id="all_in_queryset" name="all_in_queryset">
+                    <input type="hidden" name="qs" value="{{ object_list|register_queryset }}">
+                {% endif %}
 
-            {% endif %}
         </th>
         <th></th>
         <th>
+            {# Pagination begins here #}
+
             {% if sort == "name_asc" %}
-            <a href="?{% paginator_get request page.number pop='sort' %}&sort=name_desc"><i class="fa fa-sort-asc"></i></a>
+                <a href="?{% paginator_get request page.number pop='sort' %}&sort=name_desc"><i class="fa fa-sort-asc"></i></a>
             {% elif sort == "name_desc" %}
-            <a href="?{% paginator_get request page.number pop='sort' %}&sort=name_asc"><i class="fa fa-sort-desc"></i></a>
+                <a href="?{% paginator_get request page.number pop='sort' %}&sort=name_asc"><i class="fa fa-sort-desc"></i></a>
             {% else %}
-            <a href="?{% paginator_get request page.number pop='sort' %}&sort=name_desc"><i class="fa fa-sort"></i></a>
+                <a href="?{% paginator_get request page.number pop='sort' %}&sort=name_desc"><i class="fa fa-sort"></i></a>
             {% endif %}
             {% trans 'Name' %}
         </th>
         <th>{% trans 'Details' %}</th>
         <th>{% trans 'Statuses' %}</th>
         <th>
-        {% if sort == "mod_asc" %}
-        <a href="?{% paginator_get request page.number pop='sort' %}&sort=mod_desc"><i class="fa fa-sort-asc"></i></a>
-        {% elif sort == "mod_desc" %}
-        <a href="?{% paginator_get request page.number pop='sort' %}&sort=mod_asc"><i class="fa fa-sort-desc"></i></a>
-        {% else %}
-        <a href="?{% paginator_get request page.number pop='sort' %}&sort=mod_desc"><i class="fa fa-sort"></i></a>
-        {% endif %}
-        {% trans 'Last modified' %}</th>
-        {% if delete %}
-          <th>{% trans 'Delete' %}</th>
-        {% endif %}
-
-    </tr>
-</thead>
-<tbody>
-{% with favourites=request.user.profile.favourite_item_pks %}
-    {% for item in page %}
-    <tr>
-        <td>
-          {% if not hide_checkbox %}
-            <input type="checkbox" id="id_items_{{item.id}}" name="items" value="{{item.id}}">
-          {% endif %}
-        </td>
-        <td>
-            {% if item.is_registered %}
-                <i class="fa fa-university fa-fw" title="Registered"></i>
+            {% if sort == "mod_asc" %}
+                <a href="?{% paginator_get request page.number pop='sort' %}&sort=mod_desc"><i class="fa fa-sort-asc"></i></a>
+            {% elif sort == "mod_desc" %}
+                <a href="?{% paginator_get request page.number pop='sort' %}&sort=mod_asc"><i class="fa fa-sort-desc"></i></a>
             {% else %}
-                <i class="fa fa-flag-o fa-fw" title="In progress"></i>
+                <a href="?{% paginator_get request page.number pop='sort' %}&sort=mod_desc"><i class="fa fa-sort"></i></a>
             {% endif %}
-
-            {% if not hide_favourites %}
-              {% if request.user.is_active %}
-              {% with is_favourite=item.id|is_in:favourites %}
-                  <a href="{% url 'aristotle_favourites:toggleFavourite' item.id %}?next={{ request.path }}"
-                      title="{% ternary is_favourite 'Remove from my favourite items' 'Add to my favourite items' %}"
-                      >
-                      {% if is_favourite %}
-                          <i class="fa fa-bookmark fa-fw"></i>
-                      {% else %}
-                          <i class="fa fa-bookmark-o fa-fw"></i>
-                      {% endif %}
-                  </a>
-              {% endwith %}
-              {% endif %}
-            {% endif %}
-        </td>
-        <td>
-        {% include "aristotle_mdr/helpers/itemLink.html" with item=item shared_items=shared_items %}
-        <div class="small" style="white-space: nowrap;">
-        {{ item.item.get_verbose_name }}
-        </div>
-        </td>
-        <td>
-        {% include item.item.list_details_template with item=item %}
-        </td>
-        <td>
-            <ul>
-            {% for s in item.current_statuses %}
-                <li>{{ s.registrationAuthority }}: {{ s.state_name }}</li>
-            {% empty %}
-            <li><em>Unregistered</em></li>
-            {% endfor %}</small>
-            </ul>
-        </td>
-        <td>{{ item.modified }}</td>
+            {% trans 'Last modified' %}</th>
         {% if delete %}
-          <td>
-            <a class="btn btn-default delete-button" href="{% url 'aristotle:sandbox_delete' %}?item={{ item.id }}" data-toggle='modal' data-target='#delete-modal' data-item-id="{{ item.id }}" data-item-name="{{ item.name }}">
-              Delete
-              <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-            </a>
-          </td>
+            <th>{% trans 'Delete' %}</th>
         {% endif %}
+
     </tr>
-    {% endfor %}
-{% endwith %}
-</tbody>
+    </thead>
+
+    {# End pagination #}
+
+    <tbody>
+    {% with favourites=request.user.profile.favourite_item_pks %}
+        {% for item in page %}
+            <tr>
+                <td>
+                    {% if not hide_checkbox %}
+                        <input type="checkbox" id="id_items_{{item.id}}" name="items" value="{{item.id}}">
+                    {% endif %}
+                </td>
+                <td>
+                    {% if item.is_registered %}
+                        <i class="fa fa-university fa-fw" title="Registered"></i>
+                    {% else %}
+                        <i class="fa fa-flag-o fa-fw" title="In progress"></i>
+                    {% endif %}
+
+                    {% if not hide_favourites %}
+                        {% if request.user.is_active %}
+                            {% with is_favourite=item.id|is_in:favourites %}
+                                <a href="{% url 'aristotle_favourites:toggleFavourite' item.id %}?next={{ request.path }}"
+                                   title="{% ternary is_favourite 'Remove from my favourite items' 'Add to my favourite items' %}"
+                                >
+                                    {% if is_favourite %}
+                                        <i class="fa fa-bookmark fa-fw"></i>
+                                    {% else %}
+                                        <i class="fa fa-bookmark-o fa-fw"></i>
+                                    {% endif %}
+                                </a>
+                            {% endwith %}
+                        {% endif %}
+                    {% endif %}
+                </td>
+                <td>
+                    {% include "aristotle_mdr/helpers/itemLink.html" with item=item shared_items=shared_items skip_can_view=skip_can_view %}
+                    <div class="small" style="white-space: nowrap;">
+                        {{ item.item_type_name }}
+                    </div>
+                </td>
+                <td>
+                    {% include item.item.list_details_template with item=item %}
+                </td>
+                <td>
+                    <ul>
+                        {% for s in item.current_statuses %}
+                            <li>{{ s.registrationAuthority }}: {{ s.state_name }}</li>
+                        {% empty %}
+                            <li><em>Unregistered</em></li>
+                        {% endfor %}
+                    </ul>
+                </td>
+                <td><time datetime="{{ item.modified|isotime }}">{{ item.modified }}</time></td>
+                {% if delete %}
+                    <td>
+                        <a class="btn btn-default delete-button" href="{% url 'aristotle:sandbox_delete' %}?item={{ item.id }}" data-toggle='modal' data-target='#delete-modal' data-item-id="{{ item.id }}" data-item-name="{{ item.name }}">
+                            Delete
+                            <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+                        </a>
+                    </td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+    {% endwith %}
+    </tbody>
 </table>
 
 {% include "aristotle_mdr/helpers/paginator.html" with page=page %}

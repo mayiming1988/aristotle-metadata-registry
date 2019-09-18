@@ -1,5 +1,5 @@
 {% extends 'aristotle_mdr/concepts/infobox.html' %}
-{% load i18n %}
+{% load i18n util_tags %}
 
 {% block infobox_list %}
     <dt>{% trans 'Type' context "Object Type" %}</dt>
@@ -7,9 +7,9 @@
     <dt>UUID</dt>
     <dd><span title='{{ item.uuid }}'>{{ item.uuid }}</span></dd>
     <dt>{% trans 'Version Created' %}</dt>
-    <dd>{{ revision.date_created|date:'o-m-d H:i e' }}</dd>
+    <dd>{% timetag revision.date_created %}</dd>
     <dt>{% trans 'Item Created' %}</dt>
-    <dd><time title="{{ item.created|date:'o-m-d' }}" datetime="{{ item.created|date:'c' }}">{{ item.created|date:'o-m-d' }}</time></dd>
+    <dd>{% timetag item.created %}</dd>
     <dt>{% trans 'Workgroup' %}</dt>
     <dd>
       {% if item.workgroup %}
@@ -20,7 +20,7 @@
       {% endif %}
     </dd>
     <hr>
-      <dt>{% trans 'Current Version' %}</dt>
+      <dt>{% trans 'Current Item' %}</dt>
       <dd><a href="{% url 'aristotle:item' current_item.id %}">{{ current_item.name }}</a></dd>
       <dt>{% trans 'Registration' %}</dt>
       <dd><a href="{% url 'aristotle:registrationHistory' item.id %}">{% trans 'View registration history'%}</a></dd>

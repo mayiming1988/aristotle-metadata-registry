@@ -4,28 +4,26 @@ from django.test import TestCase
 from aristotle_mdr.contrib.identifiers import models as ID
 from aristotle_mdr import models as MDR
 from aristotle_mdr.tests import utils
-from aristotle_mdr.utils import url_slugify_concept, setup_aristotle_test_environment
-
-setup_aristotle_test_environment()
+from aristotle_mdr.utils import url_slugify_concept
 
 
 class TestIdentifiers(utils.LoggedInViewPages, TestCase):
 
     def setUp(self):
-        self.jl = MDR.Organization.objects.create(
+        self.jl = MDR.StewardOrganisation.objects.create(
             name="Justice League of America",
-            definition="Fighting for Truth Justice and Liberty"
+            description="Fighting for Truth Justice and Liberty"
         )
-        self.sra = MDR.Organization.objects.create(
+        self.sra = MDR.StewardOrganisation.objects.create(
             name="Super-human Registration Authority",
-            definition="Protecting humans from unregistered mutant activity"
+            description="Protecting humans from unregistered mutant activity"
         )
         self.ns_jla = ID.Namespace.objects.create(
-            naming_authority=self.jl,
+            stewardship_organisation=self.jl,
             shorthand_prefix='jla',
         )
         self.ns_sra = ID.Namespace.objects.create(
-            naming_authority=self.sra,
+            stewardship_organisation=self.sra,
             shorthand_prefix='sra',
         )
         self.meta = MDR.ObjectClass.objects.create(
@@ -50,7 +48,7 @@ class TestIdentifiers(utils.LoggedInViewPages, TestCase):
     def test_identifier_displays(self):
         self.assertEqual(
             str(self.meta_jl_id),
-            "{0}:{1}:{2}".format(self.jl.name, self.meta_jl_id.identifier, self.meta_jl_id.version)
+            "{0}:{1}:{2}".format(self.ns_jla.shorthand_prefix, self.meta_jl_id.identifier, self.meta_jl_id.version)
         )
 
     def test_identifier_redirects(self):

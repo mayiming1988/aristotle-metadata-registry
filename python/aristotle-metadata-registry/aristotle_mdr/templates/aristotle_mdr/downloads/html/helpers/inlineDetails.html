@@ -1,0 +1,34 @@
+{% load aristotle_tags util_tags %}
+
+{% if skip_can_view or item|can_view:user %}
+    {% if item %}
+        <dl>
+            <dt>Name</dt>
+            <dd>
+                {% include "aristotle_mdr/helpers/itemLink.html" with skip_can_view=True %}
+            </dd>
+            <dt>
+                {% firstof infobox_identifier_name "Item ID" %}
+            </dt>
+            <dd>
+                {{item.id}}
+                {% if item.version %}v {{item.version}}{% endif %}
+            </dd>
+            <dt>Definition</dt>
+            <dd>
+                <div class="definition">
+                    {{ item.definition | bleach }}
+                </div>
+            </dd>
+            {% if statuses != False %}
+                <dt>Endorsed by</dt>
+                <dd>
+                    {% include "aristotle_mdr/downloads/html/helpers/statuses.html" with skip_can_view=True current_statuses=current_statuses %}
+                </dd>
+            {% endif %}
+        </dl>
+    {% endif %}
+{% else %}
+    <em>You dont have permission to view this item</em>
+{% endif %}
+

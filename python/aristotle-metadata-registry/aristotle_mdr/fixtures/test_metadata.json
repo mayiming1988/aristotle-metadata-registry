@@ -1,6 +1,26 @@
 [
   {
     "fields": {
+      "description": "Demo Steward Organisation",
+      "name": "Demo",
+      "uuid": "679478a6-221e-11e9-bc03-0242ac130007",
+      "slug": "demo"
+    },
+    "model": "aristotle_mdr.stewardorganisation",
+    "pk": 2
+  },
+  {
+    "fields": {
+      "description": "Second Steward Organisation",
+      "name": "Two",
+      "uuid": "d81db348-d925-4e67-bec3-baf9dc9e2b2f",
+      "slug": "two"
+    },
+    "model": "aristotle_mdr.stewardorganisation",
+    "pk": 3
+  },
+  {
+    "fields": {
       "email": "possum@example.com",
       "short_name": "",
       "full_name": "",
@@ -161,6 +181,7 @@
       "preferred": "",
       "standard": "",
       "qualified": "",
+      "stewardship_organisation": "679478a6-221e-11e9-bc03-0242ac130007",
       "registrars": [
 
       ],
@@ -182,6 +203,7 @@
       "preferred": "",
       "standard": "",
       "qualified": "",
+      "stewardship_organisation": "679478a6-221e-11e9-bc03-0242ac130007",
       "registrars": [
 
       ],
@@ -195,24 +217,50 @@
     "fields": {
       "definition": "",
       "archived": false,
-      "stewards": [
-        4
-      ],
-      "managers": [
-        5
-      ],
+      "uuid": "0cbb0aa2-d289-49c0-8f6e-eb9f053177e6",
+      "stewardship_organisation": "679478a6-221e-11e9-bc03-0242ac130007",
       "name": "Possum Workgroup",
       "created": "2016-05-02T22:23:10.720Z",
-      "submitters": [
-        6
-      ],
-      "modified": "2016-05-02T22:23:12.039Z",
-      "viewers": [
-        3
-      ]
+      "modified": "2016-05-02T22:23:12.039Z"
     },
     "model": "aristotle_mdr.workgroup",
     "pk": 3
+  },
+  {
+    "fields": {
+      "role": "viewer",
+      "user": 3,
+      "group": "0cbb0aa2-d289-49c0-8f6e-eb9f053177e6"
+    },
+    "model": "aristotle_mdr.workgroupmembership",
+    "pk": 1
+  },
+  {
+    "fields": {
+      "role": "submitter",
+      "user": 6,
+      "group": "0cbb0aa2-d289-49c0-8f6e-eb9f053177e6"
+    },
+    "model": "aristotle_mdr.workgroupmembership",
+    "pk": 2
+  },
+  {
+    "fields": {
+      "role": "steward",
+      "user": 4,
+      "group": "0cbb0aa2-d289-49c0-8f6e-eb9f053177e6"
+    },
+    "model": "aristotle_mdr.workgroupmembership",
+    "pk": 3
+  },
+  {
+    "fields": {
+      "role": "manager",
+      "user": 5,
+      "group": "0cbb0aa2-d289-49c0-8f6e-eb9f053177e6"
+    },
+    "model": "aristotle_mdr.workgroupmembership",
+    "pk": 4
   },
   {
     "fields": {
@@ -252,6 +300,19 @@
     },
     "model": "aristotle_mdr._concept",
     "pk": 18
+  },
+  {
+    "fields": {
+      "definition": "A human being.",
+      "_is_locked": false,
+      "stewardship_organisation": "d81db348-d925-4e67-bec3-baf9dc9e2b2f",
+      "created": "2016-05-02T22:23:11.253Z",
+      "modified": "2016-05-02T22:23:11.947Z",
+      "_is_public": false,
+      "name": "Person"
+    },
+    "model": "aristotle_mdr._concept",
+    "pk": 118
   },
   {
     "fields": {
@@ -438,8 +499,6 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -450,8 +509,16 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
-      "responsible_organisation": "",
+      "comments": "",
+      "origin_URI": "",
+      "version": "",
+      "references": ""
+    },
+    "model": "aristotle_mdr.objectclass",
+    "pk": 118
+  },
+  {
+    "fields": {
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -462,8 +529,6 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -474,8 +539,6 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -486,8 +549,6 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -498,8 +559,6 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -510,28 +569,24 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
       "symbol": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
       "references": "",
-      "measure": 3
+      "measure": null
     },
     "model": "aristotle_mdr.unitofmeasure",
     "pk": 16
   },
   {
     "fields": {
-      "submitting_organisation": "",
       "symbol": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
       "references": "",
-      "measure": 3
+      "measure": null
     },
     "model": "aristotle_mdr.unitofmeasure",
     "pk": 17
@@ -539,12 +594,10 @@
   {
     "fields": {
       "unit_of_measure": 17,
-      "submitting_organisation": "",
       "format": "X[XX]",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
-      "data_type": 4,
+      "data_type": null,
       "version": "",
       "references": "",
       "maximum_length": 3,
@@ -557,12 +610,10 @@
   {
     "fields": {
       "unit_of_measure": 17,
-      "submitting_organisation": "",
       "format": "X",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
-      "data_type": 4,
+      "data_type": null,
       "version": "",
       "references": "",
       "maximum_length": 3,
@@ -626,9 +677,7 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
       "objectClass": 19,
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -641,9 +690,7 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
       "objectClass": 19,
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -656,9 +703,7 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
       "objectClass": 19,
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -671,9 +716,7 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
       "objectClass": 19,
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -686,8 +729,6 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
@@ -700,8 +741,6 @@
   },
   {
     "fields": {
-      "submitting_organisation": "",
-      "responsible_organisation": "",
       "comments": "",
       "origin_URI": "",
       "version": "",
