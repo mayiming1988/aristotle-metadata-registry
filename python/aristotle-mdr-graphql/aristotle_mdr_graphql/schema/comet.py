@@ -1,7 +1,7 @@
 from graphene_django.types import DjangoObjectType
 from comet import models as comet_models
 from aristotle_mdr_graphql.utils import get_dynamic_type_node_from_model, get_dynamic_type_node_from_concept_model
-from aristotle_mdr_graphql.fields import AristotleConceptFilterConnectionField
+from aristotle_mdr_graphql.fields import AristotleConceptFilterConnectionField, AristotleFilterConnectionField
 
 IndicatorNode = get_dynamic_type_node_from_concept_model(model=comet_models.Indicator)
 IndicatorSetNode = get_dynamic_type_node_from_concept_model(model=comet_models.IndicatorSet)
@@ -24,6 +24,7 @@ IndicatorDisaggregationDefinitionNode = get_dynamic_type_node_from_model(
 
 
 class Query:
+    framework_dimensions = AristotleFilterConnectionField(FrameworkDimensionNode)
     indicators = AristotleConceptFilterConnectionField(IndicatorNode)
     indicator_sets = AristotleConceptFilterConnectionField(IndicatorSetNode)
     outcome_areas = AristotleConceptFilterConnectionField(OutcomeAreaNode)
