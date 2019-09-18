@@ -10,13 +10,15 @@ from django.db import DEFAULT_DB_ALIAS
 from django.utils.translation import ugettext_lazy as _
 
 from aristotle_mdr.models import (
-    aristotleComponent
+    aristotleComponent,
 )
+from aristotle_mdr import utils
 from aristotle_mdr.contrib.serializers.utils import (
     get_comet_field_serializer_mapping,
     get_dse_field_serializer_mapping,
     get_aristotle_ontology_serializer_mapping,
     construct_change_message_for_validated_data,
+    UUIDRelatedField,
 )
 from aristotle_mdr.contrib.serializers.concept_general_field_subserializers import (
     IdentifierSerializer,
@@ -146,9 +148,9 @@ class ConceptSerializerFactory:
                             'workgroup', 'submitter')
 
         concept_fields = self._get_concept_fields(concept_class)
-        concept_relation_fields = self._get_concept_relation_fields(concept_class)
+        concept_subserialized_relation_fields = self._get_concept_subserialized_relation_fields(concept_class)
 
-        included_fields = concept_fields + concept_relation_fields + universal_fields
+        included_fields = concept_fields + concept_subserialized_relation_fields + universal_fields
 
         # Generate metaclass dynamically
         meta_attrs = {'model': concept_class,
@@ -156,11 +158,18 @@ class ConceptSerializerFactory:
         meta = type('Meta', tuple(), meta_attrs)
 
         serializer_attrs = {}
-        for field_name in concept_relation_fields:
+        for field_name in concept_subserialized_relation_fields:
             if field_name in self.field_subserializer_mapping:
                 # Field is for something that should have it's component fields serialized
                 serializer = self.field_subserializer_mapping[field_name]
                 serializer_attrs[field_name] = serializer
+
+        # Generate UUID related fields for our Serializer class:
+        for field_name in self._get_concept_foreign_keys(concept_class):
+            sub_model = concept_class._meta.get_field(field_name).related_model
+            serializer_attrs[field_name] = UUIDRelatedField(
+                queryset=sub_model.objects.all(), required=False
+            )
 
         serializer_attrs['Meta'] = meta
 
@@ -188,16 +197,17 @@ class ConceptSerializerFactory:
 
         return tuple(fields)
 
-    def _get_concept_relation_fields(self, model_class) -> Tuple:
+    def _get_concept_subserialized_relation_fields(self, model_class) -> Tuple:
         """
-        Internal helper function to get related (Foreign key) fields.
-        :param model_class: Model to get the fields from.
-        :return: Tuple of fields
+        Internal helper function to get related (Foreign key) fields which have a subserializer, and
+        fields that have been added to the class whitelist of allowed fields.
+        :param model_class: Model to get the subserialized fields from.
+        :return: Tuple of fields.
         """
         related_fields = []
 
         for field in model_class._meta.get_fields():
-            if not field.name.startswith('_'):  # Don't serialize internal fields
+            if not field.name.startswith('_'):  # Don't serialize internal fields.
                 if field.is_relation:
                     # Check if the model class is the parent of the item, we don't want to serialize up the chain
                     field_model = field.related_model
@@ -219,6 +229,22 @@ class ConceptSerializerFactory:
                         related_fields.append(self.get_field_name(field))
 
         return tuple([field for field in related_fields if field in self.whitelisted_fields])
+
+    def _get_concept_foreign_keys(self, model_class) -> Tuple:
+        """
+        The purpose of this function is to get the related (Foreign Key) fields from a _concept.
+        :param model_class: Model to get the Foreign Key fields from.
+        :return: Tuple of Foreign Key fields.
+        """
+        related_fields = []
+
+        for field in model_class._meta.get_fields():
+            if not field.name.startswith('_'):  # Don't serialize internal fields.
+                if field.is_relation and field.many_to_one:
+                    if field.name in utils.get_camelcase_names_of_concept_models():
+                        related_fields.append(self.get_field_name(field))
+
+        return tuple([field for field in related_fields])
 
     def generate_deserializer(self, json):
         """ Generate the deserializer """

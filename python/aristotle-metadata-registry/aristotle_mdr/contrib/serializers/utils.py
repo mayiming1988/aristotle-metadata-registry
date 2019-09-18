@@ -1,7 +1,9 @@
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from rest_framework import serializers
 from django.utils.translation import ugettext as _
 from django.utils.text import get_text_list
+from django.utils.encoding import smart_text
 
 
 class SubSerializer(serializers.ModelSerializer):
@@ -97,3 +99,20 @@ def construct_change_message_for_validated_data(validated_data, model=None):
         change_message = _('Changed %s.') % get_text_list(fields_verbose_names, _('and'))
 
     return change_message
+
+
+class UUIDRelatedField(serializers.RelatedField):
+    """
+    UUID Related field for Aristotle Serializer.
+    """
+
+    def to_internal_value(self, data):
+        try:
+            return self.get_queryset().get(uuid=data)
+        except ObjectDoesNotExist:
+            msg = _("UUID `{}` does not match with any existing UUID for "
+                    "this type of metadata object.".format(str(data)))
+            raise ValidationError(msg, code='does not exist')
+
+    def to_representation(self, value):
+        return str(value.uuid)

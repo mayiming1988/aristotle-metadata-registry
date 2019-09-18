@@ -239,7 +239,7 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
             "name": "MY TEST DATA ELEMENT",
             "definition": "DEFINITION FOR MY TEST DATA ELEMENT",
             "origin": "Blah blah...",
-            "valueDomain": self.value_domain_1.id,
+            "valueDomain": str(self.value_domain_1.uuid),
         }
 
         response = self.client.post(
@@ -249,12 +249,28 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
             post_data,
             format='json',
         )
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertDictEqual(
-            {"name": self.value_domain_1.id},
-            {"name": response.data['valueDomain']},
-        )
+        self.assertEqual(str(self.value_domain_1.uuid), response.data['valueDomain'])
         self.assertEqual(post_data['name'], mdr_models.DataElement.objects.last().name)  # Data Element is in db.
+
+    def test_api_list_or_create_metadata_post_request_with_incorrect_uuid(self):
+
+        post_data = {
+            "name": "MY TEST DATA ELEMENT",
+            "definition": "DEFINITION FOR MY TEST DATA ELEMENT",
+            "valueDomain": "e39a9a05-a1f6-4035-8d67-a8334825b735",  # This is an incorrect UUID.
+        }
+
+        response = self.client.post(
+            reverse(
+                'api_v4:metadata:list_or_create_metadata_endpoint_dataelement',
+            ),
+            post_data,
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_api_list_or_create_metadata_post_request_for_data_element_with_subcomponents(self):
 
