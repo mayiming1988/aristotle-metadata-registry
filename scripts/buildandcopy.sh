@@ -138,7 +138,12 @@ if [[ $PYPI -eq 1 ]]; then
         $PIP_CMD install --user twine
     fi
 
-    twine upload ./dist/*
+    TWINE_ARGS="upload"
+    if [[ $DRY -eq 1 ]]; then
+        TWINE_ARGS="$TWINE_ARGS --repository-url https://test.pypi.org/legacy/"
+    fi
+
+    twine $TWINE_ARGS ./dist/*
 fi
 
 echo "Done!"

@@ -165,7 +165,10 @@ matrix:
     - stage: "Deployment"
       name: "Deployment"
       if: branch = master
-      install: skip
+      language: python
+      python: 3.6
+      install:
+        - nvm install 10
       script: ./scripts/buildandcopy.sh --pypi
 
 after_success:
