@@ -73,7 +73,7 @@ About the badges (plus some extras):
     :scale: 100%
     :target: https://readthedocs.org/projects/aristotle-metadata-registry/
 
-.. |coveralls| image:: https://coveralls.io/repos/aristotle-mdr/aristotle-metadata-registry/badge.png?branch=master
+.. |coveralls| image:: https://coveralls.io/repos/github/aristotle-mdr/aristotle-metadata-registry/badge.svg?branch=master
     :alt: Code coverage on coveralls
     :scale: 100%
     :target: https://coveralls.io/r/aristotle-mdr/aristotle-metadata-registry?branch=master
