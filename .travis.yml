@@ -166,7 +166,7 @@ matrix:
       name: "Deployment"
       if: branch = master
       install: skip
-      script: ./scripts/buildandcopy.sh --manual
+      script: ./scripts/buildandcopy.sh --pypi
 
 after_success:
   - ./scripts/coverage_reporter.sh $MODULE
