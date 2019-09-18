@@ -13,7 +13,7 @@ from aristotle_mdr_graphql.types import AristotleConceptObjectType
 
 # ReviewRequestNode = get_dynamic_type_node_from_model(mdr_models.ReviewRequest)
 ConceptNode = get_dynamic_type_node_from_concept_model(model=mdr_models._concept)
-ObjectClassNode = get_dynamic_type_node_from_model(model=mdr_models.ObjectClass)
+ObjectClassNode = get_dynamic_type_node_from_concept_model(model=mdr_models.ObjectClass)
 PropertyNode = get_dynamic_type_node_from_concept_model(model=mdr_models.Property)
 # MeasureNode = get_dynamic_type_node_from_concept_model(model=mdr_models.Measure)
 UnitOfMeasureNode = get_dynamic_type_node_from_concept_model(model=mdr_models.UnitOfMeasure)
