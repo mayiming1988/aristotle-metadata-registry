@@ -19,7 +19,8 @@ FrameworkDimensionNode = get_dynamic_type_node_from_model(
 )
 IndicatorNumeratorDefinitionNode = get_dynamic_type_node_from_model(model=comet_models.IndicatorNumeratorDefinition)
 IndicatorDenominatorDefinitionNode = get_dynamic_type_node_from_model(model=comet_models.IndicatorDenominatorDefinition)
-IndicatorDisaggregationDefinitionNode = get_dynamic_type_node_from_model(model=comet_models.IndicatorDisaggregationDefinition)
+IndicatorDisaggregationDefinitionNode = get_dynamic_type_node_from_model(
+    model=comet_models.IndicatorDisaggregationDefinition)
 
 
 class Query:
