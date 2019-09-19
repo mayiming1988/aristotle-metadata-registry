@@ -169,7 +169,7 @@ class aristotleComponent(models.Model):
 
     # Parent is the parent item of the component
     parent_field_name: str = ''
-    
+
     class Meta:
         abstract = True
 
