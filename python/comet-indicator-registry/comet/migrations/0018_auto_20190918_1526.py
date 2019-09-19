@@ -14,27 +14,52 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='frameworkdimension',
             name='uuid',
-            field=models.UUIDField(default=uuid.uuid1, editable=False, help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries', unique=True),
+            field=models.UUIDField(
+                default=uuid.uuid1,
+                editable=False,
+                help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries',
+                null=True
+            ),
         ),
         migrations.AddField(
             model_name='indicatordenominatordefinition',
             name='uuid',
-            field=models.UUIDField(default=uuid.uuid1, editable=False, help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries', unique=True),
+            field=models.UUIDField(
+                default=uuid.uuid1,
+                editable=False,
+                help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries',
+                null=True
+            ),
         ),
         migrations.AddField(
             model_name='indicatordisaggregationdefinition',
             name='uuid',
-            field=models.UUIDField(default=uuid.uuid1, editable=False, help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries', unique=True),
+            field=models.UUIDField(
+                default=uuid.uuid1,
+                editable=False,
+                help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries',
+                null=True
+            ),
         ),
         migrations.AddField(
             model_name='indicatorinclusion',
             name='uuid',
-            field=models.UUIDField(default=uuid.uuid1, editable=False, help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries', unique=True),
+            field=models.UUIDField(
+                default=uuid.uuid1,
+                editable=False,
+                help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries',
+                null=True
+            ),
         ),
         migrations.AddField(
             model_name='indicatornumeratordefinition',
             name='uuid',
-            field=models.UUIDField(default=uuid.uuid1, editable=False, help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries', unique=True),
+            field=models.UUIDField(
+                default=uuid.uuid1,
+                editable=False,
+                help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries',
+                null=True
+            ),
         ),
         migrations.AlterField(
             model_name='frameworkdimension',

@@ -14,6 +14,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='responsedomain',
             name='uuid',
-            field=models.UUIDField(default=uuid.uuid1, editable=False, help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries', unique=True),
+            field=models.UUIDField(
+                default=uuid.uuid1,
+                editable=False,
+                help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries',
+                null=True
+            ),
         ),
     ]

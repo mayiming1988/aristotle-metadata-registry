@@ -14,26 +14,51 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='dedderivesthrough',
             name='uuid',
-            field=models.UUIDField(default=uuid.uuid1, editable=False, help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries', unique=True),
+            field=models.UUIDField(
+                default=uuid.uuid1,
+                editable=False,
+                help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries',
+                null=True
+            ),
         ),
         migrations.AddField(
             model_name='dedinputsthrough',
             name='uuid',
-            field=models.UUIDField(default=uuid.uuid1, editable=False, help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries', unique=True),
+            field=models.UUIDField(
+                default=uuid.uuid1,
+                editable=False,
+                help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries',
+                null=True
+            ),
         ),
         migrations.AddField(
             model_name='permissiblevalue',
             name='uuid',
-            field=models.UUIDField(default=uuid.uuid1, editable=False, help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries', unique=True),
+            field=models.UUIDField(
+                default=uuid.uuid1,
+                editable=False,
+                help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries',
+                null=True
+            ),
         ),
         migrations.AddField(
             model_name='supplementaryvalue',
             name='uuid',
-            field=models.UUIDField(default=uuid.uuid1, editable=False, help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries', unique=True),
+            field=models.UUIDField(
+                default=uuid.uuid1,
+                editable=False,
+                help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries',
+                null=True
+            ),
         ),
         migrations.AddField(
             model_name='valuemeaning',
             name='uuid',
-            field=models.UUIDField(default=uuid.uuid1, editable=False, help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries', unique=True),
+            field=models.UUIDField(
+                default=uuid.uuid1,
+                editable=False,
+                help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries',
+                null=True
+            ),
         ),
     ]
