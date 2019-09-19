@@ -1,7 +1,6 @@
 from aristotle_mdr.tests.settings.settings import *
 
 INSTALLED_APPS = (
-    'comet',
     'aristotle_mdr_graphql',
     'graphene_django'
 ) + INSTALLED_APPS
