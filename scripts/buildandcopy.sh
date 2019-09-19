@@ -93,7 +93,7 @@ cd ..
 # If aws command not avaliable
 if ! [[ $(command -v aws) ]]; then
     echo "Installing aws cli..."
-    $PIP_CMD install --user awscli
+    $PIP_CMD install awscli
 fi
 
 echo "Collecting bundle static..."
@@ -135,7 +135,7 @@ if [[ $PYPI -eq 1 ]]; then
     # Install twine if command not found
     if [[ -z "$(command -v twine)" ]]; then
         echo "Installing twine..."
-        $PIP_CMD install --user twine
+        $PIP_CMD install twine
     fi
 
     TWINE_ARGS="upload"
