@@ -70,10 +70,12 @@ def get_dynamic_type_node_from_concept_model(**kwargs):
     assert issubclass(kwargs.get("model"), _concept)
 
     if "filterset_class" in kwargs or "object_type" in kwargs:
-        raise ValueError("get_dynamic_type_node_from_concept_model() uses default values for filterset_class and object_type parameters."
-                         "If you need more flexibility please use 'get_dynamic_type_node_from_model()' instead")
+        raise ValueError(
+            "get_dynamic_type_node_from_concept_model() uses default values for filterset_class and object_type parameters."
+            "If you need more flexibility please use 'get_dynamic_type_node_from_model()' instead")
 
-    return get_dynamic_type_node_from_model(filterset_class=ConceptFilterSet, object_type=AristotleConceptObjectType, **kwargs)
+    return get_dynamic_type_node_from_model(filterset_class=ConceptFilterSet, object_type=AristotleConceptObjectType,
+                                            **kwargs)
 
 
 def convert_filter_fields_list_to_dict(filter_fields: FFType) -> Dict[str, List[str]]:
