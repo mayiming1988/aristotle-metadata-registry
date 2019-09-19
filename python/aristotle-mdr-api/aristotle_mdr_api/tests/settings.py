@@ -14,3 +14,7 @@ STATIC_ROOT = '/tmp/staticfiles'
 ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'].append('aristotle_dse')
 
 ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'].append('comet')
+
+INSTALLED_APPS = (
+    'comet',
+) + INSTALLED_APPS
