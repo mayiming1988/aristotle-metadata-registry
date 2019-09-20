@@ -218,7 +218,7 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
             with reversion.revisions.create_revision():
                 if not change_comments:
                     # If there were no change comments made in the form
-                    change_comments = construct_change_message_extra_formsets(request, form, extra_formsets)
+                    change_comments = construct_change_message_extra_formsets(form, extra_formsets)
 
                 reversion.revisions.set_user(request.user)
                 reversion.revisions.set_comment(change_comments)
@@ -314,7 +314,7 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
             item.save()
             with reversion.revisions.create_revision():
                 if not change_comments:
-                    change_comments = construct_change_message_extra_formsets(request, form, extra_formsets)
+                    change_comments = construct_change_message_extra_formsets(form, extra_formsets)
 
                 reversion.revisions.set_user(request.user)
                 reversion.revisions.set_comment(change_comments)

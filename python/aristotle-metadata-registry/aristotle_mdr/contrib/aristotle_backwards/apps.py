@@ -9,6 +9,6 @@ class Config(AristotleExtensionBaseConfig):
     create_page_description = """
         These metadata types provide backwards compatible support to record information
         captured in metadata registries that must conform to Edition 2 of the ISO 11179 standard
-        for metadata registies.
+        for metadata registries.
     """
     create_page_priority = 50

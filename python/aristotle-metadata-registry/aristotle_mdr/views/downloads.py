@@ -108,11 +108,21 @@ class DownloadView(BaseDownloadView):
 class BulkDownloadView(BaseDownloadView):
 
     def get_item_id_list(self):
+        from aristotle_mdr.utils.cached_querysets import get_queryset_from_uuid
         id_strings = self.request.GET.getlist('items')
-        try:
-            ids = [int(id) for id in id_strings]
-        except ValueError:
-            raise Http404
+        qs_uuid = self.request.GET.get('qs')
+
+        if qs_uuid:
+            try:
+                qs = get_queryset_from_uuid(qs_uuid)
+                ids = list(qs.values_list('id', flat=True))
+            except ValueError:
+                raise Http404("Queryset not found")
+        else:
+            try:
+                ids = [int(id) for id in id_strings]
+            except ValueError:
+                raise Http404
 
         return ids
 
@@ -149,6 +159,7 @@ class DownloadStatusView(View):
             'file_details': {}
         }
         if job.ready():
+            logger.critical(job.result)
             if job.state == 'SUCCESS':
                 context['result'] = job.result
             context['is_ready'] = True
@@ -158,30 +169,12 @@ class DownloadStatusView(View):
         return JsonResponse(context)
 
 
-class DownloadOptionsView(FormView):
-    """
-    Form with options before the download
-    """
-
+class DownloadOptionsViewBase(FormView):
     template_name = 'aristotle_mdr/downloads/download_options.html'
-    form_class = DownloadOptionsForm
     session_key = 'download_options'
-
-    def dispatch(self, request, *args, **kwargs):
-        self.download_type = self.kwargs['download_type']
-        self.items = request.GET.getlist('items')
-        if not self.items:
-            raise Http404
-
-        self.download_class = get_download_class(self.download_type)
-        if self.download_class is None:
-            raise Http404
-
-        return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['wrap_pages'] = self.download_class.allow_wrapper_pages
 
         kwargs['no_email'] = False
         if not self.request.user.is_authenticated:
@@ -189,6 +182,27 @@ class DownloadOptionsView(FormView):
             kwargs['no_email'] = True
 
         return kwargs
+
+    def dispatch(self, request, *args, **kwargs):
+        self.download_type = self.kwargs['download_type']
+        self.download_class = get_download_class(self.download_type)
+        if self.download_class is None:
+            raise Http404
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['title'] = self.request.GET.get('title', "")
+        return initial
+
+    def get_success_url(self):
+        if len(self.items) > 1 or self.qs:
+            url = reverse('aristotle:bulk_download', args=[self.download_type])
+            return url + '?' + self.request.GET.urlencode()
+        else:
+            url = reverse('aristotle:download', args=[self.download_type, self.items[0]])
+            return url
 
     def form_valid(self, form):
         cleaned_data = form.cleaned_data
@@ -213,10 +227,45 @@ class DownloadOptionsView(FormView):
         self.request.session[self.session_key] = cleaned_data
         return super().form_valid(form)
 
-    def get_success_url(self):
-        if len(self.items) > 1:
-            url = reverse('aristotle:bulk_download', args=[self.download_type])
-            return url + '?' + self.request.GET.urlencode()
-        else:
-            url = reverse('aristotle:download', args=[self.download_type, self.items[0]])
-            return url
+
+class DownloadOptionsView(DownloadOptionsViewBase):
+    """
+    Form with options before the download
+    """
+    form_class = DownloadOptionsForm
+
+    def dispatch(self, request, *args, **kwargs):
+        self.items = request.GET.getlist('items')
+        self.qs = request.GET.get('qs')
+        if not self.items and not self.qs:
+            raise Http404
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['wrap_pages'] = self.download_class.allow_wrapper_pages
+        return kwargs
+
+    def form_valid(self, form):
+        cleaned_data = form.cleaned_data
+        logger.debug('Cleaned data: {}'.format(cleaned_data))
+
+        if form.wrap_pages:
+            storage_class = get_storage_class()
+            storage = storage_class()
+
+            if self.request.user.is_authenticated:
+                prefix = str(self.request.user.id)
+            else:
+                prefix = 'anon'
+
+            for file_field in ['front_page', 'back_page']:
+                uploaded_file = cleaned_data[file_field]
+                if uploaded_file:
+                    path = '{uid}/{fname}'.format(uid=prefix, fname=uploaded_file.name)
+                    saved_fname = storage.save(path, uploaded_file)
+                    cleaned_data[file_field] = saved_fname
+
+        self.request.session[self.session_key] = cleaned_data
+        return super().form_valid(form)

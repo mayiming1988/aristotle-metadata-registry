@@ -228,7 +228,7 @@ class ListVersionsView(ObjectAPIView):
 
 
 class ListVersionsPermissionsView(ObjectAPIView):
-    "List the version permissions of an item"
+    " List the version permissions of an item "
 
     def get(self, request, *args, **kwargs):
         metadata_item = self.get_object()
@@ -263,7 +263,8 @@ class UpdateVersionPermissionsView(generics.ListAPIView):
         if not user_can_edit(self.request.user, self.item):
             raise PermissionDenied()
         # Get associated versions
-        versions = reversion.models.Version.objects.get_for_object(self.item)
+        versions = reversion.models.Version.objects.filter(object_id=self.item.id)
+
         self.version_ids = [version.pk for version in versions]
 
         return super().dispatch(request, *args, **kwargs)

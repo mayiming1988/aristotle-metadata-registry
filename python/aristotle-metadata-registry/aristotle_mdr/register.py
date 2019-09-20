@@ -19,7 +19,7 @@ from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
 
 from aristotle_mdr.search_indexes import ConceptIndex
-
+from aristotle_mdr.models import _concept
 import aristotle_mdr.search_indexes as search_index
 
 from haystack import connections
@@ -61,6 +61,9 @@ def register_concept_reversions(concept_class, *args, **kwargs):
     follow_classes = kwargs.get('reversion', {}).get('follow_classes', [])
     for cls in follow_classes:
         reversion.register(cls)
+
+    if reversion.is_registered(_concept):
+        reversion.unregister(_concept)
 
 
 def register_concept_search_index(concept_class, *args, **kwargs):

@@ -6,12 +6,12 @@ from setuptools import setup, PackageFinder
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 
-__version_info__ = {
+version_info = {
     'major': 3,
     'minor': 0,
-    'micro': 0,
-    'releaselevel': 'rc',
-    'serial': 37
+    'micro': 1,
+    'releaselevel': 'final',
+    'serial': 0
 }
 
 
@@ -19,20 +19,23 @@ def get_version(release_level=True):
     """
     Return the formatted version information
     """
-    vers = ["%(major)i.%(minor)i.%(micro)i" % __version_info__]
-    if release_level and __version_info__['releaselevel'] != 'final':
-        vers.append('%(releaselevel)s%(serial)i' % __version_info__)
+    vers = ["%(major)i.%(minor)i.%(micro)i" % version_info]
+    if release_level and version_info['releaselevel'] != 'final':
+        vers.append('%(releaselevel)s%(serial)i' % version_info)
     return ''.join(vers)
+
+
+def get_readme():
+    with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
+        return readme.read()
 
 
 __version__ = get_version()
 
 
-with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
-    README = readme.read()
-
-
 class MonoRepoPackageFinder(PackageFinder):
+    """Find python packages within repo"""
+
     @staticmethod
     def _looks_like_package(path):
         """Does a directory look like a package?"""
@@ -112,7 +115,7 @@ class MonoRepoPackageFinder(PackageFinder):
                     continue
                 # Should this package be included?
                 if include(package) and not exclude(package):
-                    yield (package,full_path)
+                    yield (package, full_path)
 
                 # Keep searching subdirectories, as there may be more packages
                 # down there, even if the parent was excluded.
@@ -138,7 +141,7 @@ class MonoRepoPackageFinder(PackageFinder):
                             if isinstance(node, ast.Expr):
                                 c = node.value
                                 for k in getattr(c, "keywords", []):
-                                    if k.arg == "install_requires" and isinstance(k.value, ast.List) :
+                                    if k.arg == "install_requires" and isinstance(k.value, ast.List):
                                         v = ast.literal_eval(k.value)
                                         for v in ast.literal_eval(k.value):
                                             yield(v)
@@ -150,12 +153,12 @@ class MonoRepoPackageFinder(PackageFinder):
 setup(
     name="aristotle-metadata-registry",
     version=__version__,
-    packages=MonoRepoPackageFinder.find("python"), #, exclude="*/"),
+    packages=MonoRepoPackageFinder.find("python"),
     package_dir=MonoRepoPackageFinder.find_dirs("python"),
     include_package_data=True,
     license='Aristotle-MDR Modified BSD Licence',
     description='Aristotle-MDR is an open-source metadata registry as laid out by the requirements of the IEC/ISO 11179:2013 specification.',
-    long_description=README,
+    long_description=get_readme(),
     url='https://github.com/aristotle-mdr/aristotle-metadata-registry',
     author='Samuel Spencer',
     author_email='sam@aristotlemetadata.com',
@@ -182,5 +185,4 @@ setup(
     entry_points={
         'console_scripts': ['aristotle-installer=easy_installer.install:main']
     },
-    # cmdclass={ 'install': InstallLocalPackages }
 )

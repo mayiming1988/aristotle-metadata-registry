@@ -11,19 +11,12 @@ from aristotle_mdr_graphql import resolvers
 from aristotle_mdr_graphql.aristotle_filterset_classes import CollectionFilterSet
 from aristotle_mdr_graphql.types import AristotleConceptObjectType
 
-# ReviewRequestNode = get_dynamic_type_node_from_model(mdr_models.ReviewRequest)
 ConceptNode = get_dynamic_type_node_from_concept_model(model=mdr_models._concept)
-ObjectClassNode = get_dynamic_type_node_from_model(model=mdr_models.ObjectClass)
+ObjectClassNode = get_dynamic_type_node_from_concept_model(model=mdr_models.ObjectClass)
 PropertyNode = get_dynamic_type_node_from_concept_model(model=mdr_models.Property)
-# MeasureNode = get_dynamic_type_node_from_concept_model(model=mdr_models.Measure)
 UnitOfMeasureNode = get_dynamic_type_node_from_concept_model(model=mdr_models.UnitOfMeasure)
 DataTypeNode = get_dynamic_type_node_from_concept_model(model=mdr_models.DataType)
 ConceptualDomainNode = get_dynamic_type_node_from_model(model=mdr_models.ConceptualDomain)
-# ValueMeaningNode = get_dynamic_type_node_from_model(
-#     model=mdr_models.ValueMeaning,
-#     interfaces=[],  # We are overriding the default interface.
-#     object_type=DjangoObjectType,  # We are also overriding the Object Type.
-# )
 PermissibleValueNode = get_dynamic_type_node_from_model(
     model=mdr_models.PermissibleValue,
     interfaces=[],  # We are overriding the default interface.
@@ -35,14 +28,14 @@ SupplementaryValueNode = get_dynamic_type_node_from_model(
     object_type=DjangoObjectType,  # We are also overriding the Object Type.
 )
 WorkgroupNode = get_dynamic_type_node_from_model(model=mdr_models.Workgroup)
-LinkNode = get_dynamic_type_node_from_model(model=link_models.Link,)
-LinkEndNode = get_dynamic_type_node_from_model(model=link_models.LinkEnd,)
-relationNode = get_dynamic_type_node_from_model(model=link_models.Relation,)
-relationRoleNode = get_dynamic_type_node_from_model(model=link_models.RelationRole,)
-OrganizationNode = get_dynamic_type_node_from_model(model=mdr_models.Organization,)
-recordRelationNode = get_dynamic_type_node_from_model(model=mdr_models.RecordRelation,)
-OrganizationRecordNode = get_dynamic_type_node_from_model(model=mdr_models.OrganizationRecord,)
-StewardOrganisationNode = get_dynamic_type_node_from_model(model=mdr_models.StewardOrganisation,)
+LinkNode = get_dynamic_type_node_from_model(model=link_models.Link, )
+LinkEndNode = get_dynamic_type_node_from_model(model=link_models.LinkEnd, )
+relationNode = get_dynamic_type_node_from_model(model=link_models.Relation, )
+relationRoleNode = get_dynamic_type_node_from_model(model=link_models.RelationRole, )
+OrganizationNode = get_dynamic_type_node_from_model(model=mdr_models.Organization, )
+recordRelationNode = get_dynamic_type_node_from_model(model=mdr_models.RecordRelation, )
+OrganizationRecordNode = get_dynamic_type_node_from_model(model=mdr_models.OrganizationRecord, )
+StewardOrganisationNode = get_dynamic_type_node_from_model(model=mdr_models.StewardOrganisation, )
 DataElementConceptNode = get_dynamic_type_node_from_concept_model(model=mdr_models.DataElementConcept)
 dedinputs = get_dynamic_type_node_from_model(
     model=mdr_models.DedInputsThrough,
@@ -73,8 +66,10 @@ ValueDomainNode = get_dynamic_type_node_from_concept_model(
     model=mdr_models.ValueDomain,
     default_resolver=resolvers.ValueDomainResolver(),
 )
-ClassificationSchemeNode = get_dynamic_type_node_from_concept_model(model=aristotle_backwards_models.ClassificationScheme)
-CollectionNode = get_dynamic_type_node_from_model(model=aristotle_steward_models.Collection, filterset_class=CollectionFilterSet)
+ClassificationSchemeNode = get_dynamic_type_node_from_concept_model(
+    model=aristotle_backwards_models.ClassificationScheme)
+CollectionNode = get_dynamic_type_node_from_model(model=aristotle_steward_models.Collection,
+                                                  filterset_class=CollectionFilterSet)
 RepresentationClassNode = get_dynamic_type_node_from_model(model=aristotle_backwards_models.RepresentationClass)
 
 
@@ -84,7 +79,7 @@ class RegistrationAuthorityNode(DjangoObjectType):
     # Lets come back to this one
     class Meta:
         model = mdr_models.RegistrationAuthority
-        interfaces = (graphene.relay.Node, )
+        interfaces = (graphene.relay.Node,)
         filter_fields = ['name']
         default_resolver = resolvers.RegistrationAuthorityResolver()
         exclude_fields = ['status_set']
@@ -96,7 +91,6 @@ class ValueMeaningNode(DjangoObjectType):
 
 
 class Query:
-
     metadata = AristotleConceptFilterConnectionField(
         ConceptNode,
         description="Retrieve a collection of untyped metadata",
@@ -105,15 +99,9 @@ class Query:
     links = AristotleFilterConnectionField(LinkNode)
     link_ends = AristotleFilterConnectionField(LinkEndNode)
     relations = AristotleFilterConnectionField(relationNode)
-    # relation_roles = AristotleFilterConnectionField(relationRoleNode)
-    # organizations = AristotleFilterConnectionField(OrganizationNode)
     registration_authorities = AristotleFilterConnectionField(RegistrationAuthorityNode)
-    # discussion_posts = AristotleFilterConnectionField(DiscussionPostNode)
-    # discussion_comments = AristotleFilterConnectionField(DiscussionCommentNode)
-    # review_requests = AristotleFilterConnectionField(ReviewRequestNode)
     object_classes = AristotleConceptFilterConnectionField(ObjectClassNode)
     properties = AristotleConceptFilterConnectionField(PropertyNode)
-    # measures = AristotleConceptFilterConnectionField(MeasureNode)
     unit_of_measures = AristotleConceptFilterConnectionField(UnitOfMeasureNode)
     data_types = AristotleConceptFilterConnectionField(DataTypeNode)
     conceptual_domains = AristotleConceptFilterConnectionField(ConceptualDomainNode)

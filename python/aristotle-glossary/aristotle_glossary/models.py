@@ -16,7 +16,7 @@ class GlossaryItem(MDR.concept):
     template = "aristotle_glossary/concepts/glossaryItem.html"
     edit_page_excludes = ["index"]
 
-    index = models.ManyToManyField(MDR._concept, blank=True, null=True, related_name="related_glossary_items")
+    index = models.ManyToManyField(MDR._concept, blank=True, related_name="related_glossary_items")
 
     @property
     def relational_attributes(self):

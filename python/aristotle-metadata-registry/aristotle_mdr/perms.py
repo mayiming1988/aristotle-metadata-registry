@@ -221,6 +221,15 @@ def user_can_add_ra_status(user, ra, item):
     return False
 
 
+def user_can_view_statuses_revisions(user, ra):
+    # TODO: We need to implement the user permissions to check the statuses version history.
+    if user.is_anonymous:
+        return False
+    if user.is_superuser:
+        return True
+    return False
+
+
 def user_can_supersede(user, item):
     if user.is_anonymous:
         return False
