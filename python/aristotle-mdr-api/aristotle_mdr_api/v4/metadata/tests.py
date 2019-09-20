@@ -33,10 +33,9 @@ class MetadataRedirectionAPITestCase(BaseAPITestCase):
 
         response = self.client.get(
             reverse(
-                'api_v4:metadata:generic_metadata_serialiser_api_endpoint',
+                'api_v4:metadata:retrieve_update_metadata_endpoint_{}'.format(self.item.item_type.model),
                 kwargs={
                     "item_uuid": self.item.uuid,
-                    "metadata_type": self.item.item_type.model,
                 }
             ),
         )
