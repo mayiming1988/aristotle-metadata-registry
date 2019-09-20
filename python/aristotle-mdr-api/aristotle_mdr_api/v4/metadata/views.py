@@ -29,9 +29,8 @@ class GetMetadataTypeFromUuidAndRedirect(generics.RetrieveAPIView):
 
         return HttpResponseRedirect(
             redirect_to=reverse(
-                "api_v4:metadata:generic_metadata_serialiser_api_endpoint",
+                "api_v4:metadata:retrieve_update_metadata_endpoint_{}".format(slugify(item.item_type.model)),
                 kwargs={
-                    "metadata_type": slugify(item.item_type.model),
                     "item_uuid": item_uuid,
                 }
             )
@@ -85,7 +84,7 @@ class ListCreateMetadataAPIView(generics.ListCreateAPIView):
     permission_classes = (UnAuthenticatedUserCanView,)
 
 
-class UpdateMetadataAPIView(generics.UpdateAPIView):
+class RetrieveUpdateMetadataAPIView(generics.RetrieveUpdateAPIView):
     lookup_field = 'uuid'
     lookup_url_kwarg = 'item_uuid'
     permission_classes = (UnAuthenticatedUserCanView,)

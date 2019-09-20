@@ -4,17 +4,32 @@ from django.db import migrations
 import uuid
 
 
-def gen_uuid(apps, schema_editor):
+def generate_uuids_for_distributiondataelementpath(apps, schema_editor):
+    model = apps.get_model('aristotle_dse', 'distributiondataelementpath')
+    for row in model.objects.all():
+        row.uuid = uuid.uuid1()
+        row.save(update_fields=['uuid'])
 
-    def generate_uuids_for_model(model):
-        for row in model.objects.all():
-            row.uuid = uuid.uuid1()
-            row.save(update_fields=['uuid'])
 
-    generate_uuids_for_model(apps.get_model('aristotle_dse', 'distributiondataelementpath'))
-    generate_uuids_for_model(apps.get_model('aristotle_dse', 'dssclusterinclusion'))
-    generate_uuids_for_model(apps.get_model('aristotle_dse', 'dssdeinclusion'))
-    generate_uuids_for_model(apps.get_model('aristotle_dse', 'dssgrouping'))
+def generate_uuids_for_dssclusterinclusion(apps, schema_editor):
+    model = apps.get_model('aristotle_dse', 'dssclusterinclusion')
+    for row in model.objects.all():
+        row.uuid = uuid.uuid1()
+        row.save(update_fields=['uuid'])
+
+
+def generate_uuids_for_dssdeinclusion(apps, schema_editor):
+    model = apps.get_model('aristotle_dse', 'dssdeinclusion')
+    for row in model.objects.all():
+        row.uuid = uuid.uuid1()
+        row.save(update_fields=['uuid'])
+
+
+def generate_uuids_for_dssgrouping(apps, schema_editor):
+    model = apps.get_model('aristotle_dse', 'dssgrouping')
+    for row in model.objects.all():
+        row.uuid = uuid.uuid1()
+        row.save(update_fields=['uuid'])
 
 
 class Migration(migrations.Migration):
@@ -24,5 +39,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(gen_uuid, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(generate_uuids_for_distributiondataelementpath, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(generate_uuids_for_dssclusterinclusion, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(generate_uuids_for_dssdeinclusion, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(generate_uuids_for_dssgrouping, reverse_code=migrations.RunPython.noop),
     ]

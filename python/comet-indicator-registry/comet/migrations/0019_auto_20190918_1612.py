@@ -4,18 +4,39 @@ from django.db import migrations
 import uuid
 
 
-def gen_uuid(apps, schema_editor):
+def generate_uuids_for_frameworkdimension(apps, schema_editor):
+    model = apps.get_model('comet', 'frameworkdimension')
+    for row in model.objects.all():
+        row.uuid = uuid.uuid1()
+        row.save(update_fields=['uuid'])
 
-    def generate_uuids_for_model(model):
-        for row in model.objects.all():
-            row.uuid = uuid.uuid1()
-            row.save(update_fields=['uuid'])
 
-    generate_uuids_for_model(apps.get_model('comet', 'frameworkdimension'))
-    generate_uuids_for_model(apps.get_model('comet', 'indicatordenominatordefinition'))
-    generate_uuids_for_model(apps.get_model('comet', 'indicatordisaggregationdefinition'))
-    generate_uuids_for_model(apps.get_model('comet', 'indicatorinclusion'))
-    generate_uuids_for_model(apps.get_model('comet', 'indicatornumeratordefinition'))
+def generate_uuids_for_indicatordenominatordefinition(apps, schema_editor):
+    model = apps.get_model('comet', 'indicatordenominatordefinition')
+    for row in model.objects.all():
+        row.uuid = uuid.uuid1()
+        row.save(update_fields=['uuid'])
+
+
+def generate_uuids_for_indicatordisaggregationdefinition(apps, schema_editor):
+    model = apps.get_model('comet', 'indicatordisaggregationdefinition')
+    for row in model.objects.all():
+        row.uuid = uuid.uuid1()
+        row.save(update_fields=['uuid'])
+
+
+def generate_uuids_for_indicatorinclusion(apps, schema_editor):
+    model = apps.get_model('comet', 'indicatorinclusion')
+    for row in model.objects.all():
+        row.uuid = uuid.uuid1()
+        row.save(update_fields=['uuid'])
+
+
+def generate_uuids_for_indicatornumeratordefinition(apps, schema_editor):
+    model = apps.get_model('comet', 'indicatornumeratordefinition')
+    for row in model.objects.all():
+        row.uuid = uuid.uuid1()
+        row.save(update_fields=['uuid'])
 
 
 class Migration(migrations.Migration):
@@ -25,5 +46,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(gen_uuid, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(generate_uuids_for_frameworkdimension, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(generate_uuids_for_indicatordenominatordefinition, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(generate_uuids_for_indicatordisaggregationdefinition, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(generate_uuids_for_indicatorinclusion, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(generate_uuids_for_indicatornumeratordefinition, reverse_code=migrations.RunPython.noop),
     ]

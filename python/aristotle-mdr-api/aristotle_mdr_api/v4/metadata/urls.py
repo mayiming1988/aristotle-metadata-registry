@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 from aristotle_mdr.utils import get_concept_models
 from aristotle_mdr_api.v4.metadata.utils import create_model_api_class_dynamically
-from aristotle_mdr_api.v4.metadata.views import ListCreateMetadataAPIView, UpdateMetadataAPIView
+from aristotle_mdr_api.v4.metadata.views import ListCreateMetadataAPIView, RetrieveUpdateMetadataAPIView
 
 
 def create_metadata_urls_dynamically():
@@ -28,7 +28,7 @@ def create_metadata_urls_dynamically():
             path(model_name + '/<uuid:item_uuid>',
                  create_model_api_class_dynamically(
                      model,
-                     (UpdateMetadataAPIView,)
+                     (RetrieveUpdateMetadataAPIView,)
                  ).as_view(),
                  name='retrieve_update_metadata_endpoint_' + model_name),
         ])
@@ -37,5 +37,4 @@ def create_metadata_urls_dynamically():
 
 urlpatterns = [
     path('<uuid:item_uuid>', views.GetMetadataTypeFromUuidAndRedirect.as_view(), name='get_metadata_type_from_uuid'),
-    path('<str:metadata_type>/uuid/<uuid:item_uuid>', views.GenericMetadataSerialiserAPIView.as_view(), name='generic_metadata_serialiser_api_endpoint'),
 ] + create_metadata_urls_dynamically()
