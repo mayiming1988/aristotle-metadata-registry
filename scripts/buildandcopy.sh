@@ -1,9 +1,11 @@
 #!/bin/bash
 set -e
 PYTHON_CMD="python3"
+PIP_CMD="pip3"
 USAGE="Usage: buildandcopy [--manual] [--dry] [--skip-wp] [--help]"
 
 MANUAL=0
+PYPI=0
 DRY=0
 SKIP_WEBPACK_BUILD=0
 
@@ -13,6 +15,10 @@ for i in $@; do
         "--manual")
             MANUAL=1
             echo "Doing manual deploy"
+            ;;
+        "--pypi")
+            PYPI=1
+            echo "Doing pypi deploy"
             ;;
         "--dry")
             DRY=1
@@ -86,8 +92,8 @@ cd ..
 
 # If aws command not avaliable
 if ! [[ $(command -v aws) ]]; then
-    echo "Installing dependancies..."
-    pip install awscli
+    echo "Installing aws cli..."
+    $PIP_CMD install awscli
 fi
 
 echo "Collecting bundle static..."
@@ -100,6 +106,16 @@ aws s3 cp $COPY_ARGS
 
 cp ./assets/dist/webpack-stats.json ./python/aristotle-metadata-registry/aristotle_mdr/manifests
 
+# Run setup.py if deploying somewhere
+if [[ $MANUAL -eq 1 ]] || [[ $PYPI -eq 1 ]]; then
+    # Clean dist if exists
+    if [[ -e ./dist ]];then
+        rm -r ./dist
+    fi
+    # Run
+    $PYTHON_CMD setup.py sdist bdist_wheel
+fi
+
 if [[ $MANUAL -eq 1 ]]; then
     echo "Doing a manual deploy to s3..."
     # Check manual bucket set
@@ -107,18 +123,27 @@ if [[ $MANUAL -eq 1 ]]; then
         echo "MANUAL_BUCKET_NAME not set"
         exit 1
     fi
-    # Clean dist if exists
-    if [[ -e ./dist ]];then
-        rm -r ./dist
-    fi
-    # Run setup
-    $PYTHON_CMD setup.py bdist_wheel
     # Push to s3
     COPY_ARGS="./dist s3://$MANUAL_BUCKET_NAME --recursive --acl public-read"
     if [[ $DRY -eq 1 ]]; then
         COPY_ARGS="$COPY_ARGS --dryrun"
     fi
     aws s3 cp $COPY_ARGS
+fi
+
+if [[ $PYPI -eq 1 ]]; then
+    # Install twine if command not found
+    if [[ -z "$(command -v twine)" ]]; then
+        echo "Installing twine..."
+        $PIP_CMD install twine
+    fi
+
+    TWINE_ARGS="upload"
+    if [[ $DRY -eq 1 ]]; then
+        TWINE_ARGS="$TWINE_ARGS --repository-url https://test.pypi.org/legacy/"
+    fi
+
+    twine $TWINE_ARGS ./dist/*
 fi
 
 echo "Done!"
