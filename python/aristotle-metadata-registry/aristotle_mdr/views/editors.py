@@ -32,7 +32,7 @@ logger.debug("Logging started for " + __name__)
 
 class ConceptEditFormView(ObjectLevelPermissionRequiredMixin):
     """
-    Base class for editing concepts
+    Base class for editing concepts.
     """
     raise_exception = True
     redirect_unauthenticated_users = True
@@ -200,11 +200,13 @@ class EditItemView(ExtraFormsetMixin, ConceptEditFormView, UpdateView):
         extra_formsets = self.get_extra_formsets(self.item, request.POST)
 
         self.object = self.item
+        item = None
+        change_comments = None
 
         if form.is_valid():
             # Actualize the model, but don't save just yet
             item = form.save(commit=False)
-            change_comments = form.data.get('change_comments', None)
+            change_comments = form.data.get('change_comments')
             form_invalid = False
         else:
             form_invalid = True
@@ -297,10 +299,13 @@ class CloneItemView(ExtraFormsetMixin, ConceptEditFormView, SingleObjectMixin, F
         form = self.get_form()
         extra_formsets = self.get_extra_formsets(self.model, request.POST)
 
+        item = None
+        change_comments = None
+
         if form.is_valid():
             item = form.save(commit=False)
             item.submitter = request.user
-            change_comments = form.data.get('change_comments', None)
+            change_comments = form.data.get('change_comments')
             form_invalid = False
         else:
             form_invalid = True
