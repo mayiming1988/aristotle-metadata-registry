@@ -297,26 +297,26 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         """
         Get all concepts linked from this version that are viewable by the user.
         """
-        ids: List[int]
-        uuids: List[str]
+        ids: List[int] = []
+        uuids: List[str] = []
         for field_name, field in field_data.values():
 
             if self.is_concept_fk(field_name):  # If foreign key to concept
-                self.ids_or_uuids_appender(ids, uuids, field)
+                ids, uuids = self.ids_or_uuids_appender(ids, uuids, field)
 
             if self.is_concept_multiple(field_name) and type(field) == list:  # If reverse fk or many to many of concept
                 for inner_field in field:
-                    self.ids_or_uuids_appender(ids, uuids, inner_field)
+                    ids, uuids = self.ids_or_uuids_appender(ids, uuids, inner_field)
 
             if type(field) == list:
                 for sub_field_data in field:
                     if type(sub_field_data) == dict:
                         for sub_field_name, sub_field in sub_field_data.values():
                             if self.is_concept_fk(sub_field_name):
-                                self.ids_or_uuids_appender(ids, uuids, sub_field)
+                                ids, uuids = self.ids_or_uuids_appender(ids, uuids, sub_field)
                             elif self.is_concept_multiple(sub_field_name) and type(sub_field) == list:
                                 for inner_sub_field in sub_field:
-                                    self.ids_or_uuids_appender(ids, uuids, inner_sub_field)
+                                    ids, uuids = self.ids_or_uuids_appender(ids, uuids, inner_sub_field)
 
         return {
             **MDR._concept.objects.filter(id__in=ids).visible(self.request.user).in_bulk(),
@@ -328,6 +328,7 @@ class ConceptVersionView(VersionsMixin, TemplateView):
             ids_list.append(field)
         if isinstance(field, str):
             uuids_list.append(field)
+        return ids_list, uuids_list
 
     def get_lookup_dict(self, field_data) -> LookupDict:
         """
