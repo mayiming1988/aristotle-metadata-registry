@@ -75,9 +75,6 @@ class TestHelpPagesLoad(TestCase):
             #  tests settings file to match the INSTALLED_APPS.
             if obj.app_label not in ('aristotle_dse', 'aristotle_glossary', 'comet'):
                 response = self.client.get(reverse('aristotle_help:concept_help', args=[obj.app_label, obj.concept_type]))
-                import pdb
-                pdb.set_trace()
-
                 self.assertEqual(response.status_code, 200)
 
         for obj in regular_help:
