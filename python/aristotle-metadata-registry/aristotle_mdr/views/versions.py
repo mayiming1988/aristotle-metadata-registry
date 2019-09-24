@@ -324,6 +324,13 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         }
 
     def ids_or_uuids_appender(self, ids_list, uuids_list, field):
+        """
+        The purpose of this function is to
+        :param ids_list:
+        :param uuids_list:
+        :param field:
+        :return:
+        """
         if isinstance(field, int):
             ids_list.append(field)
         if isinstance(field, str):
