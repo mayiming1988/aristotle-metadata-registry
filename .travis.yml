@@ -79,7 +79,7 @@ matrix:
         DATABASE_URL=postgresql://postgres:@localhost/aristotle_test_db DJANGO_SETTINGS_MODULE=aristotle_mdr.required_settings
       install:
         - pip install -U setuptools pip pipenv
-        - pipenv install
+        - pipenv install --system --deploy
       script: django-admin makemigrations --check
 
     - stage: "Documentation"
