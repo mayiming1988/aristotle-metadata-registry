@@ -107,23 +107,18 @@ def create(cls, set_search_category=None):
 
 
 def register_concept_admin(concept_class, *args, **kwargs):
-    """Registers the given ``concept`` with the Django admin backend based on the default
-    ``aristotle_mdr.admin.ConceptAdmin``.
+    """ .. py:function:: register_concept_admin(concept_class, *args, **kwargs)
 
-    Additional parameters are only required if a model has additional fields or
-    references to other models.
+        Registers the given ``concept`` with the Django admin backend based on the default
+        ``aristotle_mdr.admin.ConceptAdmin``.
 
-    :param boolean auto_fieldsets: If no extra_fieldsets, when set to true this generates a list of fields for the
-    admin page as "Extra fields for [class]"
-    :param concept concept_class: The model that is to be registered
-    :param list extra_fieldsets: Model-specific `fieldsets` to be displayed.
-    Fields in the tuples given should be those *not* defined by the base ``aristotle_mdr.models._concept`` class.
-    For more information please consult:
-    <https://docs.djangoproject.com/en/1.8/ref/contrib/admin/#django.contrib.admin.ModelAdmin.fieldsets>
-    :param list extra_inlines: Model-specific `inline`_ admin forms to be displayed.
-    For more information please consult:
-    <https://docs.djangoproject.com/en/1.8/ref/contrib/admin/#django.contrib.admin.ModelAdmin.inlines>
-    """
+        Additional parameters are only required if a model has additional fields or
+        references to other models.
+
+        :param concept concept_class: The model that is to be registered
+        :param list extra_fieldsets: Model-specific `fieldsets <https://docs.djangoproject.com/en/1.8/ref/contrib/admin/#django.contrib.admin.ModelAdmin.fieldsets>`_ to be displayed. Fields in the tuples given should be those *not* defined by the base ``aristotle_mdr.models._concept``class.
+        :param list extra_inlines: Model-specific `inline <https://docs.djangoproject.com/en/1.8/ref/contrib/admin/#django.contrib.admin.ModelAdmin.inlines>`_ admin forms to be displayed.
+        """
     extra_fieldsets = kwargs.get('extra_fieldsets', [])
     auto_fieldsets = kwargs.get('auto_fieldsets', False)
     extra_inlines = kwargs.get('extra_inlines', [])
