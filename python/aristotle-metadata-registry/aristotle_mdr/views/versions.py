@@ -302,36 +302,32 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         for field_name, field in field_data.values():
 
             if self.is_concept_fk(field_name):  # If foreign key to concept
-                if isinstance(field, int):
-                    ids.append(field)
-                if isinstance(field, str):
-                    uuids.append(field)
+                self.ids_or_uuids_appender(ids, uuids, field)
 
             if self.is_concept_multiple(field_name) and type(field) == list:  # If reverse fk or many to many of concept
-                if isinstance(field, int):
-                    ids.extend(field)
-                if isinstance(field, str):
-                    uuids.extend(field)
+                for inner_field in field:
+                    self.ids_or_uuids_appender(ids, uuids, inner_field)
 
             if type(field) == list:
                 for sub_field_data in field:
                     if type(sub_field_data) == dict:
                         for sub_field_name, sub_field in sub_field_data.values():
                             if self.is_concept_fk(sub_field_name):
-                                if isinstance(field, int):
-                                    ids.append(field)
-                                if isinstance(field, str):
-                                    uuids.append(field)
+                                self.ids_or_uuids_appender(ids, uuids, sub_field)
                             elif self.is_concept_multiple(sub_field_name) and type(sub_field) == list:
-                                if isinstance(field, int):
-                                    ids.extend(field)
-                                if isinstance(field, str):
-                                    uuids.extend(field)
+                                for inner_sub_field in sub_field:
+                                    self.ids_or_uuids_appender(ids, uuids, inner_sub_field)
 
         return {
             **MDR._concept.objects.filter(id__in=ids).visible(self.request.user).in_bulk(),
             **MDR._concept.objects.filter(uuid__in=uuids).visible(self.request.user).in_bulk(field_name='uuid'),
         }
+
+    def ids_or_uuids_appender(self, ids_list, uuids_list, field):
+        if isinstance(field, int):
+            ids_list.append(field)
+        if isinstance(field, str):
+            uuids_list.append(field)
 
     def get_lookup_dict(self, field_data) -> LookupDict:
         """
