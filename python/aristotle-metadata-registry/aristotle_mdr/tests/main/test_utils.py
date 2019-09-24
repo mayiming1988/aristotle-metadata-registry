@@ -123,7 +123,7 @@ class UtilsTests(TestCase):
         self.assertFalse(field.is_group)
         self.assertFalse(field.is_html)
 
-        self.assertEqual(field.id, self.oc1.id)
+        self.assertEqual(field.identifier, self.oc1.id)
         self.assertEqual(field.obj_name, self.oc1.name)
 
     @tag('version')
@@ -135,7 +135,7 @@ class UtilsTests(TestCase):
         )
 
         self.assertEqual(str(field), 'None')
-        self.assertEqual(field.id, None)
+        self.assertEqual(field.identifier, None)
 
     @tag('version')
     def test_version_field_link_to_item_no_perm(self):
@@ -146,7 +146,7 @@ class UtilsTests(TestCase):
         )
 
         self.assertEqual(str(field), VersionLinkField.perm_message)
-        self.assertEqual(field.id, 2)
+        self.assertEqual(field.identifier, 2)
 
     def test_get_concept_models(self):
         cm = utils.utils.get_concept_models()

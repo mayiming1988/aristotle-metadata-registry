@@ -325,17 +325,19 @@ class ConceptVersionView(VersionsMixin, TemplateView):
 
     def ids_or_uuids_appender(self, ids_list, uuids_list, field):
         """
-        The purpose of this function is to
-        :param ids_list:
-        :param uuids_list:
-        :param field:
-        :return:
+        The purpose of this function is to append an identifier field value (UUID or id) to a list depending on the
+        field type.
+        This function was implemented because the UUID (of type str) was implemented as an identifier for relation
+        fields in the Aristotle API.
+        :param ids_list: List of ids to be modified.
+        :param uuids_list: List of uuids to be modified.
+        :param field: Union[int, str]: string representation of a UUID field, or integer representation of an id.
+        :return: Tuple of modified lists.
         """
         if isinstance(field, int):
-            ids_list.append(field)
+            return ids_list.append(field), uuids_list
         if isinstance(field, str):
-            uuids_list.append(field)
-        return ids_list, uuids_list
+            return ids_list, uuids_list.append(field)
 
     def get_lookup_dict(self, field_data) -> LookupDict:
         """
