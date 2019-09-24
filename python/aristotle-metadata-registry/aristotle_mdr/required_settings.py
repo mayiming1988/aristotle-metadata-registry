@@ -115,7 +115,7 @@ INSTALLED_APPS = (
     'aristotle_mdr.contrib.validators',
     'aristotle_mdr.contrib.stewards',
     'aristotle_mdr.contrib.groups',
-    'aristotle_mdr.contrib.links'
+    'aristotle_mdr.contrib.links',
 
     'dal',
     'dal_select2',
