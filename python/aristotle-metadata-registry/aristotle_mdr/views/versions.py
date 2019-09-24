@@ -297,8 +297,8 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         """
         Get all concepts linked from this version that are viewable by the user.
         """
-        ids: List[int] = []
-        uuids: List[str] = []
+        ids = []  # type: List[int]
+        uuids = []  # type: List[str]
         for field_name, field in field_data.values():
 
             if self.is_concept_fk(field_name):  # If foreign key to concept
