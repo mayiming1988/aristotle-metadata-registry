@@ -1,12 +1,11 @@
-from django.test import TestCase, tag
-
 from aristotle_mdr import models
 from aristotle_mdr import utils
-from aristotle_mdr.utils.versions import VersionField, VersionGroupField, VersionLinkField
+from aristotle_mdr.utils.versions import VersionField, VersionLinkField
 from aristotle_mdr.contrib.reviews.models import ReviewRequest
 
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from django.test import TestCase, tag
 
 
 class UtilsTests(TestCase):
@@ -116,7 +115,7 @@ class UtilsTests(TestCase):
     def test_version_field_link(self):
         field = VersionLinkField(
             fname='Linking field',
-            id=self.oc1.concept.id,
+            identifier=self.oc1.concept.id,
             obj=self.oc1.concept
         )
 
@@ -131,7 +130,7 @@ class UtilsTests(TestCase):
     def test_version_field_link_to_none(self):
         field = VersionLinkField(
             fname='Linking field',
-            id=None,
+            identifier=None,
             obj=None
         )
 
@@ -142,7 +141,7 @@ class UtilsTests(TestCase):
     def test_version_field_link_to_item_no_perm(self):
         field = VersionLinkField(
             fname='Linking field',
-            id=2,
+            identifier=2,
             obj=None
         )
 
