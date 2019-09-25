@@ -2,7 +2,7 @@
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     {% for i in range_list %}
    <sitemap>
-      <loc>{{ request.scheme }}://{{ request.META.HTTP_HOST }}sitemaps/sitemap_{{i}}.xml</loc>
+      <loc>{{ request.scheme }}://{{ request.META.HTTP_HOST }}/sitemaps/sitemap_{{i}}.xml</loc>
       <lastmod>{% now "c" %}</lastmod>
    </sitemap>
     {% endfor %}
