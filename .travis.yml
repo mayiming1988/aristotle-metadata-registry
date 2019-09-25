@@ -129,6 +129,36 @@ matrix:
       env: DB=postgres   SEARCH=elastic MODULE=api
       <<: *main_test_script_py36
 
+
+    # TODO: disabled for now, but we will look at adding it back in,  in the future
+    # THE FOLLOWING JOBS ARE ONLY RUN IF TYPE OF GIT COMMAND = PUSH:
+    # THESE TESTS REPRESENT DIFFERENT DATABASE AND SEARCH ENGINE SETUPS FOR ARISTOTLE.
+    # - stage: "Aristotle Metadata Registry Python Tests (Testing different database and search-engine combinations)."
+    #   name: "Aristotle Tests Sqlite/Elasticsearch"
+    #   if: type = push
+    #   env: DB=sqlite  SEARCH=elastic MODULE=amr
+    #   <<: *main_test_script_py36
+
+    # - name: "Aristotle Tests Postgres/Whoosh"
+    #   if: type = push
+    #   env: DB=postgres  SEARCH=whoosh MODULE=amr
+    #   <<: *main_test_script_py36
+
+    # - name: "Aristotle Tests MariaDB/Whoosh"
+    #   if: type = push
+    #   env: DB=mariadb   SEARCH=whoosh MODULE=amr
+    #   <<: *main_test_script_py36
+
+    # - name: "Aristotle Tests MariaDB/Elasticsearch"
+    #   if: type = push
+    #   env: DB=mariadb   SEARCH=elastic MODULE=amr
+    #   <<: *main_test_script_py36
+
+    # - name: "Aristotle Tests Sqlite/Whoosh"
+    #   if: type = push
+    #   env: DB=sqlite    SEARCH=whoosh MODULE=amr
+    #   <<: *main_test_script_py36
+
     # ACCESSIBILITY TESTS:
     - stage: "Accessibility"
       name: "Accessibility Tests Metadata Item"
