@@ -61,6 +61,12 @@ class VersionLinkField(VersionField):
     html = False
 
     def __init__(self, fname: str, identifier: Union[int, str, None], obj: Optional[Any]):
+        """
+        :param fname: Str: Name of the field.
+        :param identifier: This class attribute represents the kind of identifier used in this LinkField.
+        We use integers to represent ids, or strings type to represent uuids.
+        :param obj: Metadata object linked to this VersionLinkField object
+        """
         self.fname = fname
         self.identifier = identifier
         self.obj = obj

@@ -332,12 +332,14 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         :param ids_list: List of ids to be modified.
         :param uuids_list: List of uuids to be modified.
         :param field: Union[int, str]: string representation of a UUID field, or integer representation of an id.
-        :return: Tuple of modified lists.
+        :return: Tuple of lists.
         """
         if isinstance(field, int):
             return ids_list.append(field), uuids_list
         if isinstance(field, str):
             return ids_list, uuids_list.append(field)
+        else:  # If this field doesn't have an identifier (because there is nothing currently assigned).
+            return ids_list, uuids_list
 
     def get_lookup_dict(self, field_data) -> LookupDict:
         """
