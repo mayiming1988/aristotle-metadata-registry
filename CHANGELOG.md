@@ -1,7 +1,11 @@
 Changelog
 
 - 3.0.2
-  - Fixed generation of Sitemap XML
+  - Aristotle MDR
+    - Fixed generation of Sitemap XML
+  - Aristotle GraphQL
+    - Added standard concept fields to Quality Statement GraphQL
+    - Added AristotleID filter to Collection GraphQL 
 
 - 3.0.1
   - Fixed regression with Object Class GraphQL

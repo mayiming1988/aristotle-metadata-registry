@@ -48,7 +48,7 @@ class ConceptFilterSet(FilterSet):
             return qs
 
 
-class CollectionFilterSet(FilterSet):
+class CollectionFilterSet(AristotleIdFilterSet):
     only_public = django_filters.BooleanFilter(method='filter_only_public')
 
     def filter_only_public(self, qs, name, value):
