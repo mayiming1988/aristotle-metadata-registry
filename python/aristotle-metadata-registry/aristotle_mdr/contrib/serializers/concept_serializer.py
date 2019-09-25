@@ -233,7 +233,8 @@ class ConceptSerializerFactory:
 
     def _get_concept_foreign_keys(self, model_class) -> Tuple:
         """
-        The purpose of this function is to get the related (Foreign Key) fields from a _concept.
+        The purpose of this function is to get the _concept subclassed related fields (`_concept` Foreign Keys) from a
+        model.
         :param model_class: Model to get the Foreign Key fields from.
         :return: Tuple of Foreign Key fields.
         """
