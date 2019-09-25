@@ -30,8 +30,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Type alias
-LookupDict = Dict[str, Dict[int, Any]]
+LookupDict = Dict[str, Dict[int, Any]]  # Type alias
 
 
 class VersionsMixin:
@@ -226,13 +225,11 @@ class ConceptVersionView(VersionsMixin, TemplateView):
             self.version_permission = None
 
         if not self.user_can_view_version(self.request.user, self.item, self.version_permission):
-            raise PermissionDenied  # Raise 403 (Forbidden) when user can't view this version.
+            raise PermissionDenied  # Raise 403 (Forbidden) when user is not supposed to view this version.
 
-        # Deserialize version data
-        self.version_dict = self.get_version_data(self.version.serialized_data, self.item)
+        self.version_dict = self.get_version_data(self.version.serialized_data, self.item)  # Deserialize version data
 
-        # Fetch html custom field ids
-        self.html_custom_field_ids: Set[int] = self.get_html_custom_field_ids()
+        self.html_custom_field_ids: Set[int] = self.get_html_custom_field_ids()  # Fetch html custom field ids
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -297,49 +294,47 @@ class ConceptVersionView(VersionsMixin, TemplateView):
         """
         Get all concepts linked from this version that are viewable by the user.
         """
-        ids: List[int] = []
-        uuids: List[str] = []
+        self.ids: List[int] = []
+        self.uuids: List[str] = []
         for field_name, field in field_data.values():
 
             if self.is_concept_fk(field_name):  # If foreign key to concept
-                ids, uuids = self.ids_or_uuids_appender(ids, uuids, field)
+                self.ids_or_uuids_appender(field)
 
             if self.is_concept_multiple(field_name) and type(field) == list:  # If reverse fk or many to many of concept
                 for inner_field in field:
-                    ids, uuids = self.ids_or_uuids_appender(ids, uuids, inner_field)
+                    self.ids_or_uuids_appender(inner_field)
 
             if type(field) == list:
                 for sub_field_data in field:
                     if type(sub_field_data) == dict:
                         for sub_field_name, sub_field in sub_field_data.values():
                             if self.is_concept_fk(sub_field_name):
-                                ids, uuids = self.ids_or_uuids_appender(ids, uuids, sub_field)
+                                self.ids_or_uuids_appender(sub_field)
                             elif self.is_concept_multiple(sub_field_name) and type(sub_field) == list:
                                 for inner_sub_field in sub_field:
-                                    ids, uuids = self.ids_or_uuids_appender(ids, uuids, inner_sub_field)
+                                    self.ids_or_uuids_appender(inner_sub_field)
 
         return {
-            **MDR._concept.objects.filter(id__in=ids).visible(self.request.user).in_bulk(),
-            **MDR._concept.objects.filter(uuid__in=uuids).visible(self.request.user).in_bulk(field_name='uuid'),
+            **MDR._concept.objects.filter(id__in=self.ids).visible(self.request.user).in_bulk(),
+            **MDR._concept.objects.filter(uuid__in=self.uuids).visible(self.request.user).in_bulk(field_name='uuid'),
         }
 
-    def ids_or_uuids_appender(self, ids_list, uuids_list, field):
+    def ids_or_uuids_appender(self, field):
         """
         The purpose of this function is to append an identifier field value (UUID or id) to a list depending on the
         field type.
-        This function was implemented because the UUID (of type str) was implemented as an identifier for relation
-        fields in the Aristotle API.
-        :param ids_list: List of ids to be modified.
-        :param uuids_list: List of uuids to be modified.
+        This function has been implemented since the UUID (of type str) is the default identifier for relation fields
+        in the latest version of the Aristotle API.
         :param field: Union[int, str]: string representation of a UUID field, or integer representation of an id.
         :return: Tuple of lists.
         """
         if isinstance(field, int):
-            return ids_list.append(field), uuids_list
+            self.ids.append(field)
         if isinstance(field, str):
-            return ids_list, uuids_list.append(field)
+            self.uuids.append(field)
         else:  # If this field doesn't have an identifier (because there is nothing currently assigned).
-            return ids_list, uuids_list
+            pass
 
     def get_lookup_dict(self, field_data) -> LookupDict:
         """

@@ -11,6 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from aristotle_mdr.models import (
     aristotleComponent,
+    _concept
 )
 from aristotle_mdr import utils
 from aristotle_mdr.contrib.serializers.utils import (
@@ -241,7 +242,7 @@ class ConceptSerializerFactory:
         for field in model_class._meta.get_fields():
             if not field.name.startswith('_'):  # Don't serialize internal fields.
                 if field.is_relation and field.many_to_one:
-                    if field.name in utils.get_camelcase_names_of_concept_models():
+                    if issubclass(field.related_model, _concept):  # If the related model is a subclass of _concept.
                         related_fields.append(self.get_field_name(field))
 
         return tuple([field for field in related_fields])

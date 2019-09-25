@@ -419,17 +419,26 @@ def get_concept_models() -> List[Model]:
 
 
 def get_names_of_concept_models() -> List[str]:
-    """Returns a list of the names of the concept models"""
+    """
+    Returns a list of the names of the concept models.
+    e.g. ['ClassificationScheme', 'Relation', ...]
+    """
     return [model.__name__ for model in get_concept_models()]
 
 
 def get_lowercase_names_of_concept_models() -> List[str]:
-    """Returns a list of the lowercase names of the concept models"""
+    """
+    Returns a list of the lowercase names of the concept models.
+    e.g. ['classificationscheme', 'relation', ...]
+    """
     return [model.lower() for model in get_names_of_concept_models()]
 
 
 def get_camelcase_names_of_concept_models() -> List[str]:
-    """Returns a list of the lowercase names of the concept models"""
+    """
+    Returns a list of the lowercase names of the concept models.
+    e.g. ['classificationScheme', 'relation', ...]
+    """
     return [model[0].lower() + model[1:] for model in get_names_of_concept_models()]
 
 
