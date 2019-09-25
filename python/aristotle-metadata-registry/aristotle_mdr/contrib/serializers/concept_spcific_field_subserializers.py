@@ -1,4 +1,4 @@
-from aristotle_mdr.contrib.serializers.utils import SubSerializer
+from aristotle_mdr.contrib.serializers.utils import SubSerializer, UUIDRelatedField
 from aristotle_mdr.models import (
     SupplementaryValue,
     PermissibleValue,
@@ -13,7 +13,7 @@ class PermissibleValueSerializer(SubSerializer):
 
     class Meta:
         model = PermissibleValue
-        fields = ['value', 'meaning', 'order', 'start_date', 'end_date', 'id']
+        fields = ['value', 'meaning', 'order', 'start_date', 'end_date', 'id', 'uuid']  # TODO: CHANGE THE UUID TO BE UUIDRelatedField.
 
 
 class SupplementaryValueSerializer(SubSerializer):
