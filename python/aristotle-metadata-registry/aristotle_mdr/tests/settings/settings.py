@@ -88,7 +88,6 @@ else:
 
 INSTALLED_APPS = (
     # The good stuff
-    'aristotle_mdr.contrib.links',
     'aristotle_glossary',
     'extension_test',
     'aristotle_dse'

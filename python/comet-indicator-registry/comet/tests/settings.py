@@ -5,7 +5,6 @@ INSTALLED_APPS = (
     #The good stuff
     'comet',
     'aristotle_dse',
-    'aristotle_mdr.contrib.links',
 ) + INSTALLED_APPS
 
 ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] = ['comet']
