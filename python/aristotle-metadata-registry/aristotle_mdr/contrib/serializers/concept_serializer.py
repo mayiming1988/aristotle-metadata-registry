@@ -2,18 +2,15 @@ import reversion
 import json as JSON
 from rest_framework import serializers
 from drf_writable_nested import WritableNestedModelSerializer
-
 from django.core.serializers.base import Serializer as BaseDjangoSerializer
 from django.core.serializers.base import DeserializedObject, build_instance
 from django.apps import apps
 from django.db import DEFAULT_DB_ALIAS
 from django.utils.translation import ugettext_lazy as _
-
 from aristotle_mdr.models import (
     aristotleComponent,
     _concept
 )
-from aristotle_mdr import utils
 from aristotle_mdr.contrib.serializers.utils import (
     get_comet_field_serializer_mapping,
     get_dse_field_serializer_mapping,
@@ -27,7 +24,6 @@ from aristotle_mdr.contrib.serializers.concept_general_field_subserializers impo
     CustomValuesSerializer,
     OrganisationRecordsSerializer,
 )
-
 from aristotle_mdr.contrib.serializers.concept_spcific_field_subserializers import (
     PermissibleValueSerializer,
     SupplementaryValueSerializer,
