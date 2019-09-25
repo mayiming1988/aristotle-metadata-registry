@@ -1,5 +1,15 @@
 Changelog
 
+- 3.0.2
+  - Aristotle MDR
+    - Fixed generation of Sitemap XML
+  - Aristotle GraphQL
+    - Added standard concept fields to Quality Statement GraphQL
+    - Added AristotleID filter to Collection GraphQL 
+
+- 3.0.1
+  - Fixed regression with Object Class GraphQL
+
 - 3.0.0
   - Major changes:
     - Added Steward Organisations to Aristotle - on migration a default organisation will be created.

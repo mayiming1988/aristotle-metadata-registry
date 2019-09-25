@@ -63,7 +63,7 @@ CKEDITOR_UPLOAD_PATH = 'uploads/'
 # Required for admindocs, see: https://code.djangoproject.com/ticket/21386
 SITE_ID = None
 
-# This gets called because of the DataElementConcept.property attribute.
+# TODO: This gets called because of the DataElementConcept.property attribute.
 # We can resolve this by explicitly adding the parent pointer field, to squash Error E006
 # But this will only work for Django 1.10 or above, so we wait until the 1.11 stream
 # See: https://code.djangoproject.com/ticket/28563
@@ -115,6 +115,7 @@ INSTALLED_APPS = (
     'aristotle_mdr.contrib.validators',
     'aristotle_mdr.contrib.stewards',
     'aristotle_mdr.contrib.groups',
+    'aristotle_mdr.contrib.links',
 
     'dal',
     'dal_select2',

@@ -45,7 +45,6 @@ defaults:
 
 matrix:
   include:
-
     - stage: "Style Check"
       name: "Python Lint"
       language: python
@@ -71,6 +70,17 @@ matrix:
         - npm install
       script:
         - npm run lint
+
+    - stage: "Unapplied Migrations"
+      name: "Unapplied Django Migrations"
+      language: python
+      python: 3.6
+      env:
+        DATABASE_URL="sqlite://:memory:" DJANGO_SETTINGS_MODULE=aristotle_mdr.required_settings
+      install:
+        - pip install -U setuptools pip pipenv
+        - pipenv install --system --deploy --dev
+      script: django-admin makemigrations --check
 
     - stage: "Documentation"
       name: "Documentation"
@@ -119,6 +129,8 @@ matrix:
       env: DB=postgres   SEARCH=elastic MODULE=api
       <<: *main_test_script_py36
 
+
+    # TODO: disabled for now, but we will look at adding it back in,  in the future
     # THE FOLLOWING JOBS ARE ONLY RUN IF TYPE OF GIT COMMAND = PUSH:
     # THESE TESTS REPRESENT DIFFERENT DATABASE AND SEARCH ENGINE SETUPS FOR ARISTOTLE.
     # - stage: "Aristotle Metadata Registry Python Tests (Testing different database and search-engine combinations)."
