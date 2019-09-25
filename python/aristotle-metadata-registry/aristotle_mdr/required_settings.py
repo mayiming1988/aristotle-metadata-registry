@@ -63,7 +63,7 @@ CKEDITOR_UPLOAD_PATH = 'uploads/'
 # Required for admindocs, see: https://code.djangoproject.com/ticket/21386
 SITE_ID = None
 
-# This gets called because of the DataElementConcept.property attribute.
+# TODO: This gets called because of the DataElementConcept.property attribute.
 # We can resolve this by explicitly adding the parent pointer field, to squash Error E006
 # But this will only work for Django 1.10 or above, so we wait until the 1.11 stream
 # See: https://code.djangoproject.com/ticket/28563

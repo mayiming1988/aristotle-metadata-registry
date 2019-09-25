@@ -11,7 +11,7 @@ IndicatorInclusionNode = get_dynamic_type_node_from_model(
     object_type=DjangoObjectType,  # We are also overriding the Object Type.
 )
 OutcomeAreaNode = get_dynamic_type_node_from_concept_model(model=comet_models.OutcomeArea)
-QualityStatementNode = get_dynamic_type_node_from_model(model=comet_models.QualityStatement)
+QualityStatementNode = get_dynamic_type_node_from_concept_model(model=comet_models.QualityStatement)
 FrameworkNode = get_dynamic_type_node_from_concept_model(model=comet_models.Framework)
 FrameworkDimensionNode = get_dynamic_type_node_from_model(
     model=comet_models.FrameworkDimension,
