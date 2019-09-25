@@ -27,7 +27,6 @@ ARISTOTLE_SETTINGS['CONTENT_EXTENSIONS'] += [
 ]
 
 INSTALLED_APPS = list(INSTALLED_APPS) + [
-    'aristotle_mdr.contrib.links',
     "aristotle_dse",
     "aristotle_glossary",
     "comet",
