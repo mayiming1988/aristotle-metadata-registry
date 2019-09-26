@@ -1,3 +1,4 @@
+import uuid
 import reversion
 import json as JSON
 from rest_framework import serializers
@@ -56,9 +57,11 @@ class ConceptBaseSerializer(WritableNestedModelSerializer):
 
     def validate(self, attrs):
 
+        request = self.context.get("request")
+
         for field_name, data in self.get_initial().items():  # We are using self.get_initial() because it provides ids.
             if type(data) is list:
-                if self.instance is None:
+                if request.method == 'POST':  # if self.instance is None:
                     for elem in data:
                         if 'id' in elem:
                             msg = _("Parameter `id` is not allowed in POST requests for metadata creation.")
@@ -66,18 +69,23 @@ class ConceptBaseSerializer(WritableNestedModelSerializer):
                         if 'pk' in elem:
                             msg = _("Parameter `pk` is not allowed in POST requests for metadata creation.")
                             raise serializers.ValidationError(msg, code='Aristotle API Request Error')
+                        if 'uuid' in elem:
+                            msg = _("Parameter `uuid` is not allowed in POST requests for metadata creation.")
+                            raise serializers.ValidationError(msg, code='Aristotle API Request Error')
                 else:
                     if not hasattr(self.instance, field_name):
-                        msg = _('Object {} of type `{}` does not have any field named "{}"'.format(
-                            self.instance, type(self.instance), field_name)
+                        msg = _(
+                            'Object {} of type `{}` does not have any field named "{}"'.format(
+                                self.instance, type(self.instance), field_name
+                            )
                         )
                         raise serializers.ValidationError(msg, code='Aristotle API Request Error')
-                    allowed_ids_for_object_field = set(getattr(self.instance, field_name).values_list('id', flat=True))
+                    allowed_uuids_for_object_field = set(getattr(self.instance, field_name).values_list('uuid', flat=True))
                     for elem in data:
-                        subcomponent_id = elem.get('id')
-                        if subcomponent_id and subcomponent_id not in allowed_ids_for_object_field:
-                            msg = _('Id {} does not match with any existing id for {} in {}.'.format(
-                                subcomponent_id, field_name, self.instance)
+                        subcomponent_uuid = elem.get('uuid')
+                        if subcomponent_uuid and uuid.UUID(subcomponent_uuid) not in allowed_uuids_for_object_field:
+                            msg = _('UUID `{}` does not match with any existing UUID for {} in {}.'.format(
+                                subcomponent_uuid, field_name, self.instance)
                             )
                             raise serializers.ValidationError(msg, code='Aristotle API Request Error')
         return attrs
@@ -188,7 +196,7 @@ class ConceptSerializerFactory:
         """
         fields = []
         for field in model_class._meta.get_fields():
-            if not field.is_relation or field.many_to_one:  # Exclude data field or foreign key field
+            if not field.is_relation or field.many_to_one:  # Exclude data fields or foreign key fields
                 if not field.name.startswith('_'):  # Don't serialize internal fields
                     fields.append(field.name)
 

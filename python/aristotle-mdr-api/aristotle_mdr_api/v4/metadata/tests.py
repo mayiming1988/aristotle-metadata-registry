@@ -664,7 +664,7 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)  # Make sure we actually changed the data.
         self.assertEqual(self.de.name, response.data['name'])
 
-    def test_sub_items_in_json_data_can_update_actual_items_when_their_id_is_provided(self):
+    def test_sub_items_in_json_data_can_update_actual_items_when_their_uuid_is_provided(self):
 
         patch_data = {
             "name": "My new vd name",
@@ -672,7 +672,7 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
                 {
                     "value": "Yeah SV!",
                     "order": 5,
-                    "id": self.sv_1.id,
+                    "uuid": self.sv_1.uuid,
                 }
             ]
         }
@@ -732,6 +732,22 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)  # Make sure we actually changed the data.
         self.assertCountEqual(self.vd_1.supplementaryvalue_set.all(), [])  # The list should be empty.
         self.assertFalse(self.vd_1.supplementaryvalue_set.all())
+
+    # # CREATE TESTS TO CHECK THE PATCH AND UPDATE BEHAVIOUR WHEN TRYING TO UPDATE SUBCOMPONENTS LIKE PERMISSIBLE_VALUE_SET
+    # def test_subcomponents_updated_with_uuid_using_patch_request(self):
+    #     import pdb
+    #     pdb.set_trace()
+    #     patch_data = {
+    #         "supplementaryvalue_set": []
+    #     }
+    #
+    #     response = self.client.patch(
+    #         reverse('api_v4:metadata:retrieve_update_metadata_endpoint_valuedomain',
+    #                 kwargs={"item_uuid": self.vd_1.uuid}),
+    #         patch_data,
+    #         format='json',
+    #     )
+
 
     def test_reversion_object_created_during_update_api_calls_with_put_request(self):
 
