@@ -125,46 +125,6 @@ class StewardMigration(migrations.Migration):
             item.save()
 
 
-def create_uuid_objects(app_label, model_name, migrate_self=True):
-    def inner(apps, schema_editor):
-        from aristotle_mdr.models import UUID, baseAristotleObject
-        from django.apps import apps as apppps
-        from django.contrib.contenttypes.models import ContentType
-
-        object_type = apppps.get_model(app_label, model_name)
-        if not issubclass(object_type, baseAristotleObject):
-            return
-
-        for ct in ContentType.objects.all():
-            kls = ct.model_class()
-            if kls is None:
-                # Uninstalled app
-                continue
-            if not issubclass(kls, baseAristotleObject):
-                continue
-            if not issubclass(kls, object_type):
-                continue
-            if kls is object_type and not migrate_self:
-                continue
-
-            for instance in kls.objects.all():
-                details = dict(
-                    app_label=instance._meta.app_label,
-                    model_name=instance._meta.model_name,
-                )
-
-                u, c = UUID.objects.get_or_create(
-                    uuid=instance.uuid_id,
-                    defaults=details
-                )
-                if issubclass(kls, object_type) and kls is not object_type:
-                    u.app_label=instance._meta.app_label
-                    u.model_name=instance._meta.model_name
-                    u.save()
-
-    return inner
-
-
 class DBOnlySQL(migrations.RunSQL):
 
     reversible = True
@@ -454,7 +414,7 @@ class CustomFieldMover(Operation):
         self.custom_field_kwargs = custom_field_kwargs
 
     def describe(self):
-        return "Move field to custom field for " % (self.model_name, self.bases)
+        return "Move field to custom field for {}".format(self.model_name)
 
     def state_forwards(self, app_label, state):
         pass
