@@ -235,9 +235,11 @@ class AbstractValue(aristotleComponent):
         'ValueMeaning',
         blank=True,
         null=True,
+        to_field="uuid",
+        help_text=_('A reference to the value meaning that this designation relates to'),
         on_delete=models.SET_NULL,
-        help_text=_('A reference to the value meaning that this designation relates to')
     )
+
     # Below will generate exactly the same related name as django, but reversion-compare
     # needs an explicit related_name for some actions.
     valueDomain = ConceptForeignKey(

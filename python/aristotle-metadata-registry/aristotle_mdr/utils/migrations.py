@@ -464,3 +464,9 @@ class CustomFieldMover(Operation):
 
     def database_backwards(self, app_label, schema_editor, from_state, to_state):
         pass
+
+
+def object_foreign_key_duplicator(model, old_field_name, new_field_name):
+    for row in model.objects.all():
+        setattr(row, new_field_name, getattr(row, old_field_name))
+        row.save(update_fields=[new_field_name])
