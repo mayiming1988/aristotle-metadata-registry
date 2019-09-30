@@ -436,9 +436,6 @@ class DSSInclusion(aristotle.models.aristotleComponent):
 
 
 class DSSGrouping(aristotle.models.aristotleComponent):
-    class Meta:
-        ordering = ['order']
-        verbose_name = 'DSS Grouping'
 
     inline_field_layout = 'list'
     parent_field_name = 'dss'
@@ -461,6 +458,10 @@ class DSSGrouping(aristotle.models.aristotleComponent):
     )
     parent = 'dss'
 
+    class Meta:
+        ordering = ['order']
+        verbose_name = 'DSS Grouping'
+
     def __str__(self):
         return self.name
 
@@ -468,10 +469,14 @@ class DSSGrouping(aristotle.models.aristotleComponent):
 # Holds the link between a DSS and a Data Element with the DSS Specific details.
 class DSSDEInclusion(DSSInclusion):
     data_element = ConceptForeignKey(aristotle.models.DataElement, related_name="dssInclusions", on_delete=models.CASCADE)
+
     group = models.ForeignKey(
         DSSGrouping,
-        blank=True, null=True,
-        on_delete=models.SET_NULL
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        to_field='uuid',
+
     )
     specialisation_classes = ConceptManyToManyField(
         aristotle.models.ObjectClass,
