@@ -733,21 +733,26 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
         self.assertCountEqual(self.vd_1.supplementaryvalue_set.all(), [])  # The list should be empty.
         self.assertFalse(self.vd_1.supplementaryvalue_set.all())
 
-    # # CREATE TESTS TO CHECK THE PATCH AND UPDATE BEHAVIOUR WHEN TRYING TO UPDATE SUBCOMPONENTS LIKE PERMISSIBLE_VALUE_SET
-    # def test_subcomponents_updated_with_uuid_using_patch_request(self):
-    #     import pdb
-    #     pdb.set_trace()
-    #     patch_data = {
-    #         "supplementaryvalue_set": []
-    #     }
-    #
-    #     response = self.client.patch(
-    #         reverse('api_v4:metadata:retrieve_update_metadata_endpoint_valuedomain',
-    #                 kwargs={"item_uuid": self.vd_1.uuid}),
-    #         patch_data,
-    #         format='json',
-    #     )
+    # CREATE TESTS TO CHECK THE PATCH AND UPDATE BEHAVIOUR WHEN TRYING TO UPDATE SUBCOMPONENTS LIKE PERMISSIBLE_VALUE_SET
+    def test_subcomponents_updated_with_uuid_using_patch_request(self):
 
+        patch_data = {
+            "supplementaryvalue_set": [
+                {
+                    "uuid": self.sv_1.uuid,
+                    "meaning": "My definition has changed.",
+                    "value": "This is the new value",
+                    "order": 2,
+                }
+            ]
+        }
+
+        response = self.client.patch(
+            reverse('api_v4:metadata:retrieve_update_metadata_endpoint_valuedomain',
+                    kwargs={"item_uuid": self.vd_1.uuid}),
+            patch_data,
+            format='json',
+        )
 
     def test_reversion_object_created_during_update_api_calls_with_put_request(self):
 

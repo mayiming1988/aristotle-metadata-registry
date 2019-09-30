@@ -202,7 +202,13 @@ class FrameworkDimension(MPTTModel, TimeStampedModel, aristotleComponent):
     framework = ConceptForeignKey('Framework', on_delete=models.CASCADE)
     name = models.CharField(max_length=2048)
     description = MDR.RichTextField(blank=True)
-    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='child_dimensions')
+    parent = TreeForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        to_field='uuid',
+        on_delete=models.CASCADE,
+    )
 
     class MPTTMeta:
         order_insertion_by = ['name']

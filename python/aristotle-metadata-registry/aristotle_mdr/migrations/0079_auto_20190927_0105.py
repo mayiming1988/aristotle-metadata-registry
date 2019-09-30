@@ -2,14 +2,6 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-from aristotle_mdr.utils.migrations import object_foreign_key_duplicator
-
-
-def duplicate_models_foreign_keys(apps, schema_editor):
-    permissible_value_model = apps.get_model('aristotle_mdr', 'permissiblevalue')
-    supplementary_value_model = apps.get_model('aristotle_mdr', 'supplementaryvalue')
-    object_foreign_key_duplicator(permissible_value_model, 'value_meaning', 'value_meaning_new')
-    object_foreign_key_duplicator(supplementary_value_model, 'value_meaning', 'value_meaning_new')
 
 
 class Migration(migrations.Migration):
@@ -29,5 +21,4 @@ class Migration(migrations.Migration):
             name='value_meaning_new',
             field=models.ForeignKey(blank=True, help_text='A reference to the value meaning that this designation relates to', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='supplementaryvalue_new_set', to='aristotle_mdr.ValueMeaning', to_field='uuid'),
         ),
-        migrations.RunPython(duplicate_models_foreign_keys, reverse_code=migrations.RunPython.noop),
     ]

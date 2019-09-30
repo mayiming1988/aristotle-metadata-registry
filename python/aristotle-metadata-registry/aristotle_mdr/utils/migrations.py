@@ -466,7 +466,13 @@ class CustomFieldMover(Operation):
         pass
 
 
-def object_foreign_key_duplicator(model, old_field_name, new_field_name):
+def data_copy_and_paste(model, from_field, to_field):
+    """
+    The purpose of this function is to "copy-paste" data from one field to another.
+    :param model: Model source of both Foreign Key fields.
+    :param from_field: String representation of the field name which is the source of the data.
+    :param to_field: String representation of the field name which is the destination of the data.
+    """
     for row in model.objects.all():
-        setattr(row, new_field_name, getattr(row, old_field_name))
-        row.save(update_fields=[new_field_name])
+        setattr(row, to_field, getattr(row, from_field))
+        row.save(update_fields=[to_field])
