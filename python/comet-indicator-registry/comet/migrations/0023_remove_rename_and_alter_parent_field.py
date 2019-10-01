@@ -6,7 +6,7 @@ import mptt.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('comet', '0021_frameworkdimension_parent_new'),
+        ('comet', '0022_copy_and_paste_data'),
     ]
 
     operations = [
