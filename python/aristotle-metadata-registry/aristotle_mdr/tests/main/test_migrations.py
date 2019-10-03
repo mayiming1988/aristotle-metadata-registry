@@ -1,14 +1,13 @@
+from unittest import skip
+from django.test import TestCase, tag
+from django.apps import apps as current_apps
+from django.contrib.auth import get_user_model
+from django.utils import timezone
 from aristotle_mdr import models
 from aristotle_mdr.contrib.slots import models as slots_models
 from aristotle_mdr.models import STATES
 from aristotle_mdr.tests.migrations import MigrationsTestCase
 from aristotle_mdr.utils import migrations as migration_utils
-
-from django.test import TestCase, tag
-from django.apps import apps as current_apps
-from django.contrib.auth import get_user_model
-from django.utils import timezone
-from unittest import skip
 
 
 class TestUtils(TestCase):
@@ -208,7 +207,6 @@ class TestDedMigration(MigrationsTestCase, TestCase):
         ded_obj = ded.objects.get(pk=self.ded1.pk)
 
         # Test through objects order
-
         items = ded_inputs_through.objects.filter(data_element_derivation=ded_obj)
         self.assertEqual(len(items), 1)
         item = items[0]
@@ -500,6 +498,4 @@ class TestRAOrganisationRemoval(MigrationsTestCase, TestCase):
         #     self.ra.created == self.org.created
         # )
         self.ra = RAClass.objects.get(pk=self.ra.pk)
-        print(self.ra)  # .stewardship_organisation)
-
         self.assertTrue(self.ra.stewardship_organisation == s_org)
