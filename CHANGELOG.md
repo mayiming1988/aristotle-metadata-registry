@@ -4,6 +4,7 @@ Changelog
     - Aristotle MDR
       - Default permission when adding members to Workgroups is now 'submitter'
       - Links from Data Elements to Distributions now show on Data Element page
+      - Value Domain display now correctly renders HTML
 
 - 3.0.2
   - Aristotle MDR
