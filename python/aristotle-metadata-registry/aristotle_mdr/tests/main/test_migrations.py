@@ -63,7 +63,6 @@ class TestUtils(TestCase):
 class TestCustomFieldsMigration(MigrationsTestCase, TestCase):
     """Test that the addition of the unique system_name field, and the
        generation of the system_name is working effectively """
-    app = 'aristotle_mdr_custom_fields'
 
     migrate_from = '0010_customfield_system_name'
     migrate_to = '0011_customfield_generate_system_name'
@@ -225,7 +224,6 @@ class TestDedMigration(MigrationsTestCase, TestCase):
 
 
 class TestLowercaseEmailMigration(MigrationsTestCase, TestCase):
-    app = 'aristotle_mdr_user_management'
     migrate_from = '0001_initial'
     migrate_to = '0002_lowercase_emails'
 
@@ -382,7 +380,6 @@ class TestFavouritesMigration(MigrationsTestCase, TestCase):
 
 
 class TestLinkRootMigration(MigrationsTestCase, TestCase):
-    app = 'aristotle_mdr_links'
     migrate_from = [
         ('aristotle_mdr', '0046_auto_20181107_0433'),
         ('aristotle_mdr_links', '0006_link_root_item'),
@@ -447,7 +444,6 @@ class TestLinkRootMigration(MigrationsTestCase, TestCase):
 
 
 class TestRAOrganisationRemoval(MigrationsTestCase, TestCase):
-    app = 'aristotle_mdr'
     migrate_from = '0046_auto_20181107_0433'
     migrate_to = '0049_make_non_nullable_so'
 
