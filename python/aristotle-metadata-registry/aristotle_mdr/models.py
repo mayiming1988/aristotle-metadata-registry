@@ -1631,13 +1631,19 @@ class DataElement(concept):
     def relational_attributes(self):
         rels = {}
         if "aristotle_dse" in fetch_aristotle_settings().get('CONTENT_EXTENSIONS'):
-            from aristotle_dse.models import DataSetSpecification
+            from aristotle_dse.models import DataSetSpecification, Distribution
 
             rels.update({
                 "dss": {
                     "all": _("Inclusion in Data Set Specifications"),
                     "qs": DataSetSpecification.objects.filter(
                         dssdeinclusion__data_element=self
+                    ).distinct()
+                },
+                "distributions": {
+                    "all": _("Inclusion in Data Distributions"),
+                    "qs": Distribution.objects.filter(
+                        distributiondataelementpath__data_element=self
                     ).distinct()
                 },
             })
