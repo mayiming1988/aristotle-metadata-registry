@@ -89,6 +89,7 @@ class Indicator(MDR.concept):
     """
     # Subclassing from DataElement causes indicators to present as DataElements, which isn't quite right.
     template = "comet/indicator.html"
+    through_edit_excludes = ['dimensions']
     backwards_compatible_fields = ['representation_class']
 
     outcome_areas = ConceptManyToManyField(OutcomeArea, related_name="indicators", blank=True)
