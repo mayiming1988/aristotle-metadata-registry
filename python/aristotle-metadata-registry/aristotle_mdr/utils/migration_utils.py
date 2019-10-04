@@ -508,15 +508,3 @@ def data_copy_and_paste_from_one_through_table_to_another(model, through_model, 
                     dict_of_fields.update({field.name: my_object})
             through_objects_list.append(through_model(**dict_of_fields))
         through_model.objects.bulk_create(through_objects_list)
-
-            # print("THIS IS THE DICTIONARY:")
-            # print(dict_of_fields)
-            # through_model.objects.get_or_create(
-            #     **dict_of_fields
-            # )
-                    # print("THIS IS THE MODEL:")
-                    # print(field.related_model)
-                # print("THIS IS THE FIELD NAME:")
-                # print(field.name)
-                # print("THIS IS THE FIELD VALUE:")
-                # print(field.value_from_object(through_obj))

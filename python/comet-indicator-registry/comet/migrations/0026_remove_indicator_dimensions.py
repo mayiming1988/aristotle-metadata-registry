@@ -7,7 +7,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('comet', '0025_copy_and_paste_data_through'),
-        # ('aristotle_mdr', '0081_remove_rename_and_alter_abstractvalue_fields'),
     ]
 
     operations = [
