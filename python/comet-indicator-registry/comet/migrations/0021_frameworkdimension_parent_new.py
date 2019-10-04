@@ -9,6 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('comet', '0020_auto_20190918_1612'),
+        ('aristotle_mdr', '0081_remove_rename_and_alter_abstractvalue_fields'),
     ]
 
     operations = [

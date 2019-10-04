@@ -1,6 +1,6 @@
 from django.db import migrations, models
 import django.db.models.deletion
-from aristotle_mdr.utils.migrations import data_copy_and_paste
+from aristotle_mdr.utils.migration_utils import data_copy_and_paste
 
 
 def duplicate_model_foreign_key(apps, schema_editor):

@@ -1,27 +1,16 @@
-from aristotle_mdr import models
-from aristotle_mdr.contrib.slots import models as slots_models
-from aristotle_mdr.models import STATES
-from aristotle_mdr.tests.migrations import MigrationsTestCase
-from aristotle_mdr.utils import migrations as migration_utils
-
-from django.test import TestCase, tag
-from django.apps import apps as current_apps
-from django.contrib.auth import get_user_model
-from django.utils import timezone
-from unittest import skip
+from aristotle_mdr.tests.migration_test_utils import MigrationsTestCase
+from django.test import TestCase
 
 
 class TestSixToEightMigration(MigrationsTestCase, TestCase):
-
     app = 'comet'
     migrate_from = [
-        ('aristotle_mdr','0045__concept_superseded_by_items'),
-        ('comet','0005_auto_20181107_0433'),
+        ('aristotle_mdr', '0045__concept_superseded_by_items'),
+        ('comet', '0005_auto_20181107_0433'),
     ]
     migrate_to = '0008_auto_20190218_0404'
 
     def setUpBeforeMigration(self, apps):
-
         Indicator = apps.get_model('comet', 'Indicator')
         IndicatorSet = apps.get_model('comet', 'IndicatorSet')
         IndicatorType = apps.get_model('comet', 'IndicatorType')
@@ -36,7 +25,7 @@ class TestSixToEightMigration(MigrationsTestCase, TestCase):
         self.indicatorset = IndicatorSet.objects.create(
             name='Indicator Set 1',
             definition='test defn',
-            indicatorSetType = self.indicatorsettype
+            indicatorSetType=self.indicatorsettype
         )
 
         self.indicatortype = IndicatorType.objects.create(
@@ -47,7 +36,7 @@ class TestSixToEightMigration(MigrationsTestCase, TestCase):
         self.indicator = Indicator.objects.create(
             name='Indicator 1',
             definition='test defn',
-            indicatorType = self.indicatortype
+            indicatorType=self.indicatortype
         )
 
         self.de1 = de.objects.create(
@@ -72,9 +61,7 @@ class TestSixToEightMigration(MigrationsTestCase, TestCase):
         self.indicator.disaggregators.add(self.de3)
 
     def test_migration(self):
-
         Indicator = self.apps.get_model('comet', 'Indicator')
-        IndicatorType = self.apps.get_model('comet', 'IndicatorType')
 
         de = self.apps.get_model('aristotle_mdr', 'DataElement')
         numerator_model = self.apps.get_model('comet', 'IndicatorNumeratorDefinition')
@@ -85,7 +72,7 @@ class TestSixToEightMigration(MigrationsTestCase, TestCase):
         numerators_list = numerator_model.objects.filter(indicator=indicator_obj)
         denominators_list = denominator_model.objects.filter(indicator=indicator_obj)
         disaggregators_list = disaggregation_model.objects.filter(indicator=indicator_obj)
-        
+
         self.assertEqual(1, numerators_list.count())
         self.assertEqual(self.de1.id, numerators_list.first().data_element_id)
 
@@ -96,7 +83,6 @@ class TestSixToEightMigration(MigrationsTestCase, TestCase):
         self.assertEqual(self.de3.id, disaggregators_list.first().data_element_id)
 
         # Do indicator sets now
-
         IndicatorSet = self.apps.get_model('comet', 'IndicatorSet')
         inclusion_model = self.apps.get_model('comet', 'IndicatorInclusion')
 
@@ -108,16 +94,98 @@ class TestSixToEightMigration(MigrationsTestCase, TestCase):
         self.assertEqual(self.indicator.id, indicators_list.first().indicator_id)
 
         # Do indicator types now
-
         IndicatorType = self.apps.get_model('comet', 'IndicatorType')
         ind_type = IndicatorType.objects.get(pk=self.indicatortype.pk)
 
         self.assertEqual(indicator_obj.indicator_type_id, ind_type.pk)
 
-
         # Do indicator set types now
-
         IndicatorSetType = self.apps.get_model('comet', 'IndicatorSetType')
         ind_set_type = IndicatorSetType.objects.get(pk=self.indicatorsettype.pk)
 
         self.assertEqual(indicatorset_obj.indicator_set_type_id, ind_set_type.pk)
+
+
+class ThroughtTableTestCaseBase(MigrationsTestCase, TestCase):
+
+    def setUpBeforeMigration(self, apps):
+        Framework = apps.get_model('comet', 'Framework')
+        FrameworkDimension = apps.get_model('comet', 'FrameworkDimension')
+        Indicator = apps.get_model('comet', 'Indicator')
+
+        self.f = Framework.objects.create(
+            name="Test F",
+        )
+
+        self.fd_1 = FrameworkDimension.objects.create(
+            name="Test FD 1",
+            framework=self.f,
+            lft=1,
+            rght=2,
+            tree_id=3,
+            level=4,
+        )
+
+        self.fd_2 = FrameworkDimension.objects.create(
+            name="Test FD 2",
+            framework=self.f,
+            lft=1,
+            rght=2,
+            tree_id=3,
+            level=4,
+        )
+
+        self.i = Indicator.objects.create(
+            name="Test Indicator",
+        )
+        self.i.dimensions.set(
+            [self.fd_1, self.fd_2]  # Assign two FrameworkDimension objects to our Indicator.
+        )
+
+        # Make sure at this point the old through table is still there:
+        self.assertEqual(self.i.dimensions.through.__name__, 'Indicator_dimensions')
+        # Make sure the old through table has 2 FrameworkDimension objects:
+        self.assertEqual(self.i.dimensions.through.objects.all().count(), 2)
+
+
+class TestIndicatorFrameworkDimensionsThroughAndUUIDForeignKeyLink(ThroughtTableTestCaseBase):
+    # At this point, the data is in the old through table:
+    migrate_from = '0024_create_indicator_dimension_through'
+    # We need to check that the data has been transferred to the new through table and foreign key used the uuid field:
+    migrate_to = '0025_copy_and_paste_data_through'
+
+    def test_data_was_migrated_to_the_new_through_table_IndicatorFrameworkDimensionsThrough(self):
+        # Through table was actually created:
+        self.assertEqual(self.i.dimensions_new.through.__name__, 'IndicatorFrameworkDimensionsThrough')
+        # Make sure the new through table has 2 FrameworkDimension objects:
+        self.assertEqual(self.i.dimensions_new.through.objects.all().count(), 2)
+        # Make sure that this Foreign key is actually using uuid:
+        self.assertEqual(
+            self.i.dimensions_new.through.objects.first()._meta.get_field('frameworkdimension').__dict__.get(
+                'to_fields')[0],
+            'uuid'
+        )
+        # Make sure that this Foreign Key is referenced by UUID field (Foreign Key 'to_field' is actually working):
+        self.assertEqual(self.i.dimensions_new.through.objects.first().frameworkdimension_id, self.fd_1.uuid)
+
+
+class TestIndicatorFrameworkDimensionsThroughAndUUIDForeignKeyLinkReverse(ThroughtTableTestCaseBase):
+    # At this point, the data is in the new through table:
+    migrate_from = '0025_copy_and_paste_data_through'
+    # We need to check that the data has been transferred back to the old through table and foreign key used id.
+    migrate_to = '0024_create_indicator_dimension_through'
+
+    def test_data_was_migrated_to_the_old_through_table_IndicatorFrameworkDimensionsThrough(self):
+        # Through table was actually created:
+        self.assertEqual(self.i.dimensions.through.__name__, 'Indicator_dimensions')
+        # Make sure the old through table has 2 FrameworkDimension objects:
+        self.assertEqual(self.i.dimensions.through.objects.all().count(), 2)
+        # Make sure that this Foreign key does not have a to_fields attribute:
+        self.assertEqual(
+            self.i.dimensions.through.objects.first()._meta.get_field('frameworkdimension').__dict__.get(
+                'to_fields')[0],
+            None
+        )
+        # Make sure that this Foreign Key is referenced by the id field (Because 'to_field' is nos assigned):
+        self.assertEqual(self.i.dimensions.through.objects.first().frameworkdimension_id, self.fd_1.id)
+

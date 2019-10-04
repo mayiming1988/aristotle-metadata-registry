@@ -6,7 +6,7 @@ import autoslug.fields
 from django.db import migrations, models
 import django.db.models.deletion
 
-from aristotle_mdr.utils.migrations import (
+from aristotle_mdr.utils.migration_utils import (
     classproperty,
     StewardMigration
 )

@@ -6,8 +6,8 @@ from django.utils import timezone
 from aristotle_mdr import models
 from aristotle_mdr.contrib.slots import models as slots_models
 from aristotle_mdr.models import STATES
-from aristotle_mdr.tests.migrations import MigrationsTestCase
-from aristotle_mdr.utils import migrations as migration_utils
+from aristotle_mdr.tests.migration_test_utils import MigrationsTestCase
+from aristotle_mdr.utils import migration_utils
 
 
 class TestUtils(TestCase):

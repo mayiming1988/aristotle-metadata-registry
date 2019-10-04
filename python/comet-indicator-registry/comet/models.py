@@ -72,6 +72,16 @@ class QualityStatement(MDR.concept):
     coherence = MDR.RichTextField(blank=True)
 
 
+class IndicatorFrameworkDimensionsThrough(models.Model):
+    """
+    Class representation of the through table between Indicator objects and FrameworkDimension objects.
+    The purpose of this table is to specify a `to_field` attribute in the frameworkdimension field, in order
+    to use UUID instead of id.
+    """
+    indicator = ConceptForeignKey("Indicator", on_delete=models.CASCADE)
+    frameworkdimension = models.ForeignKey("FrameworkDimension", on_delete=models.CASCADE, to_field='uuid')
+
+
 class Indicator(MDR.concept):
     """
     An indicator is a single measure that is reported on regularly
@@ -98,7 +108,7 @@ class Indicator(MDR.concept):
     rationale = MDR.RichTextField(blank=True)
     benchmark = MDR.RichTextField(blank=True)
     reporting_information = MDR.RichTextField(blank=True)
-    dimensions = ConceptManyToManyField(FrameworkDimension, related_name="indicators", blank=True)
+    dimensions = ConceptManyToManyField(FrameworkDimension, related_name="indicators", blank=True, through=IndicatorFrameworkDimensionsThrough)
 
     serialize_weak_entities = [
         ('numerators', 'indicatornumeratordefinition_set'),

@@ -6,7 +6,6 @@ running this code.
 import django.db.models
 from django.db import migrations, models
 from django.db.migrations.operations.base import Operation
-from django.conf import settings
 
 import ckeditor_uploader.fields
 from .utils import classproperty
@@ -468,7 +467,8 @@ class CustomFieldMover(Operation):
 
 def data_copy_and_paste(model, from_field, to_field):
     """
-    The purpose of this function is to "copy-paste" data from one field to another.
+    The purpose of this function is to "copy-paste" data from one `foreign key` field to another.
+    This function is particularly useful for data migrations.
     :param model: Model source of both Foreign Key fields.
     :param from_field: String representation of the field name which is the source of the data.
     :param to_field: String representation of the field name which is the destination of the data.
@@ -476,3 +476,47 @@ def data_copy_and_paste(model, from_field, to_field):
     for row in model.objects.all():
         setattr(row, to_field, getattr(row, from_field))
         row.save(update_fields=[to_field])
+
+
+def data_copy_and_paste_from_one_through_table_to_another(model, through_model, from_field, to_field):
+    """
+    The purpose of this function is to "copy-paste" data from one `many to many` field to another.
+    Important: The fields of both through tables must have the same name.
+    This function is particularly useful for data migrations.
+    :param model: Model source of both Foreign Key fields.
+    :param through_model: The destination through table model, which the current (existing through) data is going to
+    be copied to.
+    :param from_field: String representation of the field name which is the source of the data.
+    :param to_field: String representation of the field name which is the destination of the data.
+    """
+
+    from django.core.exceptions import ObjectDoesNotExist
+
+    model_name = model.__name__.lower()
+
+    through_objects_list = []
+
+    for row in model.objects.all():
+        for through_obj in getattr(model, from_field).through.objects.filter(**{model_name: row}):
+            dict_of_fields = {}
+            for field in through_obj._meta.fields:
+                if field.is_relation:
+                    try:
+                        my_object = field.related_model.objects.get(pk=field.value_from_object(through_obj))
+                    except ObjectDoesNotExist:
+                        my_object = field.related_model.objects.get(uuid=field.value_from_object(through_obj))
+                    dict_of_fields.update({field.name: my_object})
+            through_objects_list.append(through_model(**dict_of_fields))
+        through_model.objects.bulk_create(through_objects_list)
+
+            # print("THIS IS THE DICTIONARY:")
+            # print(dict_of_fields)
+            # through_model.objects.get_or_create(
+            #     **dict_of_fields
+            # )
+                    # print("THIS IS THE MODEL:")
+                    # print(field.related_model)
+                # print("THIS IS THE FIELD NAME:")
+                # print(field.name)
+                # print("THIS IS THE FIELD VALUE:")
+                # print(field.value_from_object(through_obj))
