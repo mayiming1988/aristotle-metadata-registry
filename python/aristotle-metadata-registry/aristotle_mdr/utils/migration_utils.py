@@ -507,4 +507,4 @@ def data_copy_and_paste_from_one_through_table_to_another(model, through_model, 
                         my_object = field.related_model.objects.get(uuid=field.value_from_object(through_obj))
                     dict_of_fields.update({field.name: my_object})
             through_objects_list.append(through_model(**dict_of_fields))
-        through_model.objects.bulk_create(through_objects_list)
+    through_model.objects.bulk_create(through_objects_list)
