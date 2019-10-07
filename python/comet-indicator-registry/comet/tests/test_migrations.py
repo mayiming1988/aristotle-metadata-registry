@@ -168,6 +168,10 @@ class TestIndicatorFrameworkDimensionsThroughAndUUIDForeignKeyLink(ThroughtTable
         # Make sure that this Foreign Key is referenced by UUID field (Foreign Key 'to_field' is actually working):
         self.assertEqual(self.i.dimensions_new.through.objects.first().frameworkdimension_id, self.fd_1.uuid)
 
+        # Make sure that the link between Framework and Framework Dimension still exists:
+        self.assertEqual(self.i.dimensions.first().framework.name, self.f.name)
+        self.assertEqual(self.i.dimensions.all().count(), 2)
+
 
 class TestIndicatorFrameworkDimensionsThroughAndUUIDForeignKeyLinkReverse(ThroughtTableTestCaseBase):
     # At this point, the data is in the new through table:
