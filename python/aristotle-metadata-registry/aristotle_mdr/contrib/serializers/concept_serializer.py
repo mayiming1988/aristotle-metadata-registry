@@ -1,4 +1,3 @@
-import uuid
 import reversion
 import json as JSON
 from rest_framework import serializers
@@ -58,34 +57,32 @@ class ConceptBaseSerializer(WritableNestedModelSerializer):
     def validate(self, attrs):
 
         request = self.context.get("request")
+        field_used_by_django_rest_framework = 'id'  # Change this variable to 'uuid' after changing the serializers.
 
-        for field_name, data in self.get_initial().items():  # We are using self.get_initial() because it provides ids.
-            if type(data) is list:
-                if request.method == 'POST':  # if self.instance is None:
-                    for elem in data:
-                        if 'id' in elem:
-                            msg = _("Parameter `id` is not allowed in POST requests for metadata creation.")
-                            raise serializers.ValidationError(msg, code='Aristotle API Request Error')
-                        if 'pk' in elem:
-                            msg = _("Parameter `pk` is not allowed in POST requests for metadata creation.")
-                            raise serializers.ValidationError(msg, code='Aristotle API Request Error')
-                        if 'uuid' in elem:
-                            msg = _("Parameter `uuid` is not allowed in POST requests for metadata creation.")
-                            raise serializers.ValidationError(msg, code='Aristotle API Request Error')
+        for field_name, field_data in self.get_initial().items():  # We are using self.get_initial() because it provides ids.
+
+            if type(field_data) is list:
+                if request.method == 'POST':
+                    for fk_dict in field_data:
+                        for key in ['id', 'pk', 'uuid']:
+                            if key in fk_dict:
+                                msg = _("Parameter `{}` is not allowed in POST requests for metadata creation.".format(key))
+                                raise serializers.ValidationError(msg, code='Aristotle API Request Error')
                 else:
                     if not hasattr(self.instance, field_name):
                         msg = _(
-                            'Object {} of type `{}` does not have any field named "{}"'.format(
+                            'Object `{}` of type `{}` does not have any field named `{}`'.format(
                                 self.instance, type(self.instance), field_name
                             )
                         )
                         raise serializers.ValidationError(msg, code='Aristotle API Request Error')
-                    allowed_uuids_for_object_field = set(getattr(self.instance, field_name).values_list('uuid', flat=True))
-                    for elem in data:
-                        subcomponent_uuid = elem.get('uuid')
-                        if subcomponent_uuid and uuid.UUID(subcomponent_uuid) not in allowed_uuids_for_object_field:
-                            msg = _('UUID `{}` does not match with any existing UUID for {} in {}.'.format(
-                                subcomponent_uuid, field_name, self.instance)
+
+                    allowed_identifiers = set(getattr(self.instance, field_name).values_list(field_used_by_django_rest_framework, flat=True))
+                    for fk_dict in field_data:
+                        subcomponent_identifier = fk_dict.get(field_used_by_django_rest_framework)
+                        if subcomponent_identifier and subcomponent_identifier not in allowed_identifiers:
+                            msg = _('Iem id `{}` does not match with any existing identifier for `{}` in `{}`.'.format(
+                                subcomponent_identifier, field_name, self.instance)
                             )
                             raise serializers.ValidationError(msg, code='Aristotle API Request Error')
         return attrs
