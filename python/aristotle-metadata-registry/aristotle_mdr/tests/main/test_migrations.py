@@ -63,7 +63,7 @@ class TestUtils(TestCase):
 class TestCustomFieldsMigration(MigrationsTestCase, TestCase):
     """Test that the addition of the unique system_name field, and the
        generation of the system_name is working effectively """
-
+    app = 'aristotle_mdr_custom_fields'
     migrate_from = '0010_customfield_system_name'
     migrate_to = '0011_customfield_generate_system_name'
 
@@ -224,6 +224,7 @@ class TestDedMigration(MigrationsTestCase, TestCase):
 
 
 class TestLowercaseEmailMigration(MigrationsTestCase, TestCase):
+    app = 'aristotle_mdr_user_management'
     migrate_from = '0001_initial'
     migrate_to = '0002_lowercase_emails'
 
