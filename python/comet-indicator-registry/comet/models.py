@@ -109,7 +109,6 @@ class Indicator(MDR.concept):
     rationale = MDR.RichTextField(blank=True)
     benchmark = MDR.RichTextField(blank=True)
     reporting_information = MDR.RichTextField(blank=True)
-    # TODO: Do we need to add through_fields attr?:
     dimensions = ConceptManyToManyField(FrameworkDimension, related_name="indicators", blank=True, through=IndicatorFrameworkDimensionsThrough)
 
     serialize_weak_entities = [
