@@ -11,8 +11,8 @@ from aristotle_mdr.contrib.user_management.views import AristotlePasswordResetVi
 admin.autodiscover()
 
 urlpatterns = [
-    path('login/?', FriendlyLoginView.as_view(), name='friendly_login'),
-    path('logout/?', FriendlyLogoutView.as_view(), name='logout'),
+    path('login/', FriendlyLoginView.as_view(), name='friendly_login'),
+    path('logout/', FriendlyLogoutView.as_view(), name='logout'),
     path('django/admin/doc/', include('django.contrib.admindocs.urls')),
     path('django/admin/', admin.site.urls),
     path('ckeditor/', include('aristotle_mdr.urls.ckeditor_uploader')),
@@ -33,8 +33,8 @@ urlpatterns = [
         name='password_reset_confirm',
     ),
     path('user/password/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
-    path('account/password/?', RedirectView.as_view(url='account/home/', permanent=True)),
-    path('account/password/change/?', auth_views.PasswordChangeView.as_view(), name='password_change'),
-    path('account/password/change/done/?', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
+    path('account/password/', RedirectView.as_view(url='account/home/', permanent=True)),
+    path('account/password/change/', auth_views.PasswordChangeView.as_view(), name='password_change'),
+    path('account/password/change/done/', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
     path('', include('user_sessions.urls', 'user_sessions')),
 ]

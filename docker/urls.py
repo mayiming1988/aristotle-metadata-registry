@@ -26,7 +26,7 @@ if settings.DEBUG:  # pragma: no cover
     from django.contrib.staticfiles import views
 
     urlpatterns += [
-        path('static/<int:path>', views.serve),
+        path('static/<path:path>', views.serve),
     ]
 
     from django.conf.urls.static import static
