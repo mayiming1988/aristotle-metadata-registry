@@ -124,7 +124,10 @@ setup(
 
         # Bulk updates
         'django-bulk-update',
-        'django-mptt'
+        'django-mptt',
+
+        # Nested `write` serializer for the API (and also used for contrib serializers).
+        'drf-writable-nested',
     ],
 
 )
