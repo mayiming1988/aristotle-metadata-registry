@@ -79,7 +79,7 @@ class IndicatorFrameworkDimensionsThrough(models.Model):
     to use UUID instead of id.
     """
     indicator = ConceptForeignKey("Indicator", on_delete=models.CASCADE)
-    frameworkdimension = models.ForeignKey("FrameworkDimension", on_delete=models.CASCADE, to_field='uuid')
+    frameworkdimension = models.ForeignKey("FrameworkDimension", to_field='uuid', on_delete=models.CASCADE)
 
 
 class Indicator(MDR.concept):

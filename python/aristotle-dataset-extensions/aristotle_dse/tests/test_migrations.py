@@ -84,3 +84,89 @@ class TestMoveImplementationDateMigration(MigrationsTestCase, TestCase):
 
         self.assertEqual(isd_value.content, self.implementation_start_date)
         self.assertEqual(ied_value.content, self.implementation_end_date)
+
+
+class TestThroughTableTestCaseBase(MigrationsTestCase, TestCase):
+
+    def setUpBeforeMigration(self, apps):
+        DSSGrouping = apps.get_model('aristotle_dse', 'DSSGrouping')
+        DataSetSpecification = apps.get_model('aristotle_dse', 'DataSetSpecification')
+
+        self.my_dss = DataSetSpecification.objects.create(
+            name="My DSS",
+            definition="My definition",
+        )
+        self.my_dss_2 = DataSetSpecification.objects.create(
+            name="My DSS 2",
+            definition="My definition 2",
+        )
+        self.my_dss_3 = DataSetSpecification.objects.create(
+            name="My DSS 3",
+            definition="My definition 3",
+        )
+        self.my_dss_4 = DataSetSpecification.objects.create(
+            name="My DSS 3",
+            definition="My definition 3",
+        )
+        self.dss_grouping_1 = DSSGrouping.objects.create(
+            name="DSSGroupingForTest",
+            definition="DSSGroupingDefinition",
+            dss=self.my_dss,
+        )
+        self.dss_grouping_2 = DSSGrouping.objects.create(
+            name="DSSGroupingTwoForTest",
+            definition="DSSGroupingDefinition 2",
+            dss=self.my_dss_2,
+        )
+        self.dss_grouping_3 = DSSGrouping.objects.create(
+            name="DSSGroupingThreeForTest",
+            definition="DSSGroupingDefinition 3",
+            dss=self.my_dss_2,
+        )
+        self.dss_grouping_4 = DSSGrouping.objects.create(
+            name="DSSGroupingFourForTest",
+            definition="DSSGroupingDefinition 3",
+            dss=self.my_dss_2,
+        )
+        self.dss_grouping_2.linked_group.set([self.dss_grouping_1])
+        self.dss_grouping_3.linked_group.set([self.dss_grouping_1])
+        self.dss_grouping_4.linked_group.set([self.dss_grouping_3])
+
+        # Make sure at this point the old through table is still there:
+        self.assertEqual(self.dss_grouping_2.linked_group.through.__name__, 'DSSGrouping_linked_group')
+
+        # Make sure the old through table has 3 DSSGrouping objects:
+        self.assertEqual(self.dss_grouping_2.linked_group.through.objects.all().count(), 3)
+
+
+class TestThroughTableCreation(TestThroughTableTestCaseBase):
+    app = 'aristotle_dse'
+    migrate_from = [
+        ('aristotle_mdr', '0057_auto_20190329_1609'),
+        ('aristotle_dse', '0037_create_dssgrouping_new_through_table'),
+    ]
+    migrate_to = '0038_copy_paste_data_from_old_through_table_to_new'
+
+    def test_data_actually_copy_pasted_from_old_through_table_to_new_through_table(self):
+        # Through table was actually created:
+        self.assertEqual(self.dss_grouping_2.linked_group_new.through.__name__, 'DSSGroupingLinkedGroupThrough')
+
+        # Make sure the old through table has 3 DSSGroupingLinkedGroupThrough objects:
+        self.assertEqual(self.dss_grouping_2.linked_group_new.through.objects.all().count(), 3)
+        # Make sure that this Foreign key 'to_dssgrouping' does have a reference to 'self' in 'from_fields':
+        self.assertEqual(
+            self.dss_grouping_2.linked_group_new.through.objects.first()._meta.get_field('to_dssgrouping').__dict__.get(
+                'from_fields')[0],
+            'self'
+        )
+        # Make sure that this Foreign key 'to_dssgrouping' does have a reference to 'uuid' in 'to_fields':
+        self.assertEqual(
+            self.dss_grouping_2.linked_group_new.through.objects.first()._meta.get_field('to_dssgrouping').__dict__.get(
+                'to_fields')[0],
+            'uuid'
+        )
+        # Make sure that this Foreign Keys in the new through table are referenced by uuids:
+        self.assertEqual(self.dss_grouping_2.linked_group_new.through.objects.first().from_dssgrouping_id,
+                         self.dss_grouping_2.uuid)
+        self.assertEqual(self.dss_grouping_2.linked_group_new.through.objects.first().to_dssgrouping_id,
+                         self.dss_grouping_1.uuid)

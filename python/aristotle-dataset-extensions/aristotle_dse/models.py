@@ -435,6 +435,26 @@ class DSSInclusion(aristotle.models.aristotleComponent):
         )
 
 
+class DSSGroupingLinkedGroupThrough(models.Model):
+    """
+    Class representation of the through table for DSSGrouping objects.
+    The purpose of this table is to specify a `to_field` attribute in the frameworkdimension field, in order
+    to use UUID instead of id.
+    """
+    to_dssgrouping = models.ForeignKey(
+        to='DSSGrouping',
+        to_field='uuid',
+        related_name='to_dssgrouping_reverse',
+        on_delete=models.CASCADE,
+    )
+    from_dssgrouping = models.ForeignKey(
+        to='DSSGrouping',
+        to_field='uuid',
+        related_name='from_dssgrouping_reverse',
+        on_delete=models.CASCADE,
+    )
+
+
 class DSSGrouping(aristotle.models.aristotleComponent):
 
     inline_field_layout = 'list'
@@ -448,8 +468,12 @@ class DSSGrouping(aristotle.models.aristotleComponent):
         _('definition'),
         blank=True,
     )
+
     linked_group = models.ManyToManyField(
-        'self', blank=True, symmetrical=False
+        'self',
+        blank=True,
+        symmetrical=False,
+        through=DSSGroupingLinkedGroupThrough,
     )
     order = models.PositiveSmallIntegerField(
         "Position",

@@ -478,9 +478,9 @@ def data_copy_and_paste(model, from_field, to_field):
         row.save(update_fields=[to_field])
 
 
-def data_copy_and_paste_from_one_through_table_to_another(model, through_model, fk_through_field_name):
+def data_copy_and_paste_from_m2m_through_model(model, through_model, fk_through_field_name, with_self=False):
     """
-    The purpose of this function is to "copy-paste" data from one `many to many` field to another.
+    The purpose of this function is to "copy-paste" data from one `many to many` through model to another.
     Important: The fields of both through tables must have the same name.
     This function is particularly useful for data migrations.
     :param model: Model source of both Foreign Key fields.
@@ -488,11 +488,15 @@ def data_copy_and_paste_from_one_through_table_to_another(model, through_model, 
     be copied to.
     :param fk_through_field_name: String representation of the Foreign Key field name contained in the old through table
     which is the source of the data.
+    :param with_self: Boolean. Default: False. Set to True if ManyToMany field is referencing itself (by using `self`).
     """
 
     from django.core.exceptions import ObjectDoesNotExist
 
     model_name = model.__name__.lower()
+
+    if with_self:
+        model_name = 'to_{}'.format(model_name)
 
     through_objects_list = []
 
