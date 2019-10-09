@@ -155,18 +155,21 @@ class TestIndicatorFrameworkDimensionsThroughAndUUIDForeignKeyLink(ThroughtTable
     migrate_to = '0025_copy_and_paste_data_through'
 
     def test_data_was_migrated_to_the_new_through_table_IndicatorFrameworkDimensionsThrough(self):
+
+        IndicatorFrameworkDimensionsThrough = self.i.dimensions_new.through
+
         # Through table was actually created:
-        self.assertEqual(self.i.dimensions_new.through.__name__, 'IndicatorFrameworkDimensionsThrough')
+        self.assertEqual(IndicatorFrameworkDimensionsThrough.__name__, 'IndicatorFrameworkDimensionsThrough')
         # Make sure the new through table has 2 FrameworkDimension objects:
-        self.assertEqual(self.i.dimensions_new.through.objects.all().count(), 2)
+        self.assertEqual(IndicatorFrameworkDimensionsThrough.objects.all().count(), 2)
         # Make sure that this Foreign key is actually using uuid:
         self.assertEqual(
-            self.i.dimensions_new.through.objects.first()._meta.get_field('frameworkdimension').__dict__.get(
+            IndicatorFrameworkDimensionsThrough.objects.first()._meta.get_field('frameworkdimension').__dict__.get(
                 'to_fields')[0],
             'uuid'
         )
         # Make sure that this Foreign Key is referenced by UUID field (Foreign Key 'to_field' is actually working):
-        self.assertEqual(self.i.dimensions_new.through.objects.first().frameworkdimension_id, self.fd_1.uuid)
+        self.assertEqual(IndicatorFrameworkDimensionsThrough.objects.first().frameworkdimension_id, self.fd_1.uuid)
 
         # Make sure that the link between Framework and Framework Dimension still exists:
         self.assertEqual(self.i.dimensions.first().framework.name, self.f.name)
@@ -180,16 +183,19 @@ class TestIndicatorFrameworkDimensionsThroughAndUUIDForeignKeyLinkReverse(Throug
     migrate_to = '0024_create_indicator_dimension_through'
 
     def test_data_was_migrated_to_the_old_through_table_IndicatorFrameworkDimensionsThrough(self):
+
+        indicator_dimensions_through_model = self.i.dimensions.through
+
         # Through table was actually created:
-        self.assertEqual(self.i.dimensions.through.__name__, 'Indicator_dimensions')
+        self.assertEqual(indicator_dimensions_through_model.__name__, 'Indicator_dimensions')
         # Make sure the old through table has 2 FrameworkDimension objects:
-        self.assertEqual(self.i.dimensions.through.objects.all().count(), 2)
+        self.assertEqual(indicator_dimensions_through_model.objects.all().count(), 2)
         # Make sure that this Foreign key does not have a to_fields attribute:
         self.assertEqual(
-            self.i.dimensions.through.objects.first()._meta.get_field('frameworkdimension').__dict__.get(
+            indicator_dimensions_through_model.objects.first()._meta.get_field('frameworkdimension').__dict__.get(
                 'to_fields')[0],
             None
         )
         # Make sure that this Foreign Key is referenced by the id field (Because 'to_field' is nos assigned):
-        self.assertEqual(self.i.dimensions.through.objects.first().frameworkdimension_id, self.fd_1.id)
+        self.assertEqual(indicator_dimensions_through_model.objects.first().frameworkdimension_id, self.fd_1.id)
 
