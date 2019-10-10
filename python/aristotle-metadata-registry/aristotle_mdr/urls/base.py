@@ -11,7 +11,7 @@ from aristotle_mdr.contrib.user_management.views import AristotlePasswordResetVi
 admin.autodiscover()
 
 urlpatterns = [
-    path('login/', FriendlyLoginView.as_view(), name='friendly_login'),
+    path('login', FriendlyLoginView.as_view(), name='friendly_login'),
     path('logout/', FriendlyLogoutView.as_view(), name='logout'),
     path('django/admin/doc/', include('django.contrib.admindocs.urls')),
     path('django/admin/', admin.site.urls),
