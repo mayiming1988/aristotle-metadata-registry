@@ -1,4 +1,5 @@
 from django.conf.urls import url
+from django.urls import path
 
 from comet import views
 from django.views.generic import TemplateView
@@ -7,7 +8,7 @@ from comet import models
 
 
 urlpatterns = [
-    url(r'^/?$', TemplateView.as_view(template_name='comet/static/about_comet_mdr.html')),
+    path('', TemplateView.as_view(template_name='comet/static/about_comet_mdr.html')),
 
     # These are required for about pages to work. Include them, or custom items will die!
     url(r'^about/(?P<template>.+)/?$', views.DynamicTemplateView.as_view(), name="about"),
