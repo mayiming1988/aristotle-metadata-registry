@@ -478,6 +478,21 @@ def data_copy_and_paste(model, from_field, to_field):
         row.save(update_fields=[to_field])
 
 
+def data_copy_and_paste_foreign_value(model, from_field, foreign_field, to_field):
+    """
+    The purpose of this function is to "copy-paste" data from a model in a `foreign key` field to another on a local field.
+    This function is particularly useful for data migrations.
+    :param model: Model source of both Foreign Key fields.
+    :param from_field: String representation of the field name which is the source of the data.
+    :param foreign_field: String representation of the field name in the foreign model to copy.
+    :param to_field: String representation of the field name which is the destination of the data.
+    """
+    for row in model.objects.all():
+        if getattr(row, from_field):
+            setattr(row, to_field, getattr(getattr(row, from_field), foreign_field))
+            row.save(update_fields=[to_field])
+
+
 def data_copy_and_paste_from_m2m_through_model(model, through_model, fk_through_field_name, with_self=False):
     """
     The purpose of this function is to "copy-paste" data from one `many to many` through model to another.
