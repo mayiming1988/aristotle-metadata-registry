@@ -496,3 +496,83 @@ class TestRAOrganisationRemoval(MigrationsTestCase, TestCase):
         # )
         self.ra = RAClass.objects.get(pk=self.ra.pk)
         self.assertTrue(self.ra.stewardship_organisation == s_org)
+
+
+class TestUUIDFieldDataMigration(MigrationsTestCase, TestCase):
+    migrate_from = '0079_auto_20191014_0055'
+    migrate_to = '0080_copy_and_paste_foreign_value'
+
+    def setUpBeforeMigration(self, apps):
+
+        ValueDomain = apps.get_model('aristotle_mdr', 'ValueDomain')
+        PermissibleValue = apps.get_model('aristotle_mdr', 'PermissibleValue')
+        ConceptualDomain = apps.get_model('aristotle_mdr', 'ConceptualDomain')
+        ValueMeaning = apps.get_model('aristotle_mdr', 'ValueMeaning')
+
+        self.conceptual_domain = ConceptualDomain.objects.create(
+            name="Test Conceptual Domain"
+        )
+
+        self.vd = ValueDomain.objects.create(
+            name="My ValueDomain",
+            definition="My definition"
+        )
+
+        self.value_meaning = ValueMeaning.objects.create(
+            name="test Value Meaning",
+            definition="test definition",
+            conceptual_domain=self.conceptual_domain,
+            order=0,
+        )
+
+        self.permissible_value = PermissibleValue.objects.create(
+            order=0,
+            value='A',
+            meaning='Apple',
+            valueDomain=self.vd,
+            value_meaning=self.value_meaning
+        )
+
+    def test_value_meaning_data_has_been_copy_pasted_to_value_meaning_new_uuid_field(self):
+        self.permissible_value.refresh_from_db()
+        self.assertEqual(self.permissible_value.value_meaning_new, self.permissible_value.value_meaning.uuid)
+
+
+class TestValueMeaningWasActuallyRenamed(MigrationsTestCase, TestCase):
+    migrate_from = '0082_auto_20191014_0103'
+    migrate_to = '0083_auto_20191014_0108'
+
+    def setUpBeforeMigration(self, apps):
+        ValueDomain = apps.get_model('aristotle_mdr', 'ValueDomain')
+        PermissibleValue = apps.get_model('aristotle_mdr', 'PermissibleValue')
+        ConceptualDomain = apps.get_model('aristotle_mdr', 'ConceptualDomain')
+        ValueMeaning = apps.get_model('aristotle_mdr', 'ValueMeaning')
+
+        self.conceptual_domain = ConceptualDomain.objects.create(
+            name="Test Conceptual Domain"
+        )
+
+        self.vd = ValueDomain.objects.create(
+            name="My ValueDomain",
+            definition="My definition"
+        )
+
+        self.value_meaning = ValueMeaning.objects.create(
+            name="test Value Meaning",
+            definition="test definition",
+            conceptual_domain=self.conceptual_domain,
+            order=0,
+        )
+
+        self.permissible_value = PermissibleValue.objects.create(
+            order=0,
+            value='A',
+            meaning='Apple',
+            valueDomain=self.vd,
+            value_meaning_new=self.value_meaning.uuid
+        )
+
+    def test_value_meaning_new_was_actually_renamed(self):
+        PermissibleValue = self.apps.get_model('aristotle_mdr', 'PermissibleValue')
+        pv = PermissibleValue.objects.last()
+        self.assertEqual(self.permissible_value.value_meaning_new, pv.value_meaning)
