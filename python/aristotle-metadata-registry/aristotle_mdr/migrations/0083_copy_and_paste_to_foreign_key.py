@@ -7,8 +7,8 @@ from aristotle_mdr.utils.migration_utils import data_copy_and_paste
 def duplicate_models_foreign_keys(apps, schema_editor):
     PermissibleValue = apps.get_model('aristotle_mdr', 'permissiblevalue')
     SupplementaryValue = apps.get_model('aristotle_mdr', 'supplementaryvalue')
-    data_copy_and_paste(PermissibleValue, 'value_meaning_new', 'value_meaning_id')
-    data_copy_and_paste(SupplementaryValue, 'value_meaning_new', 'value_meaning_id')
+    data_copy_and_paste(PermissibleValue, 'value_meaning_temp', 'value_meaning_id')
+    data_copy_and_paste(SupplementaryValue, 'value_meaning_temp', 'value_meaning_id')
 
 
 class Migration(migrations.Migration):

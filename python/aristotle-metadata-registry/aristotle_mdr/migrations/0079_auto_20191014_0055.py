@@ -12,12 +12,12 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='permissiblevalue',
-            name='value_meaning_new',
+            name='value_meaning_temp',
             field=models.UUIDField(blank=True, help_text='A reference to the value meaning that this designation relates to', null=True, verbose_name='ValueMeaning'),
         ),
         migrations.AddField(
             model_name='supplementaryvalue',
-            name='value_meaning_new',
+            name='value_meaning_temp',
             field=models.UUIDField(blank=True, help_text='A reference to the value meaning that this designation relates to', null=True, verbose_name='ValueMeaning'),
         ),
     ]

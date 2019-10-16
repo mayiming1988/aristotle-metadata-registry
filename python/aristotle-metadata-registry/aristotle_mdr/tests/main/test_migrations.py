@@ -533,9 +533,9 @@ class TestUUIDFieldDataMigration(MigrationsTestCase, TestCase):
             value_meaning=self.value_meaning
         )
 
-    def test_value_meaning_data_has_been_copy_pasted_to_value_meaning_new_uuid_field(self):
+    def test_value_meaning_data_has_been_copy_pasted_to_value_meaning_temp_uuid_field(self):
         self.permissible_value.refresh_from_db()
-        self.assertEqual(self.permissible_value.value_meaning_new, self.permissible_value.value_meaning.uuid)
+        self.assertEqual(self.permissible_value.value_meaning_temp, self.permissible_value.value_meaning.uuid)
 
 
 class TestForeignKeyDataWasCopyPasted(MigrationsTestCase, TestCase):
@@ -569,7 +569,7 @@ class TestForeignKeyDataWasCopyPasted(MigrationsTestCase, TestCase):
             value='A',
             meaning='Apple',
             valueDomain=self.vd,
-            value_meaning_new=self.value_meaning.uuid
+            value_meaning_temp=self.value_meaning.uuid
         )
 
     def test_foreign_key_data_was_copy_pasted(self):

@@ -12,10 +12,10 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RemoveField(
             model_name='permissiblevalue',
-            name='value_meaning_new',
+            name='value_meaning_temp',
         ),
         migrations.RemoveField(
             model_name='supplementaryvalue',
-            name='value_meaning_new',
+            name='value_meaning_temp',
         ),
     ]
