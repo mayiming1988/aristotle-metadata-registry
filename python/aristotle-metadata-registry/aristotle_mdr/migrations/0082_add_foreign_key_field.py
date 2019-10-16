@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_mdr', '0081_auto_20191014_0103'),
+        ('aristotle_mdr', '0081_make_uuid_field_the_pk'),
     ]
 
     operations = [

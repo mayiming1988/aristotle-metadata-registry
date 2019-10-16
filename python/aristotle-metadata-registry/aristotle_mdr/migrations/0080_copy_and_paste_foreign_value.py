@@ -1,5 +1,5 @@
 from django.db import migrations
-from aristotle_mdr.utils.migration_utils import data_copy_and_paste_foreign_value, data_copy_and_paste
+from aristotle_mdr.utils.migration_utils import data_copy_and_paste_foreign_value
 
 
 def duplicate_models_foreign_keys(apps, schema_editor):
