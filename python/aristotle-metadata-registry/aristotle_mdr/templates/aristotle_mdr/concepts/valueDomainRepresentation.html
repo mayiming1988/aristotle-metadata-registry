@@ -1,3 +1,5 @@
+{% load aristotle_tags util_tags %}
+
 {% comment %}
 This is reused when displaying Data Elements, but we want to minimise the
 amount of information around the Value Domain
@@ -12,7 +14,7 @@ So we've split this out into its own template.
         {% if item.description %}
             <tr>
                 <th>Description</th>
-                <td>{{ item.description }}</td>
+                <td>{{ item.description|bleach }}</td>
             </tr>
         {% endif %}
         {% if item.data_type %}

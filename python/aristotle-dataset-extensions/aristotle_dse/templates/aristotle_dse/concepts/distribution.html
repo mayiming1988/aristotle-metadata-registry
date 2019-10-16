@@ -1,5 +1,5 @@
 {% extends "aristotle_mdr/concepts/managedContent.html" %}
-{% load i18n aristotle_tags %}
+{% load i18n aristotle_tags util_tags %}
 
 {% block extra_head_scripts %}
     {{ block.super }}
@@ -97,7 +97,7 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {{column.data_element.definition|striptags}}
+                                {{column.data_element.definition|striptags|bleach|safe}}
                             </td>
                             <td>
                                 {% firstof column.data_element.valueDomain.data_type.name "-" %}
