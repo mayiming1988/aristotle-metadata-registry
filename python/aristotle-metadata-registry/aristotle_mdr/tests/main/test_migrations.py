@@ -538,9 +538,9 @@ class TestUUIDFieldDataMigration(MigrationsTestCase, TestCase):
         self.assertEqual(self.permissible_value.value_meaning_new, self.permissible_value.value_meaning.uuid)
 
 
-class TestValueMeaningWasActuallyRenamed(MigrationsTestCase, TestCase):
-    migrate_from = '0082_auto_20191014_0103'
-    migrate_to = '0083_auto_20191014_0108'
+class TestForeignKeyDataWasCopyPasted(MigrationsTestCase, TestCase):
+    migrate_from = '0082_auto_20191015_0617'
+    migrate_to = '0083_copy_and_paste_to_foreign_key'
 
     def setUpBeforeMigration(self, apps):
         ValueDomain = apps.get_model('aristotle_mdr', 'ValueDomain')
@@ -572,7 +572,10 @@ class TestValueMeaningWasActuallyRenamed(MigrationsTestCase, TestCase):
             value_meaning_new=self.value_meaning.uuid
         )
 
-    def test_value_meaning_new_was_actually_renamed(self):
+    def test_foreign_key_data_was_copy_pasted(self):
         PermissibleValue = self.apps.get_model('aristotle_mdr', 'PermissibleValue')
         pv = PermissibleValue.objects.last()
-        self.assertEqual(self.permissible_value.value_meaning_new, pv.value_meaning)
+        self.permissible_value.refresh_from_db()
+        self.assertTrue(PermissibleValue._meta.get_field('value_meaning').is_relation)  # The new field is a foreign key (relation) field.
+        self.assertEqual(self.permissible_value.value_meaning, self.value_meaning)  # Check that new foreign key is working.
+        self.assertEqual(pv.value_meaning.uuid, self.value_meaning.uuid)  # Check that new foreign key is working.

@@ -75,31 +75,4 @@ class Migration(migrations.Migration):
                                    help_text='Universally-unique Identifier. Uses UUID1 as this improves uniqueness and tracking between registries',
                                    primary_key=True, serialize=False, unique=True),
         ),
-        migrations.RenameField(
-            model_name='permissiblevalue',
-            old_name='value_meaning_new',
-            new_name='value_meaning',
-        ),
-        migrations.RenameField(
-            model_name='supplementaryvalue',
-            old_name='value_meaning_new',
-            new_name='value_meaning',
-        ),
-        # Make the field a Foreign Key, and also remove the `related_name` attribute.
-        migrations.AlterField(
-            model_name='permissiblevalue',
-            name='value_meaning',
-            field=models.ForeignKey(blank=True,
-                                    help_text='A reference to the value meaning that this designation relates to',
-                                    null=True, on_delete=django.db.models.deletion.SET_NULL,
-                                    to='aristotle_mdr.ValueMeaning'),
-        ),
-        migrations.AlterField(
-            model_name='supplementaryvalue',
-            name='value_meaning',
-            field=models.ForeignKey(blank=True,
-                                    help_text='A reference to the value meaning that this designation relates to',
-                                    null=True, on_delete=django.db.models.deletion.SET_NULL,
-                                    to='aristotle_mdr.ValueMeaning'),
-        ),
     ]

@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.utils.translation import ugettext as _
 
-from aristotle_mdr import models as aristotle_mdr_models
+import aristotle_mdr.models as aristotle_mdr_models
 
 
 """

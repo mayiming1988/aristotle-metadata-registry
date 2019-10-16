@@ -15,6 +15,10 @@
 
 {% block page %}
     <h1>{% block title %}{{ workgroup.name }}{% endblock %}</h1>
+
+    <ol class="breadcrumb">
+        <li>{{ workgroup.name }}</li>
+    </ol>
     <div class="row">
 
         <aside id="infoBox" class="col-xs-12 col-sm-4 pull-right">

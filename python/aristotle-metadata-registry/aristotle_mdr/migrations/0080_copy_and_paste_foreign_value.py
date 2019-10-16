@@ -1,12 +1,12 @@
 from django.db import migrations
-from aristotle_mdr.utils.migration_utils import data_copy_and_paste_foreign_value
+from aristotle_mdr.utils.migration_utils import data_copy_and_paste_foreign_value, data_copy_and_paste
 
 
 def duplicate_models_foreign_keys(apps, schema_editor):
-    permissible_value_model = apps.get_model('aristotle_mdr', 'permissiblevalue')
-    supplementary_value_model = apps.get_model('aristotle_mdr', 'supplementaryvalue')
-    data_copy_and_paste_foreign_value(permissible_value_model, 'value_meaning', 'uuid', 'value_meaning_new')
-    data_copy_and_paste_foreign_value(supplementary_value_model, 'value_meaning', 'uuid', 'value_meaning_new')
+    PermissibleValue = apps.get_model('aristotle_mdr', 'permissiblevalue')
+    SupplementaryValue = apps.get_model('aristotle_mdr', 'supplementaryvalue')
+    data_copy_and_paste_foreign_value(PermissibleValue, 'value_meaning', 'uuid', 'value_meaning_new')
+    data_copy_and_paste_foreign_value(SupplementaryValue, 'value_meaning', 'uuid', 'value_meaning_new')
 
 
 class Migration(migrations.Migration):
