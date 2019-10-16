@@ -5,8 +5,8 @@ import uuid
 
 
 def gen_uuid(apps, schema_editor):
-    MyModel = apps.get_model('aristotle_mdr_links', 'relationrole')
-    for row in MyModel.objects.all():
+    RelationRole = apps.get_model('aristotle_mdr_links', 'relationrole')
+    for row in RelationRole.objects.all():
         row.uuid = uuid.uuid1()
         row.save(update_fields=['uuid'])
 
