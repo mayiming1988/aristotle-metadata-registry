@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils.translation import ugettext as _
 
-from aristotle_mdr import models as MDR
+import aristotle_mdr.models as aristotle_mdr_models
 
 
 """
@@ -9,22 +9,22 @@ These models are based on the DDI3.2 and the SQBL XML formats.
 """
 
 
-class AdministrationMode(MDR.unmanagedObject):
+class AdministrationMode(aristotle_mdr_models.unmanagedObject):
     pass
 
 
-class Question(MDR.concept):
+class Question(aristotle_mdr_models.concept):
     template = "mallard_qr/question.html"
     collected_data_element = models.ForeignKey(
-        MDR.DataElement,
+        aristotle_mdr_models.DataElement,
         blank=True, null=True, on_delete=models.SET_NULL,
         related_name="questions",
     )
-    question_text = MDR.RichTextField(
+    question_text = aristotle_mdr_models.RichTextField(
         blank=True,
         help_text=_("The text which describes the information which is to be obtained.")
     )
-    instruction_text = MDR.RichTextField(blank=True)
+    instruction_text = aristotle_mdr_models.RichTextField(blank=True)
     # administration_modes = models.ManyToManyField(AdministrationMode,blank=True,null=True)
     estimated_seconds_response_time = models.PositiveIntegerField(
         null=True, blank=True,
@@ -32,7 +32,7 @@ class Question(MDR.concept):
     )
 
 
-class ResponseDomain(MDR.aristotleComponent):
+class ResponseDomain(aristotle_mdr_models.aristotleComponent):
 
     parent_field_name = 'question'
     class Meta:
@@ -40,7 +40,7 @@ class ResponseDomain(MDR.aristotleComponent):
 
     question = models.ForeignKey(Question, related_name="response_domains", on_delete=models.CASCADE)
     value_domain = models.ForeignKey(
-        MDR.ValueDomain,
+        aristotle_mdr_models.ValueDomain,
         null=True, blank=True,
         on_delete=models.SET_NULL,
     )

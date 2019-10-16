@@ -15,7 +15,7 @@ machine-readable interface.
 
 
 urlpatterns = [
-    url(r'^auth/', include(('rest_framework.urls', 'rest_framework'), namespace='rest_framework')),
+    url(r'^auth/', include(('rest_framework.urls', 'rest_framework'), namespace='auth_rest_framework')),
     # url(r'^api-token-auth/', tokenviews.obtain_auth_token),
     url(r'^token/', include(('aristotle_mdr_api.token_auth.urls', 'aristotle_mdr_api.token_auth'), namespace='token_auth')),
     url(r'^$', APIRootView.as_view(), name="aristotle_api_root"),
