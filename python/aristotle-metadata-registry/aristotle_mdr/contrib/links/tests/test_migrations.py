@@ -26,7 +26,7 @@ class UUIDToPrimaryKeyTestBaseForLinkEnd(MigrationsTestCase, TestCase):
 
 class TestRelationRolePrimaryKeyChange(UUIDToPrimaryKeyTestBaseForLinkEnd):
 
-    migrate_from = '0013_add_temporary_field'
+    migrate_from = '0013_add_temp_field'
     migrate_to = '0014_copy_and_paste_foreign_value'
 
     def setUpBeforeMigration(self, apps):
