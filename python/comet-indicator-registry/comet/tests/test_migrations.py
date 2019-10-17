@@ -199,3 +199,115 @@ class TestIndicatorFrameworkDimensionsThroughAndUUIDForeignKeyLinkReverse(Throug
         # Make sure that this Foreign Key is referenced by the id field (Because 'to_field' is nos assigned):
         self.assertEqual(indicator_dimensions_through_model.objects.first().frameworkdimension_id, self.fd_1.id)
 
+
+class UUIDToPrimaryKeyTestBaseForFrameworkDimensions(MigrationsTestCase, TestCase):
+
+    def setUpBeforeMigration(self, apps):
+        self.Indicator = apps.get_model('comet', 'indicator')
+        self.Framework = apps.get_model('comet', 'framework')
+        self.FrameworkDimension = apps.get_model('comet', 'frameworkdimension')
+        self.IndicatorFrameworkDimensionsThrough = apps.get_model('comet', 'indicatorframeworkdimensionsthrough')
+        self.i = self.Indicator.objects.create(
+            name='Test indicator',
+            definition='Test defn',
+
+        )
+        self.f = self.Framework.objects.create(
+            name="Test Framework"
+        )
+        self.fd_parent = self.FrameworkDimension.objects.create(
+            name="Test FrameworkDimension Parent",
+            framework=self.f,
+            lft=1,
+            rght=2,
+            tree_id=3,
+            level=4,
+        )
+
+
+class TestFrameworkDimensionAndIndicatorFrameworkDimensionsThroughPrimaryKeyChange(UUIDToPrimaryKeyTestBaseForFrameworkDimensions):
+
+    migrate_from = '0030_add_temp_field'
+    migrate_to = '0031_copy_and_paste_foreign_value'
+
+    def setUpBeforeMigration(self, apps):
+        super().setUpBeforeMigration(apps)
+
+        # Make sure the temporary fields are UUID fields:
+        self.assertEqual(self.FrameworkDimension._meta.get_field('parent_temp').get_internal_type(), 'UUIDField')
+        self.assertEqual(self.IndicatorFrameworkDimensionsThrough._meta.get_field('frameworkdimension_temp').get_internal_type(), 'UUIDField')
+
+        self.fd = self.FrameworkDimension.objects.create(
+            name="Test FrameworkDimension",
+            framework=self.f,
+            lft=1,
+            rght=2,
+            tree_id=3,
+            level=4,
+            parent=self.fd_parent,
+        )
+        self.ifdt = self.IndicatorFrameworkDimensionsThrough.objects.create(
+            frameworkdimension=self.fd,
+            indicator=self.i,
+        )
+        # Make sure the objects have objects assigned to them:
+        ifdt = self.IndicatorFrameworkDimensionsThrough.objects.last()
+        fd = self.FrameworkDimension.objects.last()
+        self.assertEqual(ifdt.frameworkdimension, self.fd)
+        self.assertEqual(fd.parent, self.fd_parent)
+
+    def test_migration(self):
+        FrameworkDimension = self.apps.get_model('comet', 'frameworkdimension')
+        IndicatorFrameworkDimensionsThrough = self.apps.get_model('comet', 'indicatorframeworkdimensionsthrough')
+
+        fd = FrameworkDimension.objects.last()
+        fd_parent = FrameworkDimension.objects.get(name="Test FrameworkDimension Parent")
+        ifdt = IndicatorFrameworkDimensionsThrough.objects.last()
+
+        # Make sure the temporary uuid fields have the value of the foreign key field:
+        self.assertEqual(fd.parent_temp, fd_parent.uuid)
+        self.assertEqual(ifdt.frameworkdimension_temp, fd.uuid)
+
+
+class TestRelationRoleUUIDForeignKey(UUIDToPrimaryKeyTestBaseForFrameworkDimensions):
+
+    migrate_from = '0033_add_foreign_key_field'
+    migrate_to = '0034_copy_and_paste_to_foreign_key'
+
+    def setUpBeforeMigration(self, apps):
+        super().setUpBeforeMigration(apps)
+
+        # Make sure the new Field is a Foreign Key field:
+        self.assertEqual(self.FrameworkDimension._meta.get_field('parent').get_internal_type(), 'ForeignKey')
+        self.assertEqual(self.IndicatorFrameworkDimensionsThrough._meta.get_field('frameworkdimension').get_internal_type(), 'ForeignKey')
+
+        self.fd = self.FrameworkDimension.objects.create(
+            name="Test FrameworkDimension",
+            framework=self.f,
+            lft=1,
+            rght=2,
+            tree_id=3,
+            level=4,
+            parent_temp=self.fd_parent.uuid,
+        )
+
+        self.ifdt = self.IndicatorFrameworkDimensionsThrough.objects.create(
+            frameworkdimension_temp=self.fd.uuid,
+            indicator=self.i,
+        )
+
+    def test_migration(self):
+        FrameworkDimension = self.apps.get_model('comet', 'frameworkdimension')
+        IndicatorFrameworkDimensionsThrough = self.apps.get_model('comet', 'indicatorframeworkdimensionsthrough')
+        fd = FrameworkDimension.objects.last()
+        fd_parent = FrameworkDimension.objects.get(name="Test FrameworkDimension Parent")
+        ifdt = IndicatorFrameworkDimensionsThrough.objects.last()
+        self.assertEqual(ifdt.frameworkdimension, fd)   # Check that new foreign key is working.
+        self.assertEqual(fd.parent, fd_parent)  # Check that new foreign key is working.
+
+        # The new fields are foreign key (relation) fields:
+        self.assertTrue(IndicatorFrameworkDimensionsThrough._meta.get_field('frameworkdimension').is_relation)
+        self.assertTrue(FrameworkDimension._meta.get_field('parent').is_relation)
+
+        self.assertEqual(ifdt.frameworkdimension.uuid, fd.uuid)
+        self.assertEqual(fd.parent.uuid, fd_parent.uuid)

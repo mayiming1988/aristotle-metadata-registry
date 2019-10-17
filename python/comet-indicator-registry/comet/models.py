@@ -77,8 +77,17 @@ class IndicatorFrameworkDimensionsThrough(models.Model):
     The purpose of this table is to specify a `to_field` attribute in the frameworkdimension field, in order
     to use UUID instead of id.
     """
-    indicator = ConceptForeignKey("Indicator", on_delete=models.CASCADE)
-    frameworkdimension = models.ForeignKey("FrameworkDimension", to_field='uuid', on_delete=models.CASCADE)
+    indicator = ConceptForeignKey(
+        "Indicator",
+        on_delete=models.CASCADE
+    )
+    frameworkdimension = models.ForeignKey(
+        "FrameworkDimension",
+        null=True,
+        blank=True,
+        to_field='uuid',
+        on_delete=models.CASCADE,
+    )
 
 
 class Indicator(MDR.concept):
@@ -88,7 +97,7 @@ class Indicator(MDR.concept):
     """
     # Subclassing from DataElement causes indicators to present as DataElements, which isn't quite right.
     template = "comet/indicator.html"
-    through_edit_excludes = ['dimensions']
+    through_edit_excludes = ['dimensions']  # Exclude dimensions from the Indicator editor page.
     backwards_compatible_fields = ['representation_class']
 
     outcome_areas = ConceptManyToManyField(OutcomeArea, related_name="indicators", blank=True)
@@ -184,7 +193,7 @@ class IndicatorDataElementBase(aristotleComponent):
         "guide_for_use",
         "order",
     ]
-    
+
     class Meta:
         abstract = True
         ordering = ['order']
