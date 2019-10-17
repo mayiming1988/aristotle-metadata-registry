@@ -498,34 +498,39 @@ class TestRAOrganisationRemoval(MigrationsTestCase, TestCase):
         self.assertTrue(self.ra.stewardship_organisation == s_org)
 
 
-class TestUUIDFieldDataMigration(MigrationsTestCase, TestCase):
-    migrate_from = '0079_auto_20191014_0055'
-    migrate_to = '0080_copy_and_paste_foreign_value'
+class UUIDToPrimaryKeyTestBaseForAbstractValues(MigrationsTestCase, TestCase):
 
     def setUpBeforeMigration(self, apps):
+        self.ValueDomain = apps.get_model('aristotle_mdr', 'ValueDomain')
+        self.PermissibleValue = apps.get_model('aristotle_mdr', 'PermissibleValue')
+        self.ConceptualDomain = apps.get_model('aristotle_mdr', 'ConceptualDomain')
+        self.ValueMeaning = apps.get_model('aristotle_mdr', 'ValueMeaning')
 
-        ValueDomain = apps.get_model('aristotle_mdr', 'ValueDomain')
-        PermissibleValue = apps.get_model('aristotle_mdr', 'PermissibleValue')
-        ConceptualDomain = apps.get_model('aristotle_mdr', 'ConceptualDomain')
-        ValueMeaning = apps.get_model('aristotle_mdr', 'ValueMeaning')
-
-        self.conceptual_domain = ConceptualDomain.objects.create(
+        self.conceptual_domain = self.ConceptualDomain.objects.create(
             name="Test Conceptual Domain"
         )
 
-        self.vd = ValueDomain.objects.create(
+        self.vd = self.ValueDomain.objects.create(
             name="My ValueDomain",
             definition="My definition"
         )
 
-        self.value_meaning = ValueMeaning.objects.create(
+        self.value_meaning = self.ValueMeaning.objects.create(
             name="test Value Meaning",
             definition="test definition",
             conceptual_domain=self.conceptual_domain,
             order=0,
         )
 
-        self.permissible_value = PermissibleValue.objects.create(
+
+class TestUUIDFieldDataMigration(UUIDToPrimaryKeyTestBaseForAbstractValues):
+    migrate_from = '0079_add_temp_field'
+    migrate_to = '0080_copy_and_paste_foreign_value'
+
+    def setUpBeforeMigration(self, apps):
+        super().setUpBeforeMigration(apps)
+
+        self.permissible_value = self.PermissibleValue.objects.create(
             order=0,
             value='A',
             meaning='Apple',
@@ -538,33 +543,13 @@ class TestUUIDFieldDataMigration(MigrationsTestCase, TestCase):
         self.assertEqual(self.permissible_value.value_meaning_temp, self.permissible_value.value_meaning.uuid)
 
 
-class TestForeignKeyDataWasCopyPasted(MigrationsTestCase, TestCase):
-    migrate_from = '0082_auto_20191015_0617'
+class TestForeignKeyDataWasCopyPasted(UUIDToPrimaryKeyTestBaseForAbstractValues):
+    migrate_from = '0082_add_foreign_key_field'
     migrate_to = '0083_copy_and_paste_to_foreign_key'
 
     def setUpBeforeMigration(self, apps):
-        ValueDomain = apps.get_model('aristotle_mdr', 'ValueDomain')
-        PermissibleValue = apps.get_model('aristotle_mdr', 'PermissibleValue')
-        ConceptualDomain = apps.get_model('aristotle_mdr', 'ConceptualDomain')
-        ValueMeaning = apps.get_model('aristotle_mdr', 'ValueMeaning')
-
-        self.conceptual_domain = ConceptualDomain.objects.create(
-            name="Test Conceptual Domain"
-        )
-
-        self.vd = ValueDomain.objects.create(
-            name="My ValueDomain",
-            definition="My definition"
-        )
-
-        self.value_meaning = ValueMeaning.objects.create(
-            name="test Value Meaning",
-            definition="test definition",
-            conceptual_domain=self.conceptual_domain,
-            order=0,
-        )
-
-        self.permissible_value = PermissibleValue.objects.create(
+        super().setUpBeforeMigration(apps)
+        self.permissible_value = self.PermissibleValue.objects.create(
             order=0,
             value='A',
             meaning='Apple',

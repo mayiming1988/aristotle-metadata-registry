@@ -12,7 +12,7 @@ def duplicate_models_foreign_keys(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_mdr_links', '0013_add_temporary_field'),
+        ('aristotle_mdr_links', '0013_add_temp_field'),
     ]
 
     operations = [

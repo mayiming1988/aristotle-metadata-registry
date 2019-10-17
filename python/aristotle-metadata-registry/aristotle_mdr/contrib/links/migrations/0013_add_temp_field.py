@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('aristotle_mdr', '0084_auto_20191015_1736'),
+        ('aristotle_mdr', '0084_remove_temp_field'),
         ('aristotle_mdr_links', '0012_auto_20190918_1611'),
     ]
 

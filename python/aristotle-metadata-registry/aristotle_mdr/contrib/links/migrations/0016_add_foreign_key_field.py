@@ -14,8 +14,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='linkend',
             name='role',
-            field=models.ForeignKey(blank=True,
-                                    null=True, on_delete=django.db.models.deletion.CASCADE,
-                                    to='RelationRole'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                                    to='aristotle_mdr_links.RelationRole'),
         ),
     ]
