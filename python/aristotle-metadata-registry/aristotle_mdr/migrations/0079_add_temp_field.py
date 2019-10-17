@@ -13,11 +13,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='permissiblevalue',
             name='value_meaning_temp',
-            field=models.UUIDField(blank=True, null=True, verbose_name='ValueMeaning'),
+            field=models.UUIDField(blank=True, null=True),
         ),
         migrations.AddField(
             model_name='supplementaryvalue',
             name='value_meaning_temp',
-            field=models.UUIDField(blank=True, null=True, verbose_name='ValueMeaning'),
+            field=models.UUIDField(blank=True, null=True),
         ),
     ]
