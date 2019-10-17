@@ -17,7 +17,6 @@ from comet.managers import FrameworkDimensionManager
 
 class Framework(MDR.concept):
     template = "comet/framework.html"
-    # parentFramework = ConceptForeignKey('Framework', blank=True, null=True, related_name="childFrameworks")
 
     serialize_weak_entities = [
         ('dimensions', 'frameworkdimension_set'),
@@ -160,9 +159,6 @@ class Indicator(MDR.concept):
 
 
 class IndicatorDataElementBase(aristotleComponent):
-    class Meta:
-        abstract = True
-        ordering = ['order']
 
     indicator = ConceptForeignKey(Indicator, on_delete=models.CASCADE)
     order = models.PositiveSmallIntegerField(
@@ -188,6 +184,10 @@ class IndicatorDataElementBase(aristotleComponent):
         "guide_for_use",
         "order",
     ]
+    
+    class Meta:
+        abstract = True
+        ordering = ['order']
 
 
 class IndicatorNumeratorDefinition(IndicatorDataElementBase):
