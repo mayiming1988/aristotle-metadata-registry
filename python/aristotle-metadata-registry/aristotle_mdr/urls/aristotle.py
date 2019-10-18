@@ -25,7 +25,7 @@ urlpatterns = [
     path('manifest.json', TemplateView.as_view(template_name='meta/manifest.json', content_type='application/json')),
     path('robots.txt', TemplateView.as_view(template_name='meta/robots.txt', content_type='text/plain')),
     path('sitemap.xml', views.sitemaps.main, name='sitemap_xml'),
-    path('sitemaps/sitemap_<int:page>.xml$', views.sitemaps.page_range, name='sitemap_range_xml'),
+    path('sitemaps/sitemap_<int:page>.xml', views.sitemaps.page_range, name='sitemap_range_xml'),
 
     path('steward', include(('aristotle_mdr.contrib.stewards.urls', 'aristotle_mdr.contrib.stewards'), namespace='stewards')),
 
@@ -86,7 +86,7 @@ urlpatterns = [
     path('item/<int:iid>/objectclass/<path:name_slug>/', views.ObjectClassView.as_view(), name='objectclass_view'),
     re_path(r'^item/(?P<iid>\d+)(?:/(?P<model_slug>\w+)/(?P<name_slug>.+))?/?$', views.ConceptView.as_view(), name='item'),
     re_path(r'^item/(?P<iid>\d+)(?:/.*)?$', views.ConceptView.as_view(), name='item_short'),  # Catch every other 'item' URL and throw it for a redirect
-    path('item/<uuid:uuid>/?<path>?$', views.concept_by_uuid, name='item_uuid'),
+    re_path(r'^item/(?P<uuid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/?(.*)?$', views.concept_by_uuid, name='item_uuid'),
 
     re_path(r'^unmanaged/measure/(?P<iid>\d+)(?:/(?P<model_slug>\w+)/(?P<name_slug>.+))?/?$', views.MeasureView.as_view(), name='measure'),
     path('managed_items/<path:model_slug>/<path:iid>', view=views.ManagedItemView.as_view(), name='view_managed_item'),
@@ -133,7 +133,7 @@ urlpatterns = [
     path('account/workgroups/', views.user_pages.MyWorkgroupList.as_view(), name='userWorkgroups'),
     path('account/workgroups/archives/', views.user_pages.WorkgroupArchiveList.as_view(), name='user_workgroups_archives'),
     path('account/notifications/', views.user_pages.InboxView.as_view(), name='userInbox'),
-    path('account/notifications-all/?$', views.user_pages.InboxViewAll.as_view(), name='userInboxAll'),
+    path('account/notifications-all/', views.user_pages.InboxViewAll.as_view(), name='userInboxAll'),
     path('account/notifications/api/mark-all-as-read/', views.notify.MarkAllReadApiView.as_view(), name='api_mark_all_read'),
 
     re_path(r'^account/django/(.*)?$', views.user_pages.django_admin_wrapper, name='django_admin'),
