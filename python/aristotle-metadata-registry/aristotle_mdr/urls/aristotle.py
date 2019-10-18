@@ -30,20 +30,19 @@ urlpatterns = [
     path('steward', include(('aristotle_mdr.contrib.stewards.urls', 'aristotle_mdr.contrib.stewards'), namespace='stewards')),
 
     # all the below take on the same form:
-    # all the below take on the same form:
-    # path(r'^itemType/(?P<iid>\d+)?/?
+    # path('itemType/<int:iid>/
     # Allowing for a blank ItemId (iid) allows aristotle to redirect to /about/itemtype instead of 404ing
 
     path('conceptualdomain/<int:iid>?/edit/values/',
-        GenericAlterOneToManyView.as_view(
-            model_base=models.ConceptualDomain,
-            model_to_add=models.ValueMeaning,
-            model_base_field='valuemeaning_set',
-            model_to_add_field='conceptual_domain',
-            ordering_field='order',
-            form_add_another_text=_('Add a value meaning'),
-            form_title=_('Change Value Meanings')
-        ), name='value_meanings_edit'),
+         GenericAlterOneToManyView.as_view(
+             model_base=models.ConceptualDomain,
+             model_to_add=models.ValueMeaning,
+             model_base_field='valuemeaning_set',
+             model_to_add_field='conceptual_domain',
+             ordering_field='order',
+             form_add_another_text=_('Add a value meaning'),
+             form_title=_('Change Value Meanings')
+         ), name='value_meanings_edit'),
 
     path('item/<int:iid>?/alter_relationship/<slug:fk_field>/',
          generic_foreign_key_factory_view,
@@ -70,22 +69,22 @@ urlpatterns = [
     path('discussions/delete/post/<int:pid>/', views.discussions.DeletePost.as_view(), name='discussionsDeletePost'),
     path('discussions/edit/comment/<int:cid>/', views.discussions.EditComment.as_view(), name='discussionsEditComment'),
     path('discussions/edit/post/<int:pid>/', views.discussions.EditPost.as_view(), name='discussionsEditPost'),
-    path(r'^discussions/post/(?P<pid>\d+)/toggle/?$', views.discussions.TogglePost.as_view(), name='discussionsPostToggle'),
+    path('discussions/post/<int:pid>/toggle/', views.discussions.TogglePost.as_view(), name='discussionsPostToggle'),
 
-    path(r'^item/(?P<iid>\d+)/edit/?$', views.editors.EditItemView.as_view(), name='edit_item'),
-    path(r'^item/(?P<iid>\d+)/clone/?$', views.editors.CloneItemView.as_view(), name='clone_item'),
-    path(r'^item/(?P<iid>\d+)/graphs/?$', views.tools.ItemGraphView.as_view(), name='item_graphs'),
-    path(r'^item/(?P<iid>\d+)/related/(?P<relation>.+)?$', views.tools.ConceptRelatedListView.as_view(), name='item_related'),
-    path(r'^item/(?P<iid>\d+)/compare_fields/?$', views.versions.CompareHTMLFieldsView.as_view(), name='compare_fields'),
-    path(r'^item/(?P<iid>\d+)/history/$', views.versions.ConceptVersionListView.as_view(), name='item_history'),
-    path(r'^item/(?P<iid>\d+)/compare/?$', views.versions.ConceptVersionCompareView.as_view(), name='compare_versions'),
-    path(r'^item/(?P<iid>\d+)/registrationHistory/?$', views.registration_history, name='registrationHistory'),
-    path(r'^item/(?P<iid>\d+)/child_states/?$', views.actions.CheckCascadedStates.as_view(), name='check_cascaded_states'),
+    path('item/<int:iid>/edit/', views.editors.EditItemView.as_view(), name='edit_item'),
+    path('item/<int:iid>/clone/', views.editors.CloneItemView.as_view(), name='clone_item'),
+    path('item/<int:iid>/graphs/', views.tools.ItemGraphView.as_view(), name='item_graphs'),
+    path('item/<int:iid>/related/<path:relation>', views.tools.ConceptRelatedListView.as_view(), name='item_related'),
+    path('item/<int:iid>/compare_fields/', views.versions.CompareHTMLFieldsView.as_view(), name='compare_fields'),
+    path('item/<int:iid>/history/', views.versions.ConceptVersionListView.as_view(), name='item_history'),
+    path('item/<int:iid>/compare/', views.versions.ConceptVersionCompareView.as_view(), name='compare_versions'),
+    path('item/<int:iid>/registrationHistory/', views.registration_history, name='registrationHistory'),
+    path('item/<int:iid>/child_states/', views.actions.CheckCascadedStates.as_view(), name='check_cascaded_states'),
 
     # Concept page overrides
-    path(r'^item/(?P<iid>\d+)/dataelement/(?P<name_slug>.+)/?$', views.DataElementView.as_view(), name='dataelement'),
-    path(r'^item/(?P<iid>\d+)/objectclass/(?P<name_slug>.+)/?$', views.ObjectClassView.as_view(), name='objectclass_view'),
-    path(r'^item/(?P<iid>\d+)(?:/(?P<model_slug>\w+)/(?P<name_slug>.+))?/?$', views.ConceptView.as_view(), name='item'),
+    path('item/<int:iid>/dataelement/<path:name_slug>/', views.DataElementView.as_view(), name='dataelement'),
+    path('item/(?P<iid>\d+)/objectclass/<path:name_slug>/', views.ObjectClassView.as_view(), name='objectclass_view'),
+    re_path(r'^item/(?P<iid>\d+)(?:/(?P<model_slug>\w+)/(?P<name_slug>.+))?/?$', views.ConceptView.as_view(), name='item'),
     path(r'^item/(?P<iid>\d+)(?:/.*)?$', views.ConceptView.as_view(), name='item_short'),  # Catch every other 'item' URL and throw it for a redirect
     path(r'^item/(?P<uuid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/?(.*)?$', views.concept_by_uuid, name='item_uuid'),
 
