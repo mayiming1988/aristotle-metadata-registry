@@ -46,8 +46,8 @@ urlpatterns = [
         ), name='value_meanings_edit'),
 
     path('item/<int:iid>?/alter_relationship/<slug:fk_field>/',
-        generic_foreign_key_factory_view,
-        name='generic_foreign_key_editor'),
+         generic_foreign_key_factory_view,
+         name='generic_foreign_key_editor'),
 
     re_path(r'^workgroup/(?P<iid>\d+)(?:-(?P<name_slug>[A-Za-z0-9\-_]+))?/?$', views.workgroups.WorkgroupView.as_view(), name='workgroup'),
     path('workgroup/<int:iid>/members/', views.workgroups.MembersView.as_view(), name='workgroupMembers'),
@@ -103,9 +103,9 @@ urlpatterns = [
     path(r'^download/bulk/(?P<download_type>\w+)/?$', views.downloads.BulkDownloadView.as_view(), name='bulk_download'),
     path(r'^download/(?P<download_type>\w+)/(?P<iid>\d+)/?$', views.downloads.DownloadView.as_view(), name='download'),
     path(r'^dlstatus/(?P<taskid>[a-z0-9\-]+)/?$',
-        views.downloads.DownloadStatusView.as_view(),
-        name='download_status',
-        ),
+         views.downloads.DownloadStatusView.as_view(),
+         name='download_status',
+         ),
 
     path(r'^action/supersede/(?P<iid>\d+)$', views.actions.SupersedeItemView.as_view(), name='supersede'),
     path(r'^action/proposed/supersede/(?P<iid>\d+)$', views.actions.ProposedSupersedeItemView.as_view(), name='proposed_supersede'),
