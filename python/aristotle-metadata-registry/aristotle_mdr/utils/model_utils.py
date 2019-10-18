@@ -112,6 +112,21 @@ class baseAristotleObject(TimeStampedModel):
         return cls._meta
 
 
+class unmanagedObject(baseAristotleObject):
+    class Meta:
+        abstract = True
+
+    def can_edit(self, user):
+        return user.is_superuser
+
+    def can_view(self, user):
+        return True
+
+    @property
+    def item(self):
+        return self
+
+
 class ManagedItem(baseAristotleObject):
     """
     Managed items can be published, but not registered
