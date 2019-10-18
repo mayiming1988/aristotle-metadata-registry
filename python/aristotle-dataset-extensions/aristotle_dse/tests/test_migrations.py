@@ -173,3 +173,116 @@ class TestThroughTableCreation(TestThroughTableTestCaseBase):
                          self.dss_grouping_2.uuid)
         self.assertEqual(DSSGroupingLinkedGroupThrough.objects.first().to_dssgrouping_id,
                          self.dss_grouping_1.uuid)
+
+
+class UUIDToPrimaryKeyTestBaseForDSSDEInclusionsAndDSSGroupings(MigrationsTestCase, TestCase):
+
+    def setUpBeforeMigration(self, apps):
+        self.DataElement = apps.get_model('aristotle_mdr', 'dataelement')
+        self.DataSetSpecification = apps.get_model('aristotle_dse', 'datasetspecification')
+        self.DSSGroupingLinkedGroupThrough = apps.get_model('aristotle_dse', 'dssgroupinglinkedgroupthrough')
+        self.DSSGrouping = apps.get_model('aristotle_dse', 'dssgrouping')
+        self.DSSDEInclusion = apps.get_model('aristotle_dse', 'dssdeinclusion')
+        self.de = self.DataElement.objects.create(
+            name="Test DE"
+        )
+        self.dss = self.DataSetSpecification.objects.create(
+            name="Test DSS",
+        )
+        self.dssgrouping_1 = self.DSSGrouping.objects.create(
+            name="Test DSSGrouping 1",
+            dss=self.dss
+        )
+        self.dssgrouping_2 = self.DSSGrouping.objects.create(
+            name="Test DSSGrouping 2",
+            dss=self.dss
+        )
+
+
+class TestDSSDEInclusionAndDSSGroupingLinkedGroupThroughPrimaryKeyChange(UUIDToPrimaryKeyTestBaseForDSSDEInclusionsAndDSSGroupings):
+
+    migrate_from = '0042_add_temp_field'
+    migrate_to = '0043_copy_and_paste_foreign_value'
+
+    def setUpBeforeMigration(self, apps):
+        super().setUpBeforeMigration(apps)
+
+        # Make sure the temporary fields are UUID fields:
+        self.assertEqual(self.DSSDEInclusion._meta.get_field('group_temp').get_internal_type(), 'UUIDField')
+        self.assertEqual(self.DSSGroupingLinkedGroupThrough._meta.get_field('from_dssgrouping_temp').get_internal_type(), 'UUIDField')
+        self.assertEqual(self.DSSGroupingLinkedGroupThrough._meta.get_field('to_dssgrouping_temp').get_internal_type(), 'UUIDField')
+
+        self.DSSGroupingLinkedGroupThrough.objects.create(
+            from_dssgrouping=self.dssgrouping_1,
+            to_dssgrouping=self.dssgrouping_2
+        )
+        self.DSSDEInclusion.objects.create(
+            data_element=self.de,
+            dss=self.dss,
+            group=self.dssgrouping_1
+        )
+        # Make sure the objects have objects assigned to them:
+        dssglgt = self.DSSGroupingLinkedGroupThrough.objects.last()
+        dssdei = self.DSSDEInclusion.objects.last()
+        self.assertEqual(dssglgt.from_dssgrouping, self.dssgrouping_1)
+        self.assertEqual(dssglgt.to_dssgrouping, self.dssgrouping_2)
+        self.assertEqual(dssdei.group, self.dssgrouping_1)
+
+    def test_migration(self):
+        DSSDEInclusion = self.apps.get_model('aristotle_dse', 'dssdeinclusion')
+        DSSGroupingLinkedGroupThrough = self.apps.get_model('aristotle_dse', 'dssgroupinglinkedgroupthrough')
+        DSSGrouping = self.apps.get_model('aristotle_dse', 'dssgrouping')
+
+        dssdei = DSSDEInclusion.objects.last()
+        dssg1 = DSSGrouping.objects.get(name="Test DSSGrouping 1")
+        dssg2 = DSSGrouping.objects.get(name="Test DSSGrouping 2")
+        dssglgt = DSSGroupingLinkedGroupThrough.objects.last()
+
+        # Make sure the temporary uuid fields have the value of the foreign key field:
+        self.assertEqual(dssdei.group_temp, dssg1.uuid)
+        self.assertEqual(dssglgt.from_dssgrouping_temp, dssg1.uuid)
+        self.assertEqual(dssglgt.to_dssgrouping_temp, dssg2.uuid)
+
+
+class TestDSSGroupingUUIDForeignKey(UUIDToPrimaryKeyTestBaseForDSSDEInclusionsAndDSSGroupings):
+
+    migrate_from = '0045_add_foreign_key_field'
+    migrate_to = '0046_copy_and_paste_to_foreign_key'
+
+    def setUpBeforeMigration(self, apps):
+        super().setUpBeforeMigration(apps)
+
+        # Make sure the new Field is a Foreign Key field:
+        self.assertEqual(self.DSSDEInclusion._meta.get_field('group').get_internal_type(), 'ForeignKey')
+        self.assertEqual(self.DSSGroupingLinkedGroupThrough._meta.get_field('from_dssgrouping').get_internal_type(), 'ForeignKey')
+        self.assertEqual(self.DSSGroupingLinkedGroupThrough._meta.get_field('to_dssgrouping').get_internal_type(), 'ForeignKey')
+
+        self.DSSGroupingLinkedGroupThrough.objects.create(
+            from_dssgrouping_temp=self.dssgrouping_1.uuid,
+            to_dssgrouping_temp=self.dssgrouping_2.uuid
+        )
+        self.DSSDEInclusion.objects.create(
+            data_element=self.de,
+            dss=self.dss,
+            group_temp=self.dssgrouping_1.uuid
+        )
+
+    def test_migration(self):
+        DSSDEInclusion = self.apps.get_model('aristotle_dse', 'dssdeinclusion')
+        DSSGroupingLinkedGroupThrough = self.apps.get_model('aristotle_dse', 'dssgroupinglinkedgroupthrough')
+        DSSGrouping = self.apps.get_model('aristotle_dse', 'dssgrouping')
+        dssdei = DSSDEInclusion.objects.last()
+        dssg1 = DSSGrouping.objects.get(name="Test DSSGrouping 1")
+        dssg2 = DSSGrouping.objects.get(name="Test DSSGrouping 2")
+        dssglgt = DSSGroupingLinkedGroupThrough.objects.last()
+        self.assertEqual(dssglgt.from_dssgrouping, dssg1)   # Check that new foreign key is working.
+        self.assertEqual(dssglgt.to_dssgrouping, dssg2)  # Check that new foreign key is working.
+        self.assertEqual(dssdei.group, dssg1)  # Check that new foreign key is working.
+
+        # The new fields are foreign key (relation) fields:
+        self.assertTrue(DSSGroupingLinkedGroupThrough._meta.get_field('from_dssgrouping').is_relation)
+        self.assertTrue(DSSGroupingLinkedGroupThrough._meta.get_field('to_dssgrouping').is_relation)
+        self.assertTrue(DSSDEInclusion._meta.get_field('group').is_relation)
+
+        self.assertEqual(dssglgt.from_dssgrouping.uuid, dssg1.uuid)
+        self.assertEqual(dssglgt.to_dssgrouping.uuid, dssg2.uuid)

@@ -313,13 +313,14 @@ class DataSetSpecification(aristotle.models.concept):
         return items
 
     def get_all_clusters(self) -> List[Tuple[int, int, Any]]:
-        """Get all clusters as (parent_id, child_id, inclusion) tuples (depth limited)"""
-        # Final triples
-        clusters = []
-        # Id's of last level
-        last_level_ids: Set = set([self.id])
-        # Inclusion id's
-        seen_inclusions: Set = set()
+        """
+        Get all the clusters of this DataSetSpecification Object.
+        The depth is limited by the `CLUSTER_DISPLAY_DEPTH` setting.
+        :return: Tuple containing parent id, child id, and inclusion. e.g. (parent_id, child_id, inclusion)
+        """
+        clusters = []  # Final triples
+        last_level_ids: Set = {self.id}  # Id's of last level
+        seen_inclusions: Set = set()  # Inclusion id's
 
         for i in range(settings.CLUSTER_DISPLAY_DEPTH):
             # get parent, child tuples
@@ -343,7 +344,9 @@ class DataSetSpecification(aristotle.models.concept):
         return clusters
 
     def get_de_relations(self, dss_ids: Set[int]) -> List[Tuple[int, int, Any]]:
-        """Helper used to fetch all data element relations for a set of dss's"""
+        """
+        The purpose of this function is to fetch all data element relations for a set of DSS's.
+        """
         dss_ids.add(self.id)
         values = DSSDEInclusion.objects.filter(
             dss__in=dss_ids,
@@ -437,17 +440,21 @@ class DSSInclusion(aristotle.models.aristotleComponent):
 
 class DSSGroupingLinkedGroupThrough(models.Model):
     """
-    Class representation of the through table for DSSGrouping objects.
-    The purpose of this table is to specify a `to_field` attribute in the frameworkdimension field, in order
-    to use UUID instead of id.
+    Class representation of the through table for the `linked_group` attribute of DSSGrouping objects.
+    The purpose of this table is to specify the `to_field` and `from_field` attributes for the DSSGrouping model,
+    in order to use UUID instead of id.
     """
     to_dssgrouping = models.ForeignKey(
+        blank=True,
+        null=True,
         to='DSSGrouping',
         to_field='uuid',
         related_name='to_dssgrouping_reverse',
         on_delete=models.CASCADE,
     )
     from_dssgrouping = models.ForeignKey(
+        blank=True,
+        null=True,
         to='DSSGrouping',
         to_field='uuid',
         related_name='from_dssgrouping_reverse',
@@ -490,8 +497,10 @@ class DSSGrouping(aristotle.models.aristotleComponent):
         return self.name
 
 
-# Holds the link between a DSS and a Data Element with the DSS Specific details.
 class DSSDEInclusion(DSSInclusion):
+    """
+    A DSSDEInclusion object holds the link between a DSS and a Data Element with the DSS Specific details.
+    """
     data_element = ConceptForeignKey(aristotle.models.DataElement, related_name="dssInclusions", on_delete=models.CASCADE)
 
     group = models.ForeignKey(
@@ -538,10 +547,10 @@ class DSSDEInclusion(DSSInclusion):
         pass
 
 
-# Holds the link between a DSS and a cluster with the DSS Specific details.
 class DSSClusterInclusion(DSSInclusion):
     """
-    The child in this relationship is considered to be a child of the parent DSS as specified by the `dss` property.
+    A DSSClusterInclusion object holds the link between a DSS and a cluster with the DSS Specific details.
+    The `child` in this relationship is considered to be a child of the parent DSS as specified by the `dss` property.
     """
     child = ConceptForeignKey(DataSetSpecification, related_name='parent_dss', on_delete=models.CASCADE)
 

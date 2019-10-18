@@ -15,8 +15,8 @@ class Migration(migrations.Migration):
             name='DSSGroupingLinkedGroupThrough',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('from_dssgrouping', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='from_dssgrouping_reverse', to='aristotle_dse.DSSGrouping', to_field='uuid')),
-                ('to_dssgrouping', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='to_dssgrouping_reverse', to='aristotle_dse.DSSGrouping', to_field='uuid')),
+                ('from_dssgrouping', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='from_dssgrouping_reverse', to='aristotle_dse.DSSGrouping', to_field='uuid')),
+                ('to_dssgrouping', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='to_dssgrouping_reverse', to='aristotle_dse.DSSGrouping', to_field='uuid')),
             ],
         ),
         migrations.AddField(
