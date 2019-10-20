@@ -175,7 +175,7 @@ urlpatterns = [
 
     path('version/<int:verid>', views.versions.ConceptVersionView.as_view(), name='item_version'),
 
-    path('search/',
+    path('search',
          search_view_factory(
              view_class=PermissionSearchView,
              template='search/search.html',
