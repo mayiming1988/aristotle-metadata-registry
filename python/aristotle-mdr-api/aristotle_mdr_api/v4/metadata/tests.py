@@ -699,7 +699,7 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
         patch_data = {
             "supplementaryvalue_set": [
                 {
-                    "id": self.sv_2.id,
+                    "id": self.sv_2.pk,
                     "meaning": "Oh no, please don't move me to VD # 1!",
                 }
             ]
@@ -718,8 +718,8 @@ class UpdateMetadataAPIViewTestCase(BaseAPITestCase):
         self.vd_2.refresh_from_db()
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)  # Make sure we actually get an error.
-        self.assertEqual(self.vd_1.supplementaryvalue_set.all()[0].id, self.sv_1.id)
-        self.assertEqual(self.vd_2.supplementaryvalue_set.all()[0].id, self.sv_2.id)
+        self.assertEqual(self.vd_1.supplementaryvalue_set.all()[0].pk, self.sv_1.pk)
+        self.assertEqual(self.vd_2.supplementaryvalue_set.all()[0].pk, self.sv_2.pk)
 
     def test_update_subitems_with_empty_list(self):
         patch_data = {
