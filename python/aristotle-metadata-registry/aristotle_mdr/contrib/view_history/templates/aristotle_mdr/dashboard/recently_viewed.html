@@ -6,110 +6,110 @@
 {% endblock %}
 
 {% block page %}
-<h1>{% block title %}Recently viewed metadata{% endblock %}</h1>
+    <h1>{% block title %}Recently viewed metadata{% endblock %}</h1>
 
-<div>
-This page shows a history of all metadata you have viewed, you can clear your
-history by clicking the "Clear history" button below.
-</div>
+    <div>
+        This page shows a history of all metadata you have viewed, you can clear your
+        history by clicking the "Clear history" button below.
+    </div>
 
-<a href="{% url 'clear_all_recently_viewed_metadata' %}" class="btn btn-primary"
-    data-toggle="modal" data-target="#clear_history">Clear History</a>
+    <a href="{% url 'clear_all_recently_viewed_metadata' %}" class="btn btn-primary"
+       data-toggle="modal" data-target="#clear_history">Clear History</a>
 
 
-<table class="table">
-<thead>
-    <tr>
-        <th></th><th></th>
-        <th title="Day viewed">
-            <i class="fa fa-calendar"></i> Date
-        </th>
-        <th title="Time viewed">
-            <i class="fa fa-clock-o"></i> Time
-        </th>
-        <th>
-            {% trans 'Name' %}
-        </th>
-        <th>{% trans 'Details' %}</th>
-        <th>{% trans 'Statuses' %}</th>
-        <th title="{% trans 'Remove' %}"></th>
-    </tr>
-</thead>
-<tbody>
-{% with favourites=request.user.profile.favourites.select_subclasses %}
-    {% for recent in page %}
-    {% with item=recent.concept %}
-    <tr>
-        <td>
-          {% if not hide_checkbox %}
-            <input type="checkbox" id="id_items_{{item.id}}" name="items" value="{{item.id}}">
-          {% endif %}
-        </td>
-        <td>
-            {% if item.is_registered %}
-                <i class="fa fa-university fa-fw" title="Registered"></i>
-            {% else %}
-                <i class="fa fa-flag-o fa-fw" title="In progress"></i>
-            {% endif %}
+    <table class="table">
+        <thead>
+        <tr>
+            <th></th><th></th>
+            <th title="Day viewed">
+                <i class="fa fa-calendar"></i> Date
+            </th>
+            <th title="Time viewed">
+                <i class="fa fa-clock-o"></i> Time
+            </th>
+            <th>
+                {% trans 'Name' %}
+            </th>
+            <th>{% trans 'Details' %}</th>
+            <th>{% trans 'Statuses' %}</th>
+            <th title="{% trans 'Remove' %}"></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% with favourites=request.user.profile.favourites.select_subclasses %}
+            {% for recent in page %}
+                {% with item=recent.concept %}
+                    <tr>
+                        <td>
+                            {% if not hide_checkbox %}
+                                <input type="checkbox" id="id_items_{{item.id}}" name="items" value="{{item.id}}">
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.is_registered %}
+                                <i class="fa fa-university fa-fw" title="Registered"></i>
+                            {% else %}
+                                <i class="fa fa-flag-o fa-fw" title="In progress"></i>
+                            {% endif %}
 
-            {% if not hide_favourites %}
-              {% if request.user.is_active %}
-              {% with is_favourite=item|is_in:favourites %}
-                  <a href="{% url 'aristotle_favourites:toggleFavourite' item.id %}?next={{ request.path }}"
-                      title="{% ternary is_favourite 'Remove from my favourite items' 'Add to my favourite items' %}"
-                      >
-                      {% if is_favourite %}
-                          <i class="fa fa-bookmark fa-fw"></i>
-                      {% else %}
-                          <i class="fa fa-bookmark-o fa-fw"></i>
-                      {% endif %}
-                  </a>
-              {% endwith %}
-              {% endif %}
-            {% endif %}
-        </td>
-        <td>
-        {% ifchanged recent.view_date.date recent.view_date.date %}
-            <time datetime="{{ recent.view_date|isotime }}">{{ recent.view_date }}</time>
-        {% endifchanged %}
-        </td><td>
-        <time datetime="{{ recent.view_date|isotime }}" data-format="h:mm a">{{ recent.view_date }}</time>
-        </td>
-        <td>
-        {% include "aristotle_mdr/helpers/itemLink.html" with item=item shared_items=shared_items %}
-        <div class="small" style="white-space: nowrap;">
-        {{ item.item_type_name }}
-        </div>
-        </td>
-        <td>
-        {% include item.item.list_details_template with item=item %}
-        </td>
-        <td>
-            <ul>
-            {% for s in item.current_statuses %}
-                <li>{{ s.registrationAuthority }}: {{ s.state_name }}</li>
-            {% empty %}
-            <li><em>Unregistered</em></li>
-            {% endfor %}</small>
-            </ul>
-        </td>
-        <td>
-            <form method="POST" action="{% url 'delete_recently_viewed_metadata_item' pk=recent.pk %}">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-default">
-                  <i class="fa fa-times" aria-hidden="true" title="Remove item from history"></i>
-                  <span class="sr-only">Remove item from history</span>
-                </a>
-            </form>
-        </td>
-    </tr>
-    {% endwith %}
-    {% endfor %}
-{% endwith %}
-</tbody>
-</table>
-{% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
+                            {% if not hide_favourites %}
+                                {% if request.user.is_active %}
+                                    {% with is_favourite=item|is_in:favourites %}
+                                        <a href="{% url 'aristotle_favourites:toggleFavourite' item.id %}?next={{ request.path }}"
+                                           title="{% ternary is_favourite 'Remove from my favourite items' 'Add to my favourite items' %}"
+                                        >
+                                            {% if is_favourite %}
+                                                <i class="fa fa-bookmark fa-fw"></i>
+                                            {% else %}
+                                                <i class="fa fa-bookmark-o fa-fw"></i>
+                                            {% endif %}
+                                        </a>
+                                    {% endwith %}
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% ifchanged recent.view_date.date recent.view_date.date %}
+                                <time datetime="{{ recent.view_date|isotime }}">{{ recent.view_date }}</time>
+                            {% endifchanged %}
+                        </td><td>
+                        <time datetime="{{ recent.view_date|isotime }}" data-format="h:mm a">{{ recent.view_date }}</time>
+                    </td>
+                        <td>
+                            {% include "aristotle_mdr/helpers/itemLink.html" with item=item shared_items=shared_items %}
+                            <div class="small" style="white-space: nowrap;">
+                                {{ item.item_type_name }}
+                            </div>
+                        </td>
+                        <td>
+                            {% include item.item.list_details_template with item=item %}
+                        </td>
+                        <td>
+                            <ul>
+                                {% for s in item.current_statuses %}
+                                    <li>{{ s.registrationAuthority }}: {{ s.state_name }}</li>
+                                {% empty %}
+                                    <li><em>Unregistered</em></li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                        <td>
+                            <form method="POST" action="{% url 'delete_recently_viewed_metadata_item' pk=recent.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-default" title="Remove item from history">
+                                    <i class="fa fa-times" aria-hidden="true"></i>
+                                    <span class="sr-only">Remove item from history</span>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endwith %}
+            {% endfor %}
+        {% endwith %}
+        </tbody>
+    </table>
+    {% include "aristotle_mdr/helpers/paginator.html" with page=page_obj %}
 
-{% bootstrap_modal "clear_history" size='md' %}
+    {% bootstrap_modal "clear_history" size='md' %}
 
 {% endblock %}
