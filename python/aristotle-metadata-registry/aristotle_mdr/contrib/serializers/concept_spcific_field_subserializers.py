@@ -13,7 +13,7 @@ class PermissibleValueSerializer(SubSerializer):
 
     class Meta:
         model = PermissibleValue
-        fields = ['value', 'meaning', 'order', 'start_date', 'end_date', 'uuid']
+        fields = ['value', 'meaning', 'order', 'start_date', 'end_date', 'uuid']  # Change these to ids???
 
 
 class SupplementaryValueSerializer(SubSerializer):

@@ -57,7 +57,6 @@ class ConceptBaseSerializer(WritableNestedModelSerializer):
     def validate(self, attrs):
 
         request = self.context.get("request")
-        field_used_by_django_rest_framework = 'uuid'
 
         for field_name, field_data in self.get_initial().items():  # We are using self.get_initial() because it provides ids.
 
@@ -76,10 +75,9 @@ class ConceptBaseSerializer(WritableNestedModelSerializer):
                             )
                         )
                         raise serializers.ValidationError(msg, code='Aristotle API Request Error')
-
-                    allowed_identifiers = set(getattr(self.instance, field_name).values_list(field_used_by_django_rest_framework, flat=True))
+                    allowed_identifiers = set(getattr(self.instance, field_name).values_list('pk', flat=True))
                     for fk_dict in field_data:
-                        subcomponent_identifier = fk_dict.get(field_used_by_django_rest_framework)
+                        subcomponent_identifier = fk_dict.get('id')
                         if subcomponent_identifier and subcomponent_identifier not in allowed_identifiers:
                             msg = _('Iem id `{}` does not match with any existing identifier for `{}` in `{}`.'.format(
                                 subcomponent_identifier, field_name, self.instance)

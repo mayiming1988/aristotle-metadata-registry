@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from aristotle_mdr.models import RecordRelation
-from aristotle_mdr.contrib.serializers.utils import SubSerializer
+from aristotle_mdr.contrib.serializers.utils import SubSerializer, AristotleComponentSerializer
 from aristotle_mdr.contrib.custom_fields.models import CustomValue
 from aristotle_mdr.contrib.slots.models import Slot
 from aristotle_mdr.contrib.identifiers.models import ScopedIdentifier
@@ -23,7 +23,7 @@ class CustomValuesSerializer(SubSerializer):
         return custom_value.field.name
 
 
-class IdentifierSerializer(SubSerializer):
+class IdentifierSerializer(AristotleComponentSerializer):
 
     class Meta:
         model = ScopedIdentifier

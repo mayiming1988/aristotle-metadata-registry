@@ -33,6 +33,14 @@ class SubSerializer(serializers.ModelSerializer):
         return item.pk
 
 
+class AristotleComponentSerializer(serializers.ModelSerializer):
+    """
+    Base class for Aristotle Components.
+    """
+
+    id = serializers.UUIDField(source='uuid')
+
+
 def get_comet_field_serializer_mapping():
     mapping = {}
     if 'comet' in settings.INSTALLED_APPS:
