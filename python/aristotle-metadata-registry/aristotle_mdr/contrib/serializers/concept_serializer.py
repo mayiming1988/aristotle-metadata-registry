@@ -57,7 +57,7 @@ class ConceptBaseSerializer(WritableNestedModelSerializer):
     def validate(self, attrs):
 
         request = self.context.get("request")
-        field_used_by_django_rest_framework = 'id'  # Change this variable to 'uuid' after changing the serializers.
+        field_used_by_django_rest_framework = 'uuid'
 
         for field_name, field_data in self.get_initial().items():  # We are using self.get_initial() because it provides ids.
 

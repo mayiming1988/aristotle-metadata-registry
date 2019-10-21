@@ -195,7 +195,7 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
                 {
                     "value": "hello",
                     "order": 0,
-                    "id": sv_1.id,  # We don't allow ids.
+                    "id": sv_1.pk,  # We don't allow ids.
                 },
             ],
         }
@@ -218,7 +218,7 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
                 {
                     "value": "hello",
                     "order": 0,
-                    "pk": sv_1.id,  # We don't allow pks.
+                    "pk": sv_1.pk,  # We don't allow pks.
                 },
             ],
         }
