@@ -278,7 +278,7 @@ class TestRelationRoleUUIDForeignKey(UUIDToPrimaryKeyTestBaseForFrameworkDimensi
         super().setUpBeforeMigration(apps)
 
         # Make sure the new Field is a Foreign Key field:
-        self.assertEqual(self.FrameworkDimension._meta.get_field('parent').get_internal_type(), 'ForeignKey')
+        self.assertEqual(self.FrameworkDimension._meta.get_field('parent').get_internal_type(), 'TreeForeignKey')
         self.assertEqual(self.IndicatorFrameworkDimensionsThrough._meta.get_field('frameworkdimension').get_internal_type(), 'ForeignKey')
 
         self.fd = self.FrameworkDimension.objects.create(
