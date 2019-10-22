@@ -45,11 +45,12 @@ def can_alter_post(user, post):
     except:
         return False
 
+
 @register.filter()
 def can_manage_workgroup(user, workgroup):
     try:
         return perms.user_can_manage_workgroup(user, workgroup)
-    except: # pragma: no cover
+    except:  # pragma: no cover
         return None
 
 
@@ -283,11 +284,13 @@ def public_standards(regAuth, itemType="aristotle_mdr._concept"):
     """
     try:
         from django.contrib.contenttypes.models import ContentType
-        app_label, model_name=itemType.lower().split('.', 1)[0:2]
+        app_label, model_name = itemType.lower().split('.', 1)[0:2]
         standard_states = [MDR.STATES.standard, MDR.STATES.preferred]
         return [
             (i, i.statuses.filter(registrationAuthority=regAuth, state__in=standard_states).first())
-            for i in ContentType.objects.filter(app_label__in=fetch_metadata_apps()).get(app_label=app_label, model=model_name).model_class().objects.filter(statuses__registrationAuthority=regAuth, statuses__state__in=standard_states).public()
+            for i in ContentType.objects.filter(app_label__in=fetch_metadata_apps()).get(app_label=app_label,
+                                                                                         model=model_name).model_class().objects.filter(
+                statuses__registrationAuthority=regAuth, statuses__state__in=standard_states).public()
         ]
     except:
         return []
@@ -469,7 +472,8 @@ def doc(item, field=None):
             return _(ct._meta.get_field(field).help_text)
         else:
             # return _("No help text for the field '%(field)s' found on the model '%(model)s' in the app '%(app)s'") % {'app':app_label,'model':model_name,'field':field}
-            return _("No help text for the field '%(field)s' found for the model '%(model)s'") % {'model': item.get_verbose_name(), 'field': field}
+            return _("No help text for the field '%(field)s' found for the model '%(model)s'") % {
+                'model': item.get_verbose_name(), 'field': field}
 
 
 @register.filter
@@ -482,7 +486,7 @@ def can_use_action(user, bulk_action, *args):
 @register.filter
 def template_path(item, _type):
     from aristotle_mdr.utils import get_download_template_path_for_item
-    _type, subpath=_type.split(',')
+    _type, subpath = _type.split(',')
     return get_download_template_path_for_item(item, _type, subpath)
 
 
@@ -510,7 +514,6 @@ def is_active_extension(extension_name):
 
 @register.filter
 def get_dataelements_from_m2m(ded, field_name):
-
     throughmodel = getattr(ded, field_name).through
 
     throughs = throughmodel.objects.filter(data_element_derivation=ded).select_related('data_element')
