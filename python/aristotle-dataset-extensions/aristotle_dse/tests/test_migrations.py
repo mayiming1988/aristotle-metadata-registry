@@ -301,7 +301,6 @@ class TestDSSDEInclusionAndDSSGroupingLinkedGroupThroughPrimaryKeyChange(UUIDToP
         DSSDEInclusion = self.apps.get_model('aristotle_dse', 'dssdeinclusion')
         DSSGroupingLinkedGroupThrough = self.apps.get_model('aristotle_dse', 'dssgroupinglinkedgroupthrough')
         DSSGrouping = self.apps.get_model('aristotle_dse', 'dssgrouping')
-
         dssdei = DSSDEInclusion.objects.last()
         dssg1 = DSSGrouping.objects.get(name="Test DSSGrouping 1")
         dssg2 = DSSGrouping.objects.get(name="Test DSSGrouping 2")
