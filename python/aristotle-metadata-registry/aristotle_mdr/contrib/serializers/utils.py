@@ -38,7 +38,7 @@ class AristotleComponentSerializer(serializers.ModelSerializer):
     Base class for Aristotle Components.
     """
 
-    id = serializers.UUIDField(source='uuid')
+    id = serializers.UUIDField(source='uuid', required=False)
 
 
 def get_comet_field_serializer_mapping():

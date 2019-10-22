@@ -394,6 +394,7 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
     def test_api_list_or_create_metadata_post_request_for_data_set_specification_with_subcomponents(self):
 
         from aristotle_dse.models import DataSetSpecification
+        from aristotle_mdr.contrib.custom_fields.models import CustomValue
 
         post_data = {
             "name": "Test DSS",
@@ -470,13 +471,11 @@ class ListCreateMetadataAPIViewTestCase(BaseAPITestCase):
             format='json',
         )
 
-        import pdb
-        pdb.set_trace()
-
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)  # Make sure we actually created data.
         self.assertEqual(len(response.data['dssdeinclusion_set']), 2)  # We have 2 dss de inclusion objects.
         self.assertEqual(len(response.data['dssclusterinclusion_set']), 1)  # We have 1 dss cluster inclusion objects.
         self.assertEqual(len(response.data['customvalue_set']), 2)  # We have 2 custom value objects.
+        self.assertEqual(CustomValue.objects.all().count(), 2)  # Two CustomValue objects were actually created.
         self.assertEqual(post_data['name'], DataSetSpecification.objects.last().name)  # DSS is in db.
 
     def test_api_list_or_create_metadata_post_request_for_indicator_with_subcomponents(self):
