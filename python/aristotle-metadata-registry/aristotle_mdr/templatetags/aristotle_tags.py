@@ -47,7 +47,7 @@ def can_alter_post(user, post):
 
 
 @register.filter()
-def can_manage_workgroup(user, workgroup):
+def can_manage_workgroup(workgroup, user):
     try:
         return perms.user_can_manage_workgroup(user, workgroup)
     except:  # pragma: no cover
